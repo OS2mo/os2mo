@@ -8,7 +8,6 @@ from uuid import UUID
 
 from structlog import get_logger
 
-from .. import reading
 from ... import mapping
 from ... import util
 from ...common import get_connector
@@ -16,13 +15,14 @@ from ...common import parse_owner_inference_priority_str
 from ...exceptions import ErrorCodes
 from ...graphapi.middleware import is_graphql
 from ...mapping import EXTENSION_1
-from ...mapping import OwnerInferencePriority
 from ...mapping import PRIMARY
+from ...mapping import OwnerInferencePriority
 from ...service import employee
 from ...service import orgunit
 from ...service.facet import get_sorted_primary_class_list
 from ...util import get_uuid
 from ...util import get_valid_from
+from .. import reading
 from .association import AssociationReader
 from .engagement import EngagementReader
 
@@ -195,7 +195,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
                 )
             else:
                 ErrorCodes.E_INTERNAL_ERROR(
-                    f"ill-formatted object encountered: " f"{effect}"
+                    f"ill-formatted object encountered: {effect}"
                 )
         elif owner_uuid:
             func[mapping.OWNER] = await employee.request_bulked_get_one_employee(

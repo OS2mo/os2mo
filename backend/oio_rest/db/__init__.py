@@ -14,10 +14,14 @@ import dateutil
 from dateutil import parser as date_parser
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
+from mora.audit import audit_log
+from mora.auth.middleware import get_authenticated_user
+from mora.db import get_session
 from more_itertools import one
 from psycopg import sql
 from psycopg.adapt import Transformer
 from psycopg.types.range import TimestamptzRange
+from ramodels.base import to_parsable_timestamp
 from sqlalchemy import text
 from sqlalchemy.exc import StatementError
 
@@ -26,21 +30,17 @@ from ..custom_exceptions import DBException
 from ..custom_exceptions import NotFoundException
 from .db_helpers import AktoerAttr
 from .db_helpers import DokumentVariantType
+from .db_helpers import JournalDokument
+from .db_helpers import JournalNotat
+from .db_helpers import OffentlighedUndtaget
+from .db_helpers import Soegeord
+from .db_helpers import VaerdiRelationAttr
 from .db_helpers import get_attribute_fields
 from .db_helpers import get_attribute_names
 from .db_helpers import get_field_type
 from .db_helpers import get_relation_field_type
 from .db_helpers import get_state_names
-from .db_helpers import JournalDokument
-from .db_helpers import JournalNotat
-from .db_helpers import OffentlighedUndtaget
-from .db_helpers import Soegeord
 from .db_helpers import to_bool
-from .db_helpers import VaerdiRelationAttr
-from mora.audit import audit_log
-from mora.auth.middleware import get_authenticated_user
-from mora.db import get_session
-from ramodels.base import to_parsable_timestamp
 
 """
     Jinja2 Environment
@@ -82,8 +82,9 @@ def convert_attr_value(attribute_name, attribute_field_name, attribute_field_val
     if field_type == "soegeord":
         return [Soegeord(*ord) for ord in attribute_field_value]
     elif field_type == "offentlighedundtagettype":
-        if not ("alternativtitel" in attribute_field_value) and not (
-            "hjemmel" in attribute_field_value
+        if (
+            "alternativtitel" not in attribute_field_value
+            and "hjemmel" not in attribute_field_value
         ):
             # Empty object, so provide the DB with a NULL, so that the old
             # value is not overwritten.
@@ -761,7 +762,7 @@ def _parse_timestamp(timestamp: datetime.datetime | str) -> datetime.datetime:
         raise TypeError(f"Invalid parameter {timestamp}")
 
     if not dt.tzinfo:
-        dt = dt.replace(tzinfo=datetime.timezone.utc)
+        dt = dt.replace(tzinfo=datetime.UTC)
 
     return dt
 

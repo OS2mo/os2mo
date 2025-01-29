@@ -3,9 +3,7 @@
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
-
 from mora import util as mora_util
-
 
 HUM = {
     "org_unit": [
@@ -94,7 +92,7 @@ HIST = {
         ),
         # should this be a 404?
         (
-            "/service/ou/00000000-0000-0000-0000-000000000000" "/details/related_unit",
+            "/service/ou/00000000-0000-0000-0000-000000000000/details/related_unit",
             [],
             None,
         ),

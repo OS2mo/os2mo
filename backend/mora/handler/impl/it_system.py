@@ -1,15 +1,16 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """ITSystem Reading Handler (Lora)"""
+
 from structlog import get_logger
 
-from .. import reading
 from ... import common
 from ... import exceptions
 from ... import lora
 from ... import mapping
 from ... import util
 from ...service.itsystem import MO_OBJ_TYPE
+from .. import reading
 
 ROLE_TYPE = "itsystem"
 

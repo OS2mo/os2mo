@@ -14,6 +14,7 @@ The event is posted to a RabbitMQ topic exchange, where the routing key is the
 object type (e.g. "org_unit") and the content is the UUID of the affected
 object.
 """
+
 # TODO: Do we wanna audit-log database access from here?
 import asyncio
 import random
@@ -21,10 +22,10 @@ from typing import Literal
 from uuid import UUID
 
 from fastramqpi.ramqp import AMQPSystem
+from sqlalchemy import Text
 from sqlalchemy import func
 from sqlalchemy import or_
 from sqlalchemy import select
-from sqlalchemy import Text
 from sqlalchemy import text
 from sqlalchemy import union
 from sqlalchemy import update
@@ -59,7 +60,6 @@ from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRegistrering
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionTilsGyldighed
-
 
 logger = get_logger()
 

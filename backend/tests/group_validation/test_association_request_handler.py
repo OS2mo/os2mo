@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock
 from unittest.mock import Mock
 
 import pytest
-
 from mora.service.association import AssociationRequestHandler
 
 

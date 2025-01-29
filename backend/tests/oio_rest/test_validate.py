@@ -6,12 +6,12 @@ import os.path
 
 import jsonschema
 import pytest
-
-from . import util
 from oio_rest import db
 from oio_rest import klassifikation
 from oio_rest import organisation
 from oio_rest import validate
+
+from . import util
 
 
 class TestBase:
@@ -705,13 +705,17 @@ class TestGenerateJSONSchema(TestBase):
 
     def test_index_not_allowed_for_non_special_nul_til_mange_relations(self):
         relationer = validate._generate_relationer("organisation", do_create=True)
-        assert not (
+        assert (
             "indeks"
-            in relationer["properties"]["ansatte"]["items"]["oneOf"][0]["properties"]
+            not in relationer["properties"]["ansatte"]["items"]["oneOf"][0][
+                "properties"
+            ]
         )
-        assert not (
+        assert (
             "indeks"
-            in relationer["properties"]["ansatte"]["items"]["oneOf"][1]["properties"]
+            not in relationer["properties"]["ansatte"]["items"]["oneOf"][1][
+                "properties"
+            ]
         )
 
     @pytest.mark.parametrize("obj", db.db_structure.REAL_DB_STRUCTURE)
@@ -1137,9 +1141,9 @@ class TestFacetSystematically(TestBase):
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
         further details
         """
-        self.facet["attributter"]["facetegenskaber"][0]["virkning"][
-            "aktoerref"
-        ] = "This is not an UUID"
+        self.facet["attributter"]["facetegenskaber"][0]["virkning"]["aktoerref"] = (
+            "This is not an UUID"
+        )
         self.assertValidationError()
 
     def test_virkning_aktoertype_not_string(self):

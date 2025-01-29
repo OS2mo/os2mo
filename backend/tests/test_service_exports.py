@@ -4,18 +4,18 @@ from datetime import timedelta
 from unittest import mock
 from uuid import uuid4
 
+import mora
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from mora.service.shimmed.exports import check_auth_cookie
+from mora.service.shimmed.exports import purge_all_filetokens
 from more_itertools import first
 from starlette.status import HTTP_200_OK
 from starlette.status import HTTP_401_UNAUTHORIZED
 from starlette.status import HTTP_404_NOT_FOUND
 from starlette.status import HTTP_409_CONFLICT
 
-import mora
-from mora.service.shimmed.exports import check_auth_cookie
-from mora.service.shimmed.exports import purge_all_filetokens
 from tests.conftest import YieldFixture
 
 
@@ -94,9 +94,9 @@ async def test_get_export_reads_cookie(
     assert response.text == content.decode("utf8")
 
     # Reinstall the cookie checking code
-    fastapi_test_app_weird_auth.dependency_overrides[
+    fastapi_test_app_weird_auth.dependency_overrides[check_auth_cookie] = (
         check_auth_cookie
-    ] = check_auth_cookie
+    )
 
     # No cookie, not okay
     response = service_client_weird_auth.get(f"/service/exports/{filename}")

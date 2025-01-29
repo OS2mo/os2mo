@@ -7,12 +7,11 @@ from uuid import UUID
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
-from more_itertools import one
-
 from mora import lora
 from mora import util as mora_util
-from tests.cases import assert_registrations_equal
+from more_itertools import one
 
+from tests.cases import assert_registrations_equal
 
 mock_uuid = "1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"
 userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
@@ -322,8 +321,7 @@ manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
                                 "from": "2017-01-01 00:00:00+01",
                                 "to": "2018-04-01 00:00:00+02",
                             },
-                            "brugervendtnoegle": "be736ee5-5c44-4ed9-"
-                            "b4a4-15ffa19e2848",
+                            "brugervendtnoegle": "be736ee5-5c44-4ed9-b4a4-15ffa19e2848",
                             "funktionsnavn": "Leder",
                         },
                         {
@@ -525,8 +523,7 @@ manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
                                 "from": "2017-01-01 00:00:00+01",
                                 "to": "infinity",
                             },
-                            "brugervendtnoegle": "be736ee5-5c44-4ed9-"
-                            "b4a4-15ffa19e2848",
+                            "brugervendtnoegle": "be736ee5-5c44-4ed9-b4a4-15ffa19e2848",
                             "funktionsnavn": "Leder",
                         }
                     ]

@@ -10,6 +10,9 @@ import strawberry
 from strawberry import UNSET
 from strawberry.types.unset import UnsetType
 
+from mora.graphapi.gmodels.mo import OpenValidity as RAOpenValidity
+from mora.graphapi.gmodels.mo import Validity as RAValidity
+
 from .models import AddressCreate
 from .models import AddressTerminate
 from .models import AddressUpdate
@@ -56,8 +59,6 @@ from .models import RoleBindingCreate
 from .models import RoleBindingTerminate
 from .models import RoleBindingUpdate
 from .models import Validity
-from mora.graphapi.gmodels.mo import OpenValidity as RAOpenValidity
-from mora.graphapi.gmodels.mo import Validity as RAValidity
 
 
 def gen_uuid_unset(uuid: UUID | UnsetType | None) -> dict[str, str] | UnsetType | None:

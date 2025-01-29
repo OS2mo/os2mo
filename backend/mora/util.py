@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-""""
+""" "
 Utility methods
 ---------------
 
@@ -8,6 +8,7 @@ This module contains various utility methods, i.e. a collection of
 various small functions used in many places.
 
 """
+
 import copy
 import datetime
 import io
@@ -24,19 +25,19 @@ from zoneinfo import ZoneInfo
 
 import dateutil.parser
 import dateutil.tz
+from ramodels.base import to_parsable_timestamp
 from starlette_context import context
 from structlog import get_logger
 
 from . import config
 from . import exceptions
 from . import mapping
-from ramodels.base import to_parsable_timestamp
 
 _sentinel = object()
 
 # timezone-aware versions of min/max
-POSITIVE_INFINITY = datetime.datetime.max.replace(tzinfo=datetime.timezone.utc)
-NEGATIVE_INFINITY = datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)
+POSITIVE_INFINITY = datetime.datetime.max.replace(tzinfo=datetime.UTC)
+NEGATIVE_INFINITY = datetime.datetime.min.replace(tzinfo=datetime.UTC)
 MINIMAL_INTERVAL = datetime.timedelta(microseconds=1)
 ONE_DAY = datetime.timedelta(days=1)
 
@@ -258,7 +259,7 @@ def get_cpr_birthdate(number: int | str) -> datetime.datetime:
         raise ValueError(f"invalid CPR number {number}")
 
 
-URN_SAFE = frozenset(b"abcdefghijklmnopqrstuvwxyz" b"0123456789" b"+")
+URN_SAFE = frozenset(b"abcdefghijklmnopqrstuvwxyz0123456789+")
 
 
 def urnquote(s):

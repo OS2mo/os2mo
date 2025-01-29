@@ -9,7 +9,6 @@ from uuid import UUID
 
 from pydantic import ConstrainedStr
 from strawberry.types.unset import UnsetType
-
 from tests.conftest import GraphAPIPost
 
 sys_random = random.SystemRandom()

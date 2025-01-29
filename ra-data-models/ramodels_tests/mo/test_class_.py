@@ -2,10 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 from hypothesis import given
 from hypothesis import strategies as st
-
 from ramodels.mo.class_ import ClassRead
 from ramodels.mo.class_ import ClassWrite
-
 
 OPTIONAL = {
     "published": st.none() | st.text(),

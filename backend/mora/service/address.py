@@ -4,9 +4,6 @@ import uuid
 
 from fastapi import APIRouter
 
-from . import facet
-from . import handlers
-from . import org
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -14,6 +11,9 @@ from .. import mapping
 from .. import util
 from ..triggers import Trigger
 from ..util import ensure_list
+from . import facet
+from . import handlers
+from . import org
 from .address_handler import base
 from .validation import validator
 

@@ -4,7 +4,6 @@ from collections.abc import Callable
 from uuid import UUID
 
 import pytest
-
 from mora.auth.keycloak.legacy import validate_session
 
 

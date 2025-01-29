@@ -7,7 +7,6 @@ from contextlib import nullcontext as does_not_raise
 import dateutil.tz
 import freezegun
 import pytest
-
 from mora import exceptions
 from mora import util
 from mora.util import parsedatetime
@@ -431,7 +430,7 @@ def test_checked_get_exception(key, default, required):
     if not required and mapping.get(key) is not None:
         expected = type(default).__name__
         output["error_key"] = "E_INVALID_TYPE"
-        output["description"] = "Invalid '{}', " "expected {}, got: {}".format(
+        output["description"] = "Invalid '{}', expected {}, got: {}".format(
             key, expected, json.dumps(mapping.get(key))
         )
         output["actual"] = mapping.get(key)

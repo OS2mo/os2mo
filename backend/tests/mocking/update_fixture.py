@@ -4,6 +4,7 @@
 """
 Update, i.e. re-fetch, a JSON fixture
 """
+
 import json
 import os
 import sys

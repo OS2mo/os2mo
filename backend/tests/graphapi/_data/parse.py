@@ -5,11 +5,11 @@
 This script is only intended for one-time use. Results are committed to git and used
 when mocking LoRa with pytest fixtures.
 """
+
 import json
 from pathlib import Path
 
 import httpx
-
 from mora.lora import LoraObjectType
 
 

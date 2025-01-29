@@ -79,7 +79,7 @@ class ErrorCodes(Enum):
     )
     V_MORE_THAN_ONE_ASSOCIATION = (
         400,
-        "The employee already has an active association with the given " "org unit.",
+        "The employee already has an active association with the given org unit.",
     )
     V_MORE_THAN_ONE_PRIMARY = (
         400,
@@ -160,7 +160,7 @@ class HTTPException(fastapiHTTPException):
         message: str | None = None,
         *,
         cause=None,
-        **extras
+        **extras,
     ) -> None:
         if error_key is not None:
             self.key = error_key

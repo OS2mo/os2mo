@@ -6,15 +6,16 @@
 This section describes how to interact with employee manager roles.
 
 """
+
 import uuid
 
-from . import handlers
-from . import org
 from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
 from ..triggers import Trigger
+from . import handlers
+from . import org
 from .validation import validator
 
 

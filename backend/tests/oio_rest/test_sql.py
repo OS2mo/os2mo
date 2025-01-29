@@ -3,11 +3,11 @@
 import pathlib
 
 import pytest
+from mora.db import AsyncSession
 from more_itertools import one
 from sqlalchemy import text
 from tap.parser import Parser
 
-from mora.db import AsyncSession
 from tests.oio_rest import util
 
 

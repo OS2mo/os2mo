@@ -10,6 +10,7 @@ For more information regarding reading relations involving organisational
 units, refer to http:get:`/service/(any:type)/(uuid:id)/details/`
 
 """
+
 import copy
 import enum
 import locale
@@ -28,10 +29,10 @@ from more_itertools import flatten
 from more_itertools import last
 from more_itertools import unzip
 
-from . import autocomplete
-from . import facet
-from . import handlers
-from . import org
+from mora.auth.keycloak import oidc
+from mora.request_scoped.bulking import get_lora_object
+from mora.service.util import get_configuration
+
 from .. import common
 from .. import config
 from .. import depends
@@ -43,11 +44,12 @@ from ..graphapi.middleware import is_graphql
 from ..handler.reading import get_handler_for_type
 from ..lora import LoraObjectType
 from ..triggers import Trigger
+from . import autocomplete
+from . import facet
+from . import handlers
+from . import org
 from .tree_helper import prepare_ancestor_tree
 from .validation import validator
-from mora.auth.keycloak import oidc
-from mora.request_scoped.bulking import get_lora_object
-from mora.service.util import get_configuration
 
 router = APIRouter()
 
@@ -563,8 +565,7 @@ async def get_one_orgunit(
 async def autocomplete_orgunits(
     session: depends.Session,
     query: str,
-    at: date
-    | None = Query(
+    at: date | None = Query(
         None,
         description='The "at date" to use, e.g. `2020-01-31`. '
         "Results are only included if they are active at the specified date.",

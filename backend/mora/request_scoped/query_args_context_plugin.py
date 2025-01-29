@@ -3,11 +3,9 @@
 from collections.abc import AsyncIterator
 
 from fastapi import Request
+from mora.log import canonical_log_context
 from starlette_context import context
 from starlette_context import request_cycle_context
-
-from mora.log import canonical_log_context
-
 
 _MIDDLEWARE_KEY = "query_args"
 

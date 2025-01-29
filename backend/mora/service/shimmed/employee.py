@@ -12,14 +12,15 @@ from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 
-from .errors import handle_gql_error
 from mora import exceptions
 from mora import util
 from mora.auth.keycloak import oidc
+from mora.graphapi.shim import MOEmployee
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
-from mora.graphapi.shim import MOEmployee
 from mora.service.employee import router as employee_router
+
+from .errors import handle_gql_error
 
 
 @employee_router.get(
@@ -30,9 +31,7 @@ from mora.service.employee import router as employee_router
 async def get_employee(
     id: UUID = Path(..., description="UUID of the employee to retrieve"),
     only_primary_uuid: bool | None = Query(None, description="Only retrieve the UUID"),
-    at: date
-    | datetime
-    | None = Query(
+    at: date | datetime | None = Query(
         None, description="Show the employee at this point in time, in ISO-8601 format."
     ),
 ):

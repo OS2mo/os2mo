@@ -11,20 +11,21 @@ from uuid import uuid4
 
 import pytest
 from fastapi.encoders import jsonable_encoder
-from hypothesis import given
 from hypothesis import HealthCheck
+from hypothesis import given
 from hypothesis import settings
 from hypothesis import strategies as st
-from more_itertools import one
-
-from ..conftest import GraphAPIPost
-from .strategies import graph_data_momodel_validity_strat
 from mora import util
 from mora.auth.keycloak.oidc import noauth
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.classes import ClassCreate
 from mora.graphapi.versions.latest.graphql_utils import PrintableStr
+from more_itertools import one
+
 from tests.conftest import AnotherTransaction
+
+from ..conftest import GraphAPIPost
+from .strategies import graph_data_momodel_validity_strat
 
 # Helpers
 # -------------------

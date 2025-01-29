@@ -5,7 +5,6 @@ from unittest.mock import call
 
 import freezegun
 from fastapi.testclient import TestClient
-
 from oio_rest.organisation import Organisation
 
 

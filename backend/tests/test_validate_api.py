@@ -5,7 +5,6 @@ from unittest.mock import patch
 
 from mora import util as mora_util
 
-
 UUID = {"uuid": "be0df80c-7eed-4a2e-a682-e36be4e4877e"}
 FROM_DATE = "2000-01-01"
 PERSON_UUID = "cc1fc948-d3f6-4bbc-9faf-288e0f956135"
@@ -44,7 +43,7 @@ def test_validate_employee(mock, service_client):
     )
 
 
-@patch("mora.service.validate.validator." "does_employee_with_cpr_already_exist")
+@patch("mora.service.validate.validator.does_employee_with_cpr_already_exist")
 def test_cpr(mock, service_client):
     cpr_no = "1234567890"
 

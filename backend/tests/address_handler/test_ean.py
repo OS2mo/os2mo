@@ -3,11 +3,10 @@
 from unittest.mock import patch
 
 import pytest
-
 from mora import exceptions
 from mora.service.address_handler.ean import EANAddressHandler
-from tests import util
 
+from tests import util
 
 VALUE_FIXED = "1234567890123"
 VISIBILITY_FIXED = "1f6295e8-9000-43ec-b694-4d288fa158bb"

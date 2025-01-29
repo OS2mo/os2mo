@@ -6,9 +6,7 @@ from queue import Queue
 from uuid import UUID
 
 from ..lora import Scope
-from ..mapping import (
-    FieldTuple,
-)
+from ..mapping import FieldTuple
 
 
 def queue_iterator(queue):

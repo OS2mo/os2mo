@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Endpoints for health checks."""
+
 from collections.abc import Callable
 
 import aiohttp

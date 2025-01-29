@@ -4,11 +4,12 @@ from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 
+from mora import mapping
+from mora.service.manager import ManagerRequestHandler
+
 from .models import ManagerCreate
 from .models import ManagerTerminate
 from .models import ManagerUpdate
-from mora import mapping
-from mora.service.manager import ManagerRequestHandler
 
 
 async def create_manager(input: ManagerCreate) -> UUID:

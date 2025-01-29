@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Add audit_log."""
-import sqlalchemy as sa
-from sqlalchemy.sql import func
 
+import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.sql import func
 
 # revision identifiers, used by Alembic.
 revision = "f710f6d29a74"

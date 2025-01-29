@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Functions related to resolver seeding."""
+
 import dataclasses
 import typing
 from collections.abc import Awaitable
@@ -13,7 +14,6 @@ from typing import Any
 from typing import TypeVar
 
 import strawberry
-
 
 R = TypeVar("R")
 

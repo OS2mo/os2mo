@@ -8,9 +8,9 @@ import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
+from mora.config import Settings
 from pytest import MonkeyPatch
 
-from mora.config import Settings
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 

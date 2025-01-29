@@ -11,8 +11,9 @@ from typing import TYPE_CHECKING
 
 from more_itertools import flatten
 
-from ... import lora
 from mora.exceptions import ErrorCodes
+
+from ... import lora
 
 if TYPE_CHECKING:  # pragma: no cover
     from ...handler.reading import ReadingHandler

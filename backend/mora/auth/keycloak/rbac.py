@@ -15,9 +15,8 @@ from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.owner import get_owners
 from mora.graphapi.shim import execute_graphql
 from mora.mapping import ADMIN
-from mora.mapping import EntityType
 from mora.mapping import OWNER
-
+from mora.mapping import EntityType
 
 logger = get_logger()
 
@@ -112,7 +111,7 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
         return
 
     logger.debug(
-        f"User {token.preferred_username} with UUID " f"{token.uuid} not authorized"
+        f"User {token.preferred_username} with UUID {token.uuid} not authorized"
     )
     raise AuthorizationError("Not authorized to perform this operation")
 

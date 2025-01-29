@@ -23,7 +23,6 @@ from mora.mapping import ASSOCIATION
 from mora.mapping import CHILDREN
 from mora.mapping import DATA
 from mora.mapping import ENGAGEMENT
-from mora.mapping import EntityType
 from mora.mapping import MANAGER
 from mora.mapping import ORG_UNIT
 from mora.mapping import PARENT
@@ -32,6 +31,7 @@ from mora.mapping import PERSON
 from mora.mapping import ROLEBINDING
 from mora.mapping import TYPE
 from mora.mapping import USER_FIELD
+from mora.mapping import EntityType
 
 # import mora.main
 

@@ -10,6 +10,7 @@ For more information regarding reading relations involving employees, refer to
 http:get:`/service/(any:type)/(uuid:id)/details/`
 
 """
+
 import copy
 import enum
 import logging
@@ -25,10 +26,11 @@ from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
 from fastapi import Query
+from ramodels.base import tz_isodate
 
-from . import autocomplete
-from . import handlers
-from . import org
+from mora.auth.keycloak import oidc
+from mora.request_scoped.bulking import get_lora_object
+
 from .. import common
 from .. import config
 from .. import depends
@@ -39,11 +41,10 @@ from .. import util
 from ..graphapi.middleware import is_graphql
 from ..lora import LoraObjectType
 from ..triggers import Trigger
+from . import autocomplete
+from . import handlers
+from . import org
 from .validation.validator import does_employee_with_cpr_already_exist
-from mora.auth.keycloak import oidc
-from mora.request_scoped.bulking import get_lora_object
-from ramodels.base import tz_isodate
-
 
 router = APIRouter()
 
@@ -382,8 +383,7 @@ async def get_one_employee(
 async def autocomplete_employees(
     session: depends.Session,
     query: str,
-    at: date
-    | None = Query(
+    at: date | None = Query(
         None,
         description='The "at date" to use, e.g. `2020-01-31`. '
         "Results are only included if they are active at the specified date.",

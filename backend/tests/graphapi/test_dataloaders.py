@@ -1,11 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Tests of dataloaders used in the GraphQL implementation."""
+
 import pytest
 from hypothesis import given
-from pytest import MonkeyPatch
-
-from .strategies import data_with_uuids_strat
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.graphql_utils import LoadKey
@@ -20,6 +18,9 @@ from mora.graphapi.versions.latest.schema import ManagerRead
 from mora.graphapi.versions.latest.schema import OrganisationUnitRead
 from mora.graphapi.versions.latest.schema import RelatedUnitRead
 from mora.graphapi.versions.latest.schema import RoleBindingRead
+from pytest import MonkeyPatch
+
+from .strategies import data_with_uuids_strat
 
 models = [
     AddressRead,

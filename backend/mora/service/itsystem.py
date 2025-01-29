@@ -7,16 +7,15 @@ IT Systems
 This section describes how to interact with IT systems.
 
 """
+
 from operator import itemgetter
-from typing import Any
 from typing import TYPE_CHECKING
+from typing import Any
 from uuid import uuid4
 
 from fastapi import APIRouter
 from structlog import get_logger
 
-from . import handlers
-from . import org
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -25,6 +24,8 @@ from .. import util
 from ..service.facet import get_mo_object_primary_value
 from ..service.facet import is_class_uuid_primary
 from ..triggers import Trigger
+from . import handlers
+from . import org
 from .validation import validator
 from .validation.models import GroupValidation
 

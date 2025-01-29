@@ -25,14 +25,20 @@ from functools import partial
 from itertools import starmap
 from typing import Any
 from typing import Literal
-from typing import overload
 from typing import TypeVar
+from typing import overload
 from uuid import UUID
 
 from fastapi import Request
 from fastapi import Response
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
+from oio_rest import custom_exceptions as loraexc
+from oio_rest import klassifikation
+from oio_rest import organisation
+from oio_rest.db import _parse_timestamp
+from oio_rest.mo.autocomplete import find_org_units_matching
+from oio_rest.mo.autocomplete import find_users_matching
 from sqlalchemy.exc import DataError
 from starlette_context import context
 from starlette_context import request_cycle_context
@@ -44,12 +50,6 @@ from . import exceptions
 from . import util
 from .db import get_session
 from .graphapi.middleware import is_graphql
-from oio_rest import custom_exceptions as loraexc
-from oio_rest import klassifikation
-from oio_rest import organisation
-from oio_rest.db import _parse_timestamp
-from oio_rest.mo.autocomplete import find_org_units_matching
-from oio_rest.mo.autocomplete import find_users_matching
 
 T = TypeVar("T")
 V = TypeVar("V")
@@ -184,7 +184,7 @@ def exotics_to_str(value):
 
 
 def param_exotics_to_strings(
-    params: dict[T, bool | list | set | str | int | uuid.UUID]
+    params: dict[T, bool | list | set | str | int | uuid.UUID],
 ) -> dict[T, str | int | list]:
     """
     converts requests-compatible (and more) params to aiohttp-compatible params
@@ -696,18 +696,15 @@ class Scope(BaseScope):
     @overload
     async def get(
         self, uuid: str | UUID, registreretfra: Any, **params: dict[str, Any]
-    ) -> list[dict] | None:
-        ...
+    ) -> list[dict] | None: ...
 
     @overload
     async def get(
         self, uuid: str | UUID, registrerettil: Any, **params: dict[str, Any]
-    ) -> list[dict] | None:
-        ...
+    ) -> list[dict] | None: ...
 
     @overload
-    async def get(self, uuid: str | UUID, **params: dict[str, Any]) -> dict | None:
-        ...
+    async def get(self, uuid: str | UUID, **params: dict[str, Any]) -> dict | None: ...
 
     async def get(
         self, uuid: str | UUID, **params: dict[str, Any]

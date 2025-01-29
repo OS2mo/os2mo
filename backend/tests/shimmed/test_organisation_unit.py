@@ -2,9 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import pytest
 from fastapi.testclient import TestClient
-
 from tests.util import set_get_configuration
-
 
 org_unit_type_facet = {
     "description": "",

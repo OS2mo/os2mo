@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 import pytest
 from fastapi.testclient import TestClient
-
 from mora.config import NavLink
 from mora.config import Settings
+
 from tests import util
 
 

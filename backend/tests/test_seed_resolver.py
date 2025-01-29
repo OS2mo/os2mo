@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Test the seed_resolver function."""
+
 import dataclasses
 import typing
 from collections.abc import Callable
@@ -9,13 +10,13 @@ from inspect import signature
 from typing import Any
 
 import pytest
-from more_itertools import first
-from strawberry.types import Info
-
 from mora.graphapi.versions.latest.filters import BaseFilter
 from mora.graphapi.versions.latest.resolvers import CursorType
 from mora.graphapi.versions.latest.resolvers import LimitType
 from mora.graphapi.versions.latest.seed_resolver import seed_resolver
+from more_itertools import first
+from strawberry.types import Info
+
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 

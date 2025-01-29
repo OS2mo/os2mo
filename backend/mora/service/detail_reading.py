@@ -15,6 +15,7 @@ creating and editing relations for employees and organisational units:
 
 
 """
+
 import collections
 from datetime import date
 from datetime import datetime
@@ -26,14 +27,14 @@ from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
 from more_itertools import first
 
-from .. import common
 from mora import util
+from mora.graphapi.shim import MOAddress
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
-from mora.graphapi.shim import MOAddress
-from mora.lora import validity_tuple
 from mora.lora import ValidityLiteral
+from mora.lora import validity_tuple
 
+from .. import common
 
 router = APIRouter()
 

@@ -3,9 +3,9 @@
 from collections.abc import Callable
 
 import pytest
-
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
+
 from tests.conftest import GraphAPIPost
 
 # Users

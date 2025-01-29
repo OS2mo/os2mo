@@ -14,20 +14,42 @@ from uuid import UUID
 from more_itertools import flatten
 from more_itertools import unique_everseen
 from pydantic import ValidationError
+from sqlalchemy import ColumnElement
+from sqlalchemy import Select
 from sqlalchemy import and_
 from sqlalchemy import between
 from sqlalchemy import cast
-from sqlalchemy import ColumnElement
 from sqlalchemy import distinct
 from sqlalchemy import exists
 from sqlalchemy import func
-from sqlalchemy import Select
 from sqlalchemy import select
 from starlette_context import context
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 from strawberry.types.unset import UnsetType
+
+from mora.audit import audit_log
+from mora.db import HasValidity
+from mora.db import LivscyklusKode
+from mora.db import OrganisationEnhedAttrEgenskaber
+from mora.db import OrganisationEnhedRegistrering
+from mora.db import OrganisationEnhedRelation
+from mora.db import OrganisationEnhedRelationKode
+from mora.db import OrganisationEnhedTilsGyldighed
+from mora.graphapi.gmodels.mo import EmployeeRead
+from mora.graphapi.gmodels.mo import OrganisationUnitRead
+from mora.graphapi.gmodels.mo.details import AssociationRead
+from mora.graphapi.gmodels.mo.details import EngagementRead
+from mora.graphapi.gmodels.mo.details import ITSystemRead
+from mora.graphapi.gmodels.mo.details import ITUserRead
+from mora.graphapi.gmodels.mo.details import KLERead
+from mora.graphapi.gmodels.mo.details import LeaveRead
+from mora.graphapi.gmodels.mo.details import ManagerRead
+from mora.graphapi.gmodels.mo.details import OwnerRead
+from mora.graphapi.gmodels.mo.details import RelatedUnitRead
+from mora.service.autocomplete.employees import search_employees
+from mora.service.autocomplete.orgunits import search_orgunits
 
 from ...middleware import with_graphql_dates
 from .filters import AddressFilter
@@ -55,27 +77,6 @@ from .paged import CursorType
 from .paged import LimitType
 from .resolver_map import resolver_map
 from .validity import OpenValidityModel
-from mora.audit import audit_log
-from mora.db import HasValidity
-from mora.db import LivscyklusKode
-from mora.db import OrganisationEnhedAttrEgenskaber
-from mora.db import OrganisationEnhedRegistrering
-from mora.db import OrganisationEnhedRelation
-from mora.db import OrganisationEnhedRelationKode
-from mora.db import OrganisationEnhedTilsGyldighed
-from mora.graphapi.gmodels.mo import EmployeeRead
-from mora.graphapi.gmodels.mo import OrganisationUnitRead
-from mora.graphapi.gmodels.mo.details import AssociationRead
-from mora.graphapi.gmodels.mo.details import EngagementRead
-from mora.graphapi.gmodels.mo.details import ITSystemRead
-from mora.graphapi.gmodels.mo.details import ITUserRead
-from mora.graphapi.gmodels.mo.details import KLERead
-from mora.graphapi.gmodels.mo.details import LeaveRead
-from mora.graphapi.gmodels.mo.details import ManagerRead
-from mora.graphapi.gmodels.mo.details import OwnerRead
-from mora.graphapi.gmodels.mo.details import RelatedUnitRead
-from mora.service.autocomplete.employees import search_employees
-from mora.service.autocomplete.orgunits import search_orgunits
 
 
 async def filter2uuids_func(

@@ -9,15 +9,15 @@ from pydantic import Field
 from pydantic import root_validator
 from pydantic import validator
 
+from ramodels.base import RABase
+from ramodels.base import tz_isodate
+
 from ._shared import MOBase
 from ._shared import OpenValidity
 from ._shared import OrganisationRef
 from ._shared import validate_cpr
 from ._shared import validate_names
 from .details import EmployeeDetails
-from ramodels.base import RABase
-from ramodels.base import tz_isodate
-
 
 # Type aliases
 DictStrAny = dict[str, Any]

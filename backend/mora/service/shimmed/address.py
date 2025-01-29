@@ -13,7 +13,6 @@ from mora import exceptions
 from mora.graphapi.shim import execute_graphql
 from mora.service.address import router as address_router
 
-
 client = httpx.AsyncClient(
     headers={
         "User-Agent": "MORA/0.1",
@@ -63,8 +62,7 @@ async def address_autocomplete(
         examples="3b866d97-0b1f-48e0-8078-686d96f430b3",
     ),
     q: str = Query(..., description="A query string to be used for lookup"),
-    global_lookup: bool
-    | None = Query(
+    global_lookup: bool | None = Query(
         False,
         alias="global",
         description=(

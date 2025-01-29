@@ -15,16 +15,15 @@ from jwt.exceptions import InvalidAudienceError
 from jwt.exceptions import InvalidSignatureError
 from jwt.exceptions import InvalidTokenError
 from jwt.exceptions import PyJWTError
-from pydantic import ValidationError
-from starlette.status import HTTP_401_UNAUTHORIZED
-from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
-from structlog import get_logger
-
 from mora.auth.exceptions import AuthenticationError
 from mora.auth.exceptions import get_auth_exception_handler
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import get_auth_dependency
+from pydantic import ValidationError
+from starlette.status import HTTP_401_UNAUTHORIZED
+from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
+from structlog import get_logger
 
 
 @pytest.fixture

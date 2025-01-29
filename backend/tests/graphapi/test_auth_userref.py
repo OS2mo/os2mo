@@ -3,12 +3,12 @@
 from uuid import UUID
 
 import pytest
-from sqlalchemy import select
-
 from mora.db import AsyncSession
 from mora.db import FacetRegistrering
-from tests.conftest import fake_auth
+from sqlalchemy import select
+
 from tests.conftest import GQLResponse
+from tests.conftest import fake_auth
 
 
 @pytest.mark.integration_test

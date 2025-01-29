@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-""""Encapsulate details about the database structure."""
+""" "Encapsulate details about the database structure."""
+
 from collections import namedtuple
 from urllib.parse import urlparse
 

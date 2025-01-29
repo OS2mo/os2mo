@@ -1,10 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from fastapi.testclient import TestClient
-from starlette.responses import JSONResponse
-
 from mora import app
 from mora.service import org
+from starlette.responses import JSONResponse
 
 
 class TestServiceApp:

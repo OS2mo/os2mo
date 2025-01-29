@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from hypothesis import given
 from hypothesis import strategies as st
-
 from ramodels.mo.facet import FacetRead
 from ramodels.mo.facet import FacetWrite
 

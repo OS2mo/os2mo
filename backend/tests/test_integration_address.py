@@ -5,15 +5,14 @@ import re
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
-from more_itertools import one
-
 from mora import lora
 from mora.util import get_effect_from
+from more_itertools import one
+
 from tests import util
 from tests.cases import assert_registrations_equal
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
-
 
 ean_class = {
     "example": "5712345000014",
@@ -71,7 +70,7 @@ async def test_add_org_unit_address(service_client: TestClient) -> None:
                     "brugervendtnoegle": "root@example.com",
                     "funktionsnavn": "Adresse",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -98,7 +97,7 @@ async def test_add_org_unit_address(service_client: TestClient) -> None:
                 {
                     "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -109,7 +108,7 @@ async def test_add_org_unit_address(service_client: TestClient) -> None:
                 {
                     "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -120,7 +119,7 @@ async def test_add_org_unit_address(service_client: TestClient) -> None:
                 {
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -133,7 +132,7 @@ async def test_add_org_unit_address(service_client: TestClient) -> None:
                 {
                     "gyldighed": "Aktiv",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -188,7 +187,7 @@ async def test_add_org_unit_address_contact_open_hours(
                     "brugervendtnoegle": addr_value,
                     "funktionsnavn": "Adresse",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -215,7 +214,7 @@ async def test_add_org_unit_address_contact_open_hours(
                 {
                     "uuid": addr_type_id,
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -226,7 +225,7 @@ async def test_add_org_unit_address_contact_open_hours(
                 {
                     "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -237,7 +236,7 @@ async def test_add_org_unit_address_contact_open_hours(
                 {
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -250,7 +249,7 @@ async def test_add_org_unit_address_contact_open_hours(
                 {
                     "gyldighed": "Aktiv",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -297,7 +296,7 @@ async def test_add_employee_address(service_client: TestClient) -> None:
                     "brugervendtnoegle": "root@example.com",
                     "funktionsnavn": "Adresse",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -324,7 +323,7 @@ async def test_add_employee_address(service_client: TestClient) -> None:
                 {
                     "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -335,7 +334,7 @@ async def test_add_employee_address(service_client: TestClient) -> None:
                 {
                     "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -346,7 +345,7 @@ async def test_add_employee_address(service_client: TestClient) -> None:
                 {
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -359,7 +358,7 @@ async def test_add_employee_address(service_client: TestClient) -> None:
                 {
                     "gyldighed": "Aktiv",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -434,7 +433,7 @@ async def test_create_employee_with_address(service_client: TestClient) -> None:
                     "brugervendtnoegle": "root@example.com",
                     "funktionsnavn": "Adresse",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -461,7 +460,7 @@ async def test_create_employee_with_address(service_client: TestClient) -> None:
                 {
                     "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -472,7 +471,7 @@ async def test_create_employee_with_address(service_client: TestClient) -> None:
                 {
                     "uuid": user_id,
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -483,7 +482,7 @@ async def test_create_employee_with_address(service_client: TestClient) -> None:
                 {
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -496,7 +495,7 @@ async def test_create_employee_with_address(service_client: TestClient) -> None:
                 {
                     "gyldighed": "Aktiv",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -552,7 +551,7 @@ async def test_create_engagement_with_address(service_client: TestClient) -> Non
             "uuid": func_id,
             "objekttype": "engagement",
             "virkning": {
-                "from": "2017-01-02 " "00:00:00+01",
+                "from": "2017-01-02 00:00:00+01",
                 "from_included": True,
                 "to": "infinity",
                 "to_included": False,
@@ -606,7 +605,7 @@ async def test_create_org_unit_with_address(service_client: TestClient) -> None:
                     "brugervendtnoegle": "root@example.com",
                     "funktionsnavn": "Adresse",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -633,7 +632,7 @@ async def test_create_org_unit_with_address(service_client: TestClient) -> None:
                 {
                     "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -644,7 +643,7 @@ async def test_create_org_unit_with_address(service_client: TestClient) -> None:
                 {
                     "uuid": unit_id,
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -655,7 +654,7 @@ async def test_create_org_unit_with_address(service_client: TestClient) -> None:
                 {
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -668,7 +667,7 @@ async def test_create_org_unit_with_address(service_client: TestClient) -> None:
                 {
                     "gyldighed": "Aktiv",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -714,15 +713,10 @@ async def test_edit_address(service_client: TestClient) -> None:
         "attributter": {
             "organisationfunktionegenskaber": [
                 {
-                    "brugervendtnoegle": "Nordre "
-                    "Ringgade "
-                    "1, "
-                    "8000 "
-                    "Aarhus "
-                    "C",
+                    "brugervendtnoegle": "Nordre Ringgade 1, 8000 Aarhus C",
                     "funktionsnavn": "Adresse",
                     "virkning": {
-                        "from": "2016-01-01 " "00:00:00+01",
+                        "from": "2016-01-01 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -759,16 +753,16 @@ async def test_edit_address(service_client: TestClient) -> None:
                 {
                     "uuid": "28d71012-2919-4b67-a2f0-7b59ed52561e",
                     "virkning": {
-                        "from": "2016-01-01 " "00:00:00+01",
+                        "from": "2016-01-01 00:00:00+01",
                         "from_included": True,
-                        "to": "2017-01-02 " "00:00:00+01",
+                        "to": "2017-01-02 00:00:00+01",
                         "to_included": False,
                     },
                 },
                 {
                     "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
                     "virkning": {
-                        "from": "2017-01-02 " "00:00:00+01",
+                        "from": "2017-01-02 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -779,7 +773,7 @@ async def test_edit_address(service_client: TestClient) -> None:
                 {
                     "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                     "virkning": {
-                        "from": "2016-01-01 " "00:00:00+01",
+                        "from": "2016-01-01 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -790,7 +784,7 @@ async def test_edit_address(service_client: TestClient) -> None:
                 {
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                     "virkning": {
-                        "from": "2016-01-01 " "00:00:00+01",
+                        "from": "2016-01-01 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -803,7 +797,7 @@ async def test_edit_address(service_client: TestClient) -> None:
                 {
                     "gyldighed": "Aktiv",
                     "virkning": {
-                        "from": "2016-01-01 " "00:00:00+01",
+                        "from": "2016-01-01 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,
@@ -916,7 +910,7 @@ async def test_create_address_related_to_engagement(service_client: TestClient) 
             "objekttype": "engagement",
             "uuid": engagement_uuid,
             "virkning": {
-                "from": "2017-01-02 " "00:00:00+01",
+                "from": "2017-01-02 00:00:00+01",
                 "from_included": True,
                 "to": "infinity",
                 "to_included": False,
@@ -1372,7 +1366,7 @@ def test_reading(service_client: TestClient) -> None:
             "name": "Nordre Ringgade 1, 8000 Aarhus C",
             "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
             "value2": None,
-            "user_key": "Christiansborg Slotsplads 1, " "1218 København K",
+            "user_key": "Christiansborg Slotsplads 1, 1218 København K",
             "person": {
                 "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
             },

@@ -5,9 +5,9 @@ from datetime import date
 from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy import cast
 from sqlalchemy import String
 from sqlalchemy import Text
+from sqlalchemy import cast
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
 from sqlalchemy.sql import select
@@ -24,11 +24,11 @@ from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
 from mora.graphapi.shim import execute_graphql
+from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 from mora.service.autocomplete.shared import get_at_date_sql
 from mora.service.autocomplete.shared import get_graphql_equivalent_by_uuid
 from mora.service.autocomplete.shared import read_sqlalchemy_result
 from mora.service.autocomplete.shared import string_to_urn
-from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 from mora.service.util import handle_gql_error
 
 

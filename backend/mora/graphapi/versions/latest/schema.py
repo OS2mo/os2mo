@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Strawberry types describing the MO graph."""
+
 import json
 import re
 from base64 import b64encode
@@ -14,10 +15,10 @@ from itertools import chain
 from textwrap import dedent
 from typing import Annotated
 from typing import Any
-from typing import cast
 from typing import Generic
-from typing import get_args
 from typing import TypeVar
+from typing import cast
+from typing import get_args
 from urllib.parse import urlparse
 from uuid import UUID
 
@@ -30,6 +31,36 @@ from starlette_context import context
 from strawberry import UNSET
 from strawberry.types import Info
 
+from mora import common
+from mora import config
+from mora import db
+from mora.common import _create_graphql_connector
+from mora.graphapi.gmodels.mo import EmployeeRead
+from mora.graphapi.gmodels.mo import OpenValidity as RAMOpenValidity
+from mora.graphapi.gmodels.mo import OrganisationRead
+from mora.graphapi.gmodels.mo import OrganisationUnitRead
+from mora.graphapi.gmodels.mo.details import AssociationRead
+from mora.graphapi.gmodels.mo.details import EngagementRead
+from mora.graphapi.gmodels.mo.details import ITSystemRead
+from mora.graphapi.gmodels.mo.details import ITUserRead
+from mora.graphapi.gmodels.mo.details import KLERead
+from mora.graphapi.gmodels.mo.details import LeaveRead
+from mora.graphapi.gmodels.mo.details import ManagerRead
+from mora.graphapi.gmodels.mo.details import OwnerRead
+from mora.graphapi.gmodels.mo.details import RelatedUnitRead
+from mora.graphapi.middleware import with_graphql_dates
+from mora.graphapi.versions.latest.readers import _extract_search_params
+from mora.handler.reading import ReadingHandler
+from mora.handler.reading import get_handler_for_type
+from mora.service.address_handler import dar
+from mora.service.address_handler import multifield_text
+from mora.service.address_handler.base import AddressHandler
+from mora.service.address_handler.base import get_handler_for_scope
+from mora.service.facet import is_class_uuid_primary
+from mora.util import NEGATIVE_INFINITY
+from mora.util import POSITIVE_INFINITY
+from mora.util import now
+
 from .filters import ITUserFilter
 from .filters import ManagerFilter
 from .filters import OwnerFilter
@@ -41,8 +72,8 @@ from .models import FacetRead
 from .models import FileStore
 from .models import OwnerInferencePriority
 from .models import RoleBindingRead
-from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
+from .permissions import gen_read_permission
 from .registration import Registration
 from .registration import registration_resolver
 from .resolver_map import resolver_map
@@ -67,35 +98,6 @@ from .seed_resolver import seed_resolver
 from .types import CPRType
 from .validity import OpenValidity
 from .validity import Validity
-from mora import common
-from mora import config
-from mora import db
-from mora.common import _create_graphql_connector
-from mora.graphapi.gmodels.mo import EmployeeRead
-from mora.graphapi.gmodels.mo import OpenValidity as RAMOpenValidity
-from mora.graphapi.gmodels.mo import OrganisationRead
-from mora.graphapi.gmodels.mo import OrganisationUnitRead
-from mora.graphapi.gmodels.mo.details import AssociationRead
-from mora.graphapi.gmodels.mo.details import EngagementRead
-from mora.graphapi.gmodels.mo.details import ITSystemRead
-from mora.graphapi.gmodels.mo.details import ITUserRead
-from mora.graphapi.gmodels.mo.details import KLERead
-from mora.graphapi.gmodels.mo.details import LeaveRead
-from mora.graphapi.gmodels.mo.details import ManagerRead
-from mora.graphapi.gmodels.mo.details import OwnerRead
-from mora.graphapi.gmodels.mo.details import RelatedUnitRead
-from mora.graphapi.middleware import with_graphql_dates
-from mora.graphapi.versions.latest.readers import _extract_search_params
-from mora.handler.reading import get_handler_for_type
-from mora.handler.reading import ReadingHandler
-from mora.service.address_handler import dar
-from mora.service.address_handler import multifield_text
-from mora.service.address_handler.base import AddressHandler
-from mora.service.address_handler.base import get_handler_for_scope
-from mora.service.facet import is_class_uuid_primary
-from mora.util import NEGATIVE_INFINITY
-from mora.util import now
-from mora.util import POSITIVE_INFINITY
 
 # TODO: Remove RAModels dependency, be purely Strawberry models
 # TODO: Deprecate all _uuid / _uuids relation fields in favor of relation objects
@@ -4087,7 +4089,9 @@ class OrganisationUnit:
         if parent is None:
             return []
 
-        parent_ancestors = await OrganisationUnit.ancestors_validity(self=self, root=parent, info=info)  # type: ignore
+        parent_ancestors = await OrganisationUnit.ancestors_validity(
+            self=self, root=parent, info=info
+        )  # type: ignore
         return [parent] + parent_ancestors
 
     @strawberry.field(

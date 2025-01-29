@@ -9,7 +9,8 @@ from more_itertools import only
 from more_itertools import partition
 from structlog import get_logger
 
-from .. import reading
+from mora import exceptions
+
 from ... import mapping
 from ... import util
 from ...common import get_connector
@@ -17,8 +18,8 @@ from ...graphapi.middleware import is_graphql
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
+from .. import reading
 from .it import ItSystemBindingReader
-from mora import exceptions
 
 ROLE_TYPE = "association"
 SUBSTITUTE_ASSOCIATION = {"name": "i18n:substitute_association"}

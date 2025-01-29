@@ -103,7 +103,7 @@ class SearchCPRReturn(BaseModel):
     },
 )
 def search_cpr(
-    q: str = Query(..., description="The CPR number to search for")
+    q: str = Query(..., description="The CPR number to search for"),
 ) -> dict[str, str]:
     """Lookup a CPR number in Serviceplatformen and retrieve the name.
 

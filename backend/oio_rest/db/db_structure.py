@@ -4,7 +4,6 @@ import collections
 import itertools
 from copy import deepcopy
 
-
 # This specifies the database structure
 DATABASE_STRUCTURE = {
     "facet": {

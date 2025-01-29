@@ -7,15 +7,16 @@ Roles
 This section describes how to interact with employee roles.
 
 """
+
 import uuid
 
-from . import handlers
-from . import org
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from . import handlers
+from . import org
 from .validation import validator
 
 

@@ -11,9 +11,9 @@ from mora import common
 from mora.auth.keycloak import uuid_extractor
 from mora.graphapi.middleware import is_graphql
 from mora.handler.impl.owner import OwnerReader
-from mora.mapping import EntityType
 from mora.mapping import OWNER
 from mora.mapping import UUID as UUID_KEY
+from mora.mapping import EntityType
 
 logger = get_logger()
 

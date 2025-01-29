@@ -7,6 +7,8 @@ import strawberry
 from pydantic import Field
 from pydantic import parse_obj_as
 
+from mora.graphapi.gmodels.mo._shared import UUIDBase
+
 from ..latest.inputs import ClassTerminateInput as LatestClassTerminateInput
 from ..latest.inputs import FacetTerminateInput as LatestFacetTerminateInput
 from ..latest.inputs import ITSystemTerminateInput as LatestITSystemTerminateInput
@@ -14,14 +16,13 @@ from ..latest.models import ClassTerminate as LatestClassTerminate
 from ..latest.models import FacetTerminate as LatestFacetTerminate
 from ..latest.models import ITSystemTerminate as LatestITSystemTerminate
 from ..latest.models import ValidityTerminate
-from ..latest.permissions import gen_terminate_permission
 from ..latest.permissions import IsAuthenticatedPermission
+from ..latest.permissions import gen_terminate_permission
 from ..latest.schema import Class
 from ..latest.schema import Facet
 from ..latest.schema import ITSystem
 from ..latest.schema import Response
 from ..v19.version import GraphQLVersion as NextGraphQLVersion
-from mora.graphapi.gmodels.mo._shared import UUIDBase
 
 
 class TerminatorMixin:

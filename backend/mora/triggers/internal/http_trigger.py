@@ -13,7 +13,6 @@ from structlog import get_logger
 from mora import config
 from mora.triggers import Trigger
 
-
 logger = get_logger()
 
 

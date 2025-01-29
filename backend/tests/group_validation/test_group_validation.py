@@ -4,11 +4,10 @@ from collections.abc import Callable
 from operator import itemgetter
 
 import pytest
-from parameterized import parameterized
-
 from mora.exceptions import ErrorCodes
 from mora.exceptions import HTTPException
 from mora.service.validation.models import GroupValidation
+from parameterized import parameterized
 
 
 class TestGroupValidationConstructors:

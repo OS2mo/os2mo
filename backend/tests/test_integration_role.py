@@ -5,7 +5,6 @@ from more_itertools import one
 
 from tests.conftest import GraphAPIPost
 
-
 userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 unitid = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
 mock_uuid = "288ecae8-faa4-428f-872e-1ad1a466b330"

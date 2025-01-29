@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Pagination primitives."""
+
 from collections.abc import Callable
 from functools import wraps
 from textwrap import dedent
@@ -13,9 +14,9 @@ import strawberry
 from pydantic import PositiveInt
 from starlette_context import context
 
-from .types import Cursor
 from mora.util import now
 
+from .types import Cursor
 
 LimitType = Annotated[
     PositiveInt | None,
@@ -114,7 +115,9 @@ class Paged(Generic[T]):
     )
 
 
-def to_paged(resolver_func: Callable, model: Any, result_transformer: Any | None = None):  # type: ignore
+def to_paged(
+    resolver_func: Callable, model: Any, result_transformer: Any | None = None
+):  # type: ignore
     result_transformer = result_transformer or (lambda _, x: x)
 
     @wraps(resolver_func)

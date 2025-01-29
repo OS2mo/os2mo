@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import pytest
 from fastapi.testclient import TestClient
-
 from mora.graphapi.router import AUTH_SCRIPT
 from mora.graphapi.router import DEPRECATION_NOTICE
 

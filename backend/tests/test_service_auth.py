@@ -2,24 +2,25 @@
 # SPDX-License-Identifier: MPL-2.0
 from uuid import UUID
 
+import mora.auth.keycloak.oidc
 import pytest
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from fastapi.routing import APIWebSocketRoute
 from fastapi.testclient import TestClient
-from pydantic import MissingError
-from pydantic import ValidationError
-from pydantic.error_wrappers import ErrorWrapper
-
-import mora.auth.keycloak.oidc
-from .conftest import fake_auth
-from .conftest import serviceapiless_auth
 from mora.auth.exceptions import AuthenticationError
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
 from mora.config import Settings
+from pydantic import MissingError
+from pydantic import ValidationError
+from pydantic.error_wrappers import ErrorWrapper
+
 from tests import util
+
+from .conftest import fake_auth
+from .conftest import serviceapiless_auth
 
 
 def lookup_auth_dependency(route, auth_coro):

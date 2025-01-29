@@ -1,15 +1,17 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """GraphQL association related helper functions."""
+
 from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 
+from mora import mapping
+from mora.service.association import AssociationRequestHandler
+
 from .models import AssociationCreate
 from .models import AssociationTerminate
 from .models import AssociationUpdate
-from mora import mapping
-from mora.service.association import AssociationRequestHandler
 
 
 async def create_association(input: AssociationCreate) -> UUID:

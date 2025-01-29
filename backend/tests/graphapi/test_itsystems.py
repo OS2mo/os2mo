@@ -4,8 +4,8 @@ from unittest.mock import patch
 from uuid import UUID
 
 import pytest
-from hypothesis import given
 from hypothesis import HealthCheck
+from hypothesis import given
 from hypothesis import settings
 from more_itertools import first
 from more_itertools import one

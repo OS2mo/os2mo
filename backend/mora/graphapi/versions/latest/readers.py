@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """LoRa data read helpers."""
+
 from typing import Any
 from uuid import UUID
 

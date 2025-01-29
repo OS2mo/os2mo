@@ -6,13 +6,12 @@ from uuid import uuid4
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
-
 from mora import mapping
 from mora.exceptions import HTTPException
 from mora.handler.impl.it import ItSystemBindingReader
-from mora.service.itsystem import _ITUserGroupValidation
 from mora.service.itsystem import ITUserPrimaryGroupValidation
 from mora.service.itsystem import ITUserUniqueGroupValidation
+from mora.service.itsystem import _ITUserGroupValidation
 
 
 class TestITUserGroupValidationBase:

@@ -7,11 +7,12 @@ from uuid import UUID
 from fastapi import Body
 from more_itertools import one
 
-from .errors import handle_gql_error
 from mora import exceptions
 from mora.graphapi.shim import execute_graphql
 from mora.service.configuration import router as config_router
 from mora.service.util import get_configuration
+
+from .errors import handle_gql_error
 
 
 @config_router.post("/ou/{unitid}/configuration", status_code=410)

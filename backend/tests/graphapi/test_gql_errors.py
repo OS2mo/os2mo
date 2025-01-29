@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import pytest
-from strawberry.exceptions import GraphQLError
-
 from mora.graphapi.shim import execute_graphql
 from mora.service.util import handle_gql_error
+from strawberry.exceptions import GraphQLError
+
 from tests.conftest import GraphAPIPost
 
 query = """

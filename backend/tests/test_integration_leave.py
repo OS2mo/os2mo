@@ -5,9 +5,7 @@ from unittest.mock import patch
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
-
 from mora import lora
-
 
 mock_uuid = "1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"
 
@@ -65,16 +63,16 @@ async def test_edit_leave_no_overwrite(service_client: TestClient) -> None:
                 {
                     "uuid": "d000591f-8705-4324-897a-075e3623f37b",
                     "virkning": {
-                        "from": "2017-01-01 " "00:00:00+01",
+                        "from": "2017-01-01 00:00:00+01",
                         "from_included": True,
-                        "to": "2018-04-01 " "00:00:00+02",
+                        "to": "2018-04-01 00:00:00+02",
                         "to_included": False,
                     },
                 },
                 {
                     "uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab",
                     "virkning": {
-                        "from": "2018-04-01 " "00:00:00+02",
+                        "from": "2018-04-01 00:00:00+02",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,

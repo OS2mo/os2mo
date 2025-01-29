@@ -4,8 +4,9 @@ from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 
-from .models import RelatedUnitsUpdate
 from mora.service.related import map_org_units
+
+from .models import RelatedUnitsUpdate
 
 
 async def update_related_units(input: RelatedUnitsUpdate) -> UUID:

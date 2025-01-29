@@ -4,11 +4,11 @@ from itertools import chain
 from unittest.mock import AsyncMock
 
 import pytest
+from mora.service.org import get_configured_organisation
 from more_itertools import distinct_permutations
 from more_itertools import one
-
-from mora.service.org import get_configured_organisation
 from oio_rest.organisation import Organisation
+
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 

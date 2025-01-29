@@ -31,7 +31,6 @@ class ClassRead(ClassBase):
 
 
 class ClassWrite(ClassBase):
-
     """A MO Class write object."""
 
     name: str = Field(description="Mo-class name.")

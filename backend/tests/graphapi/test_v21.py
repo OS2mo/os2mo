@@ -8,11 +8,11 @@ from more_itertools import one
 from strawberry import UNSET
 from strawberry.types.unset import UnsetType
 
+from tests.conftest import GraphAPIPost
+
 from .utils import gen_read_parent
 from .utils import gen_set_parent
 from .utils import sjsonable_encoder
-from tests.conftest import GraphAPIPost
-
 
 fixture_parent_uuid = UUID("2874e1dc-85e6-4269-823a-e1125484dfd3")
 

@@ -3,13 +3,13 @@
 from fastapi import APIRouter
 from fastapi import Body
 
-from . import validator
-from .. import facet
 from ... import exceptions
 from ... import lora
 from ... import mapping
 from ... import util
+from .. import facet
 from ..address_handler import base
+from . import validator
 
 _router = APIRouter()
 

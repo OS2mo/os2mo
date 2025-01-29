@@ -10,17 +10,17 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from fastapi.encoders import jsonable_encoder
-from hypothesis import given
 from hypothesis import HealthCheck
+from hypothesis import given
 from hypothesis import settings
 from hypothesis import strategies as st
-from more_itertools import one
-
-from ..conftest import GraphAPIPost
 from mora import mapping
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.models import EmployeeCreate
 from mora.graphapi.versions.latest.models import EmployeeUpdate
+from more_itertools import one
+
+from ..conftest import GraphAPIPost
 
 # Helpers
 

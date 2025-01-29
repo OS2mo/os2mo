@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import pytest
-from sqlalchemy import select
-
 from mora.db import AsyncSession
 from mora.db import Bruger
 from mora.db import BrugerAttrEgenskaber
@@ -40,6 +38,7 @@ from mora.db import OrganisationFunktionTilsGyldighed
 from mora.db import OrganisationRegistrering
 from mora.db import OrganisationRelation
 from mora.db import OrganisationTilsGyldighed
+from sqlalchemy import select
 
 
 @pytest.mark.integration_test

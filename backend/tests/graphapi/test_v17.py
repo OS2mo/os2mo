@@ -2,13 +2,13 @@
 # SPDX-License-Identifier: MPL-2.0
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
+from mora.audit import audit_log
+from mora.db import AuditLogOperation
+from mora.db import AuditLogRead
 from more_itertools import first
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from mora.audit import audit_log
-from mora.db import AuditLogOperation
-from mora.db import AuditLogRead
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 

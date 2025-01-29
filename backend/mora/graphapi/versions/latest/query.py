@@ -10,8 +10,23 @@ import strawberry
 from starlette_context import context
 from strawberry.types import Info
 
-from .audit import audit_log_resolver
+from mora import db
+from mora.audit import audit_log
+from mora.config import get_public_settings
+from mora.graphapi.gmodels.mo.details.association import AssociationRead
+from mora.graphapi.gmodels.mo.details.engagement import EngagementRead
+from mora.graphapi.gmodels.mo.details.it_system import ITSystemRead
+from mora.graphapi.gmodels.mo.details.it_system import ITUserRead
+from mora.graphapi.gmodels.mo.details.kle import KLERead
+from mora.graphapi.gmodels.mo.details.leave import LeaveRead
+from mora.graphapi.gmodels.mo.details.manager import ManagerRead
+from mora.graphapi.gmodels.mo.details.owner import OwnerRead
+from mora.graphapi.gmodels.mo.details.related_unit import RelatedUnitRead
+from mora.graphapi.gmodels.mo.employee import EmployeeRead
+from mora.graphapi.gmodels.mo.organisation_unit import OrganisationUnitRead
+
 from .audit import AuditLog
+from .audit import audit_log_resolver
 from .filters import ConfigurationFilter
 from .filters import FileFilter
 from .filters import HealthFilter
@@ -24,8 +39,8 @@ from .paged import CursorType
 from .paged import LimitType
 from .paged import Paged
 from .paged import to_paged
-from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
+from .permissions import gen_read_permission
 from .registration import Registration
 from .registration import registration_resolver
 from .resolvers import address_resolver
@@ -43,6 +58,7 @@ from .resolvers import organisation_unit_resolver
 from .resolvers import owner_resolver
 from .resolvers import related_unit_resolver
 from .resolvers import rolebinding_resolver
+from .schema import KLE
 from .schema import Address
 from .schema import Association
 from .schema import Class
@@ -54,7 +70,6 @@ from .schema import File
 from .schema import Health
 from .schema import ITSystem
 from .schema import ITUser
-from .schema import KLE
 from .schema import Leave
 from .schema import Manager
 from .schema import Organisation
@@ -64,21 +79,6 @@ from .schema import RelatedUnit
 from .schema import Response
 from .schema import RoleBinding
 from .schema import Version
-from mora import db
-from mora.audit import audit_log
-from mora.config import get_public_settings
-from mora.graphapi.gmodels.mo.details.association import AssociationRead
-from mora.graphapi.gmodels.mo.details.engagement import EngagementRead
-from mora.graphapi.gmodels.mo.details.it_system import ITSystemRead
-from mora.graphapi.gmodels.mo.details.it_system import ITUserRead
-from mora.graphapi.gmodels.mo.details.kle import KLERead
-from mora.graphapi.gmodels.mo.details.leave import LeaveRead
-from mora.graphapi.gmodels.mo.details.manager import ManagerRead
-from mora.graphapi.gmodels.mo.details.owner import OwnerRead
-from mora.graphapi.gmodels.mo.details.related_unit import RelatedUnitRead
-from mora.graphapi.gmodels.mo.employee import EmployeeRead
-from mora.graphapi.gmodels.mo.organisation_unit import OrganisationUnitRead
-
 
 T = TypeVar("T")
 

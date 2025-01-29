@@ -3,20 +3,19 @@
 import collections
 import datetime
 from unittest.mock import AsyncMock
-from unittest.mock import call
 from unittest.mock import MagicMock
 from unittest.mock import Mock
+from unittest.mock import call
 from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
-from psycopg.sql import Literal
-from pytest import MonkeyPatch
-
 from oio_rest import db
 from oio_rest.custom_exceptions import BadRequestException
 from oio_rest.custom_exceptions import DBException
 from oio_rest.custom_exceptions import NotFoundException
+from psycopg.sql import Literal
+from pytest import MonkeyPatch
 
 
 def mock_sql_session(monkeypatch: MonkeyPatch) -> AsyncMock:
@@ -76,7 +75,8 @@ class TestDB:
 
     @patch("oio_rest.db.get_relation_field_type")
     def test_convert_relation_value_journaldokument(self, mock_get_rel):
-        from oio_rest.db.db_helpers import JournalDokument, OffentlighedUndtaget
+        from oio_rest.db.db_helpers import JournalDokument
+        from oio_rest.db.db_helpers import OffentlighedUndtaget
 
         # Arrange
         mock_get_rel.return_value = "journaldokument"

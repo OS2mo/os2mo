@@ -6,13 +6,12 @@ Revision ID: b3e16449c312
 Revises: f710f6d29a74
 Create Date: 2024-01-30 16:18:01.405023
 """
+
 import os
 
 import sqlalchemy as sa
-from sqlalchemy.sql import func
-
 from alembic import op
-
+from sqlalchemy.sql import func
 
 # revision identifiers, used by Alembic.
 revision = "b3e16449c312"

@@ -4,6 +4,7 @@
 handlers for the various detail types.
 
 """
+
 import abc
 import inspect
 import typing
@@ -112,7 +113,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             return common._create_virkning(util.get_valid_to(request), "infinity")
         else:
             exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-                key="Validity must be set with either 'to' or both 'from' " "and 'to'",
+                key="Validity must be set with either 'to' or both 'from' and 'to'",
                 obj=request,
             )
 
@@ -317,9 +318,9 @@ class OrgFunkRequestHandler(RequestHandler):
                 original
             )
         if self.trigger_dict.get(Trigger.ORG_UNIT_UUID, None) is None:
-            self.trigger_dict[
-                Trigger.ORG_UNIT_UUID
-            ] = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
+            self.trigger_dict[Trigger.ORG_UNIT_UUID] = (
+                mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
+            )
 
     async def submit(self) -> str:
         c = lora.Connector()

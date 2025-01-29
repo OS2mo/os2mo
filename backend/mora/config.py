@@ -14,8 +14,8 @@ from pydantic import Field
 from pydantic import parse_obj_as
 from pydantic import root_validator
 from pydantic import validator
-from pydantic.types import FilePath
 from pydantic.types import UUID
+from pydantic.types import FilePath
 from structlog import get_logger
 
 logger = get_logger()

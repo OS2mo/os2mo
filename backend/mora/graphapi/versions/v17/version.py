@@ -9,20 +9,21 @@ import strawberry
 from starlette_context import context
 from strawberry.types import Info
 
-from ..latest.audit import audit_log_resolver
+from mora.util import now
+
 from ..latest.audit import AuditLog as AuditLogLatest
 from ..latest.audit import AuditLogFilter as AuditLogFilterLatest
 from ..latest.audit import AuditLogModel
+from ..latest.audit import audit_log_resolver
 from ..latest.filters import gen_filter_table
 from ..latest.paged import CursorType
 from ..latest.paged import LimitType
 from ..latest.paged import Paged
 from ..latest.paged import PageInfo
-from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
+from ..latest.permissions import gen_read_permission
 from ..latest.types import Cursor
 from ..v18.version import GraphQLVersion as NextGraphQLVersion
-from mora.util import now
 
 
 class PagedResolver:
@@ -36,7 +37,10 @@ class PagedResolver:
         raise NotImplementedError
 
 
-def to_paged(resolver: PagedResolver, result_transformer: Callable[[PagedResolver, Any], list[Any]] | None = None):  # type: ignore
+def to_paged(
+    resolver: PagedResolver,
+    result_transformer: Callable[[PagedResolver, Any], list[Any]] | None = None,
+):  # type: ignore
     result_transformer = result_transformer or (lambda _, x: x)
 
     @wraps(resolver.resolve)
