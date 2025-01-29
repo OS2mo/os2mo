@@ -6,7 +6,6 @@ from uuid import uuid4
 
 import hypothesis.strategies as st
 from hypothesis import given
-
 from mora.service.orgunit import list_orgunits
 
 

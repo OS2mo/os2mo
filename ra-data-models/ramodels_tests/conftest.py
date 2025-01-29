@@ -14,9 +14,7 @@ import pytest
 from hypothesis import HealthCheck
 from hypothesis import strategies as st
 from pydantic import ValidationError
-
 from ramodels.mo import Validity
-
 
 ht.settings.register_profile(
     "ci", deadline=None, suppress_health_check=[HealthCheck.too_slow]

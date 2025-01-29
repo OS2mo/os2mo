@@ -3,13 +3,12 @@
 import asyncio
 from logging.config import fileConfig
 
-from sqlalchemy.engine import Connection
-
 from alembic import context
 from alembic_helpers import register_helpers
 from mora.db import create_engine
 from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.db.metadata import metadata
+from sqlalchemy.engine import Connection
 
 register_helpers()
 

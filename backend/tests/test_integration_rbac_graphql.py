@@ -7,12 +7,12 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
-
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.rbac import _get_employee_uuid_via_it_system
 from mora.config import Settings
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
+
 from tests import util
 from tests.conftest import GraphAPIPost
 

@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Loaders for translating LoRa data to MO data to be returned from the GraphAPI."""
+
 import asyncio
 from collections import defaultdict
 from collections.abc import Callable
@@ -16,6 +17,8 @@ from more_itertools import unique_everseen
 from pydantic import parse_obj_as
 from strawberry.dataloader import DataLoader
 from strawberry.types.unset import UnsetType
+
+from mora.service import org
 
 from ...middleware import with_graphql_dates
 from .graphql_utils import LoadKey
@@ -38,7 +41,6 @@ from .schema import OrganisationUnitRead
 from .schema import OwnerRead
 from .schema import RelatedUnitRead
 from .schema import RoleBindingRead
-from mora.service import org
 
 MOModel = TypeVar(
     "MOModel",
@@ -82,7 +84,7 @@ def group_by_uuid(
     return {key: list(buckets[key]) for key in keys}
 
 
-async def get_mo(model: MOModel, **kwargs: Any) -> dict[UUID, list[MOModel]]:
+async def get_mo(model: type[MOModel], **kwargs: Any) -> dict[UUID, list[MOModel]]:
     """Get data from LoRa and parse into a list of MO models.
 
     Args:

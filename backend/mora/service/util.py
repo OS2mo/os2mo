@@ -8,8 +8,8 @@ from more_itertools import one
 from strawberry.exceptions import StrawberryGraphQLError
 
 from mora import exceptions
-from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import ExecutionResult
+from mora.graphapi.shim import execute_graphql
 
 
 def handle_gql_error(response: ExecutionResult) -> None:

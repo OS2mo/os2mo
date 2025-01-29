@@ -6,11 +6,12 @@ from unittest.mock import patch
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
-
-from ..conftest import GraphAPIPost
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.models import RelatedUnitsUpdate
+
 from tests.conftest import GQLResponse
+
+from ..conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test

@@ -5,14 +5,15 @@ from pathlib import Path
 
 from hypothesis import given
 from hypothesis import strategies as st
+from ramodels.lora import Klasse
+from ramodels.lora import KlasseRead
+
 from ramodels_tests.conftest import from_date_strat
 from ramodels_tests.conftest import to_date_strat
 
 from .test__shared import valid_klasse_attrs
 from .test__shared import valid_klasse_relations
 from .test__shared import valid_klasse_states
-from ramodels.lora import Klasse
-from ramodels.lora import KlasseRead
 
 
 @st.composite

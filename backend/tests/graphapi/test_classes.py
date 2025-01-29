@@ -11,20 +11,21 @@ from uuid import uuid4
 
 import pytest
 from fastapi.encoders import jsonable_encoder
-from hypothesis import given
 from hypothesis import HealthCheck
+from hypothesis import given
 from hypothesis import settings
 from hypothesis import strategies as st
-from more_itertools import one
-
-from ..conftest import GraphAPIPost
-from .strategies import graph_data_momodel_validity_strat
 from mora import util
 from mora.auth.keycloak.oidc import noauth
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.classes import ClassCreate
 from mora.graphapi.versions.latest.graphql_utils import PrintableStr
+from more_itertools import one
+
 from tests.conftest import AnotherTransaction
+
+from ..conftest import GraphAPIPost
+from .strategies import graph_data_momodel_validity_strat
 
 # Helpers
 # -------------------
@@ -43,7 +44,7 @@ def prepare_mutator_data(test_data):
 
     """Change UUID types to string."""
     for k, v in test_data.items():
-        if type(v) == UUID:
+        if type(v) is UUID:
             test_data[k] = str(v)
 
     return test_data
@@ -162,6 +163,8 @@ def test_query_all(graphapi_post: GraphAPIPost):
     suppress_health_check=[
         # Running multiple tests on the same database is okay in this instance
         HealthCheck.function_scoped_fixture,
+        # The hypothesis strategy isn't very good
+        HealthCheck.filter_too_much,
     ],
 )
 @given(
@@ -282,6 +285,12 @@ async def test_integration_create_class(
     }
 
 
+@settings(
+    suppress_health_check=[
+        # The hypothesis strategy isn't very good
+        HealthCheck.filter_too_much
+    ],
+)
 @given(
     test_data=graph_data_momodel_validity_strat(
         ClassCreate,

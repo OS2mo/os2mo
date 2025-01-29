@@ -6,11 +6,12 @@ from typing import TypeVar
 
 from structlog import get_logger
 
-from .. import reading
+from mora import util
+
 from ... import mapping
 from ...graphapi.middleware import is_graphql
 from ...service import orgunit
-from mora import util
+from .. import reading
 
 ROLE_TYPE = "related_unit"
 

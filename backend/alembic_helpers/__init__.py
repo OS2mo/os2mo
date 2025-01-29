@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from .function import drop_function
-from .function import DropFunctionOp
-from .sequence import create_sequence
-from .sequence import CreateSequenceOp
-from .sequence import drop_sequence
-from .sequence import DropSequenceOp
 from alembic.operations import Operations
 
+from .function import DropFunctionOp
+from .function import drop_function
+from .sequence import CreateSequenceOp
+from .sequence import DropSequenceOp
+from .sequence import create_sequence
+from .sequence import drop_sequence
 
 # Sequence
 Operations.register_operation("create_sequence")(CreateSequenceOp)

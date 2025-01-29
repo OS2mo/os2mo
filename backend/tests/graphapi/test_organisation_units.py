@@ -8,10 +8,15 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
-from hypothesis import given
 from hypothesis import HealthCheck
+from hypothesis import given
 from hypothesis import settings
 from hypothesis import strategies as st
+from mora.graphapi.gmodels.mo import Validity as RAValidity
+from mora.graphapi.shim import execute_graphql
+from mora.graphapi.versions.latest.inputs import OrganisationUnitCreateInput
+from mora.graphapi.versions.latest.inputs import OrganisationUnitUpdateInput
+from mora.util import POSITIVE_INFINITY
 from more_itertools import one
 from strawberry import UNSET
 from strawberry.types.unset import UnsetType
@@ -22,12 +27,6 @@ from .utils import fetch_org_unit_validity
 from .utils import gen_read_parent
 from .utils import gen_set_parent
 from .utils import sjsonable_encoder
-from mora.graphapi.gmodels.mo import Validity as RAValidity
-from mora.graphapi.shim import execute_graphql
-from mora.graphapi.versions.latest.inputs import OrganisationUnitCreateInput
-from mora.graphapi.versions.latest.inputs import OrganisationUnitUpdateInput
-from mora.util import POSITIVE_INFINITY
-
 
 validity_builder = st.builds(
     RAValidity,

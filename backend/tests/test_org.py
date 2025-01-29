@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock
 
 from fastapi.testclient import TestClient
-
 from oio_rest.organisation import Organisation
 
 

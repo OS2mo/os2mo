@@ -15,14 +15,11 @@ from mora.util import CPR
 
 
 def gen_filter_string(title: str, key: str) -> str:
-    return (
-        dedent(
-            f"""\
+    return dedent(
+        f"""\
         {title} filter limiting which entries are returned.
         """
-        )
-        + gen_filter_table(key)
-    )
+    ) + gen_filter_table(key)
 
 
 def gen_filter_table(key: str) -> str:

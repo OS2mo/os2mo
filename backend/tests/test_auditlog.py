@@ -11,14 +11,9 @@ import hypothesis.strategies as st
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from fastapi.encoders import jsonable_encoder
-from hypothesis import given
 from hypothesis import HealthCheck
+from hypothesis import given
 from hypothesis import settings
-from more_itertools import flatten
-from more_itertools import one
-from sqlalchemy import delete
-from sqlalchemy import select
-
 from mora.audit import audit_log
 from mora.auth.middleware import LORA_USER_UUID
 from mora.auth.middleware import set_authenticated_user
@@ -29,8 +24,13 @@ from mora.graphapi.versions.latest.audit import AuditLogModel
 from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.orgunits import search_orgunits
 from mora.util import DEFAULT_TIMEZONE
-from tests.conftest import admin_auth_uuid
+from more_itertools import flatten
+from more_itertools import one
+from sqlalchemy import delete
+from sqlalchemy import select
+
 from tests.conftest import GraphAPIPost
+from tests.conftest import admin_auth_uuid
 
 
 async def assert_empty_audit_tables(session) -> None:

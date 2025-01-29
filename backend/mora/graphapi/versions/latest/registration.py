@@ -9,20 +9,16 @@ from typing import TypeVar
 from uuid import UUID
 
 import strawberry
+from sqlalchemy import Text
 from sqlalchemy import case
 from sqlalchemy import column
 from sqlalchemy import literal
 from sqlalchemy import select
-from sqlalchemy import Text
 from sqlalchemy import union
 from sqlalchemy.sql.expression import Select
 from starlette_context import context
 from strawberry.types import Info
 
-from .filters import RegistrationFilter
-from .paged import CursorType
-from .paged import LimitType
-from .resolvers import get_sqlalchemy_date_interval
 from mora.audit import audit_log
 from mora.db import BrugerRegistrering
 from mora.db import FacetRegistrering
@@ -32,6 +28,11 @@ from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRegistrering
 from mora.util import parsedatetime
+
+from .filters import RegistrationFilter
+from .paged import CursorType
+from .paged import LimitType
+from .resolvers import get_sqlalchemy_date_interval
 
 MOObject = TypeVar("MOObject")
 
@@ -227,7 +228,7 @@ async def registration_resolver(
                     value=OrganisationFunktionAttrEgenskaber.funktionsnavn.cast(Text),
                     else_="unknown",
                 ).label("model"),
-                *common_fields
+                *common_fields,
             ).where(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
                 == table.id
@@ -247,7 +248,7 @@ async def registration_resolver(
                 value=literal(table.__name__),
                 else_="unknown",
             ).label("model"),
-            *common_fields
+            *common_fields,
         )
 
     # Query all requested registation tables using a big union query

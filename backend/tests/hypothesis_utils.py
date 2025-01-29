@@ -5,7 +5,6 @@ from datetime import timedelta
 from functools import partial
 
 from hypothesis import strategies as st
-
 from ramodels.mo import Validity
 
 date_strat = partial(st.dates, min_value=date(1930, 1, 1))

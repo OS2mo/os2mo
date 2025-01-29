@@ -4,12 +4,11 @@ from unittest import mock
 from uuid import uuid4
 
 import pytest
-from parameterized import parameterized
-
 from mora import mapping
 from mora.service.facet import get_mo_object_primary_value
 from mora.service.facet import is_class_primary
 from mora.service.facet import is_class_uuid_primary
+from parameterized import parameterized
 
 BELOW_MINIMUM_SCOPE = str(int(mapping.MINIMUM_PRIMARY_SCOPE_VALUE) - 1)
 

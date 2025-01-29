@@ -7,14 +7,14 @@ from typing import Any
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
-from more_itertools import one
-
-from . import util
 from mora import lora
 from mora.service import orgunit as service_orgunit
+from more_itertools import one
+
 from tests.cases import assert_registrations_equal
 from tests.util import set_get_configuration
 
+from . import util
 
 org_unit_hierarchy_facet = {
     "description": "",

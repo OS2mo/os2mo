@@ -3,9 +3,9 @@
 from unittest.mock import patch
 
 import pytest
-
 from mora import exceptions
 from mora.service.address_handler.email import EmailAddressHandler
+
 from tests import util
 
 

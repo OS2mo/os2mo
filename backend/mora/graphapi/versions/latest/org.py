@@ -1,15 +1,16 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """GraphQL org related helper functions."""
+
 import logging
 from textwrap import dedent
 from uuid import UUID
 
 import strawberry
 
-from .orgmodel import Organisation
 from mora import common
 
+from .orgmodel import Organisation
 
 logger = logging.getLogger(__name__)
 

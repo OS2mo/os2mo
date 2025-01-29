@@ -5,6 +5,7 @@
 
 Used for shimming the service API.
 """
+
 from datetime import date
 from typing import Any
 from typing import Optional
@@ -19,7 +20,6 @@ from starlette_context import context
 from starlette_context import request_cycle_context
 from strawberry.types import ExecutionResult
 
-from .versions.base import BaseGraphQLVersion
 from mora import depends
 from mora import util
 from mora.auth.keycloak.oidc import noauth
@@ -29,6 +29,8 @@ from mora.graphapi.gmodels.mo import FacetRead
 from mora.graphapi.gmodels.mo import OrganisationRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import AddressRead
+
+from .versions.base import BaseGraphQLVersion
 
 
 class MOEmployee(EmployeeRead):

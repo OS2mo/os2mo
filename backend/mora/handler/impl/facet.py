@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: MPL-2.0
 from structlog import get_logger
 
-from .. import reading
 from ... import common
 from ... import exceptions
 from ... import mapping
 from ... import util
 from ...service import facet
+from .. import reading
 
 ROLE_TYPE = "facet"
 

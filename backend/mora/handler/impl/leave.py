@@ -2,14 +2,15 @@
 # SPDX-License-Identifier: MPL-2.0
 from structlog import get_logger
 
-from .. import reading
+from mora import lora
+from mora import util
+
 from ... import mapping
 from ...graphapi.middleware import is_graphql
 from ...service import employee
 from ...service import facet
+from .. import reading
 from .engagement import get_engagement
-from mora import lora
-from mora import util
 
 ROLE_TYPE = "leave"
 

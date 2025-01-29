@@ -4,8 +4,8 @@ from contextlib import suppress
 from functools import cache
 from functools import partial
 from typing import Any
-from typing import get_args
 from typing import Literal
+from typing import get_args
 
 from fastapi import HTTPException
 from graphql import OperationType
@@ -14,7 +14,6 @@ from strawberry.types import Info
 
 from mora.auth.exceptions import AuthorizationError
 from mora.config import get_settings
-
 
 Collections = Literal[
     "address",
@@ -179,9 +178,9 @@ def gen_permission(
         OIDC token.
     """
     assert collection in get_args(Collections), f"{collection} not a valid collection"
-    assert permission_type in get_args(
-        CollectionPermissionType
-    ), f"{permission_type} not a valid permission type"
+    assert permission_type in get_args(CollectionPermissionType), (
+        f"{permission_type} not a valid permission type"
+    )
 
     permission_name = f"{permission_type}_{collection}"
     return gen_role_permission(

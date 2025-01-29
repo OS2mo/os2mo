@@ -9,7 +9,6 @@ from .klasse import KlasseRead
 from .organisation import Organisation
 from .organisation import OrganisationRead
 
-
 __all__ = [
     "LoraBase",
     "Facet",

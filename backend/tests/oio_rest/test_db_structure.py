@@ -3,7 +3,6 @@
 from unittest.mock import patch
 
 import pytest
-
 from oio_rest.db import db_structure
 
 

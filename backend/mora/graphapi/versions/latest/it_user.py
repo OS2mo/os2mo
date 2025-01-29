@@ -4,11 +4,12 @@ from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 
+from mora import mapping
+from mora.service.itsystem import ItsystemRequestHandler
+
 from .models import ITUserCreate
 from .models import ITUserTerminate
 from .models import ITUserUpdate
-from mora import mapping
-from mora.service.itsystem import ItsystemRequestHandler
 
 
 async def create_ituser(input: ITUserCreate) -> UUID:

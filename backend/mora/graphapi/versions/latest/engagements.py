@@ -1,15 +1,17 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """GraphQL engagement related helper functions."""
+
 from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 
+from mora import mapping
+from mora.service.engagement import EngagementRequestHandler
+
 from .models import EngagementCreate
 from .models import EngagementTerminate
 from .models import EngagementUpdate
-from mora import mapping
-from mora.service.engagement import EngagementRequestHandler
 
 
 async def create_engagement(input: EngagementCreate) -> UUID:

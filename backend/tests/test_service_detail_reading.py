@@ -7,16 +7,15 @@ from unittest.mock import patch
 
 import pytest
 from fastapi.encoders import jsonable_encoder
-from strawberry.types import ExecutionResult
-
 from mora.lora import ValidityLiteral
 from mora.service.detail_reading import list_addresses_ou
+from strawberry.types import ExecutionResult
 
 
 @pytest.fixture
-def get_list_addresses_ou_test_data() -> (
-    tuple[uuid.UUID, ValidityLiteral, datetime.date]
-):
+def get_list_addresses_ou_test_data() -> tuple[
+    uuid.UUID, ValidityLiteral, datetime.date
+]:
     org_id = uuid.UUID("00000000-0000-0000-0000-000000000000")
     validity_literal: ValidityLiteral = "present"
     at_attr = datetime.date(2023, 1, 5)

@@ -5,11 +5,11 @@ from uuid import UUID
 
 import pytest
 from fastapi.testclient import TestClient
-
 from mora import exceptions
 from mora import mapping
 from mora import util as mora_util
 from mora.service.validation import validator
+
 from tests.util import set_settings_contextmanager
 
 

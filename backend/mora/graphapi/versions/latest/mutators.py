@@ -8,9 +8,24 @@ from typing import Any
 from uuid import UUID
 
 import strawberry
-from ra_utils.asyncio_utils import gather_with_concurrency
+from fastramqpi.ra_utils.asyncio_utils import gather_with_concurrency
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
+
+from mora import db
+from mora.auth.middleware import get_authenticated_user
+from mora.common import get_connector
+from mora.graphapi.gmodels.mo import EmployeeRead
+from mora.graphapi.gmodels.mo import OrganisationUnitRead
+from mora.graphapi.gmodels.mo.details import AssociationRead
+from mora.graphapi.gmodels.mo.details import EngagementRead
+from mora.graphapi.gmodels.mo.details import ITSystemRead
+from mora.graphapi.gmodels.mo.details import ITUserRead
+from mora.graphapi.gmodels.mo.details import KLERead
+from mora.graphapi.gmodels.mo.details import LeaveRead
+from mora.graphapi.gmodels.mo.details import ManagerRead
+from mora.graphapi.gmodels.mo.details import OwnerRead
+from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 
 from .address import create_address
 from .address import terminate_address
@@ -117,8 +132,8 @@ from .models import ClassRead
 from .models import FacetRead
 from .models import FileStore
 from .models import RoleBindingRead
-from .org import create_org
 from .org import OrganisationCreate
+from .org import create_org
 from .org_unit import create_org_unit
 from .org_unit import terminate_org_unit
 from .org_unit import update_org_unit
@@ -128,13 +143,13 @@ from .owner import update_owner
 from .paged import CursorType
 from .paged import LimitType
 from .paged import Paged
+from .permissions import IsAuthenticatedPermission
 from .permissions import gen_create_permission
 from .permissions import gen_delete_permission
 from .permissions import gen_refresh_permission
 from .permissions import gen_role_permission
 from .permissions import gen_terminate_permission
 from .permissions import gen_update_permission
-from .permissions import IsAuthenticatedPermission
 from .query import to_paged_uuids
 from .related_units import update_related_units
 from .resolvers import address_resolver
@@ -155,6 +170,7 @@ from .resolvers import rolebinding_resolver
 from .role import create_rolebinding
 from .role import terminate_rolebinding
 from .role import update_rolebinding
+from .schema import KLE
 from .schema import Address
 from .schema import Association
 from .schema import Class
@@ -163,7 +179,6 @@ from .schema import Engagement
 from .schema import Facet
 from .schema import ITSystem
 from .schema import ITUser
-from .schema import KLE
 from .schema import Leave
 from .schema import Manager
 from .schema import Organisation
@@ -172,20 +187,6 @@ from .schema import Owner
 from .schema import RelatedUnit
 from .schema import Response
 from .schema import RoleBinding
-from mora import db
-from mora.auth.middleware import get_authenticated_user
-from mora.common import get_connector
-from mora.graphapi.gmodels.mo import EmployeeRead
-from mora.graphapi.gmodels.mo import OrganisationUnitRead
-from mora.graphapi.gmodels.mo.details import AssociationRead
-from mora.graphapi.gmodels.mo.details import EngagementRead
-from mora.graphapi.gmodels.mo.details import ITSystemRead
-from mora.graphapi.gmodels.mo.details import ITUserRead
-from mora.graphapi.gmodels.mo.details import KLERead
-from mora.graphapi.gmodels.mo.details import LeaveRead
-from mora.graphapi.gmodels.mo.details import ManagerRead
-from mora.graphapi.gmodels.mo.details import OwnerRead
-from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 
 logger = logging.getLogger(__name__)
 
@@ -336,7 +337,8 @@ class Mutation:
         self, input: AssociationCreateInput
     ) -> Response[Association]:
         return uuid2response(
-            await create_association(input.to_pydantic()), AssociationRead  # type: ignore
+            await create_association(input.to_pydantic()),  # type: ignore
+            AssociationRead,
         )
 
     @strawberry.mutation(
@@ -350,7 +352,8 @@ class Mutation:
         self, input: AssociationUpdateInput
     ) -> Response[Association]:
         return uuid2response(
-            await update_association(input.to_pydantic()), AssociationRead  # type: ignore
+            await update_association(input.to_pydantic()),  # type: ignore
+            AssociationRead,
         )
 
     @strawberry.mutation(
@@ -558,7 +561,8 @@ class Mutation:
         self, input: EngagementCreateInput
     ) -> Response[Engagement]:
         return uuid2response(
-            await create_engagement(input.to_pydantic()), EngagementRead  # type: ignore
+            await create_engagement(input.to_pydantic()),  # type: ignore
+            EngagementRead,
         )
 
     @strawberry.mutation(
@@ -587,7 +591,8 @@ class Mutation:
         self, input: EngagementUpdateInput
     ) -> Response[Engagement]:
         return uuid2response(
-            await update_engagement(input.to_pydantic()), EngagementRead  # type: ignore
+            await update_engagement(input.to_pydantic()),  # type: ignore
+            EngagementRead,
         )
 
     @strawberry.mutation(

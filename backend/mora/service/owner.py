@@ -6,13 +6,12 @@
 This section describes how to interact with owners.
 
 """
+
 import uuid
 from datetime import datetime
 from typing import Any
 from typing import NoReturn
 
-from . import handlers
-from . import org
 from .. import common
 from .. import lora
 from .. import mapping
@@ -21,6 +20,8 @@ from ..common import parse_owner_inference_priority_str
 from ..exceptions import ErrorCodes
 from ..mapping import OwnerInferencePriority
 from ..triggers import Trigger
+from . import handlers
+from . import org
 from .validation import validator
 
 

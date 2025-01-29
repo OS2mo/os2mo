@@ -7,6 +7,7 @@ Related Units
 This section describes how to interact with related units.
 
 """
+
 from asyncio import create_task
 from asyncio import gather
 from uuid import UUID
@@ -14,12 +15,12 @@ from uuid import UUID
 from fastapi import APIRouter
 from fastapi import Body
 
-from . import handlers
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from . import handlers
 
 router = APIRouter()
 

@@ -5,6 +5,8 @@ from contextlib import AbstractAsyncContextManager
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter
+from oio_rest.config import Settings as LoraSettings
+from oio_rest.config import get_settings as lora_get_settings
 from psycopg.errors import UndefinedTable
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
@@ -18,8 +20,6 @@ from mora import amqp
 from mora import db
 from mora import depends
 from mora.service.org import ConfiguredOrganisation
-from oio_rest.config import get_settings as lora_get_settings
-from oio_rest.config import Settings as LoraSettings
 
 logger = get_logger()
 

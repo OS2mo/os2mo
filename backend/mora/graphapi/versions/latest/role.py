@@ -4,11 +4,12 @@ from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 
+from mora import mapping
+from mora.service.role import RoleBindingRequestHandler
+
 from .models import RoleBindingCreate
 from .models import RoleBindingTerminate
 from .models import RoleBindingUpdate
-from mora import mapping
-from mora.service.role import RoleBindingRequestHandler
 
 
 async def create_rolebinding(input: RoleBindingCreate) -> UUID:

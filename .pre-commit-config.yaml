@@ -1,45 +1,43 @@
 repos:
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.8.0
+  - repo: https://github.com/fsfe/reuse-tool
+    rev: v5.0.2
     hooks:
-      - id: pyupgrade
-        args: [ "--py310-plus" ]
+      - id: reuse
 
-  - repo: https://github.com/psf/black
-    rev: 23.3.0
+  - repo: https://github.com/pre-commit/pre-commit-hooks.git
+    rev: v5.0.0
     hooks:
-      - id: black
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: end-of-file-fixer
+        exclude: "docs/src/graphics/.*"
+      - id: fix-byte-order-marker
+      - id: mixed-line-ending
+        args: ["--fix", "lf"]
+      - id: trailing-whitespace
 
-  - repo: https://github.com/asottile/reorder_python_imports
-    rev: v3.10.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.3
     hooks:
-      - id: reorder-python-imports
-        args: [ "--application-directories=.:backend:tests" ]
-
-  - repo: https://github.com/pycqa/flake8
-    rev: 6.0.0
-    hooks:
-      - id: flake8
-        args: [ "--extend-ignore=B008,W503,E203", "--max-line-length=10001" ]
+      - id: ruff
+        args: [--fix]
+        language: system
+      - id: ruff-format
+        language: system
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.4.1
+    rev: v1.14.1
     hooks:
       - id: mypy
-        args: [ --config-file=pyproject.toml ]
-        additional_dependencies:
-          - aiohttp
-          - fastapi
-          - httpx
-          - os2mo-dar-client==1.0.3
-          - prometheus_client
-          - pydantic==1.10.11
-          - fastramqpi==8.3.0
-          - sqlalchemy
-          - starlette_context
-          - strawberry-graphql==0.237.1
-          - structlog
-          - types-python-dateutil
+        args: [--config-file=pyproject.toml]
+        language: system
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.19.1
+    hooks:
+      - id: pyupgrade
+        args: ["--py311-plus"]
+        language: system
 
   - repo: https://github.com/pycqa/pydocstyle
     rev: 6.3.0
@@ -47,30 +45,13 @@ repos:
       - id: pydocstyle
         files: backend/mora/graphapi/
         exclude: (backend/mora/graphapi/gmodels/|backend/mora/graphapi/versions/v5/facet.py|backend/mora/graphapi/versions/latest/orgmodel.py)
-        args: [ "--convention=google", "--add-ignore=D1" ]
+        args: ["--convention=google", "--add-ignore=D1"]
         additional_dependencies:
           - toml
 
-  - repo: https://github.com/fsfe/reuse-tool
-    rev: v1.1.2
-    hooks:
-      - id: reuse
-
-  - repo: https://github.com/pre-commit/pre-commit-hooks.git
-    rev: v4.4.0
-    hooks:
-      - id: end-of-file-fixer
-        exclude: "docs/src/graphics/.*"
-      - id: trailing-whitespace
-      - id: mixed-line-ending
-        args: ["--fix", "lf"]
-      - id: fix-byte-order-marker
-      - id: check-merge-conflict
-
-
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v2.37.1
+    rev: v4.1.1
     hooks:
       - id: commitizen
       - id: commitizen-branch
-        stages: [ push ]
+        stages: [pre-push]

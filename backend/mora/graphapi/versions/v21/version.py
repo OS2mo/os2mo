@@ -2,18 +2,19 @@
 # SPDX-License-Identifier: MPL-2.0
 import strawberry
 
+from mora.graphapi.gmodels.mo import OrganisationUnitRead
+
 from ..latest.inputs import (
     OrganisationUnitUpdateInput as OrganisationUnitUpdateInputLatest,
 )
 from ..latest.inputs import strip_none
 from ..latest.mutators import uuid2response
 from ..latest.org_unit import update_org_unit
-from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission
+from ..latest.permissions import gen_update_permission
 from ..latest.schema import OrganisationUnit
 from ..latest.schema import Response
 from ..v22.version import GraphQLVersion as NextGraphQLVersion
-from mora.graphapi.gmodels.mo import OrganisationUnitRead
 
 
 class OrganisationUnitUpdateInput(OrganisationUnitUpdateInputLatest):

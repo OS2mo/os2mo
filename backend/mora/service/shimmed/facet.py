@@ -14,12 +14,13 @@ from pydantic import BaseModel
 from pydantic import Field
 from pydantic.generics import GenericModel
 
-from .errors import handle_gql_error
 from mora import exceptions
-from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import MOFacetRead
 from mora.graphapi.shim import UUIDObject
+from mora.graphapi.shim import execute_graphql
 from mora.service.facet import router as facet_router
+
+from .errors import handle_gql_error
 
 
 class MOClassReturn(BaseModel):
@@ -61,11 +62,13 @@ class MOClassReturn(BaseModel):
 )
 async def get_class(
     classid: UUID = Path(..., description="UUID of the class to retrieve."),
-    only_primary_uuid: bool
-    | None = Query(None, description="Only retrieve the UUID of the class unit."),
+    only_primary_uuid: bool | None = Query(
+        None, description="Only retrieve the UUID of the class unit."
+    ),
     full_name: bool | None = Query(None, description="Include full name in response."),
-    top_level_facet: bool
-    | None = Query(None, description="Include top-level facet in response."),
+    top_level_facet: bool | None = Query(
+        None, description="Include top-level facet in response."
+    ),
     facet: bool | None = Query(None, description="Include facet in response."),
 ) -> dict[str, Any]:
     """Get a class."""
@@ -308,8 +311,9 @@ async def get_all_classes(
     facet: str | UUID = Path(..., description="UUID or user_key of a facet."),
     start: int = Query(0, description="Index of the first item for paging."),
     limit: int | None = Query(None, description="Maximum number of items to return."),
-    only_primary_uuid: bool
-    | None = Query(None, description="Only retrieve the UUID of the class unit."),
+    only_primary_uuid: bool | None = Query(
+        None, description="Only retrieve the UUID of the class unit."
+    ),
 ):
     """List classes available in the given facet."""
     # If given a user_key we want to convert it to an UUID
@@ -414,8 +418,9 @@ async def get_all_classes_children(
     facet: str | UUID = Path(..., description="UUID or user_key of a facet."),
     start: int = Query(0, description="Index of the first item for paging."),
     limit: int | None = Query(None, description="Maximum number of items to return."),
-    only_primary_uuid: bool
-    | None = Query(None, description="Only retrieve the UUID of the class unit."),
+    only_primary_uuid: bool | None = Query(
+        None, description="Only retrieve the UUID of the class unit."
+    ),
 ):
     """List classes available in the given facet."""
     # If given a user_key we want to convert it to an UUID
@@ -484,8 +489,9 @@ async def get_all_classes_children(
 )
 async def get_all_class_children(
     classid: UUID = Path(..., description="UUID of a class."),
-    only_primary_uuid: bool
-    | None = Query(None, description="Only retrieve the UUID of the class unit."),
+    only_primary_uuid: bool | None = Query(
+        None, description="Only retrieve the UUID of the class unit."
+    ),
 ):
     """Get class children by UUID."""
     query = """
@@ -577,15 +583,18 @@ async def get_classes(
     facet: str | UUID = Path(..., description="UUID or user_key of a facet."),
     start: int = Query(0, description="Index of the first item for paging."),
     limit: int | None = Query(None, description="Maximum number of items to return."),
-    only_primary_uuid: bool
-    | None = Query(None, description="Only retrieve the UUID of the class unit."),
+    only_primary_uuid: bool | None = Query(
+        None, description="Only retrieve the UUID of the class unit."
+    ),
     at: Any = None,
     validity: Any = None,
     full_name: bool | None = Query(None, description="Include full name in response."),
-    top_level_facet: bool
-    | None = Query(None, description="Include top-level facet in response."),
-    facet_toggle: bool
-    | None = Query(None, alias="facet", description="Include facet in response."),
+    top_level_facet: bool | None = Query(
+        None, description="Include top-level facet in response."
+    ),
+    facet_toggle: bool | None = Query(
+        None, alias="facet", description="Include facet in response."
+    ),
 ):
     """List classes available in the given facet."""
     # If given a user_key we want to convert it to an UUID

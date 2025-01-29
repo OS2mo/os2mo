@@ -4,11 +4,12 @@ from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 
+from mora import mapping
+from mora.service.kle import KLERequestHandler
+
 from .models import KLECreate
 from .models import KLETerminate
 from .models import KLEUpdate
-from mora import mapping
-from mora.service.kle import KLERequestHandler
 
 
 async def create_kle(input: KLECreate) -> UUID:

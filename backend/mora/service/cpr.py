@@ -7,6 +7,7 @@ CPR
 This section describes functionality for retrieving information about people
 based on their CPR number.
 """
+
 from fastapi import APIRouter
 
 router = APIRouter()

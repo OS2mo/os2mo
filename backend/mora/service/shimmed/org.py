@@ -10,16 +10,17 @@ from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import ilen
 from more_itertools import one
+from ramodels.mo import OrganisationRead
+
+from mora import exceptions
+from mora.graphapi.shim import OrganisationLevelRead
+from mora.graphapi.shim import OrganisationUnitCount
+from mora.graphapi.shim import execute_graphql
+from mora.graphapi.shim import flatten_data
+from mora.service.org import router as org_router
 
 from .errors import handle_gql_error
 from .util import filter_data
-from mora import exceptions
-from mora.graphapi.shim import execute_graphql
-from mora.graphapi.shim import flatten_data
-from mora.graphapi.shim import OrganisationLevelRead
-from mora.graphapi.shim import OrganisationUnitCount
-from mora.service.org import router as org_router
-from ramodels.mo import OrganisationRead
 
 
 @org_router.get(
@@ -57,7 +58,7 @@ async def list_organisations() -> list[OrganisationRead]:
     response_model_exclude_unset=True,
 )
 async def get_organisation(
-    orgid: UUID = Path(..., description="UUID of the organisation")
+    orgid: UUID = Path(..., description="UUID of the organisation"),
 ) -> OrganisationLevelRead:
     """Obtain the initial level of an organisation."""
     query = """
@@ -119,9 +120,7 @@ async def get_organisation(
 )
 async def get_org_children(
     parentid: UUID = Path(..., description="UUID of the parent"),
-    at: date
-    | datetime
-    | None = Query(
+    at: date | datetime | None = Query(
         None,
         description="Show the children valid at this point in time, in ISO-8601 format",
     ),
@@ -133,8 +132,7 @@ async def get_org_children(
         "associations in the unit. `count=engagement` is also allowed. "
         "It is allowed to pass more than one `count` query parameter.",
     ),
-    org_unit_hierarchy: UUID
-    | None = Query(
+    org_unit_hierarchy: UUID | None = Query(
         None,
         description="The tree returned is filtered to contain "
         "only organisational units which belong to the given hierarchy.",

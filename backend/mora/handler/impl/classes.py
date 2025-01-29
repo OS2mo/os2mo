@@ -8,15 +8,17 @@ Reading handler for LoRa classes.
 NOTE the file is named `clazz` to avoid conflict with the Python keyword `class`.
 
 """
+
 from structlog import get_logger
 
-from .. import reading
+from mora.service.facet import get_one_class
+
 from ... import common
 from ... import exceptions
 from ... import lora
 from ... import mapping
 from ... import util
-from mora.service.facet import get_one_class
+from .. import reading
 
 logger = get_logger()
 

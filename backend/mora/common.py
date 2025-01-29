@@ -9,6 +9,7 @@ similar to py:module:`mora.util`, they aren't mere utility methods, and
 can have deep knowledge of how we expect LoRA to behave.
 
 """
+
 import collections
 import copy
 import datetime
@@ -21,15 +22,15 @@ from starlette.requests import Request
 from starlette_context import context
 from starlette_context import request_cycle_context
 
+from mora.graphapi.middleware import get_graphql_dates
+from mora.graphapi.middleware import is_graphql
+
 from . import exceptions
 from . import lora
 from . import mapping
 from . import util
 from .exceptions import ErrorCodes
 from .mapping import OwnerInferencePriority
-from mora.graphapi.middleware import get_graphql_dates
-from mora.graphapi.middleware import is_graphql
-
 
 _LORA_CONNECTOR_MIDDLEWARE_KEY = "lora_connector"
 _CREATE_CONNECTOR_MIDDLEWARE_KEY = "create_connector"
@@ -91,7 +92,7 @@ def _create_graphql_connector(**loraparams) -> lora.Connector:
 
     if dates is None:
         # default to present
-        from_date = datetime.datetime.now(tz=datetime.timezone.utc)
+        from_date = datetime.datetime.now(tz=datetime.UTC)
         to_date = from_date + datetime.timedelta(milliseconds=1)
     else:
         # None in MO -> ±infinity in LoRa

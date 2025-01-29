@@ -5,9 +5,9 @@ from typing import Any
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
+from mora import lora
 from more_itertools import one
 
-from mora import lora
 from tests.cases import assert_registrations_equal
 
 engagement_uuid = "d000591f-8705-4324-897a-075e3623f37b"
@@ -232,9 +232,9 @@ async def test_edit_itsystem(service_client: TestClient):
                     "brugervendtnoegle": "fwaf",
                     "funktionsnavn": "IT-system",
                     "virkning": {
-                        "from": "2017-01-01 " "00:00:00+01",
+                        "from": "2017-01-01 00:00:00+01",
                         "from_included": True,
-                        "to": "2018-06-02 " "00:00:00+02",
+                        "to": "2018-06-02 00:00:00+02",
                         "to_included": False,
                     },
                 }
@@ -247,18 +247,18 @@ async def test_edit_itsystem(service_client: TestClient):
                 {
                     "uuid": old_unit_id,
                     "virkning": {
-                        "from": "2017-01-01 " "00:00:00+01",
+                        "from": "2017-01-01 00:00:00+01",
                         "from_included": True,
-                        "to": "2017-06-22 " "00:00:00+02",
+                        "to": "2017-06-22 00:00:00+02",
                         "to_included": False,
                     },
                 },
                 {
                     "uuid": new_unit_id,
                     "virkning": {
-                        "from": "2017-06-22 " "00:00:00+02",
+                        "from": "2017-06-22 00:00:00+02",
                         "from_included": True,
-                        "to": "2018-06-02 " "00:00:00+02",
+                        "to": "2018-06-02 00:00:00+02",
                         "to_included": False,
                     },
                 },
@@ -268,9 +268,9 @@ async def test_edit_itsystem(service_client: TestClient):
                     "objekttype": "engagement",
                     "uuid": "d000591f-8705-4324-897a-075e3623f37b",
                     "virkning": {
-                        "from": "2017-06-22 " "00:00:00+02",
+                        "from": "2017-06-22 00:00:00+02",
                         "from_included": True,
-                        "to": "2018-06-02 " "00:00:00+02",
+                        "to": "2018-06-02 00:00:00+02",
                         "to_included": False,
                     },
                 }
@@ -279,18 +279,18 @@ async def test_edit_itsystem(service_client: TestClient):
                 {
                     "uuid": old_it_system_id,
                     "virkning": {
-                        "from": "2017-01-01 " "00:00:00+01",
+                        "from": "2017-01-01 00:00:00+01",
                         "from_included": True,
-                        "to": "2017-06-22 " "00:00:00+02",
+                        "to": "2017-06-22 00:00:00+02",
                         "to_included": False,
                     },
                 },
                 {
                     "uuid": new_it_system_id,
                     "virkning": {
-                        "from": "2017-06-22 " "00:00:00+02",
+                        "from": "2017-06-22 00:00:00+02",
                         "from_included": True,
-                        "to": "2018-06-02 " "00:00:00+02",
+                        "to": "2018-06-02 00:00:00+02",
                         "to_included": False,
                     },
                 },
@@ -299,9 +299,9 @@ async def test_edit_itsystem(service_client: TestClient):
                 {
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                     "virkning": {
-                        "from": "2017-01-01 " "00:00:00+01",
+                        "from": "2017-01-01 00:00:00+01",
                         "from_included": True,
-                        "to": "2018-06-02 " "00:00:00+02",
+                        "to": "2018-06-02 00:00:00+02",
                         "to_included": False,
                     },
                 }
@@ -312,9 +312,9 @@ async def test_edit_itsystem(service_client: TestClient):
                 {
                     "gyldighed": "Aktiv",
                     "virkning": {
-                        "from": "2017-01-01 " "00:00:00+01",
+                        "from": "2017-01-01 00:00:00+01",
                         "from_included": True,
-                        "to": "2018-06-02 " "00:00:00+02",
+                        "to": "2018-06-02 00:00:00+02",
                         "to_included": False,
                     },
                 }

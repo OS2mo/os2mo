@@ -4,9 +4,7 @@ from datetime import datetime
 from datetime import timedelta
 
 import pytest
-
 from oio_rest.db.quick_query.search import InfiniteDatetime
-
 
 INFINITY = "infinity"
 NINFINITY = "-infinity"

@@ -9,7 +9,6 @@ from fastramqpi.ramqp import AMQPSystem as _AMQPSystem
 from .db import AsyncSession
 from .db import get_session
 
-
 Session = Annotated[AsyncSession, Depends(get_session)]
 
 

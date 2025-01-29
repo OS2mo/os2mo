@@ -4,11 +4,10 @@ from unittest.mock import patch
 from uuid import UUID
 
 import pytest
-
 from mora import exceptions
 from mora.service.address_handler.pnumber import PNumberAddressHandler
-from tests import util
 
+from tests import util
 
 VISIBILITY_UUID = UUID("dd5699af-b233-44ef-9107-7a37016b2ed1")
 VALUE_STRING = "1234567890"

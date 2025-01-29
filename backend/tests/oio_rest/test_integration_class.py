@@ -154,7 +154,6 @@ class Tests(DBTestCase):
                 ]
             },
             "livscykluskode": "Rettet",
-            "note": "Overskriv klasse med  nye perioder mv",
             "relationer": {
                 "ansvarlig": [
                     {
@@ -340,7 +339,7 @@ class Tests(DBTestCase):
         msg = "No Klasse with ID 00000000-0000-0000-0000-000000000000 found."
 
         self.assertRequestResponse(
-            "/klassifikation/klasse" "/00000000-0000-0000-0000-000000000000",
+            "/klassifikation/klasse/00000000-0000-0000-0000-000000000000",
             {
                 "message": msg,
             },

@@ -12,18 +12,19 @@ from fastapi import Path
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
+from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 
-from ...auth.keycloak import oidc
-from .errors import handle_gql_error
 from mora import exceptions
-from mora.graphapi.shim import execute_graphql
-from mora.graphapi.shim import flatten_data
 from mora.graphapi.shim import MOOrgUnit
 from mora.graphapi.shim import OrganisationUnitCount
 from mora.graphapi.shim import UUIDObject
+from mora.graphapi.shim import execute_graphql
+from mora.graphapi.shim import flatten_data
 from mora.service.orgunit import router as org_unit_router
 from mora.service.util import get_configuration
-from ramodels.mo.organisation_unit import OrganisationUnitTerminate
+
+from ...auth.keycloak import oidc
+from .errors import handle_gql_error
 
 
 @org_unit_router.get(
@@ -34,11 +35,10 @@ from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 )
 async def get_orgunit(
     unitid: UUID = Path(..., description="UUID of the unit to retrieve."),
-    only_primary_uuid: bool
-    | None = Query(None, description="Only retrieve the UUID of the organisation unit"),
-    at: date
-    | datetime
-    | None = Query(
+    only_primary_uuid: bool | None = Query(
+        None, description="Only retrieve the UUID of the organisation unit"
+    ),
+    at: date | datetime | None = Query(
         None,
         description='The "at date" to use, e.g. `2020-01-31`. '
         "Results are only included if they are active at the specified date.",
@@ -196,9 +196,7 @@ async def get_orgunit(
 )
 async def get_org_unit_children(
     parentid: UUID = Path(..., description="The UUID of the parent."),
-    at: date
-    | datetime
-    | None = Query(
+    at: date | datetime | None = Query(
         None,
         description='The "at date" to use, e.g. `2020-01-31`. '
         "Results are only included if they are active at the specified date.",
@@ -211,8 +209,7 @@ async def get_org_unit_children(
         "associations in the unit. `count=engagement` is also allowed. "
         "It is allowed to pass more than one `count` query parameter.",
     ),
-    org_unit_hierarchy: UUID
-    | None = Query(
+    org_unit_hierarchy: UUID | None = Query(
         None,
         description="The tree returned is filtered to contain "
         "only organisational units which belong to the given hierarchy.",

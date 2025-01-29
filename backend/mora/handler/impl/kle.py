@@ -2,12 +2,13 @@
 # SPDX-License-Identifier: MPL-2.0
 from structlog import get_logger
 
-from .. import reading
+from mora import util
+
 from ... import mapping
 from ...graphapi.middleware import is_graphql
 from ...service import facet
 from ...service import orgunit
-from mora import util
+from .. import reading
 
 ROLE_TYPE = "kle"
 

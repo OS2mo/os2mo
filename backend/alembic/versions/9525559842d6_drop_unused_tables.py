@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Drop unused tables."""
-from alembic import op
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "9525559842d6"

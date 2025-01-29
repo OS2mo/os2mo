@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Middleware for authentification."""
+
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from collections.abc import Callable
@@ -25,7 +26,7 @@ _MIDDLEWARE_KEY = "authenticated_user"
 
 
 async def fetch_authenticated_user(
-    get_token: Callable[[], Awaitable[Token]] = Depends(token_getter)
+    get_token: Callable[[], Awaitable[Token]] = Depends(token_getter),
 ) -> UUID | None:
     try:
         token = await get_token()

@@ -17,9 +17,10 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from pydantic import Extra
 
-from .errors import handle_gql_error
 from mora.graphapi.shim import execute_graphql
 from mora.service.insight import router as insight_router
+
+from .errors import handle_gql_error
 
 
 @insight_router.get(

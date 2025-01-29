@@ -1,20 +1,22 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """GraphQL org-unit related helper functions."""
+
 import logging
 from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 
-from .inputs import OrganisationUnitCreateInput
-from .inputs import OrganisationUnitUpdateInput
-from .models import OrganisationUnitTerminate
 from mora import exceptions
 from mora import lora
 from mora import mapping
 from mora import util
 from mora.service.orgunit import OrgUnitRequestHandler
 from mora.service.validation import validator
+
+from .inputs import OrganisationUnitCreateInput
+from .inputs import OrganisationUnitUpdateInput
+from .models import OrganisationUnitTerminate
 
 logger = logging.getLogger(__name__)
 

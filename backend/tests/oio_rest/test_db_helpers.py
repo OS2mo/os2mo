@@ -1,15 +1,15 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from unittest import skip
-from unittest.mock import call
 from unittest.mock import MagicMock
+from unittest.mock import call
 from unittest.mock import patch
 
 import pytest
-
 from oio_rest.custom_exceptions import BadRequestException
 from oio_rest.db import db_helpers
 from oio_rest.db import db_structure
+
 from tests.oio_rest.util import ExtTestCase
 
 
@@ -784,8 +784,9 @@ class TestDBHelpers(ExtTestCase):
         app = MagicMock()
 
         # Act
-        with app.test_request_context(params={}, method="POST"), self.assertRaises(
-            BadRequestException
+        with (
+            app.test_request_context(params={}, method="POST"),
+            self.assertRaises(BadRequestException),
         ):
             DokumentDelEgenskaberType._get_file_storage_for_content_url(
                 "field:not_in_request"

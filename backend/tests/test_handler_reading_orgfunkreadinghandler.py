@@ -1,10 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import pytest
-
 from mora.handler.reading import OrgFunkReadingHandler
 from mora.lora import Connector
-
 
 UNIT_UUID = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 

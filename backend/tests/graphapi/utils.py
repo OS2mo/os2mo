@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Pytest helper functions for GraphAPI tests."""
+
 from datetime import datetime
 from functools import partial
 from operator import itemgetter
@@ -12,7 +13,6 @@ from strawberry import UNSET
 from strawberry.types.unset import UnsetType
 
 from tests.conftest import GraphAPIPost
-
 
 # jsonable encoder that coerces UNSET to None.
 # Useful in the transition period while introducing PATCH writes to GraphQL

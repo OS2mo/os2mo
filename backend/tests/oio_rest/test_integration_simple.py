@@ -3,7 +3,6 @@
 import pytest
 from fastapi.testclient import TestClient
 
-
 UUID_PATTERN = "{uuid}"
 CONTENT_PATH_PATTERN = "{content_path}"
 

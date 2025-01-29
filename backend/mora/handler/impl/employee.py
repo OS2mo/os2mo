@@ -4,7 +4,6 @@ from typing import Any
 
 from structlog import get_logger
 
-from .. import reading
 from ... import common
 from ... import exceptions
 from ... import mapping
@@ -12,6 +11,7 @@ from ... import util
 from ...graphapi.middleware import is_graphql
 from ...lora import Connector
 from ...service import employee
+from .. import reading
 
 ROLE_TYPE = "employee"
 

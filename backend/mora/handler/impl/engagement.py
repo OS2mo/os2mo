@@ -5,7 +5,8 @@ from uuid import UUID
 
 from structlog import get_logger
 
-from .. import reading
+from mora.common import get_connector
+
 from ... import lora
 from ... import mapping
 from ... import util
@@ -14,7 +15,7 @@ from ...service import employee
 from ...service import facet
 from ...service import orgunit
 from ...service.facet import get_sorted_primary_class_list
-from mora.common import get_connector
+from .. import reading
 
 ROLE_TYPE = "engagement"
 

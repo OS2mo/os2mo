@@ -1,12 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import pytest
-
-from .. import util
-from ..util import dar_loader
 from mora import exceptions
 from mora.service.address_handler.dar import DARAddressHandler
 
+from .. import util
+from ..util import dar_loader
 
 VALID_VALUE = "0a3f50a0-23c9-32b8-e044-0003ba298018"
 

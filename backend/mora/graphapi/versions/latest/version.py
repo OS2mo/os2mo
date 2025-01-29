@@ -9,13 +9,6 @@ from fastapi import Depends
 from fastramqpi.ramqp import AMQPSystem
 from pydantic import PositiveInt
 
-from ..base import BaseGraphQLSchema
-from ..base import BaseGraphQLVersion
-from .audit import get_audit_loaders
-from .dataloaders import get_loaders
-from .mutators import Mutation as LatestMutation
-from .query import Query as LatestQuery
-from .types import CPRType
 from mora import db
 from mora import depends
 from mora.auth.keycloak.models import Token
@@ -24,6 +17,14 @@ from mora.graphapi.versions.latest.schema import DARAddress
 from mora.graphapi.versions.latest.schema import DefaultAddress
 from mora.graphapi.versions.latest.schema import MultifieldAddress
 from mora.util import CPR
+
+from ..base import BaseGraphQLSchema
+from ..base import BaseGraphQLVersion
+from .audit import get_audit_loaders
+from .dataloaders import get_loaders
+from .mutators import Mutation as LatestMutation
+from .query import Query as LatestQuery
+from .types import CPRType
 
 
 class LatestGraphQLSchema(BaseGraphQLSchema):

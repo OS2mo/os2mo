@@ -4,6 +4,7 @@
 """
 Create a JSON fixture containing the specified URLs
 """
+
 import json
 import sys
 

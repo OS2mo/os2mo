@@ -6,6 +6,7 @@ Revision ID: b162ba90c028
 Revises: b27228471604
 Create Date: 2022-06-28 14:06:39.199705
 """
+
 from oio_rest.db.alembic_helpers import apply_sql_from_file
 
 # revision identifiers, used by Alembic.

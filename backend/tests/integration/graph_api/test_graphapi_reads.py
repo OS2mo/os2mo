@@ -1,16 +1,15 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import pytest
-from hypothesis import given
 from hypothesis import HealthCheck
+from hypothesis import given
 from hypothesis import note
 from hypothesis import settings
 from hypothesis import strategies as st
 from hypothesis_graphql import strategies as gql_st
-from more_itertools import all_equal
-
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest.version import LatestGraphQLSchema
+from more_itertools import all_equal
 from tests.conftest import GraphAPIPost
 
 

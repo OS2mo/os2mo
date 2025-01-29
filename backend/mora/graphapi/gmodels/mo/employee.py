@@ -11,7 +11,6 @@ from pydantic import validator
 from ._shared import MOBase
 from ._shared import OpenValidity
 
-
 # Type aliases
 DictStrAny = dict[str, Any]
 

@@ -1,10 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from starlette.testclient import TestClient
-
 from mora.app import create_app
 from mora.config import Settings
 from mora.graphapi.main import newest
+from starlette.testclient import TestClient
 
 
 def test_unversioned_get_redirects_to_newest(raw_client: TestClient) -> None:
@@ -19,7 +18,7 @@ def test_non_existent(raw_client: TestClient) -> None:
     # Active versions are found
     assert raw_client.get(f"/graphql/v{newest}").status_code == 200
     # Future versions are NOT FOUND
-    assert raw_client.get(f"/graphql/v{newest+1}").status_code == 404
+    assert raw_client.get(f"/graphql/v{newest + 1}").status_code == 404
 
 
 def test_min_graphql_version() -> None:
@@ -41,4 +40,4 @@ def test_min_graphql_version() -> None:
         # Newest version is found
         assert raw_client.get(f"/graphql/v{newest}").status_code == 200
         # Future versions are NOT FOUND
-        assert raw_client.get(f"/graphql/v{newest+1}").status_code == 404
+        assert raw_client.get(f"/graphql/v{newest + 1}").status_code == 404

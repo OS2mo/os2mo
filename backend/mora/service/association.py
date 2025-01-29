@@ -7,16 +7,15 @@ Associations
 This section describes how to interact with employee associations.
 
 """
+
 import uuid
 from operator import itemgetter
-from typing import Any
 from typing import TYPE_CHECKING
+from typing import Any
 from uuid import UUID
 
 from structlog import get_logger
 
-from . import handlers
-from . import org
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -26,6 +25,8 @@ from ..graphapi.middleware import is_graphql
 from ..handler.impl.association import AssociationReader
 from ..service.facet import get_mo_object_primary_value
 from ..service.facet import is_class_uuid_primary
+from . import handlers
+from . import org
 from .validation import validator
 from .validation.models import GroupValidation
 

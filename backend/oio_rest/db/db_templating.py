@@ -4,6 +4,7 @@
 Jinja2 templates.
 
 """
+
 import copy
 from collections import OrderedDict
 from pathlib import Path
@@ -12,7 +13,6 @@ from jinja2 import Environment
 from jinja2 import FileSystemLoader
 
 from oio_rest.db import db_structure
-
 
 DB_DIR = Path(__file__).parent / "sql" / "declarations"
 

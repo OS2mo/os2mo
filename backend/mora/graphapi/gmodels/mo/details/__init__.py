@@ -11,7 +11,6 @@ from .manager import ManagerRead
 from .owner import OwnerRead
 from .related_unit import RelatedUnitRead
 
-
 __all__ = [
     "AddressRead",
     "AssociationRead",

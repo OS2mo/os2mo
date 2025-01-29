@@ -6,10 +6,10 @@ Revision ID: 68ccf4b69392
 Revises: b3e16449c312
 Create Date: 2024-09-20 14:24:15.162804
 """
+
 from collections.abc import Sequence
 
 from alembic import op
-
 
 # revision identifiers, used by Alembic.
 revision: str = "68ccf4b69392"

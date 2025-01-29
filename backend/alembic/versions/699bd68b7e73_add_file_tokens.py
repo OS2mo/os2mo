@@ -6,10 +6,10 @@ Revision ID: 786610e88e1c
 Revises: 69ca41b4011e
 Create Date: 2023-06-27 15:59:35.949549
 """
-import sqlalchemy as sa
-from sqlalchemy.sql import func
 
+import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.sql import func
 
 # revision identifiers, used by Alembic.
 revision = "699bd68b7e73"

@@ -1,12 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Mapping from data models to data resolvers."""
+
 from typing import Any
 
-from .models import AddressRead
-from .models import ClassRead
-from .models import FacetRead
-from .models import RoleBindingRead
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import AssociationRead
@@ -19,6 +16,10 @@ from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.graphapi.gmodels.mo.details import OwnerRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 
+from .models import AddressRead
+from .models import ClassRead
+from .models import FacetRead
+from .models import RoleBindingRead
 
 # TODO: Encode this relation using Annotated types
 # FacetRead = Annotated[FacetRead, FacetResolver(...)]

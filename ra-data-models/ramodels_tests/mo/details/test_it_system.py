@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from hypothesis import given
 from hypothesis import strategies as st
-
 from ramodels.mo._shared import Validity
 from ramodels.mo.details.it_system import ITSystemRead
 

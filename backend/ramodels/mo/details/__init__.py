@@ -44,7 +44,6 @@ from .role import RoleDetail
 from .role import RoleRead
 from .role import RoleWrite
 
-
 Details = (
     AssociationDetail
     | EngagementDetail

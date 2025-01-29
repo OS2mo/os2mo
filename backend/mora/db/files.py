@@ -3,17 +3,18 @@
 from uuid import UUID
 
 from sqlalchemy import DateTime
-from sqlalchemy import select
 from sqlalchemy import String
 from sqlalchemy import UniqueConstraint
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.sql import func
 
-from ._common import Base
 from mora import exceptions
+
+from ._common import Base
 
 
 class FileToken(Base):

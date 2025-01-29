@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import pytest
-
 from mora.exceptions import HTTPException
 from mora.mapping import EventType
 from mora.mapping import RequestType
 from mora.service.handlers import RequestHandler
 from mora.triggers import Trigger
+
 from tests.conftest import YieldFixture
 
 

@@ -7,18 +7,18 @@ from typing import Any
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from more_itertools import one
-from starlette.status import HTTP_200_OK
-from starlette.status import HTTP_201_CREATED
-from starlette.status import HTTP_400_BAD_REQUEST
-from starlette.status import HTTP_403_FORBIDDEN
-
 from mora.auth.keycloak.oidc import auth
 from mora.config import Settings
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
 from mora.mapping import PERSON
 from mora.mapping import UUID
+from more_itertools import one
+from starlette.status import HTTP_200_OK
+from starlette.status import HTTP_201_CREATED
+from starlette.status import HTTP_400_BAD_REQUEST
+from starlette.status import HTTP_403_FORBIDDEN
+
 from tests.test_integration_rbac import mock_auth
 from tests.util import jsonfile_to_dict
 from tests.util import override_config
@@ -132,7 +132,7 @@ def create_employee_payload() -> dict[str, Any]:
 
 @pytest.fixture
 def create_employment_payload(
-    create_employee_payload: dict[str, Any]
+    create_employee_payload: dict[str, Any],
 ) -> dict[str, Any]:
     payload = create_employee_payload
     payload["type"] = "engagement"

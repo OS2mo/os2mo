@@ -3,9 +3,9 @@
 import re
 import uuid
 
-from . import base
 from ... import exceptions
 from ..validation.validator import forceable
+from . import base
 
 
 class UUIDAddressHandler(base.AddressHandler):

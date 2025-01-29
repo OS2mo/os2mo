@@ -8,20 +8,20 @@ from uuid import UUID
 import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
-from hypothesis import given
 from hypothesis import HealthCheck
+from hypothesis import given
 from hypothesis import settings
 from hypothesis import strategies as st
-from more_itertools import one
-
-from ..conftest import GraphAPIPost
-from .utils import fetch_class_uuids
-from .utils import fetch_engagement_validity
 from mora.graphapi.gmodels.mo import Validity as RAValidity
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.models import LeaveCreate
 from mora.graphapi.versions.latest.models import LeaveUpdate
 from mora.util import POSITIVE_INFINITY
+from more_itertools import one
+
+from ..conftest import GraphAPIPost
+from .utils import fetch_class_uuids
+from .utils import fetch_engagement_validity
 
 
 @pytest.mark.integration_test

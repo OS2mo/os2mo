@@ -2,13 +2,14 @@
 # SPDX-License-Identifier: MPL-2.0
 from hypothesis import given
 from hypothesis import strategies as st
+from ramodels.lora import ITSystem
+
 from ramodels_tests.conftest import from_date_strat
 from ramodels_tests.conftest import to_date_strat
 
 from .test__shared import valid_itsys_attr
 from .test__shared import valid_itsys_relations
 from .test__shared import valid_itsys_states
-from ramodels.lora import ITSystem
 
 
 @st.composite

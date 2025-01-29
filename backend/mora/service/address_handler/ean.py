@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 import re
 
-from . import base
 from ... import exceptions
 from ..validation.validator import forceable
+from . import base
 
 
 class EANAddressHandler(base.AddressHandler):

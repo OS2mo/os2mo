@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock
 
 import pytest
-
 from mora import lora
 from mora import util as mora_util
 from mora.service.validation import validator

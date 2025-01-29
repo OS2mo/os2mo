@@ -11,13 +11,13 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import synonym
 
+from ._common import Base
 from ._common import _AttrEgenskaberMixin
 from ._common import _OIOEntityMixin
 from ._common import _RegistreringMixin
 from ._common import _RelationMixin
 from ._common import _TilsGyldighedMixin
 from ._common import _VirkningMixin
-from ._common import Base
 
 
 class Bruger(_OIOEntityMixin, Base):

@@ -6,13 +6,13 @@ Organisation
 
 This section describes how to interact with organisations.
 """
+
 from fastapi import APIRouter
 from more_itertools import one
 
 from .. import common
 from .. import exceptions
 from .. import util
-
 
 router = APIRouter()
 

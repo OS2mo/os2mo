@@ -2,17 +2,18 @@
 # SPDX-License-Identifier: MPL-2.0
 from structlog import get_logger
 
-from .. import reading
+from mora import util
+from mora.common import get_connector
+from mora.request_scoped.bulking import get_lora_object
+
 from ... import mapping
 from ...graphapi.middleware import is_graphql
 from ...lora import LoraObjectType
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
+from .. import reading
 from .engagement import get_engagement
-from mora import util
-from mora.common import get_connector
-from mora.request_scoped.bulking import get_lora_object
 
 ROLE_TYPE = "it"
 

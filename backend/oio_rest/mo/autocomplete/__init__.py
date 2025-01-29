@@ -6,10 +6,11 @@
 # where the MO extensions have not been installed.
 from uuid import UUID
 
+from mora.audit import audit_log
 from psycopg import AsyncConnection
-from sqlalchemy import cast
 from sqlalchemy import Table
 from sqlalchemy import Text
+from sqlalchemy import cast
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import func
@@ -18,7 +19,6 @@ from sqlalchemy.sql import select
 from sqlalchemy.sql import text
 from sqlalchemy.sql import union
 
-from mora.audit import audit_log
 from oio_rest.db.metadata import metadata
 
 # Only search on (partial) UUID if search phrase is longer than this.

@@ -4,7 +4,6 @@ from unittest.mock import patch
 
 from mora.service.address_handler.multifield_text import MultifieldTextAddressHandler
 
-
 TEXT_VALUE_ONE = "Test text whatever"
 TEXT_VALUE_TWO = "Test text whatever2"
 

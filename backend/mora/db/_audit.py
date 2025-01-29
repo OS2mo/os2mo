@@ -3,12 +3,12 @@
 from typing import Any
 from uuid import UUID
 
+from sqlalchemy import JSON
 from sqlalchemy import DateTime
 from sqlalchemy import ForeignKey
-from sqlalchemy import JSON
 from sqlalchemy import String
-from sqlalchemy import text
 from sqlalchemy import Uuid
+from sqlalchemy import text
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship

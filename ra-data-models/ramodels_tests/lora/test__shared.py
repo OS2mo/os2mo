@@ -3,8 +3,8 @@
 import re
 from datetime import datetime
 from functools import partial
-from typing import cast
 from typing import Literal
+from typing import cast
 
 import pytest
 from hypothesis import assume
@@ -14,12 +14,6 @@ from hypothesis import strategies as st
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import ValidationError
-from ramodels_tests.conftest import date_strat
-from ramodels_tests.conftest import not_from_regex
-from ramodels_tests.conftest import tz_dt_strat
-from ramodels_tests.conftest import unexpected_value_error
-from ramodels_tests.test_base import is_isodt_str
-
 from ramodels.exceptions import ISOParseError
 from ramodels.lora._shared import Authority
 from ramodels.lora._shared import EffectiveTime
@@ -28,7 +22,6 @@ from ramodels.lora._shared import FacetProperties
 from ramodels.lora._shared import FacetRef
 from ramodels.lora._shared import FacetRelations
 from ramodels.lora._shared import FacetStates
-from ramodels.lora._shared import get_relations
 from ramodels.lora._shared import InfiniteDatetime
 from ramodels.lora._shared import ITSystemAttributes
 from ramodels.lora._shared import ITSystemProperties
@@ -49,6 +42,13 @@ from ramodels.lora._shared import OwnerRef
 from ramodels.lora._shared import Published
 from ramodels.lora._shared import Relation
 from ramodels.lora._shared import Responsible
+from ramodels.lora._shared import get_relations
+
+from ramodels_tests.conftest import date_strat
+from ramodels_tests.conftest import not_from_regex
+from ramodels_tests.conftest import tz_dt_strat
+from ramodels_tests.conftest import unexpected_value_error
+from ramodels_tests.test_base import is_isodt_str
 
 single_item_error = partial(
     pytest.raises,

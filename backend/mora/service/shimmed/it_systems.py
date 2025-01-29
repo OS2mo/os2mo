@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 from uuid import UUID
 
-from .errors import handle_gql_error
 from mora.graphapi.shim import execute_graphql
 from mora.service.itsystem import router as it_router
+
+from .errors import handle_gql_error
 
 
 @it_router.get("/o/{orgid}/it/")

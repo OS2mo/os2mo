@@ -12,15 +12,17 @@ For more information regarding reading relations, refer to:
 * http:get:`/service/(any:type)/(uuid:id)/details/`
 
 """
+
 from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
 from starlette.status import HTTP_201_CREATED
 
-from . import handlers
+from mora.auth.keycloak import oidc
+
 from .. import exceptions
 from .. import mapping
-from mora.auth.keycloak import oidc
+from . import handlers
 
 router = APIRouter()
 

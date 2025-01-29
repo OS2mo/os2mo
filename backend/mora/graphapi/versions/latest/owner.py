@@ -4,11 +4,12 @@ from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 
+from mora import mapping
+from mora.service.owner import OwnerRequestHandler
+
 from .models import OwnerCreate
 from .models import OwnerTerminate
 from .models import OwnerUpdate
-from mora import mapping
-from mora.service.owner import OwnerRequestHandler
 
 
 async def create_owner(input: OwnerCreate) -> UUID:

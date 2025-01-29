@@ -7,7 +7,6 @@ from starlette.status import HTTP_204_NO_CONTENT
 
 from mora.graphapi.shim import execute_graphql
 
-
 router = APIRouter()
 
 

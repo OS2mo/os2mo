@@ -3,10 +3,9 @@
 from fastapi import HTTPException
 from structlog import get_logger
 
-from .. import reading
 from ... import mapping
 from ...graphapi.middleware import is_graphql
-
+from .. import reading
 
 ROLE_TYPE = "rolebinding"
 

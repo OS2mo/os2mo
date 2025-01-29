@@ -6,13 +6,14 @@ from uuid import UUID
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
+from mora import lora
+from mora.config import Settings
 from more_itertools import one
+
+from tests.cases import assert_registrations_equal
 
 from . import util
 from .conftest import AnotherTransaction
-from mora import lora
-from mora.config import Settings
-from tests.cases import assert_registrations_equal
 
 
 @pytest.mark.integration_test
@@ -764,7 +765,7 @@ employee_uuid = "d2e1b69e-def1-41b1-b652-e704af02591c"
                 "details": [
                     {
                         "type": "engagement",
-                        "org_unit": {"uuid": "9d07123e-47ac-4a9a-" "88c8-da82e3a4bc9e"},
+                        "org_unit": {"uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                         "job_function": {
                             "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
                         },
@@ -801,7 +802,7 @@ employee_uuid = "d2e1b69e-def1-41b1-b652-e704af02591c"
                 "details": [
                     {
                         "type": "engagement",
-                        "org_unit": {"uuid": "9d07123e-47ac-4a9a-" "88c8-da82e3a4bc9e"},
+                        "org_unit": {"uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                         "job_function": {
                             "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
                         },

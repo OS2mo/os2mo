@@ -32,20 +32,14 @@ import requests
 from _pytest.monkeypatch import MonkeyPatch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from hypothesis import Verbosity
 from hypothesis import settings as h_settings
 from hypothesis import strategies as st
-from hypothesis import Verbosity
 from hypothesis.database import InMemoryExampleDatabase
-from more_itertools import one
-from pytest_asyncio import is_async_test
-from sqlalchemy.ext.asyncio import async_sessionmaker
-from sqlalchemy.ext.asyncio import AsyncConnection
-from starlette_context import request_cycle_context
-
 from mora import db
 from mora.app import create_app
-from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import Token
+from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import token_getter
 from mora.config import get_settings
 from mora.graphapi.gmodels.mo import Validity as GValidity
@@ -56,15 +50,21 @@ from mora.service.org import ConfiguredOrganisation
 from mora.testing import copy_database
 from mora.testing import drop_database
 from mora.testing import superuser_connection
-from oio_rest.config import get_settings as lora_get_settings
+from more_itertools import one
 from oio_rest.config import Settings as LoraSettings
+from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.db.alembic_helpers import run_async_upgrade
 from oio_rest.organisation import Organisation
+from pytest_asyncio import is_async_test
 from ramodels.mo import Validity
+from sqlalchemy.ext.asyncio import AsyncConnection
+from sqlalchemy.ext.asyncio import async_sessionmaker
+from starlette_context import request_cycle_context
+
 from tests.hypothesis_utils import validity_model_strat
+from tests.util import MockAioresponses
 from tests.util import darmock
 from tests.util import load_sample_structures
-from tests.util import MockAioresponses
 
 T = TypeVar("T")
 YieldFixture = Generator[T, None, None]
@@ -108,7 +108,8 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
         async_test.add_marker(session_scope_marker)
 
 
-def pytest_runtest_protocol(item) -> None:
+@pytest.fixture(autouse=True)
+def set_testing_environment_variables() -> None:
     os.environ["TESTING"] = "True"
     os.environ["PYTEST_RUNNING"] = "True"
 
@@ -282,8 +283,7 @@ class FakeDatabaseSession:
         elif attr == "rollback":
             # rollback allowed so we can test GraphQL fails, e.g. schema
             # validation functions.
-            async def noop():
-                ...
+            async def noop(): ...
 
             return noop
         else:
@@ -550,8 +550,7 @@ class GraphAPIPost(Protocol):
         query: str,
         variables: dict[str, Any] | None = None,
         url: str = latest_graphql_url,
-    ) -> GQLResponse:
-        ...
+    ) -> GQLResponse: ...
 
 
 @pytest.fixture
@@ -588,7 +587,7 @@ def serviceapi_post(service_client: TestClient):
         method: str = "get",
     ) -> ServiceAPIResponse:
         try:
-            match (method.lower()):
+            match method.lower():
                 case "get":
                     response = service_client.request("GET", url, json=variables)
                 case "post":

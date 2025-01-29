@@ -3,9 +3,10 @@
 from fastapi import APIRouter
 from fastapi.responses import RedirectResponse
 
-from .errors import handle_gql_error
 from mora import exceptions
 from mora.graphapi.shim import execute_graphql
+
+from .errors import handle_gql_error
 
 
 def meta_router():

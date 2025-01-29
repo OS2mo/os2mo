@@ -4,11 +4,12 @@ from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 
+from mora import mapping
+from mora.service.leave import LeaveRequestHandler
+
 from .models import LeaveCreate
 from .models import LeaveTerminate
 from .models import LeaveUpdate
-from mora import mapping
-from mora.service.leave import LeaveRequestHandler
 
 
 async def create_leave(input: LeaveCreate) -> UUID:

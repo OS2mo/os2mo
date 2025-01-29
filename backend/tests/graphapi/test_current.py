@@ -5,7 +5,6 @@ from typing import Any
 import freezegun
 import pytest
 
-
 uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 
 

@@ -5,26 +5,28 @@
 Please note that each command below also takes a ``--help`` argument
 which describes its arguments and options.
 """
+
 # TODO: Do we wanna audit-log database access from here?
 import asyncio
 import sys
 import time
 
 import click
+from fastramqpi.ra_utils.async_to_sync import async_to_sync
 from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.mo import MOAMQPSystem
-from ra_utils.async_to_sync import async_to_sync
+from oio_rest.config import get_settings as oio_rest_get_settings
 from sqlalchemy import select
 from sqlalchemy import update
 from structlog import get_logger
 
-from . import amqp as amqp_subsystem
-from . import config
-from . import log
 from mora.amqp import start_amqp_subsystem
 from mora.db import AMQPSubsystem
 from mora.db import create_sessionmaker
-from oio_rest.config import get_settings as oio_rest_get_settings
+
+from . import amqp as amqp_subsystem
+from . import config
+from . import log
 
 logger = get_logger()
 settings = config.get_settings()

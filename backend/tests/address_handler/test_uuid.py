@@ -1,10 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import pytest
-
 from mora import exceptions
 from mora.service.address_handler.uuidaddr import UUIDAddressHandler
-
 
 VALUE_FIXED = "2a3c2eb4-088b-4386-b2fd-ac152b203f05"
 VISIBILITY_FIXED = "1f6295e8-9000-43ec-b694-4d288fa158bb"

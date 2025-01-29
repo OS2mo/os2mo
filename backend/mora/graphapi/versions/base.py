@@ -32,7 +32,6 @@ from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.router import CustomGraphQLRouter
 from mora.log import canonical_gql_context
 
-
 logger = get_logger()
 
 
@@ -91,7 +90,7 @@ class RollbackOnError(SchemaExtension):
 class IntrospectionQueryCacheExtension(SchemaExtension):
     cache: dict[tuple[Schema, str | None], ExecutionResult | None] = {}
 
-    def on_execute(self) -> AsyncIteratorOrIterator[None]:
+    def on_execute(self) -> AsyncIteratorOrIterator[None]:  # type: ignore
         """Cache GraphQL introspection query, which otherwise takes 5-10s to execute.
 
         Based on the "In memory cached execution" example from
@@ -158,9 +157,9 @@ class BaseGraphQLSchema:
     # Additionally, it preserves the naming of the underlying Python functions.
     config: StrawberryConfig | None = StrawberryConfig(auto_camel_case=False)
 
-    scalar_overrides: dict[
-        object, ScalarWrapper | ScalarDefinition | type
-    ] | None = None
+    scalar_overrides: dict[object, ScalarWrapper | ScalarDefinition | type] | None = (
+        None
+    )
 
     @classmethod
     @cache

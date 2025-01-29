@@ -10,15 +10,13 @@ from uuid import uuid4
 import pytest
 from graphql import NameNode
 from graphql import VariableNode
+from hypothesis import HealthCheck
 from hypothesis import assume
 from hypothesis import given
-from hypothesis import HealthCheck
 from hypothesis import settings
 from hypothesis import strategies as st
 from hypothesis_graphql import nodes
 from hypothesis_graphql import strategies as gql_st
-from strawberry.dataloader import DataLoader
-
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.graphapi.gmodels.mo import OrganisationRead
@@ -26,6 +24,7 @@ from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.schema import AddressRead
 from mora.graphapi.versions.latest.version import LatestGraphQLSchema
+from strawberry.dataloader import DataLoader
 
 SCHEMA = str(LatestGraphQLSchema.get())
 

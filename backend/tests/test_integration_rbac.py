@@ -9,10 +9,6 @@ from uuid import uuid4
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from starlette.status import HTTP_200_OK
-from starlette.status import HTTP_201_CREATED
-from starlette.status import HTTP_403_FORBIDDEN
-
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
@@ -20,6 +16,10 @@ from mora.auth.keycloak.rbac import _get_employee_uuid_via_it_system
 from mora.config import Settings
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
+from starlette.status import HTTP_200_OK
+from starlette.status import HTTP_201_CREATED
+from starlette.status import HTTP_403_FORBIDDEN
+
 from tests import util
 
 # Users

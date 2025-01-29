@@ -11,23 +11,24 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from fastapi.encoders import jsonable_encoder
-from hypothesis import given
 from hypothesis import HealthCheck
+from hypothesis import given
 from hypothesis import settings
 from hypothesis import strategies as st
-from more_itertools import one
-
-from ..conftest import GraphAPIPost
 from mora import mapping
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.models import AddressCreate
 from mora.graphapi.versions.latest.models import AddressUpdate
 from mora.graphapi.versions.latest.models import RAValidity
+from more_itertools import one
+
 from tests import util
 from tests.conftest import GQLResponse
 from tests.graphapi.utils import fetch_employee_validity
 from tests.graphapi.utils import fetch_org_unit_validity
 from tests.util import dar_loader
+
+from ..conftest import GraphAPIPost
 
 # HELPERS
 

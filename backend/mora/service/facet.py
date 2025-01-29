@@ -14,6 +14,7 @@ objects.
         A value of `<UUID>` means that this is a `DAR`_ address UUID.
 
 """
+
 import enum
 import locale
 import logging
@@ -25,8 +26,10 @@ from uuid import uuid4
 from fastapi import APIRouter
 from more_itertools import last
 from more_itertools import one
+from ramodels.mo.class_ import ClassWrite
 
-from . import handlers
+from mora.request_scoped.bulking import get_lora_object
+
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -35,9 +38,8 @@ from .. import util
 from ..exceptions import ErrorCodes
 from ..graphapi.middleware import is_graphql
 from ..lora import LoraObjectType
+from . import handlers
 from .tree_helper import prepare_ancestor_tree
-from mora.request_scoped.bulking import get_lora_object
-from ramodels.mo.class_ import ClassWrite
 
 logger = logging.getLogger(__name__)
 

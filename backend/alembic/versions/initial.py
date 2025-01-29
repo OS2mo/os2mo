@@ -6,11 +6,11 @@ Revision ID: initial
 Revises:
 Create Date: 2022-02-01 16:54:19.119687
 """
+
 import os
 
-from sqlalchemy import text
-
 from alembic import op
+from sqlalchemy import text
 
 # revision identifiers, used by Alembic.
 revision = "initial"

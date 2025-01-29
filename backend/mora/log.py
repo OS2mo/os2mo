@@ -19,7 +19,6 @@ from uvicorn.protocols.utils import get_path_with_query_string
 
 from mora.config import get_settings
 
-
 logger = structlog.get_logger()
 
 

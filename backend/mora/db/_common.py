@@ -8,14 +8,14 @@ from uuid import UUID
 from sqlalchemy import BigInteger
 from sqlalchemy import CheckConstraint
 from sqlalchemy import Enum
-from sqlalchemy import select
 from sqlalchemy import Text
+from sqlalchemy import select
 from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import ENUM
+from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import column_property
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import declared_attr
-from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
 Base = declarative_base()

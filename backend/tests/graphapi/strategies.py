@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Custom hypothesis strategies used in the GraphAPI testing suite."""
+
 import datetime
 
 from fastapi.encoders import jsonable_encoder
 from hypothesis import strategies as st
-
 from mora.graphapi.gmodels.mo import Validity as RAValidity
 from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.graphql_utils import PrintableStr
@@ -77,9 +77,7 @@ def _strat_data_momodel_validity(
             )
             .filter(
                 # Only generate validities where from_date <= to_date
-                lambda dts: dts[0] <= dts[1]
-                if dts[0] and dts[1]
-                else True
+                lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
             )
         )
 

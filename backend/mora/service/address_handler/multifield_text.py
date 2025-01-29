@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 from more_itertools import first
 
-from . import base
 from ... import mapping
 from ... import util
+from . import base
 
 
 def name(value1, value2) -> str:

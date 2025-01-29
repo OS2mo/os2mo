@@ -4,13 +4,13 @@ from typing import Any
 
 from structlog import get_logger
 
-from .. import reading
 from ... import mapping
 from ... import util
 from ...graphapi.middleware import is_graphql
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
+from .. import reading
 
 ROLE_TYPE = "manager"
 

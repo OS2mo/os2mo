@@ -9,9 +9,9 @@ import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
+from mora import lora
 from more_itertools import one
 
-from mora import lora
 from tests.cases import assert_registrations_equal
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
@@ -150,9 +150,9 @@ engagement_uuid = "d000591f-8705-4324-897a-075e3623f37b"
                             "udvidelse_1": "test1",
                             "udvidelse_7": "test7",
                             "virkning": {
-                                "from": "2017-12-01 " "00:00:00+01",
+                                "from": "2017-12-01 00:00:00+01",
                                 "from_included": True,
-                                "to": "2017-12-02 " "00:00:00+01",
+                                "to": "2017-12-02 00:00:00+01",
                                 "to_included": False,
                             },
                         }
@@ -931,7 +931,7 @@ async def test_terminate_engagement_via_employee(service_client: TestClient) -> 
                     "udvidelse_2": "test2",
                     "udvidelse_9": "test9",
                     "virkning": {
-                        "from": "2017-01-01 " "00:00:00+01",
+                        "from": "2017-01-01 00:00:00+01",
                         "from_included": True,
                         "to": "infinity",
                         "to_included": False,

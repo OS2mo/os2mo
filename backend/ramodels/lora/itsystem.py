@@ -5,13 +5,13 @@ from uuid import UUID
 from pydantic import Field
 
 from ._shared import EffectiveTime
-from ._shared import get_relations
 from ._shared import ITSystemAttributes
 from ._shared import ITSystemProperties
 from ._shared import ITSystemRelations
 from ._shared import ITSystemStates
 from ._shared import ITSystemValidState
 from ._shared import LoraBase
+from ._shared import get_relations
 
 
 class ITSystem(LoraBase):

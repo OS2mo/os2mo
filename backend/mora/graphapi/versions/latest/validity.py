@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Strawberry types describing the MO graph."""
+
 import strawberry
 
 from mora.graphapi.gmodels.mo._shared import OpenValidity as OpenValidityModel

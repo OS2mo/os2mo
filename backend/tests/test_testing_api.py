@@ -7,9 +7,9 @@ from uuid import UUID
 import pytest
 from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.mo import PayloadUUID
+from mora.config import get_settings
 from starlette.testclient import TestClient
 
-from mora.config import get_settings
 from tests.conftest import GraphAPIPost
 
 

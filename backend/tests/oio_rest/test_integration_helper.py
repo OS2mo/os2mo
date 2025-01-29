@@ -5,10 +5,10 @@ from unittest.mock import patch
 
 import freezegun
 import pytest
-
 from oio_rest.oio_base import ConfiguredDBInterface
 from oio_rest.oio_base import DefaultSearcher
 from oio_rest.oio_base import QuickSearcher
+
 from tests.oio_rest.util import DBTestCase
 
 

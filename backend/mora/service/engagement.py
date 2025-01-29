@@ -7,6 +7,7 @@ This section describes how to interact with engagements linking
 employees and organisational units.
 
 """
+
 import uuid
 from itertools import chain
 
@@ -14,13 +15,13 @@ from more_itertools import partition
 from more_itertools import repeatfunc
 from more_itertools import take
 
-from . import handlers
-from . import org
 from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
 from ..triggers import Trigger
+from . import handlers
+from . import org
 from .address import AddressRequestHandler
 from .validation import validator
 

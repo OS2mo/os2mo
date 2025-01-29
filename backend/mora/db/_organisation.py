@@ -9,13 +9,12 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import synonym
 
+from ._common import Base
 from ._common import _AttrEgenskaberMixin
 from ._common import _OIOEntityMixin
 from ._common import _RegistreringMixin
 from ._common import _RelationMixin
 from ._common import _TilsGyldighedMixin
-from ._common import Base
-
 
 # Think twice before using this. We will probably get rid of this, so the code
 # base doesn't sometimes reflect a desire to be multi-tenant:

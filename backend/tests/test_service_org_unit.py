@@ -3,28 +3,28 @@
 from asyncio import Future
 from copy import deepcopy
 from unittest.mock import AsyncMock
-from unittest.mock import call
 from unittest.mock import MagicMock
+from unittest.mock import call
 from unittest.mock import patch
 from uuid import UUID
 
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
-from os2mo_http_trigger_protocol import MOTriggerRegister
-from starlette.datastructures import ImmutableMultiDict
-
 from mora import lora
 from mora import mapping
 from mora.config import Settings
 from mora.handler.impl.association import AssociationReader
+from mora.service.orgunit import UnitDetails
 from mora.service.orgunit import get_one_orgunit
 from mora.service.orgunit import get_unit_ancestor_tree
-from mora.service.orgunit import UnitDetails
 from mora.triggers import Trigger
 from mora.triggers.internal.http_trigger import HTTPTriggerException
 from mora.triggers.internal.http_trigger import register
 from oio_rest.organisation import OrganisationEnhed
+from os2mo_http_trigger_protocol import MOTriggerRegister
+from starlette.datastructures import ImmutableMultiDict
+
 from tests import util
 
 

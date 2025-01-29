@@ -4,17 +4,18 @@ from collections.abc import AsyncIterator
 from uuid import UUID
 
 from aiohttp import ClientResponseError
-from os2mo_dar_client import AsyncDARClient
+from fastramqpi.os2mo_dar_client import AsyncDARClient
 from starlette_context import context
 from starlette_context import request_cycle_context
 from strawberry.dataloader import DataLoader
 from structlog import get_logger
 
-from . import base
+from mora.graphapi.middleware import is_graphql
+
 from ... import config
 from ... import exceptions
 from ..validation.validator import forceable
-from mora.graphapi.middleware import is_graphql
+from . import base
 
 NOT_FOUND = "Ukendt"
 

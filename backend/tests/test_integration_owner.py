@@ -8,10 +8,10 @@ import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
+from mora.mapping import OwnerInferencePriority
 from pydantic import BaseModel
 from pydantic import Field
 
-from mora.mapping import OwnerInferencePriority
 from tests.util import load_fixture
 
 

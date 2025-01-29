@@ -4,10 +4,6 @@ from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 
-from ....mapping import RequestType
-from .models import EmployeeCreate
-from .models import EmployeeTerminate
-from .models import EmployeeUpdate
 from mora import common
 from mora import lora
 from mora import mapping
@@ -15,6 +11,11 @@ from mora import util
 from mora.service import handlers
 from mora.service.employee import EmployeeRequestHandler
 from mora.triggers import Trigger
+
+from ....mapping import RequestType
+from .models import EmployeeCreate
+from .models import EmployeeTerminate
+from .models import EmployeeUpdate
 
 
 async def create_employee(input: EmployeeCreate) -> UUID:
@@ -47,9 +48,9 @@ async def terminate_employee(termination: EmployeeTerminate) -> UUID:
     # Create request dict, legacy, from data model
     request = {mapping.VALIDITY: {mapping.TO: termination.to_date.date().isoformat()}}
     if termination.from_date:
-        request[mapping.VALIDITY][
-            mapping.FROM
-        ] = termination.from_date.date().isoformat()
+        request[mapping.VALIDITY][mapping.FROM] = (
+            termination.from_date.date().isoformat()
+        )
 
     uuid = str(termination.uuid)
     date = util.get_valid_to(request)

@@ -13,6 +13,9 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastramqpi.ramqp import AMQPSystem
 from more_itertools import only
+from oio_rest.config import get_settings as lora_get_settings
+from oio_rest.custom_exceptions import OIOException
+from oio_rest.views import create_lora_router
 from prometheus_client import Gauge
 from prometheus_client import Info
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -24,18 +27,6 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette_context.middleware import RawContextMiddleware
 from structlog import get_logger
 
-from . import service
-from . import testing
-from . import triggers
-from .auth.exceptions import get_auth_exception_handler
-from .config import Environment
-from .db import create_sessionmaker
-from .db import transaction_per_request
-from .exceptions import ErrorCodes
-from .exceptions import http_exception_to_json_response
-from .exceptions import HTTPException
-from .graphapi.shim import set_graphql_context_dependencies
-from .lora import lora_noop_change_context
 from mora import config
 from mora import health
 from mora import log
@@ -52,10 +43,19 @@ from mora.graphapi.middleware import is_graphql_context
 from mora.request_scoped.query_args_context_plugin import query_args_context
 from mora.service.address_handler.dar import dar_loader_context
 from mora.service.shimmed.meta import meta_router
-from oio_rest.config import get_settings as lora_get_settings
-from oio_rest.custom_exceptions import OIOException
-from oio_rest.views import create_lora_router
 
+from . import service
+from . import testing
+from . import triggers
+from .auth.exceptions import get_auth_exception_handler
+from .config import Environment
+from .db import create_sessionmaker
+from .db import transaction_per_request
+from .exceptions import ErrorCodes
+from .exceptions import HTTPException
+from .exceptions import http_exception_to_json_response
+from .graphapi.shim import set_graphql_context_dependencies
+from .lora import lora_noop_change_context
 
 logger = get_logger()
 

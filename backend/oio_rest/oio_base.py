@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Superclasses for OIO objects and object hierarchies."""
+
 import datetime
 import json
 from abc import ABCMeta
@@ -220,7 +221,7 @@ def get_virkning_dates(args):
     if virkningstid:
         if virkning_fra or virkning_til:
             raise BadRequestException(
-                "'virkningfra'/'virkningtil' conflict " "with 'virkningstid'"
+                "'virkningfra'/'virkningtil' conflict with 'virkningstid'"
             )
         # Timespan has to be non-zero length of time, so we add one
         # microsecond
@@ -244,7 +245,7 @@ def get_registreret_dates(args):
     if registreringstid:
         if registreret_fra or registreret_til:
             raise BadRequestException(
-                "'registreretfra'/'registrerettil' " "conflict with 'registreringstid'"
+                "'registreretfra'/'registrerettil' conflict with 'registreringstid'"
             )
         else:
             # Timespan has to be non-zero length of time, so we add one
