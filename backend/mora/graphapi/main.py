@@ -15,7 +15,7 @@ from structlog.stdlib import get_logger
 
 logger = get_logger()
 
-newest = 22
+latest_graphql_version = 22
 
 
 @cache
@@ -32,13 +32,13 @@ def load_graphql_version(version_number: int) -> APIRouter:
         A FastAPI APIRouter for the given GraphQL version.
     """
     assert version_number >= 1
-    assert version_number <= newest
+    assert version_number <= latest_graphql_version
 
     version = importlib.import_module(
         f"mora.graphapi.versions.v{version_number}.version"
     ).GraphQLVersion
     # TODO: Add deprecation header as per the decision log (link/successor)
-    router = version.get_router(is_latest=version_number is newest)
+    router = version.get_router(is_latest=version_number is latest_graphql_version)
     return router
 
 
@@ -56,7 +56,7 @@ def setup_graphql(app: FastAPI) -> None:
     @app.get("/graphql/")
     async def redirect_to_latest_graphiql() -> RedirectResponse:
         """Redirect unversioned GraphiQL so developers can pin to the newest version."""
-        return RedirectResponse(f"/graphql/v{newest}")
+        return RedirectResponse(f"/graphql/v{latest_graphql_version}")
 
     oldest = 17
 
@@ -81,7 +81,7 @@ def setup_graphql(app: FastAPI) -> None:
             )
 
         # Non-existent GraphQL versions send 404
-        if version_number <= 0 or version_number > newest:
+        if version_number <= 0 or version_number > latest_graphql_version:
             return JSONResponse(
                 status_code=status.HTTP_404_NOT_FOUND,
                 content={"message": "No such GraphQL version"},
