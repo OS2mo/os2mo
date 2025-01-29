@@ -754,7 +754,7 @@ def _parse_timestamp(timestamp: datetime.datetime | str) -> datetime.datetime:
         dt = datetime.datetime.max
     elif timestamp == "-infinity":
         dt = datetime.datetime.min
-    elif type(timestamp) == str:
+    elif type(timestamp) is str:
         dt = dateutil.parser.isoparse(to_parsable_timestamp(timestamp))
     elif isinstance(timestamp, datetime.datetime):
         dt = timestamp

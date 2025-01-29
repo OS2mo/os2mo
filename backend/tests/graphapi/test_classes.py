@@ -44,7 +44,7 @@ def prepare_mutator_data(test_data):
 
     """Change UUID types to string."""
     for k, v in test_data.items():
-        if type(v) == UUID:
+        if type(v) is UUID:
             test_data[k] = str(v)
 
     return test_data

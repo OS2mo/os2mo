@@ -588,7 +588,7 @@ def merge_objects(a, b):
     :param b: The second object
     :return: A merged object
     """
-    assert type(a) == type(b), "type mismatch!: {} != {}".format(
+    assert type(a) is type(b), "type mismatch!: {} != {}".format(
         type(a),
         type(b),
     )

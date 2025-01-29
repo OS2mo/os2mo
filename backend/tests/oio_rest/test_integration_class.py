@@ -154,7 +154,6 @@ class Tests(DBTestCase):
                 ]
             },
             "livscykluskode": "Rettet",
-            "note": "Overskriv klasse med  nye perioder mv",
             "relationer": {
                 "ansvarlig": [
                     {
