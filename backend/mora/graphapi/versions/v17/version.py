@@ -37,10 +37,10 @@ class PagedResolver:
         raise NotImplementedError
 
 
-def to_paged(
+def to_paged(  # type: ignore
     resolver: PagedResolver,
     result_transformer: Callable[[PagedResolver, Any], list[Any]] | None = None,
-):  # type: ignore
+):
     result_transformer = result_transformer or (lambda _, x: x)
 
     @wraps(resolver.resolve)

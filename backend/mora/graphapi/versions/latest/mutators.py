@@ -337,8 +337,8 @@ class Mutation:
         self, input: AssociationCreateInput
     ) -> Response[Association]:
         return uuid2response(
-            await create_association(input.to_pydantic()),
-            AssociationRead,  # type: ignore
+            await create_association(input.to_pydantic()),  # type: ignore
+            AssociationRead,
         )
 
     @strawberry.mutation(
@@ -352,8 +352,8 @@ class Mutation:
         self, input: AssociationUpdateInput
     ) -> Response[Association]:
         return uuid2response(
-            await update_association(input.to_pydantic()),
-            AssociationRead,  # type: ignore
+            await update_association(input.to_pydantic()),  # type: ignore
+            AssociationRead,
         )
 
     @strawberry.mutation(
@@ -561,8 +561,8 @@ class Mutation:
         self, input: EngagementCreateInput
     ) -> Response[Engagement]:
         return uuid2response(
-            await create_engagement(input.to_pydantic()),
-            EngagementRead,  # type: ignore
+            await create_engagement(input.to_pydantic()),  # type: ignore
+            EngagementRead,
         )
 
     @strawberry.mutation(
@@ -591,8 +591,8 @@ class Mutation:
         self, input: EngagementUpdateInput
     ) -> Response[Engagement]:
         return uuid2response(
-            await update_engagement(input.to_pydantic()),
-            EngagementRead,  # type: ignore
+            await update_engagement(input.to_pydantic()),  # type: ignore
+            EngagementRead,
         )
 
     @strawberry.mutation(

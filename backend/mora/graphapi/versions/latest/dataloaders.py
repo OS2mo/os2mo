@@ -84,7 +84,7 @@ def group_by_uuid(
     return {key: list(buckets[key]) for key in keys}
 
 
-async def get_mo(model: MOModel, **kwargs: Any) -> dict[UUID, list[MOModel]]:
+async def get_mo(model: type[MOModel], **kwargs: Any) -> dict[UUID, list[MOModel]]:
     """Get data from LoRa and parse into a list of MO models.
 
     Args:

@@ -90,7 +90,7 @@ class RollbackOnError(SchemaExtension):
 class IntrospectionQueryCacheExtension(SchemaExtension):
     cache: dict[tuple[Schema, str | None], ExecutionResult | None] = {}
 
-    def on_execute(self) -> AsyncIteratorOrIterator[None]:
+    def on_execute(self) -> AsyncIteratorOrIterator[None]:  # type: ignore
         """Cache GraphQL introspection query, which otherwise takes 5-10s to execute.
 
         Based on the "In memory cached execution" example from

@@ -115,9 +115,11 @@ class Paged(Generic[T]):
     )
 
 
-def to_paged(
-    resolver_func: Callable, model: Any, result_transformer: Any | None = None
-):  # type: ignore
+def to_paged(  # type: ignore
+    resolver_func: Callable,
+    model: Any,
+    result_transformer: Any | None = None,
+):
     result_transformer = result_transformer or (lambda _, x: x)
 
     @wraps(resolver_func)
