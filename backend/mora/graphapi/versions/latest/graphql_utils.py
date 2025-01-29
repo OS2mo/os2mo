@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import random
 import re
 import string
 from datetime import datetime
@@ -9,9 +8,6 @@ from uuid import UUID
 
 from pydantic import ConstrainedStr
 from strawberry.types.unset import UnsetType
-from tests.conftest import GraphAPIPost
-
-sys_random = random.SystemRandom()
 
 
 class PrintableStr(ConstrainedStr):
@@ -40,22 +36,3 @@ class LoadKey(NamedTuple):
     uuid: UUID
     start: datetime | UnsetType | None
     end: datetime | UnsetType | None
-
-
-async def get_uuids(obj: str, graphapi_post: GraphAPIPost) -> UUID:
-    """Queries for uuids for a given object type. Eg. Employees."""
-    # TODO: move this out of the production code and into the tests
-    if obj == "org":
-        query = "".join(["query FetchUUIDs {", obj, "{uuid}}"])
-    else:
-        query = "".join(["query FetchUUIDs {", obj, "{objects {uuid}}}"])
-
-    response = graphapi_post(query=query)
-    assert response.errors is None
-    if obj == "org":
-        uuids = response.data.get(obj, {}) if response.data else {}
-    else:
-        uuids = response.data.get(obj, {})["objects"] if response.data else {}
-    if isinstance(uuids, dict):
-        return UUID(uuids.get("uuid", {}))
-    return UUID(sys_random.choice(uuids).get("uuid"))
