@@ -15,7 +15,15 @@ from structlog.stdlib import get_logger
 
 logger = get_logger()
 
-latest_graphql_version = 22
+graphql_versions = [
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+]
+latest_graphql_version = max(graphql_versions)
 
 
 @cache
@@ -31,8 +39,7 @@ def load_graphql_version(version_number: int) -> APIRouter:
     Returns:
         A FastAPI APIRouter for the given GraphQL version.
     """
-    assert version_number >= 1
-    assert version_number <= latest_graphql_version
+    assert version_number in graphql_versions
 
     version = importlib.import_module(
         f"mora.graphapi.versions.v{version_number}.version"
@@ -58,8 +65,6 @@ def setup_graphql(app: FastAPI) -> None:
         """Redirect unversioned GraphiQL so developers can pin to the newest version."""
         return RedirectResponse(f"/graphql/v{latest_graphql_version}")
 
-    oldest = 17
-
     imported: set[int] = set()
     version_regex = re.compile(r"/graphql/v(\d+)")
 
@@ -73,15 +78,8 @@ def setup_graphql(app: FastAPI) -> None:
         if version_number in imported:
             return await call_next(request)
 
-        # Removed GraphQL versions send 410
-        if 0 < version_number < oldest:
-            return JSONResponse(
-                status_code=status.HTTP_410_GONE,
-                content={"message": "Removed GraphQL version"},
-            )
-
         # Non-existent GraphQL versions send 404
-        if version_number <= 0 or version_number > latest_graphql_version:
+        if version_number not in graphql_versions:
             return JSONResponse(
                 status_code=status.HTTP_404_NOT_FOUND,
                 content={"message": "No such GraphQL version"},
