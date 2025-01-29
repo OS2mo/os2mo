@@ -485,6 +485,11 @@ async def engagement_resolver(
     if filter.job_function is not None:
         class_filter = filter.job_function or ClassFilter()
         kwargs["opgaver"] = await filter2uuids_func(class_resolver, info, class_filter)
+    if filter.engagement_type is not None:
+        class_filter = filter.engagement_type or ClassFilter()
+        kwargs["organisatoriskfunktionstype"] = await filter2uuids_func(
+            class_resolver, info, class_filter
+        )
 
     return await generic_resolver(
         EngagementRead,
