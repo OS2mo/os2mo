@@ -163,6 +163,8 @@ def test_query_all(graphapi_post: GraphAPIPost):
     suppress_health_check=[
         # Running multiple tests on the same database is okay in this instance
         HealthCheck.function_scoped_fixture,
+        # The hypothesis strategy isn't very good
+        HealthCheck.filter_too_much,
     ],
 )
 @given(
@@ -283,6 +285,12 @@ async def test_integration_create_class(
     }
 
 
+@settings(
+    suppress_health_check=[
+        # The hypothesis strategy isn't very good
+        HealthCheck.filter_too_much
+    ],
+)
 @given(
     test_data=graph_data_momodel_validity_strat(
         ClassCreate,
