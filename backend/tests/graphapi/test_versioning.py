@@ -26,7 +26,7 @@ def test_min_graphql_version() -> None:
     settings = Settings()
     oldest = settings.min_graphql_version
 
-    minimum = 4  # chosen by fair dice roll, guaranteed to be random
+    minimum = 17  # chosen by fair dice roll, guaranteed to be random
 
     app = create_app(settings_overrides={"min_graphql_version": minimum})
     with TestClient(app) as raw_client:
