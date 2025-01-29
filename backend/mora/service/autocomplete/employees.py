@@ -65,8 +65,6 @@ async def search_employees(
 async def decorate_employee_search_result(
     settings: config.Settings, search_results: list[UUID], at: date | None
 ):
-    from mora.graphapi.versions.v14.version import GraphQLVersion
-
     graphql_vars = {"uuids": search_results}
     employee_decorate_query = """
         query EmployeeDecorate($uuids: [UUID!]) {
@@ -173,7 +171,6 @@ async def decorate_employee_search_result(
 
     response = await execute_graphql(
         employee_decorate_query,
-        graphql_version=GraphQLVersion,
         variable_values=jsonable_encoder(graphql_vars),
     )
     handle_gql_error(response)
