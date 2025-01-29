@@ -9,6 +9,7 @@ from uuid import uuid4
 import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
+from fastramqpi.ra_utils.apply import apply
 from hypothesis import HealthCheck
 from hypothesis import given
 from hypothesis import settings
@@ -20,7 +21,6 @@ from mora.graphapi.versions.latest.models import EngagementCreate
 from mora.graphapi.versions.latest.models import EngagementUpdate
 from mora.util import POSITIVE_INFINITY
 from more_itertools import one
-from ra_utils.apply import apply
 
 from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids

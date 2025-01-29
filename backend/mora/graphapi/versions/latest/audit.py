@@ -7,8 +7,8 @@ from textwrap import dedent
 from uuid import UUID
 
 import strawberry
+from fastramqpi.ra_utils.apply import apply
 from more_itertools import bucket
-from ra_utils.apply import apply
 from sqlalchemy import select
 from starlette_context import context
 from strawberry.dataloader import DataLoader

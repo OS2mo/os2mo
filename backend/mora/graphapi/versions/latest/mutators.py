@@ -8,7 +8,7 @@ from typing import Any
 from uuid import UUID
 
 import strawberry
-from ra_utils.asyncio_utils import gather_with_concurrency
+from fastramqpi.ra_utils.asyncio_utils import gather_with_concurrency
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 

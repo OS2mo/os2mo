@@ -5,7 +5,7 @@
 from collections.abc import Callable
 
 import aiohttp
-from os2mo_dar_client import AsyncDARClient
+from fastramqpi.os2mo_dar_client import AsyncDARClient
 from structlog import get_logger
 
 from mora.exceptions import HTTPException

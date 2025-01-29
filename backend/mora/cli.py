@@ -12,10 +12,10 @@ import sys
 import time
 
 import click
+from fastramqpi.ra_utils.async_to_sync import async_to_sync
 from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.mo import MOAMQPSystem
 from oio_rest.config import get_settings as oio_rest_get_settings
-from ra_utils.async_to_sync import async_to_sync
 from sqlalchemy import select
 from sqlalchemy import update
 from structlog import get_logger

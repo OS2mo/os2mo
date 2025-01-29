@@ -108,7 +108,8 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
         async_test.add_marker(session_scope_marker)
 
 
-def pytest_runtest_protocol(item) -> None:
+@pytest.fixture(autouse=True)
+def set_testing_environment_variables() -> None:
     os.environ["TESTING"] = "True"
     os.environ["PYTEST_RUNNING"] = "True"
 
