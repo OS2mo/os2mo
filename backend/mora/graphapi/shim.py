@@ -30,8 +30,6 @@ from mora.graphapi.gmodels.mo import OrganisationRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import AddressRead
 
-from .versions.base import BaseGraphQLVersion
-
 
 class MOEmployee(EmployeeRead):
     name: str
@@ -220,14 +218,11 @@ async def set_graphql_context_dependencies(
         yield
 
 
-async def execute_graphql(
-    *args: Any, graphql_version: type[BaseGraphQLVersion] | None = None, **kwargs: Any
-) -> ExecutionResult:
+async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
     # Imports must be done here to avoid circular imports... eww
-    if graphql_version is None:
-        from .versions.latest.version import LatestGraphQLVersion
+    from .versions.latest.version import LatestGraphQLVersion
 
-        graphql_version = LatestGraphQLVersion
+    graphql_version = LatestGraphQLVersion
 
     if "context_value" not in kwargs:
         # TODO: The token should be passed from the original caller, such that the
