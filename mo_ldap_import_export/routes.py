@@ -3,7 +3,7 @@
 """HTTP Endpoints."""
 
 import asyncio
-import json
+import csv
 import re
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
@@ -27,6 +27,7 @@ from ldap3 import Connection
 from ldap3.protocol import oid
 from more_itertools import always_iterable
 from more_itertools import one
+from more_itertools import only
 from pydantic import ValidationError
 from pydantic import parse_obj_as
 from ramodels.mo._shared import validate_cpr
@@ -538,12 +539,25 @@ def construct_router(settings: Settings) -> APIRouter:
         result = await graphql_client.read_person_uuid()
         uuids = [person.uuid for person in result.objects]
 
-        mapping = {
-            uuid: await sync_tool.listen_to_changes_in_employees(uuid, dry_run=True)
-            for uuid in uuids
-        }
-        with open("/tmp/mo2ldap.json", "w") as fout:
-            json.dump(encode_result(mapping), fout)
+        with open("/tmp/mo2ldap.csv", "w") as fout:
+            writer = csv.writer(fout)
+            for uuid in uuids:
+                try:
+                    desired_state = await sync_tool.listen_to_changes_in_employees(
+                        uuid, dry_run=True
+                    )
+                except Exception:  # pragma: no cover
+                    logger.exception("Exception during Inspect/mo2ldap/all")
+                    continue
+
+                # Unpack lists whenever possible
+                csv_context = {
+                    key: only(value) if len(value) < 2 else value
+                    for key, value in sorted(desired_state.items())
+                }
+                csv_context["__mo_uuid"] = uuid
+
+                writer.writerow(csv_context.values())
 
         return "OK"
 

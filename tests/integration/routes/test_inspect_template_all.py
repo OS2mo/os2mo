@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
-import json
+import csv
 from uuid import UUID
 
 import pytest
@@ -15,19 +15,15 @@ async def test_ldap_template_all(test_client: AsyncClient, mo_person: UUID) -> N
     result = response.json()
     assert result == "OK"
 
-    with open("/tmp/mo2ldap.json") as fin:
-        file_data = json.load(fin)
-    assert file_data == {
-        str(mo_person): {
-            "employeeNumber": [
-                "2108613133",
-            ],
-            "givenName": [
-                "Aage",
-            ],
-            "sn": [
-                "Bach Klarskov",
-            ],
-            "title": [str(mo_person)],
-        },
-    }
+    with open("/tmp/mo2ldap.csv") as fin:
+        reader = csv.reader(fin)
+        file_data = [row for row in reader]
+    assert file_data == [
+        [
+            "2108613133",
+            "Aage",
+            "Bach Klarskov",
+            str(mo_person),
+            str(mo_person),
+        ]
+    ]
