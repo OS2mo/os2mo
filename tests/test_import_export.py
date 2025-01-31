@@ -102,6 +102,7 @@ async def test_listen_to_changes_in_employees_no_dn(
         messages = [w["event"] for w in cap_logs]
         assert messages == [
             "Registered change in an employee",
+            "create_user_trees not configured, allowing create",
             "Unable to generate DN",
         ]
 

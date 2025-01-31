@@ -547,3 +547,11 @@ class Settings(BaseSettings):
                 "DISCRIMINATOR_VALUES must be set, if DISCRIMINATOR_FIELD is set"
             )
         return values
+
+    create_user_trees: list[UUID] = Field(
+        default_factory=list,
+        description=(
+            "Only create users with primary engagement in the specified MO organization"
+            "units or their subtrees, the empty list allows creating all MO users"
+        ),
+    )

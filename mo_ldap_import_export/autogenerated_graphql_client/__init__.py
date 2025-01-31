@@ -378,6 +378,11 @@ from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnitsObject
 from .read_org_unit_ancestor_names import (
     ReadOrgUnitAncestorNamesOrgUnitsObjectsCurrentAncestors,
 )
+from .read_org_unit_ancestors import ReadOrgUnitAncestors
+from .read_org_unit_ancestors import ReadOrgUnitAncestorsOrgUnits
+from .read_org_unit_ancestors import ReadOrgUnitAncestorsOrgUnitsObjects
+from .read_org_unit_ancestors import ReadOrgUnitAncestorsOrgUnitsObjectsCurrent
+from .read_org_unit_ancestors import ReadOrgUnitAncestorsOrgUnitsObjectsCurrentAncestors
 from .read_org_unit_name import ReadOrgUnitName
 from .read_org_unit_name import ReadOrgUnitNameOrgUnits
 from .read_org_unit_name import ReadOrgUnitNameOrgUnitsObjects
@@ -651,6 +656,11 @@ __all__ = [
     "ReadOrgUnitAncestorNamesOrgUnitsObjects",
     "ReadOrgUnitAncestorNamesOrgUnitsObjectsCurrent",
     "ReadOrgUnitAncestorNamesOrgUnitsObjectsCurrentAncestors",
+    "ReadOrgUnitAncestors",
+    "ReadOrgUnitAncestorsOrgUnits",
+    "ReadOrgUnitAncestorsOrgUnitsObjects",
+    "ReadOrgUnitAncestorsOrgUnitsObjectsCurrent",
+    "ReadOrgUnitAncestorsOrgUnitsObjectsCurrentAncestors",
     "ReadOrgUnitName",
     "ReadOrgUnitNameOrgUnits",
     "ReadOrgUnitNameOrgUnitsObjects",

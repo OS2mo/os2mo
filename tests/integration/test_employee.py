@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import json
+from collections.abc import Awaitable
+from collections.abc import Callable
 from typing import Any
 from typing import cast
 from unittest.mock import ANY
@@ -27,6 +29,7 @@ from mo_ldap_import_export.ldap import ldap_add
 from mo_ldap_import_export.ldap import ldap_modify
 from mo_ldap_import_export.ldap import ldap_search
 from mo_ldap_import_export.moapi import MOAPI
+from mo_ldap_import_export.types import EmployeeUUID
 from mo_ldap_import_export.utils import combine_dn_strings
 from mo_ldap_import_export.utils import mo_today
 
@@ -358,26 +361,17 @@ async def test_edit_existing_in_ldap(
     }
 )
 async def test_none_handling_empty(
-    test_client: AsyncClient,
+    trigger_mo_person: Callable[[], Awaitable[None]],
     ldap_connection: Connection,
     ldap_person: list[str],
-    mo_person: UUID,
 ) -> None:
-    async def trigger_sync() -> None:
-        content = str(mo_person)
-        headers = {"Content-Type": "text/plain"}
-        result = await test_client.post(
-            "/mo2ldap/person", content=content, headers=headers
-        )
-        assert result.status_code == 200
-
     person_dn = combine_dn_strings(ldap_person)
     ldap_object = await get_ldap_object(ldap_connection, person_dn)
     assert ldap_object.dn == person_dn
     assert hasattr(ldap_object, "carLicense") is False
 
     # As Seniority is None, the field should remain empty
-    await trigger_sync()
+    await trigger_mo_person()
 
     ldap_object = await get_ldap_object(ldap_connection, person_dn)
     assert ldap_object.dn == person_dn
@@ -409,19 +403,10 @@ async def test_none_handling_empty(
     }
 )
 async def test_none_handling_clearing(
-    test_client: AsyncClient,
+    trigger_mo_person: Callable[[], Awaitable[None]],
     ldap_connection: Connection,
     ldap_person: list[str],
-    mo_person: UUID,
 ) -> None:
-    async def trigger_sync() -> None:
-        content = str(mo_person)
-        headers = {"Content-Type": "text/plain"}
-        result = await test_client.post(
-            "/mo2ldap/person", content=content, headers=headers
-        )
-        assert result.status_code == 200
-
     person_dn = combine_dn_strings(ldap_person)
     await ldap_modify(
         ldap_connection,
@@ -437,7 +422,7 @@ async def test_none_handling_clearing(
     assert getattr(ldap_object, "carLicense", None) == ["TEST_VALUE"]
 
     # As Seniority is None, the field should be cleared
-    await trigger_sync()
+    await trigger_mo_person()
 
     ldap_object = await get_ldap_object(ldap_connection, person_dn)
     assert ldap_object.dn == person_dn
@@ -475,20 +460,11 @@ async def test_none_handling_clearing(
     }
 )
 async def test_ituser_link(
-    test_client: AsyncClient,
+    trigger_mo_person: Callable[[], Awaitable[None]],
     graphql_client: GraphQLClient,
     ldap_connection: Connection,
-    mo_person: UUID,
     ldap_org: list[str],
 ) -> None:
-    async def trigger_sync() -> None:
-        content = str(mo_person)
-        headers = {"Content-Type": "text/plain"}
-        result = await test_client.post(
-            "/mo2ldap/person", content=content, headers=headers
-        )
-        assert result.status_code == 200
-
     # Verify required settings are set
     settings = Settings()
     assert settings.ldap_it_system is not None
@@ -496,7 +472,7 @@ async def test_ituser_link(
 
     # Trigger a sync creating a user in LDAP
     with capture_logs() as cap_logs:
-        await trigger_sync()
+        await trigger_mo_person()
 
     # Check that we are attempting to create an ITUser for correlation
     log_events = [x["event"] for x in cap_logs]
@@ -558,20 +534,12 @@ async def test_ituser_link(
     }
 )
 async def test_generate_common_name(
-    test_client: AsyncClient,
+    trigger_sync: Callable[[EmployeeUUID], Awaitable[None]],
     graphql_client: GraphQLClient,
     ldap_connection: Connection,
-    mo_person: UUID,
+    mo_person: EmployeeUUID,
     ldap_org: list[str],
 ) -> None:
-    async def trigger_sync(uuid: UUID) -> None:
-        content = str(uuid)
-        headers = {"Content-Type": "text/plain"}
-        result = await test_client.post(
-            "/mo2ldap/person", content=content, headers=headers
-        )
-        assert result.status_code == 200
-
     async def fetch_common_name(cpr_number: str) -> str:
         # Fetch the LDAP UUID for the newly created LDAP user
         response, _ = await ldap_search(
@@ -614,7 +582,7 @@ async def test_generate_common_name(
             given_name="Aage", surname="Klareng", cpr_number="0101700000"
         )
     )
-    mo_person_2 = r.uuid
+    mo_person_2 = EmployeeUUID(r.uuid)
     await trigger_sync(mo_person_2)
     common_name = await fetch_common_name(mo_person_2_cpr_number)
     assert common_name == "Aage Klareng_2"

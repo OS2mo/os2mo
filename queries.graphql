@@ -669,3 +669,15 @@ query read_engagement_enddate($employee_uuid: UUID!) {
     }
   }
 }
+
+query read_org_unit_ancestors($uuid: UUID!) {
+  org_units(filter: { uuids: [$uuid] }) {
+    objects {
+      current {
+        ancestors {
+          uuid
+        }
+      }
+    }
+  }
+}
