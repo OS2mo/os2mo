@@ -20,6 +20,7 @@ from jinja2.utils import missing
 from more_itertools import flatten
 from more_itertools import one
 from more_itertools import only
+from more_itertools import unzip
 from pydantic import parse_obj_as
 
 from mo_ldap_import_export.ldap import get_ldap_object
@@ -46,6 +47,7 @@ from .exceptions import SkipObject
 from .exceptions import UUIDNotFoundException
 from .types import DN
 from .types import EmployeeUUID
+from .utils import MO_TZ
 from .utils import ensure_list
 from .utils import get_delete_flag
 from .utils import mo_today
@@ -475,6 +477,26 @@ async def get_engagement_uuid(
     return obj.uuid if obj else None
 
 
+async def get_employment_interval(
+    graphql_client: GraphQLClient, employee_uuid: UUID
+) -> tuple[datetime | None, datetime | None]:
+    result = await graphql_client.read_engagement_enddate(employee_uuid)
+    if not result.objects:
+        return None, None
+
+    tzmin = datetime.min.replace(tzinfo=MO_TZ)
+    tzmax = datetime.max.replace(tzinfo=MO_TZ)
+
+    start_dates, end_dates = unzip(
+        (validity.validity.from_ or tzmin, validity.validity.to or tzmax)
+        for engagement in result.objects
+        for validity in engagement.validities
+    )
+    startdate = min(start_dates)
+    enddate = max(end_dates)
+    return startdate, enddate
+
+
 def skip_if_none(obj: T | None) -> T:
     if obj is None:
         raise SkipObject("Object is None")
@@ -520,6 +542,7 @@ def construct_globals_dict(
         "get_address_uuid": partial(get_address_uuid, graphql_client),
         "get_ituser_uuid": partial(get_ituser_uuid, graphql_client),
         "get_engagement_uuid": partial(get_engagement_uuid, graphql_client),
+        "get_employment_interval": partial(get_employment_interval, graphql_client),
     }
 
 

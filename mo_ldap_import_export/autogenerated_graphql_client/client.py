@@ -102,6 +102,8 @@ from .read_employees_with_engagement_to_org_unit import (
 )
 from .read_engagement_employee_uuid import ReadEngagementEmployeeUuid
 from .read_engagement_employee_uuid import ReadEngagementEmployeeUuidEngagements
+from .read_engagement_enddate import ReadEngagementEnddate
+from .read_engagement_enddate import ReadEngagementEnddateEngagements
 from .read_engagement_uuid import ReadEngagementUuid
 from .read_engagement_uuid import ReadEngagementUuidEngagements
 from .read_engagements import ReadEngagements
@@ -1397,3 +1399,29 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadPersonUuid.parse_obj(data).employees
+
+    async def read_engagement_enddate(
+        self, employee_uuid: UUID
+    ) -> ReadEngagementEnddateEngagements:
+        query = gql(
+            """
+            query read_engagement_enddate($employee_uuid: UUID!) {
+              engagements(
+                filter: {employee: {uuids: [$employee_uuid]}, from_date: null, to_date: null}
+              ) {
+                objects {
+                  validities {
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"employee_uuid": employee_uuid}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadEngagementEnddate.parse_obj(data).engagements

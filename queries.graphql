@@ -656,3 +656,16 @@ query read_person_uuid($filter: EmployeeFilter) {
     }
   }
 }
+
+query read_engagement_enddate($employee_uuid: UUID!) {
+  engagements(filter: {employee: {uuids: [$employee_uuid]}, from_date: null, to_date: null}) {
+    objects {
+      validities {
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
