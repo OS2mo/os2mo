@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import json
+from collections.abc import Awaitable
+from collections.abc import Callable
 from typing import Any
 from unittest.mock import ANY
 from uuid import UUID
@@ -265,7 +267,7 @@ async def test_to_ldap(
     }
 )
 async def test_to_ldap_create_it_user_if_non_existent(
-    test_client: AsyncClient,
+    trigger_mo_person: Callable[[], Awaitable[None]],
     graphql_client: GraphQLClient,
     mo_api: MOAPI,
     mo_person: UUID,
@@ -298,14 +300,6 @@ async def test_to_ldap_create_it_user_if_non_existent(
 
         return [one(user.validities).uuid for user in users.objects]
 
-    async def trigger_sync() -> None:
-        content = str(mo_person)
-        headers = {"Content-Type": "text/plain"}
-        result = await test_client.post(
-            "/mo2ldap/person", content=content, headers=headers
-        )
-        assert result.status_code == 200
-
     # LDAP: Init user
     person_dn = combine_dn_strings(["uid=abk"] + ldap_org)
     await ldap_add(
@@ -323,7 +317,7 @@ async def test_to_ldap_create_it_user_if_non_existent(
     await assert_it_user({"title": []})
     await assert_mo_itusers([])
 
-    await trigger_sync()
+    await trigger_mo_person()
 
     await assert_it_user({"title": ["mytitle"]})
     ituser_uuid = one(await assert_mo_itusers(["mytitle"]))
@@ -341,7 +335,7 @@ async def test_to_ldap_create_it_user_if_non_existent(
         )
     )
 
-    await trigger_sync()
+    await trigger_mo_person()
 
     await assert_it_user({"title": [title]})
     await assert_mo_itusers(["update"])
@@ -378,7 +372,7 @@ async def test_to_ldap_create_it_user_if_non_existent(
     }
 )
 async def test_to_ldap_generate_username(
-    test_client: AsyncClient,
+    trigger_mo_person: Callable[[], Awaitable[None]],
     graphql_client: GraphQLClient,
     mo_api: MOAPI,
     mo_person: UUID,
@@ -396,14 +390,6 @@ async def test_to_ldap_generate_username(
         )
         assert one(response)["attributes"] == expected
 
-    async def trigger_sync() -> None:
-        content = str(mo_person)
-        headers = {"Content-Type": "text/plain"}
-        result = await test_client.post(
-            "/mo2ldap/person", content=content, headers=headers
-        )
-        assert result.status_code == 200
-
     # LDAP: Init user
     person_dn = combine_dn_strings(["uid=abk"] + ldap_org)
     await ldap_add(
@@ -420,7 +406,7 @@ async def test_to_ldap_generate_username(
     )
     await assert_it_user({"title": []})
 
-    await trigger_sync()
+    await trigger_mo_person()
 
     await assert_it_user({"title": ["aag2"]})
 
@@ -435,6 +421,6 @@ async def test_to_ldap_generate_username(
             validity={"from": "2001-02-03T04:05:06Z"},
         )
     )
-    await trigger_sync()
+    await trigger_mo_person()
 
     await assert_it_user({"title": [title]})

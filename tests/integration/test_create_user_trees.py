@@ -9,7 +9,6 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
-from httpx import AsyncClient
 from ldap3 import Connection
 from more_itertools import one
 from more_itertools import only
@@ -108,21 +107,6 @@ async def fetch_mo_person_ldap_account(
 
 
 @pytest.fixture
-async def trigger_sync(
-    test_client: AsyncClient,
-) -> Callable[[EmployeeUUID], Awaitable[None]]:
-    async def inner(uuid: EmployeeUUID) -> None:
-        content = str(uuid)
-        headers = {"Content-Type": "text/plain"}
-        result = await test_client.post(
-            "/mo2ldap/person", content=content, headers=headers
-        )
-        assert result.status_code == 200, result.text
-
-    return inner
-
-
-@pytest.fixture
 async def create_engagement(
     graphql_client: GraphQLClient,
     ansat: UUID,
@@ -188,22 +172,21 @@ async def create_org_unit(
     }
 )
 async def test_create_user_trees_not_configured(
-    trigger_sync: Callable[[EmployeeUUID], Awaitable[None]],
+    trigger_mo_person: Callable[[], Awaitable[None]],
     fetch_mo_person_ldap_account: Callable[[], Awaitable[dict[str, Any] | None]],
-    mo_person: EmployeeUUID,
 ) -> None:
     settings = Settings()
     assert settings.create_user_trees == []
 
     with capture_logs() as cap_logs:
-        await trigger_sync(mo_person)
+        await trigger_mo_person()
 
     log_events = [x["event"] for x in cap_logs]
     assert "create_user_trees not configured, allowing create" in log_events
 
     account = await fetch_mo_person_ldap_account()
     assert account is not None
-    assert account["attributes"]["sn"] == "Klarskov"
+    assert one(account["attributes"]["sn"]) == "Bach Klarskov"
 
 
 @pytest.mark.integration_test
@@ -216,15 +199,14 @@ async def test_create_user_trees_not_configured(
     }
 )
 async def test_create_user_tree_no_engagement(
-    trigger_sync: Callable[[EmployeeUUID], Awaitable[None]],
+    trigger_mo_person: Callable[[], Awaitable[None]],
     fetch_mo_person_ldap_account: Callable[[], Awaitable[dict[str, Any] | None]],
-    mo_person: EmployeeUUID,
 ) -> None:
     settings = Settings()
     assert settings.create_user_trees == [UUID_MAP["root"]]
 
     with capture_logs() as cap_logs:
-        await trigger_sync(mo_person)
+        await trigger_mo_person()
 
     log_events = [x["event"] for x in cap_logs]
     assert (
@@ -246,7 +228,7 @@ async def test_create_user_tree_no_engagement(
     }
 )
 async def test_create_user_tree_past_engagement(
-    trigger_sync: Callable[[EmployeeUUID], Awaitable[None]],
+    trigger_mo_person: Callable[[], Awaitable[None]],
     fetch_mo_person_ldap_account: Callable[[], Awaitable[dict[str, Any] | None]],
     create_engagement: Callable[..., Awaitable[UUID]],
     mo_person: EmployeeUUID,
@@ -262,7 +244,7 @@ async def test_create_user_tree_past_engagement(
     )
 
     with capture_logs() as cap_logs:
-        await trigger_sync(mo_person)
+        await trigger_mo_person()
 
     log_events = [x["event"] for x in cap_logs]
     assert "create_user_trees engagement is not current" in log_events
@@ -281,7 +263,7 @@ async def test_create_user_tree_past_engagement(
     }
 )
 async def test_create_user_tree_outside_tree(
-    trigger_sync: Callable[[EmployeeUUID], Awaitable[None]],
+    trigger_mo_person: Callable[[], Awaitable[None]],
     fetch_mo_person_ldap_account: Callable[[], Awaitable[dict[str, Any] | None]],
     create_engagement: Callable[..., Awaitable[UUID]],
     mo_person: EmployeeUUID,
@@ -293,7 +275,7 @@ async def test_create_user_tree_outside_tree(
     await create_engagement(mo_person, mo_org_unit)
 
     with capture_logs() as cap_logs:
-        await trigger_sync(mo_person)
+        await trigger_mo_person()
 
     log_events = [x["event"] for x in cap_logs]
     assert "Primary engagement OU outside create_user_trees, skipping" in log_events
@@ -333,7 +315,7 @@ async def test_create_user_tree_outside_tree(
     ],
 )
 async def test_create_user_trees_recursive_check(
-    trigger_sync: Callable[[EmployeeUUID], Awaitable[None]],
+    trigger_mo_person: Callable[[], Awaitable[None]],
     fetch_mo_person_ldap_account: Callable[[], Awaitable[dict[str, Any] | None]],
     create_engagement: Callable[..., Awaitable[UUID]],
     create_org_unit: Callable[[OrgUnitUUID, OrgUnitUUID | None], Awaitable[None]],
@@ -351,7 +333,7 @@ async def test_create_user_trees_recursive_check(
     await create_engagement(mo_person, UUID_MAP[org_unit_target])
 
     with capture_logs() as cap_logs:
-        await trigger_sync(mo_person)
+        await trigger_mo_person()
 
     log_events = [x["event"] for x in cap_logs]
     message = "Primary engagement OU outside create_user_trees, skipping"
