@@ -28,8 +28,8 @@ from structlog import get_logger
 from mora import config
 from mora.db import get_session
 from mora.exceptions import HTTPException
+from mora.graphapi.custom_router import CustomGraphQLRouter
 from mora.graphapi.middleware import StarletteContextExtension
-from mora.graphapi.router import CustomGraphQLRouter
 from mora.log import canonical_gql_context
 
 logger = get_logger()
