@@ -80,11 +80,10 @@ class BaseGraphQLVersion:
     schema: type[BaseGraphQLSchema]
 
     @classmethod
-    def get_router(cls, is_latest: bool) -> APIRouter:
+    def get_router(cls) -> APIRouter:
         """Get Strawberry FastAPI router serving this GraphQL API version."""
         router = CustomGraphQLRouter(
             graphql_ide="graphiql",  # TODO: pathfinder seems a lot nicer
-            is_latest=is_latest,
             schema=cls.schema.get(),
             context_getter=get_context,
         )

@@ -1,12 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Any
 
-from fastapi import Request
+from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from strawberry.fastapi import GraphQLRouter
 
 from mora.config import get_settings
+from mora.graphapi.custom_schema import get_version
+from mora.graphapi.version import LATEST_VERSION
 
 AUTH_SCRIPT = """
 <script src="https://unpkg.com/keycloak-js@20.0.2/dist/keycloak.min.js"></script>
@@ -67,7 +68,6 @@ DEPRECATION_NOTICE = """
 </div>
 """
 
-
 PRETTIER_SCRIPT = """
 <script src="https://unpkg.com/prettier@2/standalone.js"></script>
 <script src="https://unpkg.com/prettier@2/parser-graphql.js"></script>
@@ -93,17 +93,13 @@ PRETTIER_SCRIPT = """
 class CustomGraphQLRouter(GraphQLRouter):
     """Custom GraphQL router to inject HTML into the GraphiQL interface."""
 
-    def __init__(self, is_latest: bool, *args: Any, **kwargs: Any):
-        super().__init__(*args, **kwargs)
-        self.is_latest = is_latest
-
     async def render_graphql_ide(self, request: Request) -> HTMLResponse:
         assert self.graphql_ide == "graphiql"  # type: ignore[attr-defined]
         html = self.graphql_ide_html  # type: ignore[attr-defined]
 
         # Show deprecation notice at the top of the page if accessing an old version
         # of GraphQL.
-        if not self.is_latest:
+        if get_version(self.schema) is not LATEST_VERSION:
             html = html.replace("<body>", f"<body>{DEPRECATION_NOTICE}")
 
         # Inject script for authentication if auth is enabled. The script is added just

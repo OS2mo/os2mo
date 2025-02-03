@@ -65,7 +65,7 @@ def load_graphql_version(version_number: int) -> APIRouter:
         f"mora.graphapi.versions.v{version_number}.version"
     ).GraphQLVersion
     # TODO: Add deprecation header as per the decision log (link/successor)
-    router = version.get_router(is_latest=version_number is latest_graphql_version)
+    router = version.get_router()
     return router
 
 
