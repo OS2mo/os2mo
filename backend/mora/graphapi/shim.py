@@ -29,6 +29,7 @@ from mora.graphapi.gmodels.mo import FacetRead
 from mora.graphapi.gmodels.mo import OrganisationRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import AddressRead
+from mora.graphapi.version import LATEST_VERSION
 
 
 class MOEmployee(EmployeeRead):
@@ -221,10 +222,7 @@ async def set_graphql_context_dependencies(
 async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
     # Imports must be done here to avoid circular imports... eww
     from mora.graphapi.router import get_context
-
-    from .versions.latest.version import LatestGraphQLVersion
-
-    graphql_version = LatestGraphQLVersion
+    from mora.graphapi.schema import get_schema
 
     if "context_value" not in kwargs:
         # TODO: The token should be passed from the original caller, such that the
@@ -235,7 +233,7 @@ async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
             session=context.get("session"),
         )
 
-    schema = graphql_version.schema.get()
+    schema = get_schema(LATEST_VERSION)
     return await schema.execute(*args, **kwargs)
 
 
