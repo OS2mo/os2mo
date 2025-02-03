@@ -7,8 +7,9 @@ from hypothesis import note
 from hypothesis import settings
 from hypothesis import strategies as st
 from hypothesis_graphql import strategies as gql_st
+from mora.graphapi.schema import get_schema
 from mora.graphapi.shim import flatten_data
-from mora.graphapi.versions.latest.version import LatestGraphQLSchema
+from mora.graphapi.version import LATEST_VERSION
 from more_itertools import all_equal
 from tests.conftest import GraphAPIPost
 
@@ -23,7 +24,6 @@ async def load_fixture_data(fixture_db):
     yield
 
 
-SCHEMA = str(LatestGraphQLSchema.get())
 UUID_SEARCHABLE_FIELDS = [
     "addresses",
     "associations",
@@ -72,7 +72,7 @@ def test_queries(data, field, graphapi_post: GraphAPIPost):
     response, while errors are None.
     """
     query = data.draw(
-        gql_st.query(SCHEMA, fields=[field]).filter(
+        gql_st.query(str(get_schema(LATEST_VERSION)), fields=[field]).filter(
             lambda query: (
                 "from_date: null" not in query
                 # For details, see: backend/tests/graphapi/test_registration.py
