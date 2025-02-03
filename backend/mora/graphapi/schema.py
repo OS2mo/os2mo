@@ -2,20 +2,33 @@
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import AsyncIterator
 from contextlib import suppress
+from functools import cache
 
+import strawberry
 from fastapi.encoders import jsonable_encoder
 from graphql import ExecutionResult
 from graphql import GraphQLError
+from pydantic import PositiveInt
 from strawberry import Schema
 from strawberry.exceptions import StrawberryGraphQLError
 from strawberry.extensions import SchemaExtension
+from strawberry.schema.config import StrawberryConfig
 from strawberry.utils.await_maybe import AsyncIteratorOrIterator
 from structlog import get_logger
 
 from mora import config
 from mora.db import get_session
 from mora.exceptions import HTTPException
+from mora.graphapi.custom_schema import CustomSchema
+from mora.graphapi.middleware import StarletteContextExtension
+from mora.graphapi.versions.latest.mutators import Mutation
+from mora.graphapi.versions.latest.query import Query
+from mora.graphapi.versions.latest.schema import DARAddress
+from mora.graphapi.versions.latest.schema import DefaultAddress
+from mora.graphapi.versions.latest.schema import MultifieldAddress
+from mora.graphapi.versions.latest.types import CPRType
 from mora.log import canonical_gql_context
+from mora.util import CPR
 
 logger = get_logger()
 
@@ -91,3 +104,36 @@ class IntrospectionQueryCacheExtension(SchemaExtension):
                 execution_context.result = self.cache[cache_key]
         yield
         self.cache.setdefault(cache_key, execution_context.result)
+
+
+@cache
+def get_schema() -> CustomSchema:
+    """Instantiate Strawberry Schema."""
+    return CustomSchema(
+        query=Query,
+        mutation=Mutation,
+        types=[DefaultAddress, DARAddress, MultifieldAddress],
+        extensions=[
+            StarletteContextExtension,
+            LogContextExtension,
+            RollbackOnError,
+            ExtendedErrorFormatExtension,
+            IntrospectionQueryCacheExtension,
+        ],
+        config=StrawberryConfig(
+            # Automatic camelCasing disabled because under_score style is simply better
+            #
+            # See: An Eye Tracking Study on camelCase and under_score Identifier Styles
+            # Excerpt:
+            #   Although, no difference was found between identifier styles with respect
+            #   to accuracy, results indicate a significant improvement in time and lower
+            #   visual effort with the underscore style.
+            #
+            # Additionally, it preserves the naming of the underlying Python functions.
+            auto_camel_case=False,
+        ),
+        scalar_overrides={
+            CPR: CPRType,
+            PositiveInt: strawberry.scalar(int),
+        },
+    )
