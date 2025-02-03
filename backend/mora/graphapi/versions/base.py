@@ -1,111 +1,31 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import traceback
-from collections.abc import AsyncIterator
 from collections.abc import Iterable
 from collections.abc import Sequence
-from contextlib import suppress
 from functools import cache
 from textwrap import dedent
 from typing import Any
 
 from fastapi import APIRouter
-from fastapi.encoders import jsonable_encoder
-from graphql import ExecutionResult
 from graphql.error import GraphQLError
 from starlette.responses import PlainTextResponse
 from strawberry import Schema
-from strawberry.exceptions import StrawberryGraphQLError
 from strawberry.extensions import SchemaExtension
 from strawberry.printer import print_schema
 from strawberry.schema.config import StrawberryConfig
 from strawberry.types import ExecutionContext
 from strawberry.types.scalar import ScalarDefinition
 from strawberry.types.scalar import ScalarWrapper
-from strawberry.utils.await_maybe import AsyncIteratorOrIterator
-from structlog import get_logger
 
 from mora import config
-from mora.db import get_session
-from mora.exceptions import HTTPException
 from mora.graphapi.custom_router import CustomGraphQLRouter
 from mora.graphapi.middleware import StarletteContextExtension
+from mora.graphapi.schema import ExtendedErrorFormatExtension
+from mora.graphapi.schema import IntrospectionQueryCacheExtension
+from mora.graphapi.schema import LogContextExtension
+from mora.graphapi.schema import RollbackOnError
 from mora.log import canonical_gql_context
-
-logger = get_logger()
-
-
-def add_exception_extension(error: GraphQLError) -> StrawberryGraphQLError:
-    extensions = {}
-    if isinstance(error.original_error, HTTPException):
-        extensions["error_context"] = jsonable_encoder(error.original_error.detail)
-        # Log errors like http_exception_handler in backend/mora/app.py
-        settings = config.get_settings()
-        if not settings.is_production():
-            logger.info(
-                "http_exception",
-                stack=error.original_error.stack,
-                traceback=error.original_error.traceback,
-            )
-
-    return StrawberryGraphQLError(
-        extensions=extensions,
-        nodes=error.nodes,
-        source=error.source,
-        positions=error.positions,
-        path=error.path,
-        original_error=error.original_error,
-        message=error.message,
-    )
-
-
-class LogContextExtension(SchemaExtension):
-    async def on_operation(self) -> AsyncIterator[None]:
-        if self.execution_context.operation_name:
-            canonical_gql_context()["name"] = self.execution_context.operation_name
-        if self.execution_context.variables:
-            canonical_gql_context()["vars"] = self.execution_context.variables
-        yield
-        if self.execution_context.errors:
-            canonical_gql_context()["errors"] = self.execution_context.errors
-            canonical_gql_context()["query"] = self.execution_context.query
-
-
-class ExtendedErrorFormatExtension(SchemaExtension):
-    async def on_operation(self) -> AsyncIterator[None]:
-        yield
-        result = self.execution_context.result
-        if result and hasattr(result, "errors") and result.errors is not None:
-            result.errors = list(map(add_exception_extension, result.errors))
-
-
-class RollbackOnError(SchemaExtension):
-    async def on_operation(self) -> AsyncIterator[None]:
-        yield
-        result = self.execution_context.result
-        if result and hasattr(result, "errors") and result.errors is not None:
-            await get_session().rollback()
-
-
-class IntrospectionQueryCacheExtension(SchemaExtension):
-    cache: dict[tuple[Schema, str | None], ExecutionResult | None] = {}
-
-    def on_execute(self) -> AsyncIteratorOrIterator[None]:  # type: ignore
-        """Cache GraphQL introspection query, which otherwise takes 5-10s to execute.
-
-        Based on the "In memory cached execution" example from
-        https://strawberry.rocks/docs/guides/custom-extensions.
-        """
-        execution_context = self.execution_context
-        cache_key = (execution_context.schema, execution_context.query)
-        if (
-            execution_context.operation_name == "IntrospectionQuery"
-            and not execution_context.variables
-        ):
-            with suppress(KeyError):
-                execution_context.result = self.cache[cache_key]
-        yield
-        self.cache.setdefault(cache_key, execution_context.result)
 
 
 class CustomSchema(Schema):
