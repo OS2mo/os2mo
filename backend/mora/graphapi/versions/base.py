@@ -1,48 +1,26 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import traceback
 from collections.abc import Iterable
 from collections.abc import Sequence
 from functools import cache
 from textwrap import dedent
 
 from fastapi import APIRouter
-from graphql.error import GraphQLError
 from starlette.responses import PlainTextResponse
-from strawberry import Schema
 from strawberry.extensions import SchemaExtension
 from strawberry.printer import print_schema
 from strawberry.schema.config import StrawberryConfig
-from strawberry.types import ExecutionContext
 from strawberry.types.scalar import ScalarDefinition
 from strawberry.types.scalar import ScalarWrapper
 
-from mora import config
 from mora.graphapi.custom_router import CustomGraphQLRouter
+from mora.graphapi.custom_schema import CustomSchema
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.router import get_context
 from mora.graphapi.schema import ExtendedErrorFormatExtension
 from mora.graphapi.schema import IntrospectionQueryCacheExtension
 from mora.graphapi.schema import LogContextExtension
 from mora.graphapi.schema import RollbackOnError
-from mora.log import canonical_gql_context
-
-
-class CustomSchema(Schema):
-    def process_errors(
-        self,
-        errors: list[GraphQLError],
-        execution_context: None | ExecutionContext = None,
-    ) -> None:
-        exceptions = [
-            "".join(traceback.format_exception(error.original_error))
-            for error in errors
-        ]
-        canonical_gql_context()["exceptions"] = exceptions
-        if not config.get_settings().is_production():
-            # Pretty-print exceptions in development
-            for exception in exceptions:
-                print(exception, end="")
 
 
 class BaseGraphQLSchema:
