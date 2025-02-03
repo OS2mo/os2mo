@@ -2,21 +2,48 @@
 # SPDX-License-Identifier: MPL-2.0
 import importlib
 import re
+from collections.abc import Awaitable
+from collections.abc import Callable
 from functools import cache
 from typing import Any
 
 from fastapi import APIRouter
+from fastapi import Depends
 from fastapi import FastAPI
+from fastramqpi.ramqp import AMQPSystem
 from starlette import status
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.responses import RedirectResponse
 from structlog.stdlib import get_logger
 
+from mora import db
+from mora import depends
+from mora.auth.keycloak.models import Token
+from mora.auth.keycloak.oidc import token_getter
 from mora.graphapi.main import graphql_versions
 from mora.graphapi.main import latest_graphql_version
 
+from .versions.latest.audit import get_audit_loaders
+from .versions.latest.dataloaders import get_loaders
+
 logger = get_logger()
+
+
+async def get_context(
+    # NOTE: If you add or remove any parameters, make sure to keep the
+    # execute_graphql parameters synchronised!
+    get_token: Callable[[], Awaitable[Token]] = Depends(token_getter),
+    amqp_system: AMQPSystem = Depends(depends.get_amqp_system),
+    session: db.AsyncSession = Depends(db.get_session),
+) -> dict[str, Any]:
+    return {
+        **await get_loaders(),
+        "get_token": get_token,
+        "amqp_system": amqp_system,
+        "session": session,
+        **get_audit_loaders(session),
+    }
 
 
 @cache

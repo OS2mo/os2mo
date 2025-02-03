@@ -5,7 +5,6 @@ from collections.abc import Iterable
 from collections.abc import Sequence
 from functools import cache
 from textwrap import dedent
-from typing import Any
 
 from fastapi import APIRouter
 from graphql.error import GraphQLError
@@ -21,6 +20,7 @@ from strawberry.types.scalar import ScalarWrapper
 from mora import config
 from mora.graphapi.custom_router import CustomGraphQLRouter
 from mora.graphapi.middleware import StarletteContextExtension
+from mora.graphapi.router import get_context
 from mora.graphapi.schema import ExtendedErrorFormatExtension
 from mora.graphapi.schema import IntrospectionQueryCacheExtension
 from mora.graphapi.schema import LogContextExtension
@@ -102,20 +102,13 @@ class BaseGraphQLVersion:
     schema: type[BaseGraphQLSchema]
 
     @classmethod
-    async def get_context(cls) -> dict[str, Any]:
-        """Strawberry context getter."""
-        return {
-            "version": cls.version,
-        }
-
-    @classmethod
     def get_router(cls, is_latest: bool) -> APIRouter:
         """Get Strawberry FastAPI router serving this GraphQL API version."""
         router = CustomGraphQLRouter(
             graphql_ide="graphiql",  # TODO: pathfinder seems a lot nicer
             is_latest=is_latest,
             schema=cls.schema.get(),
-            context_getter=cls.get_context,
+            context_getter=get_context,
         )
 
         @router.get("/schema.graphql", response_class=PlainTextResponse)

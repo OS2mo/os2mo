@@ -1,18 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Awaitable
-from collections.abc import Callable
-from typing import Any
 
 import strawberry
-from fastapi import Depends
-from fastramqpi.ramqp import AMQPSystem
 from pydantic import PositiveInt
 
-from mora import db
-from mora import depends
-from mora.auth.keycloak.models import Token
-from mora.auth.keycloak.oidc import token_getter
 from mora.graphapi.versions.latest.schema import DARAddress
 from mora.graphapi.versions.latest.schema import DefaultAddress
 from mora.graphapi.versions.latest.schema import MultifieldAddress
@@ -20,8 +11,6 @@ from mora.util import CPR
 
 from ..base import BaseGraphQLSchema
 from ..base import BaseGraphQLVersion
-from .audit import get_audit_loaders
-from .dataloaders import get_loaders
 from .mutators import Mutation as LatestMutation
 from .query import Query as LatestQuery
 from .types import CPRType
@@ -60,21 +49,3 @@ class LatestGraphQLVersion(BaseGraphQLVersion):
     # having None-checks everywhere.
     version = 1000
     schema = LatestGraphQLSchema
-
-    @classmethod
-    async def get_context(
-        cls,
-        # NOTE: If you add or remove any parameters, make sure to keep the
-        # execute_graphql ajour.
-        get_token: Callable[[], Awaitable[Token]] = Depends(token_getter),
-        amqp_system: AMQPSystem = Depends(depends.get_amqp_system),
-        session: db.AsyncSession = Depends(db.get_session),
-    ) -> dict[str, Any]:
-        return {
-            **await super().get_context(),
-            **await get_loaders(),
-            "get_token": get_token,
-            "amqp_system": amqp_system,
-            "session": session,
-            **get_audit_loaders(session),
-        }
