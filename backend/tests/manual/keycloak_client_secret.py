@@ -3,7 +3,7 @@
 import requests
 
 REALM = "mo"
-BASEURL = "http://localhost:8081/auth"
+BASEURL = "http://localhost:5000/auth"
 
 # Get token from Keycloak
 
@@ -21,6 +21,14 @@ token = r.json()["access_token"]
 # Call MOs backend with the Keycloak token
 
 headers = {"Authorization": f"bearer {token}"}
-
-r = requests.get("http://localhost:5000/service/o/", headers=headers)
-print(r.status_code, r.url)
+q = """
+query MoVersion {
+  version {
+    mo_version
+  }
+}
+"""
+r = requests.post(
+    "http://localhost:5000/graphql/v22", headers=headers, json={"query": q}
+)
+print(r.status_code, r.url, r.json())
