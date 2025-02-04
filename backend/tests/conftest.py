@@ -205,13 +205,16 @@ def admin_token_getter() -> Callable[[], Awaitable[Token]]:
     return get_fake_admin_token
 
 
+SetAuth = Callable[[str | None, UUID | str | None], None]
+
+
 @pytest.fixture
 def set_auth(
     fastapi_admin_test_app: FastAPI,
-) -> Callable[[str | None, str | None], None]:
+) -> SetAuth:
     """Set authentication token used by GraphAPIPost."""
 
-    def _set_auth(role: str | None = None, user_uuid: str | None = None) -> None:
+    def _set_auth(role: str | None = None, user_uuid: UUID | str | None = None) -> None:
         token_data = {
             "acr": "1",
             "allowed-origins": ["http://localhost:5001"],
@@ -230,7 +233,7 @@ def set_auth(
             "session_state": "d94f8dc3-d930-49b3-a9dd-9cdc1893b86a",
             "sub": "c420894f-36ba-4cd5-b4f8-1b24bd8c53db",
             "typ": "Bearer",
-            "uuid": user_uuid,
+            "uuid": str(user_uuid) if user_uuid is not None else None,
         }
         if role is not None:
             if role == ADMIN:
