@@ -85,7 +85,7 @@ similar to this:
 ``` {.json}
 {
   "realm": "mo",
-  "auth-server-url": "http://localhost:8081/auth/",
+  "auth-server-url": "http://localhost:5000/auth/",
   "ssl-required": "external",
   "resource": "mo",
   "public-client": true,
@@ -134,7 +134,7 @@ example is Bruce Lee having the credentials
 
 ``` {.bash}
 $ curl -s -X POST -d 'grant_type=password&client_id=mo&username=bruce&password=bruce' \
-  "http://localhost:8081/auth/realms/mo/protocol/openid-connect/token"
+  "http://localhost:5000/auth/realms/mo/protocol/openid-connect/token"
 {
   "access_token":"eyJhbGciOi...",
   "expires_in": 300,
@@ -166,7 +166,7 @@ client is `603f1c82-d012-4d04-9382-dbe659c533fb`.
 ``` {.bash}
 $ curl -s -X POST \
   -d 'grant_type=client_credentials&client_id=dipex&client_secret=603f1c82-d012-4d04-9382-dbe659c533fb' \
-  "http://localhost:8081/auth/realms/mo/protocol/openid-connect/token"
+  "http://localhost:5000/auth/realms/mo/protocol/openid-connect/token"
 {
   "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiA...",
   "expires_in": 300,
@@ -219,7 +219,7 @@ implemented. An example token (no roles and group info) is shown here:
   "family_name": "Lee",
   "given_name": "Bruce",
   "iat": 1621779389,
-  "iss": "http://localhost:8081/auth/realms/mo",
+  "iss": "http://localhost:5000/auth/realms/mo",
   "jti": "25dbb58d-b3cb-4880-8b51-8b92ada4528a",
   "name": "Bruce Lee",
   "preferred_username": "bruce",
@@ -234,7 +234,7 @@ implemented. An example token (no roles and group info) is shown here:
 
 The Keycloak admin interface can be accessed on the URL path `/auth`,
 e.g. for the development environment it can be accessed at
-`http://localhost:8081/auth`. In the development environment, the
+`http://localhost:5000/auth`. In the development environment, the
 credentials `username/password = admin/admin` can be used.
 
 ## Keycloak Endpoints
@@ -243,7 +243,7 @@ Keycloak exposes a number of relevant OIDC endpoints. A list of these
 can found on the URL path
 `/auth/realms/mo/.well-known/openid-configuration`, e.g. for the
 development environment it can be accessed at
-`http://localhost:8081/auth/realms/mo/.well-known/openid-configuration`.
+`http://localhost:5000/auth/realms/mo/.well-known/openid-configuration`.
 
 ## Authorization
 

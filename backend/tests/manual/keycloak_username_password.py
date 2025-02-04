@@ -3,7 +3,7 @@
 import requests
 
 REALM = "mo"
-BASEURL = "http://localhost:8081/auth"
+BASEURL = "http://localhost:5000/auth"
 
 # Get token
 
