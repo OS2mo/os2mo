@@ -21,6 +21,14 @@ token = r.json()["access_token"]
 headers = {"Authorization": f"bearer {token}"}
 
 # Call MO
-
-r = requests.get("http://localhost:5000/service/o/", headers=headers)
-print(r.status_code, r.url)
+q = """
+query MoVersion {
+  version {
+    mo_version
+  }
+}
+"""
+r = requests.post(
+    "http://localhost:5000/graphql/v22", headers=headers, json={"query": q}
+)
+print(r.status_code, r.url, r.json())
