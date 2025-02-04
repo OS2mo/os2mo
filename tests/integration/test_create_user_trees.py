@@ -247,13 +247,12 @@ async def test_create_user_tree_past_engagement(
         await trigger_mo_person()
 
     log_events = [x["event"] for x in cap_logs]
-    assert "create_user_trees engagement is not current" in log_events
+    assert "create_user_trees engagement is not current or future" in log_events
 
     account = await fetch_mo_person_ldap_account()
     assert account is None
 
 
-@pytest.mark.xfail(reason="Current behavior is incorrect")
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
