@@ -253,6 +253,47 @@ async def test_create_user_tree_past_engagement(
     assert account is None
 
 
+@pytest.mark.xfail(reason="Current behavior is incorrect")
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "CONVERSION_MAPPING": CONVERSION_MAPPING,
+        "CREATE_USER_TREES": json.dumps([str(UUID_MAP["root"])]),
+    }
+)
+async def test_create_user_tree_future_engagement(
+    trigger_mo_person: Callable[[], Awaitable[None]],
+    fetch_mo_person_ldap_account: Callable[[], Awaitable[dict[str, Any] | None]],
+    create_engagement: Callable[..., Awaitable[UUID]],
+    create_org_unit: Callable[[OrgUnitUUID, OrgUnitUUID | None], Awaitable[None]],
+    mo_person: EmployeeUUID,
+) -> None:
+    settings = Settings()
+    assert settings.create_user_trees == [UUID_MAP["root"]]
+
+    # Create engagement our engagement bound to the org_unit_target
+    await create_org_unit(UUID_MAP["root"], None)
+    await create_engagement(mo_person, UUID_MAP["root"])
+
+    await create_engagement(
+        mo_person,
+        UUID_MAP["root"],
+        validity={"from": "3000-01-01T00:00:00", "to": None},
+    )
+
+    with capture_logs() as cap_logs:
+        await trigger_mo_person()
+
+    message = "Primary engagement OU outside create_user_trees, skipping"
+    log_events = [x["event"] for x in cap_logs]
+    assert message not in log_events
+
+    account = await fetch_mo_person_ldap_account()
+    assert account is not None
+
+
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
