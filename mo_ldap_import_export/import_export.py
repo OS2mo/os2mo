@@ -244,10 +244,10 @@ class SyncTool:
             return False
 
         fetched_engagement = await self.dataloader.moapi.load_mo_engagement(
-            primary_engagement_uuid
+            primary_engagement_uuid, end=None
         )
         if fetched_engagement is None:
-            logger.info("create_user_trees engagement is not current")
+            logger.info("create_user_trees engagement is not current or future")
             return False
 
         org_unit_uuid = fetched_engagement.org_unit

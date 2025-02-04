@@ -258,7 +258,7 @@ async def load_primary_engagement(
         return None
 
     fetched_engagement = await moapi.load_mo_engagement(
-        primary_engagement_uuid, current_objects_only=False
+        primary_engagement_uuid, start=None, end=None
     )
     if fetched_engagement is None:  # pragma: no cover
         logger.error("Unable to load mo engagement", uuid=primary_engagement_uuid)
