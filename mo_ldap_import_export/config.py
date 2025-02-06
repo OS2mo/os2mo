@@ -320,6 +320,9 @@ class Settings(BaseSettings):
     conversion_mapping: ConversionMapping = Field(
         description="Conversion mapping between LDAP and OS2mo",
     )
+    use_uuid_mapping: bool = Field(
+        False, description="Use UUID mapping instead of the complex old mapping logic"
+    )
 
     ldap_amqp: LDAPAMQPConnectionSettings = Field(
         default_factory=LDAPAMQPConnectionSettings,  # type: ignore

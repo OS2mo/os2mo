@@ -318,28 +318,57 @@ class SyncTool:
 
         return ldap_desired_state
 
-    async def format_converted_objects(
+    async def fetch_uuid_object(
+        self, uuid: UUID, mo_class: type[MOBase]
+    ) -> MOBase | None:
+        # This type is not handled by this function
+        assert not issubclass(mo_class, Termination)
+
+        if issubclass(mo_class, Address):
+            return await self.dataloader.moapi.load_mo_address(
+                uuid, current_objects_only=False
+            )
+        if issubclass(mo_class, Engagement):
+            return await self.dataloader.moapi.load_mo_engagement(
+                uuid, start=None, end=None
+            )
+        if issubclass(mo_class, ITUser):
+            return await self.dataloader.moapi.load_mo_it_user(
+                uuid, current_objects_only=False
+            )
+        if issubclass(mo_class, Employee):
+            return await self.dataloader.moapi.load_mo_employee(
+                uuid, current_objects_only=False
+            )
+        raise AssertionError(f"Unknown mo_class: {mo_class}")
+
+    async def construct_uuid_mapping(
         self,
-        converted_objects: Sequence[MOBase | Termination],
+        converted_objects: Sequence[MOBase],
+    ) -> list[tuple[MOBase, MOBase | None]]:
+        mo_class = one({type(o) for o in converted_objects})
+
+        return [
+            (
+                converted_object,
+                await self.fetch_uuid_object(converted_object.uuid, mo_class),
+            )
+            for converted_object in converted_objects
+        ]
+
+    async def construct_old_mapping(
+        self,
+        converted_objects: Sequence[MOBase],
         json_key: str,
-    ) -> list[tuple[MOBase | Termination, Verb]]:
-        """
-        for Address and Engagement objects:
-            Loops through the objects, and sets the uuid if an existing matching object
-            is found
-        for ITUser objects:
-            Loops through the objects and removes it if an existing matchin object is
-            found
-        for all other objects:
-            returns the input list of converted_objects
-        """
-        # We can't infer the type from json_key because of Terminate objects
+    ) -> list[tuple[MOBase, MOBase | None]]:
         mo_class = one({type(o) for o in converted_objects})
         objects_in_mo: Sequence[MOBase]
 
+        # These types are not handled by this function
+        assert not issubclass(mo_class, Termination)
+        assert not issubclass(mo_class, Employee)
+
         # Load addresses already in MO
-        if issubclass(mo_class, Termination):
-            return [(obj, Verb.TERMINATE) for obj in converted_objects]
         if issubclass(mo_class, Address):
             converted_objects = cast(Sequence[Address], converted_objects)
 
@@ -434,20 +463,6 @@ class SyncTool:
             )
 
             value_key = "user_key"
-        elif issubclass(mo_class, Employee):
-            converted_objects = cast(Sequence[Employee], converted_objects)
-
-            # GraphQL employee_create actually updates if the employee already exists,
-            # using validity from the CPR-number like with creates. We need to use this
-            # undocumented feature of the GraphQL API to avoid calculating the validity
-            # manually based on the CPR-number, since we are not passed an explicit
-            # validity through the legacy ramodels employee object.
-            # TODO: don't short-circuit when we receive an employee object with proper
-            # validity.
-            return [
-                (converted_object, Verb.CREATE)
-                for converted_object in converted_objects
-            ]
         else:  # pragma: no cover
             raise AssertionError(f"Unknown mo_class: {mo_class}")
 
@@ -511,6 +526,47 @@ class SyncTool:
         mapping = [
             (value_converted[key], value_in_mo.get(key)) for key in value_converted
         ]
+        return mapping
+
+    async def format_converted_objects(
+        self,
+        converted_objects: Sequence[MOBase | Termination],
+        json_key: str,
+    ) -> list[tuple[MOBase | Termination, Verb]]:
+        """
+        for Address and Engagement objects:
+            Loops through the objects, and sets the uuid if an existing matching object
+            is found
+        for ITUser objects:
+            Loops through the objects and removes it if an existing matchin object is
+            found
+        for all other objects:
+            returns the input list of converted_objects
+        """
+        # We can't infer the type from json_key because of Terminate objects
+        mo_class = one({type(o) for o in converted_objects})
+
+        if issubclass(mo_class, Termination):
+            return [(obj, Verb.TERMINATE) for obj in converted_objects]
+        elif issubclass(mo_class, Employee):
+            # GraphQL employee_create actually updates if the employee already exists,
+            # using validity from the CPR-number like with creates. We need to use this
+            # undocumented feature of the GraphQL API to avoid calculating the validity
+            # manually based on the CPR-number, since we are not passed an explicit
+            # validity through the legacy ramodels employee object.
+            # TODO: don't short-circuit when we receive an employee object with proper
+            # validity.
+            return [
+                (converted_object, Verb.CREATE)
+                for converted_object in converted_objects
+            ]
+
+        converted_objects = cast(Sequence[MOBase], converted_objects)
+
+        if self.settings.use_uuid_mapping:
+            mapping = await self.construct_uuid_mapping(converted_objects)
+        else:
+            mapping = await self.construct_old_mapping(converted_objects, json_key)
 
         # Partition the mapping into creates and updates
         creates, updates = partition(
@@ -521,7 +577,7 @@ class SyncTool:
         updates = cast(Iterator[tuple[MOBase, MOBase]], updates)
 
         # Convert creates to operations
-        operations = [
+        operations: list[tuple[MOBase | Termination, Verb]] = [
             (converted_object, Verb.CREATE) for converted_object, _ in creates
         ]
 
