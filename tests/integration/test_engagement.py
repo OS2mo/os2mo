@@ -33,6 +33,7 @@ from mo_ldap_import_export.utils import mo_today
     {
         "LISTEN_TO_CHANGES_IN_MO": "False",
         "LISTEN_TO_CHANGES_IN_LDAP": "True",
+        "USE_UUID_MAPPING": "True",
         "CONVERSION_MAPPING": json.dumps(
             {
                 "ldap_to_mo": {
@@ -50,7 +51,6 @@ from mo_ldap_import_export.utils import mo_today
                             "title",
                             "departmentNumber",
                         ],
-                        "_mapper_": "{{ obj.org_unit }}",
                         # carLicense is arbitrarily chosen as an enabled/disabled marker
                         "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else '' }}",
                         "uuid": "{{ get_engagement_uuid({'org_unit': {'uuids': [ldap.departmentNumber]}, 'employee': {'uuids': [employee_uuid]}}) }}",
@@ -303,7 +303,6 @@ async def test_to_ldap(
                         "objectClass": "ramodels.mo.details.engagement.Engagement",
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["title"],
-                        "_mapper_": "{{ obj.org_unit }}",
                         "uuid": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).uuid }}",
                         "user_key": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).user_key }}",
                         "org_unit": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).org_unit }}",
@@ -402,7 +401,6 @@ async def test_to_mo_skip_if_none(
                         "objectClass": "ramodels.mo.details.engagement.Engagement",
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["title"],
-                        "_mapper_": "{{ obj.org_unit }}",
                         "uuid": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).uuid }}",
                         "user_key": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).user_key }}",
                         "org_unit": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).org_unit }}",
@@ -491,7 +489,6 @@ async def test_to_mo_future_engagement_override_dangerous_behavior(
                         "objectClass": "ramodels.mo.details.engagement.Engagement",
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["title"],
-                        "_mapper_": "{{ obj.org_unit }}",
                         "uuid": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).uuid }}",
                         "user_key": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).user_key }}",
                         "org_unit": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).org_unit }}",

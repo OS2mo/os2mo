@@ -30,6 +30,7 @@ from mo_ldap_import_export.utils import mo_today
     {
         "LISTEN_TO_CHANGES_IN_MO": "False",
         "LISTEN_TO_CHANGES_IN_LDAP": "True",
+        "USE_UUID_MAPPING": "True",
         "CONVERSION_MAPPING": json.dumps(
             {
                 "ldap_to_mo": {
@@ -43,7 +44,6 @@ from mo_ldap_import_export.utils import mo_today
                         "objectClass": "ramodels.mo.details.address.Address",
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["carLicense", "mail"],
-                        "_mapper_": "{{ obj.address_type }}",
                         # carLicense is arbitrarily chosen as an enabled/disabled marker
                         "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else '' }}",
                         "uuid": "{{ get_address_uuid({'address_type': {'user_key': 'EmailEmployee'}, 'employee': {'uuids': [employee_uuid]}}) }}",
@@ -313,7 +313,6 @@ async def test_to_ldap(
                         "objectClass": "ramodels.mo.details.address.Address",
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["carLicense", "mail"],
-                        "_mapper_": "{{ obj.address_type }}",
                         # carLicense is arbitrarily chosen as an enabled/disabled marker
                         "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else '' }}",
                         "uuid": "{{ get_address_uuid({'address_type': {'user_key': 'EmailEmployee'}, 'employee': {'uuids': [employee_uuid]}}) }}",
