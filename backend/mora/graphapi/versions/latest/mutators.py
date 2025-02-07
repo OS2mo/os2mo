@@ -27,6 +27,7 @@ from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.graphapi.gmodels.mo.details import OwnerRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 
+from ...custom_schema import get_version
 from ...fields import Metadata
 from ...version import Version
 from .address import create_address
@@ -1259,9 +1260,12 @@ class Mutation:
         ],
     )
     async def org_unit_update(
-        self, input: OrganisationUnitUpdateInput
+        self, info: Info, input: OrganisationUnitUpdateInput
     ) -> Response[OrganisationUnit]:
-        return uuid2response(await update_org_unit(input), OrganisationUnitRead)
+        return uuid2response(
+            await update_org_unit(version=get_version(info.schema), input=input),
+            OrganisationUnitRead,
+        )
 
     @strawberry.mutation(
         description="Terminates an organization unit.",
