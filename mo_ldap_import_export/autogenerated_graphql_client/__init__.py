@@ -72,10 +72,6 @@ from .exceptions import GraphQLClientGraphQLError
 from .exceptions import GraphQLClientGraphQLMultiError
 from .exceptions import GraphQLClientHttpError
 from .exceptions import GraphQlClientInvalidResponseError
-from .fragments import AddressValidityFields
-from .fragments import AddressValidityFieldsAddressType
-from .fragments import AddressValidityFieldsPerson
-from .fragments import AddressValidityFieldsValidity
 from .input_types import AddressCreateInput
 from .input_types import AddressFilter
 from .input_types import AddressRegistrationFilter
@@ -208,6 +204,9 @@ from .read_addresses import ReadAddresses
 from .read_addresses import ReadAddressesAddresses
 from .read_addresses import ReadAddressesAddressesObjects
 from .read_addresses import ReadAddressesAddressesObjectsValidities
+from .read_addresses import ReadAddressesAddressesObjectsValiditiesAddressType
+from .read_addresses import ReadAddressesAddressesObjectsValiditiesPerson
+from .read_addresses import ReadAddressesAddressesObjectsValiditiesValidity
 from .read_all_ituser_user_keys_by_itsystem_uuid import (
     ReadAllItuserUserKeysByItsystemUuid,
 )
@@ -241,10 +240,6 @@ from .read_class_uuid_by_facet_and_class_user_key import (
 from .read_class_uuid_by_facet_and_class_user_key import (
     ReadClassUuidByFacetAndClassUserKeyClassesObjects,
 )
-from .read_employee_addresses import ReadEmployeeAddresses
-from .read_employee_addresses import ReadEmployeeAddressesAddresses
-from .read_employee_addresses import ReadEmployeeAddressesAddressesObjects
-from .read_employee_addresses import ReadEmployeeAddressesAddressesObjectsValidities
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumber
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumberEmployees
 from .read_employee_uuid_by_cpr_number import (
@@ -337,12 +332,6 @@ from .read_filtered_itusers import ReadFilteredItusersItusersObjects
 from .read_filtered_itusers import ReadFilteredItusersItusersObjectsValidities
 from .read_filtered_itusers import ReadFilteredItusersItusersObjectsValiditiesItsystem
 from .read_filtered_itusers import ReadFilteredItusersItusersObjectsValiditiesValidity
-from .read_is_primary_engagements import ReadIsPrimaryEngagements
-from .read_is_primary_engagements import ReadIsPrimaryEngagementsEngagements
-from .read_is_primary_engagements import ReadIsPrimaryEngagementsEngagementsObjects
-from .read_is_primary_engagements import (
-    ReadIsPrimaryEngagementsEngagementsObjectsCurrent,
-)
 from .read_itsystem_uuid import ReadItsystemUuid
 from .read_itsystem_uuid import ReadItsystemUuidItsystems
 from .read_itsystem_uuid import ReadItsystemUuidItsystemsObjects
@@ -367,10 +356,6 @@ from .read_itusers import ReadItusersItusers
 from .read_itusers import ReadItusersItusersObjects
 from .read_itusers import ReadItusersItusersObjectsValidities
 from .read_itusers import ReadItusersItusersObjectsValiditiesValidity
-from .read_org_unit_addresses import ReadOrgUnitAddresses
-from .read_org_unit_addresses import ReadOrgUnitAddressesAddresses
-from .read_org_unit_addresses import ReadOrgUnitAddressesAddressesObjects
-from .read_org_unit_addresses import ReadOrgUnitAddressesAddressesObjectsValidities
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNames
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnits
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnitsObjects
@@ -409,10 +394,6 @@ __all__ = [
     "AddressUpdate",
     "AddressUpdateAddressUpdate",
     "AddressUpdateInput",
-    "AddressValidityFields",
-    "AddressValidityFieldsAddressType",
-    "AddressValidityFieldsPerson",
-    "AddressValidityFieldsValidity",
     "AssociationCreateInput",
     "AssociationFilter",
     "AssociationRegistrationFilter",
@@ -544,6 +525,9 @@ __all__ = [
     "ReadAddressesAddresses",
     "ReadAddressesAddressesObjects",
     "ReadAddressesAddressesObjectsValidities",
+    "ReadAddressesAddressesObjectsValiditiesAddressType",
+    "ReadAddressesAddressesObjectsValiditiesPerson",
+    "ReadAddressesAddressesObjectsValiditiesValidity",
     "ReadAllItuserUserKeysByItsystemUuid",
     "ReadAllItuserUserKeysByItsystemUuidItusers",
     "ReadAllItuserUserKeysByItsystemUuidItusersObjects",
@@ -563,10 +547,6 @@ __all__ = [
     "ReadClassUuidByFacetAndClassUserKeyClassesObjects",
     "ReadClassUuidClasses",
     "ReadClassUuidClassesObjects",
-    "ReadEmployeeAddresses",
-    "ReadEmployeeAddressesAddresses",
-    "ReadEmployeeAddressesAddressesObjects",
-    "ReadEmployeeAddressesAddressesObjectsValidities",
     "ReadEmployeeUuidByCprNumber",
     "ReadEmployeeUuidByCprNumberEmployees",
     "ReadEmployeeUuidByCprNumberEmployeesObjects",
@@ -625,10 +605,6 @@ __all__ = [
     "ReadFilteredItusersItusersObjectsValidities",
     "ReadFilteredItusersItusersObjectsValiditiesItsystem",
     "ReadFilteredItusersItusersObjectsValiditiesValidity",
-    "ReadIsPrimaryEngagements",
-    "ReadIsPrimaryEngagementsEngagements",
-    "ReadIsPrimaryEngagementsEngagementsObjects",
-    "ReadIsPrimaryEngagementsEngagementsObjectsCurrent",
     "ReadItsystemUuid",
     "ReadItsystemUuidItsystems",
     "ReadItsystemUuidItsystemsObjects",
@@ -647,10 +623,6 @@ __all__ = [
     "ReadItusersItusersObjects",
     "ReadItusersItusersObjectsValidities",
     "ReadItusersItusersObjectsValiditiesValidity",
-    "ReadOrgUnitAddresses",
-    "ReadOrgUnitAddressesAddresses",
-    "ReadOrgUnitAddressesAddressesObjects",
-    "ReadOrgUnitAddressesAddressesObjectsValidities",
     "ReadOrgUnitAncestorNames",
     "ReadOrgUnitAncestorNamesOrgUnits",
     "ReadOrgUnitAncestorNamesOrgUnitsObjects",

@@ -315,8 +315,15 @@ class Settings(BaseSettings):
         description="Conversion mapping between LDAP and OS2mo",
     )
     use_uuid_mapping: bool = Field(
-        False, description="Use UUID mapping instead of the complex old mapping logic"
+        True, description="Use UUID mapping instead of the complex old mapping logic"
     )
+
+    @validator("use_uuid_mapping")
+    def prepare_use_uuid_mapping_removal(cls, v: bool) -> bool:
+        """Prepare to remove use_uuid_mapping by fixing its value."""
+        if v is False:  # pragma: no cover
+            raise ValueError("use_uuid_mapping must be true (old behavior removed)")
+        return v
 
     ldap_amqp: LDAPAMQPConnectionSettings = Field(
         default_factory=LDAPAMQPConnectionSettings,  # type: ignore

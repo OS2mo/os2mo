@@ -17,8 +17,6 @@ import pytest
 from fastramqpi.context import Context
 from fastramqpi.ramqp.utils import RequeueMessage
 from freezegun import freeze_time
-from more_itertools import first
-from more_itertools import last
 from more_itertools import one
 from structlog.testing import capture_logs
 
@@ -26,7 +24,6 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.environments import construct_environment
 from mo_ldap_import_export.exceptions import DNNotFound
-from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.main import handle_org_unit
 from mo_ldap_import_export.moapi import Verb
@@ -34,7 +31,6 @@ from mo_ldap_import_export.moapi import get_primary_engagement
 from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import Engagement
-from mo_ldap_import_export.models import ITUser
 from mo_ldap_import_export.models import JobTitleFromADToMO
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.types import EmployeeUUID
@@ -109,158 +105,69 @@ async def test_listen_to_changes_in_employees_no_dn(
 
 async def test_format_converted_engagement_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-):
-    converter.mapping = {"ldap_to_mo": {"Engagement": {}}}
-
+) -> None:
     converter.get_mo_attributes.return_value = ["user_key", "job_function"]
-    converter.find_mo_object_class.return_value = "Engagement"
-    converter.import_mo_object_class.return_value = Engagement
 
     employee_uuid = uuid4()
 
-    engagement1 = Engagement(
+    mo_engagement = Engagement(
         org_unit=uuid4(),
         person=employee_uuid,
         job_function=uuid4(),
         engagement_type=uuid4(),
-        user_key="123",
+        user_key="mo",
         validity={"start": "2021-01-01T00:00:00"},
     )
 
-    engagement2 = Engagement(
+    ldap_engagement = Engagement(
         org_unit=uuid4(),
         person=employee_uuid,
         job_function=uuid4(),
         engagement_type=uuid4(),
-        user_key="foo",
+        user_key="ldap",
         validity={"start": "2021-01-01T00:00:00"},
+        # Templated to match MO engagement
+        uuid=mo_engagement.uuid,
     )
 
-    engagement_in_mo = Engagement(
-        org_unit=uuid4(),
-        person=employee_uuid,
-        job_function=uuid4(),
-        engagement_type=uuid4(),
-        user_key="123",
-        validity={"start": "2021-01-01T00:00:00"},
-    )
+    dataloader.moapi.load_mo_engagement.return_value = mo_engagement
 
-    dataloader.moapi.load_mo_employee_engagements.return_value = [
-        engagement_in_mo,
-    ]
-
-    json_key = "Engagement"
-
-    converted_objects = [engagement1, engagement2]
-
-    sync_tool.settings.use_uuid_mapping = False  # type: ignore
     operations = await sync_tool.format_converted_objects(
-        converted_objects,
-        json_key,
+        [ldap_engagement], json_key="Engagement"
     )
-    assert len(operations) == 2
-    (e1, _), (e2, _) = operations
-    assert isinstance(e1, Engagement)
-    assert isinstance(e2, Engagement)
-    assert e2.uuid == engagement_in_mo.uuid
-    assert e2.user_key == engagement1.user_key
-    assert e1 == engagement2
+    desired_engagement, verb = one(operations)
+    assert verb == Verb.EDIT
+    assert isinstance(desired_engagement, Engagement)
+    assert desired_engagement.user_key == ldap_engagement.user_key
 
 
-async def test_format_converted_engagement_duplicate(
+async def test_format_converted_engagement_objects_unmatched(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
-    converter.mapping = {"ldap_to_mo": {"Engagement": {}}}
-
     converter.get_mo_attributes.return_value = ["user_key", "job_function"]
-    converter.find_mo_object_class.return_value = "Engagement"
-    converter.import_mo_object_class.return_value = Engagement
 
     employee_uuid = uuid4()
 
-    engagement = Engagement(
+    ldap_engagement = Engagement(
         org_unit=uuid4(),
         person=employee_uuid,
         job_function=uuid4(),
         engagement_type=uuid4(),
-        user_key="duplicate_key",
+        user_key="ldap",
         validity={"start": "2021-01-01T00:00:00"},
+        # Unmatched
+        uuid=uuid4(),
     )
 
-    engagement1_in_mo = Engagement(
-        org_unit=uuid4(),
-        person=employee_uuid,
-        job_function=uuid4(),
-        engagement_type=uuid4(),
-        user_key="duplicate_key",
-        validity={"start": "2021-01-01T00:00:00"},
+    dataloader.moapi.load_mo_engagement.return_value = None
+
+    operations = await sync_tool.format_converted_objects(
+        [ldap_engagement], json_key="Engagement"
     )
-    engagement2_in_mo = Engagement(
-        org_unit=uuid4(),
-        person=employee_uuid,
-        job_function=uuid4(),
-        engagement_type=uuid4(),
-        user_key="duplicate_key",
-        validity={"start": "2021-01-01T00:00:00"},
-    )
-
-    dataloader.moapi.load_mo_employee_engagements.return_value = [
-        engagement1_in_mo,
-        engagement2_in_mo,
-    ]
-
-    json_key = "Engagement"
-
-    converted_objects = [engagement]
-    with pytest.raises(RequeueMessage) as exc_info:
-        sync_tool.settings.use_uuid_mapping = False  # type: ignore
-        await sync_tool.format_converted_objects(converted_objects, json_key)
-    assert "Bad mapping: Multiple MO objects" in str(exc_info.value)
-
-
-async def test_format_converted_multiple_primary_engagements(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-):
-    converter.import_mo_object_class.return_value = Engagement
-
-    employee_uuid = uuid4()
-
-    engagement1 = Engagement(
-        org_unit=uuid4(),
-        person=employee_uuid,
-        job_function=uuid4(),
-        engagement_type=uuid4(),
-        user_key="123",
-        validity={"start": "2020-01-01T00:00:00"},
-    )
-
-    engagement2 = Engagement(
-        org_unit=uuid4(),
-        person=employee_uuid,
-        job_function=uuid4(),
-        engagement_type=uuid4(),
-        user_key="123",
-        validity={"start": "2020-01-01T00:00:00"},
-    )
-
-    dataloader.moapi.load_mo_employee_engagements.return_value = [
-        engagement1,
-        engagement2,
-    ]
-
-    dataloader.moapi.is_primaries.return_value = [True, True]
-
-    converted_objects = [engagement1, engagement2]
-
-    with pytest.raises(RequeueMessage) as exc_info:
-        sync_tool.settings.use_uuid_mapping = False  # type: ignore
-        await sync_tool.format_converted_objects(
-            converted_objects,
-            json_key="Engagement",
-        )
-    assert "Waiting for multiple primary engagements to be resolved" in str(
-        exc_info.value
-    )
+    desired_engagement, verb = one(operations)
+    assert verb == Verb.CREATE
+    assert isinstance(desired_engagement, Engagement)
+    assert desired_engagement.user_key == ldap_engagement.user_key
 
 
 async def test_format_converted_employee_objects(
@@ -279,327 +186,6 @@ async def test_format_converted_employee_objects(
 
     assert formatted_objects[0][0] == employee1
     assert formatted_objects[1][0] == employee2
-
-
-async def test_format_converted_employee_address_objects(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-):
-    converter.mapping = {"ldap_to_mo": {"Address": {}}}
-
-    converter.get_mo_attributes.return_value = ["value", "address_type"]
-    converter.find_mo_object_class.return_value = "Address"
-    converter.import_mo_object_class.return_value = Address
-
-    person = uuid4()
-    address_type = uuid4()
-    address1 = Address(
-        value="foo",
-        address_type=address_type,
-        validity={"start": "2021-01-01T00:00:00"},
-        person=person,
-    )
-    address2 = Address(
-        value="bar",
-        address_type=address_type,
-        validity={"start": "2021-01-01T00:00:00"},
-        person=person,
-    )
-    address1_in_mo = Address(
-        value="foo",
-        address_type=address_type,
-        validity={"start": "2021-01-01T00:00:00"},
-        person=person,
-    )
-
-    converted_objects = [address1, address2]
-
-    dataloader.moapi.load_mo_employee_addresses.return_value = [address1_in_mo]
-
-    sync_tool.settings.use_uuid_mapping = False  # type: ignore
-    formatted_objects = await sync_tool.format_converted_objects(
-        converted_objects,
-        "Address",
-    )
-
-    assert formatted_objects[1][0].uuid == address1_in_mo.uuid
-    assert formatted_objects[1][0].value == "foo"  # type: ignore
-
-    # Simulate that a matching employee for this address does not exist
-    dataloader.moapi.load_mo_employee_addresses.side_effect = (
-        NoObjectsReturnedException("f")
-    )
-    with pytest.raises(NoObjectsReturnedException):
-        await sync_tool.format_converted_objects(converted_objects, "Address")
-
-
-async def test_format_converted_org_unit_address_objects(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-):
-    converter.mapping = {"ldap_to_mo": {"Address": {}}}
-
-    converter.get_mo_attributes.return_value = ["value", "address_type"]
-    converter.find_mo_object_class.return_value = "Address"
-    converter.import_mo_object_class.return_value = Address
-
-    org_unit = uuid4()
-    address_type = uuid4()
-    address1 = Address(
-        value="foo",
-        address_type=address_type,
-        validity={"start": "2021-01-01T00:00:00"},
-        org_unit=org_unit,
-    )
-    address2 = Address(
-        value="bar",
-        address_type=address_type,
-        validity={"start": "2021-01-01T00:00:00"},
-        org_unit=org_unit,
-    )
-    address1_in_mo = Address(
-        value="foo",
-        address_type=address_type,
-        validity={"start": "2021-01-01T00:00:00"},
-        org_unit=org_unit,
-    )
-
-    converted_objects = [address1, address2]
-
-    dataloader.moapi.load_mo_org_unit_addresses.return_value = [address1_in_mo]
-
-    sync_tool.settings.use_uuid_mapping = False  # type: ignore
-    formatted_objects = await sync_tool.format_converted_objects(
-        converted_objects,
-        "Address",
-    )
-
-    assert formatted_objects[1][0].uuid == address1_in_mo.uuid
-    assert formatted_objects[1][0].value == "foo"  # type: ignore
-
-    # Simulate that a matching org unit for this address does not exist
-    dataloader.moapi.load_mo_org_unit_addresses.side_effect = (
-        NoObjectsReturnedException("f")
-    )
-    with pytest.raises(NoObjectsReturnedException):
-        await sync_tool.format_converted_objects(converted_objects, "Address")
-
-
-async def test_format_converted_org_unit_address_objects_identical_to_mo(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-):
-    converter.mapping = {"ldap_to_mo": {"Address": {}}}
-
-    converter.get_mo_attributes.return_value = ["value", "address_type"]
-    converter.find_mo_object_class.return_value = "Address"
-    converter.import_mo_object_class.return_value = Address
-
-    org_unit = uuid4()
-    address_type = uuid4()
-    address1 = Address(
-        value="foo",
-        address_type=address_type,
-        validity={"start": "2021-01-01T00:00:00"},
-        org_unit=org_unit,
-    )
-    address2 = Address(
-        value="bar",
-        address_type=address_type,
-        validity={"start": "2021-01-01T00:00:00"},
-        org_unit=org_unit,
-    )
-
-    # This one is identical to the one which we are trying to upload
-    address1_in_mo = Address(
-        value="foo",
-        address_type=address_type,
-        validity={"start": "2021-01-01T00:00:00"},
-        org_unit=org_unit,
-    )
-
-    converted_objects = [address1, address2]
-
-    dataloader.moapi.load_mo_org_unit_addresses.return_value = [address1_in_mo]
-
-    sync_tool.settings.use_uuid_mapping = False  # type: ignore
-    operations = await sync_tool.format_converted_objects(
-        converted_objects,
-        "Address",
-    )
-    assert len(operations) == 2
-    formatted_objects = [obj for obj, _ in operations]
-
-    assert last(formatted_objects).value == "foo"  # type: ignore
-    assert first(formatted_objects).value == "bar"  # type: ignore
-
-
-async def test_format_converted_address_objects_without_person_or_org_unit(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-):
-    converter.get_mo_attributes.return_value = ["value", "address_type"]
-    converter.find_mo_object_class.return_value = "Address"
-    converter.import_mo_object_class.return_value = Address
-
-    # These addresses have neither an org unit uuid or person uuid. we cannot convert
-    # them
-    address_type = uuid4()
-    address1 = Address(
-        value="foo",
-        address_type=address_type,
-        validity={"start": "2021-01-01T00:00:00"},
-    )
-    address2 = Address(
-        value="bar",
-        address_type=address_type,
-        validity={"start": "2021-01-01T00:00:00"},
-    )
-
-    converted_objects = [address1, address2]
-
-    sync_tool.settings.use_uuid_mapping = False  # type: ignore
-    formatted_objects = await sync_tool.format_converted_objects(
-        converted_objects,
-        "Address",
-    )
-
-    assert len(formatted_objects) == 0
-
-
-async def test_format_converted_it_user_objects(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-):
-    converter.mapping = {"ldap_to_mo": {"ITUser": {}}}
-
-    converter.get_mo_attributes.return_value = ["value", "address_type"]
-    converter.find_mo_object_class.return_value = "ITUser"
-    converter.import_mo_object_class.return_value = ITUser
-
-    it_user_in_mo = ITUser(
-        user_key="Username1",
-        itsystem=uuid4(),
-        person=uuid4(),
-        validity={"start": "2021-01-01T00:00:00"},
-    )
-
-    dataloader.moapi.load_mo_employee_it_users.return_value = [it_user_in_mo]
-
-    person_uuid = uuid4()
-    it_system_uuid = uuid4()
-
-    it_user1 = ITUser(
-        user_key="Username1",
-        itsystem=it_system_uuid,
-        person=person_uuid,
-        validity={"start": "2021-01-01T00:00:00"},
-    )
-    it_user2 = ITUser(
-        user_key="Username2",
-        itsystem=it_system_uuid,
-        person=person_uuid,
-        validity={"start": "2021-01-01T00:00:00"},
-    )
-
-    converted_objects = [it_user1, it_user2]
-
-    sync_tool.settings.use_uuid_mapping = False  # type: ignore
-    formatted_objects = await sync_tool.format_converted_objects(
-        converted_objects,
-        "ITUser",
-    )
-
-    assert len(formatted_objects) == 2  # was 1
-    formatted_user_keys = {
-        obj.user_key for obj, _ in formatted_objects if isinstance(obj, ITUser)
-    }
-    # assert "Username1" not in formatted_user_keys
-    assert "Username1" in formatted_user_keys
-    assert "Username2" in formatted_user_keys
-
-    # Simulate that a matching employee for this it user does not exist
-    dataloader.moapi.load_mo_employee_it_users.side_effect = NoObjectsReturnedException(
-        "f"
-    )
-    with pytest.raises(NoObjectsReturnedException):
-        await sync_tool.format_converted_objects(converted_objects, "ITUser")
-
-
-async def test_format_converted_primary_engagement_objects(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-):
-    converter.mapping = {"ldap_to_mo": {"Engagement": {}}}
-
-    employee_uuid = uuid4()
-    primary_uuid = uuid4()
-    engagement1_in_mo_uuid = uuid4()
-    engagement2_in_mo_uuid = uuid4()
-
-    converter.get_mo_attributes.return_value = ["user_key", "job_function"]
-    converter.find_mo_object_class.return_value = "Engagement"
-    converter.import_mo_object_class.return_value = Engagement
-
-    async def is_primaries(uuids):
-        return [uuid == engagement1_in_mo_uuid for uuid in uuids]
-
-    dataloader.moapi.is_primaries = is_primaries
-
-    engagement1 = Engagement(
-        org_unit=uuid4(),
-        person=employee_uuid,
-        job_function=uuid4(),
-        engagement_type=uuid4(),
-        user_key="123",
-        validity={"start": "2020-01-01T00:00:00"},
-    )
-
-    engagement1_in_mo = Engagement(
-        org_unit=uuid4(),
-        person=employee_uuid,
-        job_function=uuid4(),
-        engagement_type=uuid4(),
-        user_key="123",
-        validity={"start": "2021-01-01T00:00:00"},
-        primary=primary_uuid,
-        uuid=engagement1_in_mo_uuid,
-    )
-
-    # Engagement with the same user key. We should not update this one because it is
-    # not primary.
-    engagement2_in_mo = Engagement(
-        org_unit=uuid4(),
-        person=employee_uuid,
-        job_function=uuid4(),
-        engagement_type=uuid4(),
-        user_key="123",
-        validity={"start": "2021-01-01T00:00:00"},
-        primary=None,
-        uuid=engagement2_in_mo_uuid,
-    )
-
-    dataloader.moapi.load_mo_employee_engagements.return_value = [
-        engagement1_in_mo,
-        engagement2_in_mo,
-    ]
-
-    json_key = "Engagement"
-
-    converted_objects = [engagement1]
-
-    sync_tool.settings.use_uuid_mapping = False  # type: ignore
-    formatted_objects = await sync_tool.format_converted_objects(
-        converted_objects,
-        json_key,
-    )
-
-    assert len(formatted_objects) == 1
-    obj, _ = one(formatted_objects)
-    assert isinstance(obj, Engagement)
-    assert obj.primary is not None  # type: ignore
-    assert obj.user_key == "123"
-
-    # Simulate that a matching employee for this engagement does not exist
-    dataloader.moapi.load_mo_employee_engagements.side_effect = (
-        NoObjectsReturnedException("f")
-    )
-    with pytest.raises(NoObjectsReturnedException):
-        await sync_tool.format_converted_objects(converted_objects, json_key)
 
 
 @pytest.mark.usefixtures("minimal_valid_settings")

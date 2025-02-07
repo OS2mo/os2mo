@@ -84,8 +84,6 @@ from .read_class_uuid_by_facet_and_class_user_key import (
 from .read_class_uuid_by_facet_and_class_user_key import (
     ReadClassUuidByFacetAndClassUserKeyClasses,
 )
-from .read_employee_addresses import ReadEmployeeAddresses
-from .read_employee_addresses import ReadEmployeeAddressesAddresses
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumber
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumberEmployees
 from .read_employee_uuid_by_ituser_user_key import ReadEmployeeUuidByItuserUserKey
@@ -118,8 +116,6 @@ from .read_filtered_addresses import ReadFilteredAddresses
 from .read_filtered_addresses import ReadFilteredAddressesAddresses
 from .read_filtered_itusers import ReadFilteredItusers
 from .read_filtered_itusers import ReadFilteredItusersItusers
-from .read_is_primary_engagements import ReadIsPrimaryEngagements
-from .read_is_primary_engagements import ReadIsPrimaryEngagementsEngagements
 from .read_itsystem_uuid import ReadItsystemUuid
 from .read_itsystem_uuid import ReadItsystemUuidItsystems
 from .read_ituser_by_employee_and_itsystem_uuid import (
@@ -134,8 +130,6 @@ from .read_ituser_uuid import ReadItuserUuid
 from .read_ituser_uuid import ReadItuserUuidItusers
 from .read_itusers import ReadItusers
 from .read_itusers import ReadItusersItusers
-from .read_org_unit_addresses import ReadOrgUnitAddresses
-from .read_org_unit_addresses import ReadOrgUnitAddressesAddresses
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNames
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnits
 from .read_org_unit_ancestors import ReadOrgUnitAncestors
@@ -815,124 +809,6 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ReadItuserByEmployeeAndItsystemUuid.parse_obj(data).itusers
 
-    async def read_is_primary_engagements(
-        self, uuids: list[UUID]
-    ) -> ReadIsPrimaryEngagementsEngagements:
-        query = gql(
-            """
-            query read_is_primary_engagements($uuids: [UUID!]!) {
-              engagements(filter: {uuids: $uuids}) {
-                objects {
-                  current {
-                    is_primary
-                    uuid
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"uuids": uuids}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadIsPrimaryEngagements.parse_obj(data).engagements
-
-    async def read_employee_addresses(
-        self, employee_uuid: UUID, address_type_uuid: UUID
-    ) -> ReadEmployeeAddressesAddresses:
-        query = gql(
-            """
-            query read_employee_addresses($employee_uuid: UUID!, $address_type_uuid: UUID!) {
-              addresses(
-                filter: {address_type: {uuids: [$address_type_uuid]}, employee: {uuids: [$employee_uuid]}}
-              ) {
-                objects {
-                  uuid
-                  validities {
-                    ...address_validity_fields
-                  }
-                }
-              }
-            }
-
-            fragment address_validity_fields on Address {
-              value: name
-              value2
-              uuid
-              visibility_uuid
-              employee_uuid
-              org_unit_uuid
-              engagement_uuid
-              person: employee {
-                cpr_number
-              }
-              validity {
-                from
-                to
-              }
-              address_type {
-                user_key
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {
-            "employee_uuid": employee_uuid,
-            "address_type_uuid": address_type_uuid,
-        }
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadEmployeeAddresses.parse_obj(data).addresses
-
-    async def read_org_unit_addresses(
-        self, org_unit_uuid: UUID, address_type_uuid: UUID
-    ) -> ReadOrgUnitAddressesAddresses:
-        query = gql(
-            """
-            query read_org_unit_addresses($org_unit_uuid: UUID!, $address_type_uuid: UUID!) {
-              addresses(
-                filter: {address_type: {uuids: [$address_type_uuid]}, org_unit: {uuids: [$org_unit_uuid]}}
-              ) {
-                objects {
-                  uuid
-                  validities {
-                    ...address_validity_fields
-                  }
-                }
-              }
-            }
-
-            fragment address_validity_fields on Address {
-              value: name
-              value2
-              uuid
-              visibility_uuid
-              employee_uuid
-              org_unit_uuid
-              engagement_uuid
-              person: employee {
-                cpr_number
-              }
-              validity {
-                from
-                to
-              }
-              address_type {
-                user_key
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {
-            "org_unit_uuid": org_unit_uuid,
-            "address_type_uuid": address_type_uuid,
-        }
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadOrgUnitAddresses.parse_obj(data).addresses
-
     async def read_class_uuid_by_facet_and_class_user_key(
         self, facet_user_key: str, class_user_key: str
     ) -> ReadClassUuidByFacetAndClassUserKeyClasses:
@@ -1030,30 +906,26 @@ class GraphQLClient(AsyncBaseClient):
               addresses(filter: {uuids: $uuids, from_date: $from_date, to_date: $to_date}) {
                 objects {
                   validities {
-                    ...address_validity_fields
+                    value: name
+                    value2
+                    uuid
+                    visibility_uuid
+                    employee_uuid
+                    org_unit_uuid
+                    engagement_uuid
+                    person: employee {
+                      cpr_number
+                    }
+                    validity {
+                      from
+                      to
+                    }
+                    address_type {
+                      user_key
+                      uuid
+                    }
                   }
                 }
-              }
-            }
-
-            fragment address_validity_fields on Address {
-              value: name
-              value2
-              uuid
-              visibility_uuid
-              employee_uuid
-              org_unit_uuid
-              engagement_uuid
-              person: employee {
-                cpr_number
-              }
-              validity {
-                from
-                to
-              }
-              address_type {
-                user_key
-                uuid
               }
             }
             """

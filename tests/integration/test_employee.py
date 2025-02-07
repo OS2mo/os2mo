@@ -39,7 +39,6 @@ from mo_ldap_import_export.utils import mo_today
     {
         "LISTEN_TO_CHANGES_IN_MO": "False",
         "LISTEN_TO_CHANGES_IN_LDAP": "True",
-        "USE_UUID_MAPPING": "True",
         "CONVERSION_MAPPING": json.dumps(
             {
                 "ldap_to_mo": {

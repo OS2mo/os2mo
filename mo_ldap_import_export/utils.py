@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import copy
 import re
-from collections.abc import Callable
-from collections.abc import Iterable
 from datetime import datetime
 from datetime import time
 from functools import partial
@@ -16,7 +14,6 @@ import structlog
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
-from more_itertools import bucket
 
 from .models import Address
 from .models import Employee
@@ -200,8 +197,3 @@ def star(func):
         return func(*tup)
 
     return wrapper
-
-
-def bucketdict(iterable: Iterable[T], key: Callable[[T], R]) -> dict[R, list[T]]:
-    buck = bucket(iterable, key)
-    return {key: list(buck[key]) for key in buck}
