@@ -16,7 +16,7 @@ health_endpoints = {
     "/health/ready",
     "/health/{identifier}",
 }
-service_api = {
+service_api_endpoints = {
     "/service/c/ancestor-tree",
     "/service/c/{classid}/",
     "/service/c/{classid}/children",
@@ -91,7 +91,6 @@ service_api = {
     "/service/e/{id}/details/",
     "/service/ou/{id}/details/",
 }
-
 lora_endpoints = {
     "/lora/",
     "/lora/klassifikation/classes",
@@ -130,25 +129,37 @@ lora_endpoints = {
     "/lora/organisation/organisationfunktion/{uuid}",
     "/lora/site-map",
 }
-
 testing_endpoints = {
     "/testing/amqp/emit",
     "/testing/database/snapshot",
     "/testing/database/restore",
 }
+graphql_endpoints = {
+    "/graphql",
+    "/graphql/",
+    "/graphql/v18",
+    "/graphql/v18/schema.graphql",
+    "/graphql/v19",
+    "/graphql/v19/schema.graphql",
+    "/graphql/v20",
+    "/graphql/v20/schema.graphql",
+    "/graphql/v21",
+    "/graphql/v21/schema.graphql",
+    "/graphql/v22",
+    "/graphql/v22/schema.graphql",
+}
 
 all_endpoints = (
     {
         "",
-        "/graphql",
-        "/graphql/",
         "/version/",
         "/saml/sso/",
     }
     | lora_endpoints
     | doc_endpoints
     | health_endpoints
-    | service_api
+    | service_api_endpoints
+    | graphql_endpoints
 )
 
 
