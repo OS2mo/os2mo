@@ -372,25 +372,6 @@ query read_employee_addresses(
   }
 }
 
-query read_org_unit_addresses(
-  $org_unit_uuid: UUID!
-  $address_type_uuid: UUID!
-) {
-  addresses(
-    filter: {
-      address_type: { uuids: [$address_type_uuid] }
-      org_unit: { uuids: [$org_unit_uuid] }
-    }
-  ) {
-    objects {
-      uuid
-      validities {
-        ...address_validity_fields
-      }
-    }
-  }
-}
-
 query read_class_uuid_by_facet_and_class_user_key(
   $facet_user_key: String!
   $class_user_key: String!

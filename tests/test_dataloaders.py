@@ -69,7 +69,6 @@ from mo_ldap_import_export.routes import load_ldap_attribute_values
 from mo_ldap_import_export.routes import load_ldap_cpr_object
 from mo_ldap_import_export.routes import load_ldap_objects
 from mo_ldap_import_export.types import CPRNumber
-from mo_ldap_import_export.types import OrgUnitUUID
 from tests.graphql_mocker import GraphQLMocker
 
 
@@ -554,34 +553,6 @@ async def test_load_mo_engagement_not_found(
 
     result = await dataloader.moapi.load_mo_engagement(uuid4())
     assert result is None
-
-    assert route.called
-
-
-async def test_load_mo_org_unit_addresses_no_validity(
-    dataloader: DataLoader, graphql_mock: GraphQLMocker
-) -> None:
-    address_uuid = uuid4()
-
-    route = graphql_mock.query("read_org_unit_addresses")
-    route.result = {
-        "addresses": {"objects": [{"uuid": address_uuid, "validities": []}]}
-    }
-
-    employee_uuid = uuid4()
-    address_type_uuid = uuid4()
-    with capture_logs() as cap_logs:
-        result = await dataloader.moapi.load_mo_org_unit_addresses(
-            OrgUnitUUID(employee_uuid), address_type_uuid
-        )
-        assert result == []
-    assert cap_logs == [
-        {
-            "event": "Unable to lookup org-unit addresses",
-            "log_level": "warning",
-            "uuids": [address_uuid],
-        }
-    ]
 
     assert route.called
 

@@ -465,30 +465,6 @@ class MOAPI:
             )
         return cast(list[Address], [obj for _, obj in validity])
 
-    async def load_mo_org_unit_addresses(
-        self, org_unit_uuid: OrgUnitUUID, address_type_uuid: UUID
-    ) -> list[Address]:
-        """
-        Loads all current addresses of a specific type for an org unit
-        """
-        result = await self.graphql_client.read_org_unit_addresses(
-            org_unit_uuid, address_type_uuid
-        )
-        output = {
-            obj.uuid: graphql_address_to_ramodels_address(obj.validities)
-            for obj in result.objects
-        }
-        # If no active validities, pretend we did not get the object at all
-        no_validity, validity = partition(
-            star(lambda _, address: address), output.items()
-        )
-        no_validity_uuids = [uuid for uuid, _ in no_validity]
-        if no_validity_uuids:
-            logger.warning(
-                "Unable to lookup org-unit addresses", uuids=no_validity_uuids
-            )
-        return cast(list[Address], [obj for _, obj in validity])
-
     async def load_mo_employee_it_users(
         self,
         employee_uuid: UUID,

@@ -132,8 +132,6 @@ from .read_ituser_uuid import ReadItuserUuid
 from .read_ituser_uuid import ReadItuserUuidItusers
 from .read_itusers import ReadItusers
 from .read_itusers import ReadItusersItusers
-from .read_org_unit_addresses import ReadOrgUnitAddresses
-from .read_org_unit_addresses import ReadOrgUnitAddressesAddresses
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNames
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnits
 from .read_org_unit_ancestors import ReadOrgUnitAncestors
@@ -860,54 +858,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEmployeeAddresses.parse_obj(data).addresses
-
-    async def read_org_unit_addresses(
-        self, org_unit_uuid: UUID, address_type_uuid: UUID
-    ) -> ReadOrgUnitAddressesAddresses:
-        query = gql(
-            """
-            query read_org_unit_addresses($org_unit_uuid: UUID!, $address_type_uuid: UUID!) {
-              addresses(
-                filter: {address_type: {uuids: [$address_type_uuid]}, org_unit: {uuids: [$org_unit_uuid]}}
-              ) {
-                objects {
-                  uuid
-                  validities {
-                    ...address_validity_fields
-                  }
-                }
-              }
-            }
-
-            fragment address_validity_fields on Address {
-              value: name
-              value2
-              uuid
-              visibility_uuid
-              employee_uuid
-              org_unit_uuid
-              engagement_uuid
-              person: employee {
-                cpr_number
-              }
-              validity {
-                from
-                to
-              }
-              address_type {
-                user_key
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {
-            "org_unit_uuid": org_unit_uuid,
-            "address_type_uuid": address_type_uuid,
-        }
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadOrgUnitAddresses.parse_obj(data).addresses
 
     async def read_class_uuid_by_facet_and_class_user_key(
         self, facet_user_key: str, class_user_key: str
