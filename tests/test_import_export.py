@@ -198,7 +198,7 @@ async def test_import_single_object_no_employee_no_sync(
             {
                 "ldap_to_mo": {
                     "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
+                        "objectClass": "Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
                         "cpr_number": "{{ldap.employeeID or None}}",
@@ -236,7 +236,7 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
             {
                 "ldap_to_mo": {
                     "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
+                        "objectClass": "Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
                         "cpr_number": "{{ldap.employeeID or None}}",

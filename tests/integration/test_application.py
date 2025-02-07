@@ -373,13 +373,13 @@ async def test_changed_since(test_client: AsyncClient, expected: list[str]) -> N
             {
                 "ldap_to_mo": {
                     "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
+                        "objectClass": "Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": [],
                         "uuid": "{{ employee_uuid or '' }}",
                     },
                     "PublicEmailAddress": {
-                        "objectClass": "ramodels.mo.details.address.Address",
+                        "objectClass": "Address",
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["mail"],
                         "value": "{{ ldap.mail or '' }}",
@@ -460,13 +460,13 @@ async def test_mismatched_json_key_and_address_type(
             {
                 "ldap_to_mo": {
                     "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
+                        "objectClass": "Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": [],
                         "uuid": "{{ employee_uuid or '' }}",
                     },
                     "EntryUUID": {
-                        "objectClass": "ramodels.mo.details.it_system.ITUser",
+                        "objectClass": "ITUser",
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["entryUUID"],
                         "user_key": "{{ ldap.entryUUID or '' }}",
@@ -544,13 +544,13 @@ async def test_mismatched_json_key_and_itsystem(
             {
                 "ldap_to_mo": {
                     "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
+                        "objectClass": "Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": [],
                         "uuid": "{{ employee_uuid or '' }}",
                     },
                     "DefaultValidity": {
-                        "objectClass": "ramodels.mo.details.it_system.ITUser",
+                        "objectClass": "ITUser",
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["entryUUID"],
                         "user_key": "{{ ldap.entryUUID or '' }}",

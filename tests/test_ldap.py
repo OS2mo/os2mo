@@ -124,7 +124,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
     conversion_mapping_dict = {
         "ldap_to_mo": {
             "Employee": {
-                "objectClass": "ramodels.mo.employee.Employee",
+                "objectClass": "Employee",
                 "_import_to_mo_": "false",
                 "_ldap_attributes_": [],
                 "uuid": "{{ employee_uuid or '' }}",
