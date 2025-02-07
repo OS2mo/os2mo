@@ -18,6 +18,9 @@ async def test_import_class() -> None:
     imported_class = import_class("ramodels.mo.employee.Employee")
     assert imported_class.__name__ == "Employee"
 
+    imported_class = import_class("Employee")
+    assert imported_class.__name__ == "Employee"
+
     imported_class = import_class("Custom.JobTitleFromADToMO")
     assert imported_class.__name__ == "JobTitleFromADToMO"
 

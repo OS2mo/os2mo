@@ -26,7 +26,7 @@ def address_mapping(minimal_mapping: dict) -> dict:
         {
             "ldap_to_mo": {
                 "EmailEmployee": {
-                    "objectClass": "ramodels.mo.details.address.Address",
+                    "objectClass": "Address",
                     "_import_to_mo_": "true",
                     "_ldap_attributes_": ["mail"],
                     "value": "{{ldap.mail or ''}}",
@@ -58,7 +58,7 @@ def test_cannot_terminate_employee(minimal_mapping: dict) -> None:
         {
             "ldap_to_mo": {
                 "Employee": {
-                    "objectClass": "ramodels.mo.employee.Employee",
+                    "objectClass": "Employee",
                     "_import_to_mo_": "false",
                     "_ldap_attributes_": ["employeeID"],
                     "_terminate_": "whatever",
@@ -183,10 +183,10 @@ def test_dialect_settings(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.mark.parametrize(
     "object_class",
     (
-        "ramodels.mo.details.address.Address",
-        "ramodels.mo.details.engagement.Engagement",
-        "ramodels.mo.details.it_system.ITUser",
-        "ramodels.mo.employee.Employee",
+        "Address",
+        "Engagement",
+        "ITUser",
+        "Employee",
     ),
 )
 async def test_check_for_validity(object_class: str) -> None:
@@ -205,10 +205,10 @@ async def test_check_for_validity(object_class: str) -> None:
 @pytest.mark.parametrize(
     "object_class",
     (
-        "ramodels.mo.details.address.Address",
-        "ramodels.mo.details.engagement.Engagement",
-        "ramodels.mo.details.it_system.ITUser",
-        "ramodels.mo.employee.Employee",
+        "Address",
+        "Engagement",
+        "ITUser",
+        "Employee",
     ),
 )
 async def test_check_for_superfluous_attributes(object_class: str) -> None:
@@ -228,7 +228,7 @@ async def test_check_for_engagement_primary_specialcase():
         parse_obj_as(
             LDAP2MOMapping,
             {
-                "objectClass": "ramodels.mo.details.engagement.Engagement",
+                "objectClass": "Engagement",
                 "org_unit": "val",
                 "job_function": "val",
                 "user_key": "val",
@@ -309,9 +309,9 @@ async def test_mo2ldap_jinja_validator(
 @pytest.mark.parametrize(
     "object_class",
     (
-        "ramodels.mo.details.address.Address",
-        "ramodels.mo.details.engagement.Engagement",
-        "ramodels.mo.details.it_system.ITUser",
+        "Address",
+        "Engagement",
+        "ITUser",
     ),
 )
 async def test_edit_only_validator(object_class: str) -> None:
@@ -335,7 +335,7 @@ async def test_edit_only_validator_employee_ok() -> None:
         {
             "_import_to_mo_": "edit_only",
             "_ldap_attributes_": [],
-            "objectClass": "ramodels.mo.employee.Employee",
+            "objectClass": "Employee",
             "uuid": "",
         },
     )

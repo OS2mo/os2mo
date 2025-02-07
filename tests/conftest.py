@@ -148,7 +148,7 @@ def integration_test_environment_variables(monkeypatch: pytest.MonkeyPatch) -> N
     mapping = {
         "ldap_to_mo": {
             "Employee": {
-                "objectClass": "ramodels.mo.employee.Employee",
+                "objectClass": "Employee",
                 "_import_to_mo_": "false",
                 "_ldap_attributes_": ["employeeNumber", "title", "givenName", "sn"],
                 "uuid": "{{ employee_uuid or '' }}",

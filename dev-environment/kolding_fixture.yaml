@@ -1,7 +1,7 @@
 CONVERSION_MAPPING:
   ldap_to_mo:
     Employee:
-      objectClass: ramodels.mo.employee.Employee
+      objectClass: Employee
       _import_to_mo_: "false"
       _ldap_attributes_: ["employeeNumber" , "title" , "givenName" , "sn"]
       uuid: '{{ employee_uuid or '''' }}'
@@ -12,14 +12,14 @@ CONVERSION_MAPPING:
       given_name: '{{ ldap.givenName }}'
       surname: '{{ ldap.sn }}'
     ADtitle:
-      objectClass: ramodels.mo.details.it_system.ITUser
+      objectClass: ITUser
       _import_to_mo_: "true"
       _ldap_attributes_: ["title"]
       user_key: '{{ ldap.title }}'
       itsystem: '{{ get_it_system_uuid(''ADtitle'') }}'
       person: '{{ employee_uuid or '''' }}'
     ADUUID:
-      objectClass: ramodels.mo.details.it_system.ITUser
+      objectClass: ITUser
       _import_to_mo_: "true"
       _ldap_attributes_: ["title", "entryUUID"]
       _terminate_: '{{ now()|mo_datestring if ldap.title == "WOW" else '''' }}'

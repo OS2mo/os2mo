@@ -60,7 +60,7 @@ def converter_mapping() -> dict[str, Any]:
     return {
         "ldap_to_mo": {
             "Employee": {
-                "objectClass": "ramodels.mo.employee.Employee",
+                "objectClass": "Employee",
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["givenName", "sn", "employeeID"],
                 "given_name": "{{ldap.givenName}}",
@@ -69,7 +69,7 @@ def converter_mapping() -> dict[str, Any]:
                 "uuid": "{{ employee_uuid or '' }}",
             },
             "Email": {
-                "objectClass": "ramodels.mo.details.address.Address",
+                "objectClass": "Address",
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["mail"],
                 "value": "{{ldap.mail}}",
@@ -77,7 +77,7 @@ def converter_mapping() -> dict[str, Any]:
                 "person": "{{ employee_uuid or '' }}",
             },
             "Active Directory": {
-                "objectClass": "ramodels.mo.details.it_system.ITUser",
+                "objectClass": "ITUser",
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["msSFU30Name"],
                 "user_key": "{{ ldap.msSFU30Name or '' }}",
@@ -254,7 +254,7 @@ async def test_ldap_to_mo_dict_error(converter: LdapConverter) -> None:
         {
             "ldap_to_mo": {
                 "Active Directory": {
-                    "objectClass": "ramodels.mo.details.it_system.ITUser",
+                    "objectClass": "ITUser",
                     "user_key": "{{ ldap.msSFU30Name or '' }}",
                     "itsystem": "{ 'hep': 'hey }",  # provokes json error in str_to_dict
                     "person": "{{ dict(uuid=employee_uuid or '') }}",
@@ -282,7 +282,7 @@ async def test_ldap_to_mo_dict_validation_error(
     mapping = {
         "ldap_to_mo": {
             "Employee": {
-                "objectClass": "ramodels.mo.employee.Employee",
+                "objectClass": "Employee",
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["employeeID"],
                 "cpr_number": "{{ldap.employeeID or None}}",
@@ -352,7 +352,7 @@ async def test_template_strictness(
     mapping = {
         "ldap_to_mo": {
             "Employee": {
-                "objectClass": "ramodels.mo.employee.Employee",
+                "objectClass": "Employee",
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["givenName", "sn"],
                 "user_key": "{{ ldap.dn }}",
@@ -466,7 +466,7 @@ def test_get_number_of_entries(
 
 
 EMPLOYEE_OBJ = {
-    "objectClass": "ramodels.mo.employee.Employee",
+    "objectClass": "Employee",
     "_ldap_attributes_": [],
     "uuid": "{{ employee_uuid }}",
 }
@@ -632,7 +632,7 @@ async def test_get_it_system_uuid(
 
 def test_check_uuid_refs_in_mo_objects(converter_mapping: dict[str, Any]) -> None:
     address_obj = {
-        "objectClass": "ramodels.mo.details.address.Address",
+        "objectClass": "Address",
         "_import_to_mo_": "true",
         "_ldap_attributes_": [],
         "value": "val",
@@ -675,7 +675,7 @@ def test_check_uuid_refs_in_mo_objects(converter_mapping: dict[str, Any]) -> Non
         {
             "ldap_to_mo": {
                 "Employee": {
-                    "objectClass": "ramodels.mo.employee.Employee",
+                    "objectClass": "Employee",
                     "_import_to_mo_": "true",
                 }
             }
@@ -708,7 +708,7 @@ def test_import_to_mo_configuration(
             {
                 "ldap_to_mo": {
                     "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
+                        "objectClass": "Employee",
                         "_import_to_mo_": import_to_mo,
                         "_ldap_attributes_": [],
                         "uuid": "{{ employee_uuid or '' }}",

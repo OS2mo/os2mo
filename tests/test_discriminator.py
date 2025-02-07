@@ -60,7 +60,7 @@ def settings(
             {
                 "ldap_to_mo": {
                     "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
+                        "objectClass": "Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
                         "cpr_number": "{{ldap.employeeID or None}}",
@@ -635,7 +635,7 @@ async def context(sync_tool_and_context: tuple[SyncTool, Context]) -> Context:
             {
                 "ldap_to_mo": {
                     "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
+                        "objectClass": "Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
                         "cpr_number": "{{ldap.employeeID or None}}",

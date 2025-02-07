@@ -39,13 +39,13 @@ from mo_ldap_import_export.utils import mo_today
             {
                 "ldap_to_mo": {
                     "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
+                        "objectClass": "Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": [],
                         "uuid": "{{ employee_uuid or '' }}",  # TODO: why is this required?
                     },
                     "ADtitle": {
-                        "objectClass": "ramodels.mo.details.it_system.ITUser",
+                        "objectClass": "ITUser",
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["carLicense", "title"],
                         # carLicense is arbitrarily chosen as an enabled/disabled marker

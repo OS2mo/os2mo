@@ -43,7 +43,7 @@ from mo_ldap_import_export.utils import mo_today
             {
                 "ldap_to_mo": {
                     "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
+                        "objectClass": "Employee",
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["employeeNumber", "givenName", "sn"],
                         "uuid": "{{ employee_uuid or '' }}",  # TODO: why is this required?

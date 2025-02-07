@@ -34,13 +34,13 @@ from mo_ldap_import_export.utils import mo_today
             {
                 "ldap_to_mo": {
                     "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
+                        "objectClass": "Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": [],
                         "uuid": "{{ employee_uuid or '' }}",
                     },
                     "EmailEmployee": {
-                        "objectClass": "ramodels.mo.details.address.Address",
+                        "objectClass": "Address",
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["carLicense", "mail"],
                         # carLicense is arbitrarily chosen as an enabled/disabled marker
@@ -148,13 +148,13 @@ async def test_to_mo(
             {
                 "ldap_to_mo": {
                     "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
+                        "objectClass": "Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": [],
                         "uuid": "{{ employee_uuid or '' }}",
                     },
                     "EmailEmployee": {
-                        "objectClass": "ramodels.mo.details.address.Address",
+                        "objectClass": "Address",
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["mail"],
                         "_terminate_": "{{ now()|mo_datestring }}",
@@ -303,13 +303,13 @@ async def test_to_ldap(
             {
                 "ldap_to_mo": {
                     "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
+                        "objectClass": "Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": [],
                         "uuid": "{{ employee_uuid or '' }}",
                     },
                     "EmailEmployee": {
-                        "objectClass": "ramodels.mo.details.address.Address",
+                        "objectClass": "Address",
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["carLicense", "mail"],
                         # carLicense is arbitrarily chosen as an enabled/disabled marker

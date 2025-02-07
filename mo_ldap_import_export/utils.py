@@ -44,6 +44,11 @@ def import_class(name: str) -> type[MOBase]:
         "ramodels.mo.details.engagement.Engagement": Engagement,
         "ramodels.mo.details.it_system.ITUser": ITUser,
         "ramodels.mo.employee.Employee": Employee,
+        # TODO: Eliminate the above in favor of the below
+        "Address": Address,
+        "Engagement": Engagement,
+        "ITUser": ITUser,
+        "Employee": Employee,
     }
     clazz = import_map.get(name)
     if clazz is None:
