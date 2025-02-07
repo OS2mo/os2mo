@@ -30,6 +30,7 @@ from . import lora
 from . import mapping
 from . import util
 from .exceptions import ErrorCodes
+from .graphapi.version import Version
 from .mapping import OwnerInferencePriority
 
 _LORA_CONNECTOR_MIDDLEWARE_KEY = "lora_connector"
@@ -46,7 +47,10 @@ async def lora_connector_context(request: Request) -> AsyncIterator[None]:
         return _create_connector(**kwargs)
 
     graphql_match = re.match(r"/graphql/v(\d+)", request.url.path)
-    if graphql_match is not None and int(graphql_match.group(1)) <= 20:
+    if (
+        graphql_match is not None
+        and Version(int(graphql_match.group(1))) <= Version.VERSION_20
+    ):
         lora_connector = lora.Connector
         create_connector = cached_create_connector
     else:
