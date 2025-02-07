@@ -123,8 +123,6 @@ async def _get_entity_owners(uuid: UUID, entity_type: EntityType) -> set[UUID]:
     # Filter out empty dicts and vacant owners. GraphQL returns owners as `owner_uuid`.
     # The Service-API returns it as `{owner: {uuid: ...}}`.
     if is_graphql():
-        return {
-            UUID(owner) for o in objects if (owner := o.get("owner_uuid")) is not None
-        }
+        return {UUID(owner) for o in objects if (owner := o.get("owner_uuid"))}
     r_filtered = filter(lambda item: item.get(OWNER) is not None, objects)
     return {UUID(item[OWNER][UUID_KEY]) for item in r_filtered}
