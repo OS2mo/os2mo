@@ -36,6 +36,7 @@ from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OpenValidity as RAMOpenValidity
 from mora.graphapi.gmodels.mo import OrganisationRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
+from mora.graphapi.gmodels.mo._shared import MOBase
 from mora.graphapi.gmodels.mo.details import AssociationRead
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.gmodels.mo.details import ITSystemRead
@@ -397,6 +398,33 @@ async def _get_handler_object(root: AddressRead, info: Info) -> AddressHandler:
     return handler(root.value, root.visibility_uuid, root.value2)
 
 
+@strawberry.experimental.pydantic.interface(
+    model=MOBase,
+)
+class MOBaseType:
+    uuid: strawberry.auto
+    user_key: strawberry.auto
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            The object type.
+
+            Always contains the string `address`.
+            """
+        ),
+        deprecation_reason=dedent(
+            """\
+            Unintentionally exposed implementation detail.
+            Provides no value whatsoever.
+            """
+        ),
+    )
+    async def type(self, root: MOBase) -> str:
+        """Implemented for backwards compatability."""
+        return root.type_
+
+
 @strawberry.experimental.pydantic.type(
     model=AddressRead,
     description=dedent(
@@ -405,7 +433,7 @@ async def _get_handler_object(root: AddressRead, info: Info) -> AddressHandler:
         """
     ),
 )
-class Address:
+class Address(MOBaseType):
     address_type: LazyClass = strawberry.field(
         resolver=to_one(
             seed_resolver(
@@ -809,7 +837,7 @@ class Address:
     model=AssociationRead,
     description="Connects organisation units and employees",
 )
-class Association:
+class Association(MOBaseType):
     association_type: LazyClass | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
@@ -1149,7 +1177,7 @@ class Association:
         """
     ),
 )
-class Class:
+class Class(MOBaseType):
     parent: LazyClass | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
@@ -1446,7 +1474,7 @@ class Class:
     model=EmployeeRead,
     description="Employee/identity specific information",
 )
-class Employee:
+class Employee(MOBaseType):
     @strawberry.field(description="UUID of the entity")
     async def uuid(self, root: EmployeeRead) -> UUID:
         return root.uuid
@@ -1763,7 +1791,7 @@ class Employee:
     model=EngagementRead,
     description="Employee engagement in an organisation unit",
 )
-class Engagement:
+class Engagement(MOBaseType):
     @strawberry.field(description="UUID of the entity")
     async def uuid(self, root: EngagementRead) -> UUID:
         return root.uuid
@@ -2043,7 +2071,7 @@ class Engagement:
     model=FacetRead,
     description="The key component of the class/facet choice setup",
 )
-class Facet:
+class Facet(MOBaseType):
     classes: list[LazyClass] = strawberry.field(
         resolver=to_list(
             seed_resolver(class_resolver, {"facets": lambda root: [root.uuid]})
@@ -2188,7 +2216,7 @@ class Facet:
     model=ITSystemRead,
     description="Systems that IT users are connected to",
 )
-class ITSystem:
+class ITSystem(MOBaseType):
     # TODO: Allow querying all accounts
 
     @strawberry.field(
@@ -2265,7 +2293,7 @@ class ITSystem:
         """
     ),
 )
-class ITUser:
+class ITUser(MOBaseType):
     @strawberry.field(description="UUID of the entity")
     async def uuid(self, root: ITUserRead) -> UUID:
         return root.uuid
@@ -2605,7 +2633,7 @@ class ITUser:
         """
     ),
 )
-class KLE:
+class KLE(MOBaseType):
     kle_number: LazyClass = strawberry.field(
         resolver=to_one(
             seed_resolver(
@@ -2745,7 +2773,7 @@ class KLE:
         """
     ),
 )
-class Leave:
+class Leave(MOBaseType):
     leave_type: LazyClass = strawberry.field(
         resolver=to_one(
             seed_resolver(
@@ -2877,7 +2905,7 @@ class Leave:
         """
     ),
 )
-class Manager:
+class Manager(MOBaseType):
     manager_type: LazyClass = strawberry.field(
         resolver=to_one(
             seed_resolver(
@@ -3078,7 +3106,7 @@ class Manager:
         """
     ),
 )
-class Owner:
+class Owner(MOBaseType):
     @strawberry.field(
         description=dedent(
             """
@@ -3323,7 +3351,7 @@ class Organisation:
     model=OrganisationUnitRead,
     description="Organisation unit within the organisation tree",
 )
-class OrganisationUnit:
+class OrganisationUnit(MOBaseType):
     parent: LazyOrganisationUnit | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
@@ -3948,7 +3976,7 @@ class OrganisationUnit:
     model=RelatedUnitRead,
     description="An organisation unit relation mapping",
 )
-class RelatedUnit:
+class RelatedUnit(MOBaseType):
     @strawberry.field(description="UUID of the entity")
     async def uuid(self, root: RelatedUnitRead) -> UUID:
         return root.uuid
@@ -4028,7 +4056,7 @@ class RelatedUnit:
     model=RoleBindingRead,
     description="The role a person has within an organisation unit",
 )
-class RoleBinding:
+class RoleBinding(MOBaseType):
     @strawberry.field(description="UUID of the entity")
     async def uuid(self, root: RoleBindingRead) -> UUID:
         return root.uuid

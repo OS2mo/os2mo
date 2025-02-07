@@ -10,6 +10,9 @@ from strawberry.types import Info
 
 from .actor import Actor
 from .actor import actor_uuid_to_actor
+from .response import Response
+from .schema import MOBaseType
+from .target import uuid_to_target
 
 MOObject = TypeVar("MOObject")
 
@@ -114,6 +117,16 @@ class Registration:
         """
         )
     )
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            Object for the uuid that was changed.
+            """
+        )
+    )
+    async def target(self, root: "Registration", info: Info) -> Response[MOBaseType]:
+        return await uuid_to_target(root.uuid, root.model, info=info)
 
     note: str | None = strawberry.field(
         description="Note associated with the registration."
