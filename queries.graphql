@@ -397,27 +397,6 @@ mutation employee_refresh($exchange: String!, $uuids: [UUID!]!) {
   }
 }
 
-fragment address_validity_fields on Address {
-  value: name
-  value2
-  uuid
-  visibility_uuid
-  employee_uuid
-  org_unit_uuid
-  engagement_uuid
-  person: employee {
-    cpr_number
-  }
-  validity {
-    from
-    to
-  }
-  address_type {
-    user_key
-    uuid
-  }
-}
-
 query read_addresses(
   $uuids: [UUID!]!
   $from_date: DateTime
@@ -428,7 +407,24 @@ query read_addresses(
   ) {
     objects {
       validities {
-        ...address_validity_fields
+        value: name
+        value2
+        uuid
+        visibility_uuid
+        employee_uuid
+        org_unit_uuid
+        engagement_uuid
+        person: employee {
+          cpr_number
+        }
+        validity {
+          from
+          to
+        }
+        address_type {
+          user_key
+          uuid
+        }
       }
     }
   }

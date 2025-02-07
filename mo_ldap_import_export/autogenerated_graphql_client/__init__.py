@@ -72,10 +72,6 @@ from .exceptions import GraphQLClientGraphQLError
 from .exceptions import GraphQLClientGraphQLMultiError
 from .exceptions import GraphQLClientHttpError
 from .exceptions import GraphQlClientInvalidResponseError
-from .fragments import AddressValidityFields
-from .fragments import AddressValidityFieldsAddressType
-from .fragments import AddressValidityFieldsPerson
-from .fragments import AddressValidityFieldsValidity
 from .input_types import AddressCreateInput
 from .input_types import AddressFilter
 from .input_types import AddressRegistrationFilter
@@ -208,6 +204,9 @@ from .read_addresses import ReadAddresses
 from .read_addresses import ReadAddressesAddresses
 from .read_addresses import ReadAddressesAddressesObjects
 from .read_addresses import ReadAddressesAddressesObjectsValidities
+from .read_addresses import ReadAddressesAddressesObjectsValiditiesAddressType
+from .read_addresses import ReadAddressesAddressesObjectsValiditiesPerson
+from .read_addresses import ReadAddressesAddressesObjectsValiditiesValidity
 from .read_all_ituser_user_keys_by_itsystem_uuid import (
     ReadAllItuserUserKeysByItsystemUuid,
 )
@@ -395,10 +394,6 @@ __all__ = [
     "AddressUpdate",
     "AddressUpdateAddressUpdate",
     "AddressUpdateInput",
-    "AddressValidityFields",
-    "AddressValidityFieldsAddressType",
-    "AddressValidityFieldsPerson",
-    "AddressValidityFieldsValidity",
     "AssociationCreateInput",
     "AssociationFilter",
     "AssociationRegistrationFilter",
@@ -530,6 +525,9 @@ __all__ = [
     "ReadAddressesAddresses",
     "ReadAddressesAddressesObjects",
     "ReadAddressesAddressesObjectsValidities",
+    "ReadAddressesAddressesObjectsValiditiesAddressType",
+    "ReadAddressesAddressesObjectsValiditiesPerson",
+    "ReadAddressesAddressesObjectsValiditiesValidity",
     "ReadAllItuserUserKeysByItsystemUuid",
     "ReadAllItuserUserKeysByItsystemUuidItusers",
     "ReadAllItuserUserKeysByItsystemUuidItusersObjects",
