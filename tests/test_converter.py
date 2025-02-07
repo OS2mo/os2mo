@@ -853,36 +853,3 @@ async def test_ldap_to_mo_default_validity(converter: LdapConverter) -> None:
         "start": datetime.datetime(2022, 8, 10, 0, 0, tzinfo=MO_TZ),
         "end": None,
     }
-
-
-@freeze_time("2022-08-10")
-async def test_ldap_to_mo_mapper(
-    monkeypatch: pytest.MonkeyPatch,
-    converter_mapping: dict[str, Any],
-    dataloader: AsyncMock,
-) -> None:
-    """Ensure that setting mapper has no effect on construction objects.
-
-    Injector is only used for creating an mapping between objects later.
-    """
-
-    mapper_template = "{{ value['user_key'] }}"
-    converter_mapping["ldap_to_mo"]["Email"]["_mapper_"] = mapper_template
-    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(converter_mapping))
-    settings = Settings()
-    converter = LdapConverter(settings, dataloader)
-
-    employee_uuid = uuid4()
-    result = await converter.from_ldap(
-        LdapObject(
-            dn="",
-            mail="foo@bar.dk",
-            mail_validity_from=datetime.datetime(2019, 1, 1, 0, 10, 0),
-        ),
-        "Email",
-        employee_uuid=employee_uuid,
-    )
-    mail = one(result)
-    assert isinstance(mail, Address)
-    assert mail.value == "foo@bar.dk"
-    assert mail.person == employee_uuid

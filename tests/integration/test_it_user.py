@@ -35,6 +35,7 @@ from mo_ldap_import_export.utils import mo_today
     {
         "LISTEN_TO_CHANGES_IN_MO": "False",
         "LISTEN_TO_CHANGES_IN_LDAP": "True",
+        "USE_UUID_MAPPING": "True",
         "CONVERSION_MAPPING": json.dumps(
             {
                 "ldap_to_mo": {
@@ -48,7 +49,6 @@ from mo_ldap_import_export.utils import mo_today
                         "objectClass": "ramodels.mo.details.it_system.ITUser",
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["carLicense", "title"],
-                        "_mapper_": "{{ obj.itsystem }}",
                         # carLicense is arbitrarily chosen as an enabled/disabled marker
                         "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else ''}}",
                         "uuid": "{{ get_ituser_uuid({'itsystem': {'user_key': 'ADtitle'}, 'employee': {'uuids': [employee_uuid]}}) }}",

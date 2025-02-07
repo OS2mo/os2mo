@@ -466,28 +466,8 @@ class SyncTool:
         else:  # pragma: no cover
             raise AssertionError(f"Unknown mo_class: {mo_class}")
 
-        mapper_template = self.converter.mapping["ldap_to_mo"][json_key].get(
-            "_mapper_", None
-        )
-        if mapper_template is not None:
-            mo_values_task = asyncio.gather(
-                *[mapper_template.render_async({"obj": obj}) for obj in objects_in_mo]
-            )
-            ldap_values_task = asyncio.gather(
-                *[
-                    mapper_template.render_async({"obj": obj})
-                    for obj in converted_objects
-                ]
-            )
-            mo_values, ldap_values = await asyncio.gather(
-                mo_values_task, ldap_values_task
-            )
-            mo_mapper = dict(zip(objects_in_mo, mo_values, strict=False))
-            ldap_mapper = dict(zip(converted_objects, ldap_values, strict=False))
-        else:
-            # TODO: Refactor so this is handled using default templates instead
-            mo_mapper = {obj: getattr(obj, value_key) for obj in objects_in_mo}
-            ldap_mapper = {obj: getattr(obj, value_key) for obj in converted_objects}
+        mo_mapper = {obj: getattr(obj, value_key) for obj in objects_in_mo}
+        ldap_mapper = {obj: getattr(obj, value_key) for obj in converted_objects}
 
         # Construct a map from value-key to list of matching objects
         values_in_mo = bucketdict(objects_in_mo, mo_mapper.get)
