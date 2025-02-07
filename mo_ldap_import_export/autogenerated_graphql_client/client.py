@@ -84,8 +84,6 @@ from .read_class_uuid_by_facet_and_class_user_key import (
 from .read_class_uuid_by_facet_and_class_user_key import (
     ReadClassUuidByFacetAndClassUserKeyClasses,
 )
-from .read_employee_addresses import ReadEmployeeAddresses
-from .read_employee_addresses import ReadEmployeeAddressesAddresses
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumber
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumberEmployees
 from .read_employee_uuid_by_ituser_user_key import ReadEmployeeUuidByItuserUserKey
@@ -810,54 +808,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadItuserByEmployeeAndItsystemUuid.parse_obj(data).itusers
-
-    async def read_employee_addresses(
-        self, employee_uuid: UUID, address_type_uuid: UUID
-    ) -> ReadEmployeeAddressesAddresses:
-        query = gql(
-            """
-            query read_employee_addresses($employee_uuid: UUID!, $address_type_uuid: UUID!) {
-              addresses(
-                filter: {address_type: {uuids: [$address_type_uuid]}, employee: {uuids: [$employee_uuid]}}
-              ) {
-                objects {
-                  uuid
-                  validities {
-                    ...address_validity_fields
-                  }
-                }
-              }
-            }
-
-            fragment address_validity_fields on Address {
-              value: name
-              value2
-              uuid
-              visibility_uuid
-              employee_uuid
-              org_unit_uuid
-              engagement_uuid
-              person: employee {
-                cpr_number
-              }
-              validity {
-                from
-                to
-              }
-              address_type {
-                user_key
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {
-            "employee_uuid": employee_uuid,
-            "address_type_uuid": address_type_uuid,
-        }
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadEmployeeAddresses.parse_obj(data).addresses
 
     async def read_class_uuid_by_facet_and_class_user_key(
         self, facet_user_key: str, class_user_key: str
