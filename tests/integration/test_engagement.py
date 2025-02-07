@@ -382,3 +382,178 @@ async def test_to_mo_skip_if_none(
     engagement = one(engagements.objects)
     validities = one(engagement.validities)
     assert validities.extension_1 == "Skole underviser"
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "ramodels.mo.employee.Employee",
+                        "_import_to_mo_": "false",
+                        "_ldap_attributes_": [],
+                        "uuid": "{{ employee_uuid or '' }}",  # TODO: why is this required?
+                    },
+                    "Engagement": {
+                        "objectClass": "ramodels.mo.details.engagement.Engagement",
+                        "_import_to_mo_": "true",
+                        "_ldap_attributes_": ["title"],
+                        "_mapper_": "{{ obj.org_unit }}",
+                        "uuid": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).uuid }}",
+                        "user_key": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).user_key }}",
+                        "org_unit": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).org_unit }}",
+                        "person": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).person }}",
+                        "job_function": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).job_function }}",
+                        "engagement_type": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).engagement_type }}",
+                        "primary": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).primary }}",
+                        "extension_1": "{{ ldap.title }}",
+                    },
+                },
+                # TODO: why is this required?
+                "username_generator": {
+                    "objectClass": "UserNameGenerator",
+                    "combinations_to_try": ["FFFX", "LLLX"],
+                },
+            }
+        ),
+    }
+)
+async def test_to_mo_future_engagement_override_dangerous_behavior(
+    test_client: AsyncClient,
+    graphql_client: GraphQLClient,
+    ldap_person_uuid: UUID,
+    mo_person: UUID,
+    mo_org_unit: UUID,
+    ansat: UUID,
+    jurist: UUID,
+    primary: UUID,
+) -> None:
+    async def trigger_sync() -> None:
+        content = str(ldap_person_uuid)
+        headers = {"Content-Type": "text/plain"}
+        result = await test_client.post(
+            "/ldap2mo/uuid", content=content, headers=headers
+        )
+        assert result.status_code == 200
+
+    # Create the future engagement
+    await graphql_client.engagement_create(
+        input=EngagementCreateInput(
+            user_key="future",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=ansat,
+            job_function=jurist,
+            primary=primary,
+            extension_1="create",
+            validity={"from": "3000-01-01T00:00:00Z", "to": "4000-01-01T00:00:00Z"},
+        )
+    )
+
+    await trigger_sync()
+
+    engagements = await graphql_client._testing__engagement_read(
+        filter=EngagementFilter(
+            from_date=None,
+            to_date=None,
+            employee=EmployeeFilter(uuids=[mo_person]),
+        ),
+    )
+    engagement = one(engagements.objects)
+    validities = one(engagement.validities)
+    # The extension_1 field is updated, but the validity is destroyed
+    # This is **NOT** desirable, but it is the expected behavior
+    assert validities.extension_1 == "Skole underviser"
+    assert validities.validity.from_ == mo_today()
+    assert validities.validity.to is None
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "USE_UUID_MAPPING": "True",
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "ramodels.mo.employee.Employee",
+                        "_import_to_mo_": "false",
+                        "_ldap_attributes_": [],
+                        "uuid": "{{ skip_if_none(employee_uuid) }}",  # TODO: why is this required?
+                    },
+                    "Engagement": {
+                        "objectClass": "ramodels.mo.details.engagement.Engagement",
+                        "_import_to_mo_": "true",
+                        "_ldap_attributes_": ["title"],
+                        "_mapper_": "{{ obj.org_unit }}",
+                        "uuid": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).uuid }}",
+                        "user_key": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).user_key }}",
+                        "org_unit": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).org_unit }}",
+                        "person": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).person }}",
+                        "job_function": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).job_function }}",
+                        "engagement_type": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).engagement_type }}",
+                        "primary": "{{ skip_if_none(load_mo_primary_engagement(employee_uuid)).primary }}",
+                        "extension_1": "{{ ldap.title }}",
+                    },
+                },
+                # TODO: why is this required?
+                "username_generator": {
+                    "objectClass": "UserNameGenerator",
+                    "combinations_to_try": ["FFFX", "LLLX"],
+                },
+            }
+        ),
+    }
+)
+async def test_to_mo_future_engagement_new_mapping(
+    test_client: AsyncClient,
+    graphql_client: GraphQLClient,
+    ldap_person_uuid: UUID,
+    mo_person: UUID,
+    mo_org_unit: UUID,
+    ansat: UUID,
+    jurist: UUID,
+    primary: UUID,
+) -> None:
+    async def trigger_sync() -> None:
+        content = str(ldap_person_uuid)
+        headers = {"Content-Type": "text/plain"}
+        result = await test_client.post(
+            "/ldap2mo/uuid", content=content, headers=headers
+        )
+        assert result.status_code == 200
+
+    # Create the future engagement
+    await graphql_client.engagement_create(
+        input=EngagementCreateInput(
+            user_key="future",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=ansat,
+            job_function=jurist,
+            primary=primary,
+            extension_1="create",
+            validity={"from": "3000-01-01T00:00:00Z", "to": "4000-01-01T00:00:00Z"},
+        )
+    )
+
+    await trigger_sync()
+
+    engagements = await graphql_client._testing__engagement_read(
+        filter=EngagementFilter(
+            from_date=None,
+            to_date=None,
+            employee=EmployeeFilter(uuids=[mo_person]),
+        ),
+    )
+    engagement = one(engagements.objects)
+    validities = one(engagement.validities)
+    assert validities.extension_1 == "Skole underviser"
+    assert validities.validity.from_ == datetime(3000, 1, 1, 0, 0, tzinfo=MO_TZ)
+    assert validities.validity.to == datetime(4000, 1, 1, 0, 0, tzinfo=MO_TZ)

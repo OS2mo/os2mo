@@ -153,6 +153,7 @@ async def test_format_converted_engagement_objects(
 
     converted_objects = [engagement1, engagement2]
 
+    sync_tool.settings.use_uuid_mapping = False  # type: ignore
     operations = await sync_tool.format_converted_objects(
         converted_objects,
         json_key,
@@ -212,6 +213,7 @@ async def test_format_converted_engagement_duplicate(
 
     converted_objects = [engagement]
     with pytest.raises(RequeueMessage) as exc_info:
+        sync_tool.settings.use_uuid_mapping = False  # type: ignore
         await sync_tool.format_converted_objects(converted_objects, json_key)
     assert "Bad mapping: Multiple MO objects" in str(exc_info.value)
 
@@ -251,6 +253,7 @@ async def test_format_converted_multiple_primary_engagements(
     converted_objects = [engagement1, engagement2]
 
     with pytest.raises(RequeueMessage) as exc_info:
+        sync_tool.settings.use_uuid_mapping = False  # type: ignore
         await sync_tool.format_converted_objects(
             converted_objects,
             json_key="Engagement",
@@ -312,6 +315,7 @@ async def test_format_converted_employee_address_objects(
 
     dataloader.moapi.load_mo_employee_addresses.return_value = [address1_in_mo]
 
+    sync_tool.settings.use_uuid_mapping = False  # type: ignore
     formatted_objects = await sync_tool.format_converted_objects(
         converted_objects,
         "Address",
@@ -362,6 +366,7 @@ async def test_format_converted_org_unit_address_objects(
 
     dataloader.moapi.load_mo_org_unit_addresses.return_value = [address1_in_mo]
 
+    sync_tool.settings.use_uuid_mapping = False  # type: ignore
     formatted_objects = await sync_tool.format_converted_objects(
         converted_objects,
         "Address",
@@ -414,6 +419,7 @@ async def test_format_converted_org_unit_address_objects_identical_to_mo(
 
     dataloader.moapi.load_mo_org_unit_addresses.return_value = [address1_in_mo]
 
+    sync_tool.settings.use_uuid_mapping = False  # type: ignore
     operations = await sync_tool.format_converted_objects(
         converted_objects,
         "Address",
@@ -448,6 +454,7 @@ async def test_format_converted_address_objects_without_person_or_org_unit(
 
     converted_objects = [address1, address2]
 
+    sync_tool.settings.use_uuid_mapping = False  # type: ignore
     formatted_objects = await sync_tool.format_converted_objects(
         converted_objects,
         "Address",
@@ -492,6 +499,7 @@ async def test_format_converted_it_user_objects(
 
     converted_objects = [it_user1, it_user2]
 
+    sync_tool.settings.use_uuid_mapping = False  # type: ignore
     formatted_objects = await sync_tool.format_converted_objects(
         converted_objects,
         "ITUser",
@@ -574,6 +582,7 @@ async def test_format_converted_primary_engagement_objects(
 
     converted_objects = [engagement1]
 
+    sync_tool.settings.use_uuid_mapping = False  # type: ignore
     formatted_objects = await sync_tool.format_converted_objects(
         converted_objects,
         json_key,
