@@ -18,13 +18,8 @@ import structlog
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from fastramqpi.ramqp.utils import RequeueMessage
 from ldap3 import Connection
-from more_itertools import all_equal
-from more_itertools import duplicates_everseen
-from more_itertools import first
 from more_itertools import one
-from more_itertools import only
 from more_itertools import partition
-from more_itertools import quantify
 from structlog.contextvars import bound_contextvars
 
 from .config import Settings
@@ -48,7 +43,6 @@ from .models import MOBase
 from .models import Termination
 from .types import EmployeeUUID
 from .types import OrgUnitUUID
-from .utils import bucketdict
 from .utils import ensure_list
 from .utils import mo_today
 from .utils import star
@@ -356,158 +350,6 @@ class SyncTool:
             for converted_object in converted_objects
         ]
 
-    async def construct_old_mapping(
-        self,
-        converted_objects: Sequence[MOBase],
-        json_key: str,
-    ) -> list[tuple[MOBase, MOBase | None]]:
-        mo_class = one({type(o) for o in converted_objects})
-        objects_in_mo: Sequence[MOBase]
-
-        # These types are not handled by this function
-        assert not issubclass(mo_class, Termination)
-        assert not issubclass(mo_class, Employee)
-
-        # Load addresses already in MO
-        if issubclass(mo_class, Address):
-            converted_objects = cast(Sequence[Address], converted_objects)
-
-            assert all_equal([obj.person for obj in converted_objects])
-            person = first(converted_objects).person
-
-            assert all_equal([obj.org_unit for obj in converted_objects])
-            org_unit = first(converted_objects).org_unit
-
-            assert all_equal([obj.address_type for obj in converted_objects])
-            address_type = first(converted_objects).address_type
-
-            if person:
-                objects_in_mo = await self.dataloader.moapi.load_mo_employee_addresses(
-                    person,
-                    address_type,
-                )
-            elif org_unit:
-                objects_in_mo = await self.dataloader.moapi.load_mo_org_unit_addresses(
-                    OrgUnitUUID(org_unit),
-                    address_type,
-                )
-            else:
-                logger.info(
-                    "Could not format converted "
-                    "objects: An address needs to have either a person uuid "
-                    "OR an org unit uuid"
-                )
-                return []
-
-            # TODO: It seems weird to match addresses by value, as value is likely to
-            #       change quite often. Omada simply deletes and recreates addresses.
-            #       Maybe we should consider doing the same here?
-            value_key = "value"
-
-        # Load engagements already in MO
-        elif issubclass(mo_class, Engagement):
-            converted_objects = cast(Sequence[Engagement], converted_objects)
-
-            assert all_equal([obj.person for obj in converted_objects])
-            person = first(converted_objects).person
-
-            objects_in_mo = await self.dataloader.moapi.load_mo_employee_engagements(
-                person
-            )
-            value_key = "user_key"
-            user_keys = [o.user_key for o in objects_in_mo]
-
-            # If we have duplicate user_keys, remove those which are the same as the
-            # primary engagement's user_key
-            duplicate_user_keys = duplicates_everseen(user_keys)
-            if any(duplicate_user_keys):
-                primaries = await self.dataloader.moapi.is_primaries(
-                    [o.uuid for o in objects_in_mo]
-                )
-                num_primaries = quantify(primaries)
-                if num_primaries > 1:
-                    raise RequeueMessage(
-                        "Waiting for multiple primary engagements to be resolved"
-                    )
-                # TODO: if num_primaries == 0, we cannot remove duplicates, is this a problem?
-
-                if num_primaries == 1:
-                    primary_engagement = objects_in_mo[primaries.index(True)]
-                    logger.info(
-                        "Found primary engagement",
-                        uuid=str(primary_engagement.uuid),
-                        user_key=primary_engagement.user_key,
-                    )
-                    logger.info("Removing engagements with identical user keys")
-                    objects_in_mo = [
-                        o
-                        for o in objects_in_mo
-                        # Keep the primary engagement itself
-                        if o == primary_engagement
-                        # But remove duplicate user-key engagements
-                        or o.user_key != primary_engagement.user_key
-                    ]
-
-        elif issubclass(mo_class, ITUser):
-            converted_objects = cast(Sequence[ITUser], converted_objects)
-
-            assert all_equal([obj.person for obj in converted_objects])
-            person = first(converted_objects).person
-            assert person is not None
-
-            assert all_equal([obj.itsystem for obj in converted_objects])
-            itsystem = first(converted_objects).itsystem
-
-            objects_in_mo = await self.dataloader.moapi.load_mo_employee_it_users(
-                person, itsystem
-            )
-
-            value_key = "user_key"
-        else:  # pragma: no cover
-            raise AssertionError(f"Unknown mo_class: {mo_class}")
-
-        mo_mapper = {obj: getattr(obj, value_key) for obj in objects_in_mo}
-        ldap_mapper = {obj: getattr(obj, value_key) for obj in converted_objects}
-
-        # Construct a map from value-key to list of matching objects
-        values_in_mo = bucketdict(objects_in_mo, mo_mapper.get)
-        values_converted = bucketdict(converted_objects, ldap_mapper.get)
-
-        # Only values in MO targeted by our converted values are relevant
-        values_in_mo = {
-            key: value for key, value in values_in_mo.items() if key in values_converted
-        }
-
-        # We need a mapping between MO objects and converted objects.
-        # Without a mapping we cannot maintain temporality of objects in MO.
-
-        # If we have more than one MO object for each converted, the match is ambiguous.
-        # Ambiguous matches mean no mapping and must be handled by human intervention.
-        ambiguous_exception = RequeueMessage(
-            f"Bad mapping: Multiple MO objects for {json_key}"
-        )
-        value_in_mo = {
-            key: only(value, too_long=ambiguous_exception)
-            for key, value in values_in_mo.items()
-        }
-
-        # If we have more than one converted per value-key there cannot be a mapping.
-        # This probably means we have a misconfiguration of the integration.
-        # Perhaps a bad discriminator between MO objects per converted object.
-        bad_discriminator_exception = RequeueMessage(
-            f"Bad mapping: Multiple converted for {json_key}"
-        )
-        value_converted = {
-            key: one(value, too_long=bad_discriminator_exception)
-            for key, value in values_converted.items()
-        }
-
-        # At this point we know a mapping exists from converted objects to MO objects
-        mapping = [
-            (value_converted[key], value_in_mo.get(key)) for key in value_converted
-        ]
-        return mapping
-
     async def format_converted_objects(
         self,
         converted_objects: Sequence[MOBase | Termination],
@@ -543,10 +385,7 @@ class SyncTool:
 
         converted_objects = cast(Sequence[MOBase], converted_objects)
 
-        if self.settings.use_uuid_mapping:
-            mapping = await self.construct_uuid_mapping(converted_objects)
-        else:
-            mapping = await self.construct_old_mapping(converted_objects, json_key)
+        mapping = await self.construct_uuid_mapping(converted_objects)
 
         # Partition the mapping into creates and updates
         creates, updates = partition(
