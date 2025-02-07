@@ -59,8 +59,8 @@ def get_router(version: Version) -> APIRouter:
             # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
             # SPDX-License-Identifier: MPL-2.0
             #
-            # OS2mo GraphQL API schema definition (v{version}).
-            # https://os2mo.eksempel.dk/graphql/v{version}/schema.graphql
+            # OS2mo GraphQL API schema definition (v{version.value}).
+            # https://os2mo.eksempel.dk/graphql/v{version.value}/schema.graphql
 
             """
         )
