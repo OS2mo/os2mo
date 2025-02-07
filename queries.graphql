@@ -353,17 +353,6 @@ query read_ituser_by_employee_and_itsystem_uuid(
   }
 }
 
-query read_is_primary_engagements($uuids: [UUID!]!) {
-  engagements(filter: { uuids: $uuids }) {
-    objects {
-      current {
-        is_primary
-        uuid
-      }
-    }
-  }
-}
-
 query read_employee_addresses(
   $employee_uuid: UUID!
   $address_type_uuid: UUID!

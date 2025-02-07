@@ -337,12 +337,6 @@ from .read_filtered_itusers import ReadFilteredItusersItusersObjects
 from .read_filtered_itusers import ReadFilteredItusersItusersObjectsValidities
 from .read_filtered_itusers import ReadFilteredItusersItusersObjectsValiditiesItsystem
 from .read_filtered_itusers import ReadFilteredItusersItusersObjectsValiditiesValidity
-from .read_is_primary_engagements import ReadIsPrimaryEngagements
-from .read_is_primary_engagements import ReadIsPrimaryEngagementsEngagements
-from .read_is_primary_engagements import ReadIsPrimaryEngagementsEngagementsObjects
-from .read_is_primary_engagements import (
-    ReadIsPrimaryEngagementsEngagementsObjectsCurrent,
-)
 from .read_itsystem_uuid import ReadItsystemUuid
 from .read_itsystem_uuid import ReadItsystemUuidItsystems
 from .read_itsystem_uuid import ReadItsystemUuidItsystemsObjects
@@ -625,10 +619,6 @@ __all__ = [
     "ReadFilteredItusersItusersObjectsValidities",
     "ReadFilteredItusersItusersObjectsValiditiesItsystem",
     "ReadFilteredItusersItusersObjectsValiditiesValidity",
-    "ReadIsPrimaryEngagements",
-    "ReadIsPrimaryEngagementsEngagements",
-    "ReadIsPrimaryEngagementsEngagementsObjects",
-    "ReadIsPrimaryEngagementsEngagementsObjectsCurrent",
     "ReadItsystemUuid",
     "ReadItsystemUuidItsystems",
     "ReadItsystemUuidItsystemsObjects",

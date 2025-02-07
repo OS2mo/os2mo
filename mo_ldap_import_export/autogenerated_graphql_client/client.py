@@ -118,8 +118,6 @@ from .read_filtered_addresses import ReadFilteredAddresses
 from .read_filtered_addresses import ReadFilteredAddressesAddresses
 from .read_filtered_itusers import ReadFilteredItusers
 from .read_filtered_itusers import ReadFilteredItusersItusers
-from .read_is_primary_engagements import ReadIsPrimaryEngagements
-from .read_is_primary_engagements import ReadIsPrimaryEngagementsEngagements
 from .read_itsystem_uuid import ReadItsystemUuid
 from .read_itsystem_uuid import ReadItsystemUuidItsystems
 from .read_ituser_by_employee_and_itsystem_uuid import (
@@ -814,28 +812,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadItuserByEmployeeAndItsystemUuid.parse_obj(data).itusers
-
-    async def read_is_primary_engagements(
-        self, uuids: list[UUID]
-    ) -> ReadIsPrimaryEngagementsEngagements:
-        query = gql(
-            """
-            query read_is_primary_engagements($uuids: [UUID!]!) {
-              engagements(filter: {uuids: $uuids}) {
-                objects {
-                  current {
-                    is_primary
-                    uuid
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"uuids": uuids}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadIsPrimaryEngagements.parse_obj(data).engagements
 
     async def read_employee_addresses(
         self, employee_uuid: UUID, address_type_uuid: UUID
