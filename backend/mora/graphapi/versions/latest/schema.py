@@ -35,6 +35,7 @@ from mora import common
 from mora import config
 from mora import db
 from mora.common import _create_graphql_connector
+from mora.graphapi.fields import Metadata
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OpenValidity as RAMOpenValidity
 from mora.graphapi.gmodels.mo import OrganisationRead
@@ -49,6 +50,7 @@ from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.graphapi.gmodels.mo.details import OwnerRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 from mora.graphapi.middleware import with_graphql_dates
+from mora.graphapi.version import Version as GraphQLVersion
 from mora.graphapi.versions.latest.readers import _extract_search_params
 from mora.handler.reading import ReadingHandler
 from mora.handler.reading import get_handler_for_type
@@ -2839,7 +2841,8 @@ class ITUser:
     ),
 )
 class KLE:
-    kle_number: LazyClass = strawberry.field(
+    kle_number__v22: LazyClass = strawberry.field(
+        name="kle_number",
         resolver=to_one(
             seed_resolver(
                 class_resolver, {"uuids": lambda root: [root.kle_number_uuid]}
@@ -2853,6 +2856,25 @@ class KLE:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        metadata=Metadata(version=lambda v: v <= GraphQLVersion.VERSION_22),
+    )
+
+    kle_number__v23: list[LazyClass] = strawberry.field(
+        name="kle_number",
+        resolver=to_list(
+            seed_resolver(
+                class_resolver, {"uuids": lambda root: [root.kle_number_uuid]}
+            )
+        ),
+        description=dedent(
+            """\
+            The KLE number specifies the responsibility.
+
+            For more details read the `KLE` description.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_23),
     )
 
     kle_aspects: list[LazyClass] = strawberry.field(

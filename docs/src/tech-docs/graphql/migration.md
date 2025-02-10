@@ -9,6 +9,18 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 23
+
+This version changes the type of the `kle_number` field on `KLE` from `Class!`
+to `[Class!]!`. It is now the same type as its sibling `kle_aspects` field.
+
+The previous typing incorrectly assumed that KLE-number classes were static;
+valid from -infinity to infinity and never changing. Attempting to read a `KLE`
+with a `kle_number` in the past or future would therefore lead to an error,
+since the promise of always returning a single KLE class could not be
+fulfilled. The field now returns a -- potentially empty -- list of classes
+valid in the given time period.
+
 ## Version 22
 
 GraphQL version 22 introduces breaking changes to the `org_unit_update`

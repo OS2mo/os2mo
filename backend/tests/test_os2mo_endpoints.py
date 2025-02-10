@@ -147,6 +147,8 @@ graphql_endpoints = {
     "/graphql/v21/schema.graphql",
     "/graphql/v22",
     "/graphql/v22/schema.graphql",
+    "/graphql/v23",
+    "/graphql/v23/schema.graphql",
 }
 
 all_endpoints = (
