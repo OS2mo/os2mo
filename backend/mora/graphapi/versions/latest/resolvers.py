@@ -797,24 +797,6 @@ async def organisation_unit_resolver_query(
     # Child
     if filter.child is None:
         # Find parents having no children whatsoever
-        # Using NOT IN
-        # query = query.where(
-        #     # An org-unit has children iff it is referred to by `rel_maal_uuid`
-        #     # in an `overordnet` type relation within OrganisationEnhedRelation
-        #     OrganisationEnhedRegistrering.organisationenhed_id.notin_(
-        #         # This selects all active parent relations
-        #         select(
-        #             OrganisationEnhedRelation.rel_maal_uuid
-        #         ).where(
-        #             _registrering(),
-        #             _virkning(OrganisationEnhedRelation),
-        #             OrganisationEnhedRelation.rel_type
-        #             == cast("overordnet", OrganisationEnhedRelationKode),
-        #         )
-        #     )
-        # )
-        # Using EXISTS with correlated subquery
-        # If "~" is removed, it will find nodes instead of leaves
         query = query.where(
             ~exists(
                 # An org-unit has children iff it is referred to by `rel_maal_uuid`
@@ -832,22 +814,6 @@ async def organisation_unit_resolver_query(
                 .correlate(OrganisationEnhedRegistrering)
             )
         )
-        # Using EXCEPT
-        # query = query.except_(
-        #     # An org-unit has children iff it is referred to by `rel_maal_uuid`
-        #     # in an `overordnet` type relation within OrganisationEnhedRelation
-        #     # This selects all active parent relations
-        #     select(
-        #         OrganisationEnhedRelation.rel_maal_uuid
-        #     ).join(
-        #         OrganisationEnhedRegistrering
-        #     ).where(
-        #         _registrering(),
-        #         _virkning(OrganisationEnhedRelation),
-        #         OrganisationEnhedRelation.rel_type
-        #         == cast("overordnet", OrganisationEnhedRelationKode),
-        #     )
-        # )
     elif filter.child is not UNSET:
         # Find parents having one of the provided children as a direct child
         base_query = await organisation_unit_resolver_query(
