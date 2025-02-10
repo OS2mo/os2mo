@@ -1,10 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from functools import partial
 from uuid import UUID
 
 import strawberry
 from more_itertools import only
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
 from mora.auth.keycloak.oidc import LEGACY_AUTH_UUID
@@ -19,13 +22,33 @@ from .response import Response
 from .schema import Employee
 
 BEFORE_ACTOR_UUID = UUID("42c432e8-9c4a-11e6-9f62-873cf34a735f")
+ACTOR_NAME_LOADER_KEY = "actor_name_loader"
 
 
-async def database_actor_resolver(actor_uuid: UUID, info: Info) -> str | None:
-    """Translate an actor_uuid to a name via the actor table."""
-    query = select(ActorTable.name).where(ActorTable.actor == actor_uuid)
-    session = info.context["session"]
-    return await session.scalar(query)
+async def database_load_actor_names(
+    session: AsyncSession, keys: list[UUID]
+) -> list[str | None]:
+    """Load Actors from database.
+
+    Args:
+        session: The database session to execute our query on.
+        keys: list of actor_uuids to lookup.
+
+    Returns:
+        List of actor names found via the lookup, None if an actor could not be found.
+    """
+    query = select(ActorTable).where(ActorTable.actor.in_(keys))
+    rows = (await session.scalars(query)).all()
+    results = {r.actor: r for r in rows}
+    return [results.get(id) for id in keys]
+
+
+def get_actor_loaders(session: AsyncSession) -> dict[str, DataLoader]:
+    return {
+        ACTOR_NAME_LOADER_KEY: DataLoader(
+            load_fn=partial(database_load_actor_names, session)
+        )
+    }
 
 
 @strawberry.interface
@@ -46,7 +69,8 @@ class PersonActor(Actor):
 
     @strawberry.field
     async def username(self, root: "PersonActor", info: Info) -> str | None:
-        return await database_actor_resolver(root.uuid, info=info)
+        loader: DataLoader = info.context[ACTOR_NAME_LOADER_KEY]
+        return await loader.load(root.uuid)
 
 
 @strawberry.type
@@ -73,7 +97,8 @@ async def actor_uuid_to_actor(actor_uuid: UUID, info: Info) -> Actor:
         return PersonActor(uuid=actor_uuid)
 
     # Check if the UUID is an known integration
-    result = await database_actor_resolver(actor_uuid, info)
+    loader: DataLoader = info.context[ACTOR_NAME_LOADER_KEY]
+    result = await loader.load(actor_uuid)
     if result:
         return IntegrationActor(uuid=actor_uuid, name=result)
 
