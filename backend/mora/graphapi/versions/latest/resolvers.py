@@ -51,7 +51,9 @@ from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.orgunits import search_orgunits
 
+from ...custom_schema import get_version
 from ...middleware import with_graphql_dates
+from ...version import Version
 from .filters import AddressFilter
 from .filters import AssociationFilter
 from .filters import BaseFilter
@@ -210,7 +212,7 @@ async def facet_resolver(
     ):
         kwargs["facettilhoerer"] = await _get_parent_uuids(info, filter)
 
-    if info.context["version"] <= 19:
+    if get_version(info.schema) <= Version.VERSION_19:
         filter = BaseFilter(  # type: ignore[assignment]
             uuids=filter.uuids,
             user_keys=filter.user_keys,

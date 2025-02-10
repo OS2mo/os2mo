@@ -21,13 +21,11 @@ from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.graphapi.gmodels.mo import OrganisationRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
+from mora.graphapi.schema import get_schema
 from mora.graphapi.shim import execute_graphql
+from mora.graphapi.version import LATEST_VERSION
 from mora.graphapi.versions.latest.schema import AddressRead
-from mora.graphapi.versions.latest.version import LatestGraphQLSchema
 from strawberry.dataloader import DataLoader
-
-SCHEMA = str(LatestGraphQLSchema.get())
-
 
 ORG_QUERY = "query { org { uuid } }"
 ORG_UNIT_QUERY = "query { org_units { objects { uuid } } }"
@@ -154,7 +152,7 @@ async def test_graphql_rbac(
 )
 @given(
     mutation=gql_st.mutations(
-        SCHEMA,
+        str(get_schema(LATEST_VERSION)),
         custom_scalars={
             "UUID": st.uuids().map(str).map(nodes.String),
             # The below line generates raw GraphQL AST nodes, representing:

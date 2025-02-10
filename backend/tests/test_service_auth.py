@@ -47,6 +47,8 @@ def ensure_endpoints_depend_on_oidc_auth_function(
 
     # Skip the starlette.routing.Route's (defined by the framework)
     routes = filter(lambda _route: isinstance(_route, APIRoute), all_routes)
+    # Skip GraphQL endpoints
+    routes = filter(lambda _route: not _route.path.startswith("/graphql"), routes)
     # Only check endpoints not in the NO_AUTH_ENDPOINTS list
     routes = filter(lambda _route: _route.path not in no_auth_endpoints, routes)
     routes = list(routes)
@@ -94,8 +96,6 @@ def no_auth_endpoints():
         "/service/{rest_of_path:path}",
         "/metrics",
         "/saml/sso/",
-        "/graphql",
-        "/graphql/",
         # Testing endpoints are not available in deployments
         "/testing/amqp/emit",
         "/testing/database/snapshot",

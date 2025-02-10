@@ -14,8 +14,10 @@ from mora import util
 from mora.service.orgunit import OrgUnitRequestHandler
 from mora.service.validation import validator
 
+from ...version import Version
 from .inputs import OrganisationUnitCreateInput
 from .inputs import OrganisationUnitUpdateInput
+from .inputs import strip_none
 from .models import OrganisationUnitTerminate
 
 logger = logging.getLogger(__name__)
@@ -32,9 +34,13 @@ async def create_org_unit(input: OrganisationUnitCreateInput) -> UUID:
     return UUID(uuid)
 
 
-async def update_org_unit(input: OrganisationUnitUpdateInput) -> UUID:
+async def update_org_unit(version: Version, input: OrganisationUnitUpdateInput) -> UUID:
     """Updating an organisation unit."""
-    input_dict = jsonable_encoder(input.to_handler_dict())
+    handler_dict = input.to_handler_dict()
+    if version <= Version.VERSION_21:
+        handler_dict = strip_none(handler_dict)
+
+    input_dict = jsonable_encoder(handler_dict)
 
     req = {
         mapping.TYPE: mapping.ORG_UNIT,
