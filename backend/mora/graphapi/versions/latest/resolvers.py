@@ -1,17 +1,22 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
+import dataclasses
 import re
 from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
 from functools import lru_cache
+from textwrap import dedent
+from typing import Annotated
 from typing import Any
 from typing import cast as tcast
 from uuid import UUID
 
+import strawberry
 from more_itertools import flatten
+from more_itertools import only
 from more_itertools import unique_everseen
 from pydantic import ValidationError
 from sqlalchemy import ColumnElement
@@ -529,6 +534,23 @@ async def manager_resolver(
     filter: ManagerFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
+    inherit: Annotated[
+        bool,
+        strawberry.argument(
+            description=dedent(
+                """\
+                Whether to inherit managerial roles or not.
+
+                If managerial roles exist directly on this organisation unit, the flag does nothing and these managerial roles are returned.
+                However if no managerial roles exist directly, and this flag is:
+                * False: An empty list is returned.
+                * True: The result from calling `managers` with `inherit=True` on the parent of this organistion unit is returned.
+
+                Calling with `inherit=True` can help ensure that a manager is always found.
+                """
+            )
+        ),
+    ] = False,
 ) -> Any:
     """Resolve managers."""
     if filter is None:
@@ -541,17 +563,18 @@ async def manager_resolver(
         kwargs["tilknyttedebrugere"] = lora_filter(
             await get_employee_uuids(info, filter)
         )
+
+    org_unit_uuids = None
     if filter.org_units is not None or filter.org_unit is not None:
-        kwargs["tilknyttedeenheder"] = lora_filter(
-            await get_org_unit_uuids(info, filter)
-        )
+        org_unit_uuids = await get_org_unit_uuids(info, filter)
+        kwargs["tilknyttedeenheder"] = lora_filter(org_unit_uuids)
     if filter.responsibility is not None:
         class_filter = filter.responsibility or ClassFilter()
         kwargs["opgaver"] = lora_filter(
             await filter2uuids_func(class_resolver, info, class_filter)
         )
 
-    return await generic_resolver(
+    result = await generic_resolver(
         ManagerRead,
         info=info,
         filter=filter,
@@ -559,6 +582,27 @@ async def manager_resolver(
         cursor=cursor,
         **kwargs,
     )
+    if result or not inherit:
+        return result
+
+    if org_unit_uuids is None:
+        raise ValueError("The inherit flag requires an organizational unit filter")
+
+    org_unit = only(
+        org_unit_uuids,
+        too_long=ValueError(
+            "The inherit flag only works with at most one organisational unit"
+        ),
+    )
+    if org_unit is None:
+        return {}
+    # Recurse up the tree using the parent org-unit
+    child_filter = dataclasses.replace(
+        filter,
+        org_units=None,
+        org_unit=OrganisationUnitFilter(child=OrganisationUnitFilter(uuids=[org_unit])),
+    )
+    return await manager_resolver(info, filter=child_filter, inherit=True)
 
 
 async def owner_resolver(

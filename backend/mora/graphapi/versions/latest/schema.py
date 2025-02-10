@@ -3865,17 +3865,7 @@ class OrganisationUnit:
         filter.org_units = [root.uuid]
 
         resolver = to_list(seed_resolver(manager_resolver))
-        result = await resolver(root=root, info=info, filter=filter)
-        if result:
-            return result  # type: ignore
-        if not inherit:
-            return []
-        parent = await OrganisationUnit.parent(root=root, info=info)  # type: ignore
-        if parent is None:
-            return []
-        return await OrganisationUnit.managers(
-            self=self, root=parent, info=info, inherit=True
-        )
+        return await resolver(root=root, info=info, filter=filter, inherit=inherit)
 
     @strawberry.field(
         description=dedent(
@@ -3911,6 +3901,7 @@ class OrganisationUnit:
             ),
         ] = False,
     ) -> list["Owner"]:
+        # TODO: Move inherit to resolver, like `manager_resolver`
         if filter is None:
             filter = OwnerFilter()
         filter.org_units = [root.uuid]
