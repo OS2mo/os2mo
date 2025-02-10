@@ -50,7 +50,6 @@ from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.graphapi.gmodels.mo.details import OwnerRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 from mora.graphapi.middleware import with_graphql_dates
-from mora.graphapi.version import Version as GraphQLVersion
 from mora.graphapi.versions.latest.readers import _extract_search_params
 from mora.handler.reading import ReadingHandler
 from mora.handler.reading import get_handler_for_type
@@ -63,6 +62,7 @@ from mora.util import NEGATIVE_INFINITY
 from mora.util import POSITIVE_INFINITY
 from mora.util import now
 
+from ...version import Version as GraphQLVersion
 from .filters import ITUserFilter
 from .filters import ManagerFilter
 from .filters import OwnerFilter
@@ -3827,6 +3827,7 @@ class OrganisationUnit:
         return root.name
 
     @strawberry.field(
+        name="managers",
         description=dedent(
             """\
             Managerial roles for the organisation unit.
@@ -3836,8 +3837,9 @@ class OrganisationUnit:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
+        metadata=Metadata(version=lambda v: v <= GraphQLVersion.VERSION_23),
     )
-    async def managers(
+    async def managers__v23(
         self,
         root: OrganisationUnitRead,
         info: Info,
@@ -3866,6 +3868,25 @@ class OrganisationUnit:
 
         resolver = to_list(seed_resolver(manager_resolver))
         return await resolver(root=root, info=info, filter=filter, inherit=inherit)
+
+    managers: list[LazyManager] = strawberry.field(
+        resolver=to_list(
+            seed_resolver(
+                manager_resolver,
+                {"org_units": lambda root: [root.uuid]},
+            )
+        ),
+        description=dedent(
+            """\
+            Managerial roles for the organisation unit.
+
+            May be empty in which case managers are usually inherited from parents.
+            See the `inherit`-flag for details.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
+        metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_24),
+    )
 
     @strawberry.field(
         description=dedent(

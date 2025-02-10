@@ -9,6 +9,55 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+
+## Version 24
+
+GraphQL version 24 introduces a very minor breaking change to the `managers`
+filter type when accessed from within the `org_units` top-level collection.
+
+The change is best explained with an example:
+```graphql
+query {
+  org_units {
+    objects {
+      current {
+        managers(
+          filter: {}  # <-- The type of this filter is changed
+        ) {
+          uuid
+        }
+      }
+    }
+  }
+}
+```
+Here the type of the filter is changed from `ManagerFilter` to
+`OrgUnitsboundmanagerfilter`, while the type of the filter remains
+unchanged (as `ManagerFilter`) in the following case:
+```graphql
+{
+  managers(
+    filter: {}  # <-- The type of this filter is NOT changed
+	) {
+    objects {
+      current {
+        uuid
+      }
+    }
+  }
+}
+```
+
+The change to `OrgUnitsboundmanagerfilter` serves to indicate that it is no
+longer possible to pass `org_units` to the `managers` field in the first example.
+While this was possible prior to the change, it would have no effect as the code
+would simply override the given filter value with the contextual value.
+Thus the only real breaking change is the type of the filter.
+
+As such to migrate from GraphQL v22, simply update the type of the filter, and
+if you were sending org_units in simply remove it, as it had no effect.
+
+
 ## Version 23
 
 This version changes the type of the `kle_number` field on `KLE` from `Class!`
@@ -20,6 +69,7 @@ with a `kle_number` in the past or future would therefore lead to an error,
 since the promise of always returning a single KLE class could not be
 fulfilled. The field now returns a -- potentially empty -- list of classes
 valid in the given time period.
+
 
 ## Version 22
 
