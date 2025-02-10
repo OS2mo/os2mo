@@ -7,6 +7,7 @@ from sqlalchemy import JSON
 from sqlalchemy import DateTime
 from sqlalchemy import ForeignKey
 from sqlalchemy import String
+from sqlalchemy import Text
 from sqlalchemy import Uuid
 from sqlalchemy import text
 from sqlalchemy.orm import Mapped
@@ -21,7 +22,7 @@ class Actor(Base):
     __tablename__ = "actor"
 
     actor: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
 
 
 class AuditLogOperation(Base):

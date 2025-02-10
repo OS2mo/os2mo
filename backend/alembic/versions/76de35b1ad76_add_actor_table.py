@@ -22,7 +22,7 @@ def upgrade() -> None:
             sa.Uuid,
             primary_key=True,
         ),
-        sa.Column("name", sa.String(255), nullable=False),
+        sa.Column("name", sa.Text(), nullable=False),
     )
 
 
