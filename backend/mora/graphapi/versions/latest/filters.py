@@ -482,7 +482,51 @@ class ManagerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
     )
 
 
-@strawberry.input(description="Organisation unit filter.")
+@strawberry.input(
+    description=dedent(
+        """\
+        Organisation unit filter.
+
+        Consider the tree:
+        ```
+            root
+            / \\
+           l   r
+          /   / \\
+        ll   rl  rr
+        ```
+        Setting a filter to `filter=value`, yields:
+
+        filter     | value  | result                | note           |
+        -----------|--------|-----------------------|----------------|
+        user_keys  | `root` | `[root]`              |                |
+        user_keys  | `r`    | `[r]`                 |                |
+        user_keys  | `rl`   | `[rl]`                |                |
+        child      | `null` | `[ll, rl, rr]`        | Leaf nodes     |
+        child      | `{}`   | `[root, l, r]`        | Inner nodes    |
+        child      | `r`    | `[root]`              | Parent node    |
+        child      | `rl`   | `[r]`                 | Parent node    |
+        descendant | `null` | `[root,l,r,ll,rl,rr]` | All nodes      |
+        descendant | `{}`   | `[root,l,r,ll,rl,rr]` | All nodes      |
+        descendant | `r`    | `[root, r]`           |                |
+        descendant | `rl`   | `[root, r, rl]`       |                |
+        parent     | `null` | `[root]`              | Root node      |
+        parent     | `{}`   | `[l,r,ll,rl,rr]`      | Non-root nodes |
+        parent     | `r`    | `[rl,rr]`             | Child nodes    |
+        parent     | `rl`   | `[]`                  | No children    |
+        ancestor   | `null` | `[root,l,r,ll,rl,rr]` | All nodes      |
+        ancestor   | `{}`   | `[root,l,r,ll,rl,rr]` | All nodes      |
+        ancestor   | `r`    | `[r, rl, rr]`         |                |
+        ancestor   | `rl`   | `[rl]`                |                |
+
+        These can ofcourse be combined too, such that:
+        * `{child: {}, parent: {}}` returns all non-root inner nodes.
+        * `{child: null, parent: null}` returns all childless roots.
+        * `{child: {}, parent: null}` returns all roots with children.
+        * ...
+        """
+    )
+)
 class OrganisationUnitFilter(BaseFilter):
     registration: OrganisationUnitRegistrationFilter | None = strawberry.field(
         default=None,
@@ -521,6 +565,9 @@ class OrganisationUnitFilter(BaseFilter):
             Select organisation units whose parent matches the given filter.
 
             Set to `None` to find root units.
+            Set to `{}` to find non-root units.
+
+            This endpoint behaves to ancestor as child does to descendant.
             """
         ),
     )
@@ -528,6 +575,20 @@ class OrganisationUnitFilter(BaseFilter):
         default=UNSET,
         description=gen_filter_string("Parent UUID", "parents"),
         deprecation_reason="Replaced by the 'parent' filter",
+    )
+
+    child: OrganisationUnitFilter | None = strawberry.field(
+        default=UNSET,
+        description=dedent(
+            """\
+            Select organisation units whose children matches the given filter.
+
+            Set to `None` to find leaf node units.
+            Set to `{}` to find inner node units.
+
+            This endpoint behaves to descendant as parent does to ancestor.
+            """
+        ),
     )
 
     hierarchy: ClassFilter | None = strawberry.field(

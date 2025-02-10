@@ -1148,3 +1148,158 @@ async def test_has_children(
     for obj in response.data["org_units"]["objects"]:
         for validity in obj["validities"]:
             assert bool(validity["children"]) == validity["has_children"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+@pytest.mark.parametrize(
+    "filter,expected",
+    [
+        # Basics / Sanity checks
+        # No filter yields all
+        ({}, {"root", "l", "r", "ll", "rl", "rr"}),
+        # user_key=node yields that node
+        ({"user_keys": ["root"]}, {"root"}),
+        ({"user_keys": ["r"]}, {"r"}),
+        ({"user_keys": ["l", "r"]}, {"l", "r"}),
+        # Child filter
+        # Child=None yields leaves
+        ({"child": None}, {"ll", "rl", "rr"}),
+        # Child={} yields nodes
+        ({"child": {}}, {"root", "l", "r"}),
+        # Child=nodes, yields parents
+        ({"child": {"user_keys": ["r"]}}, {"root"}),
+        ({"child": {"user_keys": ["rl"]}}, {"r"}),
+        ({"child": {"user_keys": ["l", "r"]}}, {"root"}),
+        ({"child": {"user_keys": ["ll", "rl"]}}, {"l", "r"}),
+        # Descendant filter
+        # descendant=None or descendant={} yields all
+        ({"descendant": None}, {"root", "l", "r", "ll", "rl", "rr"}),
+        ({"descendant": {}}, {"root", "l", "r", "ll", "rl", "rr"}),
+        # descendant=node yields ancestors
+        ({"descendant": {"user_keys": ["r"]}}, {"root", "r"}),
+        ({"descendant": {"user_keys": ["rl"]}}, {"root", "r", "rl"}),
+        ({"descendant": {"user_keys": ["l", "r"]}}, {"root", "l", "r"}),
+        ({"descendant": {"user_keys": ["ll", "rl"]}}, {"root", "l", "r", "ll", "rl"}),
+        # Parent filter
+        # parent=None yields roots
+        ({"parent": None}, {"root"}),
+        # parent={} yields non-roots
+        ({"parent": {}}, {"l", "r", "ll", "rl", "rr"}),
+        # parent=nodes, yields children
+        ({"parent": {"user_keys": ["r"]}}, {"rl", "rr"}),
+        ({"parent": {"user_keys": ["rl"]}}, set()),
+        ({"parent": {"user_keys": ["l", "r"]}}, {"ll", "rl", "rr"}),
+        ({"parent": {"user_keys": ["ll", "rl"]}}, set()),
+        # Ancestor filter
+        # ancestor=None or ancestor={} yields all
+        ({"ancestor": None}, {"root", "l", "r", "ll", "rl", "rr"}),
+        ({"ancestor": {}}, {"root", "l", "r", "ll", "rl", "rr"}),
+        # ancestor=node yields ancestors
+        ({"ancestor": {"user_keys": ["r"]}}, {"r", "rl", "rr"}),
+        ({"ancestor": {"user_keys": ["rl"]}}, {"rl"}),
+        ({"ancestor": {"user_keys": ["l", "r"]}}, {"l", "r", "ll", "rl", "rr"}),
+        ({"ancestor": {"user_keys": ["ll", "rl"]}}, {"ll", "rl"}),
+        # Combined filters
+        # child={}, parent={} yields non-root nodes
+        ({"child": {}, "parent": {}}, {"r", "l"}),
+        # child=None, parent=None yields all childless roots
+        ({"child": None, "parent": None}, set()),
+        # child={}, parent=None yields all roots with children
+        ({"child": {}, "parent": None}, {"root"}),
+        # child=None, parent={} yields all non-root leaves
+        ({"child": None, "parent": {}}, {"ll", "rl", "rr"}),
+        # ancestor=r, descendant=r yields r
+        ({"descendant": {"user_keys": ["r"]}, "ancestor": {"user_keys": ["r"]}}, {"r"}),
+    ],
+)
+async def test_org_tree_filters(
+    graphapi_post: GraphAPIPost,
+    filter: dict[str, dict[str, list[str]] | None],
+    expected: set[str],
+) -> None:
+    """Test the various org-unit tree filters work as expected.
+
+    Args:
+        graphapi_post: The GraphQL client to run our query with.
+        filter: The GraphQL filter to apply to our org-unit query.
+        expected: The set of user-keys we expected to get back.
+    """
+
+    async def create_org() -> UUID:
+        mutate_query = """
+            mutation CreateOrg($input: OrganisationCreate!) {
+                org_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(
+            query=mutate_query, variables={"input": {"municipality_code": None}}
+        )
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["org_create"]["uuid"])
+
+    async def create_org_unit(user_key: str, parent: UUID | None = None) -> UUID:
+        mutate_query = """
+            mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
+                org_unit_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(
+            query=mutate_query,
+            variables={
+                "input": {
+                    "name": user_key,
+                    "user_key": user_key,
+                    "parent": str(parent) if parent else None,
+                    "validity": {"from": "1970-01-01T00:00:00Z"},
+                    "org_unit_type": str(uuid4()),
+                }
+            },
+        )
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["org_unit_create"]["uuid"])
+
+    await create_org()
+
+    # Construct our test-tree
+    #     root
+    #     / \
+    #    l   r
+    #   /   / \
+    # ll   rl  rr
+    root = await create_org_unit("root")
+    left = await create_org_unit("l", root)
+    await create_org_unit("ll", left)
+    right = await create_org_unit("r", root)
+    await create_org_unit("rl", right)
+    await create_org_unit("rr", right)
+
+    # Test our filter
+    query = """
+        query TestOrgUnitTreeFilters(
+          $filter: OrganisationUnitFilter
+        ) {
+          org_units(filter: $filter) {
+            objects {
+              current {
+                user_key
+              }
+            }
+          }
+        }
+    """
+    response = graphapi_post(query, variables={"filter": filter})
+    assert response.errors is None
+    assert response.data
+    results = {
+        x["current"]["user_key"]
+        for x in response.data["org_units"]["objects"]
+        if x["current"] is not None
+    }
+    assert results == expected
