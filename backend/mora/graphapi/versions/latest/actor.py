@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
+from strawberry import Private
 
 from mora.auth.keycloak.oidc import LEGACY_AUTH_UUID
 from mora.auth.keycloak.oidc import NO_AUTH_UUID
@@ -16,8 +17,8 @@ from mora.auth.middleware import LORA_USER_UUID
 from mora.db import Actor as ActorTable
 from mora.graphapi.gmodels.mo.employee import EmployeeRead
 
-from .filters import EmployeeFilter
-from .resolvers import employee_resolver
+from .filters import EmployeeFilter, ITUserFilter
+from .resolvers import employee_resolver, it_user_resolver
 from .response import Response
 from .schema import Employee
 
@@ -63,9 +64,11 @@ class IntegrationActor(Actor):
 
 @strawberry.type
 class PersonActor(Actor):
+    person_uuid: Private[UUID]
+
     @strawberry.field
     async def person(self, root: "PersonActor") -> Response[Employee]:
-        return Response[EmployeeRead](uuid=root.uuid)  # type: ignore
+        return Response[EmployeeRead](uuid=root.person_uuid)  # type: ignore
 
     @strawberry.field
     async def username(self, root: "PersonActor", info: Info) -> str | None:
@@ -94,7 +97,17 @@ async def actor_uuid_to_actor(actor_uuid: UUID, info: Info) -> Actor:
         await employee_resolver(info=info, filter=EmployeeFilter(uuids=[actor_uuid]))
     )
     if result:
-        return PersonActor(uuid=actor_uuid)
+        return PersonActor(uuid=actor_uuid, person_uuid=actor_uuid)
+
+    # Check if the UUID is an it-user
+    # TODO: Is value stored in uuid or external_id?
+    # TODO: What if there are multiple matches?
+    # TODO: What if person is not set on the IT-account?
+    result = only(
+        await it_user_resolver(info=info, filter=ITUserFilter(uuids=[actor_uuid]))
+    )
+    if result:
+        return PersonActor(uuid=actor_uuid, person_uuid=result.employee_uuid)
 
     # Check if the UUID is an known integration
     loader: DataLoader = info.context[ACTOR_NAME_LOADER_KEY]
