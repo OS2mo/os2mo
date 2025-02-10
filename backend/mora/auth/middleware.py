@@ -45,7 +45,7 @@ async def fetch_authenticated_user(
     await session.execute(
         insert(Actor)
         .values(actor=token.uuid, name=token.preferred_username)
-        .on_conflict_do_nothing()
+        .on_conflict_do_update()
     )
 
     return token.uuid
