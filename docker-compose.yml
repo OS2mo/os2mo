@@ -241,7 +241,7 @@ services:
       - keycloak-volume:/srv/
 
   keycloak-dipex-builder:
-    image: magentaaps/os2mo-keycloak-integration-builder:5
+    image: magentaaps/os2mo-keycloak-integration-builder:6
     environment:
       POSTGRES_CONNECTION_STRING: postgres://keycloak:keycloak@keycloak-db/keycloak?sslmode=disable
       POSTGRES_SCHEMA_NAME: terraform_remote_state_dipex_client
