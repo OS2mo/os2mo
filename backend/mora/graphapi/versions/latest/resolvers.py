@@ -107,16 +107,16 @@ async def filter2uuids_func(
     if filter.uuids is not None:
         return filter.uuids
 
-    uuids = mapper(await resolver_func(info, filter=filter))
-    if uuids:
-        return uuids
+    return mapper(await resolver_func(info, filter=filter))
 
-    # If the user key(s) were not in found in LoRa, we would return an empty list here.
+
+def lora_filter(uuids: list[UUID]) -> list[UUID]:
+    # If the filter lookup had no results in LoRa, we would return an empty list here.
     # Unfortunately, filtering a key on an empty list in LoRa is equivalent to _not
     # filtering on that key at all_. This is obviously very confusing to anyone who has
     # ever used SQL, but we are too scared to change the behaviour. Instead, to
     # circumvent this issue, we send a UUID which we know (hope) is never present.
-    return [UUID("00000000-baad-1dea-ca11-fa11fa11c0de")]
+    return uuids or [UUID("00000000-baad-1dea-ca11-fa11fa11c0de")]
 
 
 def extend_uuids(output_filter: BaseFilter, input: list[UUID] | None) -> None:
@@ -137,21 +137,27 @@ async def get_employee_uuids(info: Info, filter: Any) -> list[UUID]:
     employee_filter = filter.employee or EmployeeFilter()
     # Handle deprecated filter
     extend_uuids(employee_filter, filter.employees)
-    return await filter2uuids_func(employee_resolver, info, employee_filter)
+    return lora_filter(
+        await filter2uuids_func(employee_resolver, info, employee_filter)
+    )
 
 
 async def get_engagement_uuids(info: Info, filter: Any) -> list[UUID]:
     engagement_filter = filter.engagement or EngagementFilter()
     # Handle deprecated filter
     extend_uuids(engagement_filter, filter.engagements)
-    return await filter2uuids_func(engagement_resolver, info, engagement_filter)
+    return lora_filter(
+        await filter2uuids_func(engagement_resolver, info, engagement_filter)
+    )
 
 
 async def get_org_unit_uuids(info: Info, filter: Any) -> list[UUID]:
     org_unit_filter = filter.org_unit or OrganisationUnitFilter()
     # Handle deprecated filter
     extend_uuids(org_unit_filter, filter.org_units)
-    return await filter2uuids_func(organisation_unit_resolver, info, org_unit_filter)
+    return lora_filter(
+        await filter2uuids_func(organisation_unit_resolver, info, org_unit_filter)
+    )
 
 
 def to_similar(keys: list[str]) -> str:
@@ -175,11 +181,13 @@ async def registration_filter(info: Info, filter: Any) -> None:
 
     from .registration import registration_resolver
 
-    uuids = await filter2uuids_func(
-        registration_resolver,
-        info,
-        filter.registration,
-        lambda objects: [x.uuid for x in objects],
+    uuids = lora_filter(
+        await filter2uuids_func(
+            registration_resolver,
+            info,
+            filter.registration,
+            lambda objects: [x.uuid for x in objects],
+        )
     )
     extend_uuids(filter, uuids)
 
@@ -197,7 +205,7 @@ async def facet_resolver(
         # Handle deprecated filter
         extend_uuids(facet_filter, filter.parents)
         extend_user_keys(facet_filter, filter.parent_user_keys)
-        return await filter2uuids_func(facet_resolver, info, facet_filter)
+        return lora_filter(await filter2uuids_func(facet_resolver, info, facet_filter))
 
     if filter is None:
         filter = FacetFilter()
@@ -243,14 +251,14 @@ async def class_resolver(
         # Handle deprecated filter
         extend_uuids(facet_filter, filter.facets)
         extend_user_keys(facet_filter, filter.facet_user_keys)
-        return await filter2uuids_func(facet_resolver, info, facet_filter)
+        return lora_filter(await filter2uuids_func(facet_resolver, info, facet_filter))
 
     async def _get_parent_uuids(info: Info, filter: ClassFilter) -> list[UUID]:
         class_filter = filter.parent or ClassFilter()
         # Handle deprecated filter
         extend_uuids(class_filter, filter.parents)
         extend_user_keys(class_filter, filter.parent_user_keys)
-        return await filter2uuids_func(class_resolver, info, class_filter)
+        return lora_filter(await filter2uuids_func(class_resolver, info, class_filter))
 
     async def _resolve_org_unit_filter(
         info: Info, filter: OrganisationUnitFilter
@@ -279,8 +287,8 @@ async def class_resolver(
     ):
         kwargs["overordnetklasse"] = await _get_parent_uuids(info, filter)
     if filter.it_system is not None:
-        kwargs["mapninger"] = await filter2uuids_func(
-            it_system_resolver, info, filter.it_system
+        kwargs["mapninger"] = lora_filter(
+            await filter2uuids_func(it_system_resolver, info, filter.it_system)
         )
     if filter.scope is not None:
         kwargs["omfang"] = to_similar(filter.scope)
@@ -322,7 +330,7 @@ async def address_resolver(
         # Handle deprecated filter
         extend_uuids(class_filter, filter.address_types)
         extend_user_keys(class_filter, filter.address_type_user_keys)
-        return await filter2uuids_func(class_resolver, info, class_filter)
+        return lora_filter(await filter2uuids_func(class_resolver, info, class_filter))
 
     if filter is None:
         filter = AddressFilter()
@@ -346,14 +354,16 @@ async def address_resolver(
         class_filter = filter.visibility or ClassFilter()
         # rel_type "opgaver" with objekt_type "synlighed" in mox
         # TODO: Support finding entries with visibility=None
-        kwargs["opgaver"] = await filter2uuids_func(class_resolver, info, class_filter)
+        kwargs["opgaver"] = lora_filter(
+            await filter2uuids_func(class_resolver, info, class_filter)
+        )
 
     tilknyttedefunktioner = []
     if filter.engagements is not None or filter.engagement is not None:
         tilknyttedefunktioner.extend(await get_engagement_uuids(info, filter))
     if filter.ituser is not None:
         tilknyttedefunktioner.extend(
-            await filter2uuids_func(it_user_resolver, info, filter.ituser)
+            lora_filter(await filter2uuids_func(it_user_resolver, info, filter.ituser))
         )
     if tilknyttedefunktioner:
         kwargs["tilknyttedefunktioner"] = tilknyttedefunktioner
@@ -383,7 +393,7 @@ async def association_resolver(
         # Handle deprecated filter
         extend_uuids(class_filter, filter.association_types)
         extend_user_keys(class_filter, filter.association_type_user_keys)
-        return await filter2uuids_func(class_resolver, info, class_filter)
+        return lora_filter(await filter2uuids_func(class_resolver, info, class_filter))
 
     if filter is None:
         filter = AssociationFilter()
@@ -487,11 +497,13 @@ async def engagement_resolver(
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
     if filter.job_function is not None:
         class_filter = filter.job_function or ClassFilter()
-        kwargs["opgaver"] = await filter2uuids_func(class_resolver, info, class_filter)
+        kwargs["opgaver"] = lora_filter(
+            await filter2uuids_func(class_resolver, info, class_filter)
+        )
     if filter.engagement_type is not None:
         class_filter = filter.engagement_type or ClassFilter()
-        kwargs["organisatoriskfunktionstype"] = await filter2uuids_func(
-            class_resolver, info, class_filter
+        kwargs["organisatoriskfunktionstype"] = lora_filter(
+            await filter2uuids_func(class_resolver, info, class_filter)
         )
 
     return await generic_resolver(
@@ -523,7 +535,9 @@ async def manager_resolver(
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
     if filter.responsibility is not None:
         class_filter = filter.responsibility or ClassFilter()
-        kwargs["opgaver"] = await filter2uuids_func(class_resolver, info, class_filter)
+        kwargs["opgaver"] = lora_filter(
+            await filter2uuids_func(class_resolver, info, class_filter)
+        )
 
     return await generic_resolver(
         ManagerRead,
@@ -553,8 +567,8 @@ async def owner_resolver(
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
     if filter.owner is not None:
-        kwargs["tilknyttedepersoner"] = await filter2uuids_func(
-            employee_resolver, info, filter.owner
+        kwargs["tilknyttedepersoner"] = lora_filter(
+            await filter2uuids_func(employee_resolver, info, filter.owner)
         )
 
     return await generic_resolver(
@@ -615,7 +629,7 @@ async def organisation_unit_resolver_query(
         class_filter = filter.hierarchy or ClassFilter()
         # Handle deprecated filter
         extend_uuids(class_filter, filter.hierarchies)
-        return await filter2uuids_func(class_resolver, info, class_filter)
+        return lora_filter(await filter2uuids_func(class_resolver, info, class_filter))
 
     def _registrering() -> ColumnElement:
         return and_(
@@ -1003,7 +1017,9 @@ async def it_user_resolver(
         itsystem_filter = filter.itsystem or ITSystemFilter()
         # Handle deprecated filter
         extend_uuids(itsystem_filter, filter.itsystem_uuids)
-        return await filter2uuids_func(it_system_resolver, info, itsystem_filter)
+        return lora_filter(
+            await filter2uuids_func(it_system_resolver, info, itsystem_filter)
+        )
 
     if filter is None:
         filter = ITUserFilter()
@@ -1018,8 +1034,8 @@ async def it_user_resolver(
     if filter.itsystem_uuids is not None or filter.itsystem is not None:
         kwargs["tilknyttedeitsystemer"] = await _get_itsystem_uuids(info, filter)
     if filter.engagement is not None:
-        kwargs["tilknyttedefunktioner"] = await filter2uuids_func(
-            engagement_resolver, info, filter.engagement
+        kwargs["tilknyttedefunktioner"] = lora_filter(
+            await filter2uuids_func(engagement_resolver, info, filter.engagement)
         )
     if filter.external_ids is not None:
         # Early return on empty external_id list
@@ -1197,8 +1213,8 @@ async def rolebinding_resolver(
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
     if filter.ituser is not None:
-        kwargs["tilknyttedefunktioner"] = await filter2uuids_func(
-            it_user_resolver, info, filter.ituser
+        kwargs["tilknyttedefunktioner"] = lora_filter(
+            await filter2uuids_func(it_user_resolver, info, filter.ituser)
         )
 
     return await generic_resolver(
