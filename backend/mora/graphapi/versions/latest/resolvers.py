@@ -794,6 +794,49 @@ async def organisation_unit_resolver_query(
             )
         )
 
+    # Child
+    if filter.child is None:
+        # Find parents having no children whatsoever
+        query = query.where(
+            ~exists(
+                # An org-unit has children iff it is referred to by `rel_maal_uuid`
+                # in an `overordnet` type relation within OrganisationEnhedRelation
+                # This selects all active parent relations
+                select(OrganisationEnhedRelation.rel_maal_uuid)
+                .where(
+                    _registrering(),
+                    _virkning(OrganisationEnhedRelation),
+                    OrganisationEnhedRelation.rel_type
+                    == cast("overordnet", OrganisationEnhedRelationKode),
+                    OrganisationEnhedRelation.rel_maal_uuid
+                    == OrganisationEnhedRegistrering.organisationenhed_id,
+                )
+                .correlate(OrganisationEnhedRegistrering)
+            )
+        )
+    elif filter.child is not UNSET:
+        # Find parents having one of the provided children as a direct child
+        base_query = await organisation_unit_resolver_query(
+            info=info, filter=filter.child
+        )
+        query = query.where(
+            # An org-unit is a parent to one of our provided children iff its
+            # UUID is pointed to by `rel_maal_uuid` in an `overordnet` type
+            # relation within OrganisationEnhedRelation
+            OrganisationEnhedRegistrering.organisationenhed_id.in_(
+                # This selects all active parent relations for our children
+                select(OrganisationEnhedRelation.rel_maal_uuid)
+                .join(OrganisationEnhedRegistrering)
+                .where(
+                    _registrering(),
+                    _virkning(OrganisationEnhedRelation),
+                    OrganisationEnhedRelation.rel_type
+                    == cast("overordnet", OrganisationEnhedRelationKode),
+                    OrganisationEnhedRegistrering.organisationenhed_id.in_(base_query),
+                )
+            )
+        )
+
     # Ancestor
     if filter.ancestor is not UNSET:
         # Find all matching parents and then recursively find their children.
