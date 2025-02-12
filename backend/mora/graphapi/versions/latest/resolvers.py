@@ -144,9 +144,7 @@ async def get_engagement_uuids(info: Info, filter: Any) -> list[UUID]:
     engagement_filter = filter.engagement or EngagementFilter()
     # Handle deprecated filter
     extend_uuids(engagement_filter, filter.engagements)
-    return lora_filter(
-        await filter2uuids_func(engagement_resolver, info, engagement_filter)
-    )
+    return await filter2uuids_func(engagement_resolver, info, engagement_filter)
 
 
 async def get_org_unit_uuids(info: Info, filter: Any) -> list[UUID]:
@@ -360,7 +358,9 @@ async def address_resolver(
 
     tilknyttedefunktioner = []
     if filter.engagements is not None or filter.engagement is not None:
-        tilknyttedefunktioner.extend(await get_engagement_uuids(info, filter))
+        tilknyttedefunktioner.extend(
+            lora_filter(await get_engagement_uuids(info, filter))
+        )
     if filter.ituser is not None:
         tilknyttedefunktioner.extend(
             lora_filter(await filter2uuids_func(it_user_resolver, info, filter.ituser))
