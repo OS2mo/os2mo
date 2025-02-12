@@ -28,7 +28,7 @@ _settings.json_:
 
 - `exporters.os2rollekatalog.ou_filter`: _true_ eller _false_.
   Filtrer enheder og engagementer der ikke hører under
-  main_root_org_unit fra. Default er _false_.
+  main*root_org_unit fra. Default er \_false*.
 
 - `exporters.os2rollekatalog.rollekatalog_root_uuid`: Optionelt. Hvis rod-uuid'en i rollekataloget allerede eksisterer kan den sættes ind her. Rod-enheden fra OS2MO vil så få overskrevet sit UUID med denne.
 

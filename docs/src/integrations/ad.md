@@ -200,7 +200,6 @@ to parametre:
   2.  `integrations.ad.write.level2orgunit_field`
   3.  `integrations.ad.write.org_unit_field`
 
-
       Hvis hvert felt findes hos mindst én bruger, godkendes den lokale
       AD opsætning.
 
@@ -1139,8 +1138,8 @@ Derudover kan programmet konfigureres med nøgler i`settings.json`specifikt:
   Hermed vil create-ad-accounts oprette AD konti for alle brugere, undtagen
   dem som har den givne stillingsbetegnelse.
 
-Det er værd at bemærke at brugerne som laves med ad_life_cycle som udgangspunkt
-_ikke_ oprettes med relaterede data, de vil altså fremstå f.eks. uden adresser.
+Det er værd at bemærke at brugerne som laves med ad*life_cycle som udgangspunkt
+\_ikke* oprettes med relaterede data, de vil altså fremstå f.eks. uden adresser.
 Deres relaterede data kan tilførsel vha. `mo_to_ad_sync`programmet`.
 
 Settings kan overskrives hvis der skal gælde andre regler under oprettelsen af nye

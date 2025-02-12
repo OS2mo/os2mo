@@ -386,7 +386,7 @@ _sd_changed_at.py_ (som også anvendes til efterfølgende
 daglige synkroniseringer). Programmet tager i øjeblikket desværre ikke
 mod parametre fra kommandolinjen, men har brug for at blive rettet
 direkte i koden, hvor parametren _init_ i
-_\_\_main\_\__ delen af programmet skal sættes til _True_.
+\_\_\_main\_\__ delen af programmet skal sættes til \_True_.
 
 Programet kan nu afvikles direkte fra kommandolinjen:
 
