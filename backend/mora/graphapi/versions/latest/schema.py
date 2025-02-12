@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """Strawberry types describing the MO graph."""
 
+import dataclasses
 import json
 import re
 from base64 import b64encode
@@ -63,8 +64,10 @@ from mora.util import POSITIVE_INFINITY
 from mora.util import now
 
 from ...version import Version as GraphQLVersion
+from .filters import EmployeeFilter
 from .filters import ITUserFilter
 from .filters import ManagerFilter
+from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .graphql_utils import LoadKey
 from .health import health_map
@@ -96,6 +99,7 @@ from .resolvers import organisation_unit_resolver
 from .resolvers import owner_resolver
 from .resolvers import related_unit_resolver
 from .resolvers import rolebinding_resolver
+from .seed_resolver import get_bound_filter
 from .seed_resolver import seed_resolver
 from .types import CPRType
 from .validity import OpenValidity
@@ -2222,13 +2226,7 @@ class Engagement:
     async def primary_uuid(self, root: EngagementRead) -> UUID | None:
         return root.primary_uuid
 
-    managers: list[LazyManager] = strawberry.field(
-        resolver=to_list(
-            seed_resolver(
-                manager_resolver,
-                {"org_units": lambda root: uuid2list(root.org_unit_uuid)},
-            )
-        ),
+    @strawberry.field(
         description=dedent(
             """\
             Managerial roles for the engagement's organisation unit.
@@ -2239,6 +2237,62 @@ class Engagement:
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
     )
+    async def managers(
+        self,
+        info: Info,
+        root: EngagementRead,
+        # NOTE: Using get_bound_filter to ensure the filter type is the same as for org_unit.managers
+        filter: get_bound_filter(ManagerFilter, frozenset({"org_units"})) | None = None,  # type: ignore
+        # NOTE: Description copied from manager_resolver
+        inherit: Annotated[
+            bool,
+            strawberry.argument(
+                description=dedent(
+                    """\
+                    Whether to inherit managerial roles or not.
+
+                    If managerial roles exist directly on this organisation unit, the flag does nothing and these managerial roles are returned.
+                    However if no managerial roles exist directly, and this flag is:
+                    * False: An empty list is returned.
+                    * True: The result from calling `managers` with `inherit=True` on the parent of this organistion unit is returned.
+
+                    Calling with `inherit=True` can help ensure that a manager is always found.
+                    """
+                )
+            ),
+        ] = False,
+        exclude_self: Annotated[
+            bool,
+            strawberry.argument(
+                description=dedent(
+                    """\
+                    Whether to exclude the employee self when inheriting managerial roles.
+
+                    If set to `true` the employee self will never be returned in the managers list.
+
+                    If both this and `inherit` is set to `true` the organization tree will be traversed, to find the first manager that is not the employee self.
+                    """
+                )
+            ),
+        ] = False,
+    ) -> list[LazyManager]:
+        # Recurse up the tree using the parent org-unit
+        filter = filter or ManagerFilter()
+        filter = dataclasses.replace(
+            filter,
+            org_units=None,
+            org_unit=OrganisationUnitFilter(uuids=uuid2list(root.org_unit_uuid)),
+        )
+        assert filter is not None  # random assert needed for mypy
+        if exclude_self:
+            if filter.exclude:
+                raise ValueError("Cannot provide both filter.exclude and exclude_self")
+            filter = dataclasses.replace(
+                filter, exclude=EmployeeFilter(uuids=uuid2list(root.employee_uuid))
+            )
+
+        resolver = to_list(seed_resolver(manager_resolver))
+        return await resolver(root=root, info=info, filter=filter, inherit=inherit)
 
     # TODO: Document this
     fraction: int | None = strawberry.auto
