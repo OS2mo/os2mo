@@ -137,9 +137,7 @@ async def get_employee_uuids(info: Info, filter: Any) -> list[UUID]:
     employee_filter = filter.employee or EmployeeFilter()
     # Handle deprecated filter
     extend_uuids(employee_filter, filter.employees)
-    return lora_filter(
-        await filter2uuids_func(employee_resolver, info, employee_filter)
-    )
+    return await filter2uuids_func(employee_resolver, info, employee_filter)
 
 
 async def get_engagement_uuids(info: Info, filter: Any) -> list[UUID]:
@@ -339,7 +337,9 @@ async def address_resolver(
 
     kwargs = {}
     if filter.employee is not None or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+        kwargs["tilknyttedebrugere"] = lora_filter(
+            await get_employee_uuids(info, filter)
+        )
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
     if (
@@ -402,7 +402,9 @@ async def association_resolver(
 
     kwargs = {}
     if filter.employee is not None or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+        kwargs["tilknyttedebrugere"] = lora_filter(
+            await get_employee_uuids(info, filter)
+        )
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
     if (
@@ -492,7 +494,9 @@ async def engagement_resolver(
 
     kwargs = {}
     if filter.employee is not None or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+        kwargs["tilknyttedebrugere"] = lora_filter(
+            await get_employee_uuids(info, filter)
+        )
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
     if filter.job_function is not None:
@@ -530,7 +534,9 @@ async def manager_resolver(
 
     kwargs = {}
     if filter.employee is not None or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+        kwargs["tilknyttedebrugere"] = lora_filter(
+            await get_employee_uuids(info, filter)
+        )
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
     if filter.responsibility is not None:
@@ -563,7 +569,9 @@ async def owner_resolver(
 
     kwargs = {}
     if filter.employee is not None or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+        kwargs["tilknyttedebrugere"] = lora_filter(
+            await get_employee_uuids(info, filter)
+        )
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
     if filter.owner is not None:
@@ -1028,7 +1036,9 @@ async def it_user_resolver(
 
     kwargs: dict[str, Any] = {}
     if filter.employee is not None or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+        kwargs["tilknyttedebrugere"] = lora_filter(
+            await get_employee_uuids(info, filter)
+        )
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
     if filter.itsystem_uuids is not None or filter.itsystem is not None:
@@ -1093,7 +1103,9 @@ async def leave_resolver(
 
     kwargs = {}
     if filter.employee is not None or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+        kwargs["tilknyttedebrugere"] = lora_filter(
+            await get_employee_uuids(info, filter)
+        )
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
 
