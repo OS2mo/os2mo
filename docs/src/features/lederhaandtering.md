@@ -15,10 +15,10 @@ opmærker ledere i lønsystemet.)
 1. **Automatisk flytning af en leders engagement**: Når en leder bliver opmærket manuelt i MO, vil lederens engagement
    automatisk vil blive flyttet til den enhed, som man har oprettet lederen i. Se afsnittet
    om [Opret Leder i MO](#opret-leder-i-mo).
-3. **Automatisk afslutning af ledere i MO**: Når en leders sidste engagement ophører, vil vedkommendes lederrolle
+2. **Automatisk afslutning af ledere i MO**: Når en leders sidste engagement ophører, vil vedkommendes lederrolle
    ligeledes blive afsluttet automatisk. Se afsnittet
    om [Automatisk afslutning af ledere i MO](#automatisk-afslutning-af-ledere-i-mo).
-2. **Opret leder i SD** og placere ledern deri. Når indlæsningen til MO finder
+3. **Opret leder i SD** og placere ledern deri. Når indlæsningen til MO finder
    sted, vil lederen automatisk blive indplaceret korrekt i MO. Se afsnittet
    om [Indplacer leder i leder-enhed i SD-Løn](#opret-leder-i-sd).
 
@@ -54,10 +54,10 @@ samme dag som det engagement, der udløber sidst.
 
 Hermed
 
-+ automatiseres ophør af lederrollen
-+ reduceres mængden af manuelt vedligehold
-+ minimeres risiko for fejl i lederdata
-+ effektiviseres tidsforbruget
+- automatiseres ophør af lederrollen
+- reduceres mængden af manuelt vedligehold
+- minimeres risiko for fejl i lederdata
+- effektiviseres tidsforbruget
 
 ## Opret leder i SD
 
@@ -76,7 +76,7 @@ Dette afsnit beskriver hvordan logikken opfører sig, når den eksekveres:
 
 1. Det tjekkes om alle aktuelle ledere fortsat har engagementer i de organisationsenheder, de er indplacerede i. Hvis
    det ikke er tilfældet, sættes dags dato som slutdato på lederen.
-2. For alle organisationsenheder, hvis navn ender med `_leder` og som *ikke* er præfikset med `Ø_`:
+2. For alle organisationsenheder, hvis navn ender med `_leder` og som _ikke_ er præfikset med `Ø_`:
 
 ![_leder org-unit](../graphics/_leder.png)
 
@@ -92,7 +92,7 @@ Dette afsnit beskriver hvordan logikken opfører sig, når den eksekveres:
 
   ![Manager level](../graphics/manager_level.png)
 
-- Gøres lederen *også* til leder af overenhedens overenhed, hvis overenheden har `_led-adm`i sit navn.
+- Gøres lederen _også_ til leder af overenhedens overenhed, hvis overenheden har `_led-adm`i sit navn.
 
   ![led-adm](../graphics/_led-adm.png)
 
@@ -108,13 +108,13 @@ kun én tilknytning resterer.
 
 The follow environment variables can be used to configure the application:
 
-* `MO_URL`:  Base URL for MO
-* `CLIENT_ID`:  Keycloak client ID
-* `CLIENT_SECRET`: Keycloak client secret corresponding to the Keycloak client
-* `ROOT_UUID`: UUID of the root organisation unit. Instance dependant.
-* `MANAGER_TYPE_UUID`: Default UUID for `Manager type`. Instance dependant.
-* `RESPONSIBILITY_UUID`: Default UUID for `Manager type`. Instance dependant.
-* `MANAGER_LEVEL_MAPPING`: Dict with `org-unit level UUID` classes as keys and `manager level UUID` as values. Used to
+- `MO_URL`: Base URL for MO
+- `CLIENT_ID`: Keycloak client ID
+- `CLIENT_SECRET`: Keycloak client secret corresponding to the Keycloak client
+- `ROOT_UUID`: UUID of the root organisation unit. Instance dependant.
+- `MANAGER_TYPE_UUID`: Default UUID for `Manager type`. Instance dependant.
+- `RESPONSIBILITY_UUID`: Default UUID for `Manager type`. Instance dependant.
+- `MANAGER_LEVEL_MAPPING`: Dict with `org-unit level UUID` classes as keys and `manager level UUID` as values. Used to
   map from `org_unit_level` to `manager_level`.
 
 #### Usage
@@ -127,11 +127,11 @@ $ docker-compose up -d
 
 After the container is up and running, the script can be run manually by triggering a `FastAPI` endpoint:
 
-* By using the GUI at:<br>
-  ```http://localhost:8000/docs```
+- By using the GUI at:<br>
+  `http://localhost:8000/docs`
   and triggering `/trigger/all`.
-* Calling the endpoint from terminal: <br>
-  ```$ curl -X 'POST' 'http://localhost:8000/trigger/all'```<br>
+- Calling the endpoint from terminal: <br>
+  `$ curl -X 'POST' 'http://localhost:8000/trigger/all'`<br>
 
 As it checks and updates managers you will get a lot of output in `docker logs`, especially if you have opted
 for `debug` information from logs.
@@ -145,11 +145,11 @@ sd_managerscript_1  | 2022-12-09 10:38.30 [info     ] Updating managers complete
 
 ```
 
-***
+---
 
 #### Development
 
-***
+---
 
 ##### Prerequisites
 
@@ -199,7 +199,7 @@ a running OS2mo instance locally as well as the standard test data from Kolding,
 Before using this integration locally you need to clone and run the `OS2MO` container
 from [OS2MO repo](https://git.magenta.dk/rammearkitektur/os2mo):
 Once cloned you can start main `OS2MO` container using:
-```docker-compose up --build -d```
+`docker-compose up --build -d`
 
 You can now inject test data from this repository by changing folder to where this repository is located locally.
 Then run the following command:

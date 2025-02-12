@@ -13,85 +13,87 @@ Rapporterne findes i topmenuen:
 De rapporter, der findes i dag, er beskrevet nedenfor. Ønskes andre sammenstillinger af data i en rapport, kontakt venligst Magenta på support@magenta.dk.
 
 ## Eksisterende rapporter
+
 - **Alle medarbejdere**
-    - UUID
-    - Navn på person
-    - Stilling
-    - CPR-Nummer
-    - AD-email
-    - AD-telefonnummer
-    - Enhed
+  - UUID
+  - Navn på person
+  - Stilling
+  - CPR-Nummer
+  - AD-email
+  - AD-telefonnummer
+  - Enhed
 
 [Eksempel](../Reports/OS2mo%20Ansatte.xlsx)
 
 - **Alle tilknytninger**
-    - Org-enhedens UUID
-    - Org-enhedens navn
-    - Overordnet UUID
-    - Navn på person
-    - Personens UUID
-    - CPR-Nummer
+  - Org-enhedens UUID
+  - Org-enhedens navn
+  - Overordnet UUID
+  - Navn på person
+  - Personens UUID
+  - CPR-Nummer
 
 [Eksempel](../Reports/OS2mo%20alle%20tilknytninger.xlsx)
 
 - **Den administrative organisation, enhedstyper samt start- og stopdatoer**
-    - Org-enhedens UUID
-    - Org-enhedens navn
-    - Enhedstype Titel
-    - Enhedstypens UUID
-    - Gyldig fra
-    - Gyldig til
+  - Org-enhedens UUID
+  - Org-enhedens navn
+  - Enhedstype Titel
+  - Enhedstypens UUID
+  - Gyldig fra
+  - Gyldig til
 
 [Eksempel](../Reports/OS2mos%20administrative%20organisation%20inkl.%20start-%20og-%20stopdato%20samt%20enhedstyper.xlsx)
 
 - **Den administrative organisation og dens ansatte**
-    - Organisationsenhed
-    - Navn på medarbejder
-    - Brugernavn
-    - Telefon
-    - E-mail
-    - Adresse
+  - Organisationsenhed
+  - Navn på medarbejder
+  - Brugernavn
+  - Telefon
+  - E-mail
+  - Adresse
 
 [Eksempel](../Reports/OS2mos%20organisation%20inkl.%20medarbejdere.xlsx)
 
 - **Alle ledere og deres lederansvar**
-    - Enhed
-    - Navn
-    - Ansvar
-    - Telefon
-    - E-mail
+  - Enhed
+  - Navn
+  - Ansvar
+  - Telefon
+  - E-mail
 
 [Eksempel](../Reports/OS2mo%20Alle%20lederfunktioner.xlsx)
 
 - **Medarbejdertelefonbog**
-    - Navn
-    - Telefon
-    - Mobiltelefon
-    - Enhed
-    - Stillingsbetegnelse
+  - Navn
+  - Telefon
+  - Mobiltelefon
+  - Enhed
+  - Stillingsbetegnelse
 
 [Eksempel](../Reports/OS2mo%20Medarbejdertelefonbog.xlsx)
 
 - **Stilling og kontaktinformation**
-    - CPR
-    - Ansættelse gyldig fra
-    - Ansættelse gyldig til
-    - Fornavn
-    - Efternavn
-    - Person UUID
-    - Brugernavn
-    - Org-enhed
-    - Org-enhed UUID
-    - E-mail
-    - Telefon
-    - Stillingsbetegnelse
-    - Engagement UUID
+  - CPR
+  - Ansættelse gyldig fra
+  - Ansættelse gyldig til
+  - Fornavn
+  - Efternavn
+  - Person UUID
+  - Brugernavn
+  - Org-enhed
+  - Org-enhed UUID
+  - E-mail
+  - Telefon
+  - Stillingsbetegnelse
+  - Engagement UUID
 
 [Eksempel](../Reports/OS2MO%20Alles%20%20stilling%2Bemail.xlsx)
 
 Andre rapporter kan ligeledes genereres, fx. rapport over MED-organisationens repræsentanter.
 
 ## Technical info
+
 Shared reports introduces a collection of reports that can be used by
 customers regardless of their individual setup. They utilise standard
 MO-data and return
@@ -110,7 +112,7 @@ generate payroll reports, and `mora.folder.query_export` as the output
 directory.
 
 !!! example
-    In `settings.json`, the following settings should be available:
+In `settings.json`, the following settings should be available:
 
     ``` json
     {
@@ -155,7 +157,7 @@ installation required.
 The modules depend on mora_helper wich can be installed from the Helpers
 directory from the root of this repo:
 
-``` bash
+```bash
 sudo pip3 install -e os2mo_helpers
 ```
 
@@ -178,12 +180,12 @@ exported files.
 general_export.py accepts two command line parameters:
 
 - \--root: uuid for the root org to export. If this parameter is not
-given, the deepest available tree will be assumed.
+  given, the deepest available tree will be assumed.
 
 - \--threaded-speedup: If set to True, the program will start a full
-multithreaded read of all employees in MO. On most systems this will be
-significantly faster, but will result in a higher server load and a
-longer delay before the first export is finished.
+  multithreaded read of all employees in MO. On most systems this will be
+  significantly faster, but will result in a higher server load and a
+  longer delay before the first export is finished.
 
 - \--hostname: Hostname for the MO instance. Defaults to localhost.
 
@@ -195,7 +197,7 @@ cron job should be set up and SAML_TOKEN should be given a valid value.
 To set up the cron job, find the uuid of the wanted root-unit and run
 this command from cron:
 
-``` bash
+```bash
 python3 general_export.py \--hostname=localhost \--root=\<uuid\>
 ```
 

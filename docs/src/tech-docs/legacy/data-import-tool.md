@@ -14,7 +14,7 @@ running instance of os2mo.
 
 Install the os2mo_data_import package as follows:
 
-``` bash
+```bash
 # Checkout the mora source repository
 https://github.com/OS2mo/os2mo-data-import-and-export
 
@@ -30,7 +30,7 @@ pip install -e os2mo_data_import
 The main entry point (for most use cases) is the Organisation class,
 which functions as a wrapper for all the sub classes.
 
-``` python
+```python
 # Imports
 from os2mo_data_import import ImportHelper
 
@@ -50,7 +50,7 @@ os2mo.add_organisation(
 Before organisation units can be created, a type for the unit must be
 added:
 
-``` python
+```python
 # Add klasse with reference to facet "org_unit_type"
 os2mo.add_klasse(
     identifier="Hovedenhed",
@@ -64,7 +64,7 @@ Now an organisation unit can be added with "org_unit_type_ref"
 referencing the user defined identifier of the newly created unit type
 by name:
 
-``` python
+```python
 # Root unit: Magenta
 # Belongs to unit type: "Hovedenhed"
 os2mo.add_organisation_unit(
@@ -78,7 +78,7 @@ os2mo.add_organisation_unit(
 Organisation unit "Magenta" is a root unit in this example. To add
 children/sub units, "Magenta" must be referenced as parent:
 
-``` python
+```python
 # Add unit type "Afdeling"
 os2mo.add_klasse(
     identifier="Afdeling",
@@ -122,7 +122,7 @@ unit.
 
     See the example below:
 
-``` python
+```python
 # Add klasse type "AdressePost"
 # Which belongs to facet type "org_unit_address_type"
 
@@ -172,7 +172,7 @@ have a job function which is linked to a unit.
 
 Create employees first:
 
-``` python
+```python
 os2mo.add_employee(
     identifier="Susanne Chæf",
     cpr_no="0101862233"
@@ -188,7 +188,7 @@ os2mo.add_employee(
 
 Add the job function types:
 
-``` python
+```python
 # Job: CEO ("Direktør")
 os2mo.add_klasse(
     identifier="Direktør",
@@ -209,7 +209,7 @@ os2mo.add_klasse(
 Add job functions to the newly created employees with the
 "add_type_engagement" method:
 
-``` python
+```python
 # Susanne Chæf is CEO
 os2mo.add_engagement(
     employee="Susanne Chæf",
@@ -234,7 +234,7 @@ os2mo.add_engagement(
 In this example the employee "Odin Perskov" is an external consultant,
 and to reflect this an association type can be assigned:
 
-``` python
+```python
 os2mo.add_klasse(
     identifier="Ekstern Konsulent",
     facet_type_ref="association_type",
@@ -257,7 +257,7 @@ In the following example an address is assigned to employee "Odin
 Perskov". For residential addresses, valid UUID's are used to
 reference an address from the "Danish registry of addresses" (DAR):
 
-``` python
+```python
 # Add address type "AdressePostEmployee"
 os2mo.add_klasse(
     identifier="AdressePostEmployee",
@@ -281,7 +281,7 @@ os2mo.add_address_type(
 
 To add a role type:
 
-``` python
+```python
 # A role as contact for external projects
 os2mo.add_klasse(
     identifier="Nøgleansvarlig",
@@ -305,7 +305,7 @@ Generic IT systems can be created and assigned to employees with a
 specified "user_key", which functions as a reference to a username,
 pin code etc.:
 
-``` python
+```python
 # Create IT system: Database
   os2mo.new_itsystem(
       identifier="Database",
@@ -327,13 +327,13 @@ pin code etc.:
 In order to assign employees as managers to an organisation unit, the
 following types must be created:
 
--   manager type
--   manager level
--   A type for each responsibility
+- manager type
+- manager level
+- A type for each responsibility
 
 Create manager type:
 
-``` python
+```python
 os2mo.add_klasse(
     identifier="Leder",
     facet_type_ref="manager_type",
@@ -344,7 +344,7 @@ os2mo.add_klasse(
 
 Create manager level:
 
-``` python
+```python
 os2mo.add_klasse(
     identifier="Højeste niveau",
     facet_type_ref="manager_level",
@@ -355,7 +355,7 @@ os2mo.add_klasse(
 
 Create several responsibilities:
 
-``` python
+```python
 os2mo.add_klasse(
     identifier="Tage beslutninger",
     facet_type_ref="responsibility",
@@ -380,7 +380,7 @@ os2mo.add_klasse(
 
 Assign the manager position of Magenta to "Susanne Chæf":
 
-``` python
+```python
 os2mo.add_manager(
     employee="Susanne Chæf",
     organisation_unit="Magenta",
@@ -398,7 +398,7 @@ preserved in MO, it is possible to import the UUIDs for employees,
 organisational units, classes and classifications. This is achieved by
 adding an extra uuid argument when creating the object, eg:
 
-``` python
+```python
 os2mo.add_klasse(
     identifier="Betale løn",
     facet_type_ref="responsibility",
@@ -425,13 +425,14 @@ provided with contains similar import data as the given examples above.
 Feel free to run the "import_example.py" included in the repository:
 
 Example:
-``` bash
+
+```bash
 $os2mo-data-import-and-export/os2mo_data_import/import_example.py
 ```
 
 Run example:
 
-``` bash
+```bash
 cd os2mo_data_import
 python import_example.py
 ```

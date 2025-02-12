@@ -10,13 +10,14 @@ For example, if a data loader is unit tested, its data source should be mocked, 
 
 In integration tests, we only mock two things: LoRa (because it is an external interface) and the API server via a FastAPI test client. This ensures that integration tests can test behaviour from a query hits the API to the load of data.
 
-
 ## What to test
 
 What and how to test code implemented in the GraphAPI depends on the type of functionality in question. Below, we list commonly occurring scenarios and the tests required.
 
 ### Queries
+
 Implementation of queries usually consists of the following:
+
 - One or more Strawberry types, optionally with resolvers.
 - New data loaders, and/or updates to existing
 - Updates to the schema in `mora/graphpi/main.py`
@@ -29,8 +30,7 @@ Care should be taken that we do not end up testing Strawberry functionality, but
 
 ### API Context
 
-If there are any changes to the context created within the API, it must *always* be tested with a FastAPI client! In some cases, as with e.g. authentication, it can be necessary to mock the entire mora app (cf. `mora/app.py`). See `tests/graphapi/conftest.py` for an example of how to create a new test client.
-
+If there are any changes to the context created within the API, it must _always_ be tested with a FastAPI client! In some cases, as with e.g. authentication, it can be necessary to mock the entire mora app (cf. `mora/app.py`). See `tests/graphapi/conftest.py` for an example of how to create a new test client.
 
 ## Hypothesis
 

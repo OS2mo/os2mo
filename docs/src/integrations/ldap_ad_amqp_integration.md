@@ -36,7 +36,7 @@ En mapning mellem felter i MO og AD kan se ud som følger. Eksemplet giver også
 typisk synkroniseres:
 
 | MO object class | MO attribute | MO-to-AD | AD-to-MO | AD attribute(s)              |
-|-----------------|--------------|----------|----------|------------------------------|
+| --------------- | ------------ | -------- | -------- | ---------------------------- |
 | Employee        | givenname    | ✓        | %        | givenName                    |
 | Employye        | surname      | ✓        | %        | sn                           |
 | Employee        | cpr_no       | ✓        | %        | employeeID                   |
@@ -61,13 +61,7 @@ Brugernavnsgenereringen følger nogle regler, som er konfigureret i en json-fil,
 {
   "username_generator": {
     "objectClass": "UserNameGenerator",
-    "combinations_to_try": [
-      "F123L",
-      "F12LL",
-      "F1LLL",
-      "FLLLL",
-      "FLLLLX"
-    ],
+    "combinations_to_try": ["F123L", "F12LL", "F1LLL", "FLLLL", "FLLLLX"],
     "char_replacement": {
       "ø": "oe",
       "æ": "ae",
@@ -76,10 +70,7 @@ Brugernavnsgenereringen følger nogle regler, som er konfigureret i en json-fil,
       "Æ": "ae",
       "Å": "aa"
     },
-    "forbidden_usernames": [
-      "hater",
-      "lazer"
-    ]
+    "forbidden_usernames": ["hater", "lazer"]
   }
 }
 ```

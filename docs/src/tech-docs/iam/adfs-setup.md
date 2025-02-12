@@ -1,7 +1,7 @@
 # ADFS SAML setup for OS2mo
 
 !!! note
-    This guide assumes basic knowledge of ADFS and SAML auth.
+This guide assumes basic knowledge of ADFS and SAML auth.
 
     The guide also requires OS2mo and Keycloak to have been set up on your servers.
 
@@ -67,8 +67,8 @@ We also need to add a claim issuance policy, so make sure to check the checkbox 
 
 We need to add two rules:
 
-* Sending an LDAP attribute as a claim
-* Transforming that attribute to NameID
+- Sending an LDAP attribute as a claim
+- Transforming that attribute to NameID
 
 If the dialogue isn't open, select "Edit Claim Issuance Policy...".
 

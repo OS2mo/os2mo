@@ -13,25 +13,25 @@ medarbejderoplysninger fra XML dumps fra OPUS Løn til OS2MO
 
 Der er tre muligheder for læsning af opusfiler.
 
--   Lokalt: Opusfilerne kopieres direkte til serverne. Stien
-    specificeres i settings.json som
-    `integrations.opus.import.xml_path`. Som regel er den
-    `/opt/customer/`.
+- Lokalt: Opusfilerne kopieres direkte til serverne. Stien
+  specificeres i settings.json som
+  `integrations.opus.import.xml_path`. Som regel er den
+  `/opt/customer/`.
 
--   Windows share: Filerne kan læses fra et windows share med SMB
-    protokollen. Denne anvendes hvis `integrations.opus.smb_host` er udfyldt
-    i settings.json.
+- Windows share: Filerne kan læses fra et windows share med SMB
+  protokollen. Denne anvendes hvis `integrations.opus.smb_host` er udfyldt
+  i settings.json.
 
-    > Bemærk den skal udfyldes som `IP/sti`. Kræver desuden
-    en bruger med rettighed til at læse filerne og credentials sættes i
-    settings.json som `integrations.opus.smb_user` og
-    `integrations.opus.smb_password`.
+  > Bemærk den skal udfyldes som `IP/sti`. Kræver desuden
+  > en bruger med rettighed til at læse filerne og credentials sættes i
+  > settings.json som `integrations.opus.smb_user` og
+  > `integrations.opus.smb_password`.
 
--   Google cloud storage: Filerne kan
-    læses direkte fra google cloud storage. Dette kræver en service konto
-    der er sat op på serveren med rettigheder til at læse filerne. Derudover
-    er det kun `integrations.opus.gcloud_bucket_name` der skal udfyldes i
-    settings.json med det navn som storage enheden har i google cloud.
+- Google cloud storage: Filerne kan
+  læses direkte fra google cloud storage. Dette kræver en service konto
+  der er sat op på serveren med rettigheder til at læse filerne. Derudover
+  er det kun `integrations.opus.gcloud_bucket_name` der skal udfyldes i
+  settings.json med det navn som storage enheden har i google cloud.
 
 Fælles for dem alle gælder at de enkelte dumps forventes at være
 navngivet systematisk som: `ZLPE<dat0 + tid>_delta.xml`
@@ -40,26 +40,26 @@ Eksempelvis `ZLPE20190902224224_delta.xml`.
 
 ## Nuværende implementeringslogik for import fra Opus:
 
--   Data indlæses i form at et xml-dump.
--   Hvis data indeholder information om enhedstyper, oprettes disse
-    enhedstyper som klasser, hvis ikke, får alle enheder typen
-    `Enhed`.
--   SE-, CVR-, EAN-, p-numre og telefon indlæses på enheder, hvis
-    disse oplysninger er tilgængelige.
--   Hvis data indeholder postadresser på enheder eller medarejdere,
-    slås disse adresser op på DAR, og hvis det er muligt at få en
-    entydigt match, gemmes DAR-uuid'en på enheden eller personen.
-    Adresser med adressebeskyttelse importeres ikke.
--   Telefon og email importeres for medarbejdere, hvis de findes i
-    data.
--   Ansættelsestyper og titler oprettes som klasser og sættes på de
-    tilhørende engagementer. Ansættelsestypen læses fra feltet
-    `workContractText`, hvis dette eksisterer, hvis ikke får
-    medarbejderen typen `Ansat`.
--   Information om ledere importeres direkte fra data, de to
-    informationer `superiorLevel` og `subordinateLevel` konkateneres
-    til et lederniveau.
--   Information om roller importeres direkte fra data.
+- Data indlæses i form at et xml-dump.
+- Hvis data indeholder information om enhedstyper, oprettes disse
+  enhedstyper som klasser, hvis ikke, får alle enheder typen
+  `Enhed`.
+- SE-, CVR-, EAN-, p-numre og telefon indlæses på enheder, hvis
+  disse oplysninger er tilgængelige.
+- Hvis data indeholder postadresser på enheder eller medarejdere,
+  slås disse adresser op på DAR, og hvis det er muligt at få en
+  entydigt match, gemmes DAR-uuid'en på enheden eller personen.
+  Adresser med adressebeskyttelse importeres ikke.
+- Telefon og email importeres for medarbejdere, hvis de findes i
+  data.
+- Ansættelsestyper og titler oprettes som klasser og sættes på de
+  tilhørende engagementer. Ansættelsestypen læses fra feltet
+  `workContractText`, hvis dette eksisterer, hvis ikke får
+  medarbejderen typen `Ansat`.
+- Information om ledere importeres direkte fra data, de to
+  informationer `superiorLevel` og `subordinateLevel` konkateneres
+  til et lederniveau.
+- Information om roller importeres direkte fra data.
 
 ## IT-Systemer
 
@@ -106,11 +106,11 @@ være primær, vil denne ansættelse altid regnes som primær.
 Informationen om primæransætelse opretholdes i MOs facet `primary_type`,
 som ved import fra Opus XML altid populeres med disse tre klasser:
 
--   Manuelt primær ansættelse: Dette felt angiver at en ansættelse
-    manuelt er sat til at være primær
--   Ansat: Angiver en medarbejders beregnede primære ansættelse.
--   Ikke-primær ansat: Angiver alle andre ansættelser for en
-    medarbejder.
+- Manuelt primær ansættelse: Dette felt angiver at en ansættelse
+  manuelt er sat til at være primær
+- Ansat: Angiver en medarbejders beregnede primære ansættelse.
+- Ikke-primær ansat: Angiver alle andre ansættelser for en
+  medarbejder.
 
 Manuelt primær optræder ikke direkte i imports, men kan sættes manuelt
 fra MOs GUI. De øvrige primærklasser håndteres af Opus integrationen, og
@@ -129,24 +129,23 @@ For at anvende integrationen kræves udover de nævnte xml-dumps, at der
 oprettes en gyldig konfiguration i `settings.json`. De påkrævede nøgler
 er:
 
--   `mox.base`: Adressen på LoRa.
+- `mox.base`: Adressen på LoRa.
 
--   `mora.base`: Adressen på MO.
+- `mora.base`: Adressen på MO.
 
--   `integrations.opus.import.run_db`: Stien til den database som
-    gemmer information om kørsler af integrationen. Hvis integrationen
-    skal køre som mere end et engangsimport har denne fil en vigtig
-    betydning.
+- `integrations.opus.import.run_db`: Stien til den database som
+  gemmer information om kørsler af integrationen. Hvis integrationen
+  skal køre som mere end et engangsimport har denne fil en vigtig
+  betydning.
 
--   `municipality.name`: Navnet på kommunen.
+- `municipality.name`: Navnet på kommunen.
 
--   `crontab.SAML_TOKEN`: saml token til forbindelse til OS2MO
+- `crontab.SAML_TOKEN`: saml token til forbindelse til OS2MO
 
--
+- `integrations.opus.skip_employees`: **Optionelt.**
 
-    `integrations.opus.skip_employees`: **Optionelt.**
-    > Kan sættes til *true* for kun at læse
-    organisationsenheder fra opus-filerne.
+  > Kan sættes til _true_ for kun at læse
+  > organisationsenheder fra opus-filerne.
 
 Til at hjælpe med afviklingen af importen, findes en hjælpefunktion i
 `opus_helpers.py` som afvikler selve importen og initialiserer databasen
@@ -202,26 +201,26 @@ historiske data fra gamle xml-dumps, og det er derfor en forudsætning,
 at disse dumps stadig er til rådighed. For at synkronisere en enkelt
 medarbejder anvedes disse kommandolinjeparametre:
 
--   `--update-single-user`: Ansættelsesnummer på den relevante
-    medarbejder
--   `days`: Antal dage bagud integrationen skal søge.
+- `--update-single-user`: Ansættelsesnummer på den relevante
+  medarbejder
+- `days`: Antal dage bagud integrationen skal søge.
 
 ### Nuværende begrænsninger omkring re-import
 
--   IT-systemer tilknyttes kun i forbindelse med oprettelsen af en
-    medarbejder, de tildeles uendelig virkning og nedlægges aldrig.
--   Ændringer i roller håndteres kun ved ændringer i slutdatoer, det
-    antages at startdatoer ikke ændres.
--   Tomme ændringer på en leder opdages ikke, så der opstår en ekstra
-    række på lederobjekter hvis en leder ændres. Den resulterende
-    tilstand er korrekt, men indeholder en kunstig skæringsdato i sin
-    historik.
--   Der oprettes ikke automatisk nye engagementstyper, alle
-    engagementer forventes at have en type som blev oprettet ved
-    førstegangsimporten.
--   Der oprettes ikke automatisk nye lederniveauer, alle ledere
-    forventes at have et niveau som eksisterede ved
-    førstegangsimporten.
+- IT-systemer tilknyttes kun i forbindelse med oprettelsen af en
+  medarbejder, de tildeles uendelig virkning og nedlægges aldrig.
+- Ændringer i roller håndteres kun ved ændringer i slutdatoer, det
+  antages at startdatoer ikke ændres.
+- Tomme ændringer på en leder opdages ikke, så der opstår en ekstra
+  række på lederobjekter hvis en leder ændres. Den resulterende
+  tilstand er korrekt, men indeholder en kunstig skæringsdato i sin
+  historik.
+- Der oprettes ikke automatisk nye engagementstyper, alle
+  engagementer forventes at have en type som blev oprettet ved
+  førstegangsimporten.
+- Der oprettes ikke automatisk nye lederniveauer, alle ledere
+  forventes at have et niveau som eksisterede ved
+  førstegangsimporten.
 
 ## run_db.sqlite
 
@@ -233,7 +232,7 @@ Adressen på denne database er angivet i `settings.json` under nøglen
 Programmet `db_overview.py` er i stand til at læse denne database og
 giver et outut som dette:
 
-``` log
+```log
 id: 1, dump date: 2019-09-02 22:41:28, status: Running since 2019-11-19 08:32:30.575527
 id: 2, dump date: 2019-09-02 22:41:28, status: Import ended: 2019-11-19 08:55:32.455146
 id: 3, dump date: 2019-09-03 22:40:12, status: Running diff update since 2019-11-19 10:18:35.859294

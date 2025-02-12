@@ -3,6 +3,7 @@ title: MED-organisationen
 ---
 
 # MED-organisationen i MO
+
 Nedenfor findes en guide til opbygning og vedligehold af MED-organisationen i OS2mo.
 
 # Formål
@@ -38,7 +39,7 @@ Når det er gjort, kan man tildele Ejer-rollen til rette vedkommende i OS2mo og 
 
 # ​Arbejdsgange
 
-*Disclaimer: Følgende screenshots er taget fra et test-miljø og varierer fra kommunens OS2mo. Bemærk også at alle cpr-numre er fiktive.*
+_Disclaimer: Følgende screenshots er taget fra et test-miljø og varierer fra kommunens OS2mo. Bemærk også at alle cpr-numre er fiktive._
 
 ## Opret MED-organisationen
 

@@ -24,26 +24,26 @@ Data fra Omada bliver indlæst i OS2mo via et view. Nedenstående data vil blive
 
 Alle **brugere** har en VALIDFROM/VALIDTO, der bliver importeret ind i MO på hvert synkroniseret objekt. Vikarer har disse felter for **personerne**:
 
-* Fornavne
-* Efternavn
-* CPRnr.
+- Fornavne
+- Efternavn
+- CPRnr.
 
 Samt felter for **engagementerne**:
 
-* Stillingsbetegnelse - Passer præcist med de jobtitler, der allerede eksisterer i MO. Hvis ikke sættes en standard-jobtitel.
-* Organisationskode - Det kan være AD GUID, hvis disse er opsat som IT-konti på enhederne. Kan også være enhedsnummeret (bvn - brugervendt nøgle).
-* Synlighed - Sæt en adresse til 'hemmelig', 'må vises internt' eller 'må vises eksternt'.
+- Stillingsbetegnelse - Passer præcist med de jobtitler, der allerede eksisterer i MO. Hvis ikke sættes en standard-jobtitel.
+- Organisationskode - Det kan være AD GUID, hvis disse er opsat som IT-konti på enhederne. Kan også være enhedsnummeret (bvn - brugervendt nøgle).
+- Synlighed - Sæt en adresse til 'hemmelig', 'må vises internt' eller 'må vises eksternt'.
 
 Derudover bliver **adresser** synkroniseret for fx felter:
 
-* E-mail
-* Direkte telefonnummer
-* Mobiltelefonnummer
+- E-mail
+- Direkte telefonnummer
+- Mobiltelefonnummer
 
 Og **IT-konti** for følgende felter:
 
-* ObjectGuid fra Active Directory
-* AD-login / SamAccountName
+- ObjectGuid fra Active Directory
+- AD-login / SamAccountName
 
 ## Skelnen mellem eksisterende og manuelt oprettede medarbejdere
 
@@ -57,9 +57,9 @@ Når en bruger slettes i Omada (og ikke længere er med i viewet), vil brugerens
 
 I OS2mo vil ObjectGuid og ad-login (SamAccountName) blive skrevet under fanen it-system på brugeren, og adresser vil blive placeret under adressefanen.
 
-Der vil være relationer mellem *engagementer* og *adresser* samt *it-konti* og *engagementer*. Det vil sørge for at en bruger med flere engagementer og flere it-konti kan få tildelt differentierede rettigheder i fx FK Organisation.
+Der vil være relationer mellem _engagementer_ og _adresser_ samt _it-konti_ og _engagementer_. Det vil sørge for at en bruger med flere engagementer og flere it-konti kan få tildelt differentierede rettigheder i fx FK Organisation.
 
-*Bemærk at objectguid og ad-login (SamAccountName) vil fremgå af hver sin række i OS2mo’s GUI under fanen it-system.*
+_Bemærk at objectguid og ad-login (SamAccountName) vil fremgå af hver sin række i OS2mo’s GUI under fanen it-system._
 
 ## Adgangsstyring & autentificering
 

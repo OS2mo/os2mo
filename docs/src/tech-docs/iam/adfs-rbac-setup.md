@@ -1,7 +1,7 @@
 # ADFS RBAC setup for OS2mo
 
 !!! note
-    This guide requires [SAML SSO to have been set up on your servers](./adfs-setup.md).
+This guide requires [SAML SSO to have been set up on your servers](./adfs-setup.md).
 
     The guide also requires OS2mo and Keycloak to have been set up with RBAC enabled on your servers.
 
@@ -13,9 +13,9 @@ We also map the user GUID to OS2mo, so we are able to correlate the logged in us
 
 OS2mo currently supports two roles, each of which require membership of a group.
 
-* `admin` - which gives read/write permissions to everything within OS2mo.
-* `reader` - which gives read permissions to everything within OS2mo.
-* `owner` - which gives read/write permissions to everything for which your user is the owner.
+- `admin` - which gives read/write permissions to everything within OS2mo.
+- `reader` - which gives read permissions to everything within OS2mo.
+- `owner` - which gives read/write permissions to everything for which your user is the owner.
 
 Each of these roles should correspond to membership of a group in AD.
 
@@ -76,7 +76,7 @@ Select "Group" as "Outgoing claim type".
 As "Outgoing claim value" enter `os2mo-admin`. This is the name of the expected role in OS2mo.
 
 !!! warning
-    In order for OS2mo to function properly, the value of the outgoing claim **needs** to be:
+In order for OS2mo to function properly, the value of the outgoing claim **needs** to be:
 
     * `os2mo-admin` for the admin role.
     * `os2mo-reader` for the reader role.
@@ -105,7 +105,7 @@ Select "Send LDAP Attributes as Claims".
 Enter "objectGUID" as "Claim rule name" and "LDAP Attribute". Enter "object-guid" as "Outgoing Claim Type".
 
 !!! note
-    "object-guid" is not available in the dropdown, but must be typed manually.
+"object-guid" is not available in the dropdown, but must be typed manually.
 
 ![](../../graphics/adfs_rbac/adfs_claim_7.png)
 

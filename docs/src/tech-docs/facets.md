@@ -23,40 +23,44 @@ opposed to duplicating the classes for each facet.
 
 The system currently works with the following facets:
 
-  --------------------------------------------------------------------------
-  Name                        Description
-  --------------------------- ----------------------------------------------
-  `org_unit_address_type`     Address types applicable to organisational
-                              units
+---
 
-  `employee_address_type`     Address types applicable to employees
+Name Description
 
-  `manager_address_type`      Address types applicable to managers
+---
 
-  `visibility`                Visibility for addresses, e.g. public or
-                              secret addresses
+`org_unit_address_type` Address types applicable to organisational
+units
 
-  `engagement_job_function`   Job functions applicable to engagements
+`employee_address_type` Address types applicable to employees
 
-  `org_unit_type`             Types of organisational units
+`manager_address_type` Address types applicable to managers
 
-  `engagement_type`           Types of engagements
+`visibility` Visibility for addresses, e.g. public or
+secret addresses
 
-  `association_type`          Types of associations
+`engagement_job_function` Job functions applicable to engagements
 
-  `role_type`                 Legacy types of roles. Unused.
+`org_unit_type` Types of organisational units
 
-  `role`                      Types of roles
+`engagement_type` Types of engagements
 
-  `leave_type`                Types of leave, e.g. maternity leave
+`association_type` Types of associations
 
-  `manager_type`              Types of managers
+`role_type` Legacy types of roles. Unused.
 
-  `responsibility`            Responsibilities for managers
+`role` Types of roles
 
-  `manager_level`             Levels for managers
+`leave_type` Types of leave, e.g. maternity leave
 
-  `org_unit_level`            Levels for org units
+`manager_type` Types of managers
 
-  `primary_type`              Types of primary for org functions
-  --------------------------------------------------------------------------
+`responsibility` Responsibilities for managers
+
+`manager_level` Levels for managers
+
+`org_unit_level` Levels for org units
+
+`primary_type` Types of primary for org functions
+
+---

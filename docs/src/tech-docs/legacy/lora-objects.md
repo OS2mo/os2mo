@@ -44,7 +44,7 @@ is a legal organisation. A good example of this a municipality.
 A small <code>organisation</code> with all the required fields highlighted.
 </figcaption>
 
-``` {.json hl_lines="2-4 6-8 12-17"}
+```{.json hl_lines="2-4 6-8 12-17"}
 {
   "attributter": {
     "organisationegenskaber": [{
@@ -151,7 +151,7 @@ The fields used in the example `organisationenhed` are the following:
 
 > This is the root `organisation` which the `organisationenhed` is
 > part of. This is usally set on all `organisationenhed` to the single
-`organisation` in the mox instance.
+> `organisation` in the mox instance.
 
 `relationer→overordnet`
 
@@ -173,7 +173,7 @@ real world.
 A sample <code>virkning</code> with required fields highlighted.
 </figcaption>
 
-``` {.json hl_lines="2 5"}
+```{.json hl_lines="2 5"}
 {
   "from": "2017-01-01",
   "from_included": true,

@@ -42,44 +42,52 @@ object. This is the first mutator to undergo this treatment, but the
 plan is for all update mutators to exhibit this behavior.
 
 As such to migrate from GraphQL v21, simply send the query as normal:
+
 ```graphql
 mutation OrgUnitUpdate($input: OrganisationUnitUpdateInput!) {
-    org_unit_update(input: $input) {
-        uuid
-    }
+  org_unit_update(input: $input) {
+    uuid
+  }
 }
 ```
+
 But ensure that the provided `input` payload has undergone a
 transformation, where all `null` values are stripped from the payload:
+
 ```json
 {
   "uuid": "08eaf849-e9f9-53e0-b6b9-3cd45763ecbb",
-  "validity": {"from": "2020-01-01"},
+  "validity": { "from": "2020-01-01" },
   "name": "new_org_name",
   "parent": null
 }
 ```
+
 to:
-```
+
+````
 ```json
 {
   "uuid": "08eaf849-e9f9-53e0-b6b9-3cd45763ecbb",
   "validity": {"from": "2020-01-01"},
   "name": "new_org_name"
 }
-```
+````
 
 ## Version 21
 
 Prior to this version, the first `from_date` or `to_date` filter parameters were
 automatically, implicitly, and forcefully inherited in all the following levels of the
 query. For example, a query such as:
+
 ```graphql
 query GetOrgUnitEngagements {
-  org_units(filter: {from_date: null, to_date: null}) {
+  org_units(filter: { from_date: null, to_date: null }) {
     objects {
       objects {
-        engagements(filter: {from_date: "1760-01-01", to_date: "1840-01-01"}) {
+        engagements(
+          filter: { from_date: "1760-01-01", to_date: "1840-01-01" }
+        ) {
           uuid
         }
       }
@@ -87,13 +95,15 @@ query GetOrgUnitEngagements {
   }
 }
 ```
+
 could, confusingly, return engagements from today, instead of only those from the
 industrial revolution, as requested. This is no longer the case, and as such date
 filtering is correctly applied at each level of the query. This also means that for a
 query such as
+
 ```graphql
 query GetOrgUnitEngagements {
-  org_units(filter: {from_date: null, to_date: null}) {
+  org_units(filter: { from_date: null, to_date: null }) {
     objects {
       objects {
         engagements {
@@ -104,17 +114,19 @@ query GetOrgUnitEngagements {
   }
 }
 ```
+
 `engagements` will no longer implicitly inherit the `{from_date: null, to_date: null}`
 filter from `org_units`.
 
 Users who wish to maintain the old behaviour should explicitly pass the same date
 filters at each level of their query:
+
 ```graphql
 query GetOrgUnitEngagements {
-  org_units(filter: {from_date: null, to_date: null}) {
+  org_units(filter: { from_date: null, to_date: null }) {
     objects {
       objects {
-        engagements(filter: {from_date: null, to_date: null}) {
+        engagements(filter: { from_date: null, to_date: null }) {
           uuid
         }
       }
@@ -123,11 +135,11 @@ query GetOrgUnitEngagements {
 }
 ```
 
-
 ## Version 20
 
 Prior to this version, `facets` ignored `start_date` and `end_date` filtering.
 For this reason, a query like
+
 ```graphql
 query GetFacet {
   facets {
@@ -139,7 +151,9 @@ query GetFacet {
   }
 }
 ```
+
 would, confusingly, return empty `current` objects:
+
 ```json
 {
   "facets": {
@@ -154,9 +168,10 @@ would, confusingly, return empty `current` objects:
 
 This is no longer the case. Users who wish to retrieve the full facet history
 should utilise a query such as:
+
 ```graphql
 query GetFacet {
-  facets(filter: {from_date: null, to_date: null}) {
+  facets(filter: { from_date: null, to_date: null }) {
     objects {
       objects {
         user_key
@@ -165,7 +180,6 @@ query GetFacet {
   }
 }
 ```
-
 
 ## Version 19
 
@@ -178,14 +192,17 @@ The breaking changes are similar for all the endpoints, namely that the
 with the rest of the terminate mutators.
 
 As such to migrate from GraphQL v18, simply send the input as normal:
+
 ```graphql
-mutation FacetTerminate($input: FacetTerminateInput!){
-    facet_terminate(input: $input) {
-        uuid
-    }
+mutation FacetTerminate($input: FacetTerminateInput!) {
+  facet_terminate(input: $input) {
+    uuid
+  }
 }
 ```
+
 But ensure that the provided `input` payload has undergone the following transformation:
+
 ```json
 {
   "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
@@ -194,13 +211,16 @@ But ensure that the provided `input` payload has undergone the following transfo
   }
 }
 ```
+
 to:
+
 ```json
 {
   "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
   "to": "2023-01-01"
 }
 ```
+
 With a similar transformation for all calls to the other two mutators.
 
 ## Version 18
@@ -212,7 +232,7 @@ To migrate to GraphQL v18, simply send queries as you do now, but modify the
 `models` filter value according to the below table:
 
 | v17                    | v18                     |
-|------------------------|-------------------------|
+| ---------------------- | ----------------------- |
 | `AuditLog`             | `AUDIT_LOG`             |
 | `Bruger`               | `PERSON`                |
 | `Facet`                | `FACET`                 |
@@ -235,30 +255,35 @@ both now require a `validity` argument in their input types. Allowing for bitemp
 changes to the underlying data-entity.
 
 As such to migrate from GraphQL v16, simply send the input as normal:
+
 ```graphql
-mutation ClassUpdate($input: ClassUpdateInput!){
-    class_update(input: $input) {
-        uuid
-    }
+mutation ClassUpdate($input: ClassUpdateInput!) {
+  class_update(input: $input) {
+    uuid
+  }
 }
 ```
+
 But ensure that the provided `input` payload has undergone the following transformation:
+
 ```json
 {
   "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
   "name": "TestClass",
-  "user_key": "testclass",
+  "user_key": "testclass"
 }
 ```
+
 to:
+
 ```json
 {
   "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
   "name": "TestClass",
   "user_key": "testclass",
   "validity": {
-      "from": null,
-      "to": null
+    "from": null,
+    "to": null
   }
 }
 ```
@@ -273,28 +298,33 @@ both now require a `validity` argument in their input types. Allowing for bitemp
 changes to the underlying data-entity.
 
 As such to migrate from GraphQL v15, simply send the input as normal:
+
 ```graphql
-mutation FacetUpdate($input: FacetUpdateInput!){
-    facet_update(input: $input) {
-        uuid
-    }
+mutation FacetUpdate($input: FacetUpdateInput!) {
+  facet_update(input: $input) {
+    uuid
+  }
 }
 ```
+
 But ensure that the provided `input` payload has undergone the following transformation:
+
 ```json
 {
   "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-  "user_key": "Test",
+  "user_key": "Test"
 }
 ```
+
 to:
+
 ```json
 {
   "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
   "user_key": "Test",
   "validity": {
-      "from": null,
-      "to": null
+    "from": null,
+    "to": null
   }
 }
 ```
@@ -309,6 +339,7 @@ The breaking changes to the `itsystem` query endpoint as it is simply a filter t
 has been given a new type, as such it only affects users that explicitly typed the filter
 in their query, to migrate from GraphQL v14 in such case, simply rename the filter
 type:
+
 ```graphql
 query ITSystemsRead($filter: BaseFilter){
     itsystems(filter: $filter) {
@@ -316,7 +347,9 @@ query ITSystemsRead($filter: BaseFilter){
     }
 }
 ```
+
 to:
+
 ```graphql
 query ITSystemsRead($filter: ITSystemFilter){
     itsystems(filter: $filter) {
@@ -334,22 +367,27 @@ allows for future non-breaking changes.
 The `ITSystemCreateInput` input-type itself has changed however as date arguments
 are now given inside a nested `validity` container, rather than on the input type
 itself. As such to migrate from GraphQL v15, simply fix the input type:
+
 ```graphql
-mutation ITSystemUpdate($input: ITSystemCreateInput!){
-    itsystem_update(input: $input) {
-        uuid
-    }
+mutation ITSystemUpdate($input: ITSystemCreateInput!) {
+  itsystem_update(input: $input) {
+    uuid
+  }
 }
 ```
+
 to:
+
 ```graphql
-mutation ITSystemUpdate($input: ITSystemUpdateInput!){
-    itsystem_update(input: $input) {
-        uuid
-    }
+mutation ITSystemUpdate($input: ITSystemUpdateInput!) {
+  itsystem_update(input: $input) {
+    uuid
+  }
 }
 ```
+
 And ensure that the provided `input` payload has undergone the following transformation:
+
 ```json
 {
   "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
@@ -359,15 +397,17 @@ And ensure that the provided `input` payload has undergone the following transfo
   "to": null
 }
 ```
+
 to:
+
 ```json
 {
   "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
   "user_key": "Test",
   "name": "Test",
   "validity": {
-      "from": "1990-01-01T00:00:00+01:00",
-      "to": null
+    "from": "1990-01-01T00:00:00+01:00",
+    "to": null
   }
 }
 ```
@@ -380,26 +420,23 @@ to a `Filter` object.
 
 To migrate from GraphQL v13, nest your filtering parameters in the
 `filter` object, e.g. from:
+
 ```graphql
 query AddressQuery {
-  addresses(
-    from_date: "2023-09-01",
-    address_type_user_keys: "EmailEmployee",
-  ) {
+  addresses(from_date: "2023-09-01", address_type_user_keys: "EmailEmployee") {
     objects {
       uuid
     }
   }
 }
 ```
+
 to
+
 ```graphql
 query AddressQuery {
   addresses(
-    filter: {
-      from_date: "2023-09-01",
-      address_type_user_keys: "EmailEmployee",
-    },
+    filter: { from_date: "2023-09-01", address_type_user_keys: "EmailEmployee" }
   ) {
     objects {
       uuid
@@ -423,20 +460,23 @@ via the `validity` argument. All of these arguments have been made
 required and the mutually exclusivity validators have been removed.
 
 To migrate from GraphQL version 12, make the following changes to your code:
-* rename `givenname` to `given_name`
-* rename `cpr_no` to `cpr_number`
-* restructure `from` and `to` to `validity: {from: ..., to: ...}`
-* recode `name` to `given_name` / `surname` as:
+
+- rename `givenname` to `given_name`
+- rename `cpr_no` to `cpr_number`
+- restructure `from` and `to` to `validity: {from: ..., to: ...}`
+- recode `name` to `given_name` / `surname` as:
+
 ```
 given_name, surname = name.rsplit(" ", 1)
 ```
-* recode `nickname` similarly to `name`
+
+- recode `nickname` similarly to `name`
 
 ## Version 12
 
 GraphQL version 12 introduces a breaking change to the input variables taken
 by the `ituser_create`-mutator. Specifically it removes the `type` input
-variable, which was previously an optional argument that should *always* have
+variable, which was previously an optional argument that should _always_ have
 its value set to: `it`. Setting it to any other value will break
 invariants in the underlying code leading to undefined behavior.
 
@@ -452,7 +492,7 @@ To migrate from GraphQL version 11, simply stop sending `type` with your queries
 
 GraphQL version 11 introduces a breaking change to the input variables taken
 by the `manager_create`-mutator. Specifically it removes the `type` input
-variable, which was previously an optional argument that should *always* have
+variable, which was previously an optional argument that should _always_ have
 its value set to: `manager`. Setting it to any other value will break
 invariants in the underlying code leading to undefined behavior.
 
@@ -483,24 +523,26 @@ To migrate from version 9 to version 10, remove the `uuid` parameter from
 inside the `input` object instead.
 
 Version 9:
+
 ```graphql
 mutation TestClassUpdate($input: ClassUpdateInput!, $uuid: UUID!) {
-    class_update(input: $input, uuid: $uuid) {
-        uuid
-    }
+  class_update(input: $input, uuid: $uuid) {
+    uuid
+  }
 }
 ```
 
 Version 10:
+
 ```graphql
 mutation TestClassUpdate($input: ClassUpdateInput!) {
-    class_update(input: $input) {
-        uuid
-    }
+  class_update(input: $input) {
+    uuid
+  }
 }
 ```
-Where `uuid` is now within `input`.
 
+Where `uuid` is now within `input`.
 
 ## Version 9
 
@@ -512,23 +554,24 @@ To migrate from version 8 to version 9, change the name of
 `org_unit_terminate`'s input-variable from `unit` to `input`.
 
 Version 8:
+
 ```graphql
 mutation TestTerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
-    org_unit_terminate(unit: $input) {
-        uuid
-    }
+  org_unit_terminate(unit: $input) {
+    uuid
+  }
 }
 ```
 
 Version 9:
+
 ```graphql
 mutation TestTerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
-    org_unit_terminate(input: $input) {
-        uuid
-    }
+  org_unit_terminate(input: $input) {
+    uuid
+  }
 }
 ```
-
 
 ## Version 8
 
@@ -539,20 +582,22 @@ To migrate from version 7 to version 8, change the name of
 `address_terminate`'s input-variable from `at` to `input`.
 
 Version 7:
+
 ```graphql
 mutation TestTerminateAddress($input: AddressTerminateInput!) {
-    address_terminate(at: $input) {
-        uuid
-    }
+  address_terminate(at: $input) {
+    uuid
+  }
 }
 ```
 
 Version 8:
+
 ```graphql
 mutation TestTerminateAddress($input: AddressTerminateInput!) {
-    address_terminate(input: $input) {
-        uuid
-    }
+  address_terminate(input: $input) {
+    uuid
+  }
 }
 ```
 
@@ -570,6 +615,7 @@ preparation of the future implementation of (bi-)temporality.
 To migrate to the new schema, change all current GraphQL calls from
 version 6 (`/graphql/v6`) to version 7 (`/graphql/v7`) and modify
 queries for the mentioned data-types, from:
+
 ```graphql
 {
   facets {
@@ -579,7 +625,9 @@ queries for the mentioned data-types, from:
   }
 }
 ```
+
 to:
+
 ```
 {
   facets {
@@ -591,6 +639,7 @@ to:
   }
 }
 ```
+
 And modify the corresponding code that extract the data to strip the
 extra `current` wrapper object layer.
 
@@ -609,22 +658,26 @@ the refactoring becoming a breaking change motivating the new version of
 the GraphQL interface.
 
 These issues are listed below, from the following motivating mutation:
+
 ```graphql
 mutation CreateFacet {
-  facet_create(input: {
-    type: "facet"
-    uuid: "00000000-fee1-baad-fa11-dead2badc0de"
-    user_key: "EmployeeAddressType"
-    org_uuid: "3b866d97-0b1f-48e0-8078-686d96f430b3"
-    parent_uuid: "182df2a8-2594-4a3f-9103-a9894d5e0c36"
-  }) {
+  facet_create(
+    input: {
+      type: "facet"
+      uuid: "00000000-fee1-baad-fa11-dead2badc0de"
+      user_key: "EmployeeAddressType"
+      org_uuid: "3b866d97-0b1f-48e0-8078-686d96f430b3"
+      parent_uuid: "182df2a8-2594-4a3f-9103-a9894d5e0c36"
+    }
+  ) {
     uuid
   }
 }
 ```
+
 This mutation call is valid in version 5, but has several issues:
 
-* `type` is an optional argument that shall *always* have its value
+- `type` is an optional argument that shall _always_ have its value
   set to: `facet`. Setting it to any other value will break invariants
   in the underlying code leading to undefined behavior.
   The argument has the default value of `facet` and as such the issue
@@ -632,14 +685,14 @@ This mutation call is valid in version 5, but has several issues:
   The argument has however been removed entirely in version 6, as it
   is leaking implementation-specific details and should never have been
   exposed.
-* `uuid` is an optional argument used for explicitly setting the UUID
+- `uuid` is an optional argument used for explicitly setting the UUID
   to be assigned to the newly created facet.
   We generally prefer entities to have randomly generated UUIDs instead
   of predetermined ones to avoid issues such as UUID conflicts.
   The argument has the default of using randomly generated UUIDs.
   The argument has been been removed entirely in version 6, opting to
   instead always generate random UUIDs for newly created facets.
-* `org_uuid` is a required argument that shall *always* have its value
+- `org_uuid` is a required argument that shall _always_ have its value
   set to the root organisation's UUID. Setting it to any other value
   will break invariants in the underlying code leading to undefined
   behavior.
@@ -648,7 +701,7 @@ This mutation call is valid in version 5, but has several issues:
   create a new facet.
   The argument has been removed entirely in version 6, as it is leaking
   implementation-specific details and should never have been exposed.
-* `parent_uuid` is an optional argument, which was supposed to set the
+- `parent_uuid` is an optional argument, which was supposed to set the
   facet's parent relation to the UUID provided, however in version 5 it
   does nothing whatsoever, and is a completely ignored.
   The argument has been removed entirely in version 6, as having dead
@@ -657,15 +710,15 @@ This mutation call is valid in version 5, but has several issues:
 
 Thus in version 6 the above motivation mutation would now look like the
 following instead:
+
 ```graphql
 mutation CreateFacet {
-  facet_create(input: {
-    user_key: "EmployeeAddressType"
-  }) {
+  facet_create(input: { user_key: "EmployeeAddressType" }) {
     uuid
   }
 }
 ```
+
 Vastly simplifying the interface and avoiding the predetermined,
 non-random UUID anti-pattern.
 
@@ -673,7 +726,6 @@ To migrate from GraphQL version 6, simply stop sending `type`, `uuid`
 `org_uuid` and `facet_parent` with your queries. If you happen to "need"
 to set the `uuid` please get in contact so we can discuss potential
 solutions.
-
 
 ## Version 5
 
@@ -708,6 +760,7 @@ timeout limit.
 To migrate to the new paginated schema, without actually utilizing the
 pagination simply change all current GraphQL calls from version 4
 (`/graphql/v4`) to version 5 (`/graphql/v5`), and modify your call from:
+
 ```graphql
 {
   employees {
@@ -718,7 +771,9 @@ pagination simply change all current GraphQL calls from version 4
   }
 }
 ```
+
 to:
+
 ```graphql
 {
   employees {
@@ -731,12 +786,16 @@ to:
   }
 }
 ```
+
 And modify the code that extracts the data from:
+
 ```python
 result = client.execute(query)
 employees = result["employees"]
 ```
+
 to:
+
 ```
 result = client.execute(query)
 employees = result["employees"]["objects"]
@@ -744,6 +803,7 @@ employees = result["employees"]["objects"]
 
 To actually utilize the pagination a little more work must be put in.
 First the above query must be parameterized, as such:
+
 ```graphql
 query PaginatedEmployees($cursor: Cursor) {
   employees(limit: 2, cursor: $cursor) {
@@ -759,8 +819,10 @@ query PaginatedEmployees($cursor: Cursor) {
   }
 }
 ```
+
 Requesting 2 employees in the response via the `limit` parameter,
 yielding a response alike this:
+
 ```
 {
   "data": {
@@ -775,6 +837,7 @@ yielding a response alike this:
   }
 }
 ```
+
 Now as the implementation is cursor-based, to fetch the next two
 employees we must provide the value from `next_cursor` (`"Mg=="`) in the
 `cursor` argument of our query in the next iteration, repeating for each
@@ -802,24 +865,28 @@ the refactoring becoming a breaking change motivating the new version of
 the GraphQL interface.
 
 These issues are listed below, from the following motivating mutation:
+
 ```graphql
 mutation CreateClass {
-  class_create(input: {
-    type: "class"
-    uuid: "00000000-fee1-baad-fa11-dead2badc0de"
-    name: "Office Number"
-    user_key: "EmployeeOfficeNumber"
-    scope:"TEXT"
-    facet_uuid: "5b3a55b1-958c-416e-9054-606b2c9e4fcd"
-    org_uuid: "3b866d97-0b1f-48e0-8078-686d96f430b3"
-  }) {
+  class_create(
+    input: {
+      type: "class"
+      uuid: "00000000-fee1-baad-fa11-dead2badc0de"
+      name: "Office Number"
+      user_key: "EmployeeOfficeNumber"
+      scope: "TEXT"
+      facet_uuid: "5b3a55b1-958c-416e-9054-606b2c9e4fcd"
+      org_uuid: "3b866d97-0b1f-48e0-8078-686d96f430b3"
+    }
+  ) {
     uuid
   }
 }
 ```
+
 This mutation call is valid in version 3, but has several issues:
 
-* `type` is an optional argument that shall *always* have its value
+- `type` is an optional argument that shall _always_ have its value
   set to: `class`. Setting it to any other value will break invariants
   in the underlying code leading to undefined behavior.
   The argument has the default value of `class` and as such the issue
@@ -827,14 +894,14 @@ This mutation call is valid in version 3, but has several issues:
   The argument has however been removed entirely in version 4, as it
   is leaking implementation-specific details and should never have been
   exposed.
-* `uuid` is an optional argument used for explicitly setting the UUID
+- `uuid` is an optional argument used for explicitly setting the UUID
   to be assigned to the newly created class.
   We generally prefer entities to have randomly generated UUIDs instead
   of predetermined ones to avoid issues such as UUID conflicts.
   The argument has the default of using randomly generated UUIDs.
   The argument has been been removed entirely in version 4, opting to
   instead always generate random UUIDs for newly created classes.
-* `org_uuid` is a required argument that shall *always* have its value
+- `org_uuid` is a required argument that shall _always_ have its value
   set to the root organisation's UUID. Setting it to any other value
   will break invariants in the underlying code leading to undefined
   behavior.
@@ -846,18 +913,22 @@ This mutation call is valid in version 3, but has several issues:
 
 Thus in version 4 the above motivation mutation would now look like the
 following instead:
+
 ```graphql
 mutation CreateClass {
-  class_create(input: {
-    name: "Office Number"
-    user_key: "EmployeeOfficeNumber"
-    scope:"TEXT"
-    facet_uuid: "5b3a55b1-958c-416e-9054-606b2c9e4fcd"
-  }) {
+  class_create(
+    input: {
+      name: "Office Number"
+      user_key: "EmployeeOfficeNumber"
+      scope: "TEXT"
+      facet_uuid: "5b3a55b1-958c-416e-9054-606b2c9e4fcd"
+    }
+  ) {
     uuid
   }
 }
 ```
+
 Vastly simplifying the interface and avoiding the predetermined,
 non-random UUID anti-pattern.
 
@@ -865,13 +936,13 @@ To migrate from GraphQL version 3, simply stop sending `type`, `uuid`
 and `org_uuid` with your queries. If you happen to "need" to set the
 `uuid` please get in contact so we can discuss potential solutions.
 
-
 ## Version 3
 
 GraphQL version 3 introduced a breaking change to the healths top-level type
 by introducing pagination to the endpoint.
 
 To query all healthchecks from OS2mo in GraphQL Version 2, run:
+
 ```graphql
 query {
   healths {
@@ -880,7 +951,9 @@ query {
   }
 }
 ```
+
 Which will result in a result similar to:
+
 ```
 {
   "data": {
@@ -895,6 +968,7 @@ Which will result in a result similar to:
 ```
 
 While to fetch the same data under GraphQL Version 3, one must run:
+
 ```graphql
 query {
   healths {
@@ -905,7 +979,9 @@ query {
   }
 }
 ```
+
 Which will result in a result similar to:
+
 ```
 {
   "data": {
@@ -932,13 +1008,13 @@ for which it may make sense, as we do not expect a huge list of healthpoints to
 be introduced. That being said, this is no guarantee and not implementing the
 pagination means risking potential breakage in the future.
 
-
 ## Version 2
 
 GraphQL version 2 introduced a breaking change to the parent relation on
 organisation units.
 
 Assuming a query alike:
+
 ```graphql
 query OrganisationUnitParentQuery {
   org_units(uuids: [$uuid]) {
@@ -950,7 +1026,9 @@ query OrganisationUnitParentQuery {
   }
 }
 ```
+
 The result on version 1 of GraphQL would be:
+
 ```json
 {
   "data": {
@@ -968,7 +1046,9 @@ The result on version 1 of GraphQL would be:
   }
 }
 ```
+
 While on version 2 of GraphQL the result would be:
+
 ```
 {
   "data": {
@@ -984,6 +1064,7 @@ While on version 2 of GraphQL the result would be:
   }
 }
 ```
+
 The difference is subtle, namely that parent used to return a single element
 list containing the parent object, while it now returns an optional parent
 object instead.

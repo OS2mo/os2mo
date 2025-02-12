@@ -8,6 +8,7 @@ SPDX-License-Identifier: MPL-2.0
 Models used by [OS2mo](https://github.com/OS2mo/os2mo). This project is available on [PyPI](https://pypi.org/project/ramodels/).
 
 ## Requirements
+
 Python 3.8+
 
 Dependencies:
@@ -16,6 +17,7 @@ Dependencies:
 - [backports.zoneinfo](https://pypi.org/project/backports.zoneinfo/) for Python <3.9
 
 ## Installation
+
 Install via pip
 
 ```bash
@@ -29,6 +31,7 @@ poetry add ramodels
 ```
 
 ## Usage
+
 Create POST payloads to OS2mo. For example:
 
 ```python
@@ -64,4 +67,5 @@ print(new_ou.json(by_alias=True, indent=2))
 ```
 
 ## License
+
 This project is licensed under the terms of the [MPL-2.0 license](https://www.mozilla.org/en-US/MPL/2.0/).

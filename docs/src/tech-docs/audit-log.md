@@ -13,7 +13,7 @@ OS2mo. Each entry has a reference to the user-uuid that made the change
 list of UUIDs exist:
 
 | Integration                 | UUID                                 |
-|-----------------------------|--------------------------------------|
+| --------------------------- | ------------------------------------ |
 | AD2Mo Sync                  | ad21105c-baad-c0de-6164-326d6f73796e |
 | ADGUID Sync                 | ad5711c0-baad-c0de-0000-616467756964 |
 | Calculate Primary           | ca1c0000-baad-c0de-6361-6c637072696d |

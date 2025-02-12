@@ -3,7 +3,7 @@ title: LoRa Wildcards
 ---
 
 When making a search operation with wildcards, a lot happens. Going from the
-*bottom* of the stack the following happens:
+_bottom_ of the stack the following happens:
 
 In SQL the match between two strings is made with [ILIKE from
 PostgresSQL](https://www.postgresql.org/docs/11.7/functions-matching.html#FUNCTIONS-LIKE).
@@ -30,7 +30,7 @@ sign is ignored. E.g. `%g4` in an URI also remains `%g4` in SQL and
 These three mechanisms combined results in some very novel behavior. See
 the table below:
 
-| URI Query       | PGSQL     | RegEx       | Matches |
+| URI Query       | PGSQL     | RegEx       | Matches                                           |
 | --------------- | --------- | ----------- | ------------------------------------------------- |
 | `jkl`           | `jkl`     | `^jkl$`     | the string `jkl`                                  |
 | `_jkl`          | `\_jkl`   | `%jkl`      | a litteral underscore followed by `jkl`           |
@@ -41,10 +41,9 @@ the table below:
 | `%25456`        | `%456`    | `^.*456$`   | zero or more of any characters followed by `456`  |
 | `\_jkl`         | `\\_jkl`  | `\\_jkl$`   | a `\` followed by any character followed by `jkl` |
 
-
 The best way to avoid most of the confusion is to always
 percentage-encode your URI and never write `\_` in your query.
 
 !!! attention
-    **Always** use `RFC 3986 <3986#section-2>`{.interpreted-text role="rfc"}
-    percentage-encoding for your search URI!
+**Always** use `RFC 3986 <3986#section-2>`{.interpreted-text role="rfc"}
+percentage-encoding for your search URI!

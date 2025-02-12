@@ -10,7 +10,6 @@ mechanisms to a separate component in the tech stack.
 
 ## Authentication Flow
 
-
 The key parts of the OS2mo infrastructure relevant for the
 authentication flow is shown in the figure below:
 
@@ -32,7 +31,7 @@ The autentication flow is as follows:
 5.  The frontend sets the `Authorization` header with the bearer token
     obtained from Keycloak on all backend requests, i.e.
 
-    ``` {.text}
+    ```{.text}
     Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSld...
     ```
 
@@ -44,24 +43,22 @@ The autentication flow is as follows:
 The tokens are signed with a private JSON Web Key (JWK) by Keycloak, and
 in order to validate the token, the backend needs the public (JWK) key
 from Keycloak. This key can be retreived by a one-time operation, i.e.
-the backend does *not* need to call Keycloak for each request entering
+the backend does _not_ need to call Keycloak for each request entering
 the backend. The Keycloak public key is only changed very rarely, so a
 request to Keycloak is only necessary when the public key changes.
 
 ## Configuration
-
 
 This section describes the Keycloak configurations required by the
 backand and the frontend.
 
 ### Backend
 
-
 The MO backend needs a few configurations to be able to communicate with
 Keycloak (which is actually only needed when the backend have to fetch
 the public signing key - the public JWK - from Keycloak):
 
-``` {.text}
+```{.text}
 keycloak_schema = "https"
 keycloak_host = "keycloak"
 keycloak_port = 443
@@ -74,7 +71,6 @@ development environment.
 
 ### Frontend
 
-
 The frontend has to know where to reach Keycloak in order to be able to
 redirect unauthenticated users to Keycloak, when they hit the frontend
 landing page in the browser. This is configured in a `keycloak.json`
@@ -82,7 +78,7 @@ file served by the backend (e.g. for the development environment)
 `http://localhost:5000/keycloak.json`. The content of this file is
 similar to this:
 
-``` {.json}
+```{.json}
 {
   "realm": "mo",
   "auth-server-url": "http://localhost:5000/auth/",
@@ -108,20 +104,18 @@ away from the developer.
 
 ## Getting a token
 
-
 Depending on the context, there are two main ways we can use to retreive
 tokens manually from Keycloak:
 
-1.  Requesting a token by using *username/password credentials* for a
+1.  Requesting a token by using _username/password credentials_ for a
     user in the MO realm in Keycloak.
-2.  Requesting a token using a *client credential* for a client in the
+2.  Requesting a token using a _client credential_ for a client in the
     MO realm in Keycloak. This mechanism is used for backend-to-backend
     communication, e.g. a DIPEX client can use this method to get a
     token from Keycloak and pass it in on following requests to the MO
     backend.
 
 ### By username/password
-
 
 A Python example of how to get a token from Keycloak and use this in a
 backend request can be is show here request is shown here
@@ -132,7 +126,7 @@ and the corresponding curl request is shown below. The user used in the
 example is Bruce Lee having the credentials
 `username/password = bruce/bruce`.
 
-``` {.bash}
+```{.bash}
 $ curl -s -X POST -d 'grant_type=password&client_id=mo&username=bruce&password=bruce' \
   "http://localhost:5000/auth/realms/mo/protocol/openid-connect/token"
 {
@@ -153,7 +147,6 @@ expiration time etc.
 
 ### By Client Credentials
 
-
 A Python example of how to get a token from Keycloak and use this in a
 backend request is shown here
 
@@ -163,7 +156,7 @@ and the corresponding curl request is shown below. The client used in
 this example is called `dipex`, and the client credential for this
 client is `603f1c82-d012-4d04-9382-dbe659c533fb`.
 
-``` {.bash}
+```{.bash}
 $ curl -s -X POST \
   -d 'grant_type=client_credentials&client_id=dipex&client_secret=603f1c82-d012-4d04-9382-dbe659c533fb' \
   "http://localhost:5000/auth/realms/mo/protocol/openid-connect/token"
@@ -178,27 +171,25 @@ $ curl -s -X POST \
 ```
 
 Note that in this case, a refresh token is not returned to the caller
-(as Keycloak writes *\"\... The OAuth 2.0 RFC6749 Section 4.4.3 states
-that a refresh\_token should not be generated when client\_credentials
-grant is used.\"*). If the client credentials method is needed, this has
+(as Keycloak writes _\"\... The OAuth 2.0 RFC6749 Section 4.4.3 states
+that a refresh_token should not be generated when client_credentials
+grant is used.\"_). If the client credentials method is needed, this has
 to be specifically enabled for the relevant Keycloak client in the MO
 realm.
 
 ## Calling the backend
-
 
 Once a token has been fetched from Keycloak, it can be passed along in
 the requests to the backend. The Python files referenced in the section
 above demonstrate how to do this in Python, and a example with curl is
 provided here:
 
-``` {.bash}
+```{.bash}
 $ curl -i -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiA..." \
 "http://localhost:5000/service/o/"
 ```
 
 ## Token content
-
 
 The parsed OIDC token contains among relevant information (name,
 username, email address, The parsed OIDC token contains relevant
@@ -208,7 +199,7 @@ the frontend and the backend, respectively, and the token info can be
 extracted by the application and used in whatever logic that needs to be
 implemented. An example token (no roles and group info) is shown here:
 
-``` {.json}
+```{.json}
 {
   "acr": "1",
   "allowed-origins": ["http://localhost:5001"],
@@ -247,7 +238,6 @@ development environment it can be accessed at
 
 ## Authorization
 
-
 Role-based access control (RBAC) can be enabled in MO, if this is
 required.
 
@@ -268,25 +258,23 @@ rules:
 
 ### Configuration of MO
 
-
 Set the following environment variables on the Docker container of MO to
 enable RBAC:
 
-``` {.bash}
+```{.bash}
 KEYCLOAK_RBAC_ENABLED: "true"
 ```
 
 ### Configuration of Keycloak
-
 
 Keycloak is configured via the [OS2mo Keycloak Realm
 Builder](https://github.com/OS2mo/keycloak-realm-builder). The realm
 builder takes a number of environment variables as input and returns a
 Keycloak realm JSON configuration file as output. In order to enable
 RBAC, the following environment variable must to set on the realm
-builder Docker container (*note: NOT the Keycloak container itself*):
+builder Docker container (_note: NOT the Keycloak container itself_):
 
-``` {.bash}
+```{.bash}
 KEYCLOAK_RBAC_ENABLED: "true"
 ```
 
@@ -300,7 +288,7 @@ In the development environment, it is also necessary to
 The users can be set on the realm builder container by using the
 `KEYCLOAK_REALM_USERS` environment variable e.g. like this:
 
-``` {.bash}
+```{.bash}
 KEYCLOAK_REALM_USERS: '[
   {
     "username": "eline",
@@ -321,12 +309,11 @@ employee `eline` in MO. See a full example in the
 
 ### Keycloak token and RBAC
 
-
 When RBAC is enabled, the Keycloak token will contain information about
 the roles of the user, i.e. the decoded token will contain e.g. these
 attributes:
 
-``` {.json}
+```{.json}
 {
   "realm_access": {"roles": ["owner"]},
   "uuid": "1c571f8f-0e3e-4ffa-9ff0-d35505781924"

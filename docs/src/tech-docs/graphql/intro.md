@@ -14,11 +14,11 @@ GraphQL, but rather seeks to introduce and document OS2mo-specifics.
 
 For a general introduction to GraphQL, please seek out other guides online.
 
-
 ## Quickstart
 
 Data can be extracted from the API by running queries against the GraphQL
 endpoint. For example, to query the name of all IT systems available in MO:
+
 ```bash
 # bash
 curl -X POST -H "Content-Type: application/json" \
@@ -26,6 +26,7 @@ curl -X POST -H "Content-Type: application/json" \
      --data '{"query": "{itsystems {objects {name}}}"}' \
      https://example.com/mo/graphql/v6
 ```
+
 ```pwsh
 # Powershell
 (Invoke-Webrequest https://example.com/mo/graphql/v6 `
@@ -34,7 +35,9 @@ curl -X POST -H "Content-Type: application/json" \
     -Headers @{ Authorization = "Bearer ..." } `
 ).Content
 ```
+
 Both of which will return a JSON response similar to:
+
 ```json
 {
   "data": {
@@ -51,13 +54,13 @@ Both of which will return a JSON response similar to:
   }
 }
 ```
+
 Similarly data can be changed by running a mutation instead of a query on the
 same GraphQL endpoint.
 
 To get GraphQL calls executed the caller must include a sufficiently privileged
 access token in the `Authorization` header. For details on how to acquire such
 a token, please read the [Authentication documentation](../iam/auth.md).
-
 
 ## Versioning
 
@@ -85,7 +88,6 @@ The GraphQL schema for each version is available at
 `/graphql/vXX/schema.graphql` in regular GraphQL Schema Definition Language
 (SDL).
 
-
 ## Pagination
 
 The OS2mo GraphQL interface is paginated to handle large data quantities.
@@ -98,7 +100,6 @@ In a future GraphQL version a strict timeout may be introduced, to ensure that
 all queries execute and return in a reasonable amount of time, thus
 necessitating proper use of pagination at that time.
 
-
 ## API documentation
 
 As GraphQL is self-descriptive by nature, this documentation does not contain
@@ -108,7 +109,6 @@ which runs these queries on behalf of the user.
 
 OS2mo ships with two such tools, namely the GraphQL Voyager model and GraphiQL
 interactive development environment.
-
 
 ### GraphQL Voyager
 

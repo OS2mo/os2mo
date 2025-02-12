@@ -4,20 +4,20 @@ SPDX-License-Identifier: MPL-2.0
 -->
 
 # Creating Organisation Units
-In order to create a new organisation unit, we use the [Organisation Unit Model][ramodels.mo.organisation_unit.OrganisationUnit].
+
+In order to create a new organisation unit, we use the [Organisation Unit Model][ramodels.mo.organisation_unit.organisationunit].
 Suppose we already have the following organisation structure.
 
 - Top Unit 1: `UUID=topunit1_uuid`
-    - Unit A: `UUID=unita_uuid`
-    - Unit B: `UUID=unitb_uuid`
-          - Sub Unit 1: `UUID=subunit1_uuid`
+  - Unit A: `UUID=unita_uuid`
+  - Unit B: `UUID=unitb_uuid` - Sub Unit 1: `UUID=subunit1_uuid`
 - Top Unit 2: `UUID=topunit2_uuid`
-    - Unit C: `UUID=unitc_uuid`
-        - Sub Unit 2: `UUID=subunit2_uuid`
-        - Sub Unit 3: `UUID=subunit3_uuid`
-    - Unit D: `UUID=unitd_uuid`
-    - Unit E: `UUID=unite_uuid`
-        - Sub Unit 4: `UUID=subunit4_uuid`
+  - Unit C: `UUID=unitc_uuid`
+    - Sub Unit 2: `UUID=subunit2_uuid`
+    - Sub Unit 3: `UUID=subunit3_uuid`
+  - Unit D: `UUID=unitd_uuid`
+  - Unit E: `UUID=unite_uuid`
+    - Sub Unit 4: `UUID=subunit4_uuid`
 
 We now wish to create Sub Unit 5 under Unit D. Thus, we need to know the `UUID` for Unit D, and the `UUID`s of the relevant organisation unit type and level klasses from LoRa. These can be obtained from the `service/f/org_unit_type/` and `service/f/org_unit_level/` endpoints, respectively.
 
@@ -144,6 +144,7 @@ print(new_ou.json(by_alias=True, indent=2))
 #   }
 # }
 ```
+
 <sup><sub>**Note: in the above, the referenced UUIDs have to be actual UUIDs following the spec, otherwise validation fails.**</sub></sup>
 
 The resulting payload can now be posted to `service/ou/create`.

@@ -2,10 +2,8 @@
 title: Legacy AMQP Messages
 ---
 
-
 !!! warning
-    This system is deprecated for [the new AMQP subsystem](../events.md).
-
+This system is deprecated for [the new AMQP subsystem](../events.md).
 
 When a MO object is created, modified or deleted, an AMQP message is
 sent to the MO broker. The purpose of the message exchange is to make it
@@ -15,14 +13,13 @@ queue](#delayed-queue).
 
 ## Format
 
-
 Messages are valid json with a `uuid` key and a `time` key. Here is an
 example of a message body:
 
 ```json
 {
-    "uuid": "c390b9a2-7202-48e6-972b-ce36a90065c4",
-    "time": "2019-03-24T13:02:15.132025"
+  "uuid": "c390b9a2-7202-48e6-972b-ce36a90065c4",
+  "time": "2019-03-24T13:02:15.132025"
 }
 ```
 
@@ -30,7 +27,6 @@ Where `uuid` is the uuid of the affected `employee` or `org_unit` and
 `time` is a ISO timestamp of when the change is effective.
 
 ## Topic
-
 
 The exchange is a topic exchange and all messages are pushed with three
 topics. Here is an example of a topic:
@@ -41,8 +37,8 @@ The three topics can be described as:
 
 1.  The service: `employee` or `org_unit`.
 2.  Name of affected object type: `address`, `association`,
-     `employee`, `engagement`, `it`, `leave`, `manager`, `org_unit`,
-     `related_unit`, `role`.
+    `employee`, `engagement`, `it`, `leave`, `manager`, `org_unit`,
+    `related_unit`, `role`.
 3.  The action performed: `create`, `update` or `delete`.
 
 Or put more abstractly:
@@ -51,14 +47,12 @@ Or put more abstractly:
 
 ## Delayed queue
 
-
 A separate project, the
 [mo-delay-agent](https://gitlab.magenta.dk/lora/mo-delay-agent/),
 maintains a queue for identical messages which are only sent once the
 `time` field is due.
 
 ### Example
-
 
 This is an example of a Python script that exhausts the queue:
 

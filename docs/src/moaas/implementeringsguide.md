@@ -35,6 +35,7 @@ Opgaven forudsætter at kunden har en IdP der understøtter SAML 2.0 SSO.
 Det skal ligeledes være muligt at styre hvem der har adgang til hvad i OS2mo. Rollestyring forvaltes via oprettelse af en bruger i AD’et, opsætning i en IdP (fx ADFS), i [Keycloak](https://www.keycloak.org/) og i OS2mo.
 
 ## Integration med Serviceplatformen og FK Org
+
 ### OS2mo som anvendersystem på FK Org på Serviceplatformen
 
 OS2mo kan opdatere FK Organisation igennem OS2-komponenten OS2sync.
@@ -45,11 +46,12 @@ OS2mo kan ligeledes hente personoplysninger fra CPR-registret.
 Der skal laves en serviceaftale for at kunne benytte hhv. [FK Organisation](https://digitaliseringskataloget.dk/l%C3%B8sninger/organisation) og [CPR-services](https://cpr.dk/kunder/private-virksomheder/cpr-services) på Serviceplatformen.
 
 - Send de to FOCES-certifikater inkl. keystore password til Magenta. Der skal bruges to certifikater - et til FK Organisation TEST og etn til FK Organisation prod)
-Bemærk at certifikatet skal være i .p12-format.
+  Bemærk at certifikatet skal være i .p12-format.
 
 +KOMBIT har også udarbejdet [Brugervejledning til Administrationsmodulerne for myndigheder - Sådan bruger du STS Administration og Serviceplatformens Administrationsmodul](https://digitaliseringskataloget.dk/files/integration-files/151120211250/Brugervejledning%20til%20Administrationsmodulerne%20for%20myndigheder.pdf).
 
 ## Indlæsning af organisationsdata
+
 ### Tilvejebringelse af data
 
 Kunden tilvejebringer organisations- og medarbejderdata. Data kommer sædvanligvis fra lønsystemet (SD-Løn eller OPUS).
@@ -61,6 +63,7 @@ Data beriges typisk med data fra Active Directory, Danmarks AdresseRegister og -
 Leverandøren foretager en engangsindlæsning af data i OS2mo. Denne indlæsning muliggør inspektion og test af data. Når datagrundlaget vurderes at være af høj kvalitet, kan integrationerne sættes op så daglig indlæsning automatiseres (se nedenfor)
 
 ## Integration med Lønsystem
+
 ### Integration med KMD OPUS
 
 Opgaven består i intsallation, konfiguration og eventuel tilpasning af integrationen.

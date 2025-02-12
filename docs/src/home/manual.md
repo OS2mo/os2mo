@@ -20,11 +20,11 @@ En organisationsenhed er en del af en organisation og kan kun eksistere i forbin
 
 ### Personer (medarbejder, praktikant, ekstern konsulent, etc.)
 
-En *person* i MO er en digital repræsentation af en fysisk person. Personer hentes typisk fra et lønsystem eller CPR-Registret og er altid knyttet til en eller flere organisationsenheder.
+En _person_ i MO er en digital repræsentation af en fysisk person. Personer hentes typisk fra et lønsystem eller CPR-Registret og er altid knyttet til en eller flere organisationsenheder.
 
 ### Dobbelthistorik og Fortid, Nutid og Fremtid
 
-[Dobbelthistorik](https://en.wikipedia.org/wiki/Bitemporal_Modeling), eller bitemporalitet, understøttes af MO og tillader, at to tidsakser (*registreringstid* og *virkningstid*) håndteres:
+[Dobbelthistorik](https://en.wikipedia.org/wiki/Bitemporal_Modeling), eller bitemporalitet, understøttes af MO og tillader, at to tidsakser (_registreringstid_ og _virkningstid_) håndteres:
 
 **Registreringstid** er tidspunktet for selve registreringen, fx oprettelsen af en enhed eller en medarbejder.
 
@@ -46,13 +46,13 @@ Alt det betyder, at det i MO er muligt at have overblik over fortidige, nutidige
 
 Det er muligt at ændre i en eksisterende oplysning. Det kan fx være, at et telefonnummer skal redigeres, eller en stillingsbetegnelse skal ændres. Hvis den nye stillingsbetegnelse skal være gældende fra i dag, vil den gamle stillingsbetegnelse rykke ned under Fortidstabben. På den måde er der synlig historik på alle de ændringer, man foretager.
 
-I eksemplet nedenfor har Viggo et job som *Udvikler*, men det er planlagt, at han skal være *Udviklingskonsulent* pr. en fremtidig dato, nemlig 01-08-2025, hvorfor ændringen kan ses under Fremtidstabben. Når datoen oprinder, vil ændringen træde i kraft og blive flyttet ned under Nutidstabben, mens den registrering, der i dag findes under Nutidstabben, vil blive flyttet ned under Fortidstabben.
+I eksemplet nedenfor har Viggo et job som _Udvikler_, men det er planlagt, at han skal være _Udviklingskonsulent_ pr. en fremtidig dato, nemlig 01-08-2025, hvorfor ændringen kan ses under Fremtidstabben. Når datoen oprinder, vil ændringen træde i kraft og blive flyttet ned under Nutidstabben, mens den registrering, der i dag findes under Nutidstabben, vil blive flyttet ned under Fortidstabben.
 
 ![image](../graphics/momanual/stillingsbetegnelse.png)
 
 **Overskrivninger**
 
-Såfremt startdatoen ikke ændres, vil det resultere i en *overskrivning* af den eksisterende registrering, og der vil ikke blive oprettet historik på oplysningen i brugergrænsefladen (men det vil kunne spores i auditloggen), fordi det ikke bliver opfattet som en ændring, men en rettelse (fx ifm. fejlindtastning).
+Såfremt startdatoen ikke ændres, vil det resultere i en _overskrivning_ af den eksisterende registrering, og der vil ikke blive oprettet historik på oplysningen i brugergrænsefladen (men det vil kunne spores i auditloggen), fordi det ikke bliver opfattet som en ændring, men en rettelse (fx ifm. fejlindtastning).
 
 **Afslut**
 
@@ -64,18 +64,18 @@ Det er muligt fx at afslutte en ansættelse, sådan at en medarbejders engagemen
 
 MO består af en forside og to hoved-moduler:
 
-* **Medarbejdermodulet**, som håndterer tilknyttede personer og deres stamdata.
-* **Organisationsmodulet**, som håndterer organisationsenheder og deres stamdata.
+- **Medarbejdermodulet**, som håndterer tilknyttede personer og deres stamdata.
+- **Organisationsmodulet**, som håndterer organisationsenheder og deres stamdata.
 
 ## MOs moduler
 
 Herudover findes disse moduler:
 
-* [**Insights**](https://rammearkitektur.docs.magenta.dk/os2mo/features/insights.html), som giver muligheden for at man selv kan sammenstille MOs data og gemme dem i en csv-fil.
-* [**Klassifikationer**](https://rammearkitektur.docs.magenta.dk/os2mo/features/klassifikationer.html), som giver muligheden for at ændre eller oprette nye metadata, fx nye stillingsbetegnelser eller nye lederroller.
-* [**Organisationsdiagrammet**](https://rammearkitektur.docs.magenta.dk/os2mo/features/org-chart.html), som udstiller organisationen på intranettet eller internettet.
-* [**Organisationssammenkobling**](https://rammearkitektur.docs.magenta.dk/os2mo/features/org-sammenkobling.html). Det er muligt at skabe relationer mellem organisationsenheder vha. modulet *Organisationssammenkobling*, hvilket tillader en række automatikker mellem enheder der tilsvarer hinanden i to forskellige Organisationer, fx lønorganisationen og den administrative organisation.
-* [**Rapporter**](https://rammearkitektur.docs.magenta.dk/os2mo/features/reports.html), som genererer og hver morgen udstiller friske rapporter indeholdende forskellige datasæt fra MO.
+- [**Insights**](https://rammearkitektur.docs.magenta.dk/os2mo/features/insights.html), som giver muligheden for at man selv kan sammenstille MOs data og gemme dem i en csv-fil.
+- [**Klassifikationer**](https://rammearkitektur.docs.magenta.dk/os2mo/features/klassifikationer.html), som giver muligheden for at ændre eller oprette nye metadata, fx nye stillingsbetegnelser eller nye lederroller.
+- [**Organisationsdiagrammet**](https://rammearkitektur.docs.magenta.dk/os2mo/features/org-chart.html), som udstiller organisationen på intranettet eller internettet.
+- [**Organisationssammenkobling**](https://rammearkitektur.docs.magenta.dk/os2mo/features/org-sammenkobling.html). Det er muligt at skabe relationer mellem organisationsenheder vha. modulet _Organisationssammenkobling_, hvilket tillader en række automatikker mellem enheder der tilsvarer hinanden i to forskellige Organisationer, fx lønorganisationen og den administrative organisation.
+- [**Rapporter**](https://rammearkitektur.docs.magenta.dk/os2mo/features/reports.html), som genererer og hver morgen udstiller friske rapporter indeholdende forskellige datasæt fra MO.
 
 ## Forsiden
 
@@ -281,7 +281,7 @@ KL's Emnesystematik er oprindeligt tænkt som en opgavetaksomnomi, der skal give
 
 Anvendelsen varierer, men hovedformålene er dataafgrænsning og/eller opgavestyring.
 
-Opmærkningerne af organisationen kan sendes videre til andre systemer, der har behov for dem  (fx [FK Organisation](https://digitaliseringskataloget.dk/l%C3%B8sninger/organisation), [organisationsdiagrammet](https://rammearkitektur.docs.magenta.dk/os2mo/features/org-chart.html) og/eller IdM-systemer).
+Opmærkningerne af organisationen kan sendes videre til andre systemer, der har behov for dem (fx [FK Organisation](https://digitaliseringskataloget.dk/l%C3%B8sninger/organisation), [organisationsdiagrammet](https://rammearkitektur.docs.magenta.dk/os2mo/features/org-chart.html) og/eller IdM-systemer).
 
 ![image](../graphics/momanual/kle.png)
 
@@ -341,9 +341,9 @@ Bemærk, at sammenkoblingerne kan datostyres.
 
 Under denne fane ses stamoplysninger på en person, nemlig navn, kaldenavn samt datoer.
 
-* **Navnet** er altid personens CPR-navn.
-* **Kaldenavnet** benyttes især, hvis man ikke er interesseret i at korrespondancer indeholder personfølsomme oplysninger. Det kan fx være fordi man arbejder med udsatte børn og unge. Hvis et kaldenavn er sat, vil en integration til et andet system kunne konfigureres til at videreformidle dette og ikke CPR-navnet.
-* **Datoer**. Som udgangspunkt vil startdatoen være ens fødselsdato. Såfremt der ændres i en stamoplysning - fx at et kaldenavn angives - vil startdatoen ændres til at matche denne dato, og hvis man er interesseret i at se en persons fødselsdato, skal man klikke på Fortid:
+- **Navnet** er altid personens CPR-navn.
+- **Kaldenavnet** benyttes især, hvis man ikke er interesseret i at korrespondancer indeholder personfølsomme oplysninger. Det kan fx være fordi man arbejder med udsatte børn og unge. Hvis et kaldenavn er sat, vil en integration til et andet system kunne konfigureres til at videreformidle dette og ikke CPR-navnet.
+- **Datoer**. Som udgangspunkt vil startdatoen være ens fødselsdato. Såfremt der ændres i en stamoplysning - fx at et kaldenavn angives - vil startdatoen ændres til at matche denne dato, og hvis man er interesseret i at se en persons fødselsdato, skal man klikke på Fortid:
 
 ![image](../graphics/momanual/kaldenavnfortid.png)
 
@@ -363,14 +363,14 @@ Oprettelsen af en it-tilknytning ser således sådan ud:
 
 Følgende valideringer er gældende:
 
-***It-konti*** (i et bestemt system)
+**_It-konti_** (i et bestemt system)
 
 - En it-konto må kun være tilknyttet én person (et CPR-nummer).
 - En given person må maksimalt have én primær it-konto pr. it-system
 
 Fx kan én person have it-konti Y11 og Y22 til ét it-system og Y33 til et andet. Dvs. tre it-konti som hver især kan tilknyttes organisation en eller flere gange.
 
-***It-konti-tilknytning***
+**_It-konti-tilknytning_**
 
 - En person må maksimalt have én it-tilknytning til en given it-konto pr. organisationsenhed.
 

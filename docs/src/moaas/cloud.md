@@ -1,7 +1,9 @@
 # Cloud
 
 ## Forudsætninger for drift af MO i Azure
+
 ### VPN-enhed
+
 Af sikkerhedshensyn kræver OS2mo-cloud-løsningen at al kommunikation mellem jeres
 netværk og OS2mo foregår gennem en site-to-site VPN-tunnel. Typisk vil en eksisterende
 firewall eller router kunne benyttes, men det er også muligt at benytte en dedikeret enhed.
@@ -22,12 +24,14 @@ Specifik opsætning vedrørende VPN-endpoints og netværksopsætning koordineres
 Magenta.
 
 ### Routing
+
 Når der er etableret en tunnel via VPN-enheden skal der oprettes routes fra jeres serveres IP-
 netværk til Microsoft Azure-netværket, sådan at trafik hertil routes igennem VPN-enheden. Det
 sker muligvis automatisk under opsætningen af VPN-enheden, afhængigt af hvilken type der
 benyttes.
 
 ### Firewall-opsætning
+
 Det skal være muligt at tillade udgående trafik til OS2mo-serverne gennem VPN-tunnellen.
 Såfremt der benyttes integrationer med on-premises services, såsom Active Directory, skal
 indgående trafik til disse kunne tillades. Protokoller der skal kunne kommunikere er:
@@ -39,6 +43,7 @@ indgående trafik til disse kunne tillades. Protokoller der skal kunne kommunike
 ## Sikkerhed
 
 ### Netværkskommunikation
+
 Forbindelsen mellem OS2mo cloud-applikationen og on-premises services skabes via et IPsec-
 baseret site-to-site virtuelt privat netværk (VPN). Dvs. at trafikken mellem OS2mo og
 eksempelvis Active Directory foregår via det offentlige internet, men i en krypteret tunnel der
@@ -51,12 +56,14 @@ sådan at kun specifikke OS2mo applikationsservere kan kommunikere med de intern
 Magenta koordinerer opsætning af adgangsbegrænsningerne på begge sider af tunellen.
 
 ### Datasikkerhed
+
 Data i OS2mo-systemet forlader aldrig de virtuelle private netværk i Microsoft Azure sikrede
 datacentre. Databaser kan udelukkende tilgås fra det lukkede og kundespecifikke cloud-
 netværk, og der benyttes traditionel adgangskontrol fra applikationerne. Adgang til data i block
 storage er begrænset til applikationsservere hvorfra det benyttes.
 
 ### Magentas adgang
+
 Opsætning og styring af cloud-systemet foregår via hhv. Microsoft Azure API’er samt en web
 baseret konsol. Adgangen til disse begrænses efter princippet om “least privilege” - dvs. kun
 medarbejdere hos Magenta som skal kunne styre systemet og administrere infrastrukturen har
@@ -67,9 +74,11 @@ Når Magentas medarbejdere har behov for at tilgå OS2mo-applikationsserver sker
 separat VPN-forbindelse, via en server som er placeret i det lukkede cloud-netværk. Her
 begrænses adgangen med firewalls sådan at medarbejderne kun kan tilgå de nødvendige
 services, og eksempelvis ikke kan kommunikere med servere i on-premises netværket.
+
 ### Compliance
 
 #### Brug af cloud underleverandør
+
 Leverandøren har Kundens generelle godkendelse til at anvende underleverandører til at være
 vært for Service og tilhørende data. Hvis der anvendes underleverandører, skal leverandøren
 sikre, at en lovlig overførselsgrundlag eksisterer til enhver tid. Ved underskrivelse af Vilkårene
@@ -99,8 +108,8 @@ tilføjelser til listen over underleverandører. Hvis kunden har rimelige og spe
 ikke at kunne acceptere Leverandørens brug af en ny underleverandør, har kunden ret til at
 opsige aftalen uden varsel.
 
-
 #### Overførsel til tredje land
+
 Overførsel af personoplysninger til tredje land (lande uden for Den Europæiske Union ("EU") og
 Det Europæiske Økonomiske Samarbejdsområde ("EØS")) må kun udføres i overensstemmelse
 med Kundens instruktioner. Kunden skal løbende opbevares tilstrækkeligt kendskab til det til
@@ -110,6 +119,7 @@ databehandlerne uden for EØS, der er anført i afsnit 5 over. Den dataansvarlig
 denne brug af underleverandør er omfattet af instruktion.
 
 #### Dokumentation og overvågning
+
 Efter kundens anmodning skal leverandøren levere alle nødvendige oplysninger til Kunden gør
 det muligt for kunden at kontrollere overholdelse af leverandørens forpligtelser i henhold til
 denne databehandlingsaftale. Leverandøren skal give adgang til det fysiske leverandørens
@@ -126,11 +136,13 @@ leverandøren overholder sin tilsynsforpligtelse.
 ## Teknik, opsætning og sammenhæng
 
 ### Drift af OS2mo-services
+
 OS2mo-services og komponenter til integration afvikles fra virtuelle maskiner på Microsoft
 Azure via tre cluster igennem Azure Kubernetes Service (AKS). Deployment vil også foregå
 med Terraform og Flux CD.
 
 ### Databaser
+
 Der benyttes en managed PostgreSQL database (Azure Database for PostgreSQL flexible
 server) til mox/lora-databasen ([1] på diagrammet) med automatiske backups.
 
@@ -139,6 +151,7 @@ image. Derudover kan fordelene ved en managed database udnyttes - herunder autom
 backup og vedligeholdelse.
 
 ### Netværk og VPN
+
 De enkelte kunders systemer - dvs. applikationsservere og databaser - afvikles i segmenterede
 netværk i Azure, hvor hver kunde har deres eget VPC, eller et subnet inden for et delt VPC.
 
@@ -151,16 +164,19 @@ til netværket i Azure [3]. I nogle tilfælde vil kunderne potentielt have en en
 understøttet og kan anvendes, men det er ikke nødvendigvis tilfældet.
 
 ### Server til AD-integration
+
 OS2mo-integrationen til Active Directory kræver adgang til kundens domæne server. Denne
 forbindelse sættes op sammen med kunden.
 
 Magenta leverer generelle, overordnede instruktioner til opsætning af denne.
 
 ### Miljøer
+
 I de nuværende opsætninger kører der tre miljøer: dev, test og prod. Som udgangspunkt vil hver
 kunde få det antal instanser/servere som installationen kræver.
 
 ### Magentas adgang til systemerne
+
 Der laves et såkaldt “road warrior” VPN setup, hvor hver udvikler forbinder direkte til en VPN-
 server som er placeret i kundens VPC-subnet. Det vil være muligt at forbinde til alle kunders
 miljø med samme klientsoftware, men dog med forskellige profiler for hver kunde.
@@ -168,6 +184,7 @@ miljø med samme klientsoftware, men dog med forskellige profiler for hver kunde
 OpenVPN fungerer godt til formålet. Alternativt kan Wireguard, eller Pritunl eksempelvis anvendes.
 
 ### Sikkerhed
+
 Løsningen er baseret på at alle netværksservices indkapsles i et virtuelt privat netværk for
 dermed at kunne kommunikere direkte med hinanden uden yderligere authentication eller
 authorization. Der er således tale om et traditionelt perimeter-baseret “netværksforsvar”,
@@ -178,6 +195,6 @@ Internet. Til forskel fra internt på et privat netværk i eget datacenter, hvor
 rammer Internettet. Dvs. at de centrale fokuspunkter ift. sikkerhed er VPC og VPN-
 endepunkterne:
 
--  VPC-netværket som Azure ExpressRoute tilkobles. Segmenteres med et netværk per kunde.
--  VPN endpoint. Konfigureres til den enkelte kundes lokale gateway, med en specifik IP og shared secret som opbevares krypteret.
--  “Road warrior” VPN til Magentas adgang. Adgangskontrol med to-faktor login.
+- VPC-netværket som Azure ExpressRoute tilkobles. Segmenteres med et netværk per kunde.
+- VPN endpoint. Konfigureres til den enkelte kundes lokale gateway, med en specifik IP og shared secret som opbevares krypteret.
+- “Road warrior” VPN til Magentas adgang. Adgangskontrol med to-faktor login.

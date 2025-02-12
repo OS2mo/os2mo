@@ -14,7 +14,7 @@ Opmærkning af en enhed sker automatisk, når der er relevante ændringer. Når 
 
 **1. Linjeorganisation:** Hvis orgenheden har "NY"-niveau eller "Afdelings”-niveau i departmentlevel og har medarbejdere eller tilknytninger i sig, skal enheden være en del af linjeorganisationen. Dette gælder kun enheder under den administrative organisations rod-enhed ("XX Kommune"), hvis UUID vil blive sat i konfigurationen.
 
-**2. Selvejende institutioner:** Hvis en enhed ikke er i linjeorganisationen og ikke hører under “XX Kommune”, men har en it-konto i it-systemet med den brugervendte nøgle, som er sat  i konfigurationen, skal den markeres som "Selvejende institution".
+**2. Selvejende institutioner:** Hvis en enhed ikke er i linjeorganisationen og ikke hører under “XX Kommune”, men har en it-konto i it-systemet med den brugervendte nøgle, som er sat i konfigurationen, skal den markeres som "Selvejende institution".
 
 **3. Skjult:** Hvis organisationsenheden hører under en enhed, der har sit UUID i listen "hidden" i konfigurationen, markeres enheden som skjult.
 

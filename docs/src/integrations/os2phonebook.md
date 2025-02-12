@@ -6,16 +6,16 @@ Progammet understøtter også at sende JSON dataen til telefonbogen selv.
 # Konfiguration
 
 For at anvende eksporten er det nødvendigt at oprette et antal nøgler i
-*settings.json*:
+_settings.json_:
 
--   `exporters.os2phonebook_base_url`: URL adressen hvorpå
-    telefonbogen kan nåes.
--   `exporters.os2phonebook_basic_auth_user`: HTTP Basic Auth brugeren
-    til dataindlæsning i telefonbogen.
--   `exporters.os2phonebook_basic_auth_pass`: HTTP Basic Auth password
-    til dataindlæsning i telefonbogen.
+- `exporters.os2phonebook_base_url`: URL adressen hvorpå
+  telefonbogen kan nåes.
+- `exporters.os2phonebook_basic_auth_user`: HTTP Basic Auth brugeren
+  til dataindlæsning i telefonbogen.
+- `exporters.os2phonebook_basic_auth_pass`: HTTP Basic Auth password
+  til dataindlæsning i telefonbogen.
 
-Derudover er det nødvendigt at konfigurere *sql_export* og
+Derudover er det nødvendigt at konfigurere _sql_export_ og
 dennes konfiguration.
 
 # Programkomponenter
@@ -30,13 +30,13 @@ Programmet er opdelt i tre komponenter, hhv.
 
 Udtrækket indeholder:
 
--   Medarbejdere
--   Medarbejderes adresser
--   Medarbejderes engagementer
--   Medarbejderes tilknytninger
--   Medarbejderes ledere
--   Medarbejderes organisatoriske enheder
--   Organisatoriske enheder tilknyttet medarbejdere
+- Medarbejdere
+- Medarbejderes adresser
+- Medarbejderes engagementer
+- Medarbejderes tilknytninger
+- Medarbejderes ledere
+- Medarbejderes organisatoriske enheder
+- Organisatoriske enheder tilknyttet medarbejdere
 
 ## Medarbejdere
 

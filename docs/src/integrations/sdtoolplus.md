@@ -41,7 +41,7 @@ kørsel gøre følgende:
 
 #### Opmærksomhedspunkter
 
-* De fleste anvendere af SDTool+ har fået konfigureret et filter som det, der
+- De fleste anvendere af SDTool+ har fået konfigureret et filter som det, der
   er nævnt afsnittet [Konfiguration](#konfiguration) nedenfor,
   hvilket kan resultere i følgende opførsel i SDTool+: Lad
   os forestille os, at der er opsat i filter, som frasorterer operationer, der
@@ -54,13 +54,13 @@ kørsel gøre følgende:
   til at hedde "% Sundhed", idet omdøbningsoperationer kan tillades på trods af
   det konfigurerede filter for enheder, som begynder med "%". Resultats bliver
   således, at
-    1. Enhedens navn i OS2mo stemmer overens med det, som enheden (nu) hedder i
-       SD.
-    2. Man har en uønsket "%"-enhed stående i OS2mo, hvilket ikke er en fejl i
-       SDTool+, men snarere en konsekvens af, at enheden i SD er ændret fra en
-       almindelig enhed til en "%"-enhed. Problemet kan dog let løses ved blot
-       manuelt at afslutte "% Sundhed" i OS2mo (hvilket sandsynligvis er det,
-       man alligevel ønsker).
+  1. Enhedens navn i OS2mo stemmer overens med det, som enheden (nu) hedder i
+     SD.
+  2. Man har en uønsket "%"-enhed stående i OS2mo, hvilket ikke er en fejl i
+     SDTool+, men snarere en konsekvens af, at enheden i SD er ændret fra en
+     almindelig enhed til en "%"-enhed. Problemet kan dog let løses ved blot
+     manuelt at afslutte "% Sundhed" i OS2mo (hvilket sandsynligvis er det,
+     man alligevel ønsker).
 
 #### SDTool+'s brug af SDs API (for teknikere)
 
@@ -70,7 +70,7 @@ endepunkter fra SDs API:
 1. Det grundlæggende organisatonstræ bygges via SDs endpoint
    `GetOrganization20111201`, som udstiller alle enheder i træet, der har et
    afdelingsniveau som blad (leaf node) i
-   [træstrukturen](https://en.wikipedia.org/wiki/Tree_(data_structure)).
+   [træstrukturen](<https://en.wikipedia.org/wiki/Tree_(data_structure)>).
 2. Dernæst tilføjes de resterende enheder (NY-niveauer, som ikke har
    et afdelingsniveau under sig længere ned i træet) ved at kigge på
    forskellen mellem ovenstående respons fra `GetOrganization20111201` og
@@ -123,7 +123,7 @@ som er beskrevet via kommentarer i koden i applikationens
 Bemærk specielt mulighederne for
 
 1. at få frafiltreret enheder fra SD, som man ikke
-   ønsker synkroniseret til OS2mo - fx enheder, som begynder med "Ø_"
+   ønsker synkroniseret til OS2mo - fx enheder, som begynder med "Ø\_"
    eller "%" eller lignende.
 2. at konfigurere SDTool+ til kun at sammenligne
    et givet undertræ i OS2mo med organisationstræet i SD.

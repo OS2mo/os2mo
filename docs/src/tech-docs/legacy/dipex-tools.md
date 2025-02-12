@@ -5,67 +5,66 @@ title: Tools
 Tools indeholder scripts primært beregnet til at køre natlige jobs og
 restore af data efter fejlede jobs.
 
--   job-runner.sh - excutable beregnet til at blive kaldt fra crontab
-    uden parametre
--   clear_mox_tables.py - beregnet til at tømme os2mo's tabeller ved
-    nyindlæsning
--   cron-restore.sh - beregnet til at restore OS2MO til før den kørsel,
-    som backuppen er taget efter
--   moxklas.sh - beregnet til at oprette klasser i LORA - udenom OS2MO
-    ved specialle behov
--   prefixed_settings.sh - beregnet til at eksportere settings fra en
-    JSON-fil og ind i current shell environment
--   renew-keytab.sh - beregnet til at oprette/genskabe keytabs
--   update-dipex.sh - beregnet til at opdatere dette git-repo med ny
-    kode, requirements etc
+- job-runner.sh - excutable beregnet til at blive kaldt fra crontab
+  uden parametre
+- clear_mox_tables.py - beregnet til at tømme os2mo's tabeller ved
+  nyindlæsning
+- cron-restore.sh - beregnet til at restore OS2MO til før den kørsel,
+  som backuppen er taget efter
+- moxklas.sh - beregnet til at oprette klasser i LORA - udenom OS2MO
+  ved specialle behov
+- prefixed_settings.sh - beregnet til at eksportere settings fra en
+  JSON-fil og ind i current shell environment
+- renew-keytab.sh - beregnet til at oprette/genskabe keytabs
+- update-dipex.sh - beregnet til at opdatere dette git-repo med ny
+  kode, requirements etc
 
 ## job-runner.sh
 
 !!! important
-    Det er nødvendigt at ændre gruppeejerskab, så det er alignet
-    med den gruppe, der kører docker, Denne gruppe skal eje både hele
-    os2mo-data-import-and-export og det directory hvor konfigurationsfiler
-    ligger I praksis betyder det for os at vi ændrer ejerskabet på det
-    dertil indrettede CRON-dicrectory i systembrugerens hjemmemappe.
-
+Det er nødvendigt at ændre gruppeejerskab, så det er alignet
+med den gruppe, der kører docker, Denne gruppe skal eje både hele
+os2mo-data-import-and-export og det directory hvor konfigurationsfiler
+ligger I praksis betyder det for os at vi ændrer ejerskabet på det
+dertil indrettede CRON-dicrectory i systembrugerens hjemmemappe.
 
 ### Afvikling af cron-jobs
 
 Job runner scriptet er ment til at blive kaldt fra crontab på kundens
 maskiner Dets arbejde er:
 
--   at læse konfigurationen fra settings/settings.json, som er et
-    symbolsk link til settings-filen for systemet.
--   at køre de prædefinerede dele af nattens cronjob forudsat at de er
-    slået til i konfigurationen
--   at lave en backup af databasen og andre filer, der skal i spil for
-    at få systemet tilbage til en veldefineret tilstand
+- at læse konfigurationen fra settings/settings.json, som er et
+  symbolsk link til settings-filen for systemet.
+- at køre de prædefinerede dele af nattens cronjob forudsat at de er
+  slået til i konfigurationen
+- at lave en backup af databasen og andre filer, der skal i spil for
+  at få systemet tilbage til en veldefineret tilstand
 
 ### Læsning af konfiguration
 
 Konfigurationen kan se således ud:
 
-``` json
+```json
 {
-    "crontab.SVC_USER": "USER@KOMMUNE.NET",
-    "crontab.SVC_KEYTAB": "/path/keytab-file",
-    "crontab.CRON_BACKUP": "/path/backup-dir",
-    "crontab.CRON_LOG_FILE": "/path/cron-log-file",
-    "crontab.RUN_MOX_DB_CLEAR": false,
-    "crontab.RUN_CHECK_AD_CONNECTIVITY": false,
-    "crontab.RUN_BALLERUP_APOS": false,
-    "crontab.RUN_BALLERUP_UDVALG": false,
-    "crontab.RUN_QUERIES_BALLERUP": false,
-    "crontab.RUN_SD_CHANGED_AT": false,
-    "crontab.RUN_SD_FIX_DEPARTMENTS": false,
-    "crontab.RUN_SD_DB_OVERVIEW": false,
-    "crontab.RUN_AD_SYNC": false,
-    "crontab.RUN_MOX_STS_ORGSYNC": false,
-    "crontab.RUN_MOX_ROLLE": false,
-    "crontab.RUN_CPR_UUID": false,
-    "crontab.BACKUP_SAVE_DAYS": "60",
-    "crontab.MOX_ROLLE_COMPOSE_YML":"",
-    "crontab.SNAPSHOT_LORA":"/path/db-snapshot.sql"
+  "crontab.SVC_USER": "USER@KOMMUNE.NET",
+  "crontab.SVC_KEYTAB": "/path/keytab-file",
+  "crontab.CRON_BACKUP": "/path/backup-dir",
+  "crontab.CRON_LOG_FILE": "/path/cron-log-file",
+  "crontab.RUN_MOX_DB_CLEAR": false,
+  "crontab.RUN_CHECK_AD_CONNECTIVITY": false,
+  "crontab.RUN_BALLERUP_APOS": false,
+  "crontab.RUN_BALLERUP_UDVALG": false,
+  "crontab.RUN_QUERIES_BALLERUP": false,
+  "crontab.RUN_SD_CHANGED_AT": false,
+  "crontab.RUN_SD_FIX_DEPARTMENTS": false,
+  "crontab.RUN_SD_DB_OVERVIEW": false,
+  "crontab.RUN_AD_SYNC": false,
+  "crontab.RUN_MOX_STS_ORGSYNC": false,
+  "crontab.RUN_MOX_ROLLE": false,
+  "crontab.RUN_CPR_UUID": false,
+  "crontab.BACKUP_SAVE_DAYS": "60",
+  "crontab.MOX_ROLLE_COMPOSE_YML": "",
+  "crontab.SNAPSHOT_LORA": "/path/db-snapshot.sql"
 }
 ```
 
@@ -104,17 +103,17 @@ især brokke sig over de settings de mangler
 For at mounte opus-filer ind fra et windows share anvendes følgende
 settings:
 
--   cronhook.mount_opus_on: true/ false
--   cronhook.mount_opus_share - en windows unc-sti
--   cronhook.mount_opus_mountpoint - det mounpoint hvor sharet mountet
--   cronhook.mount_opus_username - brugernavn til sharet
--   cronhook.mount_opus_password - password til sharet
+- cronhook.mount_opus_on: true/ false
+- cronhook.mount_opus_share - en windows unc-sti
+- cronhook.mount_opus_mountpoint - det mounpoint hvor sharet mountet
+- cronhook.mount_opus_username - brugernavn til sharet
+- cronhook.mount_opus_password - password til sharet
 
 For at unmounte efter kørslen sættes denne setting, men lad være med
 det. Det besværliggør fejlfinding, hvis ikke der hele tiden er kontakt
 til filerne
 
--   cronhook.unmount_opus_on: true/false
+- cronhook.unmount_opus_on: true/false
 
 Husk at mountpoints på windows ofte indeholder `$`-tegnet. Et sådan skal
 i settings escapes som `\$`
@@ -122,64 +121,64 @@ i settings escapes som `\$`
 ### Kørsel af jobs
 
 job-runner.sh er ikke et smart program. Det er til gengæld simpelt.
-Job-afviklingen foregår i 3 afdelinger: *imports*, *exports* og *reports*.
+Job-afviklingen foregår i 3 afdelinger: _imports_, _exports_ og _reports_.
 
--   For alle jobs i imports og exports gælder at et fejlet job stopper
-    afviklingen af de resterende jobs i den pågældfende afdeling
--   Hvis imports går galt, afvikles hverken exports eller reports
--   Hvis imports går godt forsøges både exports or reports afviklet
+- For alle jobs i imports og exports gælder at et fejlet job stopper
+  afviklingen af de resterende jobs i den pågældfende afdeling
+- Hvis imports går galt, afvikles hverken exports eller reports
+- Hvis imports går godt forsøges både exports or reports afviklet
 
 I ovenstående konfiguration kan man slå jobs til med alle de
 tilgængeglige `crontab.RUN_*`, som dækker over:
 
--   `RUN_MOX_DB_CLEAR` - Tøm OS2mo's database
--   `RUN_CHECK_AD_CONNECTIVITY` - Check at der er di korrekte rettigheder
-    i AD
--   `RUN_SD_FIX_DEPARTMENTS` - Kør SD-fix-departments
--   `RUN_SD_CHANGED_AT` - Kør SD-changed-at - deltaimport af ændringer fra
-    SD
--   `RUN_SD_UPDATE_PRIMARY` - Kør Primærberegning af SD-employees
--   `RUN_BALLERUP_APOS` - Indlæs til OS2MO fra APOS (Ballerups version)
--   `RUN_OPUS_DIFF_IMPORT` - Kør Opus diff import - deltaimport af
-    øndringer fra OPUS
--   `RUN_AD_SYNC` - Kør en AD-synkronisering
--   `RUN_BALLERUP_APOS` - total-indlæsning af APOS i Ballerup
--   `RUN_BALLERUP_UDVALG` - udvalgshierarkiet i Ballerups OS2MO
--   `RUN_MOX_ROLLE` - overførslen til rollekataloget
--   `RUN_MOX_STS_ORGSYNC` - Overførslen til STS Organisation
--   `RUN_QUERIES_BALLERUP` - Ballerups exports / forespørgsler
--   `RUN_EXPORT_EMUS` - Kør Eksport til EMUS
--   `RUN_CPR_UUID` - Lav en cachefile med CPR/UUID-sammenhænge - gøres
-    typisk før en genindlæsning/restore
--   `RUN_EXPORTS_TEST` - Kør ingenting, men viser at job-runner har været
-    i gang
--   `RUN_SD_DB_OVERVIEW` - Kør overbliksrapport over SD-indlæsningens
-    progress (datoer)
--   `RUN_OPUS_DB_OVERVIEW` - Kør overbliksrapport over OPUS-indlæsningens
-    progress (datoer)
--   `RUN_AD_GROUP_INTO_MO` - Importer en gruppe af eksterne ansatte som
-    ikke findes i lønsystemet
+- `RUN_MOX_DB_CLEAR` - Tøm OS2mo's database
+- `RUN_CHECK_AD_CONNECTIVITY` - Check at der er di korrekte rettigheder
+  i AD
+- `RUN_SD_FIX_DEPARTMENTS` - Kør SD-fix-departments
+- `RUN_SD_CHANGED_AT` - Kør SD-changed-at - deltaimport af ændringer fra
+  SD
+- `RUN_SD_UPDATE_PRIMARY` - Kør Primærberegning af SD-employees
+- `RUN_BALLERUP_APOS` - Indlæs til OS2MO fra APOS (Ballerups version)
+- `RUN_OPUS_DIFF_IMPORT` - Kør Opus diff import - deltaimport af
+  øndringer fra OPUS
+- `RUN_AD_SYNC` - Kør en AD-synkronisering
+- `RUN_BALLERUP_APOS` - total-indlæsning af APOS i Ballerup
+- `RUN_BALLERUP_UDVALG` - udvalgshierarkiet i Ballerups OS2MO
+- `RUN_MOX_ROLLE` - overførslen til rollekataloget
+- `RUN_MOX_STS_ORGSYNC` - Overførslen til STS Organisation
+- `RUN_QUERIES_BALLERUP` - Ballerups exports / forespørgsler
+- `RUN_EXPORT_EMUS` - Kør Eksport til EMUS
+- `RUN_CPR_UUID` - Lav en cachefile med CPR/UUID-sammenhænge - gøres
+  typisk før en genindlæsning/restore
+- `RUN_EXPORTS_TEST` - Kør ingenting, men viser at job-runner har været
+  i gang
+- `RUN_SD_DB_OVERVIEW` - Kør overbliksrapport over SD-indlæsningens
+  progress (datoer)
+- `RUN_OPUS_DB_OVERVIEW` - Kør overbliksrapport over OPUS-indlæsningens
+  progress (datoer)
+- `RUN_AD_GROUP_INTO_MO` - Importer en gruppe af eksterne ansatte som
+  ikke findes i lønsystemet
 
 ### Pakning og lagring af Backup
 
 Filer til backup er angivet i 3 afdelinger (bash-arrays):
 
--   `BACK_UP_BEFORE_JOBS` - fil lagres i backup inden kørslen af de
-    enablede jobs afvikles
--   `BACK_UP_AFTER_JOBS` - fil lagres i backup efter at kørslen af de
-    enablede jobs er afviklet
--   `BACK_UP_AND_TRUNCATE` - fil lagres i backup efter at kørslen af de
-    enablede jobs er afviklet, hvorefter fil trunkeres til størrelse 0.
-    Dette er praktisk til logfiler, som nu pakkes sammen med det
-    datagrundlag, der skal til for at gentage kørslen.
+- `BACK_UP_BEFORE_JOBS` - fil lagres i backup inden kørslen af de
+  enablede jobs afvikles
+- `BACK_UP_AFTER_JOBS` - fil lagres i backup efter at kørslen af de
+  enablede jobs er afviklet
+- `BACK_UP_AND_TRUNCATE` - fil lagres i backup efter at kørslen af de
+  enablede jobs er afviklet, hvorefter fil trunkeres til størrelse 0.
+  Dette er praktisk til logfiler, som nu pakkes sammen med det
+  datagrundlag, der skal til for at gentage kørslen.
 
 Pakning af backup foregår i to afdelinger:
 
--   *pre_backup* - her pakkes alle filer i `BACK_UP_BEFORE_JOBS` sammen i en
-    tidsstemplet tarfil
--   *post_backup* - her pakkes filerne i `BACK_UP_AFTER_JOBS` og
-    `BACK_UP_AND_TRUNCATE` ned i tarfilen, som gzippes og filerne i
-    `BACK_UP_AND_TRUNCATE` trunkeres.
+- _pre_backup_ - her pakkes alle filer i `BACK_UP_BEFORE_JOBS` sammen i en
+  tidsstemplet tarfil
+- _post_backup_ - her pakkes filerne i `BACK_UP_AFTER_JOBS` og
+  `BACK_UP_AND_TRUNCATE` ned i tarfilen, som gzippes og filerne i
+  `BACK_UP_AND_TRUNCATE` trunkeres.
 
 Lagringen af backup foregår i servicebrugerens hjemmedirectory, se
 `crontab.CRON_BACKUP` i konfigurationseksemplet ovenfor.
@@ -195,30 +194,30 @@ til om jobbet er slået til i konfigurationen eller ej, det køres
 
 Følgende interne funktioner kan kaldes:
 
--   imports_test_ad_connectivity
--   imports_sd_fix_departments
--   imports_sd_changed_at
--   imports_opus_diff_import
--   imports_sd_update_primary
--   imports_ad_sync
--   imports_ballerup_apos
--   imports_ballerup_udvalg
--   exports_mox_rollekatalog
--   exports_mox_stsorgsync
--   exports_os2mo_phonebook
--   exports_cpr_uuid
--   exports_viborg_emus
--   reports_sd_db_overview
--   reports_opus_db_overview
--   exports_queries_ballerup
--   exports_test
--   imports
--   exports
--   reports
+- imports_test_ad_connectivity
+- imports_sd_fix_departments
+- imports_sd_changed_at
+- imports_opus_diff_import
+- imports_sd_update_primary
+- imports_ad_sync
+- imports_ballerup_apos
+- imports_ballerup_udvalg
+- exports_mox_rollekatalog
+- exports_mox_stsorgsync
+- exports_os2mo_phonebook
+- exports_cpr_uuid
+- exports_viborg_emus
+- reports_sd_db_overview
+- reports_opus_db_overview
+- exports_queries_ballerup
+- exports_test
+- imports
+- exports
+- reports
 
 Vil man for eksempel afvikle mox_stsorgsync, anvender man kaldet:
 
-``` bash
+```bash
 tools/jon-runner.sh exports_mox_stsorgsync
 ```
 
@@ -265,7 +264,7 @@ SD-changed-at/opus_diff_import hvor langt den er kommet in indlæsningen.
 
 Programmet køres som root på følgende måde:
 
-``` bash
+```bash
 bash tools/cron-restore.sh backupfil.tar.gz
 ```
 
@@ -282,20 +281,20 @@ også efterfølgende. Scriptet er simpelt, men ikke så simpelt at kalde:
 For at oprette en Email-addresse-klasse med en predefineret uuid under
 facetten employee_address_type udføres:
 
-``` bash
+```bash
 uuid=68d3d0ce-9fde-11ea-80b1-63a0ea904cea facet=employee_address_type bvn=test-moxklas titel=test-moxklas scope=EMAIL bash tools/moxklas.sh
 ```
 
 Man kan provokere et dry-run ved at sætte en parameter efter hele linien
 
-``` bash
+```bash
 uuid=68d3d0ce-9fde-11ea-80b1-63a0ea904cea facet=employee_address_type bvn=test-moxklas titel=test-moxklas scope=EMAIL bash tools/moxklas.sh 42
 ```
 
 Ovenstående sender et payload til lora, som opretter en klasse som
 ligner nedenstående
 
-``` json
+```json
 {
   "attributter": {
     "klasseegenskaber": [
@@ -356,11 +355,11 @@ indlæses.
 
 Programmet kører som root med:
 
-``` bash
+```bash
 bash tools/opus_import_all.sh
 ```
 
-`Opus_import_all.sh` anvender intensivt *settings/settings.json*. Se under
+`Opus_import_all.sh` anvender intensivt _settings/settings.json_. Se under
 Opus-indlæsning i dokumentationen for at finde ud af hvilke settings,
 der skal være defineret for indlæsning fra Opus.
 
@@ -373,7 +372,7 @@ tilbage' gøres så med [`tools/cron-restore.sh`](#cron-restoresh)
 prefixed_settings sources og anvender to environment-variable, med
 følgende defaults:
 
-``` bash
+```bash
 export SETTING_PREFIX=${SETTING_PREFIX:=crontab}
 export CUSTOMER_SETTINGS=${CUSTOMER_SETTINGS:=/opt/settings/customer-settings.json}
 ```
@@ -396,7 +395,7 @@ Dette program anvendes for at opdatere repositoriet og afhængigheder
 
 ## inspect_config.py
 
-compare *settings* file with `kommune-anddeby.json` and report what is
+compare _settings_ file with `kommune-anddeby.json` and report what is
 missing
 
 ## job-runner.d
@@ -407,7 +406,7 @@ tidsmålinger gør.
 
 ## terminate_orgfunc.py
 
-Et tool, som terminerer *ALLE* brugeres adresser og it-forbindelser. Det
+Et tool, som terminerer _ALLE_ brugeres adresser og it-forbindelser. Det
 er jo ikke særligt smart at køre sådan et, for så skal man oprette dem
 allesammen igen. Det er imidlertid nødvendigt, hvis man er Viborg og
 tidligere har brugt Skole-AD eller man ændrer feltmapning

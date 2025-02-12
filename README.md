@@ -12,7 +12,7 @@ organisation. You also get a complete picture of management hierarchies, and
 you can see your union representative organisation, your payroll organisation,
 your safety organisation, your line organisation, etc.
 
-The vision for MO is that it should be *the* source system for the entire
+The vision for MO is that it should be _the_ source system for the entire
 organisation and its employees: this is where organisational changes are made,
 this is where employees are created and removed, and this information will
 automatically - and immediately - be sent to other systems. The information can
@@ -31,7 +31,6 @@ The primary documentation for OS2mo is available at
 <https://rammearkitektur.docs.magenta.dk/os2mo/index.html> (in Danish).
 Technical documentation in English is available at
 <https://rammearkitektur.docs.magenta.dk/os2mo/tech-docs/architecture.html>.
-
 
 ## GraphQL
 
@@ -66,25 +65,28 @@ The GraphQL schema for each version is available at
 More thorough documentation for the GraphQL API is available at
 <https://rammearkitektur.docs.magenta.dk/os2mo/tech-docs/graphql/intro.html>.
 
-
 ## Getting Started
 
 To get a local OS2mo stack running on a sane operating system:
+
 ```shell
 git clone https://github.com/OS2mo/os2mo.git
 cd os2mo/
 docker compose up -d --build
 ```
+
 The OS2mo frontend should now be available at <http://localhost:5000>, and the
 GraphiQL explorer at <http://localhost:5000/graphql>. The default admin
 username/password is `alvida`/`alvida`.
 
 To stop the stack, run
+
 ```shell
 docker compose down
 ```
 
 To stop the stack _and delete all data volumes_, run
+
 ```shell
 docker compose down -v
 ```
@@ -92,11 +94,11 @@ docker compose down -v
 A more detailed walk-through is available at
 <https://rammearkitektur.docs.magenta.dk/os2mo/tech-docs/development.html>.
 
-
 ## Versioning
 
 This project uses [Semantic Versioning](https://semver.org/) with the following
 strategy:
+
 - MAJOR: Incompatible API changes.
 - MINOR: Backwards-compatible updates and functionality.
 - PATCH: Backwards-compatible bug fixes.
@@ -104,11 +106,9 @@ strategy:
 The changelog is available at
 <https://rammearkitektur.docs.magenta.dk/os2mo/changelog.html>.
 
-
 ## Authors
 
 Magenta ApS <https://magenta.dk>
-
 
 ## License
 

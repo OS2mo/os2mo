@@ -17,19 +17,21 @@ Det er således muligt at vedligeholde KLE-numre i OS2mo samt eksportere dem til
 3. **[Eksportere KLE-numre fra MO](#eksportere-kle-numre-fra-mo)**
 
 ## Importere KLE-numre i MO vha. regneark
+
 Man kan sagtens oprette KLE-numre i selve MO, men det er oftest nemmere at gøre det i et regnark først og foretage en engangsindlæsning af det i MO.
 
 Ønsker man at opmærke med KLE-numre direkte i MO, se [Vedligeholde KLE-numre i MO](##vedligeholde-KLE-numre-i-MO)
 
 ### Udtræk af organisationen
+
 Der laves et udtræk af den administrative organisation fra MO, og det sendes det til jer. Det foregår i [dette regneark](../static/kle.xlsx).
 
 Regnearket indeholder også alle KLE-numre fra [KLE-Online](https://www.kle-online.dk/).
 
 De to datasæt findes i regnearket i under fanerne:
 
-* Org
-* KLE
+- Org
+- KLE
 
 Under de næste tre faner findes de tre såkaldte KLE-aspekter, som I skal opmærke jeres organisation med:
 
@@ -67,5 +69,5 @@ Se [her](https://rammearkitektur.docs.magenta.dk/os2mo/home/manual.html#faneblad
 
 KLE-numre kan pt. eksporteres til:
 
-* [FK Organisation](https://rammearkitektur.docs.magenta.dk/os2mo/data-import-export/exporters/os2sync.html)
-* [Rollekataloget](https://rammearkitektur.docs.magenta.dk/os2mo/data-import-export/exporters/os2rollekatalog.html)
+- [FK Organisation](https://rammearkitektur.docs.magenta.dk/os2mo/data-import-export/exporters/os2sync.html)
+- [Rollekataloget](https://rammearkitektur.docs.magenta.dk/os2mo/data-import-export/exporters/os2rollekatalog.html)

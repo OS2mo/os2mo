@@ -24,7 +24,7 @@ For at relatere en enhed til en anden enhed eller andre enheder, skal man:
 
 1. Navigere til de enheder, der skal kobles sammen, i hhv. organisationerne til venstre og til højre, og sætter flueben (bemærk muligheden for at oprette en 1-mange relation):
 
-    ![image](../graphics/orgsamopret.png)
+   ![image](../graphics/orgsamopret.png)
 
 2. Angive en startdato.
 
@@ -32,20 +32,20 @@ For at relatere en enhed til en anden enhed eller andre enheder, skal man:
 
 4. Se relationerne under de nu relaterede enheder:
 
-    ![image](../graphics/orgsamopretresultat.png)
+   ![image](../graphics/orgsamopretresultat.png)
 
 ### Sletning af relationer
 
 1. Naviger hen til den enhed fra hvilken man vil fjerne en relation:
 
-    ![image](../graphics/orgsamopret.png)
+   ![image](../graphics/orgsamopret.png)
 
 2. Fjern den eller de relationer, der skal fjernes, ved at fjerne flueben. Husk at angive, hvornår termineringen skal træde i kraft - Det kan både være en fortidig, nutidig og fremtidig dato:
 
-    ![image](../graphics/orgsamslet.png)
+   ![image](../graphics/orgsamslet.png)
 
 3. Tryk "Gem".
 
 4. Se relationerne under de nu relaterede enheder:
 
-    ![image](../graphics/orgsamsletresultat.png)
+   ![image](../graphics/orgsamsletresultat.png)

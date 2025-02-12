@@ -33,14 +33,17 @@ Når lederen er fjernet, sendes email-notifikationen til rette vedkommende. Hvis
 Løses kan testes på følgende måde:
 
 **Test 1**
+
 - Fjern en leder fra lederfanen med øjeblikkelig virkning (dsv. slutdato er i dag eller i fortiden).
 - Bekræft at der modtages en email med oplysninger om den fjernede leder.
 
 **Test 2**
+
 - Sæt en slutdato på en leder.
 - Bekræft at der modtages en email på den valgte dato.
 
 **Test 3**
+
 - Tilføj en ny leder.
 - Lav fx ændringer i ’lederniveau’, ’startdato’, ’ledertype’.
 - Bekræft at der ikke modtages email.

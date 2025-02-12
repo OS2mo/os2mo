@@ -12,7 +12,6 @@ installeret på. VM'en forbinder til Magentas SaltStack. Der er også en
 reverse-proxy som kan forny certifikater vha. DNS
 opsætningen.](../graphics/drift-diagram.svg)
 
-
 ## Tilvejebringelse af servermiljø
 
 Der er behov for tre servere så leverandør og kunde har hver deres testmiljø (hhv. dev og test):
@@ -32,7 +31,6 @@ Bestykning og opsætning skal se sådan ud:
 
 Vi vil kraftigt anbefale at Magenta hoster OS2mo.
 
-
 ## Adgange til servermiljø
 
 - VPN-forbindelse tilvejebringes, helst ssh.
@@ -40,13 +38,11 @@ Vi vil kraftigt anbefale at Magenta hoster OS2mo.
 - Adgang for IdM-brokeren Keycloak tilvejebringes.
 - ssh-adgang oprettes til den indledende SALT opkobling.
 
-
 ## Indgåelse af aftaler
 
 - Samarbejdsaftale om krav til fortrolighed og sikkerhed (tavsheds/fortrolighedserklæring)
 - Evt. databehandleraftale
 - Drifts- og SLA-aftale - forudsætter [etablering af overvågning](#etablering-af-overvagning).
-
 
 ## DNS / HTTPS
 
@@ -58,7 +54,6 @@ f.eks. have HTTPS på os2mo-udvikling.kunde.dk, kræver det følgende DNS record
 `os2mo-udvikling.kunde.dk CNAME os2mo-udvikling.kunde.dk.os2mo-on-prem.magentahosted.dk`
 
 `_acme-challenge.os2mo-udvikling.kunde.dk CNAME _acme-challenge.os2mo-udvikling.kunde.dk.os2mo-on-prem.magentahosted.dk`
-
 
 ## Etablering af overvågning
 

@@ -10,16 +10,16 @@ This document describes the OS GIR | OS2mo RBAC use cases for both Keycloak usag
 
 Keycloak will in the RBAC context have two responsibilities:
 
--  Authentication
--  Authorization
+- Authentication
+- Authorization
 
-The *authentication* mechanism will be enabled for all users of OS GIR | OS2mo and this mechanism does
+The _authentication_ mechanism will be enabled for all users of OS GIR | OS2mo and this mechanism does
 not require any maintenance from Keycloak administrators, since the authentication flow will
 be pre-configured by Magenta.
 
-The *authorization* mechanism, however, does require maintenance by one or more Keycloak
+The _authorization_ mechanism, however, does require maintenance by one or more Keycloak
 administrators within the organization. These Keycloak administrators will be granted access
-to *user* manipulations in the OS GIR | OS2mo realm - and hence be able to assign *roles* to the users.
+to _user_ manipulations in the OS GIR | OS2mo realm - and hence be able to assign _roles_ to the users.
 
 ### Users
 
@@ -33,37 +33,37 @@ email, first and last name,...) will be provided from elsewhere.
 
 We will in Keycloak operate with the followin roles:
 
--  (No role)
--  Admin
--  Owner
+- (No role)
+- Admin
+- Owner
 
 Users who are not assigned a role will not be able to perform any write operations in OS GIR | OS2mo.
 
-Users who are assigned the *Admin* role will have full write access to all parts of OS GIR | OS2mo. The Admin
+Users who are assigned the _Admin_ role will have full write access to all parts of OS GIR | OS2mo. The Admin
 role is necessary in order to allow certain users to have write access to the root level of the
 organization hierarchy, e.g. to create an organization unit at the top level of the organization
 tree.
 
-Users with the role *Owner* will have write permissions only to the parts of OS GIR | OS2mo of which they are
+Users with the role _Owner_ will have write permissions only to the parts of OS GIR | OS2mo of which they are
 owners. For example - imagine the following organizational hierarchy:
 
 **Organization hierarchy in OS GIR | OS2mo**
 
-*  Organization 1
-    +  Unit 11
-        -  Unit 111
-        -  Unit 112
-    +  Unit 12
-        -  Unit 121
-        -  Unit 122
-*  Organization 2
-    +  Unit 21
-        -  Unit 211
-        -  Unit 212
+- Organization 1
+  - Unit 11
+    - Unit 111
+    - Unit 112
+  - Unit 12
+    - Unit 121
+    - Unit 122
+- Organization 2
+  - Unit 21
+    - Unit 211
+    - Unit 212
 
 and assume that:
 
-1.  A user has been given the *Owner* role in Keycloak.
+1.  A user has been given the _Owner_ role in Keycloak.
 2.  The user is the owner of Unit 121 and Unit 122.
 
 ### Use cases
@@ -79,28 +79,28 @@ Keycloak use cases.
 
 1.  Access to Keycloak is enabled via PAM (not within the Magenta scope).
 2.  A OS GIR | OS2mo Keycloak administrator navigates to the Keycloak frontpage and logs in with the
-administrator username and password.
+    administrator username and password.
 
 #### Assign a role to a user
 
 1. The administrator selects “Users” in the left menu.
 2. The administrator enters the username or name of the user that should be assigned the
-role in the search box and clicks the search button.
+   role in the search box and clicks the search button.
 3. The administrator selects the relevant user from the list of users in the search results.
 4. The administrator clicks the “Role Mappings” tab in the user manipulation area to the right:
-![image](../../graphics/keycloak_use_cases/keycloak_assign_role.png)
+   ![image](../../graphics/keycloak_use_cases/keycloak_assign_role.png)
 5. The administrator selects the role that the user should be added to in the “Available Roles”
-window and clicks “Add selected”.
+   window and clicks “Add selected”.
 
 #### Unassign a role from a user
 
 1. The administrator selects “Users” in the left menu.
 2. The administrator enters the username or name of the user that should be unassigned the
-role in the search box and clicks the search button.
+   role in the search box and clicks the search button.
 3. The administrator selects the relevant user from the list of users in the search results.
 4. The administrator clicks the “Role Mappings” tab in the user manipulation area to the right.
 5. The administrator selects the role that the user should be removed from in the “Assigned
-Roles” window and clicks “Remove selected”.
+   Roles” window and clicks “Remove selected”.
 
 #### Manage users
 
@@ -130,13 +130,13 @@ following use cases described below.
 1. A user navigates to the OS GIR | OS2mo frontend in a browser.
 2. If not already authenticated in OS GIR | OS2mo, the user is redirected to Keycloak.
 3. Keycloak redirects the user back to the OS GIR | OS2mo frontend with valid OpenID Connect tokens and
-the user is hereby logged in.
+   the user is hereby logged in.
 
 #### Create a new unit
 
 1. The user clicks the blue “Create unit” button located to the far right.
 2. The user selects the appropriate parent unit from the drop-down list of possible parent
-units.
+   units.
 3. The user fills out the form and provides relevant data about the new unit.
 4. The user clicks the “Send” button.
 

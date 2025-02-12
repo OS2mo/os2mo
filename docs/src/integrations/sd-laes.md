@@ -13,56 +13,56 @@ For at kunne afvikle integrationen, kræves loginoplysninger til SD-Løn,
 som angives via `settings.json`, desuden anvendes en række felter som
 angiver den lokale anvendelse af SD Løn. De påkrævede felter er:
 
--   `integrations.SD_Lon.institution_identifier`: Institution
-    Identifer i SD.
--   `integrations.SD_Lon.sd_user`: Brugernavn (inklusiv foranstillet
-    SY) til SD.
--   `integrations.SD_Lon.sd_password`: Password til SD.
--   `integrations.SD_Lon.base_url`: url til SD's webinterface.
--   `integrations.SD_Lon.global_from_date`: Virkningsdato for import
-    på formen YYYY-MM-DD.
--   `integrations.SD_Lon.import.too_deep`: Liste over SD niveauer som
-    anses som afdelingsniveau.
--   `integrations.SD_Lon.monthly_hourly_divide`: Skilleværdi for
-    måneds/timelønnede.
--   `integrations.SD_Lon.job_function`: Feltet kan have en af to
-    vædier: *EmploymentName* eller *JobPositionIdentifier*,
-    se yderligere nedenfor.
+- `integrations.SD_Lon.institution_identifier`: Institution
+  Identifer i SD.
+- `integrations.SD_Lon.sd_user`: Brugernavn (inklusiv foranstillet
+  SY) til SD.
+- `integrations.SD_Lon.sd_password`: Password til SD.
+- `integrations.SD_Lon.base_url`: url til SD's webinterface.
+- `integrations.SD_Lon.global_from_date`: Virkningsdato for import
+  på formen YYYY-MM-DD.
+- `integrations.SD_Lon.import.too_deep`: Liste over SD niveauer som
+  anses som afdelingsniveau.
+- `integrations.SD_Lon.monthly_hourly_divide`: Skilleværdi for
+  måneds/timelønnede.
+- `integrations.SD_Lon.job_function`: Feltet kan have en af to
+  vædier: _EmploymentName_ eller _JobPositionIdentifier_,
+  se yderligere nedenfor.
 
 Desuden kan disse ikke-påkrævede felter angives:
 
--   `integrations.SD_Lon.employment_field`: Angiver et af MOs
-    ekstrafelter på engagementer, hvis feltet angives vil
-    integrationen skrive værdien af *EmploymentName* i
-    dette felt.
--   `integrations.SD_Lon.skip_employment_types`: En liste over værdier
-    af *JobPositionIdentifier* som ikke skal importeres.
-    Hvis et engagement har en type fra listen, vil engagementet bliver
-    ignoreret og ikke importeret i MO. Den tilhørende bruger vil dog
-    blive oprettet, men vil optræde uden engagementer (med mindre
-    personen har andre engagementer i kommunen).
--   `integrations.SD_Lon.no_salary_minimum_id`: Angiver en minimum
-    påkrævet job position id for ulønnede medarbejdere. Alle ulønnede
-    medarbejder med et id under dette minimum får aldrig deres
-    engagement oprettet i MO.
--   `integrations.SD_Lon.fix_departments_root`: Angiver hvilken
-    org_unit som skal udgøre rodenhed for importerede
-    organisationenheder fra SD. Hvis tom anvendes MO's
-    rodorganisation.
+- `integrations.SD_Lon.employment_field`: Angiver et af MOs
+  ekstrafelter på engagementer, hvis feltet angives vil
+  integrationen skrive værdien af _EmploymentName_ i
+  dette felt.
+- `integrations.SD_Lon.skip_employment_types`: En liste over værdier
+  af _JobPositionIdentifier_ som ikke skal importeres.
+  Hvis et engagement har en type fra listen, vil engagementet bliver
+  ignoreret og ikke importeret i MO. Den tilhørende bruger vil dog
+  blive oprettet, men vil optræde uden engagementer (med mindre
+  personen har andre engagementer i kommunen).
+- `integrations.SD_Lon.no_salary_minimum_id`: Angiver en minimum
+  påkrævet job position id for ulønnede medarbejdere. Alle ulønnede
+  medarbejder med et id under dette minimum får aldrig deres
+  engagement oprettet i MO.
+- `integrations.SD_Lon.fix_departments_root`: Angiver hvilken
+  org_unit som skal udgøre rodenhed for importerede
+  organisationenheder fra SD. Hvis tom anvendes MO's
+  rodorganisation.
 
 Hvis `integrations.SD_Lon.job_function` har værdien
-*EmploymentName* vil ansættelsers stillingsbetegnelser
+_EmploymentName_ vil ansættelsers stillingsbetegnelser
 bliver taget fra SDs felt af samme navn, som er et fritekstfelt.
 Integrationen vil oprette en klasse for alle forekommende
 stillingsbetegnelser. Benyttes i stedet værdien
-*JobPositionIdentifier* vil stillingsbetegelsen blive taget
+_JobPositionIdentifier_ vil stillingsbetegelsen blive taget
 fra dette felt i SD, som er et klassicieret felt.
 
 Desuden er det nødvendigt at angive adressen på MO og LoRa i
 variablerne:
 
--   `mox.base`
--   `mora.base`
+- `mox.base`
+- `mora.base`
 
 ## Brug af integrationen
 
@@ -70,7 +70,7 @@ De forskellige underprogrammer kan alle tilgåes igennem ét hoved
 program, nemlig `sd_cli`, ved kørsel af dette program vises
 underprogrammerne, og deres parametre og formål kan udforskes. Kør blot:
 
-``` bash
+```bash
 python integrations/SD_Lon/sd_cli.py --help
 ```
 
@@ -78,26 +78,26 @@ python integrations/SD_Lon/sd_cli.py --help
 
 Udtræk fra SD Løn foregår som udgangspunkt via disse webservices:
 
--   `GetOrganization20111201`
--   `GetDepartment20111201`
--   `GetPerson20111201`
--   `GetEmployment20111201`
+- `GetOrganization20111201`
+- `GetDepartment20111201`
+- `GetPerson20111201`
+- `GetEmployment20111201`
 
 Det er desuden muligt at køre et udtræk som synkroniserer ændringer som
 er meldt ind til SD Løn, men endnu ikke har nået sin virkningsdato:
 
--   `GetEmploymentChanged20111201`
--   `GetPersonChangedAtDate20111201`
+- `GetEmploymentChanged20111201`
+- `GetPersonChangedAtDate20111201`
 
 Endelig er der også en implementering af løbende synkronisering af
 ændringer i SD Løn, til dette anvendes udover de nævne webservices også:
 
--   `GetEmploymentChangedAtDate20111201`
+- `GetEmploymentChangedAtDate20111201`
 
 Hvis der ønskes synkronisering af titler hørende til
 `JobPositionIdentifier` anvendes desuden:
 
--   `GetProfession20080201`
+- `GetProfession20080201`
 
 Alle enheder fra SD importeres 1:1 som de er i SD, dog er det muligt at
 flytte enheder uden hverken overenhed eller underenheder til en særlig
@@ -156,10 +156,10 @@ liste fra en kørende instans af MO.
 Alle medarbejdere som har et ansættelsesnummer udelukkende med tal,
 tildeles en af to ansættelsestyper:
 
--   Medarbejder (månedsløn), hvis ansættelsesnummeret er lavere end
-    værdien angivet i nøglen
-    `integrations.SD_Lon.monthly_hourly_divide`.
--   Medarbejder (timeløn), hvis ansættelsesnummeret er højere.
+- Medarbejder (månedsløn), hvis ansættelsesnummeret er lavere end
+  værdien angivet i nøglen
+  `integrations.SD_Lon.monthly_hourly_divide`.
+- Medarbejder (timeløn), hvis ansættelsesnummeret er højere.
 
 Hvis medarbejderen har et ansættelsesnummer, som ikke udelukkende er
 tal, vil ansættelsestypen blive bestemt fra personens
@@ -187,13 +187,13 @@ status 0 ansættelsen vil ikke blive betragtet som primær.
 Informationen om primæransætelse opretholdes i MOs facet `primary_type`,
 som ved import af SD altid populeres med disse fire klasser:
 
--   Manuelt primær ansættelse: Dette felt angiver at en ansættelse
-    manuelt er sat til at være primær
--   Ansat: Angiver en medarbejders beregnede primære ansættelse.
--   Ansat - Ikke i løn: Angiver SD Løns statuskode 0. Hvis ingen andre
-    primære ansætelser findes vil denne type regnes som primær.
--   Ikke-primær ansat: Angiver alle andre ansættelser for en
-    medarbejder.
+- Manuelt primær ansættelse: Dette felt angiver at en ansættelse
+  manuelt er sat til at være primær
+- Ansat: Angiver en medarbejders beregnede primære ansættelse.
+- Ansat - Ikke i løn: Angiver SD Løns statuskode 0. Hvis ingen andre
+  primære ansætelser findes vil denne type regnes som primær.
+- Ikke-primær ansat: Angiver alle andre ansættelser for en
+  medarbejder.
 
 Manuelt primær optræder ikke direkte i imports, men kan sættes manuelt
 fra MOs GUI. De øvrige primærklasser håndteres af SD integrationen, og
@@ -271,51 +271,51 @@ blive korrekt.
 Udover de direkte værktøjer til import og løbende opdateringer, findes
 et antal hjælpeværktøjer:
 
- -   `test_sd_connectivity.py`: Et lille værktøj som tester at den
-     lokale `settings.json` indeholder de nødvendige nøgler. Desuden
-     tester programmet for en række potentielle fejl, eksempevis om
-     felterne har gyldige værdier og om det er muligt at kontakte SD
-     Løn med de angivne brugeroplysinger.
- -   `test_mo_against_sd.py`: Et værktøj som tester udvalgte personers
-     engagementer mod SD løn of checker at MO og SD er løn har samme
-     opfattelse af om personens engagementer er aktive eller ej.
-     Værktøjet kan anvendes på et enkelt person eller på alle personer
-     som har ansættelse i en bestemt enhed (alle engagementer for disse
-     personer vil blive tjekket også dem i andre enheder). Værktøjet
-     anvender opslag til SDs API'er og kan derfor kun anvendes i
-     begrænset omfang, og af samme årsag er der ikke implementeret
-     mulighed for at tjekke alle ansatte.
- -   `calculate_primary.py`: Et værktøj som er i stand til at
-     gennemløbe alle ansættelser i MO og afgøre om der for alle
-     medarbejdere til alle tider findes et primærengagement. Værktøjet
-     er også i stand til at reparere en (eller alle) ansættelser hvor
-     dette ikke skulle være tilfældet. Dette modul importeres desuden
-     af koden til løbende opdatering, hvor den bruges til at genberegne
-     primæransættelser når der skær ændringer i en medarbejders
-     ansættelsesforhold. Værktøjet er udstyret med et
-     kommandolinjeinterface, som kan udskrive en liste over brugere
-     uden primærengagement (eller med mere end et) samt opdatere
-     primære engagementer for en enkelt bruger eller for alle brugere.
- -   `sync_job_id.py`: Dette værktøj kan opdatere den tekst som vises i
-     forbindelse med ansættelsestyper og stillingsbetegnelser som er
-     knyttet til SDs `JobPositionIdentifier`. Efter den initielle
-     import vil klassens navn modsvare talværdien i SD, og dette
-     værktøj kan efterfølgende anvendes til at enten at synkronisere
-     teksten til den aktuelle værdi i SD eller til en valgfri tekst.
- -   `fix_departments.py`: En implementering af logikken beskrevet
-     under afsnitet [Håndtering af enheder](#handtering-af-enheder).
-     Udover anvendelsen i den løbende integrationen, indeholder
-     programmet også et kommandolinjeværktøj som kan anvendes til
-     manuelt at fremprovokere en synkronisering af en enhed (med
-     tilhørende overenheder) til den nuværende tilsand af SD Løn. Hvis
-     værktøjet afvikles på en enhed som anses for at være
-     Afdelings-niveau, vil det opdatere alle enhedens ansættelser, så
-     engagementerne flyttes til de korrekte NY-niveauer (som kan være
-     ændret, hvis afdelingen er flyttet).
- -   `sd_fix_organisation.py`: Tidligere forsøg på at håndtere
-     opdateringer af enheder. Scriptet findes nu kun som basis for
-     evenutelle senere forsøg på at lave et fuldt historisk import af
-     enhedstræet.
+- `test_sd_connectivity.py`: Et lille værktøj som tester at den
+  lokale `settings.json` indeholder de nødvendige nøgler. Desuden
+  tester programmet for en række potentielle fejl, eksempevis om
+  felterne har gyldige værdier og om det er muligt at kontakte SD
+  Løn med de angivne brugeroplysinger.
+- `test_mo_against_sd.py`: Et værktøj som tester udvalgte personers
+  engagementer mod SD løn of checker at MO og SD er løn har samme
+  opfattelse af om personens engagementer er aktive eller ej.
+  Værktøjet kan anvendes på et enkelt person eller på alle personer
+  som har ansættelse i en bestemt enhed (alle engagementer for disse
+  personer vil blive tjekket også dem i andre enheder). Værktøjet
+  anvender opslag til SDs API'er og kan derfor kun anvendes i
+  begrænset omfang, og af samme årsag er der ikke implementeret
+  mulighed for at tjekke alle ansatte.
+- `calculate_primary.py`: Et værktøj som er i stand til at
+  gennemløbe alle ansættelser i MO og afgøre om der for alle
+  medarbejdere til alle tider findes et primærengagement. Værktøjet
+  er også i stand til at reparere en (eller alle) ansættelser hvor
+  dette ikke skulle være tilfældet. Dette modul importeres desuden
+  af koden til løbende opdatering, hvor den bruges til at genberegne
+  primæransættelser når der skær ændringer i en medarbejders
+  ansættelsesforhold. Værktøjet er udstyret med et
+  kommandolinjeinterface, som kan udskrive en liste over brugere
+  uden primærengagement (eller med mere end et) samt opdatere
+  primære engagementer for en enkelt bruger eller for alle brugere.
+- `sync_job_id.py`: Dette værktøj kan opdatere den tekst som vises i
+  forbindelse med ansættelsestyper og stillingsbetegnelser som er
+  knyttet til SDs `JobPositionIdentifier`. Efter den initielle
+  import vil klassens navn modsvare talværdien i SD, og dette
+  værktøj kan efterfølgende anvendes til at enten at synkronisere
+  teksten til den aktuelle værdi i SD eller til en valgfri tekst.
+- `fix_departments.py`: En implementering af logikken beskrevet
+  under afsnitet [Håndtering af enheder](#handtering-af-enheder).
+  Udover anvendelsen i den løbende integrationen, indeholder
+  programmet også et kommandolinjeværktøj som kan anvendes til
+  manuelt at fremprovokere en synkronisering af en enhed (med
+  tilhørende overenheder) til den nuværende tilsand af SD Løn. Hvis
+  værktøjet afvikles på en enhed som anses for at være
+  Afdelings-niveau, vil det opdatere alle enhedens ansættelser, så
+  engagementerne flyttes til de korrekte NY-niveauer (som kan være
+  ændret, hvis afdelingen er flyttet).
+- `sd_fix_organisation.py`: Tidligere forsøg på at håndtere
+  opdateringer af enheder. Scriptet findes nu kun som basis for
+  evenutelle senere forsøg på at lave et fuldt historisk import af
+  enhedstræet.
 
 ## Tjekliste for fuldt import
 
@@ -332,7 +332,7 @@ Overordnet foregår opstart af en ny SD import efter dette mønster:
 
 En indledende import køres ved at oprette en instans af ImportHelper
 
-``` python
+```python
 importer = ImportHelper(
     create_defaults=True,
     mox_base=MOX_BASE,
@@ -348,7 +348,7 @@ dette.
 
 Importen kan derefter køres med disse trin:
 
-``` python
+```python
 sd = sd_importer.SdImport(
     importer,
     ad_info=None,
@@ -369,7 +369,7 @@ Hvor der i dette tilfælde ikke angives ledere eller en AD integration.
 Disse to punkter diskuteres under punkterne [Ledere i SD Løn](#ledere) og
 [AD Integration til SD Import](#ad-integration-til-sd-import).
 
-Parametren *sub_tree* kan angives med en uuid og det vil så
+Parametren _sub_tree_ kan angives med en uuid og det vil så
 fald kun blive undertræet med den pågældende uuid i SD som vil blive
 importeret. Det er i øjeblikket et krav, at dette træ er på rod-niveau i
 SD.
@@ -382,15 +382,15 @@ populeret med værdierne fra SD Løn som de ser ud dags dato.
 I SD Løn importeres i udgangspunktet kun nuværende og forhenværende
 medarbejdere og engagementer, fremtidige ændringer skal hentes i en
 seperat process. Denne process håndteres af programmet
-*sd_changed_at.py* (som også anvendes til efterfølgende
+_sd_changed_at.py_ (som også anvendes til efterfølgende
 daglige synkroniseringer). Programmet tager i øjeblikket desværre ikke
 mod parametre fra kommandolinjen, men har brug for at blive rettet
-direkte i koden, hvor parametren *init* i
-*\_\_main\_\_* delen af programmet skal sættes til *True*.
+direkte i koden, hvor parametren _init_ i
+_\_\_main\_\__ delen af programmet skal sættes til _True_.
 
 Programet kan nu afvikles direkte fra kommandolinjen:
 
-``` bash
+```bash
 python3 sd_changed_at.py
 ```
 
@@ -401,8 +401,8 @@ kørsler af [changed_at](#run_dbsqlite).
 ### 3. Kør sd_changed_at.py periodisk
 
 Daglige indlæsninger foregår som nævnt også med programmet
-*sd_changed_at.py*, hvilket foregår ved at sætte
-*init* til *False* og køre programmet uden
+_sd_changed_at.py_, hvilket foregår ved at sætte
+_init_ til _False_ og køre programmet uden
 yderligere parametre. Programmet vil så spørge
 [ChangedAt.db](#run_dbsqlite) om hvorår der sidst blev synkroniseret, og
 vil herefter synkronisere yderligere en dag frem i tiden.
@@ -410,7 +410,7 @@ vil herefter synkronisere yderligere en dag frem i tiden.
 ### 4. Eventuelt synkroisering af stillingsbetegnelser
 
 Hvis nøglen \* `integrations.SD_Lon.job_function` er valgt til
-*JobPositionIdentifier*, vil alle stillingsbetegnelser nu
+_JobPositionIdentifier_, vil alle stillingsbetegnelser nu
 være talværdier fra SD Løns klassificerede stillinger, for at få læsbare
 stillinger skal disse synkroniseres ved hjælp af værktøjet
 `sync_job_id.py` (se ovenfor).
@@ -428,10 +428,10 @@ ansat er leder. Det er derfor ikke muligt importere informaion om ledere
 direke fra dataudtrækket. Der er dog implementeret to metoder til at
 angive lederinformation:
 
-1.  Inddirekte via *JobPositionIdentifier*
+1.  Inddirekte via _JobPositionIdentifier_
 
     Det er muligt at angive et antal værdier for
-    *JobPositionIdentifier* som anses for at være ledere.
+    _JobPositionIdentifier_ som anses for at være ledere.
     Disse er i øjeblikket hårdkodet til værdierne 1030, 1040 og 1050.
     Hvis intet andet angives vil disse medarbejdere anses for
     at være ledere i de afdelinger de er ansat i.
@@ -442,7 +442,8 @@ angive lederinformation:
     kan importeres fra en anden kilde. Denne liste angives med
     parametren `manager_rows` ved opstart af importeren. Formatet for
     denne angivelse er:
-``` python
+
+```python
 manager_rows = [
 
     {'cpr': leders_cpr_nummer,
@@ -452,6 +453,7 @@ manager_rows = [
     ...
 ]
 ```
+
 Hvor lederansvar er en fritekststreng, alle unikke værdier vil
 blive oprettet under facetten `responsibility` i Klassifikation.
 Det er i den nuværende udgave ikke muligt at importere mere end et

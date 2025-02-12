@@ -3,20 +3,25 @@
 As touched upon briefly in the [introduction](intro.md#quickstart), reading data from a graph API is done through queries. In the following, several example queries in JSON format are presented and compared to the REST API queries needed to obtain the same result.
 
 ## Manager data
+
 This example shows the difference between the service API and the graph API when obtaining manager data for organisation units.
 Suppose you are interested in listing managers, manager types, and job functions for three different organisation units with UUIDs `uuid1`, `uuid2`, and `uuid3`, respectively.
 
 In order to obtain this data using the service API, you would have to do the following.
 
 1. Get manager details for the specified organisation unit.
+
 ```
 GET https://example.com/mo/service/ou/uuid1/details/manager
 ```
+
 2. Parse the result to obtain `employee_uuid` for the manager and the manager type
 3. Get employee engagement details
+
 ```
 GET https://example.com/mo/service/e/employee_uuid/details/engagement
 ```
+
 4. Parse the results and merge them with results from step 2.
 5. Repeat for the remaining organisation units
 
@@ -46,6 +51,7 @@ query Managers {
   }
 }
 ```
+
 which will output data similar to
 
 ```json

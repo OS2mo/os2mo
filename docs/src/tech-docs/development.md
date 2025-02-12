@@ -38,8 +38,8 @@ To bring down the stack, run `docker compose down`, which stops the services
 but persists the data. Add the `-v` flag to remove all
 data.
 
-
 ## Microsoft Windows
+
 If you really want to, OS2mo can be run on Windows through [Windows Subsystem
 for Linux](https://learn.microsoft.com/en-us/windows/wsl/) (WSL). **Because the
 development stack mounts files from the host into the container, the OS2mo repo
@@ -50,11 +50,13 @@ launch the "Ubuntu" program from the Windows start menu to get a shell.
 
 Even though we will **not** be using Docker Desktop, it may have installed the
 docker CLI in Ubuntu for you. Check if docker is installed:
+
 ```shell
 docker --version
 ```
 
 Install docker if it is **not** already installed, otherwise skip this step:
+
 ```shell
 sudo apt update
 sudo apt install docker.io docker-buildx docker-compose-v2

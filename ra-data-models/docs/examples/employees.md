@@ -4,7 +4,8 @@ SPDX-License-Identifier: MPL-2.0
 -->
 
 # Creating Employees
-In order to create a new employee, we use the [Employee Model][ramodels.mo.employee.Employee]. Per the model, it is very easy to create a new employee: simply post a JSON payload with given name and surname to `service/e/create`
+
+In order to create a new employee, we use the [Employee Model][ramodels.mo.employee.employee]. Per the model, it is very easy to create a new employee: simply post a JSON payload with given name and surname to `service/e/create`
 
 ```json
 {
@@ -41,10 +42,11 @@ However, this employee will have no association to the organisation as a whole. 
 
 For this example, suppose that we wish to create an employee that has an engagement as a Software Developer in Unit B and the initials EMPLO.
 
-We need to create an [`Engagement`][ramodels.mo.details.engagement.Engagement], and we can use the initials (if unique) as the employee's user key.
+We need to create an [`Engagement`][ramodels.mo.details.engagement.engagement], and we can use the initials (if unique) as the employee's user key.
 We need three klasses: the job function (i.e. Software Developer), the engagement type, and the primary type (denoting whether the engagement is primary, secondary, etc.). These can be looked up at the `service/f/engagement_job_function/`, `service/f/engagement_type/` and `service/f/primary_type/` endpoints, respectively.
 
 Then, we can create a payload as follows.
+
 ```json
 {
   "type": "engagement",
@@ -70,6 +72,7 @@ Then, we can create a payload as follows.
   }
 }
 ```
+
 This can then be posted to `service/e/create`.
 In fact, we can include this payload directly in the Employee payload - if we do so, it is not necessary to specify the person reference:
 
@@ -102,4 +105,5 @@ In fact, we can include this payload directly in the Employee payload - if we do
   ]
 }
 ```
+
 The same logic can be applied for each detail type.
