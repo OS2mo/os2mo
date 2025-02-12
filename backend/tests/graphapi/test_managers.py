@@ -823,3 +823,62 @@ def test_org_unit_inherit_works_with_multiple_org_units(
     )
     managers = read_org_units_managers(graphapi_post, {"uuids": child_units})
     assert managers == [manager, manager]
+
+
+def read_engagement_managers(
+    graphapi_post: GraphAPIPost,
+    engagement_filter: dict[str, Any] | None = None,
+    manager_filter: dict[str, Any] | None = None,
+    inherit: bool = True,
+) -> list[UUID]:
+    response = """
+        query ReadOrgUnitsManager(
+            $engagement_filter: EngagementFilter,
+            $manager_filter: OrgUnitsboundmanagerfilter,
+            $inherit: Boolean!
+        ) {
+            engagements(filter: $engagement_filter) {
+                objects {
+                    uuid
+                    current {
+                        managers(filter: $manager_filter, inherit: $inherit) {
+                            uuid
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(
+        response,
+        variables={
+            "engagement_filter": engagement_filter,
+            "manager_filter": manager_filter,
+            "inherit": inherit,
+        },
+    )
+    if response.errors:
+        raise ValueError(response.errors)
+    assert response.data
+    return [
+        UUID(manager["uuid"])
+        for engagement in response.data["engagements"]["objects"]
+        for manager in engagement["current"]["managers"]
+        if engagement["current"] is not None
+    ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_engagement_inherit_current(graphapi_post: GraphAPIPost) -> None:
+    engagement = "301a906b-ef51-4d5c-9c77-386fb8410459"
+    manager = UUID("05609702-977f-4869-9fb4-50ad74c6999a")
+    managers = read_engagement_managers(graphapi_post, {"uuids": engagement})
+    assert managers == [manager]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_engagement_inherit_non_existent(graphapi_post: GraphAPIPost) -> None:
+    managers = read_engagement_managers(graphapi_post, {"uuids": [str(uuid4())]})
+    assert managers == []

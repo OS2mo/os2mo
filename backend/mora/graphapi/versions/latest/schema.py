@@ -2222,6 +2222,24 @@ class Engagement:
     async def primary_uuid(self, root: EngagementRead) -> UUID | None:
         return root.primary_uuid
 
+    managers: list[LazyManager] = strawberry.field(
+        resolver=to_list(
+            seed_resolver(
+                manager_resolver,
+                {"org_units": lambda root: uuid2list(root.org_unit_uuid)},
+            )
+        ),
+        description=dedent(
+            """\
+            Managerial roles for the engagement's organisation unit.
+
+            May be empty in which case managers are usually inherited from parents.
+            See the `inherit`-flag for details.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
+    )
+
     # TODO: Document this
     fraction: int | None = strawberry.auto
 
