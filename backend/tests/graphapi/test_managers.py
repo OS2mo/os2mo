@@ -670,6 +670,20 @@ def test_inherit_current(
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db", "manager")
+def test_exclude(graphapi_post: GraphAPIPost) -> None:
+    person_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"  # Anders And
+    child_units = (
+        "b688513d-11f7-4efc-b679-ab082a2055d0",  # Samfundsvidenskabelige fakultet
+    )
+    managers = read_managers(
+        graphapi_post,
+        {"org_unit": {"uuids": child_units}, "exclude": {"uuids": person_uuid}},
+    )
+    assert managers == []
+
+
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 def test_inherit_current_org_units_filter(
     graphapi_post: GraphAPIPost,
@@ -723,14 +737,21 @@ def test_inherit_requires_org_unit_filter(graphapi_post: GraphAPIPost) -> None:
 
 
 def read_org_units_managers(
-    graphapi_post: GraphAPIPost, filter: dict[str, Any], inherit: bool = True
+    graphapi_post: GraphAPIPost,
+    org_unit_filter: dict[str, Any],
+    manager_filter: dict[str, Any] | None = None,
+    inherit: bool = True,
 ) -> list[UUID]:
     response = """
-        query ReadOrgUnitsManager($filter: OrganisationUnitFilter!, $inherit: Boolean!) {
-            org_units(filter: $filter) {
+        query ReadOrgUnitsManager(
+            $org_unit_filter: OrganisationUnitFilter!,
+            $manager_filter: OrgUnitsboundmanagerfilter,
+            $inherit: Boolean!
+        ) {
+            org_units(filter: $org_unit_filter) {
                 objects {
                     current {
-                        managers(inherit: $inherit) {
+                        managers(filter: $manager_filter, inherit: $inherit) {
                             uuid
                         }
                     }
@@ -738,7 +759,14 @@ def read_org_units_managers(
             }
         }
     """
-    response = graphapi_post(response, variables={"filter": filter, "inherit": inherit})
+    response = graphapi_post(
+        response,
+        variables={
+            "org_unit_filter": org_unit_filter,
+            "manager_filter": manager_filter,
+            "inherit": inherit,
+        },
+    )
     if response.errors:
         raise ValueError(response.errors)
     assert response.data
@@ -761,6 +789,19 @@ def test_org_unit_inherit_current(
     )
     managers = read_org_units_managers(graphapi_post, {"uuids": child_units})
     assert managers == [manager]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db", "manager")
+def test_org_unit_exclude(graphapi_post: GraphAPIPost) -> None:
+    person_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"  # Anders And
+    child_units = (
+        "b688513d-11f7-4efc-b679-ab082a2055d0",  # Samfundsvidenskabelige fakultet
+    )
+    managers = read_org_units_managers(
+        graphapi_post, {"uuids": child_units}, {"exclude": {"uuids": person_uuid}}
+    )
+    assert managers == []
 
 
 @pytest.mark.integration_test
