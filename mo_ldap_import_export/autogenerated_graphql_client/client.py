@@ -50,6 +50,7 @@ from .input_types import ITUserFilter
 from .input_types import ITUserTerminateInput
 from .input_types import ITUserUpdateInput
 from .input_types import OrganisationUnitCreateInput
+from .input_types import OrgUnitsboundmanagerfilter
 from .ituser_create import ItuserCreate
 from .ituser_create import ItuserCreateItuserCreate
 from .ituser_terminate import ItuserTerminate
@@ -102,6 +103,8 @@ from .read_engagement_employee_uuid import ReadEngagementEmployeeUuid
 from .read_engagement_employee_uuid import ReadEngagementEmployeeUuidEngagements
 from .read_engagement_enddate import ReadEngagementEnddate
 from .read_engagement_enddate import ReadEngagementEnddateEngagements
+from .read_engagement_manager import ReadEngagementManager
+from .read_engagement_manager import ReadEngagementManagerEngagements
 from .read_engagement_uuid import ReadEngagementUuid
 from .read_engagement_uuid import ReadEngagementUuidEngagements
 from .read_engagements import ReadEngagements
@@ -1320,3 +1323,33 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadOrgUnitAncestors.parse_obj(data).org_units
+
+    async def read_engagement_manager(
+        self,
+        engagement_uuid: UUID,
+        filter: OrgUnitsboundmanagerfilter | None | UnsetType = UNSET,
+    ) -> ReadEngagementManagerEngagements:
+        query = gql(
+            """
+            query read_engagement_manager($engagement_uuid: UUID!, $filter: OrgUnitsboundmanagerfilter) {
+              engagements(filter: {uuids: [$engagement_uuid]}) {
+                objects {
+                  current {
+                    managers(filter: $filter, inherit: true, exclude_self: true) {
+                      person {
+                        uuid
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "engagement_uuid": engagement_uuid,
+            "filter": filter,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadEngagementManager.parse_obj(data).engagements

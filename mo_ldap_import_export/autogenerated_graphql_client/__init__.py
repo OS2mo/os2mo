@@ -287,6 +287,16 @@ from .read_engagement_enddate import ReadEngagementEnddateEngagementsObjectsVali
 from .read_engagement_enddate import (
     ReadEngagementEnddateEngagementsObjectsValiditiesValidity,
 )
+from .read_engagement_manager import ReadEngagementManager
+from .read_engagement_manager import ReadEngagementManagerEngagements
+from .read_engagement_manager import ReadEngagementManagerEngagementsObjects
+from .read_engagement_manager import ReadEngagementManagerEngagementsObjectsCurrent
+from .read_engagement_manager import (
+    ReadEngagementManagerEngagementsObjectsCurrentManagers,
+)
+from .read_engagement_manager import (
+    ReadEngagementManagerEngagementsObjectsCurrentManagersPerson,
+)
 from .read_engagement_uuid import ReadEngagementUuid
 from .read_engagement_uuid import ReadEngagementUuidEngagements
 from .read_engagement_uuid import ReadEngagementUuidEngagementsObjects
@@ -576,6 +586,12 @@ __all__ = [
     "ReadEngagementEnddateEngagementsObjects",
     "ReadEngagementEnddateEngagementsObjectsValidities",
     "ReadEngagementEnddateEngagementsObjectsValiditiesValidity",
+    "ReadEngagementManager",
+    "ReadEngagementManagerEngagements",
+    "ReadEngagementManagerEngagementsObjects",
+    "ReadEngagementManagerEngagementsObjectsCurrent",
+    "ReadEngagementManagerEngagementsObjectsCurrentManagers",
+    "ReadEngagementManagerEngagementsObjectsCurrentManagersPerson",
     "ReadEngagementUuid",
     "ReadEngagementUuidEngagements",
     "ReadEngagementUuidEngagementsObjects",

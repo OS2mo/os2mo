@@ -628,3 +628,20 @@ query read_org_unit_ancestors($uuid: UUID!) {
     }
   }
 }
+
+query read_engagement_manager(
+  $engagement_uuid: UUID!
+  $filter: OrgUnitsboundmanagerfilter
+) {
+  engagements(filter: {uuids: [$engagement_uuid]}) {
+    objects {
+      current {
+        managers(filter: $filter, inherit: true, exclude_self: true) {
+          person {
+            uuid
+          }
+        }
+      }
+    }
+  }
+}
