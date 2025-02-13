@@ -214,10 +214,7 @@ class LDAP2MOMapping(MappingBaseModel):
             )
 
         required_attributes = get_required_attributes(mo_class)
-        if (
-            values["objectClass"] == "ramodels.mo.details.engagement.Engagement"
-            or values["objectClass"] == "Engagement"
-        ):
+        if values["objectClass"] == "Engagement":
             # We require a primary attribute. If primary is not desired you can set
             # it to {{ NONE }} in the json dict
             required_attributes.add("primary")

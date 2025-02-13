@@ -39,12 +39,6 @@ def mo_today() -> datetime:
 def import_class(name: str) -> type[MOBase]:
     import_map: dict[str, type[MOBase]] = {
         "Custom.JobTitleFromADToMO": JobTitleFromADToMO,
-        # TODO: these have nothing to do with ramodels anymore
-        "ramodels.mo.details.address.Address": Address,
-        "ramodels.mo.details.engagement.Engagement": Engagement,
-        "ramodels.mo.details.it_system.ITUser": ITUser,
-        "ramodels.mo.employee.Employee": Employee,
-        # TODO: Eliminate the above in favor of the below
         "Address": Address,
         "Engagement": Engagement,
         "ITUser": ITUser,

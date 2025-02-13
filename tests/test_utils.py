@@ -15,9 +15,6 @@ from mo_ldap_import_export.utils import remove_vowels
 
 
 async def test_import_class() -> None:
-    imported_class = import_class("ramodels.mo.employee.Employee")
-    assert imported_class.__name__ == "Employee"
-
     imported_class = import_class("Employee")
     assert imported_class.__name__ == "Employee"
 
