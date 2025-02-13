@@ -54,9 +54,7 @@ def fetch_managers(
               }
             }
         """
-        response = graphapi_post(
-            query, variables={"filter": filter}, url="/graphql/v24"
-        )
+        response = graphapi_post(query, variables={"filter": filter})
         assert response.errors is None
         assert response.data
         return {
@@ -66,7 +64,6 @@ def fetch_managers(
     return inner
 
 
-@pytest.mark.xfail(reason="Broken by GraphQL version 25")
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
@@ -76,8 +73,8 @@ def fetch_managers(
         (None, True, True),
         # Employee wildcard filters vacant
         ({"employee": {}}, True, False),
-        # Employee none filters nothing, fetches all
-        ({"employee": None}, True, True),
+        # Employee none filters non-vacant
+        ({"employee": None}, False, True),
     ],
 )
 async def test_vacant_manager(
@@ -101,6 +98,9 @@ async def test_vacant_manager(
         expect_manager: Whether to the expect the manager in the output.
         expect_vacant: Whether to the expect the vacant manager in the output.
     """
+    # NOTE: A similar tests exists in test_v24.py
+    #       However that test will eventually be deleted, while this should remain
+
     root1 = create_org_unit("root1")
     root2 = create_org_unit("root2")
     # Create an occupied manager
@@ -119,7 +119,6 @@ async def test_vacant_manager(
     assert result == expected
 
 
-@pytest.mark.xfail(reason="Broken by GraphQL version 25")
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 async def test_vacant_manager_change_vacate(
@@ -143,19 +142,16 @@ async def test_vacant_manager_change_vacate(
     person = create_person()
     manager = create_manager(root1, person)
 
-    # Employee none filters nothing, fetches all
     result = fetch_managers({"employee": None})
-    assert result == {manager}
+    assert result == set()
 
     # Unoccupy the manager
     update_manager(manager)
 
-    # Employee none filters nothing, fetches all
     result = fetch_managers({"employee": None})
     assert result == {manager}
 
 
-@pytest.mark.xfail(reason="Broken by GraphQL version 25")
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 async def test_vacant_manager_change_occupy(
@@ -179,13 +175,11 @@ async def test_vacant_manager_change_occupy(
     person = create_person()
     manager = create_manager(root1)
 
-    # Employee none filters nothing, fetches all
     result = fetch_managers({"employee": None})
     assert result == {manager}
 
     # Unoccupy the manager
     update_manager(manager, person)
 
-    # Employee none filters nothing, fetches all
     result = fetch_managers({"employee": None})
-    assert result == {manager}
+    assert result == set()

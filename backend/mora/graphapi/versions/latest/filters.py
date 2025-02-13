@@ -61,7 +61,7 @@ class BaseFilter:
 @strawberry.interface
 class EmployeeFiltered:
     employee: EmployeeFilter | None = strawberry.field(
-        default=None,
+        default=UNSET,
         description=dedent(
             """\
             Employee filter limiting which entries are returned.
