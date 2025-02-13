@@ -374,7 +374,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     fastramqpi = FastRAMQPI(
         application_name="ldap_ie",
         settings=settings.fastramqpi,
-        graphql_version=24,
+        graphql_version=25,
         graphql_client_cls=GraphQLClient,
         database_metadata=Base.metadata,
     )

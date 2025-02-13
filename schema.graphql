@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 #
-# OS2mo GraphQL API schema definition (v24).
-# https://os2mo.eksempel.dk/graphql/v24/schema.graphql
+# OS2mo GraphQL API schema definition (v25).
+# https://os2mo.eksempel.dk/graphql/v25/schema.graphql
 
 "Address information for either an employee or organisational unit\n"
 type Address {
@@ -177,7 +177,7 @@ input AddressFilter {
   to_date: DateTime
 
   "Employee filter limiting which entries are returned.\n"
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
 
   "Employee UUID filter limiting which entries are returned.\n\n| `employees`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
   employees: [UUID!] = null @deprecated(reason: "Replaced by the 'employee' filter")
@@ -508,7 +508,7 @@ input AssociationFilter {
   to_date: DateTime
 
   "Employee filter limiting which entries are returned.\n"
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
 
   "Employee UUID filter limiting which entries are returned.\n\n| `employees`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
   employees: [UUID!] = null @deprecated(reason: "Replaced by the 'employee' filter")
@@ -1338,7 +1338,7 @@ input EmployeeUpdateInput {
 input EmployeesBoundAddressFilter {
   org_unit: OrganisationUnitFilter = null
   org_units: [UUID!] = null
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
   uuids: [UUID!] = null
   user_keys: [String!] = null
   from_date: DateTime
@@ -1356,7 +1356,7 @@ input EmployeesBoundAddressFilter {
 input EmployeesBoundAssociationFilter {
   org_unit: OrganisationUnitFilter = null
   org_units: [UUID!] = null
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
   uuids: [UUID!] = null
   user_keys: [String!] = null
   from_date: DateTime
@@ -1371,7 +1371,7 @@ input EmployeesBoundAssociationFilter {
 input EmployeesBoundEngagementFilter {
   org_unit: OrganisationUnitFilter = null
   org_units: [UUID!] = null
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
   uuids: [UUID!] = null
   user_keys: [String!] = null
   from_date: DateTime
@@ -1384,7 +1384,7 @@ input EmployeesBoundEngagementFilter {
 input EmployeesBoundITUserFilter {
   org_unit: OrganisationUnitFilter = null
   org_units: [UUID!] = null
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
   uuids: [UUID!] = null
   user_keys: [String!] = null
   from_date: DateTime
@@ -1399,7 +1399,7 @@ input EmployeesBoundITUserFilter {
 input EmployeesBoundLeaveFilter {
   org_unit: OrganisationUnitFilter = null
   org_units: [UUID!] = null
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
   uuids: [UUID!] = null
   user_keys: [String!] = null
   from_date: DateTime
@@ -1410,13 +1410,14 @@ input EmployeesBoundLeaveFilter {
 input EmployeesBoundManagerFilter {
   org_unit: OrganisationUnitFilter = null
   org_units: [UUID!] = null
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
   uuids: [UUID!] = null
   user_keys: [String!] = null
   from_date: DateTime
   to_date: DateTime
   registration: ManagerRegistrationFilter = null
   responsibility: ClassFilter = null
+  exclude: EmployeeFilter = null
 }
 
 """Employee engagement in an organisation unit"""
@@ -1527,6 +1528,17 @@ type Engagement {
 
   """UUID of the primary klasse of the engagement."""
   primary_uuid: UUID @deprecated(reason: "Will be removed in a future version of GraphQL.\nUse `primary {uuid}` instead.\n")
+
+  "Managerial roles for the engagement's organisation unit.\n\nMay be empty in which case managers are usually inherited from parents.\nSee the `inherit`-flag for details.\n"
+  managers(
+    filter: OrgUnitsboundmanagerfilter = null
+
+    "Whether to inherit managerial roles or not.\n\nIf managerial roles exist directly on this organisation unit, the flag does nothing and these managerial roles are returned.\nHowever if no managerial roles exist directly, and this flag is:\n* False: An empty list is returned.\n* True: The result from calling `managers` with `inherit=True` on the parent of this organistion unit is returned.\n\nCalling with `inherit=True` can help ensure that a manager is always found.\n"
+    inherit: Boolean! = false
+
+    "Whether to exclude the employee self when inheriting managerial roles.\n\nIf set to `true` the employee self will never be returned in the managers list.\n\nIf both this and `inherit` is set to `true` the organization tree will be traversed, to find the first manager that is not the employee self.\n"
+    exclude_self: Boolean! = false
+  ): [Manager!]!
 
   "Same as engagement_type, but with HACKs to enable validities.\n"
   engagement_type_validity: Class @deprecated(reason: "Should only be used to query engagement_type when validity dates have been specified, \"\n\"ex from_date & to_date.\"\n\"Will be removed when sub-query date handling is implemented.\n")
@@ -1640,7 +1652,7 @@ input EngagementFilter {
   to_date: DateTime
 
   "Employee filter limiting which entries are returned.\n"
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
 
   "Employee UUID filter limiting which entries are returned.\n\n| `employees`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
   employees: [UUID!] = null @deprecated(reason: "Replaced by the 'employee' filter")
@@ -2381,7 +2393,7 @@ input ITUserFilter {
   to_date: DateTime
 
   "Employee filter limiting which entries are returned.\n"
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
 
   "Employee UUID filter limiting which entries are returned.\n\n| `employees`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
   employees: [UUID!] = null @deprecated(reason: "Replaced by the 'employee' filter")
@@ -2501,7 +2513,7 @@ input ITUserUpdateInput {
 input ItuserBoundAddressFilter {
   org_unit: OrganisationUnitFilter = null
   org_units: [UUID!] = null
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
   employees: [UUID!] = null
   uuids: [UUID!] = null
   user_keys: [String!] = null
@@ -2808,7 +2820,7 @@ input LeaveFilter {
   to_date: DateTime
 
   "Employee filter limiting which entries are returned.\n"
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
 
   "Employee UUID filter limiting which entries are returned.\n\n| `employees`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
   employees: [UUID!] = null @deprecated(reason: "Replaced by the 'employee' filter")
@@ -3038,7 +3050,7 @@ input ManagerFilter {
   to_date: DateTime
 
   "Employee filter limiting which entries are returned.\n"
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
 
   "Employee UUID filter limiting which entries are returned.\n\n| `employees`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
   employees: [UUID!] = null @deprecated(reason: "Replaced by the 'employee' filter")
@@ -3054,6 +3066,9 @@ input ManagerFilter {
 
   "Responsibility filter limiting which entries are returned.\n"
   responsibility: ClassFilter = null
+
+  "Employee filter for managers to exclude from the result.\n"
+  exclude: EmployeeFilter = null
 }
 
 """Manager registration filter."""
@@ -3553,7 +3568,7 @@ type OpenValidity {
 
 input OrgUnitsboundaddressfilter {
   org_unit: OrganisationUnitFilter = null
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
   employees: [UUID!] = null
   uuids: [UUID!] = null
   user_keys: [String!] = null
@@ -3571,7 +3586,7 @@ input OrgUnitsboundaddressfilter {
 
 input OrgUnitsboundassociationfilter {
   org_unit: OrganisationUnitFilter = null
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
   employees: [UUID!] = null
   uuids: [UUID!] = null
   user_keys: [String!] = null
@@ -3586,7 +3601,7 @@ input OrgUnitsboundassociationfilter {
 
 input OrgUnitsboundengagementfilter {
   org_unit: OrganisationUnitFilter = null
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
   employees: [UUID!] = null
   uuids: [UUID!] = null
   user_keys: [String!] = null
@@ -3599,7 +3614,7 @@ input OrgUnitsboundengagementfilter {
 
 input OrgUnitsboundituserfilter {
   org_unit: OrganisationUnitFilter = null
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
   employees: [UUID!] = null
   uuids: [UUID!] = null
   user_keys: [String!] = null
@@ -3623,7 +3638,7 @@ input OrgUnitsboundklefilter {
 
 input OrgUnitsboundleavefilter {
   org_unit: OrganisationUnitFilter = null
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
   employees: [UUID!] = null
   uuids: [UUID!] = null
   user_keys: [String!] = null
@@ -3634,7 +3649,7 @@ input OrgUnitsboundleavefilter {
 
 input OrgUnitsboundmanagerfilter {
   org_unit: OrganisationUnitFilter = null
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
   employees: [UUID!] = null
   uuids: [UUID!] = null
   user_keys: [String!] = null
@@ -3642,6 +3657,7 @@ input OrgUnitsboundmanagerfilter {
   to_date: DateTime
   registration: ManagerRegistrationFilter = null
   responsibility: ClassFilter = null
+  exclude: EmployeeFilter = null
 }
 
 input OrgUnitsboundrelatedunitfilter {
@@ -4129,7 +4145,7 @@ input OwnerFilter {
   to_date: DateTime
 
   "Employee filter limiting which entries are returned.\n"
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
 
   "Employee UUID filter limiting which entries are returned.\n\n| `employees`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
   employees: [UUID!] = null @deprecated(reason: "Replaced by the 'employee' filter")
@@ -4887,7 +4903,7 @@ input UuidsBoundEmployeeFilter {
 input UuidsBoundEngagementFilter {
   org_unit: OrganisationUnitFilter = null
   org_units: [UUID!] = null
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
   employees: [UUID!] = null
   user_keys: [String!] = null
   from_date: DateTime
@@ -4917,7 +4933,7 @@ input UuidsBoundITSystemFilter {
 input UuidsBoundITUserFilter {
   org_unit: OrganisationUnitFilter = null
   org_units: [UUID!] = null
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
   employees: [UUID!] = null
   user_keys: [String!] = null
   from_date: DateTime
@@ -4932,7 +4948,7 @@ input UuidsBoundITUserFilter {
 input UuidsBoundLeaveFilter {
   org_unit: OrganisationUnitFilter = null
   org_units: [UUID!] = null
-  employee: EmployeeFilter = null
+  employee: EmployeeFilter
   employees: [UUID!] = null
   user_keys: [String!] = null
   from_date: DateTime
