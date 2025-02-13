@@ -582,6 +582,14 @@ async def manager_resolver(
         cursor=cursor,
         **kwargs,
     )
+    if filter.exclude is not None:
+        exclude_uuids = await filter2uuids_func(employee_resolver, info, filter.exclude)
+        result = {
+            key: value
+            for key, value in result.items()
+            if all(validity.employee_uuid not in exclude_uuids for validity in value)
+        }
+
     if result or not inherit:
         return result
 
