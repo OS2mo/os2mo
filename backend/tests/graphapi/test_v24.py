@@ -36,7 +36,6 @@ def fetch_managers(
     return inner
 
 
-@pytest.mark.xfail(reason="Broken by GraphQL version 25")
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
@@ -89,7 +88,6 @@ async def test_vacant_manager(
     assert result == expected
 
 
-@pytest.mark.xfail(reason="Broken by GraphQL version 25")
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 async def test_vacant_manager_change_vacate(
@@ -125,7 +123,6 @@ async def test_vacant_manager_change_vacate(
     assert result == {manager}
 
 
-@pytest.mark.xfail(reason="Broken by GraphQL version 25")
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 async def test_vacant_manager_change_occupy(
