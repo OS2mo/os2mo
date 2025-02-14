@@ -10,36 +10,6 @@ from ..conftest import GraphAPIPost
 
 
 @pytest.fixture
-def update_manager(
-    graphapi_post: GraphAPIPost,
-    root_org: UUID,
-) -> Callable[[UUID, UUID | None], UUID]:
-    def inner(manager_uuid: UUID, person: UUID | None = None) -> UUID:
-        mutate_query = """
-            mutation UpdateManager($input: ManagerUpdateInput!) {
-                manager_update(input: $input) {
-                    uuid
-                }
-            }
-        """
-        response = graphapi_post(
-            query=mutate_query,
-            variables={
-                "input": {
-                    "uuid": str(manager_uuid),
-                    "person": str(person) if person else None,
-                    "validity": {"from": "1980-01-01T00:00:00Z"},
-                }
-            },
-        )
-        assert response.errors is None
-        assert response.data
-        return UUID(response.data["manager_update"]["uuid"])
-
-    return inner
-
-
-@pytest.fixture
 def fetch_managers(
     graphapi_post: GraphAPIPost,
 ) -> Callable[[dict[str, Any] | None], set[UUID]]:
