@@ -316,9 +316,52 @@ class SearchQueryBuilder:
         join_table = JoinTable(name=table_name, alias=table_alias)
         if join_table not in self.__inner_join_tables:
             self.__inner_join_tables.append(join_table)
-        id_var_name = "rel_maal_uuid" if relation.id_is_uuid else "rel_maal_urn"
-        base_condition = f"""{join_table.ref}.rel_type = '{relation.type}'
-         AND {join_table.ref}.{id_var_name} = '{relation.id}'"""
+        # HACK: This is a hack implemented to support checking for vacant managers.
+        #       Vacant managers are encoded in two ways, either:
+        #       * As a tilknyttedebrugere row with nulls in both UUID and URN, or
+        #       * A missing tilknyttedebrugere row
+        #       Depending on whether other validities exist within the same registration.
+        #
+        #       The logic here however should be useful for other emptiness checks.
+        #
+        #       In the future this should be implemented without hacks, but so far
+        #       this is unfortunately the easiest way to expand LoRa.
+        #
+        #       There is similar implementation to this for: LORA-PLEASE-USE-IS-SIMILAR
+        if relation.id == "urn:LORA-PLEASE-FIND-NULL-UUID-AND-URN":
+            # This handles the case where a row exists, but has double nulls
+            # This situation occurs multiple validities exist, where one is vacant
+            base_condition = f"{join_table.ref}.rel_type = '{relation.type}'"
+            base_condition += f" AND {join_table.ref}.rel_maal_uuid is null"
+            base_condition += f" AND {join_table.ref}.rel_maal_urn is null"
+
+            # This handles the case where no row exists
+            # This situation occurs when a vacant manager is created as the sole validity
+            # This constructs a validity filter for our subquery, ensuring that the rows
+            # we search for have the same validity as the rest of the query.
+            virkning_filter = self.__overlap_condition_from_range(
+                fully_qualifying_var_name=f"(r.{VIRKNING}).timeperiod",
+                start=self.__virkning_fra,
+                end=self.__virkning_til,
+            )
+            # Subquery checking for relation rows of the given type in the given interval
+            # within our current registration.
+            no_rows_subquery = f"""
+                SELECT
+                    1
+                FROM
+                    {table_name} r
+                WHERE
+                    r.rel_type = '{relation.type}' AND
+                    r.organisationfunktion_registrering_id = {self.__class_name}_{REG}.id AND
+                    {virkning_filter}
+            """
+            # Either the row cannot exist OR the row must have double nulls
+            base_condition = f"(NOT EXISTS({no_rows_subquery})) OR ({base_condition})"
+        else:
+            id_var_name = "rel_maal_uuid" if relation.id_is_uuid else "rel_maal_urn"
+            base_condition = f"""{join_table.ref}.rel_type = '{relation.type}'
+             AND {join_table.ref}.{id_var_name} = '{relation.id}'"""
 
         if relation.object_type is not None:
             obj_condition = f"{join_table.ref}.objekt_type = '{relation.object_type}'"

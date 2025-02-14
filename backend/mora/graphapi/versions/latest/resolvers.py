@@ -337,7 +337,9 @@ async def address_resolver(
     await registration_filter(info, filter)
 
     kwargs = {}
-    if filter.employee is not None or filter.employees is not None:
+    if (
+        filter.employee is not None and filter.employee is not UNSET
+    ) or filter.employees is not None:
         kwargs["tilknyttedebrugere"] = lora_filter(
             await get_employee_uuids(info, filter)
         )
@@ -406,7 +408,9 @@ async def association_resolver(
     await registration_filter(info, filter)
 
     kwargs = {}
-    if filter.employee is not None or filter.employees is not None:
+    if (
+        filter.employee is not None and filter.employee is not UNSET
+    ) or filter.employees is not None:
         kwargs["tilknyttedebrugere"] = lora_filter(
             await get_employee_uuids(info, filter)
         )
@@ -500,7 +504,9 @@ async def engagement_resolver(
     await registration_filter(info, filter)
 
     kwargs = {}
-    if filter.employee is not None or filter.employees is not None:
+    if (
+        filter.employee is not None and filter.employee is not UNSET
+    ) or filter.employees is not None:
         kwargs["tilknyttedebrugere"] = lora_filter(
             await get_employee_uuids(info, filter)
         )
@@ -558,8 +564,17 @@ async def manager_resolver(
 
     await registration_filter(info, filter)
 
-    kwargs = {}
-    if filter.employee is not None or filter.employees is not None:
+    kwargs: dict[str, Any] = {}
+    if get_version(info.schema) >= Version.VERSION_25:
+        if filter.employee is None:
+            kwargs["tilknyttedebrugere"] = "urn:LORA-PLEASE-FIND-NULL-UUID-AND-URN"
+        elif filter.employee is not UNSET or filter.employees is not None:
+            kwargs["tilknyttedebrugere"] = lora_filter(
+                await get_employee_uuids(info, filter)
+            )
+    elif (
+        filter.employee is not None and filter.employee is not UNSET
+    ) or filter.employees is not None:
         kwargs["tilknyttedebrugere"] = lora_filter(
             await get_employee_uuids(info, filter)
         )
@@ -626,7 +641,9 @@ async def owner_resolver(
     # TODO: Owner filter
 
     kwargs = {}
-    if filter.employee is not None or filter.employees is not None:
+    if (
+        filter.employee is not None and filter.employee is not UNSET
+    ) or filter.employees is not None:
         kwargs["tilknyttedebrugere"] = lora_filter(
             await get_employee_uuids(info, filter)
         )
@@ -1095,7 +1112,9 @@ async def it_user_resolver(
     await registration_filter(info, filter)
 
     kwargs: dict[str, Any] = {}
-    if filter.employee is not None or filter.employees is not None:
+    if (
+        filter.employee is not None and filter.employee is not UNSET
+    ) or filter.employees is not None:
         kwargs["tilknyttedebrugere"] = lora_filter(
             await get_employee_uuids(info, filter)
         )
@@ -1166,7 +1185,9 @@ async def leave_resolver(
     await registration_filter(info, filter)
 
     kwargs = {}
-    if filter.employee is not None or filter.employees is not None:
+    if (
+        filter.employee is not None and filter.employee is not UNSET
+    ) or filter.employees is not None:
         kwargs["tilknyttedebrugere"] = lora_filter(
             await get_employee_uuids(info, filter)
         )

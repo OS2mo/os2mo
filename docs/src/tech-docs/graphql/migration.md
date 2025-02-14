@@ -10,6 +10,24 @@ code is up-to-date with the latest version.
 Below follows the migration guide for each version.
 
 
+## Version 25
+
+GraphQL version 25 introduces a very minor breaking change to the `managers`
+`employee` filter, specifically the behavior when this filter is set to `null`.
+
+Prior to GraphQL version 25 setting `employee: null` inside `managers` was
+equivalent to not providing the `employee` filter whatsoever, as `null` and
+`UNSET` was treated identically.
+
+However in GraphQL version 25, `null` means where the `employee` reference is
+empty, aka. vacant manager positions, whereas `UNSET` aka. not supplying the
+filter does not do any filtering whatsoever similar to `None` in prior versions.
+
+We believe very few users should be affected by this change, but if needed,
+the migration path is very simple, simply stop passing `employee: null` as a
+filter and instead omit the filter entirely.
+
+
 ## Version 24
 
 GraphQL version 24 introduces a very minor breaking change to the `managers`
