@@ -146,18 +146,8 @@ class SyncTool:
         if dry_run:
             return "CN=Dry run,DC=example,DC=com", True
 
-        if not self.settings.add_objects_to_ldap:
-            logger.info(
-                "Aborting synchronization, as no LDAP account was found and we are not configured to create",
-                uuid=uuid,
-            )
-            return None, True
-
-        # If we did not find DNs, we want to make one
+        # If we did not find DNs, we want to generate one
         try:
-            # This call actually writes in LDAP, so make sure that is okay
-            # TODO: Restructure the code so it does not actually write
-            await self.perform_export_checks(uuid)
             best_dn = await self.dataloader.make_mo_employee_dn(uuid)
         except DNNotFound as error:
             # If this occurs we were unable to generate a DN for the user
