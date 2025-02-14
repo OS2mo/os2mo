@@ -7,6 +7,7 @@ from contextlib import suppress
 from uuid import UUID
 
 import structlog
+from fastramqpi.ramqp.utils import RequeueMessage
 from more_itertools import one
 from more_itertools import partition
 
@@ -14,6 +15,7 @@ from .config import Settings
 from .exceptions import DNNotFound
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
+from .ldap import apply_discriminator
 from .ldap import is_uuid
 from .ldapapi import LDAPAPI
 from .moapi import MOAPI
@@ -188,7 +190,6 @@ class DataLoader:
         )
         return set()
 
-    # TODO: move to synctool
     async def make_mo_employee_dn(self, uuid: UUID) -> DN:
         employee = await self.moapi.load_mo_employee(uuid)
         if employee is None:
@@ -222,3 +223,36 @@ class DataLoader:
         dn = await self.username_generator.generate_dn(employee)
         assert isinstance(dn, str)
         return dn
+
+    async def _find_best_dn(
+        self, uuid: EmployeeUUID, dry_run: bool = False
+    ) -> tuple[DN | None, bool]:
+        dns = await self.find_mo_employee_dn(uuid)
+        # If we found DNs, we want to synchronize to the best of them
+        if dns:
+            logger.info("Found DNs for user", dns=dns, uuid=uuid)
+            best_dn = await apply_discriminator(
+                self.settings, self.ldapapi.ldap_connection, dns
+            )
+            # If no good LDAP account was found, we do not want to synchronize at all
+            if best_dn:
+                return best_dn, False
+            logger.warning(
+                "Aborting synchronization, as no good LDAP account was found",
+                dns=dns,
+                uuid=uuid,
+            )
+            return None, False
+
+        # If dry-running we do not want to generate real DNs in LDAP
+        if dry_run:
+            return "CN=Dry run,DC=example,DC=com", True
+
+        # If we did not find DNs, we want to generate one
+        try:
+            best_dn = await self.make_mo_employee_dn(uuid)
+        except DNNotFound as error:
+            # If this occurs we were unable to generate a DN for the user
+            logger.error("Unable to generate DN")
+            raise RequeueMessage("Unable to generate DN") from error
+        return best_dn, True

@@ -21,6 +21,7 @@ from more_itertools import one
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.config import Settings
+from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.environments import construct_environment
 from mo_ldap_import_export.exceptions import DNNotFound
@@ -90,6 +91,10 @@ async def test_listen_to_changes_in_employees_no_dn(
     employee_uuid = uuid4()
     dataloader.find_mo_employee_dn.return_value = set()
     dataloader.make_mo_employee_dn.side_effect = DNNotFound("Not found")
+    sync_tool.dataloader._find_best_dn = partial(  # type: ignore
+        DataLoader._find_best_dn,
+        sync_tool.dataloader,  # type: ignore
+    )
 
     with capture_logs() as cap_logs:
         with pytest.raises(RequeueMessage):
@@ -689,9 +694,12 @@ async def test_find_best_dn(sync_tool: SyncTool) -> None:
     dn = "CN=foo"
     sync_tool.dataloader.find_mo_employee_dn.return_value = set()  # type: ignore
     sync_tool.dataloader.make_mo_employee_dn.return_value = dn  # type: ignore
+    sync_tool.dataloader._find_best_dn = partial(  # type: ignore
+        DataLoader._find_best_dn, sync_tool.dataloader
+    )
 
     uuid = EmployeeUUID(uuid4())
-    result, create = await sync_tool._find_best_dn(uuid)
+    result, create = await sync_tool.dataloader._find_best_dn(uuid)
     assert result == dn
     assert create is True
 
