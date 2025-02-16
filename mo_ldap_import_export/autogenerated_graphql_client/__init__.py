@@ -85,6 +85,7 @@ from .input_types import AssociationUpdateInput
 from .input_types import AuditLogFilter
 from .input_types import ClassCreateInput
 from .input_types import ClassFilter
+from .input_types import ClassOwnerFilter
 from .input_types import ClassRegistrationFilter
 from .input_types import ClassTerminateInput
 from .input_types import ClassUpdateInput
@@ -407,6 +408,7 @@ __all__ = [
     "ClassCreateClassCreate",
     "ClassCreateInput",
     "ClassFilter",
+    "ClassOwnerFilter",
     "ClassRegistrationFilter",
     "ClassTerminateInput",
     "ClassUpdateInput",
