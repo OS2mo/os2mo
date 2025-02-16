@@ -157,6 +157,7 @@ from .input_types import OrgUnitsboundengagementfilter
 from .input_types import OrgUnitsboundituserfilter
 from .input_types import OrgUnitsboundklefilter
 from .input_types import OrgUnitsboundleavefilter
+from .input_types import OrgUnitsboundmanagerfilter
 from .input_types import OrgUnitsboundrelatedunitfilter
 from .input_types import OwnerCreateInput
 from .input_types import OwnerFilter
@@ -499,6 +500,7 @@ __all__ = [
     "OrgUnitsboundituserfilter",
     "OrgUnitsboundklefilter",
     "OrgUnitsboundleavefilter",
+    "OrgUnitsboundmanagerfilter",
     "OrgUnitsboundrelatedunitfilter",
     "OrganisationCreate",
     "OrganisationUnitCreateInput",

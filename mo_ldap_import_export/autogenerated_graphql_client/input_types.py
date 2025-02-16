@@ -839,6 +839,18 @@ class OrgUnitsboundleavefilter(BaseModel):
     registration: Optional["LeaveRegistrationFilter"] = None
 
 
+class OrgUnitsboundmanagerfilter(BaseModel):
+    org_unit: Optional["OrganisationUnitFilter"] = None
+    employee: Optional["EmployeeFilter"] = None
+    employees: list[UUID] | None = None
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None | UnsetType = UNSET
+    to_date: datetime | None | UnsetType = UNSET
+    registration: Optional["ManagerRegistrationFilter"] = None
+    responsibility: Optional["ClassFilter"] = None
+
+
 class OrgUnitsboundrelatedunitfilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
     uuids: list[UUID] | None = None
@@ -1246,6 +1258,7 @@ OrgUnitsboundengagementfilter.update_forward_refs()
 OrgUnitsboundituserfilter.update_forward_refs()
 OrgUnitsboundklefilter.update_forward_refs()
 OrgUnitsboundleavefilter.update_forward_refs()
+OrgUnitsboundmanagerfilter.update_forward_refs()
 OrgUnitsboundrelatedunitfilter.update_forward_refs()
 OrganisationCreate.update_forward_refs()
 OrganisationUnitCreateInput.update_forward_refs()

@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 #
-# OS2mo GraphQL API schema definition (v23).
-# https://os2mo.eksempel.dk/graphql/v23/schema.graphql
+# OS2mo GraphQL API schema definition (v24).
+# https://os2mo.eksempel.dk/graphql/v24/schema.graphql
 
 "Address information for either an employee or organisational unit\n"
 type Address {
@@ -3632,6 +3632,18 @@ input OrgUnitsboundleavefilter {
   registration: LeaveRegistrationFilter = null
 }
 
+input OrgUnitsboundmanagerfilter {
+  org_unit: OrganisationUnitFilter = null
+  employee: EmployeeFilter = null
+  employees: [UUID!] = null
+  uuids: [UUID!] = null
+  user_keys: [String!] = null
+  from_date: DateTime
+  to_date: DateTime
+  registration: ManagerRegistrationFilter = null
+  responsibility: ClassFilter = null
+}
+
 input OrgUnitsboundrelatedunitfilter {
   org_unit: OrganisationUnitFilter = null
   uuids: [UUID!] = null
@@ -3750,6 +3762,20 @@ type OrganisationUnit {
     cursor: Cursor = null
   ): [Engagement!]!
 
+  "Managerial roles for the organisation unit.\n\nMay be empty in which case managers are usually inherited from parents.\nSee the `inherit`-flag for details.\n"
+  managers(
+    filter: OrgUnitsboundmanagerfilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+
+    "Whether to inherit managerial roles or not.\n\nIf managerial roles exist directly on this organisation unit, the flag does nothing and these managerial roles are returned.\nHowever if no managerial roles exist directly, and this flag is:\n* False: An empty list is returned.\n* True: The result from calling `managers` with `inherit=True` on the parent of this organistion unit is returned.\n\nCalling with `inherit=True` can help ensure that a manager is always found.\n"
+    inherit: Boolean! = false
+  ): [Manager!]!
+
   "Addresses for the organisation unit.\n\nCommonly contain addresses such as, their:\n* Location\n* Contact phone number\n* Contact email\n"
   addresses(
     filter: OrgUnitsboundaddressfilter
@@ -3830,14 +3856,6 @@ type OrganisationUnit {
 
   "Human readable name of the organisation unit.\n\nThis is the value that should be shown to users in UIs.\n\nExamples:\n* `\"Lunderskov skole\"`\n* `\"IT-Support\"`\n* `\"Teknik og Miljø\"`\n"
   name: String!
-
-  "Managerial roles for the organisation unit.\n\nMay be empty in which case managers are usually inherited from parents.\nSee the `inherit`-flag for details.\n"
-  managers(
-    filter: ManagerFilter = null
-
-    "Whether to inherit managerial roles or not.\n\nIf managerial roles exist directly on this organisation unit, the flag does nothing and these managerial roles are returned.\nHowever if no managerial roles exist directly, and this flag is:\n* Not set: An empty list is returned.\n* Is set: The result from calling `managers` with `inherit=True` on the parent of this organistion unit is returned.\n\nCalling with `inherit=True` can help ensure that a manager is always found.\n"
-    inherit: Boolean! = false
-  ): [Manager!]!
 
   "Owner roles for the organisation unit.\n\nMay be empty in which case owners are usually inherited from parents.\nSee the `inherit`-flag for details.\n"
   owners(
