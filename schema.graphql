@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 #
-# OS2mo GraphQL API schema definition (v22).
-# https://os2mo.eksempel.dk/graphql/v22/schema.graphql
+# OS2mo GraphQL API schema definition (v23).
+# https://os2mo.eksempel.dk/graphql/v23/schema.graphql
 
 "Address information for either an employee or organisational unit\n"
 type Address {
@@ -2537,7 +2537,7 @@ type KLE {
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-  ): Class!
+  ): [Class!]!
 
   "KLE Aspects.\n\nThe KLE aspect describes the kind of relationship the organisation unit has with the responsibility given by the KLE number.\n\nExamples of user-keys:\n* `\"Insight\"`\n* `\"Executive\"`\n* `\"Responsible\"`\n"
   kle_aspects(
