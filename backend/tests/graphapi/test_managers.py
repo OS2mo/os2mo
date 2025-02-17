@@ -879,6 +879,16 @@ def test_engagement_inherit_current(graphapi_post: GraphAPIPost) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
+def test_engagement_inherit_current_but_filtered(graphapi_post: GraphAPIPost) -> None:
+    engagement = "301a906b-ef51-4d5c-9c77-386fb8410459"
+    managers = read_engagement_managers(
+        graphapi_post, {"uuids": engagement}, {"employee": {"uuids": [str(uuid4())]}}
+    )
+    assert managers == []
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
 def test_engagement_inherit_non_existent(graphapi_post: GraphAPIPost) -> None:
     managers = read_engagement_managers(graphapi_post, {"uuids": [str(uuid4())]})
     assert managers == []
