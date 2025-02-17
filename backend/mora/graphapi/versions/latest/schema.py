@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 """Strawberry types describing the MO graph."""
 
-import dataclasses
 import json
 import re
 from base64 import b64encode
@@ -2278,20 +2277,20 @@ class Engagement:
     ) -> list[LazyManager]:
         # Recurse up the tree using the parent org-unit
         filter = filter or ManagerFilter()
-        filter = dataclasses.replace(
-            filter,
-            org_units=None,
-            org_unit=OrganisationUnitFilter(uuids=uuid2list(root.org_unit_uuid)),
-        )
-        assert filter is not None  # random assert needed for mypy
+        seeds: dict[str, Callable[[EngagementRead], Any]] = {
+            "org_units": lambda root: None,
+            "org_unit": lambda root: OrganisationUnitFilter(
+                uuids=uuid2list(root.org_unit_uuid)
+            ),
+        }
         if exclude_self:
             if filter.exclude:
                 raise ValueError("Cannot provide both filter.exclude and exclude_self")
-            filter = dataclasses.replace(
-                filter, exclude=EmployeeFilter(uuids=uuid2list(root.employee_uuid))
+            seeds["exclude"] = lambda root: EmployeeFilter(
+                uuids=uuid2list(root.employee_uuid)
             )
 
-        resolver = to_list(seed_resolver(manager_resolver))
+        resolver = to_list(seed_resolver(manager_resolver, seeds))
         return await resolver(root=root, info=info, filter=filter, inherit=inherit)
 
     # TODO: Document this

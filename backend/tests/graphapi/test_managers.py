@@ -877,9 +877,6 @@ def test_engagement_inherit_current(graphapi_post: GraphAPIPost) -> None:
     assert managers == [manager]
 
 
-@pytest.mark.xfail(
-    reason="Fails with Org_UnitsBoundManagerFilter.__init__() got an unexpected keyword argument 'org_units'"
-)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 def test_engagement_inherit_current_but_filtered(graphapi_post: GraphAPIPost) -> None:
