@@ -45,6 +45,8 @@ from ._testing__ituser_read import TestingItuserReadItusersObjectsValidities
 from ._testing__ituser_read import TestingItuserReadItusersObjectsValiditiesItsystem
 from ._testing__ituser_read import TestingItuserReadItusersObjectsValiditiesPerson
 from ._testing__ituser_read import TestingItuserReadItusersObjectsValiditiesValidity
+from ._testing__manager_create import TestingManagerCreate
+from ._testing__manager_create import TestingManagerCreateManagerCreate
 from .address_create import AddressCreate
 from .address_create import AddressCreateAddressCreate
 from .address_terminate import AddressTerminate
@@ -701,6 +703,8 @@ __all__ = [
     "TestingItuserReadItusersObjectsValiditiesItsystem",
     "TestingItuserReadItusersObjectsValiditiesPerson",
     "TestingItuserReadItusersObjectsValiditiesValidity",
+    "TestingManagerCreate",
+    "TestingManagerCreateManagerCreate",
     "UserCreate",
     "UserCreateEmployeeCreate",
     "UserUpdate",

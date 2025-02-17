@@ -13,6 +13,8 @@ from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
 from ._testing__ituser_read import TestingItuserRead
 from ._testing__ituser_read import TestingItuserReadItusers
+from ._testing__manager_create import TestingManagerCreate
+from ._testing__manager_create import TestingManagerCreateManagerCreate
 from .address_create import AddressCreate
 from .address_create import AddressCreateAddressCreate
 from .address_terminate import AddressTerminate
@@ -49,6 +51,7 @@ from .input_types import ITUserCreateInput
 from .input_types import ITUserFilter
 from .input_types import ITUserTerminateInput
 from .input_types import ITUserUpdateInput
+from .input_types import ManagerCreateInput
 from .input_types import OrganisationUnitCreateInput
 from .input_types import OrgUnitsboundmanagerfilter
 from .ituser_create import ItuserCreate
@@ -308,6 +311,23 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingItsystemCreate.parse_obj(data).itsystem_create
+
+    async def _testing__manager_create(
+        self, input: ManagerCreateInput
+    ) -> TestingManagerCreateManagerCreate:
+        query = gql(
+            """
+            mutation __testing__manager_create($input: ManagerCreateInput!) {
+              manager_create(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingManagerCreate.parse_obj(data).manager_create
 
     async def address_create(
         self, input: AddressCreateInput

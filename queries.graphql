@@ -103,6 +103,11 @@ mutation __testing__itsystem_create($input: ITSystemCreateInput!) {
   }
 }
 
+mutation __testing__manager_create($input: ManagerCreateInput!) {
+  manager_create(input: $input) {
+    uuid
+  }
+}
 
 # Normal queries
 
