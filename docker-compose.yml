@@ -7,9 +7,9 @@ services:
   # The frontend image proxies requests to fastapi.
   # Both of these are served through our nginx proxy.
   proxy:
-    image: nginx:1
+    image: docker.io/library/caddy:2
     volumes:
-      - ./dev-environment/nginx-proxy.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./dev-environment/proxy:/etc/caddy/:ro
     ports:
       - "127.0.0.1:5001:80"
       - "127.0.0.1:5000:80"
@@ -76,9 +76,9 @@ services:
         condition: service_completed_successfully
 
   mox:
-    image: nginx:1
+    image: docker.io/library/caddy:2
     volumes:
-      - ./dev-environment/mox-proxy.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./dev-environment/mox:/etc/caddy/:ro
     ports:
       - "127.0.0.1:8080:80"
     restart: unless-stopped

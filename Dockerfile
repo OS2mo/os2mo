@@ -24,14 +24,11 @@ ENV PYTHONUNBUFFERED=1 \
 # hadolint ignore=DL3008,DL4006
 RUN set -ex \
   # Add a mox group and user. Note: this is a system user/group, but have
-  # UID/GID above the normal SYS_UID_MAX/SYS_GID_MAX of 999, but also above the
-  # automatic ranges of UID_MAX/GID_MAX used by useradd/groupadd. See
-  # `/etc/login.defs`. Hopefully there will be no conflicts with users of the
-  # host system or users of other docker containers.
-  #
-  # See `doc/user/installation.rst` for instructions on how to overwrite this.
-  && groupadd -g 72020 -r mora\
-  && useradd -u 72020 --no-log-init -r -g mora mora \
+  # UID/GID above the normal SYS_UID_MAX/SYS_GID_MAX of 999, but also below
+  # 65536 to be inside the range of standard /etc/subuid configurations to
+  # allow for rootless containers.
+  && groupadd -g 52020 -r mora\
+  && useradd -u 52020 --no-log-init -r -g mora mora \
   # Install Poetry. In an isolated environment, following the upstream
   # recommendations https://python-poetry.org/docs/#ci-recommendations
   && python3 -m venv $POETRY_HOME \
