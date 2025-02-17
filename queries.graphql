@@ -103,6 +103,11 @@ mutation __testing__itsystem_create($input: ITSystemCreateInput!) {
   }
 }
 
+mutation __testing__manager_create($input: ManagerCreateInput!) {
+  manager_create(input: $input) {
+    uuid
+  }
+}
 
 # Normal queries
 
@@ -623,6 +628,23 @@ query read_org_unit_ancestors($uuid: UUID!) {
       current {
         ancestors {
           uuid
+        }
+      }
+    }
+  }
+}
+
+query read_engagement_manager(
+  $engagement_uuid: UUID!
+  $filter: OrgUnitsboundmanagerfilter
+) {
+  engagements(filter: {uuids: [$engagement_uuid]}) {
+    objects {
+      current {
+        managers(filter: $filter, inherit: true, exclude_self: true) {
+          person {
+            uuid
+          }
         }
       }
     }

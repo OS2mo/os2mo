@@ -10,6 +10,8 @@ from uuid import UUID
 CPRNumber = NewType("CPRNumber", str)
 OrgUnitUUID = NewType("OrgUnitUUID", UUID)
 EmployeeUUID = NewType("EmployeeUUID", UUID)
+EngagementUUID = NewType("EngagementUUID", UUID)
+ManagerUUID = NewType("ManagerUUID", UUID)
 # TODO: Convert this to a NewType
 DN: TypeAlias = str
 RDN: TypeAlias = str

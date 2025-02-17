@@ -45,6 +45,8 @@ from ._testing__ituser_read import TestingItuserReadItusersObjectsValidities
 from ._testing__ituser_read import TestingItuserReadItusersObjectsValiditiesItsystem
 from ._testing__ituser_read import TestingItuserReadItusersObjectsValiditiesPerson
 from ._testing__ituser_read import TestingItuserReadItusersObjectsValiditiesValidity
+from ._testing__manager_create import TestingManagerCreate
+from ._testing__manager_create import TestingManagerCreateManagerCreate
 from .address_create import AddressCreate
 from .address_create import AddressCreateAddressCreate
 from .address_terminate import AddressTerminate
@@ -85,6 +87,7 @@ from .input_types import AssociationUpdateInput
 from .input_types import AuditLogFilter
 from .input_types import ClassCreateInput
 from .input_types import ClassFilter
+from .input_types import ClassOwnerFilter
 from .input_types import ClassRegistrationFilter
 from .input_types import ClassTerminateInput
 from .input_types import ClassUpdateInput
@@ -156,6 +159,7 @@ from .input_types import OrgUnitsboundengagementfilter
 from .input_types import OrgUnitsboundituserfilter
 from .input_types import OrgUnitsboundklefilter
 from .input_types import OrgUnitsboundleavefilter
+from .input_types import OrgUnitsboundmanagerfilter
 from .input_types import OrgUnitsboundrelatedunitfilter
 from .input_types import OwnerCreateInput
 from .input_types import OwnerFilter
@@ -285,6 +289,16 @@ from .read_engagement_enddate import ReadEngagementEnddateEngagementsObjectsVali
 from .read_engagement_enddate import (
     ReadEngagementEnddateEngagementsObjectsValiditiesValidity,
 )
+from .read_engagement_manager import ReadEngagementManager
+from .read_engagement_manager import ReadEngagementManagerEngagements
+from .read_engagement_manager import ReadEngagementManagerEngagementsObjects
+from .read_engagement_manager import ReadEngagementManagerEngagementsObjectsCurrent
+from .read_engagement_manager import (
+    ReadEngagementManagerEngagementsObjectsCurrentManagers,
+)
+from .read_engagement_manager import (
+    ReadEngagementManagerEngagementsObjectsCurrentManagersPerson,
+)
 from .read_engagement_uuid import ReadEngagementUuid
 from .read_engagement_uuid import ReadEngagementUuidEngagements
 from .read_engagement_uuid import ReadEngagementUuidEngagementsObjects
@@ -407,6 +421,7 @@ __all__ = [
     "ClassCreateClassCreate",
     "ClassCreateInput",
     "ClassFilter",
+    "ClassOwnerFilter",
     "ClassRegistrationFilter",
     "ClassTerminateInput",
     "ClassUpdateInput",
@@ -497,6 +512,7 @@ __all__ = [
     "OrgUnitsboundituserfilter",
     "OrgUnitsboundklefilter",
     "OrgUnitsboundleavefilter",
+    "OrgUnitsboundmanagerfilter",
     "OrgUnitsboundrelatedunitfilter",
     "OrganisationCreate",
     "OrganisationUnitCreateInput",
@@ -572,6 +588,12 @@ __all__ = [
     "ReadEngagementEnddateEngagementsObjects",
     "ReadEngagementEnddateEngagementsObjectsValidities",
     "ReadEngagementEnddateEngagementsObjectsValiditiesValidity",
+    "ReadEngagementManager",
+    "ReadEngagementManagerEngagements",
+    "ReadEngagementManagerEngagementsObjects",
+    "ReadEngagementManagerEngagementsObjectsCurrent",
+    "ReadEngagementManagerEngagementsObjectsCurrentManagers",
+    "ReadEngagementManagerEngagementsObjectsCurrentManagersPerson",
     "ReadEngagementUuid",
     "ReadEngagementUuidEngagements",
     "ReadEngagementUuidEngagementsObjects",
@@ -681,6 +703,8 @@ __all__ = [
     "TestingItuserReadItusersObjectsValiditiesItsystem",
     "TestingItuserReadItusersObjectsValiditiesPerson",
     "TestingItuserReadItusersObjectsValiditiesValidity",
+    "TestingManagerCreate",
+    "TestingManagerCreateManagerCreate",
     "UserCreate",
     "UserCreateEmployeeCreate",
     "UserUpdate",

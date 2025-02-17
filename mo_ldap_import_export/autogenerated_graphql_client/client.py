@@ -13,6 +13,8 @@ from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
 from ._testing__ituser_read import TestingItuserRead
 from ._testing__ituser_read import TestingItuserReadItusers
+from ._testing__manager_create import TestingManagerCreate
+from ._testing__manager_create import TestingManagerCreateManagerCreate
 from .address_create import AddressCreate
 from .address_create import AddressCreateAddressCreate
 from .address_terminate import AddressTerminate
@@ -49,7 +51,9 @@ from .input_types import ITUserCreateInput
 from .input_types import ITUserFilter
 from .input_types import ITUserTerminateInput
 from .input_types import ITUserUpdateInput
+from .input_types import ManagerCreateInput
 from .input_types import OrganisationUnitCreateInput
+from .input_types import OrgUnitsboundmanagerfilter
 from .ituser_create import ItuserCreate
 from .ituser_create import ItuserCreateItuserCreate
 from .ituser_terminate import ItuserTerminate
@@ -102,6 +106,8 @@ from .read_engagement_employee_uuid import ReadEngagementEmployeeUuid
 from .read_engagement_employee_uuid import ReadEngagementEmployeeUuidEngagements
 from .read_engagement_enddate import ReadEngagementEnddate
 from .read_engagement_enddate import ReadEngagementEnddateEngagements
+from .read_engagement_manager import ReadEngagementManager
+from .read_engagement_manager import ReadEngagementManagerEngagements
 from .read_engagement_uuid import ReadEngagementUuid
 from .read_engagement_uuid import ReadEngagementUuidEngagements
 from .read_engagements import ReadEngagements
@@ -305,6 +311,23 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingItsystemCreate.parse_obj(data).itsystem_create
+
+    async def _testing__manager_create(
+        self, input: ManagerCreateInput
+    ) -> TestingManagerCreateManagerCreate:
+        query = gql(
+            """
+            mutation __testing__manager_create($input: ManagerCreateInput!) {
+              manager_create(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingManagerCreate.parse_obj(data).manager_create
 
     async def address_create(
         self, input: AddressCreateInput
@@ -1320,3 +1343,33 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadOrgUnitAncestors.parse_obj(data).org_units
+
+    async def read_engagement_manager(
+        self,
+        engagement_uuid: UUID,
+        filter: OrgUnitsboundmanagerfilter | None | UnsetType = UNSET,
+    ) -> ReadEngagementManagerEngagements:
+        query = gql(
+            """
+            query read_engagement_manager($engagement_uuid: UUID!, $filter: OrgUnitsboundmanagerfilter) {
+              engagements(filter: {uuids: [$engagement_uuid]}) {
+                objects {
+                  current {
+                    managers(filter: $filter, inherit: true, exclude_self: true) {
+                      person {
+                        uuid
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "engagement_uuid": engagement_uuid,
+            "filter": filter,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadEngagementManager.parse_obj(data).engagements
