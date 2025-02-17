@@ -545,6 +545,16 @@ async def get_manager_person_uuid(
     return manager_validity.uuid
 
 
+async def get_person_dn(dataloader: DataLoader, uuid: EmployeeUUID) -> DN | None:
+    dn, create = await dataloader._find_best_dn(uuid, dry_run=True)
+    if create:
+        logger.debug(
+            "_find_best_dn returned create=True in get_person_dn", employee_uuid=uuid
+        )
+        return None
+    return dn
+
+
 def skip_if_none(obj: T | None) -> T:
     if obj is None:
         raise SkipObject("Object is None")
@@ -592,6 +602,7 @@ def construct_globals_dict(
         "get_engagement_uuid": partial(get_engagement_uuid, graphql_client),
         "get_employment_interval": partial(get_employment_interval, graphql_client),
         "get_manager_person_uuid": partial(get_manager_person_uuid, graphql_client),
+        "get_person_dn": partial(get_person_dn, dataloader),
     }
 
 
