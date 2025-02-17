@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+:80 {
+	reverse_proxy /auth* keycloak:8080
+
+	reverse_proxy /old* frontend_static
+	reverse_proxy * frontend_new_static:3000
+
+	reverse_proxy /docs* mo:5000
+	reverse_proxy /graphql* mo:5000
+	reverse_proxy /health* mo:5000
+	reverse_proxy /lora* mo:5000
+	reverse_proxy /metrics* mo:5000
+	reverse_proxy /openapi.json mo:5000
+	reverse_proxy /service* mo:5000
+	reverse_proxy /testing* mo:5000
+	reverse_proxy /version* mo:5000
+}
