@@ -664,7 +664,9 @@ def query_to_search_phrase(query: str):
         # Strip non-digits from query
         query = re.sub(r"[^\d]", "", query)
     # Substring match
-    return f"%{query}%"
+    # Make spaces "wildcards" so you can search for e.g. FirstName LastName and
+    # still match if a person has a middlename.
+    return f"%{'%'.join(query.split(' '))}%"
 
 
 def is_detail_unpublished(
