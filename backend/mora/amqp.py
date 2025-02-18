@@ -283,6 +283,7 @@ async def _emit_events(session: AsyncSession, amqp_system: AMQPSystem) -> None:
                 for lora_type, uuid in rows
             )
         )
+        await asyncio.sleep(0.5)
 
     await session.execute(
         update(AMQPSubsystem),
