@@ -389,7 +389,8 @@ class AlleroedUserNameGenerator(UserNameGenerator):
         # that MO generates a user, which is deleted from AD some years later. In that
         # case we should never generate the username of the deleted user.
         # Reference: https://redmine.magenta-aps.dk/issues/57043
-        itsystem_uuid = await self.moapi.get_it_system_uuid("ADSAMA")
+        itsystem_user_key = self.settings.conversion_mapping.username_generator.existing_usernames_itsystem
+        itsystem_uuid = await self.moapi.get_it_system_uuid(itsystem_user_key)
         result = (
             await self.moapi.graphql_client.read_all_ituser_user_keys_by_itsystem_uuid(
                 UUID(itsystem_uuid)
@@ -416,6 +417,7 @@ def get_username_generator_class(
     match username_generator:
         case "UserNameGenerator":
             return UserNameGenerator
+        # TODO: Rename this to something meaningful
         case "AlleroedUserNameGenerator":
             return AlleroedUserNameGenerator
         case _:
