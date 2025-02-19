@@ -5,6 +5,7 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
+from more_itertools import one
 from more_itertools import only
 
 from ..conftest import GraphAPIPost
@@ -41,6 +42,38 @@ def create_engagement(
         assert response.errors is None
         assert response.data
         return UUID(response.data["engagement_create"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
+def create_related_unit(
+    graphapi_post: GraphAPIPost,
+) -> Callable[[UUID, UUID], UUID]:
+    def inner(
+        origin: UUID,
+        destination: UUID,
+    ) -> UUID:
+        mutate_query = """
+            mutation CreateRelation($input: RelatedUnitsUpdateInput!) {
+                related_units_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(
+            query=mutate_query,
+            variables={
+                "input": {
+                    "origin": str(origin),
+                    "destination": [str(destination)],
+                    "validity": {"from": "1970-01-01T00:00:00Z"},
+                }
+            },
+        )
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["related_units_update"]["uuid"])
 
     return inner
 
@@ -146,3 +179,71 @@ async def test_exclude_self(
         assert result == root_manager
     if expected == "ll":
         assert result == ll_manager
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+@pytest.mark.parametrize(
+    "exclude_self",
+    [
+        True,
+        False,
+    ],
+)
+async def test_exclude_self_related_units(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_related_unit: Callable[[UUID, UUID], UUID],
+    exclude_self: bool,
+) -> None:
+    """Test that the exclude-self flag on org_units.related_units work as expected.
+
+    Args:
+            graphapi_post: The GraphQL client to run our query with.
+            create_org_unit: Helper to create organisation units.
+            create_related_unit: Helper to create relations.
+            exclude_self: Whether to exclude self in related units.
+            expected: The expected length of the list.
+    """
+
+    org_unit_1 = create_org_unit("org_unit_1")
+    org_unit_2 = create_org_unit("org_unit_2")
+
+    # Create related_unit object
+    create_related_unit(org_unit_1, org_unit_2)
+
+    # Test our filter
+    query = """
+		query ExcludeSelf($filter: OrganisationUnitFilter!, $exclude_self: Boolean!) {
+		  org_units(filter: $filter) {
+		    objects {
+		      current {
+		        related_units(exclude_self: $exclude_self) {
+		          org_unit_uuids
+		        }
+		      }
+		    }
+		  }
+		}
+	"""
+    response = graphapi_post(
+        query,
+        variables={
+            "filter": {"uuids": [str(org_unit_1)]},
+            "exclude_self": exclude_self,
+        },
+    )
+    assert response.errors is None
+    assert response.data
+
+    current = one(response.data["org_units"]["objects"])["current"]
+    assert current is not None
+
+    result = [
+        related_unit["org_unit_uuids"] for related_unit in current["related_units"]
+    ]
+
+    if exclude_self:
+        assert one(result) == [str(org_unit_2)]
+    else:
+        assert one(result) == [str(org_unit_1), str(org_unit_2)]
