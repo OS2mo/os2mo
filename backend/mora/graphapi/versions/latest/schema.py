@@ -68,6 +68,7 @@ from .filters import ITUserFilter
 from .filters import ManagerFilter
 from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
+from .filters import RelatedUnitFilter
 from .graphql_utils import LoadKey
 from .health import health_map
 from .models import AddressRead
@@ -4121,13 +4122,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("kle")],
     )
 
-    related_units: list[LazyRelatedUnit] = strawberry.field(
-        resolver=to_list(
-            seed_resolver(
-                related_unit_resolver,
-                {"org_units": lambda root: [root.uuid]},
-            )
-        ),
+    @strawberry.field(
         description=dedent(
             """\
             Related units for the organisational unit.
@@ -4138,6 +4133,37 @@ class OrganisationUnit:
             gen_read_permission("related_unit"),
         ],
     )
+    async def related_units(
+        self,
+        root: OrganisationUnitRead,
+        info: Info,
+        filter: get_bound_filter(RelatedUnitFilter, frozenset({"org_units"}))  # type: ignore
+        | None = None,
+        exclude_self: Annotated[
+            bool,
+            strawberry.argument(
+                description=dedent(
+                    """\
+                    Whether to exclude the org_unit self in related units.
+                    """
+                )
+            ),
+        ] = False,
+    ) -> list[LazyRelatedUnit]:
+        filter = filter or RelatedUnitFilter()
+        seeds: dict[str, Callable[[OrganisationUnitRead], Any]] = {
+            "org_units": lambda root: None,
+            "org_unit": lambda root: OrganisationUnitFilter(uuids=uuid2list(root.uuid)),
+        }
+        if exclude_self:
+            if filter.exclude:
+                raise ValueError("Cannot provide both filter.exclude and exclude_self")
+            seeds["exclude"] = lambda root: OrganisationUnitFilter(
+                uuids=uuid2list(root.uuid)
+            )
+
+        resolver = to_list(seed_resolver(related_unit_resolver, seeds))
+        return await resolver(root=root, info=info, filter=filter)
 
     @strawberry.field(
         description="UUID of the parent organisation unit.",
