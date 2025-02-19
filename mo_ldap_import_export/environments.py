@@ -273,7 +273,10 @@ async def load_primary_engagement(
 
 
 async def load_it_user(
-    moapi: MOAPI, employee_uuid: UUID, itsystem_user_key: str
+    moapi: MOAPI,
+    employee_uuid: UUID,
+    itsystem_user_key: str,
+    return_terminated: bool = False,
 ) -> ITUser | None:
     result = await moapi.graphql_client.read_filtered_itusers(
         ITUserFilter(
@@ -306,6 +309,10 @@ async def load_it_user(
     if fetched_ituser is None:  # pragma: no cover
         logger.error("Unable to load it-user", uuid=validity.uuid)
         raise RequeueMessage("Unable to load it-user")
+    # If allowed to return terminated, there is no reason to check for it
+    # we simply return whatever we found and use that
+    if return_terminated:  # pragma: no cover
+        return fetched_ituser
     delete = get_delete_flag(jsonable_encoder(fetched_ituser))
     if delete:
         logger.debug("IT-user is terminated", uuid=validity.uuid)
