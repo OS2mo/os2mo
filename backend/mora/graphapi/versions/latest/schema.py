@@ -3664,6 +3664,25 @@ class OrganisationUnit:
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
+    root: list[LazyOrganisationUnit] | None = strawberry.field(
+        resolver=to_list(
+            seed_resolver(
+                organisation_unit_resolver,
+                {
+                    "descendant": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid]
+                    ),
+                    "parent": lambda root: None,
+                },
+            )
+        ),
+        description=dedent(
+            """\
+            The top-unit (root) of the organisation unit, in the hierarchy.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
 
     @strawberry.field(
         description=dedent(

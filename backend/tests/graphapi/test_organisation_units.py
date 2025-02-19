@@ -365,6 +365,36 @@ async def test_org_unit_hierarchy_filter(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
+async def test_org_unit_root_field(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Test hierarchies filter on organisation units."""
+    # org_unit in 3rd level. Root is parent's-parent
+    filosofisk_institut = "85715fc7-925d-401b-822d-467eb4b163b6"
+    root = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+    org_unit_query = """
+        query OrgUnit($uuids: [UUID!]) {
+            org_units(filter: {uuids: $uuids}) {
+                objects {
+                    current {
+                        root {
+                            uuid
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(org_unit_query, variables=dict(uuids=filosofisk_institut))
+    assert response.errors is None
+    assert (
+        one(one(response.data["org_units"]["objects"])["current"]["root"])["uuid"]
+        == root
+    )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "filter,expected",
     [
