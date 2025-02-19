@@ -233,6 +233,7 @@ class LDAP2MOMapping(MappingBaseModel):
 
 class UsernameGeneratorConfig(MappingBaseModel):
     objectClass: str = "UserNameGenerator"
+    existing_usernames_itsystem: str = "ADSAMA"
     char_replacement: dict[str, str] = {}
     forbidden_usernames: list[str] = []
     combinations_to_try: list[str] = []
