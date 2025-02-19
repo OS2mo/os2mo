@@ -253,8 +253,6 @@ class LDAPAPI:
         delete: bool
             Set to True to delete contents in LDAP, instead of creating/modifying them
         """
-        logger.info("Uploading object", dn=dn, requested_changes=requested_changes)
-
         # TODO: Remove this when ldap3s read-only flag works
         if self.settings.ldap_read_only:
             logger.info(
@@ -272,6 +270,12 @@ class LDAPAPI:
                 dn=dn,
             )
             return None
+
+        if not requested_changes:
+            logger.info("Not writing to LDAP as changeset is empty", dn=dn)
+            return None
+
+        logger.info("Uploading object", dn=dn, requested_changes=requested_changes)
 
         # The fields of the DN cannot be changed using LDAP's modify(), but
         # must instead be changed using modify_dn(). We normalise casing since

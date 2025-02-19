@@ -255,7 +255,7 @@ async def test_upload_ldap_object_invalid_value(
     ldap_connection.modify.side_effect = LDAPInvalidValueError("Invalid value")
 
     with pytest.raises(LDAPInvalidValueError) as exc_info:
-        await dataloader.ldapapi.modify_ldap_object(dn, {})
+        await dataloader.ldapapi.modify_ldap_object(dn, {"a": ["b"]})
     assert "Invalid value" in str(exc_info.value)
 
 
@@ -288,7 +288,6 @@ async def test_modify_ldap_object_invalid_ou(
         await dataloader.ldapapi.modify_ldap_object(dn, {})
     messages = [w["event"] for w in cap_logs]
     assert messages == [
-        "Uploading object",
         "OU not in OUs to write",
         "Not allowed to write to the specified OU",
     ]
