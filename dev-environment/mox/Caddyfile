@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+:80 {
+	reverse_proxy /lora* mo:5000
+	reverse_proxy * mo:5000 {
+		rewrite /lora{path}
+	}
+}
