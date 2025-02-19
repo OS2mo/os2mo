@@ -292,14 +292,18 @@ class LDAPAPI:
             for attribute, values in requested_changes.items()
             if attribute.casefold() not in modify_dn_attributes
         }
-        try:
-            # Modify LDAP
-            logger.info("Uploading the changes", changes=requested_changes, dn=dn)
-            _, result = await ldap_modify(self.ldap_connection, dn, modify_changes)
-            logger.info("LDAP Result", result=result, dn=dn)
-        except LDAPInvalidValueError as exc:
-            logger.exception("LDAP modify failed", dn=dn, changes=requested_changes)
-            raise exc
+        # We do not attempt to call ldap_modify if there are no attribute changes,
+        # otherwise it would produce an error and block us from making the DN changes
+        # Thus to ensure we can change DN attributes alone, we must have this check.
+        if modify_changes:
+            try:
+                # Modify LDAP
+                logger.info("Uploading the changes", changes=requested_changes, dn=dn)
+                _, result = await ldap_modify(self.ldap_connection, dn, modify_changes)
+                logger.info("LDAP Result", result=result, dn=dn)
+            except LDAPInvalidValueError as exc:
+                logger.exception("LDAP modify failed", dn=dn, changes=requested_changes)
+                raise exc
 
         # MODIFY-DN
         ldap_uuid = await self.get_ldap_unique_ldap_uuid(dn)
