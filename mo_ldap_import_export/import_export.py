@@ -261,9 +261,20 @@ class SyncTool:
             await self.dataloader.ldapapi.add_ldap_object(best_dn, ldap_desired_state)
             await self.create_ituser_link(uuid, best_dn)
         else:
-            await self.dataloader.ldapapi.modify_ldap_object(
-                best_dn, ldap_desired_state
+            # To avoid spamming server logs we compare with current state before writing
+            # Without this the LDAP / AD server will register lots of empty writes
+            current_state = await get_ldap_object(
+                self.ldap_connection,
+                best_dn,
+                attributes=list(ldap_desired_state.keys()),
             )
+            ldap_changes = {
+                key: value
+                for key, value in ldap_desired_state.items()
+                # We use ensure_list as it is done already to render_ldap2mo
+                if ensure_list(getattr(current_state, key)) != value
+            }
+            await self.dataloader.ldapapi.modify_ldap_object(best_dn, ldap_changes)
 
         return ldap_desired_state
 
