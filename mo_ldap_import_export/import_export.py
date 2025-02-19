@@ -267,12 +267,21 @@ class SyncTool:
                 self.ldap_connection,
                 best_dn,
                 attributes=list(ldap_desired_state.keys()),
+                # Nest false is required, as otherwise we compare an object with a DN string
+                nest=False,
             )
+            current_state_dict = current_state.dict()
+            current_state_dict = {
+                key.lower(): value for key, value in current_state_dict.items()
+            }
             ldap_changes = {
                 key: value
                 for key, value in ldap_desired_state.items()
                 # We use ensure_list as it is done already to render_ldap2mo
-                if ensure_list(getattr(current_state, key)) != value
+                if (
+                    key.lower() not in current_state_dict
+                    or ensure_list(current_state_dict[key.lower()]) != value
+                )
             }
             await self.dataloader.ldapapi.modify_ldap_object(best_dn, ldap_changes)
 
