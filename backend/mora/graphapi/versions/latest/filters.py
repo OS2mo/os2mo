@@ -848,6 +848,12 @@ class OrganisationUnitRegistrationFilter(RegistrationFilter):
     models: strawberry.Private[list[str] | None] = mutable_default(["org_unit"])
 
 
+@strawberry.input(description="Related unit registration filter.")
+class RelatedUnitRegistrationFilter(RegistrationFilter):
+    uuids: strawberry.Private[list[UUID] | None] = None
+    models: strawberry.Private[list[str] | None] = mutable_default(["related_unit"])
+
+
 @strawberry.input(description="Role registration filter.")
 class RoleRegistrationFilter(RegistrationFilter):
     uuids: strawberry.Private[list[UUID] | None] = None
@@ -856,8 +862,22 @@ class RoleRegistrationFilter(RegistrationFilter):
 
 @strawberry.input(description="Related unit filter.")
 class RelatedUnitFilter(BaseFilter, OrganisationUnitFiltered):
-    # TODO: registration filter
-    pass
+    registration: RelatedUnitRegistrationFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Registration filter limiting which entries are returned.
+            """
+        ),
+    )
+    exclude: OrganisationUnitFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Employee filter for managers to exclude from the result.
+            """
+        ),
+    )
 
 
 @strawberry.input(description="Rolebinding filter.")

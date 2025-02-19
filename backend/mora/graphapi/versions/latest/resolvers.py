@@ -1289,8 +1289,7 @@ async def related_unit_resolver(
         kwargs["tilknyttedeenheder"] = lora_filter(
             await get_org_unit_uuids(info, filter)
         )
-
-    return await generic_resolver(
+    result = await generic_resolver(
         RelatedUnitRead,
         info=info,
         filter=filter,
@@ -1298,6 +1297,20 @@ async def related_unit_resolver(
         cursor=cursor,
         **kwargs,
     )
+    if filter.exclude is not None:
+        exclude_uuids = set(
+            await filter2uuids_func(organisation_unit_resolver, info, filter.exclude)
+        )
+        result = {
+            key: [
+                item.copy(
+                    update={"org_unit_uuids": set(item.org_unit_uuids) - exclude_uuids}
+                )
+                for item in value
+            ]
+            for key, value in result.items()
+        }
+    return result
 
 
 async def rolebinding_resolver(
