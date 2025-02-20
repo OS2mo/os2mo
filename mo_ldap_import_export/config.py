@@ -233,6 +233,12 @@ class LDAP2MOMapping(MappingBaseModel):
 
 class UsernameGeneratorConfig(MappingBaseModel):
     objectClass: str = "UserNameGenerator"
+    # TODO: This default is not desired, but kept here for backwards compatability.
+    #       In the future it should be moved to the salt-automation configuration.
+    #       And the default here should be removed entirely.
+    # TODO: Perhaps it would be desirable to remove the other UsernameGenerator
+    #       entirely instead opting to simply have one which is configurable.
+    #       I.e. check MO for usernames if `existing_usernames_itsystem` is set.
     existing_usernames_itsystem: str = "ADSAMA"
     char_replacement: dict[str, str] = {}
     forbidden_usernames: list[str] = []
