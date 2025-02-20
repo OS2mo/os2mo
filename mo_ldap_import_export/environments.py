@@ -311,7 +311,7 @@ async def load_it_user(
         raise RequeueMessage("Unable to load it-user")
     # If allowed to return terminated, there is no reason to check for it
     # we simply return whatever we found and use that
-    if return_terminated:  # pragma: no cover
+    if return_terminated:
         return fetched_ituser
     delete = get_delete_flag(jsonable_encoder(fetched_ituser))
     if delete:
