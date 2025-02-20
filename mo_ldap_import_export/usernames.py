@@ -383,7 +383,6 @@ class UserNameGenerator:
 class AlleroedUserNameGenerator(UserNameGenerator):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        assert self.settings.ldap_dialect == "AD"
 
     async def _get_existing_usernames(self) -> set[str]:
         # "existing_usernames_in_mo" covers all usernames which MO has ever generated.
