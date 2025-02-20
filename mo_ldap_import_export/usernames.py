@@ -306,7 +306,11 @@ class UserNameGenerator:
     async def _get_existing_usernames(self) -> set[str]:
         match self.settings.ldap_dialect:
             case "Standard":
-                login_fields = ["distinguishedName"]
+                # "uid" is the default login field since RFC2798 (inetOrgPerson)
+                # (replacing the "userid" term from RFC1274 (COSINE schema))
+                # It is the standard LDAP login name field.
+                # The Microsoft Active Directory equivalent is sAMAccountName
+                login_fields = ["uid"]
             case "AD":
                 login_fields = ["sAMAccountName", "userPrincipalName"]
             case _:  # pragma: no cover
@@ -317,7 +321,7 @@ class UserNameGenerator:
 
         match self.settings.ldap_dialect:
             case "Standard":
-                existing_usernames = existing_values["distinguishedName"]
+                existing_usernames = existing_values["uid"]
             case "AD":
                 user_principal_names = {
                     s.split("@")[0] for s in existing_values["userPrincipalName"]
