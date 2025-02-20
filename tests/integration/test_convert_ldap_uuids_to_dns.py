@@ -96,19 +96,13 @@ async def test_convert_ldap_uuids_to_dns(
     )
 
     # Convert existing UUID, but LDAP is down
-    # Save original socket to restore it later
-    sock = ldap_connection.socket
-    # Replace socket with broken connection mock
-    socket_mock = MagicMock()
-    socket_mock.side_effect = ValueError("BOOM")
-    ldap_connection.socket = socket_mock
+    exception = ValueError("BOOM")
+    ldap_api.ldap_connection = MagicMock()
+    ldap_api.ldap_connection.search.return_value = "message_id"
+    ldap_api.ldap_connection.get_response.side_effect = exception
 
     with pytest.raises(ExceptionGroup) as exc_info:
         await ldap_api.convert_ldap_uuids_to_dns({ldap_person_uuid})
 
     assert "Exceptions during UUID2DN translation" in str(exc_info.value)
-    exception = one(exc_info.value.exceptions)
-    assert isinstance(exception, LDAPResponseTimeoutError)
-
-    # Restore socket so cleanup works
-    ldap_connection.socket = sock
+    assert one(exc_info.value.exceptions) == exception
