@@ -8,7 +8,6 @@ from uuid import uuid4
 
 import pytest
 from ldap3 import Connection
-from ldap3.core.exceptions import LDAPResponseTimeoutError
 from more_itertools import one
 from structlog.testing import capture_logs
 
