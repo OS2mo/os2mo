@@ -314,7 +314,7 @@ class UserNameGenerator:
         existing_common_names = existing_values["cn"]
         return existing_common_names
 
-    async def _get_existing_usernames(self) -> set[str]:
+    async def _get_existing_ldap_usernames(self) -> set[str]:
         match self.settings.ldap_dialect:
             case "Standard":
                 # "uid" is the default login field since RFC2798 (inetOrgPerson)
@@ -344,6 +344,9 @@ class UserNameGenerator:
                 raise AssertionError("Unknown LDAP dialect")
 
         return existing_usernames
+
+    async def _get_existing_usernames(self) -> set[str]:
+        return await self._get_existing_ldap_usernames()
 
     def generate_person_name(self, employee: Employee) -> list[str]:
         assert employee.given_name is not None
