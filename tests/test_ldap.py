@@ -580,10 +580,15 @@ async def test_poller(
 ) -> None:
     settings = Settings()
 
+    event_time = datetime.datetime.now()
+
     uuid = uuid4()
     event = {
         "type": "searchResEntry",
-        "attributes": {settings.ldap_unique_id_field: str(uuid)},
+        "attributes": {
+            settings.ldap_unique_id_field: str(uuid),
+            "modifyTimestamp": event_time,
+        },
     }
     ldap_connection.get_response.return_value = (
         [event],
@@ -594,13 +599,14 @@ async def test_poller(
     )
 
     last_search_time = datetime.datetime.now(datetime.UTC)
-    uuids = await _poll(
+    uuids, timestamp = await _poll(
         ldap_connection=ldap_connection,
         search_base="dc=ad",
         ldap_unique_id_field=settings.ldap_unique_id_field,
         last_search_time=last_search_time,
     )
     assert uuids == {uuid}
+    assert timestamp == event_time
 
 
 async def test_poller_no_uuid(
@@ -620,15 +626,20 @@ async def test_poller_no_uuid(
 
     last_search_time = datetime.datetime.now(datetime.UTC)
     with capture_logs() as cap_logs:
-        uuids = await _poll(
+        uuids, timestamp = await _poll(
             ldap_connection=ldap_connection,
             search_base="dc=ad",
             ldap_unique_id_field="entryUUID",
             last_search_time=last_search_time,
         )
         assert uuids == set()
+        assert timestamp is None
     assert {
         "event": "Got event without uuid",
+        "log_level": "warning",
+    } in cap_logs
+    assert {
+        "event": "Got event without modifyTimestamp",
         "log_level": "warning",
     } in cap_logs
 

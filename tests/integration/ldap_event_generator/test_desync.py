@@ -61,12 +61,9 @@ def generate_events(
     [
         # Integration time is far behind LDAP time
         pytest.param(
-            marks=[
-                pytest.mark.freeze_time(
-                    timedelta(days=-1), tick=True, real_asyncio=True
-                ),
-                pytest.mark.xfail(reason="Event generator cannot handle being behind"),
-            ]
+            marks=pytest.mark.freeze_time(
+                timedelta(days=-1), tick=True, real_asyncio=True
+            )
         ),
         # Integration time is very close to LDAP time
         pytest.param(
@@ -76,12 +73,9 @@ def generate_events(
         ),
         # Integration time is far ahead of LDAP time
         pytest.param(
-            marks=[
-                pytest.mark.freeze_time(
-                    timedelta(days=1), tick=True, real_asyncio=True
-                ),
-                pytest.mark.xfail(reason="Event generator cannot handle being ahead"),
-            ]
+            marks=pytest.mark.freeze_time(
+                timedelta(days=1), tick=True, real_asyncio=True
+            )
         ),
     ],
 )
