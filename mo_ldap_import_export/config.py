@@ -374,6 +374,21 @@ class Settings(BaseSettings):
     ldap_controllers: ServerList = Field(
         ..., description="List of domain controllers to query"
     )
+
+    @validator("ldap_controllers")
+    def check_at_most_one_controller(cls, v: list[ServerConfig]) -> list[ServerConfig]:
+        # Validate that at most one domain controller is configured
+        # Domain controllers have no strong guarantee of when replication is done,
+        # thus if we generate an event from one domain controller, the data may not
+        # yet be available on another domain controller, so events and processing of
+        # them must be done on the same domain controllers, or a check must be in place
+        # to ensure that the current domain controller is up-to-date with the replica
+        # we got the event from. This all gets really complex really fast, so instead
+        # we just limit ourselves to a single domain controller for now.
+        if len(v) > 1:
+            raise ValueError("At most one domain controller can be configured")
+        return v
+
     ldap_domain: str = Field(
         ..., description="Domain to use when authenticating with the domain controller"
     )
