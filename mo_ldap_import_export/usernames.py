@@ -345,6 +345,27 @@ class UserNameGenerator:
 
         return existing_usernames
 
+    async def _get_existing_mo_usernames(self) -> set[str]:
+        # "existing_usernames_in_mo" covers all usernames which MO has ever generated.
+        # Because we never delete from MO's database; We just put end-dates on objects.
+        #
+        # We need to block these usernames from being generated, because it is possible
+        # that MO generates a user, which is deleted from AD some years later. In that
+        # case we should never generate the username of the deleted user.
+        # Reference: https://redmine.magenta-aps.dk/issues/57043
+        itsystem_user_key = self.settings.conversion_mapping.username_generator.existing_usernames_itsystem
+        itsystem_uuid = await self.moapi.get_it_system_uuid(itsystem_user_key)
+        result = (
+            await self.moapi.graphql_client.read_all_ituser_user_keys_by_itsystem_uuid(
+                UUID(itsystem_uuid)
+            )
+        )
+        # TODO: Keep this as a set and convert all operations to set operations
+        existing_usernames_in_mo = {
+            validity.user_key for obj in result.objects for validity in obj.validities
+        }
+        return existing_usernames_in_mo
+
     async def _get_existing_usernames(self) -> set[str]:
         return await self._get_existing_ldap_usernames()
 
@@ -400,26 +421,8 @@ class AlleroedUserNameGenerator(UserNameGenerator):
         super().__init__(*args, **kwargs)
 
     async def _get_existing_usernames(self) -> set[str]:
-        # "existing_usernames_in_mo" covers all usernames which MO has ever generated.
-        # Because we never delete from MO's database; We just put end-dates on objects.
-        #
-        # We need to block these usernames from being generated, because it is possible
-        # that MO generates a user, which is deleted from AD some years later. In that
-        # case we should never generate the username of the deleted user.
-        # Reference: https://redmine.magenta-aps.dk/issues/57043
-        itsystem_user_key = self.settings.conversion_mapping.username_generator.existing_usernames_itsystem
-        itsystem_uuid = await self.moapi.get_it_system_uuid(itsystem_user_key)
-        result = (
-            await self.moapi.graphql_client.read_all_ituser_user_keys_by_itsystem_uuid(
-                UUID(itsystem_uuid)
-            )
-        )
-        # TODO: Keep this as a set and convert all operations to set operations
-        existing_usernames_in_mo = {
-            validity.user_key for obj in result.objects for validity in obj.validities
-        }
-
         ldap_usernames = await super()._get_existing_usernames()
+        existing_usernames_in_mo = await self._get_existing_mo_usernames()
         return ldap_usernames | existing_usernames_in_mo
 
 
