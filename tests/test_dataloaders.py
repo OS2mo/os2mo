@@ -18,7 +18,6 @@ from uuid import uuid4
 
 import pytest
 from fastapi.encoders import jsonable_encoder
-from freezegun import freeze_time
 from httpx import Response
 from ldap3.core.exceptions import LDAPInvalidValueError
 from more_itertools import one
@@ -1137,7 +1136,7 @@ uuid_obj2 = uuid4()
 uuid_obj3 = uuid4()
 
 
-@freeze_time("2022-08-10")
+@pytest.mark.freeze_time("2022-08-10")
 @pytest.mark.parametrize(
     "validities,expected",
     [

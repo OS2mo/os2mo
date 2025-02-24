@@ -13,7 +13,6 @@ from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
-from freezegun import freeze_time
 from jinja2 import Environment
 from jinja2 import Undefined
 from mergedeep import Strategy  # type: ignore
@@ -199,7 +198,7 @@ async def graphql_client(dataloader: AsyncMock) -> AsyncMock:
     return cast(AsyncMock, dataloader.graphql_client)
 
 
-@freeze_time("2019-01-01")
+@pytest.mark.freeze_time("2019-01-01")
 async def test_ldap_to_mo(converter: LdapConverter) -> None:
     employee_uuid = uuid4()
     result = await converter.from_ldap(
@@ -774,7 +773,7 @@ def test_check_import_and_export_flags(
         parse_obj_as(ConversionMapping, converter_mapping)
 
 
-@freeze_time("2020-01-01")
+@pytest.mark.freeze_time("2020-01-01")
 async def test_ldap_to_mo_termination(
     monkeypatch: pytest.MonkeyPatch,
     converter_mapping: dict[str, Any],
@@ -833,7 +832,7 @@ async def test_create_facet_class_no_facet() -> None:
     assert "Could not find facet with user_key = 'facet_key'" in str(exc_info.value)
 
 
-@freeze_time("2022-08-10T12:34:56")
+@pytest.mark.freeze_time("2022-08-10T12:34:56")
 async def test_ldap_to_mo_default_validity(converter: LdapConverter) -> None:
     employee_uuid = uuid4()
     result = await converter.from_ldap(
