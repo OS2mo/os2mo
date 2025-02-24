@@ -228,19 +228,11 @@ async def test_generate_username_use_fxxx_combination(
     "start,end",
     [
         # Past
-        pytest.param(
-            datetime(1970, 1, 1),
-            datetime(1980, 1, 1),
-            marks=pytest.mark.xfail(reason="Does not work with past it-users"),
-        ),
+        (datetime(1970, 1, 1), datetime(1980, 1, 1)),
         # Current
         (datetime(1990, 1, 1), None),
         # Future
-        pytest.param(
-            datetime(3000, 1, 1),
-            None,
-            marks=pytest.mark.xfail(reason="Does not work with future it-users"),
-        ),
+        (datetime(3000, 1, 1), None),
     ],
 )
 @pytest.mark.parametrize(
