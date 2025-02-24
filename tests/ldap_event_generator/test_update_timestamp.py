@@ -13,6 +13,19 @@ from mo_ldap_import_export.ldap_event_generator import LastRun
 from mo_ldap_import_export.ldap_event_generator import update_timestamp
 
 
+async def get_last_run(
+    sessionmaker: async_sessionmaker[AsyncSession], search_base: str
+) -> datetime:
+    async with sessionmaker() as session, session.begin():
+        # Get last run time from database for updating
+        last_run = await session.scalar(
+            select(LastRun).where(LastRun.search_base == search_base)
+        )
+        assert last_run is not None
+        assert last_run.datetime is not None
+        return last_run.datetime
+
+
 async def num_last_run_entries(sessionmaker: async_sessionmaker[AsyncSession]) -> int:
     async with sessionmaker() as session, session.begin():
         result = await session.execute(select(LastRun))
@@ -33,10 +46,12 @@ async def test_update_timestamp_postgres(context: Context) -> None:
     for count, search_base in enumerate(["dc=ad0", "dc=ad1", "dc=ad2"]):
         assert await num_last_run_entries(sessionmaker) == count
 
-        async with update_timestamp(sessionmaker, search_base) as last_run:
+        async with update_timestamp(sessionmaker, search_base):
+            last_run = await get_last_run(sessionmaker, search_base)
             assert last_run == datetime.min.replace(tzinfo=UTC)
         assert await num_last_run_entries(sessionmaker) == count + 1
 
-        async with update_timestamp(sessionmaker, search_base) as last_run:
+        async with update_timestamp(sessionmaker, search_base):
+            last_run = await get_last_run(sessionmaker, search_base)
             assert last_run > test_start
         assert await num_last_run_entries(sessionmaker) == count + 1
