@@ -225,6 +225,25 @@ async def test_generate_username_use_fxxx_combination(
     }
 )
 @pytest.mark.parametrize(
+    "start,end",
+    [
+        # Past
+        pytest.param(
+            datetime(1970, 1, 1),
+            datetime(1980, 1, 1),
+            marks=pytest.mark.xfail(reason="Does not work with past it-users"),
+        ),
+        # Current
+        (datetime(1990, 1, 1), None),
+        # Future
+        pytest.param(
+            datetime(3000, 1, 1),
+            None,
+            marks=pytest.mark.xfail(reason="Does not work with future it-users"),
+        ),
+    ],
+)
+@pytest.mark.parametrize(
     "taken,expected",
     # All of these tests-cases are almost identical to the avoid_ldap_taken_names ones
     # This is purposeful as we wish to check that the two functionalities work the
@@ -256,6 +275,8 @@ async def test_generate_username_avoids_mo_taken_names(
     graphql_client: GraphQLClient,
     mo_api: MOAPI,
     context: Context,
+    start: datetime,
+    end: datetime | None,
     mo_person: UUID,
     taken: set[str],
     expected: str,
@@ -268,7 +289,7 @@ async def test_generate_username_avoids_mo_taken_names(
                 person=mo_person,
                 user_key=userid,
                 itsystem=it_system_uuid,
-                validity={"from": datetime(1970, 1, 1)},
+                validity={"from": start, "to": end},
             )
         )
 
