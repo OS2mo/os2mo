@@ -35,11 +35,13 @@ class UserNameGenerator:
         moapi: MOAPI,
         ldap_connection: Connection,
         remove_vowels: bool = False,
+        disallow_mo_usernames: bool = False,
     ) -> None:
         self.settings = settings
         self.moapi = moapi
         self.ldap_connection = ldap_connection
         self.remove_vowels = remove_vowels
+        self.disallow_mo_usernames = disallow_mo_usernames
 
         self.char_replacement = (
             settings.conversion_mapping.username_generator.char_replacement
@@ -367,7 +369,10 @@ class UserNameGenerator:
         return existing_usernames_in_mo
 
     async def _get_existing_usernames(self) -> set[str]:
-        return await self._get_existing_ldap_usernames()
+        existing_usernames = await self._get_existing_ldap_usernames()
+        if self.disallow_mo_usernames:
+            existing_usernames |= await self._get_existing_mo_usernames()
+        return existing_usernames
 
     def generate_person_name(self, employee: Employee) -> list[str]:
         assert employee.given_name is not None
@@ -418,12 +423,8 @@ class UserNameGenerator:
 class AlleroedUserNameGenerator(UserNameGenerator):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         kwargs["remove_vowels"] = True
+        kwargs["disallow_mo_usernames"] = True
         super().__init__(*args, **kwargs)
-
-    async def _get_existing_usernames(self) -> set[str]:
-        ldap_usernames = await super()._get_existing_usernames()
-        existing_usernames_in_mo = await self._get_existing_mo_usernames()
-        return ldap_usernames | existing_usernames_in_mo
 
 
 def get_username_generator_class(
