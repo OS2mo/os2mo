@@ -29,20 +29,14 @@ async def test_update_timestamp_postgres(context: Context) -> None:
     sessionmaker = context["sessionmaker"]
 
     test_start = datetime.now(UTC)
-    assert await num_last_run_entries(sessionmaker) == 0
 
-    async with update_timestamp(sessionmaker, "dc=ad1") as last_run:
-        assert last_run == datetime.min.replace(tzinfo=UTC)
-    assert await num_last_run_entries(sessionmaker) == 1
+    for count, search_base in enumerate(["dc=ad0", "dc=ad1", "dc=ad2"]):
+        assert await num_last_run_entries(sessionmaker) == count
 
-    async with update_timestamp(sessionmaker, "dc=ad1") as last_run:
-        assert last_run > test_start
-    assert await num_last_run_entries(sessionmaker) == 1
+        async with update_timestamp(sessionmaker, search_base) as last_run:
+            assert last_run == datetime.min.replace(tzinfo=UTC)
+        assert await num_last_run_entries(sessionmaker) == count + 1
 
-    async with update_timestamp(sessionmaker, "dc=ad2") as last_run:
-        assert last_run == datetime.min.replace(tzinfo=UTC)
-    assert await num_last_run_entries(sessionmaker) == 2
-
-    async with update_timestamp(sessionmaker, "dc=ad2") as last_run:
-        assert last_run > test_start
-    assert await num_last_run_entries(sessionmaker) == 2
+        async with update_timestamp(sessionmaker, search_base) as last_run:
+            assert last_run > test_start
+        assert await num_last_run_entries(sessionmaker) == count + 1
