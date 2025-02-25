@@ -243,6 +243,8 @@ class UsernameGeneratorConfig(MappingBaseModel):
     char_replacement: dict[str, str] = {}
     forbidden_usernames: list[str] = []
     combinations_to_try: list[str] = []
+    remove_vowels: bool = False
+    disallow_mo_usernames: bool = False
 
     @validator("forbidden_usernames")
     def casefold_forbidden_usernames(cls, v: list[str]) -> list[str]:
