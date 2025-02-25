@@ -34,24 +34,28 @@ class UserNameGenerator:
         settings: Settings,
         moapi: MOAPI,
         ldap_connection: Connection,
-        remove_vowels: bool = False,
-        disallow_mo_usernames: bool = False,
+        remove_vowels: bool | None = None,
+        disallow_mo_usernames: bool | None = None,
     ) -> None:
         self.settings = settings
+        username_generator_settings = settings.conversion_mapping.username_generator
+
         self.moapi = moapi
         self.ldap_connection = ldap_connection
-        self.remove_vowels = remove_vowels
-        self.disallow_mo_usernames = disallow_mo_usernames
+        self.remove_vowels = (
+            remove_vowels
+            if remove_vowels is not None
+            else username_generator_settings.remove_vowels
+        )
+        self.disallow_mo_usernames = (
+            disallow_mo_usernames
+            if disallow_mo_usernames is not None
+            else username_generator_settings.disallow_mo_usernames
+        )
 
-        self.char_replacement = (
-            settings.conversion_mapping.username_generator.char_replacement
-        )
-        self.forbidden_usernames = (
-            settings.conversion_mapping.username_generator.forbidden_usernames
-        )
-        self.combinations = (
-            settings.conversion_mapping.username_generator.combinations_to_try
-        )
+        self.char_replacement = username_generator_settings.char_replacement
+        self.forbidden_usernames = username_generator_settings.forbidden_usernames
+        self.combinations = username_generator_settings.combinations_to_try
         logger.info("Found forbidden usernames", count=len(self.forbidden_usernames))
 
     async def get_existing_values(self, attributes: list[str]) -> dict[str, set[Any]]:
