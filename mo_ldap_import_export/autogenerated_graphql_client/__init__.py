@@ -244,6 +244,10 @@ from .read_class_uuid_by_facet_and_class_user_key import (
 from .read_class_uuid_by_facet_and_class_user_key import (
     ReadClassUuidByFacetAndClassUserKeyClassesObjects,
 )
+from .read_cleanup_addresses import ReadCleanupAddresses
+from .read_cleanup_addresses import ReadCleanupAddressesAddresses
+from .read_cleanup_addresses import ReadCleanupAddressesAddressesObjects
+from .read_cleanup_addresses import ReadCleanupAddressesAddressesObjectsCurrent
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumber
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumberEmployees
 from .read_employee_uuid_by_cpr_number import (
@@ -563,6 +567,10 @@ __all__ = [
     "ReadClassUuidByFacetAndClassUserKeyClassesObjects",
     "ReadClassUuidClasses",
     "ReadClassUuidClassesObjects",
+    "ReadCleanupAddresses",
+    "ReadCleanupAddressesAddresses",
+    "ReadCleanupAddressesAddressesObjects",
+    "ReadCleanupAddressesAddressesObjectsCurrent",
     "ReadEmployeeUuidByCprNumber",
     "ReadEmployeeUuidByCprNumberEmployees",
     "ReadEmployeeUuidByCprNumberEmployeesObjects",

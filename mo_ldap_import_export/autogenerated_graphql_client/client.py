@@ -88,6 +88,8 @@ from .read_class_uuid_by_facet_and_class_user_key import (
 from .read_class_uuid_by_facet_and_class_user_key import (
     ReadClassUuidByFacetAndClassUserKeyClasses,
 )
+from .read_cleanup_addresses import ReadCleanupAddresses
+from .read_cleanup_addresses import ReadCleanupAddressesAddresses
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumber
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumberEmployees
 from .read_employee_uuid_by_ituser_user_key import ReadEmployeeUuidByItuserUserKey
@@ -1373,3 +1375,25 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEngagementManager.parse_obj(data).engagements
+
+    async def read_cleanup_addresses(
+        self, filter: AddressFilter | None | UnsetType = UNSET
+    ) -> ReadCleanupAddressesAddresses:
+        query = gql(
+            """
+            query read_cleanup_addresses($filter: AddressFilter) {
+              addresses(filter: $filter) {
+                objects {
+                  current {
+                    employee_uuid
+                    uuid
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadCleanupAddresses.parse_obj(data).addresses
