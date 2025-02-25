@@ -34,10 +34,12 @@ class UserNameGenerator:
         settings: Settings,
         moapi: MOAPI,
         ldap_connection: Connection,
+        remove_vowels: bool = False,
     ) -> None:
         self.settings = settings
         self.moapi = moapi
         self.ldap_connection = ldap_connection
+        self.remove_vowels = remove_vowels
 
         self.char_replacement = (
             settings.conversion_mapping.username_generator.char_replacement
@@ -113,7 +115,16 @@ class UserNameGenerator:
             # Remove all remaining characters outside a-z
             return re.sub(r"[^a-z]+", "", name.lower())
 
-        return list(map(fix_name, name_parts))
+        def eliminate_vowels_from_surnames(name_parts: list[str]) -> list[str]:
+            # Remove vowels from all but first name
+            # Reference: https://redmine.magenta-aps.dk/issues/56080
+            first_name, *lastnames = name_parts
+            return [first_name] + [remove_vowels(n) for n in lastnames]
+
+        name_parts = [fix_name(x) for x in name_parts]
+        if self.remove_vowels:
+            name_parts = eliminate_vowels_from_surnames(name_parts)
+        return name_parts
 
     def _machine_readable_combi(self, combi: str) -> tuple[list[int | None], int]:
         """Converts a name to a machine processable internal format.
@@ -382,6 +393,7 @@ class UserNameGenerator:
 
 class AlleroedUserNameGenerator(UserNameGenerator):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+        kwargs["remove_vowels"] = True
         super().__init__(*args, **kwargs)
 
     async def _get_existing_usernames(self) -> set[str]:
@@ -406,12 +418,6 @@ class AlleroedUserNameGenerator(UserNameGenerator):
 
         ldap_usernames = await super()._get_existing_usernames()
         return ldap_usernames | existing_usernames_in_mo
-
-    def _name_fixer(self, name_parts: list[str]) -> list[str]:
-        # Remove vowels from all but first name
-        # Reference: https://redmine.magenta-aps.dk/issues/56080
-        first_name, *lastnames = name_parts
-        return [first_name] + [remove_vowels(n) for n in super()._name_fixer(lastnames)]
 
 
 def get_username_generator_class(
