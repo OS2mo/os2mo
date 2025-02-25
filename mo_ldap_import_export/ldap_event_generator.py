@@ -172,14 +172,14 @@ async def _poll(
     responses = ldapresponse2entries(response)
 
     def event2uuid(event: dict[str, Any]) -> UUID | None:
-        uuid = event.get("attributes", {}).get(ldap_unique_id_field, None)
+        uuid = event["attributes"].get(ldap_unique_id_field, None)
         if uuid is None:
             logger.warning("Got event without uuid")
             return None
         return UUID(uuid)
 
     def event2timestamp(event: dict[str, Any]) -> datetime | None:
-        modify_timestamp = event.get("attributes", {}).get("modifyTimestamp", None)
+        modify_timestamp = event["attributes"].get("modifyTimestamp", None)
         if modify_timestamp is None:
             logger.warning("Got event without modifyTimestamp")
             return None

@@ -441,7 +441,7 @@ def get_num_published_messages(
 async def purge_ldap(ldap_connection: Connection) -> AsyncIterator[None]:
     def entry2dn(entry) -> DN:
         assert entry["type"] == "searchResEntry"
-        dn = entry.get("attributes", {}).get("distinguishedName", None)
+        dn = entry["attributes"].get("distinguishedName", None)
         dn = dn or entry.get("dn", None)
         assert dn is not None
         assert isinstance(dn, DN)
