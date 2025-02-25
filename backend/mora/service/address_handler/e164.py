@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from typing import Any
 import phonenumbers
 
 from . import base
@@ -22,13 +23,11 @@ class E164AddressHandler(base.AddressHandler):
     scope = "E164"
     prefix = "urn:magenta.dk:e164:"
 
-    def __init__(self, value: str, visibility, value2: str | None = None) -> None:
-        self.visibility = visibility
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
 
-        assert value2 is None
-        self._value2 = None
-
-        pn = _parse_phonenumber(value)
+        assert self._value2 is None
+        pn = _parse_phonenumber(self._value)
         self._value = phonenumbers.format_number(
             pn, phonenumbers.PhoneNumberFormat.E164
         )
