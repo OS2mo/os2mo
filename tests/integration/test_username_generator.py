@@ -131,7 +131,6 @@ async def test_generate_username_no_available_usernames(
         "CONVERSION_MAPPING": json.dumps(
             {
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                     # AAG is a slur meaning "awful at gaming", thus it is disallowed in our
                     # pro-noob culture, thus we do not want to generate any usernames using
@@ -168,7 +167,6 @@ async def test_generate_username_forbidden_usernames(
         "CONVERSION_MAPPING": json.dumps(
             {
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FLXX"],
                 }
             }
@@ -336,7 +334,6 @@ async def test_generate_username_use_invalid_combinations(
             json.dumps(
                 {
                     "username_generator": {
-                        "objectClass": "UserNameGenerator",
                         "combinations_to_try": ["INVALID", "CHARACTERS"],
                     },
                 }

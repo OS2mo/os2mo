@@ -34,7 +34,6 @@ conversion_mapping_with_aduuid_itsystem = {
         },
     },
     "username_generator": {
-        "objectClass": "UserNameGenerator",
         "combinations_to_try": ["FFFX", "LLLX"],
     },
 }

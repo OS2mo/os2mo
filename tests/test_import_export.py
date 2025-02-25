@@ -210,7 +210,6 @@ async def test_import_single_object_no_employee_no_sync(
                         "uuid": "{{ employee_uuid or '' }}",
                     }
                 },
-                "username_generator": {"objectClass": "UserNameGenerator"},
             }
         ),
     )
@@ -248,7 +247,6 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
                         "uuid": "{{ employee_uuid or '' }}",
                     }
                 },
-                "username_generator": {"objectClass": "UserNameGenerator"},
             }
         ),
     )

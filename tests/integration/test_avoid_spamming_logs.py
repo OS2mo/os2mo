@@ -29,7 +29,6 @@ from structlog.testing import capture_logs
                     }}
                 """,
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },
             }

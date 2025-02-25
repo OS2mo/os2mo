@@ -59,7 +59,6 @@ from mo_ldap_import_export.utils import combine_dn_strings
                     }}
                 """,
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },
             }

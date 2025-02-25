@@ -56,7 +56,6 @@ from mo_ldap_import_export.utils import mo_today
                 },
                 # TODO: why is this required?
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },
             }
@@ -148,7 +147,6 @@ async def test_to_mo(
                 """,
                 # TODO: why is this required?
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },
             }
@@ -255,7 +253,6 @@ async def test_to_ldap(
                 """,
                 # TODO: why is this required?
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },
             }
@@ -352,7 +349,6 @@ async def test_edit_existing_in_ldap(
                 """,
                 # TODO: why is this required?
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },
             }
@@ -394,7 +390,6 @@ async def test_none_handling_empty(
                 """,
                 # TODO: why is this required?
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },
             }
@@ -451,7 +446,6 @@ async def test_none_handling_clearing(
                 """,
                 # TODO: why is this required?
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },
             }
@@ -524,7 +518,6 @@ async def test_ituser_link(
                     }}
                 """,
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     # TODO: why is this required?
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },

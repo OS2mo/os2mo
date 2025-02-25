@@ -389,7 +389,6 @@ async def test_changed_since(test_client: AsyncClient, expected: list[str]) -> N
                     },
                 },
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },
             }
@@ -475,7 +474,6 @@ async def test_mismatched_json_key_and_address_type(
                     },
                 },
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },
             }
@@ -559,7 +557,6 @@ async def test_mismatched_json_key_and_itsystem(
                     },
                 },
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },
             }

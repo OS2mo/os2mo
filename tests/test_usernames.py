@@ -40,7 +40,6 @@ def context(
 ) -> Context:
     mapping = {
         "username_generator": {
-            "objectClass": "UserNameGenerator",
             "char_replacement": {"ø": "oe", "æ": "ae", "å": "aa"},
             "forbidden_usernames": ["holes", "hater"],
             "combinations_to_try": ["F123L", "F12LL", "F1LLL", "FLLLL", "FLLLLX"],

@@ -130,7 +130,6 @@ def settings_overrides() -> Iterator[dict[str, str]]:
                 "uuid": "{{ employee_uuid or '' }}",
             }
         },
-        "username_generator": {"objectClass": "UserNameGenerator"},
     }
     conversion_mapping = parse_obj_as(ConversionMapping, conversion_mapping_dict)
     conversion_mapping_setting = conversion_mapping.json(

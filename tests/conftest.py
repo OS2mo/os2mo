@@ -108,9 +108,7 @@ def load_settings_overrides(
 
 @pytest.fixture
 def minimal_mapping() -> dict[str, Any]:
-    return {
-        "username_generator": {"objectClass": "UserNameGenerator"},
-    }
+    return {}
 
 
 @pytest.fixture
@@ -170,7 +168,6 @@ def integration_test_environment_variables(monkeypatch: pytest.MonkeyPatch) -> N
             }}
         """,
         "username_generator": {
-            "objectClass": "UserNameGenerator",
             "combinations_to_try": ["FFFX", "LLLX"],
         },
     }
