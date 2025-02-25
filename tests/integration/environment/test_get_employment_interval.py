@@ -169,7 +169,6 @@ async def test_get_employment_interval(
                 """,
                 # TODO: why is this required?
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },
             }

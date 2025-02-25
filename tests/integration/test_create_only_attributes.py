@@ -51,7 +51,6 @@ from mo_ldap_import_export.utils import mo_today
                     {{update_dict|tojson}}
                 """,
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },
             }

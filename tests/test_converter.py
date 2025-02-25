@@ -714,7 +714,6 @@ def test_import_to_mo_configuration(
                         "uuid": "{{ employee_uuid or '' }}",
                     }
                 },
-                "username_generator": {"objectClass": "UserNameGenerator"},
             }
         ),
     )

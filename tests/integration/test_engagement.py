@@ -64,7 +64,6 @@ from mo_ldap_import_export.utils import mo_today
                 },
                 # TODO: why is this required?
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },
             }
@@ -193,7 +192,6 @@ async def test_to_mo(
                 """,
                 # TODO: why is this required?
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },
             }
@@ -314,7 +312,6 @@ async def test_to_ldap(
                 },
                 # TODO: why is this required?
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },
             }
@@ -412,7 +409,6 @@ async def test_to_mo_skip_if_none(
                 },
                 # TODO: why is this required?
                 "username_generator": {
-                    "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 },
             }

@@ -70,7 +70,6 @@ def settings(
                 "mo2ldap": """
                 {}
                 """,
-                "username_generator": {"objectClass": "UserNameGenerator"},
             }
         ),
     )
@@ -642,7 +641,6 @@ async def context(sync_tool_and_context: tuple[SyncTool, Context]) -> Context:
                         "uuid": "{{ employee_uuid or '' }}",
                     }
                 },
-                "username_generator": {"objectClass": "UserNameGenerator"},
             }
         )
     }
