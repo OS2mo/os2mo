@@ -919,7 +919,7 @@ def construct_router(settings: Settings) -> APIRouter:
             surviving_uuid, *delete_uuids = address_uuids
 
             # Ensure we can find an LDAP user to trigger an update on in the end
-            best_dn, create = await dataloader._find_best_dn(mo_uuid, dry_run=dry_run)
+            best_dn, create = await dataloader._find_best_dn(mo_uuid, dry_run=True)
             if best_dn is None or create:
                 logger.info("Cannot cleanup, no LDAP account", mo_uuid=mo_uuid)
                 continue
