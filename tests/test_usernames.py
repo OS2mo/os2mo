@@ -17,7 +17,6 @@ from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.depends import Settings
 from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.models import Employee
-from mo_ldap_import_export.usernames import AlleroedUserNameGenerator
 from mo_ldap_import_export.usernames import UserNameGenerator
 from tests.graphql_mocker import GraphQLMocker
 
@@ -122,9 +121,9 @@ def alleroed_username_generator(
     monkeypatch: pytest.MonkeyPatch,
     context: Context,
     existing_usernames_ldap: list,
-) -> Iterator[AlleroedUserNameGenerator]:
+) -> Iterator[UserNameGenerator]:
     username_generator_config = {
-        "objectClass": "AlleroedUserNameGenerator",
+        "objectClass": "UserNameGenerator",
         "char_replacement": {},
         # Note: We need some 'X's in this list. to account for potential duplicates
         # Note2: We need some short combinations in this list, to account for persons with
@@ -204,6 +203,8 @@ def alleroed_username_generator(
             "FFFF",
         ],
         "forbidden_usernames": ["abrn", "anls"],
+        "remove_vowels": True,
+        "disallow_mo_usernames": True,
     }
     monkeypatch.setenv(
         "CONVERSION_MAPPING",
@@ -216,7 +217,7 @@ def alleroed_username_generator(
         return_value=existing_usernames_ldap,
     ):
         user_context = context["user_context"]
-        yield AlleroedUserNameGenerator(
+        yield UserNameGenerator(
             Settings(),
             user_context["dataloader"],
             user_context["ldap_connection"],
@@ -396,7 +397,7 @@ def test_check_combinations_to_try():
 
 
 async def test_alleroed_username_generator(
-    alleroed_username_generator: AlleroedUserNameGenerator,
+    alleroed_username_generator: UserNameGenerator,
 ) -> None:
     alleroed_username_generator.forbidden_usernames = []
     existing_names: list[str] = []
@@ -468,7 +469,7 @@ async def test_alleroed_username_generator(
 
 async def test_alleroed_dn_generator(
     monkeypatch: pytest.MonkeyPatch,
-    alleroed_username_generator: AlleroedUserNameGenerator,
+    alleroed_username_generator: UserNameGenerator,
 ) -> None:
     monkeypatch.setenv("CONVERSION_MAPPING__MO2LDAP", "{}")
     alleroed_username_generator.settings = Settings()
@@ -488,7 +489,7 @@ async def test_alleroed_dn_generator(
     ],
 )
 async def test_alleroed_username_generator_forbidden_names_from_files(
-    alleroed_username_generator: AlleroedUserNameGenerator,
+    alleroed_username_generator: UserNameGenerator,
     graphql_mock: GraphQLMocker,
     settings_mock: Settings,
     given_name: str,
