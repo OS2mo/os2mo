@@ -3,11 +3,9 @@
 """LDAP change event generation."""
 
 import asyncio
-from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from collections.abc import Callable
 from contextlib import AbstractAsyncContextManager
-from contextlib import asynccontextmanager
 from contextlib import suppress
 from datetime import UTC
 from datetime import datetime
@@ -183,43 +181,6 @@ async def _poll(
     return uuids
 
 
-@asynccontextmanager
-async def update_timestamp(
-    sessionmaker: async_sessionmaker[AsyncSession], search_base: str
-) -> AsyncIterator[datetime]:
-    """Async context manager to fetch and update last run time from our rundb.
-
-    Args:
-        sessionmaker: The sessionmaker used to create our database sessions.
-        search_base: The search base to fetch and update time for.
-
-    Yields:
-        The last run time as read from the database.
-    """
-    # Ensure that a last-run row exists for our search_base
-    # We do creates separately to support update locks in normal operation
-    async with sessionmaker() as session, session.begin():
-        last_run = await session.scalar(
-            select(LastRun).where(LastRun.search_base == search_base).with_for_update()
-        )
-        last_run = last_run or LastRun(search_base=search_base)
-        session.add(last_run)
-
-    async with sessionmaker() as session, session.begin():
-        # Get last run time from database for updating
-        last_run = await session.scalar(
-            select(LastRun).where(LastRun.search_base == search_base).with_for_update()
-        )
-        assert last_run is not None
-        assert last_run.datetime is not None
-
-        now = datetime.now(UTC)
-        yield last_run.datetime
-        # Update last run time in database
-        last_run.datetime = now
-        session.add(last_run)
-
-
 async def _poller(
     settings: Settings,
     ldap_amqpsystem: AMQPSystem,
@@ -260,11 +221,32 @@ async def _generate_events(
     sessionmaker: async_sessionmaker[AsyncSession],
     seeded_poller: Callable[..., Awaitable[set[UUID]]],
 ) -> None:
-    # Fetch the last run time, and update it after running
-    async with update_timestamp(sessionmaker, search_base) as last_run:
+    # Ensure that a last-run row exists for our search_base
+    # We do creates separately to support update locks in normal operation
+    async with sessionmaker() as session, session.begin():
+        last_run = await session.scalar(
+            select(LastRun).where(LastRun.search_base == search_base).with_for_update()
+        )
+        last_run = last_run or LastRun(search_base=search_base)
+        session.add(last_run)
+
+    async with sessionmaker() as session, session.begin():
+        # Get last run time from database for updating
+        last_run = await session.scalar(
+            select(LastRun).where(LastRun.search_base == search_base).with_for_update()
+        )
+        assert last_run is not None
+        assert last_run.datetime is not None
+
+        now = datetime.now(UTC)
+
         # Fetch changes since last-run and emit events for them
-        uuids = await seeded_poller(last_search_time=last_run)
+        uuids = await seeded_poller(last_search_time=last_run.datetime)
         await publish_uuids(ldap_amqpsystem, list(uuids))
+
+        # Update last run time in database
+        last_run.datetime = now
+        session.add(last_run)
 
 
 def datetime_to_ldap_timestamp(dt: datetime) -> str:

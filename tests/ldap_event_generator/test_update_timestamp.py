@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import UTC
 from datetime import datetime
+from unittest.mock import AsyncMock
 
 import pytest
 from fastramqpi.context import Context
@@ -10,7 +11,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from mo_ldap_import_export.ldap_event_generator import LastRun
-from mo_ldap_import_export.ldap_event_generator import update_timestamp
+from mo_ldap_import_export.ldap_event_generator import _generate_events
+
+
+async def get_last_run(
+    sessionmaker: async_sessionmaker[AsyncSession], search_base: str
+) -> datetime | None:
+    async with sessionmaker() as session, session.begin():
+        # Get last run time from database for updating
+        last_run = await session.scalar(
+            select(LastRun).where(LastRun.search_base == search_base)
+        )
+        if last_run is None:
+            return None
+        assert last_run.datetime is not None
+        return last_run.datetime
 
 
 async def num_last_run_entries(sessionmaker: async_sessionmaker[AsyncSession]) -> int:
@@ -29,20 +44,21 @@ async def test_update_timestamp_postgres(context: Context) -> None:
     sessionmaker = context["sessionmaker"]
 
     test_start = datetime.now(UTC)
-    assert await num_last_run_entries(sessionmaker) == 0
 
-    async with update_timestamp(sessionmaker, "dc=ad1") as last_run:
-        assert last_run == datetime.min.replace(tzinfo=UTC)
-    assert await num_last_run_entries(sessionmaker) == 1
+    for count, search_base in enumerate(["dc=ad0", "dc=ad1", "dc=ad2"]):
+        assert await num_last_run_entries(sessionmaker) == count
 
-    async with update_timestamp(sessionmaker, "dc=ad1") as last_run:
-        assert last_run > test_start
-    assert await num_last_run_entries(sessionmaker) == 1
+        last_run = await get_last_run(sessionmaker, search_base)
+        assert last_run is None
 
-    async with update_timestamp(sessionmaker, "dc=ad2") as last_run:
-        assert last_run == datetime.min.replace(tzinfo=UTC)
-    assert await num_last_run_entries(sessionmaker) == 2
+        await _generate_events(AsyncMock(), search_base, sessionmaker, AsyncMock())
+        first_run = await get_last_run(sessionmaker, search_base)
+        assert first_run is not None
+        assert first_run > test_start
+        assert await num_last_run_entries(sessionmaker) == count + 1
 
-    async with update_timestamp(sessionmaker, "dc=ad2") as last_run:
-        assert last_run > test_start
-    assert await num_last_run_entries(sessionmaker) == 2
+        await _generate_events(AsyncMock(), search_base, sessionmaker, AsyncMock())
+        last_run = await get_last_run(sessionmaker, search_base)
+        assert last_run is not None
+        assert last_run > first_run
+        assert await num_last_run_entries(sessionmaker) == count + 1
