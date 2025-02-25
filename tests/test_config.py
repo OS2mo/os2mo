@@ -388,3 +388,20 @@ async def test_disallowed_discriminator_fields(
     with pytest.raises(ValueError) as exc_info:
         Settings()
     assert f"Invalid field in DISCRIMINATOR_FIELD(S): '{field}'" in str(exc_info.value)
+
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+async def test_allow_atmost_one_dc(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(
+        "LDAP_CONTROLLERS",
+        '[{"host": "host1.example.com"}, {"host": "host2.example.com"}]',
+    )
+
+    with pytest.raises(ValueError) as exc_info:
+        Settings()
+    errors = [
+        "1 validation error for Settings\nldap_controllers",
+        "At most one domain controller can be configured",
+    ]
+    for error in errors:
+        assert error in str(exc_info.value)
