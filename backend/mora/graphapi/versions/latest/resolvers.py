@@ -598,7 +598,9 @@ async def manager_resolver(
         **kwargs,
     )
     if filter.exclude is not None:
-        exclude_uuids = await filter2uuids_func(employee_resolver, info, filter.exclude)
+        exclude_uuids = set(
+            await filter2uuids_func(employee_resolver, info, filter.exclude)
+        )
         result = {
             key: value
             for key, value in result.items()
