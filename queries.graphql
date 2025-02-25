@@ -650,3 +650,16 @@ query read_engagement_manager(
     }
   }
 }
+
+query read_cleanup_addresses(
+  $filter: AddressFilter
+) {
+  addresses(filter: $filter) {
+    objects {
+      current {
+        employee_uuid
+        uuid
+      }
+    }
+  }
+}
