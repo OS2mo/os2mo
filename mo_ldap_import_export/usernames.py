@@ -35,11 +35,13 @@ class UserNameGenerator:
         moapi: MOAPI,
         ldap_connection: Connection,
         remove_vowels: bool = False,
+        disallow_mo_usernames: bool = False,
     ) -> None:
         self.settings = settings
         self.moapi = moapi
         self.ldap_connection = ldap_connection
         self.remove_vowels = remove_vowels
+        self.disallow_mo_usernames = disallow_mo_usernames
 
         self.char_replacement = (
             settings.conversion_mapping.username_generator.char_replacement
@@ -314,7 +316,7 @@ class UserNameGenerator:
         existing_common_names = existing_values["cn"]
         return existing_common_names
 
-    async def _get_existing_usernames(self) -> set[str]:
+    async def _get_existing_ldap_usernames(self) -> set[str]:
         match self.settings.ldap_dialect:
             case "Standard":
                 # "uid" is the default login field since RFC2798 (inetOrgPerson)
@@ -343,6 +345,33 @@ class UserNameGenerator:
             case _:  # pragma: no cover
                 raise AssertionError("Unknown LDAP dialect")
 
+        return existing_usernames
+
+    async def _get_existing_mo_usernames(self) -> set[str]:
+        # "existing_usernames_in_mo" covers all usernames which MO has ever generated.
+        # Because we never delete from MO's database; We just put end-dates on objects.
+        #
+        # We need to block these usernames from being generated, because it is possible
+        # that MO generates a user, which is deleted from AD some years later. In that
+        # case we should never generate the username of the deleted user.
+        # Reference: https://redmine.magenta-aps.dk/issues/57043
+        itsystem_user_key = self.settings.conversion_mapping.username_generator.existing_usernames_itsystem
+        itsystem_uuid = await self.moapi.get_it_system_uuid(itsystem_user_key)
+        result = (
+            await self.moapi.graphql_client.read_all_ituser_user_keys_by_itsystem_uuid(
+                UUID(itsystem_uuid)
+            )
+        )
+        # TODO: Keep this as a set and convert all operations to set operations
+        existing_usernames_in_mo = {
+            validity.user_key for obj in result.objects for validity in obj.validities
+        }
+        return existing_usernames_in_mo
+
+    async def _get_existing_usernames(self) -> set[str]:
+        existing_usernames = await self._get_existing_ldap_usernames()
+        if self.disallow_mo_usernames:
+            existing_usernames |= await self._get_existing_mo_usernames()
         return existing_usernames
 
     def generate_person_name(self, employee: Employee) -> list[str]:
@@ -394,30 +423,8 @@ class UserNameGenerator:
 class AlleroedUserNameGenerator(UserNameGenerator):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         kwargs["remove_vowels"] = True
+        kwargs["disallow_mo_usernames"] = True
         super().__init__(*args, **kwargs)
-
-    async def _get_existing_usernames(self) -> set[str]:
-        # "existing_usernames_in_mo" covers all usernames which MO has ever generated.
-        # Because we never delete from MO's database; We just put end-dates on objects.
-        #
-        # We need to block these usernames from being generated, because it is possible
-        # that MO generates a user, which is deleted from AD some years later. In that
-        # case we should never generate the username of the deleted user.
-        # Reference: https://redmine.magenta-aps.dk/issues/57043
-        itsystem_user_key = self.settings.conversion_mapping.username_generator.existing_usernames_itsystem
-        itsystem_uuid = await self.moapi.get_it_system_uuid(itsystem_user_key)
-        result = (
-            await self.moapi.graphql_client.read_all_ituser_user_keys_by_itsystem_uuid(
-                UUID(itsystem_uuid)
-            )
-        )
-        # TODO: Keep this as a set and convert all operations to set operations
-        existing_usernames_in_mo = {
-            validity.user_key for obj in result.objects for validity in obj.validities
-        }
-
-        ldap_usernames = await super()._get_existing_usernames()
-        return ldap_usernames | existing_usernames_in_mo
 
 
 def get_username_generator_class(
