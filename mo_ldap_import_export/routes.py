@@ -882,6 +882,7 @@ def construct_router(settings: Settings) -> APIRouter:
         ldap_amqpsystem: depends.LDAPAMQPSystem,
         dataloader: depends.DataLoader,
         address_type_user_key: str,
+        at: datetime | None = None,
         dry_run: bool = True,
     ) -> set[EmployeeUUID]:  # pragma: no cover
         """Remove all but one address of the given address-type for all users.
@@ -939,7 +940,7 @@ def construct_router(settings: Settings) -> APIRouter:
             # Actually terminate all but one address
             for address_uuid in delete_uuids:
                 await graphql_client.address_terminate(
-                    input=AddressTerminateInput(to=mo_today(), uuid=address_uuid)
+                    input=AddressTerminateInput(to=at or mo_today(), uuid=address_uuid)
                 )
 
             # Emit a refresh event
