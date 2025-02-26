@@ -16,7 +16,6 @@ from uuid import uuid4
 import pytest
 from fastramqpi.context import Context
 from fastramqpi.ramqp.utils import RequeueMessage
-from freezegun import freeze_time
 from more_itertools import one
 from structlog.testing import capture_logs
 
@@ -702,7 +701,7 @@ async def test_find_best_dn(sync_tool: SyncTool) -> None:
     assert create is True
 
 
-@freeze_time("2022-08-10T12:34:56")
+@pytest.mark.freeze_time("2022-08-10T12:34:56")
 @pytest.mark.parametrize(
     "template, expected",
     (

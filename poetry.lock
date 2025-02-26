@@ -1066,6 +1066,18 @@ pytest = ">=4.6"
 testing = ["fields", "hunter", "process-tests", "pytest-xdist", "virtualenv"]
 
 [[package]]
+name = "pytest-freezer"
+version = "0.4.9"
+description = "Pytest plugin providing a fixture interface for spulec/freezegun"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+freezegun = ">=1.1"
+pytest = ">=3.6"
+
+[[package]]
 name = "pytest-split"
 version = "0.9.0"
 description = "Pytest plugin which splits the test suite to equally sized sub suites based on test execution time."
@@ -1500,7 +1512,7 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.11"
-content-hash = "8637f4188fd4d78cd9993a790cf58848674448ca081255199ac9bd4ca8937805"
+content-hash = "de7009162e15d9e84d8581062e58295485f5f0e373472230ea1e76135063c4cf"
 
 [metadata.files]
 aio-pika = [
@@ -2823,6 +2835,10 @@ pytest-asyncio = [
 pytest-cov = [
     {file = "pytest-cov-5.0.0.tar.gz", hash = "sha256:5837b58e9f6ebd335b0f8060eecce69b662415b16dc503883a02f45dfeb14857"},
     {file = "pytest_cov-5.0.0-py3-none-any.whl", hash = "sha256:4f0764a1219df53214206bf1feea4633c3b558a2925c8b59f144f682861ce652"},
+]
+pytest-freezer = [
+    {file = "pytest_freezer-0.4.9-py3-none-any.whl", hash = "sha256:8b6c50523b7d4aec4590b52bfa5ff766d772ce506e2bf4846c88041ea9ccae59"},
+    {file = "pytest_freezer-0.4.9.tar.gz", hash = "sha256:21bf16bc9cc46bf98f94382c4b5c3c389be7056ff0be33029111ae11b3f1c82a"},
 ]
 pytest-split = [
     {file = "pytest_split-0.9.0-py3-none-any.whl", hash = "sha256:9e197df601828d76a1ab615158d9c6253ec9f96e46c1d3ea27187aa5ac0ef9de"},

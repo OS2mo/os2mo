@@ -133,7 +133,7 @@ async def _poll(
     search_base: str,
     ldap_unique_id_field: str,
     last_search_time: datetime,
-) -> set[UUID]:
+) -> tuple[set[UUID], datetime | None]:
     """Pool the LDAP server for changes once.
 
     Args:
@@ -160,7 +160,10 @@ async def _poll(
 
     response = await _paged_search(
         ldap_connection,
-        {"search_filter": search_filter, "attributes": [ldap_unique_id_field]},
+        {
+            "search_filter": search_filter,
+            "attributes": [ldap_unique_id_field, "modifyTimestamp"],
+        },
         search_base,
         mute=False,
     )
@@ -175,10 +178,23 @@ async def _poll(
             return None
         return UUID(uuid)
 
+    def event2timestamp(event: dict[str, Any]) -> datetime | None:
+        modify_timestamp = event.get("attributes", {}).get("modifyTimestamp", None)
+        if modify_timestamp is None:
+            logger.warning("Got event without modifyTimestamp")
+            return None
+        assert isinstance(modify_timestamp, datetime)
+        return modify_timestamp
+
     uuids_with_none = {event2uuid(event) for event in responses}
     uuids_with_none.discard(None)
     uuids = cast(set[UUID], uuids_with_none)
-    return uuids
+
+    timestamps_with_none = {event2timestamp(event) for event in responses}
+    timestamps_with_none.discard(None)
+    timestamps = cast(set[datetime], timestamps_with_none)
+
+    return uuids, max(timestamps, default=None)
 
 
 async def _poller(
@@ -219,7 +235,7 @@ async def _generate_events(
     ldap_amqpsystem: AMQPSystem,
     search_base: str,
     sessionmaker: async_sessionmaker[AsyncSession],
-    seeded_poller: Callable[..., Awaitable[set[UUID]]],
+    seeded_poller: Callable[..., Awaitable[tuple[set[UUID], datetime | None]]],
 ) -> None:
     # Ensure that a last-run row exists for our search_base
     # We do creates separately to support update locks in normal operation
@@ -238,14 +254,16 @@ async def _generate_events(
         assert last_run is not None
         assert last_run.datetime is not None
 
-        now = datetime.now(UTC)
-
         # Fetch changes since last-run and emit events for them
-        uuids = await seeded_poller(last_search_time=last_run.datetime)
+        uuids, timestamp = await seeded_poller(last_search_time=last_run.datetime)
         await publish_uuids(ldap_amqpsystem, list(uuids))
 
+        # No events found means no timestamps, which means we reuse the old last_run
+        if timestamp is None:
+            return
+
         # Update last run time in database
-        last_run.datetime = now
+        last_run.datetime = timestamp
         session.add(last_run)
 
 
@@ -277,6 +295,7 @@ async def fetch_changes_since(
     since: datetime,
     search_base: Annotated[str, Body()],
 ) -> set[UUID]:
-    return await _poll(
+    uuids, _ = await _poll(
         ldap_connection, search_base, settings.ldap_unique_id_field, since
     )
+    return uuids

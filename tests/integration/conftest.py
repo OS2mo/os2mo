@@ -3,6 +3,7 @@
 from collections.abc import Awaitable
 from collections.abc import Callable
 from functools import partial
+from typing import TypeAlias
 from uuid import UUID
 
 import pytest
@@ -19,6 +20,17 @@ from mo_ldap_import_export.ldap import ldap_add
 from mo_ldap_import_export.ldapapi import LDAPAPI
 from mo_ldap_import_export.types import EmployeeUUID
 from mo_ldap_import_export.utils import combine_dn_strings
+
+DNList2UUID: TypeAlias = Callable[[list[str]], Awaitable[UUID]]
+
+
+@pytest.fixture
+async def dnlist2uuid(ldap_api: LDAPAPI) -> DNList2UUID:
+    async def inner(dnlist: list[str]) -> UUID:
+        dn = combine_dn_strings(dnlist)
+        return await ldap_api.get_ldap_unique_ldap_uuid(dn)
+
+    return inner
 
 
 @pytest.fixture
@@ -45,7 +57,12 @@ async def ldap_org(ldap_connection: Connection, ldap_suffix: list[str]) -> list[
     return ou_dn
 
 
-AddLdapPerson = Callable[[str, str], Awaitable[list[str]]]
+@pytest.fixture
+async def ldap_org_uuid(ldap_org: list[str], dnlist2uuid: DNList2UUID) -> UUID:
+    return await dnlist2uuid(ldap_org)
+
+
+AddLdapPerson: TypeAlias = Callable[[str, str], Awaitable[list[str]]]
 
 
 @pytest.fixture
@@ -105,9 +122,8 @@ async def ldap_person(ldap_connection: Connection, ldap_org: list[str]) -> list[
 
 
 @pytest.fixture
-async def ldap_person_uuid(ldap_person: list[str], ldap_api: LDAPAPI) -> UUID:
-    dn = combine_dn_strings(ldap_person)
-    return await ldap_api.get_ldap_unique_ldap_uuid(dn)
+async def ldap_person_uuid(ldap_person: list[str], dnlist2uuid: DNList2UUID) -> UUID:
+    return await dnlist2uuid(ldap_person)
 
 
 @pytest.fixture
