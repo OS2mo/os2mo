@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import uuid
 
 from fastapi import APIRouter
 
@@ -84,8 +83,8 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
         handler = await base.get_handler_for_scope(scope).from_request(req)
 
-        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
-        bvn = req.get("user_key") or handler.name or func_id
+        func_id = util.get_uuid(req, required=False)
+        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         # Validation
         if org_unit_uuid:
