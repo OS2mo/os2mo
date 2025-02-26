@@ -56,7 +56,6 @@ def generate_events(
 
 @pytest.mark.integration_test
 @pytest.mark.envvar({"LISTEN_TO_CHANGES_IN_LDAP": "False"})
-@pytest.mark.xfail(reason="current implementation spams the same event forever")
 @pytest.mark.parametrize(
     "",
     [
