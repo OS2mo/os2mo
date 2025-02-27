@@ -1,12 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from datetime import UTC
-from datetime import datetime
 
 import pytest
 from fastramqpi.context import Context
 from sqlalchemy import select
 
+from mo_ldap_import_export.ldap_event_generator import MICROSOFT_EPOCH
 from mo_ldap_import_export.ldap_event_generator import LastRun
 
 
@@ -34,4 +33,4 @@ async def test_last_run_postgres(context: Context) -> None:
         fetched_last_run = await session.scalar(select(LastRun))
         assert fetched_last_run.id is not None
         assert fetched_last_run.search_base == "dc=ad"
-        assert fetched_last_run.datetime == datetime.min.replace(tzinfo=UTC)
+        assert fetched_last_run.datetime == MICROSOFT_EPOCH
