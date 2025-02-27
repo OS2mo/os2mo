@@ -22,9 +22,12 @@ from fastapi import Body
 from fastramqpi.context import Context
 from fastramqpi.ramqp import AMQPSystem
 from ldap3 import Connection
+from sqlalchemy import ARRAY
 from sqlalchemy import TIMESTAMP
 from sqlalchemy import Text
+from sqlalchemy import Uuid
 from sqlalchemy import select
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped
@@ -42,7 +45,8 @@ logger = structlog.stdlib.get_logger()
 
 
 class LastRun(Base):
-    __tablename__ = "last_run"
+    # NOTE: Tablename was changed here to force table recreation in lieu of Alembic
+    __tablename__ = "last_run_with_uuids"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     search_base: Mapped[str] = mapped_column(
@@ -53,6 +57,7 @@ class LastRun(Base):
         default=datetime.min.replace(tzinfo=UTC),
         nullable=False,
     )
+    uuids: Mapped[list[UUID]] = mapped_column(ARRAY(Uuid), default=list, nullable=False)
 
 
 class LDAPEventGenerator(AbstractAsyncContextManager):
@@ -73,6 +78,11 @@ class LDAPEventGenerator(AbstractAsyncContextManager):
 
     async def __aenter__(self) -> Self:
         """Start event generator."""
+        # NOTE: The old table is droppped here in lieu of Alembic
+        # TODO: This code can be removed once it has been run for all customers.
+        async with self.sessionmaker() as session, session.begin():
+            await session.execute(text("DROP TABLE IF EXISTS last_run;"))
+
         search_bases = {
             combine_dn_strings(
                 [ldap_ou_to_scan_for_changes, self.settings.ldap_search_base]
@@ -253,16 +263,23 @@ async def _generate_events(
         )
         assert last_run is not None
         assert last_run.datetime is not None
+        assert last_run.uuids is not None
 
         # Fetch changes since last-run and emit events for them
         uuids, timestamp = await seeded_poller(last_search_time=last_run.datetime)
-        await publish_uuids(ldap_amqpsystem, list(uuids))
+        # Only send out events if either the UUIDs or the timestamp have changed
+        # Otherwise we will send out the same event over and over, every 'poll_time'
+        # seconds effectively spamming the queue, which is a big issue if the UUID
+        # that is getting spammed is stuck.
+        if uuids != set(last_run.uuids) or timestamp != last_run.datetime:
+            await publish_uuids(ldap_amqpsystem, list(uuids))
 
         # No events found means no timestamps, which means we reuse the old last_run
         if timestamp is None:
             return
 
         # Update last run time in database
+        last_run.uuids = list(uuids)
         last_run.datetime = timestamp
         session.add(last_run)
 

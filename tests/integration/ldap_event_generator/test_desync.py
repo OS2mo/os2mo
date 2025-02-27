@@ -102,9 +102,17 @@ async def test_no_desync(
     results = await generate_events()
     assert results == {ldap_org_uuid, ldap_person_uuid}
 
-    # We wait another second and check again. We know expect "ldap_org_uuid" to have
+    # We wait another second and check again. We now expect "ldap_org_uuid" to have
     # disappeared, since we are 2 seconds / truncations away, however "ldap_person_uuid"
     # should still appear, since we are within its truncated second.
     await sleep(1)
     results = await generate_events()
     assert results == {ldap_person_uuid}
+
+    # We wait another second and check again. We now expect "ldap_person_uuid" to have
+    # disappeared, since we are 2 seconds / truncations away.
+    # That ldap_person_uuid disappears is important as we otherwise spam the same event
+    # over and over forever.
+    await sleep(1)
+    results = await generate_events()
+    assert results == set()
