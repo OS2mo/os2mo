@@ -43,10 +43,43 @@ from .utils import combine_dn_strings
 
 logger = structlog.stdlib.get_logger()
 
+# The Gregorian reform to the Christian calendar went into effect on the 15th
+# of October 1582. The reform operates on a 400-year leap-year cycle.
+#
+# When Windows NT was being designed by Microsoft, 1601 was chosen to be the
+# first supported year in its FILETIME value, as it is the first year of the
+# 400-year leap-year cycle that was active when it was being designed.
+# The argument for this choice seems to be that choosing 1601 instead of 1582
+# (as RFC4122 does for UUIDs) simplifies the math for handling leap-years.
+#
+# This means that the 1st of January 1601 is the date for which all Microsoft
+# Windows file times are calculated, and by extension the reference for all
+# Active Directory timestamps.
+#
+# As such to support finding all entries in Active Directory when searching by
+# the modifyTimestamp, the initial search must take in a timestamp
+# corresponding to midnight on the 1st of January 1601.
+# Picking a time before this simply yields no results as Active Directory does
+# not handle dates before this, while picking a time after this date runs the
+# risk of missing elements whose modifyTimestamp is "NULL", as "NULL" is
+# commonly encoded as zero, and thus as midnight on the 1st of January 1601.
+#
+# It is worth nothing that it is also the date from which ANSI dates are counted
+# and was adopted by the American National Standards Institute for its use in
+# COBOL.
+#
+# A point worth mentioning: challenges may arise however if we emit data related
+# to email accounts containing dates prior to midnight of the 1st of April 1601,
+# as this is the earliest date possible in Microsoft Outlook.
+# Additionally we should be careful not to emit data containing dates after
+# midnight of the 1st of January 4501, as this is the time that Microsoft Outlook
+# uses as "NULL".
+MICROSOFT_EPOCH = datetime(1601, 1, 1, tzinfo=UTC)
+
 
 class LastRun(Base):
     # NOTE: Tablename was changed here to force table recreation in lieu of Alembic
-    __tablename__ = "last_run_with_uuids"
+    __tablename__ = "last_run_gregorian"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     search_base: Mapped[str] = mapped_column(
@@ -54,7 +87,7 @@ class LastRun(Base):
     )
     datetime: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
-        default=datetime.min.replace(tzinfo=UTC),
+        default=MICROSOFT_EPOCH,
         nullable=False,
     )
     uuids: Mapped[list[UUID]] = mapped_column(ARRAY(Uuid), default=list, nullable=False)
@@ -78,10 +111,12 @@ class LDAPEventGenerator(AbstractAsyncContextManager):
 
     async def __aenter__(self) -> Self:
         """Start event generator."""
-        # NOTE: The old table is droppped here in lieu of Alembic
+        # NOTE: The old tables are droppped here in lieu of Alembic
         # TODO: This code can be removed once it has been run for all customers.
         async with self.sessionmaker() as session, session.begin():
             await session.execute(text("DROP TABLE IF EXISTS last_run;"))
+        async with self.sessionmaker() as session, session.begin():
+            await session.execute(text("DROP TABLE IF EXISTS last_run_with_uuids;"))
 
         search_bases = {
             combine_dn_strings(
