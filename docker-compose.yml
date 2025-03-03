@@ -34,7 +34,12 @@ services:
     # `docker attach os2mo-mo-1` to enter pdb. Detach with Ctrl+P Ctrl+Q.
     tty: true
     stdin_open: true
-    build: .
+    build:
+      context: .
+      args:
+        # Use uid/gid <= 65536 to allow rootless podman
+        uid: 52020
+        gid: 52020
     # The `volumes` and `command` mounts the backend directory in the docker
     # container and overwrites the CMD from Dockerfile. With this gunicorn
     # reloads on file changes. This is very useful when developing the backend.
@@ -63,7 +68,12 @@ services:
 
   amqp-subsystem:
     tty: true
-    build: .
+    build:
+      context: .
+      args:
+        # Use uid/gid <= 65536 to allow rootless podman
+        uid: 52020
+        gid: 52020
     volumes:
       - ./backend:/app/backend
       - ./dev-environment/wait-for-rabbitmq.sh:/wait-for-rabbitmq.sh

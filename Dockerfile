@@ -21,6 +21,19 @@ ENV PYTHONUNBUFFERED=1 \
     POETRY_HOME=/opt/poetry \
     ALEMBIC_CONFIG=/app/backend/alembic.ini
 
+# https://www.redhat.com/en/blog/user-flag-rootless-containers:
+#
+# > The rootless Podman user is only allocated a limited number of {UID,GID}s, as
+# > defined in the /etc/{subuid,subgid} files. Usually, you can only use 65536
+# > {UID,GID}s. This means that if you attempt to launch a rootless container
+# > with a {UID,GID} of > 65536, the container will fail.
+#
+# Ideally, we would change this, but prod deployments are hard to change and
+# thus the default needs to stay at 72020. This allows the values to be
+# overwritten in docker-compose for rootless podman development.
+ARG uid=72020
+ARG gid=72020
+
 # hadolint ignore=DL3008,DL4006
 RUN set -ex \
   # Add a mox group and user. Note: this is a system user/group, but have
@@ -30,8 +43,8 @@ RUN set -ex \
   # host system or users of other docker containers.
   #
   # See `doc/user/installation.rst` for instructions on how to overwrite this.
-  && groupadd -g 72020 -r mora\
-  && useradd -u 72020 --no-log-init -r -g mora mora \
+  && groupadd -g $gid -r mora\
+  && useradd -u $uid --no-log-init -r -g mora mora \
   # Install Poetry. In an isolated environment, following the upstream
   # recommendations https://python-poetry.org/docs/#ci-recommendations
   && python3 -m venv $POETRY_HOME \
