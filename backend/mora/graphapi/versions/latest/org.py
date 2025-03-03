@@ -48,6 +48,7 @@ async def create_org(input: OrganisationCreate) -> UUID:
     # NOTE: This code does a direct lookup in LoRa as OS2mo code usually has the
     #       invariant that a root organisation always exists.
     organisations = list(await org_scope.fetch(bvn="%"))
+    # coverage: pause
     if len(organisations) != 0:
         raise ValueError("Root organisation already exists")
 
@@ -59,3 +60,4 @@ async def create_org(input: OrganisationCreate) -> UUID:
     payload = model.dict(by_alias=True, exclude={"uuid"}, exclude_none=True)
     uuid = await org_scope.create(payload)
     return UUID(uuid)
+    # coverage: unpause

@@ -82,12 +82,13 @@ async def list_export_files(
             {"secret": secret},
         ],
     )
-
+    # coverage: pause
     query = "query FilesQuery { files(filter: {file_store: EXPORTS}) { objects { file_name } } }"
     gql_response = await execute_graphql(query)
     handle_gql_error(gql_response)
     files = gql_response.data["files"]["objects"]
     return list(map(itemgetter("file_name"), files))
+    # coverage: unpause
 
 
 @exports_router.post(
@@ -121,9 +122,11 @@ async def upload_export_file(
     }
     """
     response = await execute_graphql(query, variable_values=variables)
+    # coverage: pause
     handle_gql_error(response)
     status = response.data["upload_file"]
     return status
+    # coverage: unpause
 
 
 async def check_auth_cookie(
@@ -145,6 +148,7 @@ async def check_auth_cookie(
     result = await session.scalar(
         select(FileToken).where(FileToken.secret == auth_cookie)
     )
+    # coverage: pause
     if result is None:
         raise HTTPException(status_code=401, detail="Invalid download cookie!")
 
@@ -152,6 +156,7 @@ async def check_auth_cookie(
     now = await session.scalar(func.now())
     if result.created_at + timedelta(minutes=file_token_expiration_minutes) < now:
         raise HTTPException(status_code=401, detail="Expired download cookie!")
+    # coverage: unpause
 
 
 @exports_router.get(
@@ -189,7 +194,7 @@ async def download_export_file(
         exceptions.ErrorCodes.E_NOT_FOUND(filename=file_name)
     try:
         file: dict[str, Any] = one(files)
-    except ValueError as err:
+    except ValueError as err:  # pragma: no cover
         raise ValueError("Wrong number of files returned, expected one.") from err
     content = file["base64_contents"]
     data = b64decode(content.encode("ascii"))

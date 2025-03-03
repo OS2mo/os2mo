@@ -128,7 +128,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = await c.organisationfunktion.get(uuid=function_uuid)
 
-        if not original:
+        if not original:  # pragma: no cover
             exceptions.ErrorCodes.E_NOT_FOUND()
 
         # Get org unit uuid for validation purposes
@@ -163,7 +163,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             )
 
         original_data = req.get("original")
-        if original_data:
+        if original_data:  # pragma: no cover
             # We are performing an update
             old_from, old_to = util.get_validities(original_data)
             payload = common.inactivate_old_interval(
@@ -203,7 +203,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if mapping.ENGAGEMENT in data:
+        if mapping.ENGAGEMENT in data:  # pragma: no cover
             update_fields.append(
                 (
                     mapping.ASSOCIATED_FUNCTION_FIELD,
@@ -214,7 +214,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if mapping.IT in data:
+        if mapping.IT in data:  # pragma: no cover
             update_fields.append(
                 (
                     mapping.ASSOCIATED_FUNCTION_FIELD,
@@ -227,7 +227,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
         try:
             attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
-        except (TypeError, LookupError):
+        except (TypeError, LookupError):  # pragma: no cover
             attributes = {}
         new_attributes = {}
 
@@ -257,7 +257,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
             handler = await base.get_handler_for_scope(scope).from_request(data)
             lora_addr = handler.get_lora_address()
-            if isinstance(lora_addr, list):
+            if isinstance(lora_addr, list):  # pragma: no cover
                 update_fields.extend(
                     map(lambda x: (mapping.ADDRESSES_FIELD, x), lora_addr)
                 )

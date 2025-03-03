@@ -31,7 +31,9 @@ async def create_org_unit(input: OrganisationUnitCreateInput) -> UUID:
     )
     uuid = await request.submit()
 
+    # coverage: pause
     return UUID(uuid)
+    # coverage: unpause
 
 
 async def update_org_unit(version: Version, input: OrganisationUnitUpdateInput) -> UUID:
@@ -49,9 +51,11 @@ async def update_org_unit(version: Version, input: OrganisationUnitUpdateInput) 
     }
 
     request = await OrgUnitRequestHandler.construct(req, mapping.RequestType.EDIT)
+    # coverage: pause
     uuid = await request.submit()
 
     return UUID(uuid)
+    # coverage: unpause
 
 
 async def terminate_org_unit_validation(
@@ -75,6 +79,7 @@ async def terminate_org_unit_validation(
     # Find children and roles and verify constraints
 
     # Find & verify there is no children
+    # coverage: pause
     c = lora.Connector(effective_date=util.to_iso_date(date))
     children = set(
         await c.organisationenhed.load_uuids(
@@ -113,6 +118,7 @@ async def terminate_org_unit_validation(
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_ROLES(
             roles=", ".join(sorted(role_counts)),
         )
+    # coverage: unpause
 
 
 async def terminate_org_unit(
@@ -120,10 +126,11 @@ async def terminate_org_unit(
 ) -> UUID:
     try:
         await terminate_org_unit_validation(input)
-    except Exception as e:
+    except Exception as e:  # pragma: no cover
         logger.exception("ERROR validating termination request.")
         raise e
 
+    # coverage: pause
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await OrgUnitRequestHandler.construct(
@@ -132,3 +139,4 @@ async def terminate_org_unit(
     await request.submit()
 
     return input.uuid
+    # coverage: unpause

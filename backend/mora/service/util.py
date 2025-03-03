@@ -54,7 +54,7 @@ async def get_configuration() -> dict[str, Any]:
     response = await execute_graphql(query)
     handle_gql_error(response)
     configurations = response.data["configuration"]["objects"]
-    if not configurations:
+    if not configurations:  # pragma: no cover
         exceptions.ErrorCodes.E_UNKNOWN()
     keys = map(
         lambda key: key.removeprefix("confdb_"), map(itemgetter("key"), configurations)

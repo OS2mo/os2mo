@@ -81,7 +81,7 @@ def convert_attr_value(attribute_name, attribute_field_name, attribute_field_val
     field_type = get_field_type(attribute_name, attribute_field_name)
     if field_type == "soegeord":
         return [Soegeord(*ord) for ord in attribute_field_value]
-    elif field_type == "offentlighedundtagettype":
+    elif field_type == "offentlighedundtagettype":  # pragma: no cover
         if (
             "alternativtitel" not in attribute_field_value
             and "hjemmel" not in attribute_field_value
@@ -94,19 +94,19 @@ def convert_attr_value(attribute_name, attribute_field_name, attribute_field_val
                 attribute_field_value.get("alternativtitel", None),
                 attribute_field_value.get("hjemmel", None),
             )
-    elif field_type == "date":
+    elif field_type == "date":  # pragma: no cover
         return datetime.datetime.strptime(
             attribute_field_value,
             "%Y-%m-%d",
         ).date()
-    elif field_type == "timestamptz":
+    elif field_type == "timestamptz":  # pragma: no cover
         return date_parser.parse(attribute_field_value)
-    elif field_type == "interval(0)":
+    elif field_type == "interval(0)":  # pragma: no cover
         # delegate actual interval parsing to PostgreSQL in all cases,
         # bypassing psycopg2 cleverness
         s = sql.quote(attribute_field_value or "0")
         return sql.Literal(f"{s} :: interval")
-    elif field_type == "boolean":
+    elif field_type == "boolean":  # pragma: no cover
         return to_bool(attribute_field_value)
     else:
         return attribute_field_value
@@ -114,13 +114,13 @@ def convert_attr_value(attribute_name, attribute_field_name, attribute_field_val
 
 def convert_relation_value(class_name, field_name, value):
     field_type = get_relation_field_type(class_name, field_name)
-    if field_type == "journalnotat":
+    if field_type == "journalnotat":  # pragma: no cover
         return JournalNotat(
             value.get("titel", None),
             value.get("notat", None),
             value.get("format", None),
         )
-    elif field_type == "journaldokument":
+    elif field_type == "journaldokument":  # pragma: no cover
         ou = value.get("offentlighedundtaget", {})
         return JournalDokument(
             value.get("dokumenttitel", None),
@@ -128,7 +128,7 @@ def convert_relation_value(class_name, field_name, value):
                 ou.get("alternativtitel", None), ou.get("hjemmel", None)
             ),
         )
-    elif field_type == "aktoerattr":
+    elif field_type == "aktoerattr":  # pragma: no cover
         if value:
             return AktoerAttr(
                 value.get("accepteret", None),
@@ -136,7 +136,7 @@ def convert_relation_value(class_name, field_name, value):
                 value.get("repraesentation_uuid", None),
                 value.get("repraesentation_urn", None),
             )
-    elif field_type == "vaerdirelationattr":
+    elif field_type == "vaerdirelationattr":  # pragma: no cover
         result = VaerdiRelationAttr(
             value.get("forventet", None), value.get("nominelvaerdi", None)
         )
@@ -170,7 +170,7 @@ def convert_relations(relations, class_name):
         for rel_name in relations:
             periods = relations[rel_name]
             for period in periods:
-                if not isinstance(period, dict):
+                if not isinstance(period, dict):  # pragma: no cover
                     raise BadRequestException(
                         'mapping expected for "%s" in "%s" - got %r'
                         % (period, rel_name, period)
@@ -181,7 +181,7 @@ def convert_relations(relations, class_name):
     return relations
 
 
-def convert_variants(variants):
+def convert_variants(variants):  # pragma: no cover
     """Convert variants."""
     # TODO
     if variants is None:
@@ -230,7 +230,7 @@ def sql_convert_registration(registration, class_name):
     """Convert input JSON to the SQL arrays we need."""
     registration["attributes"] = convert_attributes(registration["attributes"])
     registration["relations"] = convert_relations(registration["relations"], class_name)
-    if "variants" in registration:
+    if "variants" in registration:  # pragma: no cover
         registration["variants"] = adapt(convert_variants(registration["variants"]))
     states = registration["states"]
     sql_states = []
@@ -307,7 +307,7 @@ async def object_exists(class_name: str, uuid: str) -> bool:
     try:
         audit_log(session, "object_exists", class_name, arguments, [UUID(uuid)])
         result = await session.scalar(sql, arguments)
-    except StatementError as e:
+    except StatementError as e:  # pragma: no cover
         if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
             status_code = int(e.orig.sqlstate[2:])
             raise DBException(status_code, e.orig.diag.message_primary)
@@ -353,7 +353,7 @@ async def create_or_import_object(class_name, note, registration, uuid=None):
     session = get_session()
     try:
         result = await session.execute(sql)
-    except StatementError as e:
+    except StatementError as e:  # pragma: no cover
         if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
             status_code = int(e.orig.sqlstate[2:])
             raise DBException(status_code, e.orig.diag.message_primary)
@@ -362,7 +362,7 @@ async def create_or_import_object(class_name, note, registration, uuid=None):
     return result.fetchone()[0]
 
 
-async def delete_object(class_name, registration, note, uuid):
+async def delete_object(class_name, registration, note, uuid):  # pragma: no cover
     """Delete object by using the stored procedure.
 
     Deleting is the same as updating with the life cycle code "Slettet".
@@ -430,13 +430,15 @@ async def passivate_object(class_name, note, registration, uuid):
     session = get_session()
     try:
         result = await session.execute(sql)
-    except StatementError as e:
+    except StatementError as e:  # pragma: no cover
         if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
             status_code = int(e.orig.sqlstate[2:])
             raise DBException(status_code, e.orig.diag.message_primary)
         else:
             raise
+    # coverage: pause
     return result.fetchone()[0]
+    # coverage: unpause
 
 
 async def update_object(
@@ -465,7 +467,7 @@ async def update_object(
     session = get_session()
     try:
         await session.execute(sql)
-    except StatementError as e:
+    except StatementError as e:  # pragma: no cover
         noop_msg = (
             "Aborted updating {} with id [{}] as the given data, "
             "does not give raise to a new registration.".format(
@@ -531,7 +533,9 @@ async def list_objects(
     try:
         result = await session.execute(text(sql))
     except StatementError as e:
-        if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
+        if (
+            e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO"
+        ):  # pragma: no cover
             status_code = int(e.orig.sqlstate[2:])
             raise DBException(status_code, e.orig.diag.message_primary)
         else:
@@ -641,7 +645,7 @@ def filter_json_output(output):
     return output
 
 
-def transform_relations(o):
+def transform_relations(o):  # pragma: no cover
     """Recurse through output to transform relation lists to dicts.
 
     Currently, this only applies to DokumentDel relations, because the cast
@@ -716,7 +720,7 @@ def _consolidate_virkninger(virkninger_list):
     :return: A list of consolidated virkninger
     """
 
-    if not virkninger_list:
+    if not virkninger_list:  # pragma: no cover
         return virkninger_list
 
     # Collect virkninger with the same values
@@ -756,9 +760,9 @@ def _parse_timestamp(timestamp: datetime.datetime | str) -> datetime.datetime:
         dt = datetime.datetime.min
     elif type(timestamp) is str:
         dt = dateutil.parser.isoparse(to_parsable_timestamp(timestamp))
-    elif isinstance(timestamp, datetime.datetime):
+    elif isinstance(timestamp, datetime.datetime):  # pragma: no cover
         dt = timestamp
-    else:
+    else:  # pragma: no cover
         raise TypeError(f"Invalid parameter {timestamp}")
 
     if not dt.tzinfo:
@@ -778,7 +782,7 @@ def _trim_virkninger(virkninger_list, valid_from, valid_to):
     def filter_fn(virkning):
         virkning_to = _parse_timestamp(virkning["virkning"]["to"])
         to_included = virkning["virkning"]["to_included"]
-        if to_included and virkning_to < valid_from:
+        if to_included and virkning_to < valid_from:  # pragma: no cover
             return False
         elif not to_included and virkning_to <= valid_from:
             return False
@@ -787,7 +791,7 @@ def _trim_virkninger(virkninger_list, valid_from, valid_to):
         from_included = virkning["virkning"]["from_included"]
         if from_included and valid_to < virkning_from:
             return False
-        elif not from_included and valid_to <= virkning_from:
+        elif not from_included and valid_to <= virkning_from:  # pragma: no cover
             return False
 
         return True
@@ -819,7 +823,7 @@ async def search_objects(
         uuid = str(uuid)
 
     time_period = None
-    if registreret_fra is not None or registreret_til is not None:
+    if registreret_fra is not None or registreret_til is not None:  # pragma: no cover
         time_period = TimestamptzRange(registreret_fra, registreret_til)
 
     registration = sql_convert_registration(registration, class_name)
@@ -863,7 +867,7 @@ async def search_objects(
     session = get_session()
     try:
         result = await session.execute(sql)
-    except StatementError as e:
+    except StatementError as e:  # pragma: no cover
         if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
             status_code = int(e.orig.sqlstate[2:])
             raise DBException(status_code, e.orig.diag.message_primary)

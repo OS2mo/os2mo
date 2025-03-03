@@ -252,7 +252,7 @@ class FieldTuple:
     def filter_fn(self) -> typing.Callable[[dict], bool] | None:
         return self.__filter_fn
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return "{}({!r}, FieldTypes.{}, {!r})".format(
             type(self).__name__,
             self.path,

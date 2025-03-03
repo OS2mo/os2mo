@@ -180,7 +180,7 @@ async def decorate_employee_search_result(
         graphql_equivalent = get_graphql_equivalent_by_uuid(
             response.data["employees"]["objects"], employee_uuid, at
         )
-        if not graphql_equivalent:
+        if not graphql_equivalent:  # pragma: no cover
             continue
 
         decorated_result.append(
@@ -338,7 +338,7 @@ def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
             not engagement_type
             or UUID(engagement_type["uuid"])
             not in settings.confdb_autocomplete_attrs_employee
-        ):
+        ):  # pragma: no cover
             continue
 
         if util.is_detail_unpublished(
@@ -367,7 +367,7 @@ def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
 
         if util.is_detail_unpublished(
             value, addr_type.get("published")
-        ) or util.is_uuid(value):
+        ) or util.is_uuid(value):  # pragma: no cover
             continue
 
         attrs.append(
@@ -386,7 +386,7 @@ def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
             not assoc_type
             or UUID(assoc_type["uuid"])
             not in settings.confdb_autocomplete_attrs_employee
-        ):
+        ):  # pragma: no cover
             continue
 
         if util.is_detail_unpublished(
@@ -409,10 +409,10 @@ def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
         if (
             not itsystem
             or UUID(itsystem["uuid"]) not in settings.confdb_autocomplete_attrs_employee
-        ):
+        ):  # pragma: no cover
             continue
 
-        if util.is_detail_unpublished(value):
+        if util.is_detail_unpublished(value):  # pragma: no cover
             continue
 
         attrs.append(

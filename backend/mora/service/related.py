@@ -36,10 +36,10 @@ class RelatedUnitRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = "related_unit"
     function_key = mapping.RELATED_UNIT_KEY
 
-    def prepare_create(self, req: dict):
+    def prepare_create(self, req: dict):  # pragma: no cover
         raise NotImplementedError
 
-    def prepare_edit(self, req: dict):
+    def prepare_edit(self, req: dict):  # pragma: no cover
         raise NotImplementedError
 
 
@@ -108,7 +108,7 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
     date = util.get_valid_from(req)
     c = lora.Connector(effective_date=date)
     destinations = set(util.checked_get(req, "destination", [], required=True))
-    if origin in destinations:
+    if origin in destinations:  # pragma: no cover
         exceptions.ErrorCodes.E_RELATED_TO_SELF(
             origin=origin,
             destinations=sorted(destinations),

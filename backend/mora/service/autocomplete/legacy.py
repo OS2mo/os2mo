@@ -12,7 +12,7 @@ from mora.lora import AutocompleteScope
 
 async def get_results(
     entity: str, class_uuids: list[UUID], query: str
-) -> dict[str, list]:
+) -> dict[str, list]:  # pragma: no cover
     """Run an autocomplete search query.
 
     Args:

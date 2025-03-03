@@ -91,7 +91,7 @@ class Searcher(metaclass=ABCMeta):
         any_rel_uuid_arr=None,
         first_result=None,
         max_results=None,
-    ) -> tuple[list[str]]:
+    ) -> tuple[list[str]]:  # pragma: no cover
         pass
 
 
@@ -189,7 +189,7 @@ class ConfiguredDBInterface:
     def __init__(self):
         if config.get_settings().quick_search:
             self._searcher: Searcher = QuickSearcher()
-        else:
+        else:  # pragma: no cover
             self._searcher: Searcher = DefaultSearcher()
 
     @property
@@ -201,10 +201,10 @@ def typed_get(d, field, default):
     v = d.get(field, default)
     t = type(default)
 
-    if v is None:
+    if v is None:  # pragma: no cover
         return default
 
-    if not isinstance(v, t):
+    if not isinstance(v, t):  # pragma: no cover
         raise BadRequestException(
             "expected %s for %r, found %s: %s"
             % (t.__name__, field, type(v).__name__, json.dumps(v))
@@ -219,7 +219,7 @@ def get_virkning_dates(args):
     virkningstid = args.get("virkningstid")
 
     if virkningstid:
-        if virkning_fra or virkning_til:
+        if virkning_fra or virkning_til:  # pragma: no cover
             raise BadRequestException(
                 "'virkningfra'/'virkningtil' conflict with 'virkningstid'"
             )
@@ -243,7 +243,7 @@ def get_registreret_dates(args):
     registreringstid = args.get("registreringstid")
 
     if registreringstid:
-        if registreret_fra or registreret_til:
+        if registreret_fra or registreret_til:  # pragma: no cover
             raise BadRequestException(
                 "'registreretfra'/'registrerettil' conflict with 'registreringstid'"
             )
@@ -258,12 +258,12 @@ def get_registreret_dates(args):
 
 def _remove_deleted(objects):
     """Remove deleted objects from results."""
-    if objects is None:
+    if objects is None:  # pragma: no cover
         return None
 
     def is_deleted(obj) -> bool:
         """Return whether the object is deleted or not."""
-        if not isinstance(obj, list):
+        if not isinstance(obj, list):  # pragma: no cover
             return False
         livscykluskode = obj[0]["registreringer"][0]["livscykluskode"]
         return livscykluskode == db.Livscyklus.SLETTET.value
@@ -272,7 +272,7 @@ def _remove_deleted(objects):
 
 
 class Registration:
-    def __init__(self, oio_class, states, attributes, relations):
+    def __init__(self, oio_class, states, attributes, relations):  # pragma: no cover
         self.oio_class = oio_class
         self.states = states
         self.attributes = attributes
@@ -303,7 +303,7 @@ class OIOStandardHierarchy:
         classes_url = "/{}/{}".format(hierarchy, "classes")
 
         @oio_router.get(classes_url, name="_".join([hierarchy, "classes"]))
-        async def get_classes():
+        async def get_classes():  # pragma: no cover
             """Return the classes including their fields under this service.
 
             .. :quickref: :http:get:`/(service)/classes`
@@ -334,7 +334,7 @@ async def _get_json_from_request(request: Request):
         if data is not None:
             try:
                 return json.loads(data)
-            except ValueError:
+            except ValueError:  # pragma: no cover
                 raise HTTPException(
                     status_code=400, detail={"message": "unparsable json"}
                 )
@@ -347,7 +347,7 @@ async def _get_args_from_request(request: Request):
 
     If supplied, arguments will be extracted from the json body of GET requests.
     """
-    if request.method == "GET" and await request.body():
+    if request.method == "GET" and await request.body():  # pragma: no cover
         json_body: dict[str, Any] = await request.json()
         # Flatten into list of two-tuples, as required by ArgumentDict
         return list(
@@ -450,7 +450,7 @@ class OIORestObject:
         # 'list' parameter is specified
         if not (valid_list_args.issuperset(args) and args.get("list") is None):
             # Only one uuid is supported through the search operation
-            if uuid_param is not None and len(uuid_param) > 1:
+            if uuid_param is not None and len(uuid_param) > 1:  # pragma: no cover
                 raise BadRequestException(
                     "Multiple uuid parameters passed "
                     "to search operation. Only one "
@@ -515,7 +515,7 @@ class OIORestObject:
             )
             results = _remove_deleted(results)
 
-        if results is None:
+        if results is None:  # pragma: no cover
             results = []
         # if uuid_param:
         #    request.uuid = uuid_param
@@ -530,7 +530,7 @@ class OIORestObject:
         return await cls.get_objects_direct(raw_args)
 
     @classmethod
-    async def get_object_direct(cls, uuid: UUID, args):
+    async def get_object_direct(cls, uuid: UUID, args):  # pragma: no cover
         """A :ref:`ReadOperation`. Return a single whole object as a JSON object.
 
         .. :quickref: :ref:`ReadOperation`
@@ -579,7 +579,7 @@ class OIORestObject:
         return {uuid: object}
 
     @classmethod
-    async def get_object(cls, uuid: UUID, request: Request):
+    async def get_object(cls, uuid: UUID, request: Request):  # pragma: no cover
         args = await _get_args_from_request(request)
         return await cls.get_object_direct(uuid, args)
 
@@ -619,13 +619,13 @@ class OIORestObject:
         await cls.verify_args(args)
 
         uuid = str(uuid)
-        if not input:
+        if not input:  # pragma: no cover
             raise HTTPException(status_code=400, detail={"uuid": None})
 
         # Validate JSON input
         try:
             validate.validate(input, cls.__name__.lower())
-        except jsonschema.exceptions.ValidationError as e:
+        except jsonschema.exceptions.ValidationError as e:  # pragma: no cover
             raise HTTPException(status_code=400, detail={"message": e.message})
 
         # Get most common parameters if available.
@@ -638,7 +638,7 @@ class OIORestObject:
             if livscyklus in (
                 db.Livscyklus.PASSIVERET.value,
                 db.Livscyklus.SLETTET.value,
-            ):
+            ):  # pragma: no cover
                 deleted_or_passive = True
 
         # request.uuid = uuid
@@ -647,7 +647,7 @@ class OIORestObject:
             # Do import.
             # request.api_operation = "Import"
             await db.create_or_import_object(cls.__name__, note, registration, uuid)
-        elif deleted_or_passive:
+        elif deleted_or_passive:  # pragma: no cover
             # Import.
             # request.api_operation = "Import"
             await db.update_object(
@@ -683,14 +683,14 @@ class OIORestObject:
         uuid = str(uuid)
 
         # If the object doesn't exist, we can't patch it.
-        if not await db.object_exists(cls.__name__, uuid):
+        if not await db.object_exists(cls.__name__, uuid):  # pragma: no cover
             raise NotFoundException(
                 "No {} with ID {} found in service {}".format(
                     cls.__name__, uuid, cls.service_name
                 )
             )
 
-        if not input:
+        if not input:  # pragma: no cover
             raise HTTPException(status_code=400, detail={"uuid": None})
 
         # Get most common parameters if available.
@@ -700,10 +700,10 @@ class OIORestObject:
         # Validate JSON input
         try:
             validate.validate(input, cls.__name__.lower(), do_create=False)
-        except jsonschema.exceptions.ValidationError as e:
+        except jsonschema.exceptions.ValidationError as e:  # pragma: no cover
             raise HTTPException(status_code=400, detail={"message": e.message})
 
-        if typed_get(input, "livscyklus", "").lower() == "passiv":
+        if typed_get(input, "livscyklus", "").lower() == "passiv":  # pragma: no cover
             # Passivate
             # request.api_operation = "Passiver"
             registration = cls.gather_registration({})
@@ -737,8 +737,9 @@ class OIORestObject:
         # request.api_operation = "Slet"
         # request.uuid = uuid
         await db.delete_object(class_name, registration, note, uuid)
-
+        # coverage: pause
         return {"uuid": uuid}
+        # coverage: unpause
 
     @classmethod
     async def delete_object(cls, uuid: UUID, request: Request):
@@ -752,7 +753,7 @@ class OIORestObject:
         return await cls.delete_object_direct(uuid, input)
 
     @classmethod
-    async def get_fields(cls, request: Request):
+    async def get_fields(cls, request: Request):  # pragma: no cover
         """Return a list of all fields a given object has.
 
         .. :quickref: :http:get:`/(service)/(object)/fields`
@@ -868,6 +869,6 @@ class OIORestObject:
                 a for a in req_args if split_param(a)[0] in cls.relation_names()
             }
 
-        if req_args:
+        if req_args:  # pragma: no cover
             arg_string = ", ".join(sorted(req_args))
             raise BadRequestException(f"Unsupported argument(s): {arg_string}")

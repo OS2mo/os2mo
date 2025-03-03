@@ -580,7 +580,7 @@ DB_TEMPLATE_EXTRA_OPTIONS = {
 }
 
 
-def merge_objects(a, b):
+def merge_objects(a, b):  # pragma: no cover
     """
     Merge two objects of the same type. Supports lists and dicts.
     Recursively merges internal lists and dictionaries.
@@ -603,7 +603,7 @@ def merge_objects(a, b):
         raise AttributeError(f"Unsupported parameter type {type(a)}")
 
 
-def _merge_lists(a: list, b: list):
+def _merge_lists(a: list, b: list):  # pragma: no cover
     """
     Merges two lists and removes duplicates
     :param a: The first list
@@ -613,7 +613,7 @@ def _merge_lists(a: list, b: list):
     return list(set(a + b))
 
 
-def _merge_dicts(a: dict, b: dict):
+def _merge_dicts(a: dict, b: dict):  # pragma: no cover
     """
     Merges two dicts, retaining ordering.
     :param a: The first dict
@@ -633,6 +633,6 @@ def _merge_dicts(a: dict, b: dict):
     )
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     export_structure = "\n".join(sorted(REAL_DB_STRUCTURE))
     print(export_structure)

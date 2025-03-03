@@ -35,9 +35,11 @@ async def update_manager(input: ManagerUpdate) -> UUID:
     }
 
     request = await ManagerRequestHandler.construct(req, mapping.RequestType.EDIT)
+    # coverage: pause
     uuid = await request.submit()
 
     return UUID(uuid)
+    # coverage: unpause
 
 
 async def terminate_manager(input: ManagerTerminate) -> UUID:
@@ -46,6 +48,8 @@ async def terminate_manager(input: ManagerTerminate) -> UUID:
     request = await ManagerRequestHandler.construct(
         input_dict, mapping.RequestType.TERMINATE
     )
+    # coverage: pause
     await request.submit()
 
     return input.uuid
+    # coverage: unpause

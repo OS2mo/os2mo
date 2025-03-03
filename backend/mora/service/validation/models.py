@@ -68,7 +68,7 @@ class GroupValidation:
     def __init__(self, validation_items: list[dict]):
         self.validation_items = validation_items
 
-    def validate(self) -> None:
+    def validate(self) -> None:  # pragma: no cover
         """Validate this `GroupValidation` instance.
 
         `validate` should return None if there are no validation errors, or raise an

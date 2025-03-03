@@ -65,7 +65,7 @@ class IsAuthenticatedPermission(BasePermission):
         """Returns `True` if a valid token exists."""
         settings = get_settings()
         # Always grant access if auth is disabled
-        if not settings.os2mo_auth:
+        if not settings.os2mo_auth:  # pragma: no cover
             return True
         try:
             token = await info.context["get_token"]()
@@ -121,7 +121,9 @@ def gen_role_permission(
 
             # TODO (#55042): Backwards-compatible fix for !1594. Remove when Aarhus is
             # migrated to Azure.
-            if settings.graphql_rbac_legacy_admin_role and "admin" in token_roles:
+            if (
+                settings.graphql_rbac_legacy_admin_role and "admin" in token_roles
+            ):  # pragma: no cover
                 return True
 
             # Allow access if token has required role

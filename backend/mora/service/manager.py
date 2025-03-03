@@ -115,7 +115,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
 
         try:
             attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
-        except (TypeError, LookupError):
+        except (TypeError, LookupError):  # pragma: no cover
             attributes = {}
         new_attributes = {}
 

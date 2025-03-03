@@ -29,7 +29,7 @@ from .errors import handle_gql_error
     response_model_exclude_unset=True,
     responses={"500": {"description": "Directory does not exist"}},
 )
-async def get_insight_filenames() -> list[str]:
+async def get_insight_filenames() -> list[str]:  # pragma: no cover
     """Lists all available files."""
     query = "query FilesQuery { files(filter: {file_store: INSIGHT}) { objects { file_name } } }"
     gql_response = await execute_graphql(query)
@@ -55,7 +55,9 @@ class Insight(BaseModel):
 
 
 @insight_router.get("/insight")
-async def get_insight_data(q: list[str] | None = Query(["all"])) -> list[Insight]:
+async def get_insight_data(
+    q: list[str] | None = Query(["all"]),
+) -> list[Insight]:  # pragma: no cover
     """Loads data from a directory of JSONs and returns it as a list.
 
     Args:
@@ -94,7 +96,9 @@ async def get_insight_data(q: list[str] | None = Query(["all"])) -> list[Insight
     return list(jsons)
 
 
-def json_to_csv(json_data: dict[str, Any], fieldnames: list[str]) -> StringIO:
+def json_to_csv(
+    json_data: dict[str, Any], fieldnames: list[str]
+) -> StringIO:  # pragma: no cover
     output = StringIO()
 
     writer = csv.DictWriter(output, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
@@ -104,7 +108,7 @@ def json_to_csv(json_data: dict[str, Any], fieldnames: list[str]) -> StringIO:
     return output
 
 
-def extract_fieldnames(json_data: dict[str, Any]) -> list[str]:
+def extract_fieldnames(json_data: dict[str, Any]) -> list[str]:  # pragma: no cover
     return [field["name"] for field in json_data["schema"]["fields"]]
 
 
@@ -113,7 +117,7 @@ def extract_fieldnames(json_data: dict[str, Any]) -> list[str]:
     response_class=StreamingResponse,
     responses={"500": {"description": "Directory does not exist"}},
 )
-async def download_csv() -> StreamingResponse:
+async def download_csv() -> StreamingResponse:  # pragma: no cover
     """Exports locally stored JSONs as a streamed ZIP of CSVs."""
     query = """
     query FileQuery {

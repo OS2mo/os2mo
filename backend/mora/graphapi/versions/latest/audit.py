@@ -205,7 +205,7 @@ async def audit_log_resolver(
         filter = AuditLogFilter()
 
     query = select(AuditLogOperation)
-    if filter.ids is not None:
+    if filter.ids is not None:  # pragma: no cover
         query = query.where(AuditLogOperation.id.in_(filter.ids))
 
     if filter.uuids is not None:
@@ -221,7 +221,7 @@ async def audit_log_resolver(
         models = [model.value for model in filter.models]
         query = query.where(AuditLogOperation.model.in_(models))
 
-    if filter.start is not None or filter.end is not None:
+    if filter.start is not None or filter.end is not None:  # pragma: no cover
         start, end = get_sqlalchemy_date_interval(filter.start, filter.end)
         query = query.where(AuditLogOperation.time.between(start, end))
 

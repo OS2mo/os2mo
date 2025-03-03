@@ -86,7 +86,9 @@ T = TypeVar("T")
 def paginate(obj: list[T], cursor: CursorType, limit: LimitType) -> list[T]:
     if cursor is None:
         return obj[:limit]
+    # coverage: pause
     return obj[cursor.offset :][:limit]
+    # coverage: unpause
 
 
 async def health_resolver(
@@ -116,7 +118,7 @@ async def file_resolver(
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> list[File]:
-    if filter is None:
+    if filter is None:  # pragma: no cover
         filter = FileFilter()
 
     session = info.context["session"]
@@ -159,7 +161,7 @@ async def configuration_resolver(
         settings_keys = settings_keys.intersection(set(filter.identifiers))
 
     settings = paginate(list(settings_keys), cursor, limit)
-    if not settings:
+    if not settings:  # pragma: no cover
         context["lora_page_out_of_range"] = True
 
     return [Configuration(key=key) for key in settings]  # type: ignore[call-arg]

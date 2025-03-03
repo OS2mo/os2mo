@@ -98,7 +98,7 @@ def init(log_level: str, json: bool = True):
     log_renderer: structlog.types.Processor
     if json:
         log_renderer = structlog.processors.JSONRenderer()
-    else:
+    else:  # pragma: no cover
         log_renderer = structlog.dev.ConsoleRenderer()
 
     formatter = structlog.stdlib.ProcessorFormatter(

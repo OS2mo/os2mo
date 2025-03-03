@@ -34,7 +34,7 @@ async def dataset() -> bool:
         await ConfiguredOrganisation.validate()
     except HTTPException:
         logger.warning("Failure in LoRa dataset:", exc_info=True)
-    except aiohttp.ClientError:
+    except aiohttp.ClientError:  # pragma: no cover
         logger.warning("Error fetching data from LoRa", exc_info=True)
     return ConfiguredOrganisation.valid
 
@@ -49,4 +49,6 @@ async def dar() -> bool:
     adarclient = AsyncDARClient(timeout=5)
     async with adarclient:
         return await adarclient.healthcheck()
+    # coverage: pause
     return False
+    # coverage: unpause

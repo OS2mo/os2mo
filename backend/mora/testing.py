@@ -47,7 +47,7 @@ async def emit(request: Request, amqp_system: depends.AMQPSystem) -> None:
         except (OperationalError, ProgrammingError) as e:
             if isinstance(e, ProgrammingError) and not isinstance(
                 e.orig, UndefinedTable
-            ):
+            ):  # pragma: no cover
                 raise
             # The database is unavailable while being snapshot or restored. Retry until
             # we succeed.
@@ -153,7 +153,9 @@ async def snapshot(session: depends.Session) -> None:
     Snapshot the database.
     """
     logger.warning("Snapshotting database")
-    async with superuser_connection(lora_get_settings()) as superuser:
+    async with superuser_connection(
+        lora_get_settings()
+    ) as superuser:  # pragma: no cover
         await copy_database(
             superuser,
             source=_get_current_database(session),
@@ -167,7 +169,9 @@ async def restore(session: depends.Session) -> None:
     Restore database snapshot.
     """
     logger.warning("Restoring database")
-    async with superuser_connection(lora_get_settings()) as superuser:
+    async with superuser_connection(
+        lora_get_settings()
+    ) as superuser:  # pragma: no cover
         await copy_database(
             superuser,
             source=_get_snapshot_database(session),

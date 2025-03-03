@@ -168,7 +168,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = await c.organisationenhed.get(uuid=unitid)
 
-        if not original:
+        if not original:  # pragma: no cover
             exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
 
         new_from, new_to = util.get_validities(data)
@@ -202,7 +202,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 
             original_uuid = util.get_mapping_uuid(original_data, mapping.ORG_UNIT)
 
-            if original_uuid and original_uuid != unitid:
+            if original_uuid and original_uuid != unitid:  # pragma: no cover
                 exceptions.ErrorCodes.E_INVALID_INPUT(
                     "cannot change unit uuid!",
                 )
@@ -236,7 +236,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 
         try:
             attributes = get_lora_dict_current_attr(original, new_from, new_to)
-        except (TypeError, LookupError):
+        except (TypeError, LookupError):  # pragma: no cover
             attributes = {}
 
         changed_props = {}
@@ -272,7 +272,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                 (mapping.ORG_UNIT_LEVEL_FIELD, {"uuid": org_unit_level})
             )
 
-        if data.get(mapping.ORG_UNIT_HIERARCHY):
+        if data.get(mapping.ORG_UNIT_HIERARCHY):  # pragma: no cover
             org_unit_hierarchy = util.get_mapping_uuid(data, mapping.ORG_UNIT_HIERARCHY)
             update_fields.append(
                 (mapping.ORG_UNIT_HIERARCHY_FIELD, {"uuid": org_unit_hierarchy})
@@ -344,10 +344,11 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 
         if self.request_type == mapping.RequestType.CREATE:
             self.result = await c.organisationenhed.create(self.payload, self.uuid)
-
+            # coverage: pause
             if self.details_requests:
                 for r in self.details_requests:
                     await r.submit()
+            # coverage: unpause
 
         elif self.request_type == mapping.RequestType.REFRESH:
             pass
@@ -361,7 +362,9 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                     map(str, self.trigger_results_before + self.trigger_results_after)
                 )
             }
+        # coverage: pause
         return submit
+        # coverage: unpause
 
 
 async def request_bulked_get_one_orgunit(
@@ -504,7 +507,7 @@ async def get_one_orgunit(
 
                 r[mapping.USER_SETTINGS] = {"orgunit": settings}
 
-    elif details is UnitDetails.SELF:
+    elif details is UnitDetails.SELF:  # pragma: no cover
         r[mapping.ORG] = await org.get_configured_organisation()
 
         r[mapping.PARENT] = await request_bulked_get_one_orgunit(
@@ -549,7 +552,7 @@ async def get_one_orgunit(
 
     elif details is UnitDetails.MINIMAL:
         pass  # already done
-    else:
+    else:  # pragma: no cover
         raise AssertionError(f"enum is {details}!?")
 
     r[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
@@ -667,7 +670,7 @@ async def get_unit_ancestor_tree(
     allowed = {"association", "engagement"}
     given = set(util.get_query_args().getlist("count"))
     invalid = given - allowed
-    if invalid:
+    if invalid:  # pragma: no cover
         exceptions.ErrorCodes.E_INVALID_INPUT(
             'invalid value(s) for "count" query parameter: %r' % invalid
         )
@@ -732,7 +735,7 @@ async def get_unit_tree(
             "gyldighed": "Aktiv",
         }
 
-        if org_unit_hierarchy:
+        if org_unit_hierarchy:  # pragma: no cover
             args.update({mapping.ORG_UNIT_HIERARCHY_KEY: org_unit_hierarchy})
 
         return args

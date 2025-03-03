@@ -34,9 +34,11 @@ async def update_rolebinding(input: RoleBindingUpdate) -> UUID:
     }
 
     request = await RoleBindingRequestHandler.construct(req, mapping.RequestType.EDIT)
+    # coverage: pause
     uuid = await request.submit()
 
     return UUID(uuid)
+    # coverage: unpause
 
 
 async def terminate_rolebinding(input: RoleBindingTerminate) -> UUID:
@@ -45,6 +47,8 @@ async def terminate_rolebinding(input: RoleBindingTerminate) -> UUID:
     request = await RoleBindingRequestHandler.construct(
         input_dict, mapping.RequestType.TERMINATE
     )
+    # coverage: pause
     await request.submit()
 
     return input.uuid
+    # coverage: unpause

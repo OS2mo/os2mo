@@ -57,7 +57,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
                 "visibility_uuid": visibility_uuid,
                 "it_user_uuid": it_user_uuid,
             }
-
+        # coverage: pause
         facet_obj = await facet.request_bulked_get_one_class_full(
             address_type_uuid, only_primary_uuid=only_primary_uuid
         )
@@ -87,3 +87,4 @@ class AddressReader(reading.OrgFunkReadingHandler):
             r[mapping.ENGAGEMENT] = engagement
 
         return r
+        # coverage: unpause

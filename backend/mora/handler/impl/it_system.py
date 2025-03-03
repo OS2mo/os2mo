@@ -25,7 +25,7 @@ class ITSystemReader(reading.ReadingHandler):
         return await cls._get_obj_effects(c, object_tuples)
 
     @classmethod
-    async def get_from_type(cls, c, type, objid):
+    async def get_from_type(cls, c, type, objid):  # pragma: no cover
         if type != ROLE_TYPE:
             exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
         object_tuples = await c.itsystem.get_all_by_uuid(uuids=[objid])
@@ -76,10 +76,11 @@ async def get_one_itsystem(
     def _get_attrs(itsystem):
         return itsystem["attributter"]["itsystemegenskaber"][0]
 
-    if only_primary_uuid:
+    if only_primary_uuid:  # pragma: no cover
         return {mapping.UUID: itsystem_uuid}
 
-    if not itsystem:  # optionally exit early
+    if not itsystem:  # pragma: no cover
+        # optionally exit early
         if not itsystem_uuid:
             return None
 

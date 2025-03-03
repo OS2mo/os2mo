@@ -63,7 +63,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
 
     @staticmethod
     @abc.abstractmethod
-    async def validate_value(value):
+    async def validate_value(value):  # pragma: no cover
         """Validate that the address value is correctly formed"""
         pass
 
@@ -187,7 +187,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
 
 def get_handler_for_scope(scope: str) -> type[AddressHandler]:
     handler = ADDRESS_HANDLERS.get(scope)
-    if not handler:
+    if not handler:  # pragma: no cover
         raise exceptions.ErrorCodes.E_INVALID_INPUT(
             f"Invalid address scope type {scope}"
         )

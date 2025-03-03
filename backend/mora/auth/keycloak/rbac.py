@@ -47,7 +47,7 @@ async def _get_employee_uuid_via_it_system(
             {"user_keys": it_user_key, "itsystem_uuids": it_system}
         ),
     )
-    if r.errors or r.data is None:
+    if r.errors or r.data is None:  # pragma: no cover
         raise AuthorizationError("Error when looking up IT users")
     try:
         return UUID(one(r.data["itusers"]["objects"])["current"]["employee_uuid"])

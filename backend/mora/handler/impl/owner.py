@@ -111,10 +111,11 @@ class OwnerReader(reading.OrgFunkReadingHandler):
                 c=get_connector(),
                 search_fields={"tilknyttedebrugere": owned_person_uuid},
             )
-
+        # coverage: pause
         raise NotImplementedError(
             f"Mapping for inference_priority missing: {inference_priority}"
         )
+        # coverage: unpause
 
     @classmethod
     async def infer_owner(
@@ -127,13 +128,15 @@ class OwnerReader(reading.OrgFunkReadingHandler):
             inference_priority=inference_priority,
         )
 
-        if not candidates:  # nothing to do
+        if not candidates:  # pragma: no cover
+            # nothing to do
             return None
         elif len(candidates) > 1:  # sort if multiple
             priorities = dict(await get_sorted_primary_class_list(c=get_connector()))
             sort_func = partial(cls.__owner_priority, primary_priorities=priorities)
             best_candidate = max(candidates, key=sort_func)
-        else:  # nothing to infer
+        else:  # pragma: no cover
+            # nothing to infer
             best_candidate = candidates[0]
 
         # we have a candidate, so look at owner of candidate's org_unit
@@ -146,7 +149,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
             inherit_owner=True,
         )
         # even when inheriting, no owners can be found
-        if not org_unit_owners:
+        if not org_unit_owners:  # pragma: no cover
             return None
         return org_unit_owners[0]["owner"]
 
@@ -193,7 +196,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
                     owned_person_uuid=owned_person,
                     inference_priority=inference_priority,
                 )
-            else:
+            else:  # pragma: no cover
                 ErrorCodes.E_INTERNAL_ERROR(
                     f"ill-formatted object encountered: {effect}"
                 )

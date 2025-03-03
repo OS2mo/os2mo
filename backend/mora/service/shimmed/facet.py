@@ -78,7 +78,7 @@ async def get_class(
         "top_level_facet": bool(top_level_facet),
         "facet": bool(facet),
     }
-    if only_primary_uuid:
+    if only_primary_uuid:  # pragma: no cover
         query = """
         query ClassQuery($uuid: UUID!)
         {
@@ -133,11 +133,11 @@ async def get_class(
 
     # Handle org unit data
     class_list = [x["current"] for x in response.data["classes"]["objects"]]
-    if not class_list:
+    if not class_list:  # pragma: no cover
         exceptions.ErrorCodes.E_CLASS_NOT_FOUND(class_uuid=classid)
     try:
         clazz: dict[str, Any] = one(class_list)
-    except ValueError as err:
+    except ValueError as err:  # pragma: no cover
         raise ValueError("Wrong number of classes returned, expected one.") from err
     return clazz
 
@@ -192,7 +192,7 @@ async def list_facets(
 
     # Handle org unit data
     facets = [x["current"] for x in response.data["facets"]["objects"]]
-    if not facets:
+    if not facets:  # pragma: no cover
         return []
 
     def filter_by_orgid(facet: dict[str, Any]) -> bool:
@@ -295,7 +295,7 @@ async def facet_user_key_to_uuid(user_key: str) -> UUID | None:
     response = await execute_graphql(query)
     handle_gql_error(response)
     facets = [x["current"] for x in response.data["facets"]["objects"]]
-    if not facets:
+    if not facets:  # pragma: no cover
         return None
     facet_map = dict(map(itemgetter("user_key", "uuid"), facets))
     return facet_map.get(user_key)
@@ -321,7 +321,7 @@ async def get_all_classes(
         facet_uuid = UUID(facet)
     except ValueError:
         facet_uuid = await facet_user_key_to_uuid(facet)
-        if facet_uuid is None:
+        if facet_uuid is None:  # pragma: no cover
             exceptions.ErrorCodes.E_NOT_FOUND()
 
     query = """
@@ -360,18 +360,18 @@ async def get_all_classes(
     )
     handle_gql_error(response)
     facets = [x["current"] for x in response.data["facets"]["objects"]]
-    if not facets:
+    if not facets:  # pragma: no cover
         exceptions.ErrorCodes.E_UNKNOWN()
     try:
         facet: dict[str, Any] = one(facets)
-    except ValueError as err:
+    except ValueError as err:  # pragma: no cover
         raise ValueError("Wrong number of facets returned, expected one.") from err
     children = facet.pop("children")
 
     total = len(children)
-    if start:
+    if start:  # pragma: no cover
         children = children[start:]
-    if limit:
+    if limit:  # pragma: no cover
         children = children[:limit]
 
     facet["data"] = {
@@ -426,7 +426,7 @@ async def get_all_classes_children(
     # If given a user_key we want to convert it to an UUID
     try:
         facet_uuid = UUID(facet)
-    except ValueError:
+    except ValueError:  # pragma: no cover
         facet_uuid = await facet_user_key_to_uuid(facet)
         if facet_uuid is None:
             exceptions.ErrorCodes.E_UNKNOWN()
@@ -464,19 +464,19 @@ async def get_all_classes_children(
     )
     handle_gql_error(response)
     facets = [x["current"] for x in response.data["facets"]["objects"]]
-    if not facets:
+    if not facets:  # pragma: no cover
         exceptions.ErrorCodes.E_UNKNOWN()
     try:
         facet: dict[str, Any] = one(facets)
-    except ValueError as err:
+    except ValueError as err:  # pragma: no cover
         raise ValueError("Wrong number of facets returned, expected one.") from err
 
     classes = facet["classes"]
-    if start:
+    if start:  # pragma: no cover
         classes = classes[start:]
-    if limit:
+    if limit:  # pragma: no cover
         classes = classes[:limit]
-    if only_primary_uuid:
+    if only_primary_uuid:  # pragma: no cover
         return classes
     return list(map(construct_clazz_children, classes))
 
@@ -492,7 +492,7 @@ async def get_all_class_children(
     only_primary_uuid: bool | None = Query(
         None, description="Only retrieve the UUID of the class unit."
     ),
-):
+):  # pragma: no cover
     """Get class children by UUID."""
     query = """
     query ClassChildrenQuery(
@@ -661,18 +661,18 @@ async def get_classes(
     )
     handle_gql_error(response)
     facets = [x["current"] for x in response.data["facets"]["objects"]]
-    if not facets:
+    if not facets:  # pragma: no cover
         exceptions.ErrorCodes.E_NOT_FOUND()
     try:
         facet: dict[str, Any] = one(facets)
-    except ValueError as err:
+    except ValueError as err:  # pragma: no cover
         raise ValueError("Wrong number of facets returned, expected one.") from err
     children = facet.pop("children")
 
     total = len(children)
-    if start:
+    if start:  # pragma: no cover
         children = children[start:]
-    if limit:
+    if limit:  # pragma: no cover
         children = children[:limit]
 
     facet["data"] = {

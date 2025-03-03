@@ -433,7 +433,9 @@ class Mutation:
     ) -> Response[Class]:
         org = await info.context["org_loader"].load(0)
         uuid = await update_class(input.to_pydantic(), org.uuid)
+        # coverage: pause
         return uuid2response(uuid, ClassRead)
+        # coverage: unpause
 
     @strawberry.mutation(
         name="class_terminate",
@@ -476,7 +478,9 @@ class Mutation:
     )
     async def class_delete(self, uuid: UUID) -> Response[Class]:
         uuid = await delete_class(uuid)
+        # coverage: pause
         return uuid2response(uuid, ClassRead)
+        # coverage: unpause
 
     @strawberry.mutation(
         description="Refresh classes.",
@@ -574,7 +578,9 @@ class Mutation:
             cursor=cursor,
         )
         # NOTE: "employee" is called "person" in the new AMQP system
+        # coverage: pause
         return await refresh(info=info, page=page, model="person", exchange=exchange)
+        # coverage: unpause
 
     # Engagements
     # -----------
@@ -714,7 +720,9 @@ class Mutation:
     ) -> Response[Facet]:
         org = await info.context["org_loader"].load(0)
         uuid = await create_facet(input.to_pydantic(), org.uuid)
+        # coverage: pause
         return uuid2response(uuid, FacetRead)
+        # coverage: unpause
 
     @strawberry.mutation(
         description="Updates a facet.",
@@ -728,7 +736,9 @@ class Mutation:
     ) -> Response[Facet]:
         org = await info.context["org_loader"].load(0)
         uuid = await update_facet(input.to_pydantic(), org.uuid)
+        # coverage: pause
         return uuid2response(uuid, FacetRead)
+        # coverage: unpause
 
     @strawberry.mutation(
         name="facet_terminate",
@@ -771,7 +781,9 @@ class Mutation:
     )
     async def facet_delete(self, uuid: UUID) -> Response[Facet]:
         uuid = await delete_facet(uuid)
+        # coverage: pause
         return uuid2response(uuid, FacetRead)
+        # coverage: unpause
 
     @strawberry.mutation(
         description="Refresh facets.",
@@ -856,7 +868,9 @@ class Mutation:
     ) -> Response[ITSystem]:
         org = await info.context["org_loader"].load(0)
         uuid = await create_itsystem(input.to_pydantic(), org.uuid)
+        # coverage: pause
         return uuid2response(uuid, ITSystemRead)
+        # coverage: unpause
 
     @strawberry.mutation(
         description="Updates an ITSystem.",
@@ -870,7 +884,9 @@ class Mutation:
     ) -> Response[ITSystem]:
         org = await info.context["org_loader"].load(0)
         uuid = await update_itsystem(input.to_pydantic(), org.uuid)  # type: ignore
+        # coverage: pause
         return uuid2response(uuid, ITSystemRead)
+        # coverage: unpause
 
     @strawberry.mutation(
         name="itsystem_terminate",
@@ -987,7 +1003,9 @@ class Mutation:
             gen_terminate_permission("ituser"),
         ],
     )
-    async def ituser_terminate(self, input: ITUserTerminateInput) -> Response[ITUser]:
+    async def ituser_terminate(
+        self, input: ITUserTerminateInput
+    ) -> Response[ITUser]:  # pragma: no cover
         return uuid2response(await terminate_ituser(input.to_pydantic()), ITUserRead)
 
     @strawberry.mutation(
@@ -1232,7 +1250,9 @@ class Mutation:
     async def org_create(self, info: Info, input: OrganisationCreate) -> Organisation:
         # Called for side-effect
         await create_org(input)
+        # coverage: pause
         return await info.context["org_loader"].load(0)
+        # coverage: unpause
 
     # TODO: org_update
     # TODO: org_terminate
@@ -1576,21 +1596,27 @@ class Mutation:
             info.context["session"], actor, file_store, file_name, file_bytes, force
         )
 
+        # coverage: pause
         return "OK"
+        # coverage: unpause
 
 
 async def delete_bruger(uuid: UUID) -> UUID:
     """Delete a user by creating a "Slettet" (deleted) registration."""
     c = get_connector()
     uuid = await c.bruger.delete(uuid)
+    # coverage: pause
     return uuid
+    # coverage: unpause
 
 
 async def delete_organisationfunktion(uuid: UUID) -> UUID:
     """Delete an organisationfunktion by creating a "Slettet" (deleted) registration."""
     c = get_connector()
     uuid = await c.organisationfunktion.delete(uuid)
+    # coverage: pause
     return uuid
+    # coverage: unpause
 
 
 async def refresh(

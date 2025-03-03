@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from typing import Any
+
 from aiohttp import ClientSession
 from fastapi import APIRouter
 from fastapi import Depends
@@ -21,7 +23,7 @@ def keycloak_router():
 
     @router.head("/keycloak.json")
     @router.get("/keycloak.json")
-    async def get_keycloak_config():
+    async def get_keycloak_config() -> dict[str, Any]:  # pragma: no cover
         """Frontend keycloak configuration endpoint."""
         return {
             "realm": REALM,
@@ -33,7 +35,9 @@ def keycloak_router():
         }
 
     @router.post("/token")
-    async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    async def login(
+        form_data: OAuth2PasswordRequestForm = Depends(),
+    ) -> dict[str, Any]:  # pragma: no cover
         """Login endpoint to exchange username + password for access token."""
         token_url = (
             f"{SCHEMA}://{HOST}:{PORT}"

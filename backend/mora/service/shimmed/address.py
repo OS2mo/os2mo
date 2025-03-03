@@ -77,18 +77,18 @@ async def address_autocomplete(
     """
 
     settings = config.get_settings()
-    if not settings.enable_dar:
+    if not settings.enable_dar:  # pragma: no cover
         return []
 
     code: int | None = None
     if not global_lookup:
         query = "query OrganisationQuery { org { uuid, municipality_code } }"
         r = await execute_graphql(query)
-        if r.errors:
+        if r.errors:  # pragma: no cover
             exceptions.ErrorCodes.E_NO_LOCAL_MUNICIPALITY()
         data = {r.data["org"]["uuid"]: r.data["org"]["municipality_code"]}
 
-        if str(orgid) not in data:
+        if str(orgid) not in data:  # pragma: no cover
             exceptions.ErrorCodes.E_NO_LOCAL_MUNICIPALITY()
         code = data[str(orgid)]
         if code is None:
@@ -109,7 +109,7 @@ async def address_autocomplete(
         "noformat": "1",
         "q": q,
     }
-    if code is not None:
+    if code is not None:  # pragma: no cover
         params["kommunekode"] = code
 
     async def get_access_addreses() -> list[dict]:

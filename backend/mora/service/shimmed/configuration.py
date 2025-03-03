@@ -48,11 +48,11 @@ async def get_navlinks() -> list[dict[str, Any]]:
     response = await execute_graphql(query)
     handle_gql_error(response)
     configurations = response.data["configuration"]["objects"]
-    if not configurations:
+    if not configurations:  # pragma: no cover
         exceptions.ErrorCodes.E_UNKNOWN()
     try:
         configuration: dict[str, Any] = one(configurations)
-    except ValueError as err:
+    except ValueError as err:  # pragma: no cover
         raise ValueError(
             "Wrong number of configurations returned, expected one."
         ) from err

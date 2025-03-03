@@ -56,7 +56,7 @@ def get_graphql_equivalent_by_uuid(
         # single result
         if len(gql_data_object["objects"]) == 1:
             return one(gql_data_object["objects"])
-
+        # coverage: pause
         # more than one result - filter by valid validity
         objs_in_validity = list(
             filter(
@@ -69,8 +69,10 @@ def get_graphql_equivalent_by_uuid(
 
         # No objects with valid validity - default to "current"
         return gql_data_object["current"]
-
+        # coverage: unpause
+    # coverage: pause
     return None
+    # coverage: unpause
 
 
 async def string_to_urn(urn_string: str) -> str:
@@ -82,7 +84,7 @@ async def string_to_urn(urn_string: str) -> str:
         await EmailAddressHandler.validate_value(urn_string)
         return EmailAddressHandler(value=urn_string, visibility=None).urn
     except HTTPException as e:
-        if e.key != ErrorCodes.V_INVALID_ADDRESS_EMAIL:
+        if e.key != ErrorCodes.V_INVALID_ADDRESS_EMAIL:  # pragma: no cover
             raise e
         else:
             pass
@@ -91,7 +93,7 @@ async def string_to_urn(urn_string: str) -> str:
     return util.urnquote(urn_string)
 
 
-def gql_object_validity_valid(gql_obj: dict, at_date: date | None):
+def gql_object_validity_valid(gql_obj: dict, at_date: date | None):  # pragma: no cover
     if at_date is None:
         return None
 

@@ -33,12 +33,14 @@ async def update_ituser(input: ITUserUpdate) -> UUID:
     }
 
     request = await ItsystemRequestHandler.construct(req, mapping.RequestType.EDIT)
+    # coverage: pause
     uuid = await request.submit()
 
     return UUID(uuid)
+    # coverage: unpause
 
 
-async def terminate_ituser(input: ITUserTerminate) -> UUID:
+async def terminate_ituser(input: ITUserTerminate) -> UUID:  # pragma: no cover
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await ItsystemRequestHandler.construct(

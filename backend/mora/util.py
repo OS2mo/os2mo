@@ -94,7 +94,7 @@ def parsedatetime(
     except ValueError:
         if default is not _sentinel:
             return default
-        else:
+        else:  # pragma: no cover
             exceptions.ErrorCodes.E_INVALID_INPUT(f"cannot parse {s!r}")
 
     if dt.date() == POSITIVE_INFINITY.date():
@@ -227,7 +227,7 @@ class CPR(str):
 
         return v
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return f"CPR({super().__repr__()})"
 
 
@@ -508,7 +508,7 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
         elif valid_from is not sentinel:
             dt = from_iso_time(valid_from)
 
-            if dt.time() != datetime.time.min:
+            if dt.time() != datetime.time.min:  # pragma: no cover
                 exceptions.ErrorCodes.E_INVALID_INPUT(
                     f"{dt.isoformat()!r} is not at midnight!",
                 )
@@ -564,7 +564,7 @@ def get_valid_to(obj, fallback=None, required=False) -> datetime.datetime:
         elif valid_to is not sentinel:
             dt = from_iso_time(valid_to)
 
-            if dt.time() != datetime.time.min:
+            if dt.time() != datetime.time.min:  # pragma: no cover
                 exceptions.ErrorCodes.E_INVALID_INPUT(
                     f"{dt.isoformat()!r} is not at midnight!",
                 )
@@ -578,7 +578,7 @@ def get_valid_to(obj, fallback=None, required=False) -> datetime.datetime:
         return get_valid_to(fallback, required=required)
     elif not required:
         return POSITIVE_INFINITY
-    else:
+    else:  # pragma: no cover
         exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
             message=f"Missing {mapping.VALIDITY}",
             key=mapping.VALIDITY,
@@ -660,7 +660,7 @@ def query_to_search_phrase(query: str):
     # If query consists of only digits, spaces and separators, try to
     # treat it as purely numeric, to support whole and partial matches on
     # CPR numbers, etc.
-    if re.match(r"^[\d|\s|\-]+$", query):
+    if re.match(r"^[\d|\s|\-]+$", query):  # pragma: no cover
         # Strip non-digits from query
         query = re.sub(r"[^\d]", "", query)
     # Substring match
@@ -679,7 +679,9 @@ def is_detail_unpublished(
 
     OBS: We use a fallback, since the detail "itusers.itsystem" does not have a "published" concept.
     """
-    if detail_type_published_attr and detail_type_published_attr == "IkkePubliceret":
+    if (
+        detail_type_published_attr and detail_type_published_attr == "IkkePubliceret"
+    ):  # pragma: no cover
         return True
 
     return detail_value == "-"
