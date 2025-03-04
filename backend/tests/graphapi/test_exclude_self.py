@@ -192,8 +192,8 @@ async def test_exclude_self(
 )
 async def test_exclude_self_related_units(
     graphapi_post: GraphAPIPost,
-    create_org_unit: Callable[..., UUID],
-    create_related_unit: Callable[[UUID, UUID], UUID],
+    create_org_unit: Callable[[str], UUID],
+    create_related_unit: Callable[[UUID, UUID], None],
     exclude_self: bool,
 ) -> None:
     """Test that the exclude-self flag on org_units.related_units work as expected.
@@ -244,6 +244,6 @@ async def test_exclude_self_related_units(
     ]
 
     if exclude_self:
-        assert one(result) == [str(org_unit_2)]
+        assert set(one(result)) == {str(org_unit_2)}
     else:
-        assert one(result) == [str(org_unit_1), str(org_unit_2)]
+        assert set(one(result)) == {str(org_unit_1), str(org_unit_2)}

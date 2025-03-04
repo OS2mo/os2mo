@@ -1282,8 +1282,6 @@ async def related_unit_resolver(
     if filter is None:
         filter = RelatedUnitFilter()
 
-    # TODO: Related unit filter
-
     kwargs = {}
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = lora_filter(
@@ -1302,13 +1300,16 @@ async def related_unit_resolver(
             await filter2uuids_func(organisation_unit_resolver, info, filter.exclude)
         )
         result = {
-            key: [
-                item.copy(
-                    update={"org_unit_uuids": set(item.org_unit_uuids) - exclude_uuids}
+            uuid: [
+                related_unit.copy(
+                    update={
+                        "org_unit_uuids": set(related_unit.org_unit_uuids)
+                        - exclude_uuids
+                    }
                 )
-                for item in value
+                for related_unit in related_units_list
             ]
-            for key, value in result.items()
+            for uuid, related_units_list in result.items()
         }
     return result
 

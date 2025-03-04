@@ -874,7 +874,8 @@ class RelatedUnitFilter(BaseFilter, OrganisationUnitFiltered):
         default=None,
         description=dedent(
             """\
-            Employee filter for managers to exclude from the result.
+            Organisation unit filter, that excludes an organisation unit from
+            the `related_units` response.
             """
         ),
     )
