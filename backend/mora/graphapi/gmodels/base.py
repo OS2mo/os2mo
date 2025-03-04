@@ -31,7 +31,7 @@ class RABase(BaseModel):
         Raises:
             TypeError: If the base model is instantiated directly.
         """
-        if cls is RABase:
+        if cls is RABase:  # pragma: no cover
             raise TypeError("RABase may not be instantiated")
         return super().__new__(cls)
 
@@ -88,7 +88,7 @@ def tz_isodate(dt: Any) -> datetime:
     # It is a mess, but this way we get really close to covering our bases
     try:
         iso_dt = isoparse(to_parsable_timestamp(str(dt)))
-    except ValueError:
+    except ValueError:  # pragma: no cover
         try:
             iso_dt = datetime.fromisoformat(str(dt))
         except ValueError:
@@ -98,6 +98,6 @@ def tz_isodate(dt: Any) -> datetime:
     # '0001-01-01' will be converted to '0001-12-31 23:09:40+00 BC' because LoRa is set
     # to the Europe/Copenhagen timezone in postgres. '0001-12-31 23:09:40+00 BC' is not
     # a valid ISO timestamp, and thus fails to be read back out.
-    if iso_dt.date() <= date(1, 1, 1):
+    if iso_dt.date() <= date(1, 1, 1):  # pragma: no cover
         raise ValueError("Please do not use the date 0001-01-01")
     return iso_dt

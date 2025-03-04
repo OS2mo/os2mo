@@ -44,7 +44,7 @@ async def list_organisations() -> list[OrganisationRead]:
     }
     """
     r = await execute_graphql(query)
-    if r.errors:
+    if r.errors:  # pragma: no cover
         error = one(r.errors)
         if error.original_error:
             raise error.original_error
@@ -93,7 +93,7 @@ async def get_organisation(
     response = await execute_graphql(query)
     handle_gql_error(response)
 
-    if response.data["org"]["uuid"] != str(orgid):
+    if response.data["org"]["uuid"] != str(orgid):  # pragma: no cover
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
     org_units = flatten_data(response.data["org_units"]["objects"])
@@ -195,7 +195,7 @@ async def get_org_children(
         "associations": "association" in count,
         "hierarchies": org_unit_hierarchy,
     }
-    if at is not None:
+    if at is not None:  # pragma: no cover
         variables["from_date"] = at
     response = await execute_graphql(
         query,

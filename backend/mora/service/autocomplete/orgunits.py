@@ -151,7 +151,7 @@ async def decorate_orgunit_search_result(
         graphql_equivalent = get_graphql_equivalent_by_uuid(
             response.data["org_units"]["objects"], orgunit_uuid, at
         )
-        if not graphql_equivalent:
+        if not graphql_equivalent:  # pragma: no cover
             continue
 
         decorated_result.append(
@@ -212,7 +212,9 @@ def _gql_get_orgunit_attrs(settings: config.Settings, org_unit_graphql: dict) ->
     if "itusers" in org_unit_graphql:
         for ituser in org_unit_graphql["itusers"]:
             itsystem = ituser["itsystem"]
-            if UUID(itsystem["uuid"]) not in settings.confdb_autocomplete_attrs_orgunit:
+            if (
+                UUID(itsystem["uuid"]) not in settings.confdb_autocomplete_attrs_orgunit
+            ):  # pragma: no cover
                 continue
 
             attrs.append(

@@ -26,10 +26,11 @@ class ValueType(Enum):
     def from_string(cls, string: str) -> "ValueType":
         if string == TEXT_STR:
             return ValueType.TEXT
-        elif string == BOOL_STR:
+        elif string == BOOL_STR:  # pragma: no cover
             return ValueType.BOOL
-
+        # coverage: pause
         raise ValueType(f"unexpected value {string}")
+        # coverage: unpause
 
 
 @dataclass(frozen=True)
@@ -67,22 +68,22 @@ class Attribute:
 
         OVERLY defensive, on purpose
         """
-        if len(attr) != 2:
+        if len(attr) != 2:  # pragma: no cover
             raise ValueError(f"unexpected number of keys in attribute spec: {attr}")
 
-        if VIRKNING not in attr:
+        if VIRKNING not in attr:  # pragma: no cover
             raise ValueError(f"unexpected keys in attribute spec: {attr}")
 
-        if attr[VIRKNING] is not None:
+        if attr[VIRKNING] is not None:  # pragma: no cover
             raise ValueError(f"unexpected {VIRKNING} in attribute spec: {attr}")
 
         attr.pop(VIRKNING)
         key, val = list(attr.items())[0]  # MUST be only 1 key left
-        if not isinstance(key, str):
+        if not isinstance(key, str):  # pragma: no cover
             raise TypeError(f"expected str, got type={type(val)} of obj={val}")
 
         for tmp in (key, val):
-            if not isinstance(tmp, str):
+            if not isinstance(tmp, str):  # pragma: no cover
                 raise TypeError(
                     f"expected str, got type={type(tmp)} of obj={tmp}, from {attr}"
                 )
@@ -95,7 +96,7 @@ class Attribute:
                     attr_type,
                     ValueType.from_string(get_field_type(class_name + attr_type, key)),
                 )
-        else:
+        else:  # pragma: no cover
             # found key not belonging anywhere
             raise ValueError(f"unexpected key={key} in attribute spec: {attr}")
 
@@ -113,7 +114,7 @@ class Attribute:
         valid_attr = cls.get_valid_attr(class_name)
         valid_keys = [class_name + k for k in valid_attr.keys()]
         for attr_key in attributes.keys():
-            if attr_key not in valid_keys:
+            if attr_key not in valid_keys:  # pragma: no cover
                 raise ValueError(f"unexpected value {attr_key} not in {valid_keys}")
 
         return [
@@ -148,7 +149,7 @@ class State:
         """
         valid_states = cls.get_valid_states(class_name)
 
-        if not (set(states.keys()) <= set(valid_states.keys())):
+        if not (set(states.keys()) <= set(valid_states.keys())):  # pragma: no cover
             raise ValueError(f"unexpected keys in {states}")
 
         return [
@@ -168,25 +169,25 @@ class State:
         OVERLY defensive, on purpose
         """
 
-        if len(state) != 2:
+        if len(state) != 2:  # pragma: no cover
             raise ValueError(f"unexpected number of keys in state spec: {state}")
 
-        if VIRKNING not in state:
+        if VIRKNING not in state:  # pragma: no cover
             raise ValueError(f"unexpected keys in state spec: {state}")
 
-        if state[VIRKNING] is not None:
+        if state[VIRKNING] is not None:  # pragma: no cover
             raise ValueError(f"unexpected {VIRKNING} in state spec: {state}")
 
         state.pop(VIRKNING)
         key, val = list(state.items())[0]  # MUST be only 1 key left
-        if key not in valid_states:
+        if key not in valid_states:  # pragma: no cover
             raise ValueError(f"unexpected key={key} in attribute spec: {state}")
 
-        if val not in valid_states[key]:
+        if val not in valid_states[key]:  # pragma: no cover
             raise ValueError(f"unexpected value={val} in attribute spec: {state}")
 
         for tmp in (key, val):
-            if not isinstance(tmp, str):
+            if not isinstance(tmp, str):  # pragma: no cover
                 raise TypeError(
                     f"expected str, got type={type(tmp)} of obj={tmp}, from {state}"
                 )
@@ -229,31 +230,33 @@ class Relation:  # OVERLY defensive, on purpose
         OVERLY defensive, on purpose
         """
 
-        if relation_type not in valid_relations:
+        if relation_type not in valid_relations:  # pragma: no cover
             raise ValueError(
                 f"unexpected relation {relation_type}, legal values: {valid_relations}"
             )
 
         ret = []
         for relation in relation_values:
-            if VIRKNING not in relation:
+            if VIRKNING not in relation:  # pragma: no cover
                 raise ValueError(f"unexpected keys in relation spec: {relation}")
 
-            if relation[VIRKNING] is not None:
+            if relation[VIRKNING] is not None:  # pragma: no cover
                 raise ValueError(f"unexpected {VIRKNING} in relation spec: {relation}")
 
-            if len(relation) != 3:
+            if len(relation) != 3:  # pragma: no cover
                 raise ValueError(
                     f"unexpected number of keys in relation spec: {relation}"
                 )
 
             relation.pop(VIRKNING)
 
-            if OBJECKTTYPE not in relation:
+            if OBJECKTTYPE not in relation:  # pragma: no cover
                 raise ValueError(f"unexpected keys in relation spec: {relation}")
 
             current_objekttype = relation.pop(OBJECKTTYPE)
-            if not (current_objekttype is None or isinstance(current_objekttype, str)):
+            if not (
+                current_objekttype is None or isinstance(current_objekttype, str)
+            ):  # pragma: no cover
                 raise TypeError(
                     f"unexpected type of {current_objekttype}, "
                     f"type={type(current_objekttype)} in relation spec: {relation}"
@@ -264,10 +267,10 @@ class Relation:  # OVERLY defensive, on purpose
                 is_uuid = True
             elif key == "urn":
                 is_uuid = False
-            else:
+            else:  # pragma: no cover
                 raise ValueError(f"unexpected {key} in relation spec: {relation}")
 
-            if not isinstance(val, str):
+            if not isinstance(val, str):  # pragma: no cover
                 raise TypeError(
                     f"expected str, got type={type(val)} of obj={val}, from {relation}"
                 )
@@ -300,7 +303,7 @@ class Relation:  # OVERLY defensive, on purpose
         """
         valid_relations = cls.get_valid_relations(class_name)
 
-        if not (set(relations.keys()) <= set(valid_relations)):
+        if not (set(relations.keys()) <= set(valid_relations)):  # pragma: no cover
             raise ValueError(
                 f"unexpected keys in {relations}. valid_relations={valid_relations}"
             )

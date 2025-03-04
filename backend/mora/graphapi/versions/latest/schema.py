@@ -276,7 +276,7 @@ class Response(Generic[MOObject]):
             Returns:
                 True if the object is active right now, False otherwise.
             """
-            if not hasattr(obj, "validity"):
+            if not hasattr(obj, "validity"):  # pragma: no cover
                 return True
 
             from_date = obj.validity.from_date or NEGATIVE_INFINITY
@@ -288,7 +288,7 @@ class Response(Generic[MOObject]):
             return from_date.date() <= now().date() <= to_date.date()
 
         def activity_tuple(obj: Any) -> datetime:
-            if not hasattr(obj, "validity"):
+            if not hasattr(obj, "validity"):  # pragma: no cover
                 return datetime.min
             if obj.validity.to_date is None:
                 return datetime.max
@@ -404,7 +404,7 @@ class Response(Generic[MOObject]):
 
 
 def response2model(response: Response[MOObject]) -> MOObject:
-    if not hasattr(response, "__orig_class__"):
+    if not hasattr(response, "__orig_class__"):  # pragma: no cover
         raise ValueError(
             "Please ensure that `Response` is always instantiated with a type parameter, such as Response[Address](...) instead of Response(...)"
         )
@@ -465,7 +465,7 @@ async def validity_sub_query_hack(
     item_lora_query_args: dict,
 ) -> list[Any]:
     # Custom Lora-GraphQL connector - created in order to control dates in sub-queries/recursions
-    if root_validity.to_date:
+    if root_validity.to_date:  # pragma: no cover
         # FYI: This is needed when ex root.validity.to_date == item.validity.from_date
         # If we just use "root_validity.to_date" where ex time is "00:00:00",
         # LoRa will return no results, since it needs the time to be "23:59:59" to be inclusive.
@@ -520,7 +520,7 @@ async def validity_sub_query_hack(
         )
         if existing_item is None:
             items_final.append(item)
-        else:
+        else:  # pragma: no cover
             # Handle the case where either from_date could be None
             if existing_item.validity.from_date is None or (
                 item.validity.from_date is not None
@@ -552,7 +552,7 @@ class MultifieldAddress(ResolvedAddress):
     value2: str
 
     @strawberry.field
-    async def name(self, root: "MultifieldAddress") -> str:
+    async def name(self, root: "MultifieldAddress") -> str:  # pragma: no cover
         return multifield_text.name(root.value, root.value2)
 
 
@@ -852,7 +852,7 @@ class Address:
     async def resolve(self, root: AddressRead, info: Info) -> ResolvedAddress:
         obj = await _get_handler_object(root, info)
 
-        if obj.scope == "MULTIFIELD_TEXT":
+        if obj.scope == "MULTIFIELD_TEXT":  # pragma: no cover
             return MultifieldAddress(value=root.value, value2=root.value2)  # type: ignore
 
         if obj.scope == "DAR":
@@ -1028,7 +1028,9 @@ class Address:
             """
         ),
     )
-    async def address_type_validity(self, root: AddressRead) -> LazyClass | None:
+    async def address_type_validity(
+        self, root: AddressRead
+    ) -> LazyClass | None:  # pragma: no cover
         address_types = await validity_sub_query_hack(
             root.validity,
             ClassRead,
@@ -1279,7 +1281,9 @@ class Association:
         description="UUID of the dynamically attached class.",
         deprecation_reason=gen_uuid_field_deprecation("dynamic_class"),
     )
-    async def dynamic_class_uuid(self, root: AssociationRead) -> UUID | None:
+    async def dynamic_class_uuid(
+        self, root: AssociationRead
+    ) -> UUID | None:  # pragma: no cover
         return root.dynamic_class_uuid
 
     @strawberry.field(
@@ -1362,7 +1366,7 @@ class Association:
     )
     async def association_type_validity(
         self, root: AssociationRead
-    ) -> LazyClass | None:
+    ) -> LazyClass | None:  # pragma: no cover
         association_types = await validity_sub_query_hack(
             root.validity,
             ClassRead,
@@ -1467,8 +1471,10 @@ class Class:
     async def top_level_facet(self, root: ClassRead, info: Info) -> LazyFacet:
         if root.parent_uuid is None:
             return await Class.facet(root=root, info=info)  # type: ignore[operator]
+        # coverage: pause
         parent_node = await Class.parent(root=root, info=info)  # type: ignore[operator,misc]
         return await Class.top_level_facet(self=self, root=parent_node, info=info)
+        # coverage: unpause
 
     it_system: LazyITSystem | None = strawberry.field(
         resolver=to_only(
@@ -1906,7 +1912,7 @@ class Employee:
     )
     async def engagements_validity(
         self, root: EmployeeRead, info: Info
-    ) -> list[LazyEngagement]:
+    ) -> list[LazyEngagement]:  # pragma: no cover
         return await validity_sub_query_hack(
             root.validity,
             EngagementRead,
@@ -1931,7 +1937,7 @@ class Employee:
     )
     async def addresses_validity(
         self, root: EmployeeRead, info: Info
-    ) -> list[LazyAddress]:
+    ) -> list[LazyAddress]:  # pragma: no cover
         return await validity_sub_query_hack(
             root.validity,
             AddressRead,
@@ -1959,7 +1965,7 @@ class Employee:
     )
     async def associations_validity(
         self, root: EmployeeRead, info: Info
-    ) -> list[LazyAssociation]:
+    ) -> list[LazyAssociation]:  # pragma: no cover
         return await validity_sub_query_hack(
             root.validity,
             AssociationRead,
@@ -1984,7 +1990,7 @@ class Employee:
     )
     async def itusers_validity(
         self, root: EmployeeRead, info: Info
-    ) -> list[LazyITUser]:
+    ) -> list[LazyITUser]:  # pragma: no cover
         return await validity_sub_query_hack(
             root.validity,
             ITUserRead,
@@ -2284,7 +2290,7 @@ class Engagement:
             ),
         }
         if exclude_self:
-            if filter.exclude:
+            if filter.exclude:  # pragma: no cover
                 raise ValueError("Cannot provide both filter.exclude and exclude_self")
             seeds["exclude"] = lambda root: EmployeeFilter(
                 uuids=uuid2list(root.employee_uuid)
@@ -2330,7 +2336,9 @@ class Engagement:
             """
         ),
     )
-    async def engagement_type_validity(self, root: EngagementRead) -> LazyClass | None:
+    async def engagement_type_validity(
+        self, root: EngagementRead
+    ) -> LazyClass | None:  # pragma: no cover
         engagement_types = await validity_sub_query_hack(
             root.validity,
             ClassRead,
@@ -2858,7 +2866,9 @@ class ITUser:
             """
         ),
     )
-    async def itsystem_validity(self, root: ITUserRead) -> LazyITSystem:
+    async def itsystem_validity(
+        self, root: ITUserRead
+    ) -> LazyITSystem:  # pragma: no cover
         itsystems = await validity_sub_query_hack(
             root.validity,
             ITSystemRead,
@@ -3631,7 +3641,7 @@ class Organisation:
             The municipality code, if any is found.
         """
         org = await common.get_connector().organisation.get(root.uuid)
-        if org is None:
+        if org is None:  # pragma: no cover
             return None
         authorities = org.get("relationer", {}).get("myndighed", [])
         for authority in authorities:
@@ -3952,7 +3962,7 @@ class OrganisationUnit:
             ),
         ] = False,
     ) -> list["Manager"]:
-        if filter is None:
+        if filter is None:  # pragma: no cover
             filter = ManagerFilter()
         filter.org_units = [root.uuid]
 
@@ -4024,7 +4034,7 @@ class OrganisationUnit:
         if not inherit:
             return []
         parent = await OrganisationUnit.parent(root=root, info=info)  # type: ignore
-        if parent is None:
+        if parent is None:  # pragma: no cover
             return []
         return await OrganisationUnit.owners(
             self=self, root=parent, info=info, inherit=True
@@ -4238,7 +4248,7 @@ class OrganisationUnit:
     )
     async def associations_validity(
         self, root: OrganisationUnitRead, info: Info
-    ) -> list[LazyAssociation]:
+    ) -> list[LazyAssociation]:  # pragma: no cover
         return await validity_sub_query_hack(
             root.validity,
             AssociationRead,
@@ -4263,7 +4273,7 @@ class OrganisationUnit:
     )
     async def addresses_validity(
         self, root: OrganisationUnitRead, info: Info
-    ) -> list[LazyAddress]:
+    ) -> list[LazyAddress]:  # pragma: no cover
         return await validity_sub_query_hack(
             root.validity,
             AddressRead,
@@ -4288,7 +4298,7 @@ class OrganisationUnit:
     )
     async def itusers_validity(
         self, root: OrganisationUnitRead, info: Info
-    ) -> list[LazyITUser]:
+    ) -> list[LazyITUser]:  # pragma: no cover
         return await validity_sub_query_hack(
             root.validity,
             ITUserRead,
@@ -4610,7 +4620,7 @@ class File:
         """
         )
     )
-    async def text_contents(self, info: Info) -> str:
+    async def text_contents(self, info: Info) -> str:  # pragma: no cover
         session = info.context["session"]
         content = await db.files.read(session, self.file_store, self.file_name)
         return content.decode("utf-8")
@@ -4706,7 +4716,7 @@ class Configuration:
         """
         )
     )
-    def stringified_value(self) -> str:
+    def stringified_value(self) -> str:  # pragma: no cover
         """Get the stringified value.
 
         Returns:

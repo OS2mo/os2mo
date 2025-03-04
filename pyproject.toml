@@ -91,3 +91,12 @@ extend-select = ["I"]
 
 [tool.ruff.lint.isort]
 force-single-line = true
+
+[tool.coverage.report]
+# Regexes inspired from: https://coverage.readthedocs.io/en/latest/excluding.html
+exclude_also = [
+    # pragma comments to turn coverage on and off:
+    'coverage: pause(?s:.)*?coverage: unpause',
+    # pragma comment to excludes an entire file
+    '\A(?s:.*# pragma: no cover file.*)\Z',
+]

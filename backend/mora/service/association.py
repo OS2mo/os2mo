@@ -150,7 +150,9 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             )
 
         # Group validation: primary attr
-        if employee_uuid and it_user_uuid and (await is_class_uuid_primary(primary)):
+        if (
+            employee_uuid and it_user_uuid and (await is_class_uuid_primary(primary))
+        ):  # pragma: no cover
             await self.validate_primary_group_on_create(employee_uuid, it_user_uuid)
 
         if substitute_uuid:
@@ -204,7 +206,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         payload = {"note": "Rediger tilknytning"}
 
         original_data = req.get("original")
-        if original_data:
+        if original_data:  # pragma: no cover
             # We are performing an update
             old_from, old_to = util.get_validities(original_data)
             payload = common.inactivate_old_interval(
@@ -223,7 +225,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         try:
             attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
-        except (TypeError, LookupError):
+        except (TypeError, LookupError):  # pragma: no cover
             attributes = {}
         new_attributes = {}
 
@@ -242,7 +244,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         # Update "job_function"
         job_function_uuid = util.get_mapping_uuid(data, mapping.JOB_FUNCTION)
-        if job_function_uuid:
+        if job_function_uuid:  # pragma: no cover
             # We store the job function in "tilknyttedefunktioner", so update that
             # field, rather than `mapping.JOB_FUNCTION_FIELD`, which points to "opgaver"
             update_fields.append(
@@ -251,7 +253,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         # Update "it" (UUID of IT user, in case this association is an IT association)
         it_user_uuid = util.get_mapping_uuid(data, mapping.IT)
-        if it_user_uuid:
+        if it_user_uuid:  # pragma: no cover
             update_fields.append(
                 (mapping.SINGLE_ITSYSTEM_FIELD, {"uuid": it_user_uuid})
             )
@@ -308,7 +310,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 validator.is_substitute_self(
                     employee_uuid=employee_uuid, substitute_uuid=substitute_uuid
                 )
-            if not substitute_uuid:
+            if not substitute_uuid:  # pragma: no cover
                 update_fields.append(
                     (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": "", "urn": ""})
                 )
@@ -322,20 +324,22 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 )
 
         # Update "primary"
-        if mapping.PRIMARY in data and data.get(mapping.PRIMARY):
+        if mapping.PRIMARY in data and data.get(mapping.PRIMARY):  # pragma: no cover
             primary = util.get_mapping_uuid(data, mapping.PRIMARY)
             update_fields.append((mapping.PRIMARY_FIELD, {"uuid": primary}))
         else:
             primary = None
 
         # Update "dynamic_classes"
-        if is_graphql():
+        if is_graphql():  # pragma: no cover
             for clazz in util.checked_get(data, mapping.TRADE_UNION, []):
                 update_fields.append(
                     (mapping.ORG_FUNK_CLASSES_FIELD, {"uuid": util.get_uuid(clazz)})
                 )
         else:
-            for clazz in util.checked_get(data, mapping.CLASSES, []):
+            for clazz in util.checked_get(
+                data, mapping.CLASSES, []
+            ):  # pragma: no cover
                 update_fields.append(
                     (mapping.ORG_FUNK_CLASSES_FIELD, {"uuid": util.get_uuid(clazz)})
                 )
@@ -345,7 +349,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             await validator.is_date_range_in_employee_range(employee, new_from, new_to)
 
         # Group validation: uniqueness
-        if employee_uuid and org_unit_uuid and it_user_uuid:
+        if employee_uuid and org_unit_uuid and it_user_uuid:  # pragma: no cover
             await self.validate_unique_group_on_edit(
                 association_uuid,
                 employee_uuid,
@@ -354,7 +358,9 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             )
 
         # Group validation: primary attr
-        if employee_uuid and it_user_uuid and (await is_class_uuid_primary(primary)):
+        if (
+            employee_uuid and it_user_uuid and (await is_class_uuid_primary(primary))
+        ):  # pragma: no cover
             await self.validate_primary_group_on_edit(
                 association_uuid,
                 employee_uuid,

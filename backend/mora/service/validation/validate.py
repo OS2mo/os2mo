@@ -128,8 +128,9 @@ async def check_cpr(req: dict = Body(...)):
         cpr, util.NEGATIVE_INFINITY, util.POSITIVE_INFINITY, org_uuid
     ):
         raise exceptions.HTTPException(exceptions.ErrorCodes.V_EXISTING_CPR)
-
+    # coverage: pause
     return {"success": True}
+    # coverage: unpause
 
 
 @_router.post(

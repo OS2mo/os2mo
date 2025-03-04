@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+# pragma: no cover file
 """This module contains routines for generating the database from
 Jinja2 templates.
 

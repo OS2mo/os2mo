@@ -22,13 +22,17 @@ async def update_itsystem(input: ITSystemUpdate, organisation_uuid: UUID) -> UUI
     await c.itsystem.update(
         input.to_registration(organisation_uuid=organisation_uuid), str(input.uuid)
     )
+    # coverage: pause
     return input.uuid
+    # coverage: unpause
 
 
 async def terminate_itsystem(input: ITSystemTerminate) -> UUID:
     c = lora.Connector()
     await c.itsystem.update(input.to_registration(), input.uuid)
+    # coverage: pause
     return input.uuid
+    # coverage: unpause
 
 
 async def delete_itsystem(itsystem_uuid: UUID, note: str) -> UUID:

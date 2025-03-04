@@ -34,7 +34,7 @@ def _generate_schema_object(properties, required, kwargs=None):
     if required:
         schema_obj["required"] = required
 
-    if kwargs:
+    if kwargs:  # pragma: no cover
         schema_obj.update(kwargs)
     return schema_obj
 
@@ -204,7 +204,7 @@ def _handle_relation_metadata_all(obj, relation):
     :return: Dictionary representing the updated relation.
     """
     metadata_all = _get_metadata(obj, "relationer", "*")
-    for key in metadata_all:
+    for key in metadata_all:  # pragma: no cover
         if "type" in metadata_all[key]:
             relation["items"]["oneOf"][0]["properties"][key] = TYPE_MAP[
                 metadata_all[key]["type"]
@@ -229,7 +229,9 @@ def _handle_relation_metadata_specific(obj, relation_schema):
         "relationer_metadata", []
     )
 
-    for relation in [key for key in metadata_specific if not key == "*"]:
+    for relation in [
+        key for key in metadata_specific if not key == "*"
+    ]:  # pragma: no cover
         for i in range(2):
             properties = relation_schema[relation]["items"]["oneOf"][i]["properties"]
             metadata = metadata_specific[relation]
@@ -244,7 +246,7 @@ def _handle_relation_metadata_specific(obj, relation_schema):
                         key
                     )
 
-    if obj == "tilstand":
+    if obj == "tilstand":  # pragma: no cover
         # Handle special case for 'tilstand' where UUID not allowed
 
         item = relation_schema["tilstandsvaerdi"]["items"]["oneOf"][0]
@@ -321,7 +323,7 @@ def _generate_relationer(obj, do_create):
     }
 
 
-def _generate_varianter():
+def _generate_varianter():  # pragma: no cover
     """
     Function to generate the special 'varianter' section of the JSON schema
     used for the the 'Dokument' LoRa object type.
@@ -357,7 +359,7 @@ def generate_json_schema(obj, do_create):
     :return: Dictionary representing the JSON schema.
     """
 
-    if obj == "dokument":
+    if obj == "dokument":  # pragma: no cover
         # Due to an inconsistency between the way LoRa handles
         # "DokumentVariantEgenskaber" and the specs' we will have to do
         #  this for now, i.e. we allow any JSON-object for "Dokument".

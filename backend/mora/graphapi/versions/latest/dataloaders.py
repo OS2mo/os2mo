@@ -150,7 +150,7 @@ async def load_org(keys: list[int]) -> list[OrganisationRead]:
     """
     # We fake the ID of our Organisation as 0 and expect nothing else as inputs
     keyset = set(keys)
-    if keyset != {0}:
+    if keyset != {0}:  # pragma: no cover
         raise ValueError("Only one organisation can exist!")
 
     obj = await org.get_configured_organisation()

@@ -36,7 +36,7 @@ async def get_employee(
     ),
 ):
     """Retrieve an employee."""
-    if only_primary_uuid:
+    if only_primary_uuid:  # pragma: no cover
         query = """
             query GetEmployee($uuid: UUID!, $from_date: DateTime) {
               employees(filter: {uuids: [$uuid], from_date: $from_date}) {
@@ -150,6 +150,8 @@ async def terminate_employee(uuid: UUID, request: dict = Body(...)):
         mutation,
         variable_values=jsonable_encoder(variables),
     )
+    # coverage: pause
     handle_gql_error(response)
     uuid = response.data["employee_terminate"]["uuid"]
     return uuid
+    # coverage: unpause

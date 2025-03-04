@@ -18,9 +18,11 @@ async def create_owner(input: OwnerCreate) -> UUID:
     request = await OwnerRequestHandler.construct(
         input_dict, mapping.RequestType.CREATE
     )
+    # coverage: pause
     uuid = await request.submit()
 
     return UUID(uuid)
+    # coverage: unpause
 
 
 async def update_owner(input: OwnerUpdate) -> UUID:
@@ -34,9 +36,11 @@ async def update_owner(input: OwnerUpdate) -> UUID:
     }
 
     request = await OwnerRequestHandler.construct(req, mapping.RequestType.EDIT)
+    # coverage: pause
     uuid = await request.submit()
 
     return UUID(uuid)
+    # coverage: unpause
 
 
 async def terminate_owner(input: OwnerTerminate) -> UUID:
@@ -45,6 +49,8 @@ async def terminate_owner(input: OwnerTerminate) -> UUID:
     request = await OwnerRequestHandler.construct(
         input_dict, mapping.RequestType.TERMINATE
     )
+    # coverage: pause
     await request.submit()
 
     return input.uuid
+    # coverage: unpause

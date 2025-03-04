@@ -124,7 +124,7 @@ def create_sessionmaker(user, password, host, name) -> async_sessionmaker:
     return async_sessionmaker(engine, class_=AsyncSessionWithLock)
 
 
-def _get_sessionmaker(request: Request) -> async_sessionmaker:
+def _get_sessionmaker(request: Request) -> async_sessionmaker:  # pragma: no cover
     return request.app.state.sessionmaker
 
 

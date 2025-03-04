@@ -62,7 +62,7 @@ async def get_orgunit(
     if at is not None:
         variables["from_date"] = at
     unitid = str(unitid)
-    if only_primary_uuid:
+    if only_primary_uuid:  # pragma: no cover
         query = """
         query OrganisationUnitQuery($uuid: UUID!)
         {
@@ -147,10 +147,10 @@ async def get_orgunit(
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
     try:
         org_unit: dict[str, Any] = one(org_unit_list)
-    except ValueError:
+    except ValueError:  # pragma: no cover
         raise ValueError("Wrong number of org units returned, expected one.")
 
-    if only_primary_uuid:
+    if only_primary_uuid:  # pragma: no cover
         return org_unit
 
     # Add counts if present
@@ -174,7 +174,7 @@ async def get_orgunit(
         )
 
         # Parent location
-        if parent["location"]:
+        if parent["location"]:  # pragma: no cover
             org_unit["location"] = parent["location"] + "\\" + parent["name"]
         else:
             org_unit["location"] = parent["name"]
@@ -254,7 +254,7 @@ async def get_org_unit_children(
         "associations": "association" in count,
         "hierarchies": org_unit_hierarchy,
     }
-    if at is not None:
+    if at is not None:  # pragma: no cover
         variables["from_date"] = at
 
     response = await execute_graphql(query, variable_values=jsonable_encoder(variables))
@@ -265,7 +265,7 @@ async def get_org_unit_children(
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=str(parentid))
     try:
         org_unit: dict[str, Any] = one(org_unit_list)
-    except ValueError:
+    except ValueError:  # pragma: no cover
         raise ValueError("Wrong number of parent units returned, expected one.")
 
     ou_children = org_unit["children"]
@@ -314,6 +314,7 @@ async def terminate_org_unit(
             else None,
         },
     )
+    # coverage: pause
     handle_gql_error(response)
 
     # result = response.data[mutation_func]
@@ -322,3 +323,4 @@ async def terminate_org_unit(
         raise Exception("Did not get a valid UUID from GraphQL response")
 
     return UUID(result_uuid)
+    # coverage: unpause

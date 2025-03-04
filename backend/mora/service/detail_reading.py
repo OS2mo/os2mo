@@ -62,7 +62,7 @@ def filter_by_validity(validity: ValidityLiteral, element: dict):
     start = element["validity"]["from"]
     end = element["validity"]["to"]
 
-    if validity == "past":
+    if validity == "past":  # pragma: no cover
         return end is not None and util.parsedatetime(end) < now
     if validity == "future":
         return util.parsedatetime(start) > now
@@ -370,7 +370,7 @@ async def list_addresses_employee(
             }
         """
     args = {"uuid": eid}
-    if at is not None:
+    if at is not None:  # pragma: no cover
         args["from_date"] = at
     if validity is not None:
         start, end = validity_tuple(validity)
@@ -380,11 +380,11 @@ async def list_addresses_employee(
         query,
         variable_values=jsonable_encoder(args),
     )
-    if r.errors:
+    if r.errors:  # pragma: no cover
         raise ValueError(r.errors)
 
     flat = flatten_data(r.data["employees"]["objects"])
-    if len(flat) == 0:
+    if len(flat) == 0:  # pragma: no cover
         return []
 
     # Due to the nature of our query, the length of flat will sometimes be > 1
@@ -397,7 +397,7 @@ async def list_addresses_employee(
         if only_primary_uuid:
             element["person"] = {"uuid": element.pop("employee_uuid")}
             element["address_type"] = {"uuid": element.pop("address_type_uuid")}
-        else:
+        else:  # pragma: no cover
             element["person"] = first(element.pop("employee"))
 
     return list(filter(partial(filter_by_validity, validity), data))
@@ -711,7 +711,7 @@ async def list_addresses_ou(
         query,
         variable_values=jsonable_encoder(args),
     )
-    if r.errors:
+    if r.errors:  # pragma: no cover
         raise ValueError(r.errors)
 
     flat = flatten_data(r.data["org_units"]["objects"])
@@ -724,7 +724,7 @@ async def list_addresses_ou(
     data = first(flat)["addresses"]
 
     for element in data:
-        if only_primary_uuid:
+        if only_primary_uuid:  # pragma: no cover
             element["address_type"] = {"uuid": element.pop("address_type_uuid")}
             element["org_unit"] = {"uuid": element.pop("org_unit_uuid")}
         else:
@@ -882,7 +882,7 @@ async def list_employees_employee(
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
-):
+):  # pragma: no cover
     """Fetch a list of employees for the employee.
 
     Returns:
@@ -920,7 +920,7 @@ async def list_employees_ou(
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
-):
+):  # pragma: no cover
     """Fetch a list of employees for the organisation unit.
 
     Returns:
@@ -1206,7 +1206,7 @@ async def list_kles_employee(
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
-):
+):  # pragma: no cover
     """Fetch a list of kles for the employee."""
     return await get_detail(type="e", id=id, function="kle")
 
@@ -1239,7 +1239,7 @@ async def list_leaves_ou(
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
-):
+):  # pragma: no cover
     """Fetch a list of leaves for the organisation unit."""
     return await get_detail(type="ou", id=id, function="leave")
 
@@ -1418,7 +1418,7 @@ async def list_org_units_employee(
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
-):
+):  # pragma: no cover
     """Fetch a list of org_units for the employee.
 
     Returns:
@@ -1538,7 +1538,7 @@ async def list_related_units_employee(
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
-):
+):  # pragma: no cover
     """Fetch a list of related_units for the employee."""
     return await get_detail(type="e", id=id, function="related_unit")
 

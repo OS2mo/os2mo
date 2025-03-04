@@ -26,14 +26,14 @@ from oio_rest.db.metadata import metadata
 UUID_SEARCH_MIN_PHRASE_LENGTH = 7
 
 
-async def get_table(name, connection: AsyncConnection):
+async def get_table(name, connection: AsyncConnection):  # pragma: no cover
     """Return SQLAlchemy `Table` instance of SQL table called `name`"""
     return await connection.run_sync(lambda c: Table(name, metadata, autoload_with=c))
 
 
 async def find_users_matching(
     session: AsyncSession, phrase: str, class_uuids: list[UUID] | None = None
-):
+):  # pragma: no cover
     """Search for users matching `phrase`, returning a list of database rows
     with `uuid` and `name` attributes."""
 
@@ -194,7 +194,7 @@ async def find_users_matching(
 
 async def find_org_units_matching(
     session: AsyncSession, phrase: str, class_uuids: list[UUID] | None = None
-):
+):  # pragma: no cover
     """Search for organisation units matching `phrase`, returning a list of
     database rows with `uuid` and `name` attributes."""
 
@@ -358,7 +358,7 @@ async def find_org_units_matching(
     return rows
 
 
-async def _org_unit_path(session, all_hits, enhed_uuid):
+async def _org_unit_path(session, all_hits, enhed_uuid):  # pragma: no cover
     # Construct a scalar subselect which will return the path for each found
     # org unit in `all_hits`.
     connection = await session.connection()

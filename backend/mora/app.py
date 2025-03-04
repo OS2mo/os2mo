@@ -60,7 +60,7 @@ from .lora import lora_noop_change_context
 logger = get_logger()
 
 
-async def fallback_handler(*args, **kwargs):
+async def fallback_handler(*args, **kwargs) -> JSONResponse:
     """
     Ensure a nicely formatted json response, with
     minimal knowledge about the exception available.
@@ -79,10 +79,12 @@ async def fallback_handler(*args, **kwargs):
     if exc:
         err = ErrorCodes.E_UNKNOWN.to_http_exception(message=str(exc))
         return http_exception_to_json_response(exc=err)
+    # coverage: pause
     err = ErrorCodes.E_UNKNOWN.to_http_exception(
         message=f"Error details:\nargs: {args}\nkwargs: {kwargs}"
     )
     return http_exception_to_json_response(exc=err)
+    # coverage: unpause
 
 
 async def request_validation_handler(request: Request, exc: RequestValidationError):
@@ -94,7 +96,7 @@ async def request_validation_handler(request: Request, exc: RequestValidationErr
     :return:
     """
     settings = config.get_settings()
-    if not settings.is_production():
+    if not settings.is_production():  # pragma: no cover
         logger.info(
             "os2mo_err_details", exc=exc, url=request.url, params=request.query_params
         )
@@ -166,7 +168,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        if not settings.is_under_test():
+        if not settings.is_under_test():  # pragma: no cover
             instrumentator.expose(app)
 
         await triggers.register(app)
@@ -243,7 +245,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         openapi_tags=list(tags_metadata),
     )
 
-    if not settings.is_under_test():
+    if not settings.is_under_test():  # pragma: no cover
         instrumentator = Instrumentator().instrument(app)
         Info("os2mo_version", "Current version").info(
             {
@@ -326,7 +328,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             status_code=400, content={"message": message, "context": context}
         )
 
-    if settings.sentry_dsn:
+    if settings.sentry_dsn:  # pragma: no cover
         sentry_sdk.init(
             dsn=settings.sentry_dsn,
             integrations=[

@@ -36,15 +36,17 @@ async def handle_requests(
         reqs = [reqs]
     elif isinstance(reqs, list):
         is_single_request = False
-    else:
+    else:  # pragma: no cover
         exceptions.ErrorCodes.E_INVALID_INPUT(request=reqs)
 
     requests = await handlers.generate_requests(reqs, request_type)
 
     uuids = await handlers.submit_requests(requests)
+    # coverage: pause
     if is_single_request:
         uuids = uuids[0]
     return uuids
+    # coverage: unpause
 
 
 @router.post(

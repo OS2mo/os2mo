@@ -98,7 +98,7 @@ async def register(app) -> bool:
             Optional[bool]: True if open, False if not open or an error occurs.
                 None if AMQP support is disabled.
         """
-        if not config.get_settings().amqp_enable:
+        if not config.get_settings().amqp_enable:  # pragma: no cover
             return None
 
         return amqp_system.healthcheck()

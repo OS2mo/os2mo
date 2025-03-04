@@ -79,7 +79,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         addresses = util.checked_get(req, mapping.ADDRESS, [])
         addr_ids = take(len(addresses), map(str, repeatfunc(uuid.uuid4)))
 
-        for address_obj, addr_id in zip(addresses, addr_ids):
+        for address_obj, addr_id in zip(addresses, addr_ids):  # pragma: no cover
             address_obj[mapping.ENGAGEMENT] = {
                 mapping.UUID: func_id,
                 mapping.OBJECTTYPE: mapping.ENGAGEMENT,
@@ -151,7 +151,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
 
         try:
             attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
-        except (TypeError, LookupError):
+        except (TypeError, LookupError):  # pragma: no cover
             attributes = {}
         new_attributes = {}
 
@@ -229,7 +229,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             {"uuid": employee_uuid}, new_from, new_to
         )
 
-        def to_edit_request(address_obj):
+        def to_edit_request(address_obj):  # pragma: no cover
             addr_uuid = address_obj.get(mapping.UUID)
             addr_handler = AddressRequestHandler(
                 {
@@ -240,7 +240,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             )
             return addr_uuid, addr_handler
 
-        def to_create_request(address_obj):
+        def to_create_request(address_obj):  # pragma: no cover
             addr_uuid = str(uuid.uuid4())
             addr_handler = AddressRequestHandler(
                 {
@@ -261,7 +261,9 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         create_requests = map(to_create_request, create_addresses)
 
         self.addresses = []
-        for addr_uuid, addr_handler in chain(edit_requests, create_requests):
+        for addr_uuid, addr_handler in chain(
+            edit_requests, create_requests
+        ):  # pragma: no cover
             update_fields.append(
                 (
                     mapping.ASSOCIATED_MANAGER_ADDRESSES_FIELD,

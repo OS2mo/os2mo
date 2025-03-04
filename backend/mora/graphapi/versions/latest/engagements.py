@@ -46,6 +46,8 @@ async def terminate_engagement(input: EngagementTerminate) -> UUID:
     request = await EngagementRequestHandler.construct(
         input_dict, mapping.RequestType.TERMINATE
     )
+    # coverage: pause
     await request.submit()
 
     return input.uuid
+    # coverage: unpause

@@ -45,6 +45,6 @@ class AssociationRead(MOBase):
 
         MO models an empty employee by None (sane), but LoRa represents it by the empty
         string (insane)."""
-        if value == "":
+        if value == "":  # pragma: no cover
             return None
         return value

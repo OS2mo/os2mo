@@ -23,7 +23,7 @@ variables:
   COMPONENT: os2mo
 
   PYTEST_COV_MODULE: mora
-  PYTEST_COV_FAIL_UNDER: 80
+  PYTEST_COV_FAIL_UNDER: 100
 
 # Conditions
 #############

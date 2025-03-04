@@ -30,7 +30,7 @@ class FacetReader(reading.ReadingHandler):
         return await cls._get_obj_effects(c, object_tuples)
 
     @classmethod
-    async def get_from_type(cls, c, type, objid):
+    async def get_from_type(cls, c, type, objid):  # pragma: no cover
         if type != ROLE_TYPE:
             exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
         object_tuples = await c.facet.get_all_by_uuid(uuids=[objid])

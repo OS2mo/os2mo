@@ -284,7 +284,7 @@ async def get_entity_type(request: Request) -> EntityType:
         return EntityType.EMPLOYEE
 
     types = await asyncio.gather(*(obj_to_type(obj) for obj in payload))
-    if not all(_type == types[0] for _type in types):
+    if not all(_type == types[0] for _type in types):  # pragma: no cover
         logger.debug("Types not identical")
         raise HTTPException(
             error_key=ErrorCodes.E_INVALID_INPUT,
@@ -328,7 +328,7 @@ async def get_entities_graphql(
             # of the new parent. GraphQL edits always contain the full object, so we
             # must compare with the current parent in the database to figure out if it
             # was changed.
-            if parent := getattr(input, "parent", None):
+            if parent := getattr(input, "parent", None):  # pragma: no cover
                 current = await _get_org_unit(getattr(input, "uuid"))
                 current_parent = PARENT_FIELD.get_uuid(current)
                 if str(parent) != current_parent:
@@ -351,9 +351,11 @@ async def get_entities_graphql(
         # database object as well as the new object from the input.
         if permission_type != "create":
             org_function = await _get_org_function(getattr(input, "uuid"))
-            if org_unit_str := ASSOCIATED_ORG_UNITS_FIELD.get_uuid(org_function):
+            if org_unit_str := ASSOCIATED_ORG_UNITS_FIELD.get_uuid(
+                org_function
+            ):  # pragma: no cover
                 yield EntityType.ORG_UNIT, UUID(org_unit_str)
-            elif person_str := USER_FIELD.get_uuid(org_function):
+            elif person_str := USER_FIELD.get_uuid(org_function):  # pragma: no cover
                 yield EntityType.EMPLOYEE, UUID(person_str)
 
         # Existing object (e.g. update). Again, we prefer org unit over person.

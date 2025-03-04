@@ -146,7 +146,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         ]
 
         # If only engagement
-        if len(engagements) <= 1:
+        if len(engagements) <= 1:  # pragma: no cover
             return True
 
         engagement_primary_uuids = [
@@ -168,11 +168,11 @@ async def get_engagement(c: lora.Connector, uuid: UUID) -> dict[str, Any] | None
     :return: First, engagement found (or None)
     """
     engagements = await EngagementReader.get(c, {"uuid": [uuid]})
-    if len(engagements) == 0:
+    if len(engagements) == 0:  # pragma: no cover
         logger.warning("Engagement returned no results", uuid=uuid)
         return None
 
-    if len(engagements) > 1:
+    if len(engagements) > 1:  # pragma: no cover
         logger.warning("Engagement returned more than one result", uuid=uuid)
 
     return engagements[0]

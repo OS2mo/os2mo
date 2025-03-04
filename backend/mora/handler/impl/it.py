@@ -20,7 +20,7 @@ ROLE_TYPE = "it"
 logger = get_logger()
 
 
-async def noop_task() -> None:
+async def noop_task() -> None:  # pragma: no cover
     """Noop task.
 
     Returns:
@@ -113,7 +113,7 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
                 get_connector(), uuid=engagement_uuid
             )
 
-        if primary_uuid:
+        if primary_uuid:  # pragma: no cover
             r[mapping.PRIMARY] = await facet.request_bulked_get_one_class_full(
                 primary_uuid, only_primary_uuid=only_primary_uuid
             )

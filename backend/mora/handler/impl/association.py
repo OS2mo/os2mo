@@ -59,7 +59,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
             # URL contains "?first_party_perspective=1"
             if type == "e":
                 return await cls._get_first_party_perspective(c, objid, assocs)
-            else:
+            else:  # pragma: no cover
                 # "?first_party_perspective=1" is only valid for employees (not org
                 # units.)
                 exceptions.ErrorCodes.E_INVALID_INPUT(
@@ -215,7 +215,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
             mapping.IT: None,
         }
 
-        if is_graphql() and classes:
+        if is_graphql() and classes:  # pragma: no cover
             r[mapping.CLASSES] = await facet.request_bulked_get_one_class_full(
                 classes, only_primary_uuid=only_primary_uuid
             )

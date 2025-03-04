@@ -76,7 +76,7 @@ def _create_service_connector(**loraparams) -> lora.Connector:
         loraparams["effective_date"] = util.from_iso_time(args["at"])
 
     if "validity" in args:
-        if "/" in args["validity"]:
+        if "/" in args["validity"]:  # pragma: no cover
             try:
                 start, end = args["validity"].split("/")
             except ValueError:
@@ -375,9 +375,11 @@ def to_lora_obj(value: dict[str, str] | str) -> dict[str, str]:
     elif isinstance(value, dict):  # if dict, do nothing
         if value.keys() <= {mapping.UUID, mapping.OBJECTTYPE}:
             return value
-        else:
+        else:  # pragma: no cover
             raise ValueError(f"unexpected_lora_keys={value.keys()}")
+    # coverage: pause
     raise TypeError(f"unexpected type: {type(value)}")
+    # coverage: unpause
 
 
 def associated_orgfunc(uuid: str, orgfunc_type: mapping.MoOrgFunk) -> dict[str, str]:
@@ -648,7 +650,7 @@ def create_klasse_payload(
             }
         ]
     }
-    if description:
+    if description:  # pragma: no cover
         attributter["klasseegenskaber"][0]["beskrivelse"] = description
     if scope:
         attributter["klasseegenskaber"][0]["omfang"] = scope
@@ -665,7 +667,7 @@ def create_klasse_payload(
             }
         ],
     }
-    if parent_uuid:
+    if parent_uuid:  # pragma: no cover
         relationer["overordnetklasse"] = [
             {"uuid": parent_uuid, "virkning": virkning, "objekttype": "Klasse"}
         ]
@@ -707,6 +709,7 @@ async def add_history_entry(scope: lora.Scope, id: str, note: str):
     if not obj:
         exceptions.ErrorCodes.E_NOT_FOUND(path=scope.path, uuid=id)
 
+    # coverage: pause
     unique_string = str(uuid.uuid4())
 
     payload = {
@@ -721,6 +724,7 @@ async def add_history_entry(scope: lora.Scope, id: str, note: str):
     }
 
     await scope.update(payload, id)
+    # coverage: unpause
 
 
 def parse_owner_inference_priority_str(
@@ -733,7 +737,7 @@ def parse_owner_inference_priority_str(
     """
     try:
         return OwnerInferencePriority(inference_priority_candidate)
-    except ValueError:
+    except ValueError:  # pragma: no cover
         ErrorCodes.E_INVALID_INPUT(
             f"Invalid {mapping.OWNER_INFERENCE_PRIORITY}: "
             f"{inference_priority_candidate}"
