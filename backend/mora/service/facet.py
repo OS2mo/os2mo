@@ -330,6 +330,7 @@ async def get_one_class(
         response[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
 
     if is_graphql():
+        response["description"] = attrs.get("beskrivelse")
         response["parent_uuid"] = last(
             mapping.PARENT_CLASS_FIELD.get_uuids(clazz), default=None
         )

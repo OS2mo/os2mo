@@ -335,6 +335,7 @@ class ClassCreate(UUIDBase):
     owner: UUID | None = Field(description="Owner of class")
     validity: Validity = Field(description="Validity range for the class.")
     it_system_uuid: UUID | None = Field(description="UUID of the associated IT-system.")
+    description: str | None = Field(description="Description of class.")
 
     class Config:
         frozen = True
@@ -356,6 +357,8 @@ class ClassCreate(UUIDBase):
             klasseegenskaber["eksempel"] = self.example
         if self.scope is not None:
             klasseegenskaber["omfang"] = self.scope
+        if self.description is not None:
+            klasseegenskaber["beskrivelse"] = self.description
 
         relations = {
             "facet": [
