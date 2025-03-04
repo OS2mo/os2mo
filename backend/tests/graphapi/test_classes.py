@@ -930,3 +930,67 @@ async def test_integration_class_owner_filter(graphapi_post: GraphAPIPost) -> No
     # Expect to return all classes except the class that has the owner "Lønorganisation",
     # since it's in a seperate tree to "Overordnet enhed"
     assert include_none == all_classes - 1
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_class_description(
+    graphapi_post: GraphAPIPost,
+):
+    def read_class_description(uuid):
+        response = graphapi_post(
+            """
+          query CreateClass($uuid: UUID!) {
+            classes(filter: {uuids: [$uuid]}) {
+              objects {
+                current {
+                  description
+                }
+              }
+            }
+          }
+        """,
+            variables={"uuid": uuid},
+        )
+        return response.data["classes"]["objects"][0]["current"]["description"]
+
+    response = graphapi_post(
+        """
+      mutation CreateClass {
+        class_create(
+          input: {
+            facet_uuid: "fc917e7c-fc3b-47c2-8aa5-a0383342a280"
+            name: "Et klassenavn"
+            user_key: "En brugervendtnøgle"
+            description: "en beskrivelse"
+            validity: { from: "2024-03-01" }
+          }
+        ) {
+          uuid
+        }
+      }
+    """
+    )
+    uuid = response.data["class_create"]["uuid"]
+    assert "en beskrivelse" == read_class_description(uuid)
+
+    response = graphapi_post(
+        """
+      mutation UpdateClass($uuid: UUID!) {
+        class_update(
+          input: {
+            uuid: $uuid
+            facet_uuid: "fc917e7c-fc3b-47c2-8aa5-a0383342a280"
+            name: "Et klassenavn"
+            user_key: "En brugervendtnøgle"
+            description: "en ny beskrivelse"
+            validity: { from: "2024-06-01" }
+          }
+        ) {
+          uuid
+        }
+      }
+    """,
+        variables={"uuid": uuid},
+    )
+    assert "en ny beskrivelse" == read_class_description(uuid)

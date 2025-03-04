@@ -20,6 +20,7 @@ class ClassRead(MOBase):
     parent_uuid: UUID | None = Field(description="UUID of the parent class.")
     example: str | None = Field(description="Example usage.")
     owner: UUID | None = Field(description="Owner of class")
+    description: str | None = Field(description="Description of the class object.")
 
     name: str = Field(description="Name/title of the class.")
     facet_uuid: UUID = Field(description="UUID of the related facet.")

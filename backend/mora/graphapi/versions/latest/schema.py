@@ -1679,6 +1679,12 @@ class Class:
     async def it_system_uuid(self, root: ClassRead) -> UUID | None:
         return root.it_system_uuid
 
+    @strawberry.field(
+        description="Description of the class",
+    )
+    async def description(self, root: ClassRead) -> str | None:
+        return root.description
+
     validity: OpenValidity = strawberry.auto
 
 
