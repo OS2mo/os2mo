@@ -8,6 +8,7 @@ from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.models import RelatedUnitsUpdate
+from more_itertools import one
 
 from tests.conftest import GQLResponse
 
@@ -165,3 +166,30 @@ async def test_update_related_units_integration_test(test_data, graphapi_post) -
             for dest in test_data["destination"]
         ]
         assert len(relations) == len(objects)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_exclude(graphapi_post: GraphAPIPost) -> None:
+    uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+
+    query = """
+        query RelatedUnits($uuid: UUID!) {
+            related_units(filter: {org_units: [$uuid], exclude: {uuids: [$uuid]}}) {
+                objects {
+                    validities {
+                        org_unit_uuids
+                    }
+                }
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(query, {"uuid": str(uuid)})
+
+    assert response.errors is None
+
+    relations = one(one(response.data["related_units"]["objects"])["validities"])[
+        "org_unit_uuids"
+    ]
+    assert relations == ["9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"]
+    assert uuid not in relations
