@@ -30,29 +30,16 @@ class UserNameGenerator:
     """
 
     def __init__(
-        self,
-        settings: Settings,
-        moapi: MOAPI,
-        ldap_connection: Connection,
-        remove_vowels: bool | None = None,
-        disallow_mo_usernames: bool | None = None,
+        self, settings: Settings, moapi: MOAPI, ldap_connection: Connection
     ) -> None:
         self.settings = settings
         username_generator_settings = settings.conversion_mapping.username_generator
 
         self.moapi = moapi
         self.ldap_connection = ldap_connection
-        self.remove_vowels = (
-            remove_vowels
-            if remove_vowels is not None
-            else username_generator_settings.remove_vowels
-        )
-        self.disallow_mo_usernames = (
-            disallow_mo_usernames
-            if disallow_mo_usernames is not None
-            else username_generator_settings.disallow_mo_usernames
-        )
 
+        self.remove_vowels = username_generator_settings.remove_vowels
+        self.disallow_mo_usernames = username_generator_settings.disallow_mo_usernames
         self.char_replacement = username_generator_settings.char_replacement
         self.forbidden_usernames = username_generator_settings.forbidden_usernames
         self.combinations = username_generator_settings.combinations_to_try
@@ -422,23 +409,3 @@ class UserNameGenerator:
         common_name = await self.generate_common_name(employee)
         dn = self._make_dn(common_name)
         return dn
-
-
-class AlleroedUserNameGenerator(UserNameGenerator):
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        kwargs["remove_vowels"] = True
-        kwargs["disallow_mo_usernames"] = True
-        super().__init__(*args, **kwargs)
-
-
-def get_username_generator_class(
-    username_generator: str,
-) -> type[UserNameGenerator]:
-    match username_generator:
-        case "UserNameGenerator":
-            return UserNameGenerator
-        # TODO: Rename this to something meaningful
-        case "AlleroedUserNameGenerator":
-            return AlleroedUserNameGenerator
-        case _:
-            raise ValueError("No such username_generator")

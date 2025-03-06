@@ -46,8 +46,6 @@ from mo_ldap_import_export.main import process_person
 from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import ITUser
-from mo_ldap_import_export.usernames import UserNameGenerator
-from mo_ldap_import_export.usernames import get_username_generator_class
 from mo_ldap_import_export.utils import get_delete_flag
 from mo_ldap_import_export.utils import mo_today
 from tests.graphql_mocker import GraphQLMocker
@@ -543,17 +541,6 @@ async def test_incorrect_ous_to_search_in() -> None:
     }
     for key, value in overrides.items():
         mp.setenv(key, value)
-
-
-async def test_load_faulty_username_generator() -> None:
-    username_generators = ["UserNameGenerator", "AlleroedUserNameGenerator"]
-    for username_generator in username_generators:
-        clazz = get_username_generator_class(username_generator)
-        assert issubclass(clazz, UserNameGenerator)
-
-    with pytest.raises(ValueError) as exc_info:
-        get_username_generator_class("__unknown_username_generator")
-    assert "No such username_generator" in str(exc_info.value)
 
 
 @pytest.mark.parametrize(
