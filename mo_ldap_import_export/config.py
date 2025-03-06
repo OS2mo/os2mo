@@ -232,7 +232,7 @@ class LDAP2MOMapping(MappingBaseModel):
 
 
 class UsernameGeneratorConfig(MappingBaseModel):
-    objectClass: str = "UserNameGenerator"
+    objectClass: str | None = None
     # TODO: This default is not desired, but kept here for backwards compatability.
     #       In the future it should be moved to the salt-automation configuration.
     #       And the default here should be removed entirely.
@@ -246,11 +246,14 @@ class UsernameGeneratorConfig(MappingBaseModel):
     remove_vowels: bool = False
     disallow_mo_usernames: bool = False
 
-    @validator("objectClass")
-    def object_class_must_be_username_generator(cls, v: str) -> str:
-        if v != "UserNameGenerator":
-            raise ValueError("objectClass must be UserNameGenerator")
-        return v
+    @root_validator(pre=True)
+    def object_class_must_be_username_generator(
+        cls, values: dict[str, Any]
+    ) -> dict[str, Any]:
+        if "objectClass" in values and values["objectClass"] is not None:
+            raise ValueError("objectClass must always be None")
+        values["objectClass"] = "UserNameGenerator"
+        return values
 
     @validator("forbidden_usernames")
     def casefold_forbidden_usernames(cls, v: list[str]) -> list[str]:

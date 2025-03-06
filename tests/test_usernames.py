@@ -123,7 +123,6 @@ def alleroed_username_generator(
     existing_usernames_ldap: list,
 ) -> Iterator[UserNameGenerator]:
     username_generator_config = {
-        "objectClass": "UserNameGenerator",
         "char_replacement": {},
         # Note: We need some 'X's in this list. to account for potential duplicates
         # Note2: We need some short combinations in this list, to account for persons with

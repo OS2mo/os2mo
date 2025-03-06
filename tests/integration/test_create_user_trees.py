@@ -64,7 +64,6 @@ CONVERSION_MAPPING = json.dumps(
             }}
         """,
         "username_generator": {
-            "objectClass": "UserNameGenerator",
             "combinations_to_try": ["FFFX", "LLLX"],
         },
     }

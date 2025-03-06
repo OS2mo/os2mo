@@ -304,8 +304,8 @@ async def test_set_username_generator_object_class(
 
     errors = [
         "1 validation error for Settings",
-        "conversion_mapping -> username_generator -> objectClass",
-        "objectClass must be UserNameGenerator",
+        "conversion_mapping -> username_generator -> __root__",
+        "objectClass must always be None",
     ]
     for error in errors:
         assert error in str(exc_info.value)

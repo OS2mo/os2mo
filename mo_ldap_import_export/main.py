@@ -296,6 +296,7 @@ async def lifespan(
         ldapapi = LDAPAPI(settings, ldap_connection)
 
         logger.info("Initializing username generator")
+        assert settings.conversion_mapping.username_generator.objectClass is not None
         username_generator_class = get_username_generator_class(
             settings.conversion_mapping.username_generator.objectClass
         )
