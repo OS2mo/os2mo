@@ -48,7 +48,7 @@ from .ldap_amqp import ldap2mo_router
 from .ldap_event_generator import LDAPEventGenerator
 from .ldap_event_generator import ldap_event_router
 from .routes import construct_router
-from .usernames import get_username_generator_class
+from .usernames import UserNameGenerator
 
 logger = structlog.stdlib.get_logger()
 
@@ -296,12 +296,7 @@ async def lifespan(
         ldapapi = LDAPAPI(settings, ldap_connection)
 
         logger.info("Initializing username generator")
-        username_generator_class = get_username_generator_class(
-            settings.conversion_mapping.username_generator.objectClass
-        )
-        username_generator = username_generator_class(
-            settings, moapi, ldapapi.ldap_connection
-        )
+        username_generator = UserNameGenerator(settings, moapi, ldapapi.ldap_connection)
 
         logger.info("Initializing dataloader")
         dataloader = DataLoader(settings, moapi, ldapapi, username_generator)

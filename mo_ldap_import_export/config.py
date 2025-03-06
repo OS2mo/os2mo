@@ -232,7 +232,6 @@ class LDAP2MOMapping(MappingBaseModel):
 
 
 class UsernameGeneratorConfig(MappingBaseModel):
-    objectClass: str = "UserNameGenerator"
     # TODO: This default is not desired, but kept here for backwards compatability.
     #       In the future it should be moved to the salt-automation configuration.
     #       And the default here should be removed entirely.
