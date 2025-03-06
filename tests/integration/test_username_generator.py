@@ -204,18 +204,15 @@ async def test_generate_username_use_fxxx_combination(
         "CONVERSION_MAPPING": json.dumps(
             {
                 "username_generator": {
-                    # AlleroedUserNameGenerator is really poorly named, it does not do
-                    # anything that is highly specific to Alleroed, but rather it does
-                    # two seemingly unrelated, but straight forward things:
-                    # 1. It checks for taken usernames in MO's IT-systems, instead of
-                    #    just checking active LDAP accounts.
-                    # 2. It removes vowels from everything but first names
-                    #    - Do not ask me why, but that is what it does
-                    "objectClass": "AlleroedUserNameGenerator",
-                    # It must be configured using the `existing_username_itsystem` key
-                    # which points to the user-key of the IT-system containing the reserved
-                    # LDAP usernames, for testing we use the existing ADtitle system.
+                    # Setting both "disallow_mo_usernames" and "remove_vowels" is
+                    # equivalent to the old "AlleroedUserNameGenerator"
+                    # disallow_mo_usernames must be configured using the
+                    # `existing_username_itsystem` key which points to the user-key of
+                    # the IT-system containing the reserved LDAP usernames.
+                    # For testing we use the existing ADtitle system.
+                    "disallow_mo_usernames": "True",
                     "existing_usernames_itsystem": "ADtitle",
+                    "remove_vowels": "True",
                     "combinations_to_try": ["FFFX", "LLLX"],
                 }
             }
