@@ -1730,7 +1730,7 @@ class TestPGErrors:
 
         # Act
         with pytest.raises(DBException):
-            await db.delete_object("OrganisationEnhed", "", "", str(uuid4()))
+            await db.delete_object("OrganisationEnhed", "", str(uuid4()))
 
     @patch("oio_rest.db.StatementError", new=FakeException)
     @patch("oio_rest.db.object_exists", new=AsyncMock(side_effect=lambda *x: False))
@@ -1754,7 +1754,7 @@ class TestPGErrors:
 
         # Act
         with pytest.raises(NotFoundException):
-            await db.delete_object(class_name, "", "", uuid)
+            await db.delete_object(class_name, "", uuid)
 
     @patch("oio_rest.db.StatementError", new=FakeException)
     async def test_delete_object_raises_on_unknown_pgerror(
@@ -1768,7 +1768,7 @@ class TestPGErrors:
 
         # Act
         with pytest.raises(TestPGErrors.FakeException):
-            await db.delete_object("OrganisationEnhed", "", "", str(uuid4()))
+            await db.delete_object("OrganisationEnhed", "", str(uuid4()))
 
     @patch("oio_rest.db.StatementError", new=FakeException)
     async def test_passivate_object_raises_on_pgerror(

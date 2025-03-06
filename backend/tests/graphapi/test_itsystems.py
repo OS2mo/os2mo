@@ -305,9 +305,4 @@ def test_itsystem_delete_mocked(uuid: UUID, graphapi_post: GraphAPIPost) -> None
         deleted_uuid = UUID(response.data["itsystem_delete"]["uuid"])
         assert deleted_uuid == uuid
 
-        mock.assert_called_with(
-            "itsystem",
-            {"states": {}, "attributes": {}, "relations": {}},
-            "",
-            str(uuid),
-        )
+        mock.assert_called_with("itsystem", "", str(uuid))

@@ -35,14 +35,8 @@ async def terminate_facet(input: FacetTerminate) -> UUID:
 
 
 async def delete_facet(facet_uuid: UUID) -> UUID:
-    # Gather a blank registration
-    registration: dict = {
-        "states": {},
-        "attributes": {},
-        "relations": {},
-    }
     # Let LoRa's SQL templates do their magic
-    await db.delete_object("facet", registration, "", str(facet_uuid))
+    await db.delete_object("facet", "", str(facet_uuid))
     # coverage: pause
     return facet_uuid
     # coverage: unpause

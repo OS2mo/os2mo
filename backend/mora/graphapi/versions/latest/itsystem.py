@@ -36,12 +36,6 @@ async def terminate_itsystem(input: ITSystemTerminate) -> UUID:
 
 
 async def delete_itsystem(itsystem_uuid: UUID, note: str) -> UUID:
-    # Gather a blank registration
-    registration: dict[str, dict] = {
-        "states": {},
-        "attributes": {},
-        "relations": {},
-    }
     # Let LoRa's SQL templates do their magic
-    await db.delete_object("itsystem", registration, note, str(itsystem_uuid))
+    await db.delete_object("itsystem", note, str(itsystem_uuid))
     return itsystem_uuid
