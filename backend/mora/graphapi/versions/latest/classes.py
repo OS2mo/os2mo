@@ -35,14 +35,8 @@ async def terminate_class(input: ClassTerminate) -> UUID:
 
 
 async def delete_class(class_uuid: UUID) -> UUID:
-    # Gather a blank registration
-    registration: dict = {
-        "states": {},
-        "attributes": {},
-        "relations": {},
-    }
     # Let LoRa's SQL templates do their magic
-    await db.delete_object("klasse", registration, "", str(class_uuid))
+    await db.delete_object("klasse", "", str(class_uuid))
     # coverage: pause
     return class_uuid
     # coverage: unpause

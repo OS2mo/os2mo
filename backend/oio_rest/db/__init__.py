@@ -11,6 +11,7 @@ from typing import Any
 from uuid import UUID
 
 import dateutil
+import sqlalchemy
 from dateutil import parser as date_parser
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -362,48 +363,28 @@ async def create_or_import_object(class_name, note, registration, uuid=None):
     return result.fetchone()[0]
 
 
-async def delete_object(class_name, registration, note, uuid):  # pragma: no cover
+async def delete_object(class_name, note, uuid):  # pragma: no cover
     """Delete object by using the stored procedure.
 
     Deleting is the same as updating with the life cycle code "Slettet".
     """
-
     if not (await object_exists(class_name, uuid)):
         raise NotFoundException(f"No {class_name} with ID {uuid} found.")
 
-    life_cycle_code = Livscyklus.SLETTET.value
-
-    if (await get_life_cycle_code(class_name, uuid)) == life_cycle_code:
+    if (await get_life_cycle_code(class_name, uuid)) == Livscyklus.SLETTET.value:
         # Already deleted, no problem as DELETE is idempotent.
         return
 
-    user_ref = str(get_authenticated_user())
-    sql_template = jinja_env.get_template("update_object.sql")
-    registration = sql_convert_registration(registration, class_name)
-    sql = text(
-        sql_template.render(
-            class_name=class_name,
-            uuid=uuid,
-            life_cycle_code=life_cycle_code,
-            user_ref=user_ref,
-            note=note,
-            states=registration["states"],
-            attributes=registration["attributes"],
-            relations=registration["relations"],
-            variants=registration.get("variants", None),
-        )
+    await get_session().execute(
+        sqlalchemy.text(
+            f"SELECT _as_create_{class_name}_registrering(:uuid, 'Slettet'::livscykluskode, :actor, :note);"
+        ),
+        {
+            "uuid": uuid,
+            "actor": get_authenticated_user(),
+            "note": note,
+        },
     )
-
-    session = get_session()
-    try:
-        result = await session.execute(sql)
-    except StatementError as e:
-        if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
-            status_code = int(e.orig.sqlstate[2:])
-            raise DBException(status_code, e.orig.diag.message_primary)
-        else:
-            raise
-    return result.fetchone()[0]
 
 
 async def passivate_object(class_name, note, registration, uuid):

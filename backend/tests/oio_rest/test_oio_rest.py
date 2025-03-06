@@ -1048,7 +1048,6 @@ class TestOIORestObject(ExtTestCase):
         # type: (MagicMock) -> None
         # Arrange
         uuid = "cb94b2ec-33a5-4730-b87e-520e2b82fa9a"
-        expected_reg = {"attributes": {}, "relations": {}, "states": {}}
 
         data = {"note": "NOTE"}
 
@@ -1062,9 +1061,7 @@ class TestOIORestObject(ExtTestCase):
 
         # Assert
         mock_delete.assert_called()
-        actual_reg = mock_delete.call_args[0][1]
-        actual_uuid = mock_delete.call_args[0][3]
-        assert expected_reg == actual_reg
+        actual_uuid = mock_delete.call_args[0][2]
         assert uuid == actual_uuid
 
     async def test_delete_object_raises_on_unknown_args(self):

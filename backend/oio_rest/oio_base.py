@@ -732,11 +732,9 @@ class OIORestObject:
 
         note = typed_get(input, "note", "")
         class_name = cls.__name__
-        # Gather a blank registration
-        registration = cls.gather_registration({})
         # request.api_operation = "Slet"
         # request.uuid = uuid
-        await db.delete_object(class_name, registration, note, uuid)
+        await db.delete_object(class_name, note, uuid)
         # coverage: pause
         return {"uuid": uuid}
         # coverage: unpause
