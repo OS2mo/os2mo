@@ -246,6 +246,12 @@ class UsernameGeneratorConfig(MappingBaseModel):
     remove_vowels: bool = False
     disallow_mo_usernames: bool = False
 
+    @validator("objectClass")
+    def object_class_must_be_username_generator(cls, v: str) -> str:
+        if v != "UserNameGenerator":
+            raise ValueError("objectClass must be UserNameGenerator")
+        return v
+
     @validator("forbidden_usernames")
     def casefold_forbidden_usernames(cls, v: list[str]) -> list[str]:
         return [u.casefold() for u in v]
