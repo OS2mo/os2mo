@@ -128,19 +128,14 @@ async def handle_engagement(
     amqpsystem: depends.AMQPSystem,
 ) -> None:
     result = await graphql_client.read_engagement_employee_uuid(object_uuid)
-    try:
-        obj = one(result.objects)
-    except ValueError as error:
-        logger.warning("Unable to lookup engagement", uuid=object_uuid)
-        raise RejectMessage("Unable to lookup engagement") from error
-
-    if obj.current is None:
-        logger.warning("Engagement not currently active", uuid=object_uuid)
-        raise RejectMessage("Engagement not currently active")
-
-    person_uuid = obj.current.employee_uuid
+    person_uuids = {
+        validity.employee_uuid for obj in result.objects for validity in obj.validities
+    }
+    if not person_uuids:
+        logger.warning("Unable to lookup Engagement", uuid=object_uuid)
+        return
     # TODO: Add support for refreshing persons with a certain engagement directly
-    await graphql_client.employee_refresh(amqpsystem.exchange_name, [person_uuid])
+    await graphql_client.employee_refresh(amqpsystem.exchange_name, list(person_uuids))
 
 
 @mo2ldap_router.post("/ituser")

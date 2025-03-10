@@ -1107,9 +1107,9 @@ class GraphQLClient(AsyncBaseClient):
         query = gql(
             """
             query read_engagement_employee_uuid($engagement_uuid: UUID!) {
-              engagements(filter: {uuids: [$engagement_uuid]}) {
+              engagements(filter: {uuids: [$engagement_uuid], from_date: null, to_date: null}) {
                 objects {
-                  current {
+                  validities {
                     employee_uuid
                   }
                 }
