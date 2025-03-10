@@ -139,20 +139,24 @@ async def mo_person(graphql_client: GraphQLClient) -> UUID:
 
 
 @pytest.fixture
-async def mo_org_unit(graphql_client: GraphQLClient) -> UUID:
-    afdeling = one(
+async def afdeling(graphql_client: GraphQLClient) -> UUID:
+    return one(
         (
             await graphql_client.read_class_uuid_by_facet_and_class_user_key(
                 "org_unit_type", "Afdeling"
             )
         ).objects
-    )
+    ).uuid
+
+
+@pytest.fixture
+async def mo_org_unit(graphql_client: GraphQLClient, afdeling: UUID) -> UUID:
     r = await graphql_client.org_unit_create(
         input=OrganisationUnitCreateInput(
             user_key="os2mo",
             name="os2mo",
             parent=None,
-            org_unit_type=afdeling.uuid,
+            org_unit_type=afdeling,
             validity={"from": "1960-01-01T00:00:00Z"},
         )
     )
