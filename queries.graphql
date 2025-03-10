@@ -206,9 +206,9 @@ mutation org_unit_create($input: OrganisationUnitCreateInput!) {
 }
 
 query read_employees_with_engagement_to_org_unit($org_unit_uuid: UUID!) {
-  engagements(filter: { org_unit: { uuids: [$org_unit_uuid] } }) {
+  engagements(filter: { org_unit: { uuids: [$org_unit_uuid] }, from_date: null, to_date: null }) {
     objects {
-      current {
+      validities {
         employee_uuid
       }
     }
@@ -525,9 +525,9 @@ query read_engagement_employee_uuid($engagement_uuid: UUID!) {
 }
 
 query read_address_relation_uuids($address_uuid: UUID!) {
-  addresses(filter: { uuids: [$address_uuid] }) {
+  addresses(filter: { uuids: [$address_uuid], from_date: null, to_date: null }) {
     objects {
-      current {
+      validities {
         employee_uuid
         org_unit_uuid
       }

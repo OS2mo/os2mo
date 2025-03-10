@@ -200,7 +200,9 @@ from .org_unit_engagements_refresh import OrgUnitEngagementsRefreshEngagementRef
 from .read_address_relation_uuids import ReadAddressRelationUuids
 from .read_address_relation_uuids import ReadAddressRelationUuidsAddresses
 from .read_address_relation_uuids import ReadAddressRelationUuidsAddressesObjects
-from .read_address_relation_uuids import ReadAddressRelationUuidsAddressesObjectsCurrent
+from .read_address_relation_uuids import (
+    ReadAddressRelationUuidsAddressesObjectsValidities,
+)
 from .read_address_uuid import ReadAddressUuid
 from .read_address_uuid import ReadAddressUuidAddresses
 from .read_address_uuid import ReadAddressUuidAddressesObjects
@@ -537,7 +539,7 @@ __all__ = [
     "ReadAddressRelationUuids",
     "ReadAddressRelationUuidsAddresses",
     "ReadAddressRelationUuidsAddressesObjects",
-    "ReadAddressRelationUuidsAddressesObjectsCurrent",
+    "ReadAddressRelationUuidsAddressesObjectsValidities",
     "ReadAddressUuid",
     "ReadAddressUuidAddresses",
     "ReadAddressUuidAddressesObjects",

@@ -82,23 +82,25 @@ async def handle_address(
     amqpsystem: depends.AMQPSystem,
 ) -> None:
     result = await graphql_client.read_address_relation_uuids(object_uuid)
-    try:
-        obj = one(result.objects)
-    except ValueError as error:
-        logger.warning("Unable to lookup address", uuid=object_uuid)
-        raise RejectMessage("Unable to lookup address") from error
+    person_uuids = {
+        validity.employee_uuid
+        for obj in result.objects
+        for validity in obj.validities
+        if validity.employee_uuid is not None
+    }
+    org_unit_uuids = {
+        validity.org_unit_uuid
+        for obj in result.objects
+        for validity in obj.validities
+        if validity.org_unit_uuid is not None
+    }
 
-    if obj.current is None:
-        logger.warning("Address not currently active", uuid=object_uuid)
-        raise RejectMessage("Address not currently active")
-
-    person_uuid = obj.current.employee_uuid
-    org_unit_uuid = obj.current.org_unit_uuid
-
-    if person_uuid is not None:
+    if person_uuids:
         # TODO: Add support for refreshing persons with a certain address directly
-        await graphql_client.employee_refresh(amqpsystem.exchange_name, [person_uuid])
-    if org_unit_uuid is not None:
+        await graphql_client.employee_refresh(
+            amqpsystem.exchange_name, list(person_uuids)
+        )
+    for org_unit_uuid in org_unit_uuids:
         await handle_org_unit(org_unit_uuid, graphql_client, amqpsystem)
 
 

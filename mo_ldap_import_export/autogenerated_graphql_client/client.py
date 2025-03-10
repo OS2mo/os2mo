@@ -1128,9 +1128,9 @@ class GraphQLClient(AsyncBaseClient):
         query = gql(
             """
             query read_address_relation_uuids($address_uuid: UUID!) {
-              addresses(filter: {uuids: [$address_uuid]}) {
+              addresses(filter: {uuids: [$address_uuid], from_date: null, to_date: null}) {
                 objects {
-                  current {
+                  validities {
                     employee_uuid
                     org_unit_uuid
                   }
