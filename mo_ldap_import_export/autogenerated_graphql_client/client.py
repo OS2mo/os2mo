@@ -126,8 +126,8 @@ from .read_ituser_by_employee_and_itsystem_uuid import (
 from .read_ituser_by_employee_and_itsystem_uuid import (
     ReadItuserByEmployeeAndItsystemUuidItusers,
 )
-from .read_ituser_employee_uuid import ReadItuserEmployeeUuid
-from .read_ituser_employee_uuid import ReadItuserEmployeeUuidItusers
+from .read_ituser_relation_uuids import ReadItuserRelationUuids
+from .read_ituser_relation_uuids import ReadItuserRelationUuidsItusers
 from .read_ituser_uuid import ReadItuserUuid
 from .read_ituser_uuid import ReadItuserUuidItusers
 from .read_itusers import ReadItusers
@@ -1053,16 +1053,17 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ReadEngagementsIsPrimary.parse_obj(data).engagements
 
-    async def read_ituser_employee_uuid(
+    async def read_ituser_relation_uuids(
         self, ituser_uuid: UUID
-    ) -> ReadItuserEmployeeUuidItusers:
+    ) -> ReadItuserRelationUuidsItusers:
         query = gql(
             """
-            query read_ituser_employee_uuid($ituser_uuid: UUID!) {
-              itusers(filter: {uuids: [$ituser_uuid]}) {
+            query read_ituser_relation_uuids($ituser_uuid: UUID!) {
+              itusers(filter: {uuids: [$ituser_uuid], from_date: null, to_date: null}) {
                 objects {
-                  current {
+                  validities {
                     employee_uuid
+                    org_unit_uuid
                   }
                 }
               }
@@ -1072,7 +1073,7 @@ class GraphQLClient(AsyncBaseClient):
         variables: dict[str, object] = {"ituser_uuid": ituser_uuid}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
-        return ReadItuserEmployeeUuid.parse_obj(data).itusers
+        return ReadItuserRelationUuids.parse_obj(data).itusers
 
     async def read_engagement_employee_uuid(
         self, engagement_uuid: UUID

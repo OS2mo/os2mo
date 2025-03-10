@@ -352,10 +352,10 @@ from .read_ituser_by_employee_and_itsystem_uuid import (
 from .read_ituser_by_employee_and_itsystem_uuid import (
     ReadItuserByEmployeeAndItsystemUuidItusersObjects,
 )
-from .read_ituser_employee_uuid import ReadItuserEmployeeUuid
-from .read_ituser_employee_uuid import ReadItuserEmployeeUuidItusers
-from .read_ituser_employee_uuid import ReadItuserEmployeeUuidItusersObjects
-from .read_ituser_employee_uuid import ReadItuserEmployeeUuidItusersObjectsCurrent
+from .read_ituser_relation_uuids import ReadItuserRelationUuids
+from .read_ituser_relation_uuids import ReadItuserRelationUuidsItusers
+from .read_ituser_relation_uuids import ReadItuserRelationUuidsItusersObjects
+from .read_ituser_relation_uuids import ReadItuserRelationUuidsItusersObjectsValidities
 from .read_ituser_uuid import ReadItuserUuid
 from .read_ituser_uuid import ReadItuserUuidItusers
 from .read_ituser_uuid import ReadItuserUuidItusersObjects
@@ -627,10 +627,10 @@ __all__ = [
     "ReadItuserByEmployeeAndItsystemUuid",
     "ReadItuserByEmployeeAndItsystemUuidItusers",
     "ReadItuserByEmployeeAndItsystemUuidItusersObjects",
-    "ReadItuserEmployeeUuid",
-    "ReadItuserEmployeeUuidItusers",
-    "ReadItuserEmployeeUuidItusersObjects",
-    "ReadItuserEmployeeUuidItusersObjectsCurrent",
+    "ReadItuserRelationUuids",
+    "ReadItuserRelationUuidsItusers",
+    "ReadItuserRelationUuidsItusersObjects",
+    "ReadItuserRelationUuidsItusersObjectsValidities",
     "ReadItuserUuid",
     "ReadItuserUuidItusers",
     "ReadItuserUuidItusersObjects",
