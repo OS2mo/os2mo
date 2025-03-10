@@ -99,17 +99,7 @@ async def handle_address(
         # TODO: Add support for refreshing persons with a certain address directly
         await graphql_client.employee_refresh(amqpsystem.exchange_name, [person_uuid])
     if org_unit_uuid is not None:
-        # TODO: Should really only be primary engagement relations
-        e_result = await graphql_client.read_employees_with_engagement_to_org_unit(
-            org_unit_uuid
-        )
-        employee_uuids = {
-            x.current.employee_uuid for x in e_result.objects if x.current is not None
-        }
-        # TODO: Add support for refreshing persons with a primary engagement relation directly
-        await graphql_client.employee_refresh(
-            amqpsystem.exchange_name, list(employee_uuids)
-        )
+        await handle_org_unit(org_unit_uuid, graphql_client, amqpsystem)
 
 
 @mo2ldap_router.post("/engagement")

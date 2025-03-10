@@ -450,8 +450,8 @@ async def test_listen_to_address_org_unit(graphql_mock: GraphQLMocker) -> None:
     graphql_client = GraphQLClient("http://example.com/graphql")
 
     org_unit_uuid = uuid4()
-    employee_uuid = uuid4()
     address_uuid = uuid4()
+    engagement_uuid = uuid4()
 
     address_route = graphql_mock.query("read_address_relation_uuids")
     address_route.result = {
@@ -462,16 +462,13 @@ async def test_listen_to_address_org_unit(graphql_mock: GraphQLMocker) -> None:
         }
     }
 
-    employee_route = graphql_mock.query("read_employees_with_engagement_to_org_unit")
-    employee_route.result = {
-        "engagements": {"objects": [{"current": {"employee_uuid": employee_uuid}}]}
+    org_unit_engagements_refresh_route = graphql_mock.query("engagement_refresh")
+    org_unit_engagements_refresh_route.result = {
+        "engagement_refresh": {"objects": [engagement_uuid]}
     }
 
-    employee_refresh_route = graphql_mock.query("employee_refresh")
-    employee_refresh_route.result = {"employee_refresh": {"objects": [employee_uuid]}}
-
     await process_address(address_uuid, graphql_client, amqpsystem)
-    assert employee_refresh_route.called
+    assert org_unit_engagements_refresh_route.called
 
 
 @pytest.mark.parametrize(
