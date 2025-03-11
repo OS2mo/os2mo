@@ -392,6 +392,12 @@ mutation employee_refresh($exchange: String!, $uuids: [UUID!]!) {
   }
 }
 
+mutation org_unit_refresh($exchange: String!, $uuids: [UUID!]!) {
+  org_unit_refresh(exchange: $exchange, filter: { uuids: $uuids }) {
+    objects
+  }
+}
+
 query read_addresses(
   $uuids: [UUID!]!
   $from_date: DateTime
