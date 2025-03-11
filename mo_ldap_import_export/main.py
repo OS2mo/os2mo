@@ -79,6 +79,10 @@ async def handle_address(
     graphql_client: depends.GraphQLClient,
     amqpsystem: depends.AMQPSystem,
 ) -> None:
+    logger.info(
+        "Registered change in an address",
+        object_uuid=object_uuid,
+    )
     result = await graphql_client.read_address_relation_uuids(object_uuid)
     person_uuids = {
         validity.employee_uuid
@@ -129,6 +133,10 @@ async def handle_engagement(
     graphql_client: depends.GraphQLClient,
     amqpsystem: depends.AMQPSystem,
 ) -> None:
+    logger.info(
+        "Registered change in an engagement",
+        object_uuid=object_uuid,
+    )
     result = await graphql_client.read_engagement_employee_uuid(object_uuid)
     person_uuids = {
         validity.employee_uuid for obj in result.objects for validity in obj.validities
@@ -165,6 +173,10 @@ async def handle_ituser(
     graphql_client: depends.GraphQLClient,
     amqpsystem: depends.AMQPSystem,
 ) -> None:
+    logger.info(
+        "Registered change in an ituser",
+        object_uuid=object_uuid,
+    )
     result = await graphql_client.read_ituser_relation_uuids(object_uuid)
     person_uuids = {
         validity.employee_uuid
@@ -207,6 +219,10 @@ async def process_person(
     graphql_client: depends.GraphQLClient,
     amqpsystem: depends.AMQPSystem,
 ) -> None:
+    logger.info(
+        "Registered change in a person",
+        object_uuid=object_uuid,
+    )
     try:
         await amqp_reject_on_failure(sync_tool.listen_to_changes_in_employees)(
             object_uuid
