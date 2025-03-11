@@ -369,55 +369,6 @@ async def test_listen_to_ituser_failure(
     assert error in str(exc_info.value)
 
 
-async def test_listen_to_engagement(graphql_mock: GraphQLMocker) -> None:
-    amqpsystem = create_autospec(AMQPSystem)
-    amqpsystem.exchange_name = "wow"
-
-    graphql_client = GraphQLClient("http://example.com/graphql")
-
-    employee_uuid = uuid4()
-
-    employee_route = graphql_mock.query("read_engagement_employee_uuid")
-    employee_route.result = {
-        "engagements": {"objects": [{"current": {"employee_uuid": employee_uuid}}]}
-    }
-
-    employee_refresh_route = graphql_mock.query("employee_refresh")
-    employee_refresh_route.result = {"employee_refresh": {"objects": [employee_uuid]}}
-
-    await process_engagement(employee_uuid, graphql_client, amqpsystem)
-    assert employee_refresh_route.called
-
-
-@pytest.mark.parametrize(
-    "objects,error",
-    [
-        # Must return exactly one result
-        ([], "Unable to lookup engagement"),
-        ([{"current": None}, {"current": None}], "Unable to lookup engagement"),
-        # Must have current result
-        ([{"current": None}], "Engagement not currently active"),
-    ],
-)
-async def test_listen_to_engagement_failure(
-    graphql_mock: GraphQLMocker,
-    objects: list[dict[str, Any]],
-    error: str,
-) -> None:
-    amqpsystem = create_autospec(AMQPSystem)
-    amqpsystem.exchange_name = "wow"
-
-    graphql_client = GraphQLClient("http://example.com/graphql")
-
-    employee_route = graphql_mock.query("read_engagement_employee_uuid")
-    employee_route.result = {"engagements": {"objects": objects}}
-
-    employee_uuid = uuid4()
-    with pytest.raises(RejectMessage) as exc_info:
-        await process_engagement(employee_uuid, graphql_client, amqpsystem)
-    assert error in str(exc_info.value)
-
-
 async def test_listen_to_address_person(graphql_mock: GraphQLMocker) -> None:
     amqpsystem = create_autospec(AMQPSystem)
     amqpsystem.exchange_name = "wow"

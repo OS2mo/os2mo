@@ -284,7 +284,7 @@ from .read_engagement_employee_uuid import ReadEngagementEmployeeUuid
 from .read_engagement_employee_uuid import ReadEngagementEmployeeUuidEngagements
 from .read_engagement_employee_uuid import ReadEngagementEmployeeUuidEngagementsObjects
 from .read_engagement_employee_uuid import (
-    ReadEngagementEmployeeUuidEngagementsObjectsCurrent,
+    ReadEngagementEmployeeUuidEngagementsObjectsValidities,
 )
 from .read_engagement_enddate import ReadEngagementEnddate
 from .read_engagement_enddate import ReadEngagementEnddateEngagements
@@ -590,7 +590,7 @@ __all__ = [
     "ReadEngagementEmployeeUuid",
     "ReadEngagementEmployeeUuidEngagements",
     "ReadEngagementEmployeeUuidEngagementsObjects",
-    "ReadEngagementEmployeeUuidEngagementsObjectsCurrent",
+    "ReadEngagementEmployeeUuidEngagementsObjectsValidities",
     "ReadEngagementEnddate",
     "ReadEngagementEnddateEngagements",
     "ReadEngagementEnddateEngagementsObjects",

@@ -1,4 +1,3 @@
-from typing import Optional
 from uuid import UUID
 
 from .base_model import BaseModel
@@ -13,14 +12,14 @@ class ReadEngagementEmployeeUuidEngagements(BaseModel):
 
 
 class ReadEngagementEmployeeUuidEngagementsObjects(BaseModel):
-    current: Optional["ReadEngagementEmployeeUuidEngagementsObjectsCurrent"]
+    validities: list["ReadEngagementEmployeeUuidEngagementsObjectsValidities"]
 
 
-class ReadEngagementEmployeeUuidEngagementsObjectsCurrent(BaseModel):
+class ReadEngagementEmployeeUuidEngagementsObjectsValidities(BaseModel):
     employee_uuid: UUID
 
 
 ReadEngagementEmployeeUuid.update_forward_refs()
 ReadEngagementEmployeeUuidEngagements.update_forward_refs()
 ReadEngagementEmployeeUuidEngagementsObjects.update_forward_refs()
-ReadEngagementEmployeeUuidEngagementsObjectsCurrent.update_forward_refs()
+ReadEngagementEmployeeUuidEngagementsObjectsValidities.update_forward_refs()
