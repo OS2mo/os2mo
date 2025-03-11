@@ -205,16 +205,6 @@ mutation org_unit_create($input: OrganisationUnitCreateInput!) {
   }
 }
 
-query read_employees_with_engagement_to_org_unit($org_unit_uuid: UUID!) {
-  engagements(filter: { org_unit: { uuids: [$org_unit_uuid] }, from_date: null, to_date: null }) {
-    objects {
-      validities {
-        employee_uuid
-      }
-    }
-  }
-}
-
 query read_engagements(
   $uuids: [UUID!]!
   $from_date: DateTime
