@@ -21,10 +21,8 @@ from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from fastramqpi.ramqp.depends import rate_limit
 from fastramqpi.ramqp.mo import MORouter
 from fastramqpi.ramqp.mo import PayloadUUID
-from fastramqpi.ramqp.utils import RejectMessage
 from fastramqpi.ramqp.utils import RequeueMessage
 from ldap3 import Connection
-from more_itertools import one
 
 from mo_ldap_import_export.ldapapi import LDAPAPI
 from mo_ldap_import_export.moapi import MOAPI
@@ -165,24 +163,26 @@ async def handle_ituser(
     graphql_client: depends.GraphQLClient,
     amqpsystem: depends.AMQPSystem,
 ) -> None:
-    result = await graphql_client.read_ituser_employee_uuid(object_uuid)
-    try:
-        obj = one(result.objects)
-    except ValueError as error:
-        logger.warning("Unable to lookup ITUser", uuid=object_uuid)
-        raise RejectMessage("Unable to lookup ITUser") from error
-
-    if obj.current is None:
-        logger.warning("ITUser not currently active", uuid=object_uuid)
-        raise RejectMessage("ITUser not currently active")
-
-    person_uuid = obj.current.employee_uuid
-    if person_uuid is None:
-        logger.warning("ITUser not attached to a person", uuid=object_uuid)
-        raise RejectMessage("ITUser not attached to a person")
-
-    # TODO: Add support for refreshing persons with a certain ituser directly
-    await graphql_client.employee_refresh(amqpsystem.exchange_name, [person_uuid])
+    result = await graphql_client.read_ituser_relation_uuids(object_uuid)
+    person_uuids = {
+        validity.employee_uuid
+        for obj in result.objects
+        for validity in obj.validities
+        if validity.employee_uuid is not None
+    }
+    org_unit_uuids = {
+        validity.org_unit_uuid
+        for obj in result.objects
+        for validity in obj.validities
+        if validity.org_unit_uuid is not None
+    }
+    if person_uuids:
+        # TODO: Add support for refreshing persons with a certain address directly
+        await graphql_client.employee_refresh(
+            amqpsystem.exchange_name, list(person_uuids)
+        )
+    for org_unit_uuid in org_unit_uuids:
+        await handle_org_unit(org_unit_uuid, graphql_client, amqpsystem)
 
 
 @mo2ldap_router.post("/person")

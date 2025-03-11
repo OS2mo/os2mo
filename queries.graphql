@@ -494,11 +494,12 @@ query read_engagements_is_primary($filter: EngagementFilter!) {
   }
 }
 
-query read_ituser_employee_uuid($ituser_uuid: UUID!) {
-  itusers(filter: { uuids: [$ituser_uuid] }) {
+query read_ituser_relation_uuids($ituser_uuid: UUID!) {
+  itusers(filter: { uuids: [$ituser_uuid], from_date: null, to_date: null }) {
     objects {
-      current {
+      validities {
         employee_uuid
+        org_unit_uuid
       }
     }
   }

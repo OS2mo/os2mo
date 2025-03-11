@@ -263,6 +263,11 @@ async def intern(graphql_client: GraphQLClient) -> UUID:
 
 
 @pytest.fixture
+async def adtitle(graphql_client: GraphQLClient) -> UUID:
+    return one((await graphql_client.read_itsystem_uuid("ADtitle")).objects).uuid
+
+
+@pytest.fixture
 async def trigger_sync(
     test_client: AsyncClient,
 ) -> Callable[[EmployeeUUID], Awaitable[None]]:

@@ -16,7 +16,6 @@ from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.environments import generate_username
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.main import create_fastramqpi
-from mo_ldap_import_export.moapi import MOAPI
 from tests.integration.conftest import AddLdapPerson
 
 
@@ -258,22 +257,21 @@ async def test_generate_username_use_fxxx_combination(
 @pytest.mark.usefixtures("test_client")
 async def test_generate_username_avoids_mo_taken_names(
     graphql_client: GraphQLClient,
-    mo_api: MOAPI,
     context: Context,
     start: datetime,
     end: datetime | None,
     mo_person: UUID,
+    adtitle: UUID,
     taken: set[str],
     expected: str,
 ) -> None:
-    it_system_uuid = UUID(await mo_api.get_it_system_uuid("ADtitle"))
     # Create an IT-user MO to take away the username
     for userid in taken:
         await graphql_client.ituser_create(
             ITUserCreateInput(
                 person=mo_person,
                 user_key=userid,
-                itsystem=it_system_uuid,
+                itsystem=adtitle,
                 validity={"from": start, "to": end},
             )
         )
