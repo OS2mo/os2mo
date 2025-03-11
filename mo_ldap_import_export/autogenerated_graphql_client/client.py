@@ -98,12 +98,6 @@ from .read_employee_uuid_by_ituser_user_key import (
 )
 from .read_employees import ReadEmployees
 from .read_employees import ReadEmployeesEmployees
-from .read_employees_with_engagement_to_org_unit import (
-    ReadEmployeesWithEngagementToOrgUnit,
-)
-from .read_employees_with_engagement_to_org_unit import (
-    ReadEmployeesWithEngagementToOrgUnitEngagements,
-)
 from .read_engagement_employee_uuid import ReadEngagementEmployeeUuid
 from .read_engagement_employee_uuid import ReadEngagementEmployeeUuidEngagements
 from .read_engagement_enddate import ReadEngagementEnddate
@@ -575,27 +569,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return OrgUnitCreate.parse_obj(data).org_unit_create
-
-    async def read_employees_with_engagement_to_org_unit(
-        self, org_unit_uuid: UUID
-    ) -> ReadEmployeesWithEngagementToOrgUnitEngagements:
-        query = gql(
-            """
-            query read_employees_with_engagement_to_org_unit($org_unit_uuid: UUID!) {
-              engagements(filter: {org_unit: {uuids: [$org_unit_uuid]}}) {
-                objects {
-                  current {
-                    employee_uuid
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"org_unit_uuid": org_unit_uuid}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadEmployeesWithEngagementToOrgUnit.parse_obj(data).engagements
 
     async def read_engagements(
         self,
@@ -1128,9 +1101,9 @@ class GraphQLClient(AsyncBaseClient):
         query = gql(
             """
             query read_address_relation_uuids($address_uuid: UUID!) {
-              addresses(filter: {uuids: [$address_uuid]}) {
+              addresses(filter: {uuids: [$address_uuid], from_date: null, to_date: null}) {
                 objects {
-                  current {
+                  validities {
                     employee_uuid
                     org_unit_uuid
                   }

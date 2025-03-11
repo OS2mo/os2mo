@@ -298,8 +298,8 @@ async def test_mo2ldap_address(test_client: AsyncClient) -> None:
     result = await test_client.post(
         "/mo2ldap/address", content=content, headers=headers
     )
-    assert result.status_code == 451
-    assert result.json() == {"detail": "Unable to lookup address"}
+    assert result.status_code == 200
+    assert result.text == "null"
 
 
 @pytest.mark.integration_test

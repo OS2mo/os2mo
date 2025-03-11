@@ -136,16 +136,8 @@ async def create_engagement(
 
 @pytest.fixture
 async def create_org_unit(
-    graphql_client: GraphQLClient,
+    graphql_client: GraphQLClient, afdeling: UUID
 ) -> Callable[[OrgUnitUUID, OrgUnitUUID | None], Awaitable[None]]:
-    afdeling = one(
-        (
-            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-                "org_unit_type", "Afdeling"
-            )
-        ).objects
-    ).uuid
-
     async def creator(uuid: OrgUnitUUID, parent: OrgUnitUUID | None = None) -> None:
         result = await graphql_client.org_unit_create(
             OrganisationUnitCreateInput(

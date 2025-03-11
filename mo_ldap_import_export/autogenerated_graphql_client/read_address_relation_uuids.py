@@ -1,4 +1,3 @@
-from typing import Optional
 from uuid import UUID
 
 from .base_model import BaseModel
@@ -13,10 +12,10 @@ class ReadAddressRelationUuidsAddresses(BaseModel):
 
 
 class ReadAddressRelationUuidsAddressesObjects(BaseModel):
-    current: Optional["ReadAddressRelationUuidsAddressesObjectsCurrent"]
+    validities: list["ReadAddressRelationUuidsAddressesObjectsValidities"]
 
 
-class ReadAddressRelationUuidsAddressesObjectsCurrent(BaseModel):
+class ReadAddressRelationUuidsAddressesObjectsValidities(BaseModel):
     employee_uuid: UUID | None
     org_unit_uuid: UUID | None
 
@@ -24,4 +23,4 @@ class ReadAddressRelationUuidsAddressesObjectsCurrent(BaseModel):
 ReadAddressRelationUuids.update_forward_refs()
 ReadAddressRelationUuidsAddresses.update_forward_refs()
 ReadAddressRelationUuidsAddressesObjects.update_forward_refs()
-ReadAddressRelationUuidsAddressesObjectsCurrent.update_forward_refs()
+ReadAddressRelationUuidsAddressesObjectsValidities.update_forward_refs()
