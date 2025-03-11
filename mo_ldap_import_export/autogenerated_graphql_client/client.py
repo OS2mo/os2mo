@@ -64,6 +64,8 @@ from .org_unit_create import OrgUnitCreate
 from .org_unit_create import OrgUnitCreateOrgUnitCreate
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefreshEngagementRefresh
+from .org_unit_refresh import OrgUnitRefresh
+from .org_unit_refresh import OrgUnitRefreshOrgUnitRefresh
 from .read_address_relation_uuids import ReadAddressRelationUuids
 from .read_address_relation_uuids import ReadAddressRelationUuidsAddresses
 from .read_address_uuid import ReadAddressUuid
@@ -891,6 +893,23 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return EmployeeRefresh.parse_obj(data).employee_refresh
+
+    async def org_unit_refresh(
+        self, exchange: str, uuids: list[UUID]
+    ) -> OrgUnitRefreshOrgUnitRefresh:
+        query = gql(
+            """
+            mutation org_unit_refresh($exchange: String!, $uuids: [UUID!]!) {
+              org_unit_refresh(exchange: $exchange, filter: {uuids: $uuids}) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"exchange": exchange, "uuids": uuids}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return OrgUnitRefresh.parse_obj(data).org_unit_refresh
 
     async def read_addresses(
         self,

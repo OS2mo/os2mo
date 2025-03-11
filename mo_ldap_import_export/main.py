@@ -98,8 +98,10 @@ async def handle_address(
         await graphql_client.employee_refresh(
             amqpsystem.exchange_name, list(person_uuids)
         )
-    for org_unit_uuid in org_unit_uuids:
-        await handle_org_unit(org_unit_uuid, graphql_client, amqpsystem)
+    if org_unit_uuids:
+        await graphql_client.org_unit_refresh(
+            amqpsystem.exchange_name, list(org_unit_uuids)
+        )
 
 
 @mo2ldap_router.post("/engagement")
@@ -181,8 +183,10 @@ async def handle_ituser(
         await graphql_client.employee_refresh(
             amqpsystem.exchange_name, list(person_uuids)
         )
-    for org_unit_uuid in org_unit_uuids:
-        await handle_org_unit(org_unit_uuid, graphql_client, amqpsystem)
+    if org_unit_uuids:
+        await graphql_client.org_unit_refresh(
+            amqpsystem.exchange_name, list(org_unit_uuids)
+        )
 
 
 @mo2ldap_router.post("/person")

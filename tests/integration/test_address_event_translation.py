@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
 from unittest.mock import AsyncMock
-from unittest.mock import call
 from uuid import UUID
 
 import pytest
@@ -211,7 +210,7 @@ async def test_address2orgunit(
     start: datetime | None,
     end: datetime | None,
 ) -> None:
-    graphql_client.org_unit_engagements_refresh = AsyncMock()  # type: ignore
+    graphql_client.org_unit_refresh = AsyncMock()  # type: ignore
 
     address = await graphql_client.address_create(
         input=AddressCreateInput(
@@ -231,8 +230,8 @@ async def test_address2orgunit(
     result.raise_for_status()
 
     # Check that we send the event to MO
-    graphql_client.org_unit_engagements_refresh.assert_awaited_once_with(
-        "os2mo_ldap_ie", mo_org_unit
+    graphql_client.org_unit_refresh.assert_awaited_once_with(
+        "os2mo_ldap_ie", [mo_org_unit]
     )
 
 
@@ -249,7 +248,7 @@ async def test_address2orgunit_between(
     mo_org_unit: UUID,
     email_unit: UUID,
 ) -> None:
-    graphql_client.org_unit_engagements_refresh = AsyncMock()  # type: ignore
+    graphql_client.org_unit_refresh = AsyncMock()  # type: ignore
 
     address = await graphql_client.address_create(
         input=AddressCreateInput(
@@ -277,8 +276,8 @@ async def test_address2orgunit_between(
     result.raise_for_status()
 
     # Check that we send the event to MO
-    graphql_client.org_unit_engagements_refresh.assert_awaited_once_with(
-        "os2mo_ldap_ie", mo_org_unit
+    graphql_client.org_unit_refresh.assert_awaited_once_with(
+        "os2mo_ldap_ie", [mo_org_unit]
     )
 
 
@@ -295,7 +294,7 @@ async def test_address2orgunit_change_orgunit(
     email_unit: UUID,
     afdeling: UUID,
 ) -> None:
-    graphql_client.org_unit_engagements_refresh = AsyncMock()  # type: ignore
+    graphql_client.org_unit_refresh = AsyncMock()  # type: ignore
 
     org_unit1 = await graphql_client.org_unit_create(
         input=OrganisationUnitCreateInput(
@@ -338,7 +337,7 @@ async def test_address2orgunit_change_orgunit(
     result.raise_for_status()
 
     # Check that we send the event to MO
-    graphql_client.org_unit_engagements_refresh.assert_has_calls(
-        [call("os2mo_ldap_ie", org_unit1.uuid), call("os2mo_ldap_ie", org_unit2.uuid)],
-        any_order=True,
-    )
+    args = one(graphql_client.org_unit_refresh.call_args_list).args
+    exchange, uuids = args
+    assert exchange == "os2mo_ldap_ie"
+    assert set(uuids) == {org_unit1.uuid, org_unit2.uuid}
