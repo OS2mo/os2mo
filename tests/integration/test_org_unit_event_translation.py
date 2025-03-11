@@ -38,9 +38,7 @@ async def assert_person_events(
             any_order=True,
         )
 
-    # FastRAMQPI has bad typing on the `retry()` decorator
-    # TODO: Remove when FastRAMQPI has proper typing
-    return verify  # type: ignore
+    return verify
 
 
 @pytest.mark.integration_test
