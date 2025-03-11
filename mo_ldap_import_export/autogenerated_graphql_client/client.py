@@ -862,7 +862,7 @@ class GraphQLClient(AsyncBaseClient):
             mutation org_unit_engagements_refresh($exchange: String!, $org_unit_uuid: UUID!) {
               engagement_refresh(
                 exchange: $exchange
-                filter: {org_unit: {uuids: [$org_unit_uuid]}}
+                filter: {org_unit: {uuids: [$org_unit_uuid]}, from_date: null, to_date: null}
               ) {
                 objects
               }
