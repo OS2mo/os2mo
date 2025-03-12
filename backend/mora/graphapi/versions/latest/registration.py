@@ -19,7 +19,7 @@ from sqlalchemy.sql.expression import Select
 from starlette_context import context
 from strawberry.types import Info
 
-from mora.audit import audit_log
+from mora.access_log import access_log
 from mora.db import BrugerRegistrering
 from mora.db import FacetRegistrering
 from mora.db import ITSystemRegistrering
@@ -285,7 +285,7 @@ async def registration_resolver(
 
     session = info.context["session"]
     result = list(await session.execute(query))
-    audit_log(
+    access_log(
         session,
         "resolve_registrations",
         "Registration",

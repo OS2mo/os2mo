@@ -34,7 +34,7 @@ from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 from strawberry.types.unset import UnsetType
 
-from mora.audit import audit_log
+from mora.access_log import access_log
 from mora.db import HasValidity
 from mora.db import LivscyklusKode
 from mora.db import OrganisationEnhedAttrEgenskaber
@@ -1032,7 +1032,7 @@ async def organisation_unit_resolver(
         query_uuids = await search_orgunits(session, filter.query)
         uuids = list(sorted(set(uuids).intersection(query_uuids)))
 
-    audit_log(
+    access_log(
         session,
         "filter_orgunits",
         "OrganisationEnhed",

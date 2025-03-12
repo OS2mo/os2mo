@@ -11,7 +11,7 @@ from starlette_context import context
 from strawberry.types import Info
 
 from mora import db
-from mora.audit import audit_log
+from mora.access_log import access_log
 from mora.config import get_public_settings
 from mora.graphapi.gmodels.mo.details.association import AssociationRead
 from mora.graphapi.gmodels.mo.details.engagement import EngagementRead
@@ -25,8 +25,8 @@ from mora.graphapi.gmodels.mo.details.related_unit import RelatedUnitRead
 from mora.graphapi.gmodels.mo.employee import EmployeeRead
 from mora.graphapi.gmodels.mo.organisation_unit import OrganisationUnitRead
 
-from .audit import AuditLog
-from .audit import audit_log_resolver
+from .access_log import AccessLog
+from .access_log import access_log_resolver
 from .filters import ConfigurationFilter
 from .filters import FileFilter
 from .filters import HealthFilter
@@ -122,9 +122,9 @@ async def file_resolver(
         filter = FileFilter()
 
     session = info.context["session"]
-    # We do not need the audit log elsewhere for files, because this is the
+    # We do not need the access log elsewhere for files, because this is the
     # only way to resolve a `File` (which is needed to read the content).
-    audit_log(
+    access_log(
         session,
         "file_resolver",
         "File",
@@ -370,16 +370,19 @@ class Query:
         ],
     )
 
-    auditlog: Paged[AuditLog] = strawberry.field(
-        resolver=to_paged(audit_log_resolver, AuditLog),
+    access_log: Paged[AccessLog] = strawberry.field(
+        resolver=to_paged(access_log_resolver, AccessLog),
         description=dedent(
             """\
-            Get a list of audit events.
+            Get a list of access events.
 
             Mostly useful for auditing purposes seeing when data was read and by whom.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("auditlog")],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("accesslog"),
+        ],
     )
 
     # Root Organisation

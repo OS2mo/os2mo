@@ -18,7 +18,7 @@ from mora.config import get_settings
 Collections = Literal[
     "address",
     "association",
-    "auditlog",
+    "accesslog",
     "class",
     "configuration",
     "employee",

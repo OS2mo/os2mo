@@ -1,10 +1,10 @@
 ---
-title: Auditlog
+title: Access Log
 ---
 
-# Auditlog
+# Access Log
 
-Auditloggen kan konsulteres via GraphQL, men på sigt er det planen, at den også skal kunne tilgås i brugergrænsefladen.
+Access-loggen kan konsulteres via GraphQL, men på sigt er det planen, at den også skal kunne tilgås i brugergrænsefladen.
 
 Det er muligt på struktureret vis at:
 

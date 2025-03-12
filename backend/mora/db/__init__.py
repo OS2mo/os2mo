@@ -15,8 +15,8 @@ from starlette_context import request_cycle_context
 
 from . import files
 from ._amqp import AMQPSubsystem
-from ._audit import AuditLogOperation
-from ._audit import AuditLogRead
+from ._access_log import AccessLogOperation
+from ._access_log import AccessLogRead
 from ._bruger import Bruger
 from ._bruger import BrugerAttrEgenskaber
 from ._bruger import BrugerAttrUdvidelser

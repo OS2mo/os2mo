@@ -14,10 +14,10 @@ from starlette_context import context
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
-from mora.audit import audit_log
+from mora.access_log import access_log
+from mora.db import AccessLogOperation as AccessLogOperation
+from mora.db import AccessLogRead as AccessLogRead
 from mora.db import AsyncSession
-from mora.db import AuditLogOperation as AuditLogOperation
-from mora.db import AuditLogRead as AuditLogRead
 
 from ..latest.filters import gen_filter_string
 from ..latest.filters import gen_filter_table
@@ -26,21 +26,23 @@ from .paged import LimitType
 from .resolvers import get_sqlalchemy_date_interval
 
 
-def get_audit_loaders(session: AsyncSession) -> dict[str, DataLoader]:
-    """Return dataloaders required for auditing functionality.
+def get_access_log_loaders(session: AsyncSession) -> dict[str, DataLoader]:
+    """Return dataloaders required for access log functionality.
 
     Args:
         session: The DB session to run queries on.
 
     Returns:
-        A dictionary of loaders required for auditing functionality.
+        A dictionary of loaders required for access log functionality.
     """
     return {
-        "audit_read_loader": DataLoader(load_fn=partial(audit_read_loader, session))
+        "access_log_read_loader": DataLoader(
+            load_fn=partial(access_log_read_loader, session)
+        )
     }
 
 
-async def audit_read_loader(
+async def access_log_read_loader(
     session: AsyncSession, keys: list[UUID]
 ) -> list[list[UUID]]:
     """Load UUIDs registered as read for the given operation.
@@ -53,8 +55,8 @@ async def audit_read_loader(
         A list containing a sublist for each UUID in keys.
         Each sublist containing the UUIDs read by the operation.
     """
-    query = select(AuditLogRead.operation_id, AuditLogRead.uuid).where(
-        AuditLogRead.operation_id.in_(keys)
+    query = select(AccessLogRead.operation_id, AccessLogRead.uuid).where(
+        AccessLogRead.operation_id.in_(keys)
     )
     result = list(await session.execute(query))
     buckets = bucket(result, apply(lambda operation_id, _: operation_id))
@@ -62,8 +64,8 @@ async def audit_read_loader(
 
 
 @strawberry.enum
-class AuditLogModel(Enum):
-    AUDIT_LOG = "AuditLog"
+class AccessLogModel(Enum):
+    ACCESS_LOG = "AccessLog"
     PERSON = "Bruger"
     FACET = "Facet"
     IT_SYSTEM = "ItSystem"
@@ -79,7 +81,7 @@ class AuditLogModel(Enum):
 @strawberry.type(
     description=dedent(
         """\
-        AuditLog entry.
+        Access log entry.
 
         Mostly useful for auditing purposes seeing when data-reads were done and by whom.
         """
@@ -87,11 +89,11 @@ class AuditLogModel(Enum):
 )
 # Intentionally not including operation and arguments from the underlying table
 # Once LoRa's API and the Service API has been removed, we may want to log the GraphQL query
-class AuditLog:
+class AccessLog:
     id: UUID = strawberry.field(
         description=dedent(
             """\
-            UUID of the audit entry itself.
+            UUID of the access log entry itself.
             """
         )
     )
@@ -121,7 +123,7 @@ class AuditLog:
     )
 
     # Name of the entity model
-    model: AuditLogModel = strawberry.field(
+    model: AccessLogModel = strawberry.field(
         description=dedent(
             """\
         Model of the modified entity.
@@ -138,11 +140,11 @@ class AuditLog:
         )
     )
     async def uuids(self, info: Info) -> list[UUID]:
-        return await info.context["audit_read_loader"].load(self.id)
+        return await info.context["access_log_read_loader"].load(self.id)
 
 
-@strawberry.input(description="Audit log filter.")
-class AuditLogFilter:
+@strawberry.input(description="Access log log filter.")
+class AccessLogFilter:
     ids: list[UUID] | None = strawberry.field(
         default=None, description=gen_filter_string("ID", "ids")
     )
@@ -155,7 +157,7 @@ class AuditLogFilter:
         default=None,
         description=dedent(
             """\
-            Filter audit events by their reading actor.
+            Filter access log events by their reading actor.
 
             Can be used to select all data read by a particular user or integration.
             """
@@ -163,16 +165,16 @@ class AuditLogFilter:
         + gen_filter_table("actors"),
     )
 
-    models: list[AuditLogModel] | None = strawberry.field(
+    models: list[AccessLogModel] | None = strawberry.field(
         default=None,
         description=dedent(
             """\
-            Filter audit events by their model type.
+            Filter access log events by their model type.
 
             Can be used to select all reads for a data type.
 
             Can be one of:
-            * `"AuditLog"`
+            * `"AccessLog"`
             * `"Bruger"`
             * `"Facet"`
             * `"ItSystem"`
@@ -195,42 +197,42 @@ class AuditLogFilter:
     )
 
 
-async def audit_log_resolver(
+async def access_log_resolver(
     info: Info,
-    filter: AuditLogFilter | None = None,
+    filter: AccessLogFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[AuditLog]:
+) -> list[AccessLog]:
     if filter is None:
-        filter = AuditLogFilter()
+        filter = AccessLogFilter()
 
-    query = select(AuditLogOperation)
+    query = select(AccessLogOperation)
     if filter.ids is not None:  # pragma: no cover
-        query = query.where(AuditLogOperation.id.in_(filter.ids))
+        query = query.where(AccessLogOperation.id.in_(filter.ids))
 
     if filter.uuids is not None:
-        subquery = select(AuditLogRead.operation_id).filter(
-            AuditLogRead.uuid.in_(filter.uuids)
+        subquery = select(AccessLogRead.operation_id).filter(
+            AccessLogRead.uuid.in_(filter.uuids)
         )
-        query = query.where(AuditLogOperation.id.in_(subquery))
+        query = query.where(AccessLogOperation.id.in_(subquery))
 
     if filter.actors is not None:
-        query = query.where(AuditLogOperation.actor.in_(filter.actors))
+        query = query.where(AccessLogOperation.actor.in_(filter.actors))
 
     if filter.models is not None:
         models = [model.value for model in filter.models]
-        query = query.where(AuditLogOperation.model.in_(models))
+        query = query.where(AccessLogOperation.model.in_(models))
 
     if filter.start is not None or filter.end is not None:  # pragma: no cover
         start, end = get_sqlalchemy_date_interval(filter.start, filter.end)
-        query = query.where(AuditLogOperation.time.between(start, end))
+        query = query.where(AccessLogOperation.time.between(start, end))
 
     # Pagination
     if cursor:
         # Make sure we only see objects created before pagination started
-        query = query.where(AuditLogOperation.time <= cursor.registration_time)
+        query = query.where(AccessLogOperation.time <= cursor.registration_time)
     # Order by time, then by UUID so the order of pagination is well-defined
-    query = query.order_by(AuditLogOperation.time, AuditLogOperation.id)
+    query = query.order_by(AccessLogOperation.time, AccessLogOperation.id)
     if limit is not None:
         # Fetch one extra element to see if there is another page
         query = query.limit(limit + 1)
@@ -238,10 +240,10 @@ async def audit_log_resolver(
 
     session = info.context["session"]
     result = list(await session.scalars(query))
-    audit_log(
+    access_log(
         session,
-        "resolve_auditlog",
-        "AuditLog",
+        "resolve_accesslog",
+        "AccessLog",
         {
             "limit": limit,
             "cursor": cursor,
@@ -251,7 +253,7 @@ async def audit_log_resolver(
             "start": filter.start,
             "end": filter.end,
         },
-        [auditlog.id for auditlog in result],
+        [accesslog.id for accesslog in result],
     )
 
     if limit is not None:
@@ -263,11 +265,11 @@ async def audit_log_resolver(
             result = result[:-1]
 
     return [
-        AuditLog(
-            id=auditlog.id,
-            time=auditlog.time,
-            actor=auditlog.actor,
-            model=auditlog.model,
+        AccessLog(
+            id=accesslog.id,
+            time=accesslog.time,
+            actor=accesslog.actor,
+            model=accesslog.model,
         )
-        for auditlog in result
+        for accesslog in result
     ]

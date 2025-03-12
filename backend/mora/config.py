@@ -127,12 +127,12 @@ class Settings(BaseSettings):
     fetch_trigger_timeout: int = 5
     run_trigger_timeout: int = 5
 
-    # AuditLog settings
-    audit_readlog_enable: bool = Field(
+    # AccessLog settings
+    access_log_enable: bool = Field(
         False,
         description=dedent(
             """
-            Whether to do audit logging of read operations.
+            Whether to do access logging of read operations.
 
             Disabled by default due to performance considerations.
 
@@ -140,20 +140,20 @@ class Settings(BaseSettings):
             """
         ),
     )
-    audit_readlog_no_log_uuids: list[UUID] = Field(
+    access_log_no_log_uuids: list[UUID] = Field(
         [],
         description=dedent(
             """
-            Selective disabling of audit read logging for specified UUIDs.
+            Selective disabling of access logging for specified UUIDs.
 
-            The provided UUIDs should be client or user UUIDs meant to have their audit
-            read logging disabled. Preferably only clients.
+            The provided UUIDs should be client or user UUIDs meant to have their access
+            logging disabled. Preferably only clients.
 
-            Please note that using this feature flag makes the audit readlog slightly
+            Please note that using this feature flag makes the access log slightly
             incorrect and thus slightly untrustworthy.
 
             It is mainly useful to avoid logging integrations that read tons of data.
-            As otherwise the audit read log grows at an incredible pace.
+            As otherwise the access log grows at an incredible pace.
             """
         ),
     )

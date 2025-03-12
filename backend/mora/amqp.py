@@ -15,7 +15,7 @@ object type (e.g. "org_unit") and the content is the UUID of the affected
 object.
 """
 
-# TODO: Do we wanna audit-log database access from here?
+# TODO: Do we wanna access-log database access from here?
 import asyncio
 import random
 from typing import Literal

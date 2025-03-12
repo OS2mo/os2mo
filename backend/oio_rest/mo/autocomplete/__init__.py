@@ -6,7 +6,7 @@
 # where the MO extensions have not been installed.
 from uuid import UUID
 
-from mora.audit import audit_log
+from mora.access_log import access_log
 from psycopg import AsyncConnection
 from sqlalchemy import Table
 from sqlalchemy import Text
@@ -182,7 +182,7 @@ async def find_users_matching(
     uuids = [x["uuid"] for x in rows]
     # TODO: Log org-funk lookups
     # TODO: Log class lookups
-    audit_log(
+    access_log(
         session,
         "find_users_matching",
         "Bruger",
@@ -348,7 +348,7 @@ async def find_org_units_matching(
     uuids = [x["uuid"] for x in rows]
     # TODO: Log org-funk lookups
     # TODO: Log class lookups
-    audit_log(
+    access_log(
         session,
         "find_org_units_matching",
         "OrganisationEnhed",

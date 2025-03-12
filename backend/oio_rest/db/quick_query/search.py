@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from mora.audit import audit_log
+from mora.access_log import access_log
 from mora.db import get_session
 from more_itertools import flatten
 from oio_rest.db import Livscyklus
@@ -552,7 +552,7 @@ async def quick_search(
         qb.add_relation(x)
 
     sql = text(qb.get_query())
-    audit_log_arguments = {
+    access_log_arguments = {
         "uuid": uuid,
         "virkning_fra": virkning_fra,
         "virkning_til": virkning_til,
@@ -571,11 +571,11 @@ async def quick_search(
     result = await session.execute(sql)
     output = result.fetchall()
     uuids = list(flatten(output))
-    audit_log(
+    access_log(
         session,
         "quick_search",
         org_class_name,
-        audit_log_arguments,
+        access_log_arguments,
         list(map(ensure_uuid, uuids)),
     )
 
