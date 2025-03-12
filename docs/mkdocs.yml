@@ -13,7 +13,7 @@ nav:
       - home/manual.md
       - home/landscape.md
   - Funktionalitet:
-      - features/auditlog.md
+      - features/accesslog.md
       - features/email-notifikationer.md
       - features/stillingsbetegnelser.md
       - features/indplacering-af-it-brugere.md

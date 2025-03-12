@@ -9,18 +9,18 @@ from sqlalchemy.orm import Session
 
 from mora.auth.middleware import get_authenticated_user
 from mora.config import get_settings
-from mora.db import AuditLogOperation
-from mora.db import AuditLogRead
+from mora.db import AccessLogOperation
+from mora.db import AccessLogRead
 
 
-def audit_log(
+def access_log(
     session: Session | AsyncSession,
     operation: str,
     class_name: str,
     arguments: dict[str, Any],
     uuids: list[UUID],
 ) -> None:
-    """Insert an entry into the audit log.
+    """Insert an entry into the access log.
 
     Args:
         session: SQLAlchemy sync or async session within an active transaction.
@@ -30,17 +30,17 @@ def audit_log(
         uuids: UUIDs read by the operation.
     """
     settings = get_settings()
-    if not settings.audit_readlog_enable:
+    if not settings.access_log_enable:
         return
-    if get_authenticated_user() in settings.audit_readlog_no_log_uuids:
+    if get_authenticated_user() in settings.access_log_no_log_uuids:
         return
 
-    operation = AuditLogOperation(
+    operation = AccessLogOperation(
         actor=get_authenticated_user(),
         model=class_name,
         operation=operation,
         arguments=jsonable_encoder(arguments),
     )
-    uuids = [AuditLogRead(operation=operation, uuid=uuid) for uuid in uuids]
+    uuids = [AccessLogRead(operation=operation, uuid=uuid) for uuid in uuids]
     session.add(operation)
     session.add_all(uuids)

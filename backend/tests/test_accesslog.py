@@ -14,13 +14,13 @@ from fastapi.encoders import jsonable_encoder
 from hypothesis import HealthCheck
 from hypothesis import given
 from hypothesis import settings
-from mora.audit import audit_log
+from mora.access_log import access_log
 from mora.auth.middleware import LORA_USER_UUID
 from mora.auth.middleware import set_authenticated_user
+from mora.db import AccessLogOperation
+from mora.db import AccessLogRead
 from mora.db import AsyncSession
-from mora.db import AuditLogOperation
-from mora.db import AuditLogRead
-from mora.graphapi.versions.latest.audit import AuditLogModel
+from mora.graphapi.versions.latest.access_log import AccessLogModel
 from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.orgunits import search_orgunits
 from mora.util import DEFAULT_TIMEZONE
@@ -33,17 +33,17 @@ from tests.conftest import GraphAPIPost
 from tests.conftest import admin_auth_uuid
 
 
-async def assert_empty_audit_tables(session) -> None:
-    query = select(AuditLogOperation)
+async def assert_empty_access_log_tables(session) -> None:
+    query = select(AccessLogOperation)
     result = list(await session.scalars(query))
     assert result == []
 
-    query = select(AuditLogRead)
+    query = select(AccessLogRead)
     result = list(await session.scalars(query))
     assert result == []
 
 
-async def assert_one_audit_entry(
+async def assert_one_access_log_entry(
     session,
     model: str,
     operation: str,
@@ -57,55 +57,55 @@ async def assert_one_audit_entry(
     now = now or (datetime.now(tz=DEFAULT_TIMEZONE) - timedelta(minutes=1))
     uuids = uuids or []
 
-    query = select(AuditLogOperation)
-    audit_operation = one(await session.scalars(query))
+    query = select(AccessLogOperation)
+    access_log_operation = one(await session.scalars(query))
 
-    assert audit_operation.time > now
-    assert audit_operation.actor == actor
-    assert audit_operation.model == model
+    assert access_log_operation.time > now
+    assert access_log_operation.actor == actor
+    assert access_log_operation.model == model
 
-    assert audit_operation.operation == operation
-    assert audit_operation.arguments == arguments
+    assert access_log_operation.operation == operation
+    assert access_log_operation.arguments == arguments
 
-    query = select(AuditLogRead)
+    query = select(AccessLogRead)
     reads = list(await session.scalars(query))
     read_uuids = []
     for read in reads:
-        assert read.operation_id == audit_operation.id
+        assert read.operation_id == access_log_operation.id
         read_uuids.append(read.uuid)
 
     assert read_uuids == uuids
 
 
 @pytest.mark.integration_test
-async def test_auditlog_database(
+async def test_access_log_database(
     empty_db: AsyncSession, set_settings: MonkeyPatch
 ) -> None:
-    """Integrationtest for reading and writing the auditlog."""
+    """Integrationtest for reading and writing the access log."""
 
-    set_settings(AUDIT_READLOG_ENABLE="True")
+    set_settings(ACCESS_LOG_ENABLE="True")
 
-    await assert_empty_audit_tables(empty_db)
+    await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
-    audit_log(empty_db, "test_auditlog", "AuditLog", {}, [uuid])
+    access_log(empty_db, "test_accesslog", "AccessLog", {}, [uuid])
 
-    await assert_one_audit_entry(empty_db, "AuditLog", "test_auditlog", [uuid])
+    await assert_one_access_log_entry(empty_db, "AccessLog", "test_accesslog", [uuid])
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-async def test_auditlog_graphql_self(
+async def test_access_log_graphql_self(
     set_settings: MonkeyPatch, graphapi_post: GraphAPIPost
 ) -> None:
-    """Integrationtest for reading and writing the auditlog."""
+    """Integrationtest for reading and writing the access log."""
 
-    set_settings(AUDIT_READLOG_ENABLE="True")
+    set_settings(ACCESS_LOG_ENABLE="True")
     now = datetime.now(tz=DEFAULT_TIMEZONE)
 
     query = """
-        query ReadAuditLog {
-          auditlog {
+        query ReadAccessLog {
+          access_log {
             objects {
               id
               time
@@ -116,31 +116,31 @@ async def test_auditlog_graphql_self(
           }
         }
     """
-    # First call returns nothing, but produces an audit event
+    # First call returns nothing, but produces an access log event
     response = graphapi_post(query)
     assert response.errors is None
-    assert response.data == {"auditlog": {"objects": []}}
+    assert response.data == {"access_log": {"objects": []}}
 
-    # Next call reads the first calls audit event and makes another
+    # Next call reads the first calls access log event and makes another
     response = graphapi_post(query)
     assert response.errors is None
-    result = one(response.data["auditlog"]["objects"])
+    result = one(response.data["access_log"]["objects"])
 
     assert datetime.fromisoformat(result["time"]) > now
     assert result["actor"] == str(await admin_auth_uuid())
-    assert result["model"] == "AUDIT_LOG"
+    assert result["model"] == "ACCESS_LOG"
     assert result["uuids"] == []
 
-    # This call reads both audit events (and makes yet another)
+    # This call reads both access log events (and makes yet another)
     response = graphapi_post(query)
     assert response.errors is None
-    old_result, new_result = list(response.data["auditlog"]["objects"])
+    old_result, new_result = list(response.data["access_log"]["objects"])
 
     assert old_result == result
 
     assert datetime.fromisoformat(new_result["time"]) > now
     assert new_result["actor"] == str(await admin_auth_uuid())
-    assert new_result["model"] == "AUDIT_LOG"
+    assert new_result["model"] == "ACCESS_LOG"
     assert new_result["uuids"] == [old_result["id"]]
 
 
@@ -148,14 +148,14 @@ async def test_auditlog_graphql_self(
 async def test_search_employees(
     empty_db: AsyncSession, set_settings: MonkeyPatch
 ) -> None:
-    set_settings(AUDIT_READLOG_ENABLE="True")
+    set_settings(ACCESS_LOG_ENABLE="True")
 
-    await assert_empty_audit_tables(empty_db)
+    await assert_empty_access_log_tables(empty_db)
 
     results = await search_employees(empty_db, "")
     assert results == []
 
-    await assert_one_audit_entry(
+    await assert_one_access_log_entry(
         empty_db, "Bruger", "search_employees", arguments={"at": None, "query": ""}
     )
 
@@ -164,14 +164,14 @@ async def test_search_employees(
 async def test_search_orgunits(
     empty_db: AsyncSession, set_settings: MonkeyPatch
 ) -> None:
-    set_settings(AUDIT_READLOG_ENABLE="True")
+    set_settings(ACCESS_LOG_ENABLE="True")
 
-    await assert_empty_audit_tables(empty_db)
+    await assert_empty_access_log_tables(empty_db)
 
     results = await search_orgunits(empty_db, "")
     assert results == []
 
-    await assert_one_audit_entry(
+    await assert_one_access_log_entry(
         empty_db,
         "OrganisationEnhed",
         "search_orgunits",
@@ -183,16 +183,16 @@ simple_text = st.text(alphabet=st.characters(whitelist_categories=("L",)), min_s
 
 
 @st.composite
-def audit_log_entries_and_filter(
+def access_log_entries_and_filter(
     draw: st.DrawFn,
 ) -> tuple[list[dict[str, Any]], list[UUID], list[UUID], list[UUID]]:
-    audit_log_entries = draw(
+    access_log_entries = draw(
         st.lists(
             st.fixed_dictionaries(
                 {
                     "actor": st.uuids(),
                     "operation": simple_text,
-                    "class_name": st.sampled_from(AuditLogModel).map(
+                    "class_name": st.sampled_from(AccessLogModel).map(
                         lambda alm: alm.value
                     ),
                     "uuids": st.lists(st.uuids()),
@@ -208,32 +208,34 @@ def audit_log_entries_and_filter(
         )
 
     uuid_filter = draw(
-        graphql_filter(list(flatten([x["uuids"] for x in audit_log_entries])))
+        graphql_filter(list(flatten([x["uuids"] for x in access_log_entries])))
     )
-    actor_filter = draw(graphql_filter([x["actor"] for x in audit_log_entries]))
+    actor_filter = draw(graphql_filter([x["actor"] for x in access_log_entries]))
     model_filter = draw(
-        graphql_filter([AuditLogModel(x["class_name"]).name for x in audit_log_entries])
+        graphql_filter(
+            [AccessLogModel(x["class_name"]).name for x in access_log_entries]
+        )
     )
 
-    return (audit_log_entries, uuid_filter, actor_filter, model_filter)
+    return (access_log_entries, uuid_filter, actor_filter, model_filter)
 
 
 @pytest.mark.integration_test
 @settings(
     suppress_health_check=[
-        # Running multiple tests on the same database is okay; we clear the auditlog
+        # Running multiple tests on the same database is okay; we clear the access log
         # table manually in the beginning of each test.
         HealthCheck.function_scoped_fixture,
     ],
 )
-@given(audit_log_entries_and_filter=audit_log_entries_and_filter())
+@given(access_log_entries_and_filter=access_log_entries_and_filter())
 # TODO: Add support for id filtering
-async def test_auditlog_filters(
+async def test_access_log_filters(
     another_transaction,
     graphapi_post: GraphAPIPost,
     set_session_settings: MonkeyPatch,
     empty_db: AsyncSession,
-    audit_log_entries_and_filter: tuple[
+    access_log_entries_and_filter: tuple[
         list[dict[str, Any]],
         list[UUID],
         list[UUID],
@@ -245,21 +247,21 @@ async def test_auditlog_filters(
     This test ensures that filters on their own AND filters being combined works as expected.
     """
     (
-        audit_log_entries,
+        access_log_entries,
         uuid_filter,
         actor_filter,
         model_filter,
-    ) = audit_log_entries_and_filter
+    ) = access_log_entries_and_filter
 
-    # Remove all audit log entries present since hypothesis doesn't work with
+    # Remove all access log entries present since hypothesis doesn't work with
     # function-scoped fixtures.
     async with another_transaction() as (_, session):
-        await session.execute(delete(AuditLogRead))
-        await session.execute(delete(AuditLogOperation))
+        await session.execute(delete(AccessLogRead))
+        await session.execute(delete(AccessLogOperation))
 
-    audit_filter_query = """
-        query ReadAuditLog($filter: AuditLogFilter) {
-          auditlog(filter: $filter) {
+    access_filter_query = """
+        query ReadAccessLog($filter: AccessLogFilter) {
+          access_log(filter: $filter) {
             objects {
               id
               time
@@ -271,40 +273,40 @@ async def test_auditlog_filters(
         }
     """
 
-    # Test that the audit log is empty
-    response = graphapi_post(audit_filter_query, {"filter": {}})
+    # Test that the access log is empty
+    response = graphapi_post(access_filter_query, {"filter": {}})
     assert response.errors is None
-    assert response.data == {"auditlog": {"objects": []}}
+    assert response.data == {"access_log": {"objects": []}}
 
-    # Add auditlog entries
-    set_session_settings(AUDIT_READLOG_ENABLE="True")
+    # Add access log entries
+    set_session_settings(ACCESS_LOG_ENABLE="True")
 
     async with another_transaction() as (_, session):
-        for audit_event in audit_log_entries:
-            async for _ in set_authenticated_user(audit_event["actor"]):
+        for access_event in access_log_entries:
+            async for _ in set_authenticated_user(access_event["actor"]):
                 # TODO: Set time somehow
-                audit_log(
+                access_log(
                     session,
-                    audit_event["operation"],
-                    audit_event["class_name"],
+                    access_event["operation"],
+                    access_event["class_name"],
                     {},
-                    audit_event["uuids"],
+                    access_event["uuids"],
                 )
 
-    # Disable audit-logging itself
-    set_session_settings(AUDIT_READLOG_ENABLE="False")
+    # Disable access-logging itself
+    set_session_settings(ACCESS_LOG_ENABLE="False")
 
-    # Test that we can see all our auditlog entries
-    response = graphapi_post(audit_filter_query, {"filter": {}})
+    # Test that we can see all our access log entries
+    response = graphapi_post(access_filter_query, {"filter": {}})
     assert response.errors is None
-    results = list(response.data["auditlog"]["objects"])
-    assert len(results) == len(audit_log_entries)
+    results = list(response.data["access_log"]["objects"])
+    assert len(results) == len(access_log_entries)
 
-    # Verify that the audit-log logging itself is indeed disabled for this test
-    response = graphapi_post(audit_filter_query, {"filter": {}})
+    # Verify that the access-log logging itself is indeed disabled for this test
+    response = graphapi_post(access_filter_query, {"filter": {}})
     assert response.errors is None
-    results = list(response.data["auditlog"]["objects"])
-    assert len(results) == len(audit_log_entries)
+    results = list(response.data["access_log"]["objects"])
+    assert len(results) == len(access_log_entries)
 
     # Create filter object
     filter_object = {}
@@ -317,7 +319,7 @@ async def test_auditlog_filters(
     # TODO: Add support for start + end filtering (time)
 
     # Calculate expected output by python filtering
-    expected = audit_log_entries
+    expected = access_log_entries
     if "uuids" in filter_object:
         expected = filter(
             lambda x: set(x["uuids"]).intersection(set(filter_object["uuids"])),
@@ -329,7 +331,7 @@ async def test_auditlog_filters(
         )
     if "models" in filter_object:
         expected = filter(
-            lambda x: AuditLogModel(x["class_name"]).name
+            lambda x: AccessLogModel(x["class_name"]).name
             in set(filter_object["models"]),
             expected,
         )
@@ -337,45 +339,45 @@ async def test_auditlog_filters(
 
     # Run query and verify equivalence
     response = graphapi_post(
-        audit_filter_query, {"filter": jsonable_encoder(filter_object)}
+        access_filter_query, {"filter": jsonable_encoder(filter_object)}
     )
     assert response.errors is None
-    objects = response.data["auditlog"]["objects"]
+    objects = response.data["access_log"]["objects"]
     assert len(objects) == len(expected)
 
 
 @pytest.mark.integration_test
-async def test_auditlog_disabled(
+async def test_access_log_disabled(
     empty_db: AsyncSession, set_settings: MonkeyPatch
 ) -> None:
-    """Integrationtest for enabling the auditlog."""
+    """Integrationtest for enabling the access log."""
 
-    await assert_empty_audit_tables(empty_db)
+    await assert_empty_access_log_tables(empty_db)
 
-    set_settings(AUDIT_READLOG_ENABLE="False")
+    set_settings(ACCESS_LOG_ENABLE="False")
     uuid = uuid4()
-    audit_log(empty_db, "test_auditlog", "AuditLog", {}, [uuid])
-    await assert_empty_audit_tables(empty_db)
+    access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
+    await assert_empty_access_log_tables(empty_db)
 
-    set_settings(AUDIT_READLOG_ENABLE="True")
+    set_settings(ACCESS_LOG_ENABLE="True")
     uuid = uuid4()
-    audit_log(empty_db, "test_auditlog", "AuditLog", {}, [uuid])
-    await assert_one_audit_entry(empty_db, "AuditLog", "test_auditlog", [uuid])
+    access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
+    await assert_one_access_log_entry(empty_db, "AccessLog", "test_access_log", [uuid])
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-async def test_auditlog_disabled_for_user_graphql(
+async def test_access_log_disabled_for_user_graphql(
     set_settings: MonkeyPatch,
     graphapi_post: GraphAPIPost,
 ) -> None:
-    """Integrationtest for selectively disabling the auditlog (GraphQL)."""
+    """Integrationtest for selectively disabling the access log (GraphQL)."""
 
-    set_settings(AUDIT_READLOG_ENABLE="True")
+    set_settings(ACCESS_LOG_ENABLE="True")
 
     query = """
-        query ReadAuditLog {
-          auditlog {
+        query ReadAccessLog {
+          access_log {
             objects {
               id
               time
@@ -388,63 +390,63 @@ async def test_auditlog_disabled_for_user_graphql(
     """
 
     admin_uuid = str(await admin_auth_uuid())
-    set_settings(AUDIT_READLOG_NO_LOG_UUIDS=f'["{admin_uuid}"]')
+    set_settings(ACCESS_LOG_NO_LOG_UUIDS=f'["{admin_uuid}"]')
     # First call returns nothing, and produces nothing
     response = graphapi_post(query)
     assert response.errors is None
-    assert response.data == {"auditlog": {"objects": []}}
+    assert response.data == {"access_log": {"objects": []}}
 
     # Second call returns nothing, and produces nothing
     response = graphapi_post(query)
     assert response.errors is None
-    assert response.data == {"auditlog": {"objects": []}}
+    assert response.data == {"access_log": {"objects": []}}
 
-    set_settings(AUDIT_READLOG_NO_LOG_UUIDS="[]")
-    # First call returns nothing, but produces an audit event
+    set_settings(ACCESS_LOG_NO_LOG_UUIDS="[]")
+    # First call returns nothing, but produces an access event
     response = graphapi_post(query)
     assert response.errors is None
-    assert response.data == {"auditlog": {"objects": []}}
+    assert response.data == {"access_log": {"objects": []}}
 
-    # Second call returns first call audit event, and produces yet another
+    # Second call returns first call access event, and produces yet another
     response = graphapi_post(query)
     assert response.errors is None
-    assert response.data == {"auditlog": {"objects": [ANY]}}
+    assert response.data == {"access_log": {"objects": [ANY]}}
 
 
 @pytest.mark.integration_test
-async def test_auditlog_disabled_for_user(
+async def test_access_log_disabled_for_user(
     empty_db: AsyncSession, set_settings: MonkeyPatch
 ) -> None:
-    """Integrationtest for selectively disabling the auditlog."""
+    """Integrationtest for selectively disabling the access log."""
 
-    set_settings(AUDIT_READLOG_ENABLE="True")
+    set_settings(ACCESS_LOG_ENABLE="True")
 
-    await assert_empty_audit_tables(empty_db)
+    await assert_empty_access_log_tables(empty_db)
 
-    set_settings(AUDIT_READLOG_NO_LOG_UUIDS=f'["{LORA_USER_UUID}"]')
+    set_settings(ACCESS_LOG_NO_LOG_UUIDS=f'["{LORA_USER_UUID}"]')
     uuid = uuid4()
-    audit_log(empty_db, "test_auditlog", "AuditLog", {}, [uuid])
-    await assert_empty_audit_tables(empty_db)
+    access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
+    await assert_empty_access_log_tables(empty_db)
 
-    set_settings(AUDIT_READLOG_NO_LOG_UUIDS="[]")
+    set_settings(ACCESS_LOG_NO_LOG_UUIDS="[]")
     uuid = uuid4()
-    audit_log(empty_db, "test_auditlog", "AuditLog", {}, [uuid])
-    await assert_one_audit_entry(empty_db, "AuditLog", "test_auditlog", [uuid])
+    access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
+    await assert_one_access_log_entry(empty_db, "AccessLog", "test_access_log", [uuid])
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-async def test_auditlog_graphql_cursor(
+async def test_access_log_graphql_cursor(
     set_settings: MonkeyPatch,
     graphapi_post: GraphAPIPost,
 ) -> None:
-    """Ensure that auditlogs can be iterated without running indefinitely."""
+    """Ensure that access logs can be iterated without running indefinitely."""
 
-    set_settings(AUDIT_READLOG_ENABLE="True")
+    set_settings(ACCESS_LOG_ENABLE="True")
 
     query = """
-        query ReadAuditLog($cursor: Cursor) {
-          auditlog(limit: 1, cursor: $cursor) {
+        query ReadAccessLog($cursor: Cursor) {
+          access_log(limit: 1, cursor: $cursor) {
             objects {
                 id
             }
@@ -454,32 +456,32 @@ async def test_auditlog_graphql_cursor(
           }
         }
     """
-    # First call returns nothing, but produces an audit event
+    # First call returns nothing, but produces an access log event
     response = graphapi_post(query)
     assert response.errors is None
     assert response.data == {
-        "auditlog": {"objects": [], "page_info": {"next_cursor": None}}
+        "access_log": {"objects": [], "page_info": {"next_cursor": None}}
     }
 
-    # Next call reads the first calls audit event and makes another
+    # Next call reads the first calls access log event and makes another
     response = graphapi_post(query)
     assert response.errors is None
     assert response.data == {
-        "auditlog": {"objects": [ANY], "page_info": {"next_cursor": None}}
+        "access_log": {"objects": [ANY], "page_info": {"next_cursor": None}}
     }
 
-    # Next call reads the two first calls audit events and makes yet another
+    # Next call reads the two first calls access log events and makes yet another
     response = graphapi_post(query)
     assert response.errors is None
     assert response.data == {
-        "auditlog": {"objects": [ANY], "page_info": {"next_cursor": ANY}}
+        "access_log": {"objects": [ANY], "page_info": {"next_cursor": ANY}}
     }
-    next_cursor = response.data["auditlog"]["page_info"]["next_cursor"]
+    next_cursor = response.data["access_log"]["page_info"]["next_cursor"]
     assert next_cursor is not None
 
     # Check that iteration is not infinite
     response = graphapi_post(query, variables={"cursor": next_cursor})
     assert response.errors is None
     assert response.data == {
-        "auditlog": {"objects": [ANY], "page_info": {"next_cursor": None}}
+        "access_log": {"objects": [ANY], "page_info": {"next_cursor": None}}
     }

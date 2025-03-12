@@ -15,7 +15,7 @@ from sqlalchemy.sql import union
 
 from mora import config
 from mora import util
-from mora.audit import audit_log
+from mora.access_log import access_log
 from mora.db import AsyncSession
 from mora.db import BrugerAttrUdvidelser
 from mora.db import BrugerRegistrering
@@ -58,7 +58,7 @@ async def search_employees(
         await session.execute(query_final, {**at_sql_bind_params})
     )
     uuids = [employee.uuid for employee in result]
-    audit_log(session, "search_employees", "Bruger", {"query": query, "at": at}, uuids)
+    access_log(session, "search_employees", "Bruger", {"query": query, "at": at}, uuids)
     return uuids
 
 

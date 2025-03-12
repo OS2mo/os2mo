@@ -16,7 +16,7 @@ from sqlalchemy.sql import union
 
 from mora import config
 from mora import util
-from mora.audit import audit_log
+from mora.access_log import access_log
 from mora.db import AsyncSession
 from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
@@ -41,7 +41,7 @@ async def search_orgunits(
         await session.execute(query_final, {**at_sql_bind_params})
     )
     uuids = [orgunit.uuid for orgunit in result]
-    audit_log(
+    access_log(
         session,
         "search_orgunits",
         "OrganisationEnhed",

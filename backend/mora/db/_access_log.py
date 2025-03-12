@@ -17,8 +17,8 @@ from sqlalchemy.sql import func
 from ._common import Base
 
 
-class AuditLogOperation(Base):
-    __tablename__ = "audit_log_operation"
+class AccessLogOperation(Base):
+    __tablename__ = "audit_log_operation"  # TODO: "access_log_operation"
 
     # TODO: Use gen_random_uuid after Postgres 13+
     id: Mapped[UUID] = mapped_column(
@@ -33,11 +33,11 @@ class AuditLogOperation(Base):
     operation: Mapped[str] = mapped_column(String(255), nullable=False)
     arguments: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
 
-    uuids: Mapped[list["AuditLogRead"]] = relationship(back_populates="operation")
+    uuids: Mapped[list["AccessLogRead"]] = relationship(back_populates="operation")
 
 
-class AuditLogRead(Base):
-    __tablename__ = "audit_log_read"
+class AccessLogRead(Base):
+    __tablename__ = "audit_log_read"  # TODO: "access_log_read"
 
     # TODO: Use gen_random_uuid after Postgres 13+
     id: Mapped[UUID] = mapped_column(
@@ -45,6 +45,6 @@ class AuditLogRead(Base):
     )
 
     operation_id: Mapped[UUID] = mapped_column(ForeignKey("audit_log_operation.id"))
-    operation: Mapped["AuditLogOperation"] = relationship(back_populates="uuids")
+    operation: Mapped["AccessLogOperation"] = relationship(back_populates="uuids")
 
     uuid: Mapped[UUID] = mapped_column(Uuid, nullable=False, index=True)
