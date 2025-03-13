@@ -18,7 +18,7 @@ from ._common import Base
 
 
 class AccessLogOperation(Base):
-    __tablename__ = "audit_log_operation"  # TODO: "access_log_operation"
+    __tablename__ = "access_log_operation"
 
     # TODO: Use gen_random_uuid after Postgres 13+
     id: Mapped[UUID] = mapped_column(
@@ -37,14 +37,14 @@ class AccessLogOperation(Base):
 
 
 class AccessLogRead(Base):
-    __tablename__ = "audit_log_read"  # TODO: "access_log_read"
+    __tablename__ = "access_log_read"
 
     # TODO: Use gen_random_uuid after Postgres 13+
     id: Mapped[UUID] = mapped_column(
         Uuid, primary_key=True, server_default=text("uuid_generate_v4()")
     )
 
-    operation_id: Mapped[UUID] = mapped_column(ForeignKey("audit_log_operation.id"))
+    operation_id: Mapped[UUID] = mapped_column(ForeignKey("access_log_operation.id"))
     operation: Mapped["AccessLogOperation"] = relationship(back_populates="uuids")
 
     uuid: Mapped[UUID] = mapped_column(Uuid, nullable=False, index=True)
