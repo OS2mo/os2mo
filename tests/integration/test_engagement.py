@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import json
+from collections.abc import Awaitable
+from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 from unittest.mock import ANY
@@ -318,25 +320,17 @@ async def test_to_ldap(
         ),
     }
 )
+@pytest.mark.usefixtures("test_client")
 async def test_to_mo_skip_if_none(
-    test_client: AsyncClient,
     graphql_client: GraphQLClient,
     ldap_person: list[str],
-    ldap_person_uuid: UUID,
     mo_person: UUID,
     mo_org_unit: UUID,
     ansat: UUID,
     jurist: UUID,
     primary: UUID,
+    trigger_ldap_person: Callable[[], Awaitable[None]],
 ) -> None:
-    async def trigger_sync() -> None:
-        content = str(ldap_person_uuid)
-        headers = {"Content-Type": "text/plain"}
-        result = await test_client.post(
-            "/ldap2mo/uuid", content=content, headers=headers
-        )
-        assert result.status_code == 200
-
     skip_object_log = {
         "dn": combine_dn_strings(ldap_person),
         "event": "Skipping object",
@@ -345,7 +339,7 @@ async def test_to_mo_skip_if_none(
 
     # No engagement in MO, yields skipped object in logs
     with capture_logs() as cap_logs:
-        await trigger_sync()
+        await trigger_ldap_person()
 
     assert skip_object_log in cap_logs
 
@@ -365,7 +359,7 @@ async def test_to_mo_skip_if_none(
 
     # Engagement in MO, means no skipped object in logs and updated extension_1
     with capture_logs() as cap_logs:
-        await trigger_sync()
+        await trigger_ldap_person()
 
     assert skip_object_log not in cap_logs
 
@@ -415,24 +409,16 @@ async def test_to_mo_skip_if_none(
         ),
     }
 )
+@pytest.mark.usefixtures("test_client")
 async def test_to_mo_future_engagement_new_mapping(
-    test_client: AsyncClient,
     graphql_client: GraphQLClient,
-    ldap_person_uuid: UUID,
     mo_person: UUID,
     mo_org_unit: UUID,
     ansat: UUID,
     jurist: UUID,
     primary: UUID,
+    trigger_ldap_person: Callable[[], Awaitable[None]],
 ) -> None:
-    async def trigger_sync() -> None:
-        content = str(ldap_person_uuid)
-        headers = {"Content-Type": "text/plain"}
-        result = await test_client.post(
-            "/ldap2mo/uuid", content=content, headers=headers
-        )
-        assert result.status_code == 200
-
     # Create the future engagement
     await graphql_client.engagement_create(
         input=EngagementCreateInput(
@@ -447,7 +433,7 @@ async def test_to_mo_future_engagement_new_mapping(
         )
     )
 
-    await trigger_sync()
+    await trigger_ldap_person()
 
     engagements = await graphql_client._testing__engagement_read(
         filter=EngagementFilter(

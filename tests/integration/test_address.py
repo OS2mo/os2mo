@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import json
+from collections.abc import Awaitable
+from collections.abc import Callable
 from typing import Any
 from unittest.mock import ANY
 from uuid import UUID
@@ -172,16 +174,13 @@ async def test_to_mo(
         ),
     }
 )
+@pytest.mark.usefixtures("test_client")
 async def test_terminate_on_create(
-    test_client: AsyncClient,
     graphql_client: GraphQLClient,
     mo_person: UUID,
-    ldap_person_uuid: UUID,
+    trigger_ldap_person: Callable[[], Awaitable[None]],
 ) -> None:
-    content = str(ldap_person_uuid)
-    headers = {"Content-Type": "text/plain"}
-    result = await test_client.post("/ldap2mo/uuid", content=content, headers=headers)
-    assert result.status_code == 200
+    await trigger_ldap_person()
 
     addresses = await graphql_client._testing__address_read(
         filter=AddressFilter(
@@ -326,13 +325,13 @@ async def test_to_ldap(
         ),
     }
 )
+@pytest.mark.usefixtures("test_client")
 async def test_to_mo_terminate_without_value(
-    test_client: AsyncClient,
     graphql_client: GraphQLClient,
     mo_person: UUID,
     ldap_connection: Connection,
     ldap_org: list[str],
-    ldap_person_uuid: UUID,
+    trigger_ldap_person: Callable[[], Awaitable[None]],
 ) -> None:
     async def assert_address(expected: dict) -> None:
         addresses = await graphql_client._testing__address_read(
@@ -343,14 +342,6 @@ async def test_to_mo_terminate_without_value(
         address = one(addresses.objects)
         validities = one(address.validities)
         assert validities.dict() == expected
-
-    async def trigger_update():
-        content = str(ldap_person_uuid)
-        headers = {"Content-Type": "text/plain"}
-        result = await test_client.post(
-            "/ldap2mo/uuid", content=content, headers=headers
-        )
-        assert result.status_code == 200
 
     person_dn = combine_dn_strings(["uid=abk"] + ldap_org)
 
@@ -364,7 +355,7 @@ async def test_to_mo_terminate_without_value(
         "visibility": {"user_key": "Public"},
         "validity": {"from_": mo_today(), "to": None},
     }
-    await trigger_update()
+    await trigger_ldap_person()
     await assert_address(mo_address)
 
     # Remove mail from the LDAP entry
@@ -377,7 +368,7 @@ async def test_to_mo_terminate_without_value(
     )
     # We expect the synchronization to fail
     with capture_logs() as cap_logs:
-        await trigger_update()
+        await trigger_ldap_person()
     missing_values_log_line = one(
         [
             line
@@ -398,7 +389,7 @@ async def test_to_mo_terminate_without_value(
         },
     )
     # We expect the address to have been terminated, although the value was missing
-    await trigger_update()
+    await trigger_ldap_person()
     mo_address = {
         **mo_address,
         "validity": {"from_": mo_today(), "to": mo_today()},
