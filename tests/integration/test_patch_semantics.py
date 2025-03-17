@@ -93,7 +93,6 @@ async def assert_ldap_person(
         ),
     }
 )
-@pytest.mark.xfail(reason="Employee does not have patch semantics")
 async def test_employee_patch_semantics(
     graphql_client: GraphQLClient,
     assert_mo_person: Callable[[dict[str, Any]], Awaitable[None]],
