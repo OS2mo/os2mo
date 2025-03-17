@@ -335,6 +335,19 @@ async def test_mo2ldap_person(test_client: AsyncClient) -> None:
 
 
 @pytest.mark.integration_test
+async def test_mo2ldap_reconciliation(test_client: AsyncClient) -> None:
+    content = str(uuid4())
+    headers = {"Content-Type": "text/plain"}
+    result = await test_client.post(
+        "/mo2ldap/reconcile", content=content, headers=headers
+    )
+    assert result.status_code == 500
+    payload = result.json()
+    assert payload.keys() == {"detail"}
+    assert "Unable to lookup employee" in payload["detail"]
+
+
+@pytest.mark.integration_test
 async def test_mo2ldap_org_unit(test_client: AsyncClient) -> None:
     content = str(uuid4())
     headers = {"Content-Type": "text/plain"}
