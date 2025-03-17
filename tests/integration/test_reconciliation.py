@@ -100,3 +100,92 @@ async def test_mo_reconciliation(
             "nickname_surname": "Muster",
         }
     )
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        # We listen to changes in MO, such that we can fix writes to our owned fields
+        "LISTEN_TO_CHANGES_IN_MO": "True",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "Employee",
+                        "_import_to_mo_": "true",
+                        "_ldap_attributes_": ["employeeNumber", "givenName", "sn"],
+                        "uuid": "{{ employee_uuid or '' }}",  # TODO: why is this required?
+                        "cpr_number": "{{ ldap.employeeNumber }}",
+                        "given_name": "{{ ldap.givenName }}",
+                        "surname": "{{ ldap.sn }}",
+                    },
+                },
+                # TODO: why is this required?
+                "username_generator": {
+                    "combinations_to_try": ["FFFX", "LLLX"],
+                },
+            }
+        ),
+    }
+)
+async def test_mo_reconciliation(
+    graphql_client: GraphQLClient,
+    assert_mo_person: Callable[[dict[str, Any]], Awaitable[None]],
+    assert_ldap_person: Callable[[dict[str, Any]], Awaitable[None]],
+    mo_person: UUID,
+) -> None:
+    cpr = "2108613133"
+    await assert_mo_person(
+        {
+            "uuid": ANY,
+            "user_key": ANY,
+            "cpr_number": cpr,
+            "given_name": "Aage",
+            "surname": "Bach Klarskov",
+            "nickname_given_name": "",
+            "nickname_surname": "",
+        }
+    )
+    await assert_ldap_person(
+        {
+            "uid": ["abk"],
+            "cn": ["Aage Bach Klarskov"],
+            "givenName": ["Aage"],
+            "sn": ["Bach Klarskov"],
+            "employeeNumber": cpr,
+            "carLicense": [],
+            "displayName": [],
+        }
+    )
+
+    # Update MO with a new name and nickname
+    # Name is owned by LDAP and as such should be overwritten while nickname should not
+    # The edit in MO should trigger an event which updates from LDAP to MO
+    await graphql_client.user_update(
+        input=EmployeeUpdateInput(
+            uuid=mo_person,
+            validity={"from": "2011-12-13T14:15:16Z"},
+            # TODO: why is this required?
+            cpr_number=cpr,
+            # These two fields should be overwritten
+            given_name="to be overwritten",
+            surname="very soon",
+            # These two fields should be kept as-is
+            nickname_given_name="Manu",
+            nickname_surname="Muster",
+        )
+    )
+    await assert_mo_person(
+        {
+            "uuid": ANY,
+            "user_key": ANY,
+            "cpr_number": cpr,
+            # This was modified back
+            "given_name": "Aage",
+            "surname": "Bach Klarskov",
+            # This was kept as-is
+            "nickname_given_name": "Manu",
+            "nickname_surname": "Muster",
+        }
+    )
