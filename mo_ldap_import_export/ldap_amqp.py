@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 from typing import Annotated
-from uuid import UUID
 
 import structlog
 from fastapi import APIRouter
@@ -28,6 +27,7 @@ from .exceptions import amqp_reject_on_failure
 from .exceptions import http_reject_on_failure
 from .ldap import get_ldap_object
 from .ldap_emit import publish_uuids
+from .types import LDAPUUID
 
 logger = structlog.stdlib.get_logger()
 
@@ -35,7 +35,7 @@ logger = structlog.stdlib.get_logger()
 ldap_amqp_router = Router()
 ldap2mo_router = APIRouter(prefix="/ldap2mo")
 
-PayloadUUID = Annotated[UUID, Depends(get_payload_as_type(UUID))]
+PayloadUUID = Annotated[LDAPUUID, Depends(get_payload_as_type(LDAPUUID))]
 
 
 @ldap2mo_router.post("/uuid")
@@ -45,7 +45,7 @@ async def http_process_uuid(
     sync_tool: SyncTool,
     dataloader: DataLoader,
     converter: LdapConverter,
-    uuid: Annotated[UUID, Body()],
+    uuid: Annotated[LDAPUUID, Body()],
 ) -> None:
     await handle_uuid(settings, sync_tool, dataloader, converter, uuid)
 
@@ -74,7 +74,7 @@ async def handle_uuid(
     sync_tool: SyncTool,
     dataloader: DataLoader,
     converter: LdapConverter,
-    uuid: UUID,
+    uuid: LDAPUUID,
 ) -> None:
     # TODO: Sync from MO to LDAP to overwrite bad manual changes
 

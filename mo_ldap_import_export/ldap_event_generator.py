@@ -14,7 +14,6 @@ from typing import Annotated
 from typing import Any
 from typing import Self
 from typing import cast
-from uuid import UUID
 
 import structlog
 from fastapi import APIRouter
@@ -39,6 +38,7 @@ from .database import Base
 from .ldap import _paged_search
 from .ldap import ldapresponse2entries
 from .ldap_emit import publish_uuids
+from .types import LDAPUUID
 from .utils import combine_dn_strings
 
 logger = structlog.stdlib.get_logger()
@@ -90,7 +90,9 @@ class LastRun(Base):
         default=MICROSOFT_EPOCH,
         nullable=False,
     )
-    uuids: Mapped[list[UUID]] = mapped_column(ARRAY(Uuid), default=list, nullable=False)
+    uuids: Mapped[list[LDAPUUID]] = mapped_column(
+        ARRAY(Uuid), default=list, nullable=False
+    )
 
 
 class LDAPEventGenerator(AbstractAsyncContextManager):
@@ -178,7 +180,7 @@ async def _poll(
     search_base: str,
     ldap_unique_id_field: str,
     last_search_time: datetime,
-) -> tuple[set[UUID], datetime | None]:
+) -> tuple[set[LDAPUUID], datetime | None]:
     """Pool the LDAP server for changes once.
 
     Args:
@@ -216,12 +218,12 @@ async def _poll(
     # Filter to only keep search results
     responses = ldapresponse2entries(response)
 
-    def event2uuid(event: dict[str, Any]) -> UUID | None:
+    def event2uuid(event: dict[str, Any]) -> LDAPUUID | None:
         uuid = event["attributes"].get(ldap_unique_id_field, None)
         if uuid is None:
             logger.warning("Got event without uuid")
             return None
-        return UUID(uuid)
+        return LDAPUUID(uuid)
 
     def event2timestamp(event: dict[str, Any]) -> datetime | None:
         modify_timestamp = event["attributes"].get("modifyTimestamp", None)
@@ -233,7 +235,7 @@ async def _poll(
 
     uuids_with_none = {event2uuid(event) for event in responses}
     uuids_with_none.discard(None)
-    uuids = cast(set[UUID], uuids_with_none)
+    uuids = cast(set[LDAPUUID], uuids_with_none)
 
     timestamps_with_none = {event2timestamp(event) for event in responses}
     timestamps_with_none.discard(None)
@@ -280,7 +282,7 @@ async def _generate_events(
     ldap_amqpsystem: AMQPSystem,
     search_base: str,
     sessionmaker: async_sessionmaker[AsyncSession],
-    seeded_poller: Callable[..., Awaitable[tuple[set[UUID], datetime | None]]],
+    seeded_poller: Callable[..., Awaitable[tuple[set[LDAPUUID], datetime | None]]],
 ) -> None:
     # Ensure that a last-run row exists for our search_base
     # We do creates separately to support update locks in normal operation
@@ -346,7 +348,7 @@ async def fetch_changes_since(
     settings: depends.Settings,
     since: datetime,
     search_base: Annotated[str, Body()],
-) -> set[UUID]:
+) -> set[LDAPUUID]:
     uuids, _ = await _poll(
         ldap_connection, search_base, settings.ldap_unique_id_field, since
     )

@@ -29,6 +29,7 @@ from pydantic import validator
 
 from .models import Employee
 from .models import MOBase
+from .types import LDAPUUID
 from .utils import import_class
 
 logger = structlog.stdlib.get_logger()
@@ -356,7 +357,7 @@ class Settings(BaseSettings):
         description="Set of MO UUIDs to ignore changes to",
     )
 
-    ldap_uuids_to_ignore: list[UUID] = Field(
+    ldap_uuids_to_ignore: list[LDAPUUID] = Field(
         default_factory=list,
         description="Set of LDAP UUIDs to ignore changes to",
     )

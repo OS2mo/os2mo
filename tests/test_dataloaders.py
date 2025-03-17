@@ -10,6 +10,7 @@ import time
 from collections.abc import Collection
 from collections.abc import Iterator
 from typing import Any
+from typing import cast
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -67,6 +68,7 @@ from mo_ldap_import_export.routes import load_all_current_it_users
 from mo_ldap_import_export.routes import load_ldap_attribute_values
 from mo_ldap_import_export.routes import load_ldap_cpr_object
 from mo_ldap_import_export.routes import load_ldap_objects
+from mo_ldap_import_export.types import LDAPUUID
 from mo_ldap_import_export.types import CPRNumber
 from tests.graphql_mocker import GraphQLMocker
 
@@ -810,7 +812,7 @@ async def test_convert_ldap_uuids_to_dns(
     dataloader.ldapapi.get_ldap_dn.side_effect = ldap_dns
 
     dns = await dataloader.ldapapi.convert_ldap_uuids_to_dns(
-        {uuid4() for _ in ldap_dns}
+        {cast(LDAPUUID, uuid4()) for _ in ldap_dns}
     )
     assert dns == expected
 
@@ -820,7 +822,9 @@ async def test_convert_ldap_uuids_to_dns_exception(dataloader: DataLoader) -> No
     dataloader.ldapapi.get_ldap_dn.side_effect = ["CN=foo", ValueError("BOOM")]
 
     with pytest.raises(ExceptionGroup) as exc_info:
-        await dataloader.ldapapi.convert_ldap_uuids_to_dns({uuid4(), uuid4()})
+        await dataloader.ldapapi.convert_ldap_uuids_to_dns(
+            {cast(LDAPUUID, uuid4()), cast(LDAPUUID, uuid4())}
+        )
     assert "Exceptions during UUID2DN translation" in str(exc_info.value)
     assert len(exc_info.value.exceptions) == 1
 
@@ -830,7 +834,9 @@ async def test_convert_ldap_uuids_to_dns_exception(dataloader: DataLoader) -> No
     ]
 
     with pytest.raises(ExceptionGroup) as exc_info:
-        await dataloader.ldapapi.convert_ldap_uuids_to_dns({uuid4(), uuid4()})
+        await dataloader.ldapapi.convert_ldap_uuids_to_dns(
+            {cast(LDAPUUID, uuid4()), cast(LDAPUUID, uuid4())}
+        )
     assert "Exceptions during UUID2DN translation" in str(exc_info.value)
     assert len(exc_info.value.exceptions) == 2
 
@@ -840,7 +846,7 @@ async def test_get_ldap_dn(dataloader: DataLoader):
         "mo_ldap_import_export.ldapapi.single_object_search",
         return_value={"dn": "CN=foo"},
     ):
-        assert await dataloader.ldapapi.get_ldap_dn(uuid4()) == "CN=foo"
+        assert await dataloader.ldapapi.get_ldap_dn(cast(LDAPUUID, uuid4())) == "CN=foo"
 
 
 async def test_get_ldap_unique_ldap_uuid(dataloader: DataLoader) -> None:

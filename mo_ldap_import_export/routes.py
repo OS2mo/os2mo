@@ -12,6 +12,7 @@ from datetime import datetime
 from functools import partial
 from itertools import count
 from typing import Any
+from typing import cast
 from uuid import UUID
 from uuid import uuid4
 
@@ -53,6 +54,7 @@ from .ldap import paged_search
 from .ldap_classes import LdapObject
 from .ldap_emit import publish_uuids
 from .types import DN
+from .types import LDAPUUID
 from .types import CPRNumber
 from .types import EmployeeUUID
 from .utils import combine_dn_strings
@@ -289,7 +291,7 @@ async def get_non_existing_unique_ldap_uuids(
     # with the string '[]' in our output. '[]' is not an UUID so we discard it.
     ldap_uuid_attributes.discard("[]")
 
-    unique_ldap_uuids = set(map(UUID, ldap_uuid_attributes))
+    unique_ldap_uuids = set(map(LDAPUUID, ldap_uuid_attributes))
 
     # Fetch all MO IT-users and extract all LDAP UUIDs
     all_it_users = await load_all_current_it_users(
@@ -501,7 +503,7 @@ def construct_router(settings: Settings) -> APIRouter:
     @router.get("/Import/{unique_ldap_uuid}", status_code=202, tags=["Import"])
     async def import_single_user_from_LDAP(
         ldap_amqpsystem: depends.LDAPAMQPSystem,
-        unique_ldap_uuid: UUID,
+        unique_ldap_uuid: LDAPUUID,
         dataloader: depends.DataLoader,
     ) -> UUID:
         # Check that we can find the UUID
@@ -514,7 +516,7 @@ def construct_router(settings: Settings) -> APIRouter:
         return await dataloader.ldapapi.get_ldap_unique_ldap_uuid(dn)
 
     @router.get("/Inspect/uuid2dn/{uuid}", status_code=200, tags=["LDAP"])
-    async def ldap_uuid2dn(dataloader: depends.DataLoader, uuid: UUID) -> str:
+    async def ldap_uuid2dn(dataloader: depends.DataLoader, uuid: LDAPUUID) -> str:
         return await dataloader.ldapapi.get_ldap_dn(uuid)
 
     @router.get("/Inspect/dn/{dn}", status_code=200, tags=["LDAP"])
@@ -529,7 +531,7 @@ def construct_router(settings: Settings) -> APIRouter:
     async def ldap_fetch_object_by_uuid(
         dataloader: depends.DataLoader,
         ldap_connection: depends.Connection,
-        uuid: UUID,
+        uuid: LDAPUUID,
         nest: bool = False,
     ) -> Any:
         dn = await dataloader.ldapapi.get_ldap_dn(uuid)
@@ -675,7 +677,7 @@ def construct_router(settings: Settings) -> APIRouter:
         ldap_connection: depends.Connection,
         dataloader: depends.DataLoader,
         at: datetime,
-    ) -> set[UUID]:
+    ) -> set[LDAPUUID]:
         bad_itusers = await get_non_existing_unique_ldap_uuids(
             settings, ldap_connection, dataloader
         )
@@ -686,7 +688,7 @@ def construct_router(settings: Settings) -> APIRouter:
             result = await dataloader.moapi.graphql_client.ituser_terminate(
                 ITUserTerminateInput(uuid=UUID(ituser_uuid), to=at)
             )
-            deleted.add(result.uuid)
+            deleted.add(cast(LDAPUUID, result.uuid))
         return deleted
 
     @router.get("/Inspect/duplicate_cpr_numbers", status_code=202, tags=["LDAP"])

@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from typing import cast
 from unittest import TestCase
 from unittest.mock import ANY
 from unittest.mock import MagicMock
-from uuid import UUID
 from uuid import uuid4
 
 import pytest
@@ -12,6 +12,7 @@ from more_itertools import one
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.ldapapi import LDAPAPI
+from mo_ldap_import_export.types import LDAPUUID
 
 
 @pytest.mark.integration_test
@@ -23,10 +24,10 @@ from mo_ldap_import_export.ldapapi import LDAPAPI
 )
 async def test_convert_ldap_uuids_to_dns(
     ldap_api: LDAPAPI,
-    ldap_person_uuid: UUID,
+    ldap_person_uuid: LDAPUUID,
     ldap_connection: Connection,
 ) -> None:
-    missing_uuid = uuid4()
+    missing_uuid = cast(LDAPUUID, uuid4())
 
     # Convert empty list
     with capture_logs() as cap_logs:
