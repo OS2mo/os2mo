@@ -25,6 +25,7 @@ from mo_ldap_import_export.depends import Settings
 from mo_ldap_import_export.ldap import ldap_add
 from mo_ldap_import_export.ldap import ldap_search
 from mo_ldap_import_export.ldapapi import LDAPAPI
+from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.types import LDAPUUID
 from mo_ldap_import_export.types import EmployeeUUID
 from mo_ldap_import_export.utils import combine_dn_strings
@@ -132,6 +133,11 @@ async def ldap_person(ldap_connection: Connection, ldap_org: list[str]) -> list[
 @pytest.fixture
 async def ldap_person_uuid(ldap_person: list[str], dnlist2uuid: DNList2UUID) -> UUID:
     return await dnlist2uuid(ldap_person)
+
+
+@pytest.fixture
+async def ldap_person_dn(ldap_person: list[str]) -> DN:
+    return combine_dn_strings(ldap_person)
 
 
 @pytest.fixture

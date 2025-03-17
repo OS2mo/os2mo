@@ -17,8 +17,8 @@ from mo_ldap_import_export.depends import Connection
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.environments import get_employment_interval
 from mo_ldap_import_export.ldap import get_ldap_object
+from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.utils import MO_TZ
-from mo_ldap_import_export.utils import combine_dn_strings
 
 TZMAX = datetime.max.replace(tzinfo=MO_TZ)
 
@@ -179,7 +179,7 @@ async def test_get_employment_interval_mapping(
     graphql_client: GraphQLClient,
     test_client: AsyncClient,
     ldap_connection: Connection,
-    ldap_person: list[str],
+    ldap_person_dn: DN,
     mo_person: UUID,
     mo_org_unit: UUID,
     ansat: UUID,
@@ -209,17 +209,15 @@ async def test_get_employment_interval_mapping(
         )
     )
 
-    person_dn = combine_dn_strings(ldap_person)
-
-    ldap_object = await get_ldap_object(ldap_connection, person_dn)
-    assert ldap_object.dn == person_dn
+    ldap_object = await get_ldap_object(ldap_connection, ldap_person_dn)
+    assert ldap_object.dn == ldap_person_dn
     assert hasattr(ldap_object, "carLicense") is False
 
     # Trigger the sync
     await trigger_sync()
 
-    ldap_object = await get_ldap_object(ldap_connection, person_dn)
-    assert ldap_object.dn == person_dn
+    ldap_object = await get_ldap_object(ldap_connection, ldap_person_dn)
+    assert ldap_object.dn == ldap_person_dn
     assert hasattr(ldap_object, "carLicense") is True
 
     assert getattr(ldap_object, "title", None) == ["1969-07-20"]

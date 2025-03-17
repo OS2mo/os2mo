@@ -29,6 +29,7 @@ from mo_ldap_import_export.ldap import ldap_add
 from mo_ldap_import_export.ldap import ldap_modify
 from mo_ldap_import_export.ldap import ldap_search
 from mo_ldap_import_export.moapi import MOAPI
+from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.types import EmployeeUUID
 from mo_ldap_import_export.utils import combine_dn_strings
 from mo_ldap_import_export.utils import mo_today
@@ -358,18 +359,17 @@ async def test_edit_existing_in_ldap(
 async def test_none_handling_empty(
     trigger_mo_person: Callable[[], Awaitable[None]],
     ldap_connection: Connection,
-    ldap_person: list[str],
+    ldap_person_dn: DN,
 ) -> None:
-    person_dn = combine_dn_strings(ldap_person)
-    ldap_object = await get_ldap_object(ldap_connection, person_dn)
-    assert ldap_object.dn == person_dn
+    ldap_object = await get_ldap_object(ldap_connection, ldap_person_dn)
+    assert ldap_object.dn == ldap_person_dn
     assert hasattr(ldap_object, "carLicense") is False
 
     # As Seniority is None, the field should remain empty
     await trigger_mo_person()
 
-    ldap_object = await get_ldap_object(ldap_connection, person_dn)
-    assert ldap_object.dn == person_dn
+    ldap_object = await get_ldap_object(ldap_connection, ldap_person_dn)
+    assert ldap_object.dn == ldap_person_dn
     assert hasattr(ldap_object, "carLicense") is False
 
 
@@ -399,27 +399,26 @@ async def test_none_handling_empty(
 async def test_none_handling_clearing(
     trigger_mo_person: Callable[[], Awaitable[None]],
     ldap_connection: Connection,
-    ldap_person: list[str],
+    ldap_person_dn: DN,
 ) -> None:
-    person_dn = combine_dn_strings(ldap_person)
     await ldap_modify(
         ldap_connection,
-        dn=person_dn,
+        dn=ldap_person_dn,
         changes={
             "carLicense": [("MODIFY_REPLACE", "TEST_VALUE")],
         },
     )
 
-    ldap_object = await get_ldap_object(ldap_connection, person_dn)
-    assert ldap_object.dn == person_dn
+    ldap_object = await get_ldap_object(ldap_connection, ldap_person_dn)
+    assert ldap_object.dn == ldap_person_dn
     assert hasattr(ldap_object, "carLicense") is True
     assert getattr(ldap_object, "carLicense", None) == ["TEST_VALUE"]
 
     # As Seniority is None, the field should be cleared
     await trigger_mo_person()
 
-    ldap_object = await get_ldap_object(ldap_connection, person_dn)
-    assert ldap_object.dn == person_dn
+    ldap_object = await get_ldap_object(ldap_connection, ldap_person_dn)
+    assert ldap_object.dn == ldap_person_dn
     assert hasattr(ldap_object, "carLicense") is False
 
 

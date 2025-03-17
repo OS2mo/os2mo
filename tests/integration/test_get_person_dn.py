@@ -9,8 +9,8 @@ from structlog.testing import capture_logs
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.environments import get_person_dn
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
+from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.types import EmployeeUUID
-from mo_ldap_import_export.utils import combine_dn_strings
 
 
 @pytest.mark.integration_test
@@ -63,10 +63,8 @@ async def test_get_person_dn_no_ldap_account(
 async def test_get_person_dn_with_ldap_account(
     context: Context,
     mo_person: EmployeeUUID,
-    ldap_person: list[str],
+    ldap_person_dn: DN,
 ) -> None:
-    ldap_person_dn = combine_dn_strings(ldap_person)
-
     assert "user_context" in context
     dataloader: DataLoader = context["user_context"]["dataloader"]
 
