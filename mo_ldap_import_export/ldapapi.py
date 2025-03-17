@@ -3,7 +3,6 @@
 import asyncio
 from typing import Any
 from typing import cast
-from uuid import UUID
 
 import structlog
 from ldap3 import BASE
@@ -30,6 +29,7 @@ from .ldap import object_search
 from .ldap import single_object_search
 from .ldap_classes import LdapObject
 from .types import DN
+from .types import LDAPUUID
 from .types import CPRNumber
 from .utils import combine_dn_strings
 from .utils import extract_ou_from_dn
@@ -65,7 +65,7 @@ class LDAPAPI:
         logger.info("OU not in OUs to write", ou=ou, ous_to_write_to=ous_to_write_to)
         return False
 
-    async def get_ldap_dn(self, unique_ldap_uuid: UUID) -> DN:
+    async def get_ldap_dn(self, unique_ldap_uuid: LDAPUUID) -> DN:
         """
         Given an unique_ldap_uuid, find the DistinguishedName
         """
@@ -153,7 +153,7 @@ class LDAPAPI:
         )
         logger.info("LDAP Result", result=result, dn=dn)
 
-    async def get_ldap_unique_ldap_uuid(self, dn: str) -> UUID:
+    async def get_ldap_unique_ldap_uuid(self, dn: str) -> LDAPUUID:
         """
         Given a DN, find the unique_ldap_uuid
         """
@@ -167,9 +167,9 @@ class LDAPAPI:
             raise NoObjectsReturnedException(
                 f"Object has no {self.settings.ldap_unique_id_field}"
             )
-        return UUID(uuid)
+        return LDAPUUID(uuid)
 
-    async def convert_ldap_uuids_to_dns(self, ldap_uuids: set[UUID]) -> set[DN]:
+    async def convert_ldap_uuids_to_dns(self, ldap_uuids: set[LDAPUUID]) -> set[DN]:
         # TODO: DataLoader / bulk here instead of this
         results = await asyncio.gather(
             *[self.get_ldap_dn(uuid) for uuid in ldap_uuids],

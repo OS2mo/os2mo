@@ -21,6 +21,7 @@ from .ldapapi import LDAPAPI
 from .moapi import MOAPI
 from .models import ITUser
 from .types import DN
+from .types import LDAPUUID
 from .types import CPRNumber
 from .types import EmployeeUUID
 
@@ -69,7 +70,7 @@ class DataLoader:
         logger.info("No matching employee", dn=dn)
         return None
 
-    def extract_unique_ldap_uuids(self, it_users: list[ITUser]) -> set[UUID]:
+    def extract_unique_ldap_uuids(self, it_users: list[ITUser]) -> set[LDAPUUID]:
         """
         Extracts unique ldap uuids from a list of it-users
         """
@@ -86,7 +87,7 @@ class DataLoader:
                 ],
             )
         # TODO: Check for duplicates?
-        return set(map(UUID, uuids))
+        return set(map(LDAPUUID, uuids))
 
     async def find_mo_employee_dn_by_itsystem(self, uuid: UUID) -> set[DN]:
         """Tries to find the LDAP DNs belonging to a MO employee via ITUsers.

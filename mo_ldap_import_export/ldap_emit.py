@@ -1,17 +1,18 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-from uuid import UUID
 
 import structlog
 from fastramqpi.ramqp import AMQPSystem
+
+from .types import LDAPUUID
 
 logger = structlog.stdlib.get_logger()
 
 
 async def publish_uuids(
     ldap_amqpsystem: AMQPSystem,
-    uuids: list[UUID],
+    uuids: list[LDAPUUID],
 ) -> None:
     if not uuids:
         return None

@@ -10,6 +10,8 @@ from fastramqpi.depends import from_user_context
 from httpx import AsyncClient
 from structlog.testing import capture_logs
 
+from mo_ldap_import_export.types import LDAPUUID
+
 
 @pytest.mark.integration_test
 async def test_process_uuid_missing_uuid(test_client: AsyncClient) -> None:
@@ -35,7 +37,7 @@ async def test_process_uuid_missing_uuid(test_client: AsyncClient) -> None:
 async def test_process_uuid_bad_sync(
     app: FastAPI,
     test_client: AsyncClient,
-    ldap_person_uuid: UUID,
+    ldap_person_uuid: LDAPUUID,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Test that process_uuid fails as expected."""

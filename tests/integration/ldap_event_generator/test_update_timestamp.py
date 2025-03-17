@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import UTC
 from datetime import datetime
+from typing import cast
 from unittest.mock import AsyncMock
-from uuid import UUID
 from uuid import uuid4
 
 import pytest
@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from mo_ldap_import_export.ldap_event_generator import LastRun
 from mo_ldap_import_export.ldap_event_generator import _generate_events
+from mo_ldap_import_export.types import LDAPUUID
 
 
 async def get_last_run(
@@ -49,8 +50,8 @@ async def test_update_timestamp_postgres(context: Context) -> None:
 
     async def seeded_poller(
         last_search_time: datetime,
-    ) -> tuple[set[UUID], datetime | None]:
-        return {uuid4()}, datetime.now()
+    ) -> tuple[set[LDAPUUID], datetime | None]:
+        return {cast(LDAPUUID, uuid4())}, datetime.now()
 
     for count, search_base in enumerate(["dc=ad0", "dc=ad1", "dc=ad2"]):
         assert await num_last_run_entries(sessionmaker) == count
@@ -81,12 +82,12 @@ async def test_update_timestamp_no_changes(context: Context) -> None:
 
     async def seeded_poller(
         last_search_time: datetime,
-    ) -> tuple[set[UUID], datetime | None]:
-        return {uuid4()}, datetime.now()
+    ) -> tuple[set[LDAPUUID], datetime | None]:
+        return {cast(LDAPUUID, uuid4())}, datetime.now()
 
     async def seeded_poller_without_results(
         last_search_time: datetime,
-    ) -> tuple[set[UUID], datetime | None]:
+    ) -> tuple[set[LDAPUUID], datetime | None]:
         return set(), None
 
     search_base = "dc=ad0"

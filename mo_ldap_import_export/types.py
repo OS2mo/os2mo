@@ -12,6 +12,12 @@ OrgUnitUUID = NewType("OrgUnitUUID", UUID)
 EmployeeUUID = NewType("EmployeeUUID", UUID)
 EngagementUUID = NewType("EngagementUUID", UUID)
 ManagerUUID = NewType("ManagerUUID", UUID)
+
+
+class LDAPUUID(UUID):
+    pass
+
+
 # TODO: Convert this to a NewType
 DN: TypeAlias = str
 RDN: TypeAlias = str
