@@ -6,6 +6,7 @@ import asyncio
 from collections.abc import AsyncIterator
 from contextlib import AsyncExitStack
 from contextlib import asynccontextmanager
+from contextlib import suppress
 from typing import Annotated
 from typing import Any
 from uuid import UUID
@@ -35,6 +36,7 @@ from .customer_specific_checks import ExportChecks
 from .customer_specific_checks import ImportChecks
 from .database import Base
 from .dataloaders import DataLoader
+from .exceptions import NoObjectsReturnedException
 from .exceptions import amqp_reject_on_failure
 from .exceptions import http_reject_on_failure
 from .import_export import SyncTool
@@ -42,6 +44,7 @@ from .ldap import check_ou_in_list_of_ous
 from .ldap import configure_ldap_connection
 from .ldap import ldap_healthcheck
 from .ldap_amqp import configure_ldap_amqpsystem
+from .ldap_amqp import handle_uuid
 from .ldap_amqp import ldap2mo_router
 from .ldap_event_generator import LDAPEventGenerator
 from .ldap_event_generator import ldap_event_router
@@ -231,6 +234,50 @@ async def process_person(
         # NOTE: This is a hack to cycle messages because quorum queues do not work
         await asyncio.sleep(30)
         await graphql_client.employee_refresh(amqpsystem.exchange_name, [object_uuid])
+
+
+@amqp_router.register("person")
+@handle_exclusively_decorator(key=lambda object_uuid, *_, **__: object_uuid)
+async def reconcile_person(
+    object_uuid: PayloadUUID,
+    settings: depends.Settings,
+    sync_tool: depends.SyncTool,
+    dataloader: depends.DataLoader,
+    converter: depends.LdapConverter,
+    graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
+) -> None:
+    try:
+        await handle_person_reconciliation(
+            object_uuid, settings, sync_tool, dataloader, converter
+        )
+    except RequeueMessage:  # pragma: no cover
+        # NOTE: This is a hack to cycle messages because quorum queues do not work
+        await asyncio.sleep(30)
+        await graphql_client.employee_refresh(amqpsystem.exchange_name, [object_uuid])
+
+
+async def handle_person_reconciliation(
+    object_uuid: PayloadUUID,
+    settings: depends.Settings,
+    sync_tool: depends.SyncTool,
+    dataloader: depends.DataLoader,
+    converter: depends.LdapConverter,
+) -> None:
+    logger.info(
+        "Registered change in a person (Reconcile)",
+        object_uuid=object_uuid,
+    )
+    dns = await dataloader.find_mo_employee_dn(object_uuid)
+    ldap_uuids = set()
+    for dn in dns:
+        with suppress(NoObjectsReturnedException):
+            ldap_uuids.add(await dataloader.ldapapi.get_ldap_unique_ldap_uuid(dn))
+
+    for ldap_uuid in ldap_uuids:
+        await amqp_reject_on_failure(handle_uuid)(
+            settings, sync_tool, dataloader, converter, ldap_uuid
+        )
 
 
 @mo2ldap_router.post("/org_unit")
