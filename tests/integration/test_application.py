@@ -289,6 +289,19 @@ async def test_ldap2mo(test_client: AsyncClient) -> None:
 
 
 @pytest.mark.integration_test
+async def test_ldap2mo_reconciliation(test_client: AsyncClient) -> None:
+    content = str(uuid4())
+    headers = {"Content-Type": "text/plain"}
+    result = await test_client.post(
+        "/ldap2mo/reconcile", content=content, headers=headers
+    )
+    assert result.status_code == 500
+    json = result.json()
+    assert json.keys() == {"detail"}
+    assert "Found no entries for" in json["detail"]
+
+
+@pytest.mark.integration_test
 async def test_mo2ldap_address(test_client: AsyncClient) -> None:
     content = str(uuid4())
     headers = {"Content-Type": "text/plain"}

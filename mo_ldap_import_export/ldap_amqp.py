@@ -106,6 +106,16 @@ async def handle_uuid(
     await sync_tool.import_single_user(dn)
 
 
+@ldap2mo_router.post("/reconcile")
+@http_reject_on_failure
+async def http_reconcile_uuid(
+    sync_tool: SyncTool,
+    dataloader: DataLoader,
+    uuid: Annotated[LDAPUUID, Body()],
+) -> None:
+    await handle_ldap_reconciliation(sync_tool, dataloader, uuid)
+
+
 @ldap_amqp_router.register("uuid")
 async def reconcile_uuid(
     ldap_amqpsystem: LDAPAMQPSystem,
