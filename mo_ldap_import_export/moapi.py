@@ -603,8 +603,14 @@ class MOAPI:
         )
 
     async def edit_employee(self, obj: Employee) -> None:  # pragma: no cover
-        # TODO: see comment in import_export.py:format_converted_objects()
-        raise NotImplementedError("cannot edit employee using ramodels object")
+        # GraphQL employee_create actually updates if the employee already exists,
+        # using validity from the CPR-number like with creates. We need to use this
+        # undocumented feature of the GraphQL API to avoid calculating the validity
+        # manually based on the CPR-number, since we are not passed an explicit
+        # validity through the legacy ramodels employee object.
+        # TODO: do not use create when we receive an employee object with proper
+        # validity.
+        await self.create_employee(obj)
 
     async def edit_engagement(self, obj: Engagement) -> None:
         await self.graphql_client.engagement_update(

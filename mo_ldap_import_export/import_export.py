@@ -345,18 +345,6 @@ class SyncTool:
 
         if issubclass(mo_class, Termination):
             return [(obj, Verb.TERMINATE) for obj in converted_objects]
-        elif issubclass(mo_class, Employee):
-            # GraphQL employee_create actually updates if the employee already exists,
-            # using validity from the CPR-number like with creates. We need to use this
-            # undocumented feature of the GraphQL API to avoid calculating the validity
-            # manually based on the CPR-number, since we are not passed an explicit
-            # validity through the legacy ramodels employee object.
-            # TODO: don't short-circuit when we receive an employee object with proper
-            # validity.
-            return [
-                (converted_object, Verb.CREATE)
-                for converted_object in converted_objects
-            ]
 
         converted_objects = cast(Sequence[MOBase], converted_objects)
 

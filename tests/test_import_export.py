@@ -177,19 +177,26 @@ async def test_format_converted_engagement_objects_unmatched(
 async def test_format_converted_employee_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-    converter.import_mo_object_class.return_value = Employee
+    converter.get_mo_attributes.return_value = ["user_key", "job_function"]
 
     employee1 = Employee(cpr_number="1212121234", given_name="Foo1", surname="Bar1")
     employee2 = Employee(cpr_number="1212121235", given_name="Foo2", surname="Bar2")
 
+    dataloader.moapi.load_mo_employee.return_value = None
     converted_objects = [employee1, employee2]
 
-    formatted_objects = await sync_tool.format_converted_objects(
-        converted_objects, "Employee"
-    )
+    operations = await sync_tool.format_converted_objects(converted_objects, "Employee")
+    op1, op2 = operations
 
-    assert formatted_objects[0][0] == employee1
-    assert formatted_objects[1][0] == employee2
+    desired_employee, verb = op1
+    assert verb == Verb.CREATE
+    assert isinstance(desired_employee, Employee)
+    assert desired_employee.user_key == employee1.user_key
+
+    desired_employee, verb = op2
+    assert verb == Verb.CREATE
+    assert isinstance(desired_employee, Employee)
+    assert desired_employee.user_key == employee2.user_key
 
 
 @pytest.mark.usefixtures("minimal_valid_settings")
