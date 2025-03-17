@@ -106,6 +106,37 @@ async def handle_uuid(
     await sync_tool.import_single_user(dn)
 
 
+@ldap_amqp_router.register("uuid")
+async def reconcile_uuid(
+    ldap_amqpsystem: LDAPAMQPSystem,
+    sync_tool: SyncTool,
+    dataloader: DataLoader,
+    uuid: PayloadUUID,
+) -> None:
+    try:
+        await amqp_reject_on_failure(handle_ldap_reconciliation)(
+            sync_tool, dataloader, uuid
+        )
+    except RequeueMessage:  # pragma: no cover
+        # NOTE: This is a hack to cycle messages because quorum queues do not work
+        await asyncio.sleep(30)
+        await publish_uuids(ldap_amqpsystem, [uuid])
+
+
+async def handle_ldap_reconciliation(
+    sync_tool: SyncTool,
+    dataloader: DataLoader,
+    uuid: LDAPUUID,
+) -> None:
+    logger.info("Received LDAP AMQP event (Reconcile)", uuid=uuid)
+
+    dn = await dataloader.ldapapi.get_ldap_dn(uuid)
+    person_uuid = await dataloader.find_mo_employee_uuid(dn)
+    if person_uuid is None:
+        return
+    await sync_tool.listen_to_changes_in_employees(person_uuid)
+
+
 def configure_ldap_amqpsystem(fastramqpi: FastRAMQPI, settings: Settings) -> AMQPSystem:
     logger.info("Initializing LDAP AMQP system")
     ldap_amqpsystem = AMQPSystem(

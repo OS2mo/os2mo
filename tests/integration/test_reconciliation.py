@@ -131,7 +131,6 @@ async def test_mo_reconciliation(
         ),
     }
 )
-@pytest.mark.xfail(reason="Integration does not do LDAP reconciliation")
 async def test_ldap_reconciliation(
     context: Context,
     assert_mo_person: Callable[[dict[str, Any]], Awaitable[None]],
