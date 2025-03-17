@@ -236,6 +236,20 @@ async def process_person(
         await graphql_client.employee_refresh(amqpsystem.exchange_name, [object_uuid])
 
 
+@mo2ldap_router.post("/reconcile")
+@http_reject_on_failure
+async def http_reconcile_person(
+    object_uuid: Annotated[UUID, Body()],
+    settings: depends.Settings,
+    sync_tool: depends.SyncTool,
+    dataloader: depends.DataLoader,
+    converter: depends.LdapConverter,
+) -> None:
+    await handle_person_reconciliation(
+        object_uuid, settings, sync_tool, dataloader, converter
+    )
+
+
 @amqp_router.register("person")
 @handle_exclusively_decorator(key=lambda object_uuid, *_, **__: object_uuid)
 async def reconcile_person(
