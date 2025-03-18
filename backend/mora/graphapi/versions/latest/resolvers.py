@@ -54,7 +54,7 @@ from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.graphapi.gmodels.mo.details import OwnerRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 from mora.service.autocomplete.employees import search_employees
-from mora.service.autocomplete.orgunits import search_orgunits
+from mora.service.autocomplete.orgunits import search_orgunits_query
 
 from ...custom_schema import get_version
 from ...middleware import with_graphql_dates
@@ -986,6 +986,14 @@ async def organisation_unit_resolver_query(
             )
         )
 
+    # Query search
+    if filter.query:
+        query = query.where(
+            OrganisationEnhedRegistrering.organisationenhed_id.in_(
+                search_orgunits_query(filter.query)
+            )
+        )
+
     # Pagination. Must be done here since the generic_resolver (lora) does not support
     # filtering on UUIDs and limit/cursor at the same time.
     if limit is not None:
@@ -1024,13 +1032,6 @@ async def organisation_unit_resolver(
         # There may be multiple LoRa fetches in one GraphQL request, so this
         # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
-
-    # Query search
-    if filter.query:
-        if limit is not None or cursor is not None:  # pragma: no cover
-            raise ValueError("The query filter does not work with limit/cursor.")
-        query_uuids = await search_orgunits(session, filter.query)
-        uuids = list(sorted(set(uuids).intersection(query_uuids)))
 
     access_log(
         session,
