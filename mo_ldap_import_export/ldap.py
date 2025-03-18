@@ -264,20 +264,17 @@ async def ldap_search(
     return response, result
 
 
-async def fetch_dn_mapping(
-    ldap_connection: Connection, discriminator_fields: list[str], dns: set[DN]
-) -> dict[DN, dict[str, str | None]]:
-    # Fetch the discriminator attribute for all DNs
+async def fetch_field_mapping(
+    ldap_connection: Connection, discriminator_fields: list[str], dn: DN
+) -> dict[str, str | None]:
+    # Fetch the discriminator attributes for all the given DN
     # NOTE: While it is possible to fetch multiple DNs in a single operation
     #       (by doing a complex search operation), some "guy on the internet" claims
     #       that it is better to lookup DNs individually using the READ operation.
     #       See: https://stackoverflow.com/a/58834059
     try:
-        ldap_objects = await asyncio.gather(
-            *[
-                get_ldap_object(ldap_connection, dn, attributes=discriminator_fields)
-                for dn in dns
-            ]
+        ldap_object = await get_ldap_object(
+            ldap_connection, dn, attributes=discriminator_fields
         )
     except NoObjectsReturnedException as exc:
         # There could be multiple reasons why our DNs cannot be read.
@@ -315,17 +312,23 @@ async def fetch_dn_mapping(
         assert isinstance(unpacked_value, str)
         return unpacked_value
 
-    mapping = {
-        ldap_object.dn: {
-            discriminator_field: ldapobject2discriminator(
-                ldap_object, discriminator_field
-            )
-            for discriminator_field in discriminator_fields
-        }
-        for ldap_object in ldap_objects
+    return {
+        discriminator_field: ldapobject2discriminator(ldap_object, discriminator_field)
+        for discriminator_field in discriminator_fields
     }
-    assert dns == set(mapping.keys())
-    return mapping
+
+
+async def fetch_dn_mapping(
+    ldap_connection: Connection, discriminator_fields: list[str], dns: set[DN]
+) -> dict[DN, dict[str, str | None]]:
+    dn_list = list(dns)
+    mappings = await asyncio.gather(
+        *(
+            fetch_field_mapping(ldap_connection, discriminator_fields, dn)
+            for dn in dn_list
+        )
+    )
+    return dict(zip(dn_list, mappings, strict=True))
 
 
 async def apply_discriminator(
