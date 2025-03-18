@@ -25,6 +25,7 @@ from mo_ldap_import_export.ldap import ldap_add
 from mo_ldap_import_export.ldap import ldap_modify
 from mo_ldap_import_export.ldap import ldap_search
 from mo_ldap_import_export.moapi import MOAPI
+from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.utils import MO_TZ
 from mo_ldap_import_export.utils import combine_dn_strings
 from mo_ldap_import_export.utils import mo_today
@@ -323,7 +324,7 @@ async def test_to_ldap(
 @pytest.mark.usefixtures("test_client")
 async def test_to_mo_skip_if_none(
     graphql_client: GraphQLClient,
-    ldap_person: list[str],
+    ldap_person_dn: DN,
     mo_person: UUID,
     mo_org_unit: UUID,
     ansat: UUID,
@@ -332,7 +333,7 @@ async def test_to_mo_skip_if_none(
     trigger_ldap_person: Callable[[], Awaitable[None]],
 ) -> None:
     skip_object_log = {
-        "dn": combine_dn_strings(ldap_person),
+        "dn": ldap_person_dn,
         "event": "Skipping object",
         "log_level": "info",
     }
