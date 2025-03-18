@@ -533,20 +533,6 @@ class Settings(BaseSettings):
 
         return values
 
-    discriminator_function: Literal["template", None] = Field(
-        None,
-        description="The type of discriminator function, must be 'template' or left unset",
-    )
-
-    @validator("discriminator_function")
-    def warn_on_discriminator_function_usage(cls, v: str) -> str:
-        """Emit a warning if someone sets discriminator_function."""
-        if v:
-            logger.warning(
-                "Avoid setting 'discriminator_function' as it is scheduled for removal"
-            )
-        return v
-
     discriminator_values: list[str] = Field(
         [], description="The values used for discrimination"
     )

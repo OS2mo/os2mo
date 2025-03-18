@@ -14,7 +14,6 @@ from more_itertools import one
 from pydantic import ValidationError
 from pydantic import parse_obj_as
 from pydantic.env_settings import SettingsError
-from structlog.testing import capture_logs
 
 from mo_ldap_import_export.config import ConversionMapping
 from mo_ldap_import_export.config import LDAP2MOMapping
@@ -101,13 +100,6 @@ def test_discriminator_settings(monkeypatch: pytest.MonkeyPatch) -> None:
         with pytest.raises(ValidationError) as exc_info:
             Settings()
         assert "DISCRIMINATOR_VALUES must be set" in str(exc_info.value)
-
-    with monkeypatch.context() as mpc:
-        mpc.setenv("DISCRIMINATOR_FIELD", "xBrugertype")
-        mpc.setenv("DISCRIMINATOR_FUNCTION", "__invalid__")
-        with pytest.raises(ValidationError) as exc_info:
-            Settings()
-        assert "unexpected value; permitted: 'template'" in str(exc_info.value)
 
     with monkeypatch.context() as mpc:
         mpc.setenv("DISCRIMINATOR_FIELD", "xBrugertype")
@@ -436,19 +428,6 @@ async def test_allow_atmost_one_dc(monkeypatch: pytest.MonkeyPatch) -> None:
         assert error in str(exc_info.value)
 
 
-@pytest.mark.usefixtures("minimal_valid_environmental_variables")
-@pytest.mark.envvar({"DISCRIMINATOR_FUNCTION": "template"})
-async def test_discriminator_function_warning() -> None:
-    with capture_logs() as cap_logs:
-        Settings()
-    assert cap_logs == [
-        {
-            "event": "Avoid setting 'discriminator_function' as it is scheduled for removal",
-            "log_level": "warning",
-        }
-    ]
-
-
 minimal_valid_yaml_settings = """
 # LDAP
 ldap_controllers:
@@ -493,9 +472,7 @@ async def test_load_yaml() -> None:
 
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
-@pytest.mark.envvar(
-    {"DISCRIMINATOR_FUNCTION": "template", "DISCRIMINATOR_VALUES": '["True"]'}
-)
+@pytest.mark.envvar({"DISCRIMINATOR_VALUES": '["True"]'})
 def test_discriminator_filter_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     settings = Settings()
     assert settings.discriminator_field is None
