@@ -566,6 +566,33 @@ class Settings(BaseSettings):
             )
         return values
 
+    @root_validator
+    def convert_discriminator_exclude_function(
+        cls, values: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Convert discriminator exclude function to template."""
+        # Wrong discriminator_function, nothing to do
+        discriminator_function = values.get("discriminator_function")
+        if discriminator_function is None or discriminator_function != "exclude":
+            return values
+        # No discriminator_values, nothing to do
+        discriminator_values = values["discriminator_values"]
+        if not discriminator_values:  # pragma: no cover
+            return values
+        # Preconditions are met, we can convert
+
+        # If the discriminator_function is exclude, discriminator_values will be a
+        # list of disallowed values, and we will want to find an account that does not
+        # have any of these disallowed values whatsoever.
+        # NOTE: We assume that at most one such account exists.
+        values["discriminator_function"] = "template"
+        values["discriminator_values"] = [
+            "{{ value is none or value|string not in "
+            + str(discriminator_values)
+            + " }}"
+        ]
+        return values
+
     create_user_trees: list[UUID] = Field(
         default_factory=list,
         description=(

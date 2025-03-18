@@ -140,6 +140,23 @@ def test_discriminator_settings(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
+@pytest.mark.envvar(
+    {
+        "DISCRIMINATOR_FIELD": "xBrugertype",
+        "DISCRIMINATOR_FUNCTION": "exclude",
+        "DISCRIMINATOR_VALUES": '["foo", "bar"]',
+    }
+)
+def test_discriminator_exclude_conversion() -> None:
+    settings = Settings()
+    assert settings.discriminator_field == "xBrugertype"
+    assert settings.discriminator_function == "template"
+    assert settings.discriminator_values == [
+        "{{ value is none or value|string not in ['foo', 'bar'] }}"
+    ]
+
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
 def test_dialect_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     settings = Settings()
     assert settings.ldap_dialect == "AD"

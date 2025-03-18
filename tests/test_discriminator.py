@@ -391,8 +391,8 @@ async def test_apply_discriminator_unknown_dn(
 )
 @pytest.mark.parametrize("discriminator_function", ("include", "exclude"))
 async def test_apply_discriminator_exclude_one_user(
+    monkeypatch: pytest.MonkeyPatch,
     ldap_connection: Connection,
-    settings: Settings,
     ldap_dn: DN,
     discriminator_function: str,
     discriminator_values: list[str],
@@ -405,21 +405,19 @@ async def test_apply_discriminator_exclude_one_user(
     else:
         expected = None if matches else ldap_dn
 
-    settings = settings.copy(
-        update={
-            "discriminator_fields": ["sn"],
-            "discriminator_function": discriminator_function,
-            "discriminator_values": discriminator_values,
-        }
-    )
+    monkeypatch.setenv("DISCRIMINATOR_FIELDS", '["sn"]')
+    monkeypatch.setenv("DISCRIMINATOR_FUNCTION", discriminator_function)
+    monkeypatch.setenv("DISCRIMINATOR_VALUES", json.dumps(discriminator_values))
+
+    settings = Settings()
     result = await apply_discriminator(settings, ldap_connection, {ldap_dn})
     assert result == expected
 
 
 @pytest.mark.parametrize("discriminator_function", ("include", "exclude"))
 async def test_apply_discriminator_exclude_none(
+    monkeypatch: pytest.MonkeyPatch,
     ldap_connection: Connection,
-    settings: Settings,
     discriminator_function: str,
     ldap_container_dn: str,
 ) -> None:
@@ -438,13 +436,11 @@ async def test_apply_discriminator_exclude_none(
         },
     )
 
-    settings = settings.copy(
-        update={
-            "discriminator_fields": ["sn"],
-            "discriminator_function": discriminator_function,
-            "discriminator_values": ["foo_sn"],
-        }
-    )
+    monkeypatch.setenv("DISCRIMINATOR_FIELDS", '["sn"]')
+    monkeypatch.setenv("DISCRIMINATOR_FUNCTION", discriminator_function)
+    monkeypatch.setenv("DISCRIMINATOR_VALUES", '["foo_sn"]')
+
+    settings = Settings()
     with capture_logs() as cap_logs:
         result = await apply_discriminator(settings, ldap_connection, {another_ldap_dn})
         assert "Discriminator value is None" in (x["event"] for x in cap_logs)
@@ -457,8 +453,8 @@ async def test_apply_discriminator_exclude_none(
 
 @pytest.mark.parametrize("discriminator_function", ("include", "exclude"))
 async def test_apply_discriminator_missing_field(
+    monkeypatch: pytest.MonkeyPatch,
     ldap_connection: Connection,
-    settings: Settings,
     discriminator_function: str,
     ldap_container_dn: str,
 ) -> None:
@@ -475,13 +471,12 @@ async def test_apply_discriminator_missing_field(
             "employeeID": "0101700001",
         },
     )
-    settings = settings.copy(
-        update={
-            "discriminator_fields": ["hkOS2MOSync"],
-            "discriminator_function": discriminator_function,
-            "discriminator_values": ["No"],
-        }
-    )
+
+    monkeypatch.setenv("DISCRIMINATOR_FIELDS", '["hkOS2MOSync"]')
+    monkeypatch.setenv("DISCRIMINATOR_FUNCTION", discriminator_function)
+    monkeypatch.setenv("DISCRIMINATOR_VALUES", '["No"]')
+
+    settings = Settings()
     with capture_logs() as cap_logs:
         result = await apply_discriminator(settings, ldap_connection, {another_ldap_dn})
         assert "Discriminator value is None" in (x["event"] for x in cap_logs)

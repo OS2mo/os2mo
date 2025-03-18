@@ -389,16 +389,9 @@ async def apply_discriminator(
     mapping = await fetch_dn_mapping(ldap_connection, discriminator_fields, dns)
 
     discriminator_values = settings.discriminator_values
-    # If the discriminator_function is exclude, discriminator_values will be a
-    # list of disallowed values, and we will want to find an account that does not
-    # have any of these disallowed values whatsoever.
-    # NOTE: We assume that at most one such account exists.
-    if settings.discriminator_function == "exclude":
-        discriminator_values = [
-            "{{ value is none or value|string not in "
-            + str(discriminator_values)
-            + " }}"
-        ]
+
+    # We assume discriminator_function cannot be exclude as pydantic converts it
+    assert settings.discriminator_function != "exclude"
 
     if settings.discriminator_function == "include":
         # If the discriminator_function is include, discriminator_values will be a
@@ -412,7 +405,7 @@ async def apply_discriminator(
             for dn_value in discriminator_values
         ]
 
-    assert settings.discriminator_function in ["exclude", "include", "template"]
+    assert settings.discriminator_function in ["include", "template"]
     # If the discriminator_function is template, discriminator values will be a
     # prioritized list of jinja templates (first meaning most important), and we will
     # want to find the best (most important) account.
