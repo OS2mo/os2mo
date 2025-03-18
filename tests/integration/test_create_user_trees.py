@@ -388,8 +388,16 @@ async def test_create_user_trees_recursive_check(
         "CREATE_USER_TREES": json.dumps([str(UUID_MAP["root"])]),
     }
 )
-@pytest.mark.parametrize("existing_ldap_account", [True, False])
-async def test_create_user_tree_always(
+@pytest.mark.parametrize(
+    "existing_ldap_account",
+    [
+        pytest.param(
+            True, marks=pytest.mark.xfail(reason="create_user_trees is always run")
+        ),
+        False,
+    ],
+)
+async def test_create_user_tree_only_create(
     trigger_mo_person: Callable[[], Awaitable[None]],
     fetch_mo_person_ldap_account: Callable[[], Awaitable[dict[str, Any] | None]],
     create_engagement: Callable[..., Awaitable[UUID]],
@@ -420,4 +428,10 @@ async def test_create_user_tree_always(
     # i.e. when an existing_ldap_account does not exist
     log_events = [x["event"] for x in cap_logs]
     message = "Primary engagement OU outside create_user_trees, skipping"
-    assert message in log_events
+    if existing_ldap_account:
+        assert message not in log_events
+    else:
+        assert message in log_events
+        # If create user trees failed, we should not have gotten an account
+        account = await fetch_mo_person_ldap_account()
+        assert account is None
