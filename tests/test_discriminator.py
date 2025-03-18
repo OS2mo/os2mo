@@ -360,16 +360,13 @@ async def test_apply_discriminator_settings_invariants(
 
 
 async def test_apply_discriminator_unknown_dn(
-    ldap_connection: Connection, settings: Settings
+    monkeypatch: pytest.MonkeyPatch, ldap_connection: Connection
 ) -> None:
     """Test that apply_discriminator requeues on missing DNs."""
-    settings = settings.copy(
-        update={
-            "discriminator_fields": ["sn"],
-            "discriminator_function": "exclude",
-            "discriminator_values": ["__never_gonna_match__"],
-        }
-    )
+    monkeypatch.setenv("DISCRIMINATOR_FIELDS", '["sn"]')
+    monkeypatch.setenv("DISCRIMINATOR_FUNCTION", "exclude")
+    monkeypatch.setenv("DISCRIMINATOR_VALUES", '["__never_gonna_match__"]')
+    settings = Settings()
     with pytest.raises(RequeueMessage) as exc_info:
         await apply_discriminator(settings, ldap_connection, {"CN=__missing__dn__"})
     assert "Unable to lookup DN(s)" in str(exc_info.value)

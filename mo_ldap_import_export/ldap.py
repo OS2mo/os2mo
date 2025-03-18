@@ -383,25 +383,17 @@ async def apply_discriminator(
     # These settings must be set for the function to work
     # This should always be the case, as they are enforced by pydantic
     # But no guarantees are given as pydantic is lenient with run validators
-    assert settings.discriminator_function is not None
+    assert settings.discriminator_function == "template"
     assert settings.discriminator_values != []
 
     mapping = await fetch_dn_mapping(ldap_connection, discriminator_fields, dns)
 
-    discriminator_values = settings.discriminator_values
-
-    # We assume discriminator_function cannot be exclude as pydantic converts it
-    assert settings.discriminator_function != "exclude"
-    # We assume discriminator_function cannot be include as pydantic converts it
-    assert settings.discriminator_function != "include"
-
-    assert settings.discriminator_function in ["template"]
     # If the discriminator_function is template, discriminator values will be a
     # prioritized list of jinja templates (first meaning most important), and we will
     # want to find the best (most important) account.
     # We do this by evaluating the jinja template and looking for outcomes with "True".
     # NOTE: We assume no two accounts are equally important.
-    for discriminator in discriminator_values:
+    for discriminator in settings.discriminator_values:
         dns_passing_template = {
             dn for dn in dns if evaluate_template(discriminator, dn, mapping[dn])
         }
