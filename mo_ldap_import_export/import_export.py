@@ -236,14 +236,15 @@ class SyncTool:
             logger.info("listen_to_changes_in_employees called without mapping")
             return {}
 
-        is_ok = await self.may_create_user_given_orgunit_location(uuid)
-        if not is_ok:
-            logger.info("Primary engagement OU outside create_user_trees, skipping")
-            return {}
-
         best_dn, create = await self.dataloader._find_best_dn(uuid, dry_run=dry_run)
         if best_dn is None:
             return {}
+
+        if create:
+            is_ok = await self.may_create_user_given_orgunit_location(uuid)
+            if not is_ok:
+                logger.info("Primary engagement OU outside create_user_trees, skipping")
+                return {}
 
         exit_stack.enter_context(bound_contextvars(dn=best_dn))
         ldap_desired_state = await self.render_ldap2mo(uuid, best_dn)

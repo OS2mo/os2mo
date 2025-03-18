@@ -388,15 +388,7 @@ async def test_create_user_trees_recursive_check(
         "CREATE_USER_TREES": json.dumps([str(UUID_MAP["root"])]),
     }
 )
-@pytest.mark.parametrize(
-    "existing_ldap_account",
-    [
-        pytest.param(
-            True, marks=pytest.mark.xfail(reason="create_user_trees is always run")
-        ),
-        False,
-    ],
-)
+@pytest.mark.parametrize("existing_ldap_account", [True, False])
 async def test_create_user_tree_only_create(
     trigger_mo_person: Callable[[], Awaitable[None]],
     fetch_mo_person_ldap_account: Callable[[], Awaitable[dict[str, Any] | None]],
