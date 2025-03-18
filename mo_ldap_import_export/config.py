@@ -35,6 +35,16 @@ from .utils import import_class
 logger = structlog.stdlib.get_logger()
 
 
+def validate_jinja(v: str, error: str) -> str:
+    # Validate that the jinja template can be parsed correctly
+    try:
+        env = Environment()
+        env.parse(v)
+    except TemplateSyntaxError as e:
+        raise ValueError(error) from e
+    return v
+
+
 def value_or_default(dicty: dict[str, Any], key: str, default: Any) -> None:
     dicty[key] = dicty.get(key) or default
 
@@ -272,13 +282,7 @@ class ConversionMapping(MappingBaseModel):
 
     @validator("mo2ldap")
     def check_mo2ldap_is_valid_jinja(cls, v: str) -> str:
-        # Validate that the jinja template can be parsed correctly
-        try:
-            env = Environment()
-            env.parse(v)
-        except TemplateSyntaxError as e:
-            raise ValueError("Unable to parse mo2ldap template") from e
-        return v
+        return validate_jinja(v, "Unable to parse mo2ldap template")
 
 
 class AuthBackendEnum(str, Enum):
@@ -548,6 +552,12 @@ class Settings(BaseSettings):
     discriminator_values: list[str] = Field(
         [], description="The values used for discrimination"
     )
+
+    @validator("discriminator_values")
+    def check_discriminator_values_are_valid_jinja(cls, v: list[str]) -> list[str]:
+        for template in v:
+            validate_jinja(template, "Unable to parse discriminator_values template")
+        return v
 
     @root_validator
     def check_discriminator_settings(cls, values: dict[str, Any]) -> dict[str, Any]:
