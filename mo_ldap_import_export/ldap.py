@@ -392,20 +392,10 @@ async def apply_discriminator(
 
     # We assume discriminator_function cannot be exclude as pydantic converts it
     assert settings.discriminator_function != "exclude"
+    # We assume discriminator_function cannot be include as pydantic converts it
+    assert settings.discriminator_function != "include"
 
-    if settings.discriminator_function == "include":
-        # If the discriminator_function is include, discriminator_values will be a
-        # prioritized list of values (first meaning most important), and we will want
-        # to find the best (most important) account.
-        # NOTE: We assume that no two accounts are equally important.
-        # This is implemented using our template system below, so we simply wrap our
-        # values into simple jinja-templates.
-        discriminator_values = [
-            '{{ value == "' + str(dn_value) + '" }}'
-            for dn_value in discriminator_values
-        ]
-
-    assert settings.discriminator_function in ["include", "template"]
+    assert settings.discriminator_function in ["template"]
     # If the discriminator_function is template, discriminator values will be a
     # prioritized list of jinja templates (first meaning most important), and we will
     # want to find the best (most important) account.
