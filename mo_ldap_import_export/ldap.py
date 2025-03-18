@@ -383,7 +383,6 @@ async def apply_discriminator(
     # These settings must be set for the function to work
     # This should always be the case, as they are enforced by pydantic
     # But no guarantees are given as pydantic is lenient with run validators
-    assert settings.discriminator_function == "template"
     assert settings.discriminator_values != []
 
     mapping = await fetch_dn_mapping(ldap_connection, discriminator_fields, dns)

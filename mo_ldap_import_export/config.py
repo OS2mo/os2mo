@@ -536,6 +536,15 @@ class Settings(BaseSettings):
         description="The type of discriminator function, must be 'template' or left unset",
     )
 
+    @validator("discriminator_function")
+    def warn_on_discriminator_function_usage(cls, v: str) -> str:
+        """Emit a warning if someone sets discriminator_function."""
+        if v:
+            logger.warning(
+                "Avoid setting 'discriminator_function' as it is scheduled for removal"
+            )
+        return v
+
     discriminator_values: list[str] = Field(
         [], description="The values used for discrimination"
     )
@@ -549,17 +558,8 @@ class Settings(BaseSettings):
             and values["discriminator_fields"] == []
         ):
             return values
-        # If our keys are not in values, a field validator failed, let it handle it
-        if (
-            "discriminator_function" not in values
-            or "discriminator_values" not in values
-        ):
-            return values
+        assert "discriminator_values" in values
         # Check that our now required fields are set
-        if values["discriminator_function"] is None:
-            raise ValueError(
-                "DISCRIMINATOR_FUNCTION must be set, if DISCRIMINATOR_FIELD is set"
-            )
         if values["discriminator_values"] == []:
             raise ValueError(
                 "DISCRIMINATOR_VALUES must be set, if DISCRIMINATOR_FIELD is set"
