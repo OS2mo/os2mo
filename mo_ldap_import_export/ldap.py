@@ -264,40 +264,9 @@ async def ldap_search(
     return response, result
 
 
-async def apply_discriminator(
-    settings: Settings, ldap_connection: Connection, dns: set[DN]
-) -> DN | None:
-    """Find the account to synchronize from a set of DNs.
-
-    The DNs are evaluated depending on the configuration of the discriminator.
-
-    Args:
-        dns: The set of DNs to evaluate.
-
-    Raises:
-        RequeueMessage: If the provided DNs could not be read from LDAP.
-        ValueError: If too many or too few LDAP accounts are found.
-
-    Returns:
-        The account to synchronize (if any).
-    """
-    assert isinstance(dns, set)
-
-    # Empty input-set means we have no accounts to consider
-    if not dns:
-        return None
-
-    discriminator_fields = settings.discriminator_fields
-    # If discriminator is not configured, there can be only one user
-    if not discriminator_fields:
-        return one(dns)
-
-    # These settings must be set for the function to work
-    # This should always be the case, as they are enforced by pydantic
-    # But no guarantees are given as pydantic is lenient with run validators
-    assert settings.discriminator_function is not None
-    assert settings.discriminator_values != []
-
+async def fetch_dn_mapping(
+    ldap_connection: Connection, discriminator_fields: list[str], dns: set[DN]
+) -> dict[DN, dict[str, str | None]]:
     # Fetch the discriminator attribute for all DNs
     # NOTE: While it is possible to fetch multiple DNs in a single operation
     #       (by doing a complex search operation), some "guy on the internet" claims
@@ -356,6 +325,44 @@ async def apply_discriminator(
         for ldap_object in ldap_objects
     }
     assert dns == set(mapping.keys())
+    return mapping
+
+
+async def apply_discriminator(
+    settings: Settings, ldap_connection: Connection, dns: set[DN]
+) -> DN | None:
+    """Find the account to synchronize from a set of DNs.
+
+    The DNs are evaluated depending on the configuration of the discriminator.
+
+    Args:
+        dns: The set of DNs to evaluate.
+
+    Raises:
+        RequeueMessage: If the provided DNs could not be read from LDAP.
+        ValueError: If too many or too few LDAP accounts are found.
+
+    Returns:
+        The account to synchronize (if any).
+    """
+    assert isinstance(dns, set)
+
+    # Empty input-set means we have no accounts to consider
+    if not dns:
+        return None
+
+    discriminator_fields = settings.discriminator_fields
+    # If discriminator is not configured, there can be only one user
+    if not discriminator_fields:
+        return one(dns)
+
+    # These settings must be set for the function to work
+    # This should always be the case, as they are enforced by pydantic
+    # But no guarantees are given as pydantic is lenient with run validators
+    assert settings.discriminator_function is not None
+    assert settings.discriminator_values != []
+
+    mapping = await fetch_dn_mapping(ldap_connection, discriminator_fields, dns)
 
     discriminator_values = settings.discriminator_values
     # If the discriminator_function is exclude, discriminator_values will be a
