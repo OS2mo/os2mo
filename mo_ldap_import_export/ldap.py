@@ -362,6 +362,11 @@ async def filter_dns(
     if not discriminator_filter:
         return dns
 
+    # We assume discriminator_fields is set if discriminator_filter is
+    # This invariant should be upheld by pydantic settings
+    discriminator_fields = settings.discriminator_fields
+    assert discriminator_fields, "discriminator_fields must be set"
+
     return dns
 
 

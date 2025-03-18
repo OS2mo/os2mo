@@ -490,3 +490,46 @@ async def test_load_yaml() -> None:
         assert one(settings.ldap_controllers).use_ssl is True
         assert settings.fastramqpi.database is not None
         assert settings.fastramqpi.database.host == "db"
+
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+@pytest.mark.envvar(
+    {"DISCRIMINATOR_FUNCTION": "template", "DISCRIMINATOR_VALUES": '["True"]'}
+)
+def test_discriminator_filter_settings(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = Settings()
+    assert settings.discriminator_field is None
+    assert settings.discriminator_fields == []
+    assert settings.discriminator_filter is None
+
+    exc_info: pytest.ExceptionInfo
+
+    with monkeypatch.context() as mpc:
+        mpc.setenv("DISCRIMINATOR_FILTER", "True")
+        with pytest.raises(ValidationError) as exc_info:
+            Settings()
+        assert "DISCRIMINATOR_FIELD(s) must be set" in str(exc_info.value)
+
+    with monkeypatch.context() as mpc:
+        mpc.setenv("DISCRIMINATOR_FILTER", "True")
+        mpc.setenv("DISCRIMINATOR_FIELD", "xBrugertype")
+        settings = Settings()
+        assert settings.discriminator_field == "xBrugertype"
+        assert settings.discriminator_fields == ["xBrugertype"]
+        assert settings.discriminator_filter == "True"
+
+    with monkeypatch.context() as mpc:
+        mpc.setenv("DISCRIMINATOR_FILTER", "True")
+        mpc.setenv("DISCRIMINATOR_FIELDS", '["xBrugertype"]')
+        settings = Settings()
+        assert settings.discriminator_field is None
+        assert settings.discriminator_fields == ["xBrugertype"]
+        assert settings.discriminator_filter == "True"
+
+    with monkeypatch.context() as mpc:
+        mpc.setenv("DISCRIMINATOR_FILTER", "True")
+        mpc.setenv("DISCRIMINATOR_FIELDS", '["xBrugertype", "LDAP_SYNC"]')
+        settings = Settings()
+        assert settings.discriminator_field is None
+        assert settings.discriminator_fields == ["xBrugertype", "LDAP_SYNC"]
+        assert settings.discriminator_filter == "True"

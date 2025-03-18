@@ -567,6 +567,27 @@ class Settings(BaseSettings):
         return validate_jinja(v, "Unable to parse discriminator_filter template")
 
     @root_validator
+    def check_discriminator_filter_settings(
+        cls, values: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Ensure that discriminator fields is set, if filter is set."""
+        # No discriminator_filter, not required fields
+        if (
+            "discriminator_filter" not in values
+            or values["discriminator_filter"] is None
+        ):
+            return values
+        # No discriminator_field, not we have a problem
+        if (
+            values["discriminator_field"] is None
+            and values["discriminator_fields"] == []
+        ):
+            raise ValueError(
+                "DISCRIMINATOR_FIELD(s) must be set, if DISCRIMINATOR_FILTER is set"
+            )
+        return values
+
+    @root_validator
     def check_discriminator_settings(cls, values: dict[str, Any]) -> dict[str, Any]:
         """Ensure that discriminator function and values is set, if field is set."""
         # No discriminator_field, not required fields

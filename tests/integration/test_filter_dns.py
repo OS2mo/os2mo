@@ -19,3 +19,17 @@ async def test_filter_dns_no_filter(input_dns: set[DN]) -> None:
 
     output_dns = await filter_dns(settings, ldap_connection, input_dns)
     assert input_dns == output_dns
+
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+async def test_filter_dns_no_fields() -> None:
+    ldap_connection = AsyncMock()
+
+    settings = Settings()
+    assert settings.discriminator_filter is None
+    settings = settings.copy(update={"discriminator_filter": "True"})
+    assert settings.discriminator_filter == "True"
+
+    with pytest.raises(AssertionError) as exc_info:
+        await filter_dns(settings, ldap_connection, {"CN=foo"})
+    assert "discriminator_fields must be set" in str(exc_info.value)
