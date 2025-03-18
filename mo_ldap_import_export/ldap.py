@@ -6,6 +6,7 @@ import asyncio
 import signal
 from collections import ChainMap
 from contextlib import suppress
+from functools import cache
 from ssl import CERT_NONE
 from ssl import CERT_REQUIRED
 from typing import Any
@@ -331,13 +332,18 @@ async def fetch_dn_mapping(
     return dict(zip(dn_list, mappings, strict=True))
 
 
+@cache
+def construct_template(template: str) -> Template:
+    return Template(template)
+
+
 def evaluate_template(template: str, dn: DN, mapping: dict[str, str | None]) -> bool:
     def mapping2value(field_mapping: dict[str, str | None]) -> str | None:
         if len(field_mapping) != 1:
             return None
         return one(field_mapping.values())
 
-    jinja_template = Template(template)
+    jinja_template = construct_template(template)
     result = jinja_template.render(
         dn=dn,
         value=mapping2value(mapping),
