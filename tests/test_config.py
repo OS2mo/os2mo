@@ -101,7 +101,7 @@ def test_discriminator_settings(monkeypatch: pytest.MonkeyPatch) -> None:
 
     with monkeypatch.context() as mpc:
         mpc.setenv("DISCRIMINATOR_FIELD", "xBrugertype")
-        mpc.setenv("DISCRIMINATOR_FUNCTION", "include")
+        mpc.setenv("DISCRIMINATOR_FUNCTION", "template")
         with pytest.raises(ValidationError) as exc_info:
             Settings()
         assert "DISCRIMINATOR_VALUES must be set" in str(exc_info.value)
@@ -115,7 +115,7 @@ def test_discriminator_settings(monkeypatch: pytest.MonkeyPatch) -> None:
 
     with monkeypatch.context() as mpc:
         mpc.setenv("DISCRIMINATOR_FIELD", "xBrugertype")
-        mpc.setenv("DISCRIMINATOR_FUNCTION", "include")
+        mpc.setenv("DISCRIMINATOR_FUNCTION", "template")
         mpc.setenv("DISCRIMINATOR_VALUES", "[]")
         with pytest.raises(ValidationError) as exc_info:
             Settings()
@@ -123,7 +123,7 @@ def test_discriminator_settings(monkeypatch: pytest.MonkeyPatch) -> None:
 
     with monkeypatch.context() as mpc:
         mpc.setenv("DISCRIMINATOR_FIELD", "xBrugertype")
-        mpc.setenv("DISCRIMINATOR_FUNCTION", "include")
+        mpc.setenv("DISCRIMINATOR_FUNCTION", "template")
         mpc.setenv("DISCRIMINATOR_VALUES", "__invalid__")
         with pytest.raises(SettingsError) as exc_info:
             Settings()
@@ -131,11 +131,11 @@ def test_discriminator_settings(monkeypatch: pytest.MonkeyPatch) -> None:
 
     with monkeypatch.context() as mpc:
         mpc.setenv("DISCRIMINATOR_FIELD", "xBrugertype")
-        mpc.setenv("DISCRIMINATOR_FUNCTION", "include")
+        mpc.setenv("DISCRIMINATOR_FUNCTION", "template")
         mpc.setenv("DISCRIMINATOR_VALUES", '["hello"]')
         settings = Settings()
         assert settings.discriminator_field == "xBrugertype"
-        assert settings.discriminator_function == "include"
+        assert settings.discriminator_function == "template"
         assert settings.discriminator_values == ["hello"]
 
 
