@@ -26,6 +26,7 @@ from mo_ldap_import_export.ldap import ldap_search
 from mo_ldap_import_export.types import EmployeeUUID
 from mo_ldap_import_export.types import OrgUnitUUID
 from mo_ldap_import_export.utils import combine_dn_strings
+from tests.integration.conftest import AddLdapPerson
 
 #       root
 #       / \
@@ -376,3 +377,47 @@ async def test_create_user_trees_recursive_check(
         assert message in log_events
         account = await fetch_mo_person_ldap_account()
         assert account is None
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "CONVERSION_MAPPING": CONVERSION_MAPPING,
+        "CREATE_USER_TREES": json.dumps([str(UUID_MAP["root"])]),
+    }
+)
+@pytest.mark.parametrize("existing_ldap_account", [True, False])
+async def test_create_user_tree_always(
+    trigger_mo_person: Callable[[], Awaitable[None]],
+    fetch_mo_person_ldap_account: Callable[[], Awaitable[dict[str, Any] | None]],
+    create_engagement: Callable[..., Awaitable[UUID]],
+    add_ldap_person: AddLdapPerson,
+    mo_person: EmployeeUUID,
+    mo_org_unit: OrgUnitUUID,
+    existing_ldap_account: bool,
+) -> None:
+    settings = Settings()
+    assert settings.create_user_trees == [UUID_MAP["root"]]
+
+    await create_engagement(mo_person, mo_org_unit)
+
+    # No LDAP account yet
+    account = await fetch_mo_person_ldap_account()
+    assert account is None
+
+    # Create an LDAP account if configured to do so
+    if existing_ldap_account:
+        await add_ldap_person("abk", "2108613133")
+        account = await fetch_mo_person_ldap_account()
+        assert account is not None
+
+    with capture_logs() as cap_logs:
+        await trigger_mo_person()
+
+    # create_user_trees should only be checked for creates
+    # i.e. when an existing_ldap_account does not exist
+    log_events = [x["event"] for x in cap_logs]
+    message = "Primary engagement OU outside create_user_trees, skipping"
+    assert message in log_events
