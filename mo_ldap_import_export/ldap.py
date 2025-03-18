@@ -352,6 +352,13 @@ def evaluate_template(template: str, dn: DN, mapping: dict[str, str | None]) -> 
     return result.strip() == "True"
 
 
+async def filter_dns(
+    settings: Settings, ldap_connection: Connection, dns: set[DN]
+) -> set[DN]:
+    assert isinstance(dns, set)
+    return dns
+
+
 async def apply_discriminator(
     settings: Settings, ldap_connection: Connection, dns: set[DN]
 ) -> DN | None:

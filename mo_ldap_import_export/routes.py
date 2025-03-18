@@ -47,6 +47,7 @@ from .dataloaders import DataLoader
 from .exceptions import InvalidCPR
 from .exceptions import NoObjectsReturnedException
 from .ldap import apply_discriminator
+from .ldap import filter_dns
 from .ldap import get_ldap_object
 from .ldap import make_ldap_object
 from .ldap import object_search
@@ -827,6 +828,7 @@ def construct_router(settings: Settings) -> APIRouter:
             logger.info("Found no DNs for cpr_number")
             raise HTTPException(status_code=404, detail="No DNs found for CPR number")
 
+        dns = await filter_dns(settings, ldap_connection, dns)
         best_dn = await apply_discriminator(settings, ldap_connection, dns)
         if best_dn is None:
             logger.info("No DNs survived discriminator")
@@ -863,6 +865,7 @@ def construct_router(settings: Settings) -> APIRouter:
             logger.info("Found no DNs for cpr_number")
             raise HTTPException(status_code=404, detail="No DNs found for CPR number")
 
+        dns = await filter_dns(settings, ldap_connection, dns)
         best_dn = await apply_discriminator(settings, ldap_connection, dns)
         if best_dn is None:
             logger.info("No DNs survived discriminator")
