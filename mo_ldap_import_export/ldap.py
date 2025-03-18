@@ -367,7 +367,11 @@ async def filter_dns(
     discriminator_fields = settings.discriminator_fields
     assert discriminator_fields, "discriminator_fields must be set"
 
-    return dns
+    mapping = await fetch_dn_mapping(ldap_connection, discriminator_fields, dns)
+    dns_passing_template = {
+        dn for dn in dns if evaluate_template(discriminator_filter, dn, mapping[dn])
+    }
+    return dns_passing_template
 
 
 async def apply_discriminator(
