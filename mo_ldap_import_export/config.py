@@ -557,6 +557,15 @@ class Settings(BaseSettings):
             validate_jinja(template, "Unable to parse discriminator_values template")
         return v
 
+    discriminator_filter: str | None = Field(
+        None,
+        description="Jinja filter to run before applying the discriminator",
+    )
+
+    @validator("discriminator_filter")
+    def check_mo2ldap_is_valid_jinja(cls, v: str) -> str:
+        return validate_jinja(v, "Unable to parse discriminator_filter template")
+
     @root_validator
     def check_discriminator_settings(cls, values: dict[str, Any]) -> dict[str, Any]:
         """Ensure that discriminator function and values is set, if field is set."""

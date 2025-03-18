@@ -356,6 +356,12 @@ async def filter_dns(
     settings: Settings, ldap_connection: Connection, dns: set[DN]
 ) -> set[DN]:
     assert isinstance(dns, set)
+
+    discriminator_filter = settings.discriminator_filter
+    # If discriminator filter is not configured, no filtering happens
+    if not discriminator_filter:
+        return dns
+
     return dns
 
 

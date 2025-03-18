@@ -286,8 +286,11 @@ invalid_jinja = [
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
 @pytest.mark.parametrize("jinja_template", valid_jinja)
-async def test_mo2ldap_jinja_validator_valid(
-    monkeypatch: pytest.MonkeyPatch, jinja_template: str
+@pytest.mark.parametrize(
+    "environment_variable", ["CONVERSION_MAPPING__MO2LDAP", "DISCRIMINATOR_FILTER"]
+)
+async def test_jinja_validator_valid(
+    monkeypatch: pytest.MonkeyPatch, jinja_template: str, environment_variable: str
 ) -> None:
     monkeypatch.setenv("CONVERSION_MAPPING__MO2LDAP", jinja_template)
     Settings()
@@ -295,13 +298,23 @@ async def test_mo2ldap_jinja_validator_valid(
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
 @pytest.mark.parametrize("jinja_template", invalid_jinja)
-async def test_mo2ldap_jinja_validator_invalid(
-    monkeypatch: pytest.MonkeyPatch, jinja_template: str
+@pytest.mark.parametrize(
+    "environment_variable, error_field",
+    [
+        ("CONVERSION_MAPPING__MO2LDAP", "mo2ldap"),
+        ("DISCRIMINATOR_FILTER", "discriminator_filter"),
+    ],
+)
+async def test_jinja_validator_invalid(
+    monkeypatch: pytest.MonkeyPatch,
+    jinja_template: str,
+    environment_variable: str,
+    error_field: str,
 ) -> None:
-    monkeypatch.setenv("CONVERSION_MAPPING__MO2LDAP", jinja_template)
+    monkeypatch.setenv(environment_variable, jinja_template)
     with pytest.raises(ValidationError) as exc_info:
         Settings()
-    assert "Unable to parse mo2ldap template" in str(exc_info.value)
+    assert f"Unable to parse {error_field} template" in str(exc_info.value)
 
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
