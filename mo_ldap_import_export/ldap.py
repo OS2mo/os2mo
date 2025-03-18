@@ -331,6 +331,21 @@ async def fetch_dn_mapping(
     return dict(zip(dn_list, mappings, strict=True))
 
 
+def evaluate_template(template: str, dn: DN, mapping: dict[str, str | None]) -> bool:
+    def mapping2value(field_mapping: dict[str, str | None]) -> str | None:
+        if len(field_mapping) != 1:
+            return None
+        return one(field_mapping.values())
+
+    jinja_template = Template(template)
+    result = jinja_template.render(
+        dn=dn,
+        value=mapping2value(mapping),
+        **mapping,
+    )
+    return result.strip() == "True"
+
+
 async def apply_discriminator(
     settings: Settings, ldap_connection: Connection, dns: set[DN]
 ) -> DN | None:
@@ -391,11 +406,6 @@ async def apply_discriminator(
             for dn_value in discriminator_values
         ]
 
-    def mapping2value(field_mapping: dict[str, str | None]) -> str | None:
-        if len(field_mapping) != 1:
-            return None
-        return one(field_mapping.values())
-
     assert settings.discriminator_function in ["exclude", "include", "template"]
     # If the discriminator_function is template, discriminator values will be a
     # prioritized list of jinja templates (first meaning most important), and we will
@@ -403,16 +413,8 @@ async def apply_discriminator(
     # We do this by evaluating the jinja template and looking for outcomes with "True".
     # NOTE: We assume no two accounts are equally important.
     for discriminator in discriminator_values:
-        template = Template(discriminator)
         dns_passing_template = {
-            dn
-            for dn in dns
-            if template.render(
-                dn=dn,
-                value=mapping2value(mapping[dn]),
-                **mapping[dn],
-            ).strip()
-            == "True"
+            dn for dn in dns if evaluate_template(discriminator, dn, mapping[dn])
         }
         if dns_passing_template:
             return one(
