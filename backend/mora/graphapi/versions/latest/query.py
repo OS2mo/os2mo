@@ -27,6 +27,10 @@ from mora.graphapi.gmodels.mo.organisation_unit import OrganisationUnitRead
 
 from .access_log import AccessLog
 from .access_log import access_log_resolver
+from .events import Event
+from .events import event_resolver
+from .events import Listener
+from .events import listener_resolver
 from .filters import ConfigurationFilter
 from .filters import FileFilter
 from .filters import HealthFilter
@@ -409,3 +413,25 @@ class Query:
     )
     async def version(self) -> Version:
         return Version()
+
+
+    # Event system
+    # ------------
+
+    event_listeners: Paged[Listener] = strawberry.field(
+        resolver=to_paged(listener_resolver, Listener),
+        description="Get event listeners.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("listener"),
+        ],
+    )
+
+    event_fetch: Event | None = strawberry.field(
+        resolver=event_resolver,
+        description="Get an event. TODO needs more docs here.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("event"),
+        ],
+    )

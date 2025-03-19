@@ -735,3 +735,25 @@ class RoleBindingTerminateInput:
 
 # Files
 # -----
+
+
+# Listener
+# --------
+@strawberry.input
+class ListenerCreateInput:
+    namespace: str
+    user_key: str
+    routing_key: str
+
+
+@strawberry.input
+class ListenerDeleteInput:
+    uuid: UUID
+
+
+@strawberry.input
+class EventSendInput:
+    namespace: str
+    routing_key: str
+    subject: str
+    priority: int = 10

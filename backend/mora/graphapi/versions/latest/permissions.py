@@ -16,13 +16,14 @@ from mora.auth.exceptions import AuthorizationError
 from mora.config import get_settings
 
 Collections = Literal[
+    "accesslog",
     "address",
     "association",
-    "accesslog",
     "class",
     "configuration",
     "employee",
     "engagement",
+    "event",
     "facet",
     "file",
     "health",
@@ -30,10 +31,11 @@ Collections = Literal[
     "ituser",
     "kle",
     "leave",
+    "listener",
     "manager",
-    "owner",
     "org",
     "org_unit",
+    "owner",
     "registration",
     "related_unit",
     "rolebinding",

@@ -22,7 +22,6 @@ object, e.g. `engagement`. The valid topics are:
 * `kle`
 * `leave`
 * `manager`
-* `manager`
 * `org_unit`
 * `owner`
 * `person`

@@ -15,3 +15,5 @@ Fordi MO indeholder alle oplysninger om organisationen, og de altid er opdatered
 Når MO er forbundet til mange systemer, bliver arbejdsgange automatiseret, og ensartet og høj datakvalitet bliver realiseret i de tilkoblede systemer.
 
 ![image](./graphics/MOforside.png)
+
+DOCS TIL EVENTS!!!

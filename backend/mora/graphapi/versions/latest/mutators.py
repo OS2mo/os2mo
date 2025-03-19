@@ -9,6 +9,12 @@ from uuid import UUID
 
 import strawberry
 from fastramqpi.ra_utils.asyncio_utils import gather_with_concurrency
+from sqlalchemy import bindparam
+from sqlalchemy import literal
+from sqlalchemy import delete
+from sqlalchemy import select
+from sqlalchemy import insert
+from sqlalchemy import text
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
@@ -46,6 +52,7 @@ from .employee import update_employee
 from .engagements import create_engagement
 from .engagements import terminate_engagement
 from .engagements import update_engagement
+from .events import Listener, OpaqueEventToken
 from .facets import create_facet
 from .facets import delete_facet
 from .facets import terminate_facet
@@ -65,7 +72,7 @@ from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
 from .filters import RoleBindingFilter
-from .inputs import AddressCreateInput
+from .inputs import AddressCreateInput, EventSendInput
 from .inputs import AddressTerminateInput
 from .inputs import AddressUpdateInput
 from .inputs import AssociationCreateInput
@@ -101,6 +108,8 @@ from .inputs import KLEUpdateInput
 from .inputs import LeaveCreateInput
 from .inputs import LeaveTerminateInput
 from .inputs import LeaveUpdateInput
+from .inputs import ListenerCreateInput
+from .inputs import ListenerDeleteInput
 from .inputs import ManagerCreateInput
 from .inputs import ManagerTerminateInput
 from .inputs import ManagerUpdateInput
@@ -1519,6 +1528,93 @@ class Mutation:
         return await refresh(
             info=info, page=page, model="rolebinding", exchange=exchange
         )
+
+    # Event system
+    # ------------
+    @strawberry.mutation(
+        description="Create a listener.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("listener"),
+        ],
+    )
+    async def event_listener_create(
+            self, info: Info, input: ListenerCreateInput
+    ) -> Listener:
+        # TODO! idempotency
+        session = info.context["session"]
+        owner = get_authenticated_user()
+        listener = db.Listener(user_key=input.user_key, owner=owner, namespace=input.namespace, routing_key=input.routing_key)
+        session.add(listener)
+        await session.flush()
+        return Listener(uuid=listener.pk, owner=listener.owner, user_key=listener.user_key, namespace=listener.namespace, routing_key=listener.routing_key)
+
+    @strawberry.mutation(
+        description="Delete a listener.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_delete_permission("listener"),
+        ],
+    )
+    async def event_listener_delete(
+        self, 
+        info: Info,
+input: ListenerDeleteInput,
+        ) -> None:
+        session = info.context["session"]
+        await session.execute(delete(db.Listener).where(db.Listener.pk == input.uuid))
+
+
+    @strawberry.mutation(
+        description="Acknowledge an event.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            # gen_terminate_permission("listener"),  # TODO
+        ],
+    )
+    async def event_acknowledge(
+        self, 
+        info: Info,
+input: OpaqueEventToken,
+        ) -> None:
+        pass
+
+
+    @strawberry.mutation(
+        description="Send an event.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            # gen_terminate_permission("listener"),  # TODO
+        ],
+    )
+    async def event_send(
+        self, 
+        info: Info,
+input: EventSendInput,
+        ) -> None:
+        if input.priority < 0:
+            raise ValueError("priority must be positive")
+
+        matching_listeners = select(db.Listener.pk).where(
+            db.Listener.namespace == input.namespace,
+            db.Listener.routing_key == input.routing_key,
+        )
+
+        stmt = insert(db.Event).from_select(
+            ["pk", "listener_fk", "subject", "priority", "last_tried", "silenced"],
+            select(
+                text("uuid_generate_v4()"),
+                db.Listener.pk,
+                literal(input.subject),
+                literal(input.priority),
+                text("now()"),  # Last tried timestamp
+                text("false"),  # Default silenced flag
+            ).where(db.Listener.pk.in_(matching_listeners))
+        )
+
+        session = info.context["session"]
+        await session.execute(stmt)
+
 
     # Files
     # -----
