@@ -14,6 +14,7 @@ from strawberry.types.unset import UnsetType
 from mora.graphapi.gmodels.mo import OpenValidity as RAOpenValidity
 from mora.graphapi.gmodels.mo import Validity as RAValidity
 
+from .events import ListenerFilter
 from ...gmodels.mo._shared import UUIDBase
 from .models import AddressCreate
 from .models import AddressTerminate
@@ -735,3 +736,43 @@ class RoleBindingTerminateInput:
 
 # Files
 # -----
+
+
+# Event system
+# ------------
+
+
+@strawberry.input
+class ListenerCreateInput:
+    namespace: str
+    user_key: str
+    routing_key: str
+
+
+@strawberry.input
+class ListenerDeleteInput:
+    uuid: UUID
+
+
+@strawberry.input
+class EventSendInput:
+    namespace: str
+    routing_key: str
+    subject: str
+    priority: int = 10
+
+
+@strawberry.input
+class EventSilenceInput:
+    uuid: UUID
+
+
+@strawberry.input(description="Unsilence all matching events.")
+class EventUnsilenceInput:
+    listener: ListenerFilter | None = None
+    uuids: list[UUID] | None = strawberry.field(
+        default=None,
+        description="IDs of events to unsilence",
+    )
+    subjects: list[str] | None = None
+    priorities: list[int] | None = None

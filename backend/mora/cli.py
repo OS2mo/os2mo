@@ -164,6 +164,9 @@ def start() -> None:
     asyncio.run(start_amqp_subsystem(sessionmaker))
 
 
+# TODO! new cli for events?
+
+
 if __name__ == "__main__":
     log.init(settings.log_level, json=False)
     cli(prog_name="mora.cli")

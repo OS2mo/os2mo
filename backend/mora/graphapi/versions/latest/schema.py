@@ -22,6 +22,7 @@ from typing import get_args
 from urllib.parse import urlparse
 from uuid import UUID
 
+from graphql.pyutils import description
 import strawberry
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one

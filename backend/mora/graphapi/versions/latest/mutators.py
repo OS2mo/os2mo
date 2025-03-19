@@ -9,11 +9,17 @@ from uuid import UUID
 
 import strawberry
 from fastramqpi.ra_utils.asyncio_utils import gather_with_concurrency
+from sqlalchemy import delete
+from sqlalchemy import select
+from sqlalchemy import update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
 from mora import db
+from mora.db.events import add_events
 from mora.auth.middleware import get_authenticated_user
+from mora.auth import is_admin
 from mora.common import get_connector
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
@@ -46,6 +52,7 @@ from .employee import update_employee
 from .engagements import create_engagement
 from .engagements import terminate_engagement
 from .engagements import update_engagement
+from .events import Listener, OpaqueEventToken
 from .facets import create_facet
 from .facets import delete_facet
 from .facets import terminate_facet
@@ -65,7 +72,12 @@ from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
 from .filters import RoleBindingFilter
-from .inputs import AddressCreateInput
+from .inputs import (
+    AddressCreateInput,
+    EventSendInput,
+    EventSilenceInput,
+    EventUnsilenceInput,
+)
 from .inputs import AddressTerminateInput
 from .inputs import AddressUpdateInput
 from .inputs import AssociationCreateInput
@@ -101,6 +113,8 @@ from .inputs import KLEUpdateInput
 from .inputs import LeaveCreateInput
 from .inputs import LeaveTerminateInput
 from .inputs import LeaveUpdateInput
+from .inputs import ListenerCreateInput
+from .inputs import ListenerDeleteInput
 from .inputs import ManagerCreateInput
 from .inputs import ManagerTerminateInput
 from .inputs import ManagerUpdateInput
@@ -1519,6 +1533,214 @@ class Mutation:
         return await refresh(
             info=info, page=page, model="rolebinding", exchange=exchange
         )
+
+    # Event system
+    # ------------
+    # TODO: publish MO events
+    # TODO: tests
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Create a listener.
+
+            This operation is idempotent, so it can be called upon application startup.
+
+            Use different user_keys to listen for the same (namespace, routing_key) multiple times.
+            """,
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("listener"),
+        ],
+    )
+    async def event_listener_create(
+        self, info: Info, input: ListenerCreateInput
+    ) -> Listener:
+        session = info.context["session"]
+        owner = get_authenticated_user()
+
+        stmt = (
+            pg_insert(db.Listener)
+            .values(
+                user_key=input.user_key,
+                owner=owner,
+                namespace=input.namespace,
+                routing_key=input.routing_key,
+            )
+            .on_conflict_do_nothing()
+        )
+
+        result = await session.execute(stmt)
+        listener = result.fetchone()
+
+        if listener is None:
+            # With `on_conflict_do_nothing`, there is sadly no way to fetch the
+            # listener in the same call, so we need to fetch it in this case:
+            listener = await session.scalar(
+                select(db.Listener).where(
+                    db.Listener.user_key == input.user_key,
+                    db.Listener.owner == owner,
+                    db.Listener.namespace == input.namespace,
+                    db.Listener.routing_key == input.routing_key,
+                )
+            )
+
+        return Listener(
+            uuid=listener.pk,
+            owner=listener.owner,
+            user_key=listener.user_key,
+            namespace=listener.namespace,
+            routing_key=listener.routing_key,
+        )
+
+    @strawberry.mutation(
+        description="Delete a listener.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_delete_permission("listener"),
+        ],
+    )
+    async def event_listener_delete(
+        self,
+        info: Info,
+        input: ListenerDeleteInput,
+    ) -> None:
+        clauses = [
+            db.Listener.pk == input.uuid,
+        ]
+        if not (await is_admin(info)):
+            # If you aren't admin; you have to be owner.
+            owner = get_authenticated_user()
+            clauses.append(db.Listener.owner == owner)
+        session = info.context["session"]
+        await session.execute(delete(db.Listener).where(*clauses))
+
+    @strawberry.mutation(
+        description="Acknowledge an event.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_role_permission("acknowledge_event"),
+        ],
+    )
+    async def event_acknowledge(
+        self,
+        info: Info,
+        input: OpaqueEventToken,
+    ) -> None:
+        owner = get_authenticated_user()
+        session = info.context["session"]
+        # TODO count acknowledged metrics
+        await session.execute(
+            delete(db.Event).where(
+                db.Event.listener_fk == db.Listener.pk,
+                db.Event.pk == input.uuid,
+                db.Event.last_tried == input.last_tried,
+                db.Listener.owner == owner,
+            )
+        )
+
+    @strawberry.mutation(
+        description="Send an event.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_role_permission("send_event"),
+        ],
+    )
+    async def event_send(
+        self,
+        info: Info,
+        input: EventSendInput,
+    ) -> None:
+        if input.priority < 1:
+            raise ValueError("priority must be natural")
+
+        # This is an arbitrary constraint because we don't want to end up with
+        # large amounts of data being sent over the event system.
+        if len(input.subject) > 220:
+            raise ValueError(
+                "too large subject. Only send identifiers as the subject, not data"
+            )
+
+        session = info.context["session"]
+        # TODO count sent events
+        await add_events(
+            session, input.namespace, input.routing_key, input.subject, input.priority
+        )
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Silence an event.
+
+            In general, this should only be done by humans while the implementation of a fix is in the works.
+
+            Only the owner of the associated listener can silence an event, aswell as admins.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_role_permission("silence_event"),
+        ],
+    )
+    async def event_silence(
+        self,
+        info: Info,
+        input: EventSilenceInput,
+    ) -> None:
+        clauses = [
+            db.Event.pk == input.uuid,
+        ]
+        if not (await is_admin(info)):
+            # Admins are always allowed to silence events.
+            # As silencing is a temporary "fix" while the real solution is in
+            # the works, it is most often done by technicians and not the
+            # owners of the listener (which is the integration itself).
+            owner = get_authenticated_user()
+            clauses.append(db.Event.listener_fk == db.Listener.pk)
+            clauses.append(db.Listener.owner == owner)
+        session = info.context["session"]
+        await session.execute(update(db.Event).where(*clauses).values(silenced=True))
+
+    @strawberry.mutation(
+        description="Unsilence all matching events",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_role_permission("unsilence_event"),
+        ],
+    )
+    async def event_unsilence(
+        self,
+        info: Info,
+        input: EventUnsilenceInput,
+    ) -> None:
+        clauses = [
+            db.Event.listener_fk == db.Listener.pk,
+        ]
+
+        if input.uuids is not None:
+            if (input.listener, input.subjects, input.priorities) != (None, None, None):
+                raise ValueError(
+                    "when unsilencing on UUID, you cannot use other filters"
+                )
+            clauses.append(db.Event.pk.in_(input.uuids))
+
+        if input.listener is not None:
+            clauses.extend(input.listener.where_clauses())
+
+        if input.subjects is not None:
+            clauses.append(db.Event.subject.in_(input.subjects))
+
+        if input.priorities is not None:
+            clauses.append(db.Event.priority.in_(input.priorities))
+
+        if not (await is_admin(info)):
+            # Admins are always allowed to unsilence events, otherwise you have
+            # to be owner of the associated listener.
+            owner = get_authenticated_user()
+            clauses.append(db.Listener.owner == owner)
+
+        session = info.context["session"]
+        await session.execute(update(db.Event).where(*clauses).values(silenced=False))
 
     # Files
     # -----
