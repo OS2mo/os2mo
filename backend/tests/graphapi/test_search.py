@@ -148,3 +148,25 @@ async def test_org_unit_pagination(
     )
     assert response["objects"] == []
     assert response["page_info"] == {"next_cursor": None}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_employee_query_must_be_used_alone(graphapi_post: GraphAPIPost) -> None:
+    query = """
+      query Search {
+        employees(filter: {query: "foo", user_keys: "bar"}) {
+          objects {
+            uuid
+          }
+        }
+      }
+    """
+    response = graphapi_post(query)
+    assert response.errors == [
+        {
+            "locations": [{"column": 9, "line": 3}],
+            "message": "filter.query must be used alone",
+            "path": ["employees"],
+        }
+    ]
