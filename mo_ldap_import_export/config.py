@@ -531,9 +531,9 @@ class Settings(BaseSettings):
 
         return values
 
-    discriminator_function: Literal["include", "template", None] = Field(
+    discriminator_function: Literal["template", None] = Field(
         None,
-        description="The type of discriminator function, either include or template",
+        description="The type of discriminator function, must be 'template' or left unset",
     )
 
     discriminator_values: list[str] = Field(
@@ -564,32 +564,6 @@ class Settings(BaseSettings):
             raise ValueError(
                 "DISCRIMINATOR_VALUES must be set, if DISCRIMINATOR_FIELD is set"
             )
-        return values
-
-    @root_validator
-    def convert_discriminator_include_function(
-        cls, values: dict[str, Any]
-    ) -> dict[str, Any]:
-        """Convert discriminator include function to template."""
-        # Wrong discriminator_function, nothing to do
-        discriminator_function = values.get("discriminator_function")
-        if discriminator_function is None or discriminator_function != "include":
-            return values
-
-        discriminator_values = values["discriminator_values"]
-        # Preconditions are met, we can convert
-
-        # If the discriminator_function is include, discriminator_values will be a
-        # prioritized list of values (first meaning most important), and we will want
-        # to find the best (most important) account.
-        # NOTE: We assume that no two accounts are equally important.
-        # This is implemented using our template system below, so we simply wrap our
-        # values into simple jinja-templates.
-        values["discriminator_function"] = "template"
-        values["discriminator_values"] = [
-            '{{ value == "' + str(dn_value) + '" }}'
-            for dn_value in discriminator_values
-        ]
         return values
 
     create_user_trees: list[UUID] = Field(
