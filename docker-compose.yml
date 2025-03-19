@@ -188,7 +188,7 @@ services:
       - keycloak-volume:/srv/:ro
 
   keycloak-realm-builder:
-    image: magentaaps/os2mo-keycloak-realm-builder:6
+    image: magentaaps/os2mo-keycloak-realm-builder:7
     environment:
       KEYCLOAK_VERSION: 14.0.0
 
