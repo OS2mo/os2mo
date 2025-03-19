@@ -93,6 +93,7 @@ Integration-test:
         LDAP_ADMIN_PASSWORD: "AdminPassword123"
         LDAP_CONFIG_PASSWORD: "ConfigPassword123"
         LDAP_LOG_LEVEL: 512
+  parallel: 8
   variables:
     FASTRAMQPI__JSON_LOGS: False
     # LDAP: Connection
