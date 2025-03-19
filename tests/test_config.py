@@ -111,7 +111,7 @@ def test_discriminator_settings(monkeypatch: pytest.MonkeyPatch) -> None:
         mpc.setenv("DISCRIMINATOR_FUNCTION", "__invalid__")
         with pytest.raises(ValidationError) as exc_info:
             Settings()
-        assert "unexpected value; permitted: 'exclude'" in str(exc_info.value)
+        assert "unexpected value; permitted: 'include'" in str(exc_info.value)
 
     with monkeypatch.context() as mpc:
         mpc.setenv("DISCRIMINATOR_FIELD", "xBrugertype")
@@ -154,23 +154,6 @@ def test_discriminator_include_conversion() -> None:
     assert settings.discriminator_values == [
         '{{ value == "foo" }}',
         '{{ value == "bar" }}',
-    ]
-
-
-@pytest.mark.usefixtures("minimal_valid_environmental_variables")
-@pytest.mark.envvar(
-    {
-        "DISCRIMINATOR_FIELD": "xBrugertype",
-        "DISCRIMINATOR_FUNCTION": "exclude",
-        "DISCRIMINATOR_VALUES": '["foo", "bar"]',
-    }
-)
-def test_discriminator_exclude_conversion() -> None:
-    settings = Settings()
-    assert settings.discriminator_field == "xBrugertype"
-    assert settings.discriminator_function == "template"
-    assert settings.discriminator_values == [
-        "{{ value is none or value|string not in ['foo', 'bar'] }}"
     ]
 
 

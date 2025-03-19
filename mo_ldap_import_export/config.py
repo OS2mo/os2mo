@@ -531,9 +531,9 @@ class Settings(BaseSettings):
 
         return values
 
-    discriminator_function: Literal["exclude", "include", "template", None] = Field(
+    discriminator_function: Literal["include", "template", None] = Field(
         None,
-        description="The type of discriminator function, either exclude, include or template",
+        description="The type of discriminator function, either include or template",
     )
 
     discriminator_values: list[str] = Field(
@@ -564,33 +564,6 @@ class Settings(BaseSettings):
             raise ValueError(
                 "DISCRIMINATOR_VALUES must be set, if DISCRIMINATOR_FIELD is set"
             )
-        return values
-
-    @root_validator
-    def convert_discriminator_exclude_function(
-        cls, values: dict[str, Any]
-    ) -> dict[str, Any]:
-        """Convert discriminator exclude function to template."""
-        # Wrong discriminator_function, nothing to do
-        discriminator_function = values.get("discriminator_function")
-        if discriminator_function is None or discriminator_function != "exclude":
-            return values
-        # No discriminator_values, nothing to do
-        discriminator_values = values["discriminator_values"]
-        if not discriminator_values:  # pragma: no cover
-            return values
-        # Preconditions are met, we can convert
-
-        # If the discriminator_function is exclude, discriminator_values will be a
-        # list of disallowed values, and we will want to find an account that does not
-        # have any of these disallowed values whatsoever.
-        # NOTE: We assume that at most one such account exists.
-        values["discriminator_function"] = "template"
-        values["discriminator_values"] = [
-            "{{ value is none or value|string not in "
-            + str(discriminator_values)
-            + " }}"
-        ]
         return values
 
     @root_validator
