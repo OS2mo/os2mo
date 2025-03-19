@@ -321,28 +321,12 @@ async def test_apply_discriminator_no_config(
 @pytest.mark.parametrize(
     "discriminator_settings",
     [
-        # Needs function and values
-        {
-            "discriminator_fields": ["sn"],
-        },
-        # Needs function
-        {
-            "discriminator_fields": ["sn"],
-            "discriminator_values": ["__never_gonna_match__"],
-        },
         # Needs values
-        {"discriminator_fields": ["sn"], "discriminator_function": "template"},
+        {"discriminator_fields": ["sn"]},
         # Cannot give empty values
         {
             "discriminator_fields": ["sn"],
-            "discriminator_function": "template",
             "discriminator_values": [],
-        },
-        # Cannot give invalid function
-        {
-            "discriminator_fields": ["sn"],
-            "discriminator_function": "__invalid__",
-            "discriminator_values": ["__never_gonna_match__"],
         },
     ],
 )
@@ -354,7 +338,7 @@ async def test_apply_discriminator_settings_invariants(
 ) -> None:
     """Test that apply_discriminator checks settings invariants."""
     with pytest.raises(AssertionError):
-        # Need function and values
+        # Need values
         new_settings = settings.copy(update=discriminator_settings)
         await apply_discriminator(new_settings, ldap_connection, {ldap_dn})
 
@@ -364,7 +348,6 @@ async def test_apply_discriminator_unknown_dn(
 ) -> None:
     """Test that apply_discriminator requeues on missing DNs."""
     monkeypatch.setenv("DISCRIMINATOR_FIELDS", '["sn"]')
-    monkeypatch.setenv("DISCRIMINATOR_FUNCTION", "template")
     monkeypatch.setenv("DISCRIMINATOR_VALUES", '["__never_gonna_match__"]')
     settings = Settings()
     with pytest.raises(RequeueMessage) as exc_info:
@@ -392,7 +375,6 @@ async def test_apply_discriminator_missing_field(
     )
 
     monkeypatch.setenv("DISCRIMINATOR_FIELDS", '["hkOS2MOSync"]')
-    monkeypatch.setenv("DISCRIMINATOR_FUNCTION", "template")
     monkeypatch.setenv("DISCRIMINATOR_VALUES", '["No"]')
 
     settings = Settings()
@@ -496,7 +478,6 @@ async def context(sync_tool_and_context: tuple[SyncTool, Context]) -> Context:
             marks=pytest.mark.envvar(
                 {
                     "DISCRIMINATOR_FIELD": "sn",
-                    "DISCRIMINATOR_FUNCTION": "template",
                     "DISCRIMINATOR_VALUES": '["__never_gonna_match__"]',
                 }
             ),
@@ -513,7 +494,6 @@ async def context(sync_tool_and_context: tuple[SyncTool, Context]) -> Context:
             marks=pytest.mark.envvar(
                 {
                     "DISCRIMINATOR_FIELD": "sn",
-                    "DISCRIMINATOR_FUNCTION": "template",
                     "DISCRIMINATOR_VALUES": "[\"{{ value == 'foo_sn' }}\"]",
                 }
             ),
@@ -531,7 +511,6 @@ async def context(sync_tool_and_context: tuple[SyncTool, Context]) -> Context:
             marks=pytest.mark.envvar(
                 {
                     "DISCRIMINATOR_FIELD": "sn",
-                    "DISCRIMINATOR_FUNCTION": "template",
                     "DISCRIMINATOR_VALUES": "[\"{{ value == 'bar_sn' }}\"]",
                 }
             ),
@@ -649,7 +628,6 @@ async def test_import_single_user_apply_discriminator(
             marks=pytest.mark.envvar(
                 {
                     "DISCRIMINATOR_FIELD": "sn",
-                    "DISCRIMINATOR_FUNCTION": "template",
                     "DISCRIMINATOR_VALUES": '["__never_gonna_match__"]',
                 }
             ),
@@ -665,7 +643,6 @@ async def test_import_single_user_apply_discriminator(
             marks=pytest.mark.envvar(
                 {
                     "DISCRIMINATOR_FIELD": "sn",
-                    "DISCRIMINATOR_FUNCTION": "template",
                     "DISCRIMINATOR_VALUES": "[\"{{ value == 'foo_sn' }}\"]",
                 }
             ),
@@ -681,7 +658,6 @@ async def test_import_single_user_apply_discriminator(
             marks=pytest.mark.envvar(
                 {
                     "DISCRIMINATOR_FIELD": "sn",
-                    "DISCRIMINATOR_FUNCTION": "template",
                     "DISCRIMINATOR_VALUES": "[\"{{ value == 'bar_sn' }}\"]",
                 }
             ),
@@ -877,7 +853,6 @@ async def test_apply_discriminator_template(
     settings = settings.copy(
         update={
             "discriminator_fields": fields,
-            "discriminator_function": "template",
             "discriminator_values": [template],
         }
     )
