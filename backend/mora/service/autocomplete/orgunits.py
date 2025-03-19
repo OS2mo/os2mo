@@ -31,11 +31,19 @@ from mora.service.autocomplete.shared import read_sqlalchemy_result
 from mora.service.util import handle_gql_error
 
 
+def search_orgunits_query(
+    query: str,
+    at: date | None = None,
+) -> Select[Tuple]:
+    at_sql, _ = get_at_date_sql(at)
+    return _sqlalchemy_generate_query(query, at_sql)
+
+
 async def search_orgunits(
     session: AsyncSession, query: str, at: date | None = None
 ) -> list[UUID]:
-    at_sql, at_sql_bind_params = get_at_date_sql(at)
-    query_final = _sqlalchemy_generate_query(query, at_sql)
+    _, at_sql_bind_params = get_at_date_sql(at)
+    query_final = search_orgunits_query(query, at)
     # Execute & parse results
     result = read_sqlalchemy_result(
         await session.execute(query_final, {**at_sql_bind_params})

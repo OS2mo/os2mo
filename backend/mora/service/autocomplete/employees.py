@@ -24,6 +24,8 @@ from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
 from mora.graphapi.shim import execute_graphql
+from mora.graphapi.versions.latest.paged import CursorType
+from mora.graphapi.versions.latest.paged import LimitType
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 from mora.service.autocomplete.shared import get_at_date_sql
 from mora.service.autocomplete.shared import get_graphql_equivalent_by_uuid
@@ -33,7 +35,11 @@ from mora.service.util import handle_gql_error
 
 
 async def search_employees(
-    session: AsyncSession, query: str, at: date | None = None
+    session: AsyncSession,
+    query: str,
+    at: date | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
 ) -> list[UUID]:
     at_sql, at_sql_bind_params = get_at_date_sql(at)
 
@@ -52,6 +58,12 @@ async def search_employees(
     query_final = (
         select(employee_id).where(employee_id == all_hits.c.uuid).group_by(employee_id)
     )
+
+    # Pagination
+    if limit is not None:
+        query_final = query_final.limit(limit)
+    if cursor is not None:
+        query_final = query_final.offset(cursor.offset)
 
     # Execute & parse results
     result = read_sqlalchemy_result(
