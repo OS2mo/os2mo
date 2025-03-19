@@ -258,41 +258,67 @@ async def test_correlation_configuration(
         assert expected in str(exc_info.value)
 
 
+valid_jinja = [
+    "",
+    "hardcoded",
+    "{{ foo == 42 }}",
+    "{# comment #}",
+    "{% if foo %} {{ foo == 42 }} {% else %} hardcoded {% endif %}",
+    "{% set foo=42 %} {{ foo == 42 }}",
+    "{{ func().__code__ }}",
+    "{{ x.__class__.__init__.__globals__['Settings']().ldap_password }}",
+]
+
+invalid_jinja = [
+    # Missing % in if
+    "{% if } hardcoded {% endif %}",
+    # Missing condition in if
+    "{% if %} {{ foo == 42 }} {% endif %}",
+    # Missing endif
+    "{% if foo %} {{ foo == 42 }}",
+    # Invalid markers for comment
+    "{% comment %}",
+]
+
+
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
-@pytest.mark.parametrize(
-    "jinja_template, invalid",
-    (
-        # Valid templates
-        ("", False),
-        ("hardcoded", False),
-        ("{{ foo == 42 }}", False),
-        ("{# comment #}", False),
-        ("{% if foo %} {{ foo == 42 }} {% else %} hardcoded {% endif %}", False),
-        ("{% set foo=42 %} {{ foo == 42 }}", False),
-        ("{{ func().__code__ }}", False),
-        ("{{ x.__class__.__init__.__globals__['Settings']().ldap_password }}", False),
-        # Invalid templates'
-        # Missing % in if
-        ("{% if } hardcoded {% endif %}", True),
-        # Missing condition in if
-        ("{% if %} {{ foo == 42 }} {% endif %}", True),
-        # Missing endif
-        ("{% if foo %} {{ foo == 42 }}", True),
-        # Invalid markers for comment
-        ("{% comment %}", True),
-    ),
-)
-async def test_mo2ldap_jinja_validator(
-    monkeypatch: pytest.MonkeyPatch, jinja_template: str, invalid: bool
+@pytest.mark.parametrize("jinja_template", valid_jinja)
+async def test_mo2ldap_jinja_validator_valid(
+    monkeypatch: pytest.MonkeyPatch, jinja_template: str
 ) -> None:
     monkeypatch.setenv("CONVERSION_MAPPING__MO2LDAP", jinja_template)
+    Settings()
 
-    if not invalid:
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+@pytest.mark.parametrize("jinja_template", invalid_jinja)
+async def test_mo2ldap_jinja_validator_invalid(
+    monkeypatch: pytest.MonkeyPatch, jinja_template: str
+) -> None:
+    monkeypatch.setenv("CONVERSION_MAPPING__MO2LDAP", jinja_template)
+    with pytest.raises(ValidationError) as exc_info:
         Settings()
-    else:
-        with pytest.raises(ValidationError) as exc_info:
-            Settings()
-        assert "Unable to parse mo2ldap template" in str(exc_info.value)
+    assert "Unable to parse mo2ldap template" in str(exc_info.value)
+
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+@pytest.mark.parametrize("jinja_template", valid_jinja)
+async def test_discriminator_values_jinja_validator_valid(
+    monkeypatch: pytest.MonkeyPatch, jinja_template: str
+) -> None:
+    monkeypatch.setenv("DISCRIMINATOR_VALUES", json.dumps([jinja_template]))
+    Settings()
+
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+@pytest.mark.parametrize("jinja_template", invalid_jinja)
+async def test_discriminator_values_jinja_validator_invalid(
+    monkeypatch: pytest.MonkeyPatch, jinja_template: str
+) -> None:
+    monkeypatch.setenv("DISCRIMINATOR_VALUES", json.dumps([jinja_template]))
+    with pytest.raises(ValidationError) as exc_info:
+        Settings()
+    assert "Unable to parse discriminator_values template" in str(exc_info.value)
 
 
 @pytest.mark.parametrize(
