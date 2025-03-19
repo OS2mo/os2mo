@@ -6,6 +6,7 @@ import asyncio
 import signal
 from collections import ChainMap
 from contextlib import suppress
+from functools import cache
 from ssl import CERT_NONE
 from ssl import CERT_REQUIRED
 from typing import Any
@@ -264,51 +265,17 @@ async def ldap_search(
     return response, result
 
 
-async def apply_discriminator(
-    settings: Settings, ldap_connection: Connection, dns: set[DN]
-) -> DN | None:
-    """Find the account to synchronize from a set of DNs.
-
-    The DNs are evaluated depending on the configuration of the discriminator.
-
-    Args:
-        dns: The set of DNs to evaluate.
-
-    Raises:
-        RequeueMessage: If the provided DNs could not be read from LDAP.
-        ValueError: If too many or too few LDAP accounts are found.
-
-    Returns:
-        The account to synchronize (if any).
-    """
-    assert isinstance(dns, set)
-
-    # Empty input-set means we have no accounts to consider
-    if not dns:
-        return None
-
-    discriminator_fields = settings.discriminator_fields
-    # If discriminator is not configured, there can be only one user
-    if not discriminator_fields:
-        return one(dns)
-
-    # These settings must be set for the function to work
-    # This should always be the case, as they are enforced by pydantic
-    # But no guarantees are given as pydantic is lenient with run validators
-    assert settings.discriminator_function is not None
-    assert settings.discriminator_values != []
-
-    # Fetch the discriminator attribute for all DNs
+async def fetch_field_mapping(
+    ldap_connection: Connection, discriminator_fields: list[str], dn: DN
+) -> dict[str, str | None]:
+    # Fetch the discriminator attributes for all the given DN
     # NOTE: While it is possible to fetch multiple DNs in a single operation
     #       (by doing a complex search operation), some "guy on the internet" claims
     #       that it is better to lookup DNs individually using the READ operation.
     #       See: https://stackoverflow.com/a/58834059
     try:
-        ldap_objects = await asyncio.gather(
-            *[
-                get_ldap_object(ldap_connection, dn, attributes=discriminator_fields)
-                for dn in dns
-            ]
+        ldap_object = await get_ldap_object(
+            ldap_connection, dn, attributes=discriminator_fields
         )
     except NoObjectsReturnedException as exc:
         # There could be multiple reasons why our DNs cannot be read.
@@ -346,63 +313,89 @@ async def apply_discriminator(
         assert isinstance(unpacked_value, str)
         return unpacked_value
 
-    mapping = {
-        ldap_object.dn: {
-            discriminator_field: ldapobject2discriminator(
-                ldap_object, discriminator_field
-            )
-            for discriminator_field in discriminator_fields
-        }
-        for ldap_object in ldap_objects
+    return {
+        discriminator_field: ldapobject2discriminator(ldap_object, discriminator_field)
+        for discriminator_field in discriminator_fields
     }
-    assert dns == set(mapping.keys())
 
-    discriminator_values = settings.discriminator_values
-    # If the discriminator_function is exclude, discriminator_values will be a
-    # list of disallowed values, and we will want to find an account that does not
-    # have any of these disallowed values whatsoever.
-    # NOTE: We assume that at most one such account exists.
-    if settings.discriminator_function == "exclude":
-        discriminator_values = [
-            "{{ value is none or value|string not in "
-            + str(discriminator_values)
-            + " }}"
-        ]
 
-    if settings.discriminator_function == "include":
-        # If the discriminator_function is include, discriminator_values will be a
-        # prioritized list of values (first meaning most important), and we will want
-        # to find the best (most important) account.
-        # NOTE: We assume that no two accounts are equally important.
-        # This is implemented using our template system below, so we simply wrap our
-        # values into simple jinja-templates.
-        discriminator_values = [
-            '{{ value == "' + str(dn_value) + '" }}'
-            for dn_value in discriminator_values
-        ]
+async def fetch_dn_mapping(
+    ldap_connection: Connection, discriminator_fields: list[str], dns: set[DN]
+) -> dict[DN, dict[str, str | None]]:
+    dn_list = list(dns)
+    mappings = await asyncio.gather(
+        *(
+            fetch_field_mapping(ldap_connection, discriminator_fields, dn)
+            for dn in dn_list
+        )
+    )
+    return dict(zip(dn_list, mappings, strict=True))
 
+
+@cache
+def construct_template(template: str) -> Template:
+    return Template(template)
+
+
+def evaluate_template(template: str, dn: DN, mapping: dict[str, str | None]) -> bool:
     def mapping2value(field_mapping: dict[str, str | None]) -> str | None:
         if len(field_mapping) != 1:
             return None
         return one(field_mapping.values())
 
-    assert settings.discriminator_function in ["exclude", "include", "template"]
+    jinja_template = construct_template(template)
+    result = jinja_template.render(
+        dn=dn,
+        value=mapping2value(mapping),
+        **mapping,
+    )
+    return result.strip() == "True"
+
+
+async def apply_discriminator(
+    settings: Settings, ldap_connection: Connection, dns: set[DN]
+) -> DN | None:
+    """Find the account to synchronize from a set of DNs.
+
+    The DNs are evaluated depending on the configuration of the discriminator.
+
+    Args:
+        dns: The set of DNs to evaluate.
+
+    Raises:
+        RequeueMessage: If the provided DNs could not be read from LDAP.
+        ValueError: If too many or too few LDAP accounts are found.
+
+    Returns:
+        The account to synchronize (if any).
+    """
+    assert isinstance(dns, set)
+
+    # Empty input-set means we have no accounts to consider
+    if not dns:
+        return None
+
+    discriminator_fields = settings.discriminator_fields
+    # If discriminator is not configured, there can be only one user
+    if not discriminator_fields:
+        return one(dns)
+
+    # These settings must be set for the function to work
+    # This should always be the case, as they are enforced by pydantic
+    # But no guarantees are given as pydantic is lenient with run validators
+    assert settings.discriminator_function == "template"
+    assert settings.discriminator_values != []
+
+    mapping = await fetch_dn_mapping(ldap_connection, discriminator_fields, dns)
+
     # If the discriminator_function is template, discriminator values will be a
     # prioritized list of jinja templates (first meaning most important), and we will
     # want to find the best (most important) account.
     # We do this by evaluating the jinja template and looking for outcomes with "True".
     # NOTE: We assume no two accounts are equally important.
-    for discriminator in discriminator_values:
-        template = Template(discriminator)
+    for discriminator in settings.discriminator_values:
         dns_passing_template = {
-            dn
-            for dn in dns
-            if template.render(
-                dn=dn,
-                value=mapping2value(mapping[dn]),
-                **mapping[dn],
-            ).strip()
-            == "True"
+            dn for dn in dns if evaluate_template(discriminator, dn, mapping[dn])
         }
         if dns_passing_template:
             return one(
