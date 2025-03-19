@@ -34,6 +34,8 @@ from ._facet import FacetRegistrering
 from ._facet import FacetRelation
 from ._facet import FacetRelationKode
 from ._facet import FacetTilsPubliceret
+from .events import Event
+from .events import Listener
 from ._itsystem import ITSystem
 from ._itsystem import ITSystemAttrEgenskaber
 from ._itsystem import ITSystemRegistrering
