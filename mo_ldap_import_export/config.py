@@ -290,9 +290,7 @@ class AuthBackendEnum(str, Enum):
     SIMPLE = "simple"
 
 
-def yaml_config_settings_source(
-    settings: BaseSettings,
-) -> dict[str, Any]:  # pragma: no cover
+def yaml_config_settings_source(settings: BaseSettings) -> dict[str, Any]:
     # https://docs.pydantic.dev/1.10/usage/settings/#adding-sources
     encoding = settings.__config__.env_file_encoding
     try:
