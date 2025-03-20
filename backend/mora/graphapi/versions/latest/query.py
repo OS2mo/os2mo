@@ -414,7 +414,6 @@ class Query:
     async def version(self) -> Version:
         return Version()
 
-
     # Event system
     # ------------
 

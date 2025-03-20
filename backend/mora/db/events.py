@@ -44,4 +44,4 @@ class Event(Base):
     listener_fk: Mapped[UUID] = mapped_column(ForeignKey("listener.pk"))
     listener: Mapped[Listener] = relationship(back_populates="events")
 
-    #__table_args__ = (UniqueConstraint('listener_fk', 'identifier', 'state', name='uq_listener_identifier_state'),)
+    # __table_args__ = (UniqueConstraint('listener_fk', 'identifier', 'state', name='uq_listener_identifier_state'),)

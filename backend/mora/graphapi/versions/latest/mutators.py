@@ -1539,15 +1539,26 @@ class Mutation:
         ],
     )
     async def event_listener_create(
-            self, info: Info, input: ListenerCreateInput
+        self, info: Info, input: ListenerCreateInput
     ) -> Listener:
         # TODO! idempotency
         session = info.context["session"]
         owner = get_authenticated_user()
-        listener = db.Listener(user_key=input.user_key, owner=owner, namespace=input.namespace, routing_key=input.routing_key)
+        listener = db.Listener(
+            user_key=input.user_key,
+            owner=owner,
+            namespace=input.namespace,
+            routing_key=input.routing_key,
+        )
         session.add(listener)
         await session.flush()
-        return Listener(uuid=listener.pk, owner=listener.owner, user_key=listener.user_key, namespace=listener.namespace, routing_key=listener.routing_key)
+        return Listener(
+            uuid=listener.pk,
+            owner=listener.owner,
+            user_key=listener.user_key,
+            namespace=listener.namespace,
+            routing_key=listener.routing_key,
+        )
 
     @strawberry.mutation(
         description="Delete a listener.",
@@ -1557,13 +1568,12 @@ class Mutation:
         ],
     )
     async def event_listener_delete(
-        self, 
+        self,
         info: Info,
-input: ListenerDeleteInput,
-        ) -> None:
+        input: ListenerDeleteInput,
+    ) -> None:
         session = info.context["session"]
         await session.execute(delete(db.Listener).where(db.Listener.pk == input.uuid))
-
 
     @strawberry.mutation(
         description="Acknowledge an event.",
@@ -1573,12 +1583,11 @@ input: ListenerDeleteInput,
         ],
     )
     async def event_acknowledge(
-        self, 
+        self,
         info: Info,
-input: OpaqueEventToken,
-        ) -> None:
+        input: OpaqueEventToken,
+    ) -> None:
         pass
-
 
     @strawberry.mutation(
         description="Send an event.",
@@ -1588,10 +1597,10 @@ input: OpaqueEventToken,
         ],
     )
     async def event_send(
-        self, 
+        self,
         info: Info,
-input: EventSendInput,
-        ) -> None:
+        input: EventSendInput,
+    ) -> None:
         if input.priority < 0:
             raise ValueError("priority must be positive")
 
@@ -1609,12 +1618,11 @@ input: EventSendInput,
                 literal(input.priority),
                 text("now()"),  # Last tried timestamp
                 text("false"),  # Default silenced flag
-            ).where(db.Listener.pk.in_(matching_listeners))
+            ).where(db.Listener.pk.in_(matching_listeners)),
         )
 
         session = info.context["session"]
         await session.execute(stmt)
-
 
     # Files
     # -----

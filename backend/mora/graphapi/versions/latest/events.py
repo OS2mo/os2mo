@@ -38,7 +38,9 @@ from .resolvers import get_sqlalchemy_date_interval
 @strawberry.type(description="Event listeners")
 class Listener:
     uuid: UUID = strawberry.field(description="ID of the listener")
-    owner: UUID = strawberry.field(description="Owner of the listener. Only the owner can read the listeners' events.")
+    owner: UUID = strawberry.field(
+        description="Owner of the listener. Only the owner can read the listeners' events."
+    )
     user_key: str = strawberry.field(description="something about idempotency")
     namespace: str
     routing_key: str = strawberry.field(description="The routing key for the listeners")
@@ -129,7 +131,9 @@ OpaqueEventToken = strawberry.scalar(
 @strawberry.type(description="Event")
 class Event:
     # uuid: UUID = strawberry.field(description="ID of the event")  # do we even need this?
-    subject: str = strawberry.field(description="An identifier of the subject. When it is a MO subject, it is always a UUID.")
+    subject: str = strawberry.field(
+        description="An identifier of the subject. When it is a MO subject, it is always a UUID."
+    )
     token: OpaqueEventToken = strawberry.field(description="hallelujah")
 
 
@@ -141,18 +145,26 @@ class EventFilter:
 async def event_resolver(
     info: Info,
     filter: EventFilter,
-    ) -> Event | None:
-    query = select(db.Event).where(
-        db.Event.listener_fk == filter.listener, 
-        db.Event.silenced == sqlalchemy.true()
-    ).order_by(
-        db.Event.priority.asc(),
-        db.Event.last_tried.asc(),
-    ).limit(1)
+) -> Event | None:
+    query = (
+        select(db.Event)
+        .where(
+            db.Event.listener_fk == filter.listener,
+            db.Event.silenced == sqlalchemy.true(),
+        )
+        .order_by(
+            db.Event.priority.asc(),
+            db.Event.last_tried.asc(),
+        )
+        .limit(1)
+    )
     print("QUERY", query.compile())
 
     session = info.context["session"]
     result = await session.scalar(query)
     if result is None:
         return None
-    return Event(subject=result.subject, token=EventToken(uuid=result.pk, last_tried=result.last_tried))
+    return Event(
+        subject=result.subject,
+        token=EventToken(uuid=result.pk, last_tried=result.last_tried),
+    )
