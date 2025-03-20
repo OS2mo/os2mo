@@ -527,6 +527,119 @@ async def test_update_class() -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_update_class_parent(
+    graphapi_post: GraphAPIPost,
+    root_org: UUID,
+) -> None:
+    # Create test facet
+    facet = graphapi_post(
+        """
+        mutation CreateFacet {
+          facet_create(input: {user_key: "test", validity: {from: "2000-01-01"}}) {
+            uuid
+          }
+        }
+        """
+    )
+    assert facet.errors is None
+    assert facet.data is not None
+    test_facet_uuid = facet.data["facet_create"]["uuid"]
+
+    read_query = """
+    query ReadClasses {
+      classes(filter: {user_keys: "bar"}) {
+        objects {
+          current {
+            parent {
+              uuid
+            }
+          }
+        }
+      }
+    }
+    """
+    create_mutation = """
+    mutation CreateClass($input: ClassCreateInput!) {
+      class_create(input: $input) {
+        uuid
+      }
+    }
+    """
+    update_mutation = """
+    mutation UpdateClass($input: ClassUpdateInput!) {
+      class_update(input: $input) {
+        uuid
+      }
+    }
+    """
+
+    # Create foo class
+    foo = graphapi_post(
+        create_mutation,
+        variables={
+            "input": {
+                "name": "foo",
+                "user_key": "foo",
+                "parent_uuid": None,
+                "facet_uuid": test_facet_uuid,
+                "validity": {"from": "2020-01-01"},
+            },
+        },
+    )
+    assert foo.errors is None
+    assert foo.data is not None
+    foo_uuid = foo.data["class_create"]["uuid"]
+
+    # Create bar class
+    bar = graphapi_post(
+        create_mutation,
+        variables={
+            "input": {
+                "name": "bar",
+                "user_key": "bar",
+                "parent_uuid": foo_uuid,
+                "facet_uuid": test_facet_uuid,
+                "validity": {"from": "2020-01-01"},
+            },
+        },
+    )
+    assert bar.errors is None
+    assert bar.data is not None
+    bar_uuid = bar.data["class_create"]["uuid"]
+
+    # Verify
+    r = graphapi_post(read_query)
+    assert r.errors is None
+    assert r.data is not None
+    assert r.data["classes"]["objects"] == [{"current": {"parent": {"uuid": foo_uuid}}}]
+
+    # Clear bar's parent
+    r = graphapi_post(
+        update_mutation,
+        variables={
+            "input": {
+                "uuid": bar_uuid,
+                "parent_uuid": None,
+                "validity": {"from": "2020-01-01"},
+                # The rest doesn't matter, but is required because MO doesn't
+                # support patch-writes.
+                "name": "bar",
+                "user_key": "bar",
+                "facet_uuid": test_facet_uuid,
+            },
+        },
+    )
+    assert r.errors is None
+
+    # Verify
+    r = graphapi_post(read_query)
+    assert r.errors is None
+    assert r.data is not None
+    assert r.data["classes"]["objects"] == [{"current": {"parent": None}}]
+
+
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_terminate_class(graphapi_post) -> None:
     """Test that we can terminate class."""
