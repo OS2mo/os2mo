@@ -13,8 +13,11 @@ from sqlalchemy import bindparam
 from sqlalchemy import literal
 from sqlalchemy import delete
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy import insert
+from sqlalchemy import update
 from sqlalchemy import text
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
@@ -72,7 +75,7 @@ from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
 from .filters import RoleBindingFilter
-from .inputs import AddressCreateInput, EventSendInput
+from .inputs import AddressCreateInput, EventSendInput, EventSilenceInput, EventUnsilenceInput
 from .inputs import AddressTerminateInput
 from .inputs import AddressUpdateInput
 from .inputs import AssociationCreateInput
@@ -1532,7 +1535,15 @@ class Mutation:
     # Event system
     # ------------
     @strawberry.mutation(
-        description="Create a listener.",
+        description=dedent(
+            """\
+            Create a listener.
+
+            This operation is idempotent, so it can be called upon application startup.
+
+            Use different user_keys to listen for the same (namespace, routing_key) multiple times.
+            """,
+        ),
         permission_classes=[
             IsAuthenticatedPermission,
             gen_create_permission("listener"),
@@ -1541,17 +1552,35 @@ class Mutation:
     async def event_listener_create(
         self, info: Info, input: ListenerCreateInput
     ) -> Listener:
-        # TODO! idempotency
         session = info.context["session"]
         owner = get_authenticated_user()
-        listener = db.Listener(
-            user_key=input.user_key,
-            owner=owner,
-            namespace=input.namespace,
-            routing_key=input.routing_key,
+
+        stmt = (
+            pg_insert(db.Listener)
+            .values(
+                user_key=input.user_key,
+                owner=owner,
+                namespace=input.namespace,
+                routing_key=input.routing_key,
+            )
+            .on_conflict_do_nothing()
         )
-        session.add(listener)
-        await session.flush()
+
+        result = await session.execute(stmt)
+        listener = result.fetchone()
+
+        if listener is None:
+            # With `on_conflict_do_nothing`, there is sadly no way to fetch the
+            # listener in the same call, so we need to fetch it in this case:
+            listener = await session.scalar(
+                select(db.Listener).where(
+                    db.Listener.user_key == input.user_key,
+                    db.Listener.owner == owner,
+                    db.Listener.namespace == input.namespace,
+                    db.Listener.routing_key == input.routing_key,
+                )
+            )
+
         return Listener(
             uuid=listener.pk,
             owner=listener.owner,
@@ -1572,6 +1601,7 @@ class Mutation:
         info: Info,
         input: ListenerDeleteInput,
     ) -> None:
+        # should only be done by owner!!
         session = info.context["session"]
         await session.execute(delete(db.Listener).where(db.Listener.pk == input.uuid))
 
@@ -1587,7 +1617,13 @@ class Mutation:
         info: Info,
         input: OpaqueEventToken,
     ) -> None:
-        pass
+        # owner check? you can craft tokens and delete others' events.
+        session = info.context["session"]
+        await session.execute(
+            delete(db.Event).where(
+                db.Event.pk == input.uuid, db.Event.last_tried == input.last_tried
+            )
+        )
 
     @strawberry.mutation(
         description="Send an event.",
@@ -1609,6 +1645,11 @@ class Mutation:
             db.Listener.routing_key == input.routing_key,
         )
 
+        # TODO; we must only insert new records. Otherwise update... last_tried?
+        # we could have a "generation" uuid we update.
+        # to only send every 5 minute, we could see if the eventid is even or
+        # uneven and only send it in those 5-minute windows
+
         stmt = insert(db.Event).from_select(
             ["pk", "listener_fk", "subject", "priority", "last_tried", "silenced"],
             select(
@@ -1623,6 +1664,76 @@ class Mutation:
 
         session = info.context["session"]
         await session.execute(stmt)
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Silence an event.
+
+            In general, this should only be done by humans while the implementation of a fix is in the works.
+
+            Only the owner can silence an event.   TODO fix if admin can silence too
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            # gen_terminate_permission("listener"),  # TODO
+        ],
+    )
+    async def event_silence(
+        self,
+        info: Info,
+        input: EventSilenceInput,
+    ) -> None:
+        owner = get_authenticated_user()  # TODO -- admins should be able to as well
+        session = info.context["session"]
+        await session.execute(
+            update(db.Event)
+            .where(
+                db.Event.pk == input.uuid,
+                db.Event.listener_fk == db.Listener.pk,
+                db.Listener.owner == owner,
+            )
+            .values(silenced=True)
+        )
+
+    @strawberry.mutation(
+        description="Unsilence all matching events",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            # gen_terminate_permission("listener"),  # TODO
+        ],
+    )
+    async def event_unsilence(
+        self,
+        info: Info,
+        input: EventUnsilenceInput,
+    ) -> None:
+        owner = get_authenticated_user()  # TODO -- admins should be able to as well
+        clauses = [
+            db.Event.listener_fk == db.Listener.pk,
+            db.Listener.owner == owner,
+        ]
+
+        if input.uuids is not None:
+            if (input.listener, input.subjects, input.priorities) != (None, None, None):
+                raise ValueError("when unsilencing on UUID, you cannot use other filters")
+            clauses.append(db.Event.pk.in_(input.uuids))
+
+        if input.listener.
+
+        if input.subjects is not None:
+            clauses.append(db.Event.subject.in_(input.subjects))
+
+        if input.priorities is not None:
+            clauses.append(db.Event.priority.in_(input.priorities))
+
+        session = info.context["session"]
+        await session.execute(
+            update(db.Event)
+            .where(*clauses)
+            .values(silenced=False)
+        )
 
     # Files
     # -----

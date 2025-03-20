@@ -32,7 +32,9 @@ def upgrade() -> None:
         sa.Column("user_key", sa.String, nullable=False),
         sa.Column("owner", sa.Uuid, nullable=False),
         sa.Column("namespace", sa.String, nullable=False),
-        sa.Column('routing_key', sa.String, nullable=False))
+        sa.Column('routing_key', sa.String, nullable=False),
+        sa.UniqueConstraint('user_key', 'owner', 'namespace', "routing_key", name='uq_user_key_owner_namespace_routing_key'),
+    )
 
     op.create_table(
         'event',

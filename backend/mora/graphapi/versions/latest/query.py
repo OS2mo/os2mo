@@ -27,7 +27,8 @@ from mora.graphapi.gmodels.mo.organisation_unit import OrganisationUnitRead
 
 from .access_log import AccessLog
 from .access_log import access_log_resolver
-from .events import Event
+from .events import Event, full_event_resolver
+from .events import FullEvent, full_event_resolver
 from .events import event_resolver
 from .events import Listener
 from .events import listener_resolver
@@ -416,6 +417,25 @@ class Query:
 
     # Event system
     # ------------
+
+    events: Paged[FullEvent] = strawberry.field(
+        resolver=to_paged(full_event_resolver, FullEvent),
+        description=dedent(
+            """\
+            Get full events.
+
+            FullEvents represent Events, but they do not have a token for acknowledgement.
+
+            Use `event_fetch` for event-driven applications.
+
+            This collection is intended for inspection by humans.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("event"),
+        ],
+    )
 
     event_listeners: Paged[Listener] = strawberry.field(
         resolver=to_paged(listener_resolver, Listener),

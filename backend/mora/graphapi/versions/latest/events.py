@@ -8,6 +8,7 @@ from textwrap import dedent
 from typing import Self
 from uuid import UUID
 
+from graphql.pyutils import description
 import sqlalchemy
 import strawberry
 from fastramqpi.ra_utils.apply import apply
@@ -15,6 +16,7 @@ from more_itertools import bucket
 from pydantic import BaseModel
 from sqlalchemy import select
 from starlette_context import context
+from strawberry import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
@@ -28,11 +30,12 @@ from ..latest.filters import gen_filter_string
 from ..latest.filters import gen_filter_table
 from .paged import CursorType
 from .paged import LimitType
+from .schema import to_one
+from .schema import uuid2list
 from .resolvers import get_sqlalchemy_date_interval
-
-
-# Listeners
-# ---------
+from .permissions import IsAuthenticatedPermission
+from .permissions import gen_read_permission
+from .seed_resolver import seed_resolver
 
 
 @strawberry.type(description="Event listeners")
@@ -44,6 +47,16 @@ class Listener:
     user_key: str = strawberry.field(description="something about idempotency")
     namespace: str
     routing_key: str = strawberry.field(description="The routing key for the listeners")
+
+    # events: list["FullEvent"] = strawberry.field(
+    #     resolver=to_list(seed_resolver(full_event_resolver, {"uuids": lambda root: uuid2list(root.uuid)})),
+    #     description="Pending events for this listener.",
+    #     permission_classes=[
+    #         IsAuthenticatedPermission,
+    #         gen_read_permission("event"),
+    #     ],
+
+    # )
 
 
 @strawberry.input(description="Listener filter.")
@@ -80,10 +93,15 @@ async def listener_resolver(
     if filter.routing_keys is not None:
         clauses.append(db.Listener.routing_key.in_(filter.routing_keys))
 
-    # TODO: pagination can't work here?
+    query = select(db.Listener).where(*clauses)
+
+    if limit is not None:
+        query = query.limit(limit)
+    # TODO: this is not actually stable as we don't use registration time.
+    query = query.offset(cursor.offset if cursor else 0)
 
     session = info.context["session"]
-    result = list(await session.scalars(select(db.Listener).where(*clauses)))
+    result = list(await session.scalars(query))
 
     return [
         Listener(
@@ -112,6 +130,97 @@ class EventToken(BaseModel):
         return EventToken(uuid=UUID(uuid), last_tried=datetime.fromisoformat(timestamp))
 
 
+@strawberry.type(description="FullEvent")
+class FullEvent:
+    uuid: UUID = strawberry.field(description="ID of the event")
+    subject: str = strawberry.field(
+        description="An identifier of the subject. All subjects in OS2mo have UUIDs as identifier."
+    )
+    priority: int = strawberry.field(
+        description="The priority of an event. Lower means higher priority. The default is 10."
+    )
+    silenced: bool = strawberry.field(
+        description="Whether the event is silenced. Silenced event cannot be read by `event_fetch`."
+    )
+    listener_uuid: strawberry.Private[UUID]
+
+    @strawberry.field(
+        description="The listener that will receive this event.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("listener"),
+        ],
+    )
+    async def listener(root: "FullEvent", info: strawberry.Info) -> Listener:
+        filter = ListenerFilter(uuids=[root.listener_uuid])
+        result = await listener_resolver(info, filter)
+        assert len(result) == 1
+        return result[0]
+
+
+@strawberry.input(description="Listener filter.")
+class FullEventFilter:
+    listener: ListenerFilter | None = None
+    uuids: list[UUID] | None = None
+    subjects: list[str] | None = None
+    priorities: list[int] | None = None
+    silenced: bool | None = strawberry.field(
+        default=UNSET,
+        description="Filter based on silence status.",
+    )
+
+
+async def full_event_resolver(
+    info: Info,
+    filter: FullEventFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> list[FullEvent]:
+    if filter is None:
+        filter = FullEventFilter()
+
+    clauses = []
+
+    if filter.uuids is not None:
+        clauses.append(db.Event.uuid.in_(filter.uuids))
+
+    if filter.subjects is not None:
+        clauses.append(db.Event.subject.in_(filter.subjects))
+
+    if filter.priorities is not None:
+        clauses.append(db.Event.priority.in_(filter.priorities))
+
+    if filter.silenced is not UNSET:
+        clauses.append(db.Event.silenced == filter.silenced)
+
+    query = select(db.Event)
+
+    if clauses:
+        query = query.where(*clauses)
+
+    query = query.order_by(
+        db.Event.priority.asc(),
+        db.Event.last_tried.asc(),
+    )
+    if limit is not None:
+        query = query.limit(limit)
+    # TODO: this is not actually stable as we don't use registration time.
+    query = query.offset(cursor.offset if cursor else 0)
+
+    session = info.context["session"]
+    result = await session.scalars(query)
+    return [
+        FullEvent(
+            uuid=event.pk,
+            subject=event.subject,
+            priority=event.priority,
+            silenced=event.silenced,
+            listener_uuid=event.listener_fk,
+        )
+        for event in result
+    ]
+
+
 OpaqueEventToken = strawberry.scalar(
     EventToken,
     serialize=EventToken.serialize,
@@ -128,13 +237,34 @@ OpaqueEventToken = strawberry.scalar(
 )
 
 
-@strawberry.type(description="Event")
-class Event:
-    # uuid: UUID = strawberry.field(description="ID of the event")  # do we even need this?
-    subject: str = strawberry.field(
-        description="An identifier of the subject. When it is a MO subject, it is always a UUID."
+@strawberry.type(
+    description=dedent(
+        """\
+    Event
+
+    You need to use the `token` to acknowledge that the event has been handled properly by calling `event_acknowledge`.
+
+    Your integration is supposed to handle *all* events that the listener subscribes to. If your integration does not need to do anything for a particular event, it still needs to be acknowledged.
+
+    You might see events in the `events` collection that you do not appear to receive when calling `event_fetch`. This is because OS2mo will not spam you with the same event over and over if it fails.
+    """
     )
-    token: OpaqueEventToken = strawberry.field(description="hallelujah")
+)
+class Event:
+    # mention that you can sometimes see unsilenced events in the events
+    # collection, that you wont fetch, because MO will not spam you with events
+    # you never ack.
+    uuid: UUID = strawberry.field(description="ID of the event")
+    subject: str = strawberry.field(
+        description="An identifier of the subject. All subjects in OS2mo have UUIDs as identifier."
+    )
+    token: OpaqueEventToken = strawberry.field(
+        description=dedent(
+            """\
+        EventTokens are a completely opaque token needed to acknowledge events. 
+        """
+        )
+    )
 
 
 @strawberry.input(description="Listener filter.")
@@ -146,11 +276,12 @@ async def event_resolver(
     info: Info,
     filter: EventFilter,
 ) -> Event | None:
+    # is this actuall the query we want?
     query = (
         select(db.Event)
         .where(
             db.Event.listener_fk == filter.listener,
-            db.Event.silenced == sqlalchemy.true(),
+            db.Event.silenced == sqlalchemy.false(),
         )
         .order_by(
             db.Event.priority.asc(),
@@ -158,13 +289,15 @@ async def event_resolver(
         )
         .limit(1)
     )
-    print("QUERY", query.compile())
+
+    # TODO update last_tried
 
     session = info.context["session"]
     result = await session.scalar(query)
     if result is None:
         return None
     return Event(
+        uuid=result.pk,
         subject=result.subject,
         token=EventToken(uuid=result.pk, last_tried=result.last_tried),
     )
