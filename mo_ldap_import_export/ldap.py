@@ -352,6 +352,28 @@ def evaluate_template(template: str, dn: DN, mapping: dict[str, str | None]) -> 
     return result.strip() == "True"
 
 
+async def filter_dns(
+    settings: Settings, ldap_connection: Connection, dns: set[DN]
+) -> set[DN]:
+    assert isinstance(dns, set)
+
+    discriminator_filter = settings.discriminator_filter
+    # If discriminator filter is not configured, no filtering happens
+    if not discriminator_filter:
+        return dns
+
+    # We assume discriminator_fields is set if discriminator_filter is
+    # This invariant should be upheld by pydantic settings
+    discriminator_fields = settings.discriminator_fields
+    assert discriminator_fields, "discriminator_fields must be set"
+
+    mapping = await fetch_dn_mapping(ldap_connection, discriminator_fields, dns)
+    dns_passing_template = {
+        dn for dn in dns if evaluate_template(discriminator_filter, dn, mapping[dn])
+    }
+    return dns_passing_template
+
+
 async def apply_discriminator(
     settings: Settings, ldap_connection: Connection, dns: set[DN]
 ) -> DN | None:

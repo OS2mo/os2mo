@@ -29,6 +29,7 @@ from .dataloaders import DN
 from .dataloaders import DataLoader
 from .exceptions import SkipObject
 from .ldap import apply_discriminator
+from .ldap import filter_dns
 from .ldap import get_ldap_object
 from .moapi import Verb
 from .moapi import get_primary_engagement
@@ -474,6 +475,7 @@ class SyncTool:
         # We always want to synchronize from the best LDAP account, instead of just
         # synchronizing from the last LDAP account that has been touched.
         # Thus we process the list of DNs found for the user to pick the best one.
+        dns = await filter_dns(self.settings, self.ldap_connection, dns)
         best_dn = await apply_discriminator(self.settings, self.ldap_connection, dns)
         # If no good LDAP account was found, we do not want to synchronize at all
         if best_dn is None:

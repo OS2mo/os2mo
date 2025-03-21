@@ -48,6 +48,7 @@ def context(
 ) -> Context:
     settings_mock.discriminator_field = None
     settings_mock.discriminator_fields = []
+    settings_mock.discriminator_filter = None
     ldap_connection = AsyncMock()
     context = Context(
         amqpsystem=AsyncMock(),

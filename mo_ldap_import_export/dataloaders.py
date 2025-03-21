@@ -16,6 +16,7 @@ from .exceptions import DNNotFound
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .ldap import apply_discriminator
+from .ldap import filter_dns
 from .ldap import is_uuid
 from .ldapapi import LDAPAPI
 from .moapi import MOAPI
@@ -229,6 +230,7 @@ class DataLoader:
         self, uuid: EmployeeUUID, dry_run: bool = False
     ) -> tuple[DN | None, bool]:
         dns = await self.find_mo_employee_dn(uuid)
+        dns = await filter_dns(self.settings, self.ldapapi.ldap_connection, dns)
         # If we found DNs, we want to synchronize to the best of them
         if dns:
             logger.info("Found DNs for user", dns=dns, uuid=uuid)
