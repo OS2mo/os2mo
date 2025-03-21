@@ -325,7 +325,7 @@ async def test_listen_to_changes(sync_tool: AsyncMock) -> None:
     payload = uuid4()
 
     sync_tool.reset_mock()
-    await process_person(payload, sync_tool, graphql_client, amqpsystem)
+    await process_person(payload, settings, sync_tool, amqpsystem)
     sync_tool.listen_to_changes_in_employees.assert_awaited_once()
 
     await process_org_unit(payload, graphql_client, amqpsystem)
