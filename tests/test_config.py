@@ -1,13 +1,16 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import json
+import pathlib
 from functools import partial
 from typing import Any
 from typing import cast
+from unittest.mock import patch
 
 import pytest
 from mergedeep import Strategy  # type: ignore
 from mergedeep import merge  # type: ignore
+from more_itertools import one
 from pydantic import ValidationError
 from pydantic import parse_obj_as
 from pydantic.env_settings import SettingsError
@@ -431,3 +434,46 @@ async def test_discriminator_function_warning() -> None:
             "log_level": "warning",
         }
     ]
+
+
+minimal_valid_yaml_settings = """
+# LDAP
+ldap_controllers:
+    - host: 21dc100.holstebro.dk
+      use_ssl: 'true'
+ldap_domain: holstebro.dk
+ldap_cpr_attribute: employeeNumber
+ldap_object_class: user
+ldap_password: Only4service
+ldap_search_base: OU=HK,DC=holstebro,DC=dk
+ldap_user: svc_os2mo
+# Mapping
+conversion_mapping: {}
+# LDAP AMQP
+ldap_amqp:
+    url: "amqp://msg_broker:5672/"
+fastramqpi:
+    # OS2mo
+    client_id: ldap_import_export
+    client_secret: "00000000-0000-0000-0000-000000000000"
+    # AMQP
+    amqp:
+        url: "amqp://msg_broker:5672/"
+    # Database
+    database:
+        host: "db"
+        name: "ldap"
+        user: "ldap"
+        password: database-password-here
+"""
+
+
+async def test_load_yaml() -> None:
+    def my_read(*args: Any, **kwargs: Any) -> str:
+        return minimal_valid_yaml_settings
+
+    with patch.object(pathlib.Path, "read_text", my_read):
+        settings = Settings()
+        assert one(settings.ldap_controllers).use_ssl is True
+        assert settings.fastramqpi.database is not None
+        assert settings.fastramqpi.database.host == "db"
