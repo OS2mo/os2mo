@@ -26,7 +26,6 @@ from .exceptions import NoObjectsReturnedException
 from .exceptions import amqp_reject_on_failure
 from .exceptions import http_reject_on_failure
 from .ldap import get_ldap_object
-from .ldap_emit import publish_uuids
 from .types import LDAPUUID
 
 logger = structlog.stdlib.get_logger()
@@ -65,8 +64,18 @@ async def process_uuid(
         )
     except RequeueMessage:  # pragma: no cover
         # NOTE: This is a hack to cycle messages because quorum queues do not work
+        # NOTE: We intentionally publish to this specific queue using the funny syntax
+        #       as we may otherwise trigger both this handler AND the reconcile handler
+        #       and if both handlers end up failing, we have an exponential growth in
+        #       the number of unhandled messages.
         await asyncio.sleep(30)
-        await publish_uuids(ldap_amqpsystem, [uuid])
+        # Every single queue is implicitly bound with its queue name as the routing key
+        # on RabbitMQ's default / nameless exchange (""). Thus publishing with our queue
+        # name as the routing-key makes sure we only target ourselves, not the the
+        # reconcile queue.
+        queue_prefix = settings.ldap_amqp.queue_prefix
+        routing_key = f"{queue_prefix}_process_uuid"
+        await ldap_amqpsystem.publish_message(routing_key, uuid, exchange="")
 
 
 async def handle_uuid(
@@ -118,6 +127,7 @@ async def http_reconcile_uuid(
 
 @ldap_amqp_router.register("uuid")
 async def reconcile_uuid(
+    settings: Settings,
     ldap_amqpsystem: LDAPAMQPSystem,
     sync_tool: SyncTool,
     dataloader: DataLoader,
@@ -129,8 +139,18 @@ async def reconcile_uuid(
         )
     except RequeueMessage:  # pragma: no cover
         # NOTE: This is a hack to cycle messages because quorum queues do not work
+        # NOTE: We intentionally publish to this specific queue using the funny syntax
+        #       as we may otherwise trigger both this handler AND the reconcile handler
+        #       and if both handlers end up failing, we have an exponential growth in
+        #       the number of unhandled messages.
         await asyncio.sleep(30)
-        await publish_uuids(ldap_amqpsystem, [uuid])
+        # Every single queue is implicitly bound with its queue name as the routing key
+        # on RabbitMQ's default / nameless exchange (""). Thus publishing with our queue
+        # name as the routing-key makes sure we only target ourselves, not the the
+        # reconcile queue.
+        queue_prefix = settings.ldap_amqp.queue_prefix
+        routing_key = f"{queue_prefix}_reconcile_uuid"
+        await ldap_amqpsystem.publish_message(routing_key, uuid, exchange="")
 
 
 async def handle_ldap_reconciliation(

@@ -218,8 +218,8 @@ async def http_process_person(
 @handle_exclusively_decorator(key=lambda object_uuid, *_, **__: object_uuid)
 async def process_person(
     object_uuid: PayloadUUID,
+    settings: depends.Settings,
     sync_tool: depends.SyncTool,
-    graphql_client: depends.GraphQLClient,
     amqpsystem: depends.AMQPSystem,
 ) -> None:
     logger.info(
@@ -232,8 +232,18 @@ async def process_person(
         )
     except RequeueMessage:  # pragma: no cover
         # NOTE: This is a hack to cycle messages because quorum queues do not work
+        # NOTE: We intentionally publish to this specific queue using the funny syntax
+        #       as we may otherwise trigger both this handler AND the reconcile handler
+        #       and if both handlers end up failing, we have an exponential growth in
+        #       the number of unhandled messages.
         await asyncio.sleep(30)
-        await graphql_client.employee_refresh(amqpsystem.exchange_name, [object_uuid])
+        # Every single queue is implicitly bound with its queue name as the routing key
+        # on RabbitMQ's default / nameless exchange (""). Thus publishing with our queue
+        # name as the routing-key makes sure we only target ourselves, not the the
+        # reconcile queue.
+        queue_prefix = settings.fastramqpi.amqp.queue_prefix
+        routing_key = f"{queue_prefix}_process_person"
+        await amqpsystem.publish_message(routing_key, object_uuid, exchange="")
 
 
 @mo2ldap_router.post("/reconcile")
@@ -258,7 +268,6 @@ async def reconcile_person(
     sync_tool: depends.SyncTool,
     dataloader: depends.DataLoader,
     converter: depends.LdapConverter,
-    graphql_client: depends.GraphQLClient,
     amqpsystem: depends.AMQPSystem,
 ) -> None:
     try:
@@ -267,8 +276,18 @@ async def reconcile_person(
         )
     except RequeueMessage:  # pragma: no cover
         # NOTE: This is a hack to cycle messages because quorum queues do not work
+        # NOTE: We intentionally publish to this specific queue using the funny syntax
+        #       as we may otherwise trigger both this handler AND the reconcile handler
+        #       and if both handlers end up failing, we have an exponential growth in
+        #       the number of unhandled messages.
         await asyncio.sleep(30)
-        await graphql_client.employee_refresh(amqpsystem.exchange_name, [object_uuid])
+        # Every single queue is implicitly bound with its queue name as the routing key
+        # on RabbitMQ's default / nameless exchange (""). Thus publishing with our queue
+        # name as the routing-key makes sure we only target ourselves, not the the
+        # reconcile queue.
+        queue_prefix = settings.fastramqpi.amqp.queue_prefix
+        routing_key = f"{queue_prefix}_reconcile_person"
+        await amqpsystem.publish_message(routing_key, object_uuid, exchange="")
 
 
 async def handle_person_reconciliation(
