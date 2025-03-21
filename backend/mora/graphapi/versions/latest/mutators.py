@@ -1534,6 +1534,10 @@ class Mutation:
 
     # Event system
     # ------------
+    # TODO: metrics
+    # TODO: publish MO events
+    # TODO: docs
+    # TODO: tests
     @strawberry.mutation(
         description=dedent(
             """\
@@ -1601,7 +1605,7 @@ class Mutation:
         info: Info,
         input: ListenerDeleteInput,
     ) -> None:
-        # should only be done by owner!!
+        # TODO: should only be done by owner!!
         session = info.context["session"]
         await session.execute(delete(db.Listener).where(db.Listener.pk == input.uuid))
 
@@ -1609,7 +1613,7 @@ class Mutation:
         description="Acknowledge an event.",
         permission_classes=[
             IsAuthenticatedPermission,
-            # gen_terminate_permission("listener"),  # TODO
+            # gen_delete_permission("event"),  # TODO
         ],
     )
     async def event_acknowledge(
@@ -1617,11 +1621,14 @@ class Mutation:
         info: Info,
         input: OpaqueEventToken,
     ) -> None:
-        # owner check? you can craft tokens and delete others' events.
+        owner = get_authenticated_user()
         session = info.context["session"]
         await session.execute(
             delete(db.Event).where(
-                db.Event.pk == input.uuid, db.Event.last_tried == input.last_tried
+                db.Event.listener_fk == db.Listener.pk,
+                db.Event.pk == input.uuid,
+                db.Event.last_tried == input.last_tried,
+                db.Listener.owner == owner,
             )
         )
 
@@ -1629,7 +1636,7 @@ class Mutation:
         description="Send an event.",
         permission_classes=[
             IsAuthenticatedPermission,
-            # gen_terminate_permission("listener"),  # TODO
+            gen_create_permission("event"),
         ],
     )
     async def event_send(
@@ -1640,26 +1647,34 @@ class Mutation:
         if input.priority < 0:
             raise ValueError("priority must be positive")
 
+        # This is an arbitrary constraint because we don't want to end up with
+        # large amounts of data being sent over the event system.
+        if len(input.subject) > 220:
+            raise ValueError("too large subject. Only send identifiers as the subject, not data")
+
         matching_listeners = select(db.Listener.pk).where(
             db.Listener.namespace == input.namespace,
             db.Listener.routing_key == input.routing_key,
         )
 
-        # TODO; we must only insert new records. Otherwise update... last_tried?
-        # we could have a "generation" uuid we update.
-        # to only send every 5 minute, we could see if the eventid is even or
-        # uneven and only send it in those 5-minute windows
-
-        stmt = insert(db.Event).from_select(
+        stmt = pg_insert(db.Event).from_select(
             ["pk", "listener_fk", "subject", "priority", "last_tried", "silenced"],
             select(
                 text("uuid_generate_v4()"),
                 db.Listener.pk,
                 literal(input.subject),
                 literal(input.priority),
-                text("now()"),  # Last tried timestamp
-                text("false"),  # Default silenced flag
+                # last_tried. We subtract 5 minutes, so it is sent faster.
+                text("now() - interval '5 minutes'"),
+                text("false"),  # silenced
             ).where(db.Listener.pk.in_(matching_listeners)),
+        ).on_conflict_do_update(
+            index_elements=["listener_fk", "subject", "priority"],
+            # When we violate the unique constraint, update `last_tried`.
+            # This ensures that clients won't miss an event in the case where
+            # a new event arrives while the client is already processing an
+            # event for the same subject.
+            set_={"last_tried": text("now()")},
         )
 
         session = info.context["session"]
@@ -1677,7 +1692,7 @@ class Mutation:
         ),
         permission_classes=[
             IsAuthenticatedPermission,
-            # gen_terminate_permission("listener"),  # TODO
+            # gen_edit_permission("event"),  # TODO
         ],
     )
     async def event_silence(
@@ -1701,7 +1716,7 @@ class Mutation:
         description="Unsilence all matching events",
         permission_classes=[
             IsAuthenticatedPermission,
-            # gen_terminate_permission("listener"),  # TODO
+            # gen_edit_permission("event"),  # TODO
         ],
     )
     async def event_unsilence(
@@ -1720,7 +1735,8 @@ class Mutation:
                 raise ValueError("when unsilencing on UUID, you cannot use other filters")
             clauses.append(db.Event.pk.in_(input.uuids))
 
-        if input.listener.
+        if input.listener is not None:
+            clauses.extend(input.listener.where_clauses())
 
         if input.subjects is not None:
             clauses.append(db.Event.subject.in_(input.subjects))

@@ -448,7 +448,17 @@ class Query:
 
     event_fetch: Event | None = strawberry.field(
         resolver=event_resolver,
-        description="Get an event. TODO needs more docs here.",
+        description=dedent(
+            """\
+            Get an event.
+
+            `event_fetch` is a key operation for event-driven integrations.
+
+            Fetched events must be acknowledged by the consumer after it has been processed.
+
+            Consumers cannot rely on the order of events, and may receive the same event multiple times.
+            """,
+        ),
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("event"),

@@ -2,9 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
 from uuid import UUID
-from typing import Literal
 
-from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 from sqlalchemy import UniqueConstraint
 from sqlalchemy import text
@@ -12,9 +10,7 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 
-from sqlalchemy.dialects.postgresql import ENUM
 from ._common import Base
-from ._common import metadata
 
 
 class Listener(Base):
@@ -28,6 +24,8 @@ class Listener(Base):
     namespace: Mapped[str]
     routing_key: Mapped[str]
     events: Mapped[list["Event"]] = relationship(back_populates="listener")
+
+    __table_args__ = (UniqueConstraint('user_key', 'owner', 'namespace', "routing_key", name='uq_user_key_owner_namespace_routing_key'),)
 
 
 class Event(Base):
@@ -44,4 +42,4 @@ class Event(Base):
     listener_fk: Mapped[UUID] = mapped_column(ForeignKey("listener.pk"))
     listener: Mapped[Listener] = relationship(back_populates="events")
 
-    # __table_args__ = (UniqueConstraint('listener_fk', 'identifier', 'state', name='uq_listener_identifier_state'),)
+    __table_args__ = (UniqueConstraint('listener_fk', 'subject', 'priority', name='uq_listener_subject_priority'),)

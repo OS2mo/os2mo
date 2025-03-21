@@ -9,7 +9,6 @@ Create Date: 2025-03-17 12:55:21.321176
 """
 
 from alembic import op
-from sqlalchemy.dialects import postgresql
 import sqlalchemy as sa
 
 
@@ -44,7 +43,7 @@ def upgrade() -> None:
         sa.Column('last_tried', sa.DateTime(timezone=True), nullable=False),
         sa.Column('silenced', sa.Boolean, nullable=False),
         sa.Column('listener_fk', sa.Uuid, sa.ForeignKey('listener.pk'), nullable=False),
-        #sa.UniqueConstraint('listener_fk', 'identifier', 'state', name='uq_listener_identifier_state')
+        sa.UniqueConstraint('listener_fk', 'subject', 'priority', name='uq_listener_subject_priority'),
     )
 
 
