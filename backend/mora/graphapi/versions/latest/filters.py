@@ -204,6 +204,15 @@ class ClassFilter(BaseFilter):
         ),
     )
 
+    name: list[str] | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Name filter finding exact matches by name.
+            """
+        ),
+    )
+
     facet: FacetFilter | None = strawberry.field(
         default=None,
         description=dedent(
