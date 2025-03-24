@@ -3,6 +3,7 @@
 
 include:
   - project: labs/salt-automation
+    ref: feat/62693-pytest-test-function-context
     file:
       - gitlab-ci-templates/python/pytest-meta.v1.yml
 

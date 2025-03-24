@@ -64,6 +64,7 @@ include:
   - local: ra-data-models/.gitlab-ci.yml
   - local: gitlab-ci-templates/integration-test-meta.v1.yml
   - project: labs/salt-automation
+    ref: feat/62693-pytest-test-function-context
     file:
       - gitlab-ci-templates/common/no-interrupt-meta.v1.yml
       - gitlab-ci-templates/common/conventional-commits.v1.yml
