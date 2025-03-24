@@ -9,20 +9,17 @@ from uuid import UUID
 
 import strawberry
 from fastramqpi.ra_utils.asyncio_utils import gather_with_concurrency
-from sqlalchemy import bindparam
-from sqlalchemy import literal
 from sqlalchemy import delete
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
-from sqlalchemy import insert
 from sqlalchemy import update
-from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
 from mora import db
+from mora.db.events import add_events
 from mora.auth.middleware import get_authenticated_user
+from mora.auth import is_admin
 from mora.common import get_connector
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
@@ -1605,15 +1602,21 @@ class Mutation:
         info: Info,
         input: ListenerDeleteInput,
     ) -> None:
-        # TODO: should only be done by owner!!
+        clauses = [
+            db.Listener.pk == input.uuid,
+        ]
+        if not (await is_admin(info)):
+            # If you aren't admin; you have to be owner.
+            owner = get_authenticated_user()
+            clauses.append(db.Listener.owner == owner)
         session = info.context["session"]
-        await session.execute(delete(db.Listener).where(db.Listener.pk == input.uuid))
+        await session.execute(delete(db.Listener).where(*clauses))
 
     @strawberry.mutation(
         description="Acknowledge an event.",
         permission_classes=[
             IsAuthenticatedPermission,
-            # gen_delete_permission("event"),  # TODO
+            gen_role_permission("acknowledge_event"),
         ],
     )
     async def event_acknowledge(
@@ -1636,7 +1639,7 @@ class Mutation:
         description="Send an event.",
         permission_classes=[
             IsAuthenticatedPermission,
-            gen_create_permission("event"),
+            gen_role_permission("send_event"),
         ],
     )
     async def event_send(
@@ -1652,33 +1655,8 @@ class Mutation:
         if len(input.subject) > 220:
             raise ValueError("too large subject. Only send identifiers as the subject, not data")
 
-        matching_listeners = select(db.Listener.pk).where(
-            db.Listener.namespace == input.namespace,
-            db.Listener.routing_key == input.routing_key,
-        )
-
-        stmt = pg_insert(db.Event).from_select(
-            ["pk", "listener_fk", "subject", "priority", "last_tried", "silenced"],
-            select(
-                text("uuid_generate_v4()"),
-                db.Listener.pk,
-                literal(input.subject),
-                literal(input.priority),
-                # last_tried. We subtract 5 minutes, so it is sent faster.
-                text("now() - interval '5 minutes'"),
-                text("false"),  # silenced
-            ).where(db.Listener.pk.in_(matching_listeners)),
-        ).on_conflict_do_update(
-            index_elements=["listener_fk", "subject", "priority"],
-            # When we violate the unique constraint, update `last_tried`.
-            # This ensures that clients won't miss an event in the case where
-            # a new event arrives while the client is already processing an
-            # event for the same subject.
-            set_={"last_tried": text("now()")},
-        )
-
         session = info.context["session"]
-        await session.execute(stmt)
+        await add_events(session, input.namespace, input.routing_key, input.subject, input.priority)
 
     @strawberry.mutation(
         description=dedent(
@@ -1687,12 +1665,12 @@ class Mutation:
 
             In general, this should only be done by humans while the implementation of a fix is in the works.
 
-            Only the owner can silence an event.   TODO fix if admin can silence too
+            Only the owner of the associated listener can silence an event, aswell as admins.
             """
         ),
         permission_classes=[
             IsAuthenticatedPermission,
-            # gen_edit_permission("event"),  # TODO
+            gen_role_permission("silence_event"),
         ],
     )
     async def event_silence(
@@ -1700,15 +1678,20 @@ class Mutation:
         info: Info,
         input: EventSilenceInput,
     ) -> None:
-        owner = get_authenticated_user()  # TODO -- admins should be able to as well
+        clauses = [
+            db.Event.pk == input.uuid,
+        ]
+        if not (await is_admin(info)):
+            # Admins are always allowed to silence events.
+            # As silencing is a temporary "fix" while the real solution is in
+            # the works, it is most often done by technicians and not the
+            # owners of the listener (which is the integration itself).
+            owner = get_authenticated_user()
+            clauses.append(db.Event.listener_fk == db.Listener.pk)
+            clauses.append(db.Listener.owner == owner)
         session = info.context["session"]
-        await session.execute(
-            update(db.Event)
-            .where(
-                db.Event.pk == input.uuid,
-                db.Event.listener_fk == db.Listener.pk,
-                db.Listener.owner == owner,
-            )
+        await session.execute(update(db.Event)
+            .where(*clauses)
             .values(silenced=True)
         )
 
@@ -1716,7 +1699,7 @@ class Mutation:
         description="Unsilence all matching events",
         permission_classes=[
             IsAuthenticatedPermission,
-            # gen_edit_permission("event"),  # TODO
+            gen_role_permission("unsilence_event"),
         ],
     )
     async def event_unsilence(
@@ -1724,10 +1707,8 @@ class Mutation:
         info: Info,
         input: EventUnsilenceInput,
     ) -> None:
-        owner = get_authenticated_user()  # TODO -- admins should be able to as well
         clauses = [
             db.Event.listener_fk == db.Listener.pk,
-            db.Listener.owner == owner,
         ]
 
         if input.uuids is not None:
@@ -1743,6 +1724,12 @@ class Mutation:
 
         if input.priorities is not None:
             clauses.append(db.Event.priority.in_(input.priorities))
+
+        if not (await is_admin(info)):
+            # Admins are always allowed to unsilence events, otherwise you have
+            # to be owner of the associated listener.
+            owner = get_authenticated_user()
+            clauses.append(db.Listener.owner == owner)
 
         session = info.context["session"]
         await session.execute(

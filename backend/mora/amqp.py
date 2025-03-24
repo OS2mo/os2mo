@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-"""This file implements the event subsystem.
+"""This file implements the AMQP-based event subsystem.
+
+New integrations should use the GraphQL-based event system.
 
 The purpose of this is to facilitate implementation and maintainability of
 correct event-driven OS2MO integrations.
@@ -75,7 +77,6 @@ MO_TYPE = Literal[
     "kle",
     "leave",
     "manager",
-    "manager",
     "org_unit",
     "owner",
     "person",
@@ -111,6 +112,7 @@ async def _send_amqp_message(
         routing_key=object_type,
         payload=str(uuid),
     )
+    await add_events(session, "MO", object_type, str(uuid))
 
 
 async def _emit_events(

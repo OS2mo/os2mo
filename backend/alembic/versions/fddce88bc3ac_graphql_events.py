@@ -48,5 +48,5 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_table("listener")
     op.drop_table("event")
+    op.drop_table("listener")

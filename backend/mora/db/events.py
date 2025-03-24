@@ -9,6 +9,10 @@ from sqlalchemy import text
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
+from sqlalchemy import literal
+from sqlalchemy import select
+from sqlalchemy import text
+from sqlalchemy.dialects.postgresql import insert
 
 from ._common import Base
 
@@ -43,3 +47,32 @@ class Event(Base):
     listener: Mapped[Listener] = relationship(back_populates="events")
 
     __table_args__ = (UniqueConstraint('listener_fk', 'subject', 'priority', name='uq_listener_subject_priority'),)
+
+
+async def add_events(session, namespace: str, routing_key: str, subject: str, priority: int = 10):
+    matching_listeners = select(Listener.pk).where(
+        Listener.namespace == namespace,
+        Listener.routing_key == routing_key,
+    )
+
+    stmt = insert(Event).from_select(
+        ["pk", "listener_fk", "subject", "priority", "last_tried", "silenced"],
+        select(
+            text("uuid_generate_v4()"),
+            Listener.pk,
+            literal(subject),
+            literal(priority),
+            # last_tried. We subtract 5 minutes, so it is sent faster.
+            text("now() - interval '5 minutes'"),
+            text("false"),  # silenced
+        ).where(Listener.pk.in_(matching_listeners)),
+    ).on_conflict_do_update(
+        index_elements=["listener_fk", "subject", "priority"],
+        # When we violate the unique constraint, update `last_tried`.
+        # This ensures that clients won't miss an event in the case where
+        # a new event arrives while the client is already processing an
+        # event for the same subject.
+        set_={"last_tried": text("now()")},
+    )
+
+    await session.execute(stmt)
