@@ -242,8 +242,8 @@ async def process_person(
         # name as the routing-key makes sure we only target ourselves, not the the
         # reconcile queue.
         queue_prefix = settings.fastramqpi.amqp.queue_prefix
-        routing_key = f"{queue_prefix}_process_person"
-        await amqpsystem.publish_message(routing_key, object_uuid, exchange="")
+        queue_name = f"{queue_prefix}_process_person"
+        await amqpsystem.publish_message_to_queue(queue_name, object_uuid)  # type: ignore
 
 
 @mo2ldap_router.post("/reconcile")
@@ -286,8 +286,8 @@ async def reconcile_person(
         # name as the routing-key makes sure we only target ourselves, not the the
         # reconcile queue.
         queue_prefix = settings.fastramqpi.amqp.queue_prefix
-        routing_key = f"{queue_prefix}_reconcile_person"
-        await amqpsystem.publish_message(routing_key, object_uuid, exchange="")
+        queue_name = f"{queue_prefix}_reconcile_person"
+        await amqpsystem.publish_message_to_queue(queue_name, object_uuid)  # type: ignore
 
 
 async def handle_person_reconciliation(
