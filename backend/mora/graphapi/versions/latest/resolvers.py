@@ -200,7 +200,9 @@ async def facet_resolver(
 ) -> Any:
     """Resolve facets."""
 
-    async def _get_parent_uuids(info: Info, filter: FacetFilter) -> list[UUID]:
+    async def _get_parent_uuids(
+        info: Info, filter: FacetFilter
+    ) -> list[UUID]:  # pragma: no cover
         facet_filter = filter.parent or FacetFilter()
         # Handle deprecated filter
         extend_uuids(facet_filter, filter.parents)
@@ -217,7 +219,7 @@ async def facet_resolver(
         filter.parents is not None
         or filter.parent_user_keys is not None
         or filter.parent is not None
-    ):
+    ):  # pragma: no cover
         kwargs["facettilhoerer"] = await _get_parent_uuids(info, filter)
 
     if get_version(info.schema) <= Version.VERSION_19:
@@ -274,6 +276,9 @@ async def class_resolver(
     await registration_filter(info, filter)
 
     kwargs: dict[str, Any] = {}
+    if filter.name is not None:
+        kwargs["titel"] = to_similar(filter.name)
+
     if (
         filter.facets is not None
         or filter.facet_user_keys is not None

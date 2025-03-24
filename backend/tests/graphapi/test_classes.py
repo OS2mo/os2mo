@@ -748,6 +748,79 @@ async def test_integration_it_system_filter() -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
+async def test_integration_names_filter(graphapi_post: GraphAPIPost) -> None:
+    # Create
+    primary_type_facet_uuid = "1f6f34d8-d065-4bb7-9af0-738d25dc0fbf"
+    create_mutation = """
+        mutation Create($facet_uuid: UUID!, $name: String!) {
+          class_create(
+            input: {
+              facet_uuid: $facet_uuid,
+              user_key: "-",
+              name: $name,
+              scope: "TEXT",
+              validity: {from: "2001-02-03"}
+            }
+          ) {
+            uuid
+          }
+        }
+    """
+    graphapi_post(
+        create_mutation,
+        {
+            "facet_uuid": primary_type_facet_uuid,
+            "name": "foo",
+        },
+    )
+    graphapi_post(
+        create_mutation,
+        {
+            "facet_uuid": primary_type_facet_uuid,
+            "name": "bar",
+        },
+    )
+    graphapi_post(
+        create_mutation,
+        {
+            "facet_uuid": primary_type_facet_uuid,
+            "name": "baz",
+        },
+    )
+
+    # Filter multiple names
+    read_query = """
+        query ClassNamesQuery {
+          classes(filter: {name: ["foo", "bar"]}) {
+            objects {
+              current {
+                name
+              }
+            }
+          }
+        }
+    """
+    response = graphapi_post(read_query)
+    assert response.errors is None
+    TestCase().assertCountEqual(
+        response.data["classes"]["objects"],
+        [
+            {
+                "current": {
+                    "name": "foo",
+                }
+            },
+            {
+                "current": {
+                    "name": "bar",
+                }
+            },
+        ],
+    )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
 async def test_integration_scopes_filter(graphapi_post: GraphAPIPost) -> None:
     # Create
     primary_type_facet_uuid = "1f6f34d8-d065-4bb7-9af0-738d25dc0fbf"
