@@ -74,8 +74,8 @@ async def process_uuid(
         # name as the routing-key makes sure we only target ourselves, not the the
         # reconcile queue.
         queue_prefix = settings.ldap_amqp.queue_prefix
-        routing_key = f"{queue_prefix}_process_uuid"
-        await ldap_amqpsystem.publish_message(routing_key, uuid, exchange="")
+        queue_name = f"{queue_prefix}_process_uuid"
+        await ldap_amqpsystem.publish_message_to_queue(queue_name, uuid)
 
 
 async def handle_uuid(
@@ -149,8 +149,8 @@ async def reconcile_uuid(
         # name as the routing-key makes sure we only target ourselves, not the the
         # reconcile queue.
         queue_prefix = settings.ldap_amqp.queue_prefix
-        routing_key = f"{queue_prefix}_reconcile_uuid"
-        await ldap_amqpsystem.publish_message(routing_key, uuid, exchange="")
+        queue_name = f"{queue_prefix}_reconcile_uuid"
+        await ldap_amqpsystem.publish_message_to_queue(queue_name, uuid)
 
 
 async def handle_ldap_reconciliation(
