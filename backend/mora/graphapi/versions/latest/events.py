@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
+import random
 from base64 import b64decode, b64encode
 from datetime import datetime
 from textwrap import dedent
@@ -8,6 +10,7 @@ from uuid import UUID
 import sqlalchemy
 import strawberry
 from pydantic import BaseModel
+from sqlalchemy import func
 from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy import text
@@ -54,8 +57,6 @@ class ListenerFilter:
         return clauses
 
 
-
-
 @strawberry.input(description="Event filter.")
 class FullEventFilter:
     listener: ListenerFilter | None = None
@@ -67,6 +68,7 @@ class FullEventFilter:
         description="Filter based on silence status.",
     )
 
+
 async def full_event_resolver(
     info: Info,
     filter: FullEventFilter | None = None,
@@ -77,8 +79,8 @@ async def full_event_resolver(
         filter = FullEventFilter()
 
     clauses = [
-            db.Event.listener_fk == db.Listener.pk,
-            ]
+        db.Event.listener_fk == db.Listener.pk,
+    ]
 
     if filter.listener is not None:
         clauses.extend(filter.listener.where_clauses())
@@ -129,20 +131,25 @@ class Listener:
     owner: UUID = strawberry.field(
         description="Owner of the listener. Only the owner can fetch the listeners' events."
     )
-    user_key: str = strawberry.field(description="The user_key for a listener is a user-supplied identifier. It is useful when a consumer needs to listen to the same (namespace, routing_key) multiple times.")
-    namespace: str = strawberry.field(description="""Listen for events sent in this namespace. OS2mo events are always in the namespace "MO", but other integrations can generate events in their own namespaces.""")
+    user_key: str = strawberry.field(
+        description="The user_key for a listener is a user-supplied identifier. It is useful when a consumer needs to listen to the same (namespace, routing_key) multiple times."
+    )
+    namespace: str = strawberry.field(
+        description="""Listen for events sent in this namespace. OS2mo events are always in the namespace "MO", but other integrations can generate events in their own namespaces."""
+    )
     routing_key: str = strawberry.field(description="The routing key for the listeners")
 
     events: list["FullEvent"] = strawberry.field(
-        resolver=seed_resolver(full_event_resolver, {"listener": lambda root: ListenerFilter(uuids=uuid2list(root.uuid))}),
+        resolver=seed_resolver(
+            full_event_resolver,
+            {"listener": lambda root: ListenerFilter(uuids=uuid2list(root.uuid))},
+        ),
         description="Pending events for this listener. Use `event_fetch` to consume events.",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("event"),
         ],
     )
-
-
 
 
 async def listener_resolver(
@@ -271,22 +278,36 @@ async def event_resolver(
     info: Info,
     filter: EventFilter,
 ) -> Event | None:
-    subquery = (
-        select(db.Event.pk)
-        .where(
-            db.Event.listener_fk == filter.listener,
-            db.Event.silenced == sqlalchemy.false(),
-            # Make sure we do not spam the client with events it has already
-            # tried but failed to acknowledge.
-            db.Event.last_tried < text("now() - interval '5 minutes'"),
+    where_clauses = [
+        db.Event.listener_fk == filter.listener,
+        db.Event.silenced == sqlalchemy.false(),
+        # Make sure we do not spam the client with events it has already
+        # tried but failed to acknowledge.
+        db.Event.last_tried < text("now() - interval '5 minutes'"),
+    ]
+    if random.random() < 0.15:
+        # 15% of the time we return a random event instead of the highest
+        # priority. Imagine a scenario, where it takes 10 minutes to process
+        # each event, but the highest priority event fails. With this strategy,
+        # we still get to process the queue eventually.
+        subquery = (
+            select(db.Event.pk)
+            .where(*where_clauses)
+            .order_by(func.random())
+            .limit(1)
+            .cte()
         )
-        .order_by(
-            db.Event.priority.asc(),
-            db.Event.last_tried.asc(),
+    else:
+        subquery = (
+            select(db.Event.pk)
+            .where(*where_clauses)
+            .order_by(
+                db.Event.priority.asc(),
+                db.Event.last_tried.asc(),
+            )
+            .limit(1)
+            .cte()
         )
-        .limit(1)
-        .cte()
-    )
     query = (
         update(db.Event)
         .where(db.Event.pk == subquery.c.pk)
@@ -296,6 +317,10 @@ async def event_resolver(
     session = info.context["session"]
     result = await session.scalar(query)
     if result is None:
+        # We sleep a bit when there are no event to reduce the load on the
+        # database from integrations spamming for events. Subject to change for
+        # sure.
+        await asyncio.sleep(0.2)
         return None
     return Event(
         uuid=result.pk,

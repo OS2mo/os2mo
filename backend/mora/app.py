@@ -38,6 +38,7 @@ from mora.auth.keycloak.oidc import service_api_auth
 from mora.auth.keycloak.router import keycloak_router
 from mora.auth.middleware import set_authenticated_user
 from mora.common import lora_connector_context
+from mora.db.events import setup_event_metrics
 from mora.graphapi.middleware import is_graphql_context
 from mora.request_scoped.query_args_context_plugin import query_args_context
 from mora.service.address_handler.dar import dar_loader_context
@@ -254,6 +255,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             }
         )
         Gauge("amqp_enabled", "AMQP enabled").set(settings.amqp_enable)
+        setup_event_metrics(sessionmaker, instrumentator)
 
     app.include_router(
         health.router,

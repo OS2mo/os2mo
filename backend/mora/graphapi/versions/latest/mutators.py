@@ -72,7 +72,12 @@ from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
 from .filters import RoleBindingFilter
-from .inputs import AddressCreateInput, EventSendInput, EventSilenceInput, EventUnsilenceInput
+from .inputs import (
+    AddressCreateInput,
+    EventSendInput,
+    EventSilenceInput,
+    EventUnsilenceInput,
+)
 from .inputs import AddressTerminateInput
 from .inputs import AddressUpdateInput
 from .inputs import AssociationCreateInput
@@ -1531,9 +1536,7 @@ class Mutation:
 
     # Event system
     # ------------
-    # TODO: metrics
     # TODO: publish MO events
-    # TODO: docs
     # TODO: tests
     @strawberry.mutation(
         description=dedent(
@@ -1626,6 +1629,7 @@ class Mutation:
     ) -> None:
         owner = get_authenticated_user()
         session = info.context["session"]
+        # TODO count acknowledged metrics
         await session.execute(
             delete(db.Event).where(
                 db.Event.listener_fk == db.Listener.pk,
@@ -1647,16 +1651,21 @@ class Mutation:
         info: Info,
         input: EventSendInput,
     ) -> None:
-        if input.priority < 0:
-            raise ValueError("priority must be positive")
+        if input.priority < 1:
+            raise ValueError("priority must be natural")
 
         # This is an arbitrary constraint because we don't want to end up with
         # large amounts of data being sent over the event system.
         if len(input.subject) > 220:
-            raise ValueError("too large subject. Only send identifiers as the subject, not data")
+            raise ValueError(
+                "too large subject. Only send identifiers as the subject, not data"
+            )
 
         session = info.context["session"]
-        await add_events(session, input.namespace, input.routing_key, input.subject, input.priority)
+        # TODO count sent events
+        await add_events(
+            session, input.namespace, input.routing_key, input.subject, input.priority
+        )
 
     @strawberry.mutation(
         description=dedent(
@@ -1690,10 +1699,7 @@ class Mutation:
             clauses.append(db.Event.listener_fk == db.Listener.pk)
             clauses.append(db.Listener.owner == owner)
         session = info.context["session"]
-        await session.execute(update(db.Event)
-            .where(*clauses)
-            .values(silenced=True)
-        )
+        await session.execute(update(db.Event).where(*clauses).values(silenced=True))
 
     @strawberry.mutation(
         description="Unsilence all matching events",
@@ -1713,7 +1719,9 @@ class Mutation:
 
         if input.uuids is not None:
             if (input.listener, input.subjects, input.priorities) != (None, None, None):
-                raise ValueError("when unsilencing on UUID, you cannot use other filters")
+                raise ValueError(
+                    "when unsilencing on UUID, you cannot use other filters"
+                )
             clauses.append(db.Event.pk.in_(input.uuids))
 
         if input.listener is not None:
@@ -1732,11 +1740,7 @@ class Mutation:
             clauses.append(db.Listener.owner == owner)
 
         session = info.context["session"]
-        await session.execute(
-            update(db.Event)
-            .where(*clauses)
-            .values(silenced=False)
-        )
+        await session.execute(update(db.Event).where(*clauses).values(silenced=False))
 
     # Files
     # -----
