@@ -14,9 +14,9 @@ TEST_UUID = "00692245-3a5b-4ae3-a55a-cd05aa6af239"
     "url,ignores_mo,ignores_ldap",
     (
         ("/mo2ldap/person", True, False),
-        ("/mo2ldap/reconcile", False, False),  # NOTE: Should be True, False
+        ("/mo2ldap/reconcile", True, False),
         ("/ldap2mo/uuid", False, True),
-        ("/ldap2mo/reconcile", False, False),  # NOTE: Should be False, True
+        ("/ldap2mo/reconcile", False, True),
     ),
 )
 @pytest.mark.envvar(

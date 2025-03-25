@@ -298,6 +298,10 @@ async def handle_person_reconciliation(
     converter: depends.LdapConverter,
 ) -> None:
     logger.info("Registered change in a person (Reconcile)", object_uuid=object_uuid)
+    if object_uuid in settings.mo_uuids_to_ignore:
+        logger.warning("MO event ignored due to ignore-list")
+        return
+
     dns = await dataloader.find_mo_employee_dn(object_uuid)
     ldap_uuids = set()
     for dn in dns:
