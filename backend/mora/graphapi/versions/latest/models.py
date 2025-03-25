@@ -384,6 +384,14 @@ class ClassCreate(UUIDBase):
                     "objekttype": "klasse",
                 }
             ]
+        else:
+            relations["overordnetklasse"] = [
+                {
+                    "uuid": "",
+                    "urn": "",
+                    "virkning": {"from": from_time, "to": to_time},
+                }
+            ]
         if self.owner is not None:
             relations["ejer"] = [
                 {
