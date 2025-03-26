@@ -85,11 +85,9 @@ async def handle_uuid(
     converter: LdapConverter,
     uuid: LDAPUUID,
 ) -> None:
-    # TODO: Sync from MO to LDAP to overwrite bad manual changes
-
     logger.info("Received LDAP AMQP event", uuid=uuid)
 
-    if uuid in settings.ldap_uuids_to_ignore:  # pragma: no cover
+    if uuid in settings.ldap_uuids_to_ignore:
         logger.warning("LDAP event ignored due to ignore-list", ldap_uuid=uuid)
         return
 
@@ -118,11 +116,12 @@ async def handle_uuid(
 @ldap2mo_router.post("/reconcile")
 @http_reject_on_failure
 async def http_reconcile_uuid(
+    settings: Settings,
     sync_tool: SyncTool,
     dataloader: DataLoader,
     uuid: Annotated[LDAPUUID, Body()],
 ) -> None:
-    await handle_ldap_reconciliation(sync_tool, dataloader, uuid)
+    await handle_ldap_reconciliation(settings, sync_tool, dataloader, uuid)
 
 
 @ldap_amqp_router.register("uuid")
@@ -135,7 +134,7 @@ async def reconcile_uuid(
 ) -> None:
     try:
         await amqp_reject_on_failure(handle_ldap_reconciliation)(
-            sync_tool, dataloader, uuid
+            settings, sync_tool, dataloader, uuid
         )
     except RequeueMessage:  # pragma: no cover
         # NOTE: This is a hack to cycle messages because quorum queues do not work
@@ -154,11 +153,16 @@ async def reconcile_uuid(
 
 
 async def handle_ldap_reconciliation(
+    settings: Settings,
     sync_tool: SyncTool,
     dataloader: DataLoader,
     uuid: LDAPUUID,
 ) -> None:
     logger.info("Received LDAP AMQP event (Reconcile)", uuid=uuid)
+
+    if uuid in settings.ldap_uuids_to_ignore:
+        logger.warning("LDAP event ignored due to ignore-list", ldap_uuid=uuid)
+        return
 
     dn = await dataloader.ldapapi.get_ldap_dn(uuid)
     person_uuid = await dataloader.find_mo_employee_uuid(dn)
