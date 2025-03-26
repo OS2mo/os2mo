@@ -239,7 +239,7 @@ async def handle_person(
     object_uuid: EmployeeUUID, settings: Settings, sync_tool: SyncTool
 ) -> dict[str, list[Any]]:
     logger.info("Registered change in a person", object_uuid=object_uuid)
-    if object_uuid in settings.mo_uuids_to_ignore:  # pragma: no cover
+    if object_uuid in settings.mo_uuids_to_ignore:
         logger.warning("MO event ignored due to ignore-list", uuid=object_uuid)
         return {}
 

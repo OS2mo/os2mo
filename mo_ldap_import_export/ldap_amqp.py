@@ -87,7 +87,7 @@ async def handle_uuid(
 ) -> None:
     logger.info("Received LDAP AMQP event", uuid=uuid)
 
-    if uuid in settings.ldap_uuids_to_ignore:  # pragma: no cover
+    if uuid in settings.ldap_uuids_to_ignore:
         logger.warning("LDAP event ignored due to ignore-list", ldap_uuid=uuid)
         return
 
