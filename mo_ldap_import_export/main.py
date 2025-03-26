@@ -83,10 +83,7 @@ async def handle_address(
     graphql_client: depends.GraphQLClient,
     amqpsystem: depends.AMQPSystem,
 ) -> None:
-    logger.info(
-        "Registered change in an address",
-        object_uuid=object_uuid,
-    )
+    logger.info("Registered change in an address", object_uuid=object_uuid)
     result = await graphql_client.read_address_relation_uuids(object_uuid)
     person_uuids = {
         validity.employee_uuid
@@ -137,10 +134,7 @@ async def handle_engagement(
     graphql_client: depends.GraphQLClient,
     amqpsystem: depends.AMQPSystem,
 ) -> None:
-    logger.info(
-        "Registered change in an engagement",
-        object_uuid=object_uuid,
-    )
+    logger.info("Registered change in an engagement", object_uuid=object_uuid)
     result = await graphql_client.read_engagement_employee_uuid(object_uuid)
     person_uuids = {
         validity.employee_uuid for obj in result.objects for validity in obj.validities
@@ -177,10 +171,7 @@ async def handle_ituser(
     graphql_client: depends.GraphQLClient,
     amqpsystem: depends.AMQPSystem,
 ) -> None:
-    logger.info(
-        "Registered change in an ituser",
-        object_uuid=object_uuid,
-    )
+    logger.info("Registered change in an ituser", object_uuid=object_uuid)
     result = await graphql_client.read_ituser_relation_uuids(object_uuid)
     person_uuids = {
         validity.employee_uuid
@@ -246,10 +237,7 @@ async def process_person(
 async def handle_person(
     object_uuid: EmployeeUUID, sync_tool: SyncTool
 ) -> dict[str, list[Any]]:
-    logger.info(
-        "Registered change in a person",
-        object_uuid=object_uuid,
-    )
+    logger.info("Registered change in a person", object_uuid=object_uuid)
     return await sync_tool.listen_to_changes_in_employees(object_uuid)
 
 
@@ -304,10 +292,7 @@ async def handle_person_reconciliation(
     dataloader: depends.DataLoader,
     converter: depends.LdapConverter,
 ) -> None:
-    logger.info(
-        "Registered change in a person (Reconcile)",
-        object_uuid=object_uuid,
-    )
+    logger.info("Registered change in a person (Reconcile)", object_uuid=object_uuid)
     dns = await dataloader.find_mo_employee_dn(object_uuid)
     ldap_uuids = set()
     for dn in dns:
@@ -345,10 +330,7 @@ async def handle_org_unit(
     graphql_client: GraphQLClient,
     amqpsystem: MOAMQPSystem,
 ) -> None:
-    logger.info(
-        "Registered change in an org_unit",
-        object_uuid=object_uuid,
-    )
+    logger.info("Registered change in an org_unit", object_uuid=object_uuid)
     # In case the name of the org-unit changed, we need to publish an
     # "engagement" message for each of its employees. Because org-unit
     # LDAP mapping is primarily done through the "Engagement" json-key.
