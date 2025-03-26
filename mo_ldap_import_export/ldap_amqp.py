@@ -85,8 +85,6 @@ async def handle_uuid(
     converter: LdapConverter,
     uuid: LDAPUUID,
 ) -> None:
-    # TODO: Sync from MO to LDAP to overwrite bad manual changes
-
     logger.info("Received LDAP AMQP event", uuid=uuid)
 
     if uuid in settings.ldap_uuids_to_ignore:  # pragma: no cover
