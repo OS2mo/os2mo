@@ -201,9 +201,10 @@ async def handle_ituser(
 @http_reject_on_failure
 async def http_process_person(
     object_uuid: Annotated[EmployeeUUID, Body()],
+    settings: depends.Settings,
     sync_tool: depends.SyncTool,
 ) -> dict[str, list[Any]]:
-    return await handle_person(object_uuid, sync_tool)
+    return await handle_person(object_uuid, settings, sync_tool)
 
 
 @amqp_router.register("person")
@@ -216,7 +217,7 @@ async def process_person(
 ) -> None:
     try:
         await amqp_reject_on_failure(handle_person)(
-            EmployeeUUID(object_uuid), sync_tool
+            EmployeeUUID(object_uuid), settings, sync_tool
         )
     except RequeueMessage:  # pragma: no cover
         # NOTE: This is a hack to cycle messages because quorum queues do not work
@@ -235,9 +236,13 @@ async def process_person(
 
 
 async def handle_person(
-    object_uuid: EmployeeUUID, sync_tool: SyncTool
+    object_uuid: EmployeeUUID, settings: Settings, sync_tool: SyncTool
 ) -> dict[str, list[Any]]:
     logger.info("Registered change in a person", object_uuid=object_uuid)
+    if object_uuid in settings.mo_uuids_to_ignore:  # pragma: no cover
+        logger.warning("MO event ignored due to ignore-list", uuid=object_uuid)
+        return {}
+
     return await sync_tool.listen_to_changes_in_employees(object_uuid)
 
 
