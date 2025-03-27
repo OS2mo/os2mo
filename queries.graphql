@@ -664,3 +664,13 @@ query read_cleanup_addresses(
     }
   }
 }
+
+query read_employee_registrations($employee_uuid: UUID!) {
+  employees(filter: { uuids: [$employee_uuid] }) {
+    objects {
+      registrations {
+        uuid
+      }
+    }
+  }
+}
