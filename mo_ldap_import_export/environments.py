@@ -574,7 +574,6 @@ def construct_globals_dict(
     moapi = dataloader.moapi
     graphql_client = moapi.graphql_client
     return {
-        "now": datetime.utcnow,  # TODO: timezone-aware datetime
         "get_employee_address_type_uuid": partial(
             get_employee_address_type_uuid, graphql_client
         ),
@@ -603,7 +602,6 @@ def construct_globals_dict(
         "create_mo_it_user": partial(create_mo_it_user, moapi),
         "generate_username": partial(generate_username, dataloader),
         "generate_common_name": partial(generate_common_name, dataloader),
-        "skip_if_none": skip_if_none,
         "get_address_uuid": partial(get_address_uuid, graphql_client),
         "get_ituser_uuid": partial(get_ituser_uuid, graphql_client),
         "get_engagement_uuid": partial(get_engagement_uuid, graphql_client),
@@ -639,6 +637,9 @@ def construct_default_environment() -> Environment:
     environment.filters["mo_datestring"] = filter_mo_datestring
     environment.filters["strip_non_digits"] = filter_strip_non_digits
     environment.filters["remove_curly_brackets"] = filter_remove_curly_brackets
+
+    environment.globals["now"] = datetime.utcnow  # TODO: timezone-aware datetime
+    environment.globals["skip_if_none"] = skip_if_none
 
     return environment
 
