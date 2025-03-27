@@ -740,7 +740,7 @@ async def test_listen_to_changes_in_employees(
         # Single field
         # Check no template matches
         (["sn"], {"CN=foo": {}, "CN=bar": {}}, "{{ False }}", None),
-        (["sn"], {"CN=foo": {}, "CN=bar": {}}, "{{ PleaseHelpMe }}", None),
+        (["sn"], {"CN=foo": {}, "CN=bar": {}}, "{{ 'PleaseHelpMe' }}", None),
         # Check dn is specific value
         (["sn"], {"CN=foo": {}, "CN=bar": {}}, "{{ dn == 'CN=foo' }}", "CN=foo"),
         (["sn"], {"CN=foo": {}, "CN=bar": {}}, "{{ dn == 'CN=bar' }}", "CN=bar"),

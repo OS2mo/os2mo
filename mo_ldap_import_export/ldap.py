@@ -337,14 +337,14 @@ def construct_template(template: str) -> Template:
     return Template(template)
 
 
-def evaluate_template(template: str, dn: DN, mapping: dict[str, str | None]) -> bool:
+async def evaluate_template(template: str, dn: DN, mapping: dict[str, str | None]) -> bool:
     def mapping2value(field_mapping: dict[str, str | None]) -> str | None:
         if len(field_mapping) != 1:
             return None
         return one(field_mapping.values())
 
     jinja_template = construct_template(template)
-    result = jinja_template.render(
+    result = await jinja_template.render_async(
         dn=dn,
         value=mapping2value(mapping),
         **mapping,
@@ -369,7 +369,9 @@ async def filter_dns(
 
     mapping = await fetch_dn_mapping(ldap_connection, discriminator_fields, dns)
     dns_passing_template = {
-        dn for dn in dns if evaluate_template(discriminator_filter, dn, mapping[dn])
+        dn
+        for dn in dns
+        if await evaluate_template(discriminator_filter, dn, mapping[dn])
     }
     return dns_passing_template
 
@@ -416,7 +418,7 @@ async def apply_discriminator(
     # NOTE: We assume no two accounts are equally important.
     for discriminator in settings.discriminator_values:
         dns_passing_template = {
-            dn for dn in dns if evaluate_template(discriminator, dn, mapping[dn])
+            dn for dn in dns if await evaluate_template(discriminator, dn, mapping[dn])
         }
         if dns_passing_template:
             return one(
