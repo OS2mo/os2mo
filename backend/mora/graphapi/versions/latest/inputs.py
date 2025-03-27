@@ -14,7 +14,7 @@ from strawberry.types.unset import UnsetType
 from mora.graphapi.gmodels.mo import OpenValidity as RAOpenValidity
 from mora.graphapi.gmodels.mo import Validity as RAValidity
 
-from .events import ListenerFilter
+from .events import ListenerFilter, OpaqueEventToken
 from ...gmodels.mo._shared import UUIDBase
 from .models import AddressCreate
 from .models import AddressTerminate
@@ -752,6 +752,15 @@ class ListenerCreateInput:
 @strawberry.input
 class ListenerDeleteInput:
     uuid: UUID
+    delete_pending_events: bool = strawberry.field(
+        default=False,
+        description="Delete all events awaiting acknowledgement for this listener",
+    )
+
+
+@strawberry.input
+class EventAcknowledgeInput:
+    token: OpaqueEventToken
 
 
 @strawberry.input

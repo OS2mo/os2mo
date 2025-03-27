@@ -7,6 +7,7 @@ from typing import Annotated
 from typing import Any
 from uuid import UUID
 
+import sqlalchemy
 import strawberry
 from fastramqpi.ra_utils.asyncio_utils import gather_with_concurrency
 from sqlalchemy import delete
@@ -17,7 +18,8 @@ from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
 from mora import db
-from mora.db.events import add_events
+from mora.db.events import add_event
+from mora.db.events import acknowledged_events
 from mora.auth.middleware import get_authenticated_user
 from mora.auth import is_admin
 from mora.common import get_connector
@@ -52,7 +54,7 @@ from .employee import update_employee
 from .engagements import create_engagement
 from .engagements import terminate_engagement
 from .engagements import update_engagement
-from .events import Listener, OpaqueEventToken
+from .events import Listener
 from .facets import create_facet
 from .facets import delete_facet
 from .facets import terminate_facet
@@ -74,6 +76,7 @@ from .filters import RelatedUnitFilter
 from .filters import RoleBindingFilter
 from .inputs import (
     AddressCreateInput,
+    EventAcknowledgeInput,
     EventSendInput,
     EventSilenceInput,
     EventUnsilenceInput,
@@ -1536,7 +1539,6 @@ class Mutation:
 
     # Event system
     # ------------
-    # TODO: publish MO events
     # TODO: tests
     @strawberry.mutation(
         description=dedent(
@@ -1613,7 +1615,18 @@ class Mutation:
             owner = get_authenticated_user()
             clauses.append(db.Listener.owner == owner)
         session = info.context["session"]
-        await session.execute(delete(db.Listener).where(*clauses))
+
+        if input.delete_pending_events:
+            await session.execute(
+                delete(db.Event).where(db.Event.listener_fk == db.Listener.pk, *clauses)
+            )
+
+        try:
+            await session.execute(delete(db.Listener).where(*clauses))
+        except sqlalchemy.exc.IntegrityError:
+            raise ValueError(
+                "There are pending events for this listener. Consider carefully if these need to be handled first. You can delete the listener anyway with `delete_pending_events`."
+            )
 
     @strawberry.mutation(
         description="Acknowledge an event.",
@@ -1625,19 +1638,41 @@ class Mutation:
     async def event_acknowledge(
         self,
         info: Info,
-        input: OpaqueEventToken,
+        input: EventAcknowledgeInput,
     ) -> None:
         owner = get_authenticated_user()
         session = info.context["session"]
-        # TODO count acknowledged metrics
-        await session.execute(
+        # Sadly, we have to select the listener, because PostgreSQL does not
+        # support returning values from tables other than the one being deleted
+        listener = (
+            await session.execute(
+                select(db.Listener)
+                .join(db.Event)
+                .where(
+                    db.Event.pk == input.token.uuid,
+                )
+            )
+        ).scalar_one_or_none()
+
+        if not listener:
+            return None
+
+        result = await session.execute(
             delete(db.Event).where(
                 db.Event.listener_fk == db.Listener.pk,
-                db.Event.pk == input.uuid,
-                db.Event.last_tried == input.last_tried,
+                db.Event.pk == input.token.uuid,
+                db.Event.last_tried == input.token.last_tried,
                 db.Listener.owner == owner,
             )
         )
+
+        if result.rowcount:
+            acknowledged_events.labels(
+                owner=listener.owner,
+                user_key=listener.user_key,
+                namespace=listener.namespace,
+                routing_key=listener.routing_key,
+            ).inc()
 
     @strawberry.mutation(
         description="Send an event.",
@@ -1661,9 +1696,11 @@ class Mutation:
                 "too large subject. Only send identifiers as the subject, not data"
             )
 
+        if input.namespace == "mo":
+            raise ValueError('You are not allowed to send events in the "mo" namespace')
+
         session = info.context["session"]
-        # TODO count sent events
-        await add_events(
+        await add_event(
             session, input.namespace, input.routing_key, input.subject, input.priority
         )
 
