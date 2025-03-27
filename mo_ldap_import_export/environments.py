@@ -628,7 +628,7 @@ class NeverUndefined(StrictUndefined):
         ) from exc
 
 
-def construct_environment(settings: Settings, dataloader: DataLoader) -> Environment:
+def construct_default_environment() -> Environment:
     # We intentionally use 'StrictUndefined' here so undefined accesses yield exceptions
     # instead of silently coercing to falsy values as is the case with 'Undefined'
     # See: https://jinja.palletsprojects.com/en/3.1.x/api/#undefined-types
@@ -640,6 +640,10 @@ def construct_environment(settings: Settings, dataloader: DataLoader) -> Environ
     environment.filters["strip_non_digits"] = filter_strip_non_digits
     environment.filters["remove_curly_brackets"] = filter_remove_curly_brackets
 
-    environment.globals.update(construct_globals_dict(settings, dataloader))
+    return environment
 
+
+def construct_environment(settings: Settings, dataloader: DataLoader) -> Environment:
+    environment = construct_default_environment()
+    environment.globals.update(construct_globals_dict(settings, dataloader))
     return environment
