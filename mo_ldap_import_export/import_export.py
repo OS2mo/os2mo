@@ -391,15 +391,13 @@ class SyncTool:
             mo_object_dict_to_upload.update(update_values)
             converted_object_uuid_checked = mo_class(**mo_object_dict_to_upload)
 
-            # TODO: Try to get this reactivated, see: 87683a2b
-            # # If an object is identical to the one already there, it does not need
-            # # to be uploaded.
-            # if converted_object_uuid_checked == matching_object:
-            #     logger.info(
-            #         "Converted object is identical "
-            #         "to existing object, skipping"
-            #     )
-            #     continue
+            # If an object is identical to the one already there, it does not need
+            # to be uploaded.
+            if converted_object_uuid_checked == matching_object:
+                logger.info(
+                    "Converted object is identical to existing object, skipping"
+                )
+                continue
             # We found a match, so we are editing the object we matched
             operations.append((converted_object_uuid_checked, Verb.EDIT))
 

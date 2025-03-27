@@ -40,7 +40,6 @@ from mo_ldap_import_export.types import DN
         ),
     }
 )
-@pytest.mark.xfail(reason="noop writes currently create registrations")
 async def test_no_registration_spam(
     trigger_ldap_person: Callable[[], Awaitable[None]],
     ldap_connection: Connection,
