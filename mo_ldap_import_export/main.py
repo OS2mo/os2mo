@@ -17,6 +17,7 @@ from fastapi import Body
 from fastapi import Depends
 from fastapi import FastAPI
 from fastramqpi.main import FastRAMQPI
+from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from fastramqpi.ramqp.depends import rate_limit
 from fastramqpi.ramqp.mo import MOAMQPSystem
@@ -45,7 +46,6 @@ from .ldap import check_ou_in_list_of_ous
 from .ldap import configure_ldap_connection
 from .ldap import ldap_healthcheck
 from .ldap_amqp import configure_ldap_amqpsystem
-from .ldap_amqp import handle_uuid
 from .ldap_amqp import ldap2mo_router
 from .ldap_event_generator import LDAPEventGenerator
 from .ldap_event_generator import ldap_event_router
@@ -247,12 +247,11 @@ async def handle_person(
 async def http_reconcile_person(
     object_uuid: Annotated[UUID, Body()],
     settings: depends.Settings,
-    sync_tool: depends.SyncTool,
     dataloader: depends.DataLoader,
-    converter: depends.LdapConverter,
+    ldap_amqpsystem: depends.LDAPAMQPSystem,
 ) -> None:
     await handle_person_reconciliation(
-        object_uuid, settings, sync_tool, dataloader, converter
+        object_uuid, settings, dataloader, ldap_amqpsystem
     )
 
 
@@ -261,14 +260,13 @@ async def http_reconcile_person(
 async def reconcile_person(
     object_uuid: PayloadUUID,
     settings: depends.Settings,
-    sync_tool: depends.SyncTool,
     dataloader: depends.DataLoader,
-    converter: depends.LdapConverter,
     amqpsystem: depends.AMQPSystem,
+    ldap_amqpsystem: depends.LDAPAMQPSystem,
 ) -> None:
     try:
         await handle_person_reconciliation(
-            object_uuid, settings, sync_tool, dataloader, converter
+            object_uuid, settings, dataloader, ldap_amqpsystem
         )
     except RequeueMessage:  # pragma: no cover
         # NOTE: This is a hack to cycle messages because quorum queues do not work
@@ -285,9 +283,8 @@ async def reconcile_person(
 async def handle_person_reconciliation(
     object_uuid: PayloadUUID,
     settings: depends.Settings,
-    sync_tool: depends.SyncTool,
     dataloader: depends.DataLoader,
-    converter: depends.LdapConverter,
+    ldap_amqpsystem: AMQPSystem,
 ) -> None:
     logger.info("Registered change in a person (Reconcile)", object_uuid=object_uuid)
     if object_uuid in settings.mo_uuids_to_ignore:
@@ -301,9 +298,10 @@ async def handle_person_reconciliation(
             ldap_uuids.add(await dataloader.ldapapi.get_ldap_unique_ldap_uuid(dn))
 
     for ldap_uuid in ldap_uuids:
-        await amqp_reject_on_failure(handle_uuid)(
-            settings, sync_tool, dataloader, converter, ldap_uuid
-        )
+        # We handle reconciliation by seeding events into the normal processing queue
+        queue_prefix = settings.ldap_amqp.queue_prefix
+        queue_name = f"{queue_prefix}_process_uuid"
+        await ldap_amqpsystem.publish_message_to_queue(queue_name, ldap_uuid)
 
 
 @mo2ldap_router.post("/org_unit")

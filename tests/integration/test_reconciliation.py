@@ -20,9 +20,10 @@ from mo_ldap_import_export.types import DN
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
-        # We listen to changes in MO, such that we can fix writes to our owned fields
+        # We listen to changes in MO, such that publish an event to the LDAP queue
         "LISTEN_TO_CHANGES_IN_MO": "True",
-        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        # We listen to changes in LDAP, so we can fix writes to our MO fields
+        "LISTEN_TO_CHANGES_IN_LDAP": "True",
         "CONVERSION_MAPPING": json.dumps(
             {
                 "ldap_to_mo": {
@@ -109,8 +110,9 @@ async def test_mo_reconciliation(
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
-        "LISTEN_TO_CHANGES_IN_MO": "False",
-        # We listen to changes in LDAP, such that we can fix writes to our owned fields
+        # We listen to changes in LDAP, such that publish an event to the MO queue
+        "LISTEN_TO_CHANGES_IN_MO": "True",
+        # We listen to changes in MO, so we can fix writes to our LDAP fields
         "LISTEN_TO_CHANGES_IN_LDAP": "True",
         "CONVERSION_MAPPING": json.dumps(
             {
