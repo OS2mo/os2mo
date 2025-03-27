@@ -740,7 +740,7 @@ async def test_listen_to_changes_in_employees(
         # Single field
         # Check no template matches
         (["sn"], {"CN=foo": {}, "CN=bar": {}}, "{{ False }}", None),
-        (["sn"], {"CN=foo": {}, "CN=bar": {}}, "{{ PleaseHelpMe }}", None),
+        (["sn"], {"CN=foo": {}, "CN=bar": {}}, "{{ 'PleaseHelpMe' }}", None),
         # Check dn is specific value
         (["sn"], {"CN=foo": {}, "CN=bar": {}}, "{{ dn == 'CN=foo' }}", "CN=foo"),
         (["sn"], {"CN=foo": {}, "CN=bar": {}}, "{{ dn == 'CN=bar' }}", "CN=bar"),
@@ -793,6 +793,17 @@ async def test_listen_to_changes_in_employees(
             ["sn"],
             {"CN=foo": {"sn": "1"}, "CN=bar": {"sn": "3"}, "CN=baz": {"sn": "0"}},
             "{{ sn|int % 2 == 0 }}",
+            "CN=baz",
+        ),
+        # Check default filters and globals, SN is even after removing things
+        (
+            ["sn"],
+            {
+                "CN=foo": {"sn": "{{1a1}}"},
+                "CN=bar": {"sn": "{3b}"},
+                "CN=baz": {"sn": "{0c2}"},
+            },
+            "{{ sn|strip_non_digits|remove_curly_brackets|int % 2 == 0 }}",
             "CN=baz",
         ),
         # Multiple fields

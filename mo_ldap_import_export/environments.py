@@ -574,7 +574,6 @@ def construct_globals_dict(
     moapi = dataloader.moapi
     graphql_client = moapi.graphql_client
     return {
-        "now": datetime.utcnow,  # TODO: timezone-aware datetime
         "get_employee_address_type_uuid": partial(
             get_employee_address_type_uuid, graphql_client
         ),
@@ -603,7 +602,6 @@ def construct_globals_dict(
         "create_mo_it_user": partial(create_mo_it_user, moapi),
         "generate_username": partial(generate_username, dataloader),
         "generate_common_name": partial(generate_common_name, dataloader),
-        "skip_if_none": skip_if_none,
         "get_address_uuid": partial(get_address_uuid, graphql_client),
         "get_ituser_uuid": partial(get_ituser_uuid, graphql_client),
         "get_engagement_uuid": partial(get_engagement_uuid, graphql_client),
@@ -628,7 +626,7 @@ class NeverUndefined(StrictUndefined):
         ) from exc
 
 
-def construct_environment(settings: Settings, dataloader: DataLoader) -> Environment:
+def construct_default_environment() -> Environment:
     # We intentionally use 'StrictUndefined' here so undefined accesses yield exceptions
     # instead of silently coercing to falsy values as is the case with 'Undefined'
     # See: https://jinja.palletsprojects.com/en/3.1.x/api/#undefined-types
@@ -640,6 +638,13 @@ def construct_environment(settings: Settings, dataloader: DataLoader) -> Environ
     environment.filters["strip_non_digits"] = filter_strip_non_digits
     environment.filters["remove_curly_brackets"] = filter_remove_curly_brackets
 
-    environment.globals.update(construct_globals_dict(settings, dataloader))
+    environment.globals["now"] = datetime.utcnow  # TODO: timezone-aware datetime
+    environment.globals["skip_if_none"] = skip_if_none
 
+    return environment
+
+
+def construct_environment(settings: Settings, dataloader: DataLoader) -> Environment:
+    environment = construct_default_environment()
+    environment.globals.update(construct_globals_dict(settings, dataloader))
     return environment

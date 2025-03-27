@@ -267,7 +267,7 @@ async def ldap_search(
 
 async def fetch_field_mapping(
     ldap_connection: Connection, discriminator_fields: list[str], dn: DN
-) -> dict[str, str | None]:
+) -> dict[str, str | int | None]:
     # Fetch the discriminator attributes for all the given DN
     # NOTE: While it is possible to fetch multiple DNs in a single operation
     #       (by doing a complex search operation), some "guy on the internet" claims
@@ -293,7 +293,7 @@ async def fetch_field_mapping(
 
     def ldapobject2discriminator(
         ldap_object: LdapObject, discriminator_field: str
-    ) -> str | None:
+    ) -> str | int | None:
         # The value can either be a string or a list
         value = getattr(ldap_object, discriminator_field, None)
         if value is None:
@@ -303,7 +303,8 @@ async def fetch_field_mapping(
             return None
         # TODO: Figure out when it is a string instead of a list
         #       Maybe it is an AD only thing?
-        if isinstance(value, str):  # pragma: no cover
+        # NOTE: userAccountControl is in integer attribute
+        if isinstance(value, str | int):  # pragma: no cover
             return value
         # If it is a list, we assume it is
         unpacked_value = only(value)
@@ -321,7 +322,7 @@ async def fetch_field_mapping(
 
 async def fetch_dn_mapping(
     ldap_connection: Connection, discriminator_fields: list[str], dns: set[DN]
-) -> dict[DN, dict[str, str | None]]:
+) -> dict[DN, dict[str, str | int | None]]:
     dn_list = list(dns)
     mappings = await asyncio.gather(
         *(
@@ -334,17 +335,22 @@ async def fetch_dn_mapping(
 
 @cache
 def construct_template(template: str) -> Template:
-    return Template(template)
+    from .environments import construct_default_environment
+
+    environment = construct_default_environment()
+    return environment.from_string(template)
 
 
-def evaluate_template(template: str, dn: DN, mapping: dict[str, str | None]) -> bool:
-    def mapping2value(field_mapping: dict[str, str | None]) -> str | None:
+async def evaluate_template(
+    template: str, dn: DN, mapping: dict[str, str | int | None]
+) -> bool:
+    def mapping2value(field_mapping: dict[str, str | int | None]) -> str | int | None:
         if len(field_mapping) != 1:
             return None
         return one(field_mapping.values())
 
     jinja_template = construct_template(template)
-    result = jinja_template.render(
+    result = await jinja_template.render_async(
         dn=dn,
         value=mapping2value(mapping),
         **mapping,
@@ -369,7 +375,9 @@ async def filter_dns(
 
     mapping = await fetch_dn_mapping(ldap_connection, discriminator_fields, dns)
     dns_passing_template = {
-        dn for dn in dns if evaluate_template(discriminator_filter, dn, mapping[dn])
+        dn
+        for dn in dns
+        if await evaluate_template(discriminator_filter, dn, mapping[dn])
     }
     return dns_passing_template
 
@@ -416,7 +424,7 @@ async def apply_discriminator(
     # NOTE: We assume no two accounts are equally important.
     for discriminator in settings.discriminator_values:
         dns_passing_template = {
-            dn for dn in dns if evaluate_template(discriminator, dn, mapping[dn])
+            dn for dn in dns if await evaluate_template(discriminator, dn, mapping[dn])
         }
         if dns_passing_template:
             return one(
