@@ -64,15 +64,11 @@ async def process_uuid(
         )
     except RequeueMessage:  # pragma: no cover
         # NOTE: This is a hack to cycle messages because quorum queues do not work
-        # NOTE: We intentionally publish to this specific queue using the funny syntax
+        # NOTE: We intentionally publish to this specific queue instead of the exchange,
         #       as we may otherwise trigger both this handler AND the reconcile handler
         #       and if both handlers end up failing, we have an exponential growth in
         #       the number of unhandled messages.
         await asyncio.sleep(30)
-        # Every single queue is implicitly bound with its queue name as the routing key
-        # on RabbitMQ's default / nameless exchange (""). Thus publishing with our queue
-        # name as the routing-key makes sure we only target ourselves, not the the
-        # reconcile queue.
         queue_prefix = settings.ldap_amqp.queue_prefix
         queue_name = f"{queue_prefix}_process_uuid"
         await ldap_amqpsystem.publish_message_to_queue(queue_name, uuid)
@@ -138,15 +134,11 @@ async def reconcile_uuid(
         )
     except RequeueMessage:  # pragma: no cover
         # NOTE: This is a hack to cycle messages because quorum queues do not work
-        # NOTE: We intentionally publish to this specific queue using the funny syntax
+        # NOTE: We intentionally publish to this specific queue instead of the exchange,
         #       as we may otherwise trigger both this handler AND the reconcile handler
         #       and if both handlers end up failing, we have an exponential growth in
         #       the number of unhandled messages.
         await asyncio.sleep(30)
-        # Every single queue is implicitly bound with its queue name as the routing key
-        # on RabbitMQ's default / nameless exchange (""). Thus publishing with our queue
-        # name as the routing-key makes sure we only target ourselves, not the the
-        # reconcile queue.
         queue_prefix = settings.ldap_amqp.queue_prefix
         queue_name = f"{queue_prefix}_reconcile_uuid"
         await ldap_amqpsystem.publish_message_to_queue(queue_name, uuid)
