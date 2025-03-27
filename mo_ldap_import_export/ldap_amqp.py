@@ -12,9 +12,11 @@ from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.amqp import Router
 from fastramqpi.ramqp.depends import get_payload_as_type
 from fastramqpi.ramqp.depends import rate_limit
+from fastramqpi.ramqp.mo import MOAMQPSystem
 from fastramqpi.ramqp.utils import RejectMessage
 from fastramqpi.ramqp.utils import RequeueMessage
 
+from . import depends
 from .depends import DataLoader
 from .depends import LDAPAMQPSystem
 from .depends import LdapConverter
@@ -64,15 +66,11 @@ async def process_uuid(
         )
     except RequeueMessage:  # pragma: no cover
         # NOTE: This is a hack to cycle messages because quorum queues do not work
-        # NOTE: We intentionally publish to this specific queue using the funny syntax
+        # NOTE: We intentionally publish to this specific queue instead of the exchange,
         #       as we may otherwise trigger both this handler AND the reconcile handler
         #       and if both handlers end up failing, we have an exponential growth in
         #       the number of unhandled messages.
         await asyncio.sleep(30)
-        # Every single queue is implicitly bound with its queue name as the routing key
-        # on RabbitMQ's default / nameless exchange (""). Thus publishing with our queue
-        # name as the routing-key makes sure we only target ourselves, not the the
-        # reconcile queue.
         queue_prefix = settings.ldap_amqp.queue_prefix
         queue_name = f"{queue_prefix}_process_uuid"
         await ldap_amqpsystem.publish_message_to_queue(queue_name, uuid)
@@ -117,36 +115,32 @@ async def handle_uuid(
 @http_reject_on_failure
 async def http_reconcile_uuid(
     settings: Settings,
-    sync_tool: SyncTool,
     dataloader: DataLoader,
+    amqpsystem: depends.AMQPSystem,
     uuid: Annotated[LDAPUUID, Body()],
 ) -> None:
-    await handle_ldap_reconciliation(settings, sync_tool, dataloader, uuid)
+    await handle_ldap_reconciliation(settings, dataloader, amqpsystem, uuid)
 
 
 @ldap_amqp_router.register("uuid")
 async def reconcile_uuid(
     settings: Settings,
     ldap_amqpsystem: LDAPAMQPSystem,
-    sync_tool: SyncTool,
     dataloader: DataLoader,
+    amqpsystem: depends.AMQPSystem,
     uuid: PayloadUUID,
 ) -> None:
     try:
         await amqp_reject_on_failure(handle_ldap_reconciliation)(
-            settings, sync_tool, dataloader, uuid
+            settings, dataloader, amqpsystem, uuid
         )
     except RequeueMessage:  # pragma: no cover
         # NOTE: This is a hack to cycle messages because quorum queues do not work
-        # NOTE: We intentionally publish to this specific queue using the funny syntax
+        # NOTE: We intentionally publish to this specific queue instead of the exchange,
         #       as we may otherwise trigger both this handler AND the reconcile handler
         #       and if both handlers end up failing, we have an exponential growth in
         #       the number of unhandled messages.
         await asyncio.sleep(30)
-        # Every single queue is implicitly bound with its queue name as the routing key
-        # on RabbitMQ's default / nameless exchange (""). Thus publishing with our queue
-        # name as the routing-key makes sure we only target ourselves, not the the
-        # reconcile queue.
         queue_prefix = settings.ldap_amqp.queue_prefix
         queue_name = f"{queue_prefix}_reconcile_uuid"
         await ldap_amqpsystem.publish_message_to_queue(queue_name, uuid)
@@ -154,8 +148,8 @@ async def reconcile_uuid(
 
 async def handle_ldap_reconciliation(
     settings: Settings,
-    sync_tool: SyncTool,
     dataloader: DataLoader,
+    amqpsystem: MOAMQPSystem,
     uuid: LDAPUUID,
 ) -> None:
     logger.info("Received LDAP AMQP event (Reconcile)", uuid=uuid)
@@ -168,7 +162,10 @@ async def handle_ldap_reconciliation(
     person_uuid = await dataloader.find_mo_employee_uuid(dn)
     if person_uuid is None:
         return
-    await sync_tool.listen_to_changes_in_employees(person_uuid)
+    # We handle reconciliation by seeding events into the normal processing queue
+    queue_prefix = settings.fastramqpi.amqp.queue_prefix
+    queue_name = f"{queue_prefix}_process_person"
+    await amqpsystem.publish_message_to_queue(queue_name, person_uuid)  # type: ignore
 
 
 def configure_ldap_amqpsystem(fastramqpi: FastRAMQPI, settings: Settings) -> AMQPSystem:
