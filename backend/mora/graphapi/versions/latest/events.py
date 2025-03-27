@@ -9,6 +9,7 @@ from uuid import UUID
 
 import sqlalchemy
 import strawberry
+from more_itertools import one
 from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy import select
@@ -97,15 +98,15 @@ async def full_event_resolver(
     if filter.silenced is not UNSET:
         clauses.append(db.Event.silenced == filter.silenced)
 
-    query = select(db.Event)
-
-    if clauses:
-        query = query.where(*clauses)
-
-    query = query.order_by(
-        db.Event.priority.asc(),
-        db.Event.last_tried.asc(),
+    query = (
+        select(db.Event)
+        .where(*clauses)
+        .order_by(
+            db.Event.priority.asc(),
+            db.Event.last_tried.asc(),
+        )
     )
+
     if limit is not None:
         query = query.limit(limit)
     # TODO: this is not actually stable as we don't use registration time.
@@ -135,7 +136,7 @@ class Listener:
         description="The user_key for a listener is a user-supplied identifier. It is useful when a consumer needs to listen to the same (namespace, routing_key) multiple times."
     )
     namespace: str = strawberry.field(
-        description="""Listen for events sent in this namespace. OS2mo events are always in the namespace "MO", but other integrations can generate events in their own namespaces."""
+        description="""Listen for events sent in this namespace. OS2mo events are always in the namespace "mo", but other integrations can generate events in their own namespaces."""
     )
     routing_key: str = strawberry.field(description="The routing key for the listeners")
 
@@ -222,8 +223,7 @@ class FullEvent:
     async def listener(root: "FullEvent", info: strawberry.Info) -> Listener:
         filter = ListenerFilter(uuids=[root.listener_uuid])
         result = await listener_resolver(info, filter)
-        assert len(result) == 1
-        return result[0]
+        return one(result)
 
 
 OpaqueEventToken = strawberry.scalar(

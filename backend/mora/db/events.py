@@ -3,6 +3,7 @@
 from datetime import datetime
 from uuid import UUID
 
+from prometheus_client import Counter
 from prometheus_client import Gauge
 from prometheus_fastapi_instrumentator import Instrumentator
 from sqlalchemy import ForeignKey
@@ -66,7 +67,7 @@ class Event(Base):
     )
 
 
-async def add_events(
+async def add_event(
     session, namespace: str, routing_key: str, subject: str, priority: int = 10
 ):
     matching_listeners = select(Listener.pk).where(
@@ -83,8 +84,7 @@ async def add_events(
                 Listener.pk,
                 literal(subject),
                 literal(priority),
-                # last_tried. We subtract 5 minutes, so it is sent faster.
-                text("now() - interval '5 minutes'"),
+                text("'1970-01-01'::timestamptz"),  # last_tried
                 text("false"),  # silenced
             ).where(Listener.pk.in_(matching_listeners)),
         )
@@ -99,6 +99,8 @@ async def add_events(
     )
 
     await session.execute(stmt)
+
+    sent_events.labels(namespace=namespace, routing_key=routing_key).inc()
 
 
 def setup_event_metrics(
@@ -116,43 +118,41 @@ def setup_event_metrics(
         ["owner", "user_key", "namespace", "routing_key"],
     )
 
-    async def count_silenced_events(_) -> None:
-        async with sessionmaker() as session, session.begin():
-            for listener, count in (
-                await session.execute(
-                    select(Listener, func.count(Event.pk))
-                    .outerjoin(
-                        Event,
-                        (Listener.pk == Event.listener_fk) & (Event.silenced == True),
+    def count_events(gauge: Gauge, silenced: bool):
+        async def counter(_) -> None:
+            async with sessionmaker() as session, session.begin():
+                for listener, count in (
+                    await session.execute(
+                        select(Listener, func.count(Event.pk))
+                        .outerjoin(
+                            Event,
+                            (Listener.pk == Event.listener_fk)
+                            & (Event.silenced == silenced),
+                        )
+                        .group_by(Listener.pk)
                     )
-                    .group_by(Listener.pk)
-                )
-            ).all():
-                silenced_events.labels(
-                    owner=listener.owner,
-                    user_key=listener.user_key,
-                    namespace=listener.namespace,
-                    routing_key=listener.routing_key,
-                ).set(count)
+                ).all():
+                    gauge.labels(
+                        owner=listener.owner,
+                        user_key=listener.user_key,
+                        namespace=listener.namespace,
+                        routing_key=listener.routing_key,
+                    ).set(count)
 
-    async def count_active_events(_) -> None:
-        async with sessionmaker() as session, session.begin():
-            for listener, count in (
-                await session.execute(
-                    select(Listener, func.count(Event.pk))
-                    .outerjoin(
-                        Event,
-                        (Listener.pk == Event.listener_fk) & (Event.silenced == False),
-                    )
-                    .group_by(Listener.pk)
-                )
-            ).all():
-                active_events.labels(
-                    owner=listener.owner,
-                    user_key=listener.user_key,
-                    namespace=listener.namespace,
-                    routing_key=listener.routing_key,
-                ).set(count)
+        return counter
 
-    instrumentator.add(count_silenced_events)
-    instrumentator.add(count_active_events)
+    instrumentator.add(count_events(silenced_events, silenced=True))
+    instrumentator.add(count_events(active_events, silenced=False))
+
+
+acknowledged_events = Counter(
+    "os2mo_event_acknowledged",
+    "Acknowledged events",
+    ["owner", "user_key", "namespace", "routing_key"],
+)
+
+sent_events = Counter(
+    "os2mo_event_sent",
+    "Sent events",
+    ["namespace", "routing_key"],
+)

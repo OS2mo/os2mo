@@ -12,6 +12,10 @@ interface](./graphql/intro.md). GraphQL is self-documenting which means a lot
 of the documentation can be found in the schema, for example by visiting
 `/graphql` in a browser.
 
+OS2mo guarantees at-least-once delivery of events. There might be multiple
+events emitted even though there are no observable changes. As such, event
+handlers in integrations SHOULD be idempotent.
+
 
 ## Listeners and Events
 
@@ -23,8 +27,8 @@ events they want to receive by creating listeners.
 
 A listener listens for events with a specific routing key in a namespace. Each
 integration that emits events MUST use its own namespace. For instance, the
-LDAP integration emits events in the namespace `"LDAP"`, but also listens for
-events in the `"MO"` namespace.
+LDAP integration emits events in the namespace `"ldap"`, but also listens for
+events in the `"mo"` namespace.
 
 Additionally, listeners have a `user_key` which allows integrations to create
 multiple listeners for the same namespace/routing key combination.
@@ -39,9 +43,9 @@ instance, an OS2mo object could have the type "`engagement`".
 
 Events have a subject and a priority.
 
-The default priority is `10`, and most of the time there is no reason the
-change that. A priority of `1` is for the highest priority events, such as
-events requested by an end user action.
+The default priority is `10`, and most of the time there is no reason to change
+that. A priority of `1` is for the highest priority events, such as events
+requested by an end user action.
 
 The subject is an identifier for of the object that might have changed.
 
@@ -56,7 +60,7 @@ Similar events are deduplicated.
 Whenever an OS2mo object is registered or goes into or out of effect, an event
 is emitted.
 
-Events for native objects in OS2mo are always emitted in the `MO` namespace.
+Events for native objects in OS2mo are always emitted in the `mo` namespace.
 
 The routing key is always the type of the object.
 
@@ -86,7 +90,7 @@ OS2mo's routing keys are:
 
 ### Setup
 
-Your integration must create all its necessary listeners on startup. The
+Your integration SHOULD create all its necessary listeners on startup. The
 `event_listener_create` mutator is idempotent.
 
 Here is the GraphQL query to create a listener:
@@ -95,7 +99,7 @@ Here is the GraphQL query to create a listener:
 mutation CreateListener {
   event_listener_create(
     input: {
-      namespace: "MO"
+      namespace: "mo"
       user_key: "engagement_listener_1"
       routing_key: "engagement"
     }
@@ -127,7 +131,7 @@ using the token from `event_fetch`:
 
 ```
 mutation Ack($token: EventToken!) {
-  event_acknowledge(input: $token)
+  event_acknowledge(input: {token: $token})
 }
 ```
 
@@ -151,7 +155,7 @@ Sometimes, events will show up even though they are not received in calls to
 that go unacknowledged.
 
 
-### Silencing & unsilencing
+### Silencing
 
 Events can be silenced and unsilenced with the `event_silence` and
 `event_unsilence` mutators, respectively.
@@ -165,6 +169,10 @@ You should never acknowledge an event manually.
 
 
 ### Deleting listeners
+
+As an integration evolves, you might learn that you do not need a particular
+listener anymore. Remember to delete it with the `event_listener_delete`
+mutator.
 
 
 ## Monitoring
