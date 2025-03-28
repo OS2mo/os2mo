@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 from uuid import UUID
 
 import pytest
@@ -326,3 +328,11 @@ def test_event_unsilence(graphapi_post: GraphAPIPost):
     unsilence_event(graphapi_post, event_id)
     event = fetch_event(graphapi_post, listener)
     assert event["subject"] == "alice"
+
+
+# event deduplication
+# idempotent listener create -- make sure all events are not deleted
+# keep inserting two events, see if you can get low prio
+# test refresh
+
+# TODO add refresh mutator to docs

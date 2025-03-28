@@ -1894,6 +1894,9 @@ async def refresh(
         )
         for uuid in uuids
     )
+    # TODO support owner
+    for uuid in uuids:
+        await add_event(session, "mo", model, str(uuid))
     await gather_with_concurrency(100, *tasks)
 
     # Return the page to reduce duplicated boilerplate in the callers
