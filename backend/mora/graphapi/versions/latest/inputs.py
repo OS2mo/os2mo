@@ -14,7 +14,7 @@ from strawberry.types.unset import UnsetType
 from mora.graphapi.gmodels.mo import OpenValidity as RAOpenValidity
 from mora.graphapi.gmodels.mo import Validity as RAValidity
 
-from .events import ListenerFilter, OpaqueEventTokenType
+from .events import ListenerFilter, EventTokenType
 from ...gmodels.mo._shared import UUIDBase
 from .models import AddressCreate
 from .models import AddressTerminate
@@ -742,38 +742,42 @@ class RoleBindingTerminateInput:
 # ------------
 
 
-@strawberry.input
+@strawberry.input(description="Create a listener.")
 class ListenerCreateInput:
-    namespace: str
-    user_key: str
-    routing_key: str
+    namespace: str = strawberry.field(description="Namespace of listener")
+    user_key: str = strawberry.field(description="User key of listener")
+    routing_key: str = strawberry.field(description="Routing key of listener")
 
 
-@strawberry.input
+@strawberry.input(description="Delete a listener.")
 class ListenerDeleteInput:
-    uuid: UUID
+    uuid: UUID = strawberry.field(description="Listener ID to delete")
     delete_pending_events: bool = strawberry.field(
         default=False,
         description="Delete all events awaiting acknowledgement for this listener",
     )
 
 
-@strawberry.input
+@strawberry.input(description="Acknowledge an event.")
 class EventAcknowledgeInput:
-    token: OpaqueEventTokenType
+    token: EventTokenType
 
 
 @strawberry.input
 class EventSendInput:
-    namespace: str
-    routing_key: str
-    subject: str
-    priority: int = 10
+    namespace: str = strawberry.field(description="Namespace to send the event in")
+    routing_key: str = strawberry.field(description="Routing key of the event")
+    subject: str = strawberry.field(description="Subject the event is about")
+    priority: int = strawberry.field(
+        default=10, description="Priority of the event. 1 is the highest priority"
+    )
 
 
-@strawberry.input
+@strawberry.input(
+    description="Silence an event. Silenced events are not received with event_fetch."
+)
 class EventSilenceInput:
-    uuid: UUID
+    uuid: UUID = strawberry.field(description="UUID of the event to silence")
 
 
 # TODO

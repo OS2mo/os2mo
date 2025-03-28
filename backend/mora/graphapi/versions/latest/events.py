@@ -6,6 +6,7 @@ from base64 import b64decode, b64encode
 from datetime import datetime
 from textwrap import dedent
 from typing import Annotated
+from typing import Type
 from uuid import UUID
 
 import sqlalchemy
@@ -185,23 +186,10 @@ async def listener_resolver(
     ]
 
 
-class EventToken(BaseModel):
-    uuid: UUID
-    last_tried: datetime
-
-    @staticmethod
-    def serialize(value: "EventToken") -> str:
-        result = f"{value.uuid}.{value.last_tried.isoformat()}"
-        return b64encode(result.encode()).decode("ascii")
-
-    @staticmethod
-    def deserialize(opaque: str) -> "EventToken":
-        uuid, timestamp = b64decode(opaque).decode().split(".", 1)
-        return EventToken(uuid=UUID(uuid), last_tried=datetime.fromisoformat(timestamp))
-
-
 @strawberry.type(description="FullEvent")
 class FullEvent:
+    # Do not add EventToken to this class.
+
     uuid: UUID = strawberry.field(description="ID of the event")
     subject: str = strawberry.field(
         description="An identifier of the subject. All subjects in OS2mo have UUIDs as identifier."
@@ -227,7 +215,22 @@ class FullEvent:
         return one(result)
 
 
-OpaqueEventToken = strawberry.scalar(
+class EventToken(BaseModel):
+    uuid: UUID
+    last_tried: datetime
+
+    @staticmethod
+    def serialize(value: "EventToken") -> str:
+        result = f"{value.uuid}.{value.last_tried.isoformat()}"
+        return b64encode(result.encode()).decode("ascii")
+
+    @staticmethod
+    def deserialize(opaque: str) -> "EventToken":
+        uuid, timestamp = b64decode(opaque).decode().split(".", 1)
+        return EventToken(uuid=UUID(uuid), last_tried=datetime.fromisoformat(timestamp))
+
+
+EventTokenType: Type[EventToken] = strawberry.scalar(
     EventToken,
     serialize=EventToken.serialize,
     parse_value=EventToken.deserialize,
@@ -241,11 +244,6 @@ OpaqueEventToken = strawberry.scalar(
         """
     ),
 )
-
-OpaqueEventTokenType = Annotated[
-    OpaqueEventToken,
-    strawberry.argument(description="EventToken used for acknowledging events"),
-]
 
 
 @strawberry.type(
@@ -266,7 +264,7 @@ class Event:
     subject: str = strawberry.field(
         description="An identifier of the subject. All subjects in OS2mo have UUIDs as identifier."
     )
-    token: OpaqueEventTokenType = strawberry.field(
+    token: EventTokenType = strawberry.field(
         description=dedent(
             """\
             EventTokens are opaque tokens needed to acknowledge events. 
