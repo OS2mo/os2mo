@@ -94,7 +94,7 @@ async def add_event(
             # This ensures that clients won't miss an event in the case where
             # a new event arrives while the client is already processing an
             # event for the same subject.
-            set_={"last_tried": text("now()")},
+            set_={"last_tried": text("'1970-01-01'::timestamptz")},
         )
     )
 

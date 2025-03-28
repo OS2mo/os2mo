@@ -14,7 +14,7 @@ from strawberry.types.unset import UnsetType
 from mora.graphapi.gmodels.mo import OpenValidity as RAOpenValidity
 from mora.graphapi.gmodels.mo import Validity as RAValidity
 
-from .events import ListenerFilter, OpaqueEventToken
+from .events import ListenerFilter, OpaqueEventTokenType
 from ...gmodels.mo._shared import UUIDBase
 from .models import AddressCreate
 from .models import AddressTerminate
@@ -760,7 +760,7 @@ class ListenerDeleteInput:
 
 @strawberry.input
 class EventAcknowledgeInput:
-    token: OpaqueEventToken
+    token: OpaqueEventTokenType
 
 
 @strawberry.input
@@ -774,6 +774,10 @@ class EventSendInput:
 @strawberry.input
 class EventSilenceInput:
     uuid: UUID
+
+
+# TODO
+# EventUnsilenceInput = get_bound_filter(FullEventFilter, frozenset({"silenced"}))
 
 
 @strawberry.input(description="Unsilence all matching events.")

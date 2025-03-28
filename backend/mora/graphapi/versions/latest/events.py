@@ -5,6 +5,7 @@ import random
 from base64 import b64decode, b64encode
 from datetime import datetime
 from textwrap import dedent
+from typing import Annotated
 from uuid import UUID
 
 import sqlalchemy
@@ -241,6 +242,11 @@ OpaqueEventToken = strawberry.scalar(
     ),
 )
 
+OpaqueEventTokenType = Annotated[
+    OpaqueEventToken,
+    strawberry.argument(description="EventToken used for acknowledging events"),
+]
+
 
 @strawberry.type(
     description=dedent(
@@ -260,7 +266,7 @@ class Event:
     subject: str = strawberry.field(
         description="An identifier of the subject. All subjects in OS2mo have UUIDs as identifier."
     )
-    token: OpaqueEventToken = strawberry.field(
+    token: OpaqueEventTokenType = strawberry.field(
         description=dedent(
             """\
             EventTokens are opaque tokens needed to acknowledge events. 
