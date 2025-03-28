@@ -1693,7 +1693,7 @@ class Mutation:
         # large amounts of data being sent over the event system.
         if len(input.subject) > 220:
             raise ValueError(
-                "too large subject. Only send identifiers as the subject, not data"
+                "Too large subject. Only send identifiers as the subject, not data"
             )
 
         if input.namespace == "mo":
