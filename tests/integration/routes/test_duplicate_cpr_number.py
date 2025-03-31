@@ -11,7 +11,7 @@ from tests.integration.conftest import AddLdapPerson
 @pytest.mark.integration_test
 async def test_import_duplicate_cpr_number(
     test_client: AsyncClient,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
     add_ldap_person: AddLdapPerson,
 ) -> None:
     cpr = "0101700000"
@@ -25,8 +25,8 @@ async def test_import_duplicate_cpr_number(
     result = response.json()
     assert result == {
         cpr: [
-            combine_dn_strings([f"uid={first_dn}"] + ldap_org),
-            combine_dn_strings([f"uid={second_dn}"] + ldap_org),
+            combine_dn_strings([f"uid={first_dn}"] + ldap_org_unit),
+            combine_dn_strings([f"uid={second_dn}"] + ldap_org_unit),
         ]
     }
 

@@ -81,7 +81,7 @@ def generate_events(
 )
 @pytest.mark.usefixtures("test_client")
 async def test_no_desync(
-    ldap_org_uuid: UUID,
+    ldap_org_unit_uuid: UUID,
     add_ldap_person: AddLdapPerson,
     generate_events: Callable[[], Awaitable[set[UUID]]],
     dnlist2uuid: DNList2UUID,
@@ -89,7 +89,7 @@ async def test_no_desync(
     # This checks from the start of the universe till now
     # We expect there to be only our ldap org
     results = await generate_events()
-    assert results == {ldap_org_uuid}
+    assert results == {ldap_org_unit_uuid}
 
     # Sleep for one second to to ensure our person is not created in same second as
     # the ldap org. This is required since our timestamps are truncated to suport AD.
@@ -97,12 +97,12 @@ async def test_no_desync(
     ldap_person_uuid = await dnlist2uuid(await add_ldap_person("abk", "0101901234"))
     assert ldap_person_uuid is not None
 
-    # This checks from 1 second ago till now, we expect "ldap_org_uuid" to appear again,
+    # This checks from 1 second ago till now, we expect "ldap_org_unit_uuid" to appear again,
     # since we are starting at the second it was in (truncating).
     results = await generate_events()
-    assert results == {ldap_org_uuid, ldap_person_uuid}
+    assert results == {ldap_org_unit_uuid, ldap_person_uuid}
 
-    # We wait another second and check again. We now expect "ldap_org_uuid" to have
+    # We wait another second and check again. We now expect "ldap_org_unit_uuid" to have
     # disappeared, since we are 2 seconds / truncations away, however "ldap_person_uuid"
     # should still appear, since we are within its truncated second.
     await sleep(1)

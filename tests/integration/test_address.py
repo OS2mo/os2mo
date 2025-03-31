@@ -67,7 +67,7 @@ async def test_to_mo(
     graphql_client: GraphQLClient,
     mo_person: UUID,
     ldap_connection: Connection,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
 ) -> None:
     @retry()
     async def assert_address(expected: dict) -> None:
@@ -80,7 +80,7 @@ async def test_to_mo(
         validities = one(address.validities)
         assert validities.dict() == expected
 
-    person_dn = combine_dn_strings(["uid=abk"] + ldap_org)
+    person_dn = combine_dn_strings(["uid=abk"] + ldap_org_unit)
 
     # LDAP: Create
     mail = "create@example.com"
@@ -218,7 +218,7 @@ async def test_to_ldap(
     graphql_client: GraphQLClient,
     mo_person: UUID,
     ldap_connection: Connection,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
     email_employee: UUID,
     public: UUID,
 ) -> None:
@@ -228,14 +228,14 @@ async def test_to_ldap(
     async def assert_address(expected: dict[str, Any]) -> None:
         response, _ = await ldap_search(
             ldap_connection,
-            search_base=combine_dn_strings(ldap_org),
+            search_base=combine_dn_strings(ldap_org_unit),
             search_filter=f"(employeeNumber={cpr})",
             attributes=["mail"],
         )
         assert one(response)["attributes"] == expected
 
     # LDAP: Init user
-    person_dn = combine_dn_strings(["uid=abk"] + ldap_org)
+    person_dn = combine_dn_strings(["uid=abk"] + ldap_org_unit)
     await ldap_add(
         ldap_connection,
         dn=person_dn,
@@ -330,7 +330,7 @@ async def test_to_mo_terminate_without_value(
     graphql_client: GraphQLClient,
     mo_person: UUID,
     ldap_connection: Connection,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
     trigger_ldap_person: Callable[[], Awaitable[None]],
 ) -> None:
     async def assert_address(expected: dict) -> None:
@@ -343,7 +343,7 @@ async def test_to_mo_terminate_without_value(
         validities = one(address.validities)
         assert validities.dict() == expected
 
-    person_dn = combine_dn_strings(["uid=abk"] + ldap_org)
+    person_dn = combine_dn_strings(["uid=abk"] + ldap_org_unit)
 
     mo_address = {
         "uuid": ANY,

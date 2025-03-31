@@ -53,7 +53,7 @@ async def test_to_ldap(
     mo_person: UUID,
     mo_org_unit: UUID,
     ldap_connection: Connection,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
     ansat: UUID,
     jurist: UUID,
     primary: UUID,
@@ -66,14 +66,14 @@ async def test_to_ldap(
     async def assert_address(expected: dict[str, Any]) -> None:
         response, _ = await ldap_search(
             ldap_connection,
-            search_base=combine_dn_strings(ldap_org),
+            search_base=combine_dn_strings(ldap_org_unit),
             search_filter=f"(employeeNumber={cpr})",
             attributes=["mail"],
         )
         assert one(response)["attributes"] == expected
 
     # LDAP: Init user
-    person_dn = combine_dn_strings(["uid=abk"] + ldap_org)
+    person_dn = combine_dn_strings(["uid=abk"] + ldap_org_unit)
     await ldap_add(
         ldap_connection,
         dn=person_dn,

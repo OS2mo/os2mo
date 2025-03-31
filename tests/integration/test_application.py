@@ -357,7 +357,7 @@ async def test_mo2ldap_reconciliation(test_client: AsyncClient) -> None:
 
 
 @pytest.mark.integration_test
-async def test_mo2ldap_org_unit(test_client: AsyncClient) -> None:
+async def test_mo2ldap_org_unit_unit(test_client: AsyncClient) -> None:
     content = str(uuid4())
     headers = {"Content-Type": "text/plain"}
     result = await test_client.post(
@@ -633,12 +633,12 @@ async def test_default_validity(
 )
 async def test_changed_since_pagination(
     test_client: AsyncClient,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
     add_ldap_person: AddLdapPerson,
     ldap_api: LDAPAPI,
 ) -> None:
     uuids = set()
-    org_unit_dn = combine_dn_strings(ldap_org)
+    org_unit_dn = combine_dn_strings(ldap_org_unit)
     uuids.add(await ldap_api.get_ldap_unique_ldap_uuid(org_unit_dn))
 
     for x in range(2000):
