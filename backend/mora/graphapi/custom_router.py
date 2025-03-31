@@ -10,7 +10,7 @@ from mora.graphapi.custom_schema import get_version
 from mora.graphapi.version import LATEST_VERSION
 
 AUTH_SCRIPT = """
-<script src="https://unpkg.com/keycloak-js@20.0.2/dist/keycloak.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/keycloak-js@20.0.2/dist/keycloak.min.js"></script>
 <script>
   const keycloakJson = window.location.origin + "/service/keycloak.json"
   const keycloak = new Keycloak(keycloakJson);
@@ -69,8 +69,8 @@ DEPRECATION_NOTICE = """
 """
 
 PRETTIER_SCRIPT = """
-<script src="https://unpkg.com/prettier@2/standalone.js"></script>
-<script src="https://unpkg.com/prettier@2/parser-graphql.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prettier@2/standalone.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prettier@2/parser-graphql.js"></script>
 <script>
   // https://prettier.io/docs/en/browser#global
   // https://github.com/graphql/graphiql/blob/b52c39143a4269cd899b16d06de5c7fe024fae2d/packages/graphiql-react/src/editor/hooks.ts#L253-L260
@@ -111,5 +111,11 @@ class CustomGraphQLRouter(GraphQLRouter):
         # Overwrite query prettifier button with a good prettifier
         # https://github.com/graphql/graphiql/issues/1517
         html = html.replace("</body>", f"{PRETTIER_SCRIPT}</body>")
+
+        # Use jsdelivr instead of unpkg CDN. We've had a bit of - completely
+        # fair - reliability issues from unpkg.
+        # https://github.com/unpkg/unpkg/issues/412
+        # https://github.com/strawberry-graphql/strawberry/issues/3826
+        html = html.replace("https://unpkg.com", "https://cdn.jsdelivr.net/npm")
 
         return HTMLResponse(html)
