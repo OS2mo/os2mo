@@ -112,4 +112,9 @@ class CustomGraphQLRouter(GraphQLRouter):
         # https://github.com/graphql/graphiql/issues/1517
         html = html.replace("</body>", f"{PRETTIER_SCRIPT}</body>")
 
+        # Use jsdelivr instead of unpkg CDN. We've had a bit of - completely
+        # fair - reliability issues from unpkg.
+        # https://github.com/unpkg/unpkg/issues/412
+        html = html.replace("https://unpkg.com", "https://cdn.jsdelivr.net/npm")
+
         return HTMLResponse(html)
