@@ -217,17 +217,20 @@ class FullEvent:
 
 class EventToken(BaseModel):
     uuid: UUID
-    last_tried: datetime
+    generation: UUID
 
     @staticmethod
     def serialize(value: "EventToken") -> str:
-        result = f"{value.uuid}.{value.last_tried.isoformat()}"
+        result = f"{value.uuid}.{value.generation}"
         return b64encode(result.encode()).decode("ascii")
 
     @staticmethod
     def deserialize(opaque: str) -> "EventToken":
-        uuid, timestamp = b64decode(opaque).decode().split(".", 1)
-        return EventToken(uuid=UUID(uuid), last_tried=datetime.fromisoformat(timestamp))
+        try:
+            uuid, generation = b64decode(opaque).decode().split(".", 1)
+            return EventToken(uuid=UUID(uuid), generation=UUID(generation))
+        except:
+            raise ValueError("Could not parse EventToken")
 
 
 EventTokenType: Type[EventToken] = strawberry.scalar(
@@ -282,6 +285,7 @@ async def event_resolver(
     info: Info,
     filter: EventFilter,
 ) -> Event | None:
+    # TODO needs owner check??
     where_clauses = [
         db.Event.listener_fk == filter.listener,
         db.Event.silenced == sqlalchemy.false(),
@@ -329,5 +333,5 @@ async def event_resolver(
     return Event(
         uuid=result.pk,
         subject=result.subject,
-        token=EventToken(uuid=result.pk, last_tried=result.last_tried),
+        token=EventToken(uuid=result.pk, generation=result.generation),
     )

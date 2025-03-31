@@ -91,13 +91,13 @@ OS2mo's routing keys are:
 ### Setup
 
 Your integration SHOULD create all its necessary listeners on startup. The
-`event_listener_create` mutator is idempotent.
+`event_listener_declare` mutator is idempotent.
 
 Here is the GraphQL query to create a listener:
 
 ```
 mutation CreateListener {
-  event_listener_create(
+  event_listener_declare(
     input: {
       namespace: "mo"
       user_key: "engagement_listener_1"

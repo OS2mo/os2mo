@@ -1539,7 +1539,7 @@ class Mutation:
 
     # Event system
     # ------------
-    # TODO: tests
+
     @strawberry.mutation(
         description=dedent(
             """\
@@ -1555,7 +1555,7 @@ class Mutation:
             gen_create_permission("listener"),
         ],
     )
-    async def event_listener_create(
+    async def event_listener_declare(
         self, info: Info, input: ListenerCreateInput
     ) -> Listener:
         session = info.context["session"]
@@ -1661,7 +1661,7 @@ class Mutation:
             delete(db.Event).where(
                 db.Event.listener_fk == db.Listener.pk,
                 db.Event.pk == input.token.uuid,
-                db.Event.last_tried == input.token.last_tried,
+                db.Event.generation == input.token.generation,
                 db.Listener.owner == owner,
             )
         )

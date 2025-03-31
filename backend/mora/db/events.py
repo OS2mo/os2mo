@@ -30,7 +30,9 @@ class Listener(Base):
         primary_key=True, server_default=text("uuid_generate_v4()")
     )
     user_key: Mapped[str]
-    owner: Mapped[UUID]  # integration uuid from Keycloak
+    # Most often, this is the integration UUID from Keycloak. It can be the
+    # UUID of a user as well.
+    owner: Mapped[UUID]
     namespace: Mapped[str]
     routing_key: Mapped[str]
     events: Mapped[list["Event"]] = relationship(back_populates="listener")
@@ -54,22 +56,33 @@ class Event(Base):
     )
     subject: Mapped[str]
     priority: Mapped[int]
+    # We update generation everytime we deduplicate an event to make use the
+    # ack doesn't remove the event. This ensure that integration don't miss any
+    # events.
+    generation: Mapped[UUID]
+    # last_tried is the last time the event was returned through a call to
+    # `event_fetch`.
     last_tried: Mapped[datetime]
     silenced: Mapped[bool]
+    # created_at is not used for anything atm. other than debugging. We might
+    # expose it as a metric later.
+    created_at: Mapped[datetime]
 
     listener_fk: Mapped[UUID] = mapped_column(ForeignKey("listener.pk"))
     listener: Mapped[Listener] = relationship(back_populates="events")
 
     __table_args__ = (
-        UniqueConstraint(
-            "listener_fk", "subject", "priority", name="uq_listener_subject_priority"
-        ),
+        UniqueConstraint("listener_fk", "subject", name="uq_listener_subject"),
     )
 
 
 async def add_event(
-    session, namespace: str, routing_key: str, subject: str, priority: int = 10
-):
+    session: AsyncSession,
+    namespace: str,
+    routing_key: str,
+    subject: str,
+    priority: int = 10,
+) -> None:
     matching_listeners = select(Listener.pk).where(
         Listener.namespace == namespace,
         Listener.routing_key == routing_key,
@@ -78,23 +91,42 @@ async def add_event(
     stmt = (
         insert(Event)
         .from_select(
-            ["pk", "listener_fk", "subject", "priority", "last_tried", "silenced"],
+            [
+                "pk",
+                "listener_fk",
+                "subject",
+                "priority",
+                "generation",
+                "last_tried",
+                "silenced",
+                "created_at",
+            ],
             select(
-                text("uuid_generate_v4()"),
+                text("uuid_generate_v4()"),  # pk
                 Listener.pk,
                 literal(subject),
                 literal(priority),
+                text("uuid_generate_v4()"),  #  generation
                 text("'1970-01-01'::timestamptz"),  # last_tried
                 text("false"),  # silenced
+                text("now()"),  # created_at
             ).where(Listener.pk.in_(matching_listeners)),
         )
         .on_conflict_do_update(
-            index_elements=["listener_fk", "subject", "priority"],
-            # When we violate the unique constraint, update `last_tried`.
-            # This ensures that clients won't miss an event in the case where
-            # a new event arrives while the client is already processing an
-            # event for the same subject.
-            set_={"last_tried": text("'1970-01-01'::timestamptz")},
+            index_elements=["listener_fk", "subject"],
+            # These will be updated when we violate the unique constraint:
+            set_={
+                # Updating `generation` ensures that clients won't miss an
+                # event in the case where a new event arrives while the client
+                # is already processing an event for the same subject (the
+                # generation is used for acknowledgement).
+                "generation": text("uuid_generate_v4()"),
+                # Update `last_tried`  so the event is send without delay.
+                "last_tried": text("'1970-01-01'::timestamptz"),
+                # Deduplicate priorities. This deduplicates such that we choose
+                # the highest priority event and discard the other.
+                "priority": text("least(excluded.priority, event.priority)"),
+            },
         )
     )
 
