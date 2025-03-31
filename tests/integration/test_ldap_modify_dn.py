@@ -39,14 +39,14 @@ from mo_ldap_import_export.utils import combine_dn_strings
 async def test_ldap_modify_dn(
     ldap_connection: Connection,
     ldap_api: LDAPAPI,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
     idn: RDN,
     rdn: RDN,
 ) -> None:
     # This is the DN we start at
-    initial_dn = combine_dn_strings([idn] + ldap_org)
+    initial_dn = combine_dn_strings([idn] + ldap_org_unit)
     # This is the DN we want to move to
-    expected_dn = combine_dn_strings([rdn] + ldap_org)
+    expected_dn = combine_dn_strings([rdn] + ldap_org_unit)
 
     await ldap_add(
         ldap_connection,

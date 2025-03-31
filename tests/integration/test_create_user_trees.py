@@ -74,12 +74,12 @@ CONVERSION_MAPPING = json.dumps(
 @pytest.fixture
 async def fetch_ldap_account(
     ldap_connection: Connection,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
 ) -> Callable[[str], Awaitable[dict[str, Any] | None]]:
     async def inner(cpr_number: str) -> dict[str, Any] | None:
         response, _ = await ldap_search(
             ldap_connection,
-            search_base=combine_dn_strings(ldap_org),
+            search_base=combine_dn_strings(ldap_org_unit),
             search_filter=f"(employeeNumber={cpr_number})",
             attributes=[
                 "employeeNumber",
@@ -317,7 +317,7 @@ async def test_create_user_tree_outside_tree(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("ldap_org")
+@pytest.mark.usefixtures("ldap_org_unit")
 @pytest.mark.envvar(
     {
         "LISTEN_TO_CHANGES_IN_MO": "False",

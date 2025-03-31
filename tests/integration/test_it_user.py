@@ -67,7 +67,7 @@ async def test_to_mo(
     graphql_client: GraphQLClient,
     mo_person: UUID,
     ldap_connection: Connection,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
 ) -> None:
     @retry()
     async def assert_it_user(expected: dict) -> None:
@@ -80,7 +80,7 @@ async def test_to_mo(
         validities = one(it_user.validities)
         assert validities.dict() == expected
 
-    person_dn = combine_dn_strings(["uid=abk"] + ldap_org)
+    person_dn = combine_dn_strings(["uid=abk"] + ldap_org_unit)
 
     # LDAP: Create
     title = "create"
@@ -165,7 +165,7 @@ async def test_to_ldap(
     graphql_client: GraphQLClient,
     mo_person: UUID,
     ldap_connection: Connection,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
     adtitle: UUID,
 ) -> None:
     cpr = "2108613133"
@@ -174,14 +174,14 @@ async def test_to_ldap(
     async def assert_it_user(expected: dict[str, Any]) -> None:
         response, _ = await ldap_search(
             ldap_connection,
-            search_base=combine_dn_strings(ldap_org),
+            search_base=combine_dn_strings(ldap_org_unit),
             search_filter=f"(employeeNumber={cpr})",
             attributes=["title"],
         )
         assert one(response)["attributes"] == expected
 
     # LDAP: Init user
-    person_dn = combine_dn_strings(["uid=abk"] + ldap_org)
+    person_dn = combine_dn_strings(["uid=abk"] + ldap_org_unit)
     await ldap_add(
         ldap_connection,
         dn=person_dn,
@@ -264,7 +264,7 @@ async def test_to_ldap_create_it_user_if_non_existent(
     graphql_client: GraphQLClient,
     mo_person: UUID,
     ldap_connection: Connection,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
     adtitle: UUID,
 ) -> None:
     cpr = "2108613133"
@@ -272,7 +272,7 @@ async def test_to_ldap_create_it_user_if_non_existent(
     async def assert_it_user(expected: dict[str, Any]) -> None:
         response, _ = await ldap_search(
             ldap_connection,
-            search_base=combine_dn_strings(ldap_org),
+            search_base=combine_dn_strings(ldap_org_unit),
             search_filter=f"(employeeNumber={cpr})",
             attributes=["title"],
         )
@@ -294,7 +294,7 @@ async def test_to_ldap_create_it_user_if_non_existent(
         return [one(user.validities).uuid for user in users.objects]
 
     # LDAP: Init user
-    person_dn = combine_dn_strings(["uid=abk"] + ldap_org)
+    person_dn = combine_dn_strings(["uid=abk"] + ldap_org_unit)
     await ldap_add(
         ldap_connection,
         dn=person_dn,
@@ -367,7 +367,7 @@ async def test_to_ldap_generate_username(
     graphql_client: GraphQLClient,
     mo_person: UUID,
     ldap_connection: Connection,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
     adtitle: UUID,
 ) -> None:
     cpr = "2108613133"
@@ -375,14 +375,14 @@ async def test_to_ldap_generate_username(
     async def assert_it_user(expected: dict[str, Any]) -> None:
         response, _ = await ldap_search(
             ldap_connection,
-            search_base=combine_dn_strings(ldap_org),
+            search_base=combine_dn_strings(ldap_org_unit),
             search_filter=f"(employeeNumber={cpr})",
             attributes=["title"],
         )
         assert one(response)["attributes"] == expected
 
     # LDAP: Init user
-    person_dn = combine_dn_strings(["uid=abk"] + ldap_org)
+    person_dn = combine_dn_strings(["uid=abk"] + ldap_org_unit)
     await ldap_add(
         ldap_connection,
         dn=person_dn,

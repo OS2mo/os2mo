@@ -40,7 +40,7 @@ async def test_inspect_overview_populated(test_client: AsyncClient) -> None:
     }
 
 
-@pytest.mark.usefixtures("ldap_org")
+@pytest.mark.usefixtures("ldap_org_unit")
 @pytest.mark.integration_test
 async def test_inspect_overview_populated_organizational_unit(
     test_client: AsyncClient,

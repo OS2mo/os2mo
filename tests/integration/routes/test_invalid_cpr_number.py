@@ -11,7 +11,7 @@ from tests.integration.conftest import AddLdapPerson
 @pytest.mark.integration_test
 async def test_import_invalid_cpr_number(
     test_client: AsyncClient,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
     add_ldap_person: AddLdapPerson,
 ) -> None:
     # Valid
@@ -25,7 +25,7 @@ async def test_import_invalid_cpr_number(
     assert response.status_code == 202
     result = response.json()
     assert result == {
-        combine_dn_strings([f"uid={bad_dn}"] + ldap_org): bad_cpr,
+        combine_dn_strings([f"uid={bad_dn}"] + ldap_org_unit): bad_cpr,
     }
 
 

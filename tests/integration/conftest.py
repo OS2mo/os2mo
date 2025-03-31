@@ -48,7 +48,9 @@ def ldap_suffix() -> list[str]:
 
 
 @pytest.fixture
-async def ldap_org(ldap_connection: Connection, ldap_suffix: list[str]) -> list[str]:
+async def ldap_org_unit(
+    ldap_connection: Connection, ldap_suffix: list[str]
+) -> list[str]:
     o_dn = ["o=magenta"] + ldap_suffix
     await ldap_add(
         ldap_connection,
@@ -67,8 +69,10 @@ async def ldap_org(ldap_connection: Connection, ldap_suffix: list[str]) -> list[
 
 
 @pytest.fixture
-async def ldap_org_uuid(ldap_org: list[str], dnlist2uuid: DNList2UUID) -> UUID:
-    return await dnlist2uuid(ldap_org)
+async def ldap_org_unit_uuid(
+    ldap_org_unit: list[str], dnlist2uuid: DNList2UUID
+) -> UUID:
+    return await dnlist2uuid(ldap_org_unit)
 
 
 AddLdapPerson: TypeAlias = Callable[[str, str], Awaitable[list[str]]]
@@ -76,10 +80,10 @@ AddLdapPerson: TypeAlias = Callable[[str, str], Awaitable[list[str]]]
 
 @pytest.fixture
 async def add_ldap_person(
-    ldap_connection: Connection, ldap_org: list[str]
+    ldap_connection: Connection, ldap_org_unit: list[str]
 ) -> AddLdapPerson:
     async def adder(identifier: str, cpr_number: str) -> list[str]:
-        person_dn = ["uid=" + identifier] + ldap_org
+        person_dn = ["uid=" + identifier] + ldap_org_unit
         await ldap_add(
             ldap_connection,
             combine_dn_strings(person_dn),
@@ -108,8 +112,10 @@ async def add_ldap_person(
 
 
 @pytest.fixture
-async def ldap_person(ldap_connection: Connection, ldap_org: list[str]) -> list[str]:
-    person_dn = ["uid=abk"] + ldap_org
+async def ldap_person(
+    ldap_connection: Connection, ldap_org_unit: list[str]
+) -> list[str]:
+    person_dn = ["uid=abk"] + ldap_org_unit
     await ldap_add(
         ldap_connection,
         combine_dn_strings(person_dn),
@@ -346,7 +352,7 @@ async def assert_mo_person(
 @pytest.fixture
 async def assert_ldap_person(
     ldap_person_uuid: LDAPUUID,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
     ldap_connection: Connection,
 ) -> Callable[[dict[str, Any]], Awaitable[None]]:
     settings = Settings()
@@ -355,7 +361,7 @@ async def assert_ldap_person(
     async def assert_employee(expected: dict[str, Any]) -> None:
         response, _ = await ldap_search(
             ldap_connection,
-            search_base=combine_dn_strings(ldap_org),
+            search_base=combine_dn_strings(ldap_org_unit),
             search_filter=f"({settings.ldap_unique_id_field}={ldap_person_uuid})",
             attributes=[
                 "employeeNumber",

@@ -68,7 +68,7 @@ async def test_to_mo(
     graphql_client: GraphQLClient,
     mo_org_unit: UUID,
     ldap_connection: Connection,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
 ) -> None:
     cpr = "2108613133"
 
@@ -81,7 +81,7 @@ async def test_to_mo(
         validities = one(employee.validities)
         assert validities.dict() == expected
 
-    person_dn = combine_dn_strings(["uid=abk"] + ldap_org)
+    person_dn = combine_dn_strings(["uid=abk"] + ldap_org_unit)
 
     # LDAP: Create
     given_name = "create"
@@ -160,7 +160,7 @@ async def test_to_ldap(
     mo_api: MOAPI,
     mo_org_unit: UUID,
     ldap_connection: Connection,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
 ) -> None:
     cpr = "2108613133"
 
@@ -168,7 +168,7 @@ async def test_to_ldap(
     async def assert_employee(dn: str, expected: dict[str, Any]) -> None:
         response, _ = await ldap_search(
             ldap_connection,
-            search_base=combine_dn_strings(ldap_org),
+            search_base=combine_dn_strings(ldap_org_unit),
             search_filter=f"(employeeNumber={cpr})",
             attributes=[
                 "employeeNumber",
@@ -273,14 +273,14 @@ async def test_edit_existing_in_ldap(
     mo_api: MOAPI,
     mo_org_unit: UUID,
     ldap_connection: Connection,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
     rdn: str,
     expected: str,
 ) -> None:
     cpr = "2108613133"
 
     # Existing LDAP person has uid as part of the DN, but the mapping does not.
-    person_dn = combine_dn_strings([rdn] + ldap_org)
+    person_dn = combine_dn_strings([rdn] + ldap_org_unit)
 
     # LDAP: Create
     await ldap_add(
@@ -311,7 +311,7 @@ async def test_edit_existing_in_ldap(
     async def assert_employee() -> None:
         response, _ = await ldap_search(
             ldap_connection,
-            search_base=combine_dn_strings(ldap_org),
+            search_base=combine_dn_strings(ldap_org_unit),
             search_filter=f"(employeeNumber={cpr})",
             attributes=[
                 "employeeNumber",
@@ -321,7 +321,7 @@ async def test_edit_existing_in_ldap(
             ],
         )
         employee = one(response)
-        expected_dn = combine_dn_strings([expected] + ldap_org)
+        expected_dn = combine_dn_strings([expected] + ldap_org_unit)
         assert employee["dn"] == expected_dn
         assert employee["attributes"] == {
             "employeeNumber": "2108613133",
@@ -455,7 +455,7 @@ async def test_ituser_link(
     trigger_mo_person: Callable[[], Awaitable[None]],
     graphql_client: GraphQLClient,
     ldap_connection: Connection,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
 ) -> None:
     # Verify required settings are set
     settings = Settings()
@@ -474,7 +474,7 @@ async def test_ituser_link(
     # Fetch the LDAP UUID for the newly created LDAP user
     response, _ = await ldap_search(
         ldap_connection,
-        search_base=combine_dn_strings(ldap_org),
+        search_base=combine_dn_strings(ldap_org_unit),
         search_filter="(employeeNumber=2108613133)",
         attributes=[settings.ldap_unique_id_field],
     )
@@ -529,13 +529,13 @@ async def test_generate_common_name(
     graphql_client: GraphQLClient,
     ldap_connection: Connection,
     mo_person: EmployeeUUID,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
 ) -> None:
     async def fetch_common_name(cpr_number: str) -> str:
         # Fetch the LDAP UUID for the newly created LDAP user
         response, _ = await ldap_search(
             ldap_connection,
-            search_base=combine_dn_strings(ldap_org),
+            search_base=combine_dn_strings(ldap_org_unit),
             search_filter=f"(employeeNumber={cpr_number})",
             attributes=["cn"],
         )

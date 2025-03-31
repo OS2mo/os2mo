@@ -61,7 +61,7 @@ async def test_no_changing_car_license(
     graphql_client: GraphQLClient,
     trigger_mo_person: Callable[[], Awaitable[None]],
     ldap_connection: Connection,
-    ldap_org: list[str],
+    ldap_org_unit: list[str],
     mo_person: EmployeeUUID,
 ) -> None:
     cpr = "2108613133"
@@ -69,7 +69,7 @@ async def test_no_changing_car_license(
     async def find_employee_dn() -> DN | None:
         response, _ = await ldap_search(
             ldap_connection,
-            search_base=combine_dn_strings(ldap_org),
+            search_base=combine_dn_strings(ldap_org_unit),
             search_filter=f"(employeeNumber={cpr})",
             attributes=[],
         )
