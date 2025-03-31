@@ -92,6 +92,8 @@ from .read_class_uuid_by_facet_and_class_user_key import (
 )
 from .read_cleanup_addresses import ReadCleanupAddresses
 from .read_cleanup_addresses import ReadCleanupAddressesAddresses
+from .read_employee_registrations import ReadEmployeeRegistrations
+from .read_employee_registrations import ReadEmployeeRegistrationsEmployees
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumber
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumberEmployees
 from .read_employee_uuid_by_ituser_user_key import ReadEmployeeUuidByItuserUserKey
@@ -1392,3 +1394,24 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadCleanupAddresses.parse_obj(data).addresses
+
+    async def read_employee_registrations(
+        self, employee_uuid: UUID
+    ) -> ReadEmployeeRegistrationsEmployees:
+        query = gql(
+            """
+            query read_employee_registrations($employee_uuid: UUID!) {
+              employees(filter: {uuids: [$employee_uuid]}) {
+                objects {
+                  registrations {
+                    uuid
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"employee_uuid": employee_uuid}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadEmployeeRegistrations.parse_obj(data).employees

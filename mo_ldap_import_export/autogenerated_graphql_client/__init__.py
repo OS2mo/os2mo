@@ -252,6 +252,12 @@ from .read_cleanup_addresses import ReadCleanupAddresses
 from .read_cleanup_addresses import ReadCleanupAddressesAddresses
 from .read_cleanup_addresses import ReadCleanupAddressesAddressesObjects
 from .read_cleanup_addresses import ReadCleanupAddressesAddressesObjectsCurrent
+from .read_employee_registrations import ReadEmployeeRegistrations
+from .read_employee_registrations import ReadEmployeeRegistrationsEmployees
+from .read_employee_registrations import ReadEmployeeRegistrationsEmployeesObjects
+from .read_employee_registrations import (
+    ReadEmployeeRegistrationsEmployeesObjectsRegistrations,
+)
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumber
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumberEmployees
 from .read_employee_uuid_by_cpr_number import (
@@ -565,6 +571,10 @@ __all__ = [
     "ReadCleanupAddressesAddresses",
     "ReadCleanupAddressesAddressesObjects",
     "ReadCleanupAddressesAddressesObjectsCurrent",
+    "ReadEmployeeRegistrations",
+    "ReadEmployeeRegistrationsEmployees",
+    "ReadEmployeeRegistrationsEmployeesObjects",
+    "ReadEmployeeRegistrationsEmployeesObjectsRegistrations",
     "ReadEmployeeUuidByCprNumber",
     "ReadEmployeeUuidByCprNumberEmployees",
     "ReadEmployeeUuidByCprNumberEmployeesObjects",
