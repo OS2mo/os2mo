@@ -305,7 +305,7 @@ async def test_apply_discriminator_no_config(
     ldap_connection: Connection, settings: Settings
 ) -> None:
     """Test that apply_discriminator only allows one DN when not configured."""
-    assert settings.discriminator_field is None
+    assert settings.discriminator_fields == []
 
     result = await apply_discriminator(settings, ldap_connection, set())
     assert result is None
@@ -477,7 +477,7 @@ async def context(sync_tool_and_context: tuple[SyncTool, Context]) -> Context:
             ],
             marks=pytest.mark.envvar(
                 {
-                    "DISCRIMINATOR_FIELD": "sn",
+                    "DISCRIMINATOR_FIELDS": '["sn"]',
                     "DISCRIMINATOR_VALUES": '["__never_gonna_match__"]',
                 }
             ),
@@ -493,7 +493,7 @@ async def context(sync_tool_and_context: tuple[SyncTool, Context]) -> Context:
             ],
             marks=pytest.mark.envvar(
                 {
-                    "DISCRIMINATOR_FIELD": "sn",
+                    "DISCRIMINATOR_FIELDS": '["sn"]',
                     "DISCRIMINATOR_VALUES": "[\"{{ value == 'foo_sn' }}\"]",
                 }
             ),
@@ -510,7 +510,7 @@ async def context(sync_tool_and_context: tuple[SyncTool, Context]) -> Context:
             ],
             marks=pytest.mark.envvar(
                 {
-                    "DISCRIMINATOR_FIELD": "sn",
+                    "DISCRIMINATOR_FIELDS": '["sn"]',
                     "DISCRIMINATOR_VALUES": "[\"{{ value == 'bar_sn' }}\"]",
                 }
             ),
@@ -627,7 +627,7 @@ async def test_import_single_user_apply_discriminator(
             ],
             marks=pytest.mark.envvar(
                 {
-                    "DISCRIMINATOR_FIELD": "sn",
+                    "DISCRIMINATOR_FIELDS": '["sn"]',
                     "DISCRIMINATOR_VALUES": '["__never_gonna_match__"]',
                 }
             ),
@@ -642,7 +642,7 @@ async def test_import_single_user_apply_discriminator(
             ],
             marks=pytest.mark.envvar(
                 {
-                    "DISCRIMINATOR_FIELD": "sn",
+                    "DISCRIMINATOR_FIELDS": '["sn"]',
                     "DISCRIMINATOR_VALUES": "[\"{{ value == 'foo_sn' }}\"]",
                 }
             ),
@@ -657,7 +657,7 @@ async def test_import_single_user_apply_discriminator(
             ],
             marks=pytest.mark.envvar(
                 {
-                    "DISCRIMINATOR_FIELD": "sn",
+                    "DISCRIMINATOR_FIELDS": '["sn"]',
                     "DISCRIMINATOR_VALUES": "[\"{{ value == 'bar_sn' }}\"]",
                 }
             ),

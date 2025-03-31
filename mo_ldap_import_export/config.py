@@ -511,22 +511,16 @@ class Settings(BaseSettings):
         description="Check that OU is below or equal one of these, see #57426",
     )
 
-    discriminator_field: str | None = Field(
-        None, description="The field to look for discriminator values in"
-    )
     discriminator_fields: list[str] = Field(
         [], description="The fields to provide to the discriminator template"
     )
 
     @root_validator
-    def combine_discriminator_fields(cls, values: dict[str, Any]) -> dict[str, Any]:
-        """Ensure that discriminator fields are combined."""
-        # No discriminator_field, nothing to combine
-        discriminator_field = values["discriminator_field"]
-        if discriminator_field is None:
-            return values
+    def check_for_invalid_discriminator_fields(
+        cls, values: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Ensure that discriminator fields do not contain invalid values."""
         discriminator_fields = values["discriminator_fields"]
-        discriminator_fields.append(discriminator_field)
         for key in ["dn", "value"]:
             if key in discriminator_fields:
                 raise ValueError(f"Invalid field in DISCRIMINATOR_FIELD(S): '{key}'")
@@ -564,10 +558,7 @@ class Settings(BaseSettings):
         ):
             return values
         # No discriminator_field, not we have a problem
-        if (
-            values["discriminator_field"] is None
-            and values["discriminator_fields"] == []
-        ):
+        if values["discriminator_fields"] == []:
             raise ValueError(
                 "DISCRIMINATOR_FIELD(s) must be set, if DISCRIMINATOR_FILTER is set"
             )
@@ -577,10 +568,7 @@ class Settings(BaseSettings):
     def check_discriminator_settings(cls, values: dict[str, Any]) -> dict[str, Any]:
         """Ensure that discriminator function and values is set, if field is set."""
         # No discriminator_field, not required fields
-        if (
-            values["discriminator_field"] is None
-            and values["discriminator_fields"] == []
-        ):
+        if values["discriminator_fields"] == []:
             return values
         assert "discriminator_values" in values
         # Check that our now required fields are set

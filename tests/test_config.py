@@ -90,36 +90,36 @@ def test_can_terminate_address(address_mapping: dict) -> None:
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
 def test_discriminator_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     settings = Settings()
-    assert settings.discriminator_field is None
+    assert settings.discriminator_fields == []
     assert settings.discriminator_values == []
 
     exc_info: pytest.ExceptionInfo
 
     with monkeypatch.context() as mpc:
-        mpc.setenv("DISCRIMINATOR_FIELD", "xBrugertype")
+        mpc.setenv("DISCRIMINATOR_FIELDS", '["xBrugertype"]')
         with pytest.raises(ValidationError) as exc_info:
             Settings()
         assert "DISCRIMINATOR_VALUES must be set" in str(exc_info.value)
 
     with monkeypatch.context() as mpc:
-        mpc.setenv("DISCRIMINATOR_FIELD", "xBrugertype")
+        mpc.setenv("DISCRIMINATOR_FIELDS", '["xBrugertype"]')
         mpc.setenv("DISCRIMINATOR_VALUES", "[]")
         with pytest.raises(ValidationError) as exc_info:
             Settings()
         assert "DISCRIMINATOR_VALUES must be set" in str(exc_info.value)
 
     with monkeypatch.context() as mpc:
-        mpc.setenv("DISCRIMINATOR_FIELD", "xBrugertype")
+        mpc.setenv("DISCRIMINATOR_FIELDS", '["xBrugertype"]')
         mpc.setenv("DISCRIMINATOR_VALUES", "__invalid__")
         with pytest.raises(SettingsError) as exc_info:
             Settings()
         assert 'error parsing env var "discriminator_values"' in str(exc_info.value)
 
     with monkeypatch.context() as mpc:
-        mpc.setenv("DISCRIMINATOR_FIELD", "xBrugertype")
+        mpc.setenv("DISCRIMINATOR_FIELDS", '["xBrugertype"]')
         mpc.setenv("DISCRIMINATOR_VALUES", '["hello"]')
         settings = Settings()
-        assert settings.discriminator_field == "xBrugertype"
+        assert settings.discriminator_fields == ["xBrugertype"]
         assert settings.discriminator_values == ["hello"]
 
 
@@ -365,46 +365,13 @@ async def test_edit_only_validator_employee_ok() -> None:
     assert result.import_to_mo == "edit_only"
 
 
-@pytest.mark.parametrize(
-    "field,fields",
-    [
-        (None, []),
-        (None, ["sn"]),
-        (None, ["sn", "cn"]),
-        ("sn", []),
-        ("sn", ["sn"]),
-        ("sn", ["cn"]),
-        ("sn", ["sn", "cn"]),
-    ],
-)
-@pytest.mark.usefixtures("minimal_valid_environmental_variables")
-async def test_combine_discriminator_fields(
-    monkeypatch: pytest.MonkeyPatch,
-    field: str | None,
-    fields: list[str],
-) -> None:
-    monkeypatch.setenv("DISCRIMINATOR_VALUES", '["test"]')
-    if field:
-        monkeypatch.setenv("DISCRIMINATOR_FIELD", field)
-    if fields:
-        monkeypatch.setenv("DISCRIMINATOR_FIELDS", json.dumps(fields))
-
-    settings = Settings()
-    assert settings.discriminator_field == field
-
-    if field:
-        assert settings.discriminator_fields == fields + [field]
-    else:
-        assert settings.discriminator_fields == fields
-
-
 @pytest.mark.parametrize("field", ["dn", "value"])
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
 async def test_disallowed_discriminator_fields(
     monkeypatch: pytest.MonkeyPatch, field: str
 ) -> None:
     monkeypatch.setenv("DISCRIMINATOR_VALUES", '["test"]')
-    monkeypatch.setenv("DISCRIMINATOR_FIELD", field)
+    monkeypatch.setenv("DISCRIMINATOR_FIELDS", f'["{field}"]')
 
     with pytest.raises(ValueError) as exc_info:
         Settings()
@@ -475,7 +442,6 @@ async def test_load_yaml() -> None:
 @pytest.mark.envvar({"DISCRIMINATOR_VALUES": '["True"]'})
 def test_discriminator_filter_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     settings = Settings()
-    assert settings.discriminator_field is None
     assert settings.discriminator_fields == []
     assert settings.discriminator_filter is None
 
@@ -489,17 +455,8 @@ def test_discriminator_filter_settings(monkeypatch: pytest.MonkeyPatch) -> None:
 
     with monkeypatch.context() as mpc:
         mpc.setenv("DISCRIMINATOR_FILTER", "True")
-        mpc.setenv("DISCRIMINATOR_FIELD", "xBrugertype")
-        settings = Settings()
-        assert settings.discriminator_field == "xBrugertype"
-        assert settings.discriminator_fields == ["xBrugertype"]
-        assert settings.discriminator_filter == "True"
-
-    with monkeypatch.context() as mpc:
-        mpc.setenv("DISCRIMINATOR_FILTER", "True")
         mpc.setenv("DISCRIMINATOR_FIELDS", '["xBrugertype"]')
         settings = Settings()
-        assert settings.discriminator_field is None
         assert settings.discriminator_fields == ["xBrugertype"]
         assert settings.discriminator_filter == "True"
 
@@ -507,6 +464,5 @@ def test_discriminator_filter_settings(monkeypatch: pytest.MonkeyPatch) -> None:
         mpc.setenv("DISCRIMINATOR_FILTER", "True")
         mpc.setenv("DISCRIMINATOR_FIELDS", '["xBrugertype", "LDAP_SYNC"]')
         settings = Settings()
-        assert settings.discriminator_field is None
         assert settings.discriminator_fields == ["xBrugertype", "LDAP_SYNC"]
         assert settings.discriminator_filter == "True"
