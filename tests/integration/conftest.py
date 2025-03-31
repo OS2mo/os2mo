@@ -48,9 +48,7 @@ def ldap_suffix() -> list[str]:
 
 
 @pytest.fixture
-async def ldap_org_unit(
-    ldap_connection: Connection, ldap_suffix: list[str]
-) -> list[str]:
+async def ldap_org(ldap_connection: Connection, ldap_suffix: list[str]) -> list[str]:
     o_dn = ["o=magenta"] + ldap_suffix
     await ldap_add(
         ldap_connection,
@@ -58,7 +56,12 @@ async def ldap_org_unit(
         object_class=["top", "organization"],
         attributes={"objectClass": ["top", "organization"], "o": "magenta"},
     )
-    ou_dn = ["ou=os2mo"] + o_dn
+    return o_dn
+
+
+@pytest.fixture
+async def ldap_org_unit(ldap_connection: Connection, ldap_org: list[str]) -> list[str]:
+    ou_dn = ["ou=os2mo"] + ldap_org
     await ldap_add(
         ldap_connection,
         combine_dn_strings(ou_dn),
