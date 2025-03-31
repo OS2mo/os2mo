@@ -40,6 +40,7 @@ from mo_ldap_import_export.types import DN
         ),
     }
 )
+@pytest.mark.xfail(reason="noop writes currently create registrations")
 async def test_no_registration_spam(
     trigger_ldap_person: Callable[[], Awaitable[None]],
     ldap_connection: Connection,
@@ -57,10 +58,10 @@ async def test_no_registration_spam(
 
     # Trigger NOOP resyncs
     await trigger_ldap_person()
-    assert (await get_registration_count()) == 2
+    assert (await get_registration_count()) == 1
 
     await trigger_ldap_person()
-    assert (await get_registration_count()) == 3
+    assert (await get_registration_count()) == 1
 
     # Make an actual change and trigger a true sync
     await ldap_modify(
@@ -72,7 +73,7 @@ async def test_no_registration_spam(
     )
 
     await trigger_ldap_person()
-    assert (await get_registration_count()) == 4
+    assert (await get_registration_count()) == 2
 
     await trigger_ldap_person()
-    assert (await get_registration_count()) == 5
+    assert (await get_registration_count()) == 2
