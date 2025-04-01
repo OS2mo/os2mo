@@ -21,6 +21,7 @@ class ReadEmployeesEmployeesObjects(BaseModel):
 
 class ReadEmployeesEmployeesObjectsValidities(BaseModel):
     uuid: UUID
+    user_key: str
     cpr_number: CPRNumber | None
     given_name: str
     surname: str

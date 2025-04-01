@@ -111,7 +111,6 @@ async def test_no_registration_spam(
         ),
     }
 )
-@pytest.mark.xfail(reason="user-key writes do not work")
 async def test_no_registration_spam_user_key(
     trigger_ldap_person: Callable[[], Awaitable[None]],
     ldap_connection: Connection,

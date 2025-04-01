@@ -707,6 +707,7 @@ class GraphQLClient(AsyncBaseClient):
                 objects {
                   validities {
                     uuid
+                    user_key
                     cpr_number
                     given_name
                     surname
