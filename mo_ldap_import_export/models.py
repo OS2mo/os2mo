@@ -57,9 +57,9 @@ class Employee(StrictBaseModel):
     given_name: str | None  # TODO: don't allow none (grandfathered-in from ramodels)
     surname: str | None  # TODO: don't allow none (grandfathered-in from ramodels)
     cpr_number: str | None = Field(regex=r"^\d{10}$")
-    seniority: datetime | None
-    nickname_given_name: str | None
-    nickname_surname: str | None
+    seniority: datetime | None  # TODO: ensure this field is read from MO, #64576
+    nickname_given_name: str = ""
+    nickname_surname: str = ""
 
     @validator("user_key", pre=True, always=True)
     def set_user_key(cls, user_key: Any | None, values: dict) -> str:

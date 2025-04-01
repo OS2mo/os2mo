@@ -180,7 +180,6 @@ async def test_no_registration_spam_user_key(
         ),
     }
 )
-@pytest.mark.xfail(reason="nickname writes do not work")
 async def test_no_registration_spam_nickname(
     trigger_ldap_person: Callable[[], Awaitable[None]],
     ldap_connection: Connection,
