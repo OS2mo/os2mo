@@ -158,7 +158,12 @@ async def handle_ldap_reconciliation(
         logger.warning("LDAP event ignored due to ignore-list", ldap_uuid=uuid)
         return
 
-    dn = await dataloader.ldapapi.get_ldap_dn(uuid)
+    try:
+        dn = await dataloader.ldapapi.get_ldap_dn(uuid)
+    except NoObjectsReturnedException as exc:
+        logger.exception("LDAP UUID could not be found", uuid=uuid)
+        raise RejectMessage("LDAP UUID could not be found") from exc
+
     person_uuid = await dataloader.find_mo_employee_uuid(dn)
     if person_uuid is None:
         return
