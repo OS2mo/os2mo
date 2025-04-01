@@ -302,6 +302,7 @@ async def test_load_mo_employee(
 
     employee = {
         "uuid": uuid,
+        "user_key": "user_key",
         "cpr_number": cpr_number,
         "given_name": "first_name",
         "surname": "last_name",
@@ -633,6 +634,7 @@ async def test_make_mo_employee_dn_no_correlation(
                     "validities": [
                         {
                             "uuid": employee_uuid,
+                            "user_key": "ha",
                             "cpr_number": cpr_number,
                             "given_name": "Hans",
                             "surname": "Andersen",
@@ -672,6 +674,7 @@ async def test_make_mo_employee_dn_no_itsystem(
                     "validities": [
                         {
                             "uuid": employee_uuid,
+                            "user_key": "ha",
                             "cpr_number": cpr_number,
                             "given_name": "Hans",
                             "surname": "Andersen",
@@ -722,6 +725,7 @@ async def test_make_mo_employee_dn_no_cpr(
                     "validities": [
                         {
                             "uuid": employee_uuid,
+                            "user_key": "ha",
                             "cpr_number": cpr_number,
                             "given_name": "Hans",
                             "surname": "Andersen",
@@ -1353,6 +1357,7 @@ async def test_find_mo_employee_dn_by_cpr_number(
     employee_uuid = uuid4()
     employee = {
         "uuid": employee_uuid,
+        "user_key": "user_key",
         "cpr_number": cpr_number,
         "given_name": "first_name",
         "surname": "last_name",

@@ -573,6 +573,7 @@ async def test_import_single_user_apply_discriminator(
                     "validities": [
                         {
                             "uuid": employee_uuid,
+                            "user_key": "Pandamonium",
                             "cpr_number": "0101700001",
                             "given_name": "Chen",
                             "surname": "Stormstout",
@@ -703,6 +704,7 @@ async def test_listen_to_changes_in_employees(
                     "validities": [
                         {
                             "uuid": employee_uuid,
+                            "user_key": "Pandamonium",
                             "cpr_number": "0101700001",
                             "given_name": "Chen",
                             "surname": "Stormstout",
