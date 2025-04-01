@@ -592,7 +592,13 @@ def construct_router(settings: Settings) -> APIRouter:
         for r in result:
             try:
                 converted_results.extend(
-                    await converter.from_ldap(r, json_key, employee_uuid=uuid4())
+                    await converter.from_ldap(
+                        r,
+                        json_key,
+                        template_context={
+                            "employee_uuid": str(uuid4()),
+                        },
+                    )
                 )
             except ValidationError:  # pragma: no cover
                 logger.exception(
@@ -626,7 +632,13 @@ def construct_router(settings: Settings) -> APIRouter:
         results = await load_ldap_cpr_object(dataloader, converter, cpr, json_key)
         try:
             return [
-                await converter.from_ldap(result, json_key, employee_uuid=uuid4())
+                await converter.from_ldap(
+                    result,
+                    json_key,
+                    template_context={
+                        "employee_uuid": str(uuid4()),
+                    },
+                )
                 for result in results
             ]
         except ValidationError:  # pragma: no cover

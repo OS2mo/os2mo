@@ -542,7 +542,9 @@ class SyncTool:
             converted_objects = await self.converter.from_ldap(
                 loaded_object,
                 json_key,
-                employee_uuid=employee_uuid,
+                template_context={
+                    "employee_uuid": str(employee_uuid),
+                },
             )
         except SkipObject:
             logger.info("Skipping object", dn=dn)

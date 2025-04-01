@@ -3,7 +3,6 @@
 import json
 from json.decoder import JSONDecodeError
 from typing import Any
-from uuid import UUID
 
 import pydantic
 import structlog
@@ -110,14 +109,8 @@ class LdapConverter:
         self,
         ldap_object: LdapObject,
         json_key: str,
-        employee_uuid: UUID,
+        template_context: dict[str, Any],
     ) -> list[MOBase | Termination]:
-        """
-        uuid : UUID
-            Uuid of the employee whom this object belongs to. If None: Generates a new
-            uuid
-        """
-
         # This is how many MO objects we need to return - a MO object can have only
         # One value per field. Not multiple. LDAP objects however, can have multiple
         # values per field.
@@ -137,7 +130,7 @@ class LdapConverter:
             )
             context = {
                 "ldap": ldap_dict,
-                "employee_uuid": str(employee_uuid),
+                **template_context,
             }
             try:
                 object_mapping = self.mapping["ldap_to_mo"][json_key]
