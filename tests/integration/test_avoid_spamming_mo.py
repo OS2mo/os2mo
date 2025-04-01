@@ -111,6 +111,7 @@ async def test_no_registration_spam(
         ),
     }
 )
+@pytest.mark.xfail(reason="user-key writes do not work")
 async def test_no_registration_spam_user_key(
     trigger_ldap_person: Callable[[], Awaitable[None]],
     ldap_connection: Connection,
@@ -132,16 +133,16 @@ async def test_no_registration_spam_user_key(
 
     # Trigger NOOP resyncs
     await trigger_ldap_person()
-    assert (await get_registration_count()) == 3
+    assert (await get_registration_count()) == 2
 
     await trigger_ldap_person()
-    assert (await get_registration_count()) == 4
+    assert (await get_registration_count()) == 2
 
     # Make an actual change and trigger a true sync
     await ldap_modify_dn(ldap_connection, dn=ldap_person_dn, relative_dn="uid=bach")
 
     await trigger_ldap_person()
-    assert (await get_registration_count()) == 5
+    assert (await get_registration_count()) == 3
 
     await trigger_ldap_person()
-    assert (await get_registration_count()) == 6
+    assert (await get_registration_count()) == 3
