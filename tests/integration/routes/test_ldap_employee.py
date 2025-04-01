@@ -36,8 +36,8 @@ async def test_ldap_employee_converted(test_client: AsyncClient) -> None:
         {
             "cpr_number": "2108613133",
             "given_name": "Aage",
-            "nickname_given_name": None,
-            "nickname_surname": None,
+            "nickname_given_name": "",
+            "nickname_surname": "",
             "seniority": None,
             "surname": "Bach Klarskov",
             "user_key": "Skole underviser",
@@ -77,8 +77,8 @@ async def test_ldap_employee_search_by_cpr_converted(test_client: AsyncClient) -
             {
                 "cpr_number": "2108613133",
                 "given_name": "Aage",
-                "nickname_given_name": None,
-                "nickname_surname": None,
+                "nickname_given_name": "",
+                "nickname_surname": "",
                 "seniority": None,
                 "surname": "Bach Klarskov",
                 "user_key": "Skole underviser",
