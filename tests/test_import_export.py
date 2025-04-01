@@ -108,8 +108,6 @@ async def test_listen_to_changes_in_employees_no_dn(
 async def test_format_converted_engagement_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
-    converter.get_mo_attributes.return_value = {"user_key", "job_function"}
-
     employee_uuid = uuid4()
 
     mo_engagement = Engagement(
@@ -135,7 +133,8 @@ async def test_format_converted_engagement_objects(
     dataloader.moapi.load_mo_engagement.return_value = mo_engagement
 
     operations = await sync_tool.format_converted_objects(
-        [ldap_engagement], json_key="Engagement"
+        converted_objects=[ldap_engagement],
+        mo_attributes={"user_key", "job_function"},
     )
     desired_engagement, verb = one(operations)
     assert verb == Verb.EDIT
@@ -146,8 +145,6 @@ async def test_format_converted_engagement_objects(
 async def test_format_converted_engagement_objects_unmatched(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
-    converter.get_mo_attributes.return_value = {"user_key", "job_function"}
-
     employee_uuid = uuid4()
 
     ldap_engagement = Engagement(
@@ -164,7 +161,8 @@ async def test_format_converted_engagement_objects_unmatched(
     dataloader.moapi.load_mo_engagement.return_value = None
 
     operations = await sync_tool.format_converted_objects(
-        [ldap_engagement], json_key="Engagement"
+        converted_objects=[ldap_engagement],
+        mo_attributes={"user_key", "job_function"},
     )
     desired_engagement, verb = one(operations)
     assert verb == Verb.CREATE
@@ -175,15 +173,16 @@ async def test_format_converted_engagement_objects_unmatched(
 async def test_format_converted_employee_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-    converter.get_mo_attributes.return_value = {"user_key", "job_function"}
-
     employee1 = Employee(cpr_number="1212121234", given_name="Foo1", surname="Bar1")
     employee2 = Employee(cpr_number="1212121235", given_name="Foo2", surname="Bar2")
 
     dataloader.moapi.load_mo_employee.return_value = None
     converted_objects = [employee1, employee2]
 
-    operations = await sync_tool.format_converted_objects(converted_objects, "Employee")
+    operations = await sync_tool.format_converted_objects(
+        converted_objects=converted_objects,
+        mo_attributes={"user_key", "job_function"},
+    )
     op1, op2 = operations
 
     desired_employee, verb = op1

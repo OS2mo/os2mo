@@ -326,7 +326,7 @@ class SyncTool:
     async def format_converted_objects(
         self,
         converted_objects: Sequence[MOBase | Termination],
-        json_key: str,
+        mo_attributes: set[str],
     ) -> list[tuple[MOBase | Termination, Verb]]:
         """
         for Address and Engagement objects:
@@ -362,7 +362,6 @@ class SyncTool:
         ]
 
         # Convert updates to operations
-        mo_attributes = self.converter.get_mo_attributes(json_key)
         for converted_object, matching_object in updates:
             # Convert our objects to dicts
             mo_object_dict_to_upload = matching_object.dict()
@@ -571,7 +570,10 @@ class SyncTool:
             )
             return
 
-        operations = await self.format_converted_objects(converted_objects, json_key)
+        mo_attributes = self.converter.get_mo_attributes(json_key)
+        operations = await self.format_converted_objects(
+            converted_objects, mo_attributes
+        )
         if not operations:  # pragma: no cover
             logger.info("No converted objects after formatting", dn=dn)
             return
