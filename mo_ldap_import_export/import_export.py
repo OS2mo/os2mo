@@ -429,8 +429,19 @@ class SyncTool:
             mo_attributes = mo_attributes & converted_mo_object_dict.keys()
 
             update_values = {
-                key: converted_mo_object_dict[key] for key in mo_attributes
+                key: converted_mo_object_dict[key]
+                for key in mo_attributes
+                # Only include values that actually need to be updated
+                if mo_object_dict_to_upload[key] != converted_mo_object_dict[key]
             }
+            # If an object is identical to the one already there, it does not need
+            # to be uploaded.
+            if not update_values:
+                logger.info(
+                    "Converted object is identical to existing object, skipping"
+                )
+                continue
+
             logger.info(
                 "Setting values on upload dict",
                 uuid=mo_object_dict_to_upload["uuid"],
@@ -440,13 +451,6 @@ class SyncTool:
             mo_object_dict_to_upload.update(update_values)
             converted_object_uuid_checked = mo_class(**mo_object_dict_to_upload)
 
-            # If an object is identical to the one already there, it does not need
-            # to be uploaded.
-            if converted_object_uuid_checked == matching_object:
-                logger.info(
-                    "Converted object is identical to existing object, skipping"
-                )
-                continue
             # We found a match, so we are editing the object we matched
             operations.append((converted_object_uuid_checked, Verb.EDIT))
 
