@@ -264,7 +264,7 @@ class SyncTool:
             current_state = await get_ldap_object(
                 self.ldap_connection,
                 best_dn,
-                attributes=list(ldap_desired_state.keys()),
+                attributes=set(ldap_desired_state.keys()),
                 # Nest false is required, as otherwise we compare an object with a DN string
                 nest=False,
             )

@@ -405,7 +405,7 @@ def test_get_ldap_attributes(converter: LdapConverter) -> None:
     settings = Settings()
     assert settings.conversion_mapping.ldap_to_mo is not None
 
-    converter_attributes = set(converter.get_ldap_attributes("Employee"))
+    converter_attributes = converter.get_ldap_attributes("Employee")
     settings_attributes = set(
         settings.conversion_mapping.ldap_to_mo["Employee"].ldap_attributes
     )
@@ -437,7 +437,7 @@ async def test_get_ldap_attributes_dn_removed(
 
     converter = LdapConverter(settings, dataloader)
 
-    converter_attributes = set(converter.get_ldap_attributes("Employee"))
+    converter_attributes = converter.get_ldap_attributes("Employee")
     settings_attributes = set(
         settings.conversion_mapping.ldap_to_mo["Employee"].ldap_attributes
     )

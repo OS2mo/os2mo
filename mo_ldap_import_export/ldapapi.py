@@ -159,7 +159,7 @@ class LDAPAPI:
         """
         logger.info("Looking for LDAP object", dn=dn)
         ldap_object = await get_ldap_object(
-            self.ldap_connection, dn, [self.settings.ldap_unique_id_field]
+            self.ldap_connection, dn, {self.settings.ldap_unique_id_field}
         )
         uuid = getattr(ldap_object, self.settings.ldap_unique_id_field)
         if not uuid:
@@ -196,7 +196,7 @@ class LDAPAPI:
             return None
 
         ldap_object = await get_ldap_object(
-            self.ldap_connection, dn, [self.settings.ldap_cpr_attribute]
+            self.ldap_connection, dn, {self.settings.ldap_cpr_attribute}
         )
         # Try to get the cpr number from LDAP and use that.
         raw_cpr_number = getattr(ldap_object, self.settings.ldap_cpr_attribute)

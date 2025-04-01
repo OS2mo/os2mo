@@ -243,24 +243,24 @@ async def test_searching_dn_lookup(
             },
         ),
         # Reading no fields reads dn
-        ([], {}),
+        (set(), {}),
         # Read SN
-        (["sn"], {"sn": ["foo_sn"]}),
-        (["SN"], {"sn": ["foo_sn"]}),
+        ({"sn"}, {"sn": ["foo_sn"]}),
+        ({"SN"}, {"sn": ["foo_sn"]}),
         # Read CN
-        (["cn"], {"CN": ["foo"]}),
-        (["CN"], {"CN": ["foo"]}),
+        ({"cn"}, {"CN": ["foo"]}),
+        ({"CN"}, {"CN": ["foo"]}),
         # Read SN and CN
-        (["sn", "cn"], {"sn": ["foo_sn"], "CN": ["foo"]}),
-        (["sn", "CN"], {"sn": ["foo_sn"], "CN": ["foo"]}),
+        ({"sn", "cn"}, {"sn": ["foo_sn"], "CN": ["foo"]}),
+        ({"sn", "CN"}, {"sn": ["foo_sn"], "CN": ["foo"]}),
         # Read unknown field
-        (["__invalid__"], {"__invalid__": []}),
+        ({"__invalid__"}, {"__invalid__": []}),
     ],
 )
 async def test_get_ldap_object(
     ldap_connection: Connection,
     ldap_dn: DN,
-    attributes: list[str],
+    attributes: set[str] | None,
     expected: dict[str, Any],
 ) -> None:
     """Test that get_ldap_object can read specific attributes on our default user."""

@@ -275,7 +275,7 @@ async def fetch_field_mapping(
     #       See: https://stackoverflow.com/a/58834059
     try:
         ldap_object = await get_ldap_object(
-            ldap_connection, dn, attributes=discriminator_fields
+            ldap_connection, dn, attributes=set(discriminator_fields)
         )
     except NoObjectsReturnedException as exc:
         # There could be multiple reasons why our DNs cannot be read.
@@ -656,7 +656,7 @@ def is_dn(value):
 async def get_ldap_object(
     ldap_connection: Connection,
     dn: DN,
-    attributes: list | None = None,
+    attributes: set | None = None,
     nest: bool = True,
 ) -> LdapObject:
     """Gets a ldap object based on its DN.
@@ -665,18 +665,18 @@ async def get_ldap_object(
         dn: The DN to read.
         context: The FastRAMQPI context.
         nest: Whether to also fetch and nest related objects.
-        attributes: The list of attributes to read.
+        attributes: The set of attributes to read.
 
     Returns:
         The LDAP object fetched from the LDAP server.
     """
     if attributes is None:
-        attributes = ["*"]
+        attributes = {"*"}
 
     searchParameters = {
         "search_base": dn,
         "search_filter": "(objectclass=*)",
-        "attributes": attributes,
+        "attributes": list(attributes),
         "search_scope": BASE,
     }
     search_result = await single_object_search(searchParameters, ldap_connection)

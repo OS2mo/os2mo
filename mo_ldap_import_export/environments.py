@@ -441,7 +441,7 @@ async def generate_common_name(
     ldap_connection = dataloader.ldapapi.ldap_connection
     current_common_name = None
     with suppress(NoObjectsReturnedException):
-        ldap_object = await get_ldap_object(ldap_connection, dn, ["cn"])
+        ldap_object = await get_ldap_object(ldap_connection, dn, {"cn"})
         ldap_common_name = getattr(ldap_object, "cn", None)
         if ldap_common_name is not None:
             # This is a list on OpenLDAP, but not on AD
