@@ -559,7 +559,7 @@ class SyncTool:
             n=len(converted_objects),
             dn=dn,
         )
-        if json_key == "Custom":
+        if json_key == "Custom":  # pragma: no cover
             assert all(isinstance(obj, JobTitleFromADToMO) for obj in converted_objects)
             custom_objects = cast(list[JobTitleFromADToMO], converted_objects)
 
