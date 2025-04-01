@@ -510,21 +510,21 @@ class SyncTool:
         # First import the Employee, then Engagement if present, then the rest.
         # We want this order so dependencies exist before their dependent objects
         if "Employee" in json_keys:
-            await self.import_single_user_entity("Employee", dn, employee_uuid)
+            await self.import_single_entity("Employee", dn, employee_uuid)
             json_keys.discard("Employee")
 
         if "Engagement" in json_keys:
-            await self.import_single_user_entity("Engagement", dn, employee_uuid)
+            await self.import_single_entity("Engagement", dn, employee_uuid)
             json_keys.discard("Engagement")
 
         await asyncio.gather(
             *[
-                self.import_single_user_entity(json_key, dn, employee_uuid)
+                self.import_single_entity(json_key, dn, employee_uuid)
                 for json_key in json_keys
             ]
         )
 
-    async def import_single_user_entity(
+    async def import_single_entity(
         self, json_key: str, dn: str, employee_uuid: UUID
     ) -> None:
         logger.info("Loading object", dn=dn, json_key=json_key)
