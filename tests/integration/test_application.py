@@ -295,10 +295,8 @@ async def test_ldap2mo_reconciliation(test_client: AsyncClient) -> None:
     result = await test_client.post(
         "/ldap2mo/reconcile", content=content, headers=headers
     )
-    assert result.status_code == 500
-    json = result.json()
-    assert json.keys() == {"detail"}
-    assert "Found no entries for" in json["detail"]
+    assert result.status_code == 451
+    assert result.json() == {"detail": "LDAP UUID could not be found"}
 
 
 @pytest.mark.integration_test
