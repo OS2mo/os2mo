@@ -264,7 +264,7 @@ class SyncTool:
             current_state = await get_ldap_object(
                 self.ldap_connection,
                 best_dn,
-                attributes=list(ldap_desired_state.keys()),
+                attributes=set(ldap_desired_state.keys()),
                 # Nest false is required, as otherwise we compare an object with a DN string
                 nest=False,
             )
@@ -326,7 +326,7 @@ class SyncTool:
     async def format_converted_objects(
         self,
         converted_objects: Sequence[MOBase | Termination],
-        json_key: str,
+        mo_attributes: set[str],
     ) -> list[tuple[MOBase | Termination, Verb]]:
         """
         for Address and Engagement objects:
@@ -362,7 +362,6 @@ class SyncTool:
         ]
 
         # Convert updates to operations
-        mo_attributes = set(self.converter.get_mo_attributes(json_key))
         for converted_object, matching_object in updates:
             # Convert our objects to dicts
             mo_object_dict_to_upload = matching_object.dict()
@@ -510,21 +509,21 @@ class SyncTool:
         # First import the Employee, then Engagement if present, then the rest.
         # We want this order so dependencies exist before their dependent objects
         if "Employee" in json_keys:
-            await self.import_single_user_entity("Employee", dn, employee_uuid)
+            await self.import_single_entity("Employee", dn, employee_uuid)
             json_keys.discard("Employee")
 
         if "Engagement" in json_keys:
-            await self.import_single_user_entity("Engagement", dn, employee_uuid)
+            await self.import_single_entity("Engagement", dn, employee_uuid)
             json_keys.discard("Engagement")
 
         await asyncio.gather(
             *[
-                self.import_single_user_entity(json_key, dn, employee_uuid)
+                self.import_single_entity(json_key, dn, employee_uuid)
                 for json_key in json_keys
             ]
         )
 
-    async def import_single_user_entity(
+    async def import_single_entity(
         self, json_key: str, dn: str, employee_uuid: UUID
     ) -> None:
         logger.info("Loading object", dn=dn, json_key=json_key)
@@ -542,7 +541,9 @@ class SyncTool:
             converted_objects = await self.converter.from_ldap(
                 loaded_object,
                 json_key,
-                employee_uuid=employee_uuid,
+                template_context={
+                    "employee_uuid": str(employee_uuid),
+                },
             )
         except SkipObject:
             logger.info("Skipping object", dn=dn)
@@ -557,7 +558,7 @@ class SyncTool:
             n=len(converted_objects),
             dn=dn,
         )
-        if json_key == "Custom":
+        if json_key == "Custom":  # pragma: no cover
             assert all(isinstance(obj, JobTitleFromADToMO) for obj in converted_objects)
             custom_objects = cast(list[JobTitleFromADToMO], converted_objects)
 
@@ -569,7 +570,10 @@ class SyncTool:
             )
             return
 
-        operations = await self.format_converted_objects(converted_objects, json_key)
+        mo_attributes = self.converter.get_mo_attributes(json_key)
+        operations = await self.format_converted_objects(
+            converted_objects, mo_attributes
+        )
         if not operations:  # pragma: no cover
             logger.info("No converted objects after formatting", dn=dn)
             return

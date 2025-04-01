@@ -3,7 +3,6 @@
 import json
 from json.decoder import JSONDecodeError
 from typing import Any
-from uuid import UUID
 
 import pydantic
 import structlog
@@ -43,7 +42,7 @@ class LdapConverter:
 
         self.mapping = self._populate_mapping_with_templates(mapping, self.environment)
 
-    def get_ldap_attributes(self, json_key, remove_dn=True) -> list[str]:
+    def get_ldap_attributes(self, json_key, remove_dn=True) -> set[str]:
         assert self.settings.conversion_mapping.ldap_to_mo is not None
         ldap_attributes = set(
             self.settings.conversion_mapping.ldap_to_mo[json_key].ldap_attributes
@@ -51,10 +50,10 @@ class LdapConverter:
         if remove_dn:
             # "dn" is the key which all LDAP objects have, not an attribute.
             ldap_attributes.discard("dn")
-        return list(ldap_attributes)
+        return ldap_attributes
 
-    def get_mo_attributes(self, json_key):
-        return list(self.mapping["ldap_to_mo"][json_key].keys())
+    def get_mo_attributes(self, json_key) -> set[str]:
+        return set(self.mapping["ldap_to_mo"][json_key].keys())
 
     @staticmethod
     def str_to_dict(text):
@@ -110,14 +109,8 @@ class LdapConverter:
         self,
         ldap_object: LdapObject,
         json_key: str,
-        employee_uuid: UUID,
+        template_context: dict[str, Any],
     ) -> list[MOBase | Termination]:
-        """
-        uuid : UUID
-            Uuid of the employee whom this object belongs to. If None: Generates a new
-            uuid
-        """
-
         # This is how many MO objects we need to return - a MO object can have only
         # One value per field. Not multiple. LDAP objects however, can have multiple
         # values per field.
@@ -137,7 +130,7 @@ class LdapConverter:
             )
             context = {
                 "ldap": ldap_dict,
-                "employee_uuid": str(employee_uuid),
+                **template_context,
             }
             try:
                 object_mapping = self.mapping["ldap_to_mo"][json_key]

@@ -31,7 +31,6 @@ from mo_ldap_import_export.moapi import get_primary_engagement
 from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import Engagement
-from mo_ldap_import_export.models import JobTitleFromADToMO
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.types import EmployeeUUID
 from mo_ldap_import_export.types import OrgUnitUUID
@@ -109,8 +108,6 @@ async def test_listen_to_changes_in_employees_no_dn(
 async def test_format_converted_engagement_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
-    converter.get_mo_attributes.return_value = ["user_key", "job_function"]
-
     employee_uuid = uuid4()
 
     mo_engagement = Engagement(
@@ -136,7 +133,8 @@ async def test_format_converted_engagement_objects(
     dataloader.moapi.load_mo_engagement.return_value = mo_engagement
 
     operations = await sync_tool.format_converted_objects(
-        [ldap_engagement], json_key="Engagement"
+        converted_objects=[ldap_engagement],
+        mo_attributes={"user_key", "job_function"},
     )
     desired_engagement, verb = one(operations)
     assert verb == Verb.EDIT
@@ -147,8 +145,6 @@ async def test_format_converted_engagement_objects(
 async def test_format_converted_engagement_objects_unmatched(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
-    converter.get_mo_attributes.return_value = ["user_key", "job_function"]
-
     employee_uuid = uuid4()
 
     ldap_engagement = Engagement(
@@ -165,7 +161,8 @@ async def test_format_converted_engagement_objects_unmatched(
     dataloader.moapi.load_mo_engagement.return_value = None
 
     operations = await sync_tool.format_converted_objects(
-        [ldap_engagement], json_key="Engagement"
+        converted_objects=[ldap_engagement],
+        mo_attributes={"user_key", "job_function"},
     )
     desired_engagement, verb = one(operations)
     assert verb == Verb.CREATE
@@ -176,15 +173,16 @@ async def test_format_converted_engagement_objects_unmatched(
 async def test_format_converted_employee_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-    converter.get_mo_attributes.return_value = ["user_key", "job_function"]
-
     employee1 = Employee(cpr_number="1212121234", given_name="Foo1", surname="Bar1")
     employee2 = Employee(cpr_number="1212121235", given_name="Foo2", surname="Bar2")
 
     dataloader.moapi.load_mo_employee.return_value = None
     converted_objects = [employee1, employee2]
 
-    operations = await sync_tool.format_converted_objects(converted_objects, "Employee")
+    operations = await sync_tool.format_converted_objects(
+        converted_objects=converted_objects,
+        mo_attributes={"user_key", "job_function"},
+    )
     op1, op2 = operations
 
     desired_employee, verb = op1
@@ -356,48 +354,6 @@ async def test_wait_for_import_to_finish(sync_tool: SyncTool):
     assert elapsed_time < 0.3
 
 
-@pytest.mark.usefixtures("fake_find_mo_employee_dn")
-async def test_import_jobtitlefromadtomo_objects(
-    context: Context,
-    converter: MagicMock,
-    sync_tool: SyncTool,
-    fake_dn: DN,
-) -> None:
-    converter.find_mo_object_class.return_value = (
-        "mo_ldap_import_export.customer_specific.JobTitleFromADToMO"
-    )
-    converter.import_mo_object_class.return_value = JobTitleFromADToMO
-    converter.get_mo_attributes.return_value = ["user", "uuid", "job_function"]
-    sync_tool.settings.conversion_mapping.ldap_to_mo.keys.return_value = {  # type: ignore
-        "Custom"
-    }
-
-    user_uuid = uuid4()
-    converted_object = JobTitleFromADToMO(
-        user=user_uuid,
-        job_function=uuid4(),
-    )
-    converted_objects = [converted_object]
-    formatted_objects = [
-        (converted_object, Verb.CREATE) for converted_object in converted_objects
-    ]
-    converter.from_ldap.return_value = converted_objects
-
-    with (
-        patch(
-            "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
-            return_value=formatted_objects,
-        ),
-        patch("mo_ldap_import_export.import_export.get_ldap_object"),
-    ):
-        await sync_tool.import_single_user(fake_dn)
-
-    graphql_client_mock: AsyncMock = sync_tool.dataloader.moapi.graphql_client  # type: ignore
-    graphql_client_mock.read_engagements_by_employee_uuid.assert_called_once_with(
-        user_uuid
-    )
-
-
 async def test_publish_engagements_for_org_unit(dataloader: AsyncMock) -> None:
     amqpsystem = AsyncMock()
     amqpsystem.exchange_name = "my-unique-exchange-name"
@@ -428,7 +384,7 @@ async def test_holstebro_import_checks(sync_tool: SyncTool, fake_dn: DN) -> None
         assert "Import checks executed" in str(cap_logs)
 
 
-async def test_import_single_user_entity(sync_tool: SyncTool) -> None:
+async def test_import_single_entity(sync_tool: SyncTool) -> None:
     sync_tool.converter.from_ldap.return_value = []  # type: ignore
 
     json_key = "Engagement"
@@ -438,7 +394,7 @@ async def test_import_single_user_entity(sync_tool: SyncTool) -> None:
         capture_logs() as cap_logs,
         patch("mo_ldap_import_export.import_export.get_ldap_object"),
     ):
-        await sync_tool.import_single_user_entity(json_key, dn, employee_uuid)
+        await sync_tool.import_single_entity(json_key, dn, employee_uuid)
 
         assert "No converted objects" in str(cap_logs)
 

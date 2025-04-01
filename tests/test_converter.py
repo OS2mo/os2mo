@@ -211,7 +211,9 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
             employeeID="0101011234",
         ),
         "Employee",
-        employee_uuid=employee_uuid,
+        template_context={
+            "employee_uuid": str(employee_uuid),
+        },
     )
     employee = one(result)
     assert isinstance(employee, Employee)
@@ -225,7 +227,9 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
             mail="foo@bar.dk",
         ),
         "Email",
-        employee_uuid=employee_uuid,
+        template_context={
+            "employee_uuid": str(employee_uuid),
+        },
     )
     mail = result[0]
 
@@ -243,7 +247,9 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
             mail=[],
         ),
         "Email",
-        employee_uuid=employee_uuid,
+        template_context={
+            "employee_uuid": str(employee_uuid),
+        },
     )
     assert not result
 
@@ -271,7 +277,9 @@ async def test_ldap_to_mo_dict_error(converter: LdapConverter) -> None:
                 itSystemName=["Active Directory", "Active Directory"],
             ),
             "Active Directory",
-            employee_uuid=uuid4(),
+            template_context={
+                "employee_uuid": str(uuid4()),
+            },
         )
 
 
@@ -312,7 +320,9 @@ async def test_ldap_to_mo_dict_validation_error(
                 comment="job title default",
             ),
             "Custom",
-            employee_uuid=uuid4(),
+            template_context={
+                "employee_uuid": str(uuid4()),
+            },
         )
 
         info_messages = [w for w in cap_logs if w["log_level"] == "info"]
@@ -322,7 +332,11 @@ async def test_ldap_to_mo_dict_validation_error(
 async def test_from_ldap_bad_json_key(converter: LdapConverter) -> None:
     with pytest.raises(IncorrectMapping):
         await converter.from_ldap(
-            LdapObject(dn="CN=foo"), "__non_existing_key", uuid4()
+            LdapObject(dn="CN=foo"),
+            "__non_existing_key",
+            template_context={
+                "employee_uuid": str(uuid4()),
+            },
         )
     assert "Missing '__non_existing_key' in mapping 'ldap_to_mo'"
 
@@ -367,7 +381,9 @@ async def test_template_strictness(
     result = await converter.from_ldap(
         LdapObject(dn="CN=foo", **ldap_values),
         "Employee",
-        employee_uuid=uuid4(),
+        template_context={
+            "employee_uuid": str(uuid4()),
+        },
     )
     employee = one(result)
     expected_employee = {
@@ -389,7 +405,7 @@ def test_get_ldap_attributes(converter: LdapConverter) -> None:
     settings = Settings()
     assert settings.conversion_mapping.ldap_to_mo is not None
 
-    converter_attributes = set(converter.get_ldap_attributes("Employee"))
+    converter_attributes = converter.get_ldap_attributes("Employee")
     settings_attributes = set(
         settings.conversion_mapping.ldap_to_mo["Employee"].ldap_attributes
     )
@@ -421,7 +437,7 @@ async def test_get_ldap_attributes_dn_removed(
 
     converter = LdapConverter(settings, dataloader)
 
-    converter_attributes = set(converter.get_ldap_attributes("Employee"))
+    converter_attributes = converter.get_ldap_attributes("Employee")
     settings_attributes = set(
         settings.conversion_mapping.ldap_to_mo["Employee"].ldap_attributes
     )
@@ -429,7 +445,7 @@ async def test_get_ldap_attributes_dn_removed(
 
 
 def test_get_mo_attributes(converter: LdapConverter) -> None:
-    attributes = set(converter.get_mo_attributes("Employee"))
+    attributes = converter.get_mo_attributes("Employee")
     assert attributes == {"uuid", "cpr_number", "surname", "given_name"}
 
 
@@ -790,7 +806,9 @@ async def test_ldap_to_mo_termination(
             mail_validity_from=datetime.datetime(2019, 1, 1, 0, 10, 0),
         ),
         "Email",
-        employee_uuid=employee_uuid,
+        template_context={
+            "employee_uuid": str(employee_uuid),
+        },
     )
     mail = one(result)
     assert isinstance(mail, Address)
@@ -815,7 +833,9 @@ async def test_ldap_to_mo_termination(
             mail_validity_from=datetime.datetime(2019, 1, 1, 0, 10, 0),
         ),
         "Email",
-        employee_uuid=employee_uuid,
+        template_context={
+            "employee_uuid": str(employee_uuid),
+        },
     )
     mail = one(result)
     assert isinstance(mail, Termination)
@@ -841,7 +861,9 @@ async def test_ldap_to_mo_default_validity(converter: LdapConverter) -> None:
             mail="foo@bar.dk",
         ),
         "Email",
-        employee_uuid=employee_uuid,
+        template_context={
+            "employee_uuid": str(employee_uuid),
+        },
     )
     mail = one(result)
     assert isinstance(mail, Address)

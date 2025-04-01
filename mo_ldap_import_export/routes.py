@@ -169,7 +169,7 @@ async def load_ldap_objects(
     ldap_connection: Connection,
     converter: LdapConverter,
     json_key: str,
-    additional_attributes: list[str] | None = None,
+    additional_attributes: set[str] | None = None,
     search_base: str | None = None,
 ) -> list[LdapObject]:
     """
@@ -179,14 +179,14 @@ async def load_ldap_objects(
         - 'Employee'
         - a MO address type name
     """
-    additional_attributes = additional_attributes or []
+    additional_attributes = additional_attributes or set()
 
     user_class = settings.ldap_object_class
-    attributes = converter.get_ldap_attributes(json_key) + additional_attributes
+    attributes = converter.get_ldap_attributes(json_key) | additional_attributes
 
     searchParameters = {
         "search_filter": f"(objectclass={user_class})",
-        "attributes": list(set(attributes)),
+        "attributes": list(attributes),
     }
 
     responses = await paged_search(
@@ -411,7 +411,7 @@ async def load_ldap_cpr_object(
     converter: LdapConverter,
     cpr_number: CPRNumber,
     json_key: str,
-    additional_attributes: list[str] | None = None,
+    additional_attributes: set[str] | None = None,
 ) -> list[LdapObject]:
     """
     Loads an ldap object which can be found using a cpr number lookup
@@ -420,7 +420,7 @@ async def load_ldap_cpr_object(
         - 'Employee'
         - a MO address type name
     """
-    additional_attributes = additional_attributes or []
+    additional_attributes = additional_attributes or set()
 
     try:
         validate_cpr(cpr_number)
@@ -436,7 +436,7 @@ async def load_ldap_cpr_object(
     ous_to_search_in = dataloader.settings.ldap_ous_to_search_in
     search_bases = [combine_dn_strings([ou, search_base]) for ou in ous_to_search_in]
     object_class = converter.settings.ldap_object_class
-    attributes = converter.get_ldap_attributes(json_key) + additional_attributes
+    attributes = converter.get_ldap_attributes(json_key) | additional_attributes
 
     object_class_filter = f"objectclass={object_class}"
     cpr_filter = f"{dataloader.settings.ldap_cpr_attribute}={cpr_number}"
@@ -444,7 +444,7 @@ async def load_ldap_cpr_object(
     searchParameters = {
         "search_base": search_bases,
         "search_filter": f"(&({object_class_filter})({cpr_filter}))",
-        "attributes": list(set(attributes)),
+        "attributes": list(attributes),
     }
     search_results = await object_search(
         searchParameters, dataloader.ldapapi.ldap_connection
@@ -474,7 +474,7 @@ def construct_router(settings: Settings) -> APIRouter:
         test_on_first_20_entries: bool = False,
         search_base: str | None = None,
     ) -> Any:
-        additional_attributes = [settings.ldap_unique_id_field]
+        additional_attributes = {settings.ldap_unique_id_field}
 
         all_ldap_objects = await load_ldap_objects(
             settings,
@@ -525,7 +525,7 @@ def construct_router(settings: Settings) -> APIRouter:
         ldap_connection: depends.Connection, dn: str, nest: bool = False
     ) -> Any:
         return encode_result(
-            await get_ldap_object(ldap_connection, dn, ["*"], nest=nest)
+            await get_ldap_object(ldap_connection, dn, {"*"}, nest=nest)
         )
 
     @router.get("/Inspect/uuid/{uuid}", status_code=200, tags=["LDAP"])
@@ -537,7 +537,7 @@ def construct_router(settings: Settings) -> APIRouter:
     ) -> Any:
         dn = await dataloader.ldapapi.get_ldap_dn(uuid)
         return encode_result(
-            await get_ldap_object(ldap_connection, dn, ["*"], nest=nest)
+            await get_ldap_object(ldap_connection, dn, {"*"}, nest=nest)
         )
 
     @router.get("/Inspect/mo2ldap/all", status_code=200, tags=["LDAP"])
@@ -592,7 +592,13 @@ def construct_router(settings: Settings) -> APIRouter:
         for r in result:
             try:
                 converted_results.extend(
-                    await converter.from_ldap(r, json_key, employee_uuid=uuid4())
+                    await converter.from_ldap(
+                        r,
+                        json_key,
+                        template_context={
+                            "employee_uuid": str(uuid4()),
+                        },
+                    )
                 )
             except ValidationError:  # pragma: no cover
                 logger.exception(
@@ -610,7 +616,7 @@ def construct_router(settings: Settings) -> APIRouter:
         cpr: CPRNumber = Depends(valid_cpr),
     ) -> Any:
         results = await load_ldap_cpr_object(
-            dataloader, converter, cpr, json_key, [settings.ldap_unique_id_field]
+            dataloader, converter, cpr, json_key, {settings.ldap_unique_id_field}
         )
         return [encode_result(result) for result in results]
 
@@ -626,7 +632,13 @@ def construct_router(settings: Settings) -> APIRouter:
         results = await load_ldap_cpr_object(dataloader, converter, cpr, json_key)
         try:
             return [
-                await converter.from_ldap(result, json_key, employee_uuid=uuid4())
+                await converter.from_ldap(
+                    result,
+                    json_key,
+                    template_context={
+                        "employee_uuid": str(uuid4()),
+                    },
+                )
                 for result in results
             ]
         except ValidationError:  # pragma: no cover
@@ -654,7 +666,7 @@ def construct_router(settings: Settings) -> APIRouter:
             ldap_connection,
             converter,
             json_key,
-            [settings.ldap_unique_id_field],
+            {settings.ldap_unique_id_field},
         )
         return encode_result(result[-entries_to_return:])
 
@@ -835,7 +847,7 @@ def construct_router(settings: Settings) -> APIRouter:
             raise HTTPException(status_code=404, detail="No DNs survived discriminator")
 
         # Note: get_ldap_object handles ADs non-standard entryUUID lookup format
-        ldap_object = await get_ldap_object(ldap_connection, best_dn, list(attributes))
+        ldap_object = await get_ldap_object(ldap_connection, best_dn, attributes)
         return {
             "dn": ldap_object.dn,
             # UUID parsed and then stringifed to handle ADs non-standard UUID formatting
@@ -872,7 +884,7 @@ def construct_router(settings: Settings) -> APIRouter:
             raise HTTPException(status_code=404, detail="No DNs survived discriminator")
 
         # Note: get_ldap_object handles ADs non-standard entryUUID lookup format
-        ldap_object = await get_ldap_object(ldap_connection, best_dn, list(attributes))
+        ldap_object = await get_ldap_object(ldap_connection, best_dn, attributes)
         return {
             "dn": ldap_object.dn,
             # UUID parsed and then stringifed to handle ADs non-standard UUID formatting
