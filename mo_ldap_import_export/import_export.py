@@ -446,6 +446,9 @@ class SyncTool:
                 "Setting values on upload dict",
                 uuid=mo_object_dict_to_upload["uuid"],
                 values=update_values,
+                old_values={
+                    key: mo_object_dict_to_upload[key] for key in update_values
+                },
             )
 
             mo_object_dict_to_upload.update(update_values)
