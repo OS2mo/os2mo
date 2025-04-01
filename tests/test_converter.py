@@ -445,7 +445,7 @@ async def test_get_ldap_attributes_dn_removed(
 
 
 def test_get_mo_attributes(converter: LdapConverter) -> None:
-    attributes = set(converter.get_mo_attributes("Employee"))
+    attributes = converter.get_mo_attributes("Employee")
     assert attributes == {"uuid", "cpr_number", "surname", "given_name"}
 
 

@@ -362,7 +362,7 @@ class SyncTool:
         ]
 
         # Convert updates to operations
-        mo_attributes = set(self.converter.get_mo_attributes(json_key))
+        mo_attributes = self.converter.get_mo_attributes(json_key)
         for converted_object, matching_object in updates:
             # Convert our objects to dicts
             mo_object_dict_to_upload = matching_object.dict()

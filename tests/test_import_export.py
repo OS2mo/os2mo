@@ -109,7 +109,7 @@ async def test_listen_to_changes_in_employees_no_dn(
 async def test_format_converted_engagement_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
-    converter.get_mo_attributes.return_value = ["user_key", "job_function"]
+    converter.get_mo_attributes.return_value = {"user_key", "job_function"}
 
     employee_uuid = uuid4()
 
@@ -147,7 +147,7 @@ async def test_format_converted_engagement_objects(
 async def test_format_converted_engagement_objects_unmatched(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
-    converter.get_mo_attributes.return_value = ["user_key", "job_function"]
+    converter.get_mo_attributes.return_value = {"user_key", "job_function"}
 
     employee_uuid = uuid4()
 
@@ -176,7 +176,7 @@ async def test_format_converted_engagement_objects_unmatched(
 async def test_format_converted_employee_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-    converter.get_mo_attributes.return_value = ["user_key", "job_function"]
+    converter.get_mo_attributes.return_value = {"user_key", "job_function"}
 
     employee1 = Employee(cpr_number="1212121234", given_name="Foo1", surname="Bar1")
     employee2 = Employee(cpr_number="1212121235", given_name="Foo2", surname="Bar2")
@@ -367,7 +367,7 @@ async def test_import_jobtitlefromadtomo_objects(
         "mo_ldap_import_export.customer_specific.JobTitleFromADToMO"
     )
     converter.import_mo_object_class.return_value = JobTitleFromADToMO
-    converter.get_mo_attributes.return_value = ["user", "uuid", "job_function"]
+    converter.get_mo_attributes.return_value = {"user", "uuid", "job_function"}
     sync_tool.settings.conversion_mapping.ldap_to_mo.keys.return_value = {  # type: ignore
         "Custom"
     }
