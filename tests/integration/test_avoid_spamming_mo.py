@@ -145,3 +145,74 @@ async def test_no_registration_spam_user_key(
 
     await trigger_ldap_person()
     assert (await get_registration_count()) == 3
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "Employee",
+                        "_import_to_mo_": "true",
+                        "_ldap_attributes_": [
+                            "employeeNumber",
+                            "givenName",
+                            "sn",
+                            "carLicense",
+                        ],
+                        "uuid": "{{ employee_uuid or '' }}",  # TODO: why is this required?
+                        "cpr_number": "{{ ldap.employeeNumber }}",
+                        "given_name": "{{ ldap.givenName }}",
+                        "surname": "{{ ldap.sn }}",
+                        "nickname_given_name": "{{ ldap.carLicense }}",
+                        "nickname_surname": "{{ ldap.carLicense }}",
+                    },
+                },
+                # TODO: why is this required?
+                "username_generator": {
+                    "combinations_to_try": ["FFFX", "LLLX"],
+                },
+            }
+        ),
+    }
+)
+async def test_no_registration_spam_nickname(
+    trigger_ldap_person: Callable[[], Awaitable[None]],
+    ldap_connection: Connection,
+    ldap_person_dn: DN,
+    graphql_client: GraphQLClient,
+    mo_person: UUID,
+) -> None:
+    async def get_registration_count() -> int:
+        result = await graphql_client.read_employee_registrations(mo_person)
+        employee = one(result.objects)
+        return len(employee.registrations)
+
+    # Check precondition
+    assert (await get_registration_count()) == 1
+
+    # Trigger NOOP resyncs
+    await trigger_ldap_person()
+    assert (await get_registration_count()) == 2
+
+    await trigger_ldap_person()
+    assert (await get_registration_count()) == 3
+
+    # Make an actual change and trigger a true sync
+    await ldap_modify(
+        ldap_connection,
+        dn=ldap_person_dn,
+        changes={
+            "carLicense": [("MODIFY_REPLACE", "NEW")],
+        },
+    )
+
+    await trigger_ldap_person()
+    assert (await get_registration_count()) == 4
+
+    await trigger_ldap_person()
+    assert (await get_registration_count()) == 4
