@@ -306,8 +306,8 @@ async def test_load_mo_employee(
         "cpr_number": cpr_number,
         "given_name": "first_name",
         "surname": "last_name",
-        "nickname_given_name": None,
-        "nickname_surname": None,
+        "nickname_given_name": "",
+        "nickname_surname": "",
         "validity": {"to": None},
     }
 
@@ -638,8 +638,8 @@ async def test_make_mo_employee_dn_no_correlation(
                             "cpr_number": cpr_number,
                             "given_name": "Hans",
                             "surname": "Andersen",
-                            "nickname_given_name": None,
-                            "nickname_surname": None,
+                            "nickname_given_name": "",
+                            "nickname_surname": "",
                             "validity": {
                                 "from": None,
                                 "to": None,
@@ -678,8 +678,8 @@ async def test_make_mo_employee_dn_no_itsystem(
                             "cpr_number": cpr_number,
                             "given_name": "Hans",
                             "surname": "Andersen",
-                            "nickname_given_name": None,
-                            "nickname_surname": None,
+                            "nickname_given_name": "",
+                            "nickname_surname": "",
                             "validity": {
                                 "from": None,
                                 "to": None,
@@ -729,8 +729,8 @@ async def test_make_mo_employee_dn_no_cpr(
                             "cpr_number": cpr_number,
                             "given_name": "Hans",
                             "surname": "Andersen",
-                            "nickname_given_name": None,
-                            "nickname_surname": None,
+                            "nickname_given_name": "",
+                            "nickname_surname": "",
                             "validity": {
                                 "from": None,
                                 "to": None,
@@ -1361,8 +1361,8 @@ async def test_find_mo_employee_dn_by_cpr_number(
         "cpr_number": cpr_number,
         "given_name": "first_name",
         "surname": "last_name",
-        "nickname_given_name": None,
-        "nickname_surname": None,
+        "nickname_given_name": "",
+        "nickname_surname": "",
         "validity": {"to": None},
     }
     route = graphql_mock.query("read_employees")
