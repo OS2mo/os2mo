@@ -14,15 +14,11 @@ from itertools import count
 from typing import Any
 from typing import cast
 from uuid import UUID
-from uuid import uuid4
 
 import structlog
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
-from fastapi import Query
-from fastapi import Response
-from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from ldap3 import Connection
 from ldap3.protocol import oid
@@ -30,7 +26,6 @@ from more_itertools import always_iterable
 from more_itertools import bucket
 from more_itertools import one
 from more_itertools import only
-from pydantic import ValidationError
 from pydantic import parse_obj_as
 from ramodels.mo._shared import validate_cpr
 
@@ -162,44 +157,6 @@ async def load_ldap_attribute_values(
         search_base=search_base,
     )
     return {str(r["attributes"][attribute]) for r in responses}
-
-
-async def load_ldap_objects(
-    settings: Settings,
-    ldap_connection: Connection,
-    converter: LdapConverter,
-    json_key: str,
-    additional_attributes: set[str] | None = None,
-    search_base: str | None = None,
-) -> list[LdapObject]:
-    """
-    Returns list with desired ldap objects
-
-    Accepted json_keys are:
-        - 'Employee'
-        - a MO address type name
-    """
-    additional_attributes = additional_attributes or set()
-
-    user_class = settings.ldap_object_class
-    attributes = converter.get_ldap_attributes(json_key) | additional_attributes
-
-    searchParameters = {
-        "search_filter": f"(objectclass={user_class})",
-        "attributes": list(attributes),
-    }
-
-    responses = await paged_search(
-        settings,
-        ldap_connection,
-        searchParameters,
-        search_base=search_base,
-    )
-
-    output: list[LdapObject]
-    output = [await make_ldap_object(r, ldap_connection, nest=False) for r in responses]
-
-    return output
 
 
 async def load_ldap_populated_overview(

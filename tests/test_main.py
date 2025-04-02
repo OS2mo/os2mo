@@ -122,28 +122,12 @@ def dataloader(
     sync_dataloader: MagicMock, test_mo_address: Address, test_mo_objects: list
 ) -> Iterator[AsyncMock]:
     objectGUID1 = UUID("00000000-0000-4000-1000-000000000000")
-    objectGUID2 = UUID("00000000-0000-4000-2000-000000000000")
-    objectGUID3 = UUID("00000000-0000-4000-3000-000000000000")
     test_ldap_object1 = LdapObject(
         name="Tester1",
         Department="QA",
         dn="someDN1",
         EmployeeID="0101012001",
         objectGUID=objectGUID1,
-    )
-    test_ldap_object2 = LdapObject(
-        name="Tester2",
-        Department="QA",
-        dn="someDN2",
-        EmployeeID="0101012002",
-        objectGUID=objectGUID2,
-    )
-    test_ldap_object3 = LdapObject(
-        name="Tester3",
-        Department="QA",
-        dn="someDN3",
-        EmployeeID="0101012003",
-        objectGUID=objectGUID3,
     )
     test_mo_employee = Employee(
         cpr_number="1212121234", given_name="Foo", surname="Bar"
@@ -160,7 +144,6 @@ def dataloader(
 
     dataloader = AsyncMock()
     dataloader.get_ldap_dn = AsyncMock()
-    dataloader.load_ldap_object = AsyncMock()
     dataloader.load_ldap_populated_overview = sync_dataloader
     dataloader.load_ldap_OUs = AsyncMock()
     dataloader.load_ldap_overview = sync_dataloader
@@ -179,15 +162,7 @@ def dataloader(
     dataloader.modify_ldap_object.return_value = [{"description": "success"}]
     dataloader.get_ldap_unique_ldap_uuid = AsyncMock()
     dataloader.supported_object_types = ["address", "person"]
-    with patch(
-        "mo_ldap_import_export.routes.load_ldap_objects",
-        return_value=[
-            test_ldap_object1,
-            test_ldap_object2,
-            test_ldap_object3,
-        ],
-    ):
-        yield dataloader
+    yield dataloader
 
 
 @pytest.fixture

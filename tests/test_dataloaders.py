@@ -67,7 +67,6 @@ from mo_ldap_import_export.models import Termination
 from mo_ldap_import_export.routes import load_all_current_it_users
 from mo_ldap_import_export.routes import load_ldap_attribute_values
 from mo_ldap_import_export.routes import load_ldap_cpr_object
-from mo_ldap_import_export.routes import load_ldap_objects
 from mo_ldap_import_export.types import LDAPUUID
 from mo_ldap_import_export.types import CPRNumber
 from tests.graphql_mocker import GraphQLMocker
@@ -222,24 +221,6 @@ async def test_load_ldap_cpr_object(
         await load_ldap_cpr_object(
             dataloader, converter, CPRNumber("0101012002"), "Employee"
         )
-
-
-async def test_load_ldap_objects(
-    ldap_connection: MagicMock,
-    dataloader: DataLoader,
-    converter: LdapConverter,
-    ldap_attributes: dict,
-) -> None:
-    dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
-    expected_result = [LdapObject(dn=dn, **ldap_attributes)] * 2
-    ldap_connection.get_response.return_value = (
-        [mock_ldap_response(ldap_attributes, dn)] * 2,
-        {"type": "test", "description": "success"},
-    )
-    settings = dataloader.settings
-    output = await load_ldap_objects(settings, ldap_connection, converter, "Employee")
-
-    assert output == expected_result
 
 
 async def test_upload_ldap_object_invalid_value(
