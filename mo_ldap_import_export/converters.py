@@ -29,14 +29,13 @@ class LdapConverter:
 
         self.environment = construct_environment(self.settings, self.dataloader)
 
-    def get_ldap_attributes(self, json_key, remove_dn=True) -> set[str]:
+    def get_ldap_attributes(self, json_key) -> set[str]:
         assert self.settings.conversion_mapping.ldap_to_mo is not None
         ldap_attributes = set(
             self.settings.conversion_mapping.ldap_to_mo[json_key].ldap_attributes
         )
-        if remove_dn:
-            # "dn" is the key which all LDAP objects have, not an attribute.
-            ldap_attributes.discard("dn")
+        # "dn" is the key which all LDAP objects have, not an attribute.
+        ldap_attributes.discard("dn")
         return ldap_attributes
 
     @staticmethod
