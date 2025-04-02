@@ -237,9 +237,6 @@ def test_mo_objects() -> list:
 def dataloader(
     sync_dataloader: MagicMock, test_mo_address: Address, test_mo_objects: list
 ) -> AsyncMock:
-    test_ldap_object = LdapObject(
-        name="Tester", Department="QA", dn="someDN", EmployeeID="0101012002"
-    )
     test_mo_employee = Employee(
         cpr_number="1212121234", given_name="Foo", surname="Bar"
     )
@@ -250,14 +247,10 @@ def dataloader(
         validity={"start": "2021-01-01T00:00:00"},
     )
 
-    load_ldap_cpr_object = AsyncMock()
-    load_ldap_cpr_object.return_value = test_ldap_object
-
     dataloader = AsyncMock()
     dataloader.load_ldap_OUs = sync_dataloader
     dataloader.load_ldap_populated_overview = sync_dataloader
     dataloader.load_ldap_overview = sync_dataloader
-    dataloader.load_ldap_cpr_object = load_ldap_cpr_object
     dataloader.load_mo_employee.return_value = test_mo_employee
     dataloader.load_mo_address.return_value = test_mo_address
     dataloader.load_mo_it_user.return_value = test_mo_it_user

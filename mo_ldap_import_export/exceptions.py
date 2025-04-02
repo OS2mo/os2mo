@@ -90,7 +90,7 @@ def amqp_reject_on_failure(
     async def modified_func(*args: Params.args, **kwargs: Params.kwargs) -> ReturnType:
         try:
             return await func(*args, **kwargs)
-        except RejectMessage as e:
+        except RejectMessage as e:  # pragma: no cover
             # In case we explicitly reject the message: Abort
             logger.info(str(e))
             raise
