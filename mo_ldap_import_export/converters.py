@@ -6,8 +6,6 @@ from typing import Any
 
 import pydantic
 import structlog
-from jinja2 import Environment
-from jinja2 import Template
 from ldap3.utils.ciDict import CaseInsensitiveDict
 
 from .config import Settings
@@ -17,7 +15,6 @@ from .exceptions import IncorrectMapping
 from .ldap_classes import LdapObject
 from .models import MOBase
 from .models import Termination
-from .utils import delete_keys_from_dict
 from .utils import is_list
 from .utils import mo_today
 
@@ -32,16 +29,6 @@ class LdapConverter:
 
         self.environment = construct_environment(self.settings, self.dataloader)
 
-        raw_mapping = self.settings.conversion_mapping.dict(
-            exclude_unset=True, by_alias=True
-        )
-        mapping = delete_keys_from_dict(
-            raw_mapping,
-            ["objectClass", "_import_to_mo_", "_ldap_attributes_"],
-        )
-
-        self.mapping = self._populate_mapping_with_templates(mapping, self.environment)
-
     def get_ldap_attributes(self, json_key, remove_dn=True) -> set[str]:
         assert self.settings.conversion_mapping.ldap_to_mo is not None
         ldap_attributes = set(
@@ -52,33 +39,12 @@ class LdapConverter:
             ldap_attributes.discard("dn")
         return ldap_attributes
 
-    def get_mo_attributes(self, json_key) -> set[str]:
-        return set(self.mapping["ldap_to_mo"][json_key].keys())
-
     @staticmethod
     def str_to_dict(text):
         """
         Converts a string to a dictionary
         """
         return json.loads(text.replace("'", '"').replace("Undefined", "null"))
-
-    def string2template(
-        self, environment: Environment, template_string: str
-    ) -> Template:
-        return environment.from_string(template_string)
-
-    def _populate_mapping_with_templates(
-        self, mapping: dict[str, Any], environment: Environment
-    ) -> dict[str, Any]:
-        def populate_value(value: str | dict[str, Any]) -> Any:
-            if isinstance(value, str):
-                return self.string2template(environment, value)
-            if isinstance(value, dict):
-                return self._populate_mapping_with_templates(value, environment)
-            # TODO: Validate all types here in the future, for now accept whatever
-            return value
-
-        return {key: populate_value(value) for key, value in mapping.items()}
 
     def get_number_of_entries(self, ldap_object: LdapObject) -> int:
         """Returns the maximum cardinality of data fields within an LdapObject.
@@ -133,13 +99,19 @@ class LdapConverter:
                 **template_context,
             }
             try:
-                object_mapping = self.mapping["ldap_to_mo"][json_key]
+                assert self.settings.conversion_mapping.ldap_to_mo is not None
+                object_mapping = self.settings.conversion_mapping.ldap_to_mo[
+                    json_key
+                ].get_fields()
             except KeyError as error:
                 raise IncorrectMapping(
                     f"Missing '{json_key}' in mapping 'ldap_to_mo'"
                 ) from error
 
-            async def render_template(field_name: str, template, context) -> Any:
+            async def render_template(
+                field_name: str, template_str: str, context: dict[str, Any]
+            ) -> Any:
+                template = self.environment.from_string(template_str)
                 value = (await template.render_async(context)).strip()
 
                 # Sloppy mapping can lead to the following rendered strings:
@@ -163,8 +135,10 @@ class LdapConverter:
 
             # TODO: asyncio.gather this for future dataloader bulking
             mo_dict = {
-                mo_field_name: await render_template(mo_field_name, template, context)
-                for mo_field_name, template in object_mapping.items()
+                mo_field_name: await render_template(
+                    mo_field_name, template_str, context
+                )
+                for mo_field_name, template_str in object_mapping.items()
             }
             assert self.settings.conversion_mapping.ldap_to_mo is not None
             mo_class = self.settings.conversion_mapping.ldap_to_mo[

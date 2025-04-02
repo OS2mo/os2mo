@@ -13,8 +13,6 @@ from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
-from jinja2 import Environment
-from jinja2 import Undefined
 from mergedeep import Strategy  # type: ignore
 from mergedeep import merge
 from more_itertools import one
@@ -254,19 +252,23 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
     assert not result
 
 
-async def test_ldap_to_mo_dict_error(converter: LdapConverter) -> None:
-    converter.mapping = converter._populate_mapping_with_templates(
-        {
-            "ldap_to_mo": {
-                "Active Directory": {
-                    "objectClass": "ITUser",
-                    "user_key": "{{ ldap.msSFU30Name or '' }}",
-                    "itsystem": "{ 'hep': 'hey }",  # provokes json error in str_to_dict
-                    "person": "{{ dict(uuid=employee_uuid or '') }}",
-                }
+async def test_ldap_to_mo_dict_error(
+    context: Context, converter_mapping: dict[str, Any]
+) -> None:
+    bad_mapping = {
+        **converter_mapping,
+        "ldap_to_mo": {
+            "Active Directory": {
+                "objectClass": "ITUser",
+                "user_key": "{{ ldap.msSFU30Name or '' }}",
+                "itsystem": "{ 'hep': 'hey }",  # provokes json error in str_to_dict
+                "person": "{{ dict(uuid=employee_uuid or '') }}",
             }
         },
-        Environment(undefined=Undefined, enable_async=True),
+    }
+    converter = LdapConverter(
+        settings=Settings(conversion_mapping=bad_mapping),
+        dataloader=MagicMock(),
     )
 
     with pytest.raises(IncorrectMapping):
@@ -442,11 +444,6 @@ async def test_get_ldap_attributes_dn_removed(
         settings.conversion_mapping.ldap_to_mo["Employee"].ldap_attributes
     )
     assert converter_attributes == settings_attributes - {"dn"}
-
-
-def test_get_mo_attributes(converter: LdapConverter) -> None:
-    attributes = converter.get_mo_attributes("Employee")
-    assert attributes == {"uuid", "cpr_number", "surname", "given_name"}
 
 
 def test_str_to_dict(converter: LdapConverter):
