@@ -135,6 +135,13 @@ class LDAP2MOMapping(MappingBaseModel):
     def as_mo_class(self) -> type[MOBase]:
         return import_class(self.objectClass)
 
+    def get_fields(self) -> dict[str, Any]:
+        return self.dict(
+            exclude={"objectClass", "import_to_mo", "ldap_attributes"},
+            by_alias=True,
+            exclude_unset=True,
+        )
+
     @validator("import_to_mo", pre=True)
     def lower_import_to_mo(cls, v: str) -> str:
         return v.lower()

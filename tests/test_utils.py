@@ -7,7 +7,6 @@ import pytest
 from ldap3.core.exceptions import LDAPInvalidDnError
 
 from mo_ldap_import_export.utils import combine_dn_strings
-from mo_ldap_import_export.utils import delete_keys_from_dict
 from mo_ldap_import_export.utils import extract_ou_from_dn
 from mo_ldap_import_export.utils import import_class
 from mo_ldap_import_export.utils import mo_datestring_to_utc
@@ -24,21 +23,6 @@ async def test_import_class() -> None:
     with pytest.raises(NotImplementedError) as exc_info:
         import_class("Ashbringer")
     assert "Unknown argument to import_class" in str(exc_info.value)
-
-
-async def test_delete_keys_from_dict() -> None:
-    dict_to_delete_from = {
-        "foo": 1,
-        "bar": 2,
-        "nest": {"foo": 1, "bar": 2},
-    }
-
-    modified_dict = delete_keys_from_dict(dict_to_delete_from, ["foo"])
-
-    assert "foo" in dict_to_delete_from
-    assert "foo" in dict_to_delete_from["nest"]  # type:ignore
-    assert "foo" not in modified_dict
-    assert "foo" not in modified_dict["nest"]
 
 
 async def test_mo_datestring_to_utc() -> None:

@@ -252,18 +252,23 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
     assert not result
 
 
-async def test_ldap_to_mo_dict_error(converter: LdapConverter) -> None:
-    converter.mapping = converter._populate_mapping_with_templates(
-        {
-            "ldap_to_mo": {
-                "Active Directory": {
-                    "objectClass": "ITUser",
-                    "user_key": "{{ ldap.msSFU30Name or '' }}",
-                    "itsystem": "{ 'hep': 'hey }",  # provokes json error in str_to_dict
-                    "person": "{{ dict(uuid=employee_uuid or '') }}",
-                }
+async def test_ldap_to_mo_dict_error(
+    context: Context, converter_mapping: dict[str, Any]
+) -> None:
+    bad_mapping = {
+        **converter_mapping,
+        "ldap_to_mo": {
+            "Active Directory": {
+                "objectClass": "ITUser",
+                "user_key": "{{ ldap.msSFU30Name or '' }}",
+                "itsystem": "{ 'hep': 'hey }",  # provokes json error in str_to_dict
+                "person": "{{ dict(uuid=employee_uuid or '') }}",
             }
         },
+    }
+    converter = LdapConverter(
+        settings=Settings(conversion_mapping=bad_mapping),
+        dataloader=MagicMock(),
     )
 
     with pytest.raises(IncorrectMapping):

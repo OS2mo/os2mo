@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import copy
 import re
 from datetime import datetime
 from datetime import time
@@ -48,24 +47,6 @@ def import_class(name: str) -> type[MOBase]:
     if clazz is None:
         raise NotImplementedError("Unknown argument to import_class")
     return clazz
-
-
-# https://stackoverflow.com/questions/3405715/elegant-way-to-remove-fields-from-nested-dictionaries
-def _delete_keys_from_dict(dict_del, lst_keys):
-    for field in list(dict_del.keys()):
-        if field in lst_keys:
-            del dict_del[field]
-        elif isinstance(dict_del[field], dict):
-            _delete_keys_from_dict(dict_del[field], lst_keys)
-    return dict_del
-
-
-def delete_keys_from_dict(dict_del, lst_keys):
-    """
-    Delete the keys present in lst_keys from the dictionary.
-    Loops recursively over nested dictionaries.
-    """
-    return _delete_keys_from_dict(copy.deepcopy(dict_del), lst_keys)
 
 
 # TODO: this doesn't work in any possible definition of the word "work". Delete
