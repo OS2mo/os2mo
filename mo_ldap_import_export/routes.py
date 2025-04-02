@@ -118,7 +118,7 @@ def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
     return all_attributes
 
 
-async def valid_cpr(cpr: str) -> CPRNumber:
+async def valid_cpr(cpr: str) -> CPRNumber:  # pragma: no cover
     cpr = cpr.replace("-", "")
     if not re.match(r"^\d{10}$", cpr):
         raise InvalidCPR(f"{cpr} is not a valid cpr-number")
@@ -609,31 +609,6 @@ def construct_router(settings: Settings) -> APIRouter:
                 ]
 
         return output
-
-    # Get all objects from LDAP with invalid cpr numbers
-    @router.get("/Inspect/invalid_cpr_numbers", status_code=202, tags=["LDAP"])
-    async def get_invalid_cpr_numbers_from_LDAP(
-        settings: depends.Settings,
-        ldap_connection: depends.Connection,
-        converter: depends.LdapConverter,
-    ) -> Any:
-        cpr_field = settings.ldap_cpr_attribute
-        if not cpr_field:
-            raise CPRFieldNotFound("cpr_field is not configured")
-
-        result = await load_ldap_objects(
-            settings, ldap_connection, converter, "Employee"
-        )
-
-        formatted_result = {}
-        for entry in result:
-            cpr = str(getattr(entry, cpr_field))
-
-            try:
-                validate_cpr(cpr)
-            except ValueError:
-                formatted_result[entry.dn] = cpr
-        return formatted_result
 
     # Get LDAP overview
     @router.get("/Inspect/overview", status_code=202, tags=["LDAP"])
