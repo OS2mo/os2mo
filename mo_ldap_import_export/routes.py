@@ -464,54 +464,6 @@ def construct_router(settings: Settings) -> APIRouter:
 
     default_ldap_class = settings.ldap_object_class
 
-    # Load all users from LDAP, and import them into MO
-    @router.get("/Import", status_code=202, tags=["Import"])
-    async def import_all_objects_from_LDAP(
-        settings: depends.Settings,
-        ldap_connection: depends.Connection,
-        ldap_amqpsystem: depends.LDAPAMQPSystem,
-        converter: depends.LdapConverter,
-        test_on_first_20_entries: bool = False,
-        search_base: str | None = None,
-    ) -> Any:
-        additional_attributes = {settings.ldap_unique_id_field}
-
-        all_ldap_objects = await load_ldap_objects(
-            settings,
-            ldap_connection,
-            converter,
-            "Employee",
-            additional_attributes=additional_attributes,
-            search_base=search_base,
-        )
-        number_of_entries = len(all_ldap_objects)
-        logger.info("Found entries in LDAP", count=number_of_entries)
-
-        if test_on_first_20_entries:
-            # TODO: Actually only load the 20 first?
-            # Only upload the first 20 entries
-            logger.info("Slicing the first 20 entries")
-            all_ldap_objects = all_ldap_objects[:20]
-
-        uuids = [
-            getattr(obj, settings.ldap_unique_id_field) for obj in all_ldap_objects
-        ]
-        await publish_uuids(ldap_amqpsystem, uuids)
-
-        return uuids
-
-    # Load a single user from LDAP, and import him/her/hir into MO
-    @router.get("/Import/{unique_ldap_uuid}", status_code=202, tags=["Import"])
-    async def import_single_user_from_LDAP(
-        ldap_amqpsystem: depends.LDAPAMQPSystem,
-        unique_ldap_uuid: LDAPUUID,
-        dataloader: depends.DataLoader,
-    ) -> UUID:
-        # Check that we can find the UUID
-        await dataloader.ldapapi.get_ldap_dn(unique_ldap_uuid)
-        await publish_uuids(ldap_amqpsystem, [unique_ldap_uuid])
-        return unique_ldap_uuid
-
     @router.get("/Inspect/dn2uuid/{dn}", status_code=200, tags=["LDAP"])
     async def ldap_dn2uuid(dataloader: depends.DataLoader, dn: str) -> UUID:
         return await dataloader.ldapapi.get_ldap_unique_ldap_uuid(dn)
