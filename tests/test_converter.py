@@ -13,8 +13,6 @@ from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
-from jinja2 import Environment
-from jinja2 import Undefined
 from mergedeep import Strategy  # type: ignore
 from mergedeep import merge
 from more_itertools import one
@@ -266,7 +264,6 @@ async def test_ldap_to_mo_dict_error(converter: LdapConverter) -> None:
                 }
             }
         },
-        Environment(undefined=Undefined, enable_async=True),
     )
 
     with pytest.raises(IncorrectMapping):

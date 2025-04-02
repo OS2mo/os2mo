@@ -6,7 +6,6 @@ from typing import Any
 
 import pydantic
 import structlog
-from jinja2 import Environment
 from jinja2 import Template
 from ldap3.utils.ciDict import CaseInsensitiveDict
 
@@ -40,7 +39,7 @@ class LdapConverter:
             ["objectClass", "_import_to_mo_", "_ldap_attributes_"],
         )
 
-        self.mapping = self._populate_mapping_with_templates(mapping, self.environment)
+        self.mapping = self._populate_mapping_with_templates(mapping)
 
     def get_ldap_attributes(self, json_key, remove_dn=True) -> set[str]:
         assert self.settings.conversion_mapping.ldap_to_mo is not None
@@ -62,19 +61,17 @@ class LdapConverter:
         """
         return json.loads(text.replace("'", '"').replace("Undefined", "null"))
 
-    def string2template(
-        self, environment: Environment, template_string: str
-    ) -> Template:
-        return environment.from_string(template_string)
+    def string2template(self, template_string: str) -> Template:
+        return self.environment.from_string(template_string)
 
     def _populate_mapping_with_templates(
-        self, mapping: dict[str, Any], environment: Environment
+        self, mapping: dict[str, Any]
     ) -> dict[str, Any]:
         def populate_value(value: str | dict[str, Any]) -> Any:
             if isinstance(value, str):
-                return self.string2template(environment, value)
+                return self.string2template(value)
             if isinstance(value, dict):
-                return self._populate_mapping_with_templates(value, environment)
+                return self._populate_mapping_with_templates(value)
             # TODO: Validate all types here in the future, for now accept whatever
             return value
 
