@@ -51,9 +51,6 @@ class LdapConverter:
             ldap_attributes.discard("dn")
         return ldap_attributes
 
-    def get_mo_attributes(self, json_key) -> set[str]:
-        return set(self.mapping["ldap_to_mo"][json_key].keys())
-
     @staticmethod
     def str_to_dict(text):
         """

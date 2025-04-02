@@ -570,7 +570,7 @@ class SyncTool:
             )
             return
 
-        mo_attributes = self.converter.get_mo_attributes(json_key)
+        mo_attributes = set(self.converter.mapping["ldap_to_mo"][json_key].keys())
         operations = await self.format_converted_objects(
             converted_objects, mo_attributes
         )

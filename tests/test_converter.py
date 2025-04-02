@@ -441,11 +441,6 @@ async def test_get_ldap_attributes_dn_removed(
     assert converter_attributes == settings_attributes - {"dn"}
 
 
-def test_get_mo_attributes(converter: LdapConverter) -> None:
-    attributes = converter.get_mo_attributes("Employee")
-    assert attributes == {"uuid", "cpr_number", "surname", "given_name"}
-
-
 def test_str_to_dict(converter: LdapConverter):
     output = converter.str_to_dict("{'foo':2}")
     assert output == {"foo": 2}
