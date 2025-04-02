@@ -531,33 +531,6 @@ def construct_router(settings: Settings) -> APIRouter:
     async def mo_uuid_to_ldap_dn(dataloader: depends.DataLoader, uuid: UUID) -> set[DN]:
         return await dataloader.find_mo_employee_dn(uuid)
 
-    # Get all objects from LDAP - Converted to MO
-    @router.get("/LDAP/{json_key}/converted", status_code=202, tags=["LDAP"])
-    async def convert_all_objects_from_ldap(
-        settings: depends.Settings,
-        ldap_connection: depends.Connection,
-        converter: depends.LdapConverter,
-        json_key: str,
-    ) -> Any:
-        result = await load_ldap_objects(settings, ldap_connection, converter, json_key)
-        converted_results = []
-        for r in result:
-            try:
-                converted_results.extend(
-                    await converter.from_ldap(
-                        r,
-                        json_key,
-                        template_context={
-                            "employee_uuid": str(uuid4()),
-                        },
-                    )
-                )
-            except ValidationError:  # pragma: no cover
-                logger.exception(
-                    "Cannot convert LDAP object to MO", ldap_object=r, json_key=json_key
-                )
-        return converted_results
-
     # Get a specific cpr-indexed object from LDAP
     @router.get("/LDAP/{json_key}/{cpr}", status_code=202, tags=["LDAP"])
     async def load_object_from_LDAP(
@@ -571,56 +544,6 @@ def construct_router(settings: Settings) -> APIRouter:
             dataloader, converter, cpr, json_key, {settings.ldap_unique_id_field}
         )
         return [encode_result(result) for result in results]
-
-    # Get a specific cpr-indexed object from LDAP - Converted to MO
-    @router.get("/LDAP/{json_key}/{cpr}/converted", status_code=202, tags=["LDAP"])
-    async def convert_object_from_LDAP(
-        dataloader: depends.DataLoader,
-        converter: depends.LdapConverter,
-        json_key: str,
-        response: Response,
-        cpr: CPRNumber = Depends(valid_cpr),
-    ) -> Any:
-        results = await load_ldap_cpr_object(dataloader, converter, cpr, json_key)
-        try:
-            return [
-                await converter.from_ldap(
-                    result,
-                    json_key,
-                    template_context={
-                        "employee_uuid": str(uuid4()),
-                    },
-                )
-                for result in results
-            ]
-        except ValidationError:  # pragma: no cover
-            logger.exception(
-                "Cannot convert LDAP object to to MO",
-                ldap_objects=results,
-                json_key=json_key,
-            )
-            response.status_code = (
-                status.HTTP_404_NOT_FOUND
-            )  # TODO: return other status?
-            return None
-
-    # Get all objects from LDAP
-    @router.get("/LDAP/{json_key}", status_code=202, tags=["LDAP"])
-    async def load_all_objects_from_LDAP(
-        settings: depends.Settings,
-        ldap_connection: depends.Connection,
-        converter: depends.LdapConverter,
-        json_key: str,
-        entries_to_return: int = Query(ge=1),
-    ) -> Any:
-        result = await load_ldap_objects(
-            settings,
-            ldap_connection,
-            converter,
-            json_key,
-            {settings.ldap_unique_id_field},
-        )
-        return encode_result(result[-entries_to_return:])
 
     @router.get(
         "/Inspect/non_existing_unique_ldap_uuids", status_code=202, tags=["LDAP"]
