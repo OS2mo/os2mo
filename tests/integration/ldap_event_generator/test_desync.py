@@ -55,7 +55,12 @@ def generate_events(
 
 
 @pytest.mark.integration_test
-@pytest.mark.envvar({"LISTEN_TO_CHANGES_IN_LDAP": "False"})
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "LDAP_OUS_TO_SEARCH_IN": '["ou=os2mo,o=magenta"]',
+    }
+)
 @pytest.mark.parametrize(
     "",
     [
