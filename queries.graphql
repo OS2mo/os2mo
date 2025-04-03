@@ -400,7 +400,11 @@ mutation org_unit_engagements_refresh(
 ) {
   engagement_refresh(
     exchange: $exchange
-    filter: { org_unit: { uuids: [$org_unit_uuid] }, from_date: null, to_date: null }
+    filter: {
+      org_unit: { uuids: [$org_unit_uuid] }
+      from_date: null
+      to_date: null
+    }
   ) {
     objects
   }
@@ -532,7 +536,9 @@ query read_ituser_relation_uuids($ituser_uuid: UUID!) {
 }
 
 query read_engagement_employee_uuid($engagement_uuid: UUID!) {
-  engagements(filter: { uuids: [$engagement_uuid], from_date: null, to_date: null }) {
+  engagements(
+    filter: { uuids: [$engagement_uuid], from_date: null, to_date: null }
+  ) {
     objects {
       validities {
         employee_uuid
@@ -542,7 +548,9 @@ query read_engagement_employee_uuid($engagement_uuid: UUID!) {
 }
 
 query read_address_relation_uuids($address_uuid: UUID!) {
-  addresses(filter: { uuids: [$address_uuid], from_date: null, to_date: null }) {
+  addresses(
+    filter: { uuids: [$address_uuid], from_date: null, to_date: null }
+  ) {
     objects {
       validities {
         employee_uuid
@@ -553,11 +561,13 @@ query read_address_relation_uuids($address_uuid: UUID!) {
 }
 
 query read_all_ituser_user_keys_by_itsystem_uuid($itsystem_uuid: UUID!) {
-  itusers(filter: {
-    itsystem: { uuids: [$itsystem_uuid] },
-    from_date: null,
-    to_date: null
-  }) {
+  itusers(
+    filter: {
+      itsystem: { uuids: [$itsystem_uuid] }
+      from_date: null
+      to_date: null
+    }
+  ) {
     objects {
       validities {
         user_key
@@ -605,7 +615,6 @@ query read_address_uuid($filter: AddressFilter!) {
   }
 }
 
-
 query read_ituser_uuid($filter: ITUserFilter!) {
   itusers(filter: $filter) {
     objects {
@@ -631,7 +640,13 @@ query read_person_uuid($filter: EmployeeFilter) {
 }
 
 query read_engagement_enddate($employee_uuid: UUID!) {
-  engagements(filter: {employee: {uuids: [$employee_uuid]}, from_date: null, to_date: null}) {
+  engagements(
+    filter: {
+      employee: { uuids: [$employee_uuid] }
+      from_date: null
+      to_date: null
+    }
+  ) {
     objects {
       validities {
         validity {
@@ -659,7 +674,7 @@ query read_engagement_manager(
   $engagement_uuid: UUID!
   $filter: OrgUnitsboundmanagerfilter
 ) {
-  engagements(filter: {uuids: [$engagement_uuid]}) {
+  engagements(filter: { uuids: [$engagement_uuid] }) {
     objects {
       current {
         managers(filter: $filter, inherit: true, exclude_self: true) {
@@ -672,9 +687,7 @@ query read_engagement_manager(
   }
 }
 
-query read_cleanup_addresses(
-  $filter: AddressFilter
-) {
+query read_cleanup_addresses($filter: AddressFilter) {
   addresses(filter: $filter) {
     objects {
       current {
