@@ -41,6 +41,7 @@ from .models import Engagement
 from .models import ITUser
 from .models import JobTitleFromADToMO
 from .models import MOBase
+from .models import OrganisationUnit
 from .models import Termination
 from .types import EmployeeUUID
 from .types import OrgUnitUUID
@@ -309,6 +310,10 @@ class SyncTool:
             return await self.dataloader.moapi.load_mo_employee(
                 uuid, current_objects_only=False
             )
+        if issubclass(mo_class, OrganisationUnit):
+            return await self.dataloader.moapi.load_mo_org_unit(
+                uuid, current_objects_only=False
+            )
         raise AssertionError(f"Unknown mo_class: {mo_class}")
 
     async def construct_uuid_mapping(
@@ -541,6 +546,35 @@ class SyncTool:
                     self.get_mapping(json_key), dn, template_context
                 )
                 for json_key in json_keys
+            ]
+        )
+
+    @wait_for_import_to_finish
+    @with_exitstack
+    async def import_single_org_unit(self, dn: DN, exit_stack: ExitStack) -> None:
+        """Imports a single organizational unit from LDAP into MO."""
+        exit_stack.enter_context(bound_contextvars(dn=dn))
+        logger.info("Importing organizational unit")
+        mappings = self.settings.conversion_mapping.ldap_to_mo_org_unit
+        if mappings is None:
+            logger.info("import_single_org_unit called without mappings")
+            return
+
+        # Get the org-units's UUID (if it exists)
+        org_unit_uuid = await self.dataloader.find_mo_org_unit_uuid(dn)
+        if org_unit_uuid is None:
+            org_unit_uuid = OrgUnitUUID(uuid4())
+            logger.info(
+                "Organisation unit not found in MO, generated UUID", org_unit_uuid=org_unit_uuid
+            )
+
+        template_context = {
+            "org_unit_uuid": str(org_unit_uuid),
+        }
+        await asyncio.gather(
+            *[
+                self.import_single_entity(mapping, dn, template_context)
+                for mapping in mappings.values()
             ]
         )
 

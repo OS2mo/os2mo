@@ -325,6 +325,31 @@ query read_employees(
   }
 }
 
+query read_org_units(
+  $uuids: [UUID!]!
+  $from_date: DateTime
+  $to_date: DateTime
+) {
+  org_units(
+    filter: { from_date: $from_date, to_date: $to_date, uuids: $uuids }
+  ) {
+    objects {
+      validities {
+        uuid
+        user_key
+        name
+        unit_type {
+          uuid
+        }
+        validity {
+          to
+          from
+        }
+      }
+    }
+  }
+}
+
 query read_itusers($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
   itusers(filter: { from_date: $from_date, to_date: $to_date, uuids: $uuids }) {
     objects {

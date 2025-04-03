@@ -145,6 +145,8 @@ from .read_org_unit_ancestors import ReadOrgUnitAncestors
 from .read_org_unit_ancestors import ReadOrgUnitAncestorsOrgUnits
 from .read_org_unit_name import ReadOrgUnitName
 from .read_org_unit_name import ReadOrgUnitNameOrgUnits
+from .read_org_units import ReadOrgUnits
+from .read_org_units import ReadOrgUnitsOrgUnits
 from .read_person_uuid import ReadPersonUuid
 from .read_person_uuid import ReadPersonUuidEmployees
 from .set_job_title import SetJobTitle
@@ -764,6 +766,43 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEmployees.parse_obj(data).employees
+
+    async def read_org_units(
+        self,
+        uuids: list[UUID],
+        from_date: datetime | None | UnsetType = UNSET,
+        to_date: datetime | None | UnsetType = UNSET,
+    ) -> ReadOrgUnitsOrgUnits:
+        query = gql(
+            """
+            query read_org_units($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
+              org_units(filter: {from_date: $from_date, to_date: $to_date, uuids: $uuids}) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    name
+                    unit_type {
+                      uuid
+                    }
+                    validity {
+                      to
+                      from
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "uuids": uuids,
+            "from_date": from_date,
+            "to_date": to_date,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadOrgUnits.parse_obj(data).org_units
 
     async def read_itusers(
         self,

@@ -100,15 +100,17 @@ async def handle_uuid(
         dataloader.ldapapi.ldap_connection, dn, attributes={"objectClass"}
     )
     ldap_object_classes = ldap_object.objectClass  # type: ignore[attr-defined]
-    employee_object_class = converter.settings.ldap_object_class
-    if employee_object_class not in ldap_object_classes:
-        logger.info(
-            "Ignoring change: not Employee objectClass",
-            ldap_object_classes=ldap_object_classes,
-        )
-        return
 
-    await sync_tool.import_single_user(dn)
+    employee_object_class = converter.settings.ldap_object_class
+    if employee_object_class in ldap_object_classes:
+        logger.info("Handling employee", ldap_object_classes=ldap_object_classes)
+        await sync_tool.import_single_user(dn)
+
+    if "organizationalUnit" in ldap_object_classes:
+        logger.info(
+            "Handling organizational unit", ldap_object_classes=ldap_object_classes
+        )
+        await sync_tool.import_single_org_unit(dn)
 
 
 @ldap2mo_router.post("/reconcile")
