@@ -28,7 +28,7 @@ Det skal være muligt at logge på OS2mo med sit eksisterende logon.
 
 Opgaven forudsætter at kunden har en IdP der understøtter SAML 2.0 SSO.
 
-[Se hvordan opsætningen skal se ud i ADFS her](https://rammearkitektur.docs.magenta.dk/-/os2mo/-/jobs/510013/artifacts/site/guides/adfs-setup.html).
+[Se hvordan opsætningen skal se ud i ADFS her](../tech-docs/iam/adfs-setup.md)
 
 ## Adgangsbaseret rollestyring
 
