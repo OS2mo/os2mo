@@ -114,6 +114,7 @@ get_employee_address_type_uuid = partial(
     _get_facet_class_uuid, facet_user_key="employee_address_type"
 )
 get_visibility_uuid = partial(_get_facet_class_uuid, facet_user_key="visibility")
+get_org_unit_type_uuid = partial(_get_facet_class_uuid, facet_user_key="org_unit_type")
 
 
 async def get_org_unit_path_string(
@@ -579,6 +580,7 @@ def construct_globals_dict(
         ),
         "get_it_system_uuid": partial(moapi.get_it_system_uuid),
         "get_visibility_uuid": partial(get_visibility_uuid, graphql_client),
+        "get_org_unit_type_uuid": partial(get_org_unit_type_uuid, graphql_client),
         "get_org_unit_path_string": partial(
             get_org_unit_path_string,
             graphql_client,

@@ -20,6 +20,7 @@ from .models import Engagement
 from .models import ITUser
 from .models import JobTitleFromADToMO
 from .models import MOBase
+from .models import OrganisationUnit
 
 logger = structlog.stdlib.get_logger()
 
@@ -42,6 +43,7 @@ def import_class(name: str) -> type[MOBase]:
         "Engagement": Engagement,
         "ITUser": ITUser,
         "Employee": Employee,
+        "OrganisationUnit": OrganisationUnit,
     }
     clazz = import_map.get(name)
     if clazz is None:
