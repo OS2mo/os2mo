@@ -74,7 +74,8 @@ class OrganisationUnit(StrictBaseModel):
     user_key: str
 
     name: str
-    org_unit_type: UUID
+    unit_type: UUID
+    validity: Validity
 
 
 class Engagement(StrictBaseModel):

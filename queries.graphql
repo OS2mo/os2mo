@@ -224,6 +224,18 @@ mutation org_unit_create($input: OrganisationUnitCreateInput!) {
   }
 }
 
+mutation org_unit_update($input: OrganisationUnitUpdateInput!) {
+  org_unit_update(input: $input) {
+    uuid
+  }
+}
+
+mutation org_unit_terminate($input: OrganisationUnitTerminateInput!) {
+  org_unit_terminate(input: $input) {
+    uuid
+  }
+}
+
 query read_engagements(
   $uuids: [UUID!]!
   $from_date: DateTime
@@ -316,6 +328,31 @@ query read_employees(
         surname
         nickname_given_name
         nickname_surname
+        validity {
+          to
+          from
+        }
+      }
+    }
+  }
+}
+
+query read_org_units(
+  $uuids: [UUID!]!
+  $from_date: DateTime
+  $to_date: DateTime
+) {
+  org_units(
+    filter: { from_date: $from_date, to_date: $to_date, uuids: $uuids }
+  ) {
+    objects {
+      validities {
+        uuid
+        user_key
+        name
+        unit_type {
+          uuid
+        }
         validity {
           to
           from
@@ -625,6 +662,14 @@ query read_ituser_uuid($filter: ITUserFilter!) {
 
 query read_engagement_uuid($filter: EngagementFilter!) {
   engagements(filter: $filter) {
+    objects {
+      uuid
+    }
+  }
+}
+
+query read_org_unit_uuid($filter: OrganisationUnitFilter!) {
+  org_units(filter: $filter) {
     objects {
       uuid
     }

@@ -30,14 +30,23 @@ from mo_ldap_import_export.types import LDAPUUID
 from mo_ldap_import_export.types import EmployeeUUID
 from mo_ldap_import_export.utils import combine_dn_strings
 
-DNList2UUID: TypeAlias = Callable[[list[str]], Awaitable[UUID]]
+DN2UUID: TypeAlias = Callable[[DN], Awaitable[LDAPUUID]]
+DNList2UUID: TypeAlias = Callable[[list[str]], Awaitable[LDAPUUID]]
 
 
 @pytest.fixture
-async def dnlist2uuid(ldap_api: LDAPAPI) -> DNList2UUID:
-    async def inner(dnlist: list[str]) -> UUID:
-        dn = combine_dn_strings(dnlist)
+async def dn2uuid(ldap_api: LDAPAPI) -> DN2UUID:
+    async def inner(dn: DN) -> LDAPUUID:
         return await ldap_api.get_ldap_unique_ldap_uuid(dn)
+
+    return inner
+
+
+@pytest.fixture
+async def dnlist2uuid(dn2uuid: DN2UUID) -> DNList2UUID:
+    async def inner(dnlist: list[str]) -> LDAPUUID:
+        dn = combine_dn_strings(dnlist)
+        return await dn2uuid(dn)
 
     return inner
 

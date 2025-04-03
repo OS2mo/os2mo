@@ -56,6 +56,8 @@ from .input_types import ITUserUpdateInput
 from .input_types import ManagerCreateInput
 from .input_types import OrganisationUnitCreateInput
 from .input_types import OrganisationUnitFilter
+from .input_types import OrganisationUnitTerminateInput
+from .input_types import OrganisationUnitUpdateInput
 from .input_types import OrgUnitsboundmanagerfilter
 from .ituser_create import ItuserCreate
 from .ituser_create import ItuserCreateItuserCreate
@@ -69,6 +71,10 @@ from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefreshEngagementRefresh
 from .org_unit_refresh import OrgUnitRefresh
 from .org_unit_refresh import OrgUnitRefreshOrgUnitRefresh
+from .org_unit_terminate import OrgUnitTerminate
+from .org_unit_terminate import OrgUnitTerminateOrgUnitTerminate
+from .org_unit_update import OrgUnitUpdate
+from .org_unit_update import OrgUnitUpdateOrgUnitUpdate
 from .read_address_relation_uuids import ReadAddressRelationUuids
 from .read_address_relation_uuids import ReadAddressRelationUuidsAddresses
 from .read_address_uuid import ReadAddressUuid
@@ -145,6 +151,10 @@ from .read_org_unit_ancestors import ReadOrgUnitAncestors
 from .read_org_unit_ancestors import ReadOrgUnitAncestorsOrgUnits
 from .read_org_unit_name import ReadOrgUnitName
 from .read_org_unit_name import ReadOrgUnitNameOrgUnits
+from .read_org_unit_uuid import ReadOrgUnitUuid
+from .read_org_unit_uuid import ReadOrgUnitUuidOrgUnits
+from .read_org_units import ReadOrgUnits
+from .read_org_units import ReadOrgUnitsOrgUnits
 from .read_person_uuid import ReadPersonUuid
 from .read_person_uuid import ReadPersonUuidEmployees
 from .set_job_title import SetJobTitle
@@ -607,6 +617,40 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return OrgUnitCreate.parse_obj(data).org_unit_create
 
+    async def org_unit_update(
+        self, input: OrganisationUnitUpdateInput
+    ) -> OrgUnitUpdateOrgUnitUpdate:
+        query = gql(
+            """
+            mutation org_unit_update($input: OrganisationUnitUpdateInput!) {
+              org_unit_update(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return OrgUnitUpdate.parse_obj(data).org_unit_update
+
+    async def org_unit_terminate(
+        self, input: OrganisationUnitTerminateInput
+    ) -> OrgUnitTerminateOrgUnitTerminate:
+        query = gql(
+            """
+            mutation org_unit_terminate($input: OrganisationUnitTerminateInput!) {
+              org_unit_terminate(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return OrgUnitTerminate.parse_obj(data).org_unit_terminate
+
     async def read_engagements(
         self,
         uuids: list[UUID],
@@ -764,6 +808,43 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEmployees.parse_obj(data).employees
+
+    async def read_org_units(
+        self,
+        uuids: list[UUID],
+        from_date: datetime | None | UnsetType = UNSET,
+        to_date: datetime | None | UnsetType = UNSET,
+    ) -> ReadOrgUnitsOrgUnits:
+        query = gql(
+            """
+            query read_org_units($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
+              org_units(filter: {from_date: $from_date, to_date: $to_date, uuids: $uuids}) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    name
+                    unit_type {
+                      uuid
+                    }
+                    validity {
+                      to
+                      from
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "uuids": uuids,
+            "from_date": from_date,
+            "to_date": to_date,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadOrgUnits.parse_obj(data).org_units
 
     async def read_itusers(
         self,
@@ -1310,6 +1391,25 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEngagementUuid.parse_obj(data).engagements
+
+    async def read_org_unit_uuid(
+        self, filter: OrganisationUnitFilter
+    ) -> ReadOrgUnitUuidOrgUnits:
+        query = gql(
+            """
+            query read_org_unit_uuid($filter: OrganisationUnitFilter!) {
+              org_units(filter: $filter) {
+                objects {
+                  uuid
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadOrgUnitUuid.parse_obj(data).org_units
 
     async def read_person_uuid(
         self, filter: EmployeeFilter | None | UnsetType = UNSET
