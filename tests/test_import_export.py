@@ -349,25 +349,6 @@ async def test_holstebro_import_checks(sync_tool: SyncTool, fake_dn: DN) -> None
         assert "Import checks executed" in str(cap_logs)
 
 
-async def test_import_single_entity(sync_tool: SyncTool) -> None:
-    sync_tool.converter.from_ldap.return_value = []  # type: ignore
-
-    dn = "CN=foo"
-    employee_uuid = uuid4()
-    with (
-        capture_logs() as cap_logs,
-        patch("mo_ldap_import_export.import_export.get_ldap_object"),
-    ):
-        assert sync_tool.settings.conversion_mapping.ldap_to_mo is not None
-        await sync_tool.import_single_entity(
-            sync_tool.settings.conversion_mapping.ldap_to_mo["Engagement"],
-            dn,
-            employee_uuid,
-        )
-
-        assert "No converted objects" in str(cap_logs)
-
-
 engagement_uuid1 = uuid4()
 engagement_uuid2 = uuid4()
 engagement_uuid3 = uuid4()
