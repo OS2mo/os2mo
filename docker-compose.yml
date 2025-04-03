@@ -84,7 +84,9 @@ services:
       LDAP_IT_SYSTEM: "ADUUID"
     volumes:
       - ./mo_ldap_import_export/:/app/mo_ldap_import_export:ro
-      - ./dev-environment/kolding_fixture.yaml:/var/run/config.yaml:ro
+      # Uncomment this to integrate with the mo development stack. Note that
+      # this may break unittests.
+      # - ./dev-environment/kolding_fixture.yaml:/var/run/config.yaml:ro
       - ./tests/:/app/tests/:ro
     networks:
       - default
