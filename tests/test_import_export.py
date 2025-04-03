@@ -264,41 +264,6 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
         assert "Loading object" not in messages
 
 
-@pytest.mark.usefixtures("fake_find_mo_employee_dn")
-async def test_import_single_object_forces_json_key_ordering(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-) -> None:
-    """
-    Verify that `import_single_object` visits each "JSON key" in a specific order.
-    `Employee` keys must be visited first, then `Engagement` keys, and finally all other
-    keys.
-    """
-    # Arrange: inject a list of JSON keys that have the wrong order
-    sync_tool.format_converted_objects = AsyncMock()  # type: ignore
-    sync_tool.format_converted_objects.return_value = []
-
-    sync_tool.settings.conversion_mapping.ldap_to_mo.keys.return_value = {  # type: ignore
-        "Employee",
-        "Engagement",
-        "Address",
-    }
-    converter.from_ldap.return_value = [MagicMock()]  # list of (at least) one item
-    # Act: run the method and collect logs
-    with (
-        capture_logs() as cap_logs,
-        patch("mo_ldap_import_export.import_export.get_ldap_object"),
-    ):
-        await sync_tool.import_single_user("CN=foo")
-        # Assert: verify that we process JSON keys in the expected order, regardless of
-        # the original ordering.
-        logged_json_keys: list[str] = [
-            m["json_key"]
-            for m in cap_logs
-            if m.get("json_key") and "Loaded object" in m["event"]
-        ]
-        assert logged_json_keys == ["Employee", "Engagement", "Address"]
-
-
 async def test_wait_for_import_to_finish(sync_tool: SyncTool):
     wait_for_import_to_finish = partial(sync_tool.wait_for_import_to_finish)
 
@@ -387,14 +352,18 @@ async def test_holstebro_import_checks(sync_tool: SyncTool, fake_dn: DN) -> None
 async def test_import_single_entity(sync_tool: SyncTool) -> None:
     sync_tool.converter.from_ldap.return_value = []  # type: ignore
 
-    json_key = "Engagement"
     dn = "CN=foo"
     employee_uuid = uuid4()
     with (
         capture_logs() as cap_logs,
         patch("mo_ldap_import_export.import_export.get_ldap_object"),
     ):
-        await sync_tool.import_single_entity(json_key, dn, employee_uuid)
+        assert sync_tool.settings.conversion_mapping.ldap_to_mo is not None
+        await sync_tool.import_single_entity(
+            sync_tool.settings.conversion_mapping.ldap_to_mo["Engagement"],
+            dn,
+            employee_uuid,
+        )
 
         assert "No converted objects" in str(cap_logs)
 

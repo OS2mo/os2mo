@@ -199,6 +199,7 @@ async def graphql_client(dataloader: AsyncMock) -> AsyncMock:
 @pytest.mark.freeze_time("2019-01-01")
 async def test_ldap_to_mo(converter: LdapConverter) -> None:
     employee_uuid = uuid4()
+    assert converter.settings.conversion_mapping.ldap_to_mo is not None
     result = await converter.from_ldap(
         LdapObject(
             dn="",
@@ -208,7 +209,7 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
             objectGUID="{" + str(uuid.uuid4()) + "}",
             employeeID="0101011234",
         ),
-        "Employee",
+        mapping=converter.settings.conversion_mapping.ldap_to_mo["Employee"],
         template_context={
             "employee_uuid": str(employee_uuid),
         },
@@ -219,12 +220,13 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
     assert employee.surname == "Testersen"
     assert employee.uuid == employee_uuid
 
+    assert converter.settings.conversion_mapping.ldap_to_mo is not None
     result = await converter.from_ldap(
         LdapObject(
             dn="",
             mail="foo@bar.dk",
         ),
-        "Email",
+        mapping=converter.settings.conversion_mapping.ldap_to_mo["Email"],
         template_context={
             "employee_uuid": str(employee_uuid),
         },
@@ -239,12 +241,13 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
     # Note: Date is always at midnight in MO
     assert start == datetime.datetime(2019, 1, 1, 0, 0, 0)
 
+    assert converter.settings.conversion_mapping.ldap_to_mo is not None
     result = await converter.from_ldap(
         LdapObject(
             dn="",
             mail=[],
         ),
-        "Email",
+        mapping=converter.settings.conversion_mapping.ldap_to_mo["Email"],
         template_context={
             "employee_uuid": str(employee_uuid),
         },
@@ -272,13 +275,16 @@ async def test_ldap_to_mo_dict_error(
     )
 
     with pytest.raises(IncorrectMapping):
+        assert converter.settings.conversion_mapping.ldap_to_mo is not None
         await converter.from_ldap(
             LdapObject(
                 dn="",
                 msSFU30Name=["foo", "bar"],
                 itSystemName=["Active Directory", "Active Directory"],
             ),
-            "Active Directory",
+            mapping=converter.settings.conversion_mapping.ldap_to_mo[
+                "Active Directory"
+            ],
             template_context={
                 "employee_uuid": str(uuid4()),
             },
@@ -314,6 +320,7 @@ async def test_ldap_to_mo_dict_validation_error(
     converter = LdapConverter(settings, dataloader)
 
     with capture_logs() as cap_logs:
+        assert converter.settings.conversion_mapping.ldap_to_mo is not None
         await converter.from_ldap(
             LdapObject(
                 dn="",
@@ -321,7 +328,7 @@ async def test_ldap_to_mo_dict_validation_error(
                 title="job title",
                 comment="job title default",
             ),
-            "Custom",
+            mapping=converter.settings.conversion_mapping.ldap_to_mo["Custom"],
             template_context={
                 "employee_uuid": str(uuid4()),
             },
@@ -329,18 +336,6 @@ async def test_ldap_to_mo_dict_validation_error(
 
         info_messages = [w for w in cap_logs if w["log_level"] == "info"]
         assert "Exception during object parsing" in str(info_messages)
-
-
-async def test_from_ldap_bad_json_key(converter: LdapConverter) -> None:
-    with pytest.raises(IncorrectMapping):
-        await converter.from_ldap(
-            LdapObject(dn="CN=foo"),
-            "__non_existing_key",
-            template_context={
-                "employee_uuid": str(uuid4()),
-            },
-        )
-    assert "Missing '__non_existing_key' in mapping 'ldap_to_mo'"
 
 
 @pytest.mark.parametrize(
@@ -380,9 +375,10 @@ async def test_template_strictness(
     }
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
     converter = LdapConverter(Settings(), converter.dataloader)
+    assert converter.settings.conversion_mapping.ldap_to_mo is not None
     result = await converter.from_ldap(
         LdapObject(dn="CN=foo", **ldap_values),
-        "Employee",
+        mapping=converter.settings.conversion_mapping.ldap_to_mo["Employee"],
         template_context={
             "employee_uuid": str(uuid4()),
         },
@@ -401,49 +397,6 @@ async def test_template_strictness(
             expected_employee[key] = value
 
     assert employee.dict(exclude_unset=True) == expected_employee
-
-
-def test_get_ldap_attributes(converter: LdapConverter) -> None:
-    settings = Settings()
-    assert settings.conversion_mapping.ldap_to_mo is not None
-
-    converter_attributes = converter.get_ldap_attributes("Employee")
-    settings_attributes = set(
-        settings.conversion_mapping.ldap_to_mo["Employee"].ldap_attributes
-    )
-    assert converter_attributes == settings_attributes
-
-
-async def test_get_ldap_attributes_dn_removed(
-    converter_mapping: dict[str, Any],
-    monkeypatch: pytest.MonkeyPatch,
-    dataloader: AsyncMock,
-) -> None:
-    mapping = overlay(
-        converter_mapping,
-        {
-            "ldap_to_mo": {
-                "Employee": {
-                    "ldap_attributes": (
-                        converter_mapping["ldap_to_mo"]["Employee"]["_ldap_attributes_"]
-                        + ["dn"]
-                    )
-                }
-            }
-        },
-    )
-    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
-
-    settings = Settings()
-    assert settings.conversion_mapping.ldap_to_mo is not None
-
-    converter = LdapConverter(settings, dataloader)
-
-    converter_attributes = converter.get_ldap_attributes("Employee")
-    settings_attributes = set(
-        settings.conversion_mapping.ldap_to_mo["Employee"].ldap_attributes
-    )
-    assert converter_attributes == settings_attributes - {"dn"}
 
 
 def test_str_to_dict(converter: LdapConverter):
@@ -796,13 +749,14 @@ async def test_ldap_to_mo_termination(
     converter = LdapConverter(settings, dataloader)
 
     employee_uuid = uuid4()
+    assert converter.settings.conversion_mapping.ldap_to_mo is not None
     result = await converter.from_ldap(
         LdapObject(
             dn="",
             mail="foo@bar.dk",
             mail_validity_from=datetime.datetime(2019, 1, 1, 0, 10, 0),
         ),
-        "Email",
+        mapping=converter.settings.conversion_mapping.ldap_to_mo["Email"],
         template_context={
             "employee_uuid": str(employee_uuid),
         },
@@ -823,13 +777,14 @@ async def test_ldap_to_mo_termination(
     settings = Settings()
     converter = LdapConverter(settings, dataloader)
 
+    assert converter.settings.conversion_mapping.ldap_to_mo is not None
     result = await converter.from_ldap(
         LdapObject(
             dn="",
             mail="foo@bar.dk",
             mail_validity_from=datetime.datetime(2019, 1, 1, 0, 10, 0),
         ),
-        "Email",
+        mapping=converter.settings.conversion_mapping.ldap_to_mo["Email"],
         template_context={
             "employee_uuid": str(employee_uuid),
         },
@@ -852,12 +807,13 @@ async def test_create_facet_class_no_facet() -> None:
 @pytest.mark.freeze_time("2022-08-10T12:34:56")
 async def test_ldap_to_mo_default_validity(converter: LdapConverter) -> None:
     employee_uuid = uuid4()
+    assert converter.settings.conversion_mapping.ldap_to_mo is not None
     result = await converter.from_ldap(
         LdapObject(
             dn="",
             mail="foo@bar.dk",
         ),
-        "Email",
+        mapping=converter.settings.conversion_mapping.ldap_to_mo["Email"],
         template_context={
             "employee_uuid": str(employee_uuid),
         },

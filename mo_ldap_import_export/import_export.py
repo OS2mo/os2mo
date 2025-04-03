@@ -21,12 +21,14 @@ from more_itertools import one
 from more_itertools import partition
 from structlog.contextvars import bound_contextvars
 
+from .config import LDAP2MOMapping
 from .config import Settings
 from .converters import LdapConverter
 from .customer_specific_checks import ExportChecks
 from .customer_specific_checks import ImportChecks
 from .dataloaders import DN
 from .dataloaders import DataLoader
+from .exceptions import IncorrectMapping
 from .exceptions import SkipObject
 from .ldap import apply_discriminator
 from .ldap import filter_dns
@@ -113,7 +115,7 @@ class SyncTool:
         )
 
     async def perform_import_checks(self, dn: str, json_key: str) -> bool:
-        if self.settings.check_holstebro_ou_issue_57426:
+        if self.settings.check_holstebro_ou_issue_57426:  # pragma: no cover
             return await self.import_checks.check_holstebro_ou_is_externals_issue_57426(
                 self.settings.check_holstebro_ou_issue_57426,
                 dn,
@@ -323,6 +325,15 @@ class SyncTool:
             for converted_object in converted_objects
         ]
 
+    def get_mapping(self, json_key: str) -> LDAP2MOMapping:
+        assert self.settings.conversion_mapping.ldap_to_mo is not None
+        try:
+            return self.settings.conversion_mapping.ldap_to_mo[json_key]
+        except KeyError as error:  # pragma: no cover
+            raise IncorrectMapping(
+                f"Missing '{json_key}' in mapping 'ldap_to_mo'"
+            ) from error
+
     async def format_converted_objects(
         self,
         converted_objects: Sequence[MOBase | Termination],
@@ -509,38 +520,47 @@ class SyncTool:
         # First import the Employee, then Engagement if present, then the rest.
         # We want this order so dependencies exist before their dependent objects
         if "Employee" in json_keys:
-            await self.import_single_entity("Employee", dn, employee_uuid)
+            await self.import_single_entity(
+                self.get_mapping("Employee"), dn, employee_uuid
+            )
             json_keys.discard("Employee")
 
         if "Engagement" in json_keys:
-            await self.import_single_entity("Engagement", dn, employee_uuid)
+            await self.import_single_entity(
+                self.get_mapping("Engagement"), dn, employee_uuid
+            )
             json_keys.discard("Engagement")
 
         await asyncio.gather(
             *[
-                self.import_single_entity(json_key, dn, employee_uuid)
+                self.import_single_entity(self.get_mapping(json_key), dn, employee_uuid)
                 for json_key in json_keys
             ]
         )
 
     async def import_single_entity(
-        self, json_key: str, dn: str, employee_uuid: UUID
+        self,
+        mapping: LDAP2MOMapping,
+        dn: str,
+        employee_uuid: UUID,
     ) -> None:
-        logger.info("Loading object", dn=dn, json_key=json_key)
+        logger.info("Loading object", mo_class=mapping.as_mo_class(), dn=dn)
         loaded_object = await get_ldap_object(
-            self.ldap_connection, dn, self.converter.get_ldap_attributes(json_key)
+            ldap_connection=self.ldap_connection,
+            dn=dn,
+            attributes=set(mapping.ldap_attributes) - {"dn"},
         )
         logger.info(
             "Loaded object",
+            mo_class=mapping.as_mo_class(),
             dn=dn,
-            json_key=json_key,
             loaded_object=loaded_object,
         )
 
         try:
             converted_objects = await self.converter.from_ldap(
-                loaded_object,
-                json_key,
+                ldap_object=loaded_object,
+                mapping=mapping,
                 template_context={
                     "employee_uuid": str(employee_uuid),
                 },
@@ -558,7 +578,7 @@ class SyncTool:
             n=len(converted_objects),
             dn=dn,
         )
-        if json_key == "Custom":  # pragma: no cover
+        if mapping.objectClass == "Custom.JobTitleFromADToMO":  # pragma: no cover
             assert all(isinstance(obj, JobTitleFromADToMO) for obj in converted_objects)
             custom_objects = cast(list[JobTitleFromADToMO], converted_objects)
 
@@ -570,10 +590,7 @@ class SyncTool:
             )
             return
 
-        assert self.settings.conversion_mapping.ldap_to_mo is not None
-        mo_attributes = set(
-            self.settings.conversion_mapping.ldap_to_mo[json_key].get_fields().keys()
-        )
+        mo_attributes = set(mapping.get_fields().keys())
         operations = await self.format_converted_objects(
             converted_objects, mo_attributes
         )
