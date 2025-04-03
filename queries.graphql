@@ -224,6 +224,12 @@ mutation org_unit_create($input: OrganisationUnitCreateInput!) {
   }
 }
 
+mutation org_unit_update($input: OrganisationUnitUpdateInput!) {
+  org_unit_update(input: $input) {
+    uuid
+  }
+}
+
 query read_engagements(
   $uuids: [UUID!]!
   $from_date: DateTime

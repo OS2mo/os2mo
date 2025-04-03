@@ -56,6 +56,7 @@ from .input_types import ITUserUpdateInput
 from .input_types import ManagerCreateInput
 from .input_types import OrganisationUnitCreateInput
 from .input_types import OrganisationUnitFilter
+from .input_types import OrganisationUnitUpdateInput
 from .input_types import OrgUnitsboundmanagerfilter
 from .ituser_create import ItuserCreate
 from .ituser_create import ItuserCreateItuserCreate
@@ -69,6 +70,8 @@ from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefreshEngagementRefresh
 from .org_unit_refresh import OrgUnitRefresh
 from .org_unit_refresh import OrgUnitRefreshOrgUnitRefresh
+from .org_unit_update import OrgUnitUpdate
+from .org_unit_update import OrgUnitUpdateOrgUnitUpdate
 from .read_address_relation_uuids import ReadAddressRelationUuids
 from .read_address_relation_uuids import ReadAddressRelationUuidsAddresses
 from .read_address_uuid import ReadAddressUuid
@@ -610,6 +613,23 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return OrgUnitCreate.parse_obj(data).org_unit_create
+
+    async def org_unit_update(
+        self, input: OrganisationUnitUpdateInput
+    ) -> OrgUnitUpdateOrgUnitUpdate:
+        query = gql(
+            """
+            mutation org_unit_update($input: OrganisationUnitUpdateInput!) {
+              org_unit_update(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return OrgUnitUpdate.parse_obj(data).org_unit_update
 
     async def read_engagements(
         self,
