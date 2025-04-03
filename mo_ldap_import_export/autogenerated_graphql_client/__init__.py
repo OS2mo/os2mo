@@ -205,6 +205,8 @@ from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefreshEngagementRefresh
 from .org_unit_refresh import OrgUnitRefresh
 from .org_unit_refresh import OrgUnitRefreshOrgUnitRefresh
+from .org_unit_terminate import OrgUnitTerminate
+from .org_unit_terminate import OrgUnitTerminateOrgUnitTerminate
 from .org_unit_update import OrgUnitUpdate
 from .org_unit_update import OrgUnitUpdateOrgUnitUpdate
 from .read_address_relation_uuids import ReadAddressRelationUuids
@@ -527,6 +529,8 @@ __all__ = [
     "OrgUnitEngagementsRefreshEngagementRefresh",
     "OrgUnitRefresh",
     "OrgUnitRefreshOrgUnitRefresh",
+    "OrgUnitTerminate",
+    "OrgUnitTerminateOrgUnitTerminate",
     "OrgUnitUpdate",
     "OrgUnitUpdateOrgUnitUpdate",
     "OrgUnitsboundaddressfilter",
