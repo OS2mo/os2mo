@@ -8,6 +8,7 @@ import pydantic
 import structlog
 from ldap3.utils.ciDict import CaseInsensitiveDict
 
+from .config import LDAP2MOMapping
 from .config import Settings
 from .config import get_required_attributes
 from .dataloaders import DataLoader
@@ -28,15 +29,6 @@ class LdapConverter:
         from .environments import construct_environment
 
         self.environment = construct_environment(self.settings, self.dataloader)
-
-    def get_ldap_attributes(self, json_key) -> set[str]:
-        assert self.settings.conversion_mapping.ldap_to_mo is not None
-        ldap_attributes = set(
-            self.settings.conversion_mapping.ldap_to_mo[json_key].ldap_attributes
-        )
-        # "dn" is the key which all LDAP objects have, not an attribute.
-        ldap_attributes.discard("dn")
-        return ldap_attributes
 
     @staticmethod
     def str_to_dict(text):
@@ -73,7 +65,7 @@ class LdapConverter:
     async def from_ldap(
         self,
         ldap_object: LdapObject,
-        json_key: str,
+        mapping: LDAP2MOMapping,
         template_context: dict[str, Any],
     ) -> list[MOBase | Termination]:
         # This is how many MO objects we need to return - a MO object can have only
@@ -97,15 +89,6 @@ class LdapConverter:
                 "ldap": ldap_dict,
                 **template_context,
             }
-            try:
-                assert self.settings.conversion_mapping.ldap_to_mo is not None
-                object_mapping = self.settings.conversion_mapping.ldap_to_mo[
-                    json_key
-                ].get_fields()
-            except KeyError as error:
-                raise IncorrectMapping(
-                    f"Missing '{json_key}' in mapping 'ldap_to_mo'"
-                ) from error
 
             async def render_template(
                 field_name: str, template_str: str, context: dict[str, Any]
@@ -128,22 +111,18 @@ class LdapConverter:
                     try:
                         value = self.str_to_dict(value)
                     except JSONDecodeError as error:
-                        error_string = f"Could not convert {value} in {json_key}['{field_name}'] to dict (context={context!r})"
+                        error_string = f"Could not convert {value} in '{field_name}' to dict (context={context!r})"
                         raise IncorrectMapping(error_string) from error
                 return value
 
             # TODO: asyncio.gather this for future dataloader bulking
+            mo_class = mapping.as_mo_class()
             mo_dict = {
                 mo_field_name: await render_template(
                     mo_field_name, template_str, context
                 )
-                for mo_field_name, template_str in object_mapping.items()
+                for mo_field_name, template_str in mapping.get_fields().items()
             }
-            assert self.settings.conversion_mapping.ldap_to_mo is not None
-            mo_class = self.settings.conversion_mapping.ldap_to_mo[
-                json_key
-            ].as_mo_class()
-
             if mo_dict.get("_terminate_"):
                 # TODO: Convert this to pydantic check
                 assert "uuid" in mo_dict, "UUID must be set if _terminate_ is set"
