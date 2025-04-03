@@ -15,6 +15,8 @@ from ._testing__ituser_read import TestingItuserRead
 from ._testing__ituser_read import TestingItuserReadItusers
 from ._testing__manager_create import TestingManagerCreate
 from ._testing__manager_create import TestingManagerCreateManagerCreate
+from ._testing__org_unit_read import TestingOrgUnitRead
+from ._testing__org_unit_read import TestingOrgUnitReadOrgUnits
 from .address_create import AddressCreate
 from .address_create import AddressCreateAddressCreate
 from .address_terminate import AddressTerminate
@@ -53,6 +55,7 @@ from .input_types import ITUserTerminateInput
 from .input_types import ITUserUpdateInput
 from .input_types import ManagerCreateInput
 from .input_types import OrganisationUnitCreateInput
+from .input_types import OrganisationUnitFilter
 from .input_types import OrgUnitsboundmanagerfilter
 from .ituser_create import ItuserCreate
 from .ituser_create import ItuserCreateItuserCreate
@@ -294,6 +297,36 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingItuserRead.parse_obj(data).itusers
+
+    async def _testing__org_unit_read(
+        self, filter: OrganisationUnitFilter | None | UnsetType = UNSET
+    ) -> TestingOrgUnitReadOrgUnits:
+        query = gql(
+            """
+            query __testing__org_unit_read($filter: OrganisationUnitFilter) {
+              org_units(filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    name
+                    unit_type {
+                      user_key
+                    }
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingOrgUnitRead.parse_obj(data).org_units
 
     async def _testing__itsystem_create(
         self, input: ITSystemCreateInput

@@ -97,6 +97,25 @@ query __testing__ituser_read($filter: ITUserFilter) {
   }
 }
 
+query __testing__org_unit_read($filter: OrganisationUnitFilter) {
+  org_units(filter: $filter) {
+    objects {
+      validities {
+        uuid
+        user_key
+        name
+        unit_type {
+          user_key
+        }
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
 mutation __testing__itsystem_create($input: ITSystemCreateInput!) {
   itsystem_create(input: $input) {
     uuid
