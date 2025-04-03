@@ -353,6 +353,9 @@ query read_org_units(
         uuid
         user_key
         name
+        parent {
+          uuid
+        }
         unit_type {
           uuid
         }

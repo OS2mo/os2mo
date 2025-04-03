@@ -827,6 +827,9 @@ class GraphQLClient(AsyncBaseClient):
                     uuid
                     user_key
                     name
+                    parent {
+                      uuid
+                    }
                     unit_type {
                       uuid
                     }

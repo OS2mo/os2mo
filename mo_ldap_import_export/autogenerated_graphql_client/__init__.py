@@ -406,6 +406,7 @@ from .read_org_units import ReadOrgUnits
 from .read_org_units import ReadOrgUnitsOrgUnits
 from .read_org_units import ReadOrgUnitsOrgUnitsObjects
 from .read_org_units import ReadOrgUnitsOrgUnitsObjectsValidities
+from .read_org_units import ReadOrgUnitsOrgUnitsObjectsValiditiesParent
 from .read_org_units import ReadOrgUnitsOrgUnitsObjectsValiditiesUnitType
 from .read_org_units import ReadOrgUnitsOrgUnitsObjectsValiditiesValidity
 from .read_person_uuid import ReadPersonUuid
@@ -698,6 +699,7 @@ __all__ = [
     "ReadOrgUnitsOrgUnits",
     "ReadOrgUnitsOrgUnitsObjects",
     "ReadOrgUnitsOrgUnitsObjectsValidities",
+    "ReadOrgUnitsOrgUnitsObjectsValiditiesParent",
     "ReadOrgUnitsOrgUnitsObjectsValiditiesUnitType",
     "ReadOrgUnitsOrgUnitsObjectsValiditiesValidity",
     "ReadPersonUuid",
