@@ -31,7 +31,8 @@ LDAP integration emits events in the namespace `"ldap"`, but also listens for
 events in the `"mo"` namespace.
 
 Additionally, listeners have a `user_key` which allows integrations to create
-multiple listeners for the same namespace/routing key combination.
+multiple listeners for the same namespace/routing key combination. The user_key
+MUST be unique for each listener in an integration.
 
 
 ### Events
@@ -47,7 +48,7 @@ The default priority is `10`, and most of the time there is no reason to change
 that. A priority of `1` is for the highest priority events, such as events
 requested by an end user action.
 
-The subject is an identifier for of the object that might have changed.
+The subject is a stable identifier for of the object that might have changed.
 
 All events MUST be acknowledged by the listening integration after they have
 been processed.
@@ -57,8 +58,8 @@ Similar events are deduplicated.
 
 ## OS2mo events
 
-Whenever an OS2mo object is registered or goes into or out of effect, an event
-is emitted.
+**Whenever an OS2mo object is registered or goes into or out of effect, an event
+is emitted.**
 
 Events for native objects in OS2mo are always emitted in the `mo` namespace.
 
@@ -116,7 +117,7 @@ To get an event for processing, you MUST use the `event_fetch` query. You
 MUST do this repeatedly, forever, for all your listeners.
 
 ```
-query GetEvent($listener_uuid: UUID!) {
+query FetchEvent($listener_uuid: UUID!) {
   event_fetch(filter: { listener: $listener_uuid }) {
     uuid
     subject
@@ -135,8 +136,8 @@ mutation Ack($token: EventToken!) {
 }
 ```
 
-If you do not receive an event, you SHOULD sleep to not cause excessive load on
-OS2mo.
+If you do not receive an event, you SHOULD wait before fetching again to avoid
+causing excessive load on OS2mo.
 
 
 ## Maintenance

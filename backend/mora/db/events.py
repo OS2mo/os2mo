@@ -3,6 +3,7 @@
 from datetime import datetime
 from uuid import UUID
 
+import sqlalchemy
 from prometheus_client import Counter
 from prometheus_client import Gauge
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -42,8 +43,7 @@ class Listener(Base):
             "user_key",
             "owner",
             "namespace",
-            "routing_key",
-            name="uq_user_key_owner_namespace_routing_key",
+            name="uq_user_key_owner_namespace",
         ),
     )
 
@@ -64,8 +64,7 @@ class Event(Base):
     # `event_fetch`.
     last_tried: Mapped[datetime]
     silenced: Mapped[bool]
-    # created_at is not used for anything atm. other than debugging. We might
-    # expose it as a metric later.
+    # created_at - just for debugging and metrics for now.
     created_at: Mapped[datetime]
 
     listener_fk: Mapped[UUID] = mapped_column(ForeignKey("listener.pk"))
@@ -126,6 +125,7 @@ async def add_event(
                 # Deduplicate priorities. This deduplicates such that we choose
                 # the highest priority event and discard the other.
                 "priority": text("least(excluded.priority, event.priority)"),
+                # TODO reset fetched count?
             },
         )
     )
@@ -138,43 +138,72 @@ async def add_event(
 def setup_event_metrics(
     sessionmaker: async_sessionmaker, instrumentator: Instrumentator
 ) -> None:
-    silenced_events = Gauge(
-        "os2mo_event_silenced",
-        "Silenced events",
-        ["owner", "user_key", "namespace", "routing_key"],
+    events = Gauge(
+        "os2mo_events",
+        "Events",
+        ["owner", "user_key", "namespace", "routing_key", "silenced"],
     )
 
-    active_events = Gauge(
-        "os2mo_event_active",
-        "Active events",
-        ["owner", "user_key", "namespace", "routing_key"],
+    old_events = Gauge(
+        "os2mo_event_oldest",
+        "Timestamp of oldest event per listener",
+        ["owner", "user_key", "namespace", "routing_key", "silenced"],
     )
 
-    def count_events(gauge: Gauge, silenced: bool):
-        async def counter(_) -> None:
-            async with sessionmaker() as session, session.begin():
-                for listener, count in (
-                    await session.execute(
-                        select(Listener, func.count(Event.pk))
-                        .outerjoin(
-                            Event,
-                            (Listener.pk == Event.listener_fk)
-                            & (Event.silenced == silenced),
-                        )
-                        .group_by(Listener.pk)
-                    )
-                ).all():
-                    gauge.labels(
+    async def oldest_event_per_listener(_) -> None:
+        async with sessionmaker() as session, session.begin():
+            query = (
+                select(
+                    Listener,
+                    func.min(sqlalchemy.case((Event.silenced == sqlalchemy.false(), Event.created_at))),
+                    func.min(sqlalchemy.case((Event.silenced == sqlalchemy.true(), Event.created_at))),
+                )
+                .join(Listener.events)
+                .group_by(Listener.pk)
+            )
+
+            result = await session.execute(query)
+            for listener, active, silenced in result.all():
+                if active is not None:
+                    old_events.labels(
                         owner=listener.owner,
                         user_key=listener.user_key,
                         namespace=listener.namespace,
                         routing_key=listener.routing_key,
-                    ).set(count)
+                        silenced="false",
+                    ).set(int(active.timestamp()))
+                if silenced is not None:
+                    old_events.labels(
+                        owner=listener.owner,
+                        user_key=listener.user_key,
+                        namespace=listener.namespace,
+                        routing_key=listener.routing_key,
+                        silenced="true",
+                    ).set(int(silenced.timestamp()))
 
-        return counter
+    async def count_events(_) -> None:
+        async with sessionmaker() as session, session.begin():
+            query = (select(Listener, func.count(Event.pk), Event.silenced)
+                    .join(
+                        Event,
+                        Listener.pk == Event.listener_fk,
+                    )
+                    .group_by(Listener.pk, Event.silenced)
+                )
 
-    instrumentator.add(count_events(silenced_events, silenced=True))
-    instrumentator.add(count_events(active_events, silenced=False))
+            result = await session.execute(query)
+
+            for listener, count, silenced in result.all():
+                events.labels(
+                    owner=listener.owner,
+                    user_key=listener.user_key,
+                    namespace=listener.namespace,
+                    routing_key=listener.routing_key,
+                    silenced=str(silenced).lower(),  # prometheus does not have booleans
+                ).set(count)
+
+    instrumentator.add(oldest_event_per_listener)
+    instrumentator.add(count_events)
 
 
 acknowledged_events = Counter(

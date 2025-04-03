@@ -5,6 +5,7 @@ from typing import Annotated
 from typing import Any
 from uuid import UUID
 from uuid import uuid4
+from textwrap import dedent
 
 import pydantic
 import strawberry
@@ -774,14 +775,20 @@ class EventSendInput:
 
 
 @strawberry.input(
-    description="Silence an event. Silenced events are not received with event_fetch."
+    description=dedent(
+        """\
+        Silence an event.
+
+        Silenced events are not received with `event_fetch`.
+
+        You cannot use a generic filter to silence, as it might impact more events than intended.
+
+        Use the `events` or `event_listeners` collections to find the event uuids you want to silence.
+        """
+    ),
 )
 class EventSilenceInput:
     uuid: UUID = strawberry.field(description="UUID of the event to silence")
-
-
-# TODO
-# EventUnsilenceInput = get_bound_filter(FullEventFilter, frozenset({"silenced"}))
 
 
 @strawberry.input(description="Unsilence all matching events.")
@@ -793,3 +800,4 @@ class EventUnsilenceInput:
     )
     subjects: list[str] | None = None
     priorities: list[int] | None = None
+    # nedarv fra full event, og gør silenced private

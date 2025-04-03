@@ -1,5 +1,3 @@
-# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
-# SPDX-License-Identifier: MPL-2.0
 from uuid import uuid4
 from uuid import UUID
 from typing import Any
@@ -10,9 +8,9 @@ from tests.conftest import GraphAPIPost
 from tests.conftest import GQLResponse
 
 
-def declare_listener(
+def declare_listener_raw(
     graphapi_post: GraphAPIPost, namespace: str, user_key: str, routing_key: str
-) -> UUID:
+) -> GQLResponse:
     query = """
       mutation DeclareListener($namespace: String!, $user_key: String!, $routing_key: String!) {
         event_listener_declare(
@@ -22,7 +20,7 @@ def declare_listener(
         }
       }
     """
-    response = graphapi_post(
+    return graphapi_post(
         query,
         variables={
             "namespace": namespace,
@@ -30,6 +28,12 @@ def declare_listener(
             "routing_key": routing_key,
         },
     )
+
+
+def declare_listener(
+    graphapi_post: GraphAPIPost, namespace: str, user_key: str, routing_key: str
+) -> UUID:
+    response = declare_listener_raw(graphapi_post, namespace, user_key, routing_key)
     assert response.errors is None
     assert response.data
     return UUID(response.data["event_listener_declare"]["uuid"])
@@ -199,11 +203,12 @@ def test_both_listeners_receive_event(graphapi_post: GraphAPIPost) -> None:
     seen_events = set()
     for listener in (listener1_uuid, listener2_uuid):
         subjects = ["alice", "bob"]
-        event = fetch_event(graphapi_post, listener)
-        assert event["uuid"] not in seen_events
-        seen_events.add(event["uuid"])
-        assert event["subject"] in subjects
-        subjects.remove(event["subject"])
+        for _ in range(len(subjects)):
+            event = fetch_event(graphapi_post, listener)
+            assert event["uuid"] not in seen_events
+            seen_events.add(event["uuid"])
+            assert event["subject"] in subjects
+            subjects.remove(event["subject"])
 
 
 @pytest.mark.integration_test
@@ -211,7 +216,7 @@ def test_both_listeners_receive_event(graphapi_post: GraphAPIPost) -> None:
 def test_different_routing_keys(graphapi_post: GraphAPIPost) -> None:
     namespace= "ns"
     listener1_uuid = declare_listener(graphapi_post, namespace, "uk1", "employee")
-    listener2_uuid = declare_listener(graphapi_post, namespace, "uk1", "person")
+    listener2_uuid = declare_listener(graphapi_post, namespace, "uk2", "person")
     send_event(graphapi_post, namespace, "person", "alice")
     listeners = get_listeners(graphapi_post)
     assert len(listeners) == 2
@@ -264,6 +269,7 @@ def test_acknowledgement_with_new_event_sent_while_processing(
     # the meantime.
     ack_event(graphapi_post, event["token"])
 
+    # You can receive events instantly, when they are resubmitted in this case.
     event = fetch_event(graphapi_post, listener)
     assert event["subject"] == "alice"
 
@@ -354,12 +360,12 @@ def test_event_priorities(graphapi_post: GraphAPIPost) -> None:
     send_event(graphapi_post, "ns", "rk", f"bob", priority=4)
 
     subjects = set()
-    for _ in range(6):
+    for _ in range(7):
         event = fetch_event(graphapi_post, listener)
         subjects.add(event["subject"])
 
     assert "bob" in subjects, (
-        "Did this test fail on you with unrelated code changes? Buy a lotto ticket. There is only a 0.001% chance of this happening if you didn't screw up."
+        "Did this test fail on you with unrelated code changes? Buy a lotto ticket. There is only a 0.0002% chance of this happening if you didn't screw up."
     )
 
 
@@ -482,6 +488,19 @@ def test_idempotent_listener_declare(graphapi_post: GraphAPIPost) -> None:
     assert one(actual_listener["events"])
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_listener_declare_duplicate_user_key(graphapi_post: GraphAPIPost) -> None:
+    namespace = "ns"
+    user_key = "us"
+    declare_listener(graphapi_post, namespace, user_key, "person")
+    r = declare_listener_raw(graphapi_post, namespace, user_key, "employee")
+    assert r.errors is not None
+    assert (
+        one(r.errors)["message"]
+        == "There already exists a listener with this user_key and a different routing_key"
+    )
+
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
@@ -503,7 +522,7 @@ def test_listeners_filter(graphapi_post: GraphAPIPost) -> None:
     rk1 = "rk1"
     rk2 = "rk2"
     declare_listener(graphapi_post, namespace, "uk", rk1)
-    declare_listener(graphapi_post, namespace, "uk", rk2)
+    declare_listener(graphapi_post, namespace, "uk2", rk2)
     send_event(graphapi_post, namespace, rk1, "alice", priority=7)
     send_event(graphapi_post, namespace, rk1, "bob")
     send_event(graphapi_post, namespace, rk2, "alice")

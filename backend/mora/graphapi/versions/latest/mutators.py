@@ -1547,7 +1547,7 @@ class Mutation:
 
             This operation is idempotent, so it can be called upon application startup.
 
-            Use different user_keys to listen for the same (namespace, routing_key) multiple times.
+            Use different user_keys to listen for the same (namespace, routing_key) multiple times. The user_key must be unique for each listener in your integration.
             """,
         ),
         permission_classes=[
@@ -1576,8 +1576,8 @@ class Mutation:
         listener = result.fetchone()
 
         if listener is None:
-            # With `on_conflict_do_nothing`, there is sadly no way to fetch the
-            # listener in the same call, so we need to fetch it in this case:
+            # This means that the listener already existed - it could still
+            # have a different routing_key.
             listener = await session.scalar(
                 select(db.Listener).where(
                     db.Listener.user_key == input.user_key,
@@ -1586,6 +1586,11 @@ class Mutation:
                     db.Listener.routing_key == input.routing_key,
                 )
             )
+
+            if listener is None:
+                # This means that the unique constraint was violated by a
+                # listener with a different routing_key.
+                raise ValueError("There already exists a listener with this user_key and a different routing_key")
 
         return Listener(
             uuid=listener.pk,
@@ -1697,7 +1702,12 @@ class Mutation:
             )
 
         if input.namespace == "mo":
-            raise ValueError('You are not allowed to send events in the "mo" namespace')
+            UUID(input.subject)
+
+        # TODO create namespace type in db
+        if len(input.subject) in (9, 10) and input.subject.isdigit():
+            get("datascanner://{input.subject}")
+            raise ValueError("Do not send CPR")
 
         session = info.context["session"]
         await add_event(

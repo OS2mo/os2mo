@@ -3,9 +3,7 @@
 import asyncio
 import random
 from base64 import b64decode, b64encode
-from datetime import datetime
 from textwrap import dedent
-from typing import Annotated
 from typing import Type
 from uuid import UUID
 
@@ -18,7 +16,6 @@ from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy import text
 from sqlalchemy import BinaryExpression
-from strawberry import UNSET
 from strawberry.types import Info
 
 from mora import db
@@ -67,7 +64,7 @@ class FullEventFilter:
     subjects: list[str] | None = None
     priorities: list[int] | None = None
     silenced: bool | None = strawberry.field(
-        default=UNSET,
+        default=None,
         description="Filter based on silence status.",
     )
 
@@ -97,7 +94,7 @@ async def full_event_resolver(
     if filter.priorities is not None:
         clauses.append(db.Event.priority.in_(filter.priorities))
 
-    if filter.silenced is not UNSET:
+    if filter.silenced is not None:
         clauses.append(db.Event.silenced == filter.silenced)
 
     query = (
@@ -111,7 +108,9 @@ async def full_event_resolver(
 
     if limit is not None:
         query = query.limit(limit)
-    # TODO: this is not actually stable as we don't use registration time.
+    # This doesn't actually work correctly. It is hard to do pagination
+    # correctly, so for now we just do this super naively. This resolver is
+    # only used by humans, not by integrations.
     query = query.offset(cursor.offset if cursor else 0)
 
     session = info.context["session"]
@@ -135,7 +134,7 @@ class Listener:
         description="Owner of the listener. Only the owner can fetch the listeners' events."
     )
     user_key: str = strawberry.field(
-        description="The user_key for a listener is a user-supplied identifier. It is useful when a consumer needs to listen to the same (namespace, routing_key) multiple times."
+        description="The user_key for a listener is a user-supplied identifier. It must be unique per namespace. It is useful when a consumer needs to listen to the same (namespace, routing_key) multiple times."
     )
     namespace: str = strawberry.field(
         description="""Listen for events sent in this namespace. OS2mo events are always in the namespace "mo", but other integrations can generate events in their own namespaces."""
@@ -168,7 +167,9 @@ async def listener_resolver(
 
     if limit is not None:
         query = query.limit(limit)
-    # TODO: this is not actually stable as we don't use registration time.
+    # This doesn't actually work correctly. It is hard to do pagination
+    # correctly, so for now we just do this super naively. This resolver is
+    # only used by humans, not by integrations.
     query = query.offset(cursor.offset if cursor else 0)
 
     session = info.context["session"]
@@ -291,35 +292,32 @@ async def event_resolver(
         db.Event.silenced == sqlalchemy.false(),
         # Make sure we do not spam the client with events it has already
         # tried but failed to acknowledge.
-        db.Event.last_tried < text("now() - interval '5 minutes'"),
+        # TODO max(30s, n)
+        db.Event.last_tried < text("now() - min(interval '2 seconds' ** fetched_count, '1 day')"),
     ]
     if random.random() < 0.15:
         # 15% of the time we return a random event instead of the highest
         # priority. Imagine a scenario, where it takes 10 minutes to process
         # each event, but the highest priority event fails. With this strategy,
         # we still get to process the queue eventually.
-        subquery = (
-            select(db.Event.pk)
-            .where(*where_clauses)
-            .order_by(func.random())
-            .limit(1)
-            .cte()
-        )
+        order_by = [func.random()]
     else:
-        subquery = (
-            select(db.Event.pk)
-            .where(*where_clauses)
-            .order_by(
-                db.Event.priority.asc(),
-                db.Event.last_tried.asc(),
-            )
-            .limit(1)
-            .cte()
-        )
+        order_by = [
+            db.Event.priority.asc(),
+            func.random(),
+            #db.Event.last_tried.asc(),
+        ]
+    subquery = (
+        select(db.Event.pk)
+        .where(*where_clauses)
+        .order_by(*order_by)
+        .limit(1)
+        .cte()
+    )
     query = (
         update(db.Event)
         .where(db.Event.pk == subquery.c.pk)
-        .values(last_tried=text("now()"))
+        .values(last_tried=text("now()"), fetched_count=db.Event.fetched_count + 1)
         .returning(db.Event)
     )
     session = info.context["session"]

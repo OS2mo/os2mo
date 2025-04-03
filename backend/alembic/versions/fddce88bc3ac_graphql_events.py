@@ -28,16 +28,15 @@ def upgrade() -> None:
             primary_key=True,
             server_default=sa.text("uuid_generate_v4()"),
         ),
-        sa.Column("user_key", sa.String, nullable=False),
+        sa.Column("user_key", sa.String(length=255), nullable=False),
         sa.Column("owner", sa.Uuid, nullable=False),
-        sa.Column("namespace", sa.String, nullable=False),
-        sa.Column("routing_key", sa.String, nullable=False),
+        sa.Column("namespace", sa.String(length=255), nullable=False),
+        sa.Column("routing_key", sa.String(length=255), nullable=False),
         sa.UniqueConstraint(
             "user_key",
             "owner",
             "namespace",
-            "routing_key",
-            name="uq_user_key_owner_namespace_routing_key",
+            name="uq_user_key_owner_namespace",
         ),
     )
 
@@ -51,6 +50,7 @@ def upgrade() -> None:
         ),
         sa.Column("subject", sa.String, nullable=False),
         sa.Column("priority", sa.Integer, nullable=False),
+        # TODO move defaults here, trim add_event
         sa.Column("generation", sa.Uuid, nullable=False, server_default=sa.text("uuid_generate_v4()")),
         sa.Column("last_tried", sa.DateTime(timezone=True), nullable=False),
         sa.Column("silenced", sa.Boolean, nullable=False),
