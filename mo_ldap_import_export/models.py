@@ -69,6 +69,14 @@ class Employee(StrictBaseModel):
         return str(values["uuid"])
 
 
+class OrganisationUnit(StrictBaseModel):
+    uuid: UUID = Field(default_factory=uuid4)
+    user_key: str
+
+    name: str
+    org_unit_type: UUID
+
+
 class Engagement(StrictBaseModel):
     uuid: UUID = Field(default_factory=uuid4)
     user_key: str
@@ -128,7 +136,9 @@ class JobTitleFromADToMO(StrictBaseModel):
         extra = Extra.allow
 
 
-MOBase = Address | Employee | Engagement | ITUser | JobTitleFromADToMO
+MOBase = (
+    Address | Employee | Engagement | ITUser | JobTitleFromADToMO | OrganisationUnit
+)
 
 
 class Termination(StrictBaseModel):

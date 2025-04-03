@@ -47,7 +47,6 @@ from mo_ldap_import_export.utils import mo_today
     }
 )
 @pytest.mark.usefixtures("test_client")
-@pytest.mark.xfail(reason="settings invalid")
 @pytest.mark.xfail(reason="cannot create org-units yet")
 async def test_to_mo(
     graphql_client: GraphQLClient,
