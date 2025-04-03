@@ -25,7 +25,6 @@ from .types import DN
 from .types import LDAPUUID
 from .types import CPRNumber
 from .types import EmployeeUUID
-from .types import OrgUnitUUID
 
 logger = structlog.stdlib.get_logger()
 
@@ -71,9 +70,6 @@ class DataLoader:
 
         logger.info("No matching employee", dn=dn)
         return None
-
-    async def find_mo_org_unit_uuid(self, dn: DN) -> OrgUnitUUID | None:
-        return None  # TODO
 
     def extract_unique_ldap_uuids(self, it_users: list[ITUser]) -> set[LDAPUUID]:
         """

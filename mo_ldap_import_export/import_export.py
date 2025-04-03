@@ -560,20 +560,9 @@ class SyncTool:
             logger.info("import_single_org_unit called without mappings")
             return
 
-        # Get the org-units's UUID (if it exists)
-        org_unit_uuid = await self.dataloader.find_mo_org_unit_uuid(dn)
-        if org_unit_uuid is None:
-            org_unit_uuid = OrgUnitUUID(uuid4())
-            logger.info(
-                "Organisation unit not found in MO, generated UUID", org_unit_uuid=org_unit_uuid
-            )
-
-        template_context = {
-            "org_unit_uuid": str(org_unit_uuid),
-        }
         await asyncio.gather(
             *[
-                self.import_single_entity(mapping, dn, template_context)
+                self.import_single_entity(mapping, dn, template_context={})
                 for mapping in mappings.values()
             ]
         )

@@ -8,6 +8,7 @@ from typing import Any
 from typing import TypeVar
 from typing import cast
 from uuid import UUID
+from uuid import uuid4
 
 import structlog
 from fastapi.encoders import jsonable_encoder
@@ -642,6 +643,7 @@ def construct_default_environment() -> Environment:
 
     environment.globals["now"] = datetime.utcnow  # TODO: timezone-aware datetime
     environment.globals["skip_if_none"] = skip_if_none
+    environment.globals["uuid4"] = uuid4
 
     return environment
 
