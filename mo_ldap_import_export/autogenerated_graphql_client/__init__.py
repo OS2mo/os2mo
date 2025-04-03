@@ -394,6 +394,9 @@ from .read_org_unit_name import ReadOrgUnitName
 from .read_org_unit_name import ReadOrgUnitNameOrgUnits
 from .read_org_unit_name import ReadOrgUnitNameOrgUnitsObjects
 from .read_org_unit_name import ReadOrgUnitNameOrgUnitsObjectsCurrent
+from .read_org_unit_uuid import ReadOrgUnitUuid
+from .read_org_unit_uuid import ReadOrgUnitUuidOrgUnits
+from .read_org_unit_uuid import ReadOrgUnitUuidOrgUnitsObjects
 from .read_org_units import ReadOrgUnits
 from .read_org_units import ReadOrgUnitsOrgUnits
 from .read_org_units import ReadOrgUnitsOrgUnitsObjects
@@ -679,6 +682,9 @@ __all__ = [
     "ReadOrgUnitNameOrgUnits",
     "ReadOrgUnitNameOrgUnitsObjects",
     "ReadOrgUnitNameOrgUnitsObjectsCurrent",
+    "ReadOrgUnitUuid",
+    "ReadOrgUnitUuidOrgUnits",
+    "ReadOrgUnitUuidOrgUnitsObjects",
     "ReadOrgUnits",
     "ReadOrgUnitsOrgUnits",
     "ReadOrgUnitsOrgUnitsObjects",

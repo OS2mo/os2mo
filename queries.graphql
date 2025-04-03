@@ -656,6 +656,14 @@ query read_engagement_uuid($filter: EngagementFilter!) {
   }
 }
 
+query read_org_unit_uuid($filter: OrganisationUnitFilter!) {
+  org_units(filter: $filter) {
+    objects {
+      uuid
+    }
+  }
+}
+
 query read_person_uuid($filter: EmployeeFilter) {
   employees(filter: $filter) {
     objects {

@@ -145,6 +145,8 @@ from .read_org_unit_ancestors import ReadOrgUnitAncestors
 from .read_org_unit_ancestors import ReadOrgUnitAncestorsOrgUnits
 from .read_org_unit_name import ReadOrgUnitName
 from .read_org_unit_name import ReadOrgUnitNameOrgUnits
+from .read_org_unit_uuid import ReadOrgUnitUuid
+from .read_org_unit_uuid import ReadOrgUnitUuidOrgUnits
 from .read_org_units import ReadOrgUnits
 from .read_org_units import ReadOrgUnitsOrgUnits
 from .read_person_uuid import ReadPersonUuid
@@ -1349,6 +1351,25 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEngagementUuid.parse_obj(data).engagements
+
+    async def read_org_unit_uuid(
+        self, filter: OrganisationUnitFilter
+    ) -> ReadOrgUnitUuidOrgUnits:
+        query = gql(
+            """
+            query read_org_unit_uuid($filter: OrganisationUnitFilter!) {
+              org_units(filter: $filter) {
+                objects {
+                  uuid
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadOrgUnitUuid.parse_obj(data).org_units
 
     async def read_person_uuid(
         self, filter: EmployeeFilter | None | UnsetType = UNSET
