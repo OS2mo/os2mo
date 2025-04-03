@@ -134,7 +134,7 @@ def integration_test_environment_variables(monkeypatch: pytest.MonkeyPatch) -> N
     """
     monkeypatch.setenv("POLL_TIME", "1")  # faster tests
     monkeypatch.setenv("LDAP_SEARCH_BASE", "dc=magenta,dc=dk")
-    monkeypatch.setenv("LDAP_OUS_TO_SEARCH_IN", '["ou=os2mo,o=magenta"]')
+    monkeypatch.setenv("LDAP_OUS_TO_SEARCH_IN", '["o=magenta"]')
     monkeypatch.setenv("LDAP_OUS_TO_WRITE_TO", '[""]')
     monkeypatch.setenv("LDAP_OU_FOR_NEW_USERS", "ou=os2mo,o=magenta")
     monkeypatch.setenv("LDAP_OBJECT_CLASS", "inetOrgPerson")
