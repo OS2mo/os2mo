@@ -579,6 +579,12 @@ def skip_if_none(obj: T | None) -> T:
     return obj
 
 
+def requeue_if_none(obj: T | None) -> T:
+    if obj is None:
+        raise RequeueMessage("Requeueing: Object is None")
+    return obj
+
+
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
@@ -653,6 +659,7 @@ def construct_default_environment() -> Environment:
 
     environment.globals["now"] = datetime.utcnow  # TODO: timezone-aware datetime
     environment.globals["skip_if_none"] = skip_if_none
+    environment.globals["requeue_if_none"] = requeue_if_none
     environment.globals["uuid4"] = uuid4
 
     return environment
