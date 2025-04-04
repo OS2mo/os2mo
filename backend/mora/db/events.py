@@ -24,8 +24,8 @@ from sqlalchemy.dialects.postgresql import insert
 from ._common import Base
 
 
-class Listener(Base):
-    __tablename__ = "listener"
+class Namespace(Base):
+    __tablename__ = "event_namespace"
 
     pk: Mapped[UUID] = mapped_column(
         primary_key=True, server_default=text("uuid_generate_v4()")
@@ -34,6 +34,17 @@ class Listener(Base):
     # Most often, this is the integration UUID from Keycloak. It can be the
     # UUID of a user as well.
     owner: Mapped[UUID]
+    events: Mapped[list["Event"]] = relationship(back_populates="listener")
+
+
+
+class Listener(Base):
+    __tablename__ = "event_listener"
+
+    pk: Mapped[UUID] = mapped_column(
+        primary_key=True, server_default=text("uuid_generate_v4()")
+    )
+    user_key: Mapped[str]
     namespace: Mapped[str]
     routing_key: Mapped[str]
     events: Mapped[list["Event"]] = relationship(back_populates="listener")
@@ -63,8 +74,8 @@ class Event(Base):
     # last_tried is the last time the event was returned through a call to
     # `event_fetch`.
     last_tried: Mapped[datetime]
+    fetched_count: Mapped[int]
     silenced: Mapped[bool]
-    # created_at - just for debugging and metrics for now.
     created_at: Mapped[datetime]
 
     listener_fk: Mapped[UUID] = mapped_column(ForeignKey("listener.pk"))
@@ -91,24 +102,14 @@ async def add_event(
         insert(Event)
         .from_select(
             [
-                "pk",
                 "listener_fk",
                 "subject",
                 "priority",
-                "generation",
-                "last_tried",
-                "silenced",
-                "created_at",
             ],
             select(
-                text("uuid_generate_v4()"),  # pk
                 Listener.pk,
                 literal(subject),
                 literal(priority),
-                text("uuid_generate_v4()"),  #  generation
-                text("'1970-01-01'::timestamptz"),  # last_tried
-                text("false"),  # silenced
-                text("now()"),  # created_at
             ).where(Listener.pk.in_(matching_listeners)),
         )
         .on_conflict_do_update(
@@ -118,14 +119,15 @@ async def add_event(
                 # Updating `generation` ensures that clients won't miss an
                 # event in the case where a new event arrives while the client
                 # is already processing an event for the same subject (the
-                # generation is used for acknowledgement).
+                # generation is used for acknowledgement in EventToken).
                 "generation": text("uuid_generate_v4()"),
                 # Update `last_tried`  so the event is send without delay.
                 "last_tried": text("'1970-01-01'::timestamptz"),
                 # Deduplicate priorities. This deduplicates such that we choose
                 # the highest priority event and discard the other.
                 "priority": text("least(excluded.priority, event.priority)"),
-                # TODO reset fetched count?
+                # Reset `fetched_count`. New data, new me.
+                "fetched_count": text("0"),
             },
         )
     )

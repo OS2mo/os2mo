@@ -50,10 +50,10 @@ def upgrade() -> None:
         ),
         sa.Column("subject", sa.String, nullable=False),
         sa.Column("priority", sa.Integer, nullable=False),
-        # TODO move defaults here, trim add_event
         sa.Column("generation", sa.Uuid, nullable=False, server_default=sa.text("uuid_generate_v4()")),
-        sa.Column("last_tried", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("silenced", sa.Boolean, nullable=False),
+        sa.Column("last_tried", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("'1970-01-01'::timestamptz")),
+        sa.Column("fetched_count", sa.Integer, nullable=False, server_default=sa.text("0")),
+        sa.Column("silenced", sa.Boolean, nullable=False, server_default=sa.false()),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
         sa.Column("listener_fk", sa.Uuid, sa.ForeignKey("listener.pk"), nullable=False),
         sa.UniqueConstraint(

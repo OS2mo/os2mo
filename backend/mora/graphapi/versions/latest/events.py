@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-import random
 from base64 import b64decode, b64encode
 from textwrap import dedent
 from typing import Type
@@ -14,11 +13,11 @@ from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy import select
 from sqlalchemy import update
-from sqlalchemy import text
 from sqlalchemy import BinaryExpression
 from strawberry.types import Info
 
 from mora import db
+from mora.auth.middleware import get_authenticated_user
 
 from ..latest.filters import gen_filter_string
 from .paged import CursorType
@@ -286,38 +285,35 @@ async def event_resolver(
     info: Info,
     filter: EventFilter,
 ) -> Event | None:
-    # TODO needs owner check??
-    where_clauses = [
-        db.Event.listener_fk == filter.listener,
-        db.Event.silenced == sqlalchemy.false(),
-        # Make sure we do not spam the client with events it has already
-        # tried but failed to acknowledge.
-        # TODO max(30s, n)
-        db.Event.last_tried < text("now() - min(interval '2 seconds' ** fetched_count, '1 day')"),
-    ]
-    if random.random() < 0.15:
-        # 15% of the time we return a random event instead of the highest
-        # priority. Imagine a scenario, where it takes 10 minutes to process
-        # each event, but the highest priority event fails. With this strategy,
-        # we still get to process the queue eventually.
-        order_by = [func.random()]
-    else:
-        order_by = [
-            db.Event.priority.asc(),
-            func.random(),
-            #db.Event.last_tried.asc(),
-        ]
+    owner = get_authenticated_user()
     subquery = (
         select(db.Event.pk)
-        .where(*where_clauses)
-        .order_by(*order_by)
+        .where(
+            db.Event.listener_fk == filter.listener,
+            db.Event.silenced == sqlalchemy.false(),
+            # Check for owner. You simply won't get anything if you query
+            # someone elses listener.
+            db.Event.listener_fk == db.Listener.pk,
+            db.Listener.owner ==  owner,
+            # Make sure we do not spam the client with events it has already
+            # tried but failed to acknowledge. Exponential backoff between 3
+            # minutes and 1 day. We start by trying every 3 minutes 7 times.
+            db.Event.last_tried < func.now() - func.greatest(
+                func.least(
+                    func.make_interval(secs=func.power(2, db.Event.fetched_count)),
+                    func.make_interval(days=1),
+                ),
+                func.make_interval(mins=3),
+            ),
+        )
+        .order_by(db.Event.priority.asc())
         .limit(1)
         .cte()
     )
     query = (
         update(db.Event)
         .where(db.Event.pk == subquery.c.pk)
-        .values(last_tried=text("now()"), fetched_count=db.Event.fetched_count + 1)
+        .values(last_tried=func.now(), fetched_count=db.Event.fetched_count + 1)
         .returning(db.Event)
     )
     session = info.context["session"]

@@ -21,7 +21,6 @@ from mora import db
 from mora.db.events import add_event
 from mora.db.events import acknowledged_events
 from mora.auth.middleware import get_authenticated_user
-from mora.auth import is_admin
 from mora.common import get_connector
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
@@ -1612,22 +1611,15 @@ class Mutation:
         info: Info,
         input: ListenerDeleteInput,
     ) -> None:
-        clauses = [
-            db.Listener.pk == input.uuid,
-        ]
-        if not (await is_admin(info)):
-            # If you aren't admin; you have to be owner.
-            owner = get_authenticated_user()
-            clauses.append(db.Listener.owner == owner)
         session = info.context["session"]
 
         if input.delete_pending_events:
             await session.execute(
-                delete(db.Event).where(db.Event.listener_fk == db.Listener.pk, *clauses)
+                delete(db.Event).where(db.Event.listener_fk == input.uuid)
             )
 
         try:
-            await session.execute(delete(db.Listener).where(*clauses))
+            await session.execute(delete(db.Listener).where(db.Listener.pk == input.uuid))
         except sqlalchemy.exc.IntegrityError:
             raise ValueError(
                 "There are pending events for this listener. Consider carefully if these need to be handled first. You can delete the listener anyway with `delete_pending_events`."
@@ -1701,13 +1693,9 @@ class Mutation:
                 "Too large subject. Only send identifiers as the subject, not data"
             )
 
+        # TODO create namespace type in db
         if input.namespace == "mo":
             UUID(input.subject)
-
-        # TODO create namespace type in db
-        if len(input.subject) in (9, 10) and input.subject.isdigit():
-            get("datascanner://{input.subject}")
-            raise ValueError("Do not send CPR")
 
         session = info.context["session"]
         await add_event(
@@ -1720,8 +1708,6 @@ class Mutation:
             Silence an event.
 
             In general, this should only be done by humans while the implementation of a fix is in the works.
-
-            Only the owner of the associated listener can silence an event, aswell as admins.
             """
         ),
         permission_classes=[
@@ -1734,19 +1720,8 @@ class Mutation:
         info: Info,
         input: EventSilenceInput,
     ) -> None:
-        clauses = [
-            db.Event.pk == input.uuid,
-        ]
-        if not (await is_admin(info)):
-            # Admins are always allowed to silence events.
-            # As silencing is a temporary "fix" while the real solution is in
-            # the works, it is most often done by technicians and not the
-            # owners of the listener (which is the integration itself).
-            owner = get_authenticated_user()
-            clauses.append(db.Event.listener_fk == db.Listener.pk)
-            clauses.append(db.Listener.owner == owner)
         session = info.context["session"]
-        await session.execute(update(db.Event).where(*clauses).values(silenced=True))
+        await session.execute(update(db.Event).where(db.Event.pk==input.uuid).values(silenced=True))
 
     @strawberry.mutation(
         description="Unsilence all matching events",
@@ -1779,12 +1754,6 @@ class Mutation:
 
         if input.priorities is not None:
             clauses.append(db.Event.priority.in_(input.priorities))
-
-        if not (await is_admin(info)):
-            # Admins are always allowed to unsilence events, otherwise you have
-            # to be owner of the associated listener.
-            owner = get_authenticated_user()
-            clauses.append(db.Listener.owner == owner)
 
         session = info.context["session"]
         await session.execute(update(db.Event).where(*clauses).values(silenced=False))

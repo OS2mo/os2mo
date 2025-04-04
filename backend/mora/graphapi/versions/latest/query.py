@@ -437,6 +437,10 @@ class Query:
         ],
     )
 
+    # TODO: vi har fjernet admin tjek ved udlæsning. Man skal stadig være owner
+    # for at bruge fetch. Der var nogle ideer om, at man ikke skulle kunne
+    # læses andres events særligt fordi subject kan være sensitivt. HVordan gør
+    # vi med events kollektionerne?
     event_listeners: Paged[Listener] = strawberry.field(
         resolver=to_paged(listener_resolver, Listener),
         description="Get event listeners.",

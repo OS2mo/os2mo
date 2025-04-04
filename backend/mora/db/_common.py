@@ -17,9 +17,19 @@ from sqlalchemy.orm import column_property
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import declared_attr
 from sqlalchemy.orm import mapped_column
+from sqlalchemy.sql.functions import GenericFunction
+
 
 Base = declarative_base()
 metadata = Base.metadata
+
+
+# Make it possible to use `func.make_interval` with kwargs
+class make_interval(GenericFunction):
+    def __init__(
+        self, years=0, months=0, weeks=0, days=0, hours=0, mins=0, secs=0, **kw
+    ):
+        super().__init__(years, months, weeks, days, hours, mins, secs, **kw)
 
 
 class _OIOEntityMixin:
