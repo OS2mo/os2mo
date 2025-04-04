@@ -18,6 +18,8 @@ from jinja2 import StrictUndefined
 from jinja2 import TemplateRuntimeError
 from jinja2 import UndefinedError
 from jinja2.utils import missing
+from ldap3.utils.dn import safe_dn
+from ldap3.utils.dn import to_dn
 from more_itertools import flatten
 from more_itertools import one
 from more_itertools import only
@@ -585,6 +587,12 @@ def requeue_if_none(obj: T | None) -> T:
     return obj
 
 
+def parent_dn(dn: DN) -> DN:
+    dn_parts = to_dn(dn)
+    parent_dn_parts = dn_parts[1:]
+    return cast(DN, safe_dn(parent_dn_parts))
+
+
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
@@ -661,6 +669,7 @@ def construct_default_environment() -> Environment:
     environment.globals["skip_if_none"] = skip_if_none
     environment.globals["requeue_if_none"] = requeue_if_none
     environment.globals["uuid4"] = uuid4
+    environment.globals["parent_dn"] = parent_dn
 
     return environment
 
