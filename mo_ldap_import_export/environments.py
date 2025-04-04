@@ -468,6 +468,15 @@ async def generate_common_name(
     )
 
 
+async def get_person_uuid(
+    graphql_client: GraphQLClient, filter: dict[str, Any]
+) -> UUID | None:
+    person_filter = parse_obj_as(EmployeeFilter, filter)
+    result = await graphql_client.read_person_uuid(person_filter)
+    obj = only(result.objects)
+    return obj.uuid if obj else None
+
+
 async def get_address_uuid(
     graphql_client: GraphQLClient, filter: dict[str, Any]
 ) -> UUID | None:
@@ -637,6 +646,7 @@ def construct_globals_dict(
         "create_mo_it_user": partial(create_mo_it_user, moapi),
         "generate_username": partial(generate_username, dataloader),
         "generate_common_name": partial(generate_common_name, dataloader),
+        "get_person_uuid": partial(get_person_uuid, graphql_client),
         "get_address_uuid": partial(get_address_uuid, graphql_client),
         "get_ituser_uuid": partial(get_ituser_uuid, graphql_client),
         "get_engagement_uuid": partial(get_engagement_uuid, graphql_client),
