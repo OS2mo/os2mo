@@ -235,7 +235,10 @@ class FieldTuple:
                 yield item[key]
 
     def get_uuids(self, obj):
-        return self._get_elems(obj, "uuid")
+        # LoRa represents empty relationships either by a missing value or by
+        # {uuid: "", urn: ""}. Most of the remaining code, however, assumes
+        # that all UUIDs are non-empty.
+        return (e for e in self._get_elems(obj, "uuid") if e != "")
 
     def get_uuid(self, obj):
         return next(self.get_uuids(obj), None)

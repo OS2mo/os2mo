@@ -1,10 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Any
 from uuid import UUID
 
 from pydantic import Field
-from pydantic import validator
 
 from mora.graphapi.gmodels.mo._shared import MOBase
 
@@ -27,13 +25,3 @@ class ClassRead(MOBase):
     name: str = Field(description="Name/title of the class.")
     facet_uuid: UUID = Field(description="UUID of the related facet.")
     org_uuid: UUID = Field(description="UUID of the related organisation.")
-
-    @validator("parent_uuid", pre=True)
-    def empty_string_is_none(cls, value: Any) -> Any:
-        """Convert UUID-or-empty-string type back to a proper optional UUID type.
-
-        MO models an empty parent by None (sane), but LoRa represents it by the
-        empty string (insane)."""
-        if value == "":
-            return None
-        return value
