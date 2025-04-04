@@ -98,7 +98,6 @@ class SyncTool:
 
         def dn_extractor(self, *args, **kwargs):
             dn = args[0] if args else kwargs["dn"]
-            logger.info("Generating DN", dn=dn)
             return dn
 
         return handle_exclusively_decorator(dn_extractor)(func)

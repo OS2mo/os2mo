@@ -594,7 +594,6 @@ async def test_import_single_user_apply_discriminator(
     assert (
         events
         == [
-            "Generating DN",
             "Importing user",
             "Found DN",
             "Found employee via CPR matching",

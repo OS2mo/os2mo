@@ -227,7 +227,6 @@ async def test_import_single_object_no_employee_no_sync(
 
     messages = [w["event"] for w in cap_logs]
     assert messages == [
-        "Generating DN",
         "Importing user",
         "Employee not found in MO, and not configured to create it",
     ]
@@ -706,7 +705,6 @@ async def test_noop_import_single_user(sync_tool: SyncTool) -> None:
 
     messages = [w["event"] for w in cap_logs]
     assert messages == [
-        "Generating DN",
         "Importing user",
         "import_single_user called without mapping",
     ]
