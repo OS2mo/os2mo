@@ -18,6 +18,8 @@ from jinja2 import StrictUndefined
 from jinja2 import TemplateRuntimeError
 from jinja2 import UndefinedError
 from jinja2.utils import missing
+from ldap3.utils.dn import safe_dn
+from ldap3.utils.dn import to_dn
 from more_itertools import flatten
 from more_itertools import one
 from more_itertools import only
@@ -52,6 +54,7 @@ from .types import EmployeeUUID
 from .types import EngagementUUID
 from .utils import MO_TZ
 from .utils import ensure_list
+from .utils import extract_ou_from_dn
 from .utils import get_delete_flag
 from .utils import mo_today
 
@@ -575,8 +578,24 @@ async def get_person_dn(dataloader: DataLoader, uuid: EmployeeUUID) -> DN | None
 
 def skip_if_none(obj: T | None) -> T:
     if obj is None:
-        raise SkipObject("Object is None")
+        raise SkipObject("Skipping: Object is None")
     return obj
+
+
+def requeue_if_none(obj: T | None) -> T:
+    if obj is None:
+        raise RequeueMessage("Requeueing: Object is None")
+    return obj
+
+
+def parent_dn(dn: DN) -> DN:
+    dn_parts = to_dn(dn)
+    parent_dn_parts = dn_parts[1:]
+    return cast(DN, safe_dn(parent_dn_parts))
+
+
+def dn_has_ou(dn: DN) -> bool:
+    return bool(extract_ou_from_dn(dn))
 
 
 def construct_globals_dict(
@@ -621,6 +640,7 @@ def construct_globals_dict(
         "get_employment_interval": partial(get_employment_interval, graphql_client),
         "get_manager_person_uuid": partial(get_manager_person_uuid, graphql_client),
         "get_person_dn": partial(get_person_dn, dataloader),
+        "dn_to_uuid": dataloader.ldapapi.get_ldap_unique_ldap_uuid,
     }
 
 
@@ -653,7 +673,10 @@ def construct_default_environment() -> Environment:
 
     environment.globals["now"] = datetime.utcnow  # TODO: timezone-aware datetime
     environment.globals["skip_if_none"] = skip_if_none
+    environment.globals["requeue_if_none"] = requeue_if_none
     environment.globals["uuid4"] = uuid4
+    environment.globals["parent_dn"] = parent_dn
+    environment.globals["dn_has_ou"] = dn_has_ou
 
     return environment
 

@@ -7,12 +7,12 @@ from functools import partial
 from functools import wraps
 from typing import Any
 from typing import TypeVar
+from typing import cast
 from zoneinfo import ZoneInfo
 
 import structlog
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
-from ldap3.utils.dn import to_dn
 
 from .models import Address
 from .models import Employee
@@ -93,17 +93,14 @@ def extract_part_from_dn(dn: str, index_string: str) -> str:
     >>> extract_part_from_dn("CN=Tobias,OU=mucki,OU=bar,DC=k","OU")
     >>> "OU=mucki,OU=bar"
     """
-    dn_parts = to_dn(dn)
-    parts = []
-    for dn_part in dn_parts:
-        dn_decomposed = parse_dn(dn_part)[0]
-        if dn_decomposed[0].lower() == index_string.lower():
-            parts.append(dn_part)
-
+    parts = [
+        f"{attribute_type}={attribute_value}"
+        for attribute_type, attribute_value, separator in parse_dn(dn)
+        if attribute_type.lower() == index_string.lower()
+    ]
     if not parts:
         return ""
-    partial_dn: str = safe_dn(",".join(parts))
-    return partial_dn
+    return cast(str, safe_dn(parts))
 
 
 extract_ou_from_dn = partial(extract_part_from_dn, index_string="OU")

@@ -300,6 +300,7 @@ class MOAPI:
             uuid=entry.uuid,
             user_key=entry.user_key,
             name=entry.name,
+            parent=entry.parent.uuid if entry.parent is not None else None,
             unit_type=entry.unit_type.uuid,
             validity=models.Validity(
                 start=entry.validity.from_,
@@ -599,6 +600,7 @@ class MOAPI:
                 uuid=obj.uuid,
                 user_key=obj.user_key,
                 name=obj.name,
+                parent=obj.parent,
                 org_unit_type=obj.unit_type,
                 validity=RAValidityInput(
                     from_=obj.validity.start,
@@ -707,6 +709,7 @@ class MOAPI:
                 uuid=obj.uuid,
                 user_key=obj.user_key,
                 name=obj.name,
+                parent=obj.parent,
                 org_unit_type=obj.unit_type,
                 validity=RAValidityInput(
                     from_=obj.validity.start,
