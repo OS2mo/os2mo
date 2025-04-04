@@ -54,6 +54,7 @@ from .types import EmployeeUUID
 from .types import EngagementUUID
 from .utils import MO_TZ
 from .utils import ensure_list
+from .utils import extract_ou_from_dn
 from .utils import get_delete_flag
 from .utils import mo_today
 
@@ -593,6 +594,10 @@ def parent_dn(dn: DN) -> DN:
     return cast(DN, safe_dn(parent_dn_parts))
 
 
+def dn_has_ou(dn: DN) -> bool:
+    return bool(extract_ou_from_dn(dn))
+
+
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
@@ -670,6 +675,7 @@ def construct_default_environment() -> Environment:
     environment.globals["requeue_if_none"] = requeue_if_none
     environment.globals["uuid4"] = uuid4
     environment.globals["parent_dn"] = parent_dn
+    environment.globals["dn_has_ou"] = dn_has_ou
 
     return environment
 
