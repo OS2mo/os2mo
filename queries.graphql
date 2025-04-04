@@ -104,6 +104,9 @@ query __testing__org_unit_read($filter: OrganisationUnitFilter) {
         uuid
         user_key
         name
+        parent {
+          uuid
+        }
         unit_type {
           user_key
         }

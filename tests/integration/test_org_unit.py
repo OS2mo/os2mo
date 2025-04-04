@@ -76,6 +76,7 @@ async def test_to_mo(
         "uuid": ANY,
         "user_key": str(ldap_org_unit_uuid),
         "name": "create",
+        "parent": None,
         "unit_type": {"user_key": "Afdeling"},
         "validity": {
             "from_": mo_today(),

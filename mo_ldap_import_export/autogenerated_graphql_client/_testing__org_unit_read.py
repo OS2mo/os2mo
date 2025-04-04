@@ -23,8 +23,13 @@ class TestingOrgUnitReadOrgUnitsObjectsValidities(BaseModel):
     uuid: UUID
     user_key: str
     name: str
+    parent: Optional["TestingOrgUnitReadOrgUnitsObjectsValiditiesParent"]
     unit_type: Optional["TestingOrgUnitReadOrgUnitsObjectsValiditiesUnitType"]
     validity: "TestingOrgUnitReadOrgUnitsObjectsValiditiesValidity"
+
+
+class TestingOrgUnitReadOrgUnitsObjectsValiditiesParent(BaseModel):
+    uuid: UUID
 
 
 class TestingOrgUnitReadOrgUnitsObjectsValiditiesUnitType(BaseModel):
@@ -40,5 +45,6 @@ TestingOrgUnitRead.update_forward_refs()
 TestingOrgUnitReadOrgUnits.update_forward_refs()
 TestingOrgUnitReadOrgUnitsObjects.update_forward_refs()
 TestingOrgUnitReadOrgUnitsObjectsValidities.update_forward_refs()
+TestingOrgUnitReadOrgUnitsObjectsValiditiesParent.update_forward_refs()
 TestingOrgUnitReadOrgUnitsObjectsValiditiesUnitType.update_forward_refs()
 TestingOrgUnitReadOrgUnitsObjectsValiditiesValidity.update_forward_refs()
