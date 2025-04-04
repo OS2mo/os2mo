@@ -575,7 +575,7 @@ async def get_person_dn(dataloader: DataLoader, uuid: EmployeeUUID) -> DN | None
 
 def skip_if_none(obj: T | None) -> T:
     if obj is None:
-        raise SkipObject("Object is None")
+        raise SkipObject("Skipping: Object is None")
     return obj
 
 
