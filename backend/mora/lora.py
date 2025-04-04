@@ -254,14 +254,8 @@ class Connector:
         defaults.update(
             virkningfra=util.to_lora_time(self.start),
             virkningtil=util.to_lora_time(self.end),
+            konsolider=True,
         )
-        if config.get_settings().consolidate:
-            # LoRa does not check the value of the 'konsolider' paramter, but the mere
-            # existence of the _key_. For this reason, the value CANNOT be set to
-            # False, it must instead be absent from the dict.
-            defaults.update(
-                konsolider=True,
-            )
 
         self.__defaults = defaults
         self.__scopes = {}
