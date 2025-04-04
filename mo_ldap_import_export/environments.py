@@ -119,6 +119,10 @@ get_employee_address_type_uuid = partial(
 )
 get_visibility_uuid = partial(_get_facet_class_uuid, facet_user_key="visibility")
 get_org_unit_type_uuid = partial(_get_facet_class_uuid, facet_user_key="org_unit_type")
+get_engagement_type_uuid = partial(
+    _get_facet_class_uuid, facet_user_key="engagement_type"
+)
+get_primary_type_uuid = partial(_get_facet_class_uuid, facet_user_key="primary_type")
 
 
 async def get_org_unit_path_string(
@@ -641,6 +645,8 @@ def construct_globals_dict(
         "get_manager_person_uuid": partial(get_manager_person_uuid, graphql_client),
         "get_person_dn": partial(get_person_dn, dataloader),
         "dn_to_uuid": dataloader.ldapapi.get_ldap_unique_ldap_uuid,
+        "get_engagement_type_uuid": partial(get_engagement_type_uuid, graphql_client),
+        "get_primary_type_uuid": partial(get_primary_type_uuid, graphql_client),
     }
 
 
