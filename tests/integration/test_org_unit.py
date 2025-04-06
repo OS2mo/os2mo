@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 import json
 from collections.abc import Awaitable
 from collections.abc import Callable
@@ -8,6 +9,7 @@ from unittest.mock import ANY
 import pytest
 from fastramqpi.pytest_util import retry
 from ldap3 import Connection
+from more_itertools import first
 from more_itertools import one
 from more_itertools import only
 
@@ -289,3 +291,153 @@ async def test_to_mo_parent(
             "to": None,
         },
     }
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "ldap_to_mo_org_unit": {
+                    "OrganisationUnit": {
+                        "objectClass": "OrganisationUnit",
+                        "_import_to_mo_": "true",
+                        "_ldap_attributes_": ["entryUUID", "ou"],
+                        "uuid": "{{ get_org_unit_uuid({'user_keys': [ldap.entryUUID]}) or uuid4() }}",
+                        "user_key": "{{ ldap.entryUUID }}",
+                        "name": "{{ ldap.ou }}",
+                        "parent": """
+                            {% set parent_dn = parent_dn(ldap.dn) %}
+                            {% if dn_has_ou(parent_dn) %}
+                                {{ skip_if_none(get_org_unit_uuid({'user_keys': [dn_to_uuid(parent_dn)|string]})) }}
+                            {% endif %}
+                        """,
+                        "unit_type": "{{ get_org_unit_type_uuid('Afdeling') }}",
+                    },
+                },
+                # TODO: why is this required?
+                "username_generator": {
+                    "combinations_to_try": ["FFFX", "LLLX"],
+                },
+            }
+        ),
+    }
+)
+async def test_to_mo_change_parent(
+    graphql_client: GraphQLClient,
+    ldap_connection: Connection,
+    ldap_org: list[str],
+    trigger_ldap_sync: Callable[[LDAPUUID], Awaitable[None]],
+    dn2uuid: DN2UUID,
+) -> None:
+    async def get_mo_org_unit(user_key: str) -> dict | None:
+        org_units = await graphql_client._testing__org_unit_read(
+            filter=OrganisationUnitFilter(user_keys=[user_key])
+        )
+        org_unit = only(org_units.objects)
+        if org_unit is None:
+            return None
+        validities = one(org_unit.validities)
+        return validities.dict()
+
+    parent_ids = list(range(5))
+    parent_names = [f"parent_{parent_id}" for parent_id in parent_ids]
+    parent_dns = [
+        combine_dn_strings([f"ou={name}"] + ldap_org) for name in parent_names
+    ]
+    for name, parent_dn in zip(parent_names, parent_dns, strict=False):
+        await ldap_add(
+            ldap_connection,
+            dn=parent_dn,
+            object_class=["top", "organizationalUnit"],
+            attributes={
+                "objectClass": ["top", "organizationalUnit"],
+            },
+        )
+        ldap_parent_uuid = await dn2uuid(parent_dn)
+
+        # Synchronise parent_1
+        assert await get_mo_org_unit(str(ldap_parent_uuid)) is None
+        await trigger_ldap_sync(ldap_parent_uuid)
+        mo_parent = await get_mo_org_unit(str(ldap_parent_uuid))
+        assert mo_parent is not None
+        assert mo_parent == {
+            "uuid": ANY,
+            "user_key": str(ldap_parent_uuid),
+            "name": name,
+            "parent": None,
+            "unit_type": {"user_key": "Afdeling"},
+            "validity": {
+                "from_": mo_today(),
+                "to": None,
+            },
+        }
+    parent_ldap_uuids = await asyncio.gather(
+        *[dn2uuid(parent_dn) for parent_dn in parent_dns]
+    )
+    parent_mo_objects = await asyncio.gather(
+        *[
+            get_mo_org_unit(str(parent_ldap_uuid))
+            for parent_ldap_uuid in parent_ldap_uuids
+        ]
+    )
+    parent_mo_uuids = [
+        mo_object["uuid"] for mo_object in parent_mo_objects if mo_object is not None
+    ]
+    assert len(parent_mo_objects) == len(parent_mo_uuids)
+
+    # Add child to parent_1
+    child_unit_dn = "ou=child," + first(parent_dns)
+    await ldap_add(
+        ldap_connection,
+        dn=child_unit_dn,
+        object_class=["top", "organizationalUnit"],
+        attributes={
+            "objectClass": ["top", "organizationalUnit"],
+        },
+    )
+    ldap_child_org_unit_uuid = await dn2uuid(child_unit_dn)
+
+    # Synchronise child
+    assert await get_mo_org_unit(str(ldap_child_org_unit_uuid)) is None
+    await trigger_ldap_sync(ldap_child_org_unit_uuid)
+    mo_child = await get_mo_org_unit(str(ldap_child_org_unit_uuid))
+    assert mo_child is not None
+    assert mo_child == {
+        "uuid": ANY,
+        "user_key": str(ldap_child_org_unit_uuid),
+        "name": "child",
+        "parent": {"uuid": first(parent_mo_uuids)},
+        "unit_type": {"user_key": "Afdeling"},
+        "validity": {
+            "from_": mo_today(),
+            "to": None,
+        },
+    }
+
+    # Move the child around
+    for parent_dn, parent_mo_uuid in zip(parent_dns, parent_mo_uuids, strict=False):
+        await ldap_modify_dn(
+            ldap_connection,
+            dn=child_unit_dn,
+            relative_dn="ou=child",
+            new_superior=parent_dn,
+        )
+        child_unit_dn = "ou=child," + parent_dn
+
+        await trigger_ldap_sync(ldap_child_org_unit_uuid)
+        mo_child = await get_mo_org_unit(str(ldap_child_org_unit_uuid))
+        assert mo_child is not None
+        assert mo_child == {
+            "uuid": ANY,
+            "user_key": str(ldap_child_org_unit_uuid),
+            "name": "child",
+            "parent": {"uuid": parent_mo_uuid},
+            "unit_type": {"user_key": "Afdeling"},
+            "validity": {
+                "from_": mo_today(),
+                "to": None,
+            },
+        }
