@@ -42,15 +42,22 @@ async def search_employees(
     cursor: CursorType = None,
 ) -> list[UUID]:
     at_sql, at_sql_bind_params = get_at_date_sql(at)
+    settings = config.get_settings()
 
-    ctes = await asyncio.gather(
+    tasks = [
         _get_cte_uuid_hits(query),
         _get_cte_user_key_hits(query),
         _get_cte_name_hits(query),
         _get_cte_cpr_hits(query),
-        _get_cte_addr_hits(query),
         _get_cte_itsystem_hits(query),
-    )
+    ]
+
+    # TODO: Fix address-search performance and remove this flag
+    if not settings.remove_address_search_for_performance:
+        tasks.append(_get_cte_addr_hits(query))
+
+    ctes = await asyncio.gather(*tasks)
+
     selects = [select(cte.c.uuid) for cte in ctes]
     all_hits = union(*selects).cte()
 
