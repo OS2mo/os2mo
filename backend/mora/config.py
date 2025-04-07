@@ -286,6 +286,10 @@ class Settings(BaseSettings):
     # This flag makes the search-bar use GraphQL
     confdb_use_graphql_search: bool = False
 
+    # This flag removes the address-search, to improve performance
+    # TODO: This flag should be removed, when address-search is performant
+    remove_address_search_for_performance: bool = False
+
     # String telling OS2Mo what DIPEX version is being used to import & export data
     # to and from the system - SHOULD ONLY BE USED IF FORCED TO BY CUSTOMER!
     confdb_dipex_version__do_not_use: str | None

@@ -176,15 +176,18 @@ async def decorate_orgunit_search_result(
 
 
 def _sqlalchemy_generate_query(query: str, at_sql: str) -> Select[Tuple]:
-    selects = [
-        select(cte.c.uuid)
-        for cte in (
-            _get_cte_orgunit_uuid_hits(query, at_sql),
-            _get_cte_orgunit_name_hits(query, at_sql),
-            _get_cte_orgunit_addr_hits(query, at_sql),
-            _get_cte_orgunit_itsystem_hits(query, at_sql),
-        )
+    settings = config.get_settings()
+    ctes = [
+        _get_cte_orgunit_uuid_hits(query, at_sql),
+        _get_cte_orgunit_name_hits(query, at_sql),
+        _get_cte_orgunit_itsystem_hits(query, at_sql),
     ]
+
+    # TODO: Fix address-search performance and remove this flag
+    if not settings.remove_address_search_for_performance:
+        ctes.append(_get_cte_orgunit_addr_hits(query, at_sql))
+
+    selects = [select(cte.c.uuid) for cte in ctes]
     all_hits = union(*selects).cte()
 
     query_final = (
