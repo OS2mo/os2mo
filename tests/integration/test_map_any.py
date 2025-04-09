@@ -48,7 +48,6 @@ from tests.integration.conftest import DN2UUID
     }
 )
 @pytest.mark.usefixtures("test_client")
-@pytest.mark.xfail(reason="Configuration format invalid")
 @pytest.mark.xfail(reason="No handler")
 async def test_to_mo(
     graphql_client: GraphQLClient,
