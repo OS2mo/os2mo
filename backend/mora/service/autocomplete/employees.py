@@ -8,7 +8,6 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy import String
 from sqlalchemy import Text
 from sqlalchemy import cast
-from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
 from sqlalchemy.sql import select
 from sqlalchemy.sql import union
@@ -42,22 +41,14 @@ async def search_employees(
     cursor: CursorType = None,
 ) -> list[UUID]:
     at_sql, at_sql_bind_params = get_at_date_sql(at)
-    settings = config.get_settings()
 
-    tasks = [
+    ctes = await asyncio.gather(
         _get_cte_uuid_hits(query),
         _get_cte_user_key_hits(query),
         _get_cte_name_hits(query),
         _get_cte_cpr_hits(query),
         _get_cte_itsystem_hits(query),
-    ]
-
-    # TODO: Fix address-search performance and remove this flag
-    if not settings.remove_address_search_for_performance:
-        tasks.append(_get_cte_addr_hits(query))
-
-    ctes = await asyncio.gather(*tasks)
-
+    )
     selects = [select(cte.c.uuid) for cte in ctes]
     all_hits = union(*selects).cte()
 
@@ -275,32 +266,6 @@ async def _get_cte_cpr_hits(query: str):
         .where(
             BrugerRegistrering.bruger_id != None,  # noqa: E711
             BrugerRelation.rel_maal_urn.ilike(search_phrase),
-        )
-        .cte()
-    )
-
-
-async def _get_cte_addr_hits(query: str):
-    orgfunc_tbl_rels_1 = aliased(OrganisationFunktionRelation)
-    orgfunc_tbl_rels_2 = aliased(OrganisationFunktionRelation)
-
-    query = await string_to_urn(query)
-    search_phrase = util.query_to_search_phrase(query)
-
-    return (
-        select(orgfunc_tbl_rels_1.rel_maal_uuid.label("uuid"))
-        .outerjoin(
-            orgfunc_tbl_rels_2,
-            orgfunc_tbl_rels_2.organisationfunktion_registrering_id
-            == orgfunc_tbl_rels_1.organisationfunktion_registrering_id,
-        )
-        .where(
-            orgfunc_tbl_rels_1.rel_maal_uuid != None,  # noqa: E711
-            cast(orgfunc_tbl_rels_1.rel_type, String)
-            == OrganisationFunktionRelationKode.tilknyttedebrugere,
-            cast(orgfunc_tbl_rels_2.rel_type, String)
-            == OrganisationFunktionRelationKode.adresser,
-            orgfunc_tbl_rels_2.rel_maal_urn.ilike(search_phrase),
         )
         .cte()
     )

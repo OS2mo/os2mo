@@ -9,7 +9,6 @@ from sqlalchemy import String
 from sqlalchemy import Text
 from sqlalchemy import Tuple
 from sqlalchemy import cast
-from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
 from sqlalchemy.sql import select
 from sqlalchemy.sql import union
@@ -176,18 +175,14 @@ async def decorate_orgunit_search_result(
 
 
 def _sqlalchemy_generate_query(query: str, at_sql: str) -> Select[Tuple]:
-    settings = config.get_settings()
-    ctes = [
-        _get_cte_orgunit_uuid_hits(query, at_sql),
-        _get_cte_orgunit_name_hits(query, at_sql),
-        _get_cte_orgunit_itsystem_hits(query, at_sql),
+    selects = [
+        select(cte.c.uuid)
+        for cte in (
+            _get_cte_orgunit_uuid_hits(query, at_sql),
+            _get_cte_orgunit_name_hits(query, at_sql),
+            _get_cte_orgunit_itsystem_hits(query, at_sql),
+        )
     ]
-
-    # TODO: Fix address-search performance and remove this flag
-    if not settings.remove_address_search_for_performance:
-        ctes.append(_get_cte_orgunit_addr_hits(query, at_sql))
-
-    selects = [select(cte.c.uuid) for cte in ctes]
     all_hits = union(*selects).cte()
 
     query_final = (
@@ -282,34 +277,6 @@ def _get_cte_orgunit_name_hits(query: str, at_sql: str):
                 OrganisationEnhedAttrEgenskaber.enhedsnavn.ilike(search_phrase)
                 | OrganisationEnhedAttrEgenskaber.brugervendtnoegle.ilike(search_phrase)
             ),
-        )
-        .cte()
-    )
-
-
-def _get_cte_orgunit_addr_hits(query: str, at_sql: str):
-    orgfunc_tbl_rels_1 = aliased(OrganisationFunktionRelation)
-    orgfunc_tbl_rels_2 = aliased(OrganisationFunktionRelation)
-
-    query = util.urnquote(
-        query.lower()
-    )  # since we are search through "rel_maal_urn"-cols
-    search_phrase = util.query_to_search_phrase(query)
-
-    return (
-        select(orgfunc_tbl_rels_1.rel_maal_uuid.label("uuid"))
-        .outerjoin(
-            orgfunc_tbl_rels_2,
-            orgfunc_tbl_rels_2.organisationfunktion_registrering_id
-            == orgfunc_tbl_rels_1.organisationfunktion_registrering_id,
-        )
-        .where(
-            orgfunc_tbl_rels_1.rel_maal_uuid != None,  # noqa: E711
-            cast(orgfunc_tbl_rels_1.rel_type, String)
-            == OrganisationFunktionRelationKode.tilknyttedeenheder,
-            cast(orgfunc_tbl_rels_2.rel_type, String)
-            == OrganisationFunktionRelationKode.adresser,
-            orgfunc_tbl_rels_2.rel_maal_urn.ilike(search_phrase),
         )
         .cte()
     )
