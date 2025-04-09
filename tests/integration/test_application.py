@@ -503,14 +503,13 @@ async def test_mismatched_json_key_and_itsystem(
     ldap_person_uuid: LDAPUUID,
     mo_person: UUID,
     trigger_ldap_person: Callable[[], Awaitable[None]],
+    read_itsystem_by_user_key: Callable[[str], Awaitable[UUID]],
 ) -> None:
     """Test that json_key and itsystem does not need to match."""
     person_uuid = mo_person
 
     # Fetch data in MO
-    ldap_uuid_itsystem_uuid = one(
-        (await graphql_client.read_itsystem_uuid("ADUUID")).objects
-    ).uuid
+    ldap_uuid_itsystem_uuid = await read_itsystem_by_user_key("ADUUID")
 
     # Trigger synchronization, we expect the addresses to be updated with new values
     await trigger_ldap_person()
@@ -583,14 +582,13 @@ async def test_default_validity(
     graphql_client: GraphQLClient,
     mo_person: UUID,
     trigger_ldap_person: Callable[[], Awaitable[None]],
+    read_itsystem_by_user_key: Callable[[str], Awaitable[UUID]],
 ) -> None:
     """Test that json_key and itsystem does not need to match."""
     person_uuid = mo_person
 
     # Fetch data in MO
-    ldap_uuid_itsystem_uuid = one(
-        (await graphql_client.read_itsystem_uuid("ADUUID")).objects
-    ).uuid
+    ldap_uuid_itsystem_uuid = await read_itsystem_by_user_key("ADUUID")
 
     # Trigger synchronization, we expect the addresses to be updated with new values
     await trigger_ldap_person()
