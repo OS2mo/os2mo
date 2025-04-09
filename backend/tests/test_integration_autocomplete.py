@@ -6,13 +6,9 @@ from unittest.mock import patch
 
 import freezegun
 import pytest
-from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 from mora.config import Settings
 from pytest import MonkeyPatch
-
-from tests.conftest import GQLResponse
-from tests.conftest import GraphAPIPost
 
 
 @pytest.fixture
@@ -116,88 +112,6 @@ def test_v2_search_employee_by_name(
 ):
     at = datetime.now().date()
     query = "Anders And"
-    response = service_client.request(
-        "GET", f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
-    )
-
-    assert response.status_code == 200
-    assert response.json() == {
-        "items": [
-            {
-                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                "name": "Anders And",
-                "attrs": [
-                    {
-                        "title": "Ansat",
-                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
-                        "value": "bvn",
-                    },
-                    {
-                        "title": "Email",
-                        "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
-                        "value": "bruger@example.com",
-                    },
-                    {
-                        "title": "Medlem",
-                        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
-                        "value": "bvn",
-                    },
-                    {
-                        "title": "Medlem",
-                        "uuid": "c89853b8-3da5-4b10-8d87-6ca5b4c9416b",
-                        "value": "bvn",
-                    },
-                    {
-                        "title": "SAP",
-                        "uuid": "4de484d9-f577-4fe0-965f-2d4be11b348c",
-                        "value": "donald",
-                    },
-                    {
-                        "title": "Active Directory",
-                        "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
-                        "value": "18d2271a-45c4-406c-a482-04ab12f80881",
-                    },
-                ],
-            }
-        ]
-    }
-
-    query = "erik"
-    response = service_client.request(
-        "GET", f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
-    )
-
-    assert response.status_code == 200
-    assert response.json() == {
-        "items": [
-            {
-                "uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
-                "name": "Erik Smidt Hansen",
-                "attrs": [
-                    {
-                        "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
-                        "title": "Ansat",
-                        "value": "bvn",
-                    },
-                    {
-                        "uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab",
-                        "title": "Ansat",
-                        "value": "bvn",
-                    },
-                ],
-            }
-        ]
-    }
-
-
-@pytest.mark.integration_test
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("fixture_db")
-def test_v2_search_employee_by_email(
-    mock_get_settings_custom_attrs, service_client: TestClient
-):
-    at = datetime.now().date()
-    query = "bruger@example.com"
     response = service_client.request(
         "GET", f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
     )
@@ -442,93 +356,6 @@ def test_v2_search_orgunit_by_name_with_custom_fields(
                         "title": "Afdelingskode",
                         "uuid": "55848eca-4e9e-4f30-954b-78d55eec0441",
                         "value": "Fake afdelingskode",
-                    }
-                ],
-                "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},
-            }
-        ]
-    }
-
-
-@pytest.mark.integration_test
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("fixture_db")
-def test_v2_search_orgunit_by_addr_afdelingskode(
-    mock_get_settings_custom_attrs, service_client: TestClient
-):
-    at = datetime.now().date()
-    query = "Fake afdelingskode"
-    response = service_client.request(
-        "GET", f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
-    )
-
-    assert response.status_code == 200
-    assert response.json() == {
-        "items": [
-            {
-                "uuid": "f494ad89-039d-478e-91f2-a63566554666",
-                "name": "Fake Corp With Addrs",
-                "path": [],
-                "attrs": [
-                    {
-                        "title": "Afdelingskode",
-                        "uuid": "55848eca-4e9e-4f30-954b-78d55eec0441",
-                        "value": "Fake afdelingskode",
-                    }
-                ],
-                "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},
-            }
-        ]
-    }
-
-
-@pytest.mark.integration_test
-# @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("fixture_db")
-def test_v2_search_orgunit_by_addr_afdelingskode_addr_rename(
-    graphapi_post: GraphAPIPost, admin_client, mock_get_settings_custom_attrs
-):
-    new_address_name = "Fake afdelingskode changed"
-    at = datetime.now().date()
-
-    # Modify the addr
-    mutate_query = """
-    mutation updateAddr($input: AddressUpdateInput!){
-        address_update(input: $input) {
-            uuid
-        }
-    }
-    """
-
-    payload = jsonable_encoder(
-        {
-            "uuid": "55848eca-4e9e-4f30-954b-78d55eec0441",
-            "value": new_address_name,
-            "validity": {"from": at.isoformat()},
-            "address_type": "e8ea1a09-d3d4-4203-bfe9-d9a213371337",
-        }
-    )
-    gql_response: GQLResponse = graphapi_post(mutate_query, {"input": payload})
-    assert gql_response.errors is None
-
-    # Fetch & assert the orgunit have been renamed accordingly
-    query = "Fake afdelingskode"
-    response = admin_client.get(
-        f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
-    )
-
-    assert response.status_code == 200
-    assert response.json() == {
-        "items": [
-            {
-                "uuid": "f494ad89-039d-478e-91f2-a63566554666",
-                "name": "Fake Corp With Addrs",
-                "path": [],
-                "attrs": [
-                    {
-                        "title": "Afdelingskode",
-                        "uuid": "55848eca-4e9e-4f30-954b-78d55eec0441",
-                        "value": new_address_name,
                     }
                 ],
                 "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},

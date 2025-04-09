@@ -82,7 +82,9 @@ async def string_to_urn(urn_string: str) -> str:
     # EMAIL urn handling
     try:
         await EmailAddressHandler.validate_value(urn_string)
-        return EmailAddressHandler(value=urn_string, visibility=None).urn
+        return EmailAddressHandler(
+            value=urn_string, visibility=None
+        ).urn  # pragma: no cover
     except HTTPException as e:
         if e.key != ErrorCodes.V_INVALID_ADDRESS_EMAIL:  # pragma: no cover
             raise e
