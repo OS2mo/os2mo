@@ -585,24 +585,6 @@ class SyncTool:
 
     @wait_for_import_to_finish
     @with_exitstack
-    async def import_single_org_unit(self, dn: DN, exit_stack: ExitStack) -> None:
-        """Imports a single organizational unit from LDAP into MO."""
-        exit_stack.enter_context(bound_contextvars(dn=dn))
-        logger.info("Importing organizational unit")
-        mappings = self.settings.conversion_mapping.ldap_to_mo_org_unit
-        if mappings is None:
-            logger.info("import_single_org_unit called without mappings")
-            return
-
-        await asyncio.gather(
-            *[
-                self.import_single_entity(mapping, dn, template_context={})
-                for mapping in mappings.values()
-            ]
-        )
-
-    @wait_for_import_to_finish
-    @with_exitstack
     async def import_single_object_class(
         self, object_class: str, dn: DN, exit_stack: ExitStack
     ) -> None:
