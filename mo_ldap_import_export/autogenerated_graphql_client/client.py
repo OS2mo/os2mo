@@ -49,6 +49,7 @@ from .input_types import EngagementFilter
 from .input_types import EngagementTerminateInput
 from .input_types import EngagementUpdateInput
 from .input_types import ITSystemCreateInput
+from .input_types import ITSystemFilter
 from .input_types import ITUserCreateInput
 from .input_types import ITUserFilter
 from .input_types import ITUserTerminateInput
@@ -1302,11 +1303,13 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ReadOrgUnitName.parse_obj(data).org_units
 
-    async def read_itsystem_uuid(self, user_key: str) -> ReadItsystemUuidItsystems:
+    async def read_itsystem_uuid(
+        self, filter: ITSystemFilter
+    ) -> ReadItsystemUuidItsystems:
         query = gql(
             """
-            query read_itsystem_uuid($user_key: String!) {
-              itsystems(filter: {user_keys: [$user_key]}) {
+            query read_itsystem_uuid($filter: ITSystemFilter!) {
+              itsystems(filter: $filter) {
                 objects {
                   uuid
                 }
@@ -1314,7 +1317,7 @@ class GraphQLClient(AsyncBaseClient):
             }
             """
         )
-        variables: dict[str, object] = {"user_key": user_key}
+        variables: dict[str, object] = {"filter": filter}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadItsystemUuid.parse_obj(data).itsystems
