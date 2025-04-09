@@ -215,6 +215,12 @@ mutation ituser_terminate($input: ITUserTerminateInput!) {
   }
 }
 
+mutation itsystem_create($input: ITSystemCreateInput!) {
+  itsystem_create(input: $input) {
+    uuid
+  }
+}
+
 query read_facet_uuid($user_key: String!) {
   facets(filter: { user_keys: [$user_key] }) {
     objects {

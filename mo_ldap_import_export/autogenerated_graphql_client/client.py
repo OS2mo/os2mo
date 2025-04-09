@@ -62,6 +62,8 @@ from .input_types import OrganisationUnitFilter
 from .input_types import OrganisationUnitTerminateInput
 from .input_types import OrganisationUnitUpdateInput
 from .input_types import OrgUnitsboundmanagerfilter
+from .itsystem_create import ItsystemCreate
+from .itsystem_create import ItsystemCreateItsystemCreate
 from .ituser_create import ItuserCreate
 from .ituser_create import ItuserCreateItuserCreate
 from .ituser_terminate import ItuserTerminate
@@ -585,6 +587,23 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ItuserTerminate.parse_obj(data).ituser_terminate
+
+    async def itsystem_create(
+        self, input: ITSystemCreateInput
+    ) -> ItsystemCreateItsystemCreate:
+        query = gql(
+            """
+            mutation itsystem_create($input: ITSystemCreateInput!) {
+              itsystem_create(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ItsystemCreate.parse_obj(data).itsystem_create
 
     async def read_facet_uuid(self, user_key: str) -> ReadFacetUuidFacets:
         query = gql(
