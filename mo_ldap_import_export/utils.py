@@ -17,6 +17,7 @@ from ldap3.utils.dn import safe_dn
 from .models import Address
 from .models import Employee
 from .models import Engagement
+from .models import ITSystem
 from .models import ITUser
 from .models import JobTitleFromADToMO
 from .models import MOBase
@@ -42,6 +43,7 @@ def import_class(name: str) -> type[MOBase]:
         "Address": Address,
         "Engagement": Engagement,
         "ITUser": ITUser,
+        "ITSystem": ITSystem,
         "Employee": Employee,
         "OrganisationUnit": OrganisationUnit,
     }

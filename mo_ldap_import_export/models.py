@@ -112,6 +112,14 @@ class ITUser(StrictBaseModel):
     validity: Validity
 
 
+class ITSystem(StrictBaseModel):
+    uuid: UUID = Field(default_factory=uuid4)
+    user_key: str
+
+    name: str
+    validity: Validity
+
+
 class JobTitleFromADToMO(StrictBaseModel):
     uuid: UUID = Field(default_factory=uuid4)
     user_key: str | None  # unused
@@ -139,7 +147,13 @@ class JobTitleFromADToMO(StrictBaseModel):
 
 
 MOBase = (
-    Address | Employee | Engagement | ITUser | JobTitleFromADToMO | OrganisationUnit
+    Address
+    | Employee
+    | Engagement
+    | ITUser
+    | JobTitleFromADToMO
+    | OrganisationUnit
+    | ITSystem
 )
 
 

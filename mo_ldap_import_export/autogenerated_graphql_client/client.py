@@ -136,6 +136,8 @@ from .read_filtered_itusers import ReadFilteredItusers
 from .read_filtered_itusers import ReadFilteredItusersItusers
 from .read_itsystem_uuid import ReadItsystemUuid
 from .read_itsystem_uuid import ReadItsystemUuidItsystems
+from .read_itsystems import ReadItsystems
+from .read_itsystems import ReadItsystemsItsystems
 from .read_ituser_by_employee_and_itsystem_uuid import (
     ReadItuserByEmployeeAndItsystemUuid,
 )
@@ -881,6 +883,40 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadOrgUnits.parse_obj(data).org_units
+
+    async def read_itsystems(
+        self,
+        uuids: list[UUID],
+        from_date: datetime | None | UnsetType = UNSET,
+        to_date: datetime | None | UnsetType = UNSET,
+    ) -> ReadItsystemsItsystems:
+        query = gql(
+            """
+            query read_itsystems($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
+              itsystems(filter: {from_date: $from_date, to_date: $to_date, uuids: $uuids}) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    name
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "uuids": uuids,
+            "from_date": from_date,
+            "to_date": to_date,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadItsystems.parse_obj(data).itsystems
 
     async def read_itusers(
         self,

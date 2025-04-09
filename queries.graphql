@@ -384,6 +384,22 @@ query read_org_units(
   }
 }
 
+query read_itsystems($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
+  itsystems(filter: { from_date: $from_date, to_date: $to_date, uuids: $uuids }) {
+    objects {
+      validities {
+        uuid
+        user_key
+        name
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
 query read_itusers($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
   itusers(filter: { from_date: $from_date, to_date: $to_date, uuids: $uuids }) {
     objects {

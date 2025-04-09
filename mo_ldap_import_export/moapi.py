@@ -54,6 +54,7 @@ from .exceptions import UUIDNotFoundException
 from .models import Address
 from .models import Employee
 from .models import Engagement
+from .models import ITSystem
 from .models import ITUser
 from .models import MOBase
 from .models import OrganisationUnit
@@ -393,6 +394,27 @@ class MOAPI:
             validity=entry["validity"],
         )
         return it_user
+
+    async def load_mo_it_system(
+        self, uuid: UUID, current_objects_only=True
+    ) -> ITSystem | None:
+        start = end = UNSET if current_objects_only else None
+        results = await self.graphql_client.read_itsystems([uuid], start, end)
+        result = only(results.objects)
+        if result is None:  # pragma: no cover
+            return None
+        entry = extract_current_or_latest_validity(result.validities)
+        if entry is None:  # pragma: no cover
+            return None
+        return ITSystem(
+            uuid=entry.uuid,
+            user_key=entry.user_key,
+            name=entry.name,
+            validity=models.Validity(
+                start=entry.validity.from_,
+                end=entry.validity.to,
+            ),
+        )
 
     async def load_mo_address(
         self, uuid: UUID, current_objects_only: bool = True
