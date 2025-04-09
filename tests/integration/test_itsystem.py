@@ -54,7 +54,6 @@ from tests.integration.conftest import DN2UUID
     }
 )
 @pytest.mark.usefixtures("test_client")
-@pytest.mark.xfail(reason="Cannot terminate ITSystems")
 async def test_to_mo(
     trigger_ldap_sync: Callable[[LDAPUUID], Awaitable[None]],
     dn2uuid: DN2UUID,

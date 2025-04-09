@@ -227,6 +227,11 @@ mutation itsystem_update($input: ITSystemUpdateInput!) {
   }
 }
 
+mutation itsystem_terminate($input: ITSystemTerminateInput!) {
+  itsystem_terminate(input: $input) {
+    uuid
+  }
+}
 
 query read_facet_uuid($user_key: String!) {
   facets(filter: { user_keys: [$user_key] }) {

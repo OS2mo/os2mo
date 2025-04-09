@@ -52,6 +52,7 @@ from .input_types import EngagementTerminateInput
 from .input_types import EngagementUpdateInput
 from .input_types import ITSystemCreateInput
 from .input_types import ITSystemFilter
+from .input_types import ITSystemTerminateInput
 from .input_types import ITSystemUpdateInput
 from .input_types import ITUserCreateInput
 from .input_types import ITUserFilter
@@ -65,6 +66,8 @@ from .input_types import OrganisationUnitUpdateInput
 from .input_types import OrgUnitsboundmanagerfilter
 from .itsystem_create import ItsystemCreate
 from .itsystem_create import ItsystemCreateItsystemCreate
+from .itsystem_terminate import ItsystemTerminate
+from .itsystem_terminate import ItsystemTerminateItsystemTerminate
 from .itsystem_update import ItsystemUpdate
 from .itsystem_update import ItsystemUpdateItsystemUpdate
 from .ituser_create import ItuserCreate
@@ -624,6 +627,23 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ItsystemUpdate.parse_obj(data).itsystem_update
+
+    async def itsystem_terminate(
+        self, input: ITSystemTerminateInput
+    ) -> ItsystemTerminateItsystemTerminate:
+        query = gql(
+            """
+            mutation itsystem_terminate($input: ITSystemTerminateInput!) {
+              itsystem_terminate(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ItsystemTerminate.parse_obj(data).itsystem_terminate
 
     async def read_facet_uuid(self, user_key: str) -> ReadFacetUuidFacets:
         query = gql(
