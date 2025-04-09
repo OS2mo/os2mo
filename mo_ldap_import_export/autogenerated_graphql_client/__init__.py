@@ -203,6 +203,8 @@ from .input_types import UuidsBoundOrganisationUnitFilter
 from .input_types import ValidityInput
 from .itsystem_create import ItsystemCreate
 from .itsystem_create import ItsystemCreateItsystemCreate
+from .itsystem_update import ItsystemUpdate
+from .itsystem_update import ItsystemUpdateItsystemUpdate
 from .ituser_create import ItuserCreate
 from .ituser_create import ItuserCreateItuserCreate
 from .ituser_terminate import ItuserTerminate
@@ -517,6 +519,8 @@ __all__ = [
     "ITUserUpdateInput",
     "ItsystemCreate",
     "ItsystemCreateItsystemCreate",
+    "ItsystemUpdate",
+    "ItsystemUpdateItsystemUpdate",
     "ItuserBoundAddressFilter",
     "ItuserBoundRoleBindingFilter",
     "ItuserCreate",

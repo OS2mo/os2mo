@@ -52,6 +52,7 @@ from .input_types import EngagementTerminateInput
 from .input_types import EngagementUpdateInput
 from .input_types import ITSystemCreateInput
 from .input_types import ITSystemFilter
+from .input_types import ITSystemUpdateInput
 from .input_types import ITUserCreateInput
 from .input_types import ITUserFilter
 from .input_types import ITUserTerminateInput
@@ -64,6 +65,8 @@ from .input_types import OrganisationUnitUpdateInput
 from .input_types import OrgUnitsboundmanagerfilter
 from .itsystem_create import ItsystemCreate
 from .itsystem_create import ItsystemCreateItsystemCreate
+from .itsystem_update import ItsystemUpdate
+from .itsystem_update import ItsystemUpdateItsystemUpdate
 from .ituser_create import ItuserCreate
 from .ituser_create import ItuserCreateItuserCreate
 from .ituser_terminate import ItuserTerminate
@@ -604,6 +607,23 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ItsystemCreate.parse_obj(data).itsystem_create
+
+    async def itsystem_update(
+        self, input: ITSystemUpdateInput
+    ) -> ItsystemUpdateItsystemUpdate:
+        query = gql(
+            """
+            mutation itsystem_update($input: ITSystemUpdateInput!) {
+              itsystem_update(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ItsystemUpdate.parse_obj(data).itsystem_update
 
     async def read_facet_uuid(self, user_key: str) -> ReadFacetUuidFacets:
         query = gql(
