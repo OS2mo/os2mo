@@ -2,11 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 import json
 from unittest.mock import ANY
-from uuid import UUID
 
 import pytest
 from fastramqpi.pytest_util import retry
-from httpx import AsyncClient
 from ldap3 import Connection
 from more_itertools import one
 
@@ -128,18 +126,20 @@ async def test_to_mo_org_unit(
         "LISTEN_TO_CHANGES_IN_LDAP": "True",
         "CONVERSION_MAPPING": json.dumps(
             {
-                "ldap_to_mo": {
-                    "Employee": {
-                        "objectClass": "Employee",
-                        "_import_to_mo_": "true",
-                        "_ldap_attributes_": ["employeeNumber", "givenName", "sn"],
-                        "uuid": "{{ employee_uuid or '' }}",  # TODO: why is this required?
-                        "cpr_number": "{{ ldap.employeeNumber }}",
-                        "given_name": "{{ ldap.givenName }}",
-                        "surname": "{{ ldap.sn }}",
-                        "nickname_given_name": "foo",
-                        "nickname_surname": "bar",
-                    },
+                "ldap_to_mo_any": {
+                    "inetOrgPerson": {
+                        "Employee": {
+                            "objectClass": "Employee",
+                            "_import_to_mo_": "true",
+                            "_ldap_attributes_": ["employeeNumber", "givenName", "sn"],
+                            "uuid": "{{ get_person_uuid({'cpr_numbers': [ldap.employeeNumber]}) }}",
+                            "cpr_number": "{{ ldap.employeeNumber }}",
+                            "given_name": "{{ ldap.givenName }}",
+                            "surname": "{{ ldap.sn }}",
+                            "nickname_given_name": "foo",
+                            "nickname_surname": "bar",
+                        },
+                    }
                 },
                 # TODO: why is this required?
                 "username_generator": {
@@ -149,10 +149,9 @@ async def test_to_mo_org_unit(
         ),
     }
 )
-async def test_to_mo(
-    test_client: AsyncClient,
+@pytest.mark.usefixtures("test_client")
+async def test_to_mo_person(
     graphql_client: GraphQLClient,
-    mo_org_unit: UUID,
     ldap_connection: Connection,
     ldap_org_unit: list[str],
 ) -> None:
