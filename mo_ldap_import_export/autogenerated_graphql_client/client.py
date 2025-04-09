@@ -11,6 +11,8 @@ from ._testing__engagement_read import TestingEngagementRead
 from ._testing__engagement_read import TestingEngagementReadEngagements
 from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
+from ._testing__itsystem_read import TestingItsystemRead
+from ._testing__itsystem_read import TestingItsystemReadItsystems
 from ._testing__ituser_read import TestingItuserRead
 from ._testing__ituser_read import TestingItuserReadItusers
 from ._testing__manager_create import TestingManagerCreate
@@ -308,6 +310,33 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingItuserRead.parse_obj(data).itusers
+
+    async def _testing__itsystem_read(
+        self, filter: ITSystemFilter | None | UnsetType = UNSET
+    ) -> TestingItsystemReadItsystems:
+        query = gql(
+            """
+            query __testing__itsystem_read($filter: ITSystemFilter) {
+              itsystems(filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    name
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingItsystemRead.parse_obj(data).itsystems
 
     async def _testing__org_unit_read(
         self, filter: OrganisationUnitFilter | None | UnsetType = UNSET

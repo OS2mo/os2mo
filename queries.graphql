@@ -97,6 +97,22 @@ query __testing__ituser_read($filter: ITUserFilter) {
   }
 }
 
+query __testing__itsystem_read($filter: ITSystemFilter) {
+  itsystems(filter: $filter) {
+    objects {
+      validities {
+        uuid
+        user_key
+        name
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
 query __testing__org_unit_read($filter: OrganisationUnitFilter) {
   org_units(filter: $filter) {
     objects {
