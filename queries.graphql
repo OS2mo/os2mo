@@ -247,8 +247,8 @@ mutation class_create($input: ClassCreateInput!) {
   }
 }
 
-query read_class_uuid($user_key: String!) {
-  classes(filter: { user_keys: [$user_key] }) {
+query read_class_uuid($filter: ClassFilter!) {
+  classes(filter: $filer) {
     objects {
       uuid
     }

@@ -43,6 +43,7 @@ from .input_types import AddressFilter
 from .input_types import AddressTerminateInput
 from .input_types import AddressUpdateInput
 from .input_types import ClassCreateInput
+from .input_types import ClassFilter
 from .input_types import EmployeeCreateInput
 from .input_types import EmployeeFilter
 from .input_types import EmployeeUpdateInput
@@ -678,11 +679,11 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ClassCreate.parse_obj(data).class_create
 
-    async def read_class_uuid(self, user_key: str) -> ReadClassUuidClasses:
+    async def read_class_uuid(self, filter: ClassFilter) -> ReadClassUuidClasses:
         query = gql(
             """
-            query read_class_uuid($user_key: String!) {
-              classes(filter: {user_keys: [$user_key]}) {
+            query read_class_uuid($filter: ClassFilter!) {
+              classes(filter: $filer) {
                 objects {
                   uuid
                 }
@@ -690,7 +691,7 @@ class GraphQLClient(AsyncBaseClient):
             }
             """
         )
-        variables: dict[str, object] = {"user_key": user_key}
+        variables: dict[str, object] = {"filter": filter}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadClassUuid.parse_obj(data).classes
