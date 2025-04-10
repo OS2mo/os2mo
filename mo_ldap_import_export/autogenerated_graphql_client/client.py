@@ -5,6 +5,8 @@ from uuid import UUID
 from ..types import CPRNumber
 from ._testing__address_read import TestingAddressRead
 from ._testing__address_read import TestingAddressReadAddresses
+from ._testing__class_read import TestingClassRead
+from ._testing__class_read import TestingClassReadClasses
 from ._testing__employee_read import TestingEmployeeRead
 from ._testing__employee_read import TestingEmployeeReadEmployees
 from ._testing__engagement_read import TestingEngagementRead
@@ -221,6 +223,45 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingAddressRead.parse_obj(data).addresses
+
+    async def _testing__class_read(
+        self, filter: ClassFilter | None | UnsetType = UNSET
+    ) -> TestingClassReadClasses:
+        query = gql(
+            """
+            query __testing__class_read($filter: ClassFilter) {
+              classes(filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    name
+                    scope
+                    owner
+                    published
+                    facet {
+                      uuid
+                    }
+                    parent {
+                      uuid
+                    }
+                    it_system {
+                      uuid
+                    }
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingClassRead.parse_obj(data).classes
 
     async def _testing__engagement_read(
         self, filter: EngagementFilter | None | UnsetType = UNSET

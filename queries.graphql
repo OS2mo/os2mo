@@ -29,6 +29,34 @@ query __testing__address_read($filter: AddressFilter) {
   }
 }
 
+query __testing__class_read($filter: ClassFilter) {
+  classes(filter: $filter) {
+    objects {
+      validities {
+        uuid
+        user_key
+        name
+        scope
+        owner
+        published
+        facet {
+          uuid
+        }
+        parent {
+          uuid
+        }
+        it_system {
+          uuid
+        }
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
 query __testing__engagement_read($filter: EngagementFilter) {
   engagements(filter: $filter) {
     objects {

@@ -10,6 +10,14 @@ from ._testing__address_read import TestingAddressReadAddressesObjectsValidities
 from ._testing__address_read import (
     TestingAddressReadAddressesObjectsValiditiesVisibility,
 )
+from ._testing__class_read import TestingClassRead
+from ._testing__class_read import TestingClassReadClasses
+from ._testing__class_read import TestingClassReadClassesObjects
+from ._testing__class_read import TestingClassReadClassesObjectsValidities
+from ._testing__class_read import TestingClassReadClassesObjectsValiditiesFacet
+from ._testing__class_read import TestingClassReadClassesObjectsValiditiesItSystem
+from ._testing__class_read import TestingClassReadClassesObjectsValiditiesParent
+from ._testing__class_read import TestingClassReadClassesObjectsValiditiesValidity
 from ._testing__employee_read import TestingEmployeeRead
 from ._testing__employee_read import TestingEmployeeReadEmployees
 from ._testing__employee_read import TestingEmployeeReadEmployeesObjects
@@ -752,6 +760,14 @@ __all__ = [
     "TestingAddressReadAddressesObjectsValiditiesPerson",
     "TestingAddressReadAddressesObjectsValiditiesValidity",
     "TestingAddressReadAddressesObjectsValiditiesVisibility",
+    "TestingClassRead",
+    "TestingClassReadClasses",
+    "TestingClassReadClassesObjects",
+    "TestingClassReadClassesObjectsValidities",
+    "TestingClassReadClassesObjectsValiditiesFacet",
+    "TestingClassReadClassesObjectsValiditiesItSystem",
+    "TestingClassReadClassesObjectsValiditiesParent",
+    "TestingClassReadClassesObjectsValiditiesValidity",
     "TestingEmployeeRead",
     "TestingEmployeeReadEmployees",
     "TestingEmployeeReadEmployeesObjects",
