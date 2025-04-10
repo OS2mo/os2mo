@@ -295,8 +295,18 @@ async def intern(graphql_client: GraphQLClient) -> UUID:
 
 
 @pytest.fixture
-async def adtitle(graphql_client: GraphQLClient) -> UUID:
-    return one((await graphql_client.read_itsystem_uuid("ADtitle")).objects).uuid
+async def read_itsystem_by_user_key(
+    graphql_client: GraphQLClient,
+) -> Callable[[str], Awaitable[UUID]]:
+    async def inner(user_key: str) -> UUID:
+        return one((await graphql_client.read_itsystem_uuid(user_key)).objects).uuid
+
+    return inner
+
+
+@pytest.fixture
+async def adtitle(read_itsystem_by_user_key: Callable[[str], Awaitable[UUID]]) -> UUID:
+    return await read_itsystem_by_user_key("ADtitle")
 
 
 @pytest.fixture
