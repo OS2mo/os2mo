@@ -275,6 +275,12 @@ mutation class_create($input: ClassCreateInput!) {
   }
 }
 
+mutation class_update($input: ClassUpdateInput!) {
+  class_update(input: $input) {
+    uuid
+  }
+}
+
 query read_class_uuid($filter: ClassFilter!) {
   classes(filter: $filter) {
     objects {
