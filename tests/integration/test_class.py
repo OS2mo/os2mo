@@ -58,7 +58,6 @@ from tests.integration.conftest import DN2UUID
     }
 )
 @pytest.mark.usefixtures("test_client")
-@pytest.mark.xfail(reason="Cannot create classes")
 @pytest.mark.xfail(reason="Cannot edit classes")
 @pytest.mark.xfail(reason="Cannot terminate classes")
 async def test_to_mo(

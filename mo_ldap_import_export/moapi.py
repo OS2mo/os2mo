@@ -584,6 +584,8 @@ class MOAPI:
             await self.create_ituser(obj)
         elif isinstance(obj, ITSystem):
             await self.create_itsystem(obj)
+        elif isinstance(obj, Class):
+            await self.create_class(obj)
         elif isinstance(obj, OrganisationUnit):
             await self.create_org_unit(obj)
         else:  # pragma: no cover
@@ -672,6 +674,25 @@ class MOAPI:
                 uuid=obj.uuid,
                 user_key=obj.user_key,
                 name=obj.name,
+                validity=RAValidityInput(
+                    from_=obj.validity.start,
+                    to=obj.validity.end,
+                ),
+            )
+        )
+
+    async def create_class(self, obj: Class) -> None:
+        await self.graphql_client.class_create(
+            input=ClassCreateInput(
+                uuid=obj.uuid,
+                user_key=obj.user_key,
+                name=obj.name,
+                facet_uuid=obj.facet,
+                scope=obj.scope,
+                published=obj.published,
+                parent_uuid=obj.parent,
+                owner=obj.owner,
+                it_system_uuid=obj.it_system,
                 validity=RAValidityInput(
                     from_=obj.validity.start,
                     to=obj.validity.end,
