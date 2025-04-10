@@ -15,6 +15,7 @@ from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 
 from .models import Address
+from .models import Class
 from .models import Employee
 from .models import Engagement
 from .models import ITSystem
@@ -44,6 +45,7 @@ def import_class(name: str) -> type[MOBase]:
         "Engagement": Engagement,
         "ITUser": ITUser,
         "ITSystem": ITSystem,
+        "Class": Class,
         "Employee": Employee,
         "OrganisationUnit": OrganisationUnit,
     }

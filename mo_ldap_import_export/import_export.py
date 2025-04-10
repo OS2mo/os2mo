@@ -36,6 +36,7 @@ from .ldap import get_ldap_object
 from .moapi import Verb
 from .moapi import get_primary_engagement
 from .models import Address
+from .models import Class
 from .models import Employee
 from .models import Engagement
 from .models import ITSystem
@@ -308,6 +309,10 @@ class SyncTool:
             )
         if issubclass(mo_class, ITSystem):
             return await self.dataloader.moapi.load_mo_it_system(
+                uuid, current_objects_only=False
+            )
+        if issubclass(mo_class, Class):
+            return await self.dataloader.moapi.load_mo_class(
                 uuid, current_objects_only=False
             )
         if issubclass(mo_class, Employee):

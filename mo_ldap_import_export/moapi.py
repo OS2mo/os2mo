@@ -57,6 +57,7 @@ from .exceptions import InvalidCPR
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import UUIDNotFoundException
 from .models import Address
+from .models import Class
 from .models import Employee
 from .models import Engagement
 from .models import ITSystem
@@ -77,6 +78,14 @@ class Verb(Enum):
     CREATE = auto()
     EDIT = auto()
     TERMINATE = auto()
+
+
+class HasUUID(Protocol):
+    uuid: UUID
+
+
+def extract_relation(entry: HasUUID | None) -> UUID | None:
+    return entry.uuid if entry else None
 
 
 class Validity(Protocol):
@@ -419,6 +428,33 @@ class MOAPI:
             uuid=entry.uuid,
             user_key=entry.user_key,
             name=entry.name,
+            validity=models.Validity(
+                start=entry.validity.from_,
+                end=entry.validity.to,
+            ),
+        )
+
+    async def load_mo_class(
+        self, uuid: UUID, current_objects_only=True
+    ) -> Class | None:
+        start = end = UNSET if current_objects_only else None
+        results = await self.graphql_client.read_classes([uuid], start, end)
+        result = only(results.objects)
+        if result is None:  # pragma: no cover
+            return None
+        entry = extract_current_or_latest_validity(result.validities)
+        if entry is None:  # pragma: no cover
+            return None
+        return Class(
+            uuid=entry.uuid,
+            user_key=entry.user_key,
+            name=entry.name,
+            scope=entry.scope,
+            owner=entry.owner,
+            published=entry.published,
+            facet=extract_relation(entry.facet),
+            parent=extract_relation(entry.parent),
+            it_system=extract_relation(entry.it_system),
             validity=models.Validity(
                 start=entry.validity.from_,
                 end=entry.validity.to,

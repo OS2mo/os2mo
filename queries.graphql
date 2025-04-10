@@ -276,7 +276,7 @@ mutation class_create($input: ClassCreateInput!) {
 }
 
 query read_class_uuid($filter: ClassFilter!) {
-  classes(filter: $filer) {
+  classes(filter: $filter) {
     objects {
       uuid
     }
@@ -437,6 +437,34 @@ query read_itsystems($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime)
         uuid
         user_key
         name
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
+query read_classes($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
+  classes(filter: { from_date: $from_date, to_date: $to_date, uuids: $uuids }) {
+    objects {
+      validities {
+        uuid
+        user_key
+        name
+        scope
+        owner
+        published
+        facet {
+          uuid
+        }
+        parent {
+          uuid
+        }
+        it_system {
+          uuid
+        }
         validity {
           from
           to

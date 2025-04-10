@@ -120,6 +120,22 @@ class ITSystem(StrictBaseModel):
     validity: Validity
 
 
+class Class(StrictBaseModel):
+    uuid: UUID = Field(default_factory=uuid4)
+    user_key: str
+
+    name: str
+    scope: str
+    facet: UUID
+    it_system: UUID | None
+
+    owner: UUID | None
+    parent: UUID | None
+    published: str = "Publiceret"
+
+    validity: Validity
+
+
 class JobTitleFromADToMO(StrictBaseModel):
     uuid: UUID = Field(default_factory=uuid4)
     user_key: str | None  # unused
@@ -154,6 +170,7 @@ MOBase = (
     | JobTitleFromADToMO
     | OrganisationUnit
     | ITSystem
+    | Class
 )
 
 

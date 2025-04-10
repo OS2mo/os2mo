@@ -114,6 +114,8 @@ from .read_class_uuid_by_facet_and_class_user_key import (
 from .read_class_uuid_by_facet_and_class_user_key import (
     ReadClassUuidByFacetAndClassUserKeyClasses,
 )
+from .read_classes import ReadClasses
+from .read_classes import ReadClassesClasses
 from .read_cleanup_addresses import ReadCleanupAddresses
 from .read_cleanup_addresses import ReadCleanupAddressesAddresses
 from .read_employee_registrations import ReadEmployeeRegistrations
@@ -724,7 +726,7 @@ class GraphQLClient(AsyncBaseClient):
         query = gql(
             """
             query read_class_uuid($filter: ClassFilter!) {
-              classes(filter: $filer) {
+              classes(filter: $filter) {
                 objects {
                   uuid
                 }
@@ -1019,6 +1021,52 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadItsystems.parse_obj(data).itsystems
+
+    async def read_classes(
+        self,
+        uuids: list[UUID],
+        from_date: datetime | None | UnsetType = UNSET,
+        to_date: datetime | None | UnsetType = UNSET,
+    ) -> ReadClassesClasses:
+        query = gql(
+            """
+            query read_classes($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
+              classes(filter: {from_date: $from_date, to_date: $to_date, uuids: $uuids}) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    name
+                    scope
+                    owner
+                    published
+                    facet {
+                      uuid
+                    }
+                    parent {
+                      uuid
+                    }
+                    it_system {
+                      uuid
+                    }
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "uuids": uuids,
+            "from_date": from_date,
+            "to_date": to_date,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadClasses.parse_obj(data).classes
 
     async def read_itusers(
         self,
