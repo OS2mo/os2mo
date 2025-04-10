@@ -79,6 +79,8 @@ from .async_base_client import AsyncBaseClient
 from .base_model import BaseModel
 from .class_create import ClassCreate
 from .class_create import ClassCreateClassCreate
+from .class_terminate import ClassTerminate
+from .class_terminate import ClassTerminateClassTerminate
 from .class_update import ClassUpdate
 from .class_update import ClassUpdateClassUpdate
 from .client import GraphQLClient
@@ -482,6 +484,8 @@ __all__ = [
     "ClassFilter",
     "ClassOwnerFilter",
     "ClassRegistrationFilter",
+    "ClassTerminate",
+    "ClassTerminateClassTerminate",
     "ClassTerminateInput",
     "ClassUpdate",
     "ClassUpdateClassUpdate",

@@ -281,6 +281,12 @@ mutation class_update($input: ClassUpdateInput!) {
   }
 }
 
+mutation class_terminate($input: ClassTerminateInput!) {
+  class_terminate(input: $input) {
+    uuid
+  }
+}
+
 query read_class_uuid($filter: ClassFilter!) {
   classes(filter: $filter) {
     objects {

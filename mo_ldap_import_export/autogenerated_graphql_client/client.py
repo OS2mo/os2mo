@@ -32,6 +32,8 @@ from .base_model import UNSET
 from .base_model import UnsetType
 from .class_create import ClassCreate
 from .class_create import ClassCreateClassCreate
+from .class_terminate import ClassTerminate
+from .class_terminate import ClassTerminateClassTerminate
 from .class_update import ClassUpdate
 from .class_update import ClassUpdateClassUpdate
 from .employee_refresh import EmployeeRefresh
@@ -48,6 +50,7 @@ from .input_types import AddressTerminateInput
 from .input_types import AddressUpdateInput
 from .input_types import ClassCreateInput
 from .input_types import ClassFilter
+from .input_types import ClassTerminateInput
 from .input_types import ClassUpdateInput
 from .input_types import EmployeeCreateInput
 from .input_types import EmployeeFilter
@@ -739,6 +742,23 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ClassUpdate.parse_obj(data).class_update
+
+    async def class_terminate(
+        self, input: ClassTerminateInput
+    ) -> ClassTerminateClassTerminate:
+        query = gql(
+            """
+            mutation class_terminate($input: ClassTerminateInput!) {
+              class_terminate(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ClassTerminate.parse_obj(data).class_terminate
 
     async def read_class_uuid(self, filter: ClassFilter) -> ReadClassUuidClasses:
         query = gql(
