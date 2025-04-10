@@ -233,8 +233,8 @@ mutation itsystem_terminate($input: ITSystemTerminateInput!) {
   }
 }
 
-query read_facet_uuid($user_key: String!) {
-  facets(filter: { user_keys: [$user_key] }) {
+query read_facet_uuid($filter: FacetFilter!) {
+  facets(filter: $filter) {
     objects {
       uuid
     }

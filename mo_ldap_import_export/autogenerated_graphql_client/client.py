@@ -50,6 +50,7 @@ from .input_types import EngagementCreateInput
 from .input_types import EngagementFilter
 from .input_types import EngagementTerminateInput
 from .input_types import EngagementUpdateInput
+from .input_types import FacetFilter
 from .input_types import ITSystemCreateInput
 from .input_types import ITSystemFilter
 from .input_types import ITSystemTerminateInput
@@ -645,11 +646,11 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ItsystemTerminate.parse_obj(data).itsystem_terminate
 
-    async def read_facet_uuid(self, user_key: str) -> ReadFacetUuidFacets:
+    async def read_facet_uuid(self, filter: FacetFilter) -> ReadFacetUuidFacets:
         query = gql(
             """
-            query read_facet_uuid($user_key: String!) {
-              facets(filter: {user_keys: [$user_key]}) {
+            query read_facet_uuid($filter: FacetFilter!) {
+              facets(filter: $filter) {
                 objects {
                   uuid
                 }
@@ -657,7 +658,7 @@ class GraphQLClient(AsyncBaseClient):
             }
             """
         )
-        variables: dict[str, object] = {"user_key": user_key}
+        variables: dict[str, object] = {"filter": filter}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadFacetUuid.parse_obj(data).facets
