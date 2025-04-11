@@ -629,8 +629,8 @@ query read_org_unit_name($org_unit_uuid: UUID!) {
   }
 }
 
-query read_itsystem_uuid($user_key: String!) {
-  itsystems(filter: { user_keys: [$user_key] }) {
+query read_itsystem_uuid($filter: ITSystemFilter!) {
+  itsystems(filter: $filter) {
     objects {
       uuid
     }
