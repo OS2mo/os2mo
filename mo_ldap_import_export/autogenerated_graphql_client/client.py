@@ -5,6 +5,8 @@ from uuid import UUID
 from ..types import CPRNumber
 from ._testing__address_read import TestingAddressRead
 from ._testing__address_read import TestingAddressReadAddresses
+from ._testing__class_read import TestingClassRead
+from ._testing__class_read import TestingClassReadClasses
 from ._testing__employee_read import TestingEmployeeRead
 from ._testing__employee_read import TestingEmployeeReadEmployees
 from ._testing__engagement_read import TestingEngagementRead
@@ -30,6 +32,10 @@ from .base_model import UNSET
 from .base_model import UnsetType
 from .class_create import ClassCreate
 from .class_create import ClassCreateClassCreate
+from .class_terminate import ClassTerminate
+from .class_terminate import ClassTerminateClassTerminate
+from .class_update import ClassUpdate
+from .class_update import ClassUpdateClassUpdate
 from .employee_refresh import EmployeeRefresh
 from .employee_refresh import EmployeeRefreshEmployeeRefresh
 from .engagement_create import EngagementCreate
@@ -43,6 +49,9 @@ from .input_types import AddressFilter
 from .input_types import AddressTerminateInput
 from .input_types import AddressUpdateInput
 from .input_types import ClassCreateInput
+from .input_types import ClassFilter
+from .input_types import ClassTerminateInput
+from .input_types import ClassUpdateInput
 from .input_types import EmployeeCreateInput
 from .input_types import EmployeeFilter
 from .input_types import EmployeeUpdateInput
@@ -50,6 +59,7 @@ from .input_types import EngagementCreateInput
 from .input_types import EngagementFilter
 from .input_types import EngagementTerminateInput
 from .input_types import EngagementUpdateInput
+from .input_types import FacetFilter
 from .input_types import ITSystemCreateInput
 from .input_types import ITSystemFilter
 from .input_types import ITSystemTerminateInput
@@ -110,6 +120,8 @@ from .read_class_uuid_by_facet_and_class_user_key import (
 from .read_class_uuid_by_facet_and_class_user_key import (
     ReadClassUuidByFacetAndClassUserKeyClasses,
 )
+from .read_classes import ReadClasses
+from .read_classes import ReadClassesClasses
 from .read_cleanup_addresses import ReadCleanupAddresses
 from .read_cleanup_addresses import ReadCleanupAddressesAddresses
 from .read_employee_registrations import ReadEmployeeRegistrations
@@ -219,6 +231,45 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingAddressRead.parse_obj(data).addresses
+
+    async def _testing__class_read(
+        self, filter: ClassFilter | None | UnsetType = UNSET
+    ) -> TestingClassReadClasses:
+        query = gql(
+            """
+            query __testing__class_read($filter: ClassFilter) {
+              classes(filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    name
+                    scope
+                    owner
+                    published
+                    facet {
+                      uuid
+                    }
+                    parent {
+                      uuid
+                    }
+                    it_system {
+                      uuid
+                    }
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingClassRead.parse_obj(data).classes
 
     async def _testing__engagement_read(
         self, filter: EngagementFilter | None | UnsetType = UNSET
@@ -645,11 +696,11 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ItsystemTerminate.parse_obj(data).itsystem_terminate
 
-    async def read_facet_uuid(self, user_key: str) -> ReadFacetUuidFacets:
+    async def read_facet_uuid(self, filter: FacetFilter) -> ReadFacetUuidFacets:
         query = gql(
             """
-            query read_facet_uuid($user_key: String!) {
-              facets(filter: {user_keys: [$user_key]}) {
+            query read_facet_uuid($filter: FacetFilter!) {
+              facets(filter: $filter) {
                 objects {
                   uuid
                 }
@@ -657,7 +708,7 @@ class GraphQLClient(AsyncBaseClient):
             }
             """
         )
-        variables: dict[str, object] = {"user_key": user_key}
+        variables: dict[str, object] = {"filter": filter}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadFacetUuid.parse_obj(data).facets
@@ -677,11 +728,43 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ClassCreate.parse_obj(data).class_create
 
-    async def read_class_uuid(self, user_key: str) -> ReadClassUuidClasses:
+    async def class_update(self, input: ClassUpdateInput) -> ClassUpdateClassUpdate:
         query = gql(
             """
-            query read_class_uuid($user_key: String!) {
-              classes(filter: {user_keys: [$user_key]}) {
+            mutation class_update($input: ClassUpdateInput!) {
+              class_update(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ClassUpdate.parse_obj(data).class_update
+
+    async def class_terminate(
+        self, input: ClassTerminateInput
+    ) -> ClassTerminateClassTerminate:
+        query = gql(
+            """
+            mutation class_terminate($input: ClassTerminateInput!) {
+              class_terminate(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ClassTerminate.parse_obj(data).class_terminate
+
+    async def read_class_uuid(self, filter: ClassFilter) -> ReadClassUuidClasses:
+        query = gql(
+            """
+            query read_class_uuid($filter: ClassFilter!) {
+              classes(filter: $filter) {
                 objects {
                   uuid
                 }
@@ -689,7 +772,7 @@ class GraphQLClient(AsyncBaseClient):
             }
             """
         )
-        variables: dict[str, object] = {"user_key": user_key}
+        variables: dict[str, object] = {"filter": filter}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadClassUuid.parse_obj(data).classes
@@ -976,6 +1059,52 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadItsystems.parse_obj(data).itsystems
+
+    async def read_classes(
+        self,
+        uuids: list[UUID],
+        from_date: datetime | None | UnsetType = UNSET,
+        to_date: datetime | None | UnsetType = UNSET,
+    ) -> ReadClassesClasses:
+        query = gql(
+            """
+            query read_classes($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
+              classes(filter: {from_date: $from_date, to_date: $to_date, uuids: $uuids}) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    name
+                    scope
+                    owner
+                    published
+                    facet {
+                      uuid
+                    }
+                    parent {
+                      uuid
+                    }
+                    it_system {
+                      uuid
+                    }
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "uuids": uuids,
+            "from_date": from_date,
+            "to_date": to_date,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadClasses.parse_obj(data).classes
 
     async def read_itusers(
         self,

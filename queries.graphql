@@ -29,6 +29,34 @@ query __testing__address_read($filter: AddressFilter) {
   }
 }
 
+query __testing__class_read($filter: ClassFilter) {
+  classes(filter: $filter) {
+    objects {
+      validities {
+        uuid
+        user_key
+        name
+        scope
+        owner
+        published
+        facet {
+          uuid
+        }
+        parent {
+          uuid
+        }
+        it_system {
+          uuid
+        }
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
 query __testing__engagement_read($filter: EngagementFilter) {
   engagements(filter: $filter) {
     objects {
@@ -233,8 +261,8 @@ mutation itsystem_terminate($input: ITSystemTerminateInput!) {
   }
 }
 
-query read_facet_uuid($user_key: String!) {
-  facets(filter: { user_keys: [$user_key] }) {
+query read_facet_uuid($filter: FacetFilter!) {
+  facets(filter: $filter) {
     objects {
       uuid
     }
@@ -247,8 +275,20 @@ mutation class_create($input: ClassCreateInput!) {
   }
 }
 
-query read_class_uuid($user_key: String!) {
-  classes(filter: { user_keys: [$user_key] }) {
+mutation class_update($input: ClassUpdateInput!) {
+  class_update(input: $input) {
+    uuid
+  }
+}
+
+mutation class_terminate($input: ClassTerminateInput!) {
+  class_terminate(input: $input) {
+    uuid
+  }
+}
+
+query read_class_uuid($filter: ClassFilter!) {
+  classes(filter: $filter) {
     objects {
       uuid
     }
@@ -409,6 +449,34 @@ query read_itsystems($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime)
         uuid
         user_key
         name
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
+query read_classes($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
+  classes(filter: { from_date: $from_date, to_date: $to_date, uuids: $uuids }) {
+    objects {
+      validities {
+        uuid
+        user_key
+        name
+        scope
+        owner
+        published
+        facet {
+          uuid
+        }
+        parent {
+          uuid
+        }
+        it_system {
+          uuid
+        }
         validity {
           from
           to

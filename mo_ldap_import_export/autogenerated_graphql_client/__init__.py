@@ -10,6 +10,14 @@ from ._testing__address_read import TestingAddressReadAddressesObjectsValidities
 from ._testing__address_read import (
     TestingAddressReadAddressesObjectsValiditiesVisibility,
 )
+from ._testing__class_read import TestingClassRead
+from ._testing__class_read import TestingClassReadClasses
+from ._testing__class_read import TestingClassReadClassesObjects
+from ._testing__class_read import TestingClassReadClassesObjectsValidities
+from ._testing__class_read import TestingClassReadClassesObjectsValiditiesFacet
+from ._testing__class_read import TestingClassReadClassesObjectsValiditiesItSystem
+from ._testing__class_read import TestingClassReadClassesObjectsValiditiesParent
+from ._testing__class_read import TestingClassReadClassesObjectsValiditiesValidity
 from ._testing__employee_read import TestingEmployeeRead
 from ._testing__employee_read import TestingEmployeeReadEmployees
 from ._testing__employee_read import TestingEmployeeReadEmployeesObjects
@@ -71,6 +79,10 @@ from .async_base_client import AsyncBaseClient
 from .base_model import BaseModel
 from .class_create import ClassCreate
 from .class_create import ClassCreateClassCreate
+from .class_terminate import ClassTerminate
+from .class_terminate import ClassTerminateClassTerminate
+from .class_update import ClassUpdate
+from .class_update import ClassUpdateClassUpdate
 from .client import GraphQLClient
 from .employee_refresh import EmployeeRefresh
 from .employee_refresh import EmployeeRefreshEmployeeRefresh
@@ -272,6 +284,14 @@ from .read_class_uuid_by_facet_and_class_user_key import (
 from .read_class_uuid_by_facet_and_class_user_key import (
     ReadClassUuidByFacetAndClassUserKeyClassesObjects,
 )
+from .read_classes import ReadClasses
+from .read_classes import ReadClassesClasses
+from .read_classes import ReadClassesClassesObjects
+from .read_classes import ReadClassesClassesObjectsValidities
+from .read_classes import ReadClassesClassesObjectsValiditiesFacet
+from .read_classes import ReadClassesClassesObjectsValiditiesItSystem
+from .read_classes import ReadClassesClassesObjectsValiditiesParent
+from .read_classes import ReadClassesClassesObjectsValiditiesValidity
 from .read_cleanup_addresses import ReadCleanupAddresses
 from .read_cleanup_addresses import ReadCleanupAddressesAddresses
 from .read_cleanup_addresses import ReadCleanupAddressesAddressesObjects
@@ -464,7 +484,11 @@ __all__ = [
     "ClassFilter",
     "ClassOwnerFilter",
     "ClassRegistrationFilter",
+    "ClassTerminate",
+    "ClassTerminateClassTerminate",
     "ClassTerminateInput",
+    "ClassUpdate",
+    "ClassUpdateClassUpdate",
     "ClassUpdateInput",
     "ConfigurationFilter",
     "EmployeeCreateInput",
@@ -616,6 +640,14 @@ __all__ = [
     "ReadClassUuidByFacetAndClassUserKeyClassesObjects",
     "ReadClassUuidClasses",
     "ReadClassUuidClassesObjects",
+    "ReadClasses",
+    "ReadClassesClasses",
+    "ReadClassesClassesObjects",
+    "ReadClassesClassesObjectsValidities",
+    "ReadClassesClassesObjectsValiditiesFacet",
+    "ReadClassesClassesObjectsValiditiesItSystem",
+    "ReadClassesClassesObjectsValiditiesParent",
+    "ReadClassesClassesObjectsValiditiesValidity",
     "ReadCleanupAddresses",
     "ReadCleanupAddressesAddresses",
     "ReadCleanupAddressesAddressesObjects",
@@ -752,6 +784,14 @@ __all__ = [
     "TestingAddressReadAddressesObjectsValiditiesPerson",
     "TestingAddressReadAddressesObjectsValiditiesValidity",
     "TestingAddressReadAddressesObjectsValiditiesVisibility",
+    "TestingClassRead",
+    "TestingClassReadClasses",
+    "TestingClassReadClassesObjects",
+    "TestingClassReadClassesObjectsValidities",
+    "TestingClassReadClassesObjectsValiditiesFacet",
+    "TestingClassReadClassesObjectsValiditiesItSystem",
+    "TestingClassReadClassesObjectsValiditiesParent",
+    "TestingClassReadClassesObjectsValiditiesValidity",
     "TestingEmployeeRead",
     "TestingEmployeeReadEmployees",
     "TestingEmployeeReadEmployeesObjects",
