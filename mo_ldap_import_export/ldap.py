@@ -236,9 +236,12 @@ async def ldap_modify(
 
 
 async def ldap_modify_dn(
-    ldap_connection: Connection, dn: DN, relative_dn: RDN
+    ldap_connection: Connection,
+    dn: DN,
+    relative_dn: RDN,
+    new_superior: Any | None = None,
 ) -> tuple[dict, dict]:
-    message_id = ldap_connection.modify_dn(dn, relative_dn)
+    message_id = ldap_connection.modify_dn(dn, relative_dn, new_superior=new_superior)
     response, result = await wait_for_message_id(ldap_connection, message_id)
     return response, result
 
