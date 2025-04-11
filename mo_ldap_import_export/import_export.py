@@ -38,6 +38,7 @@ from .moapi import get_primary_engagement
 from .models import Address
 from .models import Employee
 from .models import Engagement
+from .models import ITSystem
 from .models import ITUser
 from .models import JobTitleFromADToMO
 from .models import MOBase
@@ -303,6 +304,10 @@ class SyncTool:
             )
         if issubclass(mo_class, ITUser):
             return await self.dataloader.moapi.load_mo_it_user(
+                uuid, current_objects_only=False
+            )
+        if issubclass(mo_class, ITSystem):
+            return await self.dataloader.moapi.load_mo_it_system(
                 uuid, current_objects_only=False
             )
         if issubclass(mo_class, Employee):

@@ -97,6 +97,22 @@ query __testing__ituser_read($filter: ITUserFilter) {
   }
 }
 
+query __testing__itsystem_read($filter: ITSystemFilter) {
+  itsystems(filter: $filter) {
+    objects {
+      validities {
+        uuid
+        user_key
+        name
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
 query __testing__org_unit_read($filter: OrganisationUnitFilter) {
   org_units(filter: $filter) {
     objects {
@@ -195,6 +211,24 @@ mutation ituser_update($input: ITUserUpdateInput!) {
 
 mutation ituser_terminate($input: ITUserTerminateInput!) {
   ituser_terminate(input: $input) {
+    uuid
+  }
+}
+
+mutation itsystem_create($input: ITSystemCreateInput!) {
+  itsystem_create(input: $input) {
+    uuid
+  }
+}
+
+mutation itsystem_update($input: ITSystemUpdateInput!) {
+  itsystem_update(input: $input) {
+    uuid
+  }
+}
+
+mutation itsystem_terminate($input: ITSystemTerminateInput!) {
+  itsystem_terminate(input: $input) {
     uuid
   }
 }
@@ -362,6 +396,22 @@ query read_org_units(
         validity {
           to
           from
+        }
+      }
+    }
+  }
+}
+
+query read_itsystems($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
+  itsystems(filter: { from_date: $from_date, to_date: $to_date, uuids: $uuids }) {
+    objects {
+      validities {
+        uuid
+        user_key
+        name
+        validity {
+          from
+          to
         }
       }
     }

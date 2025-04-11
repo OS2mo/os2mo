@@ -11,6 +11,8 @@ from ._testing__engagement_read import TestingEngagementRead
 from ._testing__engagement_read import TestingEngagementReadEngagements
 from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
+from ._testing__itsystem_read import TestingItsystemRead
+from ._testing__itsystem_read import TestingItsystemReadItsystems
 from ._testing__ituser_read import TestingItuserRead
 from ._testing__ituser_read import TestingItuserReadItusers
 from ._testing__manager_create import TestingManagerCreate
@@ -50,6 +52,8 @@ from .input_types import EngagementTerminateInput
 from .input_types import EngagementUpdateInput
 from .input_types import ITSystemCreateInput
 from .input_types import ITSystemFilter
+from .input_types import ITSystemTerminateInput
+from .input_types import ITSystemUpdateInput
 from .input_types import ITUserCreateInput
 from .input_types import ITUserFilter
 from .input_types import ITUserTerminateInput
@@ -60,6 +64,12 @@ from .input_types import OrganisationUnitFilter
 from .input_types import OrganisationUnitTerminateInput
 from .input_types import OrganisationUnitUpdateInput
 from .input_types import OrgUnitsboundmanagerfilter
+from .itsystem_create import ItsystemCreate
+from .itsystem_create import ItsystemCreateItsystemCreate
+from .itsystem_terminate import ItsystemTerminate
+from .itsystem_terminate import ItsystemTerminateItsystemTerminate
+from .itsystem_update import ItsystemUpdate
+from .itsystem_update import ItsystemUpdateItsystemUpdate
 from .ituser_create import ItuserCreate
 from .ituser_create import ItuserCreateItuserCreate
 from .ituser_terminate import ItuserTerminate
@@ -134,6 +144,8 @@ from .read_filtered_itusers import ReadFilteredItusers
 from .read_filtered_itusers import ReadFilteredItusersItusers
 from .read_itsystem_uuid import ReadItsystemUuid
 from .read_itsystem_uuid import ReadItsystemUuidItsystems
+from .read_itsystems import ReadItsystems
+from .read_itsystems import ReadItsystemsItsystems
 from .read_ituser_by_employee_and_itsystem_uuid import (
     ReadItuserByEmployeeAndItsystemUuid,
 )
@@ -308,6 +320,33 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingItuserRead.parse_obj(data).itusers
+
+    async def _testing__itsystem_read(
+        self, filter: ITSystemFilter | None | UnsetType = UNSET
+    ) -> TestingItsystemReadItsystems:
+        query = gql(
+            """
+            query __testing__itsystem_read($filter: ITSystemFilter) {
+              itsystems(filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    name
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingItsystemRead.parse_obj(data).itsystems
 
     async def _testing__org_unit_read(
         self, filter: OrganisationUnitFilter | None | UnsetType = UNSET
@@ -554,6 +593,57 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ItuserTerminate.parse_obj(data).ituser_terminate
+
+    async def itsystem_create(
+        self, input: ITSystemCreateInput
+    ) -> ItsystemCreateItsystemCreate:
+        query = gql(
+            """
+            mutation itsystem_create($input: ITSystemCreateInput!) {
+              itsystem_create(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ItsystemCreate.parse_obj(data).itsystem_create
+
+    async def itsystem_update(
+        self, input: ITSystemUpdateInput
+    ) -> ItsystemUpdateItsystemUpdate:
+        query = gql(
+            """
+            mutation itsystem_update($input: ITSystemUpdateInput!) {
+              itsystem_update(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ItsystemUpdate.parse_obj(data).itsystem_update
+
+    async def itsystem_terminate(
+        self, input: ITSystemTerminateInput
+    ) -> ItsystemTerminateItsystemTerminate:
+        query = gql(
+            """
+            mutation itsystem_terminate($input: ITSystemTerminateInput!) {
+              itsystem_terminate(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ItsystemTerminate.parse_obj(data).itsystem_terminate
 
     async def read_facet_uuid(self, user_key: str) -> ReadFacetUuidFacets:
         query = gql(
@@ -852,6 +942,40 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadOrgUnits.parse_obj(data).org_units
+
+    async def read_itsystems(
+        self,
+        uuids: list[UUID],
+        from_date: datetime | None | UnsetType = UNSET,
+        to_date: datetime | None | UnsetType = UNSET,
+    ) -> ReadItsystemsItsystems:
+        query = gql(
+            """
+            query read_itsystems($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
+              itsystems(filter: {from_date: $from_date, to_date: $to_date, uuids: $uuids}) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    name
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "uuids": uuids,
+            "from_date": from_date,
+            "to_date": to_date,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadItsystems.parse_obj(data).itsystems
 
     async def read_itusers(
         self,

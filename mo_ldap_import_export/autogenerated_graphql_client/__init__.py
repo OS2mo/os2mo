@@ -38,6 +38,13 @@ from ._testing__engagement_read import (
 )
 from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
+from ._testing__itsystem_read import TestingItsystemRead
+from ._testing__itsystem_read import TestingItsystemReadItsystems
+from ._testing__itsystem_read import TestingItsystemReadItsystemsObjects
+from ._testing__itsystem_read import TestingItsystemReadItsystemsObjectsValidities
+from ._testing__itsystem_read import (
+    TestingItsystemReadItsystemsObjectsValiditiesValidity,
+)
 from ._testing__ituser_read import TestingItuserRead
 from ._testing__ituser_read import TestingItuserReadItusers
 from ._testing__ituser_read import TestingItuserReadItusersObjects
@@ -194,6 +201,12 @@ from .input_types import UuidsBoundITUserFilter
 from .input_types import UuidsBoundLeaveFilter
 from .input_types import UuidsBoundOrganisationUnitFilter
 from .input_types import ValidityInput
+from .itsystem_create import ItsystemCreate
+from .itsystem_create import ItsystemCreateItsystemCreate
+from .itsystem_terminate import ItsystemTerminate
+from .itsystem_terminate import ItsystemTerminateItsystemTerminate
+from .itsystem_update import ItsystemUpdate
+from .itsystem_update import ItsystemUpdateItsystemUpdate
 from .ituser_create import ItuserCreate
 from .ituser_create import ItuserCreateItuserCreate
 from .ituser_terminate import ItuserTerminate
@@ -362,6 +375,11 @@ from .read_filtered_itusers import ReadFilteredItusersItusersObjectsValiditiesVa
 from .read_itsystem_uuid import ReadItsystemUuid
 from .read_itsystem_uuid import ReadItsystemUuidItsystems
 from .read_itsystem_uuid import ReadItsystemUuidItsystemsObjects
+from .read_itsystems import ReadItsystems
+from .read_itsystems import ReadItsystemsItsystems
+from .read_itsystems import ReadItsystemsItsystemsObjects
+from .read_itsystems import ReadItsystemsItsystemsObjectsValidities
+from .read_itsystems import ReadItsystemsItsystemsObjectsValiditiesValidity
 from .read_ituser_by_employee_and_itsystem_uuid import (
     ReadItuserByEmployeeAndItsystemUuid,
 )
@@ -501,6 +519,12 @@ __all__ = [
     "ITUserRegistrationFilter",
     "ITUserTerminateInput",
     "ITUserUpdateInput",
+    "ItsystemCreate",
+    "ItsystemCreateItsystemCreate",
+    "ItsystemTerminate",
+    "ItsystemTerminateItsystemTerminate",
+    "ItsystemUpdate",
+    "ItsystemUpdateItsystemUpdate",
     "ItuserBoundAddressFilter",
     "ItuserBoundRoleBindingFilter",
     "ItuserCreate",
@@ -663,6 +687,11 @@ __all__ = [
     "ReadItsystemUuid",
     "ReadItsystemUuidItsystems",
     "ReadItsystemUuidItsystemsObjects",
+    "ReadItsystems",
+    "ReadItsystemsItsystems",
+    "ReadItsystemsItsystemsObjects",
+    "ReadItsystemsItsystemsObjectsValidities",
+    "ReadItsystemsItsystemsObjectsValiditiesValidity",
     "ReadItuserByEmployeeAndItsystemUuid",
     "ReadItuserByEmployeeAndItsystemUuidItusers",
     "ReadItuserByEmployeeAndItsystemUuidItusersObjects",
@@ -739,6 +768,11 @@ __all__ = [
     "TestingEngagementReadEngagementsObjectsValiditiesValidity",
     "TestingItsystemCreate",
     "TestingItsystemCreateItsystemCreate",
+    "TestingItsystemRead",
+    "TestingItsystemReadItsystems",
+    "TestingItsystemReadItsystemsObjects",
+    "TestingItsystemReadItsystemsObjectsValidities",
+    "TestingItsystemReadItsystemsObjectsValiditiesValidity",
     "TestingItuserRead",
     "TestingItuserReadItusers",
     "TestingItuserReadItusersObjects",
