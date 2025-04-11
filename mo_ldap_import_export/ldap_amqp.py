@@ -112,6 +112,15 @@ async def handle_uuid(
         )
         await sync_tool.import_single_org_unit(dn)
 
+    for object_class in settings.conversion_mapping.ldap_to_mo_any:
+        if object_class in ldap_object_classes:
+            logger.info(
+                "Handling LDAP event",
+                object_class=object_class,
+                ldap_object_classes=ldap_object_classes,
+            )
+            await sync_tool.import_single_object_class(object_class, dn)
+
 
 @ldap2mo_router.post("/reconcile")
 @http_reject_on_failure

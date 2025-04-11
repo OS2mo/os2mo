@@ -566,6 +566,22 @@ class SyncTool:
             ]
         )
 
+    @wait_for_import_to_finish
+    @with_exitstack
+    async def import_single_object_class(
+        self, object_class: str, dn: DN, exit_stack: ExitStack
+    ) -> None:
+        """Imports a single object class from LDAP into MO."""
+        exit_stack.enter_context(bound_contextvars(object_class=object_class, dn=dn))
+        logger.info("Importing object class")
+        mappings = self.settings.conversion_mapping.ldap_to_mo_any[object_class]
+        await asyncio.gather(
+            *[
+                self.import_single_entity(mapping, dn, template_context={})
+                for mapping in mappings.values()
+            ]
+        )
+
     async def import_single_entity(
         self,
         mapping: LDAP2MOMapping,
