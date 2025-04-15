@@ -24,6 +24,7 @@ from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.schema import get_schema
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.version import LATEST_VERSION
+from mora.graphapi.versions.latest.events import EventToken
 from mora.graphapi.versions.latest.schema import AddressRead
 from strawberry.dataloader import DataLoader
 
@@ -162,6 +163,9 @@ async def test_graphql_rbac(
                 lambda f: VariableNode(name=NameNode(value="upload_type_used"))
             ),
             "DateTime": st.datetimes().map(lambda dt: dt.isoformat()).map(nodes.String),
+            "EventToken": st.just(
+                EventToken.serialize(EventToken(uuid=uuid4(), generation=uuid4()))
+            ).map(nodes.String),
         },
     )
 )

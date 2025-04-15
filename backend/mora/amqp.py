@@ -2,17 +2,15 @@
 # SPDX-License-Identifier: MPL-2.0
 """This file implements the event subsystem.
 
-The purpose of this is to facilitate implementation and maintainability of
-correct event-driven OS2MO integrations.
+It was originally written for the AMQP subsystem, but now emits AMQP and
+GraphQL events. You might notice some left-over stuff.
 
-We guarantee at least one event every time there is a new registration, or a
-validity range goes into or out of effect. Note that there could be multiple
-events emitted even though there are no observable state changes, so make sure
-any integration is idempotent.
+New integrations should use the GraphQL-based event system, and we plan to
+remove the AMQP system entirely.
 
-The event is posted to a RabbitMQ topic exchange, where the routing key is the
-object type (e.g. "org_unit") and the content is the UUID of the affected
-object.
+In AMQP, the event is posted to a RabbitMQ topic exchange, where the routing
+key is the object type (e.g. "org_unit") and the content is the UUID of the
+affected object.
 """
 
 # TODO: Do we wanna access-log database access from here?
@@ -60,6 +58,7 @@ from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRegistrering
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionTilsGyldighed
+from mora.db.events import add_event
 
 logger = get_logger()
 
@@ -74,7 +73,6 @@ MO_TYPE = Literal[
     "ituser",
     "kle",
     "leave",
-    "manager",
     "manager",
     "org_unit",
     "owner",
@@ -105,12 +103,13 @@ _lora_to_mo: dict[str, MO_TYPE] = {
 
 
 async def _send_amqp_message(
-    amqp_system: AMQPSystem, object_type: MO_TYPE, uuid: UUID
+    session: AsyncSession, amqp_system: AMQPSystem, object_type: MO_TYPE, uuid: UUID
 ) -> None:
     await amqp_system.publish_message(
         routing_key=object_type,
         payload=str(uuid),
     )
+    await add_event(session, namespace="mo", routing_key=object_type, subject=str(uuid))
 
 
 async def _emit_events(
@@ -281,7 +280,7 @@ async def _emit_events(
     async for rows in result.partitions():
         await asyncio.gather(
             *(
-                _send_amqp_message(amqp_system, _lora_to_mo[lora_type], uuid)
+                _send_amqp_message(session, amqp_system, _lora_to_mo[lora_type], uuid)
                 for lora_type, uuid in rows
             )
         )
@@ -294,7 +293,7 @@ async def _emit_events(
     )
 
 
-async def start_amqp_subsystem(
+async def start_event_generator(
     sessionmaker: async_sessionmaker,
 ) -> None:  # pragma: no cover
     mo_settings = get_settings()

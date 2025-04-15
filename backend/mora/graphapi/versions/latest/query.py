@@ -27,6 +27,14 @@ from mora.graphapi.gmodels.mo.organisation_unit import OrganisationUnitRead
 
 from .access_log import AccessLog
 from .access_log import access_log_resolver
+from .events import Event
+from .events import FullEvent
+from .events import Listener
+from .events import Namespace
+from .events import event_resolver
+from .events import full_event_resolver
+from .events import listener_resolver
+from .events import namespace_resolver
 from .filters import ConfigurationFilter
 from .filters import FileFilter
 from .filters import HealthFilter
@@ -41,6 +49,7 @@ from .paged import Paged
 from .paged import to_paged
 from .permissions import IsAuthenticatedPermission
 from .permissions import gen_read_permission
+from .permissions import gen_role_permission
 from .registration import Registration
 from .registration import registration_resolver
 from .resolvers import address_resolver
@@ -409,3 +418,62 @@ class Query:
     )
     async def version(self) -> Version:
         return Version()
+
+    # Event system
+    # ------------
+
+    events: Paged[FullEvent] = strawberry.field(
+        resolver=to_paged(full_event_resolver, FullEvent),
+        description=dedent(
+            """\
+            Get full events.
+
+            FullEvents represent Events, but they do not have a token for acknowledgement.
+
+            Use `event_fetch` for event-driven applications.
+
+            This collection is intended for inspection by humans.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("event"),
+        ],
+    )
+
+    event_namespaces: Paged[Namespace] = strawberry.field(
+        resolver=to_paged(namespace_resolver, Namespace),
+        description="Get event namespaces.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("event_namespace"),
+        ],
+    )
+
+    event_listeners: Paged[Listener] = strawberry.field(
+        resolver=to_paged(listener_resolver, Listener),
+        description="Get event listeners.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("event_listener"),
+        ],
+    )
+
+    event_fetch: Event | None = strawberry.field(
+        resolver=event_resolver,
+        description=dedent(
+            """\
+            Get an event.
+
+            `event_fetch` is a key operation for event-driven integrations.
+
+            Fetched events must be acknowledged by the consumer after it has been processed.
+
+            Consumers cannot rely on the order of events, and may receive the same event multiple times.
+            """,
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_role_permission("fetch_event"),
+        ],
+    )
