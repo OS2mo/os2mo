@@ -60,6 +60,10 @@ from .lora import lora_noop_change_context
 logger = get_logger()
 
 
+METRIC_MO_INFO = Info("os2mo_version", "Current version")
+METRIC_AMQP_ENABLED = Gauge("amqp_enabled", "AMQP enabled")
+
+
 async def fallback_handler(*args, **kwargs) -> JSONResponse:
     """
     Ensure a nicely formatted json response, with
@@ -168,8 +172,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        if not settings.is_under_test():  # pragma: no cover
-            instrumentator.expose(app)
+        instrumentator.expose(app)
 
         await triggers.register(app)
         if settings.amqp_enable:
@@ -245,15 +248,14 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         openapi_tags=list(tags_metadata),
     )
 
-    if not settings.is_under_test():  # pragma: no cover
-        instrumentator = Instrumentator().instrument(app)
-        Info("os2mo_version", "Current version").info(
-            {
-                "mo_version": settings.commit_tag or "unversioned",
-                "mo_commit_sha": settings.commit_sha or "no sha",
-            }
-        )
-        Gauge("amqp_enabled", "AMQP enabled").set(settings.amqp_enable)
+    instrumentator = Instrumentator().instrument(app)
+    METRIC_MO_INFO.info(
+        {
+            "mo_version": settings.commit_tag or "unversioned",
+            "mo_commit_sha": settings.commit_sha or "no sha",
+        }
+    )
+    METRIC_AMQP_ENABLED.set(settings.amqp_enable)
 
     app.include_router(
         health.router,
