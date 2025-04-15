@@ -21,7 +21,7 @@ from sqlalchemy import select
 from sqlalchemy import update
 from structlog import get_logger
 
-from mora.amqp import start_amqp_subsystem
+from mora.amqp import start_event_generator
 from mora.db import AMQPSubsystem
 from mora.db import create_sessionmaker
 
@@ -95,7 +95,7 @@ def wait_for_rabbitmq(seconds):
 
 @cli.group()
 def amqp():
-    """Commands for the AMQP subsystem."""
+    """Commands for the event generator and AMQP subsystem."""
 
 
 async def _set_last_run(date):
@@ -118,11 +118,14 @@ def send_event(object_type, uuid) -> None:
     amqp_system = AMQPSystem(settings.amqp)
 
     async def _send_event():
-        try:
-            await amqp_system.start()
-            await amqp_subsystem._send_amqp_message(amqp_system, object_type, uuid)
-        finally:
-            await amqp_system.stop()
+        async with sessionmaker() as session, session.begin():
+            try:
+                await amqp_system.start()
+                await amqp_subsystem._send_amqp_message(
+                    session, amqp_system, object_type, uuid
+                )
+            finally:
+                await amqp_system.stop()
 
     asyncio.run(_send_event())
 
@@ -160,8 +163,8 @@ def last_run() -> None:
 
 @amqp.command()
 def start() -> None:
-    """Start the AMQP subsystem."""
-    asyncio.run(start_amqp_subsystem(sessionmaker))
+    """Start the event generator."""
+    asyncio.run(start_event_generator(sessionmaker))
 
 
 if __name__ == "__main__":

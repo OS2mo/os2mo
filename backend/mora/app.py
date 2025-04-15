@@ -38,6 +38,7 @@ from mora.auth.keycloak.oidc import service_api_auth
 from mora.auth.keycloak.router import keycloak_router
 from mora.auth.middleware import set_authenticated_user
 from mora.common import lora_connector_context
+from mora.db.events import setup_event_metrics
 from mora.graphapi.middleware import is_graphql_context
 from mora.request_scoped.query_args_context_plugin import query_args_context
 from mora.service.address_handler.dar import dar_loader_context
@@ -58,6 +59,10 @@ from .graphapi.shim import set_graphql_context_dependencies
 from .lora import lora_noop_change_context
 
 logger = get_logger()
+
+
+METRIC_MO_INFO = Info("os2mo_version", "Current version")
+METRIC_AMQP_ENABLED = Gauge("amqp_enabled", "AMQP enabled")
 
 
 async def fallback_handler(*args, **kwargs) -> JSONResponse:
@@ -168,8 +173,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        if not settings.is_under_test():  # pragma: no cover
-            instrumentator.expose(app)
+        instrumentator.expose(app)
 
         await triggers.register(app)
         if settings.amqp_enable:
@@ -245,15 +249,15 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         openapi_tags=list(tags_metadata),
     )
 
-    if not settings.is_under_test():  # pragma: no cover
-        instrumentator = Instrumentator().instrument(app)
-        Info("os2mo_version", "Current version").info(
-            {
-                "mo_version": settings.commit_tag or "unversioned",
-                "mo_commit_sha": settings.commit_sha or "no sha",
-            }
-        )
-        Gauge("amqp_enabled", "AMQP enabled").set(settings.amqp_enable)
+    instrumentator = Instrumentator().instrument(app)
+    METRIC_MO_INFO.info(
+        {
+            "mo_version": settings.commit_tag or "unversioned",
+            "mo_commit_sha": settings.commit_sha or "no sha",
+        }
+    )
+    METRIC_AMQP_ENABLED.set(settings.amqp_enable)
+    setup_event_metrics(instrumentator)
 
     app.include_router(
         health.router,

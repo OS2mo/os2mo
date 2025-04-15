@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
+from textwrap import dedent
 from typing import Annotated
 from typing import Any
 from uuid import UUID
@@ -11,10 +12,13 @@ import strawberry
 from strawberry import UNSET
 from strawberry.types.unset import UnsetType
 
+from mora.db import events
 from mora.graphapi.gmodels.mo import OpenValidity as RAOpenValidity
 from mora.graphapi.gmodels.mo import Validity as RAValidity
 
 from ...gmodels.mo._shared import UUIDBase
+from .events import EventTokenType
+from .events import ListenerFilter
 from .models import AddressCreate
 from .models import AddressTerminate
 from .models import AddressUpdate
@@ -735,3 +739,80 @@ class RoleBindingTerminateInput:
 
 # Files
 # -----
+
+
+# Event system
+# ------------
+
+
+@strawberry.input(description="Create a namespace.")
+class NamespaceCreateInput:
+    name: str = strawberry.field(
+        description="Name of the namespace. This is also the identifier for namespaces."
+    )
+    public: bool = strawberry.field(
+        default=False, description="Can others create listeners in the namespace?"
+    )
+
+
+@strawberry.input(description="Delete a namespace.")
+class NamespaceDeleteInput:
+    name: str = strawberry.field(description="Name of namespace to delete")
+
+
+@strawberry.input(description="Create a listener.")
+class ListenerCreateInput:
+    namespace: str = strawberry.field(
+        default="mo",
+        description='Namespace of listener. Defaults to "mo", which means you will get events from os2mo.',
+    )
+    user_key: str = strawberry.field(description="User key of listener.")
+    routing_key: str = strawberry.field(description="Routing key of listener.")
+
+
+@strawberry.input(description="Delete a listener.")
+class ListenerDeleteInput:
+    uuid: UUID = strawberry.field(description="Listener ID to delete.")
+    delete_pending_events: bool = strawberry.field(
+        default=False,
+        description="Delete all events awaiting acknowledgement for this listener.",
+    )
+
+
+@strawberry.input(description="Acknowledge an event.")
+class EventAcknowledgeInput:
+    token: EventTokenType
+
+
+@strawberry.input
+class EventSendInput:
+    namespace: str = strawberry.field(description="Namespace to send the event in.")
+    routing_key: str = strawberry.field(description="Routing key of the event.")
+    subject: str = strawberry.field(description="Subject the event is about.")
+    priority: int = strawberry.field(
+        default=events.DEFAULT_PRIORITY,
+        description="Priority of the event. 1 is the highest priority.",
+    )
+
+
+@strawberry.input(
+    description=dedent(
+        """\
+        Silence an event.
+
+        Silenced events are not received with `event_fetch`.
+        """
+    ),
+)
+class EventSilenceInput:
+    listeners: ListenerFilter = strawberry.field(
+        description="Only silence the event for these listeners."
+    )
+    subjects: list[str] = strawberry.field(description="Subjects to silence.")
+
+
+@strawberry.input(description="Unsilence all matching events.")
+class EventUnsilenceInput:
+    listeners: ListenerFilter | None = None
+    subjects: list[str] | None = None
+    priorities: list[int] | None = None

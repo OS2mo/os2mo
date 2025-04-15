@@ -17,9 +17,24 @@ from sqlalchemy.orm import column_property
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import declared_attr
 from sqlalchemy.orm import mapped_column
+from sqlalchemy.sql.functions import GenericFunction
 
 Base = declarative_base()
 metadata = Base.metadata
+
+
+class make_interval(GenericFunction):
+    """Register func.make_interval that can be used with the native PostgreSQL keyword arguments."""
+
+    # https://docs.sqlalchemy.org/en/20/errors.html#error-cprf
+    # https://docs.sqlalchemy.org/en/20/core/connections.html#sql-compilation-caching
+    # https://docs.sqlalchemy.org/en/21/core/compiler.html#enabling-caching-support-for-custom-constructs
+    inherit_cache = True
+
+    def __init__(
+        self, years=0, months=0, weeks=0, days=0, hours=0, mins=0, secs=0, **kw
+    ):
+        super().__init__(years, months, weeks, days, hours, mins, secs, **kw)
 
 
 class _OIOEntityMixin:

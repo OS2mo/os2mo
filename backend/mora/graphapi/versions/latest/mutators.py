@@ -7,14 +7,21 @@ from typing import Annotated
 from typing import Any
 from uuid import UUID
 
+import sqlalchemy
 import strawberry
 from fastramqpi.ra_utils.asyncio_utils import gather_with_concurrency
+from sqlalchemy import delete
+from sqlalchemy import select
+from sqlalchemy import update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
 from mora import db
 from mora.auth.middleware import get_authenticated_user
 from mora.common import get_connector
+from mora.db.events import METRIC_ACKNOWLEDGED_EVENTS
+from mora.db.events import add_event
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import AssociationRead
@@ -46,6 +53,8 @@ from .employee import update_employee
 from .engagements import create_engagement
 from .engagements import terminate_engagement
 from .engagements import update_engagement
+from .events import Listener
+from .events import Namespace
 from .facets import create_facet
 from .facets import delete_facet
 from .facets import terminate_facet
@@ -81,6 +90,10 @@ from .inputs import EmployeeUpdateInput
 from .inputs import EngagementCreateInput
 from .inputs import EngagementTerminateInput
 from .inputs import EngagementUpdateInput
+from .inputs import EventAcknowledgeInput
+from .inputs import EventSendInput
+from .inputs import EventSilenceInput
+from .inputs import EventUnsilenceInput
 from .inputs import FacetCreateInput
 from .inputs import FacetTerminateInput
 from .inputs import FacetTerminateInputV18
@@ -101,9 +114,13 @@ from .inputs import KLEUpdateInput
 from .inputs import LeaveCreateInput
 from .inputs import LeaveTerminateInput
 from .inputs import LeaveUpdateInput
+from .inputs import ListenerCreateInput
+from .inputs import ListenerDeleteInput
 from .inputs import ManagerCreateInput
 from .inputs import ManagerTerminateInput
 from .inputs import ManagerUpdateInput
+from .inputs import NamespaceCreateInput
+from .inputs import NamespaceDeleteInput
 from .inputs import OrganisationUnitCreateInput
 from .inputs import OrganisationUnitTerminateInput
 from .inputs import OrganisationUnitUpdateInput
@@ -320,6 +337,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(address_resolver, Address)
         page = await resolve(
@@ -328,7 +346,9 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="address", exchange=exchange)
+        return await refresh(
+            info=info, page=page, model="address", exchange=exchange, owner=owner
+        )
 
     # Associations
     # ------------
@@ -393,6 +413,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(association_resolver, Association)
         page = await resolve(
@@ -402,7 +423,11 @@ class Mutation:
             cursor=cursor,
         )
         return await refresh(
-            info=info, page=page, model="association", exchange=exchange
+            info=info,
+            page=page,
+            model="association",
+            exchange=exchange,
+            owner=owner,
         )
 
     # Classes
@@ -497,6 +522,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(class_resolver, Class)
         page = await resolve(
@@ -505,7 +531,9 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="class", exchange=exchange)
+        return await refresh(
+            info=info, page=page, model="class", exchange=exchange, owner=owner
+        )
 
     # Employees
     # ---------
@@ -569,6 +597,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(employee_resolver, Employee)
         page = await resolve(
@@ -579,7 +608,9 @@ class Mutation:
         )
         # NOTE: "employee" is called "person" in the new AMQP system
         # coverage: pause
-        return await refresh(info=info, page=page, model="person", exchange=exchange)
+        return await refresh(
+            info=info, page=page, model="person", exchange=exchange, owner=owner
+        )
         # coverage: unpause
 
     # Engagements
@@ -694,6 +725,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(engagement_resolver, Engagement)
         page = await resolve(
@@ -703,7 +735,11 @@ class Mutation:
             cursor=cursor,
         )
         return await refresh(
-            info=info, page=page, model="engagement", exchange=exchange
+            info=info,
+            page=page,
+            model="engagement",
+            exchange=exchange,
+            owner=owner,
         )
 
     # Facets
@@ -800,6 +836,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(facet_resolver, Facet)
         page = await resolve(
@@ -808,7 +845,9 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="facet", exchange=exchange)
+        return await refresh(
+            info=info, page=page, model="facet", exchange=exchange, owner=owner
+        )
 
     # ITAssociations
     # ---------
@@ -949,6 +988,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(it_system_resolver, ITSystem)
         page = await resolve(
@@ -957,7 +997,9 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="itsystem", exchange=exchange)
+        return await refresh(
+            info=info, page=page, model="itsystem", exchange=exchange, owner=owner
+        )
 
     # ITUsers
     # -------
@@ -1033,6 +1075,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(it_user_resolver, ITUser)
         page = await resolve(
@@ -1041,7 +1084,9 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="ituser", exchange=exchange)
+        return await refresh(
+            info=info, page=page, model="ituser", exchange=exchange, owner=owner
+        )
 
     # KLEs
     # ----
@@ -1092,6 +1137,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(kle_resolver, KLE)
         page = await resolve(
@@ -1100,7 +1146,9 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="kle", exchange=exchange)
+        return await refresh(
+            info=info, page=page, model="kle", exchange=exchange, owner=owner
+        )
 
     # Leave
     # -----
@@ -1151,6 +1199,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(leave_resolver, Leave)
         page = await resolve(
@@ -1159,7 +1208,9 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="leave", exchange=exchange)
+        return await refresh(
+            info=info, page=page, model="leave", exchange=exchange, owner=owner
+        )
 
     # Managers
     # --------
@@ -1227,6 +1278,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(manager_resolver, Manager)
         page = await resolve(
@@ -1235,7 +1287,9 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="manager", exchange=exchange)
+        return await refresh(
+            info=info, page=page, model="manager", exchange=exchange, owner=owner
+        )
 
     # Root Organisation
     # -----------------
@@ -1318,6 +1372,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(organisation_unit_resolver, OrganisationUnit)
         page = await resolve(
@@ -1326,7 +1381,9 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="org_unit", exchange=exchange)
+        return await refresh(
+            info=info, page=page, model="org_unit", exchange=exchange, owner=owner
+        )
 
     # Owner
     # -------------
@@ -1377,6 +1434,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(owner_resolver, Owner)
         page = await resolve(
@@ -1385,7 +1443,9 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="owner", exchange=exchange)
+        return await refresh(
+            info=info, page=page, model="owner", exchange=exchange, owner=owner
+        )
 
     # Related Units
     # -------------
@@ -1419,6 +1479,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(related_unit_resolver, RelatedUnit)
         page = await resolve(
@@ -1428,7 +1489,11 @@ class Mutation:
             cursor=cursor,
         )
         return await refresh(
-            info=info, page=page, model="related_unit", exchange=exchange
+            info=info,
+            page=page,
+            model="related_unit",
+            exchange=exchange,
+            owner=owner,
         )
 
     # Rolebindings
@@ -1508,6 +1573,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(rolebinding_resolver, RoleBindingRead)
         page = await resolve(
@@ -1517,8 +1583,329 @@ class Mutation:
             cursor=cursor,
         )
         return await refresh(
-            info=info, page=page, model="rolebinding", exchange=exchange
+            info=info,
+            page=page,
+            model="rolebinding",
+            exchange=exchange,
+            owner=owner,
         )
+
+    # Event system
+    # ------------
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Create a namespace.
+
+            This operation is idempotent, so it can be called upon application startup.
+
+            Namespaces are used to create your own event systems.
+            """,
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("event_namespace"),
+        ],
+    )
+    async def event_namespace_declare(
+        self, info: Info, input: NamespaceCreateInput
+    ) -> Namespace:
+        session = info.context["session"]
+        owner = get_authenticated_user()
+
+        stmt = (
+            pg_insert(db.Namespace)
+            .values(
+                name=input.name,
+                owner=owner,
+                public=input.public,
+            )
+            .on_conflict_do_nothing()
+        )
+
+        await session.execute(stmt)
+
+        # coverage: pause
+        namespace = await session.scalar(
+            select(db.Namespace).where(db.Namespace.name == input.name)
+        )
+
+        if namespace.owner != owner:
+            raise ValueError("Namespace already claimed by another owner.")
+
+        if namespace.public != input.public:
+            raise ValueError(
+                f"Namespace already exists with public={str(namespace.public).lower()}."
+            )
+
+        return Namespace(
+            name=namespace.name,
+            owner=namespace.owner,
+            public=namespace.public,
+        )
+        # coverage: unpause
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Delete a namespace.
+
+            Use `event_listener_delete` first, if there are any listeners.
+            """,
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_delete_permission("event_namespace"),
+        ],
+    )
+    async def event_namespace_delete(
+        self,
+        info: Info,
+        input: NamespaceDeleteInput,
+    ) -> None:
+        session = info.context["session"]
+
+        try:
+            await session.execute(
+                delete(db.Namespace).where(db.Namespace.name == input.name)
+            )
+        except sqlalchemy.exc.IntegrityError:  # pragma: no cover
+            raise ValueError(
+                "There are still listeners for this namespace. Use the `event_listener_delete` mutator."
+            )
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Create a listener.
+
+            This operation is idempotent, so it can always be called upon application startup.
+
+            Use different user_keys to listen for the same (namespace, routing_key) multiple times. The user_key must be unique for each listener in your integration.
+            """,
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("event_listener"),
+        ],
+    )
+    async def event_listener_declare(
+        self, info: Info, input: ListenerCreateInput
+    ) -> Listener:
+        session = info.context["session"]
+        owner = get_authenticated_user()
+
+        namespace = await session.scalar(
+            select(db.Namespace).where(db.Namespace.name == input.namespace)
+        )
+
+        # coverage: pause
+        if namespace is None:
+            raise ValueError("Namespace does not exist")
+
+        if namespace.public is False and namespace.owner != owner:
+            raise ValueError(
+                "Namespace already exists, but is non-public and you are not the owner."
+            )
+
+        stmt = (
+            pg_insert(db.Listener)
+            .values(
+                user_key=input.user_key,
+                owner=owner,
+                namespace_fk=input.namespace,
+                routing_key=input.routing_key,
+            )
+            .on_conflict_do_nothing()
+        )
+
+        await session.execute(stmt)
+
+        listener = await session.scalar(
+            select(db.Listener).where(
+                db.Listener.user_key == input.user_key,
+                db.Listener.namespace_fk == input.namespace,
+            )
+        )
+
+        if listener.routing_key != input.routing_key:
+            raise ValueError(
+                "There already exists a listener with this user_key and a different routing_key"
+            )
+
+        return Listener(
+            uuid=listener.pk,
+            owner=listener.owner,
+            user_key=listener.user_key,
+            routing_key=listener.routing_key,
+            namespace_fk=listener.namespace_fk,
+        )
+        # coverage: unpause
+
+    @strawberry.mutation(
+        description="Delete a listener.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_delete_permission("event_listener"),
+        ],
+    )
+    async def event_listener_delete(
+        self,
+        info: Info,
+        input: ListenerDeleteInput,
+    ) -> None:
+        session = info.context["session"]
+
+        if input.delete_pending_events:
+            await session.execute(
+                delete(db.Event).where(db.Event.listener_fk == input.uuid)
+            )
+
+        try:
+            await session.execute(
+                delete(db.Listener).where(db.Listener.pk == input.uuid)
+            )
+        except sqlalchemy.exc.IntegrityError:  # pragma: no cover
+            raise ValueError(
+                "There are pending events for this listener. Consider carefully if these need to be handled first. You can delete the listener anyway with `delete_pending_events`."
+            )
+
+    @strawberry.mutation(
+        description="Acknowledge an event.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_role_permission("acknowledge_event"),
+        ],
+    )
+    async def event_acknowledge(
+        self,
+        info: Info,
+        input: EventAcknowledgeInput,
+    ) -> None:
+        owner = get_authenticated_user()
+        session = info.context["session"]
+
+        # Sadly, we have to select the listener, because PostgreSQL does not
+        # support returning values from tables other than the one being deleted
+        listener = await session.scalar(
+            select(db.Listener)
+            .join(db.Event)
+            .where(
+                db.Event.pk == input.token.uuid,
+            )
+        )
+
+        # coverage: pause
+        if not listener:
+            return None
+
+        result = await session.execute(
+            delete(db.Event).where(
+                db.Event.listener_fk == db.Listener.pk,
+                db.Event.pk == input.token.uuid,
+                db.Event.generation == input.token.generation,
+                db.Listener.owner == owner,
+            )
+        )
+
+        if result.rowcount:
+            METRIC_ACKNOWLEDGED_EVENTS.labels(
+                owner=listener.owner,
+                user_key=listener.user_key,
+                namespace=listener.namespace_fk,
+                routing_key=listener.routing_key,
+            ).inc()
+        # coverage: unpause
+
+    @strawberry.mutation(
+        description="Send an event.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_role_permission("send_event"),
+        ],
+    )
+    async def event_send(
+        self,
+        info: Info,
+        input: EventSendInput,
+    ) -> None:
+        if input.priority < 1:
+            raise ValueError("priority must be natural")
+
+        # This is an arbitrary constraint because we don't want to end up with
+        # large amounts of data being sent over the event system.
+        if len(input.subject) > 220:
+            raise ValueError(
+                "Too large subject. Only send identifiers as the subject, not data"
+            )
+
+        session = info.context["session"]
+        owner = get_authenticated_user()
+        await add_event(
+            session,
+            namespace=input.namespace,
+            routing_key=input.routing_key,
+            subject=input.subject,
+            priority=input.priority,
+            namespace_owner=owner,
+        )
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Silence an event.
+
+            In general, this should only be done by humans while the implementation of a fix is in the works.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_role_permission("silence_event"),
+        ],
+    )
+    async def event_silence(
+        self,
+        info: Info,
+        input: EventSilenceInput,
+    ) -> None:
+        session = info.context["session"]
+        await session.execute(
+            update(db.Event)
+            .where(
+                db.Event.subject.in_(input.subjects),
+                db.Event.listener_fk == db.Listener.pk,
+                *input.listeners.where_clauses(),
+            )
+            .values(silenced=True)
+        )
+
+    @strawberry.mutation(
+        description="Unsilence all matching events",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_role_permission("unsilence_event"),
+        ],
+    )
+    async def event_unsilence(
+        self,
+        info: Info,
+        input: EventUnsilenceInput,
+    ) -> None:
+        clauses = [
+            db.Event.listener_fk == db.Listener.pk,
+        ]
+
+        if input.listeners is not None:
+            clauses.extend(input.listeners.where_clauses())
+
+        if input.subjects is not None:
+            clauses.append(db.Event.subject.in_(input.subjects))
+
+        if input.priorities is not None:  # pragma: no cover
+            clauses.append(db.Event.priority.in_(input.priorities))
+
+        session = info.context["session"]
+        await session.execute(update(db.Event).where(*clauses).values(silenced=False))
 
     # Files
     # -----
@@ -1620,22 +2007,44 @@ async def delete_organisationfunktion(uuid: UUID) -> UUID:
 
 
 async def refresh(
-    info: Info, page: Paged[UUID], model: str, exchange: str | None
+    info: Info,
+    page: Paged[UUID],
+    model: str,
+    exchange: str | None,
+    owner: UUID | None,
 ) -> Paged[UUID]:
     """Publish AMQP messages for UUIDs in the page, optionally to a specific exchange."""
     # Publish UUIDs to AMQP
     uuids = page.objects
-    amqp_system = info.context["amqp_system"]
-    tasks = (
-        amqp_system.publish_message(
-            routing_key=model,
-            payload=str(uuid),
-            # Broadcasts on OS2mo's default exchange (usually 'os2mo') if None
-            exchange=exchange,
+
+    # coverage: pause
+    if owner is None:
+        amqp_system = info.context["amqp_system"]
+        tasks = (
+            amqp_system.publish_message(
+                routing_key=model,
+                payload=str(uuid),
+                # Broadcasts on OS2mo's default exchange (usually 'os2mo') if None
+                exchange=exchange,
+            )
+            for uuid in uuids
         )
-        for uuid in uuids
-    )
-    await gather_with_concurrency(100, *tasks)
+        await gather_with_concurrency(100, *tasks)
+
+    if owner is not None and exchange is None:
+        session = info.context["session"]
+        for uuid in uuids:
+            await add_event(
+                session,
+                namespace="mo",
+                routing_key=model,
+                subject=str(uuid),
+                listener_owner=owner,
+            )
+
+    if owner is None and exchange is None or owner is not None and exchange is not None:
+        raise ValueError("You must refresh with and owner or an exchange")
 
     # Return the page to reduce duplicated boilerplate in the callers
     return page
+    # coverage: unpause

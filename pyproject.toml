@@ -92,6 +92,13 @@ extend-select = ["I"]
 [tool.ruff.lint.isort]
 force-single-line = true
 
+[tool.coverage.run]
+# coverage does not work properly with the mixed concurrency strategies of
+# fastapi, strawberry and (async) sqlalchemy. A lot of our `#coverage: pause`
+# pragmas are actually covered, but not counted by coverage. The `concurrency`
+# setting is supposed to fix it, but I have not managed to make it work yet.
+concurrency = ["greenlet", "thread"]
+
 [tool.coverage.report]
 # Regexes inspired from: https://coverage.readthedocs.io/en/latest/excluding.html
 exclude_also = [
