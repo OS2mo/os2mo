@@ -60,8 +60,6 @@ def expected_error_response(error_key, **overrides):
             "org_unit_uuid": None,
             "valid_from": None,
             "valid_to": None,
-            "wanted_valid_from": None,
-            "wanted_valid_to": None,
         },
     }
     return {"error_key": error_key, **dict(errors[error_key], **overrides)}
@@ -1531,8 +1529,6 @@ def test_create_org_unit_fails_validation_outside_org_unit(
         "status": 400,
         "valid_from": "2016-01-01",
         "valid_to": None,
-        "wanted_valid_from": "2010-02-04",
-        "wanted_valid_to": "2017-10-21",
     }
 
     response = service_client.request("POST", "/service/ou/create", json=payload)
@@ -2063,7 +2059,7 @@ def test_terminate_org_unit_validations_other(service_client: TestClient) -> Non
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
-    "org_unit_uuid, validity, expected_error_response, message",
+    "org_unit_uuid, validity, expected_error_response",
     [
         (
             # org unit uuid
@@ -2076,11 +2072,7 @@ def test_terminate_org_unit_validations_other(service_client: TestClient) -> Non
                 org_unit_uuid="9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
                 valid_from="2016-01-01",
                 valid_to=None,
-                wanted_valid_from="1999-12-31",
-                wanted_valid_to="1999-12-31",
             ),
-            # message
-            None,
         ),
         (
             # org unit uuid
@@ -2093,28 +2085,7 @@ def test_terminate_org_unit_validations_other(service_client: TestClient) -> Non
                 org_unit_uuid="04c78fc2-72d2-4d02-b55f-807af19eac48",
                 valid_from="2016-01-01",
                 valid_to="2018-12-31",
-                wanted_valid_from="2099-12-31",
-                wanted_valid_to="2099-12-31",
             ),
-            # message
-            None,
-        ),
-        (
-            # org unit uuid
-            "04c78fc2-72d2-4d02-b55f-807af19eac48",
-            # payload
-            {"to": "2015-12-31"},
-            # expected error response
-            expected_error_response(
-                "V_DATE_OUTSIDE_ORG_UNIT_RANGE",
-                org_unit_uuid="04c78fc2-72d2-4d02-b55f-807af19eac48",
-                valid_from="2016-01-01",
-                valid_to="2018-12-31",
-                wanted_valid_from="2015-12-31",
-                wanted_valid_to="2015-12-31",
-            ),
-            # message
-            "No terminating on creation date!",
         ),
     ],
 )
@@ -2123,12 +2094,11 @@ def test_terminate_org_unit_date_outside_org_unit_range(
     org_unit_uuid: str,
     validity: dict[str, str],
     expected_error_response: dict[str, Any],
-    message: str | None,
 ) -> None:
     response = service_client.request(
         "POST", f"/service/ou/{org_unit_uuid}/terminate", json={"validity": validity}
     )
-    assert response.status_code == 400, message
+    assert response.status_code == 400
     assert response.json() == {"error": True, "status": 400, **expected_error_response}
 
 
