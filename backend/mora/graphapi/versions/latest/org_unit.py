@@ -72,8 +72,8 @@ async def terminate_org_unit_validation(
     # Verify date against OrgUnit range
     await validator.is_date_range_in_org_unit_range(
         {"uuid": uuid_str},
-        date - util.MINIMAL_INTERVAL,
         date,
+        date + util.MINIMAL_INTERVAL,
     )
 
     # Find children and roles and verify constraints
