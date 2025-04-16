@@ -789,8 +789,6 @@ employee_uuid = "d2e1b69e-def1-41b1-b652-e704af02591c"
                 "status": 400,
                 "valid_from": "2016-01-01",
                 "valid_to": None,
-                "wanted_valid_from": "1960-12-01",
-                "wanted_valid_to": "2017-12-01",
             },
         ),
         # Broken employee
@@ -825,8 +823,6 @@ employee_uuid = "d2e1b69e-def1-41b1-b652-e704af02591c"
                 "status": 400,
                 "valid_from": "2017-01-01",
                 "valid_to": "9999-12-31",
-                "wanted_valid_from": "2016-12-01",
-                "wanted_valid_to": "2017-12-02",
             },
         ),
     ],

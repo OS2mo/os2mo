@@ -176,8 +176,6 @@ async def is_date_range_in_org_unit_range(org_unit_obj, valid_from, valid_to):
         ):
             exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE(
                 org_unit_uuid=org_unit_uuid,
-                wanted_valid_from=util.to_iso_date(valid_from),
-                wanted_valid_to=util.to_iso_date(valid_to, is_end=True),
                 **_get_active_validity(org_unit),
             )
 
@@ -279,8 +277,6 @@ def is_contained_in_range(
         exception(
             valid_from=util.to_iso_date(candidate_from),
             valid_to=util.to_iso_date(candidate_to),
-            wanted_valid_from=util.to_iso_date(valid_from),
-            wanted_valid_to=util.to_iso_date(valid_to),
         )
 
 
