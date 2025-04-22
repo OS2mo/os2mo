@@ -309,6 +309,10 @@ class AssociationUpdate(AssociationUpsert):
         data_dict = super().to_handler_dict()
         data_dict["org_unit"] = gen_uuid(self.org_unit)
         data_dict["association_type"] = gen_uuid(self.association_type)
+        # Substitute doesn't use `gen_uuid` since `None` will result in the
+        # "update substitute" not running in `service/association`, which means
+        # that substitute can't be changed to vacant
+        data_dict["substitute"] = {"uuid": self.substitute}
         return {k: v for k, v in data_dict.items() if v is not None}
 
 
