@@ -168,10 +168,7 @@ class DataLoader:
         """
         # TODO: This should probably return a list of EntityUUIDs rather than DNs
         #       However this should probably be a change away from DNs in general
-        logger.info(
-            "Attempting to find DNs",
-            employee_uuid=uuid,
-        )
+        logger.info("Attempting to find DNs", employee_uuid=uuid)
         # TODO: We should be able to trust just the ITUsers, however we do not.
         #       Maybe once the code becomes easier to reason about, we can get to that.
         #       But for now, we fetch all accounts, and use the discriminator.
@@ -185,11 +182,9 @@ class DataLoader:
         )
         dns = ituser_dns | cpr_number_dns
         if dns:
+            logger.info("Found DNs for MO employee", employee_uuid=uuid, dns=dns)
             return dns
-        logger.warning(
-            "Unable to find DNs for MO employee",
-            employee_uuid=uuid,
-        )
+        logger.warning("Unable to find DNs for MO employee", employee_uuid=uuid)
         return set()
 
     async def make_mo_employee_dn(self, uuid: UUID) -> DN:

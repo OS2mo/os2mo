@@ -369,6 +369,7 @@ async def filter_dns(
     discriminator_filter = settings.discriminator_filter
     # If discriminator filter is not configured, no filtering happens
     if not discriminator_filter:
+        logger.debug("No discriminator filter set, not filtering")
         return dns
 
     # We assume discriminator_fields is set if discriminator_filter is
@@ -382,6 +383,7 @@ async def filter_dns(
         for dn in dns
         if await evaluate_template(discriminator_filter, dn, mapping[dn])
     }
+    logger.info("Discriminator filter run", dns=dns, dns_passing=dns_passing_template)
     return dns_passing_template
 
 

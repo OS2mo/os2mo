@@ -544,7 +544,7 @@ async def test_find_mo_employee_dn(dataloader: MagicMock) -> None:
         result = await dataloader.find_mo_employee_dn(employee_uuid)
         assert result == {"A", "B", "C", "D"}
     log_events = [log["event"] for log in cap_logs]
-    assert log_events == ["Attempting to find DNs"]
+    assert log_events == ["Attempting to find DNs", "Found DNs for MO employee"]
 
 
 async def test_make_mo_employee_dn_no_user(
