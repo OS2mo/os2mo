@@ -601,6 +601,7 @@ async def test_import_single_user_apply_discriminator(
             "Attempting CPR number lookup",
             "Found LDAP(s) object",
             "Found DN(s) using CPR number lookup",
+            "Found DNs for MO employee",
         ]
         + log_lines
     )
@@ -729,6 +730,7 @@ async def test_listen_to_changes_in_employees(
             "Attempting CPR number lookup",
             "Found LDAP(s) object",
             "Found DN(s) using CPR number lookup",
+            "Found DNs for MO employee",
             "Found DNs for user",
         ]
         + log_lines
