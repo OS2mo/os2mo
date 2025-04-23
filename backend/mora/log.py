@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import logging
-import time
 from collections.abc import Awaitable
 from collections.abc import Callable
 from typing import Any
@@ -37,12 +36,8 @@ def gen_accesslog_middleware() -> Callable[[Request, Any], Awaitable[Response]]:
     access_logger = structlog.stdlib.get_logger("api.access")
 
     async def accesslog_middleware(request: Request, call_next) -> Response:
-        start_time = time.perf_counter_ns()
-
         with bound_contextvars(request_id=str(uuid4())):
             response = await call_next(request)
-
-        process_time = round((time.perf_counter_ns() - start_time) / 10**9, 3)
 
         status_code = response.status_code
         path = get_path_with_query_string(request.scope)
@@ -57,7 +52,6 @@ def gen_accesslog_middleware() -> Callable[[Request, Any], Awaitable[Response]]:
                 status_code=status_code,
                 method=http_method,
                 network={"client": {"ip": client_host, "port": client_port}},
-                duration=process_time,
             )
 
         return response
