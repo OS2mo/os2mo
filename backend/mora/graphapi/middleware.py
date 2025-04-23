@@ -8,7 +8,6 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
 from inspect import isasyncgen
-from time import monotonic
 from typing import Any
 
 from starlette_context import context
@@ -16,7 +15,6 @@ from starlette_context import request_cycle_context
 from strawberry.extensions import SchemaExtension
 
 from mora.graphapi.gmodels.mo import OpenValidity
-from mora.log import canonical_gql_context
 
 _IS_GRAPHQL_MIDDLEWARE_KEY = "is_graphql"
 
@@ -49,14 +47,12 @@ class StarletteContextExtension(SchemaExtension):
         context[_IS_GRAPHQL_MIDDLEWARE_KEY] = (
             context.get(_IS_GRAPHQL_MIDDLEWARE_KEY, 0) + 1
         )
-        context["starttime"] = context.get("starttime", monotonic())
 
         yield
 
         context[_IS_GRAPHQL_MIDDLEWARE_KEY] = (
             context.get(_IS_GRAPHQL_MIDDLEWARE_KEY, 0) - 1
         )
-        context["stoptime"] = monotonic()
 
     # XXX: Required due to trashy test-code in graphapi/test_middleware.py
     # TODO: Cleanup the test and remove this trash
@@ -78,13 +74,6 @@ class StarletteContextExtension(SchemaExtension):
 
         if context.get("lora_page_out_of_range"):
             results["__page_out_of_range"] = True
-
-        # Includes GraphQL request runtime when the x-request-runtime header is set
-        request = self.execution_context.context.get("request")
-        if request and request.headers.get("x-request-runtime"):  # pragma: no cover
-            runtime = context["stoptime"] - context["starttime"]
-            results["runtime"] = runtime
-            canonical_gql_context()["runtime"] = round(runtime, 3)
 
         return results
 

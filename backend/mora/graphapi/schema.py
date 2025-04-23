@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import time
 from collections.abc import AsyncIterator
 from contextlib import suppress
 from functools import cache
@@ -60,6 +61,7 @@ def add_exception_extension(error: GraphQLError) -> StrawberryGraphQLError:
 
 class LogContextExtension(SchemaExtension):
     async def on_operation(self) -> AsyncIterator[None]:
+        canonical_gql_context()["query"] = self.execution_context.query
         if self.execution_context.operation_name:  # pragma: no cover
             canonical_gql_context()["name"] = self.execution_context.operation_name
         if self.execution_context.variables:
@@ -67,7 +69,14 @@ class LogContextExtension(SchemaExtension):
         yield
         if self.execution_context.errors:
             canonical_gql_context()["errors"] = self.execution_context.errors
-            canonical_gql_context()["query"] = self.execution_context.query
+
+
+class RuntimeContextExtension(SchemaExtension):
+    async def on_operation(self) -> AsyncIterator[None]:
+        start_time = time.perf_counter()
+        yield
+        stop_time = time.perf_counter()
+        canonical_gql_context()["operation_time"] = stop_time - start_time
 
 
 class ExtendedErrorFormatExtension(SchemaExtension):
@@ -118,6 +127,7 @@ def get_schema(version: Version) -> CustomSchema:
         extensions=[
             StarletteContextExtension,
             LogContextExtension,
+            RuntimeContextExtension,
             RollbackOnError,
             ExtendedErrorFormatExtension,
             IntrospectionQueryCacheExtension,
