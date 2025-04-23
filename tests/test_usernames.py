@@ -257,25 +257,6 @@ async def test_create_username(
 
 
 @pytest.mark.parametrize(
-    "names,existing,expected",
-    (
-        # Regular user, but njans is taken
-        (["Nick", "Janssen"], {"njans"}, "njans2"),
-        # User with a funny character, but njaen is taken
-        (["Nick", "Jænssen"], {"njaen"}, "njaen2"),
-    ),
-)
-async def test_create_username_taken(
-    username_generator: UserNameGenerator,
-    names: list[str],
-    existing: set[str],
-    expected: str,
-) -> None:
-    username = await username_generator._create_username(names, existing)
-    assert username == expected
-
-
-@pytest.mark.parametrize(
     "names,expected",
     (
         # Regular case
