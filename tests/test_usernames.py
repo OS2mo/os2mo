@@ -370,12 +370,41 @@ async def test_generate_dn(
 @pytest.mark.parametrize(
     "name,combi,expected",
     [
+        # Test with a combi using middle names
+        (["Nick", "Alfa", "Beta", "Gamma", "Janssen"], "F123L", "nabgj"),
         # Test with a combi that starts with an 'X'
         (["Nick", "Janssen"], "XFL", "Xnj"),
+        # Test with a combi that starts with multiple 'X's
+        (["Nick", "Janssen"], "XXFL", "XXnj"),
+        # Test with a combi that ends with an 'X'
+        (["Nick", "Janssen"], "FFLLX", "nijaX"),
+        # Test with a combi that ends with multiple 'X's
+        (["Nick", "Janssen"], "FFXXX", "niXXX"),
+        # Test with a combi that has 'X's spread
+        (["Nick", "Janssen"], "XFXLX", "XnXjX"),
+        # Test with a combis that mixes first and last name
+        (["Nick", "Janssen"], "FLFLF", "njnjn"),
+        (["Nick", "Janssen"], "FFLLF", "nijan"),
+        # Test with a combi that expects exactly 4 characters for the first name
+        (["Nick", "Janssen"], "FFFFL", "nickj"),
         # Test with a combi that expects 5 characters for the first name
         (["Nick", "Janssen"], "FFFFFL", None),
-        # Test with a user without a last name
-        (["Nick", ""], "FFFL", None),
+        # Test with a combi that expects exactly 4 characters for the surname
+        (["Nick", "Jans"], "FLLLL", "njans"),
+        # Test with a combi that expects 5 characters for the surname
+        (["Nick", "Jans"], "FLLLLL", None),
+        # Test with a user without a first name
+        (["", "Janssen"], "FFLL", None),
+        (["Janssen"], "FFLL", None),
+        # Test with a user without a surname
+        (["Nick", ""], "FFLL", None),
+        (["Nick"], "FFLL", None),
+        # Test with a with an empty middlename
+        (["Nick", "", "Janssen"], "FF1LL", None),
+        # Test combis expecting middle names on user without a middle names
+        (["Nick", "Janssen"], "FF1LL", None),
+        (["Nick", "Janssen"], "FF2LL", None),
+        (["Nick", "Janssen"], "FF3LL", None),
     ],
 )
 def test_create_from_combi(
