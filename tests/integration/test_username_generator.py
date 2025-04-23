@@ -525,6 +525,7 @@ async def test_generate_username_expected_usernames(
     }
 )
 @pytest.mark.usefixtures("test_client")
+@pytest.mark.xfail(reason="usernames are tested 8 times")
 async def test_generate_username_logging(
     context: Context,
     mo_person: UUID,
@@ -555,104 +556,6 @@ async def test_generate_username_logging(
             "combination": "FFLL",
             "event": "Username candidate generated",
             "log_level": "debug",
-            "username": "aaba",
-        },
-        {
-            "combination": "FFLL",
-            "event": "Username permutation generated",
-            "log_level": "debug",
-            "permutation": "aaba",
-            "username": "aaba",
-        },
-        {
-            "combination": "FFLL",
-            "event": "Rejecting username candidate due to existing LDAP usage",
-            "log_level": "debug",
-            "permutation": "aaba",
-            "username": "aaba",
-        },
-        {
-            "combination": "FFLL",
-            "event": "Username permutation generated",
-            "log_level": "debug",
-            "permutation": "aaba",
-            "username": "aaba",
-        },
-        {
-            "combination": "FFLL",
-            "event": "Rejecting username candidate due to existing LDAP usage",
-            "log_level": "debug",
-            "permutation": "aaba",
-            "username": "aaba",
-        },
-        {
-            "combination": "FFLL",
-            "event": "Username permutation generated",
-            "log_level": "debug",
-            "permutation": "aaba",
-            "username": "aaba",
-        },
-        {
-            "combination": "FFLL",
-            "event": "Rejecting username candidate due to existing LDAP usage",
-            "log_level": "debug",
-            "permutation": "aaba",
-            "username": "aaba",
-        },
-        {
-            "combination": "FFLL",
-            "event": "Username permutation generated",
-            "log_level": "debug",
-            "permutation": "aaba",
-            "username": "aaba",
-        },
-        {
-            "combination": "FFLL",
-            "event": "Rejecting username candidate due to existing LDAP usage",
-            "log_level": "debug",
-            "permutation": "aaba",
-            "username": "aaba",
-        },
-        {
-            "combination": "FFLL",
-            "event": "Username permutation generated",
-            "log_level": "debug",
-            "permutation": "aaba",
-            "username": "aaba",
-        },
-        {
-            "combination": "FFLL",
-            "event": "Rejecting username candidate due to existing LDAP usage",
-            "log_level": "debug",
-            "permutation": "aaba",
-            "username": "aaba",
-        },
-        {
-            "combination": "FFLL",
-            "event": "Username permutation generated",
-            "log_level": "debug",
-            "permutation": "aaba",
-            "username": "aaba",
-        },
-        {
-            "combination": "FFLL",
-            "event": "Rejecting username candidate due to existing LDAP usage",
-            "log_level": "debug",
-            "permutation": "aaba",
-            "username": "aaba",
-        },
-        {
-            "combination": "FFLL",
-            "event": "Username permutation generated",
-            "log_level": "debug",
-            "permutation": "aaba",
-            "username": "aaba",
-        },
-        {
-            "combination": "FFLL",
-            "event": "Rejecting username candidate due to existing LDAP usage",
-            "log_level": "debug",
-            "permutation": "aaba",
             "username": "aaba",
         },
         {
