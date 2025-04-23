@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import time
 from collections.abc import AsyncIterator
 from contextlib import suppress
 from functools import cache
@@ -70,6 +71,14 @@ class LogContextExtension(SchemaExtension):
             canonical_gql_context()["errors"] = self.execution_context.errors
 
 
+class RuntimeContextExtension(SchemaExtension):
+    async def on_operation(self) -> AsyncIterator[None]:
+        start_time = time.perf_counter()
+        yield
+        stop_time = time.perf_counter()
+        canonical_gql_context()["operation_time"] = stop_time - start_time
+
+
 class ExtendedErrorFormatExtension(SchemaExtension):
     async def on_operation(self) -> AsyncIterator[None]:
         yield
@@ -118,6 +127,7 @@ def get_schema(version: Version) -> CustomSchema:
         extensions=[
             StarletteContextExtension,
             LogContextExtension,
+            RuntimeContextExtension,
             RollbackOnError,
             ExtendedErrorFormatExtension,
             IntrospectionQueryCacheExtension,
