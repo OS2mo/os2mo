@@ -225,8 +225,11 @@ class UserNameGenerator:
             #
             # The last attempted permutation is '9' - because we would like to limit the
             # permutation counter to a single digit.
-            for permutation_counter in range(2, 10):
-                yield username.replace("X", str(permutation_counter))
+            if "X" in username:
+                for permutation_counter in range(2, 10):
+                    yield username.replace("X", str(permutation_counter))
+            else:
+                yield username
 
         def forbidden(username: str) -> bool:
             # Check if core username is legal

@@ -525,7 +525,6 @@ async def test_generate_username_expected_usernames(
     }
 )
 @pytest.mark.usefixtures("test_client")
-@pytest.mark.xfail(reason="usernames are tested 8 times")
 async def test_generate_username_logging(
     context: Context,
     mo_person: UUID,
