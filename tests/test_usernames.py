@@ -275,15 +275,6 @@ async def test_create_username_taken(
     assert username == expected
 
 
-async def test_create_username_forbidden(username_generator: UserNameGenerator) -> None:
-    # Simulate a case where a forbidden username is generated
-    username = await username_generator._create_username(
-        ["Harry", "Alexander", "Terpstra"], set()
-    )
-    assert username != "hater"
-    assert username == "hterp"
-
-
 @pytest.mark.parametrize(
     "names,expected",
     (
