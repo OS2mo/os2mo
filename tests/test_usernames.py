@@ -367,24 +367,25 @@ async def test_generate_dn(
     assert dn == "CN=Patrick Bateman,DC=bar"
 
 
-def test_create_from_combi(username_generator: UserNameGenerator):
-    # Test with a combi that starts with an 'X'
-    name = ["Nick", "Janssen"]
-    combi = "XFL"
+@pytest.mark.parametrize(
+    "name,combi,expected",
+    [
+        # Test with a combi that starts with an 'X'
+        (["Nick", "Janssen"], "XFL", "Xnj"),
+        # Test with a combi that expects 5 characters for the first name
+        (["Nick", "Janssen"], "FFFFFL", None),
+        # Test with a user without a last name
+        (["Nick", ""], "FFFL", None),
+    ],
+)
+def test_create_from_combi(
+    username_generator: UserNameGenerator,
+    name: list[str],
+    combi: str,
+    expected: str | None,
+) -> None:
     username = username_generator._create_from_combi(name, combi)
-    assert username == "Xnj"
-
-    # Test with a combi that expects 5 characters for the first name
-    name = ["Nick", "Janssen"]
-    combi = "FFFFFL"
-    username = username_generator._create_from_combi(name, combi)
-    assert username is None
-
-    # Test with a user without a last name
-    name = ["Nick", ""]
-    combi = "FFFL"
-    username = username_generator._create_from_combi(name, combi)
-    assert username is None
+    assert username == expected
 
 
 def test_check_combinations_to_try():
