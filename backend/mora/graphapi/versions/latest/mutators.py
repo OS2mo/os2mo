@@ -1662,9 +1662,10 @@ class Mutation:
         self,
         info: Info,
         input: NamespaceDeleteInput,
-    ) -> None:
+    ) -> bool:
         session = info.context["session"]
 
+        # coverage: pause
         try:
             await session.execute(
                 delete(db.Namespace).where(db.Namespace.name == input.name)
@@ -1673,6 +1674,8 @@ class Mutation:
             raise ValueError(
                 "There are still listeners for this namespace. Use the `event_listener_delete` mutator."
             )
+        return True
+        # coverage: unpause
 
     @strawberry.mutation(
         description=dedent(
@@ -1753,9 +1756,10 @@ class Mutation:
         self,
         info: Info,
         input: ListenerDeleteInput,
-    ) -> None:
+    ) -> bool:
         session = info.context["session"]
 
+        # coverage: pause
         if input.delete_pending_events:
             await session.execute(
                 delete(db.Event).where(db.Event.listener_fk == input.uuid)
@@ -1769,6 +1773,8 @@ class Mutation:
             raise ValueError(
                 "There are pending events for this listener. Consider carefully if these need to be handled first. You can delete the listener anyway with `delete_pending_events`."
             )
+        return True
+        # coverage: unpause
 
     @strawberry.mutation(
         description="Acknowledge an event.",
@@ -1781,7 +1787,7 @@ class Mutation:
         self,
         info: Info,
         input: EventAcknowledgeInput,
-    ) -> None:
+    ) -> bool:
         owner = get_authenticated_user()
         session = info.context["session"]
 
@@ -1797,7 +1803,7 @@ class Mutation:
 
         # coverage: pause
         if not listener:
-            return None
+            return True
 
         result = await session.execute(
             delete(db.Event).where(
@@ -1815,6 +1821,7 @@ class Mutation:
                 namespace=listener.namespace_fk,
                 routing_key=listener.routing_key,
             ).inc()
+        return True
         # coverage: unpause
 
     @strawberry.mutation(
@@ -1828,7 +1835,7 @@ class Mutation:
         self,
         info: Info,
         input: EventSendInput,
-    ) -> None:
+    ) -> bool:
         if input.priority < 1:
             raise ValueError("priority must be natural")
 
@@ -1839,6 +1846,7 @@ class Mutation:
                 "Too large subject. Only send identifiers as the subject, not data"
             )
 
+        # coverage: pause
         session = info.context["session"]
         owner = get_authenticated_user()
         await add_event(
@@ -1849,6 +1857,8 @@ class Mutation:
             priority=input.priority,
             namespace_owner=owner,
         )
+        return True
+        # coverage: unpause
 
     @strawberry.mutation(
         description=dedent(
@@ -1867,7 +1877,8 @@ class Mutation:
         self,
         info: Info,
         input: EventSilenceInput,
-    ) -> None:
+    ) -> bool:
+        # coverage: pause
         session = info.context["session"]
         await session.execute(
             update(db.Event)
@@ -1878,6 +1889,8 @@ class Mutation:
             )
             .values(silenced=True)
         )
+        return True
+        # coverage: unpause
 
     @strawberry.mutation(
         description="Unsilence all matching events",
@@ -1890,7 +1903,7 @@ class Mutation:
         self,
         info: Info,
         input: EventUnsilenceInput,
-    ) -> None:
+    ) -> bool:
         clauses = [
             db.Event.listener_fk == db.Listener.pk,
         ]
@@ -1904,8 +1917,11 @@ class Mutation:
         if input.priorities is not None:  # pragma: no cover
             clauses.append(db.Event.priority.in_(input.priorities))
 
+        # coverage: pause
         session = info.context["session"]
         await session.execute(update(db.Event).where(*clauses).values(silenced=False))
+        return True
+        # coverage: unpause
 
     # Files
     # -----

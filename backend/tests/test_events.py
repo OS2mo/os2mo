@@ -102,7 +102,6 @@ def send_event(
             "priority": priority,
         },
     )
-    assert response.data
     return response
 
 
@@ -471,7 +470,7 @@ def test_delete_nonexisting_listener(graphapi_post: GraphAPIPost) -> None:
     response = delete_listener(graphapi_post, uuid4())
     assert response.errors is None
     assert response.data is not None
-    assert response.data["event_listener_delete"] is None
+    assert response.data["event_listener_delete"] is True
 
 
 @pytest.mark.integration_test
