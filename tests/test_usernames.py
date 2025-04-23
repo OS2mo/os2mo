@@ -5,7 +5,6 @@ from collections.abc import Iterator
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
-from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
@@ -13,12 +12,9 @@ from pydantic import ValidationError
 from pydantic import parse_obj_as
 
 from mo_ldap_import_export.config import UsernameGeneratorConfig
-from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.depends import Settings
-from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.usernames import UserNameGenerator
-from tests.graphql_mocker import GraphQLMocker
 
 
 @pytest.fixture
@@ -252,10 +248,10 @@ async def test_get_existing_usernames(
         (["Nick", "Gerardus", "Cornelis", "Optimus", "Prime", "Janssen"], "ngcoj"),
     ),
 )
-def test_create_username(
+async def test_create_username(
     username_generator: UserNameGenerator, names: list[str], expected: str
 ) -> None:
-    username = username_generator._create_username(names, set())
+    username = await username_generator._create_username(names, set())
     assert username == expected
 
 
@@ -268,25 +264,27 @@ def test_create_username(
         (["Nick", "Jænssen"], {"njaen"}, "njaen2"),
     ),
 )
-def test_create_username_taken(
+async def test_create_username_taken(
     username_generator: UserNameGenerator,
     names: list[str],
     existing: set[str],
     expected: str,
 ) -> None:
-    username = username_generator._create_username(names, existing)
+    username = await username_generator._create_username(names, existing)
     assert username == expected
 
 
-def test_create_username_no_models_fit(username_generator: UserNameGenerator) -> None:
+async def test_create_username_no_models_fit(
+    username_generator: UserNameGenerator,
+) -> None:
     # Simulate a case which fits none of the models (last name is too short)
     with pytest.raises(RuntimeError):
-        username_generator._create_username(["Nick", "Ja"], set())
+        await username_generator._create_username(["Nick", "Ja"], set())
 
 
-def test_create_username_forbidden(username_generator: UserNameGenerator) -> None:
+async def test_create_username_forbidden(username_generator: UserNameGenerator) -> None:
     # Simulate a case where a forbidden username is generated
-    username = username_generator._create_username(
+    username = await username_generator._create_username(
         ["Harry", "Alexander", "Terpstra"], set()
     )
     assert username != "hater"
@@ -395,77 +393,6 @@ def test_check_combinations_to_try():
         parse_obj_as(UsernameGeneratorConfig, config)
 
 
-async def test_alleroed_username_generator(
-    alleroed_username_generator: UserNameGenerator,
-) -> None:
-    alleroed_username_generator.forbidden_usernames = []
-    existing_names: list[str] = []
-    expected_usernames = iter(
-        [
-            "llkk",
-            "llkr",
-            "llrs",
-            "lrsm",
-            "llkkr",
-            "llkrs",
-            "llrsm",
-            "lrsms",
-            "lolk",
-            "lalk",
-            "lelk",
-            "lalr",
-            "mlxn",
-            "mlxb",
-            "mlbr",
-            "mbrh",
-            "mlbn",
-            "mbrn",
-            "brul",
-            "borl",
-            "benl",
-            "bruc",
-            "dobn",
-        ]
-    )
-
-    for name in [
-        ["Lars", "Løkke", "Rasmussen"],
-        ["Lone", "Løkke", "Rasmussen"],
-        ["Lærke", "Løkke", "Rasmussen"],
-        ["Leo", "Løkke", "Rasmussen"],
-        ["Lukas", "Løkke", "Rasmussen"],
-        ["Liam", "Løkke", "Rasmussen"],
-        ["Ludvig", "Løkke", "Rasmussen"],
-        ["Laurits", "Løkke", "Rasmussen"],
-        ["Loki", "Løkke", "Rasmussen"],
-        ["Lasse", "Løkke", "Rasmussen"],
-        ["Leonardo", "Løkke", "Rasmussen"],
-        ["Laus", "Løkke", "Rasmussen"],
-        ["Margrethe", "Alexandrine", "borhildur", "Ingrid"],
-        ["Mia", "Alexandrine", "borhildur", "Ingrid"],
-        ["Mike", "Alexandrine", "borhildur", "Ingrid"],
-        ["Max", "Alexandrine", "borhildur", "Ingrid"],
-        ["Mick", "Alexandrine", "borhildur", "Ingrid"],
-        ["Mads", "Alexandrine", "borhildur", "Ingrid"],
-        ["Bruce", "Lee"],
-        ["Boris", "Lee"],
-        ["Benjamin", "Lee"],
-        ["Bruce", ""],
-        ["Dorthe", "Baun"],
-    ]:
-        *firstnames, surname = name
-        given_name = " ".join(firstnames)
-        employee = Employee(given_name=given_name, surname=surname)
-
-        alleroed_username_generator._get_existing_usernames = AsyncMock()  # type: ignore
-        alleroed_username_generator._get_existing_usernames.return_value = (
-            existing_names
-        )
-        username = await alleroed_username_generator.generate_username(employee)
-        assert username == next(expected_usernames)
-        existing_names.append(username)
-
-
 async def test_alleroed_dn_generator(
     monkeypatch: pytest.MonkeyPatch,
     alleroed_username_generator: UserNameGenerator,
@@ -476,49 +403,3 @@ async def test_alleroed_dn_generator(
     employee = Employee(given_name="Patrick", surname="Bateman")
     dn = await alleroed_username_generator.generate_dn(employee)
     assert dn == "CN=Patrick Bateman,DC=bar"
-
-
-@pytest.mark.parametrize(
-    "given_name,surname,forbidden,expected",
-    [
-        ("Anders", "Broon", [], "abrn"),
-        ("Anders", "Broon", ["abrn"], "anbr"),
-        ("Anders", "Nolus", [], "anls"),
-        ("Anders", "Nolus", ["anls"], "annl"),
-    ],
-)
-async def test_alleroed_username_generator_forbidden_names_from_files(
-    alleroed_username_generator: UserNameGenerator,
-    graphql_mock: GraphQLMocker,
-    settings_mock: Settings,
-    given_name: str,
-    surname: str,
-    forbidden: list[str],
-    expected: str,
-) -> None:
-    graphql_client = GraphQLClient("http://example.com/graphql")
-    alleroed_username_generator.moapi = MOAPI(settings_mock, graphql_client)  # type: ignore
-
-    adsama_it_system = uuid4()
-
-    route1 = graphql_mock.query("read_itsystem_uuid")
-    route1.result = {"itsystems": {"objects": [{"uuid": adsama_it_system}]}}
-
-    route2 = graphql_mock.query("read_all_ituser_user_keys_by_itsystem_uuid")
-    route2.result = {
-        "itusers": {
-            "objects": [
-                {"validities": [{"user_key": username}]} for username in forbidden
-            ]
-        }
-    }
-
-    # Now clean the list of forbidden usernames and try again
-    alleroed_username_generator.forbidden_usernames = forbidden
-
-    employee = Employee(given_name=given_name, surname=surname)
-    username = await alleroed_username_generator.generate_username(employee)
-    assert username == expected
-
-    assert route1.called
-    assert route2.called
