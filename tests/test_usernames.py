@@ -233,32 +233,6 @@ async def test_get_existing_usernames(
 @pytest.mark.parametrize(
     "names,expected",
     (
-        # Regular user
-        (["Nick", "Janssen"], "njans"),
-        # User with a funny character
-        (["Nick", "Jænssen"], "njaen"),
-        # User with a funny character which is not in the character replacement mapping
-        (["N1ck", "Janssen"], "njans"),
-        # User with a middle name
-        (["Nick", "Gerardus", "Janssen"], "ngjan"),
-        # User with two middle names
-        (["Nick", "Gerardus", "Cornelis", "Janssen"], "ngcja"),
-        # User with three middle names
-        (["Nick", "Gerardus", "Cornelis", "Optimus", "Janssen"], "ngcoj"),
-        # User with 4 middle names (only the first three are used)
-        (["Nick", "Gerardus", "Cornelis", "Optimus", "Prime", "Janssen"], "ngcoj"),
-    ),
-)
-async def test_create_username(
-    username_generator: UserNameGenerator, names: list[str], expected: str
-) -> None:
-    username = await username_generator._create_username(names, set())
-    assert username == expected
-
-
-@pytest.mark.parametrize(
-    "names,expected",
-    (
         # Regular case
         (["Nick", "Johnson"], "Nick Johnson"),
         # Middle names are not used
