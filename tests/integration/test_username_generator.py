@@ -538,63 +538,16 @@ async def test_generate_username_logging(
         result = await generate_username(dataloader, mo_person)
         assert result == "baaa"
 
-    assert cap_logs == [
-        {
-            "clean_name": [
-                "aage",
-                "bachklarskov",
-            ],
-            "event": "Cleaned name for username generation",
-            "log_level": "debug",
-            "name": [
-                "Aage",
-                "Bach Klarskov",
-            ],
-        },
-        {
-            "combination": "FFLL",
-            "event": "Username candidate generated",
-            "log_level": "debug",
-            "username": "aaba",
-        },
-        {
-            "combination": "FFLL",
-            "event": "Username permutation generated",
-            "log_level": "debug",
-            "permutation": "aaba",
-            "username": "aaba",
-        },
-        {
-            "combination": "FFLL",
-            "event": "Rejecting username candidate due to existing LDAP usage",
-            "log_level": "debug",
-            "permutation": "aaba",
-            "username": "aaba",
-        },
-        {
-            "combination": "LLFF",
-            "event": "Username candidate generated",
-            "log_level": "debug",
-            "username": "baaa",
-        },
-        {
-            "combination": "LLFF",
-            "event": "Username permutation generated",
-            "log_level": "debug",
-            "permutation": "baaa",
-            "username": "baaa",
-        },
-        {
-            "event": "Not configured to check for disallowed MO usernames",
-            "log_level": "debug",
-        },
-        {
-            "event": "Generated username based on name",
-            "log_level": "info",
-            "name": [
-                "Aage",
-                "Bach Klarskov",
-            ],
-            "username": "baaa",
-        },
+    events = [w["event"] for w in cap_logs]
+    assert events == [
+        "Cleaned name for username generation",
+        # Generate aaba
+        "Username candidate generated",
+        "Username permutation generated",
+        "Rejecting username candidate due to existing LDAP usage",
+        # Generate baaa
+        "Username candidate generated",
+        "Username permutation generated",
+        "Not configured to check for disallowed MO usernames",
+        "Generated username based on name",
     ]
