@@ -60,6 +60,7 @@ def add_exception_extension(error: GraphQLError) -> StrawberryGraphQLError:
 
 class LogContextExtension(SchemaExtension):
     async def on_operation(self) -> AsyncIterator[None]:
+        canonical_gql_context()["query"] = self.execution_context.query
         if self.execution_context.operation_name:  # pragma: no cover
             canonical_gql_context()["name"] = self.execution_context.operation_name
         if self.execution_context.variables:
@@ -67,7 +68,6 @@ class LogContextExtension(SchemaExtension):
         yield
         if self.execution_context.errors:
             canonical_gql_context()["errors"] = self.execution_context.errors
-            canonical_gql_context()["query"] = self.execution_context.query
 
 
 class ExtendedErrorFormatExtension(SchemaExtension):
