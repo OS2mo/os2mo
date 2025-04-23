@@ -21,6 +21,88 @@ from .utils import remove_vowels
 logger = structlog.stdlib.get_logger()
 
 
+def _machine_readable_combi(combi: str) -> tuple[list[int | None], int]:
+    """Converts a name to a machine processable internal format.
+
+    Args:
+        combi: Combination to create a username from. For example "F123LX".
+
+    Returns:
+        A two-tuple containing the internal combi format and the max name
+        entry we will look up.
+
+    Example:
+        Given `combi = "F123LX"`, we return `([0,1,2,3,-1,None], 3)`.
+        The name name entry `3` is simply the highest number contained
+        within the internal combi format, and the internal combi format
+        is produced according to the following lookup table.
+    """
+    char2pos = {
+        # First name
+        "F": 0,
+        # First middle name
+        "1": 1,
+        # Second middle name
+        "2": 2,
+        # Third middle name
+        "3": 3,
+        # Last name (independent of middle names)
+        "L": -1,
+        "X": None,
+    }
+    readable_combi = [char2pos[x] for x in combi]
+    max_position = max((x for x in readable_combi if x is not None), default=-1)
+    return readable_combi, max_position
+
+
+def _create_from_combi(name_parts: list[str], combi: str) -> str | None:
+    """Create a username from a name and a combination.
+
+    Args:
+        name_parts: An array of names; given_name, middlenames, surname.
+        combi: Combination to create a username from. For example "F123LX".
+
+    Returns:
+        A username generated according to the combination.
+        Note that this username may still contain 'X' characters, which need
+        to be replaced with a number.
+    """
+    # Convert combi into machine readable code.
+    # For example: combi = "F123LX" returns code = [0,1,2,3,-1,None]
+    (code, max_position) = _machine_readable_combi(combi)
+
+    # Do not use codes that uses more names than the actual person has
+    if max_position > len(name_parts) - 2:
+        return None
+
+    # Do not use codes that require a last name if the person has no last name
+    if not name_parts[-1] and -1 in code:
+        return None
+
+    # Split code into groups on changes
+    # For example [0, 1, 1, 1, -1] returns [[0], [1,1,1], [-1]]
+    splits = split_when(code, lambda x, y: x != y)
+    # Transform into code + count
+    # For example [[0], [1,1,1], [-1]] returns [(0,1), (1,3), (-1,1)]
+    groups = [(x[0], len(x)) for x in splits]
+
+    def code2char(x: int | None, current_char: int) -> str:
+        # None translates to 'X'. This is replaced with a number later on.
+        if x is None:
+            return "X"
+        return name_parts[x][current_char].lower()
+
+    username = ""
+    # Each group has the same character
+    for x, num in groups:
+        # Sanity check that the name is long enough
+        if x is not None and num > len(name_parts[x]):
+            return None
+        for current_char in range(num):
+            username += code2char(x, current_char)
+    return username
+
+
 class UserNameGenerator:
     """
     Class with functions to generate valid LDAP usernames.
@@ -119,86 +201,6 @@ class UserNameGenerator:
             name_parts = eliminate_vowels_from_surnames(name_parts)
         return name_parts
 
-    def _machine_readable_combi(self, combi: str) -> tuple[list[int | None], int]:
-        """Converts a name to a machine processable internal format.
-
-        Args:
-            combi: Combination to create a username from. For example "F123LX".
-
-        Returns:
-            A two-tuple containing the internal combi format and the max name
-            entry we will look up.
-
-        Example:
-            Given `combi = "F123LX"`, we return `([0,1,2,3,-1,None], 3)`.
-            The name name entry `3` is simply the highest number contained
-            within the internal combi format, and the internal combi format
-            is produced according to the following lookup table.
-        """
-        char2pos = {
-            # First name
-            "F": 0,
-            # First middle name
-            "1": 1,
-            # Second middle name
-            "2": 2,
-            # Third middle name
-            "3": 3,
-            # Last name (independent of middle names)
-            "L": -1,
-            "X": None,
-        }
-        readable_combi = [char2pos[x] for x in combi]
-        max_position = max((x for x in readable_combi if x is not None), default=-1)
-        return readable_combi, max_position
-
-    def _create_from_combi(self, name_parts: list[str], combi: str) -> str | None:
-        """Create a username from a name and a combination.
-
-        Args:
-            name_parts: An array of names; given_name, middlenames, surname.
-            combi: Combination to create a username from. For example "F123LX".
-
-        Returns:
-            A username generated according to the combination.
-            Note that this username may still contain 'X' characters, which need
-            to be replaced with a number.
-        """
-        # Convert combi into machine readable code.
-        # For example: combi = "F123LX" returns code = [0,1,2,3,-1,None]
-        (code, max_position) = self._machine_readable_combi(combi)
-
-        # Do not use codes that uses more names than the actual person has
-        if max_position > len(name_parts) - 2:
-            return None
-
-        # Do not use codes that require a last name if the person has no last name
-        if not name_parts[-1] and -1 in code:
-            return None
-
-        # Split code into groups on changes
-        # For example [0, 1, 1, 1, -1] returns [[0], [1,1,1], [-1]]
-        splits = split_when(code, lambda x, y: x != y)
-        # Transform into code + count
-        # For example [[0], [1,1,1], [-1]] returns [(0,1), (1,3), (-1,1)]
-        groups = [(x[0], len(x)) for x in splits]
-
-        def code2char(x: int | None, current_char: int) -> str:
-            # None translates to 'X'. This is replaced with a number later on.
-            if x is None:
-                return "X"
-            return name_parts[x][current_char].lower()
-
-        username = ""
-        # Each group has the same character
-        for x, num in groups:
-            # Sanity check that the name is long enough
-            if x is not None and num > len(name_parts[x]):
-                return None
-            for current_char in range(num):
-                username += code2char(x, current_char)
-        return username
-
     async def _create_username(
         self, name: list[str], existing_usernames: set[str]
     ) -> str:
@@ -238,9 +240,7 @@ class UserNameGenerator:
         # Cleanup names
         name = self._name_fixer(name)
         # Generate usernames from names and combinations
-        usernames = (
-            self._create_from_combi(name, combi) for combi in self.combinations
-        )
+        usernames = (_create_from_combi(name, combi) for combi in self.combinations)
         for username in usernames:
             if username is None:
                 continue

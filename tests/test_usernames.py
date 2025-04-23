@@ -15,6 +15,7 @@ from mo_ldap_import_export.config import UsernameGeneratorConfig
 from mo_ldap_import_export.depends import Settings
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.usernames import UserNameGenerator
+from mo_ldap_import_export.usernames import _create_from_combi
 
 
 @pytest.fixture
@@ -408,12 +409,11 @@ async def test_generate_dn(
     ],
 )
 def test_create_from_combi(
-    username_generator: UserNameGenerator,
     name: list[str],
     combi: str,
     expected: str | None,
 ) -> None:
-    username = username_generator._create_from_combi(name, combi)
+    username = _create_from_combi(name, combi)
     assert username == expected
 
 
