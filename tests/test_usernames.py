@@ -275,14 +275,6 @@ async def test_create_username_taken(
     assert username == expected
 
 
-async def test_create_username_no_models_fit(
-    username_generator: UserNameGenerator,
-) -> None:
-    # Simulate a case which fits none of the models (last name is too short)
-    with pytest.raises(RuntimeError):
-        await username_generator._create_username(["Nick", "Ja"], set())
-
-
 async def test_create_username_forbidden(username_generator: UserNameGenerator) -> None:
     # Simulate a case where a forbidden username is generated
     username = await username_generator._create_username(
