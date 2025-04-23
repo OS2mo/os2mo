@@ -538,3 +538,112 @@ def test_employee_person_exclusivity(
         assert exception in str(excinfo.value)
     else:
         parse_obj_as(AssociationCreate, input_dict)
+
+
+@pytest.fixture
+def create_association(
+    graphapi_post: GraphAPIPost,
+) -> Callable:
+    def inner(association_type: UUID, org_unit: UUID, person: UUID) -> UUID:
+        mutate_query = """
+            mutation CreateAssociation($input: AssociationCreateInput!) {
+                association_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(
+            query=mutate_query,
+            variables={
+                "input": {
+                    "association_type": str(association_type),
+                    "org_unit": str(org_unit),
+                    "person": str(person),
+                    "substitute": str(uuid4()),
+                    "validity": {"from": "1970-01-01T00:00:00Z"},
+                }
+            },
+        )
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["association_create"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
+def update_substitute_vacant(
+    graphapi_post: GraphAPIPost,
+) -> Callable:
+    def inner(uuid: UUID) -> UUID:
+        mutate_query = """
+            mutation UpdateAssociation($input: AssociationUpdateInput!) {
+                association_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(
+            query=mutate_query,
+            variables={
+                "input": {
+                    "uuid": str(uuid),
+                    "substitute": None,
+                    "validity": {"from": "1970-01-01T00:00:00Z"},
+                }
+            },
+        )
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["association_update"]["uuid"])
+
+    return inner
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_update_substitute_vacant(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[..., UUID],
+    create_association: Callable[..., UUID],
+    update_substitute_vacant: Callable[..., UUID],
+    set_settings: Callable[..., None],
+) -> None:
+    root = create_org_unit("root")
+    person = create_person()
+    substitute_role = uuid4()
+
+    # Set a substitute role, to test substitute
+    set_settings(CONFDB_SUBSTITUTE_ROLES=f'["{substitute_role}"]')
+    association = create_association(substitute_role, root, person)
+    update_substitute_vacant(association)
+
+    # Test our filter
+    query = """
+        query Association(
+          $filter: AssociationFilter!,
+        ) {
+          associations(filter: $filter) {
+            objects {
+              current {
+                uuid
+                substitute_uuid
+              }
+            }
+          }
+        }
+    """
+    response = graphapi_post(
+        query,
+        variables={
+            "filter": {"uuids": [str(association)]},
+        },
+    )
+    assert response.errors is None
+    assert response.data
+
+    assert (
+        one(response.data["associations"]["objects"])["current"]["substitute_uuid"]
+        is None
+    )
