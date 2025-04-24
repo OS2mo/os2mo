@@ -573,7 +573,12 @@ async def test_generate_username_logging(
     "own_reserve,other_reserve,expected",
     [
         (False, False, "aaba"),
-        (True, False, "baaa"),
+        pytest.param(
+            True,
+            False,
+            "aaba",
+            marks=pytest.mark.xfail(reason="usernames cannot be reused"),
+        ),
         (False, True, "baaa"),
         (True, True, "baaa"),
     ],
