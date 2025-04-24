@@ -898,7 +898,7 @@ async def organisation_unit_resolver_query(
                 OrganisationEnhedRegistrering.organisationenhed_id,
             )
             .where(OrganisationEnhedRegistrering.organisationenhed_id.in_(base_leafs))
-            .cte("descendant_cte", recursive=True)
+            .cte(recursive=True)
         )
         parents = (
             select(
@@ -984,7 +984,7 @@ async def organisation_unit_resolver_query(
                 OrganisationEnhedRegistrering.organisationenhed_id,
             )
             .where(OrganisationEnhedRegistrering.organisationenhed_id.in_(base_query))
-            .cte("ancestor_cte", recursive=True)
+            .cte(recursive=True)
         )
         children = (
             select(
