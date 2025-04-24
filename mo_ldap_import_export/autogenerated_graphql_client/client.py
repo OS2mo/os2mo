@@ -1404,6 +1404,7 @@ class GraphQLClient(AsyncBaseClient):
               itusers(filter: $filter) {
                 objects {
                   validities {
+                    employee_uuid
                     itsystem {
                       user_key
                     }

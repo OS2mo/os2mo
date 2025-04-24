@@ -563,6 +563,7 @@ async def test_generate_username_logging(
                 "username_generator": {
                     "disallow_mo_usernames": "True",
                     "existing_usernames_itsystem": "ADtitle",
+                    "reuse_old_usernames": "True",
                     "combinations_to_try": ["FFLL", "LLFF"],
                 }
             }
@@ -573,12 +574,7 @@ async def test_generate_username_logging(
     "own_reserve,other_reserve,expected",
     [
         (False, False, "aaba"),
-        pytest.param(
-            True,
-            False,
-            "aaba",
-            marks=pytest.mark.xfail(reason="usernames cannot be reused"),
-        ),
+        (True, False, "aaba"),
         (False, True, "baaa"),
         (True, True, "baaa"),
     ],

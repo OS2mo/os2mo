@@ -657,6 +657,7 @@ query read_filtered_itusers($filter: ITUserFilter!) {
   itusers(filter: $filter) {
     objects {
       validities {
+        employee_uuid
         itsystem {
           user_key
         }
