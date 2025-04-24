@@ -551,3 +551,64 @@ async def test_generate_username_logging(
         "Not configured to check for disallowed MO usernames",
         "Generated username based on name",
     ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "username_generator": {
+                    "disallow_mo_usernames": "True",
+                    "existing_usernames_itsystem": "ADtitle",
+                    "combinations_to_try": ["FFLL", "LLFF"],
+                }
+            }
+        ),
+    }
+)
+@pytest.mark.parametrize(
+    "own_reserve,other_reserve,expected",
+    [
+        (False, False, "aaba"),
+        (True, False, "baaa"),
+        (False, True, "baaa"),
+        (True, True, "baaa"),
+    ],
+)
+@pytest.mark.usefixtures("test_client")
+async def test_generate_username_reuses_mo_usernames(
+    graphql_client: GraphQLClient,
+    context: Context,
+    adtitle: UUID,
+    mo_person: UUID,
+    own_reserve: bool,
+    other_reserve: bool,
+    expected: str,
+) -> None:
+    reserve_uuids = set()
+    if own_reserve:
+        reserve_uuids.add(mo_person)
+    if other_reserve:
+        other_mo_person = await graphql_client.user_create(
+            input=EmployeeCreateInput(
+                cpr_number="0101700000", given_name="Other", surname="Person"
+            )
+        )
+        reserve_uuids.add(other_mo_person.uuid)
+
+    for person_uuid in reserve_uuids:
+        await graphql_client.ituser_create(
+            ITUserCreateInput(
+                person=person_uuid,
+                user_key="aaba",
+                itsystem=adtitle,
+                validity={"from": datetime(1970, 1, 1), "to": None},
+            )
+        )
+
+    dataloader = context["user_context"]["dataloader"]
+    result = await generate_username(dataloader, mo_person)
+    assert result == expected
