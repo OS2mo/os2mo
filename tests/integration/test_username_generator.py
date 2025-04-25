@@ -448,3 +448,62 @@ async def test_generate_username_with_forbidden_usernames(
     dataloader = context["user_context"]["dataloader"]
     result = await generate_username(dataloader, mo_person.uuid)
     assert result == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "username_generator": {
+                    "char_replacement": {"ø": "oe", "æ": "ae", "å": "aa"},
+                    "combinations_to_try": [
+                        "F123L",
+                        "F12LL",
+                        "F1LLL",
+                        "FLLLL",
+                        "FLLLLX",
+                    ],
+                }
+            }
+        ),
+    }
+)
+@pytest.mark.parametrize(
+    "names,expected",
+    (
+        # Regular user
+        (["Nick", "Janssen"], "njans"),
+        # User with a funny character
+        (["Nick", "Jænssen"], "njaen"),
+        # User with a funny character which is not in the character replacement mapping
+        (["N1ck", "Janssen"], "njans"),
+        # User with a middle name
+        (["Nick", "Gerardus", "Janssen"], "ngjan"),
+        # User with two middle names
+        (["Nick", "Gerardus", "Cornelis", "Janssen"], "ngcja"),
+        # User with three middle names
+        (["Nick", "Gerardus", "Cornelis", "Optimus", "Janssen"], "ngcoj"),
+        # User with 4 middle names (only the first three are used)
+        (["Nick", "Gerardus", "Cornelis", "Optimus", "Prime", "Janssen"], "ngcoj"),
+    ),
+)
+@pytest.mark.usefixtures("test_client")
+async def test_generate_username_expected_usernames(
+    graphql_client: GraphQLClient,
+    context: Context,
+    names: list[str],
+    expected: str,
+) -> None:
+    *given_names, surname = names
+    mo_person = await graphql_client.user_create(
+        input=EmployeeCreateInput(
+            given_name=" ".join(given_names), surname=surname, cpr_number="0101700000"
+        )
+    )
+
+    dataloader = context["user_context"]["dataloader"]
+    result = await generate_username(dataloader, mo_person.uuid)
+    assert result == expected
