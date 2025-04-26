@@ -334,7 +334,7 @@ standard = ["email-validator (>=2.0.0)", "fastapi-cli[standard] (>=0.0.5)", "htt
 
 [[package]]
 name = "fastramqpi"
-version = "10.3.0"
+version = "10.4.5"
 description = "Rammearkitektur integrations framework"
 category = "main"
 optional = false
@@ -344,7 +344,7 @@ python-versions = "<4.0,>=3.11"
 aio-pika = ">=9,<10"
 aiohttp = ">=3,<4"
 aiormq = ">=6,<7"
-anyio = ">=3,<4"
+anyio = ">=3,<5"
 ariadne-codegen = "0.7.1"
 Authlib = ">=1,<2"
 click = ">=8,<9"
@@ -352,11 +352,11 @@ debugpy = ">=1,<2"
 fastapi = ">=0.115,<0.116"
 frozendict = ">=2,<3"
 gql = ">=3,<4"
-httpx = ">=0.27,<0.28"
+httpx = ">=0.27,<0.29"
 hypothesis = ">=6,<7"
 Jinja2 = ">=3,<4"
 more-itertools = ">=9,<11"
-prometheus-client = ">=0.20,<0.21"
+prometheus-client = ">=0.20,<0.22"
 prometheus-fastapi-instrumentator = ">=7,<8"
 psycopg = ">=3,<4"
 pydantic = ">=1,<2"
@@ -1365,7 +1365,7 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.11"
-content-hash = "6ad881e6dd936a43ea134959f57a8787b2f5760910b2b42e9787309f3cb387d3"
+content-hash = "e18bf7bdc16487751ca0089e9a099d780d26c20fbb68dabe997027b95d40d16e"
 
 [metadata.files]
 aio-pika = [
@@ -1859,8 +1859,8 @@ fastapi = [
     {file = "fastapi-0.115.12.tar.gz", hash = "sha256:1e2c2a2646905f9e83d32f04a3f86aff4a286669c6c950ca95b5fd68c2602681"},
 ]
 fastramqpi = [
-    {file = "fastramqpi-10.3.0-py3-none-any.whl", hash = "sha256:73b54fd6daa9a9cec1888b8161646f6e27e9d5bfa0c9ebe1713b64b15697635a"},
-    {file = "fastramqpi-10.3.0.tar.gz", hash = "sha256:06a0930bf79aa430084db461212363568d359e6310562aad2292a7c849828c82"},
+    {file = "fastramqpi-10.4.5-py3-none-any.whl", hash = "sha256:0e3d28bda8adfc3ccf76ccbae0f4b8f75eea7def5696de21fe8abeb9da5e475d"},
+    {file = "fastramqpi-10.4.5.tar.gz", hash = "sha256:8db494f0388e3727f354bd988b35b15e19fe22a1a094d205e7c4ea6f9b6f4d07"},
 ]
 filelock = [
     {file = "filelock-3.18.0-py3-none-any.whl", hash = "sha256:c401f4f8377c4464e6db25fff06205fd89bdd83b65eb0488ed1b160f780e21de"},
