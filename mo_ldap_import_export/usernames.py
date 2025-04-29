@@ -225,34 +225,50 @@ class UserNameGenerator:
             #
             # The last attempted permutation is '9' - because we would like to limit the
             # permutation counter to a single digit.
-            for permutation_counter in range(2, 10):
-                yield username.replace("X", str(permutation_counter))
+            if "X" in username:
+                for permutation_counter in range(2, 10):
+                    yield username.replace("X", str(permutation_counter))
+            else:
+                yield username
 
         def forbidden(username: str) -> bool:
             # Check if core username is legal
             return username.replace("X", "") in self.forbidden_usernames
 
         # Cleanup names
-        name = self._name_fixer(name)
-        # Generate usernames from names and combinations
-        usernames = (_create_from_combi(name, combi) for combi in self.combinations)
-        for username in usernames:
+        clean_name = self._name_fixer(name)
+        logger.debug(
+            "Cleaned name for username generation", name=name, clean_name=clean_name
+        )
+
+        for combination in self.combinations:
+            # Generate usernames from clean_name and combination
+            username = _create_from_combi(clean_name, combination)
+            username_logger = logger.bind(combination=combination, username=username)
+            username_logger.debug("Username candidate generated")
+
             if username is None:
+                username_logger.debug("Rejecting empty username")
                 continue
+
             if forbidden(username):
+                username_logger.debug("Rejecting forbidden username")
                 continue
+
             p_usernames = permutations(username)
             for p_username in p_usernames:
+                permutation_logger = username_logger.bind(permutation=p_username)
+                permutation_logger.debug("Username permutation generated")
+
                 if not await self._ldap_allows_username(p_username):
-                    logger.debug(
-                        "Rejecting username candidate due to existing LDAP usage",
-                        username=p_username,
+                    permutation_logger.debug(
+                        "Rejecting username candidate due to existing LDAP usage"
                     )
                     continue
+
                 if not await self._mo_allows_username(p_username):
-                    logger.debug(
-                        "Rejecting username candidate due to disallowed MO usernames",
-                        username=p_username,
+                    permutation_logger.debug(
+                        "Rejecting username candidate due to disallowed MO usernames"
                     )
                     continue
 
