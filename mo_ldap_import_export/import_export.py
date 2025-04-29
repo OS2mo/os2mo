@@ -246,7 +246,10 @@ class SyncTool:
         # No DN set, means we are creating
         create = not best_dn
         if create:
-            best_dn = await self.dataloader._generate_dn(uuid, dry_run=dry_run)
+            # If dry-running we do not want to generate real DNs in LDAP
+            best_dn = "CN=Dry run,DC=example,DC=com"
+            if not dry_run:
+                best_dn = await self.dataloader._generate_dn(uuid)
             is_ok = await self.may_create_user_given_orgunit_location(uuid)
             if not is_ok:
                 logger.info("Primary engagement OU outside create_user_trees, skipping")

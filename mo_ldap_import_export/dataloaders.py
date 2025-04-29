@@ -233,11 +233,7 @@ class DataLoader:
             raise NoGoodLDAPAccountFound("Aborting synchronization")
         return best_dn
 
-    async def _generate_dn(self, uuid: EmployeeUUID, dry_run: bool = False) -> DN:
-        # If dry-running we do not want to generate real DNs in LDAP
-        if dry_run:
-            return "CN=Dry run,DC=example,DC=com"
-
+    async def _generate_dn(self, uuid: EmployeeUUID) -> DN:
         # If we did not find DNs, we want to generate one
         try:
             best_dn = await self.make_mo_employee_dn(uuid)
