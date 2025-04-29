@@ -239,15 +239,19 @@ class SyncTool:
             return {}
 
         try:
-            best_dn, create = await self.dataloader._find_best_dn(uuid, dry_run=dry_run)
+            best_dn = await self.dataloader._find_best_dn(uuid)
         except NoGoodLDAPAccountFound:
             return {}
 
+        # No DN set, means we are creating
+        create = not best_dn
         if create:
+            best_dn = await self.dataloader._generate_dn(uuid, dry_run=dry_run)
             is_ok = await self.may_create_user_given_orgunit_location(uuid)
             if not is_ok:
                 logger.info("Primary engagement OU outside create_user_trees, skipping")
                 return {}
+        assert best_dn is not None
 
         exit_stack.enter_context(bound_contextvars(dn=best_dn))
         ldap_desired_state = await self.render_ldap2mo(uuid, best_dn)

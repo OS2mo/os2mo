@@ -7,6 +7,7 @@ import csv
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from collections.abc import Callable
+from contextlib import suppress
 from datetime import datetime
 from functools import partial
 from itertools import count
@@ -661,11 +662,10 @@ def construct_router(settings: Settings) -> APIRouter:
             surviving_uuid, *delete_uuids = address_uuids
 
             # Ensure we can find an LDAP user to trigger an update on in the end
-            try:
-                best_dn, create = await dataloader._find_best_dn(mo_uuid, dry_run=True)
-            except NoGoodLDAPAccountFound:
-                continue
-            if create:
+            best_dn = None
+            with suppress(NoGoodLDAPAccountFound):
+                best_dn = await dataloader._find_best_dn(mo_uuid)
+            if best_dn is None:
                 logger.info("Cannot cleanup, no LDAP account", mo_uuid=mo_uuid)
                 continue
             ldap_uuid = await dataloader.ldapapi.get_ldap_unique_ldap_uuid(best_dn)

@@ -213,9 +213,7 @@ class DataLoader:
         assert isinstance(dn, str)
         return dn
 
-    async def _find_best_dn(
-        self, uuid: EmployeeUUID, dry_run: bool = False
-    ) -> tuple[DN, bool]:
+    async def _find_best_dn(self, uuid: EmployeeUUID) -> DN | None:
         dns = await self.find_mo_employee_dn(uuid)
         dns = await filter_dns(self.settings, self.ldapapi.ldap_connection, dns)
         # If we found DNs, we want to synchronize to the best of them
@@ -226,17 +224,19 @@ class DataLoader:
             )
             # If no good LDAP account was found, we do not want to synchronize at all
             if best_dn:
-                return best_dn, False
+                return best_dn
             logger.warning(
                 "Aborting synchronization, as no good LDAP account was found",
                 dns=dns,
                 uuid=uuid,
             )
             raise NoGoodLDAPAccountFound("Aborting synchronization")
+        return None
 
+    async def _generate_dn(self, uuid: EmployeeUUID, dry_run: bool = False) -> DN:
         # If dry-running we do not want to generate real DNs in LDAP
         if dry_run:
-            return "CN=Dry run,DC=example,DC=com", True
+            return "CN=Dry run,DC=example,DC=com"
 
         # If we did not find DNs, we want to generate one
         try:
@@ -245,4 +245,4 @@ class DataLoader:
             # If this occurs we were unable to generate a DN for the user
             logger.error("Unable to generate DN")
             raise RequeueMessage("Unable to generate DN") from error
-        return best_dn, True
+        return best_dn
