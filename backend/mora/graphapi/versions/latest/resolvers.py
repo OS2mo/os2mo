@@ -491,6 +491,9 @@ async def employee_resolver(
         **kwargs,
     )
 
+from opentelemetry import trace
+tracer = trace.get_tracer("graphql.resolver")
+
 
 async def engagement_resolver(
     info: Info,
@@ -508,32 +511,37 @@ async def engagement_resolver(
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = lora_filter(
-            await get_employee_uuids(info, filter)
-        )
+        with tracer.start_as_current_span("resolve_tilknyttede_brugere_filter"):
+            kwargs["tilknyttedebrugere"] = lora_filter(
+                await get_employee_uuids(info, filter)
+            )
     if filter.org_units is not None or filter.org_unit is not None:
-        kwargs["tilknyttedeenheder"] = lora_filter(
-            await get_org_unit_uuids(info, filter)
-        )
+        with tracer.start_as_current_span("resolve_tilknyttede_enheder_filter"):
+            kwargs["tilknyttedeenheder"] = lora_filter(
+                await get_org_unit_uuids(info, filter)
+            )
     if filter.job_function is not None:
-        class_filter = filter.job_function or ClassFilter()
-        kwargs["opgaver"] = lora_filter(
-            await filter2uuids_func(class_resolver, info, class_filter)
-        )
+        with tracer.start_as_current_span("resolve_opgaver_filter"):
+            class_filter = filter.job_function or ClassFilter()
+            kwargs["opgaver"] = lora_filter(
+                await filter2uuids_func(class_resolver, info, class_filter)
+            )
     if filter.engagement_type is not None:
-        class_filter = filter.engagement_type or ClassFilter()
-        kwargs["organisatoriskfunktionstype"] = lora_filter(
-            await filter2uuids_func(class_resolver, info, class_filter)
-        )
+        with tracer.start_as_current_span("resolve_organisatoriskfunktionstype_filter"):
+            class_filter = filter.engagement_type or ClassFilter()
+            kwargs["organisatoriskfunktionstype"] = lora_filter(
+                await filter2uuids_func(class_resolver, info, class_filter)
+            )
 
-    return await generic_resolver(
-        EngagementRead,
-        info=info,
-        filter=filter,
-        limit=limit,
-        cursor=cursor,
-        **kwargs,
-    )
+    with tracer.start_as_current_span("run_generic_resolver"):
+        return await generic_resolver(
+            EngagementRead,
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+            **kwargs,
+        )
 
 
 async def manager_resolver(

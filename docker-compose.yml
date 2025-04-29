@@ -1,6 +1,22 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./dev-environment/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "127.0.0.1:4317:4317" # OTLP gRPC receiver
+      - "127.0.0.1:4318:4318"
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "6831:6831/udp" # UDP port for Jaeger agent
+      - "16686:16686" # Web UI
+      - "14268:14268" # HTTP port for spans
+
   # We use two images in development.
   # * One frontend that runs `vue-cli-service serve`, named `frontend` and
   # * One that runs fastapi named `mo`.
@@ -97,6 +113,8 @@ services:
     image: magentaaps/os2mo-fixture-loader:1
     # For a list of supported fixtures, see:
     # https://git.magenta.dk/rammearkitektur/os2mo-fixture-loader.
+    #entrypoint: ["/bin/bash", "-c"]
+    #command: ["exit", "0"]
     command: ["${FIXTURE:-kolding}"]
     environment:
       PGHOST: mox-db

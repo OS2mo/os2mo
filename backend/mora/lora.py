@@ -414,6 +414,9 @@ class BaseScope:
             case "organisationfunktion":
                 self.lora_class = organisation.OrganisationFunktion
 
+from opentelemetry import trace
+tracer = trace.get_tracer("lorapy")
+
 
 class Scope(BaseScope):
     def __init__(self, *args, **kwargs):
@@ -597,7 +600,9 @@ class Scope(BaseScope):
                 args.append((k, v))
 
         with lora_to_mo_exception():
-            result = await self.lora_class.get_objects_direct(args)
+            with tracer.start_as_current_span("get_objects_direct") as span:
+                span.set_attribute("args", args)
+                result = await self.lora_class.get_objects_direct(args)
         with suppress(IndexError):
             return jsonable_encoder(result["results"][0])
 
