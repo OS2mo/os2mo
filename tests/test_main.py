@@ -337,20 +337,26 @@ async def test_reject_on_failure(
         await amqp_reject_on_failure(exception_func)()
 
 
-async def test_get_delete_flag(dataloader: AsyncMock):
-    # When there are matching objects in MO, but the to-date is today, delete
-    mo_object = {"validity": {"to": mo_today().isoformat()}}
-
+@pytest.mark.parametrize(
+    "mo_object,expected",
+    [
+        # When there are matching objects in MO, but the to-date is today, delete
+        (
+            {"validity": {"to": mo_today().isoformat()}},
+            True
+        ),
+        # When there are matching objects in MO, but the to-date is tomorrow, do not delete
+        (
+            {"validity": {"to": (mo_today() + datetime.timedelta(days=1)).isoformat()}},
+            False,
+        ),
+    ],
+)
+async def test_get_delete_flag(mo_object: dict[str, Any], expected: bool) -> None:
+    # NOTE: This test fails close to midnight due to mo_datestring_to_utc being horrible
+    # TODO: Fix mo_datestring_to_utc and the problems that lead to its creation
     flag = get_delete_flag(mo_object)
-    assert flag is True
-
-    # When there are matching objects in MO, but the to-date is tomorrow, do not delete
-    mo_object = {
-        "validity": {"to": (mo_today() + datetime.timedelta(days=1)).isoformat()}
-    }
-
-    flag = get_delete_flag(mo_object)
-    assert flag is False
+    assert flag is expected
 
 
 def test_wraps():
