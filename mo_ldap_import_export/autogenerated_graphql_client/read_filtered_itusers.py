@@ -19,6 +19,7 @@ class ReadFilteredItusersItusersObjects(BaseModel):
 
 
 class ReadFilteredItusersItusersObjectsValidities(BaseModel):
+    employee_uuid: UUID | None
     itsystem: "ReadFilteredItusersItusersObjectsValiditiesItsystem"
     uuid: UUID
     validity: "ReadFilteredItusersItusersObjectsValiditiesValidity"

@@ -262,6 +262,9 @@ class UsernameGeneratorConfig(MappingBaseModel):
     combinations_to_try: list[str] = []
     remove_vowels: bool = False
     disallow_mo_usernames: bool = False
+    reuse_old_usernames: bool = Field(
+        False, description="Allow reusing a user's previously allocated usernames"
+    )
 
     @validator("forbidden_usernames")
     def casefold_forbidden_usernames(cls, v: list[str]) -> list[str]:
