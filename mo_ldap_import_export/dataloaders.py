@@ -217,7 +217,8 @@ class DataLoader:
         #       If we do not have the CPR number nor the ITSystem, we would be leaking
         #       the DN we generate, so maybe we should guard for this, the old code seemed
         #       to do so, maybe we should simply not upload anything in that case.
-        dn = await self.username_generator.generate_dn(employee)
+        common_name = await self.username_generator.generate_common_name(employee)
+        dn = await self.username_generator.generate_dn(common_name)
         assert isinstance(dn, str)
         return dn
 

@@ -302,7 +302,8 @@ async def test_generate_dn(
     username_generator.settings = Settings()
 
     employee = Employee(given_name="Patrick", surname="Bateman")
-    dn = await username_generator.generate_dn(employee)
+    common_name = await username_generator.generate_common_name(employee)
+    dn = await username_generator.generate_dn(common_name)
     assert dn == "CN=Patrick Bateman,DC=bar"
 
 
@@ -369,5 +370,6 @@ async def test_alleroed_dn_generator(
     alleroed_username_generator.settings = Settings()
 
     employee = Employee(given_name="Patrick", surname="Bateman")
-    dn = await alleroed_username_generator.generate_dn(employee)
+    common_name = await alleroed_username_generator.generate_common_name(employee)
+    dn = await alleroed_username_generator.generate_dn(common_name)
     assert dn == "CN=Patrick Bateman,DC=bar"
