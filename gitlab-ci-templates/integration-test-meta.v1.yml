@@ -75,7 +75,7 @@ variables:
       # we cannot (easily) run a separate postgres for keycloak. Override to use
       # in-memory instead.
       command: ["start", "-Dkeycloak.saml.deprecated.encryption=true", "--db=dev-mem"]
-    - name: magentaaps/os2mo-keycloak-realm-builder:6
+    - name: magentaaps/os2mo-keycloak-realm-builder:7  # please also update docker-compose
       variables:
         # Since GitLab CI doesn't support multiple services on the same port,
         # we cannot (easily) run a separate postgres for the realm builder's
