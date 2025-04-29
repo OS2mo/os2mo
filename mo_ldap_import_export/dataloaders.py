@@ -217,21 +217,21 @@ class DataLoader:
         dns = await self.find_mo_employee_dn(uuid)
         dns = await filter_dns(self.settings, self.ldapapi.ldap_connection, dns)
         # If we found DNs, we want to synchronize to the best of them
-        if dns:
-            logger.info("Found DNs for user", dns=dns, uuid=uuid)
-            best_dn = await apply_discriminator(
-                self.settings, self.ldapapi.ldap_connection, dns
-            )
-            # If no good LDAP account was found, we do not want to synchronize at all
-            if best_dn:
-                return best_dn
+        if not dns:
+            return None
+        logger.info("Found DNs for user", dns=dns, uuid=uuid)
+        best_dn = await apply_discriminator(
+            self.settings, self.ldapapi.ldap_connection, dns
+        )
+        # If no good LDAP account was found, we do not want to synchronize at all
+        if not best_dn:
             logger.warning(
                 "Aborting synchronization, as no good LDAP account was found",
                 dns=dns,
                 uuid=uuid,
             )
             raise NoGoodLDAPAccountFound("Aborting synchronization")
-        return None
+        return best_dn
 
     async def _generate_dn(self, uuid: EmployeeUUID, dry_run: bool = False) -> DN:
         # If dry-running we do not want to generate real DNs in LDAP
