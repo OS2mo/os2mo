@@ -193,14 +193,15 @@ class DataLoader:
             raise NoObjectsReturnedException(f"Unable to lookup employee: {uuid}")
         cpr_number = CPRNumber(employee.cpr_number) if employee.cpr_number else None
 
-        # Check if we even dare create a DN
-        raw_it_system_uuid = await self.moapi.get_ldap_it_system_uuid()
-        if raw_it_system_uuid is None and cpr_number is None:
-            logger.warning(
-                "Could not or generate a DN for employee (cannot correlate)",
-                employee_uuid=uuid,
-            )
-            raise DNNotFound("Unable to generate DN, no correlation key available")
+        # Check if we even dare create a DN, we need a correlation key before we dare
+        if cpr_number is None:
+            raw_it_system_uuid = await self.moapi.get_ldap_it_system_uuid()
+            if raw_it_system_uuid is None:
+                logger.warning(
+                    "Refused to generate a DN for employee (no correlation key)",
+                    employee_uuid=uuid,
+                )
+                raise DNNotFound("Unable to generate DN, no correlation key available")
 
         logger.info("Generating DN for user", employee_uuid=uuid)
         common_name = await self.username_generator.generate_common_name(employee)
