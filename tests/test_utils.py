@@ -2,14 +2,17 @@
 # SPDX-License-Identifier: MPL-2.0
 # -*- coding: utf-8 -*-
 import datetime
+from typing import Any
 
 import pytest
 from ldap3.core.exceptions import LDAPInvalidDnError
 
 from mo_ldap_import_export.utils import combine_dn_strings
 from mo_ldap_import_export.utils import extract_ou_from_dn
+from mo_ldap_import_export.utils import get_delete_flag
 from mo_ldap_import_export.utils import import_class
 from mo_ldap_import_export.utils import mo_datestring_to_utc
+from mo_ldap_import_export.utils import mo_today
 from mo_ldap_import_export.utils import remove_vowels
 
 
@@ -62,3 +65,22 @@ def test_extract_ou_from_dn() -> None:
 
     with pytest.raises(LDAPInvalidDnError):
         extract_ou_from_dn("")
+
+
+@pytest.mark.parametrize(
+    "mo_object,expected",
+    [
+        # When there are matching objects in MO, but the to-date is today, delete
+        ({"validity": {"to": mo_today().isoformat()}}, True),
+        # When there are matching objects in MO, but the to-date is tomorrow, do not delete
+        (
+            {"validity": {"to": (mo_today() + datetime.timedelta(days=1)).isoformat()}},
+            False,
+        ),
+    ],
+)
+async def test_get_delete_flag(mo_object: dict[str, Any], expected: bool) -> None:
+    # NOTE: This test fails close to midnight due to mo_datestring_to_utc being horrible
+    # TODO: Fix mo_datestring_to_utc and the problems that lead to its creation
+    flag = get_delete_flag(mo_object)
+    assert flag is expected
