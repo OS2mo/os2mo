@@ -202,21 +202,7 @@ class DataLoader:
             )
             raise DNNotFound("Unable to generate DN, no correlation key available")
 
-        # If we did not find a DN neither via ITUser nor via CPR-number, then we want
-        # to create one, by generating a DN, importing the user and potentially creating
-        # a binding between the two.
-
         logger.info("Generating DN for user", employee_uuid=uuid)
-        # NOTE: This not only generates the DN as the name suggests,
-        #       rather it also *creates it in LDAP*, be warned!
-        #
-        #       Additionally it turns out that it does not only create the DN in LDAP
-        #       rather it uploads the entire employee object to LDAP.
-        #
-        # TODO: Does this upload actively require a cpr_number on the employee?
-        #       If we do not have the CPR number nor the ITSystem, we would be leaking
-        #       the DN we generate, so maybe we should guard for this, the old code seemed
-        #       to do so, maybe we should simply not upload anything in that case.
         common_name = await self.username_generator.generate_common_name(employee)
         dn = await self.username_generator.generate_dn(common_name)
         assert isinstance(dn, str)

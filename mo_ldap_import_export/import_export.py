@@ -260,6 +260,16 @@ class SyncTool:
             return {}
 
         if create:
+            # TODO: When we are creating a user we should make sure we have a reference
+            #       to it, the ituser-link in the below attempts to create this link,
+            #       however there is no guarantee that the program does not crash between
+            #       these two lines, and as such it does *NOT* work as a robust link.
+            #       This has however been an issue since the introduction of the
+            #       integration so it has always been broken, and we have always risked
+            #       leaking LDAP accounts.
+            #       The good solution is to somehow link the LDAP account to MO with
+            #       values set during its creation, ensuring we can find them, even if
+            #       we crash immediately after the creation of the account.
             await self.dataloader.ldapapi.add_ldap_object(best_dn, ldap_desired_state)
             await self.create_ituser_link(uuid, best_dn)
         else:
