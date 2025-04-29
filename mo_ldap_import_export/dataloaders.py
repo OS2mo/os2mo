@@ -29,6 +29,10 @@ from .types import EmployeeUUID
 logger = structlog.stdlib.get_logger()
 
 
+class NoGoodLDAPAccountFound(ValueError):
+    pass
+
+
 class DataLoader:
     def __init__(
         self, settings: Settings, moapi: MOAPI, ldapapi: LDAPAPI, username_generator
@@ -211,7 +215,7 @@ class DataLoader:
 
     async def _find_best_dn(
         self, uuid: EmployeeUUID, dry_run: bool = False
-    ) -> tuple[DN | None, bool]:
+    ) -> tuple[DN, bool]:
         dns = await self.find_mo_employee_dn(uuid)
         dns = await filter_dns(self.settings, self.ldapapi.ldap_connection, dns)
         # If we found DNs, we want to synchronize to the best of them
@@ -228,7 +232,7 @@ class DataLoader:
                 dns=dns,
                 uuid=uuid,
             )
-            return None, False
+            raise NoGoodLDAPAccountFound("Aborting synchronization")
 
         # If dry-running we do not want to generate real DNs in LDAP
         if dry_run:

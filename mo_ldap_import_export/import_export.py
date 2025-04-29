@@ -28,6 +28,7 @@ from .customer_specific_checks import ExportChecks
 from .customer_specific_checks import ImportChecks
 from .dataloaders import DN
 from .dataloaders import DataLoader
+from .dataloaders import NoGoodLDAPAccountFound
 from .exceptions import IncorrectMapping
 from .exceptions import SkipObject
 from .ldap import apply_discriminator
@@ -237,8 +238,9 @@ class SyncTool:
             logger.info("listen_to_changes_in_employees called without mapping")
             return {}
 
-        best_dn, create = await self.dataloader._find_best_dn(uuid, dry_run=dry_run)
-        if best_dn is None:
+        try:
+            best_dn, create = await self.dataloader._find_best_dn(uuid, dry_run=dry_run)
+        except NoGoodLDAPAccountFound:
             return {}
 
         if create:
