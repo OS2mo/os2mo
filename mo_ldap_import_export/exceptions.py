@@ -61,11 +61,6 @@ class InvalidCPR(HTTPException):
         super().__init__(status_code=422, detail=message)
 
 
-class DNNotFound(HTTPException):
-    def __init__(self, message):
-        super().__init__(status_code=404, detail=message)
-
-
 class SkipObject(Exception):
     """Exception raised if the ldap_to_mo object should be skipped."""
 

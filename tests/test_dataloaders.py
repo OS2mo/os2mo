@@ -19,6 +19,7 @@ from uuid import uuid4
 
 import pytest
 from fastapi.encoders import jsonable_encoder
+from fastramqpi.ramqp.utils import RequeueMessage
 from httpx import Response
 from ldap3.core.exceptions import LDAPInvalidValueError
 from more_itertools import one
@@ -50,7 +51,6 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.dataloaders import DN
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.environments import get_or_create_job_function_uuid
-from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import ReadOnlyException
@@ -597,7 +597,7 @@ async def test_make_mo_employee_dn_no_correlation(
     route2 = graphql_mock.query("read_itsystem_uuid")
     route2.result = {"itsystems": {"objects": []}}
 
-    with pytest.raises(DNNotFound) as exc_info:
+    with pytest.raises(RequeueMessage) as exc_info:
         await dataloader.make_mo_employee_dn(employee_uuid)
     assert "Unable to generate DN, no correlation key available" in str(exc_info.value)
 

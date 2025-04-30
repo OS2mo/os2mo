@@ -276,7 +276,7 @@ class SyncTool:
             #       The good solution is to somehow link the LDAP account to MO with
             #       values set during its creation, ensuring we can find them, even if
             #       we crash immediately after the creation of the account.
-            best_dn = await self.dataloader._generate_dn(uuid)
+            best_dn = await self.dataloader.make_mo_employee_dn(uuid)
             await self.dataloader.ldapapi.add_ldap_object(best_dn, ldap_desired_state)
             await self.create_ituser_link(uuid, best_dn)
         else:
