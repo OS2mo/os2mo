@@ -190,7 +190,9 @@ class DataLoader:
         logger.warning("Unable to find DNs for MO employee", employee_uuid=uuid)
         return set()
 
-    async def make_mo_employee_dn(self, uuid: UUID) -> DN:
+    async def make_mo_employee_dn(
+        self, uuid: UUID, common_name: str | None = None
+    ) -> DN:
         employee = await self.moapi.load_mo_employee(uuid)
         if employee is None:
             raise NoObjectsReturnedException(f"Unable to lookup employee: {uuid}")
@@ -209,7 +211,8 @@ class DataLoader:
                 )
 
         logger.info("Generating DN for user", employee_uuid=uuid)
-        common_name = await self.username_generator.generate_common_name(employee)
+        if common_name is None:
+            common_name = await self.username_generator.generate_common_name(employee)
         dn = await self.username_generator.generate_dn(common_name)
         assert isinstance(dn, str)
         return dn
