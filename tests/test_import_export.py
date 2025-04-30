@@ -27,7 +27,6 @@ from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.main import handle_org_unit
 from mo_ldap_import_export.moapi import Verb
 from mo_ldap_import_export.moapi import get_primary_engagement
-from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import Engagement
 from mo_ldap_import_export.types import DN
@@ -79,11 +78,7 @@ def fake_find_mo_employee_dn(sync_tool: SyncTool, fake_dn: DN) -> None:
 
 
 async def test_listen_to_changes_in_employees_no_dn(
-    dataloader: AsyncMock,
-    load_settings_overrides: dict[str, str],
-    test_mo_address: Address,
-    sync_tool: SyncTool,
-    converter: MagicMock,
+    dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
     employee_uuid = uuid4()
     dataloader.find_mo_employee_dn.return_value = set()
@@ -93,10 +88,7 @@ async def test_listen_to_changes_in_employees_no_dn(
     template.render_async.return_value = '{"key": "value"}'
     sync_tool.converter.environment.from_string.return_value = template  # type: ignore
 
-    sync_tool.dataloader._find_best_dn = partial(  # type: ignore
-        DataLoader._find_best_dn,
-        sync_tool.dataloader,  # type: ignore
-    )
+    dataloader._find_best_dn = partial(DataLoader._find_best_dn, dataloader)
 
     with capture_logs() as cap_logs:
         with pytest.raises(RequeueMessage) as exc_info:
