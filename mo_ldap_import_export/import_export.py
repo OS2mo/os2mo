@@ -18,6 +18,7 @@ import structlog
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from ldap3 import Connection
 from more_itertools import one
+from more_itertools import only
 from more_itertools import partition
 from structlog.contextvars import bound_contextvars
 
@@ -266,6 +267,9 @@ class SyncTool:
             return {}
 
         if best_dn is None:
+            common_name = (
+                only(ldap_desired_state["cn"]) if "cn" in ldap_desired_state else None
+            )
             # TODO: When we are creating a user we should make sure we have a reference
             #       to it, the ituser-link in the below attempts to create this link,
             #       however there is no guarantee that the program does not crash between
@@ -276,7 +280,7 @@ class SyncTool:
             #       The good solution is to somehow link the LDAP account to MO with
             #       values set during its creation, ensuring we can find them, even if
             #       we crash immediately after the creation of the account.
-            best_dn = await self.dataloader.make_mo_employee_dn(uuid)
+            best_dn = await self.dataloader.make_mo_employee_dn(uuid, common_name)
             await self.dataloader.ldapapi.add_ldap_object(best_dn, ldap_desired_state)
             await self.create_ituser_link(uuid, best_dn)
         else:
