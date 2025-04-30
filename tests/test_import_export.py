@@ -89,6 +89,11 @@ async def test_listen_to_changes_in_employees_no_dn(
     employee_uuid = uuid4()
     dataloader.find_mo_employee_dn.return_value = set()
     dataloader.make_mo_employee_dn.side_effect = DNNotFound("Not found")
+
+    template = AsyncMock()
+    template.render_async.return_value = '{"key": "value"}'
+    sync_tool.converter.environment.from_string.return_value = template  # type: ignore
+
     sync_tool.dataloader._find_best_dn = partial(  # type: ignore
         DataLoader._find_best_dn,
         sync_tool.dataloader,  # type: ignore
@@ -106,6 +111,7 @@ async def test_listen_to_changes_in_employees_no_dn(
         assert messages == [
             "Registered change in an employee",
             "Discriminator filter run",
+            "create_user_trees not configured, allowing create",
             "Unable to generate DN",
         ]
 
