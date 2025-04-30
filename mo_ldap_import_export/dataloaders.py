@@ -29,6 +29,10 @@ from .types import EmployeeUUID
 logger = structlog.stdlib.get_logger()
 
 
+class NoGoodLDAPAccountFound(ValueError):
+    pass
+
+
 class DataLoader:
     def __init__(
         self, settings: Settings, moapi: MOAPI, ldapapi: LDAPAPI, username_generator
@@ -193,59 +197,43 @@ class DataLoader:
             raise NoObjectsReturnedException(f"Unable to lookup employee: {uuid}")
         cpr_number = CPRNumber(employee.cpr_number) if employee.cpr_number else None
 
-        # Check if we even dare create a DN
-        raw_it_system_uuid = await self.moapi.get_ldap_it_system_uuid()
-        if raw_it_system_uuid is None and cpr_number is None:
-            logger.warning(
-                "Could not or generate a DN for employee (cannot correlate)",
-                employee_uuid=uuid,
-            )
-            raise DNNotFound("Unable to generate DN, no correlation key available")
-
-        # If we did not find a DN neither via ITUser nor via CPR-number, then we want
-        # to create one, by generating a DN, importing the user and potentially creating
-        # a binding between the two.
+        # Check if we even dare create a DN, we need a correlation key before we dare
+        if cpr_number is None:
+            raw_it_system_uuid = await self.moapi.get_ldap_it_system_uuid()
+            if raw_it_system_uuid is None:
+                logger.warning(
+                    "Refused to generate a DN for employee (no correlation key)",
+                    employee_uuid=uuid,
+                )
+                raise DNNotFound("Unable to generate DN, no correlation key available")
 
         logger.info("Generating DN for user", employee_uuid=uuid)
-        # NOTE: This not only generates the DN as the name suggests,
-        #       rather it also *creates it in LDAP*, be warned!
-        #
-        #       Additionally it turns out that it does not only create the DN in LDAP
-        #       rather it uploads the entire employee object to LDAP.
-        #
-        # TODO: Does this upload actively require a cpr_number on the employee?
-        #       If we do not have the CPR number nor the ITSystem, we would be leaking
-        #       the DN we generate, so maybe we should guard for this, the old code seemed
-        #       to do so, maybe we should simply not upload anything in that case.
-        dn = await self.username_generator.generate_dn(employee)
+        common_name = await self.username_generator.generate_common_name(employee)
+        dn = await self.username_generator.generate_dn(common_name)
         assert isinstance(dn, str)
         return dn
 
-    async def _find_best_dn(
-        self, uuid: EmployeeUUID, dry_run: bool = False
-    ) -> tuple[DN | None, bool]:
+    async def _find_best_dn(self, uuid: EmployeeUUID) -> DN | None:
         dns = await self.find_mo_employee_dn(uuid)
         dns = await filter_dns(self.settings, self.ldapapi.ldap_connection, dns)
         # If we found DNs, we want to synchronize to the best of them
-        if dns:
-            logger.info("Found DNs for user", dns=dns, uuid=uuid)
-            best_dn = await apply_discriminator(
-                self.settings, self.ldapapi.ldap_connection, dns
-            )
-            # If no good LDAP account was found, we do not want to synchronize at all
-            if best_dn:
-                return best_dn, False
+        if not dns:
+            return None
+        logger.info("Found DNs for user", dns=dns, uuid=uuid)
+        best_dn = await apply_discriminator(
+            self.settings, self.ldapapi.ldap_connection, dns
+        )
+        # If no good LDAP account was found, we do not want to synchronize at all
+        if not best_dn:
             logger.warning(
                 "Aborting synchronization, as no good LDAP account was found",
                 dns=dns,
                 uuid=uuid,
             )
-            return None, False
+            raise NoGoodLDAPAccountFound("Aborting synchronization")
+        return best_dn
 
-        # If dry-running we do not want to generate real DNs in LDAP
-        if dry_run:
-            return "CN=Dry run,DC=example,DC=com", True
-
+    async def _generate_dn(self, uuid: EmployeeUUID) -> DN:
         # If we did not find DNs, we want to generate one
         try:
             best_dn = await self.make_mo_employee_dn(uuid)
@@ -253,4 +241,4 @@ class DataLoader:
             # If this occurs we were unable to generate a DN for the user
             logger.error("Unable to generate DN")
             raise RequeueMessage("Unable to generate DN") from error
-        return best_dn, True
+        return best_dn

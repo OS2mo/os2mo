@@ -4,7 +4,6 @@ from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
-from structlog.testing import capture_logs
 
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.environments import get_person_dn
@@ -44,12 +43,8 @@ async def test_get_person_dn_no_ldap_account(
 ) -> None:
     assert "user_context" in context
     dataloader: DataLoader = context["user_context"]["dataloader"]
-    with capture_logs() as cap_logs:
-        result = await get_person_dn(dataloader, mo_person)
+    result = await get_person_dn(dataloader, mo_person)
     assert result is None
-
-    events = [m["event"] for m in cap_logs]
-    assert "_find_best_dn returned create=True in get_person_dn" in events
 
 
 @pytest.mark.integration_test
@@ -70,3 +65,23 @@ async def test_get_person_dn_with_ldap_account(
 
     result = await get_person_dn(dataloader, mo_person)
     assert result == ldap_person_dn
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "DISCRIMINATOR_VALUES": '["False"]',
+        "DISCRIMINATOR_FIELDS": '["employeeNumber"]',
+    }
+)
+@pytest.mark.usefixtures("test_client", "ldap_person_dn")
+async def test_get_person_dn_discriminated_ldap_account(
+    context: Context,
+    mo_person: EmployeeUUID,
+) -> None:
+    assert "user_context" in context
+    dataloader: DataLoader = context["user_context"]["dataloader"]
+    result = await get_person_dn(dataloader, mo_person)
+    assert result is None

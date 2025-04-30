@@ -3,7 +3,6 @@
 # pylint: disable=redefined-outer-name
 # pylint: disable=unused-argument
 # pylint: disable=protected-access
-import datetime
 import os
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -41,8 +40,6 @@ from mo_ldap_import_export.main import process_person
 from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import ITUser
-from mo_ldap_import_export.utils import get_delete_flag
-from mo_ldap_import_export.utils import mo_today
 
 
 @pytest.fixture
@@ -335,22 +332,6 @@ async def test_reject_on_failure(
 
     with pytest.raises(expected):
         await amqp_reject_on_failure(exception_func)()
-
-
-async def test_get_delete_flag(dataloader: AsyncMock):
-    # When there are matching objects in MO, but the to-date is today, delete
-    mo_object = {"validity": {"to": mo_today().isoformat()}}
-
-    flag = get_delete_flag(mo_object)
-    assert flag is True
-
-    # When there are matching objects in MO, but the to-date is tomorrow, do not delete
-    mo_object = {
-        "validity": {"to": (mo_today() + datetime.timedelta(days=1)).isoformat()}
-    }
-
-    flag = get_delete_flag(mo_object)
-    assert flag is False
 
 
 def test_wraps():

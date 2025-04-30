@@ -28,6 +28,7 @@ from .customer_specific_checks import ExportChecks
 from .customer_specific_checks import ImportChecks
 from .dataloaders import DN
 from .dataloaders import DataLoader
+from .dataloaders import NoGoodLDAPAccountFound
 from .exceptions import IncorrectMapping
 from .exceptions import SkipObject
 from .ldap import apply_discriminator
@@ -237,15 +238,23 @@ class SyncTool:
             logger.info("listen_to_changes_in_employees called without mapping")
             return {}
 
-        best_dn, create = await self.dataloader._find_best_dn(uuid, dry_run=dry_run)
-        if best_dn is None:
+        try:
+            best_dn = await self.dataloader._find_best_dn(uuid)
+        except NoGoodLDAPAccountFound:
             return {}
 
+        # No DN set, means we are creating
+        create = not best_dn
         if create:
+            # If dry-running we do not want to generate real DNs in LDAP
+            best_dn = "CN=Dry run,DC=example,DC=com"
+            if not dry_run:
+                best_dn = await self.dataloader._generate_dn(uuid)
             is_ok = await self.may_create_user_given_orgunit_location(uuid)
             if not is_ok:
                 logger.info("Primary engagement OU outside create_user_trees, skipping")
                 return {}
+        assert best_dn is not None
 
         exit_stack.enter_context(bound_contextvars(dn=best_dn))
         ldap_desired_state = await self.render_ldap2mo(uuid, best_dn)
@@ -260,6 +269,16 @@ class SyncTool:
             return {}
 
         if create:
+            # TODO: When we are creating a user we should make sure we have a reference
+            #       to it, the ituser-link in the below attempts to create this link,
+            #       however there is no guarantee that the program does not crash between
+            #       these two lines, and as such it does *NOT* work as a robust link.
+            #       This has however been an issue since the introduction of the
+            #       integration so it has always been broken, and we have always risked
+            #       leaking LDAP accounts.
+            #       The good solution is to somehow link the LDAP account to MO with
+            #       values set during its creation, ensuring we can find them, even if
+            #       we crash immediately after the creation of the account.
             await self.dataloader.ldapapi.add_ldap_object(best_dn, ldap_desired_state)
             await self.create_ituser_link(uuid, best_dn)
         else:

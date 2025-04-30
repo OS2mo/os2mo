@@ -475,11 +475,9 @@ class UserNameGenerator:
         logger.info("Generated username based on name", name=name, username=username)
         return username
 
-    async def generate_dn(self, employee: Employee) -> str:
+    async def generate_dn(self, common_name: str) -> str:
         """
-        Generates a LDAP DN (Distinguished Name) based on information from a MO Employee
-        object.
+        Generates a LDAP DN (Distinguished Name) based on information from a MO common name.
         """
-        common_name = await self.generate_common_name(employee)
         dn = self._make_dn(common_name)
         return dn

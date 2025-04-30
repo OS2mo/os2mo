@@ -93,6 +93,10 @@ async def test_listen_to_changes_in_employees_no_dn(
         DataLoader._find_best_dn,
         sync_tool.dataloader,  # type: ignore
     )
+    sync_tool.dataloader._generate_dn = partial(  # type: ignore
+        DataLoader._generate_dn,
+        sync_tool.dataloader,  # type: ignore
+    )
 
     with capture_logs() as cap_logs:
         with pytest.raises(RequeueMessage):
@@ -606,11 +610,16 @@ async def test_find_best_dn(sync_tool: SyncTool) -> None:
     sync_tool.dataloader._find_best_dn = partial(  # type: ignore
         DataLoader._find_best_dn, sync_tool.dataloader
     )
+    sync_tool.dataloader._generate_dn = partial(  # type: ignore
+        DataLoader._generate_dn, sync_tool.dataloader
+    )
 
     uuid = EmployeeUUID(uuid4())
-    result, create = await sync_tool.dataloader._find_best_dn(uuid)
+    result = await sync_tool.dataloader._find_best_dn(uuid)
+    assert result is None
+
+    result = await sync_tool.dataloader._generate_dn(uuid)
     assert result == dn
-    assert create is True
 
 
 @pytest.mark.freeze_time("2022-08-10T12:34:56")
