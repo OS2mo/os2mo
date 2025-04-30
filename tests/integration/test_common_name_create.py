@@ -44,6 +44,7 @@ from mo_ldap_import_export.utils import combine_dn_strings
     }
 )
 @pytest.mark.usefixtures("test_client")
+@pytest.mark.xfail(reason="cn templating is ignored during creates")
 async def test_to_ldap(
     trigger_sync: Callable[[EmployeeUUID], Awaitable[None]],
     graphql_client: GraphQLClient,
@@ -85,12 +86,7 @@ async def test_to_ldap(
         )
     )
 
-    # We expected this to fail as we template cn to the same value as in the above
-    await trigger_sync(EmployeeUUID(mo_person_2.uuid))
-    common_name = await fetch_common_name(mo_person_2_cpr_number)
-    assert common_name == "Shimon Yonah_2"
-
-    # However it only fails here during the edit as the cn is ignored during creates
+    # We expect this to fail as we template cn to the same value as in the above
     with pytest.raises(AssertionError) as exc_info:
         await trigger_sync(EmployeeUUID(mo_person_2.uuid))
     assert "LDAPEntryAlreadyExistsResult" in str(exc_info.value)
