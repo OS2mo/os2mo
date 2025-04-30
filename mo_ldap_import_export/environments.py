@@ -18,6 +18,7 @@ from jinja2 import StrictUndefined
 from jinja2 import TemplateRuntimeError
 from jinja2 import UndefinedError
 from jinja2.utils import missing
+from ldap3 import Connection
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
 from more_itertools import flatten
@@ -443,13 +444,7 @@ async def generate_username(
     return cast(str, await dataloader.username_generator.generate_username(employee))
 
 
-async def generate_common_name(
-    dataloader: DataLoader,
-    employee_uuid: UUID,
-    dn: DN,
-) -> str:
-    # Fetch the current common name (if any)
-    ldap_connection = dataloader.ldapapi.ldap_connection
+async def fetch_current_common_name(ldap_connection: Connection, dn: DN) -> str | None:
     current_common_name = None
     with suppress(NoObjectsReturnedException):
         ldap_object = await get_ldap_object(ldap_connection, dn, {"cn"})
@@ -458,10 +453,21 @@ async def generate_common_name(
             # This is a list on OpenLDAP, but not on AD
             # We use ensure_list to ensure that AD is handled like Standard LDAP
             current_common_name = one(ensure_list(ldap_common_name))
+    return current_common_name
 
+
+async def generate_common_name(
+    dataloader: DataLoader,
+    employee_uuid: UUID,
+    dn: DN,
+) -> str:
     employee = await dataloader.moapi.load_mo_employee(employee_uuid)
     if employee is None:  # pragma: no cover
         raise NoObjectsReturnedException(f"Unable to lookup employee: {employee_uuid}")
+    # Fetch the current common name (if any)
+    current_common_name = await fetch_current_common_name(
+        dataloader.ldapapi.ldap_connection, dn
+    )
     return cast(
         str,
         await dataloader.username_generator.generate_common_name(
