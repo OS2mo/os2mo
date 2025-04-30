@@ -261,11 +261,11 @@ class SyncTool:
 
         # If dry-running we do not want to makes changes in LDAP
         if dry_run:
-            logger.info("Not writing to LDAP due to dry-running", dn=best_dn)
+            logger.info("Not writing to LDAP due to dry-running")
             return ldap_desired_state
 
         if not ldap_desired_state:
-            logger.info("Not writing to LDAP as changeset is empty", dn=best_dn)
+            logger.info("Not writing to LDAP as changeset is empty")
             return {}
 
         if create:
