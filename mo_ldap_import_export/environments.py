@@ -444,7 +444,11 @@ async def generate_username(
     return cast(str, await dataloader.username_generator.generate_username(employee))
 
 
-async def fetch_current_common_name(ldap_connection: Connection, dn: DN) -> str | None:
+async def fetch_current_common_name(
+    ldap_connection: Connection, dn: DN | None
+) -> str | None:
+    if dn is None:
+        return None
     ldap_common_name = None
     with suppress(NoObjectsReturnedException):
         ldap_object = await get_ldap_object(ldap_connection, dn, {"cn"})
@@ -463,7 +467,7 @@ async def fetch_current_common_name(ldap_connection: Connection, dn: DN) -> str 
 async def generate_common_name(
     dataloader: DataLoader,
     employee_uuid: UUID,
-    dn: DN,
+    dn: DN | None,
 ) -> str:
     employee = await dataloader.moapi.load_mo_employee(employee_uuid)
     if employee is None:  # pragma: no cover
