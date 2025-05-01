@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 from fastramqpi.ramqp.utils import RequeueMessage
 
-from mo_ldap_import_export.environments import requeue_if_none
+from mo_ldap_import_export.environments.main import requeue_if_none
 
 
 @pytest.mark.parametrize(

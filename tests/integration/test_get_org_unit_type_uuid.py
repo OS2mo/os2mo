@@ -5,7 +5,7 @@ from uuid import UUID
 import pytest
 
 from mo_ldap_import_export.depends import GraphQLClient
-from mo_ldap_import_export.environments import get_org_unit_type_uuid
+from mo_ldap_import_export.environments.main import get_org_unit_type_uuid
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 
 

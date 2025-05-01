@@ -6,7 +6,7 @@ import pytest
 from fastramqpi.context import Context
 
 from mo_ldap_import_export.dataloaders import DataLoader
-from mo_ldap_import_export.environments import get_person_dn
+from mo_ldap_import_export.environments.main import get_person_dn
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.types import EmployeeUUID

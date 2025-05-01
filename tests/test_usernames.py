@@ -13,7 +13,7 @@ from pydantic import parse_obj_as
 
 from mo_ldap_import_export.config import UsernameGeneratorConfig
 from mo_ldap_import_export.depends import Settings
-from mo_ldap_import_export.environments import _create_from_combi
+from mo_ldap_import_export.environments.main import _create_from_combi
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.usernames import UserNameGenerator
 
