@@ -105,6 +105,15 @@ def _create_from_combi(name_parts: list[str], combi: str) -> str | None:
     return None
 
 
+def generate_person_name(employee: Employee) -> list[str]:
+    assert employee.given_name is not None
+    assert employee.surname is not None
+    given_name = employee.given_name
+    surname = employee.surname
+    name = given_name.split(" ")[:4] + [surname]
+    return name
+
+
 class UserNameGenerator:
     """
     Class with functions to generate valid LDAP usernames.
@@ -444,18 +453,10 @@ class UserNameGenerator:
         logger.debug("Username reserved in MO")
         return False
 
-    def generate_person_name(self, employee: Employee) -> list[str]:
-        assert employee.given_name is not None
-        assert employee.surname is not None
-        given_name = employee.given_name
-        surname = employee.surname
-        name = given_name.split(" ")[:4] + [surname]
-        return name
-
     async def generate_common_name(
         self, employee: Employee, current_common_name: str | None = None
     ) -> str:
-        name = self.generate_person_name(employee)
+        name = generate_person_name(employee)
         existing_common_names = await self._get_existing_common_names()
         # We have to discard the current common name, as we may otherwise generate a new
         # common name due to a conflict with ourselves.
@@ -470,7 +471,7 @@ class UserNameGenerator:
         return common_name
 
     async def generate_username(self, employee: Employee) -> str:
-        name = self.generate_person_name(employee)
+        name = generate_person_name(employee)
         username = await self._create_username(EmployeeUUID(employee.uuid), name)
         logger.info("Generated username based on name", name=name, username=username)
         return username
