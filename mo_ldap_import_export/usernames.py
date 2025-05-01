@@ -398,6 +398,7 @@ class UserNameGenerator:
         self, employee_uuid: EmployeeUUID, username: str
     ) -> bool:
         # Check if MO allows the username to be used
+        moapi = self.moapi
         username_generator_settings = (
             self.settings.conversion_mapping.username_generator
         )
@@ -423,7 +424,7 @@ class UserNameGenerator:
         # The username is taken iff there exists atleast one validity in MO where:
         # * The username is set in the user-key
         # * The it-system is our usernames it-system
-        result = await self.moapi.graphql_client.read_filtered_itusers(
+        result = await moapi.graphql_client.read_filtered_itusers(
             filter=ITUserFilter(
                 itsystem=ITSystemFilter(user_keys=[itsystem_user_key]),
                 # NOTE: We actually could check a list of candidate usernames here easily
