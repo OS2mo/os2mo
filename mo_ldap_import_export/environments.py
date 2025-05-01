@@ -33,6 +33,7 @@ from mo_ldap_import_export.moapi import extract_current_or_latest_validity
 from mo_ldap_import_export.moapi import flatten_validities
 from mo_ldap_import_export.moapi import get_primary_engagement
 from mo_ldap_import_export.models import Address
+from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import Engagement
 from mo_ldap_import_export.models import ITUser
 
@@ -55,7 +56,8 @@ from .exceptions import UUIDNotFoundException
 from .types import DN
 from .types import EmployeeUUID
 from .types import EngagementUUID
-from .usernames import generate_username as generate_username_func
+from .usernames import _create_username
+from .usernames import generate_person_name
 from .utils import MO_TZ
 from .utils import ensure_list
 from .utils import extract_ou_from_dn
@@ -433,6 +435,17 @@ async def load_org_unit_address(
         logger.debug("Org-unit address is terminated", uuid=validity.uuid)
         return None
     return fetched_address
+
+
+async def generate_username_func(
+    settings: Settings, ldap_connection: Connection, moapi: MOAPI, employee: Employee
+) -> str:
+    name = generate_person_name(employee)
+    username = await _create_username(
+        settings, ldap_connection, moapi, EmployeeUUID(employee.uuid), name
+    )
+    logger.info("Generated username based on name", name=name, username=username)
+    return username
 
 
 async def generate_username(
