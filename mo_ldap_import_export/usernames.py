@@ -168,8 +168,6 @@ class UserNameGenerator:
         self.ldap_connection = ldap_connection
 
         self.disallow_mo_usernames = username_generator_settings.disallow_mo_usernames
-        self.forbidden_usernames = username_generator_settings.forbidden_usernames
-        logger.info("Found forbidden usernames", count=len(self.forbidden_usernames))
 
     async def get_existing_values(self, attributes: list[str]) -> dict[str, set[Any]]:
         searchParameters = {
@@ -227,6 +225,11 @@ class UserNameGenerator:
 
         Inspired by ad_integration/usernames.py
         """
+        username_generator_settings = (
+            self.settings.conversion_mapping.username_generator
+        )
+        forbidden_usernames = username_generator_settings.forbidden_usernames
+        logger.debug("Found forbidden usernames", count=len(forbidden_usernames))
 
         def permutations(username: str) -> Iterator[str]:
             # The permutation is a number inside the username, it is normally only used in
@@ -246,12 +249,9 @@ class UserNameGenerator:
 
         def forbidden(username: str) -> bool:
             # Check if core username is legal
-            return username.replace("X", "") in self.forbidden_usernames
+            return username.replace("X", "") in forbidden_usernames
 
         # Cleanup names
-        username_generator_settings = (
-            self.settings.conversion_mapping.username_generator
-        )
         clean_name = _name_fixer(
             username_generator_settings.char_replacement,
             username_generator_settings.remove_vowels,

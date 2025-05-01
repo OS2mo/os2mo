@@ -540,6 +540,7 @@ async def test_generate_username_logging(
 
     events = [w["event"] for w in cap_logs]
     assert events == [
+        "Found forbidden usernames",
         "Cleaned name for username generation",
         # Generate aaba
         "Username candidate generated",
