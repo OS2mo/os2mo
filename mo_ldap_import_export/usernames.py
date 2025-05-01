@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import re
 from collections.abc import Iterator
 from contextlib import suppress
 from itertools import groupby
@@ -24,7 +23,6 @@ from .ldap import paged_search
 from .moapi import MOAPI
 from .models import Employee
 from .utils import combine_dn_strings
-from .utils import remove_vowels
 
 logger = structlog.stdlib.get_logger()
 
@@ -113,42 +111,6 @@ def generate_person_name(employee: Employee) -> list[str]:
     surname = employee.surname
     name = given_name.split(" ")[:4] + [surname]
     return name
-
-
-def _name_fixer(
-    char_replacement: dict[str, str], do_remove_vowels: bool, name_parts: list[str]
-) -> list[str]:
-    """Cleanup a structured name to remove non-ascii characters.
-
-    Context:
-        char_replacement:
-            Dictionary from one set of characters to their replacements.
-
-    Args:
-        name_parts: An array of names; given_name, middlenames, surname.
-
-    Returns:
-        `name_parts` where non-ascii characters have been replaced
-        according to the char_replacement map, or if unmatched, removed.
-    """
-
-    def fix_name(name: str) -> str:
-        # Replace according to replacement list
-        for char, replacement in char_replacement.items():
-            name = name.replace(char, replacement)
-        # Remove all remaining characters outside a-z
-        return re.sub(r"[^a-z]+", "", name.lower())
-
-    def eliminate_vowels_from_surnames(name_parts: list[str]) -> list[str]:
-        # Remove vowels from all but first name
-        # Reference: https://redmine.magenta-aps.dk/issues/56080
-        first_name, *lastnames = name_parts
-        return [first_name] + [remove_vowels(n) for n in lastnames]
-
-    name_parts = [fix_name(x) for x in name_parts]
-    if do_remove_vowels:
-        name_parts = eliminate_vowels_from_surnames(name_parts)
-    return name_parts
 
 
 async def _mo_allows_username(
