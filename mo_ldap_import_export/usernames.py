@@ -421,7 +421,10 @@ class UserNameGenerator:
         return existing_common_names
 
     async def _ldap_allows_username(self, username: str) -> bool:
-        match self.settings.ldap_dialect:
+        ldap_connection = self.ldap_connection
+        settings = self.settings
+
+        match settings.ldap_dialect:
             case "Standard":
                 # "uid" is the default login field since RFC2798 (inetOrgPerson)
                 # (replacing the "userid" term from RFC1274 (COSINE schema))
@@ -438,8 +441,8 @@ class UserNameGenerator:
 
         for search_filter in search_filters:
             response, result = await ldap_search(
-                self.ldap_connection,
-                search_base=self.settings.ldap_search_base,
+                ldap_connection,
+                search_base=settings.ldap_search_base,
                 search_filter=search_filter,
                 attributes=NO_ATTRIBUTES,
                 search_scope=SUBTREE,
