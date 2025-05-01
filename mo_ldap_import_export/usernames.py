@@ -169,7 +169,6 @@ class UserNameGenerator:
 
         self.remove_vowels = username_generator_settings.remove_vowels
         self.disallow_mo_usernames = username_generator_settings.disallow_mo_usernames
-        self.char_replacement = username_generator_settings.char_replacement
         self.forbidden_usernames = username_generator_settings.forbidden_usernames
         self.combinations = username_generator_settings.combinations_to_try
         logger.info("Found forbidden usernames", count=len(self.forbidden_usernames))
@@ -252,7 +251,12 @@ class UserNameGenerator:
             return username.replace("X", "") in self.forbidden_usernames
 
         # Cleanup names
-        clean_name = _name_fixer(self.char_replacement, self.remove_vowels, name)
+        username_generator_settings = self.settings.conversion_mapping.username_generator
+        clean_name = _name_fixer(
+            username_generator_settings.char_replacement,
+            self.remove_vowels,
+            name
+        )
         logger.debug(
             "Cleaned name for username generation", name=name, clean_name=clean_name
         )
