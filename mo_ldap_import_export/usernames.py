@@ -360,6 +360,17 @@ async def _create_username(
     raise RuntimeError("Failed to create user name.")
 
 
+async def generate_username(
+    settings: Settings, ldap_connection: Connection, moapi: MOAPI, employee: Employee
+) -> str:
+    name = generate_person_name(employee)
+    username = await _create_username(
+        settings, ldap_connection, moapi, EmployeeUUID(employee.uuid), name
+    )
+    logger.info("Generated username based on name", name=name, username=username)
+    return username
+
+
 class UserNameGenerator:
     """
     Class with functions to generate valid LDAP usernames.
@@ -487,18 +498,6 @@ class UserNameGenerator:
             common_name=common_name,
         )
         return common_name
-
-    async def generate_username(self, employee: Employee) -> str:
-        name = generate_person_name(employee)
-        username = await _create_username(
-            self.settings,
-            self.ldap_connection,
-            self.moapi,
-            EmployeeUUID(employee.uuid),
-            name,
-        )
-        logger.info("Generated username based on name", name=name, username=username)
-        return username
 
     async def generate_dn(self, common_name: str) -> str:
         """

@@ -55,6 +55,7 @@ from .exceptions import UUIDNotFoundException
 from .types import DN
 from .types import EmployeeUUID
 from .types import EngagementUUID
+from .usernames import generate_username as generate_username_func
 from .utils import MO_TZ
 from .utils import ensure_list
 from .utils import extract_ou_from_dn
@@ -441,7 +442,15 @@ async def generate_username(
     employee = await dataloader.moapi.load_mo_employee(employee_uuid)
     if employee is None:  # pragma: no cover
         raise NoObjectsReturnedException(f"Unable to lookup employee: {employee_uuid}")
-    return cast(str, await dataloader.username_generator.generate_username(employee))
+    return cast(
+        str,
+        await generate_username_func(
+            dataloader.settings,
+            dataloader.ldapapi.ldap_connection,
+            dataloader.moapi,
+            employee,
+        ),
+    )
 
 
 async def fetch_current_common_name(
