@@ -339,9 +339,10 @@ class UserNameGenerator:
 
         Inspired by ad_integration/usernames.py
         """
-        username_generator_settings = (
-            self.settings.conversion_mapping.username_generator
-        )
+        settings = self.settings
+        ldap_connection = self.ldap_connection
+        moapi = self.moapi
+        username_generator_settings = settings.conversion_mapping.username_generator
         forbidden_usernames = username_generator_settings.forbidden_usernames
         logger.debug("Found forbidden usernames", count=len(forbidden_usernames))
 
@@ -396,7 +397,7 @@ class UserNameGenerator:
                 permutation_logger.debug("Username permutation generated")
 
                 if not await _ldap_allows_username(
-                    self.ldap_connection, self.settings, p_username
+                    ldap_connection, settings, p_username
                 ):
                     permutation_logger.debug(
                         "Rejecting username candidate due to existing LDAP usage"
@@ -404,7 +405,7 @@ class UserNameGenerator:
                     continue
 
                 if not await _mo_allows_username(
-                    self.moapi, username_generator_settings, employee_uuid, p_username
+                    moapi, username_generator_settings, employee_uuid, p_username
                 ):
                     permutation_logger.debug(
                         "Rejecting username candidate due to disallowed MO usernames"
