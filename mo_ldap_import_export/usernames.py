@@ -398,12 +398,12 @@ class UserNameGenerator:
         self, employee_uuid: EmployeeUUID, username: str
     ) -> bool:
         # Check if MO allows the username to be used
+        username_generator_settings = (
+            self.settings.conversion_mapping.username_generator
+        )
 
         # If we are not limiting by mo usernames, the answer is yes, mo allows all
-        disallow_mo_usernames = (
-            self.settings.conversion_mapping.username_generator.disallow_mo_usernames
-        )
-        if not disallow_mo_usernames:
+        if not username_generator_settings.disallow_mo_usernames:
             logger.debug("Not configured to check for disallowed MO usernames")
             return True
 
@@ -418,7 +418,7 @@ class UserNameGenerator:
         # case we should never generate the username of the deleted user.
         # Reference: https://redmine.magenta-aps.dk/issues/57043
 
-        itsystem_user_key = self.settings.conversion_mapping.username_generator.existing_usernames_itsystem
+        itsystem_user_key = username_generator_settings.existing_usernames_itsystem
 
         # The username is taken iff there exists atleast one validity in MO where:
         # * The username is set in the user-key
@@ -440,7 +440,7 @@ class UserNameGenerator:
             return True
         # The name is reserved by atleast one user
         # But maybe that user is us, in which case we may be able to reuse it
-        if self.settings.conversion_mapping.username_generator.reuse_old_usernames:
+        if username_generator_settings.reuse_old_usernames:
             # Construct a set of Employee UUIDs which reserve the username
             reserving_employee_uuids = {
                 EmployeeUUID(validity.employee_uuid)
