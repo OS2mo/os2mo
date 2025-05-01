@@ -267,6 +267,99 @@ async def _ldap_allows_username(
     return True
 
 
+async def _create_username(
+    settings: Settings,
+    ldap_connection: Connection,
+    moapi: MOAPI,
+    employee_uuid: EmployeeUUID,
+    name: list[str],
+) -> str:
+    """
+    Create a new username in accordance with the rules specified in the json file.
+    The username will be the highest quality available and the value will be
+    added to list of used names, so consequtive calles with the same name
+    will keep returning new names until the algorithm runs out of options
+    and a RuntimeException is raised.
+
+    :param name: Name of the user given as a list with at least two elements.
+    :return: New username generated.
+
+    Inspired by ad_integration/usernames.py
+    """
+    username_generator_settings = settings.conversion_mapping.username_generator
+    forbidden_usernames = username_generator_settings.forbidden_usernames
+    logger.debug("Found forbidden usernames", count=len(forbidden_usernames))
+
+    def permutations(username: str) -> Iterator[str]:
+        # The permutation is a number inside the username, it is normally only used in
+        # case a username is already occupied. It can be specified using 'X' in the
+        # username template.
+        #
+        # The first attempted permutation should be '2':
+        # For example; If 'cvt' is occupied, a username 'cvt2' will be generated.
+        #
+        # The last attempted permutation is '9' - because we would like to limit the
+        # permutation counter to a single digit.
+        if "X" in username:
+            for permutation_counter in range(2, 10):
+                yield username.replace("X", str(permutation_counter))
+        else:
+            yield username
+
+    def forbidden(username: str) -> bool:
+        # Check if core username is legal
+        return username.replace("X", "") in forbidden_usernames
+
+    # Cleanup names
+    clean_name = _name_fixer(
+        username_generator_settings.char_replacement,
+        username_generator_settings.remove_vowels,
+        name,
+    )
+    logger.debug(
+        "Cleaned name for username generation", name=name, clean_name=clean_name
+    )
+
+    combinations = username_generator_settings.combinations_to_try
+    for combination in combinations:
+        # Generate usernames from clean_name and combination
+        username = _create_from_combi(clean_name, combination)
+        username_logger = logger.bind(combination=combination, username=username)
+        username_logger.debug("Username candidate generated")
+
+        if username is None:
+            username_logger.debug("Rejecting empty username")
+            continue
+
+        if forbidden(username):
+            username_logger.debug("Rejecting forbidden username")
+            continue
+
+        p_usernames = permutations(username)
+        for p_username in p_usernames:
+            permutation_logger = username_logger.bind(permutation=p_username)
+            permutation_logger.debug("Username permutation generated")
+
+            if not await _ldap_allows_username(ldap_connection, settings, p_username):
+                permutation_logger.debug(
+                    "Rejecting username candidate due to existing LDAP usage"
+                )
+                continue
+
+            if not await _mo_allows_username(
+                moapi, username_generator_settings, employee_uuid, p_username
+            ):
+                permutation_logger.debug(
+                    "Rejecting username candidate due to disallowed MO usernames"
+                )
+                continue
+
+            return p_username
+
+    # TODO: Return a more specific exception type
+    raise RuntimeError("Failed to create user name.")
+
+
 class UserNameGenerator:
     """
     Class with functions to generate valid LDAP usernames.
@@ -323,99 +416,6 @@ class UserNameGenerator:
         )
 
         return dn
-
-    async def _create_username(
-        self, employee_uuid: EmployeeUUID, name: list[str]
-    ) -> str:
-        """
-        Create a new username in accordance with the rules specified in the json file.
-        The username will be the highest quality available and the value will be
-        added to list of used names, so consequtive calles with the same name
-        will keep returning new names until the algorithm runs out of options
-        and a RuntimeException is raised.
-
-        :param name: Name of the user given as a list with at least two elements.
-        :return: New username generated.
-
-        Inspired by ad_integration/usernames.py
-        """
-        settings = self.settings
-        ldap_connection = self.ldap_connection
-        moapi = self.moapi
-        username_generator_settings = settings.conversion_mapping.username_generator
-        forbidden_usernames = username_generator_settings.forbidden_usernames
-        logger.debug("Found forbidden usernames", count=len(forbidden_usernames))
-
-        def permutations(username: str) -> Iterator[str]:
-            # The permutation is a number inside the username, it is normally only used in
-            # case a username is already occupied. It can be specified using 'X' in the
-            # username template.
-            #
-            # The first attempted permutation should be '2':
-            # For example; If 'cvt' is occupied, a username 'cvt2' will be generated.
-            #
-            # The last attempted permutation is '9' - because we would like to limit the
-            # permutation counter to a single digit.
-            if "X" in username:
-                for permutation_counter in range(2, 10):
-                    yield username.replace("X", str(permutation_counter))
-            else:
-                yield username
-
-        def forbidden(username: str) -> bool:
-            # Check if core username is legal
-            return username.replace("X", "") in forbidden_usernames
-
-        # Cleanup names
-        clean_name = _name_fixer(
-            username_generator_settings.char_replacement,
-            username_generator_settings.remove_vowels,
-            name,
-        )
-        logger.debug(
-            "Cleaned name for username generation", name=name, clean_name=clean_name
-        )
-
-        combinations = username_generator_settings.combinations_to_try
-        for combination in combinations:
-            # Generate usernames from clean_name and combination
-            username = _create_from_combi(clean_name, combination)
-            username_logger = logger.bind(combination=combination, username=username)
-            username_logger.debug("Username candidate generated")
-
-            if username is None:
-                username_logger.debug("Rejecting empty username")
-                continue
-
-            if forbidden(username):
-                username_logger.debug("Rejecting forbidden username")
-                continue
-
-            p_usernames = permutations(username)
-            for p_username in p_usernames:
-                permutation_logger = username_logger.bind(permutation=p_username)
-                permutation_logger.debug("Username permutation generated")
-
-                if not await _ldap_allows_username(
-                    ldap_connection, settings, p_username
-                ):
-                    permutation_logger.debug(
-                        "Rejecting username candidate due to existing LDAP usage"
-                    )
-                    continue
-
-                if not await _mo_allows_username(
-                    moapi, username_generator_settings, employee_uuid, p_username
-                ):
-                    permutation_logger.debug(
-                        "Rejecting username candidate due to disallowed MO usernames"
-                    )
-                    continue
-
-                return p_username
-
-        # TODO: Return a more specific exception type
-        raise RuntimeError("Failed to create user name.")
 
     def _create_common_name(
         self, name: list[str], existing_common_names: set[str]
@@ -490,7 +490,13 @@ class UserNameGenerator:
 
     async def generate_username(self, employee: Employee) -> str:
         name = generate_person_name(employee)
-        username = await self._create_username(EmployeeUUID(employee.uuid), name)
+        username = await _create_username(
+            self.settings,
+            self.ldap_connection,
+            self.moapi,
+            EmployeeUUID(employee.uuid),
+            name,
+        )
         logger.info("Generated username based on name", name=name, username=username)
         return username
 
