@@ -219,6 +219,54 @@ async def _mo_allows_username(
     return False
 
 
+async def _ldap_allows_username(
+    ldap_connection: Connection, settings: Settings, username: str
+) -> bool:
+    match settings.ldap_dialect:
+        case "Standard":
+            # "uid" is the default login field since RFC2798 (inetOrgPerson)
+            # (replacing the "userid" term from RFC1274 (COSINE schema))
+            # It is the standard LDAP login name field.
+            # The Microsoft Active Directory equivalent is sAMAccountName
+            search_filters = [f"(uid={username})"]
+        case "AD":  # pragma: no cover
+            search_filters = [
+                f"(sAMAccountName={username})",
+                f"(userPrincipalName={username}@*)",
+            ]
+        case _:  # pragma: no cover
+            raise AssertionError("Unknown LDAP dialect")
+
+    for search_filter in search_filters:
+        response, result = await ldap_search(
+            ldap_connection,
+            search_base=settings.ldap_search_base,
+            search_filter=search_filter,
+            attributes=NO_ATTRIBUTES,
+            search_scope=SUBTREE,
+            size_limit=1,
+        )
+        if result["type"] != "searchResDone":  # pragma: no cover
+            logger.warning(
+                "LDAP connection search returned unexpected result type",
+                response=response,
+                result=result,
+            )
+            raise ValueError("Unexpected search result type")
+        if result["description"] != "success":  # pragma: no cover
+            logger.warning(
+                "LDAP connection did not search sucessfully",
+                response=response,
+                result=result,
+            )
+            raise ValueError("Search failed")
+        # If we got any results, we have found a conflict
+        if response != []:
+            return False
+
+    return True
+
+
 class UserNameGenerator:
     """
     Class with functions to generate valid LDAP usernames.
@@ -347,7 +395,9 @@ class UserNameGenerator:
                 permutation_logger = username_logger.bind(permutation=p_username)
                 permutation_logger.debug("Username permutation generated")
 
-                if not await self._ldap_allows_username(p_username):
+                if not await _ldap_allows_username(
+                    self.ldap_connection, self.settings, p_username
+                ):
                     permutation_logger.debug(
                         "Rejecting username candidate due to existing LDAP usage"
                     )
@@ -419,54 +469,6 @@ class UserNameGenerator:
         existing_values = await self.get_existing_values(["cn"])
         existing_common_names = existing_values["cn"]
         return existing_common_names
-
-    async def _ldap_allows_username(self, username: str) -> bool:
-        ldap_connection = self.ldap_connection
-        settings = self.settings
-
-        match settings.ldap_dialect:
-            case "Standard":
-                # "uid" is the default login field since RFC2798 (inetOrgPerson)
-                # (replacing the "userid" term from RFC1274 (COSINE schema))
-                # It is the standard LDAP login name field.
-                # The Microsoft Active Directory equivalent is sAMAccountName
-                search_filters = [f"(uid={username})"]
-            case "AD":  # pragma: no cover
-                search_filters = [
-                    f"(sAMAccountName={username})",
-                    f"(userPrincipalName={username}@*)",
-                ]
-            case _:  # pragma: no cover
-                raise AssertionError("Unknown LDAP dialect")
-
-        for search_filter in search_filters:
-            response, result = await ldap_search(
-                ldap_connection,
-                search_base=settings.ldap_search_base,
-                search_filter=search_filter,
-                attributes=NO_ATTRIBUTES,
-                search_scope=SUBTREE,
-                size_limit=1,
-            )
-            if result["type"] != "searchResDone":  # pragma: no cover
-                logger.warning(
-                    "LDAP connection search returned unexpected result type",
-                    response=response,
-                    result=result,
-                )
-                raise ValueError("Unexpected search result type")
-            if result["description"] != "success":  # pragma: no cover
-                logger.warning(
-                    "LDAP connection did not search sucessfully",
-                    response=response,
-                    result=result,
-                )
-                raise ValueError("Search failed")
-            # If we got any results, we have found a conflict
-            if response != []:
-                return False
-
-        return True
 
     async def generate_common_name(
         self, employee: Employee, current_common_name: str | None = None
