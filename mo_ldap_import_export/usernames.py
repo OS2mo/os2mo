@@ -162,12 +162,9 @@ class UserNameGenerator:
         self, settings: Settings, moapi: MOAPI, ldap_connection: Connection
     ) -> None:
         self.settings = settings
-        username_generator_settings = settings.conversion_mapping.username_generator
 
         self.moapi = moapi
         self.ldap_connection = ldap_connection
-
-        self.disallow_mo_usernames = username_generator_settings.disallow_mo_usernames
 
     async def get_existing_values(self, attributes: list[str]) -> dict[str, set[Any]]:
         searchParameters = {
@@ -403,7 +400,10 @@ class UserNameGenerator:
         # Check if MO allows the username to be used
 
         # If we are not limiting by mo usernames, the answer is yes, mo allows all
-        if not self.disallow_mo_usernames:
+        disallow_mo_usernames = (
+            self.settings.conversion_mapping.username_generator.disallow_mo_usernames
+        )
+        if not disallow_mo_usernames:
             logger.debug("Not configured to check for disallowed MO usernames")
             return True
 
