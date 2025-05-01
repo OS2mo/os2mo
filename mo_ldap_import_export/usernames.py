@@ -9,7 +9,6 @@ from more_itertools import one
 
 from .config import Settings
 from .ldap import paged_search
-from .moapi import MOAPI
 from .models import Employee
 from .utils import combine_dn_strings
 
@@ -33,12 +32,8 @@ class UserNameGenerator:
     to do, is refer to the proper function inside the json dict.
     """
 
-    def __init__(
-        self, settings: Settings, moapi: MOAPI, ldap_connection: Connection
-    ) -> None:
+    def __init__(self, settings: Settings, ldap_connection: Connection) -> None:
         self.settings = settings
-
-        self.moapi = moapi
         self.ldap_connection = ldap_connection
 
     async def get_existing_values(self, attributes: list[str]) -> dict[str, set[Any]]:
