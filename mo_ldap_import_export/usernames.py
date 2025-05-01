@@ -169,7 +169,6 @@ class UserNameGenerator:
 
         self.disallow_mo_usernames = username_generator_settings.disallow_mo_usernames
         self.forbidden_usernames = username_generator_settings.forbidden_usernames
-        self.combinations = username_generator_settings.combinations_to_try
         logger.info("Found forbidden usernames", count=len(self.forbidden_usernames))
 
     async def get_existing_values(self, attributes: list[str]) -> dict[str, set[Any]]:
@@ -262,7 +261,8 @@ class UserNameGenerator:
             "Cleaned name for username generation", name=name, clean_name=clean_name
         )
 
-        for combination in self.combinations:
+        combinations = username_generator_settings.combinations_to_try
+        for combination in combinations:
             # Generate usernames from clean_name and combination
             username = _create_from_combi(clean_name, combination)
             username_logger = logger.bind(combination=combination, username=username)
