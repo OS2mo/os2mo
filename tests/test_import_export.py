@@ -23,12 +23,10 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.environments import construct_environment
-from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.main import handle_org_unit
 from mo_ldap_import_export.moapi import Verb
 from mo_ldap_import_export.moapi import get_primary_engagement
-from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import Engagement
 from mo_ldap_import_export.types import DN
@@ -80,33 +78,28 @@ def fake_find_mo_employee_dn(sync_tool: SyncTool, fake_dn: DN) -> None:
 
 
 async def test_listen_to_changes_in_employees_no_dn(
-    dataloader: AsyncMock,
-    load_settings_overrides: dict[str, str],
-    test_mo_address: Address,
-    sync_tool: SyncTool,
-    converter: MagicMock,
+    dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
     employee_uuid = uuid4()
     dataloader.find_mo_employee_dn.return_value = set()
-    dataloader.make_mo_employee_dn.side_effect = DNNotFound("Not found")
-    sync_tool.dataloader._find_best_dn = partial(  # type: ignore
-        DataLoader._find_best_dn,
-        sync_tool.dataloader,  # type: ignore
-    )
-    sync_tool.dataloader._generate_dn = partial(  # type: ignore
-        DataLoader._generate_dn,
-        sync_tool.dataloader,  # type: ignore
-    )
+    dataloader.make_mo_employee_dn.side_effect = RequeueMessage("Not found")
+
+    template = AsyncMock()
+    template.render_async.return_value = '{"key": "value"}'
+    sync_tool.converter.environment.from_string.return_value = template  # type: ignore
+
+    dataloader._find_best_dn = partial(DataLoader._find_best_dn, dataloader)
 
     with capture_logs() as cap_logs:
-        with pytest.raises(RequeueMessage):
+        with pytest.raises(RequeueMessage) as exc_info:
             await sync_tool.listen_to_changes_in_employees(employee_uuid)
+        assert "Not found" in str(exc_info.value)
 
         messages = [w["event"] for w in cap_logs]
         assert messages == [
             "Registered change in an employee",
             "Discriminator filter run",
-            "Unable to generate DN",
+            "create_user_trees not configured, allowing create",
         ]
 
 
@@ -604,22 +597,14 @@ async def test_get_primary_engagement(
 
 
 async def test_find_best_dn(sync_tool: SyncTool) -> None:
-    dn = "CN=foo"
     sync_tool.dataloader.find_mo_employee_dn.return_value = set()  # type: ignore
-    sync_tool.dataloader.make_mo_employee_dn.return_value = dn  # type: ignore
     sync_tool.dataloader._find_best_dn = partial(  # type: ignore
         DataLoader._find_best_dn, sync_tool.dataloader
-    )
-    sync_tool.dataloader._generate_dn = partial(  # type: ignore
-        DataLoader._generate_dn, sync_tool.dataloader
     )
 
     uuid = EmployeeUUID(uuid4())
     result = await sync_tool.dataloader._find_best_dn(uuid)
     assert result is None
-
-    result = await sync_tool.dataloader._generate_dn(uuid)
-    assert result == dn
 
 
 @pytest.mark.freeze_time("2022-08-10T12:34:56")

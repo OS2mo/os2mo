@@ -18,6 +18,7 @@ import structlog
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from ldap3 import Connection
 from more_itertools import one
+from more_itertools import only
 from more_itertools import partition
 from structlog.contextvars import bound_contextvars
 
@@ -126,7 +127,9 @@ class SyncTool:
             )
         return True
 
-    async def render_ldap2mo(self, uuid: EmployeeUUID, dn: DN) -> dict[str, list[Any]]:
+    async def render_ldap2mo(
+        self, uuid: EmployeeUUID, dn: DN | None
+    ) -> dict[str, list[Any]]:
         await self.perform_export_checks(uuid)
 
         mo2ldap_template = self.settings.conversion_mapping.mo2ldap
@@ -244,31 +247,29 @@ class SyncTool:
             return {}
 
         # No DN set, means we are creating
-        create = not best_dn
-        if create:
+        if best_dn is None:
             # If dry-running we do not want to generate real DNs in LDAP
-            best_dn = "CN=Dry run,DC=example,DC=com"
-            if not dry_run:
-                best_dn = await self.dataloader._generate_dn(uuid)
             is_ok = await self.may_create_user_given_orgunit_location(uuid)
             if not is_ok:
                 logger.info("Primary engagement OU outside create_user_trees, skipping")
                 return {}
-        assert best_dn is not None
 
         exit_stack.enter_context(bound_contextvars(dn=best_dn))
         ldap_desired_state = await self.render_ldap2mo(uuid, best_dn)
 
         # If dry-running we do not want to makes changes in LDAP
         if dry_run:
-            logger.info("Not writing to LDAP due to dry-running", dn=best_dn)
+            logger.info("Not writing to LDAP due to dry-running")
             return ldap_desired_state
 
         if not ldap_desired_state:
-            logger.info("Not writing to LDAP as changeset is empty", dn=best_dn)
+            logger.info("Not writing to LDAP as changeset is empty")
             return {}
 
-        if create:
+        if best_dn is None:
+            common_name = (
+                only(ldap_desired_state["cn"]) if "cn" in ldap_desired_state else None
+            )
             # TODO: When we are creating a user we should make sure we have a reference
             #       to it, the ituser-link in the below attempts to create this link,
             #       however there is no guarantee that the program does not crash between
@@ -279,6 +280,7 @@ class SyncTool:
             #       The good solution is to somehow link the LDAP account to MO with
             #       values set during its creation, ensuring we can find them, even if
             #       we crash immediately after the creation of the account.
+            best_dn = await self.dataloader.make_mo_employee_dn(uuid, common_name)
             await self.dataloader.ldapapi.add_ldap_object(best_dn, ldap_desired_state)
             await self.create_ituser_link(uuid, best_dn)
         else:

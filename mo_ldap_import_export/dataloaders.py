@@ -12,7 +12,6 @@ from more_itertools import one
 from more_itertools import partition
 
 from .config import Settings
-from .exceptions import DNNotFound
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .ldap import apply_discriminator
@@ -191,7 +190,9 @@ class DataLoader:
         logger.warning("Unable to find DNs for MO employee", employee_uuid=uuid)
         return set()
 
-    async def make_mo_employee_dn(self, uuid: UUID) -> DN:
+    async def make_mo_employee_dn(
+        self, uuid: UUID, common_name: str | None = None
+    ) -> DN:
         employee = await self.moapi.load_mo_employee(uuid)
         if employee is None:
             raise NoObjectsReturnedException(f"Unable to lookup employee: {uuid}")
@@ -205,10 +206,13 @@ class DataLoader:
                     "Refused to generate a DN for employee (no correlation key)",
                     employee_uuid=uuid,
                 )
-                raise DNNotFound("Unable to generate DN, no correlation key available")
+                raise RequeueMessage(
+                    "Unable to generate DN, no correlation key available"
+                )
 
         logger.info("Generating DN for user", employee_uuid=uuid)
-        common_name = await self.username_generator.generate_common_name(employee)
+        if common_name is None:
+            common_name = await self.username_generator.generate_common_name(employee)
         dn = await self.username_generator.generate_dn(common_name)
         assert isinstance(dn, str)
         return dn
@@ -231,14 +235,4 @@ class DataLoader:
                 uuid=uuid,
             )
             raise NoGoodLDAPAccountFound("Aborting synchronization")
-        return best_dn
-
-    async def _generate_dn(self, uuid: EmployeeUUID) -> DN:
-        # If we did not find DNs, we want to generate one
-        try:
-            best_dn = await self.make_mo_employee_dn(uuid)
-        except DNNotFound as error:
-            # If this occurs we were unable to generate a DN for the user
-            logger.error("Unable to generate DN")
-            raise RequeueMessage("Unable to generate DN") from error
         return best_dn
