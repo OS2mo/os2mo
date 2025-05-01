@@ -6,6 +6,7 @@ from collections.abc import Iterator
 from contextlib import suppress
 from datetime import datetime
 from functools import partial
+from itertools import groupby
 from typing import Any
 from typing import TypeVar
 from typing import cast
@@ -24,6 +25,7 @@ from ldap3 import Connection
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
 from more_itertools import flatten
+from more_itertools import ilen
 from more_itertools import one
 from more_itertools import only
 from more_itertools import unzip
@@ -58,7 +60,6 @@ from .exceptions import UUIDNotFoundException
 from .types import DN
 from .types import EmployeeUUID
 from .types import EngagementUUID
-from .usernames import _create_from_combi
 from .usernames import _ldap_allows_username
 from .usernames import _mo_allows_username
 from .usernames import generate_person_name
@@ -440,6 +441,83 @@ async def load_org_unit_address(
         logger.debug("Org-unit address is terminated", uuid=validity.uuid)
         return None
     return fetched_address
+
+
+def _create_from_combi(name_parts: list[str], combi: str) -> str | None:
+    """Create a username from a name and a combination.
+
+    Args:
+        name_parts: An array of names; given_name, middlenames, surname.
+        combi: Combination to create a username from. For example "F123LX".
+
+    Raises:
+        AssertionError: If an invalid character is provided as combi.
+
+    Returns:
+        A username generated according to the combination.
+        Note that this username may still contain 'X' characters, which need
+        to be replaced with a number.
+    """
+
+    def char2namepart(combi_char: str) -> str:
+        """Convert combi character to corresponding name part.
+
+        Args:
+            combi_char: The character to lookup (One of "F", "L", [1-9])
+
+        Raises:
+            ValueError: If the captured name_parts has less than 2 entries.
+            IndexError: If an integer higher than the number of middlenames is used.
+            AssertionError: If an invalid character is provided as combi_char.
+
+        Returns:
+            The name part corresponding to the combi character.
+        """
+        assert combi_char in {"F", "L"} | {str(x) for x in range(1, 10)}
+
+        given_name, *middlenames, surname = name_parts
+        match combi_char:
+            case "F":
+                return given_name
+            case "L":
+                return surname
+            case x:
+                index = int(x) - 1
+                return middlenames[index]
+
+    def group2string(combi_char: str, count: int) -> str:
+        """Construct a username substring from a group (combi_char + count).
+
+        Args:
+            combi_char: The character to lookup (One of "X", "F", "L", [1-9])
+            count: The number of characters to extract from the combi_char source.
+
+        Raises:
+            ValueError: If a referenced name_part does not have enough characters.
+            ValueError: If the captured name_parts has less than 2 entries.
+            IndexError: If an integer higher than the number of middlenames is used.
+            AssertionError: If an invalid character is provided as combi_char.
+
+        Returns:
+            The constructed username substring.
+        """
+        if combi_char == "X":
+            return "X" * count
+        name_part = char2namepart(combi_char).lower()
+        # Sanity check that the name is long enough
+        # Without this check we risk making too short usernames
+        if count > len(name_part):
+            raise ValueError("Name part too short")
+        return name_part[:count]
+
+    # Split code into groups on changes
+    # For example "FF1LL" returns [("F",2), ("1",1), ("L",2)]
+    groups = [(key, ilen(group)) for key, group in groupby(combi)]
+
+    with suppress(IndexError, ValueError):
+        username_parts = [group2string(char, count) for (char, count) in groups]
+        return "".join(username_parts)
+    return None
 
 
 def _name_fixer(
