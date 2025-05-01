@@ -21,6 +21,8 @@ from jinja2 import StrictUndefined
 from jinja2 import TemplateRuntimeError
 from jinja2 import UndefinedError
 from jinja2.utils import missing
+from ldap3 import NO_ATTRIBUTES
+from ldap3 import SUBTREE
 from ldap3 import Connection
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
@@ -57,10 +59,10 @@ from .dataloaders import NoGoodLDAPAccountFound
 from .exceptions import NoObjectsReturnedException
 from .exceptions import SkipObject
 from .exceptions import UUIDNotFoundException
+from .ldap import ldap_search
 from .types import DN
 from .types import EmployeeUUID
 from .types import EngagementUUID
-from .usernames import _ldap_allows_username
 from .usernames import _mo_allows_username
 from .usernames import generate_person_name
 from .utils import MO_TZ
@@ -441,6 +443,54 @@ async def load_org_unit_address(
         logger.debug("Org-unit address is terminated", uuid=validity.uuid)
         return None
     return fetched_address
+
+
+async def _ldap_allows_username(
+    ldap_connection: Connection, settings: Settings, username: str
+) -> bool:
+    match settings.ldap_dialect:
+        case "Standard":
+            # "uid" is the default login field since RFC2798 (inetOrgPerson)
+            # (replacing the "userid" term from RFC1274 (COSINE schema))
+            # It is the standard LDAP login name field.
+            # The Microsoft Active Directory equivalent is sAMAccountName
+            search_filters = [f"(uid={username})"]
+        case "AD":  # pragma: no cover
+            search_filters = [
+                f"(sAMAccountName={username})",
+                f"(userPrincipalName={username}@*)",
+            ]
+        case _:  # pragma: no cover
+            raise AssertionError("Unknown LDAP dialect")
+
+    for search_filter in search_filters:
+        response, result = await ldap_search(
+            ldap_connection,
+            search_base=settings.ldap_search_base,
+            search_filter=search_filter,
+            attributes=NO_ATTRIBUTES,
+            search_scope=SUBTREE,
+            size_limit=1,
+        )
+        if result["type"] != "searchResDone":  # pragma: no cover
+            logger.warning(
+                "LDAP connection search returned unexpected result type",
+                response=response,
+                result=result,
+            )
+            raise ValueError("Unexpected search result type")
+        if result["description"] != "success":  # pragma: no cover
+            logger.warning(
+                "LDAP connection did not search sucessfully",
+                response=response,
+                result=result,
+            )
+            raise ValueError("Search failed")
+        # If we got any results, we have found a conflict
+        if response != []:
+            return False
+
+    return True
 
 
 def _create_from_combi(name_parts: list[str], combi: str) -> str | None:
