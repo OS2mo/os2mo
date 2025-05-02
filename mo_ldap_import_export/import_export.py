@@ -136,7 +136,11 @@ class SyncTool:
         assert mo2ldap_template is not None
         template = self.converter.environment.from_string(mo2ldap_template)
         result = await template.render_async({"uuid": uuid, "dn": dn})
+        logger.debug("Rendered jinja template", uuid=uuid, dn=dn, result=result)
         parsed = json.loads(result)
+        logger.debug(
+            "Parsed jinja template", uuid=uuid, dn=dn, result=result, parsed=parsed
+        )
         assert isinstance(parsed, dict)
         assert all(isinstance(key, str) for key in parsed)
         # Convert None's to empty lists to avoid writing "None" in LDAP

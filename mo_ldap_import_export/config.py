@@ -41,6 +41,7 @@ def validate_jinja(v: str, error: str) -> str:
         env = Environment()
         env.parse(v)
     except TemplateSyntaxError as e:
+        logger.exception("Unable to parse jinja")
         raise ValueError(error) from e
     return v
 

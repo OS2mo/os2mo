@@ -100,6 +100,8 @@ async def test_listen_to_changes_in_employees_no_dn(
             "Registered change in an employee",
             "Discriminator filter run",
             "create_user_trees not configured, allowing create",
+            "Rendered jinja template",
+            "Parsed jinja template",
         ]
 
 

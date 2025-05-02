@@ -699,6 +699,7 @@ def construct_globals_dict(
         "dn_to_uuid": dataloader.ldapapi.get_ldap_unique_ldap_uuid,
         "get_engagement_type_uuid": partial(get_engagement_type_uuid, graphql_client),
         "get_primary_type_uuid": partial(get_primary_type_uuid, graphql_client),
+        "get_ldap_object": partial(get_ldap_object, dataloader.ldapapi.ldap_connection),
     }
 
 
