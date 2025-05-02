@@ -125,7 +125,6 @@ async def add_event(
     subject: str,
     priority: int = DEFAULT_PRIORITY,
     listener_owner: UUID | None = None,
-    namespace_owner: UUID | None = None,
 ) -> None:
     matching_listeners = [
         Listener.namespace_fk == namespace,
@@ -134,14 +133,6 @@ async def add_event(
 
     if listener_owner is not None:
         matching_listeners.append(Listener.owner == listener_owner)
-
-    if namespace_owner is not None:
-        matching_listeners.extend(
-            [
-                Namespace.name == Listener.namespace_fk,
-                Namespace.owner == namespace_owner,
-            ]
-        )
 
     stmt = (
         insert(Event)

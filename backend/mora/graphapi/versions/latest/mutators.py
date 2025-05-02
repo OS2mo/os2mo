@@ -1853,14 +1853,20 @@ class Mutation:
 
         # coverage: pause
         session: AsyncSession = info.context["session"]
-        owner = get_authenticated_user()
+        namespace = await session.scalar(
+            select(db.Namespace).where(db.Namespace.name == input.namespace)
+        )
+        if namespace is None:
+            raise ValueError("Namespace does not exist.")
+        if namespace.owner != get_authenticated_user():
+            raise ValueError("You are not the owner of that namespace.")
+
         await add_event(
             session,
             namespace=input.namespace,
             routing_key=input.routing_key,
             subject=input.subject,
             priority=input.priority,
-            namespace_owner=owner,
         )
         return True
         # coverage: unpause
