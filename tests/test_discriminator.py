@@ -417,11 +417,7 @@ async def sync_tool_and_context(
     }
     moapi = MOAPI(settings, graphql_client)
 
-    username_generator = UserNameGenerator(
-        settings,
-        moapi,
-        ldap_connection,
-    )
+    username_generator = UserNameGenerator(settings, ldap_connection)
     context["user_context"]["username_generator"] = username_generator
 
     # Needs context, user_context, ldap_connection
@@ -887,9 +883,7 @@ async def test_apply_discriminator_template(
 async def test_get_existing_values(sync_tool: SyncTool, context: Context) -> None:
     user_context = context["user_context"]
     username_generator = UserNameGenerator(
-        user_context["settings"],
-        user_context["dataloader"].moapi,
-        user_context["ldap_connection"],
+        user_context["settings"], user_context["ldap_connection"]
     )
 
     result = await username_generator.get_existing_values(["sAMAccountName", "cn"])
@@ -906,9 +900,7 @@ async def test_get_existing_names(sync_tool: SyncTool, context: Context) -> None
 
     user_context = context["user_context"]
     username_generator = UserNameGenerator(
-        user_context["settings"],
-        user_context["dataloader"].moapi,
-        user_context["ldap_connection"],
+        user_context["settings"], user_context["ldap_connection"]
     )
 
     result = await username_generator._get_existing_common_names()

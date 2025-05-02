@@ -13,9 +13,9 @@ from pydantic import parse_obj_as
 
 from mo_ldap_import_export.config import UsernameGeneratorConfig
 from mo_ldap_import_export.depends import Settings
+from mo_ldap_import_export.environments import _create_from_combi
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.usernames import UserNameGenerator
-from mo_ldap_import_export.usernames import _create_from_combi
 
 
 @pytest.fixture
@@ -105,11 +105,7 @@ def username_generator(
         return_value=existing_usernames_ldap,
     ):
         user_context = context["user_context"]
-        yield UserNameGenerator(
-            Settings(),
-            user_context["dataloader"].moapi,
-            user_context["ldap_connection"],
-        )
+        yield UserNameGenerator(Settings(), user_context["ldap_connection"])
 
 
 @pytest.fixture
@@ -213,11 +209,7 @@ def alleroed_username_generator(
         return_value=existing_usernames_ldap,
     ):
         user_context = context["user_context"]
-        yield UserNameGenerator(
-            Settings(),
-            user_context["dataloader"],
-            user_context["ldap_connection"],
-        )
+        yield UserNameGenerator(Settings(), user_context["ldap_connection"])
 
 
 async def test_get_existing_usernames(
