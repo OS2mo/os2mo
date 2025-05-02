@@ -35,6 +35,7 @@ from mora import common
 from mora import config
 from mora import db
 from mora.common import _create_graphql_connector
+from mora.db import AsyncSession
 from mora.graphapi.fields import Metadata
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OpenValidity as RAMOpenValidity
@@ -4627,7 +4628,7 @@ class File:
         )
     )
     async def text_contents(self, info: Info) -> str:  # pragma: no cover
-        session = info.context["session"]
+        session: AsyncSession = info.context["session"]
         content = await db.files.read(session, self.file_store, self.file_name)
         return content.decode("utf-8")
 
@@ -4654,7 +4655,7 @@ class File:
         )
     )
     async def base64_contents(self, info: Info) -> str:
-        session = info.context["session"]
+        session: AsyncSession = info.context["session"]
         content = await db.files.read(session, self.file_store, self.file_name)
         data = b64encode(content)
         return data.decode("ascii")

@@ -238,7 +238,7 @@ async def access_log_resolver(
         query = query.limit(limit + 1)
     query = query.offset(cursor.offset if cursor else 0)
 
-    session = info.context["session"]
+    session: AsyncSession = info.context["session"]
     result = list(await session.scalars(query))
     access_log(
         session,
@@ -269,7 +269,7 @@ async def access_log_resolver(
             id=accesslog.id,
             time=accesslog.time,
             actor=accesslog.actor,
-            model=accesslog.model,
+            model=AccessLogModel(accesslog.model),
         )
         for accesslog in result
     ]

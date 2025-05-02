@@ -13,6 +13,7 @@ from strawberry.types import Info
 from mora import db
 from mora.access_log import access_log
 from mora.config import get_public_settings
+from mora.db import AsyncSession
 from mora.graphapi.gmodels.mo.details.association import AssociationRead
 from mora.graphapi.gmodels.mo.details.engagement import EngagementRead
 from mora.graphapi.gmodels.mo.details.it_system import ITSystemRead
@@ -130,7 +131,7 @@ async def file_resolver(
     if filter is None:  # pragma: no cover
         filter = FileFilter()
 
-    session = info.context["session"]
+    session: AsyncSession = info.context["session"]
     # We do not need the access log elsewhere for files, because this is the
     # only way to resolve a `File` (which is needed to read the content).
     access_log(

@@ -14,13 +14,13 @@ from sqlalchemy import literal
 from sqlalchemy import select
 from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 
 import mora.db
 
+from . import AsyncSession
 from ._common import Base
 
 # If this is changed, remember to update the documentation.

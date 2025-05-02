@@ -20,6 +20,7 @@ from starlette_context import context
 from strawberry.types import Info
 
 from mora.access_log import access_log
+from mora.db import AsyncSession
 from mora.db import BrugerRegistrering
 from mora.db import FacetRegistrering
 from mora.db import ITSystemRegistrering
@@ -283,7 +284,7 @@ async def registration_resolver(
         query = query.limit(limit + 1)
     query = query.offset(cursor.offset if cursor else 0)
 
-    session = info.context["session"]
+    session: AsyncSession = info.context["session"]
     result = list(await session.execute(query))
     access_log(
         session,
@@ -309,5 +310,4 @@ async def registration_resolver(
         elif len(result) == limit + 1:
             result = result[:-1]
 
-    result = list(starmap(row2registration, result))
-    return result
+    return list(starmap(row2registration, result))
