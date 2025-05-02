@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from mo_ldap_import_export.environments import skip_if_none
+from mo_ldap_import_export.environments.main import skip_if_none
 from mo_ldap_import_export.exceptions import SkipObject
 
 

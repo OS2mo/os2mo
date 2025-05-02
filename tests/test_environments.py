@@ -4,10 +4,10 @@
 import datetime
 from unittest.mock import MagicMock
 
-from mo_ldap_import_export.environments import construct_environment
-from mo_ldap_import_export.environments import filter_mo_datestring
-from mo_ldap_import_export.environments import filter_remove_curly_brackets
-from mo_ldap_import_export.environments import filter_strip_non_digits
+from mo_ldap_import_export.environments.main import construct_environment
+from mo_ldap_import_export.environments.main import filter_mo_datestring
+from mo_ldap_import_export.environments.main import filter_remove_curly_brackets
+from mo_ldap_import_export.environments.main import filter_strip_non_digits
 
 
 def test_strip_non_digits() -> None:

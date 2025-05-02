@@ -22,7 +22,7 @@ from structlog.testing import capture_logs
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.depends import GraphQLClient
-from mo_ldap_import_export.environments import construct_environment
+from mo_ldap_import_export.environments.main import construct_environment
 from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.main import handle_org_unit
 from mo_ldap_import_export.moapi import Verb

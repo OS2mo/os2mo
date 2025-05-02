@@ -3,7 +3,7 @@
 import pytest
 from ldap3.core.exceptions import LDAPInvalidDnError
 
-from mo_ldap_import_export.environments import parent_dn
+from mo_ldap_import_export.environments.main import parent_dn
 from mo_ldap_import_export.types import DN
 
 
