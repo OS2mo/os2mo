@@ -35,6 +35,7 @@ from strawberry.types import Info
 from strawberry.types.unset import UnsetType
 
 from mora.access_log import access_log
+from mora.db import AsyncSession
 from mora.db import HasValidity
 from mora.db import LivscyklusKode
 from mora.db import OrganisationEnhedAttrEgenskaber
@@ -266,9 +267,9 @@ async def class_resolver(
         info: Info, filter: OrganisationUnitFilter
     ) -> list[UUID]:
         query = await organisation_unit_resolver_query(info, filter)
-        session = info.context["session"]
+        session: AsyncSession = info.context["session"]
         result = await session.scalars(query)
-        return result.all()
+        return list(result.all())
 
     if filter is None:
         filter = ClassFilter()
@@ -1050,7 +1051,7 @@ async def organisation_unit_resolver(
     )
 
     # Execute
-    session = info.context["session"]
+    session: AsyncSession = info.context["session"]
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
@@ -1091,8 +1092,8 @@ async def organisation_unit_has_children(
     """Resolve whether an organisation unit has children."""
     assert filter is not None  # cannot be None, but signature required for seeding
     query = await organisation_unit_resolver_query(info=info, filter=filter)
-    session = info.context["session"]
-    return await session.scalar(select(exists(query)))
+    session: AsyncSession = info.context["session"]
+    return (await session.scalars(select(exists(query)))).one()
 
 
 async def organisation_unit_child_count(
@@ -1102,8 +1103,10 @@ async def organisation_unit_child_count(
     """Resolve the number of children of an organisation unit."""
     assert filter is not None  # cannot be None, but signature required for seeding
     query = await organisation_unit_resolver_query(info=info, filter=filter)
-    session = info.context["session"]
-    return await session.scalar(select(func.count()).select_from(query.subquery()))
+    session: AsyncSession = info.context["session"]
+    return (
+        await session.scalars(select(func.count()).select_from(query.subquery()))
+    ).one()
 
 
 async def it_system_resolver(

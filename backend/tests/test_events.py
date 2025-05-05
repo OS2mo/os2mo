@@ -429,6 +429,27 @@ def test_long_subjects_fails(namespace: str, graphapi_post: GraphAPIPost) -> Non
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
+def test_cannot_send_event_in_non_existant_namespace(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    r = send_event(graphapi_post, "random", "rk", "alice")
+    assert r.errors is not None
+    assert one(r.errors)["message"] == "Namespace does not exist."
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_cannot_send_event_in_non_others_namespace(
+    set_auth: SetAuth, namespace: str, graphapi_post: GraphAPIPost
+) -> None:
+    set_auth(ADMIN, uuid4())
+    r = send_event(graphapi_post, namespace, "rk", "alice")
+    assert r.errors is not None
+    assert one(r.errors)["message"] == "You are not the owner of that namespace."
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 def test_cannot_create_listener_in_non_existant_namespace(
     graphapi_post: GraphAPIPost,
 ) -> None:

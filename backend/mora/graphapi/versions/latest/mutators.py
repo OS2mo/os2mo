@@ -20,6 +20,7 @@ from strawberry.types import Info
 from mora import db
 from mora.auth.middleware import get_authenticated_user
 from mora.common import get_connector
+from mora.db import AsyncSession
 from mora.db.events import METRIC_ACKNOWLEDGED_EVENTS
 from mora.db.events import add_event
 from mora.graphapi.gmodels.mo import EmployeeRead
@@ -1610,7 +1611,7 @@ class Mutation:
     async def event_namespace_declare(
         self, info: Info, input: NamespaceCreateInput
     ) -> Namespace:
-        session = info.context["session"]
+        session: AsyncSession = info.context["session"]
         owner = get_authenticated_user()
 
         stmt = (
@@ -1629,6 +1630,8 @@ class Mutation:
         namespace = await session.scalar(
             select(db.Namespace).where(db.Namespace.name == input.name)
         )
+        # Namespace was either created or it already exists
+        assert namespace is not None
 
         if namespace.owner != owner:
             raise ValueError("Namespace already claimed by another owner.")
@@ -1663,7 +1666,7 @@ class Mutation:
         info: Info,
         input: NamespaceDeleteInput,
     ) -> bool:
-        session = info.context["session"]
+        session: AsyncSession = info.context["session"]
 
         # coverage: pause
         try:
@@ -1695,7 +1698,7 @@ class Mutation:
     async def event_listener_declare(
         self, info: Info, input: ListenerCreateInput
     ) -> Listener:
-        session = info.context["session"]
+        session: AsyncSession = info.context["session"]
         owner = get_authenticated_user()
 
         namespace = await session.scalar(
@@ -1730,6 +1733,8 @@ class Mutation:
                 db.Listener.namespace_fk == input.namespace,
             )
         )
+        # Listener was either created or it already exists
+        assert listener is not None
 
         if listener.routing_key != input.routing_key:
             raise ValueError(
@@ -1757,7 +1762,7 @@ class Mutation:
         info: Info,
         input: ListenerDeleteInput,
     ) -> bool:
-        session = info.context["session"]
+        session: AsyncSession = info.context["session"]
 
         # coverage: pause
         if input.delete_pending_events:
@@ -1789,7 +1794,7 @@ class Mutation:
         input: EventAcknowledgeInput,
     ) -> bool:
         owner = get_authenticated_user()
-        session = info.context["session"]
+        session: AsyncSession = info.context["session"]
 
         # Sadly, we have to select the listener, because PostgreSQL does not
         # support returning values from tables other than the one being deleted
@@ -1847,15 +1852,21 @@ class Mutation:
             )
 
         # coverage: pause
-        session = info.context["session"]
-        owner = get_authenticated_user()
+        session: AsyncSession = info.context["session"]
+        namespace = await session.scalar(
+            select(db.Namespace).where(db.Namespace.name == input.namespace)
+        )
+        if namespace is None:
+            raise ValueError("Namespace does not exist.")
+        if namespace.owner != get_authenticated_user():
+            raise ValueError("You are not the owner of that namespace.")
+
         await add_event(
             session,
             namespace=input.namespace,
             routing_key=input.routing_key,
             subject=input.subject,
             priority=input.priority,
-            namespace_owner=owner,
         )
         return True
         # coverage: unpause
@@ -1879,7 +1890,7 @@ class Mutation:
         input: EventSilenceInput,
     ) -> bool:
         # coverage: pause
-        session = info.context["session"]
+        session: AsyncSession = info.context["session"]
         await session.execute(
             update(db.Event)
             .where(
@@ -1918,7 +1929,7 @@ class Mutation:
             clauses.append(db.Event.priority.in_(input.priorities))
 
         # coverage: pause
-        session = info.context["session"]
+        session: AsyncSession = info.context["session"]
         await session.execute(update(db.Event).where(*clauses).values(silenced=False))
         return True
         # coverage: unpause
@@ -2048,7 +2059,7 @@ async def refresh(
         await gather_with_concurrency(100, *tasks)
 
     if owner is not None and exchange is None:
-        session = info.context["session"]
+        session: AsyncSession = info.context["session"]
         for uuid in uuids:
             await add_event(
                 session,

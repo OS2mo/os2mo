@@ -14,13 +14,13 @@ from sqlalchemy import literal
 from sqlalchemy import select
 from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 
 import mora.db
 
+from . import AsyncSession
 from ._common import Base
 
 # If this is changed, remember to update the documentation.
@@ -125,7 +125,6 @@ async def add_event(
     subject: str,
     priority: int = DEFAULT_PRIORITY,
     listener_owner: UUID | None = None,
-    namespace_owner: UUID | None = None,
 ) -> None:
     matching_listeners = [
         Listener.namespace_fk == namespace,
@@ -134,14 +133,6 @@ async def add_event(
 
     if listener_owner is not None:
         matching_listeners.append(Listener.owner == listener_owner)
-
-    if namespace_owner is not None:
-        matching_listeners.extend(
-            [
-                Namespace.name == Listener.namespace_fk,
-                Namespace.owner == namespace_owner,
-            ]
-        )
 
     stmt = (
         insert(Event)

@@ -18,6 +18,7 @@ from strawberry.types import Info
 
 from mora import db
 from mora.auth.middleware import get_authenticated_user
+from mora.db import AsyncSession
 
 from ..latest.filters import gen_filter_string
 from .paged import CursorType
@@ -147,7 +148,7 @@ async def full_event_resolver(
     # only used by humans, not by integrations.
     query = query.offset(cursor.offset if cursor else 0)
 
-    session = info.context["session"]
+    session: AsyncSession = info.context["session"]
     result = await session.scalars(query)
     return [
         FullEvent(
@@ -178,7 +179,7 @@ async def listener_resolver(
     # only used by humans, not by integrations.
     query = query.offset(cursor.offset if cursor else 0)
 
-    session = info.context["session"]
+    session: AsyncSession = info.context["session"]
     result = list(await session.scalars(query))
 
     return [
@@ -211,7 +212,7 @@ async def namespace_resolver(
     # only used by humans, not by integrations.
     query = query.offset(cursor.offset if cursor else 0)
 
-    session = info.context["session"]
+    session: AsyncSession = info.context["session"]
     result = list(await session.scalars(query))
 
     return [
@@ -430,7 +431,7 @@ async def event_resolver(
         .values(last_tried=func.now(), fetched_count=db.Event.fetched_count + 1)
         .returning(db.Event)
     )
-    session = info.context["session"]
+    session: AsyncSession = info.context["session"]
     result = await session.scalar(query)
     if result is None:
         # We sleep a bit when there are no event to reduce the load on the

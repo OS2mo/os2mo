@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -24,7 +25,7 @@ class AccessLogOperation(Base):
     id: Mapped[UUID] = mapped_column(
         Uuid, primary_key=True, server_default=text("uuid_generate_v4()")
     )
-    time: Mapped[DateTime] = mapped_column(
+    time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now(), index=True
     )
     actor: Mapped[UUID] = mapped_column(Uuid, nullable=False, index=True)

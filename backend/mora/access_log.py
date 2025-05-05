@@ -4,17 +4,16 @@ from typing import Any
 from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 
 from mora.auth.middleware import get_authenticated_user
 from mora.config import get_settings
 from mora.db import AccessLogOperation
 from mora.db import AccessLogRead
+from mora.db import AsyncSession
 
 
 def access_log(
-    session: Session | AsyncSession,
+    session: AsyncSession,
     operation: str,
     class_name: str,
     arguments: dict[str, Any],
