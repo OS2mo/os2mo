@@ -286,7 +286,6 @@ class UsernameGeneratorConfig(MappingBaseModel):
 
 class ConversionMapping(MappingBaseModel):
     ldap_to_mo: dict[str, LDAP2MOMapping] | None = None
-    ldap_to_mo_org_unit: dict[str, LDAP2MOMapping] | None = None
     ldap_to_mo_any: dict[str, dict[str, LDAP2MOMapping]] = Field(
         default_factory=dict,
         description="""

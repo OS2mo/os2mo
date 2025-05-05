@@ -106,12 +106,6 @@ async def handle_uuid(
         logger.info("Handling employee", ldap_object_classes=ldap_object_classes)
         await sync_tool.import_single_user(dn)
 
-    if "organizationalUnit" in ldap_object_classes:
-        logger.info(
-            "Handling organizational unit", ldap_object_classes=ldap_object_classes
-        )
-        await sync_tool.import_single_org_unit(dn)
-
     for object_class in settings.conversion_mapping.ldap_to_mo_any:
         if object_class in ldap_object_classes:
             logger.info(
