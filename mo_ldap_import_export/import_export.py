@@ -38,11 +38,13 @@ from .customer_specific_checks import ImportChecks
 from .dataloaders import DN
 from .dataloaders import DataLoader
 from .dataloaders import NoGoodLDAPAccountFound
+from .environments.main import get_or_create_job_function_uuid
 from .exceptions import IncorrectMapping
 from .exceptions import SkipObject
 from .ldap import apply_discriminator
 from .ldap import filter_dns
 from .ldap import get_ldap_object
+from .moapi import MOAPI
 from .moapi import Verb
 from .moapi import get_primary_engagement
 from .models import Address
@@ -51,7 +53,6 @@ from .models import Employee
 from .models import Engagement
 from .models import ITSystem
 from .models import ITUser
-from .models import JobTitleFromADToMO
 from .models import MOBase
 from .models import OrganisationUnit
 from .models import Termination
@@ -86,6 +87,42 @@ def with_exitstack(
             return await func(*args, **kwargs, exit_stack=exit_stack)
 
     return inner
+
+
+async def sync_JobTitleFromADToMO(
+    moapi: MOAPI, ldap_connection: Connection, dn: DN
+) -> None:
+    # NOTE: This function is scheduled for removal, see #62802
+    ldap_object = await get_ldap_object(
+        # The attributes are hardcoded for the only customer using this endpoint
+        ldap_connection=ldap_connection,
+        dn=dn,
+        attributes={"hkStsuuid", "title"},
+    )
+    assert hasattr(ldap_object, "hkStsuuid")
+    assert hasattr(ldap_object, "title")
+
+    job_function = UUID(
+        await get_or_create_job_function_uuid(
+            moapi, ldap_object.title, default="Medarbejder"
+        )
+    )
+
+    result = await moapi.graphql_client.read_engagements_by_employee_uuid(
+        ldap_object.hkStsuuid
+    )
+    engagements = [x.current for x in result.objects if x.current is not None]
+    await asyncio.gather(
+        *[
+            moapi.graphql_client.set_job_title(
+                uuid=obj.uuid,
+                from_=obj.validity.from_,
+                to=obj.validity.to,
+                job_function=job_function,
+            )
+            for obj in engagements
+        ]
+    )
 
 
 class SyncTool:
@@ -616,6 +653,12 @@ class SyncTool:
         dn: DN,
         template_context: dict[str, Any],
     ) -> None:
+        if mapping.objectClass == "Custom.JobTitleFromADToMO":  # pragma: no cover
+            await sync_JobTitleFromADToMO(
+                self.dataloader.moapi, self.ldap_connection, dn
+            )
+            return
+
         logger.info("Loading object", mo_class=mapping.as_mo_class(), dn=dn)
         loaded_object = await get_ldap_object(
             ldap_connection=self.ldap_connection,
@@ -648,17 +691,6 @@ class SyncTool:
             n=len(converted_objects),
             dn=dn,
         )
-        if mapping.objectClass == "Custom.JobTitleFromADToMO":  # pragma: no cover
-            assert all(isinstance(obj, JobTitleFromADToMO) for obj in converted_objects)
-            custom_objects = cast(list[JobTitleFromADToMO], converted_objects)
-
-            await asyncio.gather(
-                *[
-                    obj.sync_to_mo(self.dataloader.moapi.graphql_client)
-                    for obj in custom_objects
-                ]
-            )
-            return
 
         mo_attributes = set(mapping.get_fields().keys())
         operations = await self.format_converted_objects(
