@@ -52,6 +52,9 @@ lederrolle ligeledes blive afsluttet automatisk. Hvis personens engagement får 
 om der er tale om en nyoprettet medarbejder eller en eksisterende medarbejder - vil lederrollen også blive afsluttet på
 samme dag som det engagement, der udløber sidst.
 
+> **Bemærk:** Integrationen kan konfigureres således at lederroller ikke afsluttes,
+> men i stedet bliver sat til at være vakante pr. den dato hvor lederens engagement ophører.
+
 Hermed
 
 + automatiseres ophør af lederrollen
