@@ -342,7 +342,7 @@ async def address_resolver(
 
     await registration_filter(info, filter)
 
-    kwargs = {}
+    kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
@@ -413,7 +413,7 @@ async def association_resolver(
 
     await registration_filter(info, filter)
 
-    kwargs = {}
+    kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
@@ -532,7 +532,7 @@ async def engagement_resolver(
 
     await registration_filter(info, filter)
 
-    kwargs = {}
+    kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
@@ -593,7 +593,7 @@ async def manager_resolver(
 
     await registration_filter(info, filter)
 
-    kwargs: dict[str, Any] = {}
+    kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
     if get_version(info.schema) >= Version.VERSION_25:
         if filter.employee is None:
             kwargs["tilknyttedebrugere"] = "urn:LORA-PLEASE-FIND-NULL-UUID-AND-URN"
@@ -671,7 +671,7 @@ async def owner_resolver(
 
     # TODO: Owner filter
 
-    kwargs = {}
+    kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
@@ -1147,7 +1147,7 @@ async def it_user_resolver(
 
     await registration_filter(info, filter)
 
-    kwargs: dict[str, Any] = {}
+    kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
@@ -1192,7 +1192,7 @@ async def kle_resolver(
 
     await registration_filter(info, filter)
 
-    kwargs = {}
+    kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = lora_filter(
             await get_org_unit_uuids(info, filter)
@@ -1220,7 +1220,7 @@ async def leave_resolver(
 
     await registration_filter(info, filter)
 
-    kwargs = {}
+    kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
@@ -1318,7 +1318,7 @@ async def related_unit_resolver(
 
     # TODO: Related unit filter
 
-    kwargs = {}
+    kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = lora_filter(
             await get_org_unit_uuids(info, filter)
@@ -1346,7 +1346,7 @@ async def rolebinding_resolver(
 
     await registration_filter(info, filter)
 
-    kwargs = {}
+    kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
     if filter.org_units is not None or filter.org_unit is not None:  # pragma: no cover
         kwargs["tilknyttedeenheder"] = lora_filter(
             await get_org_unit_uuids(info, filter)
