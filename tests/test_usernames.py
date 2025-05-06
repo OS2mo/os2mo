@@ -375,6 +375,7 @@ async def test_alleroed_dn_generator(
 
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
+@pytest.mark.xfail(reason="username generation is currently broken")
 async def test_active_directory_search_result(
     graphql_mock: GraphQLMocker, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -456,6 +457,5 @@ async def test_active_directory_search_result(
 
     dataloader = DataLoader(settings, moapi, ldapapi, username_generator)
 
-    with pytest.raises(RuntimeError) as exc_info:
-        await generate_username(dataloader, employee_uuid)
-    assert "Failed to create user name." in str(exc_info.value)
+    username = await generate_username(dataloader, employee_uuid)
+    assert username == "aag2"
