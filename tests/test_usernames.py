@@ -375,7 +375,6 @@ async def test_alleroed_dn_generator(
 
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
-@pytest.mark.xfail(reason="username generation is currently broken")
 async def test_active_directory_search_result(
     graphql_mock: GraphQLMocker, monkeypatch: pytest.MonkeyPatch
 ) -> None:
