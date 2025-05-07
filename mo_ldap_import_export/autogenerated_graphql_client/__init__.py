@@ -44,6 +44,12 @@ from ._testing__engagement_read import (
 from ._testing__engagement_read import (
     TestingEngagementReadEngagementsObjectsValiditiesValidity,
 )
+from ._testing__event_namespaces import TestingEventNamespaces
+from ._testing__event_namespaces import TestingEventNamespacesEventNamespaces
+from ._testing__event_namespaces import TestingEventNamespacesEventNamespacesObjects
+from ._testing__event_namespaces import (
+    TestingEventNamespacesEventNamespacesObjectsListeners,
+)
 from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
 from ._testing__itsystem_read import TestingItsystemRead
@@ -836,6 +842,10 @@ __all__ = [
     "TestingEngagementReadEngagementsObjectsValiditiesPerson",
     "TestingEngagementReadEngagementsObjectsValiditiesPrimary",
     "TestingEngagementReadEngagementsObjectsValiditiesValidity",
+    "TestingEventNamespaces",
+    "TestingEventNamespacesEventNamespaces",
+    "TestingEventNamespacesEventNamespacesObjects",
+    "TestingEventNamespacesEventNamespacesObjectsListeners",
     "TestingItsystemCreate",
     "TestingItsystemCreateItsystemCreate",
     "TestingItsystemRead",

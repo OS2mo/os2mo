@@ -1,0 +1,99 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+import json
+from collections.abc import Awaitable
+from collections.abc import Callable
+from uuid import UUID
+
+import pytest
+from fastapi.encoders import jsonable_encoder
+from fastramqpi.events import Event
+from httpx import AsyncClient
+from ldap3 import Connection
+from more_itertools import one
+
+from mo_ldap_import_export.ldap import LDAPConnection
+from mo_ldap_import_export.types import DN
+from mo_ldap_import_export.utils import combine_dn_strings
+
+
+@pytest.fixture
+async def trigger_sync(
+    test_client: AsyncClient,
+) -> Callable[[str, UUID], Awaitable[None]]:
+    async def inner(identifier: str, uuid: UUID) -> None:
+        result = await test_client.post(
+            f"/mo_to_ldap/{identifier}",
+            json=jsonable_encoder(Event(subject=uuid, priority=10)),
+        )
+        assert result.status_code == 200, result.text
+
+    return inner
+
+
+@pytest.fixture
+async def get_groups(
+    ldap_connection: Connection, ldap_org_unit: list[str]
+) -> Callable[[], Awaitable[list[dict]]]:
+    async def inner() -> list[dict]:
+        connection = LDAPConnection(ldap_connection)
+        response, _ = await connection.ldap_search(
+            search_base=combine_dn_strings(ldap_org_unit),
+            search_filter="(objectClass=groupOfNames)",
+            attributes=["*"],
+        )
+        return response
+
+    return inner
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "mo_to_ldap": [
+                    {
+                        "identifier": "itsystem2group",
+                        "routing_key": "itsystem",
+                        "object_class": "groupOfNames",
+                        "template": """
+                    {% set dn = "cn=" + uuid|string + ",ou=os2mo,o=magenta,dc=magenta,dc=dk" %}
+                    {{
+                        {
+                            "dn": dn,
+                            "create": true,
+                            "attributes": {
+                                "member": [
+                                    "uid=abk,ou=os2mo,o=magenta,dc=magenta,dc=dk"
+                                ]
+                            }
+                        }|tojson
+                    }}
+                """,
+                    }
+                ]
+            }
+        ),
+    }
+)
+async def test_group_sync(
+    trigger_sync: Callable[[str, UUID], Awaitable[None]],
+    get_groups: Callable[[], Awaitable[list[dict]]],
+    ldap_person_dn: DN,
+    adtitle: UUID,
+) -> None:
+    groups = await get_groups()
+    assert len(groups) == 0
+
+    await trigger_sync("itsystem2group", adtitle)
+
+    ldap_object = one(await get_groups())
+    assert ldap_object["dn"] == f"cn={str(adtitle)},ou=os2mo,o=magenta,dc=magenta,dc=dk"
+    assert dict(ldap_object["attributes"]) == {
+        "member": [ldap_person_dn],
+        "objectClass": ["groupOfNames"],
+        "cn": [str(adtitle)],
+    }

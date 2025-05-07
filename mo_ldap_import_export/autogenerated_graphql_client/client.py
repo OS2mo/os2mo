@@ -11,6 +11,8 @@ from ._testing__employee_read import TestingEmployeeRead
 from ._testing__employee_read import TestingEmployeeReadEmployees
 from ._testing__engagement_read import TestingEngagementRead
 from ._testing__engagement_read import TestingEngagementReadEngagements
+from ._testing__event_namespaces import TestingEventNamespaces
+from ._testing__event_namespaces import TestingEventNamespacesEventNamespaces
 from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
 from ._testing__itsystem_read import TestingItsystemRead
@@ -195,6 +197,31 @@ def gql(q: str) -> str:
 
 
 class GraphQLClient(AsyncBaseClient):
+    async def _testing__event_namespaces(self) -> TestingEventNamespacesEventNamespaces:
+        query = gql(
+            """
+            query __testing__event_namespaces {
+              event_namespaces {
+                objects {
+                  name
+                  owner
+                  public
+                  listeners {
+                    owner
+                    routing_key
+                    user_key
+                    uuid
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingEventNamespaces.parse_obj(data).event_namespaces
+
     async def _testing__address_read(
         self, filter: AddressFilter | None | UnsetType = UNSET
     ) -> TestingAddressReadAddresses:
