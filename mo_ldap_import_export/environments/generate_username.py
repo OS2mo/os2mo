@@ -139,8 +139,30 @@ async def _ldap_allows_username(
                 result=result,
             )
             raise ValueError("Search failed")
+        # The format of Response is specified in RFC4511 (Section 4.5.2 - Search Result)
+        #
+        # Response is a list of zero or more SearchResultEntry and/or
+        # SearchResultReference messages, followed by a single SearchResultDone message.
+        #
+        # The SearchResultEntry is a search match, while the SearchResultReference is a
+        # continuation search that must be executed by the client, finally the
+        # SearchResultDone is an indicator that the search has completed and that no
+        # more work needs to be done by the client.
+        #
+        # The LDAP3 library handles the SearchResultDone message for us by consuming the
+        # search result until all results have been collected, it also usually handles
+        # the SearchResultReference messages by emitting additionally searches for each
+        # reference such that all references are handled.
+        #
+        # As such we generally expect to only see SearchResultEntry messages in our
+        # response, however as the LDAP3 library cannot handle all of Active Directorys
+        # shenanigans, so we will sometimes see leftover SearchResultReferences in our
+        # response, but we have opted to just ignore these for now.
+
+        # Filter out Active Directory SearchResultReferences that LDAP3 could not handle
+        results = [result for result in response if result["type"] == "searchResEntry"]
         # If we got any results, we have found a conflict
-        if response != []:
+        if results:
             return False
 
     return True
