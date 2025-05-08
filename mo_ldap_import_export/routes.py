@@ -351,8 +351,6 @@ async def load_ldap_OUs(
 def construct_router(settings: Settings) -> APIRouter:
     router = APIRouter()
 
-    default_ldap_class = settings.ldap_object_class
-
     @router.get("/Inspect/dn2uuid/{dn}", status_code=200, tags=["LDAP"])
     async def ldap_dn2uuid(dataloader: depends.DataLoader, dn: DN) -> UUID:
         return await dataloader.ldapapi.get_ldap_unique_ldap_uuid(dn)
@@ -488,9 +486,11 @@ def construct_router(settings: Settings) -> APIRouter:
     # Get LDAP overview
     @router.get("/Inspect/overview", status_code=202, tags=["LDAP"])
     async def load_overview_from_LDAP(
+        settings: depends.Settings,
         ldap_connection: depends.Connection,
-        ldap_class: str = default_ldap_class,
+        ldap_class: str | None = None,
     ) -> Any:
+        ldap_class = ldap_class or settings.ldap_object_class
         ldap_overview = load_ldap_overview(ldap_connection)
         return ldap_overview[ldap_class]
 
@@ -508,8 +508,9 @@ def construct_router(settings: Settings) -> APIRouter:
     async def load_populated_overview_from_LDAP(
         settings: depends.Settings,
         ldap_connection: depends.Connection,
-        ldap_class: str = default_ldap_class,
+        ldap_class: str | None = None,
     ) -> Any:
+        ldap_class = ldap_class or settings.ldap_object_class
         ldap_overview = await load_ldap_populated_overview(
             settings, ldap_connection, ldap_classes=[ldap_class]
         )
