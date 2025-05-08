@@ -96,14 +96,18 @@ class LDAPAPI:
         self, dn: DN, attributes: dict[str, Any], object_class: str
     ) -> None:
         """
-        Adds a new object to LDAP
+        Add an object at `dn` with the provided attributes and object_class.
 
-        Parameters
-        ---------------
-        attributes : dict
-            dictionary with attributes to populate in LDAP, when creating the user.
-            See https://ldap3.readthedocs.io/en/latest/add.html for more information
-
+        Args:
+            dn: DN of the object to create.
+            attributes:
+                Dictionary with attributes to populate in LDAP.
+                See:
+                * https://ldap3.readthedocs.io/en/latest/add.html and
+                * https://ldap3.readthedocs.io/en/latest/modify.html
+                For details
+            object_class:
+                The object class to set on newly created objects.
         """
         # TODO: Remove this when ldap3s read-only flag works
         if self.settings.ldap_read_only:
@@ -251,12 +255,16 @@ class LDAPAPI:
         requested_changes: dict[str, list],
     ) -> None:
         """
-        Parameters
-        -------------
-        object_to_modify : LDAPObject
-            object to upload to LDAP
-        delete: bool
-            Set to True to delete contents in LDAP, instead of creating/modifying them
+        Modify the object at `dn` to ensure it has the provided attributes.
+
+        Args:
+            dn: DN of the object to modify.
+            attributes:
+                Dictionary with attributes to populate in LDAP.
+                See:
+                * https://ldap3.readthedocs.io/en/latest/add.html and
+                * https://ldap3.readthedocs.io/en/latest/modify.html
+                For details
         """
         # TODO: Remove this when ldap3s read-only flag works
         if self.settings.ldap_read_only:
