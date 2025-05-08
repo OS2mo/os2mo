@@ -45,7 +45,7 @@ class LDAPAPI:
         self.ldap_connection = ldap_connection
 
     # TODO: Move this to settings?
-    def ou_in_ous_to_write_to(self, dn: str) -> bool:
+    def ou_in_ous_to_write_to(self, dn: DN) -> bool:
         """
         Determine if an OU is among those to which we are allowed to write.
         """
@@ -89,10 +89,10 @@ class LDAPAPI:
         search_result = await single_object_search(
             searchParameters, self.ldap_connection
         )
-        dn: str = search_result["dn"]
+        dn: DN = search_result["dn"]
         return dn
 
-    async def add_ldap_object(self, dn: str, attributes: dict[str, Any]) -> None:
+    async def add_ldap_object(self, dn: DN, attributes: dict[str, Any]) -> None:
         """
         Adds a new object to LDAP
 
@@ -157,7 +157,7 @@ class LDAPAPI:
         )
         logger.info("LDAP Result", result=result, dn=dn)
 
-    async def get_ldap_unique_ldap_uuid(self, dn: str) -> LDAPUUID:
+    async def get_ldap_unique_ldap_uuid(self, dn: DN) -> LDAPUUID:
         """
         Given a DN, find the unique_ldap_uuid
         """

@@ -95,7 +95,7 @@ def remove_vowels(string: str) -> str:
     return re.sub("[aeiouAEIOU]", "", string)
 
 
-def extract_part_from_dn(dn: str, index_string: str) -> str:
+def extract_part_from_dn(dn: DN, index_string: str) -> str:
     """
     Extract a part from an LDAP DN string
 

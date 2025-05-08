@@ -165,7 +165,7 @@ async def test_to_ldap(
     cpr = "2108613133"
 
     @retry()
-    async def assert_employee(dn: str, expected: dict[str, Any]) -> None:
+    async def assert_employee(dn: DN, expected: dict[str, Any]) -> None:
         response, _ = await ldap_search(
             ldap_connection,
             search_base=combine_dn_strings(ldap_org_unit),

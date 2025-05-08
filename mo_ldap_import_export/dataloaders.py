@@ -41,13 +41,13 @@ class DataLoader:
         self.moapi = moapi
         self.username_generator = username_generator
 
-    async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[EmployeeUUID]:
+    async def find_mo_employee_uuid_via_cpr_number(self, dn: DN) -> set[EmployeeUUID]:
         cpr_number = await self.ldapapi.dn2cpr(dn)
         if cpr_number is None:
             return set()
         return await self.moapi.cpr2uuids(cpr_number)
 
-    async def find_mo_employee_uuid(self, dn: str) -> EmployeeUUID | None:
+    async def find_mo_employee_uuid(self, dn: DN) -> EmployeeUUID | None:
         cpr_results = await self.find_mo_employee_uuid_via_cpr_number(dn)
         if len(cpr_results) == 1:
             uuid = one(cpr_results)

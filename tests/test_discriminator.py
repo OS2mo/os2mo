@@ -83,7 +83,7 @@ def ldap_container_dn() -> str:
 
 
 @pytest.fixture
-def ldap_connection(settings: Settings, ldap_container_dn: str) -> Iterable[Connection]:
+def ldap_connection(settings: Settings, ldap_container_dn: DN) -> Iterable[Connection]:
     """Fixture to construct a mocked ldap_connection.
 
     Returns:
@@ -117,12 +117,12 @@ def ldap_connection(settings: Settings, ldap_container_dn: str) -> Iterable[Conn
 
 
 @pytest.fixture
-def ldap_dn(settings: Settings, ldap_container_dn: str) -> DN:
+def ldap_dn(settings: Settings, ldap_container_dn: DN) -> DN:
     return DN(f"CN={settings.ldap_user},{ldap_container_dn}")
 
 
 async def test_searching_mocked(
-    ldap_connection: Connection, settings: Settings, ldap_container_dn: str
+    ldap_connection: Connection, settings: Settings, ldap_container_dn: DN
 ) -> None:
     """Test that we can use the mocked ldap_connection to search for our default user."""
     message_id = ldap_connection.search(
@@ -196,7 +196,7 @@ async def test_searching_newly_added(ldap_connection: Connection) -> None:
 
 
 async def test_searching_dn_lookup(
-    ldap_connection: Connection, settings: Settings, ldap_dn: DN, ldap_container_dn: str
+    ldap_connection: Connection, settings: Settings, ldap_dn: DN, ldap_container_dn: DN
 ) -> None:
     """Test that we can read our default user."""
     message_id = ldap_connection.search(
@@ -272,7 +272,7 @@ async def test_get_ldap_object(
 async def test_get_ldap_cpr_object(
     ldap_connection: Connection,
     settings: Settings,
-    ldap_container_dn: str,
+    ldap_container_dn: DN,
 ) -> None:
     message_id = ldap_connection.search(
         ldap_container_dn,
@@ -358,7 +358,7 @@ async def test_apply_discriminator_unknown_dn(
 async def test_apply_discriminator_missing_field(
     monkeypatch: pytest.MonkeyPatch,
     ldap_connection: Connection,
-    ldap_container_dn: str,
+    ldap_container_dn: DN,
 ) -> None:
     """Test that apply_discriminator works with a single user on valid settings."""
     another_username = "bar"
@@ -387,7 +387,7 @@ async def test_apply_discriminator_missing_field(
 @pytest.fixture
 async def sync_tool_and_context(
     ldap_connection: Connection,
-    ldap_container_dn: str,
+    ldap_container_dn: DN,
     settings: Settings,
     graphql_client: GraphQLClient,
     graphql_mock: GraphQLMocker,
@@ -532,7 +532,7 @@ async def context(sync_tool_and_context: tuple[SyncTool, Context]) -> Context:
 )
 async def test_import_single_user_apply_discriminator(
     ldap_connection: Connection,
-    ldap_container_dn: str,
+    ldap_container_dn: DN,
     ldap_dn: DN,
     graphql_mock: GraphQLMocker,
     sync_tool: SyncTool,
@@ -663,7 +663,7 @@ async def test_import_single_user_apply_discriminator(
 )
 async def test_listen_to_changes_in_employees(
     ldap_connection: Connection,
-    ldap_container_dn: str,
+    ldap_container_dn: DN,
     ldap_dn: DN,
     graphql_mock: GraphQLMocker,
     sync_tool: SyncTool,
@@ -909,7 +909,7 @@ async def test_get_existing_names(sync_tool: SyncTool, context: Context) -> None
 
 async def test_load_ldap_OUs(
     ldap_connection: Connection,
-    ldap_container_dn: str,
+    ldap_container_dn: DN,
     context: Context,
 ) -> None:
     group_dn1 = f"OU=Users,{ldap_container_dn}"

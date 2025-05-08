@@ -5,6 +5,8 @@
 from pydantic import BaseModel
 from pydantic import Extra
 
+from mo_ldap_import_export.types import DN
+
 
 class LdapObject(BaseModel, extra=Extra.allow):  # type: ignore
-    dn: str  # LDAP requires that the class contains a 'dn' (Distinguished Name) field
+    dn: DN  # LDAP requires that the class contains a 'dn' (Distinguished Name) field

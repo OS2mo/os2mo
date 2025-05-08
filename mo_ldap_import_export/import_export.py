@@ -118,7 +118,7 @@ class SyncTool:
             self.settings.it_user_to_check,
         )
 
-    async def perform_import_checks(self, dn: str, json_key: str) -> bool:
+    async def perform_import_checks(self, dn: DN, json_key: str) -> bool:
         if self.settings.check_holstebro_ou_issue_57426:  # pragma: no cover
             return await self.import_checks.check_holstebro_ou_is_externals_issue_57426(
                 self.settings.check_holstebro_ou_issue_57426,
@@ -609,7 +609,7 @@ class SyncTool:
     async def import_single_entity(
         self,
         mapping: LDAP2MOMapping,
-        dn: str,
+        dn: DN,
         template_context: dict[str, Any],
     ) -> None:
         logger.info("Loading object", mo_class=mapping.as_mo_class(), dn=dn)

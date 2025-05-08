@@ -354,7 +354,7 @@ def construct_router(settings: Settings) -> APIRouter:
     default_ldap_class = settings.ldap_object_class
 
     @router.get("/Inspect/dn2uuid/{dn}", status_code=200, tags=["LDAP"])
-    async def ldap_dn2uuid(dataloader: depends.DataLoader, dn: str) -> UUID:
+    async def ldap_dn2uuid(dataloader: depends.DataLoader, dn: DN) -> UUID:
         return await dataloader.ldapapi.get_ldap_unique_ldap_uuid(dn)
 
     @router.get("/Inspect/uuid2dn/{uuid}", status_code=200, tags=["LDAP"])
@@ -363,7 +363,7 @@ def construct_router(settings: Settings) -> APIRouter:
 
     @router.get("/Inspect/dn/{dn}", status_code=200, tags=["LDAP"])
     async def ldap_fetch_object_by_dn(
-        ldap_connection: depends.Connection, dn: str, nest: bool = False
+        ldap_connection: depends.Connection, dn: DN, nest: bool = False
     ) -> Any:
         return encode_result(
             await get_ldap_object(ldap_connection, dn, {"*"}, nest=nest)
