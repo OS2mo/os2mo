@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-from typing import Any
 from typing import cast
 
 import structlog
@@ -93,7 +92,7 @@ class LDAPAPI:
         return dn
 
     async def add_ldap_object(
-        self, dn: DN, attributes: dict[str, Any], object_class: str
+        self, dn: DN, attributes: dict[str, list], object_class: str
     ) -> None:
         """
         Add an object at `dn` with the provided attributes and object_class.

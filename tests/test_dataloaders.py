@@ -938,7 +938,7 @@ async def test_add_ldap_object(settings: Settings, ldap_connection: MagicMock) -
     ldap_connection.get_response.return_value = [], {"type": "test"}
 
     await ldapapi.add_ldap_object(
-        "CN=foo", attributes={"foo": 2}, object_class=settings.ldap_object_class
+        "CN=foo", attributes={"foo": [2]}, object_class=settings.ldap_object_class
     )
     ldap_connection.add.assert_called_once()  # type: ignore
 
