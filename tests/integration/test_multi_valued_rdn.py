@@ -195,6 +195,7 @@ def test_parse_dn_handles_multi_valued_rdns(
     }
 )
 @pytest.mark.usefixtures("test_client")
+@pytest.mark.xfail(reason="The RDN format gets modified")
 async def test_renaming_multi_valued_rdns(
     trigger_sync: Callable[[EmployeeUUID], Awaitable[None]],
     graphql_client: GraphQLClient,
@@ -246,6 +247,8 @@ async def test_renaming_multi_valued_rdns(
     new_dn = await ldapapi.get_ldap_dn(entry_uuid)
     assert new_dn != person_dn
 
-    # This should really be on the same format as originally, but currently it is not
-    expected_dn = combine_dn_strings([f"uid={cpr}"] + ldap_org_unit)
+    # We expect the RDN to keep its format, only changing the values within it
+    expected_dn = combine_dn_strings(
+        [f"employeeNumber={cpr}+uid={cpr}"] + ldap_org_unit
+    )
     assert new_dn == expected_dn
