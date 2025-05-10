@@ -7,6 +7,8 @@ from typing import Any
 import pytest
 from ldap3.core.exceptions import LDAPInvalidDnError
 
+from mo_ldap_import_export.types import DN
+from mo_ldap_import_export.types import RDN
 from mo_ldap_import_export.utils import combine_dn_strings
 from mo_ldap_import_export.utils import extract_ou_from_dn
 from mo_ldap_import_export.utils import get_delete_flag
@@ -45,10 +47,16 @@ async def test_mo_datestring_to_utc() -> None:
     assert date is None
 
 
-def test_combine_dn_strings() -> None:
-    assert combine_dn_strings(["CN=Nick", "", "DC=bar"]) == "CN=Nick,DC=bar"
-    assert combine_dn_strings(["CN=Nick", "OU=f", "DC=bar"]) == "CN=Nick,OU=f,DC=bar"
-    assert combine_dn_strings(["CN=Nick", "DC=bar"]) == "CN=Nick,DC=bar"
+@pytest.mark.parametrize(
+    "parts,dn",
+    [
+        (["CN=Nick", "", "DC=bar"], "CN=Nick,DC=bar"),
+        (["CN=Nick", "OU=f", "DC=bar"], "CN=Nick,OU=f,DC=bar"),
+        (["CN=Nick", "DC=bar"], "CN=Nick,DC=bar"),
+    ],
+)
+def test_combine_dn_strings(parts: list[RDN], dn: DN) -> None:
+    assert combine_dn_strings(parts) == dn
 
 
 def test_remove_vowels() -> None:
