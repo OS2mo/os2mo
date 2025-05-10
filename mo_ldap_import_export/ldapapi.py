@@ -13,6 +13,7 @@ from ldap3.core.exceptions import LDAPNoSuchObjectResult
 from ldap3.utils.dn import escape_rdn
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
+from ldap3.utils.dn import safe_rdn
 from more_itertools import one
 from more_itertools import only
 from more_itertools import partition
@@ -285,7 +286,7 @@ class LDAPAPI:
         # Microsoft AD is case-insensitive, so attributes written do not
         # necessarily match attributes read as part of the DN.
         modify_dn_attributes = {
-            attribute.casefold() for attribute, value, seperator in parse_dn(dn)
+            key.casefold(): value for key, value in safe_rdn(dn, decompose=True)
         }
 
         # MODIFY-LDAP
@@ -309,30 +310,28 @@ class LDAPAPI:
                 raise exc
 
         # MODIFY-DN
-        ldap_uuid = await self.get_ldap_unique_ldap_uuid(dn)
-        requested_dn_changes = {
-            attribute: values
-            for attribute, values in requested_changes.items()
-            if attribute.casefold() in modify_dn_attributes
-        }
-        for attribute, values in requested_dn_changes.items():
-            # The user's DN is changed by our modifications, but its UUID does not
-            current_dn = await self.get_ldap_dn(ldap_uuid)
-            try:
-                # Modify LDAP-DN
-                logger.info(
-                    "Changing object DN",
-                    current_dn=current_dn,
-                    attribute=attribute,
-                    value=values,
-                )
-                rdn = f"{attribute}={escape_rdn(one(values))}"
-                _, result = await ldap_modify_dn(self.ldap_connection, current_dn, rdn)
-                logger.info("LDAP Result", result=result, current_dn=current_dn)
-            except LDAPInvalidValueError as exc:  # pragma: no cover
-                logger.exception(
-                    "LDAP modify-dn failed",
-                    current_dn=current_dn,
-                    changes=requested_changes,
-                )
-                raise exc
+        # Calculate our desired DN, based on the current DN + the requested_changes
+        desired_rdn_dict = modify_dn_attributes.copy()
+        desired_rdn_dict.update(
+            {
+                key: escape_rdn(one(value))
+                for key, value in requested_changes.items()
+                if key.casefold() in desired_rdn_dict
+            }
+        )
+        # If the desired DN is what we already have, there is nothing left for us to do
+        if desired_rdn_dict == modify_dn_attributes:
+            logger.info("Updating DN is not required")
+            return
+
+        # Combine the dict to construct the new RDN
+        new_rdn_pairs = [f"{key}={value}" for key, value in desired_rdn_dict.items()]
+        new_rdn = "+".join(new_rdn_pairs)
+        try:
+            # Modify LDAP-DN
+            logger.info("Changing object RDN", dn=dn, new_rdn=new_rdn)
+            _, result = await ldap_modify_dn(self.ldap_connection, dn, new_rdn)
+            logger.info("LDAP Result", result=result, dn=dn)
+        except LDAPInvalidValueError as exc:  # pragma: no cover
+            logger.exception("LDAP modify-dn failed", dn=dn, changes=requested_changes)
+            raise exc

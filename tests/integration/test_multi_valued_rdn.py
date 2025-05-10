@@ -195,7 +195,6 @@ def test_parse_dn_handles_multi_valued_rdns(
     }
 )
 @pytest.mark.usefixtures("test_client")
-@pytest.mark.xfail(reason="The RDN format gets modified")
 async def test_renaming_multi_valued_rdns(
     trigger_sync: Callable[[EmployeeUUID], Awaitable[None]],
     graphql_client: GraphQLClient,
