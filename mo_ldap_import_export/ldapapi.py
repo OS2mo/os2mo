@@ -130,17 +130,20 @@ class LDAPAPI:
             )
             raise ReadOnlyException("Not allowed to write to the specified OU")
 
+        # During edits empty lists are used to clear attributes, however they are not
+        # allowed on creation since attributes are by default created as empty if no
+        # value is explicitly provided. Thus we can safely filter empty values out.
+        attributes = {key: value for key, value in attributes.items() if value != []}
+
+        # Attributes which are part of the DN should not be set in `attributes` as well.
+        # They will automatically be set by indirection via the DN.
         dn_attributes = {
             attribute.casefold() for attribute, value, seperator in parse_dn(dn)
         }
         attributes = {
-            k: v
-            for k, v in attributes.items()
-            # Attributes which are part of the DN should not be set in
-            # `attributes` as well. Furthermore, whereas empty lists are used
-            # to clear attributes during edit, they are not allowed on
-            # creation, since attributes are, by default, created as empty.
-            if k.casefold() not in dn_attributes and v != []
+            key: value
+            for key, value in attributes.items()
+            if key.casefold() not in dn_attributes
         }
 
         logger.info("Adding user to LDAP", dn=dn, attributes=attributes)
