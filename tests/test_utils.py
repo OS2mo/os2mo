@@ -53,6 +53,13 @@ async def test_mo_datestring_to_utc() -> None:
         (["CN=Nick", "", "DC=bar"], "CN=Nick,DC=bar"),
         (["CN=Nick", "OU=f", "DC=bar"], "CN=Nick,OU=f,DC=bar"),
         (["CN=Nick", "DC=bar"], "CN=Nick,DC=bar"),
+        (["cn=Nick+uid=unique_id", "DC=bar"], "cn=Nick+uid=unique_id,DC=bar"),
+        (["CN=van Dyck, Jeff", "DC=bar"], "CN=van Dyck\\, Jeff,DC=bar"),
+        (["CN=van=Dyck=Jeff", "DC=bar"], "CN=van\\=Dyck\\=Jeff,DC=bar"),
+        (
+            ["", "CN=van=Dy+uid=ck, Jeff", "", "", "DC=bar", ""],
+            "CN=van\\=Dy+uid=ck\\, Jeff,DC=bar",
+        ),
     ],
 )
 def test_combine_dn_strings(parts: list[RDN], dn: DN) -> None:
