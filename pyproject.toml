@@ -24,6 +24,7 @@ pycryptodome = "^3"
 jinja2 = "^3"
 sqlalchemy = "^2"
 websockets = "^13"
+pyasn1 = "^0.6.1"
 
 [tool.poetry.group.pre-commit.dependencies]
 mypy = "^1"

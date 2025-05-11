@@ -30,10 +30,15 @@ from ldap3 import Tls
 from ldap3 import set_config_parameter
 from ldap3.core.exceptions import LDAPInvalidDnError
 from ldap3.core.exceptions import LDAPNoSuchObjectResult
+from ldap3.operation.search import FilterNode
+from ldap3.operation.search import compile_filter
+from ldap3.operation.search import parse_filter
+from ldap3.protocol.rfc4511 import Filter as RFC4511Filter
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from more_itertools import one
 from more_itertools import only
+from pyasn1.codec.ber import encoder as ber_encoder
 
 from .config import AuthBackendEnum
 from .config import ServerConfig
@@ -228,9 +233,12 @@ async def wait_for_message_id(
 
 
 async def ldap_modify(
-    ldap_connection: Connection, dn: DN, changes: dict
+    ldap_connection: Connection,
+    dn: DN,
+    changes: dict,
+    controls: list[tuple[str, bool, Any | None]] | None = None,
 ) -> tuple[dict, dict]:
-    message_id = ldap_connection.modify(dn, changes)
+    message_id = ldap_connection.modify(dn, changes, controls)
     response, result = await wait_for_message_id(ldap_connection, message_id)
     return response, result
 
@@ -757,3 +765,72 @@ def check_ou_in_list_of_ous(ou_to_check, list_of_ous):
     any_ok = any(ou_to_check.endswith(ou) for ou in list_of_ous)
     if not any_ok:
         raise ValueError(f"{ou_to_check} is not in {list_of_ous}")
+
+
+def construct_assertion_control(search_filter: str) -> tuple[str, bool, bytes]:
+    """Construct an RFC4528 Assertion Control 3-tuple.
+
+    The goal of the assertion control is to ensure that a write operation only
+    takes place if the provided search filter matches an entry on the server.
+    It is similar in purpose to ETag (entity tag) within HTTP.
+
+    The control is identified by its Object Identifier (OID) and can be marked
+    as critical. If the control is critical and the server does not support it,
+    or if the assertion fails, the operation should not be performed.
+
+    Args:
+        search_filter:
+            String representation of the RFC4515 search filter to check.
+            For example: "(objectClass=person)"
+
+    Raises:
+        LDAPInvalidFilterError: If the filter is malformed or otherwise invalid.
+
+    Returns:
+        A 3-tuple LDAP control, containing:
+            Control OID:
+                This specifies what kind of control operation must be done.
+
+                This function always returns the OID for assertion control.
+                I.e. '1.3.6.1.1.12'.
+
+            Criticality:
+                A boolean indicating if the control is critical.
+                If set the server must either honorate or refuse the operation.
+                Thus if the server does not understand the control it must fail.
+
+                It is possible to check which controls the server supports by reading
+                the supportedControl attribute of the server's root DSE.
+
+                This function always returns `True` for criticality.
+
+            Control value:
+                The value is an optional argument specific to the Control OID provided.
+
+                In the case of assertion control, it is the BER-encoded assertion
+                search filter.
+    """
+    # Parse the provided filter string into an ldap3 FilterNode
+    ldap3_filter: FilterNode = parse_filter(
+        search_filter,
+        # Skip pre-validating the search filter against a provided schema
+        # We will simply let it be validated once it is send to the server
+        # All of the following parameters are related to pre-validation
+        schema=None,
+        auto_escape=True,
+        auto_encode=True,
+        validator=None,
+        check_names=False,
+    )
+    assert isinstance(ldap3_filter, FilterNode)
+    # We assume the generated search-filter only has 1 element (the root)
+    root = one(ldap3_filter.elements)
+    # Compile the filter into an ASN.1 structure
+    asn1_filter: RFC4511Filter = compile_filter(root)
+    assert isinstance(asn1_filter, RFC4511Filter)
+    # BER encode the ASN.1 filter structure
+    ber_encoded_filter = ber_encoder.encode(asn1_filter)
+
+    # Construct and return our 3-tuple, setting criticality to True
+    LDAP_ASSERTION_CONTROL_OID = "1.3.6.1.1.12"
+    return (LDAP_ASSERTION_CONTROL_OID, True, ber_encoded_filter)
