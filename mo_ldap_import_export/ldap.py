@@ -34,6 +34,7 @@ from ldap3.operation.search import FilterNode
 from ldap3.operation.search import compile_filter
 from ldap3.operation.search import parse_filter
 from ldap3.protocol.rfc4511 import Filter as RFC4511Filter
+from ldap3.utils.conv import escape_filter_chars
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from more_itertools import one
@@ -765,6 +766,43 @@ def check_ou_in_list_of_ous(ou_to_check, list_of_ous):
     any_ok = any(ou_to_check.endswith(ou) for ou in list_of_ous)
     if not any_ok:
         raise ValueError(f"{ou_to_check} is not in {list_of_ous}")
+
+
+def construct_assertion_control_filter(attributes: dict[str, Any]) -> str:
+    """Constructs an LDAP search filter string from a dictionary of attributes.
+
+    This function is useful for constructing LDAP Assertion Controls filter
+    in accordance with RFC4515.
+    The resulting filter asserts that an LDAP entry must have *all* the specified
+    attribute-value pairs.
+
+    NOTE: ldap3.utils.conv.escape_filter_chars for escaping values.
+
+    Args:
+        attributes:
+            A dictionary where keys are LDAP attribute names and values are the
+            expected attribute values.
+            Values will be converted to strings and properly escaped.
+
+    Returns:
+        An LDAP filter string useful for LDAP Assertion Control.
+    """
+    # We assume that an empty dictionary means "no conditions", i.e. wanting to match
+    # any object. '(objectClass=*)' is a common way to represent this.
+    if not attributes:
+        return "(objectClass=*)"
+
+    filter_pairs = [
+        f"({key}={escape_filter_chars(str(value))})"
+        for key, value in attributes.items()
+    ]
+    # If only one attribute is found, return the single filter part directly
+    if len(filter_pairs) == 1:
+        return one(filter_pairs)
+    # If multiple attributes are found, combine them with the AND operator '&'
+    # The format is (&(filter1)(filter2)...)
+    combined_filters = "".join(filter_pairs)
+    return f"(&{combined_filters})"
 
 
 def construct_assertion_control(search_filter: str) -> tuple[str, bool, bytes]:
