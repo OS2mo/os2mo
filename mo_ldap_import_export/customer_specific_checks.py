@@ -4,6 +4,8 @@ from uuid import UUID
 
 import structlog
 
+from mo_ldap_import_export.types import DN
+
 from .dataloaders import DataLoader
 from .exceptions import IgnoreChanges
 from .ldap import check_ou_in_list_of_ous
@@ -40,7 +42,7 @@ class ExportChecks:
 
 class ImportChecks:
     async def check_holstebro_ou_is_externals_issue_57426(
-        self, ou_includes: list[str], current_dn: str, json_key: str
+        self, ou_includes: list[str], current_dn: DN, json_key: str
     ) -> bool:
         """
         Raise IgnoreChanges if current_dn's OU is not in any of ou_includes.
