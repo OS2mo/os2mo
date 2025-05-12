@@ -937,7 +937,9 @@ async def test_add_ldap_object(settings: Settings, ldap_connection: MagicMock) -
 
     ldap_connection.get_response.return_value = [], {"type": "test"}
 
-    await ldapapi.add_ldap_object("CN=foo", attributes={"foo": 2})
+    await ldapapi.add_ldap_object(
+        "CN=foo", attributes={"foo": 2}, object_class=settings.ldap_object_class
+    )
     ldap_connection.add.assert_called_once()  # type: ignore
 
     ldapapi.settings = MagicMock()  # type: ignore
@@ -945,7 +947,9 @@ async def test_add_ldap_object(settings: Settings, ldap_connection: MagicMock) -
     ldapapi.settings.ldap_read_only = False
 
     with pytest.raises(ReadOnlyException) as exc:
-        await ldapapi.add_ldap_object("CN=foo", attributes={})
+        await ldapapi.add_ldap_object(
+            "CN=foo", attributes={}, object_class=settings.ldap_object_class
+        )
     assert "Adding LDAP objects is disabled" in str(exc.value)
 
     ldapapi.ldap_connection.reset_mock()  # type: ignore
@@ -954,12 +958,16 @@ async def test_add_ldap_object(settings: Settings, ldap_connection: MagicMock) -
     ldapapi.ou_in_ous_to_write_to.return_value = False
 
     with pytest.raises(ReadOnlyException) as exc:
-        await ldapapi.add_ldap_object("CN=foo", attributes={})
+        await ldapapi.add_ldap_object(
+            "CN=foo", attributes={}, object_class=settings.ldap_object_class
+        )
     assert "Not allowed to write to the specified OU" in str(exc.value)
 
     ldapapi.settings.ldap_read_only = True
     with pytest.raises(ReadOnlyException) as exc:
-        await ldapapi.add_ldap_object("CN=foo", attributes={})
+        await ldapapi.add_ldap_object(
+            "CN=foo", attributes={}, object_class=settings.ldap_object_class
+        )
     assert "LDAP connection is read-only" in str(exc.value)
 
 

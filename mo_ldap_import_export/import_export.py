@@ -285,7 +285,9 @@ class SyncTool:
             #       values set during its creation, ensuring we can find them, even if
             #       we crash immediately after the creation of the account.
             best_dn = await self.dataloader.make_mo_employee_dn(uuid, common_name)
-            await self.dataloader.ldapapi.add_ldap_object(best_dn, ldap_desired_state)
+            await self.dataloader.ldapapi.add_ldap_object(
+                best_dn, ldap_desired_state, self.settings.ldap_object_class
+            )
             await self.create_ituser_link(uuid, best_dn)
         else:
             # To avoid spamming server logs we compare with current state before writing
