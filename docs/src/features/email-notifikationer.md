@@ -2,45 +2,76 @@
 title: Email-notifikationer
 ---
 
-# Email-notifikationer
+# 📬 Notifikationer i MO
 
-Når en hændelse indtræffer i MO, kan der automatisk blive sendt email-notifikationer til rette vedkommende.
+MO kan automatisk sende notifikationer, når nedenstående hændelser indtræffer. Det sikrer, at relevante personer bliver informeret rettidigt og kan handle hurtigt.
 
-Eksempler på hændelser:
+## ✉️ Ny email til nyansatte
 
-- en leder stopper, og lederfunktionen bliver vakant (se beskrivelse nedenfor).
-- en 'MED'-person stopper (TR, AMR, LR, mv.), og positionen bliver vakant
-- en person ansættes, og der skal sendes notifikationer til systemejere, som skal oprette personen manuelt i deres systemer.
-- en person fratræder, og der skal sendes notifikationer til systemejere, som skal nedlægge personen manuelt i deres systemer.
-- der skal straksoprettes en vikar
+Når en nyansat medarbejder får oprettet sin første arbejds-email, sender MO automatisk en besked til rette vedkommende. Det kan f.eks. være:
 
-# Konkret eksempel: En leder stopper
+- Medarbejderens private email
+- En fælles postkasse
+- Medarbejderens leder
 
-Der kan automatisk blive sendt email-notifikationer , når en leders engagement afsluttes i organisationen. Personens lederrolle bliver fjernet fra lederfanen i OS2mo og flyttet ned under ”Fortid”. Lederfanen i OS2mo ser således ud:
+**Baggrund**
+En bruger oprettes i MO og bliver synkroniseret til Active Directory (AD). MOs integration til AD’et genererer et brugernavn og dermed en arbejdsemail-adresse, som sendes tilbage til MO. Idet MO opretter email-adressen, sendes en notifikation til rette vedkommende.
 
-![image](../graphics/ledere.png)
+## 👤 Leder fratræder eller lederrolle bliver vakant
 
-Det er muligt at afslutte en leder fra fanen ved brug af ’fjern’-knappen (det røde stopskilt, der findes ud for lederen på skærmbilledet ovenfor):
+- Når en leder fratræder, bliver der automatisk sendt en notifikation.
+- Når en lederrolle bliver vakant, bliver der ligeledes automatisk sendt en notifikation.
 
-![image](../graphics/afslutleder.png)
+Disse beskeder hjælper med at sikre, at alle enheder til enhver tid har en aktiv leder tilknyttet.
 
-Når lederen er fjernet, sendes email-notifikationen til rette vedkommende. Hvis slutdato bliver sat til en dato i fremtiden, sendes email-notifikationen på den valgte dato. Emailen kan se således ud:
+## 🏢 Manglende relationer mellem enheder
 
-![image](../graphics/mail.png)
+I organisationer med både en **lønorganisation** og en **administrativ organisation** skal enhederne være korrekt relateret i MO. Hvis denne relation mangler:
 
-# Test af løsningen
+- Kan medarbejdere ikke automatisk flyttes mellem organisationerne
+- Sendes en email-notifikation til MO-administratoren, som kan oprette den manglende relation
 
-Løses kan testes på følgende måde:
+Dette understøtter korrekt placering af medarbejdere og drift af automatisering.
 
-**Test 1**
-- Fjern en leder fra lederfanen med øjeblikkelig virkning (dsv. slutdato er i dag eller i fortiden).
+## 💻 It-brugere og -roller
+
+Når MO skal oprette en it-bruger i et system, som MO ikke har en systemintegration med, kan MO sende en notifikation til systemets administrator, så vedkommende manuelt kan oprette brugeren med de relevante roller.
+
+Ved ændringer til brugeren eller brugerens roller, sender MO også en email, så systemadministratoren kan foretage de nødvendige opdateringer i det eksterne system.
+
+## 🔔 Konkret eksempel: En leder stopper
+
+Der kan automatisk blive sendt email-notifikationer, når en leders engagement afsluttes i organisationen. Personens lederrolle bliver fjernet fra lederfanen i OS2mo og flyttet ned under **”Fortid”**. Lederfanen i OS2mo ser således ud:
+
+![Lederfanen](../graphics/ledere.png)
+
+Det er muligt at afslutte en leder fra fanen ved brug af **'fjern'**-knappen (det røde stopskilt, der findes ud for lederen på skærmbilledet ovenfor):
+
+![Fjern leder](../graphics/afslutleder.png)
+
+Når lederen er fjernet, sendes email-notifikationen til rette vedkommende. Hvis slutdatoen bliver sat til en dato i fremtiden, sendes email-notifikationen på den valgte dato.
+
+Emailen kan se således ud:
+
+![Eksempel på email](../graphics/mail.png)
+
+## ✅ Test af løsningen
+
+Løsningen kan testes på følgende måde:
+
+### 🔹 Test 1
+- Fjern en leder fra lederfanen med øjeblikkelig virkning (dvs. slutdato er i dag eller i fortiden).
 - Bekræft at der modtages en email med oplysninger om den fjernede leder.
 
-**Test 2**
+### 🔹 Test 2
 - Sæt en slutdato på en leder.
 - Bekræft at der modtages en email på den valgte dato.
 
-**Test 3**
+### 🔹 Test 3
 - Tilføj en ny leder.
-- Lav fx ændringer i ’lederniveau’, ’startdato’, ’ledertype’.
-- Bekræft at der ikke modtages email.
+- Lav fx ændringer i 'lederniveau', 'startdato' eller 'ledertype'.
+- Bekræft at der **ikke** modtages email.
+
+## 🛠️ Udvidelser
+
+Hvis der er behov for at modtage notifikationer på andre hændelser, kan dette tilpasses. Kontakt MO-leverandøren for opsætning af ekstra scenarier.
