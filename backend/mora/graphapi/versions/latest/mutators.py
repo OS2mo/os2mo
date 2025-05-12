@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import logging
+from datetime import datetime
 from textwrap import dedent
 from typing import Annotated
 from typing import Any
@@ -1930,7 +1931,16 @@ class Mutation:
 
         # coverage: pause
         session: AsyncSession = info.context["session"]
-        await session.execute(update(db.Event).where(*clauses).values(silenced=False))
+        await session.execute(
+            update(db.Event)
+            .where(*clauses)
+            .values(
+                silenced=False,
+                # Update last_tried to override back-off and retry event
+                # immediately.
+                last_tried=datetime(1970, 1, 1),
+            )
+        )
         return True
         # coverage: unpause
 
