@@ -14,6 +14,9 @@ import structlog
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 
+from mo_ldap_import_export.types import DN
+from mo_ldap_import_export.types import RDN
+
 from .models import Address
 from .models import Class
 from .models import Employee
@@ -71,17 +74,21 @@ def mo_datestring_to_utc(datestring: str | None) -> datetime | None:
     return datetime.fromisoformat(datestring).replace(tzinfo=None)
 
 
-def combine_dn_strings(dn_strings: list[str]) -> str:
-    """
-    Combine LDAP DN strings, skipping if a string is empty
+def combine_dn_strings(rdns: list[RDN]) -> DN:
+    """Combine LDAP RDN strings, skipping empty RDNs.
 
-    Examples
-    ---------------
-    >>> combine_dn_strings(["CN=Nick","","DC=bar"])
-    >>> "CN=Nick,DC=bar"
+    Examples:
+        >>> combine_dn_strings(["CN=Nick","","DC=bar"])
+        >>> "CN=Nick,DC=bar"
+
+    Args:
+        rdns: List of potentially empty RDNs to be combined.
+
+    Returns:
+        The combined DN after removed empty RDNs.
     """
-    dn: str = safe_dn(",".join(filter(None, dn_strings)))
-    return dn
+    dn_strings = [rdn for rdn in rdns if rdn]
+    return cast(DN, safe_dn(dn_strings))
 
 
 def remove_vowels(string: str) -> str:
