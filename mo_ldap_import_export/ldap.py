@@ -792,10 +792,10 @@ def construct_assertion_control_filter(attributes: dict[str, Any]) -> str:
     if not attributes:
         return "(objectClass=*)"
 
-    filter_pairs = [
-        f"({key}={escape_filter_chars(str(value))})"
-        for key, value in attributes.items()
-    ]
+    def generate_pair(key: str, value: Any) -> str:
+        return f"({key}={escape_filter_chars(value)})"
+
+    filter_pairs = [generate_pair(key, value) for key, value in attributes.items()]
     # If only one attribute is found, return the single filter part directly
     if len(filter_pairs) == 1:
         return one(filter_pairs)
