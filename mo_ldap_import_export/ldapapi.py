@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
+from typing import Any
 from typing import cast
 
 import structlog
@@ -20,6 +21,8 @@ from more_itertools import partition
 from .config import Settings
 from .exceptions import NoObjectsReturnedException
 from .exceptions import ReadOnlyException
+from .ldap import construct_assertion_control
+from .ldap import construct_assertion_control_filter
 from .ldap import get_ldap_object
 from .ldap import ldap_add
 from .ldap import ldap_modify
@@ -133,6 +136,8 @@ class LDAPAPI:
             # so to avoid comparing an object with a DN string, we only fetch DNs
             nest=False,
         )
+        old_state = ldap_object.dict()
+        old_state.pop("dn")
 
         # Ensure both state dictionaries are on the same format.
         current_state = ldap_object.dict()
@@ -148,7 +153,7 @@ class LDAPAPI:
             if key not in current_state or current_state[key] != value
         }
         ldap_uuid = await self.get_ldap_unique_ldap_uuid(dn)
-        await self.modify_ldap_object(dn, ldap_changes)
+        await self.modify_ldap_object(dn, ldap_changes, old_state)
         return await self.get_ldap_dn(ldap_uuid)
 
     async def add_ldap_object(
@@ -312,18 +317,23 @@ class LDAPAPI:
         self,
         dn: DN,
         requested_changes: dict[str, list],
+        old_state: dict[str, Any] | None = None,
     ) -> None:
         """
         Modify the object at `dn` to ensure it has the provided attributes.
 
         Args:
             dn: DN of the object to modify.
-            attributes:
+            requested_changes:
                 Dictionary with attributes to populate in LDAP.
                 See:
                 * https://ldap3.readthedocs.io/en/latest/add.html and
                 * https://ldap3.readthedocs.io/en/latest/modify.html
                 For details
+            old_state:
+                Optional dictionary of attributes describing the current state of the
+                object at `dn` for use in conditional writes, i.e. to ensure the changes
+                in `requested_changes` are only written if the old state matches.
         """
         # TODO: Remove this when ldap3s read-only flag works
         if self.settings.ldap_read_only:
@@ -346,6 +356,12 @@ class LDAPAPI:
         if not requested_changes:
             logger.info("Not writing to LDAP as changeset is empty", dn=dn)
             return None
+
+        controls: list[tuple[str, bool, Any]] = []
+        if old_state:
+            assertion_filter = construct_assertion_control_filter(old_state)
+            assertion_tuple = construct_assertion_control(assertion_filter)
+            controls.append(assertion_tuple)
 
         logger.info("Uploading object", dn=dn, requested_changes=requested_changes)
 
@@ -398,6 +414,7 @@ class LDAPAPI:
         try:
             # Modify LDAP-DN
             logger.info("Changing object RDN", dn=dn, new_rdn=new_rdn)
+            # TODO: Use Assertion Control here
             _, result = await ldap_modify_dn(self.ldap_connection, dn, new_rdn)
             logger.info("LDAP Result", result=result, dn=dn)
         except LDAPInvalidValueError as exc:  # pragma: no cover
