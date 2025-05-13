@@ -810,7 +810,13 @@ def construct_assertion_control_filter(attributes: dict[str, Any]) -> str:
         return f"(&{combined_filters})"
 
     def generate_pair(key: str, value: Any) -> str:
-        return f"({key}={escape_filter_chars(value)})"
+        value = str(value)
+        escaped_value = escape_filter_chars(value)
+        # Encoding spaces can be necessary as they may otherwise be stripped by the DC.
+        # This is especially true in the case of space-only attribute values,
+        # i.e. `description=" "` which may otherwise not be checked correctly.
+        encoded_value = escaped_value.replace(" ", r"\20")
+        return f"({key}={encoded_value})"
 
     def generate_pairs(key: str, value: Any) -> str:
         if isinstance(value, list):
