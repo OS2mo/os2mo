@@ -784,9 +784,17 @@ def construct_assertion_control_filter(attributes: dict[str, Any]) -> str:
             expected attribute values.
             Values will be converted to strings and properly escaped.
 
+    Raises:
+        ValueError: If 'dn' is a key in the attributes dictionary.
+
     Returns:
         An LDAP filter string useful for LDAP Assertion Control.
     """
+    # Reject asserting anything about DN in the assertion control filter
+    # It is nonsensical to do so as the DN is used to target the entity being evaluated
+    if "dn" in attributes:
+        raise ValueError("Cannot use DN in Assertion Control")
+
     # We assume that an empty dictionary means "no conditions", i.e. wanting to match
     # any object. '(objectClass=*)' is a common way to represent this.
     if not attributes:

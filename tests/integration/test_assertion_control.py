@@ -92,6 +92,15 @@ async def test_assertion_controls_blocks(
 
 
 @pytest.mark.parametrize(
+    "filter", [{"dn": "CN=foo"}, {"sn": "Valdez", "dn": "CN=foo", "cn": "foo"}]
+)
+async def test_construct_assertion_control_filter_dn_disallowed(filter) -> None:
+    with pytest.raises(ValueError) as exc_info:
+        construct_assertion_control_filter(filter)
+    assert "Cannot use DN in Assertion Control" in str(exc_info.value)
+
+
+@pytest.mark.parametrize(
     "filter, expected",
     [
         # No filter
