@@ -1347,3 +1347,48 @@ async def test_edit_extension_attr_future_58263(service_client: TestClient) -> N
 
     assert read_engagement["extension_2"] == new_ext2
     assert read_engagement["extension_3"] != new_ext3
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_update_extension_to_none(graphapi_post: GraphAPIPost) -> None:
+    query = """
+      mutation EditEngagement($uuid: UUID!, $extension_1: String) {
+        engagement_update(
+          input: {
+            uuid: $uuid
+            validity: { from: "2025-01-01" }
+            extension_1: $extension_1
+          }
+        ) {
+          uuid
+          current {
+            extension_1
+          }
+        }
+      }
+    """
+
+    response = graphapi_post(
+        query,
+        variables={
+            "uuid": engagement_uuid,
+            "extension_1": "Hurra",
+        },
+    )
+    assert response.errors is None
+    assert response.data is not None
+    print("RESP", response.data)
+    assert response.data["engagement_update"]["current"]["extension_1"] == "Hurra"
+
+    response = graphapi_post(
+        query,
+        variables={
+            "uuid": engagement_uuid,
+            "extension_1": None,
+        },
+    )
+    print("RESP", response.data)
+    assert response.errors is None
+    assert response.data is not None
+    assert response.data["engagement_update"]["current"]["extension_1"] is None

@@ -2,8 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import dataclasses
+import itertools
 import re
 from collections.abc import Callable
+from collections import defaultdict
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
@@ -45,6 +47,7 @@ from mora.db import OrganisationEnhedRelationKode
 from mora.db import OrganisationEnhedTilsGyldighed
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
+from mora.graphapi.gmodels.mo import Validity
 from mora.graphapi.gmodels.mo.details import AssociationRead
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.gmodels.mo.details import ITSystemRead
@@ -1055,6 +1058,184 @@ async def organisation_unit_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
+    HUBBA = True
+
+    if HUBBA:
+
+        def _registrering() -> ColumnElement:
+            return and_(
+                OrganisationEnhedRegistrering.lifecycle
+                != cast("Slettet", LivscyklusKode),
+                between(
+                    cursor.registration_time if cursor is not None else func.now(),
+                    OrganisationEnhedRegistrering.registreringstid_start,
+                    OrganisationEnhedRegistrering.registreringstid_slut,
+                ),
+            )
+
+        def _virkning(cls: type[HasValidity]) -> ColumnElement:
+            start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
+            return and_(cls.virkning_start <= end, cls.virkning_slut > start)
+
+        registrations = await session.scalars(
+            select(OrganisationEnhedRegistrering)
+            .where(
+                and_(
+                    OrganisationEnhedRegistrering.organisationenhed_id.in_(uuids),
+                    _registrering(),
+                )
+            )
+            .order_by(OrganisationEnhedRegistrering.uuid)
+        )
+
+        uuids = []
+        registration_ids = []
+        registration_id_to_uuid = {}
+
+        for reg in registrations:
+            registration_ids.append(reg.id)
+            registration_id_to_uuid[reg.id] = reg.uuid
+            uuids.append(reg.uuid)
+
+        attr_egenskaber = await session.scalars(
+            select(OrganisationEnhedAttrEgenskaber).where(
+                OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id.in_(
+                    registration_ids
+                ),
+                _virkning(OrganisationEnhedAttrEgenskaber),
+            )
+        )
+
+        relationer = await session.scalars(
+            select(OrganisationEnhedRelation).where(
+                OrganisationEnhedRelation.organisationenhed_registrering_id.in_(
+                    registration_ids
+                ),
+                _virkning(OrganisationEnhedRelation),
+            )
+        )
+
+        group_by_uuid_attr_egenskaber = defaultdict(list)
+        group_by_uuid_parent = defaultdict(list)
+        group_by_uuid_hierarchy = defaultdict(list)
+        group_by_uuid_type = defaultdict(list)
+        group_by_uuid_level = defaultdict(list)
+        group_by_uuid_timeplanning = defaultdict(list)
+
+        for attr_egenskab in attr_egenskaber:
+            uuid = registration_id_to_uuid[
+                attr_egenskab.organisationenhed_registrering_id
+            ]
+            group_by_uuid_attr_egenskaber[uuid].append(attr_egenskab)
+
+        for relation in relationer:
+            uuid = registration_id_to_uuid[relation.organisationenhed_registrering_id]
+            match relation.rel_type:
+                case "enhedstype":
+                    group_by_uuid_type[uuid].append(relation)
+                case "niveau":
+                    group_by_uuid_level[uuid].append(relation)
+                case "opmærkning":
+                    raise ValueError(f"hvad er opmærkninger {relation}")
+                case "overordnet":
+                    group_by_uuid_parent[uuid].append(relation)
+                case "tilhoerer":
+                    group_by_uuid_hierarchy[uuid].append(relation)
+                case "opgaver":
+                    if relation.objekt_type == "tidsregistrering":
+                        group_by_uuid_timeplanning[uuid].append(relation)
+                    else:
+                        raise ValueError(f"jeg kan ikke finde ud af at kode {relation}")
+
+        def filter_virkning(objects, start: datetime, end: datetime):
+            return [
+                obj
+                for obj in objects
+                if obj.virkning_start < end and obj.virkning_slut > start
+            ]
+
+        def filter_virkning_one(objects, start: datetime, end: datetime):
+            r = filter_virkning(objects, start, end)
+            assert len(r) == 1, r
+            return r[0]
+
+        def filter_virkning_optional(objects, start: datetime, end: datetime):
+            r = filter_virkning(objects, start, end)
+            assert len(r) < 2, r
+            if r:
+                return r[0].rel_maal_uuid
+            return None
+
+        result = defaultdict(list)
+        for uuid in uuids:
+            attrs = group_by_uuid_attr_egenskaber[uuid]
+            parents = group_by_uuid_parent[uuid]
+            hierarchies = group_by_uuid_hierarchy[uuid]
+            types = group_by_uuid_type[uuid]
+            levels = group_by_uuid_level[uuid]
+            timeplannings = group_by_uuid_timeplanning[uuid]
+
+            timestamps = set()
+            for effect in (
+                attrs + parents + hierarchies + types + levels + timeplannings
+            ):
+                timestamps.add(effect.virkning_start)
+                timestamps.add(effect.virkning_slut)
+
+            for start, end in itertools.pairwise(sorted(timestamps)):
+                attr = filter_virkning_one(attrs, start, end)
+                parent = filter_virkning_optional(parents, start, end)
+                hierarchy = filter_virkning_optional(hierarchies, start, end)
+                type_ = filter_virkning_optional(types, start, end)
+                level = filter_virkning_optional(levels, start, end)
+                timeplanning = filter_virkning_optional(timeplannings, start, end)
+
+                result[uuid].append(
+                    OrganisationUnitRead(
+                        uuid=uuid,
+                        user_key=attr.brugervendtnoegle,
+                        name=attr.enhedsnavn,
+                        parent_uuid=parent,
+                        org_unit_hierarchy=hierarchy,
+                        unit_type_uuid=type_,
+                        org_unit_level_uuid=level,
+                        time_planning_uuid=timeplanning,
+                        validity=Validity(from_date=start, to_date=end),
+                    )
+                )
+
+        def remove_consecutive_duplicates(lst):
+            if not lst:
+                return []
+            r = [lst[0]]
+            for ou in lst[1:]:
+                if ou != r[-1]:
+                    r.append(ou)
+                    continue
+                old = r.pop()
+                r.append(
+                    OrganisationUnitRead(
+                        uuid=old.uuid,
+                        user_key=old.user_key,
+                        name=old.name,
+                        parent_uuid=old.parent_uuid,
+                        org_unit_hierarchy=old.org_unit_hierarchy,
+                        unit_type_uuid=old.unit_type_uuid,
+                        org_unit_level_uuid=old.org_unit_level_uuid,
+                        time_planning_uuid=old.time_planning_uuid,
+                        validity=Validity(
+                            from_date=old.validity.from_date,
+                            to_date=ou.validity.to_date,
+                        ),
+                    )
+                )
+            return r
+
+        # Remove consecutive duplicates
+        final_final_for_real_v2 = {}
+        for uuid, result_list in result.items():
+            final_final_for_real_v2[uuid] = remove_consecutive_duplicates(result_list)
+
     # See lora.py:fetch()'s is_paged
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
@@ -1074,6 +1255,8 @@ async def organisation_unit_resolver(
         uuids,
     )
 
+    if HUBBA:
+        return final_final_for_real_v2
     return await generic_resolver(
         OrganisationUnitRead,
         info=info,
