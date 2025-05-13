@@ -800,26 +800,36 @@ def construct_assertion_control_filter(attributes: dict[str, Any]) -> str:
     if not attributes:
         return "(objectClass=*)"
 
+    def and_filters(filter_pairs: list[str]) -> str:
+        # If only a single filter pair is found, simply return it
+        if len(filter_pairs) == 1:
+            return one(filter_pairs)
+        # If multiple filter pairs are found, AND them together
+        # The format is (&(filter1)(filter2)...)
+        combined_filters = "".join(filter_pairs)
+        return f"(&{combined_filters})"
+
     def generate_pair(key: str, value: Any) -> str:
         return f"({key}={escape_filter_chars(value)})"
 
     def generate_pairs(key: str, value: Any) -> str:
-        # Empty list values means no value was found on the existing object.
-        # In this case we create a filter finding all objects with no value set.
-        # This can be done using an inverted (!) match all wildcard (=*)
-        if isinstance(value, list) and not value:
-            return f"(!({key}=*))"
+        if isinstance(value, list):
+            # Empty list values means no value was found on the existing object.
+            # In this case we create a filter finding all objects with no value set.
+            # This can be done using an inverted (!) match all wildcard (=*)
+            if not value:
+                return f"(!({key}=*))"
+            # Non-empty list values means that a list attribute had some values.
+            # In this case we simply add a condition for each value in the list, using
+            # the same key for each one ANDing them together at the end, thus saying
+            # that the object must have all of these values at once.
+            filter_pairs = [generate_pair(key, item) for item in value]
+            return and_filters(filter_pairs)
         # Default to just generating a filter pair
         return generate_pair(key, value)
 
     filter_pairs = [generate_pairs(key, value) for key, value in attributes.items()]
-    # If only one attribute is found, return the single filter part directly
-    if len(filter_pairs) == 1:
-        return one(filter_pairs)
-    # If multiple attributes are found, combine them with the AND operator '&'
-    # The format is (&(filter1)(filter2)...)
-    combined_filters = "".join(filter_pairs)
-    return f"(&{combined_filters})"
+    return and_filters(filter_pairs)
 
 
 def construct_assertion_control(search_filter: str) -> tuple[str, bool, bytes]:

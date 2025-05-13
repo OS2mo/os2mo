@@ -140,6 +140,56 @@ async def test_assertion_controls_empty(
     assert "LDAPAssertionFailedResult - 122 - assertionFailed" in str(exc_info.value)
 
 
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+    }
+)
+async def test_assertion_controls_multivalued(
+    ldap_connection: Connection,
+    ldap_org_unit: list[str],
+) -> None:
+    """Test that Assertion Controls can be used and have an operation pass."""
+    person_dn = combine_dn_strings(["uid=valdez"] + ldap_org_unit)
+
+    await ldap_add(
+        ldap_connection,
+        dn=person_dn,
+        object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
+        attributes={"sn": "Valdez", "cn": ["Valdez", "Koi"]},
+    )
+    result = await get_ldap_object(ldap_connection, person_dn)
+    assert hasattr(result, "cn")
+    assert result.cn == ["Valdez", "Koi"]
+
+    # Construct Assertion Control filter checking that givenName is empty
+    search_filter = construct_assertion_control_filter({"cn": ["Valdez", "Koi"]})
+    assertion_control = construct_assertion_control(search_filter)
+
+    # Modify common name, should pass because both common names are set
+    await ldap_modify(
+        ldap_connection,
+        dn=person_dn,
+        changes={"cn": [("MODIFY_REPLACE", "Valdez")]},
+        controls=[assertion_control],
+    )
+    result = await get_ldap_object(ldap_connection, person_dn)
+    assert hasattr(result, "cn")
+    assert one(result.cn) == "Valdez"
+
+    # Modify common name, should fail because only one common name is set
+    with pytest.raises(LDAPAssertionFailedResult) as exc_info:
+        await ldap_modify(
+            ldap_connection,
+            dn=person_dn,
+            changes={"cn": [("MODIFY_REPLACE", "Koi")]},
+            controls=[assertion_control],
+        )
+    assert "LDAPAssertionFailedResult - 122 - assertionFailed" in str(exc_info.value)
+
+
 @pytest.mark.parametrize(
     "filter", [{"dn": "CN=foo"}, {"sn": "Valdez", "dn": "CN=foo", "cn": "foo"}]
 )
@@ -156,8 +206,12 @@ async def test_construct_assertion_control_filter_dn_disallowed(filter) -> None:
         ({}, "(objectClass=*)"),
         # Single filter
         ({"sn": "Valdez"}, "(sn=Valdez)"),
+        ({"sn": ["Valdez"]}, "(sn=Valdez)"),
         # Two filters combined
         ({"sn": "Valdez", "cn": "Dana"}, "(&(sn=Valdez)(cn=Dana))"),
+        ({"sn": ["Valdez"], "cn": "Dana"}, "(&(sn=Valdez)(cn=Dana))"),
+        ({"sn": "Valdez", "cn": ["Dana"]}, "(&(sn=Valdez)(cn=Dana))"),
+        ({"sn": ["Valdez"], "cn": ["Dana"]}, "(&(sn=Valdez)(cn=Dana))"),
         # Three filters combined
         (
             {"sn": "Valdez", "cn": "Dana", "givenName": "Dana"},
@@ -181,6 +235,12 @@ async def test_construct_assertion_control_filter_dn_disallowed(filter) -> None:
         # Empty list
         ({"sn": []}, "(!(sn=*))"),
         ({"sn": [], "cn": []}, "(&(!(sn=*))(!(cn=*)))"),
+        # Multielement list
+        ({"sn": ["Valdez", "Koi"]}, "(&(sn=Valdez)(sn=Koi))"),
+        (
+            {"sn": ["Valdez", "Koi"], "cn": ["Dana"]},
+            "(&(&(sn=Valdez)(sn=Koi))(cn=Dana))",
+        ),
     ],
 )
 async def test_construct_assertion_control_filter(
