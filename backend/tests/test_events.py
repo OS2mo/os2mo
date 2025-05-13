@@ -602,6 +602,28 @@ def test_event_unsilence(namespace: str, graphapi_post: GraphAPIPost) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
+def test_event_unsilence_resends_immediately(
+    namespace: str, graphapi_post: GraphAPIPost
+) -> None:
+    routing_key = "rk"
+    listener = declare_listener(graphapi_post, namespace, "uk", routing_key)
+    send_event(graphapi_post, namespace, routing_key, "alice")
+
+    event = fetch_event(graphapi_post, listener)
+    assert event is not None
+    assert event["subject"] == "alice"
+
+    unsilence_event(
+        graphapi_post, {"subjects": ["alice"], "listeners": {"uuids": [str(listener)]}}
+    )
+
+    event = fetch_event(graphapi_post, listener)
+    assert event is not None
+    assert event["subject"] == "alice"
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 def test_event_deduplication(namespace: str, graphapi_post: GraphAPIPost) -> None:
     routing_key = "rk"
     declare_listener(graphapi_post, namespace, "uk", routing_key)
