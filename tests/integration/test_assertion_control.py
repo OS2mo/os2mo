@@ -91,6 +91,55 @@ async def test_assertion_controls_blocks(
     assert one(result.givenName) == "Dana"
 
 
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+    }
+)
+async def test_assertion_controls_empty(
+    ldap_connection: Connection,
+    ldap_org_unit: list[str],
+) -> None:
+    """Test that Assertion Controls can be used and have an operation pass."""
+    person_dn = combine_dn_strings(["uid=valdez"] + ldap_org_unit)
+
+    await ldap_add(
+        ldap_connection,
+        dn=person_dn,
+        object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
+        attributes={"sn": "Valdez", "cn": "Valdez"},
+    )
+    result = await get_ldap_object(ldap_connection, person_dn)
+    assert hasattr(result, "givenName") is False
+
+    # Construct Assertion Control filter checking that givenName is empty
+    search_filter = construct_assertion_control_filter({"givenName": []})
+    assertion_control = construct_assertion_control(search_filter)
+
+    # Add givenName, should pass because givenName is unset
+    await ldap_modify(
+        ldap_connection,
+        dn=person_dn,
+        changes={"givenName": [("MODIFY_REPLACE", "Dana")]},
+        controls=[assertion_control],
+    )
+    result = await get_ldap_object(ldap_connection, person_dn)
+    assert hasattr(result, "givenName")
+    assert one(result.givenName) == "Dana"
+
+    # Edit givenName, should fail because givenName is 'Dana'
+    with pytest.raises(LDAPAssertionFailedResult) as exc_info:
+        await ldap_modify(
+            ldap_connection,
+            dn=person_dn,
+            changes={"givenName": [("MODIFY_REPLACE", "Erika")]},
+            controls=[assertion_control],
+        )
+    assert "LDAPAssertionFailedResult - 122 - assertionFailed" in str(exc_info.value)
+
+
 @pytest.mark.parametrize(
     "filter", [{"dn": "CN=foo"}, {"sn": "Valdez", "dn": "CN=foo", "cn": "foo"}]
 )
@@ -129,6 +178,9 @@ async def test_construct_assertion_control_filter_dn_disallowed(filter) -> None:
             {"context": "bar(*args, **kwargs) \\ \x00", "sn": "&Valdez"},
             r"(&(context=bar\28\2aargs, \2a\2akwargs\29 \5c \00)(sn=&Valdez))",
         ),
+        # Empty list
+        ({"sn": []}, "(!(sn=*))"),
+        ({"sn": [], "cn": []}, "(&(!(sn=*))(!(cn=*)))"),
     ],
 )
 async def test_construct_assertion_control_filter(

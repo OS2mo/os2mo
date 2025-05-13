@@ -803,7 +803,16 @@ def construct_assertion_control_filter(attributes: dict[str, Any]) -> str:
     def generate_pair(key: str, value: Any) -> str:
         return f"({key}={escape_filter_chars(value)})"
 
-    filter_pairs = [generate_pair(key, value) for key, value in attributes.items()]
+    def generate_pairs(key: str, value: Any) -> str:
+        # Empty list values means no value was found on the existing object.
+        # In this case we create a filter finding all objects with no value set.
+        # This can be done using an inverted (!) match all wildcard (=*)
+        if isinstance(value, list) and not value:
+            return f"(!({key}=*))"
+        # Default to just generating a filter pair
+        return generate_pair(key, value)
+
+    filter_pairs = [generate_pairs(key, value) for key, value in attributes.items()]
     # If only one attribute is found, return the single filter part directly
     if len(filter_pairs) == 1:
         return one(filter_pairs)
