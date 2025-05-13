@@ -35,6 +35,9 @@ class OrganisationEnhedAttrEgenskaber(_AttrEgenskaberMixin, Base):
         ForeignKey("organisationenhed_registrering.id"), index=True
     )
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.enhedsnavn}, {self.virkning_start} to {self.virkning_slut})"
+
 
 OrganisationEnhedRelationKode = ENUM(
     "enhedstype",
