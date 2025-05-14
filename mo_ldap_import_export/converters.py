@@ -15,6 +15,7 @@ from .config import Settings
 from .config import get_required_attributes
 from .dataloaders import DataLoader
 from .exceptions import IncorrectMapping
+from .exceptions import SkipObject
 from .ldap_classes import LdapObject
 from .models import MOBase
 from .models import Termination
@@ -125,8 +126,9 @@ class LdapConverter:
             # Asked to terminate, but uuid template did not return an uuid, i.e.
             # there was no object to actually terminate, so we just skip it.
             if not mo_dict["uuid"]:
-                logger.info("Requested termination with no UUID, skipping")
-                return []
+                message = "Unable to terminate without UUID"
+                logger.info(message)
+                raise SkipObject(message)
             return [
                 Termination(
                     mo_class=mo_class,
@@ -163,16 +165,15 @@ class LdapConverter:
         missing_attributes = required_attributes - set(mo_dict.keys())
         if missing_attributes:  # pragma: no cover
             logger.info(
-                "Missing values in LDAP to synchronize, skipping",
+                "Missing values in LDAP to synchronize",
                 mo_dict=mo_dict,
                 mo_class=mo_class,
                 missing_attributes=missing_attributes,
             )
-            return []
+            raise RequeueMessage("Missing values in LDAP to synchronize")
 
         try:
             return [mo_class(**mo_dict)]
         except pydantic.ValidationError:
             logger.info("Exception during object parsing", exc_info=True)
-
-        return []
+            raise
