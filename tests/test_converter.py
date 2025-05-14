@@ -279,8 +279,8 @@ async def test_ldap_to_mo_dict_error(
         await converter.from_ldap(
             LdapObject(
                 dn="",
-                msSFU30Name=["foo", "bar"],
-                itSystemName=["Active Directory", "Active Directory"],
+                msSFU30Name=["bar"],
+                itSystemName=["Active Directory"],
             ),
             mapping=converter.settings.conversion_mapping.ldap_to_mo[
                 "Active Directory"

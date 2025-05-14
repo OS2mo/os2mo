@@ -6,6 +6,7 @@ from typing import Any
 
 import pydantic
 import structlog
+from fastramqpi.ramqp.utils import RequeueMessage
 from ldap3.utils.ciDict import CaseInsensitiveDict
 
 from .config import LDAP2MOMapping
@@ -72,6 +73,8 @@ class LdapConverter:
         # One value per field. Not multiple. LDAP objects however, can have multiple
         # values per field.
         number_of_entries = self.get_number_of_entries(ldap_object)
+        if number_of_entries != 1:  # pragma: no cover
+            raise RequeueMessage("Unable to handle list attributes")
 
         converted_objects: list[MOBase | Termination] = []
         for entry in range(number_of_entries):
