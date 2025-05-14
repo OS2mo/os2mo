@@ -7,7 +7,6 @@ from typing import Any
 import pydantic
 import structlog
 from fastramqpi.ramqp.utils import RequeueMessage
-from ldap3.utils.ciDict import CaseInsensitiveDict
 from more_itertools import one
 
 from .config import LDAP2MOMapping
@@ -78,12 +77,10 @@ class LdapConverter:
         if number_of_entries != 1:  # pragma: no cover
             raise RequeueMessage("Unable to handle list attributes")
 
-        ldap_dict: CaseInsensitiveDict = CaseInsensitiveDict(
-            {
-                key: (one(value) if is_list(value) and len(value) > 0 else value)
-                for key, value in ldap_object.dict().items()
-            }
-        )
+        ldap_dict = {
+            key: (one(value) if is_list(value) and len(value) > 0 else value)
+            for key, value in ldap_object.dict().items()
+        }
         context = {
             "ldap": ldap_dict,
             **template_context,
