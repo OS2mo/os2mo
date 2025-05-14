@@ -21,6 +21,8 @@ from more_itertools import partition
 from .config import Settings
 from .exceptions import NoObjectsReturnedException
 from .exceptions import ReadOnlyException
+from .ldap import construct_assertion_control
+from .ldap import construct_assertion_control_filter
 from .ldap import get_ldap_object
 from .ldap import ldap_add
 from .ldap import ldap_modify
@@ -33,6 +35,7 @@ from .types import DN
 from .types import LDAPUUID
 from .types import CPRNumber
 from .utils import combine_dn_strings
+from .utils import ensure_list
 from .utils import extract_ou_from_dn
 from .utils import is_exception
 
@@ -92,8 +95,69 @@ class LDAPAPI:
         dn: DN = search_result["dn"]
         return dn
 
+    async def ensure_ldap_object(
+        self, dn: DN, attributes: dict[str, list], object_class: str, create: bool
+    ) -> DN:
+        """
+        Ensures an object exists at `dn` with the provided attributes and object_class.
+
+        Args:
+            dn: DN of the object to modify or create.
+            attributes:
+                Dictionary with attributes to populate in LDAP.
+                See:
+                * https://ldap3.readthedocs.io/en/latest/add.html and
+                * https://ldap3.readthedocs.io/en/latest/modify.html
+                For details
+            object_class: The object class to set on newly created objects.
+            create: Whether to modify or create the object.
+
+        Return:
+            The (possibly new) DN for the object.
+        """
+        if create:
+            # The object does not yet exist, thus we must create it
+            await self.add_ldap_object(dn, attributes, object_class)
+            return dn
+
+        # To avoid spamming server logs with noop changes / empty writes,
+        # we compare with current state of the object with the desired state
+        # before writing anything.
+        # Without this the LDAP / AD server will register lots of empty writes
+        # NOTE: This part of the function really should use some sort of ETag
+        #       functionality to ensure that the current-state read is the same
+        #       state that we are overwriting.
+        ldap_object = await get_ldap_object(
+            self.ldap_connection,
+            dn,
+            attributes=set(attributes.keys()),
+            # Nest false is required, as otherwise we fetch related objects
+            # However we never write related objects, only their DNs,
+            # so to avoid comparing an object with a DN string, we only fetch DNs
+            nest=False,
+        )
+        old_state = ldap_object.dict()
+        old_state.pop("dn")
+
+        # Ensure both state dictionaries are on the same format.
+        current_state = ldap_object.dict()
+        current_state = {
+            key.casefold(): ensure_list(value) for key, value in current_state.items()
+        }
+        desired_state = {key.casefold(): value for key, value in attributes.items()}
+
+        # Calculate the actual changes that must be written
+        ldap_changes = {
+            key: value
+            for key, value in desired_state.items()
+            if key not in current_state or current_state[key] != value
+        }
+        ldap_uuid = await self.get_ldap_unique_ldap_uuid(dn)
+        await self.modify_ldap_object(dn, ldap_changes, old_state)
+        return await self.get_ldap_dn(ldap_uuid)
+
     async def add_ldap_object(
-        self, dn: DN, attributes: dict[str, Any], object_class: str
+        self, dn: DN, attributes: dict[str, list], object_class: str
     ) -> None:
         """
         Add an object at `dn` with the provided attributes and object_class.
@@ -253,18 +317,23 @@ class LDAPAPI:
         self,
         dn: DN,
         requested_changes: dict[str, list],
+        old_state: dict[str, Any] | None = None,
     ) -> None:
         """
         Modify the object at `dn` to ensure it has the provided attributes.
 
         Args:
             dn: DN of the object to modify.
-            attributes:
+            requested_changes:
                 Dictionary with attributes to populate in LDAP.
                 See:
                 * https://ldap3.readthedocs.io/en/latest/add.html and
                 * https://ldap3.readthedocs.io/en/latest/modify.html
                 For details
+            old_state:
+                Optional dictionary of attributes describing the current state of the
+                object at `dn` for use in conditional writes, i.e. to ensure the changes
+                in `requested_changes` are only written if the old state matches.
         """
         # TODO: Remove this when ldap3s read-only flag works
         if self.settings.ldap_read_only:
@@ -287,6 +356,12 @@ class LDAPAPI:
         if not requested_changes:
             logger.info("Not writing to LDAP as changeset is empty", dn=dn)
             return None
+
+        controls: list[tuple[str, bool, Any]] = []
+        if old_state:
+            assertion_filter = construct_assertion_control_filter(old_state)
+            assertion_tuple = construct_assertion_control(assertion_filter)
+            controls.append(assertion_tuple)
 
         logger.info("Uploading object", dn=dn, requested_changes=requested_changes)
 
@@ -339,6 +414,7 @@ class LDAPAPI:
         try:
             # Modify LDAP-DN
             logger.info("Changing object RDN", dn=dn, new_rdn=new_rdn)
+            # TODO: Use Assertion Control here
             _, result = await ldap_modify_dn(self.ldap_connection, dn, new_rdn)
             logger.info("LDAP Result", result=result, dn=dn)
         except LDAPInvalidValueError as exc:  # pragma: no cover

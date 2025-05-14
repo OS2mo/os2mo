@@ -468,7 +468,7 @@ async def test_ituser_link(
 
     # Check that we are attempting to create an ITUser for correlation
     log_events = [x["event"] for x in cap_logs]
-    assert "No ITUser found, creating one to correlate with DN" in log_events
+    assert "No ITUser found, ensuring one exists to correlate with DN" in log_events
     assert "LDAP UUID found for DN" in log_events
 
     # Fetch the LDAP UUID for the newly created LDAP user
