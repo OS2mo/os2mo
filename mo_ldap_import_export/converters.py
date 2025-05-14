@@ -77,7 +77,6 @@ class LdapConverter:
         if number_of_entries != 1:  # pragma: no cover
             raise RequeueMessage("Unable to handle list attributes")
 
-        converted_objects: list[MOBase | Termination] = []
         ldap_dict: CaseInsensitiveDict = CaseInsensitiveDict(
             {
                 key: (one(value) if is_list(value) and len(value) > 0 else value)
@@ -128,14 +127,13 @@ class LdapConverter:
             if not mo_dict["uuid"]:
                 logger.info("Requested termination with no UUID, skipping")
                 return []
-            converted_objects.append(
+            return [
                 Termination(
                     mo_class=mo_class,
                     at=mo_dict["_terminate_"],
                     uuid=mo_dict["uuid"],
                 )
-            )
-            return converted_objects
+            ]
 
         required_attributes = get_required_attributes(mo_class)
 
@@ -173,8 +171,8 @@ class LdapConverter:
             return []
 
         try:
-            converted_objects.append(mo_class(**mo_dict))
+            return [mo_class(**mo_dict)]
         except pydantic.ValidationError:
             logger.info("Exception during object parsing", exc_info=True)
 
-        return converted_objects
+        return []
