@@ -673,17 +673,15 @@ class SyncTool:
         )
 
         try:
-            converted_objects = await self.converter.from_ldap(
-                ldap_object=loaded_object,
-                mapping=mapping,
-                template_context=template_context,
-            )
+            converted_objects = [
+                await self.converter.from_ldap(
+                    ldap_object=loaded_object,
+                    mapping=mapping,
+                    template_context=template_context,
+                )
+            ]
         except SkipObject:
             logger.info("Skipping object", dn=dn)
-            return
-
-        if not converted_objects:
-            logger.info("No converted objects", dn=dn)
             return
 
         logger.info(

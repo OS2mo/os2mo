@@ -16,7 +16,6 @@ from fastramqpi.context import Context
 from fastramqpi.ramqp.utils import RequeueMessage
 from mergedeep import Strategy  # type: ignore
 from mergedeep import merge
-from more_itertools import one
 from pydantic import ValidationError
 from pydantic import parse_obj_as
 
@@ -200,7 +199,7 @@ async def graphql_client(dataloader: AsyncMock) -> AsyncMock:
 async def test_ldap_to_mo(converter: LdapConverter) -> None:
     employee_uuid = uuid4()
     assert converter.settings.conversion_mapping.ldap_to_mo is not None
-    result = await converter.from_ldap(
+    employee = await converter.from_ldap(
         LdapObject(
             dn="",
             name="",
@@ -214,14 +213,13 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
             "employee_uuid": str(employee_uuid),
         },
     )
-    employee = one(result)
     assert isinstance(employee, Employee)
     assert employee.given_name == "Tester"
     assert employee.surname == "Testersen"
     assert employee.uuid == employee_uuid
 
     assert converter.settings.conversion_mapping.ldap_to_mo is not None
-    result = await converter.from_ldap(
+    mail = await converter.from_ldap(
         LdapObject(
             dn="",
             mail="foo@bar.dk",
@@ -231,8 +229,6 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
             "employee_uuid": str(employee_uuid),
         },
     )
-    mail = result[0]
-
     assert isinstance(mail, Address)
     assert mail.value == "foo@bar.dk"
     assert mail.person == employee_uuid
@@ -243,7 +239,7 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
 
     with pytest.raises(RequeueMessage) as exc_info:
         assert converter.settings.conversion_mapping.ldap_to_mo is not None
-        result = await converter.from_ldap(
+        await converter.from_ldap(
             LdapObject(
                 dn="",
                 mail=[],
@@ -375,14 +371,13 @@ async def test_template_strictness(
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
     converter = LdapConverter(Settings(), converter.dataloader)
     assert converter.settings.conversion_mapping.ldap_to_mo is not None
-    result = await converter.from_ldap(
+    employee = await converter.from_ldap(
         LdapObject(dn="CN=foo", **ldap_values),
         mapping=converter.settings.conversion_mapping.ldap_to_mo["Employee"],
         template_context={
             "employee_uuid": str(uuid4()),
         },
     )
-    employee = one(result)
     expected_employee = {
         "uuid": ANY,
         "user_key": "CN=foo",
@@ -749,7 +744,7 @@ async def test_ldap_to_mo_termination(
 
     employee_uuid = uuid4()
     assert converter.settings.conversion_mapping.ldap_to_mo is not None
-    result = await converter.from_ldap(
+    mail = await converter.from_ldap(
         LdapObject(
             dn="",
             mail="foo@bar.dk",
@@ -760,7 +755,6 @@ async def test_ldap_to_mo_termination(
             "employee_uuid": str(employee_uuid),
         },
     )
-    mail = one(result)
     assert isinstance(mail, Address)
     assert not hasattr(mail, "terminate_")
     assert mail.value == "foo@bar.dk"
@@ -777,7 +771,7 @@ async def test_ldap_to_mo_termination(
     converter = LdapConverter(settings, dataloader)
 
     assert converter.settings.conversion_mapping.ldap_to_mo is not None
-    result = await converter.from_ldap(
+    mail = await converter.from_ldap(
         LdapObject(
             dn="",
             mail="foo@bar.dk",
@@ -788,7 +782,6 @@ async def test_ldap_to_mo_termination(
             "employee_uuid": str(employee_uuid),
         },
     )
-    mail = one(result)
     assert isinstance(mail, Termination)
     assert mail.mo_class == Address
     assert mail.uuid == address_uuid
@@ -807,7 +800,7 @@ async def test_create_facet_class_no_facet() -> None:
 async def test_ldap_to_mo_default_validity(converter: LdapConverter) -> None:
     employee_uuid = uuid4()
     assert converter.settings.conversion_mapping.ldap_to_mo is not None
-    result = await converter.from_ldap(
+    mail = await converter.from_ldap(
         LdapObject(
             dn="",
             mail="foo@bar.dk",
@@ -817,7 +810,6 @@ async def test_ldap_to_mo_default_validity(converter: LdapConverter) -> None:
             "employee_uuid": str(employee_uuid),
         },
     )
-    mail = one(result)
     assert isinstance(mail, Address)
     assert mail.value == "foo@bar.dk"
     assert mail.person == employee_uuid

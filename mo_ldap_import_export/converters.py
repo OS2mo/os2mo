@@ -70,7 +70,7 @@ class LdapConverter:
         ldap_object: LdapObject,
         mapping: LDAP2MOMapping,
         template_context: dict[str, Any],
-    ) -> list[MOBase | Termination]:
+    ) -> MOBase | Termination:
         # This is how many MO objects we need to return - a MO object can have only
         # One value per field. Not multiple. LDAP objects however, can have multiple
         # values per field.
@@ -129,13 +129,11 @@ class LdapConverter:
                 message = "Unable to terminate without UUID"
                 logger.info(message)
                 raise SkipObject(message)
-            return [
-                Termination(
-                    mo_class=mo_class,
-                    at=mo_dict["_terminate_"],
-                    uuid=mo_dict["uuid"],
-                )
-            ]
+            return Termination(
+                mo_class=mo_class,
+                at=mo_dict["_terminate_"],
+                uuid=mo_dict["uuid"],
+            )
 
         required_attributes = get_required_attributes(mo_class)
 
@@ -173,7 +171,7 @@ class LdapConverter:
             raise RequeueMessage("Missing values in LDAP to synchronize")
 
         try:
-            return [mo_class(**mo_dict)]
+            return mo_class(**mo_dict)
         except pydantic.ValidationError:
             logger.info("Exception during object parsing", exc_info=True)
             raise
