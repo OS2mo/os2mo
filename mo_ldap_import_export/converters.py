@@ -13,6 +13,7 @@ from .config import LDAP2MOMapping
 from .config import Settings
 from .config import get_required_attributes
 from .dataloaders import DataLoader
+from .environments import construct_environment
 from .exceptions import IncorrectMapping
 from .exceptions import SkipObject
 from .ldap_classes import LdapObject
@@ -28,8 +29,6 @@ class LdapConverter:
     def __init__(self, settings: Settings, dataloader: DataLoader) -> None:
         self.settings = settings
         self.dataloader = dataloader
-        from .environments import construct_environment
-
         self.environment = construct_environment(self.settings, self.dataloader)
 
     @staticmethod
