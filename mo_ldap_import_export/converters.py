@@ -67,23 +67,14 @@ class LdapConverter:
         mapping: LDAP2MOMapping,
         template_context: dict[str, Any],
     ) -> MOBase | Termination:
-        # This is how many MO objects we need to return - a MO object can have only
-        # One value per field. Not multiple. LDAP objects however, can have multiple
-        # values per field.
-        any_long_lists = any(
-            isinstance(value, list) and len(value) > 1
-            for value in ldap_object.dict().values()
-        )
-        if any_long_lists:  # pragma: no cover
-            raise RequeueMessage("Unable to handle list attributes")
-
         def convert_value(value: Any) -> Any:
             if not is_list(value):
                 return value
             if not value:
                 return value
             # We can only handle single element lists
-            return one(value)
+            too_long = RequeueMessage("Unable to handle list attributes")
+            return one(value, too_long=too_long)
 
         ldap_dict = {
             key: convert_value(value) for key, value in ldap_object.dict().items()
