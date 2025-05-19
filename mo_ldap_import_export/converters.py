@@ -81,28 +81,36 @@ class LdapConverter:
         }
         context = {"ldap": ldap_dict, **template_context}
 
-        # TODO: asyncio.gather this for future dataloader bulking
         mo_class = mapping.as_mo_class()
+
+        # Handle termination
+        if mapping.terminate:
+            terminate_template = mapping.terminate
+            terminate = await self.render_template(
+                "_terminate_", terminate_template, context
+            )
+            if terminate:
+                # Pydantic validator ensures that uuid is set here
+                assert hasattr(mapping, "uuid")
+                uuid_template = mapping.uuid
+                assert uuid_template is not None
+
+                uuid = await self.render_template("uuid", uuid_template, context)
+                # Asked to terminate, but uuid template did not return an uuid, i.e.
+                # there was no object to actually terminate, so we just skip it.
+                if not uuid:
+                    message = "Unable to terminate without UUID"
+                    logger.info(message)
+                    raise SkipObject(message)
+                return Termination(mo_class=mo_class, at=terminate, uuid=uuid)
+
+        # TODO: asyncio.gather this for future dataloader bulking
         mo_dict = {
             mo_field_name: await self.render_template(
                 mo_field_name, template_str, context
             )
             for mo_field_name, template_str in mapping.get_fields().items()
         }
-        if mo_dict.get("_terminate_"):
-            # TODO: Convert this to pydantic check
-            assert "uuid" in mo_dict, "UUID must be set if _terminate_ is set"
-            # Asked to terminate, but uuid template did not return an uuid, i.e.
-            # there was no object to actually terminate, so we just skip it.
-            if not mo_dict["uuid"]:
-                message = "Unable to terminate without UUID"
-                logger.info(message)
-                raise SkipObject(message)
-            return Termination(
-                mo_class=mo_class,
-                at=mo_dict["_terminate_"],
-                uuid=mo_dict["uuid"],
-            )
 
         required_attributes = get_required_attributes(mo_class)
 
