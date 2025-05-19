@@ -61,6 +61,31 @@ class LdapConverter:
         cardinality_values = map(ldap_field2cardinality, values)
         return max(cardinality_values)
 
+    async def render_template(
+        self, field_name: str, template_str: str, context: dict[str, Any]
+    ) -> Any:
+        template = self.environment.from_string(template_str)
+        value = (await template.render_async(context)).strip()
+
+        # Sloppy mapping can lead to the following rendered strings:
+        # - {{ldap.mail or None}} renders as "None"
+        # - {{ldap.mail}} renders as "[]" if ldap.mail is empty
+        #
+        # Mapping with {{ldap.mail or ''}} solves both, but let's check
+        # for "none" or "[]" strings anyway to be more robust.
+        if value.lower() == "none" or value == "[]":
+            value = ""
+
+        # TODO: Is it possible to render a dictionary directly?
+        #       Instead of converting from a string
+        if "{" in value and ":" in value and "}" in value:
+            try:
+                value = self.str_to_dict(value)
+            except JSONDecodeError as error:
+                error_string = f"Could not convert {value} in '{field_name}' to dict (context={context!r})"
+                raise IncorrectMapping(error_string) from error
+        return value
+
     async def from_ldap(
         self,
         ldap_object: LdapObject,
@@ -83,35 +108,12 @@ class LdapConverter:
             **template_context,
         }
 
-        async def render_template(
-            field_name: str, template_str: str, context: dict[str, Any]
-        ) -> Any:
-            template = self.environment.from_string(template_str)
-            value = (await template.render_async(context)).strip()
-
-            # Sloppy mapping can lead to the following rendered strings:
-            # - {{ldap.mail or None}} renders as "None"
-            # - {{ldap.mail}} renders as "[]" if ldap.mail is empty
-            #
-            # Mapping with {{ldap.mail or ''}} solves both, but let's check
-            # for "none" or "[]" strings anyway to be more robust.
-            if value.lower() == "none" or value == "[]":
-                value = ""
-
-            # TODO: Is it possible to render a dictionary directly?
-            #       Instead of converting from a string
-            if "{" in value and ":" in value and "}" in value:
-                try:
-                    value = self.str_to_dict(value)
-                except JSONDecodeError as error:
-                    error_string = f"Could not convert {value} in '{field_name}' to dict (context={context!r})"
-                    raise IncorrectMapping(error_string) from error
-            return value
-
         # TODO: asyncio.gather this for future dataloader bulking
         mo_class = mapping.as_mo_class()
         mo_dict = {
-            mo_field_name: await render_template(mo_field_name, template_str, context)
+            mo_field_name: await self.render_template(
+                mo_field_name, template_str, context
+            )
             for mo_field_name, template_str in mapping.get_fields().items()
         }
         if mo_dict.get("_terminate_"):
