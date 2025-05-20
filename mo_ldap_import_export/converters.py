@@ -99,14 +99,18 @@ class LdapConverter:
         if number_of_entries != 1:  # pragma: no cover
             raise RequeueMessage("Unable to handle list attributes")
 
+        def convert_value(value: Any) -> Any:
+            if not is_list(value):
+                return value
+            if not value:
+                return value
+            # We can only handle single element lists
+            return one(value)
+
         ldap_dict = {
-            key: (one(value) if is_list(value) and len(value) > 0 else value)
-            for key, value in ldap_object.dict().items()
+            key: convert_value(value) for key, value in ldap_object.dict().items()
         }
-        context = {
-            "ldap": ldap_dict,
-            **template_context,
-        }
+        context = {"ldap": ldap_dict, **template_context}
 
         # TODO: asyncio.gather this for future dataloader bulking
         mo_class = mapping.as_mo_class()
