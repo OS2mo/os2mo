@@ -27,9 +27,7 @@ logger = structlog.stdlib.get_logger()
 
 class LdapConverter:
     def __init__(self, settings: Settings, dataloader: DataLoader) -> None:
-        self.settings = settings
-        self.dataloader = dataloader
-        self.environment = construct_environment(self.settings, self.dataloader)
+        self.environment = construct_environment(settings, dataloader)
 
     @staticmethod
     def str_to_dict(text):
