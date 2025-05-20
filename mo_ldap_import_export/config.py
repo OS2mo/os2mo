@@ -138,7 +138,7 @@ class LDAP2MOMapping(MappingBaseModel):
 
     def get_fields(self) -> dict[str, Any]:
         return self.dict(
-            exclude={"objectClass", "import_to_mo", "ldap_attributes"},
+            exclude={"objectClass", "import_to_mo", "terminate", "ldap_attributes"},
             by_alias=True,
             exclude_unset=True,
         )
@@ -160,6 +160,20 @@ class LDAP2MOMapping(MappingBaseModel):
         mo_class = import_class(values["objectClass"])
         if mo_class is not Employee:
             raise ValueError("Edit only is only supported for employees")
+        return values
+
+    @root_validator
+    def check_uuid_set_if_terminate_set(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """Ensure that uuid is set if terminate is set."""
+        if not values["terminate"]:
+            return values
+
+        if "uuid" not in values:
+            raise ValueError("UUID must be set if _terminate_ is set")
+
+        if not values["uuid"]:
+            raise ValueError("UUID must not be empty if _terminate_ is set")
+
         return values
 
     @root_validator

@@ -13,6 +13,7 @@ from .config import LDAP2MOMapping
 from .config import Settings
 from .config import get_required_attributes
 from .dataloaders import DataLoader
+from .environments import construct_environment
 from .exceptions import IncorrectMapping
 from .exceptions import SkipObject
 from .ldap_classes import LdapObject
@@ -26,11 +27,7 @@ logger = structlog.stdlib.get_logger()
 
 class LdapConverter:
     def __init__(self, settings: Settings, dataloader: DataLoader) -> None:
-        self.settings = settings
-        self.dataloader = dataloader
-        from .environments import construct_environment
-
-        self.environment = construct_environment(self.settings, self.dataloader)
+        self.environment = construct_environment(settings, dataloader)
 
     @staticmethod
     def str_to_dict(text):
@@ -39,30 +36,30 @@ class LdapConverter:
         """
         return json.loads(text.replace("'", '"').replace("Undefined", "null"))
 
-    def get_number_of_entries(self, ldap_object: LdapObject) -> int:
-        """Returns the maximum cardinality of data fields within an LdapObject.
+    async def render_template(
+        self, field_name: str, template_str: str, context: dict[str, Any]
+    ) -> Any:
+        template = self.environment.from_string(template_str)
+        value = (await template.render_async(context)).strip()
 
-        If a given data field has multiple values it will be a list within the
-        ldap_object, we wish to find the length of the longest list.
+        # Sloppy mapping can lead to the following rendered strings:
+        # - {{ldap.mail or None}} renders as "None"
+        # - {{ldap.mail}} renders as "[]" if ldap.mail is empty
+        #
+        # Mapping with {{ldap.mail or ''}} solves both, but let's check
+        # for "none" or "[]" strings anyway to be more robust.
+        if value.lower() == "none" or value == "[]":
+            value = ""
 
-        Non list data fields will be interpreted as having length 1.
-
-        Args:
-            ldap_object: The object to find the maximum cardinality within.
-
-        Returns:
-            The maximum cardinality contained within ldap_object.
-            Will always return atleast 1 as the ldap_object always contains a DN.
-        """
-
-        def ldap_field2cardinality(value: Any) -> int:
-            if isinstance(value, list):
-                return len(value)
-            return 1
-
-        values = ldap_object.dict().values()
-        cardinality_values = map(ldap_field2cardinality, values)
-        return max(cardinality_values)
+        # TODO: Is it possible to render a dictionary directly?
+        #       Instead of converting from a string
+        if "{" in value and ":" in value and "}" in value:
+            try:
+                value = self.str_to_dict(value)
+            except JSONDecodeError as error:
+                error_string = f"Could not convert {value} in '{field_name}' to dict (context={context!r})"
+                raise IncorrectMapping(error_string) from error
+        return value
 
     async def from_ldap(
         self,
@@ -70,67 +67,50 @@ class LdapConverter:
         mapping: LDAP2MOMapping,
         template_context: dict[str, Any],
     ) -> MOBase | Termination:
-        # This is how many MO objects we need to return - a MO object can have only
-        # One value per field. Not multiple. LDAP objects however, can have multiple
-        # values per field.
-        number_of_entries = self.get_number_of_entries(ldap_object)
-        if number_of_entries != 1:  # pragma: no cover
-            raise RequeueMessage("Unable to handle list attributes")
+        def convert_value(value: Any) -> Any:
+            if not is_list(value):
+                return value
+            if not value:
+                return value
+            # We can only handle single element lists
+            too_long = RequeueMessage("Unable to handle list attributes")
+            return one(value, too_long=too_long)
 
         ldap_dict = {
-            key: (one(value) if is_list(value) and len(value) > 0 else value)
-            for key, value in ldap_object.dict().items()
+            key: convert_value(value) for key, value in ldap_object.dict().items()
         }
-        context = {
-            "ldap": ldap_dict,
-            **template_context,
-        }
+        context = {"ldap": ldap_dict, **template_context}
 
-        async def render_template(
-            field_name: str, template_str: str, context: dict[str, Any]
-        ) -> Any:
-            template = self.environment.from_string(template_str)
-            value = (await template.render_async(context)).strip()
+        mo_class = mapping.as_mo_class()
 
-            # Sloppy mapping can lead to the following rendered strings:
-            # - {{ldap.mail or None}} renders as "None"
-            # - {{ldap.mail}} renders as "[]" if ldap.mail is empty
-            #
-            # Mapping with {{ldap.mail or ''}} solves both, but let's check
-            # for "none" or "[]" strings anyway to be more robust.
-            if value.lower() == "none" or value == "[]":
-                value = ""
+        # Handle termination
+        if mapping.terminate:
+            terminate_template = mapping.terminate
+            terminate = await self.render_template(
+                "_terminate_", terminate_template, context
+            )
+            if terminate:
+                # Pydantic validator ensures that uuid is set here
+                assert hasattr(mapping, "uuid")
+                uuid_template = mapping.uuid
+                assert uuid_template is not None
 
-            # TODO: Is it possible to render a dictionary directly?
-            #       Instead of converting from a string
-            if "{" in value and ":" in value and "}" in value:
-                try:
-                    value = self.str_to_dict(value)
-                except JSONDecodeError as error:
-                    error_string = f"Could not convert {value} in '{field_name}' to dict (context={context!r})"
-                    raise IncorrectMapping(error_string) from error
-            return value
+                uuid = await self.render_template("uuid", uuid_template, context)
+                # Asked to terminate, but uuid template did not return an uuid, i.e.
+                # there was no object to actually terminate, so we just skip it.
+                if not uuid:
+                    message = "Unable to terminate without UUID"
+                    logger.info(message)
+                    raise SkipObject(message)
+                return Termination(mo_class=mo_class, at=terminate, uuid=uuid)
 
         # TODO: asyncio.gather this for future dataloader bulking
-        mo_class = mapping.as_mo_class()
         mo_dict = {
-            mo_field_name: await render_template(mo_field_name, template_str, context)
+            mo_field_name: await self.render_template(
+                mo_field_name, template_str, context
+            )
             for mo_field_name, template_str in mapping.get_fields().items()
         }
-        if mo_dict.get("_terminate_"):
-            # TODO: Convert this to pydantic check
-            assert "uuid" in mo_dict, "UUID must be set if _terminate_ is set"
-            # Asked to terminate, but uuid template did not return an uuid, i.e.
-            # there was no object to actually terminate, so we just skip it.
-            if not mo_dict["uuid"]:
-                message = "Unable to terminate without UUID"
-                logger.info(message)
-                raise SkipObject(message)
-            return Termination(
-                mo_class=mo_class,
-                at=mo_dict["_terminate_"],
-                uuid=mo_dict["uuid"],
-            )
 
         required_attributes = get_required_attributes(mo_class)
 

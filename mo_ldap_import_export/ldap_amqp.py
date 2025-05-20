@@ -19,7 +19,6 @@ from fastramqpi.ramqp.utils import RequeueMessage
 from . import depends
 from .depends import DataLoader
 from .depends import LDAPAMQPSystem
-from .depends import LdapConverter
 from .depends import Settings
 from .depends import SyncTool
 from .depends import logger_bound_message_id
@@ -45,10 +44,9 @@ async def http_process_uuid(
     settings: Settings,
     sync_tool: SyncTool,
     dataloader: DataLoader,
-    converter: LdapConverter,
     uuid: Annotated[LDAPUUID, Body()],
 ) -> None:
-    await handle_uuid(settings, sync_tool, dataloader, converter, uuid)
+    await handle_uuid(settings, sync_tool, dataloader, uuid)
 
 
 @ldap_amqp_router.register("uuid")
@@ -57,13 +55,10 @@ async def process_uuid(
     ldap_amqpsystem: LDAPAMQPSystem,
     sync_tool: SyncTool,
     dataloader: DataLoader,
-    converter: LdapConverter,
     uuid: PayloadUUID,
 ) -> None:
     try:
-        await amqp_reject_on_failure(handle_uuid)(
-            settings, sync_tool, dataloader, converter, uuid
-        )
+        await amqp_reject_on_failure(handle_uuid)(settings, sync_tool, dataloader, uuid)
     except RequeueMessage:  # pragma: no cover
         # NOTE: This is a hack to cycle messages because quorum queues do not work
         # NOTE: We intentionally publish to this specific queue instead of the exchange,
@@ -80,7 +75,6 @@ async def handle_uuid(
     settings: Settings,
     sync_tool: SyncTool,
     dataloader: DataLoader,
-    converter: LdapConverter,
     uuid: LDAPUUID,
 ) -> None:
     logger.info("Received LDAP AMQP event", uuid=uuid)
@@ -102,7 +96,7 @@ async def handle_uuid(
     ldap_object_classes = ldap_object.objectClass  # type: ignore[attr-defined]
 
     # TODO: Eliminate this branch by handling employees as any other object
-    employee_object_class = converter.settings.ldap_object_class
+    employee_object_class = settings.ldap_object_class
     if employee_object_class in ldap_object_classes:
         logger.info("Handling employee", ldap_object_classes=ldap_object_classes)
         await sync_tool.import_single_user(dn)

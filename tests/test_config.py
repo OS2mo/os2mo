@@ -81,10 +81,36 @@ def test_can_terminate_address(address_mapping: dict) -> None:
     new_mapping = overlay(
         address_mapping,
         {
-            "ldap_to_mo": {"EmailEmployee": {"_terminate_": "whatever"}},
+            "ldap_to_mo": {
+                "EmailEmployee": {"_terminate_": "whatever", "uuid": "whatever"}
+            },
         },
     )
     parse_obj_as(ConversionMapping, new_mapping)
+
+
+def test_terminate_address_no_uuid(address_mapping: dict) -> None:
+    new_mapping = overlay(
+        address_mapping,
+        {
+            "ldap_to_mo": {"EmailEmployee": {"_terminate_": "whatever"}},
+        },
+    )
+    with pytest.raises(ValidationError) as exc_info:
+        parse_obj_as(ConversionMapping, new_mapping)
+    assert "UUID must be set if _terminate_ is set" in str(exc_info.value)
+
+
+def test_terminate_address_empty_uuid(address_mapping: dict) -> None:
+    new_mapping = overlay(
+        address_mapping,
+        {
+            "ldap_to_mo": {"EmailEmployee": {"_terminate_": "whatever", "uuid": ""}},
+        },
+    )
+    with pytest.raises(ValidationError) as exc_info:
+        parse_obj_as(ConversionMapping, new_mapping)
+    assert "UUID must not be empty if _terminate_ is set" in str(exc_info.value)
 
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
