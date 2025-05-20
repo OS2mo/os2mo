@@ -35,15 +35,27 @@ from .utils import import_class
 logger = structlog.stdlib.get_logger()
 
 
-def validate_jinja(v: str, error: str) -> str:
-    # Validate that the jinja template can be parsed correctly
-    try:
-        env = Environment()
-        env.parse(v)
-    except TemplateSyntaxError as e:
-        logger.exception("Unable to parse jinja")
-        raise ValueError(error) from e
-    return v
+class JinjaTemplate(str):
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v: Any) -> str:
+        if not isinstance(v, str):
+            raise TypeError("string required")
+        # Validate that the jinja template can be parsed correctly
+        try:
+            env = Environment()
+            env.parse(v)
+        except TemplateSyntaxError as e:
+            message = "Unable to parse jinja"
+            logger.exception(message)
+            raise ValueError(message) from e
+        return v
+
+    def __repr__(self):
+        return f"JinjaTemplate({super().__repr__()})"
 
 
 def value_or_default(dicty: dict[str, Any], key: str, default: Any) -> None:
@@ -309,14 +321,12 @@ class ConversionMapping(MappingBaseModel):
         The inner-mapping is equivalent to `ldap_to_mo_org_unit`.
         """,
     )
-    mo2ldap: str | None = Field(None, description="MO to LDAP mapping template")
+    mo2ldap: JinjaTemplate | None = Field(
+        None, description="MO to LDAP mapping template"
+    )
     username_generator: UsernameGeneratorConfig = Field(
         default_factory=UsernameGeneratorConfig
     )
-
-    @validator("mo2ldap")
-    def check_mo2ldap_is_valid_jinja(cls, v: str) -> str:
-        return validate_jinja(v, "Unable to parse mo2ldap template")
 
 
 class AuthBackendEnum(str, Enum):
@@ -561,24 +571,14 @@ class Settings(BaseSettings):
 
         return values
 
-    discriminator_values: list[str] = Field(
+    discriminator_values: list[JinjaTemplate] = Field(
         [], description="The values used for discrimination"
     )
 
-    @validator("discriminator_values")
-    def check_discriminator_values_are_valid_jinja(cls, v: list[str]) -> list[str]:
-        for template in v:
-            validate_jinja(template, "Unable to parse discriminator_values template")
-        return v
-
-    discriminator_filter: str | None = Field(
+    discriminator_filter: JinjaTemplate | None = Field(
         None,
         description="Jinja filter to run before applying the discriminator",
     )
-
-    @validator("discriminator_filter")
-    def check_mo2ldap_is_valid_jinja(cls, v: str) -> str:
-        return validate_jinja(v, "Unable to parse discriminator_filter template")
 
     @root_validator
     def check_discriminator_filter_settings(

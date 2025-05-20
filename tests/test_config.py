@@ -16,6 +16,7 @@ from pydantic import parse_obj_as
 from pydantic.env_settings import SettingsError
 
 from mo_ldap_import_export.config import ConversionMapping
+from mo_ldap_import_export.config import JinjaTemplate
 from mo_ldap_import_export.config import LDAP2MOMapping
 from mo_ldap_import_export.config import Settings
 
@@ -332,7 +333,8 @@ async def test_jinja_validator_invalid(
     monkeypatch.setenv(environment_variable, jinja_template)
     with pytest.raises(ValidationError) as exc_info:
         Settings()
-    assert f"Unable to parse {error_field} template" in str(exc_info.value)
+    assert "1 validation error for Settings" in str(exc_info.value)
+    assert f"{error_field}\n  Unable to parse jinja" in str(exc_info.value)
 
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
@@ -352,7 +354,8 @@ async def test_discriminator_values_jinja_validator_invalid(
     monkeypatch.setenv("DISCRIMINATOR_VALUES", json.dumps([jinja_template]))
     with pytest.raises(ValidationError) as exc_info:
         Settings()
-    assert "Unable to parse discriminator_values template" in str(exc_info.value)
+    assert "1 validation error for Settings" in str(exc_info.value)
+    assert "discriminator_values -> 0\n  Unable to parse jinja" in str(exc_info.value)
 
 
 @pytest.mark.parametrize(
@@ -492,3 +495,13 @@ def test_discriminator_filter_settings(monkeypatch: pytest.MonkeyPatch) -> None:
         settings = Settings()
         assert settings.discriminator_fields == ["xBrugertype", "LDAP_SYNC"]
         assert settings.discriminator_filter == "True"
+
+
+def test_jinja_template_repr() -> None:
+    assert repr(JinjaTemplate("hello")) == "JinjaTemplate('hello')"
+
+
+def test_jinja_template_non_string() -> None:
+    with pytest.raises(ValidationError) as exc_info:
+        parse_obj_as(JinjaTemplate, 2)
+    assert "__root__\n  string required" in str(exc_info.value)
