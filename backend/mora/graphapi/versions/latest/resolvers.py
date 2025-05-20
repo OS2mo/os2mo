@@ -1273,6 +1273,7 @@ async def generic_resolver(
     # Dates
     dates = get_date_interval(filter.from_date, filter.to_date)
     # UUIDs
+    uuid_results = None
     if filter.uuids is not None:
         if limit is not None or cursor is not None:  # pragma: no cover
             raise ValueError("Cannot filter 'uuid' with 'limit' or 'cursor'")
@@ -1280,7 +1281,7 @@ async def generic_resolver(
         if not filter.uuids:
             return dict()
         resolver_name = resolver_map[model]["loader"]
-        return await get_by_uuid(
+        uuid_results = await get_by_uuid(
             dataloader=info.context[resolver_name],
             keys=[
                 LoadKey(uuid, dates.from_date, dates.to_date) for uuid in filter.uuids
@@ -1303,7 +1304,11 @@ async def generic_resolver(
 
     resolver_name = resolver_map[model]["getter"]
     with with_graphql_dates(dates):
-        return await info.context[resolver_name](**kwargs)
+        search_results = await info.context[resolver_name](**kwargs)
+        if uuid_results is None:
+            return search_results
+        result_uuids = sorted(set(search_results.keys() & uuid_results.keys()))
+        return {uuid: uuid_results[uuid] for uuid in result_uuids}
 
 
 async def related_unit_resolver(
