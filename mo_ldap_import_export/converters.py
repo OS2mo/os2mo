@@ -36,31 +36,6 @@ class LdapConverter:
         """
         return json.loads(text.replace("'", '"').replace("Undefined", "null"))
 
-    def get_number_of_entries(self, ldap_object: LdapObject) -> int:
-        """Returns the maximum cardinality of data fields within an LdapObject.
-
-        If a given data field has multiple values it will be a list within the
-        ldap_object, we wish to find the length of the longest list.
-
-        Non list data fields will be interpreted as having length 1.
-
-        Args:
-            ldap_object: The object to find the maximum cardinality within.
-
-        Returns:
-            The maximum cardinality contained within ldap_object.
-            Will always return atleast 1 as the ldap_object always contains a DN.
-        """
-
-        def ldap_field2cardinality(value: Any) -> int:
-            if isinstance(value, list):
-                return len(value)
-            return 1
-
-        values = ldap_object.dict().values()
-        cardinality_values = map(ldap_field2cardinality, values)
-        return max(cardinality_values)
-
     async def render_template(
         self, field_name: str, template_str: str, context: dict[str, Any]
     ) -> Any:
@@ -95,8 +70,11 @@ class LdapConverter:
         # This is how many MO objects we need to return - a MO object can have only
         # One value per field. Not multiple. LDAP objects however, can have multiple
         # values per field.
-        number_of_entries = self.get_number_of_entries(ldap_object)
-        if number_of_entries != 1:  # pragma: no cover
+        any_long_lists = any(
+            isinstance(value, list) and len(value) > 1
+            for value in ldap_object.dict().values()
+        )
+        if any_long_lists:  # pragma: no cover
             raise RequeueMessage("Unable to handle list attributes")
 
         def convert_value(value: Any) -> Any:
