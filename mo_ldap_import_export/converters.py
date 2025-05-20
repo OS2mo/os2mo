@@ -6,13 +6,15 @@ from typing import Any
 
 import pydantic
 import structlog
-from ldap3.utils.ciDict import CaseInsensitiveDict
+from fastramqpi.ramqp.utils import RequeueMessage
+from more_itertools import one
 
 from .config import LDAP2MOMapping
 from .config import Settings
 from .config import get_required_attributes
 from .dataloaders import DataLoader
 from .exceptions import IncorrectMapping
+from .exceptions import SkipObject
 from .ldap_classes import LdapObject
 from .models import MOBase
 from .models import Termination
@@ -67,119 +69,106 @@ class LdapConverter:
         ldap_object: LdapObject,
         mapping: LDAP2MOMapping,
         template_context: dict[str, Any],
-    ) -> list[MOBase | Termination]:
+    ) -> MOBase | Termination:
         # This is how many MO objects we need to return - a MO object can have only
         # One value per field. Not multiple. LDAP objects however, can have multiple
         # values per field.
         number_of_entries = self.get_number_of_entries(ldap_object)
+        if number_of_entries != 1:  # pragma: no cover
+            raise RequeueMessage("Unable to handle list attributes")
 
-        converted_objects: list[MOBase | Termination] = []
-        for entry in range(number_of_entries):
-            ldap_dict: CaseInsensitiveDict = CaseInsensitiveDict(
-                {
-                    key: (
-                        value[min(entry, len(value) - 1)]
-                        if is_list(value) and len(value) > 0
-                        else value
-                    )
-                    for key, value in ldap_object.dict().items()
-                }
+        ldap_dict = {
+            key: (one(value) if is_list(value) and len(value) > 0 else value)
+            for key, value in ldap_object.dict().items()
+        }
+        context = {
+            "ldap": ldap_dict,
+            **template_context,
+        }
+
+        async def render_template(
+            field_name: str, template_str: str, context: dict[str, Any]
+        ) -> Any:
+            template = self.environment.from_string(template_str)
+            value = (await template.render_async(context)).strip()
+
+            # Sloppy mapping can lead to the following rendered strings:
+            # - {{ldap.mail or None}} renders as "None"
+            # - {{ldap.mail}} renders as "[]" if ldap.mail is empty
+            #
+            # Mapping with {{ldap.mail or ''}} solves both, but let's check
+            # for "none" or "[]" strings anyway to be more robust.
+            if value.lower() == "none" or value == "[]":
+                value = ""
+
+            # TODO: Is it possible to render a dictionary directly?
+            #       Instead of converting from a string
+            if "{" in value and ":" in value and "}" in value:
+                try:
+                    value = self.str_to_dict(value)
+                except JSONDecodeError as error:
+                    error_string = f"Could not convert {value} in '{field_name}' to dict (context={context!r})"
+                    raise IncorrectMapping(error_string) from error
+            return value
+
+        # TODO: asyncio.gather this for future dataloader bulking
+        mo_class = mapping.as_mo_class()
+        mo_dict = {
+            mo_field_name: await render_template(mo_field_name, template_str, context)
+            for mo_field_name, template_str in mapping.get_fields().items()
+        }
+        if mo_dict.get("_terminate_"):
+            # TODO: Convert this to pydantic check
+            assert "uuid" in mo_dict, "UUID must be set if _terminate_ is set"
+            # Asked to terminate, but uuid template did not return an uuid, i.e.
+            # there was no object to actually terminate, so we just skip it.
+            if not mo_dict["uuid"]:
+                message = "Unable to terminate without UUID"
+                logger.info(message)
+                raise SkipObject(message)
+            return Termination(
+                mo_class=mo_class,
+                at=mo_dict["_terminate_"],
+                uuid=mo_dict["uuid"],
             )
-            context = {
-                "ldap": ldap_dict,
-                **template_context,
+
+        required_attributes = get_required_attributes(mo_class)
+
+        # Load our validity default, if it is not set
+        if "validity" in required_attributes:
+            assert "validity" not in mo_dict, "validity disallowed in ldap2mo mappings"
+            mo_dict["validity"] = {
+                "from": mo_today(),
+                "to": None,
             }
 
-            async def render_template(
-                field_name: str, template_str: str, context: dict[str, Any]
-            ) -> Any:
-                template = self.environment.from_string(template_str)
-                value = (await template.render_async(context)).strip()
+        # If any required attributes are missing
+        missing_attributes = required_attributes - set(mo_dict.keys())
+        # TODO: Restructure this so rejection happens during parsing?
+        if missing_attributes:  # pragma: no cover
+            logger.info(
+                "Missing attributes in dict to model conversion",
+                mo_dict=mo_dict,
+                mo_class=mo_class,
+                missing_attributes=missing_attributes,
+            )
+            raise ValueError("Missing attributes in dict to model conversion")
 
-                # Sloppy mapping can lead to the following rendered strings:
-                # - {{ldap.mail or None}} renders as "None"
-                # - {{ldap.mail}} renders as "[]" if ldap.mail is empty
-                #
-                # Mapping with {{ldap.mail or ''}} solves both, but let's check
-                # for "none" or "[]" strings anyway to be more robust.
-                if value.lower() == "none" or value == "[]":
-                    value = ""
+        # Remove empty values
+        mo_dict = {key: value for key, value in mo_dict.items() if value}
+        # If any required attributes are missing
+        missing_attributes = required_attributes - set(mo_dict.keys())
+        if missing_attributes:  # pragma: no cover
+            logger.info(
+                "Missing values in LDAP to synchronize",
+                mo_dict=mo_dict,
+                mo_class=mo_class,
+                missing_attributes=missing_attributes,
+            )
+            raise RequeueMessage("Missing values in LDAP to synchronize")
 
-                # TODO: Is it possible to render a dictionary directly?
-                #       Instead of converting from a string
-                if "{" in value and ":" in value and "}" in value:
-                    try:
-                        value = self.str_to_dict(value)
-                    except JSONDecodeError as error:
-                        error_string = f"Could not convert {value} in '{field_name}' to dict (context={context!r})"
-                        raise IncorrectMapping(error_string) from error
-                return value
-
-            # TODO: asyncio.gather this for future dataloader bulking
-            mo_class = mapping.as_mo_class()
-            mo_dict = {
-                mo_field_name: await render_template(
-                    mo_field_name, template_str, context
-                )
-                for mo_field_name, template_str in mapping.get_fields().items()
-            }
-            if mo_dict.get("_terminate_"):
-                # TODO: Convert this to pydantic check
-                assert "uuid" in mo_dict, "UUID must be set if _terminate_ is set"
-                # Asked to terminate, but uuid template did not return an uuid, i.e.
-                # there was no object to actually terminate, so we just skip it.
-                if not mo_dict["uuid"]:
-                    logger.info("Requested termination with no UUID, skipping")
-                    continue
-                converted_objects.append(
-                    Termination(
-                        mo_class=mo_class,
-                        at=mo_dict["_terminate_"],
-                        uuid=mo_dict["uuid"],
-                    )
-                )
-                continue
-
-            required_attributes = get_required_attributes(mo_class)
-
-            # Load our validity default, if it is not set
-            if "validity" in required_attributes:
-                assert (
-                    "validity" not in mo_dict
-                ), "validity disallowed in ldap2mo mappings"
-                mo_dict["validity"] = {
-                    "from": mo_today(),
-                    "to": None,
-                }
-
-            # If any required attributes are missing
-            missing_attributes = required_attributes - set(mo_dict.keys())
-            # TODO: Restructure this so rejection happens during parsing?
-            if missing_attributes:  # pragma: no cover
-                logger.info(
-                    "Missing attributes in dict to model conversion",
-                    mo_dict=mo_dict,
-                    mo_class=mo_class,
-                    missing_attributes=missing_attributes,
-                )
-                raise ValueError("Missing attributes in dict to model conversion")
-
-            # Remove empty values
-            mo_dict = {key: value for key, value in mo_dict.items() if value}
-            # If any required attributes are missing
-            missing_attributes = required_attributes - set(mo_dict.keys())
-            if missing_attributes:  # pragma: no cover
-                logger.info(
-                    "Missing values in LDAP to synchronize, skipping",
-                    mo_dict=mo_dict,
-                    mo_class=mo_class,
-                    missing_attributes=missing_attributes,
-                )
-                continue
-
-            try:
-                converted_objects.append(mo_class(**mo_dict))
-            except pydantic.ValidationError:
-                logger.info("Exception during object parsing", exc_info=True)
-
-        return converted_objects
+        try:
+            return mo_class(**mo_dict)
+        except pydantic.ValidationError:
+            logger.info("Exception during object parsing", exc_info=True)
+            raise
