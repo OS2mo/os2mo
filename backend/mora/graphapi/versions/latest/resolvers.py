@@ -519,12 +519,25 @@ async def employee_resolver(
         cursor=cursor,
         **kwargs,
     )
-    if filter.ituser is not UNSET:
+    # filter.ituser = None means keep employees without any ITUsers
+    if filter.ituser is None:
+        itusers = await it_user_resolver(
+            info, ITUserFilter(employee=EmployeeFilter(uuids=[employees.keys()]))
+        )
+        employee_uuids = {
+            validity.employee_uuid for ituser in itusers.values() for validity in ituser
+        }
+        # Remove all employees with an ITuser
+        for employee_uuid in employee_uuids:
+            employees.pop(employee_uuid, None)
+    elif filter.ituser is not UNSET:
         itusers = await it_user_resolver(info, filter.ituser)
         employee_uuids = {
             validity.employee_uuid for ituser in itusers.values() for validity in ituser
         }
-        for employee_uuid in employee_uuids:
+        # Remove all employees without an ITUser
+        non_ituser_employee_uuids = employees.keys() - employee_uuids
+        for employee_uuid in non_ituser_employee_uuids:
             employees.pop(employee_uuid, None)
 
     return employees
