@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import dataclasses
+import operator
 import re
+from collections.abc import Awaitable
 from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
@@ -11,6 +13,7 @@ from functools import lru_cache
 from textwrap import dedent
 from typing import Annotated
 from typing import Any
+from typing import TypeVar
 from typing import cast as tcast
 from uuid import UUID
 
@@ -191,6 +194,28 @@ async def registration_filter(info: Info, filter: Any) -> None:
     )
     extend_uuids(filter, uuids)
     # coverage: unpause
+
+
+FilterT = TypeVar("FilterT")
+
+
+async def employee_post_filter(
+    info: Info,
+    filter_type: type[FilterT],
+    filter: FilterT | None,
+    resolver: Callable[[Info, FilterT], Awaitable[Any]],
+    employees: dict,
+) -> Any:
+    op = operator.truth
+    if filter is None:
+        filter = filter_type(employee=EmployeeFilter(uuids=list(employees.keys())))
+        op = operator.not_
+
+    entities = await resolver(info, filter)
+    employee_uuids = {
+        validity.employee_uuid for entity in entities.values() for validity in entity
+    }
+    return {key: value for key, value in employees if op(key in employee_uuids)}
 
 
 async def facet_resolver(
@@ -519,27 +544,10 @@ async def employee_resolver(
         cursor=cursor,
         **kwargs,
     )
-    # filter.ituser = None means keep employees without any ITUsers
-    if filter.ituser is None:
-        itusers = await it_user_resolver(
-            info, ITUserFilter(employee=EmployeeFilter(uuids=[employees.keys()]))
+    if filter.ituser is not UNSET:
+        employees = await employee_post_filter(
+            info, ITUserFilter, filter.ituser, it_user_resolver, employees
         )
-        employee_uuids = {
-            validity.employee_uuid for ituser in itusers.values() for validity in ituser
-        }
-        # Remove all employees with an ITuser
-        for employee_uuid in employee_uuids:
-            employees.pop(employee_uuid, None)
-    elif filter.ituser is not UNSET:
-        itusers = await it_user_resolver(info, filter.ituser)
-        employee_uuids = {
-            validity.employee_uuid for ituser in itusers.values() for validity in ituser
-        }
-        # Remove all employees without an ITUser
-        non_ituser_employee_uuids = employees.keys() - employee_uuids
-        for employee_uuid in non_ituser_employee_uuids:
-            employees.pop(employee_uuid, None)
-
     return employees
 
 
