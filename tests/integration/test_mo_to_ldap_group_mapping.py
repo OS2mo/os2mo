@@ -68,10 +68,13 @@ async def get_groups(
                     {% set itusers = get_ituser_uuids({"itsystem": {"uuids": [uuid]}}) %}
                     {% set persons = itusers|map('ituser_uuid_to_person_uuid')|list %}
                     {% set dns = persons|map('get_person_dn')|list %}
+
+                    {% set exists = dn|dn_exists %}
+
                     {{
                         {
                             "dn": dn,
-                            "create": true,
+                            "create": not exists,
                             "attributes": {"member": dns}
                         }|tojson
                     }}
@@ -111,3 +114,7 @@ async def test_group_sync(
         "objectClass": ["groupOfNames"],
         "cn": [str(adtitle)],
     }
+
+    await trigger_sync("itsystem2group", adtitle)
+    ldap_object2 = one(await get_groups())
+    assert ldap_object == ldap_object2
