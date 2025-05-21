@@ -308,6 +308,9 @@ class EmployeeFilter(BaseFilter):
     cpr_numbers: list[CPR] | None = strawberry.field(
         default=None, description=gen_filter_string("CPR number", "cpr_numbers")
     )
+    ituser: ITUserFilter | None = strawberry.field(
+        default=UNSET, description=gen_filter_string("ITUser", "ITUsers")
+    )
 
 
 @strawberry.input(description="Engagement filter.")

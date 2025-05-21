@@ -511,7 +511,7 @@ async def employee_resolver(
             f"urn:dk:cpr:person:{c}" for c in filter.cpr_numbers
         ]
 
-    return await generic_resolver(
+    employees = await generic_resolver(
         EmployeeRead,
         info=info,
         filter=filter,
@@ -519,6 +519,15 @@ async def employee_resolver(
         cursor=cursor,
         **kwargs,
     )
+    if filter.ituser is not UNSET:
+        itusers = await it_user_resolver(info, filter.ituser)
+        employee_uuids = {
+            validity.employee_uuid for ituser in itusers.values() for validity in ituser
+        }
+        for employee_uuid in employee_uuids:
+            employees.pop(employee_uuid, None)
+
+    return employees
 
 
 async def engagement_resolver(
