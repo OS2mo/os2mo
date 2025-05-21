@@ -494,13 +494,18 @@ async def get_address_uuid(
     return obj.uuid if obj else None
 
 
+async def get_ituser_uuids(
+    graphql_client: GraphQLClient, filter: dict[str, Any]
+) -> set[UUID]:
+    ituser_filter = parse_obj_as(ITUserFilter, filter)
+    result = await graphql_client.read_ituser_uuid(ituser_filter)
+    return {obj.uuid for obj in result.objects}
+
+
 async def get_ituser_uuid(
     graphql_client: GraphQLClient, filter: dict[str, Any]
 ) -> UUID | None:
-    ituser_filter = parse_obj_as(ITUserFilter, filter)
-    result = await graphql_client.read_ituser_uuid(ituser_filter)
-    obj = only(result.objects)
-    return obj.uuid if obj else None
+    return only(await get_ituser_uuids(graphql_client, filter))
 
 
 async def get_itsystem_uuid(
@@ -679,6 +684,7 @@ def construct_globals_dict(
         "generate_common_name": partial(generate_common_name, dataloader),
         "get_person_uuid": partial(get_person_uuid, graphql_client),
         "get_address_uuid": partial(get_address_uuid, graphql_client),
+        "get_ituser_uuids": partial(get_ituser_uuids, graphql_client),
         "get_ituser_uuid": partial(get_ituser_uuid, graphql_client),
         "get_itsystem_uuid": partial(get_itsystem_uuid, graphql_client),
         "get_class_uuid": partial(get_class_uuid, graphql_client),
