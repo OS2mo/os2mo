@@ -287,16 +287,6 @@ async def ldap_modify(
     return await connection.ldap_modify(dn, changes, controls)
 
 
-async def ldap_modify_dn(
-    ldap_connection: Connection,
-    dn: DN,
-    relative_dn: RDN,
-    new_superior: Any | None = None,
-) -> tuple[dict, dict]:
-    connection = LDAPConnection(ldap_connection)
-    return await connection.ldap_modify_dn(dn, relative_dn, new_superior)
-
-
 async def ldap_add(
     ldap_connection: Connection, dn: DN, object_class, attributes=None
 ) -> tuple[dict, dict]:

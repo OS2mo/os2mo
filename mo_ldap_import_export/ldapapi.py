@@ -27,7 +27,6 @@ from .ldap import construct_assertion_control_filter
 from .ldap import get_ldap_object
 from .ldap import ldap_add
 from .ldap import ldap_modify
-from .ldap import ldap_modify_dn
 from .ldap import make_ldap_object
 from .ldap import object_search
 from .ldap import single_object_search
@@ -418,7 +417,7 @@ class LDAPAPI:
             # Modify LDAP-DN
             logger.info("Changing object RDN", dn=dn, new_rdn=new_rdn)
             # TODO: Use Assertion Control here
-            _, result = await ldap_modify_dn(self.connection, dn, new_rdn)
+            _, result = await self.ldap_connection.ldap_modify_dn(dn, new_rdn)
             logger.info("LDAP Result", result=result, dn=dn)
         except LDAPInvalidValueError as exc:  # pragma: no cover
             logger.exception("LDAP modify-dn failed", dn=dn, changes=requested_changes)

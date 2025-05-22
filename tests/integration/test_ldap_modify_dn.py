@@ -5,7 +5,6 @@ import pytest
 from ldap3 import Connection
 
 from mo_ldap_import_export.ldap import ldap_add
-from mo_ldap_import_export.ldap import ldap_modify_dn
 from mo_ldap_import_export.ldapapi import LDAPAPI
 from mo_ldap_import_export.types import RDN
 from mo_ldap_import_export.utils import combine_dn_strings
@@ -62,7 +61,7 @@ async def test_ldap_modify_dn(
     )
     initial_ldap_uuid = await ldap_api.get_ldap_unique_ldap_uuid(initial_dn)
 
-    await ldap_modify_dn(ldap_connection, initial_dn, rdn)
+    await ldap_api.ldap_connection.ldap_modify_dn(initial_dn, rdn)
 
     new_dn = await ldap_api.get_ldap_dn(initial_ldap_uuid)
     assert new_dn == expected_dn
