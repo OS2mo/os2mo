@@ -210,7 +210,7 @@ async def test_renaming_multi_valued_rdns(
     person_dn = combine_dn_strings([f"employeeNumber={cpr}+uid={uid}"] + ldap_org_unit)
 
     await ldap_add(
-        ldapapi.ldap_connection,
+        ldapapi.connection,
         dn=person_dn,
         object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
         attributes={"cn": "Aage Bach Klarskov", "sn": "Bach Klarskov"},

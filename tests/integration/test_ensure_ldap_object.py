@@ -28,7 +28,7 @@ async def test_ensure_ldap_object(
         create=True,
     )
     assert current_dn == person_dn
-    ldap_obj = await get_ldap_object(ldapapi.ldap_connection, person_dn)
+    ldap_obj = await get_ldap_object(ldapapi.connection, person_dn)
     expected = {
         "cn": ["Aage"],
         "dn": person_dn,
@@ -46,7 +46,7 @@ async def test_ensure_ldap_object(
         create=False,
     )
     assert current_dn == new_person_dn
-    ldap_obj = await get_ldap_object(ldapapi.ldap_connection, new_person_dn)
+    ldap_obj = await get_ldap_object(ldapapi.connection, new_person_dn)
     assert ldap_obj.dict() == {
         **expected,
         "cn": ["Anita"],

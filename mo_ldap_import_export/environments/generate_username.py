@@ -396,7 +396,7 @@ async def generate_username(
         str,
         await generate_username_func(
             dataloader.settings,
-            dataloader.ldapapi.ldap_connection,
+            dataloader.ldapapi.connection,
             dataloader.moapi,
             employee,
         ),

@@ -371,7 +371,7 @@ async def lifespan(
         ldapapi = LDAPAPI(settings, ldap_connection)
 
         logger.info("Initializing username generator")
-        username_generator = UserNameGenerator(settings, ldapapi.ldap_connection)
+        username_generator = UserNameGenerator(settings, ldapapi.connection)
 
         logger.info("Initializing dataloader")
         dataloader = DataLoader(settings, moapi, ldapapi, username_generator)

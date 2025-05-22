@@ -219,14 +219,12 @@ class DataLoader:
 
     async def _find_best_dn(self, uuid: EmployeeUUID) -> DN | None:
         dns = await self.find_mo_employee_dn(uuid)
-        dns = await filter_dns(self.settings, self.ldapapi.ldap_connection, dns)
+        dns = await filter_dns(self.settings, self.ldapapi.connection, dns)
         # If we found DNs, we want to synchronize to the best of them
         if not dns:
             return None
         logger.info("Found DNs for user", dns=dns, uuid=uuid)
-        best_dn = await apply_discriminator(
-            self.settings, self.ldapapi.ldap_connection, dns
-        )
+        best_dn = await apply_discriminator(self.settings, self.ldapapi.connection, dns)
         # If no good LDAP account was found, we do not want to synchronize at all
         if not best_dn:
             logger.warning(

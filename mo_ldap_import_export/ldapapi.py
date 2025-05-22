@@ -45,7 +45,7 @@ logger = structlog.stdlib.get_logger()
 class LDAPAPI:
     def __init__(self, settings: Settings, ldap_connection: Connection) -> None:
         self.settings = settings
-        self.ldap_connection = ldap_connection
+        self.connection = ldap_connection
 
     # TODO: Move this to settings?
     def ou_in_ous_to_write_to(self, dn: DN) -> bool:
@@ -89,9 +89,7 @@ class LDAPAPI:
                 "search_scope": BASE,
             }
 
-        search_result = await single_object_search(
-            searchParameters, self.ldap_connection
-        )
+        search_result = await single_object_search(searchParameters, self.connection)
         dn: DN = search_result["dn"]
         return dn
 
@@ -128,7 +126,7 @@ class LDAPAPI:
         #       functionality to ensure that the current-state read is the same
         #       state that we are overwriting.
         ldap_object = await get_ldap_object(
-            self.ldap_connection,
+            self.connection,
             dn,
             attributes=set(attributes.keys()),
             # Nest false is required, as otherwise we fetch related objects
@@ -219,7 +217,7 @@ class LDAPAPI:
 
         logger.info("Adding user to LDAP", dn=dn, attributes=attributes)
         _, result = await ldap_add(
-            self.ldap_connection,
+            self.connection,
             dn,
             object_class,
             attributes=attributes,
@@ -232,7 +230,7 @@ class LDAPAPI:
         """
         logger.info("Looking for LDAP object", dn=dn)
         ldap_object = await get_ldap_object(
-            self.ldap_connection, dn, {self.settings.ldap_unique_id_field}
+            self.connection, dn, {self.settings.ldap_unique_id_field}
         )
         uuid = getattr(ldap_object, self.settings.ldap_unique_id_field)
         if not uuid:
@@ -269,7 +267,7 @@ class LDAPAPI:
             return None
 
         ldap_object = await get_ldap_object(
-            self.ldap_connection, dn, {self.settings.ldap_cpr_attribute}
+            self.connection, dn, {self.settings.ldap_cpr_attribute}
         )
         # Try to get the cpr number from LDAP and use that.
         raw_cpr_number = getattr(ldap_object, self.settings.ldap_cpr_attribute)
@@ -302,11 +300,11 @@ class LDAPAPI:
             "attributes": [],
         }
         try:
-            search_results = await object_search(searchParameters, self.ldap_connection)
+            search_results = await object_search(searchParameters, self.connection)
         except LDAPNoSuchObjectResult:
             return set()
         ldap_objects: list[LdapObject] = [
-            await make_ldap_object(search_result, self.ldap_connection)
+            await make_ldap_object(search_result, self.connection)
             for search_result in search_results
         ]
         dns = {obj.dn for obj in ldap_objects}
@@ -387,7 +385,7 @@ class LDAPAPI:
             try:
                 # Modify LDAP
                 logger.info("Uploading the changes", changes=requested_changes, dn=dn)
-                _, result = await ldap_modify(self.ldap_connection, dn, modify_changes)
+                _, result = await ldap_modify(self.connection, dn, modify_changes)
                 logger.info("LDAP Result", result=result, dn=dn)
             except LDAPInvalidValueError as exc:
                 logger.exception("LDAP modify failed", dn=dn, changes=requested_changes)
@@ -415,7 +413,7 @@ class LDAPAPI:
             # Modify LDAP-DN
             logger.info("Changing object RDN", dn=dn, new_rdn=new_rdn)
             # TODO: Use Assertion Control here
-            _, result = await ldap_modify_dn(self.ldap_connection, dn, new_rdn)
+            _, result = await ldap_modify_dn(self.connection, dn, new_rdn)
             logger.info("LDAP Result", result=result, dn=dn)
         except LDAPInvalidValueError as exc:  # pragma: no cover
             logger.exception("LDAP modify-dn failed", dn=dn, changes=requested_changes)

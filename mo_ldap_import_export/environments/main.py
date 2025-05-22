@@ -465,7 +465,7 @@ async def generate_common_name(
         raise NoObjectsReturnedException(f"Unable to lookup employee: {employee_uuid}")
     # Fetch the current common name (if any)
     current_common_name = await fetch_current_common_name(
-        dataloader.ldapapi.ldap_connection, dn
+        dataloader.ldapapi.connection, dn
     )
     return cast(
         str,
@@ -690,7 +690,7 @@ def construct_globals_dict(
         "dn_to_uuid": dataloader.ldapapi.get_ldap_unique_ldap_uuid,
         "get_engagement_type_uuid": partial(get_engagement_type_uuid, graphql_client),
         "get_primary_type_uuid": partial(get_primary_type_uuid, graphql_client),
-        "get_ldap_object": partial(get_ldap_object, dataloader.ldapapi.ldap_connection),
+        "get_ldap_object": partial(get_ldap_object, dataloader.ldapapi.connection),
     }
 
 
