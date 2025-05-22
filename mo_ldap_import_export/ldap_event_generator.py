@@ -212,7 +212,6 @@ async def _poll(
             "attributes": [ldap_unique_id_field, "modifyTimestamp"],
         },
         search_base,
-        mute=False,
     )
 
     # Filter to only keep search results

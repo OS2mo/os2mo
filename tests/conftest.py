@@ -448,7 +448,6 @@ async def purge_ldap(ldap_connection: Connection) -> AsyncIterator[None]:
             ldap_connection,
             searchParameters,
             settings.ldap_search_base,
-            mute=False,
         )
         dns = set(map(entry2dn, response))
         dns.discard(settings.ldap_search_base)  # root attribute is kept

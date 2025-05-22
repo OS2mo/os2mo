@@ -460,29 +460,25 @@ async def _paged_search(
     ldap_connection: Connection,
     searchParameters: dict,
     search_base: str,
-    mute: bool,
 ) -> list[dict[str, Any]]:
     # TODO: Consider using upstream paged_search_generator instead of this?
-    # TODO: Eliminate mute argument? - Should be logger configuration?
     # TODO: Find max. paged_size number from LDAP rather than hard-code it?
     searchParameters["paged_size"] = 500
     searchParameters["search_base"] = search_base
 
     search_filter = searchParameters["search_filter"]
 
-    if not mute:
-        logger.info(
-            "Executing paged_search",
-            search_filter=search_filter,
-            search_base=search_base,
-        )
+    logger.info(
+        "Executing paged_search",
+        search_filter=search_filter,
+        search_base=search_base,
+    )
 
     # Max 10_000 pages to avoid eternal loops
     # TODO: Why would we get eternal loops?
     responses: list[dict[str, Any]] = []
     for page in range(0, 10_000):
-        if not mute:
-            logger.info("Searching page", page=page)
+        logger.info("Searching page", page=page)
         # TODO: Fetch multiple pages in parallel using asyncio.gather?
         try:
             response, result = await LDAPConnection(ldap_connection).ldap_search(
@@ -549,12 +545,9 @@ async def paged_search(
     # TODO: Consider moving this to its own module separate from business logic
     # TODO: Make a class for the searchParameters if it has a fixed format?
 
-    mute = False
     if search_base:
         # If the search base is explicitly defined: Don't try anything fancy.
-        results = await _paged_search(
-            ldap_connection, searchParameters, search_base, mute
-        )
+        results = await _paged_search(ldap_connection, searchParameters, search_base)
         return results
 
     # Otherwise, loop over all OUs to search in
@@ -565,9 +558,7 @@ async def paged_search(
     results = []
     for search_base in search_bases:
         results.extend(
-            await _paged_search(
-                ldap_connection, searchParameters.copy(), search_base, mute
-            )
+            await _paged_search(ldap_connection, searchParameters.copy(), search_base)
         )
 
     return results
