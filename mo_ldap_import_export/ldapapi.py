@@ -418,3 +418,7 @@ class LDAPAPI:
         return await get_ldap_object(
             self.ldap_connection.connection, dn, attributes, nest=False
         )
+
+    async def get_attribute_by_dn(self, dn: DN, attribute: str) -> Any:
+        ldap_object = await self.get_object_by_dn(dn, {attribute})
+        return getattr(ldap_object, attribute)
