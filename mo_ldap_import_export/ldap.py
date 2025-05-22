@@ -304,11 +304,6 @@ async def ldap_add(
     return await connection.ldap_add(dn, object_class, attributes)
 
 
-async def ldap_delete(ldap_connection: Connection, dn: DN) -> tuple[dict, dict]:
-    connection = LDAPConnection(ldap_connection)
-    return await connection.ldap_delete(dn)
-
-
 async def ldap_search(
     ldap_connection: Connection, **kwargs
 ) -> tuple[list[dict[str, Any]], dict]:
