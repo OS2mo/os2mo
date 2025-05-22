@@ -198,8 +198,7 @@ async def ldap_healthcheck(context: dict | Context) -> bool:
         return False
     try:
         # Try to do a 'SELECT 1' like query, selecting the empty DN
-        response, result = await ldap_search(
-            ldap_connection,
+        response, result = await LDAPConnection(ldap_connection).ldap_search(
             search_base="",
             search_filter="(objectclass=*)",
             attributes=NO_ATTRIBUTES,
@@ -275,13 +274,6 @@ class LDAPConnection:
         message_id = self.connection.search(**kwargs)
         response, result = await self._wait_for_message_id(message_id)
         return response, result
-
-
-async def ldap_search(
-    ldap_connection: Connection, **kwargs
-) -> tuple[list[dict[str, Any]], dict]:
-    connection = LDAPConnection(ldap_connection)
-    return await connection.ldap_search(**kwargs)
 
 
 async def fetch_field_mapping(
@@ -493,7 +485,9 @@ async def _paged_search(
             logger.info("Searching page", page=page)
         # TODO: Fetch multiple pages in parallel using asyncio.gather?
         try:
-            response, result = await ldap_search(ldap_connection, **searchParameters)
+            response, result = await LDAPConnection(ldap_connection).ldap_search(
+                **searchParameters
+            )
         except LDAPNoSuchObjectResult:
             return responses
 
@@ -606,8 +600,8 @@ async def object_search(
     responses = []
     # TODO: Asyncio.gather this? - or combine the filters?
     for search_base in search_bases:
-        response, _ = await ldap_search(
-            ldap_connection, **ChainMap(searchParameters, {"search_base": search_base})
+        response, _ = await LDAPConnection(ldap_connection).ldap_search(
+            **ChainMap(searchParameters, {"search_base": search_base})
         )
         if response:
             responses.extend(response)
