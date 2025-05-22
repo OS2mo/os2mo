@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
+from contextlib import suppress
 from typing import Any
 from typing import cast
 
@@ -71,15 +72,26 @@ class LDAPAPI:
         logger.info("OU not in OUs to write", ou=ou, ous_to_write_to=ous_to_write_to)
         return False
 
-    async def get_ldap_dn(self, unique_ldap_uuid: LDAPUUID) -> DN:
+    async def get_object_by_uuid(
+        self, unique_ldap_uuid: LDAPUUID, attributes: set | None = None
+    ) -> LdapObject | None:
+        """Fetch an LDAP object by its UUID.
+
+        Args:
+            unique_ldap_uuid: The UUID of the LDAP object.
+            attributes: The list of attributes to fetch.
+
+        Returns:
+            The fetched object if found or None if no object could be found.
         """
-        Given an unique_ldap_uuid, find the DistinguishedName
-        """
+        if attributes is None:
+            attributes = {"*"}
+
         logger.info("Looking for LDAP object", unique_ldap_uuid=unique_ldap_uuid)
         searchParameters = {
             "search_base": self.settings.ldap_search_base,
             "search_filter": f"(&(objectclass=*)({self.settings.ldap_unique_id_field}={unique_ldap_uuid}))",
-            "attributes": [],
+            "attributes": attributes,
         }
 
         # Special-case for AD
@@ -87,13 +99,29 @@ class LDAPAPI:
             searchParameters = {
                 "search_base": f"<GUID={unique_ldap_uuid}>",
                 "search_filter": "(objectclass=*)",
-                "attributes": [],
+                "attributes": attributes,
                 "search_scope": BASE,
             }
 
-        search_result = await single_object_search(searchParameters, self.connection)
-        dn: DN = search_result["dn"]
-        return dn
+        with suppress(NoObjectsReturnedException):
+            search_result = await single_object_search(
+                searchParameters, self.connection
+            )
+            return await make_ldap_object(
+                search_result, self.ldap_connection.connection, nest=False
+            )
+        return None
+
+    async def get_ldap_dn(self, unique_ldap_uuid: LDAPUUID) -> DN:
+        """
+        Given an unique_ldap_uuid, find the DistinguishedName
+        """
+        ldap_object = await self.get_object_by_uuid(unique_ldap_uuid)
+        if ldap_object is None:
+            raise NoObjectsReturnedException(
+                f"Found no entries for uuid={unique_ldap_uuid}"
+            )
+        return ldap_object.dn
 
     async def ensure_ldap_object(
         self, dn: DN, attributes: dict[str, list], object_class: str, create: bool
