@@ -21,6 +21,7 @@ from more_itertools import partition
 from .config import Settings
 from .exceptions import NoObjectsReturnedException
 from .exceptions import ReadOnlyException
+from .ldap import LDAPConnection
 from .ldap import construct_assertion_control
 from .ldap import construct_assertion_control_filter
 from .ldap import get_ldap_object
@@ -45,7 +46,11 @@ logger = structlog.stdlib.get_logger()
 class LDAPAPI:
     def __init__(self, settings: Settings, ldap_connection: Connection) -> None:
         self.settings = settings
-        self.connection = ldap_connection
+        self.ldap_connection = LDAPConnection(ldap_connection)
+
+    @property
+    def connection(self) -> Connection:
+        return self.ldap_connection.connection
 
     # TODO: Move this to settings?
     def ou_in_ous_to_write_to(self, dn: DN) -> bool:

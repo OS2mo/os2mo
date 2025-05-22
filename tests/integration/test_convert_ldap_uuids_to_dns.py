@@ -97,9 +97,9 @@ async def test_convert_ldap_uuids_to_dns(
 
     # Convert existing UUID, but LDAP is down
     exception = ValueError("BOOM")
-    ldap_api.connection = MagicMock()
-    ldap_api.connection.search.return_value = "message_id"
-    ldap_api.connection.get_response.side_effect = exception
+    ldap_api.ldap_connection.connection = MagicMock()
+    ldap_api.ldap_connection.connection.search.return_value = "message_id"
+    ldap_api.ldap_connection.connection.get_response.side_effect = exception
 
     with pytest.raises(ExceptionGroup) as exc_info:
         await ldap_api.convert_ldap_uuids_to_dns({ldap_person_uuid})
