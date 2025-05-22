@@ -126,8 +126,8 @@ async def test_searching_mocked(
 ) -> None:
     """Test that we can use the mocked ldap_connection to search for our default user."""
     message_id = ldap_connection.search(
-        ldap_container_dn,
-        f"(cn={settings.ldap_user})",
+        search_base=ldap_container_dn,
+        search_filter=f"(cn={settings.ldap_user})",
         search_scope=SUBTREE,
         attributes="*",
     )
@@ -172,7 +172,10 @@ async def test_searching_newly_added(ldap_connection: Connection) -> None:
     )
 
     message_id = ldap_connection.search(
-        f"o={container}", f"(cn={username})", search_scope=SUBTREE, attributes="*"
+        search_base=f"o={container}",
+        search_filter=f"(cn={username})",
+        search_scope=SUBTREE,
+        attributes="*",
     )
     response, result = await wait_for_message_id(ldap_connection, message_id)
     assert result["description"] == "success"
@@ -200,8 +203,8 @@ async def test_searching_dn_lookup(
 ) -> None:
     """Test that we can read our default user."""
     message_id = ldap_connection.search(
-        ldap_dn,
-        "(objectclass=*)",
+        search_base=ldap_dn,
+        search_filter="(objectclass=*)",
         attributes="*",
         search_scope=BASE,
     )
@@ -275,8 +278,8 @@ async def test_get_ldap_cpr_object(
     ldap_container_dn: DN,
 ) -> None:
     message_id = ldap_connection.search(
-        ldap_container_dn,
-        "(&(objectclass=inetOrgPerson)(employeeID=0101700001))",
+        search_base=ldap_container_dn,
+        search_filter="(&(objectclass=inetOrgPerson)(employeeID=0101700001))",
         search_scope=SUBTREE,
         attributes="*",
     )
