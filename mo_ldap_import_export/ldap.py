@@ -277,13 +277,6 @@ class LDAPConnection:
         return response, result
 
 
-async def wait_for_message_id(
-    ldap_connection: Connection, message_id: int
-) -> tuple[Any, Any]:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(None, ldap_connection.get_response, message_id)
-
-
 async def ldap_modify(
     ldap_connection: Connection,
     dn: DN,
