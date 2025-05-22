@@ -189,7 +189,7 @@ async def test_upload_ldap_object_invalid_value(
     ldap_connection: MagicMock,
     dataloader: DataLoader,
 ) -> None:
-    dataloader.ldapapi.ldap_connection.get_response.return_value = (
+    dataloader.ldapapi.connection.get_response.return_value = (
         [],
         {"type": "test", "description": "compareFalse"},
     )
@@ -225,7 +225,7 @@ async def test_modify_ldap_object_invalid_ou(
     settings = Settings()
 
     dataloader.settings = settings
-    dataloader.ldapapi = LDAPAPI(settings, dataloader.ldapapi.ldap_connection)
+    dataloader.ldapapi = LDAPAPI(settings, dataloader.ldapapi.connection)
 
     dn = "UID=abk,OU=os2mo,O=magenta,DC=magenta,DC=dk"
     with capture_logs() as cap_logs:
@@ -828,7 +828,7 @@ async def test_load_ldap_attribute_values(dataloader: DataLoader):
         return_value=responses,
     ):
         settings = dataloader.settings
-        ldap_connection = dataloader.ldapapi.ldap_connection
+        ldap_connection = dataloader.ldapapi.connection
         values = await load_ldap_attribute_values(settings, ldap_connection, "foo")
         assert "1" in values
         assert "2" in values
@@ -952,7 +952,7 @@ async def test_add_ldap_object(settings: Settings, ldap_connection: MagicMock) -
         )
     assert "Adding LDAP objects is disabled" in str(exc.value)
 
-    ldapapi.ldap_connection.reset_mock()  # type: ignore
+    ldapapi.connection.reset_mock()  # type: ignore
     ldapapi.settings.add_objects_to_ldap = True
     ldapapi.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     ldapapi.ou_in_ous_to_write_to.return_value = False

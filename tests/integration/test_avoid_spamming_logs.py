@@ -7,12 +7,11 @@ from collections.abc import Callable
 from datetime import datetime
 
 import pytest
-from ldap3 import Connection
 from more_itertools import one
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.depends import Settings
-from mo_ldap_import_export.ldap import ldap_search
+from mo_ldap_import_export.ldapapi import LDAPAPI
 from mo_ldap_import_export.types import LDAPUUID
 from mo_ldap_import_export.utils import combine_dn_strings
 
@@ -48,7 +47,7 @@ async def test_no_log_spam(
     trigger_mo_person: Callable[[], Awaitable[None]],
     ldap_person_uuid: LDAPUUID,
     ldap_org_unit: list[str],
-    ldap_connection: Connection,
+    ldap_api: LDAPAPI,
 ) -> None:
     """Ensure that we only write to LDAP when there are changes.
 
@@ -63,8 +62,7 @@ async def test_no_log_spam(
 
     async def get_ldap_modify_time() -> datetime:
         settings = Settings()
-        response, _ = await ldap_search(
-            ldap_connection,
+        response, _ = await ldap_api.ldap_connection.ldap_search(
             search_base=combine_dn_strings(ldap_org_unit),
             search_filter=f"({settings.ldap_unique_id_field}={ldap_person_uuid})",
             attributes=["modifyTimestamp"],

@@ -36,7 +36,7 @@ def generate_events(
 
     seeded_poller = partial(
         _poll,
-        ldap_connection=dataloader.ldapapi.ldap_connection,
+        ldap_connection=dataloader.ldapapi.connection,
         search_base=search_base,
         ldap_unique_id_field=Settings().ldap_unique_id_field,
     )

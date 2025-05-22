@@ -10,6 +10,7 @@ from functools import cache
 from ssl import CERT_NONE
 from ssl import CERT_REQUIRED
 from typing import Any
+from typing import Self
 from uuid import UUID
 
 import ldap3.core.exceptions
@@ -197,8 +198,7 @@ async def ldap_healthcheck(context: dict | Context) -> bool:
         return False
     try:
         # Try to do a 'SELECT 1' like query, selecting the empty DN
-        response, result = await ldap_search(
-            ldap_connection,
+        response, result = await LDAPConnection(ldap_connection).ldap_search(
             search_base="",
             search_filter="(objectclass=*)",
             attributes=NO_ATTRIBUTES,
@@ -226,55 +226,54 @@ async def ldap_healthcheck(context: dict | Context) -> bool:
     return True
 
 
-async def wait_for_message_id(
-    ldap_connection: Connection, message_id: int
-) -> tuple[Any, Any]:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(None, ldap_connection.get_response, message_id)
+class LDAPConnection:
+    def __init__(self: Self, connection: Connection) -> None:
+        self.connection = connection
 
+    async def _wait_for_message_id(self: Self, message_id: int) -> tuple[Any, Any]:
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(
+            None, self.connection.get_response, message_id
+        )
 
-async def ldap_modify(
-    ldap_connection: Connection,
-    dn: DN,
-    changes: dict,
-    controls: list[tuple[str, bool, Any | None]] | None = None,
-) -> tuple[dict, dict]:
-    message_id = ldap_connection.modify(dn, changes, controls)
-    response, result = await wait_for_message_id(ldap_connection, message_id)
-    return response, result
+    async def ldap_add(
+        self: Self, dn: DN, object_class, attributes=None
+    ) -> tuple[dict, dict]:
+        message_id = self.connection.add(dn, object_class, attributes)
+        response, result = await self._wait_for_message_id(message_id)
+        return response, result
 
+    async def ldap_modify(
+        self: Self,
+        dn: DN,
+        changes: dict,
+        controls: list[tuple[str, bool, Any | None]] | None = None,
+    ) -> tuple[dict, dict]:
+        message_id = self.connection.modify(dn, changes, controls)
+        response, result = await self._wait_for_message_id(message_id)
+        return response, result
 
-async def ldap_modify_dn(
-    ldap_connection: Connection,
-    dn: DN,
-    relative_dn: RDN,
-    new_superior: Any | None = None,
-) -> tuple[dict, dict]:
-    message_id = ldap_connection.modify_dn(dn, relative_dn, new_superior=new_superior)
-    response, result = await wait_for_message_id(ldap_connection, message_id)
-    return response, result
+    async def ldap_modify_dn(
+        self: Self,
+        dn: DN,
+        relative_dn: RDN,
+        new_superior: Any | None = None,
+    ) -> tuple[dict, dict]:
+        message_id = self.connection.modify_dn(
+            dn, relative_dn, new_superior=new_superior
+        )
+        response, result = await self._wait_for_message_id(message_id)
+        return response, result
 
+    async def ldap_delete(self: Self, dn: DN) -> tuple[dict, dict]:
+        message_id = self.connection.delete(dn)
+        response, result = await self._wait_for_message_id(message_id)
+        return response, result
 
-async def ldap_add(
-    ldap_connection: Connection, dn: DN, object_class, attributes=None
-) -> tuple[dict, dict]:
-    message_id = ldap_connection.add(dn, object_class, attributes)
-    response, result = await wait_for_message_id(ldap_connection, message_id)
-    return response, result
-
-
-async def ldap_delete(ldap_connection: Connection, dn: DN) -> tuple[dict, dict]:
-    message_id = ldap_connection.delete(dn)
-    response, result = await wait_for_message_id(ldap_connection, message_id)
-    return response, result
-
-
-async def ldap_search(
-    ldap_connection: Connection, **kwargs
-) -> tuple[list[dict[str, Any]], dict]:
-    message_id = ldap_connection.search(**kwargs)
-    response, result = await wait_for_message_id(ldap_connection, message_id)
-    return response, result
+    async def ldap_search(self: Self, **kwargs) -> tuple[list[dict[str, Any]], dict]:
+        message_id = self.connection.search(**kwargs)
+        response, result = await self._wait_for_message_id(message_id)
+        return response, result
 
 
 async def fetch_field_mapping(
@@ -461,32 +460,30 @@ async def _paged_search(
     ldap_connection: Connection,
     searchParameters: dict,
     search_base: str,
-    mute: bool,
 ) -> list[dict[str, Any]]:
     # TODO: Consider using upstream paged_search_generator instead of this?
-    # TODO: Eliminate mute argument? - Should be logger configuration?
     # TODO: Find max. paged_size number from LDAP rather than hard-code it?
     searchParameters["paged_size"] = 500
     searchParameters["search_base"] = search_base
 
     search_filter = searchParameters["search_filter"]
 
-    if not mute:
-        logger.info(
-            "Executing paged_search",
-            search_filter=search_filter,
-            search_base=search_base,
-        )
+    logger.info(
+        "Executing paged_search",
+        search_filter=search_filter,
+        search_base=search_base,
+    )
 
     # Max 10_000 pages to avoid eternal loops
     # TODO: Why would we get eternal loops?
     responses: list[dict[str, Any]] = []
     for page in range(0, 10_000):
-        if not mute:
-            logger.info("Searching page", page=page)
+        logger.info("Searching page", page=page)
         # TODO: Fetch multiple pages in parallel using asyncio.gather?
         try:
-            response, result = await ldap_search(ldap_connection, **searchParameters)
+            response, result = await LDAPConnection(ldap_connection).ldap_search(
+                **searchParameters
+            )
         except LDAPNoSuchObjectResult:
             return responses
 
@@ -525,7 +522,6 @@ async def paged_search(
     ldap_connection: Connection,
     searchParameters: dict,
     search_base: str | None = None,
-    mute: bool = False,
 ) -> list:
     """
     Execute a search on the LDAP server.
@@ -551,9 +547,7 @@ async def paged_search(
 
     if search_base:
         # If the search base is explicitly defined: Don't try anything fancy.
-        results = await _paged_search(
-            ldap_connection, searchParameters, search_base, mute
-        )
+        results = await _paged_search(ldap_connection, searchParameters, search_base)
         return results
 
     # Otherwise, loop over all OUs to search in
@@ -564,9 +558,7 @@ async def paged_search(
     results = []
     for search_base in search_bases:
         results.extend(
-            await _paged_search(
-                ldap_connection, searchParameters.copy(), search_base, mute
-            )
+            await _paged_search(ldap_connection, searchParameters.copy(), search_base)
         )
 
     return results
@@ -599,8 +591,8 @@ async def object_search(
     responses = []
     # TODO: Asyncio.gather this? - or combine the filters?
     for search_base in search_bases:
-        response, _ = await ldap_search(
-            ldap_connection, **ChainMap(searchParameters, {"search_base": search_base})
+        response, _ = await LDAPConnection(ldap_connection).ldap_search(
+            **ChainMap(searchParameters, {"search_base": search_base})
         )
         if response:
             responses.extend(response)

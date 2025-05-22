@@ -18,7 +18,6 @@ from jinja2 import StrictUndefined
 from jinja2 import TemplateRuntimeError
 from jinja2 import UndefinedError
 from jinja2.utils import missing
-from ldap3 import Connection
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
 from more_itertools import flatten
@@ -28,6 +27,7 @@ from more_itertools import unzip
 from pydantic import parse_obj_as
 
 from mo_ldap_import_export.ldap import get_ldap_object
+from mo_ldap_import_export.ldapapi import LDAPAPI
 from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.moapi import extract_current_or_latest_validity
 from mo_ldap_import_export.moapi import flatten_validities
@@ -435,15 +435,12 @@ async def load_org_unit_address(
     return fetched_address
 
 
-async def fetch_current_common_name(
-    ldap_connection: Connection, dn: DN | None
-) -> str | None:
+async def fetch_current_common_name(ldapapi: LDAPAPI, dn: DN | None) -> str | None:
     if dn is None:
         return None
     ldap_common_name = None
     with suppress(NoObjectsReturnedException):
-        ldap_object = await get_ldap_object(ldap_connection, dn, {"cn"})
-        ldap_common_name = getattr(ldap_object, "cn", None)
+        ldap_common_name = await ldapapi.get_attribute_by_dn(dn, "cn")
     # It is an invariant that common name is always be set
     assert ldap_common_name is not None
     # This is a list on OpenLDAP, but not on AD
@@ -464,9 +461,7 @@ async def generate_common_name(
     if employee is None:  # pragma: no cover
         raise NoObjectsReturnedException(f"Unable to lookup employee: {employee_uuid}")
     # Fetch the current common name (if any)
-    current_common_name = await fetch_current_common_name(
-        dataloader.ldapapi.ldap_connection, dn
-    )
+    current_common_name = await fetch_current_common_name(dataloader.ldapapi, dn)
     return cast(
         str,
         await dataloader.username_generator.generate_common_name(
@@ -690,7 +685,7 @@ def construct_globals_dict(
         "dn_to_uuid": dataloader.ldapapi.get_ldap_unique_ldap_uuid,
         "get_engagement_type_uuid": partial(get_engagement_type_uuid, graphql_client),
         "get_primary_type_uuid": partial(get_primary_type_uuid, graphql_client),
-        "get_ldap_object": partial(get_ldap_object, dataloader.ldapapi.ldap_connection),
+        "get_ldap_object": partial(get_ldap_object, dataloader.ldapapi.connection),
     }
 
 

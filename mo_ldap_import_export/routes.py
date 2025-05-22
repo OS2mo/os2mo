@@ -318,7 +318,6 @@ async def load_ldap_OUs(
         ldap_connection,
         searchParameters,
         search_base=search_base,
-        mute=True,
     )
     dns = [r["dn"] for r in responses]
 

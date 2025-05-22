@@ -22,7 +22,7 @@ from ..config import Settings
 from ..config import UsernameGeneratorConfig
 from ..dataloaders import DataLoader
 from ..exceptions import NoObjectsReturnedException
-from ..ldap import ldap_search
+from ..ldap import LDAPConnection
 from ..types import EmployeeUUID
 from ..usernames import generate_person_name
 from ..utils import remove_vowels
@@ -117,8 +117,7 @@ async def _ldap_allows_username(
             raise AssertionError("Unknown LDAP dialect")
 
     for search_filter in search_filters:
-        response, result = await ldap_search(
-            ldap_connection,
+        response, result = await LDAPConnection(ldap_connection).ldap_search(
             search_base=settings.ldap_search_base,
             search_filter=search_filter,
             attributes=NO_ATTRIBUTES,
@@ -396,7 +395,7 @@ async def generate_username(
         str,
         await generate_username_func(
             dataloader.settings,
-            dataloader.ldapapi.ldap_connection,
+            dataloader.ldapapi.connection,
             dataloader.moapi,
             employee,
         ),

@@ -10,8 +10,7 @@ from more_itertools import one
 from mo_ldap_import_export.ldap import construct_assertion_control
 from mo_ldap_import_export.ldap import construct_assertion_control_filter
 from mo_ldap_import_export.ldap import get_ldap_object
-from mo_ldap_import_export.ldap import ldap_add
-from mo_ldap_import_export.ldap import ldap_modify
+from mo_ldap_import_export.ldapapi import LDAPAPI
 from mo_ldap_import_export.utils import combine_dn_strings
 
 
@@ -24,13 +23,13 @@ from mo_ldap_import_export.utils import combine_dn_strings
 )
 async def test_assertion_controls_allows(
     ldap_connection: Connection,
+    ldap_api: LDAPAPI,
     ldap_org_unit: list[str],
 ) -> None:
     """Test that Assertion Controls can be used and have an operation pass."""
     person_dn = combine_dn_strings(["uid=valdez"] + ldap_org_unit)
 
-    await ldap_add(
-        ldap_connection,
+    await ldap_api.ldap_connection.ldap_add(
         dn=person_dn,
         object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
         attributes={"givenName": "Dana", "sn": "Valdez", "cn": "Valdez"},
@@ -40,8 +39,7 @@ async def test_assertion_controls_allows(
     assert one(result.givenName) == "Dana"
 
     search_filter = "(sn=Valdez)"
-    await ldap_modify(
-        ldap_connection,
+    await ldap_api.ldap_connection.ldap_modify(
         dn=person_dn,
         changes={"givenName": [("MODIFY_REPLACE", "Erika")]},
         controls=[construct_assertion_control(search_filter)],
@@ -61,13 +59,13 @@ async def test_assertion_controls_allows(
 )
 async def test_assertion_controls_blocks(
     ldap_connection: Connection,
+    ldap_api: LDAPAPI,
     ldap_org_unit: list[str],
 ) -> None:
     """Test that Assertion Controls can be used and have an operation fail."""
     person_dn = combine_dn_strings(["uid=valdez"] + ldap_org_unit)
 
-    await ldap_add(
-        ldap_connection,
+    await ldap_api.ldap_connection.ldap_add(
         dn=person_dn,
         object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
         attributes={"givenName": "Dana", "sn": "Valdez", "cn": "Valdez"},
@@ -78,8 +76,7 @@ async def test_assertion_controls_blocks(
 
     search_filter = "(sn=Anchorage)"
     with pytest.raises(LDAPAssertionFailedResult) as exc_info:
-        await ldap_modify(
-            ldap_connection,
+        await ldap_api.ldap_connection.ldap_modify(
             dn=person_dn,
             changes={"givenName": [("MODIFY_REPLACE", "Erika")]},
             controls=[construct_assertion_control(search_filter)],
@@ -100,13 +97,13 @@ async def test_assertion_controls_blocks(
 )
 async def test_assertion_controls_empty(
     ldap_connection: Connection,
+    ldap_api: LDAPAPI,
     ldap_org_unit: list[str],
 ) -> None:
     """Test that Assertion Controls can be used and have an operation pass."""
     person_dn = combine_dn_strings(["uid=valdez"] + ldap_org_unit)
 
-    await ldap_add(
-        ldap_connection,
+    await ldap_api.ldap_connection.ldap_add(
         dn=person_dn,
         object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
         attributes={"sn": "Valdez", "cn": "Valdez"},
@@ -119,8 +116,7 @@ async def test_assertion_controls_empty(
     assertion_control = construct_assertion_control(search_filter)
 
     # Add givenName, should pass because givenName is unset
-    await ldap_modify(
-        ldap_connection,
+    await ldap_api.ldap_connection.ldap_modify(
         dn=person_dn,
         changes={"givenName": [("MODIFY_REPLACE", "Dana")]},
         controls=[assertion_control],
@@ -131,8 +127,7 @@ async def test_assertion_controls_empty(
 
     # Edit givenName, should fail because givenName is 'Dana'
     with pytest.raises(LDAPAssertionFailedResult) as exc_info:
-        await ldap_modify(
-            ldap_connection,
+        await ldap_api.ldap_connection.ldap_modify(
             dn=person_dn,
             changes={"givenName": [("MODIFY_REPLACE", "Erika")]},
             controls=[assertion_control],
@@ -149,13 +144,13 @@ async def test_assertion_controls_empty(
 )
 async def test_assertion_controls_multivalued(
     ldap_connection: Connection,
+    ldap_api: LDAPAPI,
     ldap_org_unit: list[str],
 ) -> None:
     """Test that Assertion Controls can be used and have an operation pass."""
     person_dn = combine_dn_strings(["uid=valdez"] + ldap_org_unit)
 
-    await ldap_add(
-        ldap_connection,
+    await ldap_api.ldap_connection.ldap_add(
         dn=person_dn,
         object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
         attributes={"sn": "Valdez", "cn": ["Valdez", "Koi"]},
@@ -169,8 +164,7 @@ async def test_assertion_controls_multivalued(
     assertion_control = construct_assertion_control(search_filter)
 
     # Modify common name, should pass because both common names are set
-    await ldap_modify(
-        ldap_connection,
+    await ldap_api.ldap_connection.ldap_modify(
         dn=person_dn,
         changes={"cn": [("MODIFY_REPLACE", "Valdez")]},
         controls=[assertion_control],
@@ -181,8 +175,7 @@ async def test_assertion_controls_multivalued(
 
     # Modify common name, should fail because only one common name is set
     with pytest.raises(LDAPAssertionFailedResult) as exc_info:
-        await ldap_modify(
-            ldap_connection,
+        await ldap_api.ldap_connection.ldap_modify(
             dn=person_dn,
             changes={"cn": [("MODIFY_REPLACE", "Koi")]},
             controls=[assertion_control],
@@ -199,13 +192,13 @@ async def test_assertion_controls_multivalued(
 )
 async def test_assertion_controls_spaces(
     ldap_connection: Connection,
+    ldap_api: LDAPAPI,
     ldap_org_unit: list[str],
 ) -> None:
     """Test that Assertion Controls can be used and have an operation pass."""
     person_dn = combine_dn_strings(["uid=valdez"] + ldap_org_unit)
 
-    await ldap_add(
-        ldap_connection,
+    await ldap_api.ldap_connection.ldap_add(
         dn=person_dn,
         object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
         attributes={"sn": "Valdez", "cn": ["De Valdez"], "carLicense": " "},
@@ -223,8 +216,7 @@ async def test_assertion_controls_spaces(
     assertion_control = construct_assertion_control(search_filter)
 
     # Modify carLicense, should pass because carLicense is " " currently
-    await ldap_modify(
-        ldap_connection,
+    await ldap_api.ldap_connection.ldap_modify(
         dn=person_dn,
         changes={"carLicense": [("MODIFY_REPLACE", "Renewed")]},
         controls=[assertion_control],
@@ -237,8 +229,7 @@ async def test_assertion_controls_spaces(
 
     # Modify carLicense, should fail because carLicense is "Renewed" currently
     with pytest.raises(LDAPAssertionFailedResult) as exc_info:
-        await ldap_modify(
-            ldap_connection,
+        await ldap_api.ldap_connection.ldap_modify(
             dn=person_dn,
             changes={"carLicense": [("MODIFY_REPLACE", " ")]},
             controls=[assertion_control],

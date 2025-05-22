@@ -26,7 +26,6 @@ from .depends import request_id
 from .exceptions import NoObjectsReturnedException
 from .exceptions import amqp_reject_on_failure
 from .exceptions import http_reject_on_failure
-from .ldap import get_ldap_object
 from .types import LDAPUUID
 
 logger = structlog.stdlib.get_logger()
@@ -90,10 +89,9 @@ async def handle_uuid(
         raise RejectMessage("LDAP UUID could not be found") from exc
 
     # Ignore changes to non-employee objects
-    ldap_object = await get_ldap_object(
-        dataloader.ldapapi.ldap_connection, dn, attributes={"objectClass"}
+    ldap_object_classes = await dataloader.ldapapi.get_attribute_by_dn(
+        dn, "objectClass"
     )
-    ldap_object_classes = ldap_object.objectClass  # type: ignore[attr-defined]
 
     # TODO: Eliminate this branch by handling employees as any other object
     employee_object_class = settings.ldap_object_class

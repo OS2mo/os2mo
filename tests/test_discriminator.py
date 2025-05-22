@@ -27,11 +27,11 @@ from mo_ldap_import_export.customer_specific_checks import ImportChecks
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.import_export import SyncTool
+from mo_ldap_import_export.ldap import LDAPConnection
 from mo_ldap_import_export.ldap import apply_discriminator
 from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap import construct_server_pool
 from mo_ldap_import_export.ldap import get_ldap_object
-from mo_ldap_import_export.ldap import wait_for_message_id
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.ldapapi import LDAPAPI
 from mo_ldap_import_export.moapi import MOAPI
@@ -125,13 +125,14 @@ async def test_searching_mocked(
     ldap_connection: Connection, settings: Settings, ldap_container_dn: DN
 ) -> None:
     """Test that we can use the mocked ldap_connection to search for our default user."""
-    message_id = ldap_connection.search(
-        ldap_container_dn,
-        f"(cn={settings.ldap_user})",
+    connection = LDAPConnection(ldap_connection)
+    response, result = await connection.ldap_search(
+        search_base=ldap_container_dn,
+        search_filter=f"(cn={settings.ldap_user})",
         search_scope=SUBTREE,
         attributes="*",
     )
-    response, result = await wait_for_message_id(ldap_connection, message_id)
+
     assert result["description"] == "success"
     assert response is not None
     search_result = one(response)
@@ -171,10 +172,14 @@ async def test_searching_newly_added(ldap_connection: Connection) -> None:
         },
     )
 
-    message_id = ldap_connection.search(
-        f"o={container}", f"(cn={username})", search_scope=SUBTREE, attributes="*"
+    connection = LDAPConnection(ldap_connection)
+    response, result = await connection.ldap_search(
+        search_base=f"o={container}",
+        search_filter=f"(cn={username})",
+        search_scope=SUBTREE,
+        attributes="*",
     )
-    response, result = await wait_for_message_id(ldap_connection, message_id)
+
     assert result["description"] == "success"
     assert response is not None
     search_result = one(response)
@@ -199,13 +204,14 @@ async def test_searching_dn_lookup(
     ldap_connection: Connection, settings: Settings, ldap_dn: DN, ldap_container_dn: DN
 ) -> None:
     """Test that we can read our default user."""
-    message_id = ldap_connection.search(
-        ldap_dn,
-        "(objectclass=*)",
+    connection = LDAPConnection(ldap_connection)
+    response, result = await connection.ldap_search(
+        search_base=ldap_dn,
+        search_filter="(objectclass=*)",
         attributes="*",
         search_scope=BASE,
     )
-    response, result = await wait_for_message_id(ldap_connection, message_id)
+
     assert result["description"] == "success"
     assert response is not None
     search_result = one(response)
@@ -274,13 +280,14 @@ async def test_get_ldap_cpr_object(
     settings: Settings,
     ldap_container_dn: DN,
 ) -> None:
-    message_id = ldap_connection.search(
-        ldap_container_dn,
-        "(&(objectclass=inetOrgPerson)(employeeID=0101700001))",
+    connection = LDAPConnection(ldap_connection)
+    response, result = await connection.ldap_search(
+        search_base=ldap_container_dn,
+        search_filter="(&(objectclass=inetOrgPerson)(employeeID=0101700001))",
         search_scope=SUBTREE,
         attributes="*",
     )
-    response, result = await wait_for_message_id(ldap_connection, message_id)
+
     assert result["description"] == "success"
     assert response is not None
     search_result = one(response)
