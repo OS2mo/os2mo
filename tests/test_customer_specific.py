@@ -79,7 +79,7 @@ async def test_import_jobtitlefromadtomo_objects() -> None:
         "attributes": {"hkStsuuid": test_user_uuid, "title": job_function_title},
     }
     ldap_connection = MagicMock()
-    ldap_connection.get_response.return_value = [search_entry], {}
+    ldap_connection.search.return_value = None, {}, [search_entry], None
 
     graphql_client_mock.read_class_uuid_by_facet_and_class_user_key.assert_not_called()
     graphql_client_mock.set_job_title.assert_not_called()

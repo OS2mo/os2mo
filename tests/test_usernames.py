@@ -412,7 +412,18 @@ async def test_active_directory_search_result(
     moapi = MOAPI(settings, graphql_client)
 
     ldap_connection = MagicMock()
-    ldap_connection.get_response.return_value = (
+    ldap_connection.search.return_value = (
+        None,
+        {
+            # Status 0 means success
+            # See RFC4511 (Section 4.1.9 - Result Message) for details
+            "result": 0,
+            "description": "success",
+            "dn": "",
+            "message": "",
+            "referrals": None,
+            "type": "searchResDone",
+        },
         [
             # Whenever a search is done in Active Directory, even if it returns no results,
             # these entries are returned as ldap3 does not support resolving these.
@@ -439,16 +450,7 @@ async def test_active_directory_search_result(
                 "type": "searchResRef",
             },
         ],
-        {
-            # Status 0 means success
-            # See RFC4511 (Section 4.1.9 - Result Message) for details
-            "result": 0,
-            "description": "success",
-            "dn": "",
-            "message": "",
-            "referrals": None,
-            "type": "searchResDone",
-        },
+        None,
     )
 
     ldapapi = LDAPAPI(settings, ldap_connection)

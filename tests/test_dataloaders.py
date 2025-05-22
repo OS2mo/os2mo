@@ -189,9 +189,11 @@ async def test_upload_ldap_object_invalid_value(
     ldap_connection: MagicMock,
     dataloader: DataLoader,
 ) -> None:
-    dataloader.ldapapi.connection.get_response.return_value = (
-        [],
+    dataloader.ldapapi.connection.search.return_value = (  # type: ignore
+        None,
         {"type": "test", "description": "compareFalse"},
+        [],
+        None,
     )
 
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
@@ -935,7 +937,7 @@ async def test_load_mo_facet_uuid_no_result(dataloader: DataLoader):
 async def test_add_ldap_object(settings: Settings, ldap_connection: MagicMock) -> None:
     ldapapi = LDAPAPI(settings, ldap_connection)
 
-    ldap_connection.get_response.return_value = [], {"type": "test"}
+    ldap_connection.add.return_value = None, {"type": "test"}, [], None
 
     await ldapapi.add_ldap_object(
         "CN=foo", attributes={"foo": [2]}, object_class=settings.ldap_object_class

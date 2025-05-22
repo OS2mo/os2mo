@@ -260,7 +260,7 @@ def test_configure_ldap_connection_unknown(
 
 def test_get_client_strategy() -> None:
     strategy = get_client_strategy()
-    assert strategy == "ASYNC"
+    assert strategy == "SAFE_RESTARTABLE"
 
 
 @pytest.mark.parametrize("bound", [True, False])
@@ -278,7 +278,7 @@ async def test_ldap_healthcheck(
 ) -> None:
     result = {"type": result_type, "description": description}
 
-    ldap_connection.get_response.return_value = [{}], result
+    ldap_connection.search.return_value = None, result, [{}], None
     ldap_connection.bound = bound
     ldap_connection.listening = listening
     ldap_connection.closed = closed
@@ -296,7 +296,7 @@ async def test_ldap_healthcheck(
 
 
 async def test_ldap_healthcheck_exception(ldap_connection: MagicMock) -> None:
-    ldap_connection.get_response.side_effect = ValueError("BOOM")
+    ldap_connection.search.side_effect = ValueError("BOOM")
     ldap_connection.bound = True
     ldap_connection.listening = True
     ldap_connection.closed = False
@@ -432,8 +432,8 @@ async def test_paged_search(
         ]
     )
 
-    def set_new_result(*args, **kwargs) -> None:
-        ldap_connection.get_response.return_value = expected_results, next(results)
+    def set_new_result(*args, **kwargs) -> tuple:
+        return None, next(results), expected_results, None
 
     # Every time a search is performed, point to the next page.
     ldap_connection.search.side_effect = set_new_result
@@ -471,8 +471,8 @@ async def test_paged_search_no_results(
         ]
     )
 
-    def set_new_result(*args, **kwargs) -> None:
-        ldap_connection.get_response.return_value = expected_results, next(results)
+    def set_new_result(*args, **kwargs) -> tuple:
+        return None, next(results), expected_results, None
 
     # Every time a search is performed, point to the next page.
     ldap_connection.search.side_effect = set_new_result
@@ -497,7 +497,7 @@ async def test_invalid_paged_search(
     result = {
         "description": "operationsError",
     }
-    ldap_connection.get_response.return_value = response, result
+    ldap_connection.search.return_value = None, result, response, None
 
     searchParameters = {
         "search_filter": "(objectclass=organizationalPerson)",
@@ -515,13 +515,13 @@ async def test_single_object_search(ldap_connection: MagicMock, context: Context
 
     result = {"type": "test"}
 
-    ldap_connection.get_response.return_value = [search_entry], result
+    ldap_connection.search.return_value = None, result, [search_entry], None
     output = await single_object_search(
         {"search_base": "CN=foo,DC=bar"}, ldap_connection
     )
 
     assert output == search_entry
-    ldap_connection.get_response.return_value = [search_entry], result
+    ldap_connection.search.return_value = None, result, [search_entry], None
 
     search_parameters = {
         "search_base": "CN=foo,DC=bar",
@@ -529,14 +529,14 @@ async def test_single_object_search(ldap_connection: MagicMock, context: Context
     }
 
     with pytest.raises(MultipleObjectsReturnedException, match="010101-1234"):
-        ldap_connection.get_response.return_value = [search_entry] * 2, result
+        ldap_connection.search.return_value = None, result, [search_entry] * 2, None
         await single_object_search(search_parameters, ldap_connection)
 
     with pytest.raises(NoObjectsReturnedException, match="010101-1234"):
-        ldap_connection.get_response.return_value = [search_entry] * 0, result
+        ldap_connection.search.return_value = None, result, [search_entry] * 0, None
         await single_object_search(search_parameters, ldap_connection)
 
-    ldap_connection.get_response.return_value = [search_entry], result
+    ldap_connection.search.return_value = None, result, [search_entry], None
     output = await single_object_search(
         {"search_base": "CN=foo,DC=bar"}, ldap_connection
     )
@@ -590,12 +590,14 @@ async def test_poller(
             "modifyTimestamp": event_time,
         },
     }
-    ldap_connection.get_response.return_value = (
-        [event],
+    ldap_connection.search.return_value = (
+        None,
         {
             "type": "searchResEntry",
             "description": "success",
         },
+        [event],
+        None,
     )
 
     last_search_time = datetime.datetime.now(datetime.UTC)
@@ -616,12 +618,14 @@ async def test_poller_no_uuid(
         "type": "searchResEntry",
         "attributes": {},
     }
-    ldap_connection.get_response.return_value = (
-        [event],
+    ldap_connection.search.return_value = (
+        None,
         {
             "type": "searchResEntry",
             "description": "success",
         },
+        [event],
+        None,
     )
 
     last_search_time = datetime.datetime.now(datetime.UTC)
@@ -654,12 +658,14 @@ async def test_poller_no_uuid(
 async def test_poller_bad_result(
     load_settings_overrides: dict[str, str], ldap_connection: MagicMock, response: Any
 ) -> None:
-    ldap_connection.get_response.return_value = (
-        response,
+    ldap_connection.search.return_value = (
+        None,
         {
             "type": "searchResEntry",
             "description": "success",
         },
+        response,
+        None,
     )
 
     ldap_amqpsystem = AsyncMock()

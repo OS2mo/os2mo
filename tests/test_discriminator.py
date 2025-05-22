@@ -13,7 +13,7 @@ import pytest
 from fastramqpi.ramqp.depends import Context
 from fastramqpi.ramqp.utils import RequeueMessage
 from ldap3 import BASE
-from ldap3 import MOCK_ASYNC
+from ldap3 import MOCK_SYNC
 from ldap3 import SUBTREE
 from ldap3 import Connection
 from more_itertools import one
@@ -91,7 +91,7 @@ def ldap_connection(settings: Settings, ldap_container_dn: DN) -> Iterable[Conne
     """
     # See https://ldap3.readthedocs.io/en/latest/mocking.html for details
     with patch(
-        "mo_ldap_import_export.ldap.get_client_strategy", return_value=MOCK_ASYNC
+        "mo_ldap_import_export.ldap.get_client_strategy", return_value=MOCK_SYNC
     ):
         # This patch is necessary due to: https://github.com/cannatag/ldap3/issues/1007
         server = one(construct_server_pool(settings).servers)
@@ -112,6 +112,11 @@ def ldap_connection(settings: Settings, ldap_container_dn: DN) -> Iterable[Conne
                     "employeeID": "0101700001",
                 },
             )
+            # Undocumented hack to imitate SAFE strategies
+            # See: https://github.com/cannatag/ldap3/issues/951
+            # And: https://github.com/cannatag/ldap3/blob/dev/ldap3/strategy/safeSync.py
+            ldap_connection.strategy.thread_safe = True
+            # Create connection and yield it
             ldap_connection.bind()
             yield ldap_connection
 

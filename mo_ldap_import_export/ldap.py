@@ -18,11 +18,11 @@ import structlog
 from fastramqpi.context import Context
 from fastramqpi.ramqp.utils import RequeueMessage
 from jinja2 import Template
-from ldap3 import ASYNC
 from ldap3 import BASE
 from ldap3 import NO_ATTRIBUTES
 from ldap3 import NTLM
 from ldap3 import RANDOM
+from ldap3 import SAFE_RESTARTABLE
 from ldap3 import SIMPLE
 from ldap3 import Connection
 from ldap3 import Server
@@ -84,9 +84,30 @@ def construct_server(server_config: ServerConfig) -> Server:
 
 
 def get_client_strategy():
-    # NOTE: We probably want to use REUABLE, but it introduces issues with regards to
-    #       presumed lazily fetching of the schema. See the comment in get_ldap_schema.
-    return ASYNC
+    # We originally used the SYNC strategy, but as it is not thread-safe and was used
+    # from multiple call-sites due to the usage of asyncio it gave a lot of issues.
+    # We then wanted to use REUSABLE as it allocates a pool of connections which can be
+    # used in a thread-safe way, however introducing the usage of REUSABLE produced a
+    # lot of issues presumably because of lazy fetching of the LDAP Schema.
+    # (See the comment in get_ldap_schema for details).
+    # Thus the code ended up using ASYNC as it seemed the perfect fit for using asyncio,
+    # however ASYNC in LDAP3 does not mean asyncio async, but rather just blocking
+    # async, i.e. calling a blocking function to get back an ID which can be looked up
+    # using another blocking call to resolve the ID to a response.
+    # We ended up wrapping the later of these two calls in asyncio.to_thread to make
+    # it asyncio compatible, however the first call still remained sync and would block
+    # the event loop.
+    # This worked quite well for a while, but the ASYNC strategy does not support
+    # automatically reconnecting, thus we were forced to externally restart the
+    # application based on the ldap_healthcheck functions result.
+    # So we are now trying the `SAFE_RESTARTABLE` strategy which works similar to the
+    # `SAFE_SYNC` strategy (thread-safe version of SYNC), only it allows for restarting
+    # connections if they fail.
+    # This has forced us to redo our asyncio.to_thread wrappers such that they wrap
+    # the entire LDAP3 call rather than just the ID to response call, however this
+    # change is likely desirable since we do not actually want to run any blocking
+    # operation on the asyncio loop whatsoever.
+    return SAFE_RESTARTABLE
 
 
 def construct_server_pool(settings: Settings) -> ServerPool:
@@ -230,17 +251,12 @@ class LDAPConnection:
     def __init__(self: Self, connection: Connection) -> None:
         self.connection = connection
 
-    async def _wait_for_message_id(self: Self, message_id: int) -> tuple[Any, Any]:
-        loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
-            None, self.connection.get_response, message_id
-        )
-
     async def ldap_add(
         self: Self, dn: DN, object_class, attributes=None
     ) -> tuple[dict, dict]:
-        message_id = self.connection.add(dn, object_class, attributes)
-        response, result = await self._wait_for_message_id(message_id)
+        status, result, response, request = await asyncio.to_thread(
+            self.connection.add, dn, object_class, attributes
+        )
         return response, result
 
     async def ldap_modify(
@@ -249,8 +265,9 @@ class LDAPConnection:
         changes: dict,
         controls: list[tuple[str, bool, Any | None]] | None = None,
     ) -> tuple[dict, dict]:
-        message_id = self.connection.modify(dn, changes, controls)
-        response, result = await self._wait_for_message_id(message_id)
+        status, result, response, request = await asyncio.to_thread(
+            self.connection.modify, dn, changes, controls
+        )
         return response, result
 
     async def ldap_modify_dn(
@@ -259,20 +276,21 @@ class LDAPConnection:
         relative_dn: RDN,
         new_superior: Any | None = None,
     ) -> tuple[dict, dict]:
-        message_id = self.connection.modify_dn(
-            dn, relative_dn, new_superior=new_superior
+        status, result, response, request = await asyncio.to_thread(
+            self.connection.modify_dn, dn, relative_dn, new_superior=new_superior
         )
-        response, result = await self._wait_for_message_id(message_id)
         return response, result
 
     async def ldap_delete(self: Self, dn: DN) -> tuple[dict, dict]:
-        message_id = self.connection.delete(dn)
-        response, result = await self._wait_for_message_id(message_id)
+        status, result, response, request = await asyncio.to_thread(
+            self.connection.delete, dn
+        )
         return response, result
 
     async def ldap_search(self: Self, **kwargs) -> tuple[list[dict[str, Any]], dict]:
-        message_id = self.connection.search(**kwargs)
-        response, result = await self._wait_for_message_id(message_id)
+        status, result, response, request = await asyncio.to_thread(
+            self.connection.search, **kwargs
+        )
         return response, result
 
 
