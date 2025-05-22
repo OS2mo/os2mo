@@ -526,7 +526,6 @@ async def paged_search(
     ldap_connection: Connection,
     searchParameters: dict,
     search_base: str | None = None,
-    mute: bool = False,
 ) -> list:
     """
     Execute a search on the LDAP server.
@@ -550,6 +549,7 @@ async def paged_search(
     # TODO: Consider moving this to its own module separate from business logic
     # TODO: Make a class for the searchParameters if it has a fixed format?
 
+    mute = False
     if search_base:
         # If the search base is explicitly defined: Don't try anything fancy.
         results = await _paged_search(
