@@ -6,9 +6,7 @@ import pytest
 from fastramqpi.context import Context
 
 from mo_ldap_import_export.dataloaders import DataLoader
-from mo_ldap_import_export.depends import Connection
 from mo_ldap_import_export.exceptions import InvalidCPR
-from mo_ldap_import_export.ldap import ldap_modify
 from mo_ldap_import_export.ldapapi import LDAPAPI
 from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.types import DN
@@ -51,7 +49,7 @@ async def test_cpr2uuids(
 @pytest.mark.usefixtures("test_client")
 async def test_dn2cpr(
     context: Context,
-    ldap_connection: Connection,
+    ldap_api: LDAPAPI,
     ldap_person_dn: DN,
 ) -> None:
     dataloader: DataLoader = context["user_context"]["dataloader"]
@@ -61,8 +59,7 @@ async def test_dn2cpr(
     assert result == "2108613133"
 
     # Clear the CPR field, after which we expect None to be returned
-    await ldap_modify(
-        ldap_connection,
+    await ldap_api.ldap_connection.ldap_modify(
         dn=ldap_person_dn,
         changes={
             "employeeNumber": [("MODIFY_REPLACE", [])],

@@ -26,7 +26,6 @@ from .ldap import construct_assertion_control
 from .ldap import construct_assertion_control_filter
 from .ldap import get_ldap_object
 from .ldap import ldap_add
-from .ldap import ldap_modify
 from .ldap import make_ldap_object
 from .ldap import object_search
 from .ldap import single_object_search
@@ -389,7 +388,7 @@ class LDAPAPI:
             try:
                 # Modify LDAP
                 logger.info("Uploading the changes", changes=requested_changes, dn=dn)
-                _, result = await ldap_modify(self.connection, dn, modify_changes)
+                _, result = await self.ldap_connection.ldap_modify(dn, modify_changes)
                 logger.info("LDAP Result", result=result, dn=dn)
             except LDAPInvalidValueError as exc:
                 logger.exception("LDAP modify failed", dn=dn, changes=requested_changes)
