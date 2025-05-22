@@ -127,15 +127,7 @@ class LDAPAPI:
         # NOTE: This part of the function really should use some sort of ETag
         #       functionality to ensure that the current-state read is the same
         #       state that we are overwriting.
-        ldap_object = await get_ldap_object(
-            self.connection,
-            dn,
-            attributes=set(attributes.keys()),
-            # Nest false is required, as otherwise we fetch related objects
-            # However we never write related objects, only their DNs,
-            # so to avoid comparing an object with a DN string, we only fetch DNs
-            nest=False,
-        )
+        ldap_object = await self.get_object_by_dn(dn, attributes=set(attributes.keys()))
         old_state = ldap_object.dict()
         old_state.pop("dn")
 
@@ -230,8 +222,8 @@ class LDAPAPI:
         Given a DN, find the unique_ldap_uuid
         """
         logger.info("Looking for LDAP object", dn=dn)
-        ldap_object = await get_ldap_object(
-            self.connection, dn, {self.settings.ldap_unique_id_field}
+        ldap_object = await self.get_object_by_dn(
+            dn, {self.settings.ldap_unique_id_field}
         )
         uuid = getattr(ldap_object, self.settings.ldap_unique_id_field)
         if not uuid:
@@ -267,8 +259,8 @@ class LDAPAPI:
         if self.settings.ldap_cpr_attribute is None:
             return None
 
-        ldap_object = await get_ldap_object(
-            self.connection, dn, {self.settings.ldap_cpr_attribute}
+        ldap_object = await self.get_object_by_dn(
+            dn, {self.settings.ldap_cpr_attribute}
         )
         # Try to get the cpr number from LDAP and use that.
         raw_cpr_number = getattr(ldap_object, self.settings.ldap_cpr_attribute)
@@ -419,3 +411,10 @@ class LDAPAPI:
         except LDAPInvalidValueError as exc:  # pragma: no cover
             logger.exception("LDAP modify-dn failed", dn=dn, changes=requested_changes)
             raise exc
+
+    async def get_object_by_dn(
+        self, dn: DN, attributes: set | None = None
+    ) -> LdapObject:
+        return await get_ldap_object(
+            self.ldap_connection.connection, dn, attributes, nest=False
+        )
