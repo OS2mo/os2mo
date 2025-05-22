@@ -25,7 +25,6 @@ from .ldap import LDAPConnection
 from .ldap import construct_assertion_control
 from .ldap import construct_assertion_control_filter
 from .ldap import get_ldap_object
-from .ldap import ldap_add
 from .ldap import make_ldap_object
 from .ldap import object_search
 from .ldap import single_object_search
@@ -219,8 +218,7 @@ class LDAPAPI:
         }
 
         logger.info("Adding user to LDAP", dn=dn, attributes=attributes)
-        _, result = await ldap_add(
-            self.connection,
+        _, result = await self.ldap_connection.ldap_add(
             dn,
             object_class,
             attributes=attributes,

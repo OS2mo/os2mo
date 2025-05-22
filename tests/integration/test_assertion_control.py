@@ -10,7 +10,6 @@ from more_itertools import one
 from mo_ldap_import_export.ldap import construct_assertion_control
 from mo_ldap_import_export.ldap import construct_assertion_control_filter
 from mo_ldap_import_export.ldap import get_ldap_object
-from mo_ldap_import_export.ldap import ldap_add
 from mo_ldap_import_export.ldapapi import LDAPAPI
 from mo_ldap_import_export.utils import combine_dn_strings
 
@@ -30,8 +29,7 @@ async def test_assertion_controls_allows(
     """Test that Assertion Controls can be used and have an operation pass."""
     person_dn = combine_dn_strings(["uid=valdez"] + ldap_org_unit)
 
-    await ldap_add(
-        ldap_connection,
+    await ldap_api.ldap_connection.ldap_add(
         dn=person_dn,
         object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
         attributes={"givenName": "Dana", "sn": "Valdez", "cn": "Valdez"},
@@ -67,8 +65,7 @@ async def test_assertion_controls_blocks(
     """Test that Assertion Controls can be used and have an operation fail."""
     person_dn = combine_dn_strings(["uid=valdez"] + ldap_org_unit)
 
-    await ldap_add(
-        ldap_connection,
+    await ldap_api.ldap_connection.ldap_add(
         dn=person_dn,
         object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
         attributes={"givenName": "Dana", "sn": "Valdez", "cn": "Valdez"},
@@ -106,8 +103,7 @@ async def test_assertion_controls_empty(
     """Test that Assertion Controls can be used and have an operation pass."""
     person_dn = combine_dn_strings(["uid=valdez"] + ldap_org_unit)
 
-    await ldap_add(
-        ldap_connection,
+    await ldap_api.ldap_connection.ldap_add(
         dn=person_dn,
         object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
         attributes={"sn": "Valdez", "cn": "Valdez"},
@@ -154,8 +150,7 @@ async def test_assertion_controls_multivalued(
     """Test that Assertion Controls can be used and have an operation pass."""
     person_dn = combine_dn_strings(["uid=valdez"] + ldap_org_unit)
 
-    await ldap_add(
-        ldap_connection,
+    await ldap_api.ldap_connection.ldap_add(
         dn=person_dn,
         object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
         attributes={"sn": "Valdez", "cn": ["Valdez", "Koi"]},
@@ -203,8 +198,7 @@ async def test_assertion_controls_spaces(
     """Test that Assertion Controls can be used and have an operation pass."""
     person_dn = combine_dn_strings(["uid=valdez"] + ldap_org_unit)
 
-    await ldap_add(
-        ldap_connection,
+    await ldap_api.ldap_connection.ldap_add(
         dn=person_dn,
         object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
         attributes={"sn": "Valdez", "cn": ["De Valdez"], "carLicense": " "},
