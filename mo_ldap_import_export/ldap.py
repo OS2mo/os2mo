@@ -10,6 +10,7 @@ from functools import cache
 from ssl import CERT_NONE
 from ssl import CERT_REQUIRED
 from typing import Any
+from typing import Self
 from uuid import UUID
 
 import ldap3.core.exceptions
@@ -226,6 +227,56 @@ async def ldap_healthcheck(context: dict | Context) -> bool:
     return True
 
 
+class LDAPConnection:
+    def __init__(self: Self, connection: Connection) -> None:
+        self.connection = connection
+
+    async def _wait_for_message_id(self: Self, message_id: int) -> tuple[Any, Any]:
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(
+            None, self.connection.get_response, message_id
+        )
+
+    async def ldap_add(
+        self: Self, dn: DN, object_class, attributes=None
+    ) -> tuple[dict, dict]:
+        message_id = self.connection.add(dn, object_class, attributes)
+        response, result = await self._wait_for_message_id(message_id)
+        return response, result
+
+    async def ldap_modify(
+        self: Self,
+        dn: DN,
+        changes: dict,
+        controls: list[tuple[str, bool, Any | None]] | None = None,
+    ) -> tuple[dict, dict]:
+        message_id = self.connection.modify(dn, changes, controls)
+        response, result = await self._wait_for_message_id(message_id)
+        return response, result
+
+    async def ldap_modify_dn(
+        self: Self,
+        dn: DN,
+        relative_dn: RDN,
+        new_superior: Any | None = None,
+    ) -> tuple[dict, dict]:
+        message_id = self.connection.modify_dn(
+            dn, relative_dn, new_superior=new_superior
+        )
+        response, result = await self._wait_for_message_id(message_id)
+        return response, result
+
+    async def ldap_delete(self: Self, dn: DN) -> tuple[dict, dict]:
+        message_id = self.connection.delete(dn)
+        response, result = await self._wait_for_message_id(message_id)
+        return response, result
+
+    async def ldap_search(self: Self, **kwargs) -> tuple[list[dict[str, Any]], dict]:
+        message_id = self.connection.search(**kwargs)
+        response, result = await self._wait_for_message_id(message_id)
+        return response, result
+
+
 async def wait_for_message_id(
     ldap_connection: Connection, message_id: int
 ) -> tuple[Any, Any]:
@@ -239,9 +290,8 @@ async def ldap_modify(
     changes: dict,
     controls: list[tuple[str, bool, Any | None]] | None = None,
 ) -> tuple[dict, dict]:
-    message_id = ldap_connection.modify(dn, changes, controls)
-    response, result = await wait_for_message_id(ldap_connection, message_id)
-    return response, result
+    connection = LDAPConnection(ldap_connection)
+    return await connection.ldap_modify(dn, changes, controls)
 
 
 async def ldap_modify_dn(
@@ -250,31 +300,27 @@ async def ldap_modify_dn(
     relative_dn: RDN,
     new_superior: Any | None = None,
 ) -> tuple[dict, dict]:
-    message_id = ldap_connection.modify_dn(dn, relative_dn, new_superior=new_superior)
-    response, result = await wait_for_message_id(ldap_connection, message_id)
-    return response, result
+    connection = LDAPConnection(ldap_connection)
+    return await connection.ldap_modify_dn(dn, relative_dn, new_superior)
 
 
 async def ldap_add(
     ldap_connection: Connection, dn: DN, object_class, attributes=None
 ) -> tuple[dict, dict]:
-    message_id = ldap_connection.add(dn, object_class, attributes)
-    response, result = await wait_for_message_id(ldap_connection, message_id)
-    return response, result
+    connection = LDAPConnection(ldap_connection)
+    return await connection.ldap_add(dn, object_class, attributes)
 
 
 async def ldap_delete(ldap_connection: Connection, dn: DN) -> tuple[dict, dict]:
-    message_id = ldap_connection.delete(dn)
-    response, result = await wait_for_message_id(ldap_connection, message_id)
-    return response, result
+    connection = LDAPConnection(ldap_connection)
+    return await connection.ldap_delete(dn)
 
 
 async def ldap_search(
     ldap_connection: Connection, **kwargs
 ) -> tuple[list[dict[str, Any]], dict]:
-    message_id = ldap_connection.search(**kwargs)
-    response, result = await wait_for_message_id(ldap_connection, message_id)
-    return response, result
+    connection = LDAPConnection(ldap_connection)
+    return await connection.ldap_search(**kwargs)
 
 
 async def fetch_field_mapping(
