@@ -176,7 +176,9 @@ def result_translation(mapper: Callable) -> Callable:
 
     return wrapper
 
-
+to_response = lambda model: result_translation(
+    lambda result: one([Response[model](uuid=uuid, object_cache=objects) for uuid, objects in result.items()])
+)
 to_list = result_translation(
     lambda result: list(chain.from_iterable(result.values())),
 )
@@ -3666,8 +3668,8 @@ class Organisation:
     description="Organisation unit within the organisation tree",
 )
 class OrganisationUnit:
-    parent: LazyOrganisationUnit | None = strawberry.field(
-        resolver=to_only(
+    parent: Response[LazyOrganisationUnit] | None = strawberry.field(
+        resolver=to_response(LazyOrganisationUnit)(
             seed_resolver(
                 organisation_unit_resolver,
                 {"uuids": lambda root: uuid2list(root.parent_uuid)},
