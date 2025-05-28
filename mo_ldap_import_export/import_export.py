@@ -673,26 +673,24 @@ class SyncTool:
         )
 
         try:
-            converted_objects = [
-                await self.converter.from_ldap(
-                    ldap_object=loaded_object,
-                    mapping=mapping,
-                    template_context=template_context,
-                )
-            ]
+            converted_object = await self.converter.from_ldap(
+                ldap_object=loaded_object,
+                mapping=mapping,
+                template_context=template_context,
+            )
         except SkipObject:
             logger.info("Skipping object", dn=dn)
             return
 
         logger.info(
             "Converted 'n' objects ",
-            n=len(converted_objects),
+            n=1,
             dn=dn,
         )
 
         mo_attributes = set(mapping.get_fields().keys())
         operations = await self.format_converted_objects(
-            converted_objects, mo_attributes
+            [converted_object], mo_attributes
         )
         if not operations:  # pragma: no cover
             logger.info("No converted objects after formatting", dn=dn)
