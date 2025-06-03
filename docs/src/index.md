@@ -2,7 +2,7 @@
 title: MO | Medarbejder & Organisation
 ---
 
-**Styr på din organisation med Master Data Management**
+### Styr på din organisation med Master Data Management
 
 MO er et moderne it-system designet til effektiv organisations- og brugerstyring. Systemet giver dig en central platform til at vedligeholde præcis information om hele din organisation og de mennesker (og robotter!), der er tilknyttet til den – fra ansatte, vikarer, praktikanter og frivillige til eksterne konsulenter og robotkonti – alt sammen via én intuitiv brugergrænseflade. Denne information kan nemt deles og anvendes af andre systemer, herunder til visualisering i et dynamisk organisationsdiagram på intranettet.
 
@@ -10,7 +10,7 @@ En af de markante fordele ved MO er muligheden for at _fjernstyre_ bruger- og or
 
 MO er ikke blot et system – det er en strategisk investering, der skaber mærkbar værdi på tværs af hele din organisation. Det resulterer direkte i væsentlige gevinster:
 
-### Gevinster:
+### Gevinster
 
 - **Økonomiske besparelser**
   Reducerer udgifter til unødvendige licenser ved automatisk deaktivering af aktive konti.
@@ -21,7 +21,7 @@ MO er ikke blot et system – det er en strategisk investering, der skaber mærk
 - **Høj datakvalitet og -konsistens**
   Eliminerer manuelle fejl og sikrer ensartet information på tværs af systemer.
 
-### Disse gevinster opnås bl.a. ved:
+Disse gevinster opnås bl.a. ved:
 
 - **Ultimativ kontrol over organisationen**
   Samler alle medarbejderdata, ledelsesstrukturer og organisatoriske enheder i én central og brugervenlig applikation. Dette giver et komplet overblik og gør det nemmere at træffe informerede beslutninger.
