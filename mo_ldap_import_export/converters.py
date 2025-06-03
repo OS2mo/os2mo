@@ -139,8 +139,9 @@ class LdapConverter:
         # If any required attributes are missing
         missing_attributes = required_attributes - set(mo_dict.keys())
         if missing_attributes:  # pragma: no cover
-            logger.info(
+            logger.error(
                 "Missing values in LDAP to synchronize",
+                suggestion="If missing values are expected, consider: skip_if_none",
                 mo_dict=mo_dict,
                 mo_class=mo_class,
                 missing_attributes=missing_attributes,
