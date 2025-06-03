@@ -4,7 +4,6 @@ import asyncio
 import json
 from collections.abc import Awaitable
 from collections.abc import Callable
-from collections.abc import Sequence
 from contextlib import ExitStack
 from functools import wraps
 from typing import Any
@@ -15,7 +14,6 @@ from uuid import uuid4
 import structlog
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from ldap3 import Connection
-from more_itertools import one
 from more_itertools import only
 from structlog.contextvars import bound_contextvars
 
@@ -386,20 +384,6 @@ class SyncTool:
                 uuid, current_objects_only=False
             )
         raise AssertionError(f"Unknown mo_class: {mo_class}")
-
-    async def construct_uuid_mapping(
-        self,
-        converted_objects: Sequence[MOBase],
-    ) -> list[tuple[MOBase, MOBase | None]]:
-        mo_class = one({type(o) for o in converted_objects})
-
-        return [
-            (
-                converted_object,
-                await self.fetch_uuid_object(converted_object.uuid, mo_class),
-            )
-            for converted_object in converted_objects
-        ]
 
     def get_mapping(self, json_key: str) -> LDAP2MOMapping:
         assert self.settings.conversion_mapping.ldap_to_mo is not None
