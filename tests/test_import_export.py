@@ -16,7 +16,6 @@ from uuid import uuid4
 import pytest
 from fastramqpi.context import Context
 from fastramqpi.ramqp.utils import RequeueMessage
-from more_itertools import one
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.config import Settings
@@ -132,11 +131,12 @@ async def test_format_converted_engagement_objects(
 
     dataloader.moapi.load_mo_engagement.return_value = mo_engagement
 
-    operations = await sync_tool.format_converted_objects(
-        converted_objects=[ldap_engagement],
+    operation = await sync_tool.format_converted_object(
+        converted_object=ldap_engagement,
         mo_attributes={"user_key", "job_function"},
     )
-    desired_engagement, verb = one(operations)
+    assert operation is not None
+    desired_engagement, verb = operation
     assert verb == Verb.EDIT
     assert isinstance(desired_engagement, Engagement)
     assert desired_engagement.user_key == ldap_engagement.user_key
@@ -160,11 +160,12 @@ async def test_format_converted_engagement_objects_unmatched(
 
     dataloader.moapi.load_mo_engagement.return_value = None
 
-    operations = await sync_tool.format_converted_objects(
-        converted_objects=[ldap_engagement],
+    operation = await sync_tool.format_converted_object(
+        converted_object=ldap_engagement,
         mo_attributes={"user_key", "job_function"},
     )
-    desired_engagement, verb = one(operations)
+    assert operation is not None
+    desired_engagement, verb = operation
     assert verb == Verb.CREATE
     assert isinstance(desired_engagement, Engagement)
     assert desired_engagement.user_key == ldap_engagement.user_key
@@ -173,27 +174,18 @@ async def test_format_converted_engagement_objects_unmatched(
 async def test_format_converted_employee_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-    employee1 = Employee(cpr_number="1212121234", given_name="Foo1", surname="Bar1")
-    employee2 = Employee(cpr_number="1212121235", given_name="Foo2", surname="Bar2")
-
     dataloader.moapi.load_mo_employee.return_value = None
-    converted_objects = [employee1, employee2]
 
-    operations = await sync_tool.format_converted_objects(
-        converted_objects=converted_objects,
+    employee = Employee(cpr_number="1212121234", given_name="Foo1", surname="Bar1")
+    operation = await sync_tool.format_converted_object(
+        converted_object=employee,
         mo_attributes={"user_key", "job_function"},
     )
-    op1, op2 = operations
-
-    desired_employee, verb = op1
+    assert operation is not None
+    desired_employee, verb = operation
     assert verb == Verb.CREATE
     assert isinstance(desired_employee, Employee)
-    assert desired_employee.user_key == employee1.user_key
-
-    desired_employee, verb = op2
-    assert verb == Verb.CREATE
-    assert isinstance(desired_employee, Employee)
-    assert desired_employee.user_key == employee2.user_key
+    assert desired_employee.user_key == employee.user_key
 
 
 @pytest.mark.usefixtures("minimal_valid_settings")
