@@ -193,9 +193,11 @@ def patch_modules(
     Fixture to patch modules needed in main.py
     """
     ldap_connection = MagicMock()
-    ldap_connection.get_response.return_value = (
-        [],
+    ldap_connection.search.return_value = (
+        None,
         {"type": "test", "description": "success"},
+        [],
+        None,
     )
 
     with (
