@@ -14,6 +14,7 @@ import structlog
 import yaml
 from fastramqpi.config import Settings as FastRAMQPISettings
 from fastramqpi.ramqp.config import AMQPConnectionSettings
+from fastramqpi.ramqp.mo import MORoutingKey
 from jinja2 import Environment
 from jinja2 import TemplateSyntaxError
 from pydantic import AnyHttpUrl
@@ -310,6 +311,13 @@ class UsernameGeneratorConfig(MappingBaseModel):
         return v
 
 
+class MO2LDAPMapping(MappingBaseModel):
+    identifier: str
+    routing_key: MORoutingKey
+    template: JinjaTemplate
+    object_class: str
+
+
 class ConversionMapping(MappingBaseModel):
     ldap_to_mo: dict[str, LDAP2MOMapping] | None = None
     ldap_to_mo_any: dict[str, dict[str, LDAP2MOMapping]] = Field(
@@ -323,6 +331,9 @@ class ConversionMapping(MappingBaseModel):
     )
     mo2ldap: JinjaTemplate | None = Field(
         None, description="MO to LDAP mapping template"
+    )
+    mo_to_ldap: list[MO2LDAPMapping] = Field(
+        default_factory=list, description="MO to LDAP mappings"
     )
     username_generator: UsernameGeneratorConfig = Field(
         default_factory=UsernameGeneratorConfig
