@@ -570,6 +570,12 @@ class EngagementUpsert(UUIDBase):
     user_key: str | None = Field(description="Name or UUID of the related engagement.")
     primary: UUID | None = Field(description="Primary field of the engagement")
     validity: RAValidity = Field(description="Validity of the engagement object.")
+    fraction: int | None = Field(
+        description="Worktime between 0-1000000 for the engagement object.",
+        le=1000000,
+        ge=0,
+        default=None,
+    )
 
     extension_1: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
     extension_2: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
@@ -597,6 +603,7 @@ class EngagementUpsert(UUIDBase):
                 if self.validity.to_date
                 else None,
             },
+            "fraction": self.fraction,
             "person": gen_uuid(self.person) or gen_uuid(self.employee),
             "extension_1": self.extension_1,
             "extension_2": self.extension_2,

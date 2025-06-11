@@ -144,6 +144,7 @@ def test_query_is_primary_multiple_on_same_person(graphapi_post: GraphAPIPost) -
                 "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
                 "engagement_type": "06f95678-166a-455a-a2ab-121a8d92ea23",
                 "job_function": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                "fraction": 1,
             }
         },
     )
@@ -155,11 +156,17 @@ def test_query_is_primary_multiple_on_same_person(graphapi_post: GraphAPIPost) -
     # TODO: The fixture data should probably have a non-primary primary type (scope=0)
     expected_map = {
         created_uuid: {
-            "current": {"is_primary": False, "primary": None, "uuid": str(created_uuid)}
+            "current": {
+                "is_primary": False,
+                "primary": None,
+                "fraction": 1,
+                "uuid": str(created_uuid),
+            }
         },
         UUID("301a906b-ef51-4d5c-9c77-386fb8410459"): {
             "current": {
                 "is_primary": False,
+                "fraction": None,
                 "primary": {
                     "scope": "10",
                     "uuid": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
@@ -170,6 +177,7 @@ def test_query_is_primary_multiple_on_same_person(graphapi_post: GraphAPIPost) -
         UUID("d3028e2e-1d7a-48c1-ae01-d4c64e64bbab"): {
             "current": {
                 "is_primary": True,
+                "fraction": None,
                 "primary": {
                     "scope": "3000",
                     "uuid": "89b6cef8-3d03-49ac-816f-f7530b383411",
@@ -187,6 +195,7 @@ def test_query_is_primary_multiple_on_same_person(graphapi_post: GraphAPIPost) -
                 objects {
                     current {
                         uuid
+                        fraction
                         primary {
                             uuid
                             scope
@@ -387,6 +396,7 @@ async def test_create_engagement_integration_test(
                 from_date=st.just(test_data_validity_start),
                 to_date=test_data_validity_end_strat,
             ),
+            fraction=st.none() | st.integers(min_value=0, max_value=1000000),
         )
     )
 
@@ -412,6 +422,7 @@ async def test_create_engagement_integration_test(
                         engagement_type: engagement_type_uuid
                         job_function: job_function_uuid
                         primary: primary_uuid
+                        fraction
                         validity {
                             from
                             to
@@ -430,6 +441,13 @@ async def test_create_engagement_integration_test(
     assert UUID(obj["engagement_type"]) == test_data.engagement_type
     assert UUID(obj["job_function"]) == test_data.job_function
     assert UUID(obj["primary"]) == test_data.primary
+
+    # We would expect to read what was written, but 0 is converted to None when reading from LoRa.
+    # https://redmine.magenta.dk/issues/65456
+    if test_data.fraction == 0:
+        assert obj["fraction"] is None
+    else:
+        assert obj["fraction"] == test_data.fraction
     assert (
         datetime.fromisoformat(obj["validity"]["from"]).date()
         == test_data.validity.from_date.date()
@@ -490,6 +508,7 @@ async def test_create_multiple_engagements_integration_test(
                 engagement_type=st.sampled_from(engagement_type_uuids),
                 job_function=st.sampled_from(job_function_uuids),
                 primary=st.sampled_from(primary_uuids),
+                fraction=st.none() | st.integers(min_value=0, max_value=1000000),
                 validity=st.builds(
                     RAValidity,
                     from_date=st.just(test_data_validity_start),
@@ -562,6 +581,7 @@ async def test_update_engagement_unit_test(
             "primary": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
             "employee": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+            "fraction": None,
         },
         {
             "uuid": "d000591f-8705-4324-897a-075e3623f37b",
@@ -571,6 +591,7 @@ async def test_update_engagement_unit_test(
             "primary": "89b6cef8-3d03-49ac-816f-f7530b383411",
             "employee": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+            "fraction": 1000000,
         },
         {
             "uuid": "d000591f-8705-4324-897a-075e3623f37b",
@@ -583,6 +604,7 @@ async def test_update_engagement_unit_test(
                 "from": "2017-01-01T00:00:00+01:00",
                 "to": "2025-01-01T00:00:00+01:00",
             },
+            "fraction": 959500,
         },
         {
             "uuid": "d000591f-8705-4324-897a-075e3623f37b",
@@ -595,6 +617,7 @@ async def test_update_engagement_unit_test(
                 "from": "2017-01-01T00:00:00+01:00",
                 "to": "2025-01-01T00:00:00+01:00",
             },
+            "fraction": 0,
         },
     ],
 )
@@ -613,6 +636,7 @@ async def test_update_engagement_integration_test(
                         primary: primary_uuid
                         org_unit: org_unit_uuid
                         employee: employee_uuid
+                        fraction
                         validity {
                             from
                             to
@@ -651,6 +675,7 @@ async def test_update_engagement_integration_test(
                         primary: primary_uuid
                         org_unit: org_unit_uuid
                         employee: employee_uuid
+                        fraction
                         validity {
                             from
                             to
@@ -692,12 +717,14 @@ async def test_update_multiple_engagements_integration_test(
           org_unit: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
           engagement_type: "06f95678-166a-455a-a2ab-121a8d92ea23"
           job_function: "07cea156-1aaf-4c89-bf1b-8e721f704e22"
+          fraction: null
         },{
           validity: { from: "2019-01-01" }
           person: "4a53c06b-c1b5-417c-8c2e-bed526d34dbb"
           org_unit: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
           engagement_type: "06f95678-166a-455a-a2ab-121a8d92ea23"
-          job_function: "07cea156-1aaf-4c89-bf1b-8e721f704e22"
+          job_function: "07cea156-1aaf-4c89-bf1b-8e721f704e22",
+          fraction: 959500
         }]
       ) {
         uuid
@@ -922,6 +949,7 @@ async def test_create_engagement_with_extensions_fields_integrations_test(
             employee=st.sampled_from(employee_uuids),
             engagement_type=st.sampled_from(engagement_type_uuids),
             job_function=st.sampled_from(job_function_uuids),
+            fraction=st.none() | st.integers(min_value=0, max_value=1000000),
             validity=st.builds(
                 RAValidity,
                 from_date=st.just(test_data_validity_start),
@@ -963,6 +991,7 @@ async def test_create_engagement_with_extensions_fields_integrations_test(
                         org_unit: org_unit_uuid
                         employee: employee_uuid
                         engagement_type: engagement_type_uuid
+                        fraction
                         validity {
                             from
                             to
@@ -986,6 +1015,12 @@ async def test_create_engagement_with_extensions_fields_integrations_test(
     assert response.errors is None
 
     obj = one(one(response.data["engagements"]["objects"])["objects"])
+    # We would expect to read what was written, but 0 is converted to None when reading from LoRa.
+    # https://redmine.magenta.dk/issues/65456
+    if test_data.fraction == 0:
+        assert obj["fraction"] is None
+    else:
+        assert obj["fraction"] == test_data.fraction
 
     assert obj["extension_1"] == test_data.extension_1
     assert obj["extension_2"] == test_data.extension_2
