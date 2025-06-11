@@ -3,6 +3,7 @@
 """Dependency injection helpers."""
 
 from collections.abc import AsyncIterable
+from contextlib import ExitStack as _ExitStack
 from typing import Annotated
 from uuid import uuid4
 
@@ -41,3 +42,11 @@ async def request_id() -> AsyncIterable[None]:
     request_id = str(uuid4())
     with bound_contextvars(request_id=request_id):
         yield
+
+
+async def exit_stack() -> AsyncIterable[_ExitStack]:
+    with _ExitStack() as exit_stack:
+        yield exit_stack
+
+
+ExitStack = Annotated[_ExitStack, Depends(exit_stack)]
