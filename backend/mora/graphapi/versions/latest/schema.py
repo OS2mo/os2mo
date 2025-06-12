@@ -3802,7 +3802,13 @@ class OrganisationUnit:
         resolver=to_list(
             seed_resolver(
                 organisation_unit_resolver,
-                {"parents": lambda root: [root.uuid]},
+                {
+                    "parent": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
             )
         ),
         description=dedent(
@@ -3816,7 +3822,13 @@ class OrganisationUnit:
     child_count: int = strawberry.field(
         resolver=seed_resolver(
             organisation_unit_child_count,
-            {"parents": lambda root: [root.uuid]},
+            {
+                "parent": lambda root: OrganisationUnitFilter(
+                    uuids=[root.uuid],
+                    from_date=None,
+                    to_date=None,
+                )
+            },
         ),
         description="Children count of the organisation unit. For performance, consider if `has_children` can answer your query instead.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
@@ -3825,7 +3837,13 @@ class OrganisationUnit:
     has_children: bool = strawberry.field(
         resolver=seed_resolver(
             organisation_unit_has_children,
-            {"parents": lambda root: [root.uuid]},
+            {
+                "parent": lambda root: OrganisationUnitFilter(
+                    uuids=[root.uuid],
+                    from_date=None,
+                    to_date=None,
+                )
+            },
         ),
         description="Returns whether the organisation unit has children.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
