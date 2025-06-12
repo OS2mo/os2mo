@@ -1,8 +1,8 @@
 from enum import Enum
 
 
-class AuditLogModel(str, Enum):
-    AUDIT_LOG = "AUDIT_LOG"
+class AccessLogModel(str, Enum):
+    ACCESS_LOG = "ACCESS_LOG"
     PERSON = "PERSON"
     FACET = "FACET"
     IT_SYSTEM = "IT_SYSTEM"

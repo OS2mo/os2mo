@@ -4,6 +4,65 @@
 # OS2mo GraphQL API schema definition (v25).
 # https://os2mo.eksempel.dk/graphql/v25/schema.graphql
 
+"Access log entry.\n\nMostly useful for auditing purposes seeing when data-reads were done and by whom.\n"
+type AccessLog {
+  "UUID of the access log entry itself.\n"
+  id: UUID!
+
+  "When the read occured.\n\nExamples:\n* `\"1970-01-01T00:00:00.000000+00:00\"`\n* `\"2019-12-18T12:55:15.348614+00:00\"`\n"
+  time: DateTime!
+
+  "UUID of the actor (integration or user) who changed the data.\n\nNote:\nCurrently mostly returns `\"42c432e8-9c4a-11e6-9f62-873cf34a735f\"`.\nWill eventually contain for the UUID of the integration or user who mutated data, based on the JWT token.\n"
+  actor: UUID!
+
+  "Model of the modified entity.\n"
+  model: AccessLogModel!
+
+  "UUIDs of entities that were read.\n"
+  uuids: [UUID!]!
+}
+
+"""Access log log filter."""
+input AccessLogFilter {
+  "ID filter limiting which entries are returned.\n\n| `ids`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
+  ids: [UUID!] = null
+
+  "UUID filter limiting which entries are returned.\n\n| `uuids`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
+  uuids: [UUID!] = null
+
+  "Filter access log events by their reading actor.\n\nCan be used to select all data read by a particular user or integration.\n\n| `actors`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
+  actors: [UUID!] = null
+
+  "Filter access log events by their model type.\n\nCan be used to select all reads for a data type.\n\nCan be one of:\n* `\"AccessLog\"`\n* `\"Bruger\"`\n* `\"Facet\"`\n* `\"ItSystem\"`\n* `\"Klasse\"`\n* `\"Organisation\"`\n* `\"OrganisationEnhed\"`\n* `\"OrganisationFunktion\"`\n\n| `models`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
+  models: [AccessLogModel!] = null
+
+  """Limit the elements returned by their starting validity."""
+  start: DateTime = null
+
+  """Limit the elements returned by their ending validity."""
+  end: DateTime = null
+}
+
+enum AccessLogModel {
+  ACCESS_LOG
+  PERSON
+  FACET
+  IT_SYSTEM
+  CLASS
+  ORGANISATION @deprecated(reason: "The root organisation concept will be removed in a future version of OS2mo.")
+  ORGANISATION_UNIT
+  ORGANISATION_FUNCTION
+}
+
+"""Result page in cursor-based pagination."""
+type AccessLogPaged {
+  "List of results.\n\nThe number of elements is defined by the `limit` argument.\n"
+  objects: [AccessLog!]!
+
+  "Container for page information.\n\nContains the cursors necessary to fetch other pages.\nContains information on when to stop iteration.\n"
+  page_info: PageInfo!
+}
+
 "Address information for either an employee or organisational unit\n"
 type Address {
   "The address category or type.\n\nIn OS2mo addresses can be of a variety of different types:\n* Phone numbers\n* Addresses\n* Registration numbers\n* Card codes\n\nThis field is what encodes the type of an address.\n\nExamples of user-keys:\n* `\"EmailUnit\"`\n* `\"p-nummer\"`\n* `\"PhoneEmployee\"`\n"
@@ -625,65 +684,6 @@ input AssociationUpdateInput {
   association_type: UUID = null
 }
 
-"AuditLog entry.\n\nMostly useful for auditing purposes seeing when data-reads were done and by whom.\n"
-type AuditLog {
-  "UUID of the audit entry itself.\n"
-  id: UUID!
-
-  "When the read occured.\n\nExamples:\n* `\"1970-01-01T00:00:00.000000+00:00\"`\n* `\"2019-12-18T12:55:15.348614+00:00\"`\n"
-  time: DateTime!
-
-  "UUID of the actor (integration or user) who changed the data.\n\nNote:\nCurrently mostly returns `\"42c432e8-9c4a-11e6-9f62-873cf34a735f\"`.\nWill eventually contain for the UUID of the integration or user who mutated data, based on the JWT token.\n"
-  actor: UUID!
-
-  "Model of the modified entity.\n"
-  model: AuditLogModel!
-
-  "UUIDs of entities that were read.\n"
-  uuids: [UUID!]!
-}
-
-"""Audit log filter."""
-input AuditLogFilter {
-  "ID filter limiting which entries are returned.\n\n| `ids`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
-  ids: [UUID!] = null
-
-  "UUID filter limiting which entries are returned.\n\n| `uuids`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
-  uuids: [UUID!] = null
-
-  "Filter audit events by their reading actor.\n\nCan be used to select all data read by a particular user or integration.\n\n| `actors`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
-  actors: [UUID!] = null
-
-  "Filter audit events by their model type.\n\nCan be used to select all reads for a data type.\n\nCan be one of:\n* `\"AuditLog\"`\n* `\"Bruger\"`\n* `\"Facet\"`\n* `\"ItSystem\"`\n* `\"Klasse\"`\n* `\"Organisation\"`\n* `\"OrganisationEnhed\"`\n* `\"OrganisationFunktion\"`\n\n| `models`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
-  models: [AuditLogModel!] = null
-
-  """Limit the elements returned by their starting validity."""
-  start: DateTime = null
-
-  """Limit the elements returned by their ending validity."""
-  end: DateTime = null
-}
-
-enum AuditLogModel {
-  AUDIT_LOG
-  PERSON
-  FACET
-  IT_SYSTEM
-  CLASS
-  ORGANISATION @deprecated(reason: "The root organisation concept will be removed in a future version of OS2mo.")
-  ORGANISATION_UNIT
-  ORGANISATION_FUNCTION
-}
-
-"""Result page in cursor-based pagination."""
-type AuditLogPaged {
-  "List of results.\n\nThe number of elements is defined by the `limit` argument.\n"
-  objects: [AuditLog!]!
-
-  "Container for page information.\n\nContains the cursors necessary to fetch other pages.\nContains information on when to stop iteration.\n"
-  page_info: PageInfo!
-}
-
 "Scalar implementing the danish national identification number / civil registration number.\n\nThe number is a unique identifier for a single individual, although individuals may go through several numbers over time.\n\nThe number is expected to have 10 digits, 6 digits defining a date, and a 4 digit serial number.\nThe number does not have to fulfill the modulo 11 checksum.\nIt does however (optionally) have to define a valid date.\nNo dash should be included to separate the date and serial number sections.\n\nFor further details refer to the Central Person Register (CPR) at:\n* https://cpr.dk/\n\nOr \"Bekendtgørelse af lov om Det Centrale Personregister\" (\"CPR-Loven\"):\n* https://www.retsinformation.dk/eli/lta/2017/646\n\nExamples:\n* `\"0106875049\"`\n* `\"0106878994\"`\n* `\"406568970\"`\n"
 scalar CPR
 
@@ -772,6 +772,9 @@ type Class {
   """The IT-System associated with the class."""
   it_system_uuid: UUID @deprecated(reason: "Will be removed in a future version of GraphQL.\nUse `it_system {uuid}` instead.\n")
 
+  """Description of the class"""
+  description: String
+
   """Owner of class"""
   owner: UUID
 
@@ -812,6 +815,9 @@ input ClassCreateInput {
 
   """UUID of the associated IT-system."""
   it_system_uuid: UUID = null
+
+  """Description of class."""
+  description: String = null
 }
 
 """Class filter."""
@@ -830,6 +836,9 @@ input ClassFilter {
 
   "Registration filter limiting which entries are returned.\n"
   registration: ClassRegistrationFilter = null
+
+  "Name filter finding exact matches by name.\n"
+  name: [String!] = null
 
   "Facet filter limiting which entries are returned.\n"
   facet: FacetFilter = null
@@ -1002,6 +1011,9 @@ input ClassUpdateInput {
 
   """UUID of the associated IT-system."""
   it_system_uuid: UUID = null
+
+  """Description of class."""
+  description: String = null
 }
 
 """A configuration setting."""
@@ -1060,6 +1072,23 @@ scalar DateTime
 
 type DefaultAddress implements ResolvedAddress {
   value: String!
+}
+
+input DescendantParentBoundOrganisationUnitFilter {
+  uuids: [UUID!] = null
+  user_keys: [String!] = null
+  from_date: DateTime
+  to_date: DateTime
+  registration: OrganisationUnitRegistrationFilter = null
+  query: String
+  names: [String!]
+  parents: [UUID!]
+  child: OrganisationUnitFilter
+  hierarchy: ClassFilter = null
+  hierarchies: [UUID!] = null
+  subtree: OrganisationUnitFilter
+  ancestor: OrganisationUnitFilter
+  engagement: EngagementFilter = null
 }
 
 """Employee/identity specific information"""
@@ -1790,6 +1819,64 @@ input EngagementUpdateInput {
   job_function: UUID = null
 }
 
+"Event.\n\nYou need to use the `token` to acknowledge that the event has been handled properly by calling `event_acknowledge`.\n\nYour integration is supposed to handle *all* events that the listener subscribes to. If your integration does not need to do anything for a particular event, it still needs to be acknowledged.\n\nYou might see events in the `events` collection that you do not appear to receive when calling `event_fetch`. This is because OS2mo will not spam you with the same event over and over if it fails.\n"
+type Event {
+  """
+  An identifier of the subject. All subjects in the (default) "mo" namespace have UUIDs as identifier.
+  """
+  subject: String!
+
+  """Priority of the event."""
+  priority: Int!
+
+  "EventTokens are opaque tokens needed to acknowledge events.\n"
+  token: EventToken!
+}
+
+"""Acknowledge an event."""
+input EventAcknowledgeInput {
+  token: EventToken!
+}
+
+"""Event filter."""
+input EventFilter {
+  """ID of listener."""
+  listener: UUID!
+}
+
+input EventSendInput {
+  """Namespace to send the event in."""
+  namespace: String!
+
+  """Routing key of the event."""
+  routing_key: String!
+
+  """Subject the event is about."""
+  subject: String!
+
+  """Priority of the event. 1 is the highest priority."""
+  priority: Int! = 10000
+}
+
+"Silence an event.\n\nSilenced events are not received with `event_fetch`.\n"
+input EventSilenceInput {
+  """Only silence the event for these listeners."""
+  listeners: ListenerFilter!
+
+  """Subjects to silence."""
+  subjects: [String!]!
+}
+
+"Event tokens are used for event related operations, such as acknowledgment.\n\nThis is an opaque value and as such, you should *never* depend on the actual value.\n\nYou should not store it for later or construct it yourself, as newer MO versions can change the underlying implementation.\n"
+scalar EventToken
+
+"""Unsilence all matching events."""
+input EventUnsilenceInput {
+  listeners: ListenerFilter = null
+  subjects: [String!] = null
+  priorities: [Int!] = null
+}
+
 """The key component of the class/facet choice setup"""
 type Facet {
   """Associated classes"""
@@ -1969,6 +2056,7 @@ input FacetsBoundClassFilter {
   from_date: DateTime
   to_date: DateTime
   registration: ClassRegistrationFilter = null
+  name: [String!] = null
   facet: FacetFilter = null
   facet_user_keys: [String!] = null
   parent: ClassFilter = null
@@ -2019,6 +2107,46 @@ enum FileStore {
 
   "The insights file store.\n\nUsed to hold data-files supporting the insights functionality in OS2mo.\n"
   INSIGHTS
+}
+
+"""FullEvent"""
+type FullEvent {
+  """
+  An identifier of the subject. All subjects in OS2mo have UUIDs as identifier.
+  """
+  subject: String!
+
+  """
+  The priority of an event. Lower means higher priority. The default is 10000.
+  """
+  priority: Int!
+
+  """
+  Whether the event is silenced. Silenced event cannot be read by `event_fetch`.
+  """
+  silenced: Boolean!
+
+  """The listener that will receive this event."""
+  listener: Listener!
+}
+
+"""Event filter."""
+input FullEventFilter {
+  listeners: ListenerFilter = null
+  subjects: [String!] = null
+  priorities: [Int!] = null
+
+  """Filter based on silence status."""
+  silenced: Boolean = null
+}
+
+"""Result page in cursor-based pagination."""
+type FullEventPaged {
+  "List of results.\n\nThe number of elements is defined by the `limit` argument.\n"
+  objects: [FullEvent!]!
+
+  "Container for page information.\n\nContains the cursors necessary to fetch other pages.\nContains information on when to stop iteration.\n"
+  page_info: PageInfo!
 }
 
 """Status on whether a specific subsystem is working"""
@@ -2913,6 +3041,90 @@ input LeaveUpdateInput {
   validity: RAValidityInput!
 }
 
+"""Event listeners."""
+type Listener {
+  """ID of the listener."""
+  uuid: UUID!
+
+  """Owner of the listener. Only the owner can fetch the listeners' events."""
+  owner: UUID!
+
+  """
+  The user_key for a listener is a user-supplied identifier. It must be unique per (namespace, owner). It is useful when a consumer needs to listen to the same (namespace, routing_key) multiple times.
+  """
+  user_key: String!
+
+  """The routing key for the listeners"""
+  routing_key: String!
+
+  """Pending events for this listener. Use `event_fetch` to consume events."""
+  events(
+    filter: ListenersBoundFullEventFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): [FullEvent!]!
+
+  """The namespace of the listener."""
+  namespace: Namespace!
+}
+
+"""Create a listener."""
+input ListenerCreateInput {
+  """
+  Namespace of listener. Defaults to "mo", which means you will get events from os2mo.
+  """
+  namespace: String! = "mo"
+
+  """User key of listener."""
+  user_key: String!
+
+  """Routing key of listener."""
+  routing_key: String!
+}
+
+"""Delete a listener."""
+input ListenerDeleteInput {
+  """Listener ID to delete."""
+  uuid: UUID!
+
+  """Delete all events awaiting acknowledgement for this listener."""
+  delete_pending_events: Boolean! = false
+}
+
+"""Listener filter."""
+input ListenerFilter {
+  "UUID filter limiting which entries are returned.\n\n| `uuids`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
+  uuids: [UUID!] = null
+
+  "Owner filter limiting which entries are returned.\n\n| `owners`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
+  owners: [UUID!] = null
+
+  "Routing key filter limiting which entries are returned.\n\n| `routing_keys`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
+  routing_keys: [String!] = null
+
+  """Only match listeners in this namespace"""
+  namespaces: NamespaceFilter = null
+}
+
+"""Result page in cursor-based pagination."""
+type ListenerPaged {
+  "List of results.\n\nThe number of elements is defined by the `limit` argument.\n"
+  objects: [Listener!]!
+
+  "Container for page information.\n\nContains the cursors necessary to fetch other pages.\nContains information on when to stop iteration.\n"
+  page_info: PageInfo!
+}
+
+input ListenersBoundFullEventFilter {
+  subjects: [String!] = null
+  priorities: [Int!] = null
+  silenced: Boolean = null
+}
+
 "Managers of organisation units and their connected identities.\n"
 type Manager {
   "Title of the manager.\n\nExamples:\n* `\"Director\"`\n* `\"Area manager\"`\n* `\"Center manager\"`\n"
@@ -3195,6 +3407,7 @@ type Mutation {
     cursor: Cursor = null
     queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
     exchange: String = null
+    owner: UUID = null
   ): UUIDPaged!
 
   """Creates an association."""
@@ -3217,6 +3430,7 @@ type Mutation {
     cursor: Cursor = null
     queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
     exchange: String = null
+    owner: UUID = null
   ): UUIDPaged!
 
   """Creates a class."""
@@ -3242,6 +3456,7 @@ type Mutation {
     cursor: Cursor = null
     queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
     exchange: String = null
+    owner: UUID = null
   ): UUIDPaged!
 
   """Creates an employee."""
@@ -3267,6 +3482,7 @@ type Mutation {
     cursor: Cursor = null
     queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
     exchange: String = null
+    owner: UUID = null
   ): UUIDPaged!
 
   """Creates an engagement."""
@@ -3298,6 +3514,7 @@ type Mutation {
     cursor: Cursor = null
     queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
     exchange: String = null
+    owner: UUID = null
   ): UUIDPaged!
 
   """Creates a facet."""
@@ -3323,6 +3540,7 @@ type Mutation {
     cursor: Cursor = null
     queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
     exchange: String = null
+    owner: UUID = null
   ): UUIDPaged!
 
   """Creates an IT-Association."""
@@ -3357,6 +3575,7 @@ type Mutation {
     cursor: Cursor = null
     queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
     exchange: String = null
+    owner: UUID = null
   ): UUIDPaged!
 
   """Creates an IT-User."""
@@ -3385,6 +3604,7 @@ type Mutation {
     cursor: Cursor = null
     queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
     exchange: String = null
+    owner: UUID = null
   ): UUIDPaged!
 
   """Creates a KLE annotation."""
@@ -3407,6 +3627,7 @@ type Mutation {
     cursor: Cursor = null
     queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
     exchange: String = null
+    owner: UUID = null
   ): UUIDPaged!
 
   """Creates a leave."""
@@ -3429,6 +3650,7 @@ type Mutation {
     cursor: Cursor = null
     queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
     exchange: String = null
+    owner: UUID = null
   ): UUIDPaged!
 
   """Creates a manager relation."""
@@ -3454,6 +3676,7 @@ type Mutation {
     cursor: Cursor = null
     queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
     exchange: String = null
+    owner: UUID = null
   ): UUIDPaged!
 
   """Creates the root-organisation."""
@@ -3479,6 +3702,7 @@ type Mutation {
     cursor: Cursor = null
     queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
     exchange: String = null
+    owner: UUID = null
   ): UUIDPaged!
 
   """Creates an owner."""
@@ -3501,6 +3725,7 @@ type Mutation {
     cursor: Cursor = null
     queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
     exchange: String = null
+    owner: UUID = null
   ): UUIDPaged!
 
   """Updates relations for an org_unit."""
@@ -3517,6 +3742,7 @@ type Mutation {
     cursor: Cursor = null
     queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
     exchange: String = null
+    owner: UUID = null
   ): UUIDPaged!
 
   """Create a rolebinding."""
@@ -3542,7 +3768,32 @@ type Mutation {
     cursor: Cursor = null
     queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
     exchange: String = null
+    owner: UUID = null
   ): UUIDPaged!
+
+  "Create a namespace.\n\nThis operation is idempotent, so it can be called upon application startup.\n\nNamespaces are used to create your own event systems.\n"
+  event_namespace_declare(input: NamespaceCreateInput!): Namespace!
+
+  "Delete a namespace.\n\nUse `event_listener_delete` first, if there are any listeners.\n"
+  event_namespace_delete(input: NamespaceDeleteInput!): Boolean!
+
+  "Create a listener.\n\nThis operation is idempotent, so it can always be called upon application startup.\n\nUse different user_keys to listen for the same (namespace, routing_key) multiple times. The user_key must be unique for each listener in your integration.\n"
+  event_listener_declare(input: ListenerCreateInput!): Listener!
+
+  """Delete a listener."""
+  event_listener_delete(input: ListenerDeleteInput!): Boolean!
+
+  """Acknowledge an event."""
+  event_acknowledge(input: EventAcknowledgeInput!): Boolean!
+
+  """Send an event."""
+  event_send(input: EventSendInput!): Boolean!
+
+  "Silence an event.\n\nIn general, this should only be done by humans while the implementation of a fix is in the works.\n"
+  event_silence(input: EventSilenceInput!): Boolean!
+
+  """Unsilence all matching events"""
+  event_unsilence(input: EventUnsilenceInput!): Boolean!
 
   "Upload a file.\n\nFile upload must be done via multipart form-data.\n\nHow to do this is client-specific, but below is an example using [curl](https://curl.se/):\n```console\ncurl https://{{MO_URL}}/graphql/v7 \\\n  -H \"Authorization: Bearer {{TOKEN}}\" \\\n  -F operations=\"{\\\"query\\\": \\\"{{QUERY}}\\\", \\\n      \\\"variables\\\": {\\\"file\\\": null}}\" \\\n  -F map='{\"file\": [\"variables.file\"]}' \\\n  -F file=@myfile.txt\n```\nWhere:\n* `myfile.txt` is the file to upload.\n* `{{MO_URL}}` is the base-url for the OS2mo instance to upload the file to.\n* `{{TOKEN}}` is a valid JWT-token acquired from Keycloak.\n* `{{QUERY}}` is the upload query:\n```gql\nmutation($file: Upload!) {\n  upload_file(\n    file_store: EXPORTS,\n    file: $file\n  )\n}\n```\n\nNote:\nAs GraphiQL does not support sending multipart form-data payloads, it is unfortunately not possible to upload files from GraphiQL.\n"
   upload_file(
@@ -3555,6 +3806,71 @@ type Mutation {
     """Whether to override pre-existing files."""
     force: Boolean! = false
   ): String!
+}
+
+"Event namespace.\n\nEvent namespaces can be used to create other event exchanges, than the one OS2mo comes with.\n\nYou do not need to think about namespaces if you only receive events from OS2mo.\n"
+type Namespace {
+  """Name of the namespace - unique."""
+  name: String!
+
+  """
+  Owner of the namespace. If the namespace isn't public; only the owner can create listeners in it.
+  """
+  owner: UUID!
+
+  """Whether others can create listeners in the namespace"""
+  public: Boolean!
+
+  """Listeners for this namespace"""
+  listeners(
+    filter: NamespacesBoundListenerFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): [Listener!]!
+}
+
+"""Create a namespace."""
+input NamespaceCreateInput {
+  """Name of the namespace. This is also the identifier for namespaces."""
+  name: String!
+
+  """Can others create listeners in the namespace?"""
+  public: Boolean! = false
+}
+
+"""Delete a namespace."""
+input NamespaceDeleteInput {
+  """Name of namespace to delete"""
+  name: String!
+}
+
+"""Listener filter."""
+input NamespaceFilter {
+  "Name filter limiting which entries are returned.\n\n| `names`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
+  names: [String!] = null
+
+  "Owner filter limiting which entries are returned.\n\n| `owners`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
+  owners: [UUID!] = null
+  public: Boolean = null
+}
+
+"""Result page in cursor-based pagination."""
+type NamespacePaged {
+  "List of results.\n\nThe number of elements is defined by the `limit` argument.\n"
+  objects: [Namespace!]!
+
+  "Container for page information.\n\nContains the cursors necessary to fetch other pages.\nContains information on when to stop iteration.\n"
+  page_info: PageInfo!
+}
+
+input NamespacesBoundListenerFilter {
+  uuids: [UUID!] = null
+  owners: [UUID!] = null
+  routing_keys: [String!] = null
 }
 
 """Validity of objects with optional from date"""
@@ -3703,6 +4019,17 @@ type OrganisationUnit {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): OrganisationUnit
+
+  "The top-unit (root) of the organisation unit, in the hierarchy.\n"
+  root(
+    filter: DescendantParentBoundOrganisationUnitFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): [OrganisationUnit!]
 
   "The immediate descendants in the organisation tree\n"
   children(
@@ -4252,6 +4579,7 @@ input ParentsBoundClassFilter {
   from_date: DateTime
   to_date: DateTime
   registration: ClassRegistrationFilter = null
+  name: [String!] = null
   facet: FacetFilter = null
   facets: [UUID!] = null
   facet_user_keys: [String!] = null
@@ -4504,16 +4832,52 @@ type Query {
     cursor: Cursor = null
   ): RegistrationPaged!
 
-  "Get a list of audit events.\n\nMostly useful for auditing purposes seeing when data was read and by whom.\n"
-  auditlog(
-    filter: AuditLogFilter = null
+  "Get a list of access events.\n\nMostly useful for auditing purposes seeing when data was read and by whom.\n"
+  access_log(
+    filter: AccessLogFilter = null
 
     "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
     limit: int = null
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-  ): AuditLogPaged!
+  ): AccessLogPaged!
+
+  "Get full events.\n\nFullEvents represent Events, but they do not have a token for acknowledgement.\n\nUse `event_fetch` for event-driven applications.\n\nThis collection is intended for inspection by humans.\n"
+  events(
+    filter: FullEventFilter = null
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): FullEventPaged!
+
+  """Get event namespaces."""
+  event_namespaces(
+    filter: NamespaceFilter = null
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): NamespacePaged!
+
+  """Get event listeners."""
+  event_listeners(
+    filter: ListenerFilter = null
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): ListenerPaged!
+
+  "Get an event.\n\n`event_fetch` is a key operation for event-driven integrations.\n\nFetched events must be acknowledged by the consumer after it has been processed.\n\nConsumers cannot rely on the order of events, and may receive the same event multiple times.\n"
+  event_fetch(filter: EventFilter!): Event
 
   "Get the root organisation.\n\nThis endpoint fails if not exactly one exists in LoRa.\n"
   org: Organisation! @deprecated(reason: "The root organisation concept will be removed in a future version of OS2mo.")
@@ -4880,6 +5244,7 @@ input UuidsBoundClassFilter {
   from_date: DateTime
   to_date: DateTime
   registration: ClassRegistrationFilter = null
+  name: [String!] = null
   facet: FacetFilter = null
   facets: [UUID!] = null
   facet_user_keys: [String!] = null
