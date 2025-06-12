@@ -38,14 +38,11 @@ async def test_process_uuid_bad_sync(
     app: FastAPI,
     test_client: AsyncClient,
     ldap_person_uuid: LDAPUUID,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Test that process_uuid fails as expected."""
     sync_tool = AsyncMock()
     sync_tool.import_single_user.side_effect = ValueError("BOOM")
     app.dependency_overrides[from_user_context("sync_tool")] = lambda: sync_tool
-
-    monkeypatch.setattr("asyncio.sleep", AsyncMock())
 
     with capture_logs() as cap_logs:
         result = await test_client.post(
