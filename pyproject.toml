@@ -44,7 +44,6 @@ pytest-asyncio = "^0.24"
 pytest-cov = "^5"
 pytest-split = "^0.9"
 pytest-xdist = "^3"
-asgi-lifespan = "^2"
 pytest-freezer = "^0.4.9"
 
 [tool.poetry.group.dev.dependencies]

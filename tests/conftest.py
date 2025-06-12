@@ -15,12 +15,10 @@ from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
-from asgi_lifespan import LifespanManager
 from fastapi import FastAPI
 from fastramqpi.context import Context
 from fastramqpi.main import FastRAMQPI
 from fastramqpi.ramqp import AMQPSystem
-from httpx import ASGITransport
 from httpx import AsyncClient
 from ldap3 import NO_ATTRIBUTES
 from ldap3 import Connection
@@ -340,26 +338,9 @@ async def app(fastramqpi: FastRAMQPI) -> FastAPI:
 
 
 @pytest.fixture
-async def lifespan_app(app: FastAPI) -> AsyncIterator[FastAPI]:
-    """ASGI app with lifespan run."""
-    async with LifespanManager(app) as manager:
-        yield cast(FastAPI, manager.app)
-
-
-@pytest.fixture
-async def context(lifespan_app: FastAPI, fastramqpi: FastRAMQPI) -> Context:
+async def context(test_client: AsyncClient, fastramqpi: FastRAMQPI) -> Context:
     """FastRAMQPI context after lifespan has been run."""
     return fastramqpi._context
-
-
-@pytest.fixture
-async def test_client(lifespan_app: FastAPI) -> AsyncIterator[AsyncClient]:
-    """Create ASGI test client with associated lifecycles."""
-    transport = ASGITransport(app=lifespan_app, client=("1.2.3.4", 123))  # type: ignore
-    async with AsyncClient(
-        transport=transport, base_url="http://example.com"
-    ) as client:
-        yield client
 
 
 @pytest.fixture
