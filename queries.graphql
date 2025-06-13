@@ -899,3 +899,17 @@ query read_employee_registrations($employee_uuid: UUID!) {
     }
   }
 }
+
+query read_rolebindings($filter: RoleBindingFilter) {
+  rolebindings(filter: $filter) {
+    objects {
+      current {
+        ituser {
+          person {
+            uuid
+          }
+        }
+      }
+    }
+  }
+}

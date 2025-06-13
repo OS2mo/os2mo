@@ -79,6 +79,7 @@ from .input_types import OrganisationUnitTerminateInput
 from .input_types import OrganisationUnitUpdateInput
 from .input_types import OrgUnitsboundmanagerfilter
 from .input_types import RoleBindingCreateInput
+from .input_types import RoleBindingFilter
 from .itsystem_create import ItsystemCreate
 from .itsystem_create import ItsystemCreateItsystemCreate
 from .itsystem_terminate import ItsystemTerminate
@@ -187,6 +188,8 @@ from .read_org_units import ReadOrgUnits
 from .read_org_units import ReadOrgUnitsOrgUnits
 from .read_person_uuid import ReadPersonUuid
 from .read_person_uuid import ReadPersonUuidEmployees
+from .read_rolebindings import ReadRolebindings
+from .read_rolebindings import ReadRolebindingsRolebindings
 from .set_job_title import SetJobTitle
 from .set_job_title import SetJobTitleEngagementUpdate
 from .user_create import UserCreate
@@ -1859,3 +1862,28 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEmployeeRegistrations.parse_obj(data).employees
+
+    async def read_rolebindings(
+        self, filter: RoleBindingFilter | None | UnsetType = UNSET
+    ) -> ReadRolebindingsRolebindings:
+        query = gql(
+            """
+            query read_rolebindings($filter: RoleBindingFilter) {
+              rolebindings(filter: $filter) {
+                objects {
+                  current {
+                    ituser {
+                      person {
+                        uuid
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadRolebindings.parse_obj(data).rolebindings
