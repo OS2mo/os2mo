@@ -494,13 +494,18 @@ async def get_address_uuid(
     return obj.uuid if obj else None
 
 
+async def get_ituser_uuids(
+    graphql_client: GraphQLClient, filter: dict[str, Any]
+) -> set[UUID]:
+    ituser_filter = parse_obj_as(ITUserFilter, filter)
+    result = await graphql_client.read_ituser_uuid(ituser_filter)
+    return {obj.uuid for obj in result.objects}
+
+
 async def get_ituser_uuid(
     graphql_client: GraphQLClient, filter: dict[str, Any]
 ) -> UUID | None:
-    ituser_filter = parse_obj_as(ITUserFilter, filter)
-    result = await graphql_client.read_ituser_uuid(ituser_filter)
-    obj = only(result.objects)
-    return obj.uuid if obj else None
+    return only(await get_ituser_uuids(graphql_client, filter))
 
 
 async def get_itsystem_uuid(
@@ -642,6 +647,26 @@ def dn_has_ou(dn: DN) -> bool:
     return bool(extract_ou_from_dn(dn))
 
 
+async def dn_exists(ldapapi: LDAPAPI, dn: DN) -> bool:
+    with suppress(NoObjectsReturnedException):
+        await ldapapi.get_object_by_dn(dn, set())
+        return True
+    return False
+
+
+async def ituser_uuid_to_person_uuid(dataloader: DataLoader, uuid: UUID) -> UUID | None:
+    ituser = await dataloader.moapi.load_mo_it_user(uuid)
+    return None if ituser is None else ituser.person
+
+
+def construct_filters_dict(dataloader: DataLoader) -> dict[str, Any]:
+    return {
+        "ituser_uuid_to_person_uuid": partial(ituser_uuid_to_person_uuid, dataloader),
+        "get_person_dn": partial(get_person_dn, dataloader),
+        "dn_exists": partial(dn_exists, dataloader.ldapapi),
+    }
+
+
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
@@ -679,6 +704,7 @@ def construct_globals_dict(
         "generate_common_name": partial(generate_common_name, dataloader),
         "get_person_uuid": partial(get_person_uuid, graphql_client),
         "get_address_uuid": partial(get_address_uuid, graphql_client),
+        "get_ituser_uuids": partial(get_ituser_uuids, graphql_client),
         "get_ituser_uuid": partial(get_ituser_uuid, graphql_client),
         "get_itsystem_uuid": partial(get_itsystem_uuid, graphql_client),
         "get_class_uuid": partial(get_class_uuid, graphql_client),
@@ -734,5 +760,6 @@ def construct_default_environment() -> Environment:
 
 def construct_environment(settings: Settings, dataloader: DataLoader) -> Environment:
     environment = construct_default_environment()
+    environment.filters.update(construct_filters_dict(dataloader))
     environment.globals.update(construct_globals_dict(settings, dataloader))
     return environment

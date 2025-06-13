@@ -505,3 +505,134 @@ def test_jinja_template_non_string() -> None:
     with pytest.raises(ValidationError) as exc_info:
         parse_obj_as(JinjaTemplate, 2)
     assert "__root__\n  string required" in str(exc_info.value)
+
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+def test_mo_to_ldap_mapping(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = Settings()
+    assert settings.conversion_mapping.mo_to_ldap == []
+
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING",
+        json.dumps(
+            {
+                "mo_to_ldap": [
+                    {
+                        "identifier": "itsystem2group",
+                        "routing_key": "itsystem",
+                        "object_class": "groupOfNames",
+                        "template": "{# this is a jinja comment #}",
+                    }
+                ]
+            }
+        ),
+    )
+    settings = Settings()
+    configuration = one(settings.conversion_mapping.mo_to_ldap)
+    assert configuration.identifier == "itsystem2group"
+    assert configuration.routing_key == "itsystem"
+    assert configuration.object_class == "groupOfNames"
+    assert configuration.template == "{# this is a jinja comment #}"
+
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+def test_mo_to_ldap_mapping_multiple(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = Settings()
+    assert settings.conversion_mapping.mo_to_ldap == []
+
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING",
+        json.dumps(
+            {
+                "mo_to_ldap": [
+                    {
+                        "identifier": "itsystem2group",
+                        "routing_key": "itsystem",
+                        "object_class": "groupOfNames",
+                        "template": "{# this is a jinja comment #}",
+                    },
+                    {
+                        "identifier": "person",
+                        "routing_key": "person",
+                        "object_class": "inetOrgPerson",
+                        "template": "{% set nice=20 %}",
+                    },
+                ]
+            }
+        ),
+    )
+    settings = Settings()
+    configuration1, configuration2 = settings.conversion_mapping.mo_to_ldap
+
+    assert configuration1.identifier == "itsystem2group"
+    assert configuration1.routing_key == "itsystem"
+    assert configuration1.object_class == "groupOfNames"
+    assert configuration1.template == "{# this is a jinja comment #}"
+
+    assert configuration2.identifier == "person"
+    assert configuration2.routing_key == "person"
+    assert configuration2.object_class == "inetOrgPerson"
+    assert configuration2.template == "{% set nice=20 %}"
+
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+def test_mo_to_ldap_mapping_invalid_routing_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    settings = Settings()
+    assert settings.conversion_mapping.mo_to_ldap == []
+
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING",
+        json.dumps(
+            {
+                "mo_to_ldap": [
+                    {
+                        "identifier": "itsystem2group",
+                        "routing_key": "this_is_an_invalid_routing_key",
+                        "object_class": "groupOfNames",
+                        "template": "{# this is a jinja comment #}",
+                    }
+                ]
+            }
+        ),
+    )
+    expected_error_snippets = [
+        "conversion_mapping -> mo_to_ldap -> 0 -> routing_key",
+        "unexpected value; permitted: 'address', 'association'",
+        "unexpected value; permitted: 'employee.address.create'",
+    ]
+    with pytest.raises(ValidationError) as exc_info:
+        Settings()
+    for error_snippet in expected_error_snippets:
+        assert error_snippet in str(exc_info.value)
+
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+def test_mo_to_ldap_mapping_invalid_template(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = Settings()
+    assert settings.conversion_mapping.mo_to_ldap == []
+
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING",
+        json.dumps(
+            {
+                "mo_to_ldap": [
+                    {
+                        "identifier": "itsystem2group",
+                        "routing_key": "itsystem",
+                        "object_class": "groupOfNames",
+                        "template": "{# this is a broken jinja comment }}",
+                    }
+                ]
+            }
+        ),
+    )
+    expected_error_snippets = [
+        "conversion_mapping -> mo_to_ldap -> 0 -> template",
+        "Unable to parse jinja (type=value_error)",
+    ]
+    with pytest.raises(ValidationError) as exc_info:
+        Settings()
+    for error_snippet in expected_error_snippets:
+        assert error_snippet in str(exc_info.value)
