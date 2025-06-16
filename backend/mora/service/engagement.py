@@ -143,7 +143,12 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                 payload,
                 ("tilstande", "organisationfunktiongyldighed"),
             )
-
+        if mapping.ORG_UNIT in data:
+            org_unit = util.checked_get(data, mapping.ORG_UNIT, {}, required=True)
+            if org_unit:
+                await validator.is_date_range_in_org_unit_range(
+                    org_unit, new_from, new_to
+                )
         update_fields = []
 
         # Always update gyldighed
