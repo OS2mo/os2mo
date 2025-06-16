@@ -167,37 +167,6 @@ def force_none_return_wrapper(func: Callable) -> Callable:
     return wrapper
 
 
-ResolverResult = dict[UUID, list[MOObject]]
-ResolverFunction = Callable[..., Awaitable[ResolverResult]]
-
-
-def result_translation(
-    mapper: Callable[[ResolverResult], R],
-) -> Callable[[ResolverFunction], Callable[..., Awaitable[R]]]:
-    def wrapper(
-        resolver_func: ResolverFunction,
-    ) -> Callable[..., Awaitable[R]]:
-        @wraps(resolver_func)
-        async def mapped_resolver(*args: Any, **kwargs: Any) -> Any:
-            result = await resolver_func(*args, **kwargs)
-            return mapper(result)
-
-        return mapped_resolver
-
-    return wrapper
-
-
-to_list = result_translation(
-    lambda result: list(chain.from_iterable(result.values())),
-)
-to_only = result_translation(
-    lambda result: only(chain.from_iterable(result.values())),
-)
-to_one = result_translation(
-    lambda result: one(chain.from_iterable(result.values())),
-)
-
-
 def uuid2list(uuid: UUID | None) -> list[UUID]:
     """Convert an optional uuid to a list.
 
@@ -411,6 +380,37 @@ class Response(Generic[MOObject]):
             },
         ),
     )
+
+
+ResolverResult = dict[UUID, list[MOObject]]
+ResolverFunction = Callable[..., Awaitable[ResolverResult]]
+
+
+def result_translation(
+    mapper: Callable[[ResolverResult], R],
+) -> Callable[[ResolverFunction], Callable[..., Awaitable[R]]]:
+    def wrapper(
+        resolver_func: ResolverFunction,
+    ) -> Callable[..., Awaitable[R]]:
+        @wraps(resolver_func)
+        async def mapped_resolver(*args: Any, **kwargs: Any) -> Any:
+            result = await resolver_func(*args, **kwargs)
+            return mapper(result)
+
+        return mapped_resolver
+
+    return wrapper
+
+
+to_list = result_translation(
+    lambda result: list(chain.from_iterable(result.values())),
+)
+to_only = result_translation(
+    lambda result: only(chain.from_iterable(result.values())),
+)
+to_one = result_translation(
+    lambda result: one(chain.from_iterable(result.values())),
+)
 
 
 def response2model(response: Response[MOObject]) -> MOObject:
