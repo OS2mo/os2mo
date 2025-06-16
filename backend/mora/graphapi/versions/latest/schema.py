@@ -5,6 +5,7 @@
 import json
 import re
 from base64 import b64encode
+from collections.abc import Awaitable
 from collections.abc import Callable
 from datetime import date
 from datetime import datetime
@@ -166,8 +167,16 @@ def force_none_return_wrapper(func: Callable) -> Callable:
     return wrapper
 
 
-def result_translation(mapper: Callable) -> Callable:
-    def wrapper(resolver_func: Callable) -> Callable:
+ResolverResult = dict[UUID, list[MOObject]]
+ResolverFunction = Callable[..., Awaitable[ResolverResult]]
+
+
+def result_translation(
+    mapper: Callable[[ResolverResult], R],
+) -> Callable[[ResolverFunction], Callable[..., Awaitable[R]]]:
+    def wrapper(
+        resolver_func: ResolverFunction,
+    ) -> Callable[..., Awaitable[R]]:
         @wraps(resolver_func)
         async def mapped_resolver(*args: Any, **kwargs: Any) -> Any:
             result = await resolver_func(*args, **kwargs)
