@@ -66,6 +66,7 @@ from mora.util import now
 
 from ...version import Version as GraphQLVersion
 from .filters import EmployeeFilter
+from .filters import ITSystemFilter
 from .filters import ITUserFilter
 from .filters import ManagerFilter
 from .filters import OrganisationUnitFilter
@@ -2606,6 +2607,26 @@ class ITSystem:
     )
     async def user_key(self, root: ITSystemRead) -> str:
         return root.user_key
+
+    roles: list[Response[LazyClass]] = strawberry.field(
+        resolver=to_response_list(LazyClass)(
+            seed_resolver(
+                class_resolver,
+                {"it_system": lambda root: ITSystemFilter(uuids=uuid2list(root.uuid))},
+            )
+        ),
+        description=dedent(
+            """\
+            Rolebinding roles related to the IT-system.
+
+            Examples of user-keys:
+            * `"AD Read"`
+            * `"AD Write"`
+            * `"SAP Admin"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
 
     # TODO: Document this
     system_type: str | None = strawberry.auto
