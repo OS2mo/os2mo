@@ -402,6 +402,35 @@ def result_translation(
     return wrapper
 
 
+def to_response_list(
+    model: type[MOObject],
+) -> Callable[[ResolverFunction], Callable[..., Awaitable[list[Response[MOObject]]]]]:
+    def result2response_list(result: ResolverResult) -> list[Response[MOObject]]:
+        # The type checker really does not like the below code.
+        #
+        # Mypy says: 'error: Variable "model" is not valid as a type', however every
+        # attept to appease mypy by fixing the typing has ended up making the code
+        # non-functional on runtime.
+        #
+        # Additionally it complains about construction of the Response object being
+        # illegal as it 'Expected no arguments to "Response" constructor', however
+        # attempting to resolve this using Pydantic's 'parse_obj_as' results in an
+        # 'Fields of type \"<class 'Response'>\" are not supported."' error from
+        # strawberry on runtime, whether implemented as:
+        # '[parse_obj_as(T, x) for x in xs]' or 'parse_obj_as(list[T], xs)'.
+        #
+        # If you try to fix this typing issues here, please increment the following
+        # counter as a warning to the next guy:
+        #
+        # total_hours_wasted_here = 4
+        return [
+            Response[model](uuid=uuid, object_cache=objects)  # type: ignore
+            for uuid, objects in result.items()
+        ]
+
+    return result_translation(result2response_list)
+
+
 to_list = result_translation(
     lambda result: list(chain.from_iterable(result.values())),
 )
