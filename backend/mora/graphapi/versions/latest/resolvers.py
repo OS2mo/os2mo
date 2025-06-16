@@ -1167,6 +1167,14 @@ async def it_user_resolver(
         kwargs["tilknyttedefunktioner"] = lora_filter(
             await filter2uuids_func(engagement_resolver, info, filter.engagement)
         )
+    if filter.rolebinding is not UNSET:
+        if filter.rolebinding is None:
+            kwargs["tilknyttedefunktioner"] = "urn:LORA-PLEASE-FIND-NULL-UUID-AND-URN"
+        else:
+            kwargs["tilknyttedefunktioner"] = lora_filter(
+                await filter2uuids_func(rolebinding_resolver, info, filter.rolebinding)
+            )
+
     if filter.external_ids is not None:
         # Early return on empty external_id list
         if not filter.external_ids:  # pragma: no cover

@@ -429,6 +429,15 @@ class ITUserFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         deprecation_reason="Replaced by the 'itsystem' filter",
     )
 
+    rolebinding: RoleBindingFilter | None = strawberry.field(
+        default=UNSET,
+        description=dedent(
+            """\
+            Rolebinding filter limiting which entries are returned.
+            """
+        ),
+    )
+
     engagement: EngagementFilter | None = strawberry.field(
         default=None,
         description=dedent(
