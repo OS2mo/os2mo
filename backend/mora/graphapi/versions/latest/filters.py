@@ -887,6 +887,14 @@ class RoleBindingFilter(BaseFilter, OrganisationUnitFiltered):
             """
         ),
     )
+    role: ClassFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Role filter limiting which entries are returned.
+            """
+        ),
+    )
 
 
 @strawberry.input(description="Class owner filter")
