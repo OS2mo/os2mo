@@ -5,6 +5,7 @@
 import json
 import re
 from base64 import b64encode
+from collections.abc import Awaitable
 from collections.abc import Callable
 from datetime import date
 from datetime import datetime
@@ -65,6 +66,7 @@ from mora.util import now
 
 from ...version import Version as GraphQLVersion
 from .filters import EmployeeFilter
+from .filters import ITSystemFilter
 from .filters import ITUserFilter
 from .filters import ManagerFilter
 from .filters import OrganisationUnitFilter
@@ -164,29 +166,6 @@ def force_none_return_wrapper(func: Callable) -> Callable:
             return None
 
     return wrapper
-
-
-def result_translation(mapper: Callable) -> Callable:
-    def wrapper(resolver_func: Callable) -> Callable:
-        @wraps(resolver_func)
-        async def mapped_resolver(*args: Any, **kwargs: Any) -> Any:
-            result = await resolver_func(*args, **kwargs)
-            return mapper(result)
-
-        return mapped_resolver
-
-    return wrapper
-
-
-to_list = result_translation(
-    lambda result: list(chain.from_iterable(result.values())),
-)
-to_only = result_translation(
-    lambda result: only(chain.from_iterable(result.values())),
-)
-to_one = result_translation(
-    lambda result: one(chain.from_iterable(result.values())),
-)
 
 
 def uuid2list(uuid: UUID | None) -> list[UUID]:
@@ -402,6 +381,66 @@ class Response(Generic[MOObject]):
             },
         ),
     )
+
+
+ResolverResult = dict[UUID, list[MOObject]]
+ResolverFunction = Callable[..., Awaitable[ResolverResult]]
+
+
+def result_translation(
+    mapper: Callable[[ResolverResult], R],
+) -> Callable[[ResolverFunction], Callable[..., Awaitable[R]]]:
+    def wrapper(
+        resolver_func: ResolverFunction,
+    ) -> Callable[..., Awaitable[R]]:
+        @wraps(resolver_func)
+        async def mapped_resolver(*args: Any, **kwargs: Any) -> Any:
+            result = await resolver_func(*args, **kwargs)
+            return mapper(result)
+
+        return mapped_resolver
+
+    return wrapper
+
+
+def to_response_list(
+    model: type[MOObject],
+) -> Callable[[ResolverFunction], Callable[..., Awaitable[list[Response[MOObject]]]]]:
+    def result2response_list(result: ResolverResult) -> list[Response[MOObject]]:
+        # The type checker really does not like the below code.
+        #
+        # Mypy says: 'error: Variable "model" is not valid as a type', however every
+        # attept to appease mypy by fixing the typing has ended up making the code
+        # non-functional on runtime.
+        #
+        # Additionally it complains about construction of the Response object being
+        # illegal as it 'Expected no arguments to "Response" constructor', however
+        # attempting to resolve this using Pydantic's 'parse_obj_as' results in an
+        # 'Fields of type \"<class 'Response'>\" are not supported."' error from
+        # strawberry on runtime, whether implemented as:
+        # '[parse_obj_as(T, x) for x in xs]' or 'parse_obj_as(list[T], xs)'.
+        #
+        # If you try to fix this typing issues here, please increment the following
+        # counter as a warning to the next guy:
+        #
+        # total_hours_wasted_here = 4
+        return [
+            Response[model](uuid=uuid, object_cache=objects)  # type: ignore
+            for uuid, objects in result.items()
+        ]
+
+    return result_translation(result2response_list)
+
+
+to_list = result_translation(
+    lambda result: list(chain.from_iterable(result.values())),
+)
+to_only = result_translation(
+    lambda result: only(chain.from_iterable(result.values())),
+)
+to_one = result_translation(
+    lambda result: one(chain.from_iterable(result.values())),
+)
 
 
 def response2model(response: Response[MOObject]) -> MOObject:
@@ -2568,6 +2607,39 @@ class ITSystem:
     )
     async def user_key(self, root: ITSystemRead) -> str:
         return root.user_key
+
+    roles: list[Response[LazyClass]] = strawberry.field(
+        resolver=to_response_list(LazyClass)(
+            seed_resolver(
+                class_resolver,
+                {
+                    "it_system": lambda root: ITSystemFilter(
+                        uuids=uuid2list(root.uuid),
+                        # The following two arguments are not strictly necessary because
+                        # we are filtering by UUIDs which handles dates differently than
+                        # normal filters.
+                        # If we were to instead filter by say 'user_keys' the arguments
+                        # would be necessary. They are added here anyway to simplify the
+                        # migration in the future when our filtering achieve consistent
+                        # behavior across all filters.
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
+            )
+        ),
+        description=dedent(
+            """\
+            Rolebinding roles related to the IT-system.
+
+            Examples of user-keys:
+            * `"AD Read"`
+            * `"AD Write"`
+            * `"SAP Admin"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
 
     # TODO: Document this
     system_type: str | None = strawberry.auto
