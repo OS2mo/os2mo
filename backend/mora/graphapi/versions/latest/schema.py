@@ -2612,7 +2612,13 @@ class ITSystem:
         resolver=to_response_list(LazyClass)(
             seed_resolver(
                 class_resolver,
-                {"it_system": lambda root: ITSystemFilter(uuids=uuid2list(root.uuid))},
+                {
+                    "it_system": lambda root: ITSystemFilter(
+                        uuids=uuid2list(root.uuid)
+                    ),
+                    "from_date": lambda root: None,
+                    "to_date": lambda root: None,
+                },
             )
         ),
         description=dedent(

@@ -180,25 +180,13 @@ def test_itsystem_roles(
     "class_start,class_end",
     [
         # Past
-        pytest.param(
-            datetime(1970, 1, 1),
-            datetime(1980, 1, 1),
-            marks=pytest.mark.xfail(reason="Past role UUIDs are not returned"),
-        ),
+        (datetime(1970, 1, 1), datetime(1980, 1, 1)),
         # Current
         (datetime(1970, 1, 1), None),
         (datetime(1970, 1, 1), datetime(3000, 1, 1)),
         # Future
-        pytest.param(
-            datetime(2970, 1, 1),
-            None,
-            marks=pytest.mark.xfail(reason="Future role UUIDs are not returned"),
-        ),
-        pytest.param(
-            datetime(2970, 1, 1),
-            datetime(3000, 1, 1),
-            marks=pytest.mark.xfail(reason="Future role UUIDs are not returned"),
-        ),
+        (datetime(2970, 1, 1), None),
+        (datetime(2970, 1, 1), datetime(3000, 1, 1)),
     ],
 )
 def test_itsystem_roles_validities(
