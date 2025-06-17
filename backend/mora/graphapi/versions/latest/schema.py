@@ -2612,7 +2612,20 @@ class ITSystem:
         resolver=to_response_list(LazyClass)(
             seed_resolver(
                 class_resolver,
-                {"it_system": lambda root: ITSystemFilter(uuids=uuid2list(root.uuid))},
+                {
+                    "it_system": lambda root: ITSystemFilter(
+                        uuids=uuid2list(root.uuid),
+                        # The following two arguments are not strictly necessary because
+                        # we are filtering by UUIDs which handles dates differently than
+                        # normal filters.
+                        # If we were to instead filter by say 'user_keys' the arguments
+                        # would be necessary. They are added here anyway to simplify the
+                        # migration in the future when our filtering achieve consistent
+                        # behavior across all filters.
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
             )
         ),
         description=dedent(
