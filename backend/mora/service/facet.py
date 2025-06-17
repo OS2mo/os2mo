@@ -185,8 +185,10 @@ async def request_bulked_get_one_class(
     classid: str,
     details: set[ClassDetails] | None = None,
     only_primary_uuid: bool = False,
+    connector: lora.Connector | None = None,
 ) -> MO_OBJ_TYPE:
-    connector = common.get_connector()
+    if connector is None:
+        connector = common.get_connector()
     return await get_one_class(
         c=connector,
         classid=classid,
