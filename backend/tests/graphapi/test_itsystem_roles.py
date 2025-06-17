@@ -1,7 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
+from datetime import datetime
 from typing import Any
+from unittest.mock import ANY
 from uuid import UUID
 
 import pytest
@@ -173,6 +175,63 @@ def test_itsystem_roles(
                         ],
                     }
                 ],
+            }
+        ],
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.parametrize(
+    "class_start,class_end",
+    [
+        # Past
+        (datetime(1970, 1, 1), datetime(1980, 1, 1)),
+        # Current
+        (datetime(1970, 1, 1), None),
+        (datetime(1970, 1, 1), datetime(3000, 1, 1)),
+        # Future
+        (datetime(2970, 1, 1), None),
+        (datetime(2970, 1, 1), datetime(3000, 1, 1)),
+    ],
+)
+def test_itsystem_roles_validities(
+    read_facet_uuid: Callable[[str], UUID],
+    read_itsystem: Callable[[UUID], dict[str, Any]],
+    create_class: Callable[[dict[str, Any]], UUID],
+    create_itsystem: Callable[[dict[str, Any]], UUID],
+    class_start: datetime,
+    class_end: datetime | None,
+) -> None:
+    """Test that we can read role UUIDs whatever the validity of roles."""
+    itsystem_uuid = create_itsystem(
+        {
+            "user_key": "suila",
+            "name": "Suila-tapit",
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+    # Create a rolebinding role
+    class_uuid = create_class(
+        {
+            "user_key": "admin",
+            "name": "Administrator",
+            "facet_uuid": str(read_facet_uuid("role")),
+            "it_system_uuid": str(itsystem_uuid),
+            "validity": {
+                "from": class_start.isoformat(),
+                "to": class_end.isoformat() if class_end else None,
+            },
+        }
+    )
+    # Read the itsystem and check that we can see the role UUID
+    assert read_itsystem(itsystem_uuid) == {
+        "uuid": ANY,
+        "validities": [
+            {
+                "user_key": ANY,
+                "name": ANY,
+                "roles": [{"uuid": str(class_uuid), "validities": ANY}],
             }
         ],
     }
