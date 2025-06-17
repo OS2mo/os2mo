@@ -74,15 +74,15 @@ def read_itsystem(graphapi_post: GraphAPIPost) -> Callable[[UUID], dict[str, Any
     def inner(uuid: UUID) -> dict[str, Any]:
         query = """
             query ReadITSystem($uuid: UUID!) {
-                itsystems(filter: {uuids: [$uuid]}) {
+                itsystems(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                     objects {
                         uuid
-                        current {
+                        validities {
                             user_key
                             name
-                            roles {
+                            roles(filter: {from_date: null, to_date: null}) {
                                 uuid
-                                current {
+                                validities {
                                     user_key
                                     name
                                 }
@@ -130,11 +130,13 @@ def test_itsystem_roles(
     # Read the new itsystem along with its (non-existent) roles
     assert read_itsystem(itsystem_uuid) == {
         "uuid": str(itsystem_uuid),
-        "current": {
-            "user_key": itsystem_user_key,
-            "name": itsystem_name,
-            "roles": [],
-        },
+        "validities": [
+            {
+                "user_key": itsystem_user_key,
+                "name": itsystem_name,
+                "roles": [],
+            }
+        ],
     }
 
     # Create a rolebinding role
@@ -156,17 +158,21 @@ def test_itsystem_roles(
     # Read the itsystem again along with its now existing role
     assert read_itsystem(itsystem_uuid) == {
         "uuid": str(itsystem_uuid),
-        "current": {
-            "user_key": itsystem_user_key,
-            "name": itsystem_name,
-            "roles": [
-                {
-                    "uuid": str(class_uuid),
-                    "current": {
-                        "user_key": class_user_key,
-                        "name": class_name,
-                    },
-                }
-            ],
-        },
+        "validities": [
+            {
+                "user_key": itsystem_user_key,
+                "name": itsystem_name,
+                "roles": [
+                    {
+                        "uuid": str(class_uuid),
+                        "validities": [
+                            {
+                                "user_key": class_user_key,
+                                "name": class_name,
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
     }
