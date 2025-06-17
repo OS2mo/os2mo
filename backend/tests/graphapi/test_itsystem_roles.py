@@ -195,6 +195,19 @@ def test_itsystem_roles(
         (datetime(2970, 1, 1), datetime(3000, 1, 1)),
     ],
 )
+@pytest.mark.parametrize(
+    "itsystem_start,itsystem_end",
+    [
+        # Past
+        (datetime(1970, 1, 1), datetime(1980, 1, 1)),
+        # Current
+        (datetime(1970, 1, 1), None),
+        (datetime(1970, 1, 1), datetime(3000, 1, 1)),
+        # Future
+        (datetime(2970, 1, 1), None),
+        (datetime(2970, 1, 1), datetime(3000, 1, 1)),
+    ],
+)
 def test_itsystem_roles_validities(
     read_facet_uuid: Callable[[str], UUID],
     read_itsystem: Callable[[UUID], dict[str, Any]],
@@ -202,13 +215,18 @@ def test_itsystem_roles_validities(
     create_itsystem: Callable[[dict[str, Any]], UUID],
     class_start: datetime,
     class_end: datetime | None,
+    itsystem_start: datetime,
+    itsystem_end: datetime | None,
 ) -> None:
     """Test that we can read role UUIDs whatever the validity of roles."""
     itsystem_uuid = create_itsystem(
         {
             "user_key": "suila",
             "name": "Suila-tapit",
-            "validity": {"from": "2024-01-01"},
+            "validity": {
+                "from": itsystem_start.isoformat(),
+                "to": itsystem_end.isoformat() if itsystem_end else None,
+            },
         }
     )
     # Create a rolebinding role
