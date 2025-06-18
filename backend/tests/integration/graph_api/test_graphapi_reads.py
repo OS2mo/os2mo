@@ -73,7 +73,10 @@ def test_queries(data, field, graphapi_post: GraphAPIPost):
     """
     query = data.draw(
         hypothesis_graphql.queries(
-            str(get_schema(LATEST_VERSION)), fields=[field]
+            str(get_schema(LATEST_VERSION)),
+            fields=[field],
+            # postgresql doesn't support null bytes in strings
+            allow_x00=False,
         ).filter(
             lambda query: (
                 "from_date: null" not in query

@@ -167,6 +167,8 @@ async def test_graphql_rbac(
                 EventToken.serialize(EventToken(uuid=uuid4(), generation=uuid4()))
             ).map(nodes.String),
         },
+        # postgresql doesn't support null bytes in strings
+        allow_x00=False,
     )
 )
 async def test_mutators_require_rbac(
