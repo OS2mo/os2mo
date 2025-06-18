@@ -156,3 +156,41 @@ def update_manager(
         return UUID(response.data["manager_update"]["uuid"])
 
     return inner
+
+
+@pytest.fixture
+def create_itsystem(graphapi_post: GraphAPIPost) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        itsystem_create_mutation = """
+            mutation CreateITSystem($input: ITSystemCreateInput!) {
+                itsystem_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(itsystem_create_mutation, {"input": input})
+        assert response.errors is None
+        assert response.data
+        itsystem_uuid = UUID(response.data["itsystem_create"]["uuid"])
+        return itsystem_uuid
+
+    return inner
+
+
+@pytest.fixture
+def create_class(graphapi_post: GraphAPIPost) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        class_create_mutation = """
+            mutation CreateRole($input: ClassCreateInput!) {
+                class_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(class_create_mutation, {"input": input})
+        assert response.errors is None
+        assert response.data
+        class_uuid = UUID(response.data["class_create"]["uuid"])
+        return class_uuid
+
+    return inner
