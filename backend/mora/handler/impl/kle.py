@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from structlog import get_logger
 
+from mora import lora
 from mora import util
 
 from ... import mapping
@@ -47,7 +48,9 @@ class KLEReader(reading.OrgFunkReadingHandler):
         ]
 
         kle_number = await facet.request_bulked_get_one_class_full(
-            kle_number_uuid, only_primary_uuid=only_primary_uuid
+            kle_number_uuid,
+            only_primary_uuid=only_primary_uuid,
+            connector=lora.Connector(virkningfra="-infinity", virkningtil="infinity"),
         )
 
         org_unit = await orgunit.request_bulked_get_one_orgunit(
