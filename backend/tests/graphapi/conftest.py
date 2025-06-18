@@ -189,7 +189,9 @@ def role_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
 
 
 @pytest.fixture
-def create_itsystem(graphapi_post: GraphAPIPost) -> Callable[[dict[str, Any]], UUID]:
+def create_itsystem(
+    graphapi_post: GraphAPIPost, root_org: UUID
+) -> Callable[[dict[str, Any]], UUID]:
     def inner(input: dict[str, Any]) -> UUID:
         itsystem_create_mutation = """
             mutation CreateITSystem($input: ITSystemCreateInput!) {
@@ -208,7 +210,9 @@ def create_itsystem(graphapi_post: GraphAPIPost) -> Callable[[dict[str, Any]], U
 
 
 @pytest.fixture
-def create_class(graphapi_post: GraphAPIPost) -> Callable[[dict[str, Any]], UUID]:
+def create_class(
+    graphapi_post: GraphAPIPost, root_org: UUID
+) -> Callable[[dict[str, Any]], UUID]:
     def inner(input: dict[str, Any]) -> UUID:
         class_create_mutation = """
             mutation CreateRole($input: ClassCreateInput!) {

@@ -13,27 +13,6 @@ from ..conftest import GraphAPIPost
 
 
 @pytest.fixture
-def read_facet_uuid(graphapi_post: GraphAPIPost) -> Callable[[str], UUID]:
-    def inner(user_key: str) -> UUID:
-        facet_uuid_query = """
-            query ReadFacetUUID($user_key: String!) {
-                facets(filter: {user_keys: [$user_key]}) {
-                    objects {
-                        uuid
-                    }
-                }
-            }
-        """
-        response = graphapi_post(facet_uuid_query, {"user_key": user_key})
-        assert response.errors is None
-        assert response.data
-        facet_uuid = one(response.data["facets"]["objects"])["uuid"]
-        return facet_uuid
-
-    return inner
-
-
-@pytest.fixture
 def read_itsystem(graphapi_post: GraphAPIPost) -> Callable[[UUID], dict[str, Any]]:
     def inner(uuid: UUID) -> dict[str, Any]:
         query = """
@@ -66,17 +45,14 @@ def read_itsystem(graphapi_post: GraphAPIPost) -> Callable[[UUID], dict[str, Any
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 def test_itsystem_roles(
-    read_facet_uuid: Callable[[str], UUID],
+    role_facet: UUID,
     read_itsystem: Callable[[UUID], dict[str, Any]],
     create_class: Callable[[dict[str, Any]], UUID],
     create_itsystem: Callable[[dict[str, Any]], UUID],
 ) -> None:
     """Test that we can create and read itsystem roles."""
-    # Read the role facet UUID
-    role_facet_uuid = read_facet_uuid("role")
-
     # Create new itsystem
     itsystem_uuid = UUID("624e4f57-0a36-4751-9982-51ef37457ebc")
     itsystem_user_key = "suila"
@@ -112,7 +88,7 @@ def test_itsystem_roles(
             "uuid": str(class_uuid),
             "user_key": class_user_key,
             "name": class_name,
-            "facet_uuid": str(role_facet_uuid),
+            "facet_uuid": str(role_facet),
             "it_system_uuid": str(itsystem_uuid),
             "validity": {"from": "2024-01-01"},
         }
@@ -143,7 +119,7 @@ def test_itsystem_roles(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "class_start,class_end",
     [
@@ -171,7 +147,7 @@ def test_itsystem_roles(
     ],
 )
 def test_itsystem_roles_validities(
-    read_facet_uuid: Callable[[str], UUID],
+    role_facet: UUID,
     read_itsystem: Callable[[UUID], dict[str, Any]],
     create_class: Callable[[dict[str, Any]], UUID],
     create_itsystem: Callable[[dict[str, Any]], UUID],
@@ -196,7 +172,7 @@ def test_itsystem_roles_validities(
         {
             "user_key": "admin",
             "name": "Administrator",
-            "facet_uuid": str(read_facet_uuid("role")),
+            "facet_uuid": str(role_facet),
             "it_system_uuid": str(itsystem_uuid),
             "validity": {
                 "from": class_start.isoformat(),
