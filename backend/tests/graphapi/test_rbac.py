@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock
 from uuid import UUID
 from uuid import uuid4
 
+import hypothesis_graphql
 import pytest
 from graphql import NameNode
 from graphql import VariableNode
@@ -16,7 +17,6 @@ from hypothesis import given
 from hypothesis import settings
 from hypothesis import strategies as st
 from hypothesis_graphql import nodes
-from hypothesis_graphql import strategies as gql_st
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.graphapi.gmodels.mo import OrganisationRead
@@ -152,7 +152,7 @@ async def test_graphql_rbac(
     ],
 )
 @given(
-    mutation=gql_st.mutations(
+    mutation=hypothesis_graphql.mutations(
         str(get_schema(LATEST_VERSION)),
         custom_scalars={
             "UUID": st.uuids().map(str).map(nodes.String),
