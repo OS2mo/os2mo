@@ -70,8 +70,13 @@ def create_org_unit(
 def create_person(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
-) -> Callable[[], UUID]:
-    def inner() -> UUID:
+) -> Callable[[dict[str, Any] | None], UUID]:
+    def inner(input: dict[str, Any] | None = None) -> UUID:
+        input = input or {
+            "given_name": str(uuid4()),
+            "surname": str(uuid4()),
+        }
+
         mutate_query = """
             mutation CreatePerson($input: EmployeeCreateInput!) {
                 employee_create(input: $input) {
@@ -79,15 +84,7 @@ def create_person(
                 }
             }
         """
-        response = graphapi_post(
-            query=mutate_query,
-            variables={
-                "input": {
-                    "given_name": str(uuid4()),
-                    "surname": str(uuid4()),
-                }
-            },
-        )
+        response = graphapi_post(query=mutate_query, variables={"input": input})
         assert response.errors is None
         assert response.data
         return UUID(response.data["employee_create"]["uuid"])
