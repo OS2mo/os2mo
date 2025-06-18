@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
+from typing import Any
 from uuid import UUID
 from uuid import uuid4
 
@@ -10,20 +11,27 @@ from ..conftest import GraphAPIPost
 
 
 @pytest.fixture
-def root_org(graphapi_post: GraphAPIPost) -> UUID:
-    mutate_query = """
-        mutation CreateOrg($input: OrganisationCreate!) {
-            org_create(input: $input) {
-                uuid
+def create_org(graphapi_post: GraphAPIPost) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        org_create_mutation = """
+            mutation CreateOrganisation($input: OrganisationCreate!) {
+                org_create(input: $input) {
+                    uuid
+                }
             }
-        }
-    """
-    response = graphapi_post(
-        query=mutate_query, variables={"input": {"municipality_code": None}}
-    )
-    assert response.errors is None
-    assert response.data
-    return UUID(response.data["org_create"]["uuid"])
+        """
+        response = graphapi_post(org_create_mutation, {"input": input})
+        assert response.errors is None
+        assert response.data
+        org_uuid = response.data["org_create"]["uuid"]
+        return org_uuid
+
+    return inner
+
+
+@pytest.fixture
+def root_org(create_org: Callable[[dict[str, Any]], UUID]) -> UUID:
+    return create_org({"municipality_code": None})
 
 
 @pytest.fixture
