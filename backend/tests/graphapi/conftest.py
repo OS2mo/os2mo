@@ -159,6 +159,36 @@ def update_manager(
 
 
 @pytest.fixture
+def create_facet(
+    graphapi_post: GraphAPIPost, root_org: UUID
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        facet_create_mutation = """
+            mutation CreateFacet($input: FacetCreateInput!) {
+                facet_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(facet_create_mutation, {"input": input})
+        assert response.errors is None
+        assert response.data
+        return response.data["facet_create"]["uuid"]
+
+    return inner
+
+
+@pytest.fixture
+def role_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
+    return create_facet(
+        {
+            "user_key": "role",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
 def create_itsystem(graphapi_post: GraphAPIPost) -> Callable[[dict[str, Any]], UUID]:
     def inner(input: dict[str, Any]) -> UUID:
         itsystem_create_mutation = """
