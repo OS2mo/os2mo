@@ -1264,23 +1264,23 @@ zoneinfo = ["tzdata (>=2025.2) ; sys_platform == \"win32\" or sys_platform == \"
 
 [[package]]
 name = "hypothesis-graphql"
-version = "0.10.0"
+version = "0.11.1"
 description = "Hypothesis strategies for GraphQL queries"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 groups = ["dev"]
 files = [
-    {file = "hypothesis_graphql-0.10.0-py3-none-any.whl", hash = "sha256:f65895ddc72f9414427268e2b3cc9ffa79aac55e962d69f37be716fa710b02c6"},
-    {file = "hypothesis_graphql-0.10.0.tar.gz", hash = "sha256:468d45f7ab32c2f4121799b2aa5892bd7cd9c8231ec2059dd6b34ed4b976698c"},
+    {file = "hypothesis_graphql-0.11.1-py3-none-any.whl", hash = "sha256:a6968f703bcdc31fbe1b26be69185aa2c824eb3b478057a66aa85967c81cadca"},
+    {file = "hypothesis_graphql-0.11.1.tar.gz", hash = "sha256:bd49ab6804a3f488ecab2e39c20dba6dfc2101525c6742f5831cfa9eff95285a"},
 ]
 
 [package.dependencies]
 graphql-core = ">=3.1.0,<3.3.0"
-hypothesis = ">=5.8.0,<7.0"
+hypothesis = ">=6.84.3,<7.0"
 
 [package.extras]
 cov = ["coverage-enable-subprocess", "coverage[toml] (>=7)"]
-dev = ["hypothesis-graphql[cov,tests]"]
+dev = ["coverage (>=7)", "coverage-enable-subprocess", "coverage[toml] (>=7)", "pytest (>=6.2.0,<8)", "pytest-xdist (>=2.5,<3.0)"]
 tests = ["coverage (>=7)", "pytest (>=6.2.0,<8)", "pytest-xdist (>=2.5,<3.0)"]
 
 [[package]]
@@ -3279,4 +3279,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "49e7788ea1ba2015c21bf79823793a0d5df48d6ad6ca9aa954a4744f4e54aeda"
+content-hash = "6123f6bcf7d546b373e46bfbc395907bd26ddecf114e9e0b56c2e836e3d240c1"
