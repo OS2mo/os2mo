@@ -81,9 +81,8 @@ async def get_groups(
                         "object_class": "groupOfNames",
                         "template": """
                     {% set dn = "cn=" + uuid|string + ",ou=os2mo,o=magenta,dc=magenta,dc=dk" %}
-                    {% set itusers = get_ituser_uuids({"itsystem": {"uuids": [uuid]}}) %}
-                    {% set persons = itusers|map('ituser_uuid_to_person_uuid')|list %}
-                    {% set dns = persons|map('get_person_dn')|list %}
+                    {% set person_uuids = itsystem_uuid_to_person_uuids(uuid) %}
+                    {% set dns = person_uuids|map('get_person_dn')|list %}
 
                     {% set exists = dn|dn_exists %}
 

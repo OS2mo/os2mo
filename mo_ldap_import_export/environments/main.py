@@ -654,14 +654,22 @@ async def dn_exists(ldapapi: LDAPAPI, dn: DN) -> bool:
     return False
 
 
-async def ituser_uuid_to_person_uuid(dataloader: DataLoader, uuid: UUID) -> UUID | None:
-    ituser = await dataloader.moapi.load_mo_it_user(uuid)
-    return None if ituser is None else ituser.person
+async def itsystem_uuid_to_person_uuids(
+    graphql_client: GraphQLClient, uuid: UUID
+) -> set[UUID]:
+    result = await graphql_client.read_filtered_itusers(
+        filter=ITUserFilter(itsystem=ITSystemFilter(uuids=[uuid]))
+    )
+    return {
+        validity.employee_uuid
+        for obj in result.objects
+        for validity in obj.validities
+        if validity.employee_uuid is not None
+    }
 
 
 def construct_filters_dict(dataloader: DataLoader) -> dict[str, Any]:
     return {
-        "ituser_uuid_to_person_uuid": partial(ituser_uuid_to_person_uuid, dataloader),
         "get_person_dn": partial(get_person_dn, dataloader),
         "dn_exists": partial(dn_exists, dataloader.ldapapi),
     }
@@ -718,6 +726,9 @@ def construct_globals_dict(
         "get_engagement_type_uuid": partial(get_engagement_type_uuid, graphql_client),
         "get_primary_type_uuid": partial(get_primary_type_uuid, graphql_client),
         "get_ldap_object": partial(get_ldap_object, dataloader.ldapapi.connection),
+        "itsystem_uuid_to_person_uuids": partial(
+            itsystem_uuid_to_person_uuids, graphql_client
+        ),
     }
 
 
