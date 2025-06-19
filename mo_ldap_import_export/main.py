@@ -35,6 +35,7 @@ from ldap3.core.exceptions import LDAPNoSuchObjectResult
 from ldap3.core.exceptions import LDAPObjectClassViolationResult
 from ldap3.core.exceptions import LDAPUnwillingToPerformResult
 from pydantic import BaseModel
+from pydantic import Extra
 from pydantic import ValidationError
 from pydantic import parse_raw_as
 from pydantic import validator
@@ -433,7 +434,7 @@ async def lifespan(
         yield
 
 
-class JinjaOutput(BaseModel):
+class JinjaOutput(BaseModel, extra=Extra.forbid):
     dn: str
     create: bool
     attributes: dict[str, list[Any]]

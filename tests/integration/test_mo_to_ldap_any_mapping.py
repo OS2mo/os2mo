@@ -160,19 +160,18 @@ async def test_endpoint_setup(
         ),
         pytest.param(
             "Unable to parse Jinja template output as model",
-            marks=[
-                pytest.mark.envvar(
-                    {
-                        "CONVERSION_MAPPING": json.dumps(
-                            {
-                                "mo_to_ldap": [
-                                    {
-                                        "identifier": "known",
-                                        "routing_key": "person",
-                                        "object_class": "inetOrgPerson",
-                                        # This does not fulfills the JinjaOutput model
-                                        # 'one_field_too_many' is an unexpected field
-                                        "template": """
+            marks=pytest.mark.envvar(
+                {
+                    "CONVERSION_MAPPING": json.dumps(
+                        {
+                            "mo_to_ldap": [
+                                {
+                                    "identifier": "known",
+                                    "routing_key": "person",
+                                    "object_class": "inetOrgPerson",
+                                    # This does not fulfills the JinjaOutput model
+                                    # 'one_field_too_many' is an unexpected field
+                                    "template": """
                                     {{
                                         {
                                             "dn": "CN=foo,o=magenta,dc=magenta,dc=dk",
@@ -182,14 +181,12 @@ async def test_endpoint_setup(
                                         }|tojson
                                     }}
                                     """,
-                                    }
-                                ]
-                            }
-                        )
-                    }
-                ),
-                pytest.mark.xfail(reason="Extra fields are currently permitted"),
-            ],
+                                }
+                            ]
+                        }
+                    )
+                }
+            ),
         ),
         pytest.param(
             "Unable to find Jinja referenced dn",
