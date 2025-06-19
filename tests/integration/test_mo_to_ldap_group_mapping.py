@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import json
-from collections import Counter
 from collections.abc import Awaitable
 from collections.abc import Callable
 from datetime import timedelta
@@ -28,13 +27,7 @@ from mo_ldap_import_export.ldap import LDAPConnection
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.utils import combine_dn_strings
 from mo_ldap_import_export.utils import mo_today
-
-
-class AnyOrder(list):
-    def __eq__(self, other):
-        if isinstance(other, list):
-            return Counter(self) == Counter(other)
-        raise NotImplementedError("Only support lists")
+from tests.integration.conftest import AnyOrder
 
 
 @pytest.fixture

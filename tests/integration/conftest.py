@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections import Counter
 from collections.abc import Awaitable
 from collections.abc import Callable
 from functools import partial
@@ -32,6 +33,13 @@ from mo_ldap_import_export.utils import combine_dn_strings
 
 DN2UUID: TypeAlias = Callable[[DN], Awaitable[LDAPUUID]]
 DNList2UUID: TypeAlias = Callable[[list[str]], Awaitable[LDAPUUID]]
+
+
+class AnyOrder(list):
+    def __eq__(self, other):
+        if isinstance(other, list):
+            return Counter(self) == Counter(other)
+        raise NotImplementedError("Only support lists")
 
 
 @pytest.fixture
