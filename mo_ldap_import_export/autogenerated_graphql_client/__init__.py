@@ -158,6 +158,7 @@ from .input_types import HealthFilter
 from .input_types import ITAssociationCreateInput
 from .input_types import ITAssociationTerminateInput
 from .input_types import ITAssociationUpdateInput
+from .input_types import ItSystemboundclassfilter
 from .input_types import ITSystemCreateInput
 from .input_types import ITSystemFilter
 from .input_types import ITSystemRegistrationFilter
@@ -571,6 +572,7 @@ __all__ = [
     "ITUserRegistrationFilter",
     "ITUserTerminateInput",
     "ITUserUpdateInput",
+    "ItSystemboundclassfilter",
     "ItsystemCreate",
     "ItsystemCreateItsystemCreate",
     "ItsystemTerminate",

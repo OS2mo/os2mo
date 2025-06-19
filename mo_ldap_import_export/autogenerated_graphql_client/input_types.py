@@ -650,6 +650,23 @@ class ITUserUpdateInput(BaseModel):
     note: str | None = None
 
 
+class ItSystemboundclassfilter(BaseModel):
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None | UnsetType = UNSET
+    to_date: datetime | None | UnsetType = UNSET
+    registration: Optional["ClassRegistrationFilter"] = None
+    name: list[str] | None = None
+    facet: Optional["FacetFilter"] = None
+    facets: list[UUID] | None = None
+    facet_user_keys: list[str] | None = None
+    parent: Optional["ClassFilter"] = None
+    parents: list[UUID] | None = None
+    parent_user_keys: list[str] | None = None
+    owner: Optional["ClassOwnerFilter"] = None
+    scope: list[str] | None = None
+
+
 class ItuserBoundAddressFilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
     org_units: list[UUID] | None = None
@@ -676,6 +693,7 @@ class ItuserBoundRoleBindingFilter(BaseModel):
     from_date: datetime | None | UnsetType = UNSET
     to_date: datetime | None | UnsetType = UNSET
     registration: Optional["RoleRegistrationFilter"] = None
+    role: Optional["ClassFilter"] = None
 
 
 class KLECreateInput(BaseModel):
@@ -1155,6 +1173,7 @@ class RoleBindingFilter(BaseModel):
     org_units: list[UUID] | None = None
     registration: Optional["RoleRegistrationFilter"] = None
     ituser: Optional["ITUserFilter"] = None
+    role: Optional["ClassFilter"] = None
 
 
 class RoleBindingTerminateInput(BaseModel):
@@ -1345,6 +1364,7 @@ ITUserFilter.update_forward_refs()
 ITUserRegistrationFilter.update_forward_refs()
 ITUserTerminateInput.update_forward_refs()
 ITUserUpdateInput.update_forward_refs()
+ItSystemboundclassfilter.update_forward_refs()
 ItuserBoundAddressFilter.update_forward_refs()
 ItuserBoundRoleBindingFilter.update_forward_refs()
 KLECreateInput.update_forward_refs()
