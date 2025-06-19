@@ -554,6 +554,8 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
                 )
                 for mapping in settings.conversion_mapping.mo_to_ldap
             ]
+            if settings.listen_to_changes_in_mo
+            else []
         ),
     )
     fastramqpi.add_context(settings=settings)

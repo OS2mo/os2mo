@@ -421,10 +421,7 @@ owner_uuid = UUID("d1fec000-baad-c0de-0000-004449504558")
         ),
         pytest.param(
             {},
-            marks=[
-                pytest.mark.envvar({"LISTEN_TO_CHANGES_IN_MO": "False"}),
-                pytest.mark.xfail(reason="Listeners are currently always installed"),
-            ],
+            marks=pytest.mark.envvar({"LISTEN_TO_CHANGES_IN_MO": "False"}),
         ),
     ],
 )
