@@ -191,6 +191,12 @@ mutation __testing__manager_create($input: ManagerCreateInput!) {
   }
 }
 
+mutation __testing__rolebinding_create($input: RoleBindingCreateInput!) {
+  rolebinding_create(input: $input) {
+    uuid
+  }
+}
+
 # Normal queries
 
 mutation address_create($input: AddressCreateInput!) {
