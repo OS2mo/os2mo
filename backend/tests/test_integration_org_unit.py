@@ -2156,3 +2156,83 @@ async def test_edit_org_unit_60582(graphapi_post):
     # expect this to fail, since child can't exceed parents validity range
     assert response.errors is not None
     assert response.errors[0]["message"] == "ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE"
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_future_children(graphapi_post):
+    CREATE_ORG_UNIT = """
+    mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
+      org_unit_create(input: $input) {
+        uuid
+      }
+    }
+    """
+
+    # Create future parent
+    response = graphapi_post(
+        CREATE_ORG_UNIT,
+        {
+            "input": {
+                "validity": {"from": "2100-01-01"},
+                "name": "parent",
+                "org_unit_type": "32547559-cfc1-4d97-94c6-70b192eff825",
+            }
+        },
+    )
+    assert response.errors is None
+    parent_uuid = response.data["org_unit_create"]["uuid"]
+
+    # Create future child
+    response = graphapi_post(
+        CREATE_ORG_UNIT,
+        {
+            "input": {
+                "validity": {"from": "2100-01-01"},
+                "name": "child",
+                "parent": parent_uuid,
+                "org_unit_type": "32547559-cfc1-4d97-94c6-70b192eff825",
+            }
+        },
+    )
+    assert response.errors is None
+    child_uuid = response.data["org_unit_create"]["uuid"]
+
+    # Read parent's children
+    response = graphapi_post(
+        """
+        query OrgUnitChildren($uuid: [UUID!], $fromDate: DateTime) {
+          org_units(filter: { uuids: $uuid, from_date: $fromDate }) {
+            objects {
+              validities {
+                child_count(filter: { from_date: $fromDate })
+                has_children(filter: { from_date: $fromDate })
+                children(filter: { from_date: $fromDate }) {
+                  uuid
+                }
+              }
+            }
+          }
+        }
+        """,
+        {
+            "uuid": parent_uuid,
+            "fromDate": "2100-01-01",
+        },
+    )
+    assert response.errors is None
+    assert response.data == {
+        "org_units": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "child_count": 1,
+                            "children": [{"uuid": child_uuid}],
+                            "has_children": True,
+                        }
+                    ]
+                }
+            ]
+        }
+    }

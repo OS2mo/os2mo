@@ -1156,7 +1156,7 @@ async def test_has_children(
     """Test has_children works."""
     query = """
         query GetChildren(
-          $children_filter: ParentsBoundOrganisationUnitFilter
+          $children_filter: ParentBoundOrganisationUnitFilter
         ) {
           org_units(filter: { from_date: null, to_date: null }) {
             objects {
