@@ -1358,6 +1358,10 @@ async def rolebinding_resolver(
         kwargs["tilknyttedefunktioner"] = lora_filter(
             await filter2uuids_func(it_user_resolver, info, filter.ituser)
         )
+    if filter.role is not None:
+        kwargs["organisatoriskfunktionstype"] = lora_filter(
+            await filter2uuids_func(class_resolver, info, filter.role)
+        )
 
     return await generic_resolver(
         RoleBindingRead,

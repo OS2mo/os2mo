@@ -80,6 +80,8 @@ def test_queries(data, field, graphapi_post: GraphAPIPost):
                 and "query" not in query
                 and "registration" not in query
                 and "start: null" not in query
+                # The inherit flag requires an organizational unit filter
+                and "inherit: true" not in query
             )
         )
     )

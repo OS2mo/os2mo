@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
+from typing import Any
 from uuid import UUID
 from uuid import uuid4
 
@@ -10,20 +11,27 @@ from ..conftest import GraphAPIPost
 
 
 @pytest.fixture
-def root_org(graphapi_post: GraphAPIPost) -> UUID:
-    mutate_query = """
-        mutation CreateOrg($input: OrganisationCreate!) {
-            org_create(input: $input) {
-                uuid
+def create_org(graphapi_post: GraphAPIPost) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        org_create_mutation = """
+            mutation CreateOrganisation($input: OrganisationCreate!) {
+                org_create(input: $input) {
+                    uuid
+                }
             }
-        }
-    """
-    response = graphapi_post(
-        query=mutate_query, variables={"input": {"municipality_code": None}}
-    )
-    assert response.errors is None
-    assert response.data
-    return UUID(response.data["org_create"]["uuid"])
+        """
+        response = graphapi_post(org_create_mutation, {"input": input})
+        assert response.errors is None
+        assert response.data
+        org_uuid = response.data["org_create"]["uuid"]
+        return org_uuid
+
+    return inner
+
+
+@pytest.fixture
+def root_org(create_org: Callable[[dict[str, Any]], UUID]) -> UUID:
+    return create_org({"municipality_code": None})
 
 
 @pytest.fixture
@@ -62,8 +70,13 @@ def create_org_unit(
 def create_person(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
-) -> Callable[[], UUID]:
-    def inner() -> UUID:
+) -> Callable[[dict[str, Any] | None], UUID]:
+    def inner(input: dict[str, Any] | None = None) -> UUID:
+        input = input or {
+            "given_name": str(uuid4()),
+            "surname": str(uuid4()),
+        }
+
         mutate_query = """
             mutation CreatePerson($input: EmployeeCreateInput!) {
                 employee_create(input: $input) {
@@ -71,15 +84,7 @@ def create_person(
                 }
             }
         """
-        response = graphapi_post(
-            query=mutate_query,
-            variables={
-                "input": {
-                    "given_name": str(uuid4()),
-                    "surname": str(uuid4()),
-                }
-            },
-        )
+        response = graphapi_post(query=mutate_query, variables={"input": input})
         assert response.errors is None
         assert response.data
         return UUID(response.data["employee_create"]["uuid"])
@@ -146,5 +151,77 @@ def update_manager(
         assert response.errors is None
         assert response.data
         return UUID(response.data["manager_update"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
+def create_facet(
+    graphapi_post: GraphAPIPost, root_org: UUID
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        facet_create_mutation = """
+            mutation CreateFacet($input: FacetCreateInput!) {
+                facet_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(facet_create_mutation, {"input": input})
+        assert response.errors is None
+        assert response.data
+        return response.data["facet_create"]["uuid"]
+
+    return inner
+
+
+@pytest.fixture
+def role_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
+    return create_facet(
+        {
+            "user_key": "role",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def create_itsystem(
+    graphapi_post: GraphAPIPost, root_org: UUID
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        itsystem_create_mutation = """
+            mutation CreateITSystem($input: ITSystemCreateInput!) {
+                itsystem_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(itsystem_create_mutation, {"input": input})
+        assert response.errors is None
+        assert response.data
+        itsystem_uuid = UUID(response.data["itsystem_create"]["uuid"])
+        return itsystem_uuid
+
+    return inner
+
+
+@pytest.fixture
+def create_class(
+    graphapi_post: GraphAPIPost, root_org: UUID
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        class_create_mutation = """
+            mutation CreateRole($input: ClassCreateInput!) {
+                class_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(class_create_mutation, {"input": input})
+        assert response.errors is None
+        assert response.data
+        class_uuid = UUID(response.data["class_create"]["uuid"])
+        return class_uuid
 
     return inner
