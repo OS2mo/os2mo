@@ -23,6 +23,8 @@ from ._testing__manager_create import TestingManagerCreate
 from ._testing__manager_create import TestingManagerCreateManagerCreate
 from ._testing__org_unit_read import TestingOrgUnitRead
 from ._testing__org_unit_read import TestingOrgUnitReadOrgUnits
+from ._testing__rolebinding_create import TestingRolebindingCreate
+from ._testing__rolebinding_create import TestingRolebindingCreateRolebindingCreate
 from .address_create import AddressCreate
 from .address_create import AddressCreateAddressCreate
 from .address_terminate import AddressTerminate
@@ -76,6 +78,8 @@ from .input_types import OrganisationUnitFilter
 from .input_types import OrganisationUnitTerminateInput
 from .input_types import OrganisationUnitUpdateInput
 from .input_types import OrgUnitsboundmanagerfilter
+from .input_types import RoleBindingCreateInput
+from .input_types import RoleBindingFilter
 from .itsystem_create import ItsystemCreate
 from .itsystem_create import ItsystemCreateItsystemCreate
 from .itsystem_terminate import ItsystemTerminate
@@ -184,6 +188,8 @@ from .read_org_units import ReadOrgUnits
 from .read_org_units import ReadOrgUnitsOrgUnits
 from .read_person_uuid import ReadPersonUuid
 from .read_person_uuid import ReadPersonUuidEmployees
+from .read_rolebindings import ReadRolebindings
+from .read_rolebindings import ReadRolebindingsRolebindings
 from .set_job_title import SetJobTitle
 from .set_job_title import SetJobTitleEngagementUpdate
 from .user_create import UserCreate
@@ -492,6 +498,23 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingManagerCreate.parse_obj(data).manager_create
+
+    async def _testing__rolebinding_create(
+        self, input: RoleBindingCreateInput
+    ) -> TestingRolebindingCreateRolebindingCreate:
+        query = gql(
+            """
+            mutation __testing__rolebinding_create($input: RoleBindingCreateInput!) {
+              rolebinding_create(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingRolebindingCreate.parse_obj(data).rolebinding_create
 
     async def address_create(
         self, input: AddressCreateInput
@@ -1839,3 +1862,28 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEmployeeRegistrations.parse_obj(data).employees
+
+    async def read_rolebindings(
+        self, filter: RoleBindingFilter | None | UnsetType = UNSET
+    ) -> ReadRolebindingsRolebindings:
+        query = gql(
+            """
+            query read_rolebindings($filter: RoleBindingFilter) {
+              rolebindings(filter: $filter) {
+                objects {
+                  current {
+                    ituser {
+                      person {
+                        uuid
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadRolebindings.parse_obj(data).rolebindings

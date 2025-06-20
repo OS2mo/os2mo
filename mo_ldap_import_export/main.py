@@ -35,6 +35,7 @@ from ldap3.core.exceptions import LDAPNoSuchObjectResult
 from ldap3.core.exceptions import LDAPObjectClassViolationResult
 from ldap3.core.exceptions import LDAPUnwillingToPerformResult
 from pydantic import BaseModel
+from pydantic import Extra
 from pydantic import ValidationError
 from pydantic import parse_raw_as
 from pydantic import validator
@@ -433,7 +434,7 @@ async def lifespan(
         yield
 
 
-class JinjaOutput(BaseModel):
+class JinjaOutput(BaseModel, extra=Extra.forbid):
     dn: str
     create: bool
     attributes: dict[str, list[Any]]
@@ -479,11 +480,11 @@ def mo_to_ldap_handler(
             parsed = parse_raw_as(JinjaOutput, result)
         except json.JSONDecodeError as exc:
             message = "Unable to parse Jinja template output as JSON"
-            logger.exception(message)
+            logger.exception(message, result=result)
             raise HTTPException(status_code=500, detail=message) from exc
         except ValidationError as exc:
             message = "Unable to parse Jinja template output as model"
-            logger.exception(message)
+            logger.exception(message, result=result)
             raise HTTPException(status_code=500, detail=message) from exc
 
         logger.debug("Parsed jinja template", parsed=parsed)
@@ -553,6 +554,8 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
                 )
                 for mapping in settings.conversion_mapping.mo_to_ldap
             ]
+            if settings.listen_to_changes_in_mo
+            else []
         ),
     )
     fastramqpi.add_context(settings=settings)

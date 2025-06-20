@@ -191,6 +191,12 @@ mutation __testing__manager_create($input: ManagerCreateInput!) {
   }
 }
 
+mutation __testing__rolebinding_create($input: RoleBindingCreateInput!) {
+  rolebinding_create(input: $input) {
+    uuid
+  }
+}
+
 # Normal queries
 
 mutation address_create($input: AddressCreateInput!) {
@@ -889,6 +895,20 @@ query read_employee_registrations($employee_uuid: UUID!) {
     objects {
       registrations {
         uuid
+      }
+    }
+  }
+}
+
+query read_rolebindings($filter: RoleBindingFilter) {
+  rolebindings(filter: $filter) {
+    objects {
+      current {
+        ituser {
+          person {
+            uuid
+          }
+        }
       }
     }
   }

@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import json
+from typing import Any
 from unittest.mock import ANY
 from uuid import UUID
 from uuid import uuid4
@@ -151,6 +152,36 @@ async def test_endpoint_setup(
                                     }|tojson
                                 }}
                                 """,
+                                }
+                            ]
+                        }
+                    )
+                }
+            ),
+        ),
+        pytest.param(
+            "Unable to parse Jinja template output as model",
+            marks=pytest.mark.envvar(
+                {
+                    "CONVERSION_MAPPING": json.dumps(
+                        {
+                            "mo_to_ldap": [
+                                {
+                                    "identifier": "known",
+                                    "routing_key": "person",
+                                    "object_class": "inetOrgPerson",
+                                    # This does not fulfills the JinjaOutput model
+                                    # 'one_field_too_many' is an unexpected field
+                                    "template": """
+                                    {{
+                                        {
+                                            "dn": "CN=foo,o=magenta,dc=magenta,dc=dk",
+                                            "create": true,
+                                            "attributes": {"sn": "Lathe"},
+                                            "one_field_too_many": "true"
+                                        }|tojson
+                                    }}
+                                    """,
                                 }
                             ]
                         }
@@ -341,10 +372,12 @@ async def test_endpoint_handler(test_client: AsyncClient, ldap_api: LDAPAPI) -> 
     assert obj.objectClass == ["inetOrgPerson"]
 
 
+owner_uuid = UUID("d1fec000-baad-c0de-0000-004449504558")
+
+
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
-        "LISTEN_TO_CHANGES_IN_MO": "False",
         "LISTEN_TO_CHANGES_IN_LDAP": "False",
         "CONVERSION_MAPPING": json.dumps(
             {
@@ -366,10 +399,36 @@ async def test_endpoint_handler(test_client: AsyncClient, ldap_api: LDAPAPI) -> 
         ),
     }
 )
+@pytest.mark.parametrize(
+    "expected",
+    [
+        pytest.param(
+            {
+                "id1": {
+                    "user_key": "id1",
+                    "routing_key": "person",
+                    "owner": owner_uuid,
+                    "uuid": ANY,
+                },
+                "id2": {
+                    "user_key": "id2",
+                    "routing_key": "itsystem",
+                    "owner": owner_uuid,
+                    "uuid": ANY,
+                },
+            },
+            marks=pytest.mark.envvar({"LISTEN_TO_CHANGES_IN_MO": "True"}),
+        ),
+        pytest.param(
+            {},
+            marks=pytest.mark.envvar({"LISTEN_TO_CHANGES_IN_MO": "False"}),
+        ),
+    ],
+)
 @pytest.mark.usefixtures("test_client")
-async def test_listeners(graphql_client: GraphQLClient) -> None:
-    owner_uuid = UUID("d1fec000-baad-c0de-0000-004449504558")
-
+async def test_listeners(
+    graphql_client: GraphQLClient, expected: dict[str, Any]
+) -> None:
     result = await graphql_client._testing__event_namespaces()
     namespace = one(result.objects)
     assert namespace.name == "mo"
@@ -379,18 +438,4 @@ async def test_listeners(graphql_client: GraphQLClient) -> None:
     listener_map = {
         listener.user_key: listener.dict() for listener in namespace.listeners
     }
-    assert len(listener_map) == 2
-    assert listener_map == {
-        "id1": {
-            "user_key": "id1",
-            "routing_key": "person",
-            "owner": owner_uuid,
-            "uuid": ANY,
-        },
-        "id2": {
-            "user_key": "id2",
-            "routing_key": "itsystem",
-            "owner": owner_uuid,
-            "uuid": ANY,
-        },
-    }
+    assert listener_map == expected

@@ -2235,6 +2235,17 @@ input ITAssociationUpdateInput {
 
 """Systems that IT users are connected to"""
 type ITSystem {
+  "Rolebinding roles related to the IT-system.\n\nExamples of user-keys:\n* `\"AD Read\"`\n* `\"AD Write\"`\n* `\"SAP Admin\"`\n"
+  roles(
+    filter: ItSystemboundclassfilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): [ClassResponse!]!
+
   "The object type.\n\nAlways contains the string `itsystem`.\n"
   type: String! @deprecated(reason: "Unintentionally exposed implementation detail.\nProvides no value whatsoever.\n")
 
@@ -2638,6 +2649,23 @@ input ITUserUpdateInput {
   note: String = null
 }
 
+input ItSystemboundclassfilter {
+  uuids: [UUID!] = null
+  user_keys: [String!] = null
+  from_date: DateTime
+  to_date: DateTime
+  registration: ClassRegistrationFilter = null
+  name: [String!] = null
+  facet: FacetFilter = null
+  facets: [UUID!] = null
+  facet_user_keys: [String!] = null
+  parent: ClassFilter = null
+  parents: [UUID!] = null
+  parent_user_keys: [String!] = null
+  owner: ClassOwnerFilter = null
+  scope: [String!] = null
+}
+
 input ItuserBoundAddressFilter {
   org_unit: OrganisationUnitFilter = null
   org_units: [UUID!] = null
@@ -2664,6 +2692,7 @@ input ItuserBoundRoleBindingFilter {
   from_date: DateTime
   to_date: DateTime
   registration: RoleRegistrationFilter = null
+  role: ClassFilter = null
 }
 
 "KLE responsibility mapping.\n\nKLE stands for \"Kommunernes Landsforenings Emnesystematik\" which is a municipality taxonomy for mapping out municipality tasks.\n\nIn OS2mo KLE responsibilities can be mapped to organisation units to signify that a given organisational unit operates within certain municipality tasks.\nAdding KLE responsibilities to organisational units can help out with regards to GDPR by identifying which organisational units operate with sensitive tasks.\n\nThe KLE numbers themselves are dot seperated structured numbers alike this:\n* `\"00.75.00\"`: General data exchanges\n* `\"21.02.05\"`: Library study cafes\n* `\"32.15.08\"`: Alimony\n\nThe first number specifies the main-group, such as:\n* `\"00\"`: Municipality operations (Kommunens styrelse)\n* `\"21\"`: Libraries\n* `\"31\"`: Monetary benefits\n\nThe second number specifies the group, such as (for libraries):\n* `\"02\"`: On-site usage\n* `\"05\"`: AV Materials\n* `\"20\"`: Online services\n\nThe third and final number specifies the topic, such as (for library on-site usage):\n* `\"00\"`: General usage\n* `\"05\"`: Study cafes\n* `\"10\"`: Study centers\n\nSome KLE ranges are pre-reserved by The National Association of Municipalities (Kommunernes Landsforenings), however outside of these pre-reserved ranges municipalies are allowed to add their own local numbers.\nSpecifically no main-groups can be added, only groups and topics, both above 79.\n\nFor more details see: https://www.kle-online.dk\n"
@@ -5146,6 +5175,9 @@ input RoleBindingFilter {
 
   "ITUser filter limiting which entries are returned.\n"
   ituser: ITUserFilter = null
+
+  "Role filter limiting which entries are returned.\n"
+  role: ClassFilter = null
 }
 
 "Top-level container for (bi)-temporal and actual state data access.\n\nContains a UUID uniquely denoting the bitemporal object.\n\nContains three different object temporality axis:\n\n| entrypoint      | temporal axis | validity time | assertion time |\n|-----------------|---------------|---------------|----------------|\n| `current`       | actual state  | current       | current        |\n| `objects`       | temporal      | varying       | current        |\n| `registrations` | bitemporal    | varying       | varying        |\n\nThe argument for having three different entrypoints into the data is limiting complexity according to use-case.\n\nThat is, if a certain integration or UI only needs, say, actual state data, the complexities of the bitemporal data modelling is unwanted complexity, and as such, better left out.\n"

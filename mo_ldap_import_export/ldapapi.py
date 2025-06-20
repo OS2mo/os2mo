@@ -237,7 +237,12 @@ class LDAPAPI:
             if key.casefold() not in dn_attributes
         }
 
-        logger.info("Adding user to LDAP", dn=dn, attributes=attributes)
+        logger.info(
+            "Adding entity to LDAP",
+            dn=dn,
+            attributes=attributes,
+            object_class=object_class,
+        )
         _, result = await self.ldap_connection.ldap_add(
             dn,
             object_class,
