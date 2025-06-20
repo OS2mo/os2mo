@@ -93,6 +93,11 @@ def create_person(
 
 
 @pytest.fixture
+def create_uuid_person(create_person: Callable[[dict[str, Any]], UUID]) -> UUID:
+    return create_person({"given_name": str(uuid4()), "surname": str(uuid4())})
+
+
+@pytest.fixture
 def create_manager(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
