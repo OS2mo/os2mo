@@ -605,13 +605,13 @@ def update_substitute_vacant(
 async def test_update_substitute_vacant(
     graphapi_post: GraphAPIPost,
     create_org_unit: Callable[..., UUID],
-    create_person: Callable[..., UUID],
+    create_uuid_person: Callable[..., UUID],
     create_association: Callable[..., UUID],
     update_substitute_vacant: Callable[..., UUID],
     set_settings: Callable[..., None],
 ) -> None:
     root = create_org_unit("root")
-    person = create_person()
+    person = create_uuid_person()
     substitute_role = uuid4()
 
     # Set a substitute role, to test substitute

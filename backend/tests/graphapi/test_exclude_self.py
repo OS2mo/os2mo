@@ -62,7 +62,7 @@ def create_engagement(
 async def test_exclude_self(
     graphapi_post: GraphAPIPost,
     create_org_unit: Callable[..., UUID],
-    create_person: Callable[..., UUID],
+    create_uuid_person: Callable[..., UUID],
     create_engagement: Callable[..., UUID],
     create_manager: Callable[..., UUID],
     inherit: bool,
@@ -74,7 +74,7 @@ async def test_exclude_self(
     Args:
         graphapi_post: The GraphQL client to run our query with.
         create_org_unit: Helper to create organisation units.
-        create_person: Helper to create people.
+        create_uuid_person: Helper to create random people.
         create_engagement: Helper to create engagements.
         create_manager: Helper to create managers.
         inherit: Whether to inherit managers.
@@ -93,11 +93,11 @@ async def test_exclude_self(
     ll = create_org_unit("ll", left)
 
     # Add root manager to the root node
-    root_person = create_person()
+    root_person = create_uuid_person()
     root_manager = create_manager(root, root_person)
 
     # Add our own person as manager for both l and ll
-    person = create_person()
+    person = create_uuid_person()
     create_manager(left, person)
     ll_manager = create_manager(ll, person)
 

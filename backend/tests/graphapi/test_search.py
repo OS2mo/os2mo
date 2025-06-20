@@ -11,13 +11,13 @@ from ..conftest import GraphAPIPost
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 async def test_employee_pagination(
-    graphapi_post: GraphAPIPost, create_person: Callable[..., UUID]
+    graphapi_post: GraphAPIPost, create_uuid_person: Callable[..., UUID]
 ) -> None:
     # Create persons
     persons = [
-        str(create_person()),
-        str(create_person()),
-        str(create_person()),
+        str(create_uuid_person()),
+        str(create_uuid_person()),
+        str(create_uuid_person()),
     ]
     persons.sort()  # persons are created with random uuids
 

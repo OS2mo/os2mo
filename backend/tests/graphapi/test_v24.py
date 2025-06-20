@@ -51,7 +51,7 @@ def fetch_managers(
 )
 async def test_vacant_manager(
     create_org_unit: Callable[..., UUID],
-    create_person: Callable[..., UUID],
+    create_uuid_person: Callable[..., UUID],
     create_manager: Callable[..., UUID],
     fetch_managers: Callable[..., UUID],
     filter: dict[str, Any] | None,
@@ -63,7 +63,7 @@ async def test_vacant_manager(
     Args:
         graphapi_post: The GraphQL client to run our query with.
         create_org_unit: Helper to create organisation units.
-        create_person: Helper to create people.
+        create_uuid_person: Helper to create random people.
         create_manager: Helper to create managers.
         fetch_managers: Helper to fetch managers.
         filter: The filter to apply to fetch managers.
@@ -73,7 +73,7 @@ async def test_vacant_manager(
     root1 = create_org_unit("root1")
     root2 = create_org_unit("root2")
     # Create an occupied manager
-    person = create_person()
+    person = create_uuid_person()
     manager = create_manager(root1, person)
     # Create a vacant manager
     vacant = create_manager(root2)
@@ -92,7 +92,7 @@ async def test_vacant_manager(
 @pytest.mark.usefixtures("empty_db")
 async def test_vacant_manager_change_vacate(
     create_org_unit: Callable[..., UUID],
-    create_person: Callable[..., UUID],
+    create_uuid_person: Callable[..., UUID],
     create_manager: Callable[..., UUID],
     update_manager: Callable[..., UUID],
     fetch_managers: Callable[..., UUID],
@@ -102,13 +102,13 @@ async def test_vacant_manager_change_vacate(
     Args:
         graphapi_post: The GraphQL client to run our query with.
         create_org_unit: Helper to create organisation units.
-        create_person: Helper to create people.
+        create_uuid_person: Helper to create random people.
         create_manager: Helper to create managers.
         update_manager: Helper to edit managers.
         fetch_managers: Helper to fetch managers.
     """
     root1 = create_org_unit("root1")
-    person = create_person()
+    person = create_uuid_person()
     manager = create_manager(root1, person)
 
     # Employee none filters nothing, fetches all
@@ -127,7 +127,7 @@ async def test_vacant_manager_change_vacate(
 @pytest.mark.usefixtures("empty_db")
 async def test_vacant_manager_change_occupy(
     create_org_unit: Callable[..., UUID],
-    create_person: Callable[..., UUID],
+    create_uuid_person: Callable[..., UUID],
     create_manager: Callable[..., UUID],
     update_manager: Callable[..., UUID],
     fetch_managers: Callable[..., UUID],
@@ -137,13 +137,13 @@ async def test_vacant_manager_change_occupy(
     Args:
         graphapi_post: The GraphQL client to run our query with.
         create_org_unit: Helper to create organisation units.
-        create_person: Helper to create people.
+        create_uuid_person: Helper to create random people.
         create_manager: Helper to create managers.
         update_manager: Helper to edit managers.
         fetch_managers: Helper to fetch managers.
     """
     root1 = create_org_unit("root1")
-    person = create_person()
+    person = create_uuid_person()
     manager = create_manager(root1)
 
     # Employee none filters nothing, fetches all
