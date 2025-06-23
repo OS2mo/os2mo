@@ -47,6 +47,7 @@ from .types import DN
 from .types import LDAPUUID
 from .types import CPRNumber
 from .types import EmployeeUUID
+from .types import ITUserUUID
 from .utils import ensure_list
 from .utils import extract_ou_from_dn
 from .utils import mo_today
@@ -434,7 +435,7 @@ def construct_router(settings: Settings) -> APIRouter:
         ldap_connection: depends.Connection,
         dataloader: depends.DataLoader,
         at: datetime,
-    ) -> set[LDAPUUID]:
+    ) -> set[ITUserUUID]:
         bad_itusers = await get_non_existing_unique_ldap_uuids(
             settings, ldap_connection, dataloader
         )
@@ -445,7 +446,7 @@ def construct_router(settings: Settings) -> APIRouter:
             result = await dataloader.moapi.graphql_client.ituser_terminate(
                 ITUserTerminateInput(uuid=UUID(ituser_uuid), to=at)
             )
-            deleted.add(cast(LDAPUUID, result.uuid))
+            deleted.add(cast(ITUserUUID, result.uuid))
         return deleted
 
     @router.get("/Inspect/duplicate_cpr_numbers", status_code=202, tags=["LDAP"])
