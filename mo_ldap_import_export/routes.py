@@ -126,7 +126,7 @@ def encode_result(result):
 
 async def load_ldap_attribute_values(
     settings: Settings, ldap_connection: Connection, attribute, search_base=None
-) -> set[str]:
+) -> set[tuple]:
     """
     Returns all values belonging to an LDAP attribute
     """
@@ -141,7 +141,7 @@ async def load_ldap_attribute_values(
         searchParameters,
         search_base=search_base,
     )
-    return {str(r["attributes"][attribute]) for r in responses}
+    return {tuple(ensure_list(r["attributes"][attribute])) for r in responses}
 
 
 async def load_ldap_populated_overview(
@@ -229,12 +229,9 @@ async def get_non_existing_unique_ldap_uuids(
     ldap_uuid_attributes = await load_ldap_attribute_values(
         settings, ldap_connection, settings.ldap_unique_id_field
     )
-    # load_ldap_attribute_values stringify the attribute values before converting them
-    # to a set, thus if one or more entries do not have the attribute, we may end up
-    # with the string '[]' in our output. '[]' is not an UUID so we discard it.
-    ldap_uuid_attributes.discard("[]")
+    ldap_uuid_attributes.discard(tuple())
 
-    unique_ldap_uuids = set(map(LDAPUUID, ldap_uuid_attributes))
+    unique_ldap_uuids = set(map(LDAPUUID, map(one, ldap_uuid_attributes)))
 
     # Fetch all MO IT-users and extract all LDAP UUIDs
     all_it_users = await load_all_current_it_users(
@@ -537,9 +534,12 @@ def construct_router(settings: Settings) -> APIRouter:
         search_base: str | None = None,
     ) -> Any:
         return sorted(
-            await load_ldap_attribute_values(
-                settings, ldap_connection, attribute, search_base=search_base
-            )
+            {
+                str(list(x))
+                for x in await load_ldap_attribute_values(
+                    settings, ldap_connection, attribute, search_base=search_base
+                )
+            }
         )
 
     # Transitory endpoint to support the SD integration away from the old AD integration
