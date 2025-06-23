@@ -61,4 +61,4 @@ async def test_inspect_values(test_client: AsyncClient) -> None:
     assert response.status_code == 202
 
     result = response.json()
-    assert result == ["['abk@ad.kolding.dk']", "[]"]
+    assert result == [[], ["abk@ad.kolding.dk"]]

@@ -12,6 +12,7 @@ OrgUnitUUID = NewType("OrgUnitUUID", UUID)
 EmployeeUUID = NewType("EmployeeUUID", UUID)
 EngagementUUID = NewType("EngagementUUID", UUID)
 ManagerUUID = NewType("ManagerUUID", UUID)
+ITUserUUID = NewType("ITUserUUID", UUID)
 
 
 class LDAPUUID(UUID):

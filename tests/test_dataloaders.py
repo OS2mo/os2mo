@@ -64,7 +64,6 @@ from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import ITUser
 from mo_ldap_import_export.models import Termination
 from mo_ldap_import_export.routes import load_all_current_it_users
-from mo_ldap_import_export.routes import load_ldap_attribute_values
 from mo_ldap_import_export.types import LDAPUUID
 from tests.graphql_mocker import GraphQLMocker
 
@@ -817,25 +816,6 @@ async def test_get_ldap_unique_ldap_uuid_no_objectguid(dataloader: DataLoader) -
         pytest.raises(NoObjectsReturnedException),
     ):
         await dataloader.ldapapi.get_ldap_unique_ldap_uuid("")
-
-
-async def test_load_ldap_attribute_values(dataloader: DataLoader):
-    responses = [
-        {"attributes": {"foo": 1}},
-        {"attributes": {"foo": "2"}},
-        {"attributes": {"foo": []}},
-    ]
-    with patch(
-        "mo_ldap_import_export.routes.paged_search",
-        return_value=responses,
-    ):
-        settings = dataloader.settings
-        ldap_connection = dataloader.ldapapi.connection
-        values = await load_ldap_attribute_values(settings, ldap_connection, "foo")
-        assert "1" in values
-        assert "2" in values
-        assert "[]" in values
-        assert len(values) == 3
 
 
 async def test_create_mo_class(dataloader: DataLoader):
