@@ -534,12 +534,9 @@ def construct_router(settings: Settings) -> APIRouter:
         search_base: str | None = None,
     ) -> Any:
         return sorted(
-            {
-                str(list(x))
-                for x in await load_ldap_attribute_values(
-                    settings, ldap_connection, attribute, search_base=search_base
-                )
-            }
+            await load_ldap_attribute_values(
+                settings, ldap_connection, attribute, search_base=search_base
+            )
         )
 
     # Transitory endpoint to support the SD integration away from the old AD integration
