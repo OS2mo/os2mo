@@ -281,96 +281,66 @@ async def test_load_org_unit_address_no_address(
             "Expected exactly one item in iterable",
         ),
         # addr1 and addr2 both past, equal
-        pytest.param(
+        (
             (datetime(1970, 1, 1), datetime(2000, 1, 1)),
             (datetime(1970, 1, 1), datetime(2000, 1, 1)),
             None,
-            marks=pytest.mark.xfail(
-                reason="Temporally spread addresses are handled as overlapping"
-            ),
         ),
         # addr1 and addr2 both past
-        pytest.param(
+        (
             (datetime(1970, 1, 1), datetime(2000, 1, 1)),
             (datetime(1980, 1, 1), datetime(2010, 1, 1)),
             None,
-            marks=pytest.mark.xfail(
-                reason="Temporally spread addresses are handled as overlapping"
-            ),
         ),
         # addr1 and addr2 both future, equal
-        pytest.param(
+        (
             (datetime(3000, 1, 1), None),
             (datetime(3000, 1, 1), None),
             2,
-            marks=pytest.mark.xfail(
-                reason="Temporally spread addresses are handled as overlapping"
-            ),
         ),
         # addr1 and addr2 both future
-        pytest.param(
+        (
             (datetime(3000, 1, 1), None),
             (datetime(4000, 1, 1), None),
             2,
-            marks=pytest.mark.xfail(
-                reason="Temporally spread addresses are handled as overlapping"
-            ),
         ),
         # addr1 and addr2 both future, equal, but limited
-        pytest.param(
+        (
             (datetime(3000, 1, 1), datetime(4000, 1, 1)),
             (datetime(3000, 1, 1), datetime(4000, 1, 1)),
             2,
-            marks=pytest.mark.xfail(
-                reason="Temporally spread addresses are handled as overlapping"
-            ),
         ),
         # addr1 and addr2 both future, but limited
-        pytest.param(
+        (
             (datetime(3000, 1, 1), datetime(4100, 1, 1)),
             (datetime(3100, 1, 1), datetime(4000, 1, 1)),
             # NOTE: Furthest in the future is chosen, i.e. last end date
             # XXX: This is probably not sane behavior
             1,
-            marks=pytest.mark.xfail(
-                reason="Temporally spread addresses are handled as overlapping"
-            ),
         ),
         # addr1 past, addr2 present
-        pytest.param(
+        (
             (datetime(1970, 1, 1), datetime(1980, 1, 1)),
             (datetime(2000, 1, 1), None),
             2,
-            marks=pytest.mark.xfail(
-                reason="Temporally spread addresses are handled as overlapping"
-            ),
         ),
         # addr1 past, addr2 present, but limited
-        pytest.param(
+        (
             (datetime(1970, 1, 1), datetime(1980, 1, 1)),
             (datetime(2000, 1, 1), datetime(3000, 1, 1)),
             2,
-            marks=pytest.mark.xfail(
-                reason="Temporally spread addresses are handled as overlapping"
-            ),
         ),
         # addr1 future, addr2 present
-        pytest.param(
+        (
             (datetime(3000, 1, 1), datetime(4000, 1, 1)),
             (datetime(2000, 1, 1), None),
             2,
-            marks=pytest.mark.xfail(
-                reason="Temporally spread addresses are handled as overlapping"
-            ),
         ),
         # addr1 future, addr2 present, but limited
-        pytest.param(
+        (
             (datetime(3000, 1, 1), datetime(4000, 1, 1)),
             (datetime(2000, 1, 1), datetime(3000, 1, 1)),
             2,
-            marks=pytest.mark.xfail(
-                reason="Temporally spread addresses are handled as overlapping"
-            ),
         ),
     ],
 )

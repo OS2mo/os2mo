@@ -404,7 +404,7 @@ async def load_org_unit_address(
         )
         return None
 
-    results = await moapi.graphql_client.read_filtered_addresses(
+    result = await moapi.graphql_client.read_filtered_addresses(
         AddressFilter(
             # TODO: Use primary engagement filter here
             org_unit=OrganisationUnitFilter(
@@ -415,15 +415,16 @@ async def load_org_unit_address(
             to_date=None,
         )
     )
-    result = only(results.objects)
-    if result is None:
+    if not result.objects:
         logger.info(
             "Could not find org-unit address",
             employee_uuid=employee_uuid,
             address_type_user_key=address_type_user_key,
         )
         return None
-    validity = extract_current_or_latest_validity(result.validities)
+    # Flatten all validities to a list
+    validities = list(flatten_validities(result))
+    validity = extract_current_or_latest_validity(validities)
     if validity is None:  # pragma: no cover
         logger.error(
             "No active validities on org-unit address",
