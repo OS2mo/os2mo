@@ -253,6 +253,49 @@ async def get_non_existing_unique_ldap_uuids(
     ]
 
 
+async def get_non_existing_account_names(
+    settings: Settings, ldap_connection: Connection, dataloader: DataLoader
+) -> list[dict[str, Any]]:
+    itsystem_user_key = (
+        settings.conversion_mapping.username_generator.existing_usernames_itsystem
+    )
+    it_system_uuid = await dataloader.moapi.get_it_system_uuid(itsystem_user_key)
+
+    account_name = "uid"
+    # Handle ADs non-standard username field
+    if settings.ldap_dialect == "AD":  # pragma: no cover
+        account_name = "sAMAccountName"
+
+    # Fetch all entity UUIDs in LDAP
+    ldap_account_names = await load_ldap_attribute_values(
+        settings, ldap_connection, account_name
+    )
+    ldap_account_names.discard(tuple())
+
+    if settings.ldap_dialect != "AD":
+        ldap_account_names = set(map(one, ldap_account_names))
+
+    unique_account_names = set(ldap_account_names)
+
+    # Fetch all MO IT-users and extract all LDAP UUIDs
+    all_it_users = await load_all_current_it_users(
+        dataloader.moapi.graphql_client, UUID(it_system_uuid)
+    )
+    it_user_map = {it_user["user_key"]: it_user for it_user in all_it_users}
+    unique_ituser_account_names = set(it_user_map.keys())
+
+    # Find LDAP UUIDs in MO, which do not exist in LDAP
+    ituser_uuids_not_in_ldap = unique_ituser_account_names - unique_account_names
+    return [
+        {
+            "ituser_uuid": it_user_map[uuid]["uuid"],
+            "mo_employee_uuid": it_user_map[uuid]["employee_uuid"],
+            "unique_ldap_uuid": it_user_map[uuid]["user_key"],
+        }
+        for uuid in ituser_uuids_not_in_ldap
+    ]
+
+
 def make_overview_entry(
     ldap_connection: Connection, attributes, superiors, example_value_dict=None
 ):
@@ -445,6 +488,31 @@ def construct_router(settings: Settings) -> APIRouter:
             ituser_uuid = entry["ituser_uuid"]
             result = await dataloader.moapi.graphql_client.ituser_terminate(
                 ITUserTerminateInput(uuid=UUID(ituser_uuid), to=at)
+            )
+            deleted.add(cast(ITUserUUID, result.uuid))
+        return deleted
+
+    @router.post(
+        "/fixup/delete_non_existing_account_names", status_code=200, tags=["LDAP"]
+    )
+    async def delete_non_existing_account_names_from_MO(
+        settings: depends.Settings,
+        ldap_connection: depends.Connection,
+        dataloader: depends.DataLoader,
+        at: datetime,
+        dry_run: bool = True,
+    ) -> set[ITUserUUID]:
+        bad_itusers = await get_non_existing_account_names(
+            settings, ldap_connection, dataloader
+        )
+        ituser_uuids = {entry["ituser_uuid"] for entry in bad_itusers}
+        if dry_run:
+            return ituser_uuids
+
+        deleted = set()
+        for uuid in ituser_uuids:
+            result = await dataloader.moapi.graphql_client.ituser_terminate(
+                ITUserTerminateInput(uuid=UUID(uuid), to=at)
             )
             deleted.add(cast(ITUserUUID, result.uuid))
         return deleted
