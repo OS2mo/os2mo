@@ -215,7 +215,7 @@ async def test_load_org_unit_address_invalid_address_type(
     events = [m["event"] for m in cap_logs]
     assert events == [
         "Found primary engagement",
-        "No org-unit address found",
+        "Could not find org-unit address",
     ]
 
 
@@ -238,5 +238,5 @@ async def test_load_org_unit_address_no_address(
     events = [m["event"] for m in cap_logs]
     assert events == [
         "Found primary engagement",
-        "No org-unit address found",
+        "Could not find org-unit address",
     ]

@@ -418,7 +418,7 @@ async def load_org_unit_address(
     result = only(results.objects)
     if result is None:
         logger.info(
-            "No org-unit address found",
+            "Could not find org-unit address",
             employee_uuid=employee_uuid,
             address_type_user_key=address_type_user_key,
         )
