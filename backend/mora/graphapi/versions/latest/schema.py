@@ -25,6 +25,7 @@ from uuid import UUID
 
 import strawberry
 from fastapi.encoders import jsonable_encoder
+from more_itertools import last
 from more_itertools import one
 from more_itertools import only
 from pydantic import parse_obj_as
@@ -440,6 +441,9 @@ to_only = result_translation(
 )
 to_one = result_translation(
     lambda result: one(chain.from_iterable(result.values())),
+)
+to_arbitrary_only = result_translation(
+    lambda result: last(chain.from_iterable(result.values()), default=None),
 )
 
 
@@ -3740,7 +3744,7 @@ class Organisation:
 )
 class OrganisationUnit:
     parent: LazyOrganisationUnit | None = strawberry.field(
-        resolver=to_only(
+        resolver=to_arbitrary_only(
             seed_resolver(
                 organisation_unit_resolver,
                 {"uuids": lambda root: uuid2list(root.parent_uuid)},
