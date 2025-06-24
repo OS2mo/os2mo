@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import sys
 from contextlib import asynccontextmanager
 from itertools import chain
 from typing import Any
@@ -59,6 +60,12 @@ from .graphapi.shim import set_graphql_context_dependencies
 from .lora import lora_noop_change_context
 
 logger = get_logger()
+
+# PYTHONDEVMODE: https://docs.python.org/3/library/devmode.html
+if sys.flags.dev_mode:
+    logger.warning(
+        "Python Development Mode is enabled. Performance may be significantly impacted!"
+    )
 
 
 METRIC_MO_INFO = Info("os2mo_version", "Current version")

@@ -17,7 +17,10 @@ variables:
 .variables:mo:
   # NOTE: These variables are duplicated to .integration-test:mo.services below.
   variables:
-    PYTHONASYNCIODEBUG: "1"
+    # https://docs.python.org/3/library/devmode.html
+    PYTHONDEVMODE: "1"
+    PYTHONMALLOC: "default"
+
     MAX_WORKERS: "1"
     GUNICORN_WORKERS: "1"
 
@@ -204,7 +207,10 @@ variables:
       # YOU CANNOT REFACTOR THIS AND ASSUME IT WORKS IF THE PIPELINE HERE IS GREEN!
       # https://gitlab.com/gitlab-org/gitlab/-/issues/434157
       variables:
-        PYTHONASYNCIODEBUG: "1"
+        # https://docs.python.org/3/library/devmode.html
+        PYTHONDEVMODE: "1"
+        PYTHONMALLOC: "default"
+
         MAX_WORKERS: "1"
         GUNICORN_WORKERS: "1"
 
