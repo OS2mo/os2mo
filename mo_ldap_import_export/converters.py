@@ -141,7 +141,10 @@ class LdapConverter:
         if missing_attributes:  # pragma: no cover
             logger.error(
                 "Missing values in LDAP to synchronize",
-                suggestion="If missing values are expected, consider: skip_if_none",
+                suggestion=(
+                    "If missing values are expected, consider: skip_if_none. "
+                    "If skip_if_none is used, the field is probably whitespace only."
+                ),
                 mo_dict=mo_dict,
                 mo_class=mo_class,
                 missing_attributes=missing_attributes,
