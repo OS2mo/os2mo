@@ -44,6 +44,7 @@ from mora.graphapi.middleware import is_graphql_context
 from mora.request_scoped.query_args_context_plugin import query_args_context
 from mora.service.address_handler.dar import dar_loader_context
 from mora.service.shimmed.meta import meta_router
+from mora.util import now_per_request
 
 from . import service
 from . import testing
@@ -244,6 +245,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             ),
         ],
         dependencies=[
+            Depends(now_per_request),
             Depends(log.canonical_log_dependency),
             Depends(transaction_per_request),
             Depends(set_authenticated_user),

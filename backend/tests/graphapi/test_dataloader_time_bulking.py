@@ -84,7 +84,6 @@ async def read_org_unit_types(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-@pytest.mark.xfail(reason="DataLoader bulking is underutilised")
 def test_dataloader_time_bulking(
     monkeypatch: pytest.MonkeyPatch,
     org_unit_type_facet: UUID,

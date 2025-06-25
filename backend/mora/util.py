@@ -18,6 +18,7 @@ import re
 import typing
 import urllib.parse
 import uuid
+from collections.abc import AsyncIterator
 from contextlib import suppress
 from functools import reduce
 from uuid import UUID
@@ -27,6 +28,8 @@ import dateutil.parser
 import dateutil.tz
 from ramodels.base import to_parsable_timestamp
 from starlette_context import context
+from starlette_context import request_cycle_context
+from starlette_context.errors import ContextDoesNotExistError
 from structlog import get_logger
 
 from . import config
@@ -174,9 +177,33 @@ def from_iso_time(s):
     return dt
 
 
+_NOW_CONTEXT_KEY = "now"
+
+
+async def now_per_request() -> AsyncIterator[None]:
+    """Use a single definition of datetime.now() throughout the request.
+
+    This is required for proper dataloader caching. Without it, each resolved
+    field will use a microsecond different from_date=now/to_date=now in its
+    filter, causing otherwise identical dataloader LoadKeys to be different.
+    """
+    data = {**context, _NOW_CONTEXT_KEY: _now()}
+    with request_cycle_context(data):
+        yield
+
+
+def _now() -> datetime.datetime:
+    return datetime.datetime.now(tz=DEFAULT_TIMEZONE)
+
+
 def now() -> datetime.datetime:
     """Get the current time, localized to the current time zone."""
-    return datetime.datetime.now(tz=DEFAULT_TIMEZONE)
+    # We really shouldn't have a fallback here, but if we don't, all unittests,
+    # which use `util.now()` outside the request context, will fail.
+    try:
+        return context[_NOW_CONTEXT_KEY]
+    except (ContextDoesNotExistError, KeyError):
+        return _now()
 
 
 def is_uuid(v):

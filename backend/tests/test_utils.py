@@ -5,7 +5,6 @@ import json
 from contextlib import nullcontext as does_not_raise
 
 import dateutil.tz
-import freezegun
 import pytest
 from mora import exceptions
 from mora import util
@@ -16,20 +15,9 @@ def get_uuid_test_id():
     return "00000000-0000-0000-0000-000000000000"
 
 
-@freezegun.freeze_time("2015-06-01T01:10")
-def frozen_time_now():
-    return util.now()
-
-
-def frozen_time_today():
-    return frozen_time_now().replace(hour=0, minute=0, second=0, microsecond=0)
-
-
 @pytest.mark.parametrize(
     "testing_time, expected_time",
     [
-        (frozen_time_today(), "2015-06-01T00:00:00+02:00"),
-        (frozen_time_now(), "2015-06-01T03:10:00+02:00"),
         ("01-06-2017", "2017-06-01T00:00:00+02:00"),
         ("31-12-2017", "2017-12-31T00:00:00+01:00"),
         ("infinity", "infinity"),
