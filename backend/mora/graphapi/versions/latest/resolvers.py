@@ -6,7 +6,6 @@ import re
 from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
-from datetime import timezone
 from functools import lru_cache
 from textwrap import dedent
 from typing import Annotated
@@ -34,6 +33,7 @@ from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 from strawberry.types.unset import UnsetType
 
+from mora import util
 from mora.access_log import access_log
 from mora.db import AsyncSession
 from mora.db import HasValidity
@@ -1405,7 +1405,7 @@ def unset2date(dt: datetime | UnsetType | None) -> datetime | None:
         A potentially null datetime.
     """
     if dt is UNSET:
-        return datetime.now(tz=timezone.utc)
+        return util.now()
     return tcast(datetime | None, dt)
 
 
