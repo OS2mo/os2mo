@@ -116,13 +116,16 @@ async def filter2uuids_func(
     return mapper(await resolver_func(info, filter=filter))
 
 
+HOPEFULLY_NOT_IN_LORA_UUID = UUID("00000000-baad-1dea-ca11-fa11fa11c0de")
+
+
 def lora_filter(uuids: list[UUID]) -> list[UUID]:
     # If the filter lookup had no results in LoRa, we would return an empty list here.
     # Unfortunately, filtering a key on an empty list in LoRa is equivalent to _not
     # filtering on that key at all_. This is obviously very confusing to anyone who has
     # ever used SQL, but we are too scared to change the behaviour. Instead, to
     # circumvent this issue, we send a UUID which we know (hope) is never present.
-    return uuids or [UUID("00000000-baad-1dea-ca11-fa11fa11c0de")]
+    return uuids or [HOPEFULLY_NOT_IN_LORA_UUID]
 
 
 def extend_uuids(output_filter: BaseFilter, input: list[UUID] | None) -> None:
@@ -1269,6 +1272,11 @@ async def generic_resolver(
     **kwargs: Any,
 ) -> Any:
     """The internal resolve interface, allowing for kwargs."""
+    # The HOPEFULLY_NOT_IN_LORA_UUID is used to force an empty response from
+    # LoRa, so why even bother asking the database?
+    if any(v == [HOPEFULLY_NOT_IN_LORA_UUID] for v in kwargs.values()):
+        return {}
+
     # Filter
     if filter is None:  # pragma: no cover
         filter = BaseFilter()
