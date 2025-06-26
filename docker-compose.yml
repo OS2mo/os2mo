@@ -61,6 +61,8 @@ services:
     ports:
       - "127.0.0.1:5002:5000"
     env_file: dev-environment/os2mo.env
+    environment:
+      OS2MO_AUTH: "false"
     restart: unless-stopped
     depends_on:
       fixture-loader:
@@ -98,6 +100,8 @@ services:
     # For a list of supported fixtures, see:
     # https://git.magenta.dk/rammearkitektur/os2mo-fixture-loader.
     command: ["${FIXTURE:-kolding}"]
+    volumes:
+      - /home/caspervk/Downloads/rsyd.pgdump:/fixtures/kolding.pgdump:ro
     environment:
       PGHOST: mox-db
       PGDATABASE: mox

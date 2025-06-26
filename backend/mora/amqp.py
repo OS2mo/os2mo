@@ -137,6 +137,7 @@ async def _emit_events(
         select(text("'bruger'"), BrugerRegistrering.bruger_id)
         .distinct()
         .where(
+            # TODO: dont seq scan
             BrugerRegistrering.id.in_(
                 union(
                     select(BrugerRegistrering.id).where(

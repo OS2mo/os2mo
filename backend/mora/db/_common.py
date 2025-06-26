@@ -1,23 +1,29 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import dataclasses
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 from typing import NewType
 from uuid import UUID
 
-from sqlalchemy import BigInteger
+from psycopg.types.range import TimestamptzRange
+from sqlalchemy import BigInteger, Column, String
 from sqlalchemy import CheckConstraint
+from sqlalchemy import ColumnElement
 from sqlalchemy import Enum
 from sqlalchemy import Text
 from sqlalchemy import select
 from sqlalchemy import text
+from sqlalchemy import type_coerce
 from sqlalchemy.dialects.postgresql import ENUM
+from sqlalchemy.dialects.postgresql import TSTZRANGE
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import column_property
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import declared_attr
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.sql.functions import GenericFunction
+from sqlalchemy.types import UserDefinedType
 
 Base = declarative_base()
 metadata = Base.metadata
@@ -111,12 +117,35 @@ class _RegistreringMixin:
         return f"{self.__class__.__name__}(id={self.id}, registreringstid_start={self.registreringstid_start!r}, registreringstid_slut={self.registreringstid_slut!r})"
 
 
+from sqlalchemy.ext.hybrid import hybrid_property
+
+
 class _VirkningMixin:
     __table_args__ = (
         CheckConstraint(
             "((virkning).timeperiod IS NOT NULL) AND (NOT isempty((virkning).timeperiod))"
         ),
     )
+
+    @declared_attr
+    @classmethod
+    def _full_name(cls) -> Mapped[TimestamptzRange]:
+        return column_property(cls._virkning_period)
+
+
+    @hybrid_property
+    def virkning_period(self) -> TimestamptzRange:
+        return self._full_name
+
+    @virkning_period.inplace.expression
+    @classmethod
+    def _virkning_period(cls) -> ColumnElement[TimestamptzRange]:
+        return type_coerce(text("(virkning).timeperiod"), TSTZRANGE)
+
+    #
+    # @declared_attr
+    # def virkning_period(cls) -> Mapped[Range]:
+    #     return column_property(select(text("(virkning).timeperiod")).scalar_subquery())
 
     # SQLAlchemy does not support composite types
     @declared_attr

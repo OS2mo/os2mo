@@ -94,6 +94,7 @@ async def get_mo(model: type[MOModel], **kwargs: Any) -> dict[UUID, list[MOModel
     Returns:
         Mapping from UUID to list of parsed MO models.
     """
+    print("get_mo", model, kwargs)
     mo_type = model.__fields__["type_"].default
     results = await search_role_type(mo_type, **kwargs)
     parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore
@@ -111,6 +112,7 @@ async def load_mo(keys: list[LoadKey], model: type[MOModel]) -> list[list[MOMode
     Returns:
         List of parsed MO models.
     """
+    print("load_mo", model, keys)
     mo_type = model.__fields__["type_"].default
 
     # Wrapper for get_role_type_by_uuid to pass dates using a nice(r) interface
