@@ -215,7 +215,7 @@ async def test_load_org_unit_address_invalid_address_type(
     events = [m["event"] for m in cap_logs]
     assert events == [
         "Found primary engagement",
-        "No org-unit address found",
+        "Could not find org-unit address",
     ]
 
 
@@ -238,5 +238,165 @@ async def test_load_org_unit_address_no_address(
     events = [m["event"] for m in cap_logs]
     assert events == [
         "Found primary engagement",
-        "No org-unit address found",
+        "Could not find org-unit address",
     ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+    }
+)
+@pytest.mark.parametrize(
+    "addr1validity,addr2validity,expected",
+    [
+        # The below tests are not stating which behavior is sane, they are simply
+        # documenting the behavior of the code. Do not hesitate to adjust the tests,
+        # if a more sane behavior can be produced from the code.
+        # A lot of the insanities come from extract_current_or_latest_validity
+        # addr1 and addr2 both present, equal
+        (
+            (datetime(1970, 1, 1), None),
+            (datetime(1970, 1, 1), None),
+            "Expected exactly one item in iterable",
+        ),
+        # addr1 and addr2 both present
+        (
+            (datetime(1970, 1, 1), None),
+            (datetime(2000, 1, 1), None),
+            "Expected exactly one item in iterable",
+        ),
+        # addr1 and addr2 both present, equal, but limited
+        (
+            (datetime(1970, 1, 1), datetime(3000, 1, 1)),
+            (datetime(1970, 1, 1), datetime(3000, 1, 1)),
+            "Expected exactly one item in iterable",
+        ),
+        # addr1 and addr2 both present, but limited
+        (
+            (datetime(1970, 1, 1), datetime(3000, 1, 1)),
+            (datetime(2000, 1, 1), datetime(4000, 1, 1)),
+            "Expected exactly one item in iterable",
+        ),
+        # addr1 and addr2 both past, equal
+        (
+            (datetime(1970, 1, 1), datetime(2000, 1, 1)),
+            (datetime(1970, 1, 1), datetime(2000, 1, 1)),
+            None,
+        ),
+        # addr1 and addr2 both past
+        (
+            (datetime(1970, 1, 1), datetime(2000, 1, 1)),
+            (datetime(1980, 1, 1), datetime(2010, 1, 1)),
+            None,
+        ),
+        # addr1 and addr2 both future, equal
+        (
+            (datetime(3000, 1, 1), None),
+            (datetime(3000, 1, 1), None),
+            2,
+        ),
+        # addr1 and addr2 both future
+        (
+            (datetime(3000, 1, 1), None),
+            (datetime(4000, 1, 1), None),
+            2,
+        ),
+        # addr1 and addr2 both future, equal, but limited
+        (
+            (datetime(3000, 1, 1), datetime(4000, 1, 1)),
+            (datetime(3000, 1, 1), datetime(4000, 1, 1)),
+            2,
+        ),
+        # addr1 and addr2 both future, but limited
+        (
+            (datetime(3000, 1, 1), datetime(4100, 1, 1)),
+            (datetime(3100, 1, 1), datetime(4000, 1, 1)),
+            # NOTE: Furthest in the future is chosen, i.e. last end date
+            # XXX: This is probably not sane behavior
+            1,
+        ),
+        # addr1 past, addr2 present
+        (
+            (datetime(1970, 1, 1), datetime(1980, 1, 1)),
+            (datetime(2000, 1, 1), None),
+            2,
+        ),
+        # addr1 past, addr2 present, but limited
+        (
+            (datetime(1970, 1, 1), datetime(1980, 1, 1)),
+            (datetime(2000, 1, 1), datetime(3000, 1, 1)),
+            2,
+        ),
+        # addr1 future, addr2 present
+        (
+            (datetime(3000, 1, 1), datetime(4000, 1, 1)),
+            (datetime(2000, 1, 1), None),
+            2,
+        ),
+        # addr1 future, addr2 present, but limited
+        (
+            (datetime(3000, 1, 1), datetime(4000, 1, 1)),
+            (datetime(2000, 1, 1), datetime(3000, 1, 1)),
+            2,
+        ),
+    ],
+)
+@pytest.mark.usefixtures("test_client", "mo_engagement")
+async def test_load_org_unit_address_multiple_temporally_spread(
+    graphql_client: GraphQLClient,
+    context: Context,
+    mo_org_unit: UUID,
+    mo_person: UUID,
+    email_unit: UUID,
+    public: UUID,
+    addr1validity: tuple[datetime, datetime | None],
+    addr2validity: tuple[datetime, datetime | None],
+    expected: int | str | None,
+) -> None:
+    mail = "create@example.com"
+    addr1start, addr1end = addr1validity
+    addr1 = await graphql_client.address_create(
+        input=AddressCreateInput(
+            user_key="address1",
+            address_type=email_unit,
+            value=mail,
+            org_unit=mo_org_unit,
+            visibility=public,
+            validity={
+                "from": addr1start.isoformat(),
+                "to": addr1end.isoformat() if addr1end else None,
+            },
+        )
+    )
+    addr2start, addr2end = addr2validity
+    addr2 = await graphql_client.address_create(
+        input=AddressCreateInput(
+            user_key="address2",
+            address_type=email_unit,
+            value=mail,
+            org_unit=mo_org_unit,
+            visibility=public,
+            validity={
+                "from": addr2start.isoformat(),
+                "to": addr2end.isoformat() if addr2end else None,
+            },
+        )
+    )
+
+    dataloader = context["user_context"]["dataloader"]
+
+    if isinstance(expected, str):
+        with pytest.raises(ValueError) as exc_info:
+            await load_org_unit_address(dataloader.moapi, mo_person, "EmailUnit")
+        assert expected in str(exc_info.value)
+    else:
+        address = await load_org_unit_address(dataloader.moapi, mo_person, "EmailUnit")
+        if expected is None:
+            assert address is None
+        else:
+            assert expected in [1, 2]
+            assert address is not None
+            assert address.uuid == addr1.uuid if expected == 1 else addr2.uuid
