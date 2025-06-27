@@ -186,6 +186,16 @@ def role_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
 
 
 @pytest.fixture
+def employee_address_type_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
+    return create_facet(
+        {
+            "user_key": "employee_address_type",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
 def create_itsystem(
     graphapi_post: GraphAPIPost, root_org: UUID
 ) -> Callable[[dict[str, Any]], UUID]:
