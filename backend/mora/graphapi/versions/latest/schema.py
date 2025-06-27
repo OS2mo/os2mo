@@ -432,6 +432,17 @@ def to_response_list(
     return result_translation(result2response_list)
 
 
+def to_response(
+    model: type[MOObject],
+) -> Callable[[ResolverFunction], Callable[..., Awaitable[Response[MOObject]]]]:
+    def result2response_list(result: ResolverResult) -> Response[MOObject]:
+        # For details on this "type: ignore" check the comment in to_response_list
+        uuid, objects = one(result.items())
+        return Response[model](uuid=uuid, object_cache=objects)  # type: ignore
+
+    return result_translation(result2response_list)
+
+
 to_list = result_translation(
     lambda result: list(chain.from_iterable(result.values())),
 )
@@ -684,6 +695,33 @@ async def _get_handler_object(root: AddressRead, info: Info) -> AddressHandler:
     ),
 )
 class Address:
+    address_type_response: Response[LazyClass] = strawberry.field(
+        resolver=to_response(LazyClass)(
+            seed_resolver(
+                class_resolver, {"uuids": lambda root: [root.address_type_uuid]}
+            )
+        ),
+        description=dedent(
+            """\
+            The address category or type.
+
+            In OS2mo addresses can be of a variety of different types:
+            * Phone numbers
+            * Addresses
+            * Registration numbers
+            * Card codes
+
+            This field is what encodes the type of an address.
+
+            Examples of user-keys:
+            * `"EmailUnit"`
+            * `"p-nummer"`
+            * `"PhoneEmployee"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
     address_type: LazyClass = strawberry.field(
         resolver=to_one(
             seed_resolver(
