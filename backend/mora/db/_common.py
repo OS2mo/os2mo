@@ -67,25 +67,15 @@ class _RegistreringMixin:
     # SQLAlchemy does not support composite types
     @declared_attr
     def registreringstid_start(cls) -> Mapped[datetime]:
-        # We use `greatest` here as Python datetime don't support "-infinity"
         return column_property(
-            select(
-                text(
-                    "greatest(lower((registrering).timeperiod), '1930-01-01'::timestamptz)"
-                )
-            ).scalar_subquery()
+            select(text("lower((registrering).timeperiod)")).scalar_subquery()
         )
 
     # SQLAlchemy does not support composite types
     @declared_attr
     def registreringstid_slut(cls) -> Mapped[datetime]:
-        # We use `least` here as Python datetime don't support "infinity"
         return column_property(
-            select(
-                text(
-                    "least(upper((registrering).timeperiod), '9999-12-31'::timestamptz)"
-                )
-            ).scalar_subquery()
+            select(text("upper((registrering).timeperiod)")).scalar_subquery()
         )
 
     # SQLAlchemy does not support composite types
@@ -121,24 +111,18 @@ class _VirkningMixin:
     # SQLAlchemy does not support composite types
     @declared_attr
     def virkning_start(cls) -> Mapped[datetime]:
-        # We use `greatest` here as Python datetime don't support "-infinity"
         return column_property(
             select(
-                text(
-                    f"greatest(lower(({cls.__tablename__}.virkning).timeperiod), '1930-01-01'::timestamptz)"
-                )
+                text(f"lower(({cls.__tablename__}.virkning).timeperiod)")
             ).scalar_subquery()
         )
 
     # SQLAlchemy does not support composite types
     @declared_attr
     def virkning_slut(cls) -> Mapped[datetime]:
-        # We use `least` here as Python datetime don't support "infinity"
         return column_property(
             select(
-                text(
-                    f"least(upper(({cls.__tablename__}.virkning).timeperiod), '9999-12-31'::timestamptz)"
-                )
+                text(f"upper(({cls.__tablename__}.virkning).timeperiod)")
             ).scalar_subquery()
         )
 
