@@ -259,6 +259,10 @@ from .org_unit_terminate import OrgUnitTerminate
 from .org_unit_terminate import OrgUnitTerminateOrgUnitTerminate
 from .org_unit_update import OrgUnitUpdate
 from .org_unit_update import OrgUnitUpdateOrgUnitUpdate
+from .person_create import PersonCreate
+from .person_create import PersonCreateEmployeeCreate
+from .person_update import PersonUpdate
+from .person_update import PersonUpdateEmployeeUpdate
 from .read_address_relation_uuids import ReadAddressRelationUuids
 from .read_address_relation_uuids import ReadAddressRelationUuidsAddresses
 from .read_address_relation_uuids import ReadAddressRelationUuidsAddressesObjects
@@ -482,10 +486,6 @@ from .read_rolebindings import ReadRolebindingsRolebindingsObjectsCurrentItuser
 from .read_rolebindings import ReadRolebindingsRolebindingsObjectsCurrentItuserPerson
 from .set_job_title import SetJobTitle
 from .set_job_title import SetJobTitleEngagementUpdate
-from .user_create import UserCreate
-from .user_create import UserCreateEmployeeCreate
-from .user_update import UserUpdate
-from .user_update import UserUpdateEmployeeUpdate
 
 __all__ = [
     "AccessLogFilter",
@@ -651,6 +651,10 @@ __all__ = [
     "ParentsBoundClassFilter",
     "ParentsBoundFacetFilter",
     "ParentsBoundOrganisationUnitFilter",
+    "PersonCreate",
+    "PersonCreateEmployeeCreate",
+    "PersonUpdate",
+    "PersonUpdateEmployeeUpdate",
     "RAOpenValidityInput",
     "RAValidityInput",
     "ReadAddressRelationUuids",
@@ -887,10 +891,6 @@ __all__ = [
     "TestingOrgUnitReadOrgUnitsObjectsValiditiesValidity",
     "TestingRolebindingCreate",
     "TestingRolebindingCreateRolebindingCreate",
-    "UserCreate",
-    "UserCreateEmployeeCreate",
-    "UserUpdate",
-    "UserUpdateEmployeeUpdate",
     "UuidsBoundClassFilter",
     "UuidsBoundEmployeeFilter",
     "UuidsBoundEngagementFilter",

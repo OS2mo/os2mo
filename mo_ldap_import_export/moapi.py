@@ -614,7 +614,7 @@ class MOAPI:
         )
 
     async def create_employee(self, obj: Employee) -> None:
-        await self.graphql_client.user_create(
+        await self.graphql_client.person_create(
             input=EmployeeCreateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,

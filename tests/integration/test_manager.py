@@ -100,7 +100,7 @@ async def test_write_manager_to_ldap(
             validity={"from": "2000-01-01T00:00:00Z"},
         )
     )
-    manager_person = await graphql_client.user_create(
+    manager_person = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name="Boss",
             surname="Supervisor",

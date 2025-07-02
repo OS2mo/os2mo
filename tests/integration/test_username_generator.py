@@ -438,7 +438,7 @@ async def test_generate_username_with_forbidden_usernames(
     context: Context,
     expected: str,
 ) -> None:
-    mo_person = await graphql_client.user_create(
+    mo_person = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name="Diego", surname="Ckarke", cpr_number="0101700000"
         )
@@ -497,7 +497,7 @@ async def test_generate_username_expected_usernames(
     expected: str,
 ) -> None:
     *given_names, surname = names
-    mo_person = await graphql_client.user_create(
+    mo_person = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name=" ".join(given_names), surname=surname, cpr_number="0101700000"
         )
@@ -592,7 +592,7 @@ async def test_generate_username_reuses_mo_usernames(
     if own_reserve:
         reserve_uuids.add(mo_person)
     if other_reserve:
-        other_mo_person = await graphql_client.user_create(
+        other_mo_person = await graphql_client.person_create(
             input=EmployeeCreateInput(
                 cpr_number="0101700000", given_name="Other", surname="Person"
             )

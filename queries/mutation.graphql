@@ -121,13 +121,13 @@ mutation org_unit_terminate($input: OrganisationUnitTerminateInput!) {
 
 
 # User
-mutation user_create($input: EmployeeCreateInput!) {
+mutation person_create($input: EmployeeCreateInput!) {
   employee_create(input: $input) {
     uuid
   }
 }
 
-mutation user_update($input: EmployeeUpdateInput!) {
+mutation person_update($input: EmployeeUpdateInput!) {
   employee_update(input: $input) {
     uuid
   }

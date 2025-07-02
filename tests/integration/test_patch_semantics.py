@@ -73,7 +73,7 @@ async def test_employee_patch_semantics(
     # Update MO with a new name and nickname
     # Name is owned by LDAP and as such should be overwritten while nickname should not
     cpr = "2108613133"
-    await graphql_client.user_update(
+    await graphql_client.person_update(
         input=EmployeeUpdateInput(
             uuid=mo_person,
             validity={"from": "2011-12-13T14:15:16Z"},

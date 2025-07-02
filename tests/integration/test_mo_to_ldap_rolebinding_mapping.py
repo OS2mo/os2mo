@@ -185,7 +185,7 @@ async def test_rolebinding_sync(
 
     # Create Alvida
     alvida_cpr = "0101701234"
-    alvida = await graphql_client.user_create(
+    alvida = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name="Alvida",
             surname="Niba",
@@ -211,7 +211,7 @@ async def test_rolebinding_sync(
 
     # Create Eline
     eline_cpr = "0910854828"
-    eline = await graphql_client.user_create(
+    eline = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name="Eline",
             surname="Wedsgaard Christensen",
@@ -237,7 +237,7 @@ async def test_rolebinding_sync(
 
     # Create bruce
     bruce_cpr = "2711400213"
-    bruce = await graphql_client.user_create(
+    bruce = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name="Bruce",
             surname="Lee",
@@ -255,7 +255,7 @@ async def test_rolebinding_sync(
 
     # Create magnus
     magnus_cpr = "0708850225"
-    magnus = await graphql_client.user_create(
+    magnus = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name="Magnus",
             surname="Andersen",

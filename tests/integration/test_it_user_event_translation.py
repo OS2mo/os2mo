@@ -136,7 +136,7 @@ async def test_ituser2person_change_person(
 ) -> None:
     graphql_client.employee_refresh = AsyncMock()  # type: ignore
 
-    person1 = await graphql_client.user_create(
+    person1 = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name="Aage",
             surname="Aagaard",
@@ -144,7 +144,7 @@ async def test_ituser2person_change_person(
         )
     )
 
-    person2 = await graphql_client.user_create(
+    person2 = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name="Betina",
             surname="Bundgaard",

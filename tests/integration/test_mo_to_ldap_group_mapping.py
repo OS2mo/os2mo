@@ -134,7 +134,7 @@ async def test_group_sync(
 
     # Create an additional user with an ituser in our it-system
     cpr_number = "0101700000"
-    mo_employee = await graphql_client.user_create(
+    mo_employee = await graphql_client.person_create(
         input=EmployeeCreateInput(
             cpr_number=cpr_number,
             given_name="Brittany",

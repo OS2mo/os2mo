@@ -64,7 +64,7 @@ async def test_to_ldap(
     ldap_api: LDAPAPI,
 ) -> None:
     mo_person_cpr_number = "0101700000"
-    mo_person = await graphql_client.user_create(
+    mo_person = await graphql_client.person_create(
         input=EmployeeCreateInput(
             cpr_number=mo_person_cpr_number,
             given_name="Kaelani",

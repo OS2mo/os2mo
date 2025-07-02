@@ -241,7 +241,7 @@ async def test_get_manager_person_uuid_current_engagement_past_manager(
 ) -> None:
     engagement_uuid = await create_engagement(datetime(2000, 1, 1), None)
 
-    manager_person = await graphql_client.user_create(
+    manager_person = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name="Boss",
             surname="Supervisor",
@@ -276,7 +276,7 @@ async def test_get_manager_person_uuid_current_engagement_future_manager(
     create_manager: CreateManager,
 ) -> None:
     engagement_uuid = await create_engagement(datetime(2000, 1, 1), None)
-    manager_person = await graphql_client.user_create(
+    manager_person = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name="Boss",
             surname="Supervisor",
@@ -309,7 +309,7 @@ async def test_get_manager_person_uuid_current_engagement_current_manager(
     create_manager: CreateManager,
 ) -> None:
     engagement_uuid = await create_engagement(datetime(2000, 1, 1), None)
-    manager_person = await graphql_client.user_create(
+    manager_person = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name="Boss",
             surname="Supervisor",
@@ -338,7 +338,7 @@ async def test_get_manager_person_uuid_current_engagement_current_manager_filter
     create_manager: CreateManager,
 ) -> None:
     engagement_uuid = await create_engagement(datetime(2000, 1, 1), None)
-    manager_person = await graphql_client.user_create(
+    manager_person = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name="Boss",
             surname="Supervisor",

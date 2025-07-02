@@ -59,7 +59,7 @@ async def test_process_person(
         sync_tool_mock.listen_to_changes_in_employees.assert_called_with(person_uuid)
 
     # Create a person and verify that it ends up calling listen_to_changes_in_employees
-    person_result = await graphql_client.user_create(
+    person_result = await graphql_client.person_create(
         input=EmployeeCreateInput(given_name="John", surname="Hansen")
     )
     person_uuid = person_result.uuid
@@ -162,7 +162,7 @@ async def test_endpoint_mo2ldap_templating(
     surname = "Hansen"
     cpr_number = "0101700000"
     # Create a person
-    person_result = await graphql_client.user_create(
+    person_result = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name=given_name,
             surname=surname,
@@ -193,7 +193,7 @@ async def test_create_ldap_person(
     surname = "Hansen"
     cpr_number = "0101700000"
     # Create a person
-    person_result = await graphql_client.user_create(
+    person_result = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name=given_name,
             surname=surname,
@@ -254,7 +254,7 @@ async def test_create_ldap_person_blocked_by_itsystem_check(
     )
 
     # Create a person
-    person_result = await graphql_client.user_create(
+    person_result = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name=given_name,
             surname=surname,
