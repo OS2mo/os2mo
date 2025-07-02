@@ -740,6 +740,7 @@ def construct_globals_dict(
         "create_mo_it_user": partial(create_mo_it_user, moapi),
         "generate_username": partial(generate_username, dataloader),
         "generate_common_name": partial(generate_common_name, dataloader),
+        "generate_dn": dataloader.make_mo_employee_dn,
         "get_person_uuid": partial(get_person_uuid, graphql_client),
         "get_address_uuid": partial(get_address_uuid, graphql_client),
         "get_ituser_uuids": partial(get_ituser_uuids, graphql_client),
