@@ -577,34 +577,6 @@ query read_class_name_by_class_uuid($class_uuid: UUID!) {
   }
 }
 
-mutation org_unit_engagements_refresh(
-  $exchange: String!
-  $org_unit_uuid: UUID!
-) {
-  engagement_refresh(
-    exchange: $exchange
-    filter: {
-      org_unit: { uuids: [$org_unit_uuid] }
-      from_date: null
-      to_date: null
-    }
-  ) {
-    objects
-  }
-}
-
-mutation employee_refresh($exchange: String!, $uuids: [UUID!]!) {
-  employee_refresh(exchange: $exchange, filter: { uuids: $uuids }) {
-    objects
-  }
-}
-
-mutation org_unit_refresh($exchange: String!, $uuids: [UUID!]!) {
-  org_unit_refresh(exchange: $exchange, filter: { uuids: $uuids }) {
-    objects
-  }
-}
-
 query read_addresses(
   $uuids: [UUID!]!
   $from_date: DateTime
