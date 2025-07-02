@@ -99,7 +99,7 @@ async def test_no_changing_car_license(
     assert ldap_object.sn == ["Bach Klarskov"]
 
     # Change the persons surname
-    await graphql_client.person_update(
+    await graphql_client._testing__person_update(
         EmployeeUpdateInput(
             uuid=mo_person, surname="New Surname", validity={"from": mo_today()}
         )

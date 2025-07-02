@@ -126,9 +126,3 @@ mutation person_create($input: EmployeeCreateInput!) {
     uuid
   }
 }
-
-mutation person_update($input: EmployeeUpdateInput!) {
-  employee_update(input: $input) {
-    uuid
-  }
-}

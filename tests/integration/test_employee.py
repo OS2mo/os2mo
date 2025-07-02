@@ -197,7 +197,7 @@ async def test_to_ldap(
     )
 
     # MO: Edit
-    await graphql_client.person_update(
+    await graphql_client._testing__person_update(
         input=EmployeeUpdateInput(
             uuid=mo_employee.uuid,
             given_name="update",
@@ -540,7 +540,7 @@ async def test_generate_common_name(
 
     # Change the persons name, then trigger a sync again, updating the user in LDAP
     # This should change the common name to the new name
-    await graphql_client.person_update(
+    await graphql_client._testing__person_update(
         EmployeeUpdateInput(
             uuid=mo_person, surname="Klareng", validity={"from": mo_today()}
         )

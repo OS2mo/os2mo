@@ -194,3 +194,9 @@ mutation __testing__rolebinding_create($input: RoleBindingCreateInput!) {
     uuid
   }
 }
+
+mutation __testing__person_update($input: EmployeeUpdateInput!) {
+  employee_update(input: $input) {
+    uuid
+  }
+}

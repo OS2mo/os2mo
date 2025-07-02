@@ -75,6 +75,8 @@ from ._testing__org_unit_read import TestingOrgUnitReadOrgUnitsObjectsValidities
 from ._testing__org_unit_read import TestingOrgUnitReadOrgUnitsObjectsValiditiesParent
 from ._testing__org_unit_read import TestingOrgUnitReadOrgUnitsObjectsValiditiesUnitType
 from ._testing__org_unit_read import TestingOrgUnitReadOrgUnitsObjectsValiditiesValidity
+from ._testing__person_update import TestingPersonUpdate
+from ._testing__person_update import TestingPersonUpdateEmployeeUpdate
 from ._testing__rolebinding_create import TestingRolebindingCreate
 from ._testing__rolebinding_create import TestingRolebindingCreateRolebindingCreate
 from .address_create import AddressCreate
@@ -261,8 +263,6 @@ from .org_unit_update import OrgUnitUpdate
 from .org_unit_update import OrgUnitUpdateOrgUnitUpdate
 from .person_create import PersonCreate
 from .person_create import PersonCreateEmployeeCreate
-from .person_update import PersonUpdate
-from .person_update import PersonUpdateEmployeeUpdate
 from .read_address_relation_uuids import ReadAddressRelationUuids
 from .read_address_relation_uuids import ReadAddressRelationUuidsAddresses
 from .read_address_relation_uuids import ReadAddressRelationUuidsAddressesObjects
@@ -653,8 +653,6 @@ __all__ = [
     "ParentsBoundOrganisationUnitFilter",
     "PersonCreate",
     "PersonCreateEmployeeCreate",
-    "PersonUpdate",
-    "PersonUpdateEmployeeUpdate",
     "RAOpenValidityInput",
     "RAValidityInput",
     "ReadAddressRelationUuids",
@@ -889,6 +887,8 @@ __all__ = [
     "TestingOrgUnitReadOrgUnitsObjectsValiditiesParent",
     "TestingOrgUnitReadOrgUnitsObjectsValiditiesUnitType",
     "TestingOrgUnitReadOrgUnitsObjectsValiditiesValidity",
+    "TestingPersonUpdate",
+    "TestingPersonUpdateEmployeeUpdate",
     "TestingRolebindingCreate",
     "TestingRolebindingCreateRolebindingCreate",
     "UuidsBoundClassFilter",
