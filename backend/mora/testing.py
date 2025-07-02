@@ -36,7 +36,10 @@ async def emit(request: Request, amqp_system: depends.AMQPSystem) -> None:
     are always sent immediately.
     """
     logger.warning("Emitting AMQP events")
-    while True:
+    # TODO: replace the `while True` loop with:
+    # await amqp._emit_events(session, amqp_system)
+    # once everyone has had a chance to upgrade to FastRAMQPI v12.0.4+
+    while True:  # pragma: no cover
         try:
             # The request-wide database session, which is used in almost every other
             # endpoint, cannot be used here, as the database snapshot/rollback

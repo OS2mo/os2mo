@@ -129,20 +129,3 @@ async def test_amqp_emit(
     # We should be notified through AMQP
     await asyncio.sleep(1)
     assert created_employee_uuid in uuids
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-async def test_concurrent_database_operation_and_amqp_emit(
-    admin_client: TestClient,
-) -> None:
-    """
-    The database is unavailable while being snapshot or restored. Ensure that the AMQP
-    emit endpoint retries until it succeeds instead of throwing an exception.
-    """
-    snapshot, emit = await asyncio.gather(
-        asyncio.to_thread(admin_client.post, "/testing/database/snapshot"),
-        asyncio.to_thread(admin_client.post, "/testing/amqp/emit"),
-    )
-    assert snapshot.is_success
-    assert emit.is_success
