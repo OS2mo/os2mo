@@ -42,8 +42,6 @@ from .class_terminate import ClassTerminate
 from .class_terminate import ClassTerminateClassTerminate
 from .class_update import ClassUpdate
 from .class_update import ClassUpdateClassUpdate
-from .employee_refresh import EmployeeRefresh
-from .employee_refresh import EmployeeRefreshEmployeeRefresh
 from .engagement_create import EngagementCreate
 from .engagement_create import EngagementCreateEngagementCreate
 from .engagement_terminate import EngagementTerminate
@@ -106,6 +104,8 @@ from .org_unit_update import OrgUnitUpdate
 from .org_unit_update import OrgUnitUpdateOrgUnitUpdate
 from .person_create import PersonCreate
 from .person_create import PersonCreateEmployeeCreate
+from .person_refresh import PersonRefresh
+from .person_refresh import PersonRefreshEmployeeRefresh
 from .read_address_relation_uuids import ReadAddressRelationUuids
 from .read_address_relation_uuids import ReadAddressRelationUuidsAddresses
 from .read_address_uuid import ReadAddressUuid
@@ -1505,23 +1505,6 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ReadRolebindings.parse_obj(data).rolebindings
 
-    async def employee_refresh(
-        self, exchange: str, uuids: list[UUID]
-    ) -> EmployeeRefreshEmployeeRefresh:
-        query = gql(
-            """
-            mutation employee_refresh($exchange: String!, $uuids: [UUID!]!) {
-              employee_refresh(exchange: $exchange, filter: {uuids: $uuids}) {
-                objects
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"exchange": exchange, "uuids": uuids}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return EmployeeRefresh.parse_obj(data).employee_refresh
-
     async def org_unit_refresh(
         self, exchange: str, uuids: list[UUID]
     ) -> OrgUnitRefreshOrgUnitRefresh:
@@ -1538,6 +1521,23 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return OrgUnitRefresh.parse_obj(data).org_unit_refresh
+
+    async def person_refresh(
+        self, exchange: str, uuids: list[UUID]
+    ) -> PersonRefreshEmployeeRefresh:
+        query = gql(
+            """
+            mutation person_refresh($exchange: String!, $uuids: [UUID!]!) {
+              employee_refresh(exchange: $exchange, filter: {uuids: $uuids}) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"exchange": exchange, "uuids": uuids}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return PersonRefresh.parse_obj(data).employee_refresh
 
     async def org_unit_engagements_refresh(
         self, exchange: str, org_unit_uuid: UUID

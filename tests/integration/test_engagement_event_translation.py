@@ -48,7 +48,7 @@ async def test_engagement2person(
     start: datetime | None,
     end: datetime | None,
 ) -> None:
-    graphql_client.employee_refresh = AsyncMock()  # type: ignore
+    graphql_client.person_refresh = AsyncMock()  # type: ignore
 
     engagement = await graphql_client.engagement_create(
         input=EngagementCreateInput(
@@ -70,9 +70,7 @@ async def test_engagement2person(
     result.raise_for_status()
 
     # Check that we send the event to MO
-    graphql_client.employee_refresh.assert_awaited_once_with(
-        "os2mo_ldap_ie", [mo_person]
-    )
+    graphql_client.person_refresh.assert_awaited_once_with("os2mo_ldap_ie", [mo_person])
 
 
 @pytest.mark.integration_test
@@ -91,7 +89,7 @@ async def test_engagement2person_between(
     jurist: UUID,
     primary: UUID,
 ) -> None:
-    graphql_client.employee_refresh = AsyncMock()  # type: ignore
+    graphql_client.person_refresh = AsyncMock()  # type: ignore
 
     engagement = await graphql_client.engagement_create(
         input=EngagementCreateInput(
@@ -120,9 +118,7 @@ async def test_engagement2person_between(
     result.raise_for_status()
 
     # Check that we send the event to MO
-    graphql_client.employee_refresh.assert_awaited_once_with(
-        "os2mo_ldap_ie", [mo_person]
-    )
+    graphql_client.person_refresh.assert_awaited_once_with("os2mo_ldap_ie", [mo_person])
 
 
 @pytest.mark.integration_test
@@ -143,7 +139,7 @@ async def test_engagement2person_change_person(
     jurist: UUID,
     primary: UUID,
 ) -> None:
-    graphql_client.employee_refresh = AsyncMock()  # type: ignore
+    graphql_client.person_refresh = AsyncMock()  # type: ignore
 
     person1 = await graphql_client.person_create(
         input=EmployeeCreateInput(
@@ -188,7 +184,7 @@ async def test_engagement2person_change_person(
     result.raise_for_status()
 
     # Check that we send the event to MO
-    args = one(graphql_client.employee_refresh.call_args_list).args
+    args = one(graphql_client.person_refresh.call_args_list).args
     exchange, uuids = args
     assert exchange == "os2mo_ldap_ie"
     assert set(uuids) == {person1.uuid, person2.uuid}

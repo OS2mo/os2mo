@@ -94,8 +94,6 @@ from .class_terminate import ClassTerminateClassTerminate
 from .class_update import ClassUpdate
 from .class_update import ClassUpdateClassUpdate
 from .client import GraphQLClient
-from .employee_refresh import EmployeeRefresh
-from .employee_refresh import EmployeeRefreshEmployeeRefresh
 from .engagement_create import EngagementCreate
 from .engagement_create import EngagementCreateEngagementCreate
 from .engagement_terminate import EngagementTerminate
@@ -263,6 +261,8 @@ from .org_unit_update import OrgUnitUpdate
 from .org_unit_update import OrgUnitUpdateOrgUnitUpdate
 from .person_create import PersonCreate
 from .person_create import PersonCreateEmployeeCreate
+from .person_refresh import PersonRefresh
+from .person_refresh import PersonRefreshEmployeeRefresh
 from .read_address_relation_uuids import ReadAddressRelationUuids
 from .read_address_relation_uuids import ReadAddressRelationUuidsAddresses
 from .read_address_relation_uuids import ReadAddressRelationUuidsAddressesObjects
@@ -524,8 +524,6 @@ __all__ = [
     "DescendantParentBoundOrganisationUnitFilter",
     "EmployeeCreateInput",
     "EmployeeFilter",
-    "EmployeeRefresh",
-    "EmployeeRefreshEmployeeRefresh",
     "EmployeeRegistrationFilter",
     "EmployeeTerminateInput",
     "EmployeeUpdateInput",
@@ -653,6 +651,8 @@ __all__ = [
     "ParentsBoundOrganisationUnitFilter",
     "PersonCreate",
     "PersonCreateEmployeeCreate",
+    "PersonRefresh",
+    "PersonRefreshEmployeeRefresh",
     "RAOpenValidityInput",
     "RAValidityInput",
     "ReadAddressRelationUuids",

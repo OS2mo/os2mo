@@ -69,7 +69,7 @@ async def test_process_person(
     sync_tool_mock.reset_mock()
 
     # Create an ITUser and verify that it ends up calling listen_to_changes_in_employees
-    # In this case it does it by first emitting a employee_refresh event
+    # In this case it does it by first emitting a person_refresh event
 
     itsystem_result = await graphql_client._testing__itsystem_create(
         ITSystemCreateInput(

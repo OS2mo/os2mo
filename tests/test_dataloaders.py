@@ -635,8 +635,8 @@ async def test_make_mo_employee_dn_no_itsystem(
         }
     }
 
-    route2 = graphql_mock.query("employee_refresh")
-    route2.result = {"employee_refresh": {"objects": [employee_uuid]}}
+    route2 = graphql_mock.query("person_refresh")
+    route2.result = {"person_refresh": {"objects": [employee_uuid]}}
 
     route3 = graphql_mock.query("read_itsystem_uuid")
     route3.result = {"itsystems": {"objects": []}}
@@ -686,8 +686,8 @@ async def test_make_mo_employee_dn_no_cpr(
         }
     }
 
-    route2 = graphql_mock.query("employee_refresh")
-    route2.result = {"employee_refresh": {"objects": [employee_uuid]}}
+    route2 = graphql_mock.query("person_refresh")
+    route2.result = {"person_refresh": {"objects": [employee_uuid]}}
 
     itsystem_uuid = uuid4()
     route3 = graphql_mock.query("read_itsystem_uuid")
