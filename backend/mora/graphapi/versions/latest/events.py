@@ -414,11 +414,14 @@ async def event_resolver(
             db.Event.last_tried
             < func.now()
             - func.greatest(
+                func.make_interval(mins=3),
                 func.least(
-                    func.make_interval(secs=func.power(2, db.Event.fetched_count)),
+                    func.make_interval(
+                        # Clamp to avoid integer overflow
+                        secs=func.power(2, func.least(db.Event.fetched_count, 32))
+                    ),
                     func.make_interval(days=1),
                 ),
-                func.make_interval(mins=3),
             ),
         )
         .order_by(db.Event.priority.asc(), db.Event.fetched_count.asc())
