@@ -29,25 +29,35 @@ from ._testing__rolebinding_create import TestingRolebindingCreate
 from ._testing__rolebinding_create import TestingRolebindingCreateRolebindingCreate
 from .address_create import AddressCreate
 from .address_create import AddressCreateAddressCreate
+from .address_refresh import AddressRefresh
+from .address_refresh import AddressRefreshAddressRefresh
 from .address_terminate import AddressTerminate
 from .address_terminate import AddressTerminateAddressTerminate
 from .address_update import AddressUpdate
 from .address_update import AddressUpdateAddressUpdate
+from .association_refresh import AssociationRefresh
+from .association_refresh import AssociationRefreshAssociationRefresh
 from .async_base_client import AsyncBaseClient
 from .base_model import UNSET
 from .base_model import UnsetType
 from .class_create import ClassCreate
 from .class_create import ClassCreateClassCreate
+from .class_refresh import ClassRefresh
+from .class_refresh import ClassRefreshClassRefresh
 from .class_terminate import ClassTerminate
 from .class_terminate import ClassTerminateClassTerminate
 from .class_update import ClassUpdate
 from .class_update import ClassUpdateClassUpdate
 from .engagement_create import EngagementCreate
 from .engagement_create import EngagementCreateEngagementCreate
+from .engagement_refresh import EngagementRefresh
+from .engagement_refresh import EngagementRefreshEngagementRefresh
 from .engagement_terminate import EngagementTerminate
 from .engagement_terminate import EngagementTerminateEngagementTerminate
 from .engagement_update import EngagementUpdate
 from .engagement_update import EngagementUpdateEngagementUpdate
+from .facet_refresh import FacetRefresh
+from .facet_refresh import FacetRefreshFacetRefresh
 from .input_types import AddressCreateInput
 from .input_types import AddressFilter
 from .input_types import AddressTerminateInput
@@ -82,16 +92,26 @@ from .input_types import RoleBindingCreateInput
 from .input_types import RoleBindingFilter
 from .itsystem_create import ItsystemCreate
 from .itsystem_create import ItsystemCreateItsystemCreate
+from .itsystem_refresh import ItsystemRefresh
+from .itsystem_refresh import ItsystemRefreshItsystemRefresh
 from .itsystem_terminate import ItsystemTerminate
 from .itsystem_terminate import ItsystemTerminateItsystemTerminate
 from .itsystem_update import ItsystemUpdate
 from .itsystem_update import ItsystemUpdateItsystemUpdate
 from .ituser_create import ItuserCreate
 from .ituser_create import ItuserCreateItuserCreate
+from .ituser_refresh import ItuserRefresh
+from .ituser_refresh import ItuserRefreshItuserRefresh
 from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .ituser_update import ItuserUpdate
 from .ituser_update import ItuserUpdateItuserUpdate
+from .kle_refresh import KleRefresh
+from .kle_refresh import KleRefreshKleRefresh
+from .leave_refresh import LeaveRefresh
+from .leave_refresh import LeaveRefreshLeaveRefresh
+from .manager_refresh import ManagerRefresh
+from .manager_refresh import ManagerRefreshManagerRefresh
 from .org_unit_create import OrgUnitCreate
 from .org_unit_create import OrgUnitCreateOrgUnitCreate
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
@@ -102,6 +122,8 @@ from .org_unit_terminate import OrgUnitTerminate
 from .org_unit_terminate import OrgUnitTerminateOrgUnitTerminate
 from .org_unit_update import OrgUnitUpdate
 from .org_unit_update import OrgUnitUpdateOrgUnitUpdate
+from .owner_refresh import OwnerRefresh
+from .owner_refresh import OwnerRefreshOwnerRefresh
 from .person_create import PersonCreate
 from .person_create import PersonCreateEmployeeCreate
 from .person_refresh import PersonRefresh
@@ -194,6 +216,10 @@ from .read_person_uuid import ReadPersonUuid
 from .read_person_uuid import ReadPersonUuidEmployees
 from .read_rolebindings import ReadRolebindings
 from .read_rolebindings import ReadRolebindingsRolebindings
+from .related_unit_refresh import RelatedUnitRefresh
+from .related_unit_refresh import RelatedUnitRefreshRelatedUnitRefresh
+from .rolebinding_refresh import RolebindingRefresh
+from .rolebinding_refresh import RolebindingRefreshRolebindingRefresh
 from .set_job_title import SetJobTitle
 from .set_job_title import SetJobTitleEngagementUpdate
 
@@ -1505,6 +1531,246 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ReadRolebindings.parse_obj(data).rolebindings
 
+    async def address_refresh(
+        self,
+        uuids: list[UUID],
+        exchange: str | None | UnsetType = UNSET,
+        owner: UUID | None | UnsetType = UNSET,
+    ) -> AddressRefreshAddressRefresh:
+        query = gql(
+            """
+            mutation address_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+              address_refresh(exchange: $exchange, owner: $owner, filter: {uuids: $uuids}) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "owner": owner,
+            "uuids": uuids,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return AddressRefresh.parse_obj(data).address_refresh
+
+    async def association_refresh(
+        self,
+        uuids: list[UUID],
+        exchange: str | None | UnsetType = UNSET,
+        owner: UUID | None | UnsetType = UNSET,
+    ) -> AssociationRefreshAssociationRefresh:
+        query = gql(
+            """
+            mutation association_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+              association_refresh(exchange: $exchange, owner: $owner, filter: {uuids: $uuids}) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "owner": owner,
+            "uuids": uuids,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return AssociationRefresh.parse_obj(data).association_refresh
+
+    async def class_refresh(
+        self,
+        uuids: list[UUID],
+        exchange: str | None | UnsetType = UNSET,
+        owner: UUID | None | UnsetType = UNSET,
+    ) -> ClassRefreshClassRefresh:
+        query = gql(
+            """
+            mutation class_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+              class_refresh(exchange: $exchange, owner: $owner, filter: {uuids: $uuids}) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "owner": owner,
+            "uuids": uuids,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ClassRefresh.parse_obj(data).class_refresh
+
+    async def engagement_refresh(
+        self,
+        uuids: list[UUID],
+        exchange: str | None | UnsetType = UNSET,
+        owner: UUID | None | UnsetType = UNSET,
+    ) -> EngagementRefreshEngagementRefresh:
+        query = gql(
+            """
+            mutation engagement_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+              engagement_refresh(exchange: $exchange, owner: $owner, filter: {uuids: $uuids}) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "owner": owner,
+            "uuids": uuids,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return EngagementRefresh.parse_obj(data).engagement_refresh
+
+    async def facet_refresh(
+        self,
+        uuids: list[UUID],
+        exchange: str | None | UnsetType = UNSET,
+        owner: UUID | None | UnsetType = UNSET,
+    ) -> FacetRefreshFacetRefresh:
+        query = gql(
+            """
+            mutation facet_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+              facet_refresh(exchange: $exchange, owner: $owner, filter: {uuids: $uuids}) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "owner": owner,
+            "uuids": uuids,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return FacetRefresh.parse_obj(data).facet_refresh
+
+    async def itsystem_refresh(
+        self,
+        uuids: list[UUID],
+        exchange: str | None | UnsetType = UNSET,
+        owner: UUID | None | UnsetType = UNSET,
+    ) -> ItsystemRefreshItsystemRefresh:
+        query = gql(
+            """
+            mutation itsystem_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+              itsystem_refresh(exchange: $exchange, owner: $owner, filter: {uuids: $uuids}) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "owner": owner,
+            "uuids": uuids,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ItsystemRefresh.parse_obj(data).itsystem_refresh
+
+    async def ituser_refresh(
+        self,
+        uuids: list[UUID],
+        exchange: str | None | UnsetType = UNSET,
+        owner: UUID | None | UnsetType = UNSET,
+    ) -> ItuserRefreshItuserRefresh:
+        query = gql(
+            """
+            mutation ituser_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+              ituser_refresh(exchange: $exchange, owner: $owner, filter: {uuids: $uuids}) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "owner": owner,
+            "uuids": uuids,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ItuserRefresh.parse_obj(data).ituser_refresh
+
+    async def kle_refresh(
+        self,
+        uuids: list[UUID],
+        exchange: str | None | UnsetType = UNSET,
+        owner: UUID | None | UnsetType = UNSET,
+    ) -> KleRefreshKleRefresh:
+        query = gql(
+            """
+            mutation kle_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+              kle_refresh(exchange: $exchange, owner: $owner, filter: {uuids: $uuids}) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "owner": owner,
+            "uuids": uuids,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return KleRefresh.parse_obj(data).kle_refresh
+
+    async def leave_refresh(
+        self,
+        uuids: list[UUID],
+        exchange: str | None | UnsetType = UNSET,
+        owner: UUID | None | UnsetType = UNSET,
+    ) -> LeaveRefreshLeaveRefresh:
+        query = gql(
+            """
+            mutation leave_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+              leave_refresh(exchange: $exchange, owner: $owner, filter: {uuids: $uuids}) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "owner": owner,
+            "uuids": uuids,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return LeaveRefresh.parse_obj(data).leave_refresh
+
+    async def manager_refresh(
+        self,
+        uuids: list[UUID],
+        exchange: str | None | UnsetType = UNSET,
+        owner: UUID | None | UnsetType = UNSET,
+    ) -> ManagerRefreshManagerRefresh:
+        query = gql(
+            """
+            mutation manager_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+              manager_refresh(exchange: $exchange, owner: $owner, filter: {uuids: $uuids}) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "owner": owner,
+            "uuids": uuids,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ManagerRefresh.parse_obj(data).manager_refresh
+
     async def org_unit_refresh(
         self,
         uuids: list[UUID],
@@ -1529,6 +1795,30 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return OrgUnitRefresh.parse_obj(data).org_unit_refresh
 
+    async def owner_refresh(
+        self,
+        uuids: list[UUID],
+        exchange: str | None | UnsetType = UNSET,
+        owner: UUID | None | UnsetType = UNSET,
+    ) -> OwnerRefreshOwnerRefresh:
+        query = gql(
+            """
+            mutation owner_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+              owner_refresh(exchange: $exchange, owner: $owner, filter: {uuids: $uuids}) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "owner": owner,
+            "uuids": uuids,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return OwnerRefresh.parse_obj(data).owner_refresh
+
     async def person_refresh(
         self,
         uuids: list[UUID],
@@ -1552,6 +1842,58 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return PersonRefresh.parse_obj(data).employee_refresh
+
+    async def related_unit_refresh(
+        self,
+        uuids: list[UUID],
+        exchange: str | None | UnsetType = UNSET,
+        owner: UUID | None | UnsetType = UNSET,
+    ) -> RelatedUnitRefreshRelatedUnitRefresh:
+        query = gql(
+            """
+            mutation related_unit_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+              related_unit_refresh(
+                exchange: $exchange
+                owner: $owner
+                filter: {uuids: $uuids}
+              ) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "owner": owner,
+            "uuids": uuids,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return RelatedUnitRefresh.parse_obj(data).related_unit_refresh
+
+    async def rolebinding_refresh(
+        self,
+        uuids: list[UUID],
+        exchange: str | None | UnsetType = UNSET,
+        owner: UUID | None | UnsetType = UNSET,
+    ) -> RolebindingRefreshRolebindingRefresh:
+        query = gql(
+            """
+            mutation rolebinding_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+              rolebinding_refresh(exchange: $exchange, owner: $owner, filter: {uuids: $uuids}) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "owner": owner,
+            "uuids": uuids,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return RolebindingRefresh.parse_obj(data).rolebinding_refresh
 
     async def org_unit_engagements_refresh(
         self, exchange: str, org_unit_uuid: UUID
