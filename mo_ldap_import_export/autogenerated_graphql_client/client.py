@@ -203,319 +203,6 @@ def gql(q: str) -> str:
 
 
 class GraphQLClient(AsyncBaseClient):
-    async def _testing__event_namespaces(self) -> TestingEventNamespacesEventNamespaces:
-        query = gql(
-            """
-            query __testing__event_namespaces {
-              event_namespaces {
-                objects {
-                  name
-                  owner
-                  public
-                  listeners {
-                    owner
-                    routing_key
-                    user_key
-                    uuid
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingEventNamespaces.parse_obj(data).event_namespaces
-
-    async def _testing__address_read(
-        self, filter: AddressFilter | None | UnsetType = UNSET
-    ) -> TestingAddressReadAddresses:
-        query = gql(
-            """
-            query __testing__address_read($filter: AddressFilter) {
-              addresses(filter: $filter) {
-                objects {
-                  validities {
-                    uuid
-                    user_key
-                    address_type {
-                      user_key
-                    }
-                    value
-                    value2
-                    person {
-                      uuid
-                    }
-                    visibility {
-                      user_key
-                    }
-                    validity {
-                      from
-                      to
-                    }
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"filter": filter}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingAddressRead.parse_obj(data).addresses
-
-    async def _testing__class_read(
-        self, filter: ClassFilter | None | UnsetType = UNSET
-    ) -> TestingClassReadClasses:
-        query = gql(
-            """
-            query __testing__class_read($filter: ClassFilter) {
-              classes(filter: $filter) {
-                objects {
-                  validities {
-                    uuid
-                    user_key
-                    name
-                    scope
-                    owner
-                    published
-                    facet {
-                      uuid
-                    }
-                    parent {
-                      uuid
-                    }
-                    it_system {
-                      uuid
-                    }
-                    validity {
-                      from
-                      to
-                    }
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"filter": filter}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingClassRead.parse_obj(data).classes
-
-    async def _testing__engagement_read(
-        self, filter: EngagementFilter | None | UnsetType = UNSET
-    ) -> TestingEngagementReadEngagements:
-        query = gql(
-            """
-            query __testing__engagement_read($filter: EngagementFilter) {
-              engagements(filter: $filter) {
-                objects {
-                  validities {
-                    uuid
-                    user_key
-                    person {
-                      uuid
-                    }
-                    org_unit {
-                      uuid
-                    }
-                    engagement_type {
-                      user_key
-                    }
-                    job_function {
-                      user_key
-                    }
-                    primary {
-                      user_key
-                    }
-                    extension_1
-                    validity {
-                      from
-                      to
-                    }
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"filter": filter}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingEngagementRead.parse_obj(data).engagements
-
-    async def _testing__employee_read(
-        self, filter: EmployeeFilter | None | UnsetType = UNSET
-    ) -> TestingEmployeeReadEmployees:
-        query = gql(
-            """
-            query __testing__employee_read($filter: EmployeeFilter) {
-              employees(filter: $filter) {
-                objects {
-                  validities {
-                    uuid
-                    user_key
-                    cpr_number
-                    given_name
-                    surname
-                    nickname_given_name
-                    nickname_surname
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"filter": filter}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingEmployeeRead.parse_obj(data).employees
-
-    async def _testing__ituser_read(
-        self, filter: ITUserFilter | None | UnsetType = UNSET
-    ) -> TestingItuserReadItusers:
-        query = gql(
-            """
-            query __testing__ituser_read($filter: ITUserFilter) {
-              itusers(filter: $filter) {
-                objects {
-                  validities {
-                    uuid
-                    user_key
-                    itsystem {
-                      user_key
-                    }
-                    person {
-                      uuid
-                    }
-                    validity {
-                      from
-                      to
-                    }
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"filter": filter}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingItuserRead.parse_obj(data).itusers
-
-    async def _testing__itsystem_read(
-        self, filter: ITSystemFilter | None | UnsetType = UNSET
-    ) -> TestingItsystemReadItsystems:
-        query = gql(
-            """
-            query __testing__itsystem_read($filter: ITSystemFilter) {
-              itsystems(filter: $filter) {
-                objects {
-                  validities {
-                    uuid
-                    user_key
-                    name
-                    validity {
-                      from
-                      to
-                    }
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"filter": filter}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingItsystemRead.parse_obj(data).itsystems
-
-    async def _testing__org_unit_read(
-        self, filter: OrganisationUnitFilter | None | UnsetType = UNSET
-    ) -> TestingOrgUnitReadOrgUnits:
-        query = gql(
-            """
-            query __testing__org_unit_read($filter: OrganisationUnitFilter) {
-              org_units(filter: $filter) {
-                objects {
-                  validities {
-                    uuid
-                    user_key
-                    name
-                    parent {
-                      uuid
-                    }
-                    unit_type {
-                      user_key
-                    }
-                    validity {
-                      from
-                      to
-                    }
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"filter": filter}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingOrgUnitRead.parse_obj(data).org_units
-
-    async def _testing__itsystem_create(
-        self, input: ITSystemCreateInput
-    ) -> TestingItsystemCreateItsystemCreate:
-        query = gql(
-            """
-            mutation __testing__itsystem_create($input: ITSystemCreateInput!) {
-              itsystem_create(input: $input) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingItsystemCreate.parse_obj(data).itsystem_create
-
-    async def _testing__manager_create(
-        self, input: ManagerCreateInput
-    ) -> TestingManagerCreateManagerCreate:
-        query = gql(
-            """
-            mutation __testing__manager_create($input: ManagerCreateInput!) {
-              manager_create(input: $input) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingManagerCreate.parse_obj(data).manager_create
-
-    async def _testing__rolebinding_create(
-        self, input: RoleBindingCreateInput
-    ) -> TestingRolebindingCreateRolebindingCreate:
-        query = gql(
-            """
-            mutation __testing__rolebinding_create($input: RoleBindingCreateInput!) {
-              rolebinding_create(input: $input) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingRolebindingCreate.parse_obj(data).rolebinding_create
-
     async def address_create(
         self, input: AddressCreateInput
     ) -> AddressCreateAddressCreate:
@@ -1887,3 +1574,316 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return OrgUnitEngagementsRefresh.parse_obj(data).engagement_refresh
+
+    async def _testing__event_namespaces(self) -> TestingEventNamespacesEventNamespaces:
+        query = gql(
+            """
+            query __testing__event_namespaces {
+              event_namespaces {
+                objects {
+                  name
+                  owner
+                  public
+                  listeners {
+                    owner
+                    routing_key
+                    user_key
+                    uuid
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingEventNamespaces.parse_obj(data).event_namespaces
+
+    async def _testing__address_read(
+        self, filter: AddressFilter | None | UnsetType = UNSET
+    ) -> TestingAddressReadAddresses:
+        query = gql(
+            """
+            query __testing__address_read($filter: AddressFilter) {
+              addresses(filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    address_type {
+                      user_key
+                    }
+                    value
+                    value2
+                    person {
+                      uuid
+                    }
+                    visibility {
+                      user_key
+                    }
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingAddressRead.parse_obj(data).addresses
+
+    async def _testing__class_read(
+        self, filter: ClassFilter | None | UnsetType = UNSET
+    ) -> TestingClassReadClasses:
+        query = gql(
+            """
+            query __testing__class_read($filter: ClassFilter) {
+              classes(filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    name
+                    scope
+                    owner
+                    published
+                    facet {
+                      uuid
+                    }
+                    parent {
+                      uuid
+                    }
+                    it_system {
+                      uuid
+                    }
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingClassRead.parse_obj(data).classes
+
+    async def _testing__engagement_read(
+        self, filter: EngagementFilter | None | UnsetType = UNSET
+    ) -> TestingEngagementReadEngagements:
+        query = gql(
+            """
+            query __testing__engagement_read($filter: EngagementFilter) {
+              engagements(filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    person {
+                      uuid
+                    }
+                    org_unit {
+                      uuid
+                    }
+                    engagement_type {
+                      user_key
+                    }
+                    job_function {
+                      user_key
+                    }
+                    primary {
+                      user_key
+                    }
+                    extension_1
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingEngagementRead.parse_obj(data).engagements
+
+    async def _testing__employee_read(
+        self, filter: EmployeeFilter | None | UnsetType = UNSET
+    ) -> TestingEmployeeReadEmployees:
+        query = gql(
+            """
+            query __testing__employee_read($filter: EmployeeFilter) {
+              employees(filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    cpr_number
+                    given_name
+                    surname
+                    nickname_given_name
+                    nickname_surname
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingEmployeeRead.parse_obj(data).employees
+
+    async def _testing__ituser_read(
+        self, filter: ITUserFilter | None | UnsetType = UNSET
+    ) -> TestingItuserReadItusers:
+        query = gql(
+            """
+            query __testing__ituser_read($filter: ITUserFilter) {
+              itusers(filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    itsystem {
+                      user_key
+                    }
+                    person {
+                      uuid
+                    }
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingItuserRead.parse_obj(data).itusers
+
+    async def _testing__itsystem_read(
+        self, filter: ITSystemFilter | None | UnsetType = UNSET
+    ) -> TestingItsystemReadItsystems:
+        query = gql(
+            """
+            query __testing__itsystem_read($filter: ITSystemFilter) {
+              itsystems(filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    name
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingItsystemRead.parse_obj(data).itsystems
+
+    async def _testing__org_unit_read(
+        self, filter: OrganisationUnitFilter | None | UnsetType = UNSET
+    ) -> TestingOrgUnitReadOrgUnits:
+        query = gql(
+            """
+            query __testing__org_unit_read($filter: OrganisationUnitFilter) {
+              org_units(filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    name
+                    parent {
+                      uuid
+                    }
+                    unit_type {
+                      user_key
+                    }
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingOrgUnitRead.parse_obj(data).org_units
+
+    async def _testing__itsystem_create(
+        self, input: ITSystemCreateInput
+    ) -> TestingItsystemCreateItsystemCreate:
+        query = gql(
+            """
+            mutation __testing__itsystem_create($input: ITSystemCreateInput!) {
+              itsystem_create(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingItsystemCreate.parse_obj(data).itsystem_create
+
+    async def _testing__manager_create(
+        self, input: ManagerCreateInput
+    ) -> TestingManagerCreateManagerCreate:
+        query = gql(
+            """
+            mutation __testing__manager_create($input: ManagerCreateInput!) {
+              manager_create(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingManagerCreate.parse_obj(data).manager_create
+
+    async def _testing__rolebinding_create(
+        self, input: RoleBindingCreateInput
+    ) -> TestingRolebindingCreateRolebindingCreate:
+        query = gql(
+            """
+            mutation __testing__rolebinding_create($input: RoleBindingCreateInput!) {
+              rolebinding_create(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingRolebindingCreate.parse_obj(data).rolebinding_create

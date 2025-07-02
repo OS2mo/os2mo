@@ -1,0 +1,196 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+
+query __testing__event_namespaces {
+  event_namespaces {
+    objects {
+      name
+      owner
+      public
+      listeners {
+        owner
+        routing_key
+        user_key
+        uuid
+      }
+    }
+  }
+}
+
+query __testing__address_read($filter: AddressFilter) {
+  addresses(filter: $filter) {
+    objects {
+      validities {
+        uuid
+        user_key
+        address_type {
+          user_key
+        }
+        value
+        value2
+        person {
+          uuid
+        }
+        visibility {
+          user_key
+        }
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
+query __testing__class_read($filter: ClassFilter) {
+  classes(filter: $filter) {
+    objects {
+      validities {
+        uuid
+        user_key
+        name
+        scope
+        owner
+        published
+        facet {
+          uuid
+        }
+        parent {
+          uuid
+        }
+        it_system {
+          uuid
+        }
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
+query __testing__engagement_read($filter: EngagementFilter) {
+  engagements(filter: $filter) {
+    objects {
+      validities {
+        uuid
+        user_key
+        person {
+          uuid
+        }
+        org_unit {
+          uuid
+        }
+        engagement_type {
+          user_key
+        }
+        job_function {
+          user_key
+        }
+        primary {
+          user_key
+        }
+        extension_1
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
+query __testing__employee_read($filter: EmployeeFilter) {
+  employees(filter: $filter) {
+    objects {
+      validities {
+        uuid
+        user_key
+        cpr_number
+        given_name
+        surname
+        nickname_given_name
+        nickname_surname
+      }
+    }
+  }
+}
+
+query __testing__ituser_read($filter: ITUserFilter) {
+  itusers(filter: $filter) {
+    objects {
+      validities {
+        uuid
+        user_key
+        itsystem {
+          user_key
+        }
+        person {
+          uuid
+        }
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
+query __testing__itsystem_read($filter: ITSystemFilter) {
+  itsystems(filter: $filter) {
+    objects {
+      validities {
+        uuid
+        user_key
+        name
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
+query __testing__org_unit_read($filter: OrganisationUnitFilter) {
+  org_units(filter: $filter) {
+    objects {
+      validities {
+        uuid
+        user_key
+        name
+        parent {
+          uuid
+        }
+        unit_type {
+          user_key
+        }
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
+mutation __testing__itsystem_create($input: ITSystemCreateInput!) {
+  itsystem_create(input: $input) {
+    uuid
+  }
+}
+
+mutation __testing__manager_create($input: ManagerCreateInput!) {
+  manager_create(input: $input) {
+    uuid
+  }
+}
+
+mutation __testing__rolebinding_create($input: RoleBindingCreateInput!) {
+  rolebinding_create(input: $input) {
+    uuid
+  }
+}
