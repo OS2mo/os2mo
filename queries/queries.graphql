@@ -1,90 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
-mutation address_create($input: AddressCreateInput!) {
-  address_create(input: $input) {
-    uuid
-  }
-}
-
-mutation address_update($input: AddressUpdateInput!) {
-  address_update(input: $input) {
-    uuid
-  }
-}
-
-mutation address_terminate($input: AddressTerminateInput!) {
-  address_terminate(input: $input) {
-    uuid
-  }
-}
-
-mutation user_create($input: EmployeeCreateInput!) {
-  employee_create(input: $input) {
-    uuid
-  }
-}
-
-mutation user_update($input: EmployeeUpdateInput!) {
-  employee_update(input: $input) {
-    uuid
-  }
-}
-
-mutation engagement_create($input: EngagementCreateInput!) {
-  engagement_create(input: $input) {
-    uuid
-  }
-}
-
-mutation engagement_update($input: EngagementUpdateInput!) {
-  engagement_update(input: $input) {
-    uuid
-  }
-}
-
-mutation engagement_terminate($input: EngagementTerminateInput!) {
-  engagement_terminate(input: $input) {
-    uuid
-  }
-}
-
-mutation ituser_create($input: ITUserCreateInput!) {
-  ituser_create(input: $input) {
-    uuid
-  }
-}
-
-mutation ituser_update($input: ITUserUpdateInput!) {
-  ituser_update(input: $input) {
-    uuid
-  }
-}
-
-mutation ituser_terminate($input: ITUserTerminateInput!) {
-  ituser_terminate(input: $input) {
-    uuid
-  }
-}
-
-mutation itsystem_create($input: ITSystemCreateInput!) {
-  itsystem_create(input: $input) {
-    uuid
-  }
-}
-
-mutation itsystem_update($input: ITSystemUpdateInput!) {
-  itsystem_update(input: $input) {
-    uuid
-  }
-}
-
-mutation itsystem_terminate($input: ITSystemTerminateInput!) {
-  itsystem_terminate(input: $input) {
-    uuid
-  }
-}
-
 query read_facet_uuid($filter: FacetFilter!) {
   facets(filter: $filter) {
     objects {
@@ -93,47 +9,11 @@ query read_facet_uuid($filter: FacetFilter!) {
   }
 }
 
-mutation class_create($input: ClassCreateInput!) {
-  class_create(input: $input) {
-    uuid
-  }
-}
-
-mutation class_update($input: ClassUpdateInput!) {
-  class_update(input: $input) {
-    uuid
-  }
-}
-
-mutation class_terminate($input: ClassTerminateInput!) {
-  class_terminate(input: $input) {
-    uuid
-  }
-}
-
 query read_class_uuid($filter: ClassFilter!) {
   classes(filter: $filter) {
     objects {
       uuid
     }
-  }
-}
-
-mutation org_unit_create($input: OrganisationUnitCreateInput!) {
-  org_unit_create(input: $input) {
-    uuid
-  }
-}
-
-mutation org_unit_update($input: OrganisationUnitUpdateInput!) {
-  org_unit_update(input: $input) {
-    uuid
-  }
-}
-
-mutation org_unit_terminate($input: OrganisationUnitTerminateInput!) {
-  org_unit_terminate(input: $input) {
-    uuid
   }
 }
 

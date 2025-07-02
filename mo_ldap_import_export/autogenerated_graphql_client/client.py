@@ -254,11 +254,11 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return AddressTerminate.parse_obj(data).address_terminate
 
-    async def user_create(self, input: EmployeeCreateInput) -> UserCreateEmployeeCreate:
+    async def class_create(self, input: ClassCreateInput) -> ClassCreateClassCreate:
         query = gql(
             """
-            mutation user_create($input: EmployeeCreateInput!) {
-              employee_create(input: $input) {
+            mutation class_create($input: ClassCreateInput!) {
+              class_create(input: $input) {
                 uuid
               }
             }
@@ -267,13 +267,13 @@ class GraphQLClient(AsyncBaseClient):
         variables: dict[str, object] = {"input": input}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
-        return UserCreate.parse_obj(data).employee_create
+        return ClassCreate.parse_obj(data).class_create
 
-    async def user_update(self, input: EmployeeUpdateInput) -> UserUpdateEmployeeUpdate:
+    async def class_update(self, input: ClassUpdateInput) -> ClassUpdateClassUpdate:
         query = gql(
             """
-            mutation user_update($input: EmployeeUpdateInput!) {
-              employee_update(input: $input) {
+            mutation class_update($input: ClassUpdateInput!) {
+              class_update(input: $input) {
                 uuid
               }
             }
@@ -282,7 +282,24 @@ class GraphQLClient(AsyncBaseClient):
         variables: dict[str, object] = {"input": input}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
-        return UserUpdate.parse_obj(data).employee_update
+        return ClassUpdate.parse_obj(data).class_update
+
+    async def class_terminate(
+        self, input: ClassTerminateInput
+    ) -> ClassTerminateClassTerminate:
+        query = gql(
+            """
+            mutation class_terminate($input: ClassTerminateInput!) {
+              class_terminate(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ClassTerminate.parse_obj(data).class_terminate
 
     async def engagement_create(
         self, input: EngagementCreateInput
@@ -335,53 +352,6 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return EngagementTerminate.parse_obj(data).engagement_terminate
 
-    async def ituser_create(self, input: ITUserCreateInput) -> ItuserCreateItuserCreate:
-        query = gql(
-            """
-            mutation ituser_create($input: ITUserCreateInput!) {
-              ituser_create(input: $input) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ItuserCreate.parse_obj(data).ituser_create
-
-    async def ituser_update(self, input: ITUserUpdateInput) -> ItuserUpdateItuserUpdate:
-        query = gql(
-            """
-            mutation ituser_update($input: ITUserUpdateInput!) {
-              ituser_update(input: $input) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ItuserUpdate.parse_obj(data).ituser_update
-
-    async def ituser_terminate(
-        self, input: ITUserTerminateInput
-    ) -> ItuserTerminateItuserTerminate:
-        query = gql(
-            """
-            mutation ituser_terminate($input: ITUserTerminateInput!) {
-              ituser_terminate(input: $input) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ItuserTerminate.parse_obj(data).ituser_terminate
-
     async def itsystem_create(
         self, input: ITSystemCreateInput
     ) -> ItsystemCreateItsystemCreate:
@@ -433,28 +403,11 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ItsystemTerminate.parse_obj(data).itsystem_terminate
 
-    async def read_facet_uuid(self, filter: FacetFilter) -> ReadFacetUuidFacets:
+    async def ituser_create(self, input: ITUserCreateInput) -> ItuserCreateItuserCreate:
         query = gql(
             """
-            query read_facet_uuid($filter: FacetFilter!) {
-              facets(filter: $filter) {
-                objects {
-                  uuid
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"filter": filter}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadFacetUuid.parse_obj(data).facets
-
-    async def class_create(self, input: ClassCreateInput) -> ClassCreateClassCreate:
-        query = gql(
-            """
-            mutation class_create($input: ClassCreateInput!) {
-              class_create(input: $input) {
+            mutation ituser_create($input: ITUserCreateInput!) {
+              ituser_create(input: $input) {
                 uuid
               }
             }
@@ -463,13 +416,13 @@ class GraphQLClient(AsyncBaseClient):
         variables: dict[str, object] = {"input": input}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
-        return ClassCreate.parse_obj(data).class_create
+        return ItuserCreate.parse_obj(data).ituser_create
 
-    async def class_update(self, input: ClassUpdateInput) -> ClassUpdateClassUpdate:
+    async def ituser_update(self, input: ITUserUpdateInput) -> ItuserUpdateItuserUpdate:
         query = gql(
             """
-            mutation class_update($input: ClassUpdateInput!) {
-              class_update(input: $input) {
+            mutation ituser_update($input: ITUserUpdateInput!) {
+              ituser_update(input: $input) {
                 uuid
               }
             }
@@ -478,15 +431,15 @@ class GraphQLClient(AsyncBaseClient):
         variables: dict[str, object] = {"input": input}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
-        return ClassUpdate.parse_obj(data).class_update
+        return ItuserUpdate.parse_obj(data).ituser_update
 
-    async def class_terminate(
-        self, input: ClassTerminateInput
-    ) -> ClassTerminateClassTerminate:
+    async def ituser_terminate(
+        self, input: ITUserTerminateInput
+    ) -> ItuserTerminateItuserTerminate:
         query = gql(
             """
-            mutation class_terminate($input: ClassTerminateInput!) {
-              class_terminate(input: $input) {
+            mutation ituser_terminate($input: ITUserTerminateInput!) {
+              ituser_terminate(input: $input) {
                 uuid
               }
             }
@@ -495,24 +448,7 @@ class GraphQLClient(AsyncBaseClient):
         variables: dict[str, object] = {"input": input}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
-        return ClassTerminate.parse_obj(data).class_terminate
-
-    async def read_class_uuid(self, filter: ClassFilter) -> ReadClassUuidClasses:
-        query = gql(
-            """
-            query read_class_uuid($filter: ClassFilter!) {
-              classes(filter: $filter) {
-                objects {
-                  uuid
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"filter": filter}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadClassUuid.parse_obj(data).classes
+        return ItuserTerminate.parse_obj(data).ituser_terminate
 
     async def org_unit_create(
         self, input: OrganisationUnitCreateInput
@@ -564,6 +500,70 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return OrgUnitTerminate.parse_obj(data).org_unit_terminate
+
+    async def user_create(self, input: EmployeeCreateInput) -> UserCreateEmployeeCreate:
+        query = gql(
+            """
+            mutation user_create($input: EmployeeCreateInput!) {
+              employee_create(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return UserCreate.parse_obj(data).employee_create
+
+    async def user_update(self, input: EmployeeUpdateInput) -> UserUpdateEmployeeUpdate:
+        query = gql(
+            """
+            mutation user_update($input: EmployeeUpdateInput!) {
+              employee_update(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return UserUpdate.parse_obj(data).employee_update
+
+    async def read_facet_uuid(self, filter: FacetFilter) -> ReadFacetUuidFacets:
+        query = gql(
+            """
+            query read_facet_uuid($filter: FacetFilter!) {
+              facets(filter: $filter) {
+                objects {
+                  uuid
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadFacetUuid.parse_obj(data).facets
+
+    async def read_class_uuid(self, filter: ClassFilter) -> ReadClassUuidClasses:
+        query = gql(
+            """
+            query read_class_uuid($filter: ClassFilter!) {
+              classes(filter: $filter) {
+                objects {
+                  uuid
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadClassUuid.parse_obj(data).classes
 
     async def read_engagements(
         self,
