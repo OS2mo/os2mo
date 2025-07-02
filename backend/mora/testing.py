@@ -3,12 +3,14 @@
 import asyncio
 from contextlib import AbstractAsyncContextManager
 from contextlib import asynccontextmanager
+from datetime import datetime
 
 from fastapi import APIRouter
 from oio_rest.config import Settings as LoraSettings
 from oio_rest.config import get_settings as lora_get_settings
 from psycopg.errors import UndefinedTable
 from sqlalchemy import text
+from sqlalchemy import update
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -56,6 +58,22 @@ async def emit(request: Request, amqp_system: depends.AMQPSystem) -> None:
             # we succeed.
             logger.warning("Error emitting AMQP events", error=e)
             await asyncio.sleep(0.5)
+
+
+@router.post("/events/reset-last-tried", status_code=HTTP_204_NO_CONTENT)
+async def reset_last_tried(session: depends.Session) -> None:
+    """Reset the `last_tried` of GraphQL events.
+
+    Normally, events which are fetched - but not acknowledged - are not retried
+    (cannot be fetched) for three minutes, increasing exponentially. Resetting
+    `last_tried` allows quick retrying during integration tests.
+    """
+    logger.warning("Resetting GraphQL events last_tried")
+    await session.execute(
+        update(db.Event).values(
+            last_tried=datetime(1970, 1, 1),
+        )
+    )
 
 
 @asynccontextmanager
