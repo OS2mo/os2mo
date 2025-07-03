@@ -14,6 +14,18 @@ from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
+FACET_CREATE_MUTATION = """
+    mutation CreateFacet($input: FacetCreateInput!) {
+        facet_create(input: $input) {
+            uuid
+        }
+    }
+"""
+FACET_CREATE_PAYLOAD = {
+    "user_key": "TestFacet",
+    "validity": {"from": "2012-03-04", "to": None},
+}
+
 
 @pytest.mark.integration_test
 @pytest.mark.parametrize(
@@ -47,19 +59,8 @@ async def test_create_facet(
     # Change our token user to the specified UUID
     set_auth(ADMIN, token_uuid)
 
-    payload = {
-        "user_key": "TestFacet",
-        "validity": {"from": "2012-03-04", "to": None},
-    }
-    mutate_query = """
-        mutation CreateFacet($input: FacetCreateInput!) {
-            facet_create(input: $input) {
-                uuid
-            }
-        }
-    """
     result: GQLResponse = graphapi_post(
-        query=mutate_query, variables={"input": payload}
+        query=FACET_CREATE_MUTATION, variables={"input": FACET_CREATE_PAYLOAD}
     )
     assert result.errors is None
     assert result.data
@@ -80,20 +81,9 @@ async def test_no_auth_middleware(
     root_org: UUID,
 ) -> None:
     """Integrationtest for testing user references in LoRa without middleware."""
-    payload = {
-        "user_key": "TestFacet",
-        "validity": {"from": "2012-03-04", "to": None},
-    }
-    mutate_query = """
-        mutation CreateFacet($input: FacetCreateInput!) {
-            facet_create(input: $input) {
-                uuid
-            }
-        }
-    """
     # This intentionally uses execute_graphql to bypass the middleware
     response = await execute_graphql(
-        query=mutate_query, variable_values={"input": payload}
+        query=FACET_CREATE_MUTATION, variable_values={"input": FACET_CREATE_PAYLOAD}
     )
     assert response.errors is None
     facet_uuid = UUID(response.data["facet_create"]["uuid"])
