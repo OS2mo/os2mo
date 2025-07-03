@@ -4,6 +4,9 @@ from collections.abc import Callable
 from uuid import UUID
 
 import pytest
+from fastapi import FastAPI
+from mora.auth.keycloak.oidc import auth
+from mora.auth.keycloak.oidc import token_getter
 from mora.auth.middleware import LORA_USER_UUID
 from mora.common import get_connector
 from mora.db import AsyncSession
@@ -14,6 +17,7 @@ from sqlalchemy import select
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
+from tests.conftest import admin_auth
 
 
 @pytest.fixture
@@ -128,6 +132,43 @@ async def test_no_auth_middleware(
     # Programmatically creating a facet outside of a request flow
     connector = get_connector()
     facet_uuid = UUID(await connector.facet.create(payload))
+
+    brugerref = await empty_db.scalar(
+        select(FacetRegistrering.actor).where(
+            FacetRegistrering.facet_id == str(facet_uuid)
+        )
+    )
+
+    assert brugerref == LORA_USER_UUID
+
+
+@pytest.mark.integration_test
+async def test_unparsable_token(
+    empty_db: AsyncSession,
+    create_facet: Callable[[], UUID],
+    fastapi_admin_test_app: FastAPI,
+) -> None:
+    """Integrationtest for testing user references in LoRa."""
+    token = await admin_auth()
+
+    def _auth():
+        return token
+
+    def _token_getter():
+        context = {"calls": 0}
+
+        async def _get():
+            context["calls"] += 1
+            if context["calls"] == 1:
+                raise ValueError("BOOM")
+            return token
+
+        return _get
+
+    fastapi_admin_test_app.dependency_overrides[auth] = _auth
+    fastapi_admin_test_app.dependency_overrides[token_getter] = _token_getter
+
+    facet_uuid = create_facet()
 
     brugerref = await empty_db.scalar(
         select(FacetRegistrering.actor).where(
