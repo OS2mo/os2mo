@@ -6,6 +6,7 @@ import pytest
 from mora.auth.middleware import LORA_USER_UUID
 from mora.db import AsyncSession
 from mora.db import FacetRegistrering
+from mora.graphapi.shim import execute_graphql
 from mora.mapping import ADMIN
 from sqlalchemy import select
 
@@ -71,3 +72,36 @@ async def test_create_facet(
     )
 
     assert brugerref == actor_uuid
+
+
+@pytest.mark.integration_test
+async def test_no_auth_middleware(
+    empty_db: AsyncSession,
+    root_org: UUID,
+) -> None:
+    """Integrationtest for testing user references in LoRa without middleware."""
+    payload = {
+        "user_key": "TestFacet",
+        "validity": {"from": "2012-03-04", "to": None},
+    }
+    mutate_query = """
+        mutation CreateFacet($input: FacetCreateInput!) {
+            facet_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    # This intentionally uses execute_graphql to bypass the middleware
+    response = await execute_graphql(
+        query=mutate_query, variable_values={"input": payload}
+    )
+    assert response.errors is None
+    facet_uuid = UUID(response.data["facet_create"]["uuid"])
+
+    brugerref = await empty_db.scalar(
+        select(FacetRegistrering.actor).where(
+            FacetRegistrering.facet_id == str(facet_uuid)
+        )
+    )
+
+    assert brugerref == LORA_USER_UUID
