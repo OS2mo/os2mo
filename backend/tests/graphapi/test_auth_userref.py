@@ -4,6 +4,7 @@ from uuid import UUID
 
 import pytest
 from mora.auth.middleware import LORA_USER_UUID
+from mora.common import get_connector
 from mora.db import AsyncSession
 from mora.db import FacetRegistrering
 from mora.mapping import ADMIN
@@ -71,3 +72,57 @@ async def test_create_facet(
     )
 
     assert brugerref == actor_uuid
+
+
+@pytest.mark.integration_test
+async def test_no_auth_middleware(
+    empty_db: AsyncSession,
+    root_org: UUID,
+) -> None:
+    """Integrationtest for testing user references in LoRa without middleware."""
+    payload = {
+        "attributter": {
+            "facetegenskaber": [
+                {
+                    "brugervendtnoegle": "TestFacet",
+                    "virkning": {"from": "1900-01-01", "to": "infinity"},
+                }
+            ]
+        },
+        "relationer": {
+            "ansvarlig": [
+                {
+                    "objekttype": "organisation",
+                    "uuid": str(root_org),
+                    "virkning": {"from": "1900-01-01", "to": "infinity"},
+                }
+            ],
+            "facettilhoerer": [
+                {
+                    "objekttype": "klassifikation",
+                    "uuid": "cdeecc2f-5f96-4a2c-b5df-a59d3a04de59",
+                    "virkning": {"from": "1900-01-01", "to": "infinity"},
+                }
+            ],
+        },
+        "tilstande": {
+            "facetpubliceret": [
+                {
+                    "publiceret": "Publiceret",
+                    "virkning": {"from": "1900-01-01", "to": "infinity"},
+                }
+            ]
+        },
+    }
+
+    # Programmatically creating a facet outside of a request flow
+    connector = get_connector()
+    facet_uuid = UUID(await connector.facet.create(payload))
+
+    brugerref = await empty_db.scalar(
+        select(FacetRegistrering.actor).where(
+            FacetRegistrering.facet_id == str(facet_uuid)
+        )
+    )
+
+    assert brugerref == LORA_USER_UUID
