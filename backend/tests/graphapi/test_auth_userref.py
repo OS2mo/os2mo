@@ -3,6 +3,9 @@
 from uuid import UUID
 
 import pytest
+from fastapi import FastAPI
+from mora.auth.keycloak.oidc import auth
+from mora.auth.keycloak.oidc import token_getter
 from mora.auth.middleware import LORA_USER_UUID
 from mora.db import AsyncSession
 from mora.db import FacetRegistrering
@@ -13,6 +16,7 @@ from sqlalchemy import select
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
+from tests.conftest import admin_auth
 
 FACET_CREATE_MUTATION = """
     mutation CreateFacet($input: FacetCreateInput!) {
@@ -87,6 +91,49 @@ async def test_no_auth_middleware(
     )
     assert response.errors is None
     facet_uuid = UUID(response.data["facet_create"]["uuid"])
+
+    brugerref = await empty_db.scalar(
+        select(FacetRegistrering.actor).where(
+            FacetRegistrering.facet_id == str(facet_uuid)
+        )
+    )
+
+    assert brugerref == LORA_USER_UUID
+
+
+@pytest.mark.integration_test
+async def test_unparsable_token(
+    empty_db: AsyncSession,
+    root_org: UUID,
+    graphapi_post: GraphAPIPost,
+    fastapi_admin_test_app: FastAPI,
+) -> None:
+    """Integrationtest for testing user references in LoRa."""
+    token = await admin_auth()
+
+    def _auth():
+        return token
+
+    def _token_getter():
+        context = {"calls": 0}
+
+        async def _get():
+            if context["calls"] == 0:
+                raise ValueError("BOOM")
+            context["calls"] += 1
+            return token
+
+        return _get
+
+    fastapi_admin_test_app.dependency_overrides[auth] = _auth
+    fastapi_admin_test_app.dependency_overrides[token_getter] = _token_getter
+
+    result: GQLResponse = graphapi_post(
+        query=FACET_CREATE_MUTATION, variables={"input": FACET_CREATE_PAYLOAD}
+    )
+    assert result.errors is None
+    assert result.data
+    facet_uuid = UUID(result.data["facet_create"]["uuid"])
 
     brugerref = await empty_db.scalar(
         select(FacetRegistrering.actor).where(
