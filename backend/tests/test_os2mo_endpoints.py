@@ -131,8 +131,9 @@ lora_endpoints = {
 }
 testing_endpoints = {
     "/testing/amqp/emit",
-    "/testing/database/snapshot",
     "/testing/database/restore",
+    "/testing/database/snapshot",
+    "/testing/events/reset-last-tried",
 }
 graphql_endpoints = {
     "/graphql",

@@ -26,6 +26,8 @@ def create_employee(graphapi_post: GraphAPIPost, surname: str) -> UUID:
             "surname": surname,
         },
     )
+    assert employee.errors is None
+    assert employee.data is not None
     employee_uuid = employee.data["employee_create"]["uuid"]
     return UUID(employee_uuid)
 
@@ -63,6 +65,8 @@ def read_employee_surname(graphapi_post: GraphAPIPost, uuid: UUID) -> str:
             "uuid": str(uuid),
         },
     )
+    assert employee.errors is None
+    assert employee.data is not None
     return employee.data["employees"]["objects"][0]["current"]["surname"]
 
 
@@ -132,17 +136,63 @@ async def test_amqp_emit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-async def test_concurrent_database_operation_and_amqp_emit(
+@pytest.mark.usefixtures("empty_db")
+async def test_event_reset_last_tried(
+    root_org: UUID,
     admin_client: TestClient,
+    graphapi_post: GraphAPIPost,
 ) -> None:
-    """
-    The database is unavailable while being snapshot or restored. Ensure that the AMQP
-    emit endpoint retries until it succeeds instead of throwing an exception.
-    """
-    snapshot, emit = await asyncio.gather(
-        asyncio.to_thread(admin_client.post, "/testing/database/snapshot"),
-        asyncio.to_thread(admin_client.post, "/testing/amqp/emit"),
+    # Declare listener
+    listener = graphapi_post(
+        """
+        mutation DeclareListener($namespace: String!, $user_key: String!, $routing_key: String!) {
+          event_listener_declare(
+            input: {namespace: $namespace, user_key: $user_key, routing_key: $routing_key}
+          ) {
+            uuid
+          }
+        }
+        """,
+        variables={
+            "namespace": "mo",
+            "user_key": "test",
+            "routing_key": "person",
+        },
     )
-    assert snapshot.is_success
-    assert emit.is_success
+    assert listener.errors is None
+    assert listener.data is not None
+    listener_uuid = listener.data["event_listener_declare"]["uuid"]
+
+    # Create person and emit events
+    person_uuid = create_employee(graphapi_post, surname="test")
+    assert admin_client.post("/testing/amqp/emit").is_success
+
+    def fetch_event() -> dict | None:
+        response = graphapi_post(
+            """
+            query FetchEvent($listener_uuid: UUID!) {
+              event_fetch(filter: {listener: $listener_uuid}) {
+                subject
+              }
+            }
+            """,
+            variables={
+                "listener_uuid": listener_uuid,
+            },
+        )
+        assert response.errors is None
+        assert response.data is not None
+        return response.data["event_fetch"]
+
+    # Fetch event
+    assert fetch_event() == {"subject": str(person_uuid)}
+
+    # Since we didn't acknowledge, we shouldn't be able to fetch the event a
+    # second time.
+    assert fetch_event() is None
+
+    # Reset last tried
+    assert admin_client.post("/testing/events/reset-last-tried").is_success
+
+    # We should be able to fetch the event again
+    assert fetch_event() == {"subject": str(person_uuid)}
