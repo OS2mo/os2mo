@@ -8,11 +8,14 @@ from mora.db import FacetRegistrering
 from sqlalchemy import select
 
 from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 from tests.conftest import fake_auth
 
 
 @pytest.mark.integration_test
-async def test_create_facet(fixture_db: AsyncSession, graphapi_post):
+async def test_create_facet(
+    empty_db: AsyncSession, root_org: UUID, graphapi_post: GraphAPIPost
+) -> None:
     """Integrationtest for testing user references in LoRa."""
     payload = {
         "user_key": "TestFacet",
@@ -32,11 +35,11 @@ async def test_create_facet(fixture_db: AsyncSession, graphapi_post):
     assert result.data
     facet_uuid = UUID(result.data["facet_create"]["uuid"])
 
-    brugerref = await fixture_db.scalar(
+    brugerref = await empty_db.scalar(
         select(FacetRegistrering.actor).where(
             FacetRegistrering.facet_id == str(facet_uuid)
         )
     )
 
     user_ref = await fake_auth()
-    assert str(brugerref) == str(user_ref.uuid)
+    assert brugerref == user_ref.uuid
