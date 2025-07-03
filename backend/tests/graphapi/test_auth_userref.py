@@ -7,7 +7,9 @@ import pytest
 from fastapi import FastAPI
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import token_getter
-from mora.auth.middleware import LORA_USER_UUID
+from mora.auth.middleware import MISSING_UUID_ON_TOKEN_UUID
+from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
+from mora.auth.middleware import UNABLE_TO_PARSE_TOKEN_UUID
 from mora.common import get_connector
 from mora.db import AsyncSession
 from mora.db import FacetRegistrering
@@ -62,7 +64,7 @@ def create_facet(graphapi_post: GraphAPIPost, root_org: UUID) -> Callable[[], UU
         # No UUID -> Faceless
         (
             None,
-            LORA_USER_UUID,
+            MISSING_UUID_ON_TOKEN_UUID,
         ),
     ],
 )
@@ -139,7 +141,7 @@ async def test_no_auth_middleware(
         )
     )
 
-    assert brugerref == LORA_USER_UUID
+    assert brugerref == NO_AUTH_MIDDLEWARE_UUID
 
 
 @pytest.mark.integration_test
@@ -176,4 +178,4 @@ async def test_unparsable_token(
         )
     )
 
-    assert brugerref == LORA_USER_UUID
+    assert brugerref == UNABLE_TO_PARSE_TOKEN_UUID

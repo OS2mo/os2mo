@@ -15,7 +15,7 @@ from hypothesis import HealthCheck
 from hypothesis import given
 from hypothesis import settings
 from mora.access_log import access_log
-from mora.auth.middleware import LORA_USER_UUID
+from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from mora.auth.middleware import set_authenticated_user
 from mora.db import AccessLogOperation
 from mora.db import AccessLogRead
@@ -52,7 +52,7 @@ async def assert_one_access_log_entry(
     arguments: dict[str, Any] | None = None,
     now: datetime | None = None,
 ) -> None:
-    actor = actor or LORA_USER_UUID
+    actor = actor or NO_AUTH_MIDDLEWARE_UUID
     arguments = arguments or {}
     now = now or (datetime.now(tz=DEFAULT_TIMEZONE) - timedelta(minutes=1))
     uuids = uuids or []
@@ -423,7 +423,7 @@ async def test_access_log_disabled_for_user(
 
     await assert_empty_access_log_tables(empty_db)
 
-    set_settings(ACCESS_LOG_NO_LOG_UUIDS=f'["{LORA_USER_UUID}"]')
+    set_settings(ACCESS_LOG_NO_LOG_UUIDS=f'["{NO_AUTH_MIDDLEWARE_UUID}"]')
     uuid = uuid4()
     access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
     await assert_empty_access_log_tables(empty_db)
