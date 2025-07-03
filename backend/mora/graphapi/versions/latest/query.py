@@ -338,7 +338,7 @@ class Query:
     healths: Paged[Health] = strawberry.field(
         resolver=to_paged(health_resolver, Health),
         description="Query healthcheck status.",
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("health")],
+        permission_classes=[],
     )
 
     # Files
