@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from uuid import UUID
 
 import pytest
@@ -13,6 +14,32 @@ from sqlalchemy import select
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
+
+
+@pytest.fixture
+def create_facet(graphapi_post: GraphAPIPost, root_org: UUID) -> Callable[[], UUID]:
+    def inner() -> UUID:
+        facet_create_mutation = """
+            mutation CreateFacet($input: FacetCreateInput!) {
+                facet_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        payload = {
+            "user_key": "TestFacet",
+            "validity": {"from": "2012-03-04", "to": None},
+        }
+
+        result: GQLResponse = graphapi_post(
+            query=facet_create_mutation, variables={"input": payload}
+        )
+        assert result.errors is None
+        assert result.data
+        facet_uuid = UUID(result.data["facet_create"]["uuid"])
+        return facet_uuid
+
+    return inner
 
 
 @pytest.mark.integration_test
@@ -37,8 +64,7 @@ from tests.conftest import SetAuth
 )
 async def test_create_facet(
     empty_db: AsyncSession,
-    root_org: UUID,
-    graphapi_post: GraphAPIPost,
+    create_facet: Callable[[], UUID],
     set_auth: SetAuth,
     token_uuid: UUID | None,
     actor_uuid: UUID,
@@ -47,23 +73,7 @@ async def test_create_facet(
     # Change our token user to the specified UUID
     set_auth(ADMIN, token_uuid)
 
-    payload = {
-        "user_key": "TestFacet",
-        "validity": {"from": "2012-03-04", "to": None},
-    }
-    mutate_query = """
-        mutation CreateFacet($input: FacetCreateInput!) {
-            facet_create(input: $input) {
-                uuid
-            }
-        }
-    """
-    result: GQLResponse = graphapi_post(
-        query=mutate_query, variables={"input": payload}
-    )
-    assert result.errors is None
-    assert result.data
-    facet_uuid = UUID(result.data["facet_create"]["uuid"])
+    facet_uuid = create_facet()
 
     brugerref = await empty_db.scalar(
         select(FacetRegistrering.actor).where(
