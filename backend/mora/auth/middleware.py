@@ -19,7 +19,10 @@ from mora.log import canonical_log_context
 # December of 2015, it is kept here for backwards compatibility, but should
 # be eliminated in the future, by ensuring that Keycloak UUIDs are always set.
 # For more information, see the commit messsage of the change introducing this.
-LORA_USER_UUID = UUID("05211100-baad-1110-006e-6F2075756964")
+LORA_USER_UUID = UUID("05211100-baad-1110-006e-6f2075756964")
+
+UNABLE_TO_PARSE_TOKEN_UUID = UUID("bad070c1-baad-1110-006e-6f7061727365")
+MISSING_UUID_ON_TOKEN_UUID = UUID("face1e55-baad-1110-006d-697373696e67")
 
 
 _MIDDLEWARE_KEY = "authenticated_user"
@@ -30,13 +33,17 @@ async def fetch_authenticated_user(
 ) -> UUID | None:
     try:
         token = await get_token()
-        canonical_log_context()["actor"] = {
-            "uuid": str(token.uuid),
-            "name": token.preferred_username,
-        }
+        uuid = token.uuid
+        name = token.preferred_username
     except Exception:
-        return None
-    return token.uuid
+        uuid = UNABLE_TO_PARSE_TOKEN_UUID
+        name = "Unable to parse token"
+    if uuid is None:
+        uuid = MISSING_UUID_ON_TOKEN_UUID
+        name = "UUID missing on token"
+
+    canonical_log_context()["actor"] = {"uuid": str(uuid), "name": name}
+    return uuid
 
 
 async def set_authenticated_user(

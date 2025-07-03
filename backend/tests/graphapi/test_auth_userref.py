@@ -7,6 +7,8 @@ from fastapi import FastAPI
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import token_getter
 from mora.auth.middleware import LORA_USER_UUID
+from mora.auth.middleware import MISSING_UUID_ON_TOKEN_UUID
+from mora.auth.middleware import UNABLE_TO_PARSE_TOKEN_UUID
 from mora.db import AsyncSession
 from mora.db import FacetRegistrering
 from mora.graphapi.shim import execute_graphql
@@ -47,7 +49,7 @@ FACET_CREATE_PAYLOAD = {
         # No UUID -> Faceless
         (
             None,
-            LORA_USER_UUID,
+            MISSING_UUID_ON_TOKEN_UUID,
         ),
     ],
 )
@@ -141,4 +143,4 @@ async def test_unparsable_token(
         )
     )
 
-    assert brugerref == LORA_USER_UUID
+    assert brugerref == UNABLE_TO_PARSE_TOKEN_UUID
