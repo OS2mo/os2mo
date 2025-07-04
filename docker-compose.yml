@@ -105,6 +105,8 @@ services:
       PGPASSWORD: mysecretpassword
       # Remove GRACEFUL to overwrite your DB
       GRACEFUL: si
+    # volumes:
+    #   - ./custom-fixture.pgdump:/fixtures/kolding.pgdump:ro
     restart: on-failure
 
   mo-init:
