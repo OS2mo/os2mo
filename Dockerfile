@@ -4,6 +4,14 @@ FROM python:3.11
 
 WORKDIR /app
 
+# Install ldapsearch and clean up
+RUN set -ex\
+  && export DEBIAN_FRONTEND=noninteractive \
+  && apt-get -y update \
+  && apt-get install -y --no-install-recommends ldap-utils \
+  && apt-get clean && rm -rf "/var/lib/apt/lists/*" "/tmp/*" "/var/tmp/*" "/usr/share/man/??" "/usr/share/man/??_*"
+
+
 ENV PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PYTHONDONTWRITEBYTECODE=1 \
