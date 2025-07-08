@@ -25,6 +25,7 @@ jinja2 = "^3"
 sqlalchemy = "^2"
 websockets = "^13"
 pyasn1 = "^0.6.1"
+typer = "^0.16.0"
 
 [tool.poetry.group.pre-commit.dependencies]
 mypy = "^1"
