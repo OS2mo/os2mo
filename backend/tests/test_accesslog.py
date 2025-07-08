@@ -15,6 +15,7 @@ from hypothesis import HealthCheck
 from hypothesis import given
 from hypothesis import settings
 from mora.access_log import access_log
+from mora.auth.keycloak.models import Token
 from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from mora.auth.middleware import set_authenticated_user
 from mora.db import AccessLogOperation
@@ -283,7 +284,11 @@ async def test_access_log_filters(
 
     async with another_transaction() as (_, session):
         for access_event in access_log_entries:
-            async for _ in set_authenticated_user(access_event["actor"]):
+
+            async def get_token() -> Token:
+                return Token(azp="mo", uuid=access_event["actor"])
+
+            async for _ in set_authenticated_user(get_token):
                 # TODO: Set time somehow
                 access_log(
                     session,
@@ -342,6 +347,7 @@ async def test_access_log_filters(
         access_filter_query, {"filter": jsonable_encoder(filter_object)}
     )
     assert response.errors is None
+    assert response.data is not None
     objects = response.data["access_log"]["objects"]
     assert len(objects) == len(expected)
 

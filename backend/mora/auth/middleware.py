@@ -36,9 +36,9 @@ NO_AUTH_MIDDLEWARE_UUID = UUID("5ec0fa11-baad-1110-006d-696477617265")
 _MIDDLEWARE_KEY = "authenticated_user"
 
 
-async def fetch_authenticated_user(
+async def set_authenticated_user(
     get_token: Callable[[], Awaitable[Token]] = Depends(token_getter),
-) -> UUID:
+) -> AsyncIterator[None]:
     try:
         token = await get_token()
         uuid = token.uuid
@@ -51,13 +51,8 @@ async def fetch_authenticated_user(
         name = "UUID missing on token"
 
     canonical_log_context()["actor"] = {"uuid": str(uuid), "name": name}
-    return uuid
 
-
-async def set_authenticated_user(
-    user_uuid: UUID = Depends(fetch_authenticated_user),
-) -> AsyncIterator[None]:
-    data = {**context, _MIDDLEWARE_KEY: user_uuid}
+    data = {**context, _MIDDLEWARE_KEY: uuid}
     with request_cycle_context(data):
         yield
 
