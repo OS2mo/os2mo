@@ -3217,7 +3217,7 @@ class Leave:
     )
 
     engagement: LazyEngagement = strawberry.field(
-        resolver=to_only(
+        resolver=to_arbitrary_only(
             seed_resolver(
                 engagement_resolver,
                 {"uuids": lambda root: [root.engagement_uuid]},
