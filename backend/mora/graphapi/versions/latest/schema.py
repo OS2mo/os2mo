@@ -2079,7 +2079,7 @@ class Engagement:
         return root.user_key
 
     engagement_type: LazyClass = strawberry.field(
-        resolver=to_one(
+        resolver=to_arbitrary_only(
             seed_resolver(
                 class_resolver,
                 {"uuids": lambda root: [root.engagement_type_uuid]},
@@ -2099,7 +2099,7 @@ class Engagement:
     )
 
     job_function: LazyClass = strawberry.field(
-        resolver=to_one(
+        resolver=to_arbitrary_only(
             seed_resolver(
                 class_resolver,
                 {"uuids": lambda root: [root.job_function_uuid]},
@@ -3298,7 +3298,7 @@ class Leave:
 )
 class Manager:
     manager_type: LazyClass = strawberry.field(
-        resolver=to_one(
+        resolver=to_arbitrary_only(
             seed_resolver(
                 class_resolver,
                 {"uuids": lambda root: uuid2list(root.manager_type_uuid)},
@@ -3318,7 +3318,7 @@ class Manager:
     )
 
     manager_level: LazyClass = strawberry.field(
-        resolver=to_one(
+        resolver=to_arbitrary_only(
             seed_resolver(
                 class_resolver,
                 {"uuids": lambda root: uuid2list(root.manager_level_uuid)},
