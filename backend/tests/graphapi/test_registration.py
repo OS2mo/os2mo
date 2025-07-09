@@ -8,6 +8,7 @@ from uuid import uuid4
 
 import pytest
 from fastapi.encoders import jsonable_encoder
+from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from more_itertools import one
 
 
@@ -111,7 +112,7 @@ async def test_read_object_registration(graphapi_post) -> None:
     assert org_unit["uuid"] == uuid
 
     registration = one(org_unit["registrations"])
-    assert registration["actor"] == "05211100-baad-1110-006e-6f2075756964"
+    assert registration["actor"] == str(NO_AUTH_MIDDLEWARE_UUID)
     assert registration["model"] == "org_unit"
     assert registration["uuid"] == uuid
     datetime.fromisoformat(registration["start"])
@@ -143,7 +144,7 @@ async def test_read_top_level_registration(graphapi_post) -> None:
     assert response.data
     registration = one(response.data["registrations"]["objects"])
 
-    assert registration["actor"] == "05211100-baad-1110-006e-6f2075756964"
+    assert registration["actor"] == str(NO_AUTH_MIDDLEWARE_UUID)
     assert registration["model"] == "org_unit"
     assert registration["uuid"] == uuid
     datetime.fromisoformat(registration["start"])
