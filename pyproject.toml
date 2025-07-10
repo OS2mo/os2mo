@@ -79,7 +79,7 @@ target_package_path = "mo_ldap_import_export/"
 client_name = "GraphQLClient"
 # Produced using: curl -O https://moradev.magentahosted.dk/graphql/v21/schema.graphql
 schema_path = "schema.graphql"
-queries_path = "queries.graphql"
+queries_path = "queries"
 plugins = [
     # Return values directly when only a single top field is requested
     "ariadne_codegen.contrib.shorter_results.ShorterResultsPlugin",

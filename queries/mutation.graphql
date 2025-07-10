@@ -1,0 +1,128 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+
+# Address
+mutation address_create($input: AddressCreateInput!) {
+  address_create(input: $input) {
+    uuid
+  }
+}
+
+mutation address_update($input: AddressUpdateInput!) {
+  address_update(input: $input) {
+    uuid
+  }
+}
+
+mutation address_terminate($input: AddressTerminateInput!) {
+  address_terminate(input: $input) {
+    uuid
+  }
+}
+
+
+# Class
+mutation class_create($input: ClassCreateInput!) {
+  class_create(input: $input) {
+    uuid
+  }
+}
+
+mutation class_update($input: ClassUpdateInput!) {
+  class_update(input: $input) {
+    uuid
+  }
+}
+
+mutation class_terminate($input: ClassTerminateInput!) {
+  class_terminate(input: $input) {
+    uuid
+  }
+}
+
+
+# Engagement
+mutation engagement_create($input: EngagementCreateInput!) {
+  engagement_create(input: $input) {
+    uuid
+  }
+}
+
+mutation engagement_update($input: EngagementUpdateInput!) {
+  engagement_update(input: $input) {
+    uuid
+  }
+}
+
+mutation engagement_terminate($input: EngagementTerminateInput!) {
+  engagement_terminate(input: $input) {
+    uuid
+  }
+}
+
+# ITSystem
+mutation itsystem_create($input: ITSystemCreateInput!) {
+  itsystem_create(input: $input) {
+    uuid
+  }
+}
+
+mutation itsystem_update($input: ITSystemUpdateInput!) {
+  itsystem_update(input: $input) {
+    uuid
+  }
+}
+
+mutation itsystem_terminate($input: ITSystemTerminateInput!) {
+  itsystem_terminate(input: $input) {
+    uuid
+  }
+}
+
+
+# ITUser
+mutation ituser_create($input: ITUserCreateInput!) {
+  ituser_create(input: $input) {
+    uuid
+  }
+}
+
+mutation ituser_update($input: ITUserUpdateInput!) {
+  ituser_update(input: $input) {
+    uuid
+  }
+}
+
+mutation ituser_terminate($input: ITUserTerminateInput!) {
+  ituser_terminate(input: $input) {
+    uuid
+  }
+}
+
+
+# Organisation Unit
+mutation org_unit_create($input: OrganisationUnitCreateInput!) {
+  org_unit_create(input: $input) {
+    uuid
+  }
+}
+
+mutation org_unit_update($input: OrganisationUnitUpdateInput!) {
+  org_unit_update(input: $input) {
+    uuid
+  }
+}
+
+mutation org_unit_terminate($input: OrganisationUnitTerminateInput!) {
+  org_unit_terminate(input: $input) {
+    uuid
+  }
+}
+
+
+# User
+mutation person_create($input: EmployeeCreateInput!) {
+  employee_create(input: $input) {
+    uuid
+  }
+}

@@ -208,7 +208,7 @@ async def test_to_ldap_discriminated_account(
     )
 
     # Create MO employee
-    mo_employee = await graphql_client.user_create(
+    mo_employee = await graphql_client.person_create(
         input=EmployeeCreateInput(
             cpr_number=cpr_number, given_name=given_name, surname=surname
         )

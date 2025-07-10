@@ -236,7 +236,7 @@ async def test_orgunit2engagement2person_parallel_engagements(
     primary: UUID,
     assert_person_events: Callable[[set[UUID]], Awaitable[None]],
 ) -> None:
-    person1 = await graphql_client.user_create(
+    person1 = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name="Aage",
             surname="Aagaard",
@@ -244,7 +244,7 @@ async def test_orgunit2engagement2person_parallel_engagements(
         )
     )
 
-    person2 = await graphql_client.user_create(
+    person2 = await graphql_client.person_create(
         input=EmployeeCreateInput(
             given_name="Betina",
             surname="Bundgaard",

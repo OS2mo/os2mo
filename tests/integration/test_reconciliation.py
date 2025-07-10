@@ -78,7 +78,7 @@ async def test_mo_reconciliation(
     # Update MO with a new name and nickname
     # Name is owned by LDAP and as such should be overwritten while nickname should not
     # The edit in MO should trigger an event which updates from LDAP to MO
-    await graphql_client.user_update(
+    await graphql_client._testing__person_update(
         input=EmployeeUpdateInput(
             uuid=mo_person,
             validity={"from": "2011-12-13T14:15:16Z"},

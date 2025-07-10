@@ -61,7 +61,7 @@ async def test_to_ldap(
 
     # Create our first employee and ensure they get the expected name
     mo_person_1_cpr_number = "0101700000"
-    mo_person_1 = await graphql_client.user_create(
+    mo_person_1 = await graphql_client.person_create(
         input=EmployeeCreateInput(
             cpr_number=mo_person_1_cpr_number,
             given_name="Shimon",
@@ -75,7 +75,7 @@ async def test_to_ldap(
 
     # Create our second employee and ensure they fail due to naming conflict
     mo_person_2_cpr_number = "0101000000"
-    mo_person_2 = await graphql_client.user_create(
+    mo_person_2 = await graphql_client.person_create(
         input=EmployeeCreateInput(
             cpr_number=mo_person_2_cpr_number,
             given_name="Shimon",

@@ -75,6 +75,8 @@ from ._testing__org_unit_read import TestingOrgUnitReadOrgUnitsObjectsValidities
 from ._testing__org_unit_read import TestingOrgUnitReadOrgUnitsObjectsValiditiesParent
 from ._testing__org_unit_read import TestingOrgUnitReadOrgUnitsObjectsValiditiesUnitType
 from ._testing__org_unit_read import TestingOrgUnitReadOrgUnitsObjectsValiditiesValidity
+from ._testing__person_update import TestingPersonUpdate
+from ._testing__person_update import TestingPersonUpdateEmployeeUpdate
 from ._testing__rolebinding_create import TestingRolebindingCreate
 from ._testing__rolebinding_create import TestingRolebindingCreateRolebindingCreate
 from .address_create import AddressCreate
@@ -92,8 +94,6 @@ from .class_terminate import ClassTerminateClassTerminate
 from .class_update import ClassUpdate
 from .class_update import ClassUpdateClassUpdate
 from .client import GraphQLClient
-from .employee_refresh import EmployeeRefresh
-from .employee_refresh import EmployeeRefreshEmployeeRefresh
 from .engagement_create import EngagementCreate
 from .engagement_create import EngagementCreateEngagementCreate
 from .engagement_terminate import EngagementTerminate
@@ -259,6 +259,10 @@ from .org_unit_terminate import OrgUnitTerminate
 from .org_unit_terminate import OrgUnitTerminateOrgUnitTerminate
 from .org_unit_update import OrgUnitUpdate
 from .org_unit_update import OrgUnitUpdateOrgUnitUpdate
+from .person_create import PersonCreate
+from .person_create import PersonCreateEmployeeCreate
+from .person_refresh import PersonRefresh
+from .person_refresh import PersonRefreshEmployeeRefresh
 from .read_address_relation_uuids import ReadAddressRelationUuids
 from .read_address_relation_uuids import ReadAddressRelationUuidsAddresses
 from .read_address_relation_uuids import ReadAddressRelationUuidsAddressesObjects
@@ -482,10 +486,6 @@ from .read_rolebindings import ReadRolebindingsRolebindingsObjectsCurrentItuser
 from .read_rolebindings import ReadRolebindingsRolebindingsObjectsCurrentItuserPerson
 from .set_job_title import SetJobTitle
 from .set_job_title import SetJobTitleEngagementUpdate
-from .user_create import UserCreate
-from .user_create import UserCreateEmployeeCreate
-from .user_update import UserUpdate
-from .user_update import UserUpdateEmployeeUpdate
 
 __all__ = [
     "AccessLogFilter",
@@ -524,8 +524,6 @@ __all__ = [
     "DescendantParentBoundOrganisationUnitFilter",
     "EmployeeCreateInput",
     "EmployeeFilter",
-    "EmployeeRefresh",
-    "EmployeeRefreshEmployeeRefresh",
     "EmployeeRegistrationFilter",
     "EmployeeTerminateInput",
     "EmployeeUpdateInput",
@@ -651,6 +649,10 @@ __all__ = [
     "ParentsBoundClassFilter",
     "ParentsBoundFacetFilter",
     "ParentsBoundOrganisationUnitFilter",
+    "PersonCreate",
+    "PersonCreateEmployeeCreate",
+    "PersonRefresh",
+    "PersonRefreshEmployeeRefresh",
     "RAOpenValidityInput",
     "RAValidityInput",
     "ReadAddressRelationUuids",
@@ -885,12 +887,10 @@ __all__ = [
     "TestingOrgUnitReadOrgUnitsObjectsValiditiesParent",
     "TestingOrgUnitReadOrgUnitsObjectsValiditiesUnitType",
     "TestingOrgUnitReadOrgUnitsObjectsValiditiesValidity",
+    "TestingPersonUpdate",
+    "TestingPersonUpdateEmployeeUpdate",
     "TestingRolebindingCreate",
     "TestingRolebindingCreateRolebindingCreate",
-    "UserCreate",
-    "UserCreateEmployeeCreate",
-    "UserUpdate",
-    "UserUpdateEmployeeUpdate",
     "UuidsBoundClassFilter",
     "UuidsBoundEmployeeFilter",
     "UuidsBoundEngagementFilter",

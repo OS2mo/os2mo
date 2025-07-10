@@ -232,7 +232,7 @@ async def test_renaming_multi_valued_rdns(
     assert ldap_object.uid == [uid]
 
     # Create a person with a new name and synchronize it
-    mo_person = await graphql_client.user_create(
+    mo_person = await graphql_client.person_create(
         input=EmployeeCreateInput(
             cpr_number=CPRNumber(cpr),
             given_name="given_name",
