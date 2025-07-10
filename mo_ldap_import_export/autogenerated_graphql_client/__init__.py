@@ -515,6 +515,9 @@ from .rolebinding_refresh import RolebindingRefresh
 from .rolebinding_refresh import RolebindingRefreshRolebindingRefresh
 from .set_job_title import SetJobTitle
 from .set_job_title import SetJobTitleEngagementUpdate
+from .who_am_i import WhoAmI
+from .who_am_i import WhoAmIMe
+from .who_am_i import WhoAmIMeActor
 
 __all__ = [
     "AccessLogFilter",
@@ -958,4 +961,7 @@ __all__ = [
     "UuidsBoundLeaveFilter",
     "UuidsBoundOrganisationUnitFilter",
     "ValidityInput",
+    "WhoAmI",
+    "WhoAmIMe",
+    "WhoAmIMeActor",
 ]

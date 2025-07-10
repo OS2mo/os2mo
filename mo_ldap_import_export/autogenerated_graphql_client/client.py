@@ -222,6 +222,8 @@ from .rolebinding_refresh import RolebindingRefresh
 from .rolebinding_refresh import RolebindingRefreshRolebindingRefresh
 from .set_job_title import SetJobTitle
 from .set_job_title import SetJobTitleEngagementUpdate
+from .who_am_i import WhoAmI
+from .who_am_i import WhoAmIMe
 
 
 def gql(q: str) -> str:
@@ -543,6 +545,23 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return PersonCreate.parse_obj(data).employee_create
+
+    async def who_am_i(self) -> WhoAmIMe:
+        query = gql(
+            """
+            query WhoAmI {
+              me {
+                actor {
+                  uuid
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return WhoAmI.parse_obj(data).me
 
     async def read_facet_uuid(self, filter: FacetFilter) -> ReadFacetUuidFacets:
         query = gql(
