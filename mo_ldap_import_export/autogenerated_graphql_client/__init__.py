@@ -102,6 +102,7 @@ from .engagement_update import EngagementUpdate
 from .engagement_update import EngagementUpdateEngagementUpdate
 from .enums import AccessLogModel
 from .enums import FileStore
+from .enums import HardcodedActor
 from .enums import OwnerInferencePriority
 from .exceptions import GraphQLClientError
 from .exceptions import GraphQLClientGraphQLError
@@ -213,11 +214,13 @@ from .input_types import OrgUnitsboundmanagerfilter
 from .input_types import OrgUnitsboundrelatedunitfilter
 from .input_types import OwnerCreateInput
 from .input_types import OwnerFilter
+from .input_types import OwnersBoundListenerFilter
+from .input_types import OwnersBoundNamespaceFilter
 from .input_types import OwnerTerminateInput
 from .input_types import OwnerUpdateInput
+from .input_types import ParentBoundOrganisationUnitFilter
 from .input_types import ParentsBoundClassFilter
 from .input_types import ParentsBoundFacetFilter
-from .input_types import ParentsBoundOrganisationUnitFilter
 from .input_types import RAOpenValidityInput
 from .input_types import RAValidityInput
 from .input_types import RegistrationFilter
@@ -564,6 +567,7 @@ __all__ = [
     "GraphQLClientGraphQLMultiError",
     "GraphQLClientHttpError",
     "GraphQlClientInvalidResponseError",
+    "HardcodedActor",
     "HealthFilter",
     "ITAssociationCreateInput",
     "ITAssociationTerminateInput",
@@ -646,9 +650,11 @@ __all__ = [
     "OwnerInferencePriority",
     "OwnerTerminateInput",
     "OwnerUpdateInput",
+    "OwnersBoundListenerFilter",
+    "OwnersBoundNamespaceFilter",
+    "ParentBoundOrganisationUnitFilter",
     "ParentsBoundClassFilter",
     "ParentsBoundFacetFilter",
-    "ParentsBoundOrganisationUnitFilter",
     "PersonCreate",
     "PersonCreateEmployeeCreate",
     "PersonRefresh",

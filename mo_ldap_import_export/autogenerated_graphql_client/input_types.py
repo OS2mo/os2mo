@@ -374,6 +374,7 @@ class EngagementCreateInput(BaseModel):
     user_key: str | None = None
     primary: UUID | None = None
     validity: "RAValidityInput"
+    fraction: int | None = None
     extension_1: str | None = None
     extension_2: str | None = None
     extension_3: str | None = None
@@ -422,6 +423,7 @@ class EngagementUpdateInput(BaseModel):
     user_key: str | None = None
     primary: UUID | None = None
     validity: "RAValidityInput"
+    fraction: int | None = None
     extension_1: str | None = None
     extension_2: str | None = None
     extension_3: str | None = None
@@ -1076,6 +1078,35 @@ class OwnerUpdateInput(BaseModel):
     validity: "RAValidityInput"
 
 
+class OwnersBoundListenerFilter(BaseModel):
+    uuids: list[UUID] | None = None
+    routing_keys: list[str] | None = None
+    namespaces: Optional["NamespaceFilter"] = None
+
+
+class OwnersBoundNamespaceFilter(BaseModel):
+    names: list[str] | None = None
+    public: bool | None = None
+
+
+class ParentBoundOrganisationUnitFilter(BaseModel):
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None | UnsetType = UNSET
+    to_date: datetime | None | UnsetType = UNSET
+    registration: Optional["OrganisationUnitRegistrationFilter"] = None
+    query: str | None | UnsetType = UNSET
+    names: list[str] | None | UnsetType = UNSET
+    parents: list[UUID] | None | UnsetType = UNSET
+    child: Optional["OrganisationUnitFilter"] | UnsetType = UNSET
+    hierarchy: Optional["ClassFilter"] = None
+    hierarchies: list[UUID] | None = None
+    subtree: Optional["OrganisationUnitFilter"] | UnsetType = UNSET
+    descendant: Optional["OrganisationUnitFilter"] | UnsetType = UNSET
+    ancestor: Optional["OrganisationUnitFilter"] | UnsetType = UNSET
+    engagement: Optional["EngagementFilter"] = None
+
+
 class ParentsBoundClassFilter(BaseModel):
     uuids: list[UUID] | None = None
     user_keys: list[str] | None = None
@@ -1101,24 +1132,6 @@ class ParentsBoundFacetFilter(BaseModel):
     registration: Optional["FacetRegistrationFilter"] = None
     parent: Optional["FacetFilter"] = None
     parent_user_keys: list[str] | None = None
-
-
-class ParentsBoundOrganisationUnitFilter(BaseModel):
-    uuids: list[UUID] | None = None
-    user_keys: list[str] | None = None
-    from_date: datetime | None | UnsetType = UNSET
-    to_date: datetime | None | UnsetType = UNSET
-    registration: Optional["OrganisationUnitRegistrationFilter"] = None
-    query: str | None | UnsetType = UNSET
-    names: list[str] | None | UnsetType = UNSET
-    parent: Optional["OrganisationUnitFilter"] | UnsetType = UNSET
-    child: Optional["OrganisationUnitFilter"] | UnsetType = UNSET
-    hierarchy: Optional["ClassFilter"] = None
-    hierarchies: list[UUID] | None = None
-    subtree: Optional["OrganisationUnitFilter"] | UnsetType = UNSET
-    descendant: Optional["OrganisationUnitFilter"] | UnsetType = UNSET
-    ancestor: Optional["OrganisationUnitFilter"] | UnsetType = UNSET
-    engagement: Optional["EngagementFilter"] = None
 
 
 class RAOpenValidityInput(BaseModel):
@@ -1409,9 +1422,11 @@ OwnerCreateInput.update_forward_refs()
 OwnerFilter.update_forward_refs()
 OwnerTerminateInput.update_forward_refs()
 OwnerUpdateInput.update_forward_refs()
+OwnersBoundListenerFilter.update_forward_refs()
+OwnersBoundNamespaceFilter.update_forward_refs()
+ParentBoundOrganisationUnitFilter.update_forward_refs()
 ParentsBoundClassFilter.update_forward_refs()
 ParentsBoundFacetFilter.update_forward_refs()
-ParentsBoundOrganisationUnitFilter.update_forward_refs()
 RAOpenValidityInput.update_forward_refs()
 RAValidityInput.update_forward_refs()
 RegistrationFilter.update_forward_refs()
