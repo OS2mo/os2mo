@@ -28,6 +28,8 @@ from mora.graphapi.gmodels.mo.organisation_unit import OrganisationUnitRead
 
 from .access_log import AccessLog
 from .access_log import access_log_resolver
+from .actor import Myself
+from .actor import myself_resolver
 from .events import Event
 from .events import FullEvent
 from .events import Listener
@@ -477,4 +479,18 @@ class Query:
             IsAuthenticatedPermission,
             gen_role_permission("fetch_event"),
         ],
+    )
+
+    me: Myself = strawberry.field(
+        resolver=myself_resolver,
+        description=dedent(
+            """\
+            Get information about the API client itself (i.e. the current caller).
+
+            This collection allows clients to query information about themselves, such
+            as their configured actor UUID, RBAC roles, login / contact email address,
+            created event namespaces and listeners, etc.
+            """,
+        ),
+        permission_classes=[IsAuthenticatedPermission],
     )
