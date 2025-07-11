@@ -5,13 +5,18 @@ from typing import Literal
 from typing import NewType
 from uuid import UUID
 
+from psycopg.types.range import TimestamptzRange
 from sqlalchemy import BigInteger
 from sqlalchemy import CheckConstraint
+from sqlalchemy import ColumnElement
 from sqlalchemy import Enum
 from sqlalchemy import Text
 from sqlalchemy import select
 from sqlalchemy import text
+from sqlalchemy import type_coerce
 from sqlalchemy.dialects.postgresql import ENUM
+from sqlalchemy.dialects.postgresql import TSTZRANGE
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import column_property
 from sqlalchemy.orm import declarative_base
@@ -64,6 +69,20 @@ class _RegistreringMixin:
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
 
+    @declared_attr
+    @classmethod
+    def _full_name(cls) -> Mapped[TimestamptzRange]:
+        return column_property(cls._registrering_period)
+
+    @hybrid_property
+    def registrering_period(self) -> TimestamptzRange:
+        return self._full_name
+
+    @registrering_period.inplace.expression
+    @classmethod
+    def _registrering_period(cls) -> ColumnElement[TimestamptzRange]:
+        return type_coerce(text("(registrering).timeperiod"), TSTZRANGE)
+
     # SQLAlchemy does not support composite types
     @declared_attr
     def registreringstid_start(cls) -> Mapped[datetime]:
@@ -107,6 +126,20 @@ class _VirkningMixin:
             "((virkning).timeperiod IS NOT NULL) AND (NOT isempty((virkning).timeperiod))"
         ),
     )
+
+    @declared_attr
+    @classmethod
+    def _full_name(cls) -> Mapped[TimestamptzRange]:
+        return column_property(cls._virkning_period)
+
+    @hybrid_property
+    def virkning_period(self) -> TimestamptzRange:
+        return self._full_name
+
+    @virkning_period.inplace.expression
+    @classmethod
+    def _virkning_period(cls) -> ColumnElement[TimestamptzRange]:
+        return type_coerce(text("(virkning).timeperiod"), TSTZRANGE)
 
     # SQLAlchemy does not support composite types
     @declared_attr

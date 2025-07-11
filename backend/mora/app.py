@@ -246,6 +246,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         dependencies=[
             Depends(log.canonical_log_dependency),
             Depends(transaction_per_request),
+            Depends(now_per_request),
             Depends(set_authenticated_user),
             Depends(query_args_context),
             Depends(lora_connector_context),
