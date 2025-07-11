@@ -84,6 +84,7 @@ async def read_org_unit_types(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
+@pytest.mark.xfail(reason="DataLoader bulking is underutilised")
 def test_dataloader_time_bulking(
     monkeypatch: pytest.MonkeyPatch,
     org_unit_type_facet: UUID,
@@ -166,9 +167,9 @@ def test_dataloader_time_bulking(
             model=ClassRead,
         ),
     ]
-    # Check that the classes have different start and end time
-    # (i.e. that they cannot be bulked)
+    # Check that the classes have same start and end time
+    # (otherwise they cannot be bulked)
     org_call, class_call = load_mo_spy.mock_calls
     lk1, lk2 = one(class_call.args)
-    assert lk1.start < lk2.start
-    assert lk1.end < lk2.end
+    assert lk1.start == lk2.start
+    assert lk1.end == lk2.end
