@@ -1094,6 +1094,16 @@ def create_facet(
 
 
 @pytest.fixture
+def org_unit_type_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
+    return create_facet(
+        {
+            "user_key": "org_unit_type",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
 def role_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
     return create_facet(
         {
