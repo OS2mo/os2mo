@@ -96,7 +96,7 @@ def _create_graphql_connector(**loraparams) -> lora.Connector:
 
     if dates is None:
         # default to present
-        from_date = datetime.datetime.now(tz=datetime.UTC)
+        from_date = util.now()
         to_date = from_date + datetime.timedelta(milliseconds=1)
     else:
         # None in MO -> ±infinity in LoRa

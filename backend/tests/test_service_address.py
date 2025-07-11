@@ -70,8 +70,8 @@ def test_autocomplete_no_municipality(monkeypatch, service_client: TestClient) -
             ),
             call(
                 [
-                    ("virkningfra", "2016-06-06T00:00:00+00:00"),
-                    ("virkningtil", "2016-06-06T00:00:00.001000+00:00"),
+                    ("virkningfra", "2016-06-06T02:00:00+02:00"),
+                    ("virkningtil", "2016-06-06T02:00:00.001000+02:00"),
                     ("konsolider", "True"),
                     ("uuid", "00000000-0000-0000-0000-000000000000"),
                 ]
@@ -151,8 +151,8 @@ def test_autocomplete_invalid_municipality(
             ),
             call(
                 [
-                    ("virkningfra", "2016-06-06T00:00:00+00:00"),
-                    ("virkningtil", "2016-06-06T00:00:00.001000+00:00"),
+                    ("virkningfra", "2016-06-06T02:00:00+02:00"),
+                    ("virkningtil", "2016-06-06T02:00:00.001000+02:00"),
                     ("konsolider", "True"),
                     ("uuid", "00000000-0000-0000-0000-000000000000"),
                 ]
