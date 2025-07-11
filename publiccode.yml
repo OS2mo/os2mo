@@ -1,0 +1,144 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+# This repository adheres to the publiccode.yml standard by including this
+# metadata file that makes public software easily discoverable.
+# More info at https://github.com/publiccodeyml/publiccode.yml
+---
+publiccodeYmlVersion: "0.4"
+name: OS2mo
+applicationSuite: OS2mo
+url: https://github.com/OS2mo/os2mo.git
+landingURL: https://github.com/OS2mo/os2mo
+softwareVersion: rolling
+# releaseDate omitted as releases are rolling
+logo: https://www.magenta.dk/wp-content/uploads/2024/02/OS2mo-logo.png
+platforms:
+  - linux
+  - web
+categories:
+  - employee-management
+  - hr
+  - identity-management
+  - it-service-management
+  - project-management
+usedBy:
+  - Danish Municipalities
+  - Danish Regions
+  - Greenlandic Tax Department
+developmentStatus: stable
+softwareType: standalone/backend
+# intendedAudience omitted as no auidence is excluded
+description:
+  en:
+    localisedName: GIR
+    shortDescription: >
+      GIR is an IT system for organisational and identity management.
+    longDescription: >
+      GIR is an IT system for organisational and identity management.
+
+      It enables your organisation to maintain information about the organisation and
+      its employees, volunteers, external consultants, robot users, and so on, from a
+      single user interface.
+
+      You get a complete overview of all departments, employees' (multiple)
+      employments, their IT access, their affiliations, and roles throughout the
+      organisation. You also get a complete picture of management hierarchies, and
+      you can see your union representative organisation, your payroll organisation,
+      your safety organisation, your line organisation, etc.
+
+      The vision for GIR is that it should be *the* source system for the entire
+      organisation and its employees: this is where organisational changes are made,
+      this is where employees are created and removed, and this information will
+      automatically - and immediately - be sent to other systems. The information can
+      also come from other systems - or be enriched from them - but it is GIR that
+      contains the complete picture of the organisation.
+
+      Because GIR contains all the information about the organisation, and it is always
+      up-to-date and correct, it is important to connect GIR to other systems that
+      need the information - be it LDAP (e.g. Active Directory), an IdM system,
+      FK-Organisation, an org chart, an HR system, etc.
+
+      When GIR is connected to many systems, workflows are automated and consistent
+      and high data quality is realised in the connected systems.
+    documentation: https://rammearkitektur.docs.magenta.dk/os2mo/
+    apiDocumentation: https://rammearkitektur.docs.magenta.dk/os2mo/tech-docs/graphql/intro.html
+    features:
+      - Control over organisation
+      - Effective on- and offboarding
+      - Automatic control and syncronization
+      - Decentralizeled responsibility and improved ownership
+      - Problem-free handling of organisational changes
+      - Improved data-accessibilty for everyone
+      - Full ownership and flexibility
+      - Bitemporal history
+    genericName: Organisational Management
+    screenshots:
+      - https://rammearkitektur.docs.magenta.dk/os2mo/graphics/MOforside.png
+      - https://rammearkitektur.docs.magenta.dk/os2mo/graphics/momanual/engagementerenhed.png
+      - https://rammearkitektur.docs.magenta.dk/os2mo/graphics/momanual/sammenkobling.png
+    # videos and awards omitted
+  da:
+    localisedName: OS2mo
+    shortDescription: >
+      OS2mo er et effektivt organisationsredskab, der holder styr på afdelinger
+      og ansatte i din organisation og udstiller dem til KOMBITs støttesystemer.
+    longDescription: >
+      MO er et moderne it-system designet til effektiv organisations- og brugerstyring.
+      Systemet giver dig en central platform til at vedligeholde præcis information
+      om hele din organisation og de mennesker (og robotter!),
+      der er tilknyttet til den – fra ansatte, vikarer, praktikanter og frivillige til
+      eksterne konsulenter og robotkonti – alt sammen via én intuitiv brugergrænseflade.
+      Denne information kan nemt deles og anvendes af andre systemer, herunder til
+      visualisering i et dynamisk organisationsdiagram på intranettet.
+
+      En af de markante fordele ved MO er muligheden for at fjernstyre bruger- og
+      organisationsdata i andre it-systemer.
+      Særligt integrationen med Active Directory og andre adgangsstyrende systemer
+      (IdM, FK Organisation, m.fl.) skaber stor værdi ved at automatisere oprettelse
+      og nedlæggelse af brugere, medlemsskaber og adgange.
+    documentation: https://rammearkitektur.docs.magenta.dk/os2mo/
+    apiDocumentation: https://rammearkitektur.docs.magenta.dk/os2mo/tech-docs/graphql/intro.html
+    features:
+      - Kontrol over organisationen
+      - Effektiv on- og offboarding
+      - Automatisk styring og synkronisering
+      - Decentraliseret ansvar og øget ejerskab
+      - Problemfri håndtering af organisationsændringer
+      - Forbedret datatilgængelighed for alle
+      - Fuldt ejerskab og fleksibilitet
+      - Bitemporal historik
+    genericName: Organisational Management
+    screenshots:
+      - https://rammearkitektur.docs.magenta.dk/os2mo/graphics/MOforside.png
+      - https://rammearkitektur.docs.magenta.dk/os2mo/graphics/momanual/engagementerenhed.png
+      - https://rammearkitektur.docs.magenta.dk/os2mo/graphics/momanual/sammenkobling.png
+    # videos and awards omitted
+legal:
+  license: MPL-2.0
+  mainCopyrightOwner: Magenta ApS
+  repoOwner: "OS2"
+maintenance:
+  type: contract
+  contractors:
+    - name: Magenta ApS
+      email: alex@magenta.dk
+      website: https://www.magenta.dk/
+      until: "2038-01-20"  # No contractual enddate
+  # contacts omitted
+localisation:
+  localisationReady: true
+  availableLanguages:
+    - da
+    - en
+dependsOn:
+  open:
+    - name: PostgreSQL
+      versionMin: "11"
+      versionMax: "15"
+      optional: false
+    - name: Keycloak
+      version: 23
+      optional: false
+    - name: RabbitMQ
+      version: "3"
+      optional: false
