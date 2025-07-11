@@ -3,15 +3,20 @@
 # flake8: noqa
 import asyncio
 from contextlib import asynccontextmanager
+from datetime import date, datetime
 from typing import Any
 
 from fastapi import Request
+from psycopg.adapt import Buffer
+from psycopg.types.datetime import DateLoader, TimestamptzLoader
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine
 from starlette_context import context
 from starlette_context import request_cycle_context
+
+from ..util import NEGATIVE_INFINITY, POSITIVE_INFINITY
 
 from . import files
 from ._amqp import AMQPSubsystem
@@ -68,6 +73,7 @@ from ._organisationsfunktion import OrganisationFunktionRelation
 from ._organisationsfunktion import OrganisationFunktionRelationKode
 from ._organisationsfunktion import OrganisationFunktionTilsGyldighed
 from .files import FileToken
+import psycopg
 
 
 def create_engine(user, password, host, name) -> AsyncEngine:
@@ -77,7 +83,30 @@ def create_engine(user, password, host, name) -> AsyncEngine:
         # not need to be concerned with error handling. This is required for the
         # testing APIs to function correctly.
         pool_pre_ping=True,
+        echo=False,
     )
+
+
+# TODO: InfTimestamptzDumper?
+class InfTimestamptzLoader(TimestamptzLoader):
+    """
+    PostgreSQL supports "-infinity"/"infinity", but Python does not.
+    https://www.psycopg.org/psycopg3/docs/advanced/adapt.html#example-handling-infinity-date
+    """
+
+    def load(self, data: Buffer) -> datetime:
+        if data == b"infinity":
+            return POSITIVE_INFINITY
+        elif data == b"-infinity":  # pragma: no cover
+            return NEGATIVE_INFINITY
+        else:
+            return super().load(data)
+
+
+# There are many more preconfigured datetime adapters in psycopg (see
+# adapters.register_load()s in psycopg/types/datetime.py), but we only use
+# timestamptz/tstzrange at the moment.
+psycopg.adapters.register_loader("timestamptz", InfTimestamptzLoader)
 
 
 class AsyncSessionWithLock(AsyncSession):
