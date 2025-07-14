@@ -16,6 +16,8 @@ affected object.
 # TODO: Do we wanna access-log database access from here?
 import asyncio
 import random
+from datetime import datetime
+from collections.abc import AsyncIterator
 from typing import Literal
 from uuid import UUID
 
@@ -124,13 +126,43 @@ async def _emit_events(
     )
     now = await session.scalar(select(func.now()))
 
+    async for rows in _generate_events(session, last_run, now):
+        await asyncio.gather(
+            *(
+                _send_amqp_message(session, amqp_system, _lora_to_mo[lora_type], uuid)
+                for lora_type, uuid in rows
+            )
+        )
+
+    await session.execute(
+        update(AMQPSubsystem),
+        [
+            {"id": 1, "last_run": now},
+        ],
+    )
+
+
+async def _generate_events(
+    session: AsyncSession, start: datetime, end: datetime
+) -> AsyncIterator[list[tuple[str, UUID]]]:
+    """Generate events between start and end.
+
+    Args:
+        session: The session to run our query on.
+        start: The start datetime to check events from.
+        end: The end datetime to check events to.
+
+    Returns:
+        Iterator of chunked events.
+    """
+
     def registration_condition(cls):
-        return cls.registreringstid_start.between(last_run, now)
+        return cls.registreringstid_start.between(start, end)
 
     def validity_condition(cls):
         return or_(
-            cls.virkning_start.between(last_run, now),
-            cls.virkning_slut.between(last_run, now),
+            cls.virkning_start.between(start, end),
+            cls.virkning_slut.between(start, end),
         )
 
     query = union(
@@ -278,19 +310,7 @@ async def _emit_events(
     # Client-side partitioning seems to cause 100% CPU usage constantly.
 
     async for rows in result.partitions():
-        await asyncio.gather(
-            *(
-                _send_amqp_message(session, amqp_system, _lora_to_mo[lora_type], uuid)
-                for lora_type, uuid in rows
-            )
-        )
-
-    await session.execute(
-        update(AMQPSubsystem),
-        [
-            {"id": 1, "last_run": now},
-        ],
-    )
+        yield rows
 
 
 async def start_event_generator(
