@@ -1506,35 +1506,49 @@ class GraphQLClient(AsyncBaseClient):
         return ReadRolebindings.parse_obj(data).rolebindings
 
     async def org_unit_refresh(
-        self, exchange: str, uuids: list[UUID]
+        self,
+        uuids: list[UUID],
+        exchange: str | None | UnsetType = UNSET,
+        owner: UUID | None | UnsetType = UNSET,
     ) -> OrgUnitRefreshOrgUnitRefresh:
         query = gql(
             """
-            mutation org_unit_refresh($exchange: String!, $uuids: [UUID!]!) {
-              org_unit_refresh(exchange: $exchange, filter: {uuids: $uuids}) {
+            mutation org_unit_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+              org_unit_refresh(exchange: $exchange, owner: $owner, filter: {uuids: $uuids}) {
                 objects
               }
             }
             """
         )
-        variables: dict[str, object] = {"exchange": exchange, "uuids": uuids}
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "owner": owner,
+            "uuids": uuids,
+        }
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return OrgUnitRefresh.parse_obj(data).org_unit_refresh
 
     async def person_refresh(
-        self, exchange: str, uuids: list[UUID]
+        self,
+        uuids: list[UUID],
+        exchange: str | None | UnsetType = UNSET,
+        owner: UUID | None | UnsetType = UNSET,
     ) -> PersonRefreshEmployeeRefresh:
         query = gql(
             """
-            mutation person_refresh($exchange: String!, $uuids: [UUID!]!) {
-              employee_refresh(exchange: $exchange, filter: {uuids: $uuids}) {
+            mutation person_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+              employee_refresh(exchange: $exchange, owner: $owner, filter: {uuids: $uuids}) {
                 objects
               }
             }
             """
         )
-        variables: dict[str, object] = {"exchange": exchange, "uuids": uuids}
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "owner": owner,
+            "uuids": uuids,
+        }
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return PersonRefresh.parse_obj(data).employee_refresh

@@ -120,11 +120,11 @@ async def handle_address(
     if person_uuids:
         # TODO: Add support for refreshing persons with a certain address directly
         await graphql_client.person_refresh(
-            amqpsystem.exchange_name, list(person_uuids)
+            list(person_uuids), amqpsystem.exchange_name
         )
     if org_unit_uuids:
         await graphql_client.org_unit_refresh(
-            amqpsystem.exchange_name, list(org_unit_uuids)
+            list(org_unit_uuids), amqpsystem.exchange_name
         )
 
 
@@ -162,7 +162,7 @@ async def handle_engagement(
         logger.warning("Unable to lookup Engagement", uuid=object_uuid)
         return
     # TODO: Add support for refreshing persons with a certain engagement directly
-    await graphql_client.person_refresh(amqpsystem.exchange_name, list(person_uuids))
+    await graphql_client.person_refresh(list(person_uuids), amqpsystem.exchange_name)
 
 
 @mo2ldap_router.post("/ituser")
@@ -207,11 +207,11 @@ async def handle_ituser(
     if person_uuids:
         # TODO: Add support for refreshing persons with a certain address directly
         await graphql_client.person_refresh(
-            amqpsystem.exchange_name, list(person_uuids)
+            list(person_uuids), amqpsystem.exchange_name
         )
     if org_unit_uuids:
         await graphql_client.org_unit_refresh(
-            amqpsystem.exchange_name, list(org_unit_uuids)
+            list(org_unit_uuids), amqpsystem.exchange_name
         )
 
 
