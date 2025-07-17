@@ -1558,7 +1558,15 @@ class Mutation:
             await terminate_rolebinding(input.to_pydantic()), RoleBindingRead
         )
 
-    # TODO: roles_delete
+    @strawberry.mutation(
+        description="Deletes a rolebinding." + delete_warning,
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_delete_permission("rolebinding"),
+        ],
+    )
+    async def rolebinding_delete(self, uuid: UUID) -> Response[RoleBinding]:
+        return uuid2response(await delete_organisationfunktion(uuid), RoleBindingRead)
 
     @strawberry.mutation(
         description="Refresh rolebindings.",

@@ -1153,3 +1153,65 @@ def create_class(
         return class_uuid
 
     return inner
+
+
+@pytest.fixture
+def create_ituser(
+    graphapi_post: GraphAPIPost, root_org: UUID
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        ituser_create_mutation = """
+            mutation ITUserCreate($input: ITUserCreateInput!) {
+                ituser_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(ituser_create_mutation, {"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["ituser_create"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
+def create_rolebinding(
+    graphapi_post: GraphAPIPost, root_org: UUID
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        rolebinding_create_mutation = """
+            mutation RoleBindingCreate($input: RoleBindingCreateInput!) {
+                rolebinding_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(rolebinding_create_mutation, {"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["rolebinding_create"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
+def read_rolebinding_uuids(
+    graphapi_post: GraphAPIPost,
+) -> Callable[[dict[str, Any]], set[UUID]]:
+    def inner(filter: dict[str, Any]) -> set[UUID]:
+        rolebinding_uuid_query = """
+            query ReadRoleBindings($filter: RoleBindingFilter) {
+                rolebindings(filter: $filter) {
+                    objects {
+                        uuid
+                    }
+                }
+            }
+        """
+        response = graphapi_post(rolebinding_uuid_query, {"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {UUID(obj["uuid"]) for obj in response.data["rolebindings"]["objects"]}
+
+    return inner
