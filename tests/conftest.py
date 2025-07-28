@@ -31,6 +31,7 @@ from mo_ldap_import_export.ldap import _paged_search
 from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.ldapapi import LDAPAPI
+from mo_ldap_import_export.main import GRAPHQL_VERSION
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.moapi import MOAPI
@@ -345,15 +346,26 @@ async def context(test_client: AsyncClient, fastramqpi: FastRAMQPI) -> Context:
 
 
 @pytest.fixture
-async def graphql_client(context: Context) -> GraphQLClient:
+async def graphql_client(mo_client: AsyncClient) -> AsyncIterator[GraphQLClient]:
     """Authenticated GraphQL codegen client for OS2mo."""
-    return cast(GraphQLClient, context["graphql_client"])
+    graphql_client = GraphQLClient(
+        url=f"{mo_client.base_url}/graphql/v{GRAPHQL_VERSION}",
+        http_client=mo_client,
+    )
+    async with graphql_client as client:
+        yield client
 
 
 @pytest.fixture
-async def mo_api(settings_mock: Settings, graphql_client: GraphQLClient) -> MOAPI:
+async def mo_api(graphql_client: GraphQLClient) -> MOAPI:
     """MO API GraphQL wrapper."""
-    return MOAPI(settings_mock, graphql_client)
+    return MOAPI(Settings(), graphql_client)
+
+
+# TODO: Eliminate this fixture
+@pytest.fixture
+async def integration_graphql_client(context: Context) -> GraphQLClient:
+    return cast(GraphQLClient, context["graphql_client"])
 
 
 @pytest.fixture

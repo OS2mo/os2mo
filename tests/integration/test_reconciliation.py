@@ -18,6 +18,7 @@ from mo_ldap_import_export.types import DN
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("test_client")
 @pytest.mark.envvar(
     {
         # We listen to changes in MO, such that publish an event to the LDAP queue
