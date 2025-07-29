@@ -41,6 +41,36 @@ def cli(
 
 
 @cli.command()
+@click.pass_context
+def list_files(
+    ctx,
+    mo_file: str,
+) -> None:
+    # Get token from Keycloak
+    token = _get_token(
+        ctx.obj["keycloak_base_url"],
+        ctx.obj["client_id"],
+        ctx.obj["client_secret"],
+    )
+
+    # Read list of files
+
+    headers = {"Authorization": f"Bearer {token}"}
+    data = {
+        "query": "query GetFile($file_name: [String!])"
+        "{files(filter: {file_store: EXPORTS, file_names: $file_name})"
+        "{objects {file_name}}}",
+        "variables": {"file_name": mo_file},
+        "operationName": "GetFile",
+    }
+    r = httpx.post(f"{ctx.obj['mo_base_url']}/graphql/v22", headers=headers, json=data)
+    print(r.status_code)
+
+    files = r.json()["data"]["files"]["objects"]
+    for filename in files:
+        click.echo(filename)
+
+@cli.command()
 @click.argument("--mo-file", required=True)
 @click.pass_context
 def download(
