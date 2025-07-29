@@ -401,7 +401,8 @@ async def lifespan(
         import_checks = ImportChecks()
 
         logger.info("Initializing converters")
-        converter = LdapConverter(settings, dataloader)
+        amqpsystem = fastramqpi.get_amqpsystem()
+        converter = LdapConverter(settings, dataloader, amqpsystem)
         fastramqpi.add_context(converter=converter)
 
         logger.info("Initializing Sync tool")
@@ -416,7 +417,6 @@ async def lifespan(
         fastramqpi.add_context(sync_tool=sync_tool)
 
         logger.info("Starting AMQP listener")
-        amqpsystem = fastramqpi.get_amqpsystem()
         await stack.enter_async_context(amqpsystem)
 
         logger.info("Initializing LDAP listener")

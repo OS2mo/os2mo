@@ -6,6 +6,7 @@ from typing import Any
 
 import pydantic
 import structlog
+from fastramqpi.depends import MOAMQPSystem
 from fastramqpi.ramqp.utils import RequeueMessage
 from more_itertools import one
 
@@ -26,8 +27,10 @@ logger = structlog.stdlib.get_logger()
 
 
 class LdapConverter:
-    def __init__(self, settings: Settings, dataloader: DataLoader) -> None:
-        self.environment = construct_environment(settings, dataloader)
+    def __init__(
+        self, settings: Settings, dataloader: DataLoader, amqpsystem: MOAMQPSystem
+    ) -> None:
+        self.environment = construct_environment(settings, dataloader, amqpsystem)
 
     @staticmethod
     def str_to_dict(text):
