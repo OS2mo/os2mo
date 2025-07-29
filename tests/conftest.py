@@ -363,12 +363,6 @@ async def mo_api(graphql_client: GraphQLClient) -> MOAPI:
     return MOAPI(Settings(), graphql_client)
 
 
-# TODO: Eliminate this fixture
-@pytest.fixture
-async def integration_graphql_client(context: Context) -> GraphQLClient:
-    return cast(GraphQLClient, context["graphql_client"])
-
-
 @pytest.fixture
 async def ldap_connection() -> Connection:
     """The integration LDAP connection"""
