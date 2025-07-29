@@ -67,8 +67,8 @@ def list_files(
     print(r.status_code)
 
     files = r.json()["data"]["files"]["objects"]
-    for filename in files:
-        click.echo(filename)
+    for f in files:
+        click.echo(f["file_name"])
 
 @cli.command()
 @click.argument("--mo-file", required=True)
