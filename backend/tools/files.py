@@ -42,12 +42,10 @@ def cli(
 
 @cli.command()
 @click.option("--mo-file", required=True)
-@click.option("--out-file", type=click.Path(writable=True), required=True)
 @click.pass_context
 def download(
     ctx,
     mo_file: str,
-    out_file: str,
 ) -> None:
     # Get token from Keycloak
     token = _get_token(
@@ -71,9 +69,7 @@ def download(
 
     b64_content = one(r.json()["data"]["files"]["objects"])["base64_contents"]
     content = base64.b64decode(b64_content)
-    with open(out_file, "wb") as fp:
-        fp.write(content)
-
+    click.echo(content)
 
 @cli.command()
 @click.option("--force", is_flag=True)
