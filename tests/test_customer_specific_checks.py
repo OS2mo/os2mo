@@ -18,6 +18,7 @@ from mo_ldap_import_export.depends import Settings
 from mo_ldap_import_export.exceptions import IgnoreChanges
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from mo_ldap_import_export.ldapapi import LDAPAPI
+from mo_ldap_import_export.main import GRAPHQL_VERSION
 from mo_ldap_import_export.moapi import MOAPI
 from tests.graphql_mocker import GraphQLMocker
 
@@ -75,7 +76,7 @@ async def test_check_holstebro_ou_is_externals_error2(import_checks: ImportCheck
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
 async def test_check_it_user(graphql_mock: GraphQLMocker) -> None:
-    graphql_client = GraphQLClient("http://example.com/graphql")
+    graphql_client = GraphQLClient(f"http://example.com/graphql/v{GRAPHQL_VERSION}")
     context: dict[str, Any] = defaultdict(MagicMock)
     context["graphql_client"] = graphql_client
     context["user_context"] = defaultdict(MagicMock)

@@ -23,6 +23,7 @@ from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.environments.main import construct_environment
 from mo_ldap_import_export.import_export import SyncTool
+from mo_ldap_import_export.main import GRAPHQL_VERSION
 from mo_ldap_import_export.main import handle_org_unit
 from mo_ldap_import_export.moapi import Verb
 from mo_ldap_import_export.moapi import get_primary_engagement
@@ -572,7 +573,7 @@ async def test_get_primary_engagement(
     objects: list[dict[str, Any]],
     expected: UUID | str | None,
 ) -> None:
-    graphql_client = GraphQLClient("http://example.com/graphql")
+    graphql_client = GraphQLClient(f"http://example.com/graphql/v{GRAPHQL_VERSION}")
 
     employee_uuid = EmployeeUUID(uuid4())
 

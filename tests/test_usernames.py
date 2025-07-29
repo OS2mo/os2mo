@@ -19,6 +19,7 @@ from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.environments.generate_username import _create_from_combi
 from mo_ldap_import_export.environments.generate_username import generate_username
 from mo_ldap_import_export.ldapapi import LDAPAPI
+from mo_ldap_import_export.main import GRAPHQL_VERSION
 from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.usernames import UserNameGenerator
@@ -408,7 +409,7 @@ async def test_active_directory_search_result(
 
     settings = Settings()
 
-    graphql_client = GraphQLClient("http://example.com/graphql")
+    graphql_client = GraphQLClient(f"http://example.com/graphql/v{GRAPHQL_VERSION}")
     moapi = MOAPI(settings, graphql_client)
 
     ldap_connection = MagicMock()
