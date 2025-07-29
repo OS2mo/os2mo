@@ -5,11 +5,12 @@ from collections.abc import Awaitable
 from collections.abc import Callable
 from datetime import datetime
 from typing import Any
+from typing import cast
 from unittest.mock import ANY
 from uuid import UUID
 
 import pytest
-from fastramqpi.pytest_util import retry
+from fastramqpi.pytest_util import retrying
 from ldap3 import Connection
 from more_itertools import one
 from structlog.testing import capture_logs
@@ -81,8 +82,7 @@ async def test_to_mo(
     jurist: UUID,
     primary: UUID,
 ) -> None:
-    @retry()
-    async def assert_engagement(expected: dict) -> None:
+    async def get_engagement() -> dict[str, Any]:
         engagements = await graphql_client._testing__engagement_read(
             filter=EngagementFilter(
                 employee=EmployeeFilter(uuids=[mo_person]),
@@ -90,7 +90,7 @@ async def test_to_mo(
         )
         engagement = one(engagements.objects)
         validities = one(engagement.validities)
-        assert validities.dict() == expected
+        return validities.dict()
 
     person_dn = combine_dn_strings(["uid=abk"] + ldap_org_unit)
 
@@ -117,7 +117,9 @@ async def test_to_mo(
         "extension_1": None,
         "validity": {"from_": datetime(2001, 2, 3, 0, 0, tzinfo=MO_TZ), "to": None},
     }
-    await assert_engagement(mo_engagement)
+    async for attempt in retrying():
+        with attempt:
+            assert await get_engagement() == mo_engagement
 
     # LDAP: Create
     title = "create"
@@ -140,7 +142,9 @@ async def test_to_mo(
         "user_key": title,
         "extension_1": title,
     }
-    await assert_engagement(mo_engagement)
+    async for attempt in retrying():
+        with attempt:
+            assert await get_engagement() == mo_engagement
 
     # LDAP: Edit
     title = "edit"
@@ -155,7 +159,9 @@ async def test_to_mo(
         "user_key": title,
         "extension_1": title,
     }
-    await assert_engagement(mo_engagement)
+    async for attempt in retrying():
+        with attempt:
+            assert await get_engagement() == mo_engagement
 
     # LDAP: Terminate
     await ldap_api.ldap_connection.ldap_modify(
@@ -168,7 +174,9 @@ async def test_to_mo(
         **mo_engagement,
         "validity": {"from_": mo_engagement["validity"]["from_"], "to": mo_today()},
     }
-    await assert_engagement(mo_engagement)
+    async for attempt in retrying():
+        with attempt:
+            assert await get_engagement() == mo_engagement
 
 
 @pytest.mark.integration_test
@@ -208,14 +216,13 @@ async def test_to_ldap(
 ) -> None:
     cpr = "2108613133"
 
-    @retry()
-    async def assert_engagement(expected: dict[str, Any]) -> None:
+    async def get_engagement() -> dict[str, Any]:
         response, _ = await ldap_api.ldap_connection.ldap_search(
             search_base=combine_dn_strings(ldap_org_unit),
             search_filter=f"(employeeNumber={cpr})",
             attributes=["title", "departmentNumber"],
         )
-        assert one(response)["attributes"] == expected
+        return cast(dict[str, Any], one(response)["attributes"])
 
     # LDAP: Init user
     person_dn = combine_dn_strings(["uid=abk"] + ldap_org_unit)
@@ -230,7 +237,9 @@ async def test_to_ldap(
             "employeeNumber": cpr,
         },
     )
-    await assert_engagement({"title": [], "departmentNumber": []})
+    async for attempt in retrying():
+        with attempt:
+            assert await get_engagement() == {"title": [], "departmentNumber": []}
 
     # MO: Create
     title = "create"
@@ -246,7 +255,12 @@ async def test_to_ldap(
             validity={"from": "2001-02-03T04:05:06Z"},
         )
     )
-    await assert_engagement({"title": [title], "departmentNumber": [str(mo_org_unit)]})
+    async for attempt in retrying():
+        with attempt:
+            assert await get_engagement() == {
+                "title": [title],
+                "departmentNumber": [str(mo_org_unit)],
+            }
 
     # MO: Edit
     title = "update"
@@ -264,7 +278,12 @@ async def test_to_ldap(
             extension_1=title,
         )
     )
-    await assert_engagement({"title": [title], "departmentNumber": [str(mo_org_unit)]})
+    async for attempt in retrying():
+        with attempt:
+            assert await get_engagement() == {
+                "title": [title],
+                "departmentNumber": [str(mo_org_unit)],
+            }
 
     # MO: Terminate
     await graphql_client.engagement_terminate(
@@ -273,7 +292,9 @@ async def test_to_ldap(
             to=mo_today(),
         ),
     )
-    await assert_engagement({"title": [], "departmentNumber": []})
+    async for attempt in retrying():
+        with attempt:
+            assert await get_engagement() == {"title": [], "departmentNumber": []}
 
 
 @pytest.mark.integration_test

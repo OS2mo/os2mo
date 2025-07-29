@@ -12,7 +12,7 @@ from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
-from fastramqpi.pytest_util import retry
+from fastramqpi.pytest_util import retrying
 from httpx import AsyncClient
 from more_itertools import one
 
@@ -54,17 +54,17 @@ async def test_process_person(
     sync_tool_mock = AsyncMock()
     context["user_context"]["sync_tool"] = sync_tool_mock
 
-    @retry()
-    async def verify(person_uuid) -> None:
-        sync_tool_mock.listen_to_changes_in_employees.assert_called_with(person_uuid)
-
     # Create a person and verify that it ends up calling listen_to_changes_in_employees
     person_result = await graphql_client.person_create(
         input=EmployeeCreateInput(given_name="John", surname="Hansen")
     )
     person_uuid = person_result.uuid
 
-    await verify(person_uuid)
+    async for attempt in retrying():
+        with attempt:
+            sync_tool_mock.listen_to_changes_in_employees.assert_called_with(
+                person_uuid
+            )
 
     sync_tool_mock.reset_mock()
 
@@ -87,7 +87,11 @@ async def test_process_person(
         )
     )
 
-    await verify(person_uuid)
+    async for attempt in retrying():
+        with attempt:
+            sync_tool_mock.listen_to_changes_in_employees.assert_called_with(
+                person_uuid
+            )
 
 
 @pytest.mark.integration_test
@@ -202,31 +206,29 @@ async def test_create_ldap_person(
     )
     person_uuid = person_result.uuid
 
-    @retry()
-    async def verify(person_uuid: UUID) -> None:
-        num_messages = await get_num_published_messages()
-        assert num_messages > 0
+    async for attempt in retrying():
+        with attempt:
+            num_messages = await get_num_published_messages()
+            assert num_messages > 0
 
-        num_messages = await get_num_queued_messages()
-        assert num_messages == 0
+            num_messages = await get_num_queued_messages()
+            assert num_messages == 0
 
-        result = await test_client.get(f"/Inspect/mo/uuid2dn/{person_uuid}")
-        assert result.status_code == 200
-        dn = one(result.json())
+            result = await test_client.get(f"/Inspect/mo/uuid2dn/{person_uuid}")
+            assert result.status_code == 200
+            dn = one(result.json())
 
-        result = await test_client.get(f"/Inspect/dn/{dn}")
-        assert result.status_code == 200
-        assert result.json() == {
-            "objectClass": ["inetOrgPerson"],
-            "dn": dn,
-            "cn": [given_name + " " + surname],
-            "employeeNumber": cpr_number,
-            "givenName": [given_name],
-            "sn": [surname],
-            "title": [str(person_uuid)],
-        }
-
-    await verify(person_uuid)
+            result = await test_client.get(f"/Inspect/dn/{dn}")
+            assert result.status_code == 200
+            assert result.json() == {
+                "objectClass": ["inetOrgPerson"],
+                "dn": dn,
+                "cn": [given_name + " " + surname],
+                "employeeNumber": cpr_number,
+                "givenName": [given_name],
+                "sn": [surname],
+                "title": [str(person_uuid)],
+            }
 
 
 @pytest.mark.integration_test
@@ -263,20 +265,18 @@ async def test_create_ldap_person_blocked_by_itsystem_check(
     )
     person_uuid = person_result.uuid
 
-    @retry()
-    async def verify(person_uuid: UUID) -> None:
-        num_messages = await get_num_published_messages()
-        assert num_messages > 0
+    async for attempt in retrying():
+        with attempt:
+            num_messages = await get_num_published_messages()
+            assert num_messages > 0
 
-        num_messages = await get_num_queued_messages()
-        assert num_messages == 0
+            num_messages = await get_num_queued_messages()
+            assert num_messages == 0
 
-        # Check that the user has not been created
-        result = await test_client.get(f"/Inspect/mo/uuid2dn/{person_uuid}")
-        assert result.status_code == 200
-        assert result.json() == []
-
-    await verify(person_uuid)
+            # Check that the user has not been created
+            result = await test_client.get(f"/Inspect/mo/uuid2dn/{person_uuid}")
+            assert result.status_code == 200
+            assert result.json() == []
 
 
 @pytest.mark.integration_test
