@@ -41,7 +41,7 @@ def cli(
 
 
 @cli.command()
-@click.option("--mo-file", required=True)
+@click.argument("--mo-file", required=True)
 @click.pass_context
 def download(
     ctx,
