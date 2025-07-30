@@ -68,6 +68,8 @@ from .ldap_event_generator import ldap_event_router
 from .routes import construct_router
 from .usernames import UserNameGenerator
 
+GRAPHQL_VERSION = 25
+
 logger = structlog.stdlib.get_logger()
 
 amqp_router = MORouter()
@@ -540,7 +542,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     fastramqpi = FastRAMQPI(
         application_name="ldap_ie",
         settings=settings.fastramqpi,
-        graphql_version=25,
+        graphql_version=GRAPHQL_VERSION,
         graphql_client_cls=GraphQLClient,
         database_metadata=Base.metadata,
         graphql_events=GraphQLEvents(

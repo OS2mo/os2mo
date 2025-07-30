@@ -36,6 +36,7 @@ from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from mo_ldap_import_export.ldap_classes import LdapObject
+from mo_ldap_import_export.main import GRAPHQL_VERSION
 from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
@@ -433,7 +434,7 @@ async def test_get_visibility_uuid(graphql_client: AsyncMock, class_name: str) -
 async def test_get_job_function_uuid(
     graphql_mock: GraphQLMocker, dataloader: AsyncMock
 ) -> None:
-    graphql_client = GraphQLClient("http://example.com/graphql")
+    graphql_client = GraphQLClient(f"http://example.com/graphql/v{GRAPHQL_VERSION}")
     moapi = MOAPI(dataloader.settings, graphql_client)
 
     route = graphql_mock.query("read_class_uuid_by_facet_and_class_user_key")
@@ -501,7 +502,7 @@ async def test_get_job_function_uuid_default_kwarg_does_not_override(
 async def test_get_job_function_name(
     graphql_mock: GraphQLMocker, class_name: str
 ) -> None:
-    graphql_client = GraphQLClient("http://example.com/graphql")
+    graphql_client = GraphQLClient(f"http://example.com/graphql/v{GRAPHQL_VERSION}")
 
     route = graphql_mock.query("read_class_name_by_class_uuid")
     route.result = {"classes": {"objects": [{"current": {"name": class_name}}]}}
@@ -522,7 +523,7 @@ async def test_get_job_function_name(
 async def test_get_org_unit_name(
     graphql_mock: GraphQLMocker, org_unit_name: str
 ) -> None:
-    graphql_client = GraphQLClient("http://example.com/graphql")
+    graphql_client = GraphQLClient(f"http://example.com/graphql/v{GRAPHQL_VERSION}")
 
     route = graphql_mock.query("read_org_unit_name")
     route.result = {"org_units": {"objects": [{"current": {"name": org_unit_name}}]}}
@@ -543,7 +544,7 @@ async def test_get_org_unit_name(
 async def test_get_it_system_uuid(
     settings_mock: Settings, graphql_mock: GraphQLMocker, it_system_user_key: str
 ) -> None:
-    graphql_client = GraphQLClient("http://example.com/graphql")
+    graphql_client = GraphQLClient(f"http://example.com/graphql/v{GRAPHQL_VERSION}")
 
     it_system_uuid = uuid4()
     route = graphql_mock.query("read_itsystem_uuid")

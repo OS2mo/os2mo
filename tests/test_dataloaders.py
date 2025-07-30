@@ -56,6 +56,7 @@ from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import ReadOnlyException
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.ldapapi import LDAPAPI
+from mo_ldap_import_export.main import GRAPHQL_VERSION
 from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.moapi import Verb
 from mo_ldap_import_export.moapi import extract_current_or_latest_validity
@@ -165,7 +166,7 @@ def dataloader(
 
 @pytest.fixture
 def graphql_mock(dataloader, respx_mock) -> Iterator[GraphQLMocker]:
-    graphql_client = GraphQLClient("http://example.com/graphql")
+    graphql_client = GraphQLClient(f"http://example.com/graphql/v{GRAPHQL_VERSION}")
     dataloader.moapi.graphql_client = graphql_client
 
     yield GraphQLMocker(respx_mock)
