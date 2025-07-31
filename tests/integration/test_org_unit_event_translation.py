@@ -126,7 +126,6 @@ async def assert_person_events(
         ),
     ],
 )
-@pytest.mark.xfail(reason="flaky due to test timings")
 async def test_orgunit2engagement2person(
     test_client: AsyncClient,
     graphql_client: GraphQLClient,
@@ -178,7 +177,6 @@ async def test_orgunit2engagement2person(
         "LISTEN_TO_CHANGES_IN_LDAP": "False",
     }
 )
-@pytest.mark.xfail(reason="flaky due to test timings")
 async def test_orgunit2engagement2person_multiple_engagements(
     test_client: AsyncClient,
     graphql_client: GraphQLClient,

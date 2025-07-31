@@ -56,6 +56,12 @@ def pytest_collection_modifyitems(items: list[Item]) -> None:
             ]
 
 
+@pytest.fixture(autouse=True)
+def lowered_sleep_on_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("mo_ldap_import_export.main.SLEEP_ON_ERROR", 1)
+    monkeypatch.setattr("mo_ldap_import_export.ldap_amqp.SLEEP_ON_ERROR", 1)
+
+
 @pytest.fixture
 def settings_overrides() -> Iterator[dict[str, str]]:
     """Fixture to construct dictionary of minimal overrides for valid settings.
