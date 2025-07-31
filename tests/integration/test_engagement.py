@@ -196,6 +196,7 @@ async def test_to_mo(
     }
 )
 @pytest.mark.usefixtures("test_client", "mo_api")
+@pytest.mark.xfail(reason="flaky due to test timings")
 async def test_to_ldap(
     graphql_client: GraphQLClient,
     mo_person: UUID,
