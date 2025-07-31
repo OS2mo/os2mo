@@ -4,11 +4,12 @@ import asyncio
 import json
 from collections.abc import Awaitable
 from collections.abc import Callable
+from typing import Any
 from unittest.mock import ANY
 from uuid import UUID
 
 import pytest
-from fastramqpi.pytest_util import retry
+from fastramqpi.pytest_util import retrying
 from more_itertools import first
 from more_itertools import one
 from more_itertools import only
@@ -64,12 +65,11 @@ async def test_to_mo(
     ldap_org: list[str],
     dn2uuid: DN2UUID,
 ) -> None:
-    @retry()
-    async def assert_org_unit(expected: dict) -> None:
+    async def get_org_unit() -> dict[str, Any]:
         org_units = await graphql_client._testing__org_unit_read()
         org_unit = one(org_units.objects)
         validities = one(org_unit.validities)
-        assert validities.dict() == expected
+        return validities.dict()
 
     org_unit_dn = combine_dn_strings(["ou=create"] + ldap_org)
 
@@ -94,7 +94,9 @@ async def test_to_mo(
             "to": None,
         },
     }
-    await assert_org_unit(mo_org_unit)
+    async for attempt in retrying():
+        with attempt:
+            assert await get_org_unit() == mo_org_unit
 
     # LDAP: Edit
     await ldap_api.ldap_connection.ldap_modify_dn(
@@ -105,7 +107,9 @@ async def test_to_mo(
         **mo_org_unit,
         "name": "edit",
     }
-    await assert_org_unit(mo_org_unit)
+    async for attempt in retrying():
+        with attempt:
+            assert await get_org_unit() == mo_org_unit
 
     org_unit_dn = combine_dn_strings(["ou=edit"] + ldap_org)
 
@@ -120,7 +124,9 @@ async def test_to_mo(
         **mo_org_unit,
         "validity": {"from_": mo_today(), "to": mo_today()},
     }
-    await assert_org_unit(mo_org_unit)
+    async for attempt in retrying():
+        with attempt:
+            assert await get_org_unit() == mo_org_unit
 
 
 @pytest.mark.integration_test

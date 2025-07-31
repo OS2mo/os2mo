@@ -8,7 +8,7 @@ from typing import cast
 from unittest.mock import ANY
 
 import pytest
-from fastramqpi.pytest_util import retry
+from fastramqpi.pytest_util import retrying
 from ldap3 import Connection
 from more_itertools import one
 from structlog.testing import capture_logs
@@ -66,14 +66,13 @@ async def test_to_mo(
 ) -> None:
     cpr = "2108613133"
 
-    @retry()
-    async def assert_employee(expected: dict) -> None:
+    async def get_employee() -> dict[str, Any]:
         employees = await graphql_client._testing__employee_read(
             filter=EmployeeFilter(cpr_numbers=[cpr])
         )
         employee = one(employees.objects)
         validities = one(employee.validities)
-        assert validities.dict() == expected
+        return validities.dict()
 
     person_dn = combine_dn_strings(["uid=abk"] + ldap_org_unit)
 
@@ -100,7 +99,9 @@ async def test_to_mo(
         "nickname_given_name": "foo",
         "nickname_surname": "bar",
     }
-    await assert_employee(mo_employee)
+    async for attempt in retrying():
+        with attempt:
+            assert await get_employee() == mo_employee
 
     # LDAP: Edit
     given_name = "edit"
@@ -114,7 +115,9 @@ async def test_to_mo(
         **mo_employee,
         "given_name": given_name,
     }
-    await assert_employee(mo_employee)
+    async for attempt in retrying():
+        with attempt:
+            assert await get_employee() == mo_employee
 
 
 @pytest.mark.integration_test
@@ -154,8 +157,7 @@ async def test_to_ldap(
 ) -> None:
     cpr = "2108613133"
 
-    @retry()
-    async def assert_employee(dn: DN, expected: dict[str, Any]) -> None:
+    async def get_employee() -> dict[str, Any]:
         response, _ = await ldap_api.ldap_connection.ldap_search(
             search_base=combine_dn_strings(ldap_org_unit),
             search_filter=f"(employeeNumber={cpr})",
@@ -170,8 +172,7 @@ async def test_to_ldap(
             ],
         )
         employee = one(response)
-        assert employee["dn"] == dn
-        assert employee["attributes"] == expected
+        return employee
 
     # MO: Create
     mo_employee = await graphql_client.person_create(
@@ -183,18 +184,22 @@ async def test_to_ldap(
             nickname_surname="Erika",
         )
     )
-    await assert_employee(
-        "cn=create Mustermann,ou=os2mo,o=magenta,dc=magenta,dc=dk",
-        {
-            "employeeNumber": "2108613133",
-            "carLicense": [str(mo_employee.uuid)],
-            "uid": ["2108613133"],
-            "cn": ["create Mustermann"],
-            "sn": ["Mustermann"],
-            "givenName": ["create"],
-            "displayName": "Max Erika",
-        },
-    )
+    async for attempt in retrying():
+        with attempt:
+            employee = await get_employee()
+            assert (
+                employee["dn"]
+                == "cn=create Mustermann,ou=os2mo,o=magenta,dc=magenta,dc=dk"
+            )
+            assert employee["attributes"] == {
+                "employeeNumber": "2108613133",
+                "carLicense": [str(mo_employee.uuid)],
+                "uid": ["2108613133"],
+                "cn": ["create Mustermann"],
+                "sn": ["Mustermann"],
+                "givenName": ["create"],
+                "displayName": "Max Erika",
+            }
 
     # MO: Edit
     await graphql_client._testing__person_update(
@@ -209,18 +214,22 @@ async def test_to_ldap(
             cpr_number=cpr,
         )
     )
-    await assert_employee(
-        "cn=update Musterfrau,ou=os2mo,o=magenta,dc=magenta,dc=dk",
-        {
-            "employeeNumber": "2108613133",
-            "carLicense": [str(mo_employee.uuid)],
-            "uid": ["2108613133"],
-            "cn": ["update Musterfrau"],
-            "sn": ["Musterfrau"],
-            "givenName": ["update"],
-            "displayName": "Manu Muster",
-        },
-    )
+    async for attempt in retrying():
+        with attempt:
+            employee = await get_employee()
+            assert (
+                employee["dn"]
+                == "cn=update Musterfrau,ou=os2mo,o=magenta,dc=magenta,dc=dk"
+            )
+            assert employee["attributes"] == {
+                "employeeNumber": "2108613133",
+                "carLicense": [str(mo_employee.uuid)],
+                "uid": ["2108613133"],
+                "cn": ["update Musterfrau"],
+                "sn": ["Musterfrau"],
+                "givenName": ["update"],
+                "displayName": "Manu Muster",
+            }
 
 
 @pytest.mark.integration_test
@@ -293,29 +302,27 @@ async def test_edit_existing_in_ldap(
         )
     )
 
-    @retry()
-    async def assert_employee() -> None:
-        response, _ = await ldap_api.ldap_connection.ldap_search(
-            search_base=combine_dn_strings(ldap_org_unit),
-            search_filter=f"(employeeNumber={cpr})",
-            attributes=[
-                "employeeNumber",
-                "uid",
-                "cn",
-                "sn",
-            ],
-        )
-        employee = one(response)
-        expected_dn = combine_dn_strings([expected] + ldap_org_unit)
-        assert employee["dn"] == expected_dn
-        assert employee["attributes"] == {
-            "employeeNumber": "2108613133",
-            "uid": ["2108613133"],
-            "cn": ["create Mustermann"],
-            "sn": ["Mustermann"],
-        }
-
-    await assert_employee()
+    async for attempt in retrying():
+        with attempt:
+            response, _ = await ldap_api.ldap_connection.ldap_search(
+                search_base=combine_dn_strings(ldap_org_unit),
+                search_filter=f"(employeeNumber={cpr})",
+                attributes=[
+                    "employeeNumber",
+                    "uid",
+                    "cn",
+                    "sn",
+                ],
+            )
+            employee = one(response)
+            expected_dn = combine_dn_strings([expected] + ldap_org_unit)
+            assert employee["dn"] == expected_dn
+            assert employee["attributes"] == {
+                "employeeNumber": "2108613133",
+                "uid": ["2108613133"],
+                "cn": ["create Mustermann"],
+                "sn": ["Mustermann"],
+            }
 
 
 @pytest.mark.integration_test

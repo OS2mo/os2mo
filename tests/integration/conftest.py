@@ -9,7 +9,7 @@ from typing import TypeAlias
 from uuid import UUID
 
 import pytest
-from fastramqpi.pytest_util import retry
+from fastramqpi.pytest_util import retrying
 from httpx import AsyncClient
 from more_itertools import one
 
@@ -365,14 +365,15 @@ async def trigger_ldap_person(
 async def assert_mo_person(
     mo_person: UUID, graphql_client: GraphQLClient
 ) -> Callable[[dict[str, Any]], Awaitable[None]]:
-    @retry()
     async def assert_employee(expected: dict[str, Any]) -> None:
-        employees = await graphql_client._testing__employee_read(
-            filter=EmployeeFilter(uuids=[mo_person])
-        )
-        employee = one(employees.objects)
-        validities = [validity.dict() for validity in employee.validities]
-        assert validities == [expected]
+        async for attempt in retrying():
+            with attempt:
+                employees = await graphql_client._testing__employee_read(
+                    filter=EmployeeFilter(uuids=[mo_person])
+                )
+                employee = one(employees.objects)
+                validities = [validity.dict() for validity in employee.validities]
+                assert validities == [expected]
 
     return assert_employee
 
@@ -385,22 +386,23 @@ async def assert_ldap_person(
 ) -> Callable[[dict[str, Any]], Awaitable[None]]:
     settings = Settings()
 
-    @retry()
     async def assert_employee(expected: dict[str, Any]) -> None:
-        response, _ = await ldap_api.ldap_connection.ldap_search(
-            search_base=combine_dn_strings(ldap_org_unit),
-            search_filter=f"({settings.ldap_unique_id_field}={ldap_person_uuid})",
-            attributes=[
-                "employeeNumber",
-                "carLicense",
-                "uid",
-                "cn",
-                "sn",
-                "givenName",
-                "displayName",
-            ],
-        )
-        employee = one(response)
-        assert employee["attributes"] == expected
+        async for attempt in retrying():
+            with attempt:
+                response, _ = await ldap_api.ldap_connection.ldap_search(
+                    search_base=combine_dn_strings(ldap_org_unit),
+                    search_filter=f"({settings.ldap_unique_id_field}={ldap_person_uuid})",
+                    attributes=[
+                        "employeeNumber",
+                        "carLicense",
+                        "uid",
+                        "cn",
+                        "sn",
+                        "givenName",
+                        "displayName",
+                    ],
+                )
+                employee = one(response)
+                assert employee["attributes"] == expected
 
     return assert_employee
