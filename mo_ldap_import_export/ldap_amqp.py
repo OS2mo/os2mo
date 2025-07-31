@@ -17,6 +17,7 @@ from fastramqpi.ramqp.utils import RejectMessage
 from fastramqpi.ramqp.utils import RequeueMessage
 
 from . import depends
+from .config import SLEEP_ON_ERROR
 from .depends import DataLoader
 from .depends import LDAPAMQPSystem
 from .depends import Settings
@@ -64,7 +65,7 @@ async def process_uuid(
         #       as we may otherwise trigger both this handler AND the reconcile handler
         #       and if both handlers end up failing, we have an exponential growth in
         #       the number of unhandled messages.
-        await asyncio.sleep(30)
+        await asyncio.sleep(SLEEP_ON_ERROR)
         queue_prefix = settings.ldap_amqp.queue_prefix
         queue_name = f"{queue_prefix}_process_uuid"
         await ldap_amqpsystem.publish_message_to_queue(queue_name, uuid)
@@ -138,7 +139,7 @@ async def reconcile_uuid(
         #       as we may otherwise trigger both this handler AND the reconcile handler
         #       and if both handlers end up failing, we have an exponential growth in
         #       the number of unhandled messages.
-        await asyncio.sleep(30)
+        await asyncio.sleep(SLEEP_ON_ERROR)
         queue_prefix = settings.ldap_amqp.queue_prefix
         queue_name = f"{queue_prefix}_reconcile_uuid"
         await ldap_amqpsystem.publish_message_to_queue(queue_name, uuid)

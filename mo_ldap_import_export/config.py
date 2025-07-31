@@ -36,6 +36,9 @@ from .utils import import_class
 logger = structlog.stdlib.get_logger()
 
 
+SLEEP_ON_ERROR = 30
+
+
 class JinjaTemplate(str):
     @classmethod
     def __get_validators__(cls):
