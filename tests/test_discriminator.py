@@ -6,6 +6,7 @@ from collections.abc import Iterable
 from typing import Any
 from unittest.mock import ANY
 from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import uuid4
 
@@ -442,7 +443,7 @@ async def sync_tool_and_context(
     context["user_context"]["dataloader"] = dataloader
 
     # Needs context, user_context, settings, raw_mapping, dataloader
-    converter = LdapConverter(settings, dataloader)
+    converter = LdapConverter(settings, dataloader, MagicMock())
     context["user_context"]["converter"] = converter
 
     export_checks = ExportChecks(dataloader)

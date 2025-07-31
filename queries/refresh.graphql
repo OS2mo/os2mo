@@ -1,18 +1,95 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
-mutation org_unit_refresh($exchange: String!, $uuids: [UUID!]!) {
-  org_unit_refresh(exchange: $exchange, filter: { uuids: $uuids }) {
+mutation address_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+  address_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
     objects
   }
 }
 
-mutation person_refresh($exchange: String!, $uuids: [UUID!]!) {
-  employee_refresh(exchange: $exchange, filter: { uuids: $uuids }) {
+mutation association_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+  association_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
     objects
   }
 }
 
+mutation class_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+  class_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+    objects
+  }
+}
+
+mutation engagement_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+  engagement_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+    objects
+  }
+}
+
+mutation facet_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+  facet_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+    objects
+  }
+}
+
+mutation itsystem_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+  itsystem_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+    objects
+  }
+}
+
+mutation ituser_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+  ituser_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+    objects
+  }
+}
+
+mutation kle_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+  kle_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+    objects
+  }
+}
+
+mutation leave_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+  leave_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+    objects
+  }
+}
+
+mutation manager_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+  manager_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+    objects
+  }
+}
+
+mutation org_unit_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+  org_unit_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+    objects
+  }
+}
+
+mutation owner_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+  owner_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+    objects
+  }
+}
+
+mutation person_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+  employee_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+    objects
+  }
+}
+
+mutation related_unit_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+  related_unit_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+    objects
+  }
+}
+
+mutation rolebinding_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+  rolebinding_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+    objects
+  }
+}
 
 # Special refresh operations
 mutation org_unit_engagements_refresh(

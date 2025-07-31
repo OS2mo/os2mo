@@ -31,7 +31,7 @@ def test_filter_remove_curly_brackets():
 
 
 def test_bitwise_and():
-    environment = construct_environment(MagicMock(), MagicMock())
+    environment = construct_environment(MagicMock(), MagicMock(), MagicMock())
     bitwise_template = environment.from_string("{{ input|int|bitwise_and(mask) }}")
 
     result = bitwise_template.render(input=0x01, mask=0x01)
