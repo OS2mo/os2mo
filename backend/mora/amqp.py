@@ -16,6 +16,7 @@ affected object.
 # TODO: Do we wanna access-log database access from here?
 import asyncio
 import random
+from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
@@ -112,25 +113,28 @@ async def _send_amqp_message(
     await add_event(session, namespace="mo", routing_key=object_type, subject=str(uuid))
 
 
-async def _emit_events(
-    session: AsyncSession, amqp_system: AMQPSystem
-) -> None:  # pragma: no cover
-    """Send an event for every new registration or validity we've passed since last run."""
-    logger.info("emitting amqp events")
-    # We need to fetch "now" before our queries, or we expose ourself to
-    # race-conditions when updating the table in the end.
-    last_run = await session.scalar(
-        select(AMQPSubsystem.last_run).where(AMQPSubsystem.id == 1)
-    )
-    now = await session.scalar(select(func.now()))
+async def _emit_events_for_interval(
+    session: AsyncSession,
+    amqp_system: AMQPSystem,
+    start: datetime,
+    end: datetime,
+) -> None:
+    """Emit events for all new registrations and validities in the given time interval.
+
+    Args:
+        session: The database session to lookup changes on and emit GraphQL events with.
+        amqp_system: The AMQP system to emit events on.
+        start: The interval start time.
+        end: The interval end time.
+    """
 
     def registration_condition(cls):
-        return cls.registreringstid_start.between(last_run, now)
+        return cls.registreringstid_start.between(start, end)
 
     def validity_condition(cls):
         return or_(
-            cls.virkning_start.between(last_run, now),
-            cls.virkning_slut.between(last_run, now),
+            cls.virkning_start.between(start, end),
+            cls.virkning_slut.between(start, end),
         )
 
     query = union(
@@ -284,6 +288,21 @@ async def _emit_events(
                 for lora_type, uuid in rows
             )
         )
+
+
+async def _emit_events(
+    session: AsyncSession, amqp_system: AMQPSystem
+) -> None:  # pragma: no cover
+    """Send an event for every new registration or validity we've passed since last run."""
+    logger.info("emitting amqp events")
+    # We need to fetch "now" before our queries, or we expose ourself to
+    # race-conditions when updating the table in the end.
+    last_run = await session.scalar(
+        select(AMQPSubsystem.last_run).where(AMQPSubsystem.id == 1)
+    )
+    now = await session.scalar(select(func.now()))
+
+    await _emit_events_for_interval(session, amqp_system, last_run, now)
 
     await session.execute(
         update(AMQPSubsystem),
