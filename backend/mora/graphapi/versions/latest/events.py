@@ -140,6 +140,7 @@ async def full_event_resolver(
             db.Event.last_tried.asc(),
         )
     )
+    print(query)
 
     if limit is not None:  # pragma: no cover
         query = query.limit(limit)
@@ -150,6 +151,7 @@ async def full_event_resolver(
 
     session: AsyncSession = info.context["session"]
     result = await session.scalars(query)
+    print(list(result))
     return [
         FullEvent(
             subject=event.subject,
