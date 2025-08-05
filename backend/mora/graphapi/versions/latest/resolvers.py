@@ -1439,6 +1439,6 @@ def get_sqlalchemy_date_interval(
     """Get the date interval for SQLAlchemy where-clauses to support bitemporal lookups."""
     dates = get_date_interval(from_date, to_date)
     return (
-        dates.from_date or datetime.min,
-        dates.to_date or datetime.max,
+        dates.from_date or util.NEGATIVE_INFINITY,
+        dates.to_date or util.POSITIVE_INFINITY,
     )
