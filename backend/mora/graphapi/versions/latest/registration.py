@@ -12,6 +12,7 @@ import strawberry
 from sqlalchemy import Text
 from sqlalchemy import case
 from sqlalchemy import column
+from sqlalchemy import func
 from sqlalchemy import literal
 from sqlalchemy import select
 from sqlalchemy import union
@@ -209,8 +210,8 @@ async def registration_resolver(
             table.uuid.label("uuid"),
             table.actor.label("actor"),
             table.note.label("note"),
-            table.registreringstid_start.label("start"),
-            table.registreringstid_slut.label("end"),
+            func.lower(table.registrering_period).label("start"),
+            func.upper(table.registrering_period).label("end"),
         ]
 
         if table == OrganisationFunktionRegistrering:

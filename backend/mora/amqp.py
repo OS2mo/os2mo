@@ -58,6 +58,7 @@ from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRegistrering
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionTilsGyldighed
+from mora.db._common import _VirkningMixin
 from mora.db.events import add_event
 
 logger = get_logger()
@@ -125,12 +126,12 @@ async def _emit_events(
     now = await session.scalar(select(func.now()))
 
     def registration_condition(cls):
-        return cls.registreringstid_start.between(last_run, now)
+        return func.lower(cls.registrering_period).between(last_run, now)
 
-    def validity_condition(cls):
+    def validity_condition(v: _VirkningMixin):
         return or_(
-            cls.virkning_start.between(last_run, now),
-            cls.virkning_slut.between(last_run, now),
+            func.lower(v.virkning_period).between(last_run, now),
+            func.upper(v.virkning_period).between(last_run, now),
         )
 
     query = union(
