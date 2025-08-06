@@ -2,14 +2,17 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import dataclasses
+import itertools
 import re
 from collections.abc import Callable
+from collections.abc import Iterator
 from datetime import datetime
 from datetime import timedelta
 from functools import lru_cache
 from textwrap import dedent
 from typing import Annotated
 from typing import Any
+from typing import TypeVar
 from typing import cast as tcast
 from uuid import UUID
 
@@ -27,6 +30,7 @@ from sqlalchemy import distinct
 from sqlalchemy import exists
 from sqlalchemy import func
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from starlette_context import context
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
@@ -43,8 +47,10 @@ from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationEnhedRelation
 from mora.db import OrganisationEnhedRelationKode
 from mora.db import OrganisationEnhedTilsGyldighed
+from mora.db._common import _VirkningMixin
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
+from mora.graphapi.gmodels.mo import Validity
 from mora.graphapi.gmodels.mo.details import AssociationRead
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.gmodels.mo.details import ITSystemRead
@@ -1044,13 +1050,141 @@ async def organisation_unit_resolver(
     if filter is None:
         filter = OrganisationUnitFilter()
 
-    query = await organisation_unit_resolver_query(
+    uuids = await organisation_unit_resolver_query(
         info=info,
         filter=filter,
         limit=limit,
         cursor=cursor,
     )
 
+    # return await old(uuids, info, filter, limit, cursor)
+    # return {}
+
+    session: AsyncSession = info.context["session"]
+
+    def _registrering() -> ColumnElement:
+        return and_(
+            OrganisationEnhedRegistrering.lifecycle != cast("Slettet", LivscyklusKode),
+            # between(
+            #     cursor.registration_time if cursor is not None else func.now(),
+            #     OrganisationEnhedRegistrering.registreringstid_start,
+            #     OrganisationEnhedRegistrering.registreringstid_slut,
+            # ),
+        )
+
+    start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
+
+    # TODO: reorder organisationenhed_relation_no_virkning_overlap
+    # alter table organisationenhed_relation drop constraint organisationenhed_relation_no_virkning_overlap ;
+    # alter table organisationenhed_relation add CONSTRAINT organisationenhed_relation_no_virkning_overlap EXCLUDE USING gist (organisationenhed_registrering_id WITH =, _composite_type_to_time_range(virkning) WITH &&, _as_convert_organisationenhed_relation_kode_to_txt(rel_type) WITH =)  WHERE ( rel_type<>('adresser'::OrganisationenhedRelationKode ) AND rel_type<>('ansatte'::OrganisationenhedRelationKode ) AND rel_type<>('opgaver'::OrganisationenhedRelationKode ) AND rel_type<>('tilknyttedebrugere'::OrganisationenhedRelationKode ) AND rel_type<>('tilknyttedeenheder'::OrganisationenhedRelationKode ) AND rel_type<>('tilknyttedefunktioner'::OrganisationenhedRelationKode ) AND rel_type<>('tilknyttedeinteressefaellesskaber'::OrganisationenhedRelationKode ) AND rel_type<>('tilknyttedeorganisationer'::OrganisationenhedRelationKode ) AND rel_type<>('tilknyttedepersoner'::OrganisationenhedRelationKode ) AND rel_type<>('tilknyttedeitsystemer'::OrganisationenhedRelationKode ) AND rel_type<>('opmærkning'::OrganisationenhedRelationKode ));
+
+    def _virkning(cls: type[HasValidity]) -> ColumnElement:
+        # We have to use the _composite_type_to_time_range() function with the
+        # && operator to ensure the GIST index is used. See the definition of
+        # e.g. organisationenhed_relation_no_virkning_overlap.
+        # ^^^ lies
+        #
+        # create index asdwtf2 on organisationenhed_relation USING GIST (organisationenhed_registrering_id, ((virkning).TimePeriod));
+        # tstzrange('2025-01-01', '2025-06-30', '[]')
+        # WHERE (virkning).TimePeriod && $2::tstzrange;
+        print(type(cls.virkning_period))
+        print(dir(cls.virkning_period))
+        print(cls.virkning_period)
+        # return cls.virkning_period.op("&&")(TimestamptzRange(start, end))
+        # TimestamptzRange
+        # return Range(start, end).contains(cls.virkning_period)
+        return cls.virkning_period.overlaps(TimestamptzRange(start, end))
+
+    query = (
+        select(OrganisationEnhedRegistrering)
+        .where(
+            OrganisationEnhedRegistrering.organisationenhed_id.in_(uuids),
+            _registrering(),
+        )
+        .order_by(OrganisationEnhedRegistrering.organisationenhed_id)
+        .options(
+            # raiseload("*"),
+            selectinload(
+                OrganisationEnhedRegistrering.attr_egenskaber.and_(
+                    _virkning(OrganisationEnhedAttrEgenskaber)
+                )
+            ),
+            selectinload(
+                OrganisationEnhedRegistrering.relationer.and_(
+                    _virkning(OrganisationEnhedRelation)
+                ),
+            ),
+            selectinload(
+                OrganisationEnhedRegistrering.tils_gyldighed.and_(
+                    _virkning(OrganisationEnhedTilsGyldighed)
+                )
+            ),
+        )
+    )
+
+    ret = {}
+
+    T = TypeVar("T", bound=_VirkningMixin)
+
+    def filter_virkning(
+        objects: list[T], start: datetime, end: datetime
+    ) -> Iterator[T]:
+        return (
+            obj
+            for obj in objects
+            if obj.virkning_start < end and obj.virkning_slut > start
+        )
+
+    def motherfucker(reg: OrganisationEnhedRegistrering):
+        # Collect all start and end timestamps in the FKK Klasse
+        validity_objects = itertools.chain(
+            reg.attr_egenskaber,
+            reg.relationer,
+            reg.tils_gyldighed,
+        )
+        timestamps = set()
+        for obj in validity_objects:
+            timestamps.add(obj.virkning_period.lower)
+            timestamps.add(obj.virkning_period.upper)
+
+        # Construct intermediate Class validity state for each timestamp pair
+        for start, end in itertools.pairwise(sorted(timestamps)):
+            # attr_egenskaber = one(filter_virkning(reg.attr_egenskaber, start, end))
+            # relationer = filter_virkning(reg.relationer, start, end)
+            # tils_gyldighed = one(filter_virkning(reg.tils_gyldighed, start, end))
+
+            yield OrganisationUnitRead.construct(
+                uuid=reg.organisationenhed_id,
+                user_key="asd" or attr_egenskaber.brugervendtnoegle,
+                name="asd" or attr_egenskaber.enhedsnavn,
+                # parent_uuid=old.parent_uuid,
+                # org_unit_hierarchy=old.org_unit_hierarchy,
+                # unit_type_uuid=old.unit_type_uuid,
+                # org_unit_level_uuid=old.org_unit_level_uuid,
+                # time_planning_uuid=old.time_planning_uuid,
+                validity=Validity.construct(
+                    from_date=start,
+                    to_date=end,
+                ),
+            )
+
+    result = await session.execute(query)
+    registrations = [row.tuple()[0] for row in result]
+    # return {}
+
+    for reg in registrations:
+        # print(reg.attr_egenskaber[0].virkning_period)
+        ret[reg.organisationenhed_id] = list(motherfucker(reg))
+    return ret
+
+
+async def old(
+    query,
+    info: Info,
+    filter: OrganisationUnitFilter,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+):
     # Execute
     session: AsyncSession = info.context["session"]
     result = await session.execute(query)
