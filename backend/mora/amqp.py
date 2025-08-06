@@ -21,6 +21,8 @@ from uuid import UUID
 
 from fastramqpi.ramqp import AMQPSystem
 from sqlalchemy import Text
+from sqlalchemy import and_
+from sqlalchemy import cast
 from sqlalchemy import func
 from sqlalchemy import or_
 from sqlalchemy import select
@@ -50,6 +52,7 @@ from mora.db import KlasseAttrEgenskaber
 from mora.db import KlasseRegistrering
 from mora.db import KlasseRelation
 from mora.db import KlasseTilsPubliceret
+from mora.db import LivscyklusKode
 from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationEnhedRelation
@@ -128,6 +131,12 @@ async def _emit_events(
     def registration_condition(cls):
         return func.lower(cls.registrering_period).between(last_run, now)
 
+    def latest_registrering_condition(cls):
+        return and_(
+            cls.lifecycle != cast("Slettet", LivscyklusKode),
+            cls.registrering_period.contains(func.now()),
+        )
+
     def validity_condition(v: _VirkningMixin):
         return or_(
             func.lower(v.virkning_period).between(last_run, now),
@@ -135,141 +144,167 @@ async def _emit_events(
         )
 
     query = union(
-        select(text("'bruger'"), BrugerRegistrering.bruger_id)
-        .distinct()
-        .where(
+        # Bruger
+        select(text("'bruger'"), BrugerRegistrering.bruger_id).where(
+            registration_condition(BrugerRegistrering),
+        ),
+        select(text("'bruger'"), BrugerRegistrering.bruger_id).where(
+            latest_registrering_condition(BrugerRegistrering),
             BrugerRegistrering.id.in_(
                 union(
-                    select(BrugerRegistrering.id).where(
-                        registration_condition(BrugerRegistrering)
-                    ),
                     select(BrugerAttrEgenskaber.bruger_registrering_id).where(
-                        validity_condition(BrugerAttrEgenskaber)
+                        validity_condition(BrugerAttrEgenskaber),
                     ),
                     select(BrugerAttrUdvidelser.bruger_registrering_id).where(
-                        validity_condition(BrugerAttrUdvidelser)
+                        validity_condition(BrugerAttrUdvidelser),
                     ),
                     select(BrugerTilsGyldighed.bruger_registrering_id).where(
-                        validity_condition(BrugerTilsGyldighed)
+                        validity_condition(BrugerTilsGyldighed),
                     ),
                     select(BrugerRelation.bruger_registrering_id).where(
-                        validity_condition(BrugerRelation)
+                        validity_condition(BrugerRelation),
                     ),
                 )
-            )
+            ),
         ),
-        select(text("'facet'"), FacetRegistrering.facet_id)
-        .distinct()
-        .where(
+        # Facet
+        select(text("'facet'"), FacetRegistrering.facet_id).where(
+            registration_condition(FacetRegistrering),
+        ),
+        select(text("'facet'"), FacetRegistrering.facet_id).where(
+            latest_registrering_condition(FacetRegistrering),
             FacetRegistrering.id.in_(
                 union(
-                    select(FacetRegistrering.id).where(
-                        registration_condition(FacetRegistrering)
-                    ),
                     select(FacetAttrEgenskaber.facet_registrering_id).where(
-                        validity_condition(FacetAttrEgenskaber)
+                        validity_condition(FacetAttrEgenskaber),
                     ),
                     select(FacetTilsPubliceret.facet_registrering_id).where(
-                        validity_condition(FacetTilsPubliceret)
+                        validity_condition(FacetTilsPubliceret),
                     ),
                     select(FacetRelation.facet_registrering_id).where(
-                        validity_condition(FacetRelation)
+                        validity_condition(FacetRelation),
                     ),
                 )
-            )
+            ),
         ),
-        select(text("'itsystem'"), ITSystemRegistrering.itsystem_id)
-        .distinct()
-        .where(
+        # IT-System
+        select(text("'itsystem'"), ITSystemRegistrering.itsystem_id).where(
+            registration_condition(ITSystemRegistrering),
+        ),
+        select(text("'itsystem'"), ITSystemRegistrering.itsystem_id).where(
+            latest_registrering_condition(ITSystemRegistrering),
             ITSystemRegistrering.id.in_(
                 union(
-                    select(ITSystemRegistrering.id).where(
-                        registration_condition(ITSystemRegistrering)
-                    ),
                     select(ITSystemAttrEgenskaber.itsystem_registrering_id).where(
-                        validity_condition(ITSystemAttrEgenskaber)
+                        validity_condition(ITSystemAttrEgenskaber),
                     ),
                     select(ITSystemTilsGyldighed.itsystem_registrering_id).where(
-                        validity_condition(ITSystemTilsGyldighed)
+                        validity_condition(ITSystemTilsGyldighed),
                     ),
                     select(ITSystemRelation.itsystem_registrering_id).where(
-                        validity_condition(ITSystemRelation)
+                        validity_condition(ITSystemRelation),
                     ),
                 )
-            )
+            ),
         ),
-        select(text("'klasse'"), KlasseRegistrering.klasse_id)
-        .distinct()
-        .where(
+        # Klasse
+        select(text("'klasse'"), KlasseRegistrering.klasse_id).where(
+            registration_condition(KlasseRegistrering),
+        ),
+        select(text("'klasse'"), KlasseRegistrering.klasse_id).where(
+            latest_registrering_condition(KlasseRegistrering),
             KlasseRegistrering.id.in_(
                 union(
-                    select(KlasseRegistrering.id).where(
-                        registration_condition(KlasseRegistrering)
-                    ),
                     select(KlasseAttrEgenskaber.klasse_registrering_id).where(
-                        validity_condition(KlasseAttrEgenskaber)
+                        validity_condition(KlasseAttrEgenskaber),
                     ),
                     select(KlasseTilsPubliceret.klasse_registrering_id).where(
-                        validity_condition(KlasseTilsPubliceret)
+                        validity_condition(KlasseTilsPubliceret),
                     ),
                     select(KlasseRelation.klasse_registrering_id).where(
-                        validity_condition(KlasseRelation)
+                        validity_condition(KlasseRelation),
                     ),
                 )
-            )
+            ),
+        ),
+        # Organisationenhed
+        select(
+            text("'organisationenhed'"),
+            OrganisationEnhedRegistrering.organisationenhed_id,
+        ).where(
+            registration_condition(OrganisationEnhedRegistrering),
         ),
         select(
             text("'organisationenhed'"),
             OrganisationEnhedRegistrering.organisationenhed_id,
-        )
-        .distinct()
-        .where(
+        ).where(
+            latest_registrering_condition(OrganisationEnhedRegistrering),
             OrganisationEnhedRegistrering.id.in_(
                 union(
-                    select(OrganisationEnhedRegistrering.id).where(
-                        registration_condition(OrganisationEnhedRegistrering)
-                    ),
                     select(
                         OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
-                    ).where(validity_condition(OrganisationEnhedAttrEgenskaber)),
+                    ).where(
+                        validity_condition(OrganisationEnhedAttrEgenskaber),
+                    ),
                     select(
                         OrganisationEnhedTilsGyldighed.organisationenhed_registrering_id
-                    ).where(validity_condition(OrganisationEnhedTilsGyldighed)),
+                    ).where(
+                        validity_condition(OrganisationEnhedTilsGyldighed),
+                    ),
                     select(
                         OrganisationEnhedRelation.organisationenhed_registrering_id
-                    ).where(validity_condition(OrganisationEnhedRelation)),
+                    ).where(
+                        validity_condition(OrganisationEnhedRelation),
+                    ),
                 )
-            )
+            ),
         ),
+        # Organisationfunktion
         select(
             # Notice we select "funktionsnavn" here. Used in `_lora_to_mo`.
             OrganisationFunktionAttrEgenskaber.funktionsnavn.cast(Text),
             OrganisationFunktionRegistrering.organisationfunktion_id,
         )
-        .distinct()
         .join(
             OrganisationFunktionAttrEgenskaber,
             OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             == OrganisationFunktionRegistrering.id,
         )
         .where(
+            OrganisationFunktionAttrEgenskaber.funktionsnavn.in_(_lora_to_mo.keys()),
+            registration_condition(OrganisationFunktionRegistrering),
+        ),
+        select(
+            OrganisationFunktionAttrEgenskaber.funktionsnavn.cast(Text),
+            OrganisationFunktionRegistrering.organisationfunktion_id,
+        )
+        .join(
+            OrganisationFunktionAttrEgenskaber,
+            OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            == OrganisationFunktionRegistrering.id,
+        )
+        .where(
+            OrganisationFunktionAttrEgenskaber.funktionsnavn.in_(_lora_to_mo.keys()),
+            latest_registrering_condition(OrganisationFunktionRegistrering),
             OrganisationFunktionRegistrering.id.in_(
                 union(
-                    select(OrganisationFunktionRegistrering.id).where(
-                        registration_condition(OrganisationFunktionRegistrering)
+                    select(
+                        OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id,
+                    ).where(
+                        validity_condition(OrganisationFunktionAttrEgenskaber),
                     ),
                     select(
-                        OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-                    ).where(validity_condition(OrganisationFunktionAttrEgenskaber)),
+                        OrganisationFunktionTilsGyldighed.organisationfunktion_registrering_id,
+                    ).where(
+                        validity_condition(OrganisationFunktionTilsGyldighed),
+                    ),
                     select(
-                        OrganisationFunktionTilsGyldighed.organisationfunktion_registrering_id
-                    ).where(validity_condition(OrganisationFunktionTilsGyldighed)),
-                    select(
-                        OrganisationFunktionRelation.organisationfunktion_registrering_id
-                    ).where(validity_condition(OrganisationFunktionRelation)),
+                        OrganisationFunktionRelation.organisationfunktion_registrering_id,
+                    ).where(
+                        validity_condition(OrganisationFunktionRelation),
+                    ),
                 )
             ),
-            OrganisationFunktionAttrEgenskaber.funktionsnavn.in_(_lora_to_mo.keys()),
         ),
     ).execution_options(yield_per=55)
 
