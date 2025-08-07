@@ -1,19 +1,15 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-"""index fk columns '*_registrering_id'
+"""index fk columns '*_registrering_id'"""
 
-Revision ID: b27228471604
-Revises: initial
-Create Date: 2022-04-05 11:05:57.832331
-"""
+from collections.abc import Sequence
 
 from oio_rest.db.alembic_helpers import apply_sql_from_file
 
-# revision identifiers, used by Alembic.
-revision = "b27228471604"
-down_revision = "initial"
-branch_labels = None
-depends_on = None
+revision: str = "b27228471604"
+down_revision: str | None = "initial"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade():

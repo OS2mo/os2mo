@@ -1,19 +1,15 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-"""remove integrationsdata
+"""remove integrationsdata"""
 
-Revision ID: b162ba90c028
-Revises: b27228471604
-Create Date: 2022-06-28 14:06:39.199705
-"""
+from collections.abc import Sequence
 
 from oio_rest.db.alembic_helpers import apply_sql_from_file
 
-# revision identifiers, used by Alembic.
-revision = "b162ba90c028"
-down_revision = "b27228471604"
-branch_labels = None
-depends_on = None
+revision: str = "b162ba90c028"
+down_revision: str | None = "b27228471604"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade():

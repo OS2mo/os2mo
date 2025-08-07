@@ -1,23 +1,18 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-"""move query_dir to db
-
-Revision ID: b3e16449c312
-Revises: f710f6d29a74
-Create Date: 2024-01-30 16:18:01.405023
-"""
+"""move query_dir to db"""
 
 import os
+from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.sql import func
 
-# revision identifiers, used by Alembic.
-revision = "b3e16449c312"
-down_revision = "f710f6d29a74"
-branch_labels = None
-depends_on = None
+revision: str = "b3e16449c312"
+down_revision: str | None = "f710f6d29a74"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade():

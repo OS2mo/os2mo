@@ -1,21 +1,16 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+"""graphql events"""
 
-"""graphql events
-
-Revision ID: fddce88bc3ac
-Revises: b1739b5155aa
-Create Date: 2025-03-17 12:55:21.321176
-"""
+from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-# revision identifiers, used by Alembic.
-revision = "fddce88bc3ac"
-down_revision = "b1739b5155aa"
-branch_labels = None
-depends_on = None
+revision: str = "fddce88bc3ac"
+down_revision: str | None = "b1739b5155aa"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
