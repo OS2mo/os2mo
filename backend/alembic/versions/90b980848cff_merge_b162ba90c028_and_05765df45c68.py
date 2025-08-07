@@ -5,7 +5,7 @@
 from collections.abc import Sequence
 
 revision: str = "90b980848cff"
-down_revision: str | None = ("b162ba90c028", "05765df45c68")
+down_revision: str | Sequence[str] | None = ("b162ba90c028", "05765df45c68")
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

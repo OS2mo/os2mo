@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from oio_rest.db.alembic_helpers import apply_sql_from_file
 
 revision: str = "b27228471604"
-down_revision: str | None = "initial"
+down_revision: str | Sequence[str] | None = "initial"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
