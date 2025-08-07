@@ -1,12 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
-"""rename audit-log to access-log.
-
-Revision ID: b1739b5155aa
-Revises: 68ccf4b69392
-Create Date: 2025-03-13 11:54:08.383963
-"""
+"""rename audit-log to access-log."""
 
 from collections.abc import Sequence
 

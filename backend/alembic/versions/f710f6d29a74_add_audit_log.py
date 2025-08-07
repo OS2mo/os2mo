@@ -2,15 +2,16 @@
 # SPDX-License-Identifier: MPL-2.0
 """Add audit_log."""
 
+from collections.abc import Sequence
+
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.sql import func
 
-# revision identifiers, used by Alembic.
-revision = "f710f6d29a74"
-down_revision = "9525559842d6"
-branch_labels = None
-depends_on = None
+revision: str = "f710f6d29a74"
+down_revision: str | None = "9525559842d6"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade():

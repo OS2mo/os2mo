@@ -1,20 +1,16 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-"""Add amqp_subsystem
+"""Add amqp_subsystem"""
 
-Revision ID: 03ba622eeeb3
-Revises: 90b980848cff
-Create Date: 2023-03-09 10:35:01.223191
-"""
+from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-# revision identifiers, used by Alembic.
-revision = "03ba622eeeb3"
-down_revision = "90b980848cff"
-branch_labels = None
-depends_on = None
+revision: str = "03ba622eeeb3"
+down_revision: str | None = "90b980848cff"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade():

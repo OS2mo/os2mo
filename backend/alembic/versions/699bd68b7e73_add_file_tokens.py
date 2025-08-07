@@ -1,21 +1,17 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-"""Add file_tokens
+"""Add file_tokens"""
 
-Revision ID: 786610e88e1c
-Revises: 69ca41b4011e
-Create Date: 2023-06-27 15:59:35.949549
-"""
+from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.sql import func
 
-# revision identifiers, used by Alembic.
-revision = "699bd68b7e73"
-down_revision = "03ba622eeeb3"
-branch_labels = None
-depends_on = None
+revision: str = "699bd68b7e73"
+down_revision: str | None = "03ba622eeeb3"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade():
