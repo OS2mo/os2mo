@@ -19,11 +19,11 @@ branch_labels = None
 depends_on = None
 
 
-def downgrade():
+def downgrade() -> None:
     op.execute(text("drop schema if exists actual_state cascade"))
 
 
-def upgrade():
+def upgrade() -> None:
     """
     These steps are also performed by the "mox-db-init" container. We perform them here
     as well as part of the setup/teardown process of each unittest.

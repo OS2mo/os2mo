@@ -8,12 +8,12 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "03ba622eeeb3"
-down_revision: str | None = "90b980848cff"
+down_revision: str | Sequence[str] | None = "90b980848cff"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "amqp_subsystem",
         sa.Column("id", sa.Integer, primary_key=True),
@@ -24,5 +24,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("amqp_subsystem")
