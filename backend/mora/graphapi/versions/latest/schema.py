@@ -36,6 +36,7 @@ from strawberry.types import Info
 from mora import common
 from mora import config
 from mora import db
+from mora import util
 from mora.common import _create_graphql_connector
 from mora.db import AsyncSession
 from mora.graphapi.fields import Metadata
@@ -270,9 +271,9 @@ class Response(Generic[MOObject]):
 
         def activity_tuple(obj: Any) -> datetime:
             if not hasattr(obj, "validity"):  # pragma: no cover
-                return datetime.min
+                return util.NEGATIVE_INFINITY
             if obj.validity.to_date is None:
-                return datetime.max
+                return util.POSITIVE_INFINITY
             return obj.validity.to_date
 
         if at:

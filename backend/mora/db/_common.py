@@ -1,17 +1,21 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from datetime import datetime
 from typing import Literal
 from typing import NewType
 from uuid import UUID
 
+from psycopg.types.range import TimestamptzRange
 from sqlalchemy import BigInteger
 from sqlalchemy import CheckConstraint
+from sqlalchemy import ColumnElement
 from sqlalchemy import Enum
 from sqlalchemy import Text
 from sqlalchemy import select
 from sqlalchemy import text
+from sqlalchemy import type_coerce
 from sqlalchemy.dialects.postgresql import ENUM
+from sqlalchemy.dialects.postgresql import TSTZRANGE
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import column_property
 from sqlalchemy.orm import declarative_base
@@ -64,41 +68,48 @@ class _RegistreringMixin:
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
 
-    # SQLAlchemy does not support composite types
     @declared_attr
-    def registreringstid_start(cls) -> Mapped[datetime]:
-        return column_property(
-            select(text("lower((registrering).timeperiod)")).scalar_subquery()
-        )
+    @classmethod
+    def _registrering_period_attr(cls) -> Mapped[TimestamptzRange]:
+        return column_property(cls._registrering_period)
 
-    # SQLAlchemy does not support composite types
-    @declared_attr
-    def registreringstid_slut(cls) -> Mapped[datetime]:
-        return column_property(
-            select(text("upper((registrering).timeperiod)")).scalar_subquery()
-        )
+    @hybrid_property
+    def registrering_period(self) -> TimestamptzRange:
+        return self._registrering_period_attr  # pragma: no cover
 
-    # SQLAlchemy does not support composite types
+    @registrering_period.inplace.expression
+    @classmethod
+    def _registrering_period(cls) -> ColumnElement[TimestamptzRange]:
+        return type_coerce(text("(registrering).timeperiod"), TSTZRANGE)
+
+    # TODO: hybrid_property
     @declared_attr
     def actor(cls) -> Mapped[UUID]:
         return column_property(
             select(text("(registrering).brugerref")).scalar_subquery()
         )
 
-    # SQLAlchemy does not support composite types
+    # TODO: hybrid_property
     @declared_attr
     def note(cls) -> Mapped[UUID]:
         return column_property(select(text("(registrering).note")).scalar_subquery())
 
-    # SQLAlchemy does not support composite types
     @declared_attr
-    def lifecycle(cls) -> Mapped[LivscyklusKode]:
-        return column_property(
-            select(text("(registrering).livscykluskode")).scalar_subquery()
-        )
+    @classmethod
+    def _lifecycle_attr(cls) -> Mapped[ENUM]:
+        return column_property(cls._lifecycle)
+
+    @hybrid_property
+    def lifecycle(self) -> ENUM:
+        return self._lifecycle_attr  # pragma: no cover
+
+    @lifecycle.inplace.expression
+    @classmethod
+    def _lifecycle(cls) -> ColumnElement[ENUM]:
+        return type_coerce(text("(registrering).livscykluskode"), LivscyklusKode)
 
     def __repr__(self):  # pragma: no cover
-        return f"{self.__class__.__name__}(id={self.id}, registreringstid_start={self.registreringstid_start!r}, registreringstid_slut={self.registreringstid_slut!r})"
+        return f"{self.__class__.__name__}(id={self.id}, registrering_period={self.registrering_period!r})"
 
 
 class _VirkningMixin:
@@ -108,23 +119,19 @@ class _VirkningMixin:
         ),
     )
 
-    # SQLAlchemy does not support composite types
     @declared_attr
-    def virkning_start(cls) -> Mapped[datetime]:
-        return column_property(
-            select(
-                text(f"lower(({cls.__tablename__}.virkning).timeperiod)")
-            ).scalar_subquery()
-        )
+    @classmethod
+    def _virkning_period_attr(cls) -> Mapped[TimestamptzRange]:
+        return column_property(cls._virkning_period)
 
-    # SQLAlchemy does not support composite types
-    @declared_attr
-    def virkning_slut(cls) -> Mapped[datetime]:
-        return column_property(
-            select(
-                text(f"upper(({cls.__tablename__}.virkning).timeperiod)")
-            ).scalar_subquery()
-        )
+    @hybrid_property
+    def virkning_period(self) -> TimestamptzRange:  # pragma: no cover
+        return self._virkning_period_attr
+
+    @virkning_period.inplace.expression
+    @classmethod
+    def _virkning_period(cls) -> ColumnElement[TimestamptzRange]:
+        return type_coerce(text("(virkning).timeperiod"), TSTZRANGE)
 
 
 HasValidity = NewType("HasValidity", _VirkningMixin)

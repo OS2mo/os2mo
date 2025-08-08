@@ -17,11 +17,11 @@ import strawberry
 from more_itertools import flatten
 from more_itertools import only
 from more_itertools import unique_everseen
+from psycopg.types.range import TimestamptzRange
 from pydantic import ValidationError
 from sqlalchemy import ColumnElement
 from sqlalchemy import Select
 from sqlalchemy import and_
-from sqlalchemy import between
 from sqlalchemy import cast
 from sqlalchemy import distinct
 from sqlalchemy import exists
@@ -756,10 +756,8 @@ async def organisation_unit_resolver_query(
     def _registrering() -> ColumnElement:
         return and_(
             OrganisationEnhedRegistrering.lifecycle != cast("Slettet", LivscyklusKode),
-            between(
-                cursor.registration_time if cursor is not None else func.now(),
-                OrganisationEnhedRegistrering.registreringstid_start,
-                OrganisationEnhedRegistrering.registreringstid_slut,
+            OrganisationEnhedRegistrering.registrering_period.contains(
+                cursor.registration_time if cursor is not None else func.now()
             ),
         )
 
@@ -775,7 +773,7 @@ async def organisation_unit_resolver_query(
 
     def _virkning(cls: type[HasValidity]) -> ColumnElement:
         start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
-        return and_(cls.virkning_start <= end, cls.virkning_slut > start)
+        return cls.virkning_period.overlaps(TimestamptzRange(start, end))
 
     query = (
         select(
@@ -1439,6 +1437,6 @@ def get_sqlalchemy_date_interval(
     """Get the date interval for SQLAlchemy where-clauses to support bitemporal lookups."""
     dates = get_date_interval(from_date, to_date)
     return (
-        dates.from_date or datetime.min,
-        dates.to_date or datetime.max,
+        dates.from_date or util.NEGATIVE_INFINITY,
+        dates.to_date or util.POSITIVE_INFINITY,
     )

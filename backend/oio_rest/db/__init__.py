@@ -15,6 +15,7 @@ import sqlalchemy
 from dateutil import parser as date_parser
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
+from mora import util
 from mora.access_log import access_log
 from mora.auth.middleware import get_authenticated_user
 from mora.db import get_session
@@ -736,9 +737,9 @@ def _consolidate_virkninger(virkninger_list):
 @functools.lru_cache(maxsize=128)
 def _parse_timestamp(timestamp: datetime.datetime | str) -> datetime.datetime:
     if timestamp == "infinity":
-        dt = datetime.datetime.max
+        dt = util.POSITIVE_INFINITY
     elif timestamp == "-infinity":
-        dt = datetime.datetime.min
+        dt = util.NEGATIVE_INFINITY
     elif type(timestamp) is str:
         dt = dateutil.parser.isoparse(to_parsable_timestamp(timestamp))
     elif isinstance(timestamp, datetime.datetime):  # pragma: no cover
@@ -746,7 +747,7 @@ def _parse_timestamp(timestamp: datetime.datetime | str) -> datetime.datetime:
     else:  # pragma: no cover
         raise TypeError(f"Invalid parameter {timestamp}")
 
-    if not dt.tzinfo:
+    if not dt.tzinfo:  # pragma: no cover:
         dt = dt.replace(tzinfo=datetime.UTC)
 
     return dt
