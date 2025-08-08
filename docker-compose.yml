@@ -58,9 +58,9 @@ services:
     command: ["./docker/start.sh"]
     env_file: dev-environment/os2mo.env
     restart: unless-stopped
-    depends_on:
-      fixture-loader:
-        condition: service_completed_successfully
+    # depends_on:
+    #   fixture-loader:
+    #     condition: service_completed_successfully
 
   amqp-subsystem:
     tty: true
@@ -77,9 +77,9 @@ services:
     command: ["python", "-m", "mora.cli", "amqp", "start"]
     env_file: dev-environment/os2mo.env
     restart: unless-stopped
-    depends_on:
-      fixture-loader:
-        condition: service_completed_successfully
+    # depends_on:
+    #   fixture-loader:
+    #     condition: service_completed_successfully
 
   mox:
     image: docker.io/library/caddy:2
@@ -89,21 +89,21 @@ services:
       - "127.0.0.1:8080:80"
     restart: unless-stopped
 
-  fixture-loader:
-    image: magentaaps/os2mo-fixture-loader:1
-    # For a list of supported fixtures, see:
-    # https://git.magenta.dk/rammearkitektur/os2mo-fixture-loader.
-    command: ["${FIXTURE:-kolding}"]
-    environment:
-      PGHOST: mox-db
-      PGDATABASE: mox
-      PGUSER: postgres
-      PGPASSWORD: mysecretpassword
-      # Remove GRACEFUL to overwrite your DB
-      GRACEFUL: si
-    # volumes:
-    #   - ./custom-fixture.pgdump:/fixtures/kolding.pgdump:ro
-    restart: on-failure
+  # fixture-loader:
+  #   image: magentaaps/os2mo-fixture-loader:1
+  #   # For a list of supported fixtures, see:
+  #   # https://git.magenta.dk/rammearkitektur/os2mo-fixture-loader.
+  #   command: ["${FIXTURE:-kolding}"]
+  #   environment:
+  #     PGHOST: mox-db
+  #     PGDATABASE: mox
+  #     PGUSER: postgres
+  #     PGPASSWORD: mysecretpassword
+  #     # Remove GRACEFUL to overwrite your DB
+  #     GRACEFUL: si
+  #   # volumes:
+  #   #   - ./custom-fixture.pgdump:/fixtures/kolding.pgdump:ro
+  #   restart: on-failure
 
   mo-init:
     image: magentaaps/os2mo-init:5
@@ -119,9 +119,9 @@ services:
        target: /config/config.yml
        read_only: true
     restart: on-failure
-    depends_on:
-      fixture-loader:
-        condition: service_completed_successfully
+    # depends_on:
+    #   fixture-loader:
+    #     condition: service_completed_successfully
 
   mox-db:
     image: postgres:11
