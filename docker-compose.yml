@@ -113,11 +113,11 @@ services:
       CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
       AUTH_SERVER: "http://keycloak:8080/auth"
       AUTH_REALM: "mo"
-    #volumes:
-    #  - type: bind
-    #    source: ./init.config.yml
-    #    target: /config/config.yml
-    #    read_only: true
+    volumes:
+     - type: bind
+       source: ./init.config.yml
+       target: /config/config.yml
+       read_only: true
     restart: on-failure
     depends_on:
       fixture-loader:
