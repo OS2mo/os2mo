@@ -1,0 +1,57 @@
+root_organisation:
+  municipality_code: null
+
+facets:
+  org_unit_address_type:
+    "P-nummer":
+      title: "P-nummer"
+      scope: "PNUMBER"
+    AdresseSDOrgUnit:
+      title: "Postadresse fra SD"
+      scope: "TEXT"
+    EmailUnit:
+      title: "Email"
+      scope: "EMAIL"
+  employee_address_type:
+    AdresseSDEmployee:
+      title: "Postadresse fra SD"
+      scope: "TEXT"
+  manager_address_type: {}
+  address_property: {}
+  engagement_job_function: {}
+  org_unit_type: {}
+  engagement_type: {}
+  association_type: {}
+  role: {}
+  leave_type:
+    Orlov:
+      title: "Orlov"
+      scope: "TEXT"
+  manager_type: {}
+  responsibility: {}
+  manager_level: {}
+  visibility:
+    Intern:
+      title: "Må vises internt"
+      scope: "INTERNAL"
+    Public:
+      title: "Må vises eksternt"
+      scope: "PUBLIC"
+    Secret:
+      title: "Hemmelig"
+      scope: "SECRET"
+  time_planning: {}
+  org_unit_level: {}
+  primary_type:
+    primary:
+      title: "Primær"
+      scope: "3000"
+    non-primary:
+      title: "Ikke-primær ansættelse"
+      scope: "0"
+    explicitly-primary:
+      title: "Manuelt primær ansættelse"
+      scope: "5000"
+  org_unit_hierarchy: {}
+  kle_number: {}
+  kle_aspect: {}
