@@ -127,14 +127,15 @@ services:
     image: postgres:11
     environment:
       POSTGRES_PASSWORD: mysecretpassword
-    volumes:
-      - ./dev-environment/moxdb-install-pgtap.sh:/docker-entrypoint-initdb.d/10-install-pgtap.sh:ro
+    # volumes:
+    #   - ./dev-environment/moxdb-install-pgtap.sh:/docker-entrypoint-initdb.d/10-install-pgtap.sh:ro
     # The following will mount the database data directory to RAM. It
     # significantly speeds up the database at the cost of dataloss on shutdown.
     # This is useful for running tests, but should never be used if you want to
     # save the data.
-    # tmpfs:
-    #   - /var/lib/postgresql/data
+    # Uncomment the 'volumes' section above
+    tmpfs:
+      - /var/lib/postgresql/data
     restart: unless-stopped
 
   mox-db-init:
