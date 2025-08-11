@@ -7,9 +7,6 @@ from datetime import timedelta
 from uuid import UUID
 
 import pytest
-from fastapi.encoders import jsonable_encoder
-from fastramqpi.events import Event
-from httpx import AsyncClient
 from ldap3 import Connection
 from more_itertools import one
 
@@ -28,20 +25,6 @@ from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.utils import combine_dn_strings
 from mo_ldap_import_export.utils import mo_today
 from tests.integration.conftest import AnyOrder
-
-
-@pytest.fixture
-async def trigger_sync(
-    test_client: AsyncClient,
-) -> Callable[[str, UUID], Awaitable[None]]:
-    async def inner(identifier: str, uuid: UUID) -> None:
-        result = await test_client.post(
-            f"/mo_to_ldap/{identifier}",
-            json=jsonable_encoder(Event(subject=uuid, priority=10)),
-        )
-        assert result.status_code == 200, result.text
-
-    return inner
 
 
 @pytest.fixture
@@ -94,7 +77,7 @@ async def get_groups(
     }
 )
 async def test_group_sync(
-    trigger_sync: Callable[[str, UUID], Awaitable[None]],
+    trigger_mo_to_ldap_sync: Callable[[str, UUID], Awaitable[None]],
     get_groups: Callable[[], Awaitable[list[dict]]],
     ldap_connection: Connection,
     graphql_client: GraphQLClient,
@@ -115,7 +98,7 @@ async def test_group_sync(
         )
     )
 
-    await trigger_sync("itsystem2group", adtitle)
+    await trigger_mo_to_ldap_sync("itsystem2group", adtitle)
 
     ldap_object = one(await get_groups())
     group_dn = f"cn={str(adtitle)},ou=os2mo,o=magenta,dc=magenta,dc=dk"
@@ -128,7 +111,7 @@ async def test_group_sync(
     assert dict(ldap_object["attributes"]) == expected
 
     # Retrigger to see that both create and noop modify work
-    await trigger_sync("itsystem2group", adtitle)
+    await trigger_mo_to_ldap_sync("itsystem2group", adtitle)
     ldap_object2 = one(await get_groups())
     assert ldap_object == ldap_object2
 
@@ -162,7 +145,7 @@ async def test_group_sync(
     )
 
     # Check that the new person is added to the group
-    await trigger_sync("itsystem2group", adtitle)
+    await trigger_mo_to_ldap_sync("itsystem2group", adtitle)
     ldap_object = one(await get_groups())
     assert ldap_object["dn"] == group_dn
     assert dict(ldap_object["attributes"]) == {
@@ -176,7 +159,7 @@ async def test_group_sync(
     )
 
     # Check that the new person has been removed from the group
-    await trigger_sync("itsystem2group", adtitle)
+    await trigger_mo_to_ldap_sync("itsystem2group", adtitle)
     ldap_object = one(await get_groups())
     assert ldap_object["dn"] == group_dn
     assert dict(ldap_object["attributes"]) == expected
