@@ -56,6 +56,7 @@ from .customer_specific_checks import ImportChecks
 from .database import Base
 from .dataloaders import DataLoader
 from .exceptions import NoObjectsReturnedException
+from .exceptions import SkipObject
 from .exceptions import amqp_reject_on_failure
 from .exceptions import http_reject_on_failure
 from .import_export import SyncTool
@@ -476,7 +477,11 @@ def mo_to_ldap_handler(
         logger.info("Registered change in handler")
 
         template = converter.environment.from_string(template_string)
-        result = await template.render_async({"uuid": uuid})
+        try:
+            result = await template.render_async({"uuid": uuid})
+        except SkipObject:
+            logger.info("Skipping object as requested")
+            return
         logger.debug("Rendered jinja template", result=result)
 
         try:
