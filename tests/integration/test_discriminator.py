@@ -49,7 +49,7 @@ async def test_prefers_shorter_usernames(
 @pytest.mark.envvar(
     {
         "DISCRIMINATOR_FIELDS": json.dumps(["uid"]),
-        "DISCRIMINATOR_VALUES": json.dumps(["{{ 'ass' not in uid }}"]),
+        "DISCRIMINATOR_VALUES": json.dumps(["{{ 'ass' not in dn }}"]),
     }
 )
 async def test_ignore_substring(
@@ -68,6 +68,20 @@ async def test_ignore_substring(
     passenger = combine_dn_strings(await add_ldap_person("passenger", "0101700004"))
     assessment = combine_dn_strings(await add_ldap_person("assessment", "0101700005"))
 
+    # No entries, returns None
+    result = await apply_discriminator(settings, ldap_connection, set())
+    assert result is None
+
+    # One invalid, returns None
+    result = await apply_discriminator(settings, ldap_connection, {classic})
+    assert result is None
+
+    # Multiple invalid, returns None
+    result = await apply_discriminator(
+        settings, ldap_connection, {classic, grass, passenger}
+    )
+    assert result is None
+
     # Two valid means conflict
     with pytest.raises(MultipleObjectsReturnedException) as exc_info:
         await apply_discriminator(settings, ldap_connection, {ava, cleo})
@@ -80,7 +94,7 @@ async def test_ignore_substring(
     result = await apply_discriminator(settings, ldap_connection, {passenger, cleo})
     assert result == cleo
 
-    # One valid, multiple excluded retuns the valid
+    # One valid, multiple excluded returns the valid
     result = await apply_discriminator(
         settings, ldap_connection, {ava, grass, assessment}
     )
