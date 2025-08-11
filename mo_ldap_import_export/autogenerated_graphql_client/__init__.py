@@ -474,6 +474,7 @@ from .read_itusers import ReadItusers
 from .read_itusers import ReadItusersItusers
 from .read_itusers import ReadItusersItusersObjects
 from .read_itusers import ReadItusersItusersObjectsValidities
+from .read_itusers import ReadItusersItusersObjectsValiditiesRolebindings
 from .read_itusers import ReadItusersItusersObjectsValiditiesValidity
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNames
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnits
@@ -846,6 +847,7 @@ __all__ = [
     "ReadItusersItusers",
     "ReadItusersItusersObjects",
     "ReadItusersItusersObjectsValidities",
+    "ReadItusersItusersObjectsValiditiesRolebindings",
     "ReadItusersItusersObjectsValiditiesValidity",
     "ReadOrgUnitAncestorNames",
     "ReadOrgUnitAncestorNamesOrgUnits",

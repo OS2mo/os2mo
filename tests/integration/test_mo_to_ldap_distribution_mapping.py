@@ -60,6 +60,15 @@ async def trigger_sync(identifier: str, uuid: UUID) -> None:
                         """,
                     },
                     {
+                        "identifier": "ituser_to_rolebindings",
+                        "routing_key": "ituser",
+                        "object_class": "-",
+                        "template": """
+                        {% set rolebinding_uuids = ituser_uuid_to_rolebinding_uuids(uuid) %}
+                        {{ skip_if_none(refresh("rolebinding", rolebinding_uuids)) }}
+                        """,
+                    },
+                    {
                         "identifier": "rolebinding_to_roles",
                         "routing_key": "role",
                         "object_class": "-",
@@ -107,6 +116,7 @@ async def trigger_sync(identifier: str, uuid: UUID) -> None:
     "identifier",
     [
         "itsystem_to_roles",
+        "ituser_to_rolebindings",
         "rolebinding_to_roles",
         "role_to_group",
     ],
@@ -202,6 +212,7 @@ async def test_group_user_key_correlation(
 
     trigger_map = {
         "itsystem_to_roles": distributionlists.uuid,
+        "ituser_to_rolebindings": ituser.uuid,
         "rolebinding_to_roles": role_binding.uuid,
         "role_to_group": all_in_magenta.uuid,
     }

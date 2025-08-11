@@ -165,16 +165,15 @@ async def test_non_existing_account_names(
             "engagement_uuid": None,
             "itsystem_uuid": account_name_itsystem,
             "user_key": "abk",
-            "validity": {
-                "from_": ituser_start,
-                "to": None,
-            },
+            "rolebindings": [],
+            "validity": {"from_": ituser_start, "to": None},
         },
         "cba": {
             "employee_uuid": mo_person,
             "engagement_uuid": None,
             "itsystem_uuid": account_name_itsystem,
             "user_key": "cba",
+            "rolebindings": [],
             "validity": {"from_": ituser_start, "to": termination_time},
         },
     }

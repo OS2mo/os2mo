@@ -24,6 +24,7 @@ class ReadItusersItusersObjectsValidities(BaseModel):
     employee_uuid: UUID | None
     itsystem_uuid: UUID
     engagement_uuid: UUID | None
+    rolebindings: list["ReadItusersItusersObjectsValiditiesRolebindings"]
 
 
 class ReadItusersItusersObjectsValiditiesValidity(BaseModel):
@@ -31,8 +32,13 @@ class ReadItusersItusersObjectsValiditiesValidity(BaseModel):
     to: datetime | None
 
 
+class ReadItusersItusersObjectsValiditiesRolebindings(BaseModel):
+    uuid: UUID
+
+
 ReadItusers.update_forward_refs()
 ReadItusersItusers.update_forward_refs()
 ReadItusersItusersObjects.update_forward_refs()
 ReadItusersItusersObjectsValidities.update_forward_refs()
 ReadItusersItusersObjectsValiditiesValidity.update_forward_refs()
+ReadItusersItusersObjectsValiditiesRolebindings.update_forward_refs()

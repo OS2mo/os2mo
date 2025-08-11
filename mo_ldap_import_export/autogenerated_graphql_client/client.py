@@ -898,6 +898,9 @@ class GraphQLClient(AsyncBaseClient):
                     employee_uuid
                     itsystem_uuid
                     engagement_uuid
+                    rolebindings {
+                      uuid
+                    }
                   }
                 }
               }
