@@ -1539,6 +1539,9 @@ class GraphQLClient(AsyncBaseClient):
                         uuid
                       }
                     }
+                    role {
+                      uuid
+                    }
                   }
                 }
               }

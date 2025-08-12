@@ -18,6 +18,7 @@ class ReadRolebindingsRolebindingsObjects(BaseModel):
 
 class ReadRolebindingsRolebindingsObjectsCurrent(BaseModel):
     ituser: list["ReadRolebindingsRolebindingsObjectsCurrentItuser"]
+    role: list["ReadRolebindingsRolebindingsObjectsCurrentRole"]
 
 
 class ReadRolebindingsRolebindingsObjectsCurrentItuser(BaseModel):
@@ -28,9 +29,14 @@ class ReadRolebindingsRolebindingsObjectsCurrentItuserPerson(BaseModel):
     uuid: UUID
 
 
+class ReadRolebindingsRolebindingsObjectsCurrentRole(BaseModel):
+    uuid: UUID
+
+
 ReadRolebindings.update_forward_refs()
 ReadRolebindingsRolebindings.update_forward_refs()
 ReadRolebindingsRolebindingsObjects.update_forward_refs()
 ReadRolebindingsRolebindingsObjectsCurrent.update_forward_refs()
 ReadRolebindingsRolebindingsObjectsCurrentItuser.update_forward_refs()
 ReadRolebindingsRolebindingsObjectsCurrentItuserPerson.update_forward_refs()
+ReadRolebindingsRolebindingsObjectsCurrentRole.update_forward_refs()

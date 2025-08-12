@@ -51,6 +51,15 @@ async def trigger_sync(identifier: str, uuid: UUID) -> None:
             {
                 "mo_to_ldap": [
                     {
+                        "identifier": "rolebinding_to_roles",
+                        "routing_key": "role",
+                        "object_class": "-",
+                        "template": """
+                        {% set role_uuid = rolebinding_uuid_to_role_uuid(uuid) %}
+                        {{ skip_if_none(refresh("class", [role_uuid]|set)) }}
+                        """,
+                    },
+                    {
                         "identifier": "role_to_group",
                         "routing_key": "class",
                         "object_class": "groupOfNames",
@@ -85,6 +94,13 @@ async def trigger_sync(identifier: str, uuid: UUID) -> None:
         ),
     }
 )
+@pytest.mark.parametrize(
+    "identifier",
+    [
+        "rolebinding_to_roles",
+        "role_to_group",
+    ],
+)
 async def test_group_user_key_correlation(
     add_ldap_person: AddLdapPerson,
     ldap_api: LDAPAPI,
@@ -94,6 +110,7 @@ async def test_group_user_key_correlation(
     mo_person: UUID,
     ldap_person_dn: DN,
     ldap_org_unit: list[str],
+    identifier: str,
 ) -> None:
     async def get_group_members(group_dn: DN) -> list[DN]:
         ldap_object = await ldap_api.get_object_by_dn(group_dn)
@@ -164,7 +181,7 @@ async def test_group_user_key_correlation(
             validity={"from": "2001-02-03T04:05:06Z"},
         )
     )
-    await graphql_client._testing__rolebinding_create(
+    role_binding = await graphql_client._testing__rolebinding_create(
         input=RoleBindingCreateInput(
             user_key="-",
             ituser=ituser.uuid,
@@ -173,8 +190,12 @@ async def test_group_user_key_correlation(
         )
     )
 
+    trigger_map = {
+        "rolebinding_to_roles": role_binding.uuid,
+        "role_to_group": all_in_magenta.uuid,
+    }
     async with run_server(app):
-        await trigger_sync("role_to_group", all_in_magenta.uuid)
+        await trigger_sync(identifier, trigger_map[identifier])
 
         # Check the updated state of the group in LDAP
         # i.e. that the person on the group is now ldap_person_dn

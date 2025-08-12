@@ -704,6 +704,19 @@ async def itsystem_uuid_to_person_uuids(
     }
 
 
+async def rolebinding_uuid_to_role_uuid(
+    graphql_client: GraphQLClient, uuid: UUID
+) -> UUID | None:
+    result = await graphql_client.read_rolebindings(
+        filter=RoleBindingFilter(uuid=[uuid])
+    )
+    role_binding = only(result.objects)
+    if role_binding is None or role_binding.current is None:
+        return None
+    # UUID cannot change for different validities
+    return one({role_validity.uuid for role_validity in role_binding.current.role})
+
+
 class Refresher(Protocol):
     def __call__(
         self,
@@ -845,6 +858,9 @@ def construct_globals_dict(
         "itsystem_uuid_to_person_uuids": partial(
             itsystem_uuid_to_person_uuids, graphql_client
         ),
+        "rolebinding_uuid_to_role_uuid": partial(
+            rolebinding_uuid_to_role_uuid, graphql_client
+        ),
         "refresh": partial(refresh, graphql_client, amqpsystem),
     }
 
@@ -875,6 +891,7 @@ def construct_default_environment() -> Environment:
     environment.filters["mo_datestring"] = filter_mo_datestring
     environment.filters["strip_non_digits"] = filter_strip_non_digits
     environment.filters["remove_curly_brackets"] = filter_remove_curly_brackets
+    environment.filters["set"] = set
 
     environment.globals["now"] = datetime.utcnow  # TODO: timezone-aware datetime
     environment.globals["skip_if_none"] = skip_if_none

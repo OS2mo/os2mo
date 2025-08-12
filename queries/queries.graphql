@@ -572,6 +572,9 @@ query read_rolebindings($filter: RoleBindingFilter) {
             uuid
           }
         }
+        role {
+          uuid
+        }
       }
     }
   }
