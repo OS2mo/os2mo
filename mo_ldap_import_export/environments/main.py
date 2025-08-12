@@ -835,6 +835,7 @@ def construct_globals_dict(
         "get_manager_person_uuid": partial(get_manager_person_uuid, graphql_client),
         "get_person_dn": partial(get_person_dn, dataloader),
         "dn_to_uuid": dataloader.ldapapi.get_ldap_unique_ldap_uuid,
+        "uuid_to_dn": dataloader.ldapapi.get_ldap_dn,
         "get_engagement_type_uuid": partial(get_engagement_type_uuid, graphql_client),
         "get_primary_type_uuid": partial(get_primary_type_uuid, graphql_client),
         "get_ldap_object": partial(get_ldap_object, dataloader.ldapapi.connection),
