@@ -9,6 +9,8 @@ from typing import TypeAlias
 from uuid import UUID
 
 import pytest
+from fastapi.encoders import jsonable_encoder
+from fastramqpi.events import Event
 from fastramqpi.pytest_util import retrying
 from httpx import AsyncClient
 from more_itertools import one
@@ -406,3 +408,17 @@ async def assert_ldap_person(
                 assert employee["attributes"] == expected
 
     return assert_employee
+
+
+@pytest.fixture
+async def trigger_mo_to_ldap_sync(
+    test_client: AsyncClient,
+) -> Callable[[str, UUID], Awaitable[None]]:
+    async def inner(identifier: str, uuid: UUID) -> None:
+        result = await test_client.post(
+            f"/mo_to_ldap/{identifier}",
+            json=jsonable_encoder(Event(subject=uuid, priority=10)),
+        )
+        assert result.status_code == 200, result.text
+
+    return inner
