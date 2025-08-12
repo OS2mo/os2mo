@@ -23,6 +23,7 @@ class ReadItsystemsItsystemsObjectsValidities(BaseModel):
     user_key: str
     name: str
     validity: "ReadItsystemsItsystemsObjectsValiditiesValidity"
+    roles: list["ReadItsystemsItsystemsObjectsValiditiesRoles"]
 
 
 class ReadItsystemsItsystemsObjectsValiditiesValidity(BaseModel):
@@ -30,8 +31,13 @@ class ReadItsystemsItsystemsObjectsValiditiesValidity(BaseModel):
     to: datetime | None
 
 
+class ReadItsystemsItsystemsObjectsValiditiesRoles(BaseModel):
+    uuid: UUID
+
+
 ReadItsystems.update_forward_refs()
 ReadItsystemsItsystems.update_forward_refs()
 ReadItsystemsItsystemsObjects.update_forward_refs()
 ReadItsystemsItsystemsObjectsValidities.update_forward_refs()
 ReadItsystemsItsystemsObjectsValiditiesValidity.update_forward_refs()
+ReadItsystemsItsystemsObjectsValiditiesRoles.update_forward_refs()

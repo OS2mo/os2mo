@@ -51,6 +51,15 @@ async def trigger_sync(identifier: str, uuid: UUID) -> None:
             {
                 "mo_to_ldap": [
                     {
+                        "identifier": "itsystem_to_roles",
+                        "routing_key": "itsystem",
+                        "object_class": "-",
+                        "template": """
+                        {% set role_uuids = itsystem_uuid_to_role_uuids(uuid) %}
+                        {{ skip_if_none(refresh("class", role_uuids)) }}
+                        """,
+                    },
+                    {
                         "identifier": "rolebinding_to_roles",
                         "routing_key": "role",
                         "object_class": "-",
@@ -97,6 +106,7 @@ async def trigger_sync(identifier: str, uuid: UUID) -> None:
 @pytest.mark.parametrize(
     "identifier",
     [
+        "itsystem_to_roles",
         "rolebinding_to_roles",
         "role_to_group",
     ],
@@ -191,6 +201,7 @@ async def test_group_user_key_correlation(
     )
 
     trigger_map = {
+        "itsystem_to_roles": distributionlists.uuid,
         "rolebinding_to_roles": role_binding.uuid,
         "role_to_group": all_in_magenta.uuid,
     }

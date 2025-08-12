@@ -452,6 +452,7 @@ from .read_itsystems import ReadItsystems
 from .read_itsystems import ReadItsystemsItsystems
 from .read_itsystems import ReadItsystemsItsystemsObjects
 from .read_itsystems import ReadItsystemsItsystemsObjectsValidities
+from .read_itsystems import ReadItsystemsItsystemsObjectsValiditiesRoles
 from .read_itsystems import ReadItsystemsItsystemsObjectsValiditiesValidity
 from .read_ituser_by_employee_and_itsystem_uuid import (
     ReadItuserByEmployeeAndItsystemUuid,
@@ -829,6 +830,7 @@ __all__ = [
     "ReadItsystemsItsystems",
     "ReadItsystemsItsystemsObjects",
     "ReadItsystemsItsystemsObjectsValidities",
+    "ReadItsystemsItsystemsObjectsValiditiesRoles",
     "ReadItsystemsItsystemsObjectsValiditiesValidity",
     "ReadItuserByEmployeeAndItsystemUuid",
     "ReadItuserByEmployeeAndItsystemUuidItusers",

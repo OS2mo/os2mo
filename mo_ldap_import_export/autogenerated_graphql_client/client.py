@@ -814,6 +814,9 @@ class GraphQLClient(AsyncBaseClient):
                       from
                       to
                     }
+                    roles {
+                      uuid
+                    }
                   }
                 }
               }

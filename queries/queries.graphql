@@ -166,6 +166,9 @@ query read_itsystems($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime)
           from
           to
         }
+        roles {
+          uuid
+        }
       }
     }
   }

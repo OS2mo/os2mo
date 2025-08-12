@@ -717,6 +717,20 @@ async def rolebinding_uuid_to_role_uuid(
     return one({role_validity.uuid for role_validity in role_binding.current.role})
 
 
+async def itsystem_uuid_to_role_uuids(
+    graphql_client: GraphQLClient, uuid: UUID
+) -> set[UUID]:
+    result = await graphql_client.read_itsystems(uuids=[uuid])
+    itsystem = only(result.objects)
+    if itsystem is None:
+        return set()
+    return {
+        role_validity.uuid
+        for obj_validities in itsystem.validities
+        for role_validity in obj_validities.roles
+    }
+
+
 class Refresher(Protocol):
     def __call__(
         self,
@@ -860,6 +874,9 @@ def construct_globals_dict(
         ),
         "rolebinding_uuid_to_role_uuid": partial(
             rolebinding_uuid_to_role_uuid, graphql_client
+        ),
+        "itsystem_uuid_to_role_uuids": partial(
+            itsystem_uuid_to_role_uuids, graphql_client
         ),
         "refresh": partial(refresh, graphql_client, amqpsystem),
     }
