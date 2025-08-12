@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import concurrent.futures
 from typing import Any
 from unittest.mock import ANY
 from uuid import UUID
@@ -400,6 +401,30 @@ def test_you_cannot_fetch_same_event_immediately(
     send_event(graphapi_post, namespace, routing_key, "alice")
     assert fetch_event(graphapi_post, listener) is not None
     assert fetch_event(graphapi_post, listener) is None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_you_cannot_fetch_same_event_concurrently(
+    namespace: str,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    # NOTE: This test always passes when testing using the starlette
+    # TestClient. When testing against uvicorn it fails when expected.
+    routing_key = "rk"
+    listener = declare_listener(graphapi_post, namespace, "uk", routing_key)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        # Race-conditions are hard to test -- we may succeed from luck alone --
+        # but it's impossible to be lucky ten times in a row.
+        for _ in range(10):
+            send_event(graphapi_post, namespace, routing_key, "alice")
+            # Fetch event 10 times concurrently
+            futures = [
+                executor.submit(fetch_event, graphapi_post, listener) for _ in range(10)
+            ]
+            # Due to backoff, the event should only be fetched once
+            results = [f.result() for f in futures]
+            assert sum([r is not None for r in results]) == 1, results
 
 
 @pytest.mark.integration_test
