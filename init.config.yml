@@ -16,6 +16,10 @@ facets:
     AdresseSDEmployee:
       title: "Postadresse fra SD"
       scope: "TEXT"
+    #Only for rsd:
+    SydID_email:
+      title: "SydID Email"
+      scope: "EMAIL"
   manager_address_type: {}
   address_property: {}
   engagement_job_function: {}
