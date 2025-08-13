@@ -2,19 +2,23 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import dataclasses
+import itertools
 import re
 from collections.abc import Callable
+from collections.abc import Iterator
 from datetime import datetime
 from datetime import timedelta
 from functools import lru_cache
 from textwrap import dedent
 from typing import Annotated
 from typing import Any
+from typing import TypeVar
 from typing import cast as tcast
 from uuid import UUID
 
 import strawberry
 from more_itertools import flatten
+from more_itertools import one
 from more_itertools import only
 from more_itertools import unique_everseen
 from psycopg.types.range import TimestamptzRange
@@ -27,6 +31,8 @@ from sqlalchemy import distinct
 from sqlalchemy import exists
 from sqlalchemy import func
 from sqlalchemy import select
+from sqlalchemy.orm import raiseload
+from sqlalchemy.orm import selectinload
 from starlette_context import context
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
@@ -43,8 +49,10 @@ from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationEnhedRelation
 from mora.db import OrganisationEnhedRelationKode
 from mora.db import OrganisationEnhedTilsGyldighed
+from mora.db._common import _VirkningMixin
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
+from mora.graphapi.gmodels.mo import Validity
 from mora.graphapi.gmodels.mo.details import AssociationRead
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.gmodels.mo.details import ITSystemRead
@@ -1044,16 +1052,32 @@ async def organisation_unit_resolver(
     if filter is None:
         filter = OrganisationUnitFilter()
 
-    query = await organisation_unit_resolver_query(
+    uuids = await organisation_unit_resolver_query(
         info=info,
         filter=filter,
         limit=limit,
         cursor=cursor,
     )
 
+    n = await new(uuids, info, filter, limit, cursor)
+    o = await old(uuids, info, filter, limit, cursor)
+
+    print("NEW", n)
+    print("OLD", o)
+    assert n == o
+    return n
+
+
+async def old(
+    uuids: Select,
+    info: Info,
+    filter: OrganisationUnitFilter,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+):
     # Execute
     session: AsyncSession = info.context["session"]
-    result = await session.execute(query)
+    result = await session.execute(uuids)
     uuids = [row[0] for row in result]
 
     # See lora.py:fetch()'s is_paged
@@ -1084,6 +1108,158 @@ async def organisation_unit_resolver(
             to_date=filter.to_date,
         ),
     )
+
+
+async def new(
+    uuids: Select,
+    info: Info,
+    filter: OrganisationUnitFilter,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+):
+    session: AsyncSession = info.context["session"]
+
+    start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
+
+    def _registrering() -> ColumnElement:
+        return and_(
+            OrganisationEnhedRegistrering.lifecycle != cast("Slettet", LivscyklusKode),
+            OrganisationEnhedRegistrering.registrering_period.contains(
+                cursor.registration_time if cursor is not None else func.now()
+            ),
+        )
+
+    def _gyldighed() -> ColumnElement:
+        return OrganisationEnhedRegistrering.id.in_(
+            select(
+                OrganisationEnhedTilsGyldighed.organisationenhed_registrering_id
+            ).where(
+                OrganisationEnhedTilsGyldighed.gyldighed == "Aktiv",
+                _virkning(OrganisationEnhedTilsGyldighed),
+            )
+        )
+
+    def _virkning(cls: type[HasValidity]) -> ColumnElement:
+        return cls.virkning_period.overlaps(
+            TimestamptzRange(start, end)  # TODO: bounds?
+        )
+
+    query = (
+        select(OrganisationEnhedRegistrering)
+        .where(
+            OrganisationEnhedRegistrering.organisationenhed_id.in_(uuids),
+            _registrering(),
+            _gyldighed(),
+        )
+        .order_by(OrganisationEnhedRegistrering.organisationenhed_id)
+        .options(
+            raiseload("*"),
+            selectinload(
+                OrganisationEnhedRegistrering.attr_egenskaber.and_(
+                    _virkning(OrganisationEnhedAttrEgenskaber)
+                ),
+            ),
+            selectinload(
+                OrganisationEnhedRegistrering.enhedstype.and_(
+                    _virkning(OrganisationEnhedRelation)
+                ),
+            ),
+            selectinload(
+                OrganisationEnhedRegistrering.overordnet.and_(
+                    _virkning(OrganisationEnhedRelation)
+                ),
+            ),
+            selectinload(
+                OrganisationEnhedRegistrering.tidsregistrering.and_(
+                    _virkning(OrganisationEnhedRelation)
+                ),
+            ),
+            selectinload(
+                OrganisationEnhedRegistrering.niveau.and_(
+                    _virkning(OrganisationEnhedRelation)
+                ),
+            ),
+            selectinload(
+                OrganisationEnhedRegistrering.opmærkning.and_(
+                    _virkning(OrganisationEnhedRelation)
+                ),
+            ),
+        )
+    )
+
+    T = TypeVar("T", bound=_VirkningMixin)
+
+    def filter_virkning(
+        objects: list[T], start: datetime, end: datetime
+    ) -> Iterator[T]:
+        return (
+            obj
+            for obj in objects
+            if obj.virkning_period.lower < end and obj.virkning_period.upper > start
+        )
+
+    def motherfucker(reg: OrganisationEnhedRegistrering):
+        # Collect all start and end timestamps in the FKK Klasse
+        validity_objects = itertools.chain(
+            reg.attr_egenskaber,
+            reg.enhedstype,
+            reg.overordnet,
+            reg.tidsregistrering,
+            reg.niveau,
+            reg.opmærkning,
+        )
+        timestamps = set()
+        for obj in validity_objects:
+            timestamps.add(obj.virkning_period.lower)
+            timestamps.add(obj.virkning_period.upper)
+
+        # Construct intermediate Class validity state for each timestamp pair
+        for start, end in itertools.pairwise(sorted(timestamps)):
+            attr_egenskaber = one(filter_virkning(reg.attr_egenskaber, start, end))
+            enhedstype = one(filter_virkning(reg.enhedstype, start, end))
+            overordnet = one(filter_virkning(reg.overordnet, start, end))
+            tidsregistrering = only(filter_virkning(reg.tidsregistrering, start, end))
+            niveau = only(filter_virkning(reg.niveau, start, end))
+            opmærkning = only(filter_virkning(reg.opmærkning, start, end))
+
+            yield OrganisationUnitRead.construct(
+                uuid=reg.organisationenhed_id,
+                user_key=attr_egenskaber.brugervendtnoegle,
+                name=attr_egenskaber.enhedsnavn,
+                parent_uuid=overordnet.rel_maal_uuid,
+                org_unit_hierarchy=(
+                    opmærkning.rel_maal_uuid if opmærkning is not None else None
+                ),
+                unit_type_uuid=enhedstype.rel_maal_uuid,
+                org_unit_level_uuid=(
+                    niveau.rel_maal_uuid if niveau is not None else None
+                ),
+                time_planning_uuid=(
+                    tidsregistrering.rel_maal_uuid
+                    if tidsregistrering is not None
+                    else None
+                ),
+                validity=Validity.construct(
+                    from_date=(
+                        None
+                        if start is util.NEGATIVE_INFINITY
+                        else start.astimezone(util.DEFAULT_TIMEZONE)
+                    ),
+                    to_date=(
+                        None
+                        if end is util.POSITIVE_INFINITY
+                        else end.astimezone(util.DEFAULT_TIMEZONE)
+                    ),
+                ),
+            )
+
+    result = await session.execute(query)
+    registrations = [row.tuple()[0] for row in result]
+
+    ret = {}
+    for reg in registrations:
+        ret[reg.organisationenhed_id] = list(motherfucker(reg))
+    return ret
 
 
 async def organisation_unit_has_children(
