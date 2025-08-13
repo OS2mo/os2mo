@@ -401,6 +401,9 @@ async def event_resolver(
     owner = get_authenticated_user()
     subquery = (
         select(db.Event.pk)
+        # Ensure two concurrent event fetches don't read the same event; one
+        # should be backed-off.
+        .with_for_update(skip_locked=True)
         .where(
             db.Event.listener_fk == filter.listener,
             db.Event.silenced == sqlalchemy.false(),
