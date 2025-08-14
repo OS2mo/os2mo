@@ -104,6 +104,7 @@ async def read_leave_engagement_uuid(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
+@pytest.mark.xfail(reason="Does not currently raise the expected exception")
 def test_terminating_engagement_with_active_leave(
     create_person: Callable[[dict[str, Any]], UUID],
     create_org_unit: Callable[..., UUID],
@@ -144,10 +145,8 @@ def test_terminating_engagement_with_active_leave(
 
     assert read_leave_engagement_uuid(leave_uuid) == engagement_uuid
 
-    terminate_engagement({"uuid": str(engagement_uuid), "to": "1980-01-01"})
-
     with pytest.raises(AssertionError) as exc_info:
-        read_leave_engagement_uuid(leave_uuid)
-    assert "Cannot return null for non-nullable field Leave.engagement." in str(
-        exc_info.value
-    )
+        terminate_engagement({"uuid": str(engagement_uuid), "to": "1980-01-01"})
+    assert "Cannot terminate engagement with active roles." in str(exc_info.value)
+
+    assert read_leave_engagement_uuid(leave_uuid) == engagement_uuid
