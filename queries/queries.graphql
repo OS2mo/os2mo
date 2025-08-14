@@ -166,6 +166,9 @@ query read_itsystems($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime)
           from
           to
         }
+        roles {
+          uuid
+        }
       }
     }
   }
@@ -211,6 +214,9 @@ query read_itusers($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
         employee_uuid
         itsystem_uuid
         engagement_uuid
+        rolebindings {
+          uuid
+        }
       }
     }
   }
@@ -571,6 +577,9 @@ query read_rolebindings($filter: RoleBindingFilter) {
           person {
             uuid
           }
+        }
+        role {
+          uuid
         }
       }
     }

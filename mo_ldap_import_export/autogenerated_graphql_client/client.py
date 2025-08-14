@@ -814,6 +814,9 @@ class GraphQLClient(AsyncBaseClient):
                       from
                       to
                     }
+                    roles {
+                      uuid
+                    }
                   }
                 }
               }
@@ -895,6 +898,9 @@ class GraphQLClient(AsyncBaseClient):
                     employee_uuid
                     itsystem_uuid
                     engagement_uuid
+                    rolebindings {
+                      uuid
+                    }
                   }
                 }
               }
@@ -1538,6 +1544,9 @@ class GraphQLClient(AsyncBaseClient):
                       person {
                         uuid
                       }
+                    }
+                    role {
+                      uuid
                     }
                   }
                 }

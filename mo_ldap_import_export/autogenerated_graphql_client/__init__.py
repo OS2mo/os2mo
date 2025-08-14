@@ -452,6 +452,7 @@ from .read_itsystems import ReadItsystems
 from .read_itsystems import ReadItsystemsItsystems
 from .read_itsystems import ReadItsystemsItsystemsObjects
 from .read_itsystems import ReadItsystemsItsystemsObjectsValidities
+from .read_itsystems import ReadItsystemsItsystemsObjectsValiditiesRoles
 from .read_itsystems import ReadItsystemsItsystemsObjectsValiditiesValidity
 from .read_ituser_by_employee_and_itsystem_uuid import (
     ReadItuserByEmployeeAndItsystemUuid,
@@ -473,6 +474,7 @@ from .read_itusers import ReadItusers
 from .read_itusers import ReadItusersItusers
 from .read_itusers import ReadItusersItusersObjects
 from .read_itusers import ReadItusersItusersObjectsValidities
+from .read_itusers import ReadItusersItusersObjectsValiditiesRolebindings
 from .read_itusers import ReadItusersItusersObjectsValiditiesValidity
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNames
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnits
@@ -509,6 +511,7 @@ from .read_rolebindings import ReadRolebindingsRolebindingsObjects
 from .read_rolebindings import ReadRolebindingsRolebindingsObjectsCurrent
 from .read_rolebindings import ReadRolebindingsRolebindingsObjectsCurrentItuser
 from .read_rolebindings import ReadRolebindingsRolebindingsObjectsCurrentItuserPerson
+from .read_rolebindings import ReadRolebindingsRolebindingsObjectsCurrentRole
 from .related_unit_refresh import RelatedUnitRefresh
 from .related_unit_refresh import RelatedUnitRefreshRelatedUnitRefresh
 from .rolebinding_refresh import RolebindingRefresh
@@ -828,6 +831,7 @@ __all__ = [
     "ReadItsystemsItsystems",
     "ReadItsystemsItsystemsObjects",
     "ReadItsystemsItsystemsObjectsValidities",
+    "ReadItsystemsItsystemsObjectsValiditiesRoles",
     "ReadItsystemsItsystemsObjectsValiditiesValidity",
     "ReadItuserByEmployeeAndItsystemUuid",
     "ReadItuserByEmployeeAndItsystemUuidItusers",
@@ -843,6 +847,7 @@ __all__ = [
     "ReadItusersItusers",
     "ReadItusersItusersObjects",
     "ReadItusersItusersObjectsValidities",
+    "ReadItusersItusersObjectsValiditiesRolebindings",
     "ReadItusersItusersObjectsValiditiesValidity",
     "ReadOrgUnitAncestorNames",
     "ReadOrgUnitAncestorNamesOrgUnits",
@@ -877,6 +882,7 @@ __all__ = [
     "ReadRolebindingsRolebindingsObjectsCurrent",
     "ReadRolebindingsRolebindingsObjectsCurrentItuser",
     "ReadRolebindingsRolebindingsObjectsCurrentItuserPerson",
+    "ReadRolebindingsRolebindingsObjectsCurrentRole",
     "RegistrationFilter",
     "RelatedUnitFilter",
     "RelatedUnitRefresh",

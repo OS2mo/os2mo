@@ -137,6 +137,7 @@ async def test_check_it_user(graphql_mock: GraphQLMocker) -> None:
                             "validity": {"from": "1900-01-01T00:00:00Z"},
                             "employee_uuid": employee_uuid,
                             "itsystem_uuid": itsystem_uuid,
+                            "rolebindings": [],
                         }
                     ]
                 }
