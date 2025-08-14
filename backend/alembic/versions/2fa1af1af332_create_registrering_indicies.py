@@ -1,21 +1,14 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-
-"""Create registration indicies.
-
-Revision ID: 2fa1af1af332
-Revises: 1023d0881607
-Create Date: 2025-07-31 11:39:11.182346
-"""
+"""Create registration indicies."""
 
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-# revision identifiers, used by Alembic.
 revision: str = "2fa1af1af332"
-down_revision: str | None = "1023d0881607"
+down_revision: str | Sequence[str] | None = "1023d0881607"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

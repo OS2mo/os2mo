@@ -10,12 +10,12 @@ from alembic import op
 from sqlalchemy.sql import func
 
 revision: str = "b3e16449c312"
-down_revision: str | None = "f710f6d29a74"
+down_revision: str | Sequence[str] | None = "f710f6d29a74"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
 
-def upgrade():
+def upgrade() -> None:
     table = op.create_table(
         "file",
         sa.Column("id", sa.Integer, primary_key=True),
@@ -50,5 +50,5 @@ def upgrade():
     op.bulk_insert(table, files)
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("file")

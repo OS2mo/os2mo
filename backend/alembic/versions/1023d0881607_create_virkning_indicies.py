@@ -1,23 +1,17 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-
-"""Create timeperiod indicies.
-
-Revision ID: 1023d0881607
-Revises: 4f4da50669ad
-Create Date: 2025-07-11 13:05:49.100410
-"""
+"""Create timeperiod indicies."""
 
 from collections.abc import Sequence
 
 from alembic import op
 from sqlalchemy import text
 
-# revision identifiers, used by Alembic.
 revision: str = "1023d0881607"
-down_revision: str | None = "4f4da50669ad"
+down_revision: str | Sequence[str] | None = "4f4da50669ad"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
+
 
 tables = [
     "bruger_attr_egenskaber",

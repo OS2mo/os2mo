@@ -9,12 +9,12 @@ from alembic import op
 from sqlalchemy.sql import func
 
 revision: str = "f710f6d29a74"
-down_revision: str | None = "9525559842d6"
+down_revision: str | Sequence[str] | None = "9525559842d6"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         "audit_log_operation",
         sa.Column(
@@ -48,6 +48,6 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table("audit_log_operation")
     op.drop_table("audit_log_read")
