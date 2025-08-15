@@ -423,7 +423,10 @@ async def event_resolver(
                         # Clamp to avoid integer overflow
                         secs=func.power(2, func.least(db.Event.fetched_count, 32))
                     ),
-                    func.make_interval(days=1),
+                    # Don't wait for an even 24 hours to avoid retrying at the
+                    # same time every day, when some system is down for
+                    # maintenance or similar.
+                    func.make_interval(hours=17),
                 ),
             ),
         )
