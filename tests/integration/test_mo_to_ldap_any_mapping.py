@@ -319,7 +319,7 @@ async def test_endpoint_handler_failures(
     payload = jsonable_encoder(Event(subject=uuid, priority=10))
     result = await test_client.post("/mo_to_ldap/known", json=payload)
     assert result.status_code == 500
-    assert result.json() == {"detail": expected}
+    assert result.json() == {"detail": {"message": expected}}
 
 
 @pytest.mark.integration_test
