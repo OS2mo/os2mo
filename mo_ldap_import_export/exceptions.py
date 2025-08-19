@@ -3,6 +3,7 @@
 from collections.abc import Awaitable
 from collections.abc import Callable
 from functools import wraps
+from typing import Any
 from typing import ParamSpec
 from typing import TypeVar
 
@@ -11,6 +12,8 @@ from fastapi import HTTPException
 from fastramqpi.ramqp.utils import RejectMessage
 from fastramqpi.ramqp.utils import RequeueMessage
 from gql.transport.exceptions import TransportQueryError
+
+from mo_ldap_import_export.types import DN
 
 logger = structlog.stdlib.get_logger()
 
@@ -35,8 +38,22 @@ class IncorrectMapping(HTTPException):
 class ReadOnlyException(HTTPException):
     """Raised when the integration would write if not in read-only mode."""
 
-    def __init__(self, message: str) -> None:
-        super().__init__(status_code=451, detail=message)
+    def __init__(
+        self,
+        message: str,
+        dn: DN,
+        requested_state: dict[str, list],
+        old_state: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(
+            status_code=451,
+            detail={
+                "message": message,
+                "dn": dn,
+                "requested_state": requested_state,
+                "old_state": old_state,
+            },
+        )
 
 
 class UUIDNotFoundException(HTTPException):

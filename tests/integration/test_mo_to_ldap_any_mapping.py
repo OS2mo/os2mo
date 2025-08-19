@@ -327,6 +327,54 @@ async def test_endpoint_handler_failures(
     {
         "LISTEN_TO_CHANGES_IN_MO": "False",
         "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "LDAP_READ_ONLY": "True",
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "mo_to_ldap": [
+                    {
+                        "identifier": "known",
+                        "routing_key": "person",
+                        "object_class": "inetOrgPerson",
+                        # This fulfills the JinjaOutput model and is create
+                        # The DN format is also complete, also attributes are OK
+                        # However the referenced DC and O are missing
+                        "template": """
+                    {{
+                        {
+                            "dn": "CN=foo,o=magenta,dc=magenta,dc=dk",
+                            "create": true,
+                            "attributes": {
+                                "sn": "Lathe"
+                            }
+                        }|tojson
+                    }}
+                    """,
+                    }
+                ]
+            }
+        ),
+    }
+)
+async def test_endpoint_handler_read_only(test_client: AsyncClient) -> None:
+    uuid = uuid4()
+    payload = jsonable_encoder(Event(subject=uuid, priority=10))
+    result = await test_client.post("/mo_to_ldap/known", json=payload)
+    assert result.status_code == 451
+    assert result.json() == {
+        "detail": {
+            "message": "LDAP connection is read-only",
+            "dn": "CN=foo,o=magenta,dc=magenta,dc=dk",
+            "old_state": None,
+            "requested_state": {"sn": ["Lathe"]},
+        }
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
         "CONVERSION_MAPPING": json.dumps(
             {
                 "mo_to_ldap": [

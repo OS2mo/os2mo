@@ -52,6 +52,7 @@ from .customer_specific_checks import ImportChecks
 from .database import Base
 from .dataloaders import DataLoader
 from .exceptions import NoObjectsReturnedException
+from .exceptions import ReadOnlyException
 from .exceptions import SkipObject
 from .exceptions import amqp_reject_on_failure
 from .exceptions import http_reject_on_failure
@@ -518,6 +519,10 @@ def mo_to_ldap_handler(
             message = "The LDAP server could not find the superior"
             logger.exception(message)
             raise HTTPException(status_code=500, detail={"message": message}) from exc
+        except ReadOnlyException as exc:
+            message = "LDAP connection is read-only"
+            logger.exception(message)
+            raise exc
 
     return inner
 

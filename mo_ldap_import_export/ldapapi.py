@@ -200,7 +200,11 @@ class LDAPAPI:
                 dn=dn,
                 attributes=attributes,
             )
-            raise ReadOnlyException("Not allowed to write to the specified OU")
+            raise ReadOnlyException(
+                "Not allowed to write to the specified OU",
+                dn=dn,
+                requested_state=attributes,
+            )
 
         # During edits empty lists are used to clear attributes, however they are not
         # allowed on creation since attributes are by default created as empty if no
@@ -330,6 +334,9 @@ class LDAPAPI:
                 Optional dictionary of attributes describing the current state of the
                 object at `dn` for use in conditional writes, i.e. to ensure the changes
                 in `requested_changes` are only written if the old state matches.
+
+        Raises:
+            ReadOnlyException: If the LDAP connection is read-only.
         """
         # Checks
         if not self.ou_in_ous_to_write_to(dn):
