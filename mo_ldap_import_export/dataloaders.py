@@ -10,7 +10,6 @@ from uuid import UUID
 import structlog
 from fastramqpi.ramqp.utils import RequeueMessage
 from more_itertools import one
-from more_itertools import partition
 
 from .config import Settings
 from .exceptions import MultipleObjectsReturnedException
@@ -38,10 +37,9 @@ def extract_unique_ldap_uuids(it_users: list[ITUser]) -> set[LDAPUUID]:
     Extracts unique ldap uuids from a list of it-users
     """
     it_user_keys = {ituser.user_key for ituser in it_users}
-    not_uuids, uuids = partition(is_uuid, it_user_keys)
-    not_uuid_set = set(not_uuids)
+    not_uuid_set = {user_key for user_key in it_user_keys if not is_uuid(user_key)}
     if not_uuid_set:
-        logger.warning("Non UUID IT-user user-keys", user_keys=not_uuid_set)
+        logger.error("Non UUID IT-user user-keys", user_keys=not_uuid_set)
         raise ExceptionGroup(
             "Exceptions during IT-user UUID extraction",
             [
@@ -50,7 +48,7 @@ def extract_unique_ldap_uuids(it_users: list[ITUser]) -> set[LDAPUUID]:
             ],
         )
     # TODO: Check for duplicates?
-    return set(map(LDAPUUID, uuids))
+    return set(map(LDAPUUID, it_user_keys))
 
 
 class DataLoader:
