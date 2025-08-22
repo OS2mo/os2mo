@@ -104,9 +104,10 @@ def test_extract_unique_ldap_uuids_duplicate_uuid() -> None:
     ldap_uuid = str(uuid4())
     it_user_1 = create_ituser(ldap_uuid)
     it_user_2 = create_ituser(ldap_uuid)
-
-    ldap_uuids = extract_unique_ldap_uuids([it_user_1, it_user_2])
-    assert ldap_uuids == {LDAPUUID(ldap_uuid)}
+    with pytest.raises(ExceptionGroup) as exc_info:
+        extract_unique_ldap_uuids([it_user_1, it_user_2])
+    exception = one(exc_info.value.exceptions)
+    assert str(exception) == f"Duplicate UUID IT-user user-key: {ldap_uuid}"
 
 
 def test_extract_unique_ldap_uuids_duplicate_uuids_mixed() -> None:
@@ -115,9 +116,10 @@ def test_extract_unique_ldap_uuids_duplicate_uuids_mixed() -> None:
     it_user_11 = create_ituser(ldap_uuid_1)
     it_user_12 = create_ituser(ldap_uuid_1)
     it_user_2 = create_ituser(ldap_uuid_2)
-
-    ldap_uuids = extract_unique_ldap_uuids([it_user_11, it_user_12, it_user_2])
-    assert ldap_uuids == {LDAPUUID(ldap_uuid_1), LDAPUUID(ldap_uuid_2)}
+    with pytest.raises(ExceptionGroup) as exc_info:
+        extract_unique_ldap_uuids([it_user_11, it_user_12, it_user_2])
+    exception = one(exc_info.value.exceptions)
+    assert str(exception) == f"Duplicate UUID IT-user user-key: {ldap_uuid_1}"
 
 
 def test_extract_unique_ldap_uuids_duplicate_uuids() -> None:
@@ -127,8 +129,10 @@ def test_extract_unique_ldap_uuids_duplicate_uuids() -> None:
     it_user_12 = create_ituser(ldap_uuid_1)
     it_user_21 = create_ituser(ldap_uuid_2)
     it_user_22 = create_ituser(ldap_uuid_2)
-
-    ldap_uuids = extract_unique_ldap_uuids(
-        [it_user_11, it_user_12, it_user_21, it_user_22]
-    )
-    assert ldap_uuids == {LDAPUUID(ldap_uuid_1), LDAPUUID(ldap_uuid_2)}
+    with pytest.raises(ExceptionGroup) as exc_info:
+        extract_unique_ldap_uuids([it_user_11, it_user_12, it_user_21, it_user_22])
+    exception_errors = [str(exception) for exception in exc_info.value.exceptions]
+    assert AnyOrder(exception_errors) == [
+        f"Duplicate UUID IT-user user-key: {ldap_uuid_1}",
+        f"Duplicate UUID IT-user user-key: {ldap_uuid_2}",
+    ]

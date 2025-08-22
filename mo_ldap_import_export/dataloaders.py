@@ -9,6 +9,7 @@ from uuid import UUID
 
 import structlog
 from fastramqpi.ramqp.utils import RequeueMessage
+from more_itertools import duplicates_everseen
 from more_itertools import one
 
 from .config import Settings
@@ -36,7 +37,7 @@ def extract_unique_ldap_uuids(it_users: list[ITUser]) -> set[LDAPUUID]:
     """
     Extracts unique ldap uuids from a list of it-users
     """
-    it_user_keys = {ituser.user_key for ituser in it_users}
+    it_user_keys = [ituser.user_key for ituser in it_users]
     not_uuid_set = {user_key for user_key in it_user_keys if not is_uuid(user_key)}
     if not_uuid_set:
         logger.error("Non UUID IT-user user-keys", user_keys=not_uuid_set)
@@ -47,7 +48,18 @@ def extract_unique_ldap_uuids(it_users: list[ITUser]) -> set[LDAPUUID]:
                 for user_key in not_uuid_set
             ],
         )
-    # TODO: Check for duplicates?
+
+    duplicates = set(duplicates_everseen(it_user_keys))
+    if duplicates:
+        logger.error("Duplicate UUID IT-user", user_keys=duplicates)
+        raise ExceptionGroup(
+            "Duplicates during IT-user UUID extraction",
+            [
+                ValueError(f"Duplicate UUID IT-user user-key: {user_key}")
+                for user_key in duplicates
+            ],
+        )
+
     return set(map(LDAPUUID, it_user_keys))
 
 
