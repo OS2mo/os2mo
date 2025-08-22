@@ -112,15 +112,14 @@ class LDAPAPI:
             )
         return None
 
-    async def get_ldap_dn(self, unique_ldap_uuid: LDAPUUID) -> DN:
+    async def get_ldap_dn(self, unique_ldap_uuid: LDAPUUID) -> DN | None:
         """
         Given an unique_ldap_uuid, find the DistinguishedName
         """
         ldap_object = await self.get_object_by_uuid(unique_ldap_uuid)
         if ldap_object is None:
-            raise NoObjectsReturnedException(
-                f"Found no entries for uuid={unique_ldap_uuid}"
-            )
+            logger.warning("Unable to convert LDAP UUID to DN", uuid=unique_ldap_uuid)
+            return None
         return ldap_object.dn
 
     async def ensure_ldap_object(
@@ -174,7 +173,9 @@ class LDAPAPI:
         }
         ldap_uuid = await self.get_ldap_unique_ldap_uuid(dn)
         await self.modify_ldap_object(dn, ldap_changes, old_state)
-        return await self.get_ldap_dn(ldap_uuid)
+        possibly_new_dn = await self.get_ldap_dn(ldap_uuid)
+        assert possibly_new_dn is not None
+        return possibly_new_dn
 
     async def add_ldap_object(
         self, dn: DN, attributes: dict[str, list], object_class: str
@@ -267,9 +268,17 @@ class LDAPAPI:
         return LDAPUUID(uuid)
 
     async def convert_ldap_uuids_to_dns(self, ldap_uuids: set[LDAPUUID]) -> set[DN]:
+        async def get_ldap_dn_with_exception(unique_ldap_uuid: LDAPUUID) -> DN:
+            dn = await self.get_ldap_dn(unique_ldap_uuid)
+            if dn is None:
+                raise NoObjectsReturnedException(
+                    f"Found no entries for uuid={unique_ldap_uuid}"
+                )
+            return dn
+
         # TODO: DataLoader / bulk here instead of this
         results = await asyncio.gather(
-            *[self.get_ldap_dn(uuid) for uuid in ldap_uuids],
+            *[get_ldap_dn_with_exception(uuid) for uuid in ldap_uuids],
             return_exceptions=True,
         )
         dns, exceptions = partition(is_exception, results)

@@ -243,6 +243,7 @@ async def test_renaming_multi_valued_rdns(
 
     # The DN should now have changed, since we changed 'uid' to be the CPR number
     new_dn = await ldapapi.get_ldap_dn(entry_uuid)
+    assert new_dn is not None
     assert new_dn != person_dn
 
     # We expect the RDN to keep its format, only changing the values within it

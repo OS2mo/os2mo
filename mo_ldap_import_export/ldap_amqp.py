@@ -24,7 +24,6 @@ from .depends import Settings
 from .depends import SyncTool
 from .depends import logger_bound_message_id
 from .depends import request_id
-from .exceptions import NoObjectsReturnedException
 from .exceptions import amqp_reject_on_failure
 from .exceptions import http_reject_on_failure
 from .types import LDAPUUID
@@ -83,11 +82,10 @@ async def handle_uuid(
         logger.warning("LDAP event ignored due to ignore-list", ldap_uuid=uuid)
         return
 
-    try:
-        dn = await dataloader.ldapapi.get_ldap_dn(uuid)
-    except NoObjectsReturnedException as exc:
-        logger.exception("LDAP UUID could not be found", uuid=uuid)
-        raise RejectMessage("LDAP UUID could not be found") from exc
+    dn = await dataloader.ldapapi.get_ldap_dn(uuid)
+    if dn is None:
+        logger.error("LDAP UUID could not be found", uuid=uuid)
+        raise RejectMessage("LDAP UUID could not be found")
 
     # Ignore changes to non-employee objects
     ldap_object_classes = await dataloader.ldapapi.get_attribute_by_dn(
@@ -157,11 +155,10 @@ async def handle_ldap_reconciliation(
         logger.warning("LDAP event ignored due to ignore-list", ldap_uuid=uuid)
         return
 
-    try:
-        dn = await dataloader.ldapapi.get_ldap_dn(uuid)
-    except NoObjectsReturnedException as exc:
-        logger.exception("LDAP UUID could not be found", uuid=uuid)
-        raise RejectMessage("LDAP UUID could not be found") from exc
+    dn = await dataloader.ldapapi.get_ldap_dn(uuid)
+    if dn is None:
+        logger.error("LDAP UUID could not be found", uuid=uuid)
+        raise RejectMessage("LDAP UUID could not be found")
 
     person_uuid = await dataloader.find_mo_employee_uuid(dn)
     if person_uuid is None:

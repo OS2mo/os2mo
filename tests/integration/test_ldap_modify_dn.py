@@ -60,4 +60,5 @@ async def test_ldap_modify_dn(
     await ldap_api.ldap_connection.ldap_modify_dn(initial_dn, rdn)
 
     new_dn = await ldap_api.get_ldap_dn(initial_ldap_uuid)
+    assert new_dn is not None
     assert new_dn == expected_dn
