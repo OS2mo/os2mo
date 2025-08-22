@@ -17,7 +17,6 @@ from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import safe_rdn
 from more_itertools import one
 from more_itertools import only
-from more_itertools import partition
 
 from .config import Settings
 from .exceptions import NoObjectsReturnedException
@@ -36,7 +35,6 @@ from .types import CPRNumber
 from .utils import combine_dn_strings
 from .utils import ensure_list
 from .utils import extract_ou_from_dn
-from .utils import is_exception
 
 logger = structlog.stdlib.get_logger()
 
@@ -268,34 +266,15 @@ class LDAPAPI:
         return LDAPUUID(uuid)
 
     async def convert_ldap_uuids_to_dns(self, ldap_uuids: set[LDAPUUID]) -> set[DN]:
-        async def get_ldap_dn_with_exception(unique_ldap_uuid: LDAPUUID) -> DN:
-            dn = await self.get_ldap_dn(unique_ldap_uuid)
-            if dn is None:
-                raise NoObjectsReturnedException(
-                    f"Found no entries for uuid={unique_ldap_uuid}"
-                )
-            return dn
+        try:
+            async with asyncio.TaskGroup() as tg:
+                tasks = [tg.create_task(self.get_ldap_dn(uuid)) for uuid in ldap_uuids]
+        except Exception as e:
+            raise ValueError("Exceptions during UUID2DN translation") from e
 
-        # TODO: DataLoader / bulk here instead of this
-        results = await asyncio.gather(
-            *[get_ldap_dn_with_exception(uuid) for uuid in ldap_uuids],
-            return_exceptions=True,
-        )
-        dns, exceptions = partition(is_exception, results)
-        other_exceptions, not_found_exceptions = partition(
-            lambda e: isinstance(e, NoObjectsReturnedException), exceptions
-        )
-        if not_found_exceptions_list := list(not_found_exceptions):
-            logger.warning(
-                "Unable to convert LDAP UUIDs to DNs",
-                not_found=not_found_exceptions_list,
-            )
-        if other_exceptions_list := list(other_exceptions):
-            raise ExceptionGroup(
-                "Exceptions during UUID2DN translation",
-                cast(list[Exception], other_exceptions_list),
-            )
-        return cast(set[DN], set(dns))
+        results = {task.result() for task in tasks}
+        results.discard(None)
+        return cast(set[DN], results)
 
     async def dn2cpr(self, dn: DN) -> CPRNumber | None:
         if self.settings.ldap_cpr_attribute is None:

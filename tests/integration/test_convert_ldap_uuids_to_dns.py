@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from typing import cast
 from unittest import TestCase
-from unittest.mock import ANY
 from unittest.mock import MagicMock
 from uuid import uuid4
 
@@ -48,9 +47,9 @@ async def test_convert_ldap_uuids_to_dns(
             "unique_ldap_uuid": missing_uuid,
         },
         {
-            "event": "Unable to convert LDAP UUIDs to DNs",
+            "event": "Unable to convert LDAP UUID to DN",
             "log_level": "warning",
-            "not_found": ANY,
+            "uuid": missing_uuid,
         },
     ]
 
@@ -88,9 +87,9 @@ async def test_convert_ldap_uuids_to_dns(
                 "unique_ldap_uuid": missing_uuid,
             },
             {
-                "event": "Unable to convert LDAP UUIDs to DNs",
+                "event": "Unable to convert LDAP UUID to DN",
                 "log_level": "warning",
-                "not_found": ANY,
+                "uuid": missing_uuid,
             },
         ],
     )
@@ -100,8 +99,10 @@ async def test_convert_ldap_uuids_to_dns(
     ldap_api.ldap_connection.connection = MagicMock()
     ldap_api.ldap_connection.connection.search.side_effect = exception
 
-    with pytest.raises(ExceptionGroup) as exc_info:
+    with pytest.raises(ValueError) as exc_info:
         await ldap_api.convert_ldap_uuids_to_dns({ldap_person_uuid})
 
     assert "Exceptions during UUID2DN translation" in str(exc_info.value)
-    assert one(exc_info.value.exceptions) == exception
+    assert exc_info.value.__cause__ is not None
+    assert isinstance(exc_info.value.__cause__, ExceptionGroup)
+    assert one(exc_info.value.__cause__.exceptions) == exception
