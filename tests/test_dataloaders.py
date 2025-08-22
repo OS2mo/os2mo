@@ -742,52 +742,54 @@ def test_extract_unique_objectGUIDs(dataloader: DataLoader) -> None:
 
 
 @pytest.mark.parametrize(
-    "ldap_dns,expected",
+    "ldap_dns",
     [
-        ([], set()),
-        (["CN=foo"], {"CN=foo"}),
-        (["CN=foo", "CN=foo"], {"CN=foo"}),
-        (["CN=foo", "CN=bar"], {"CN=foo", "CN=bar"}),
-        (["CN=foo", "CN=bar", "CN=bar"], {"CN=foo", "CN=bar"}),
-        (["CN=foo", "CN=bar", "CN=baz"], {"CN=foo", "CN=bar", "CN=baz"}),
+        [],
+        ["CN=foo"],
+        ["CN=foo", "CN=foo"],
+        ["CN=foo", "CN=bar"],
+        ["CN=foo", "CN=bar", "CN=bar"],
+        ["CN=foo", "CN=bar", "CN=baz"],
     ],
 )
 async def test_convert_ldap_uuids_to_dns(
     dataloader: DataLoader,
     ldap_dns: list[str],
-    expected: set[str],
 ) -> None:
     dataloader.ldapapi.get_ldap_dn = AsyncMock()  # type: ignore
     dataloader.ldapapi.get_ldap_dn.side_effect = ldap_dns
 
-    dns = await dataloader.ldapapi.convert_ldap_uuids_to_dns(
-        {cast(LDAPUUID, uuid4()) for _ in ldap_dns}
-    )
-    assert dns == expected
+    uuids = {cast(LDAPUUID, uuid4()) for _ in ldap_dns}
+    dns = await dataloader.ldapapi.convert_ldap_uuids_to_dns(uuids)
+    assert dns == dict(zip(uuids, ldap_dns, strict=False))
 
 
 async def test_convert_ldap_uuids_to_dns_exception(dataloader: DataLoader) -> None:
     dataloader.ldapapi.get_ldap_dn = AsyncMock()  # type: ignore
     dataloader.ldapapi.get_ldap_dn.side_effect = ["CN=foo", ValueError("BOOM")]
 
-    with pytest.raises(ExceptionGroup) as exc_info:
+    with pytest.raises(ValueError) as exc_info:
         await dataloader.ldapapi.convert_ldap_uuids_to_dns(
             {cast(LDAPUUID, uuid4()), cast(LDAPUUID, uuid4())}
         )
     assert "Exceptions during UUID2DN translation" in str(exc_info.value)
-    assert len(exc_info.value.exceptions) == 1
+    assert exc_info.value.__cause__ is not None
+    assert isinstance(exc_info.value.__cause__, ExceptionGroup)
+    assert len(exc_info.value.__cause__.exceptions) == 1
 
     dataloader.ldapapi.get_ldap_dn.side_effect = [
         ValueError("BANG"),
         ValueError("BOOM"),
     ]
 
-    with pytest.raises(ExceptionGroup) as exc_info:
+    with pytest.raises(ValueError) as exc_info:
         await dataloader.ldapapi.convert_ldap_uuids_to_dns(
             {cast(LDAPUUID, uuid4()), cast(LDAPUUID, uuid4())}
         )
     assert "Exceptions during UUID2DN translation" in str(exc_info.value)
-    assert len(exc_info.value.exceptions) == 2
+    assert exc_info.value.__cause__ is not None
+    assert isinstance(exc_info.value.__cause__, ExceptionGroup)
+    assert len(exc_info.value.__cause__.exceptions) == 2
 
 
 async def test_get_ldap_dn(dataloader: DataLoader):

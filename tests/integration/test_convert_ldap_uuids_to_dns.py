@@ -31,14 +31,14 @@ async def test_convert_ldap_uuids_to_dns(
     # Convert empty list
     with capture_logs() as cap_logs:
         result = await ldap_api.convert_ldap_uuids_to_dns(set())
-        assert result == set()
+        assert result == {}
 
     assert cap_logs == []
 
     # Convert missing LDAP UUID
     with capture_logs() as cap_logs:
         result = await ldap_api.convert_ldap_uuids_to_dns({missing_uuid})
-        assert result == set()
+        assert result == {missing_uuid: None}
 
     assert cap_logs == [
         {
@@ -56,7 +56,9 @@ async def test_convert_ldap_uuids_to_dns(
     # Convert existing LDAP UUID
     with capture_logs() as cap_logs:
         result = await ldap_api.convert_ldap_uuids_to_dns({ldap_person_uuid})
-        assert result == {"uid=abk,ou=os2mo,o=magenta,dc=magenta,dc=dk"}
+        assert result == {
+            ldap_person_uuid: "uid=abk,ou=os2mo,o=magenta,dc=magenta,dc=dk"
+        }
 
     assert cap_logs == [
         {
@@ -71,7 +73,10 @@ async def test_convert_ldap_uuids_to_dns(
         result = await ldap_api.convert_ldap_uuids_to_dns(
             {ldap_person_uuid, missing_uuid}
         )
-        assert result == {"uid=abk,ou=os2mo,o=magenta,dc=magenta,dc=dk"}
+        assert result == {
+            missing_uuid: None,
+            ldap_person_uuid: "uid=abk,ou=os2mo,o=magenta,dc=magenta,dc=dk",
+        }
 
     TestCase().assertCountEqual(
         cap_logs,

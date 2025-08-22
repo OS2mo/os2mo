@@ -4,6 +4,7 @@
 
 import asyncio
 from contextlib import suppress
+from typing import cast
 from uuid import UUID
 
 import structlog
@@ -113,7 +114,9 @@ class DataLoader:
         it_system_uuid = UUID(raw_it_system_uuid)
         it_users = await self.moapi.load_mo_employee_it_users(uuid, it_system_uuid)
         ldap_uuids = self.extract_unique_ldap_uuids(it_users)
-        dns = await self.ldapapi.convert_ldap_uuids_to_dns(ldap_uuids)
+        uuid_dn_map = await self.ldapapi.convert_ldap_uuids_to_dns(ldap_uuids)
+        dns = set(uuid_dn_map.values())
+        dns.discard(None)
         # No DNs, no problem
         if not dns:
             return set()
@@ -124,7 +127,7 @@ class DataLoader:
             dns=dns,
             employee_uuid=uuid,
         )
-        return dns
+        return cast(set[DN], dns)
 
     async def find_mo_employee_dn_by_cpr_number(self, uuid: UUID) -> set[DN]:
         """Tries to find the LDAP DNs belonging to a MO employee via CPR numbers.
