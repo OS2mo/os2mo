@@ -33,7 +33,7 @@ class NoGoodLDAPAccountFound(ValueError):
     pass
 
 
-def extract_unique_ldap_uuids(it_users: list[ITUser]) -> set[LDAPUUID]:
+def extract_unique_ldap_uuids(it_users: list[ITUser]) -> dict[LDAPUUID, ITUser]:
     """
     Extracts unique ldap uuids from a list of it-users
     """
@@ -60,7 +60,7 @@ def extract_unique_ldap_uuids(it_users: list[ITUser]) -> set[LDAPUUID]:
             ],
         )
 
-    return set(map(LDAPUUID, it_user_keys))
+    return {LDAPUUID(ituser.user_key): ituser for ituser in it_users}
 
 
 class DataLoader:
@@ -124,7 +124,8 @@ class DataLoader:
 
         it_system_uuid = UUID(raw_it_system_uuid)
         it_users = await self.moapi.load_mo_employee_it_users(uuid, it_system_uuid)
-        ldap_uuids = extract_unique_ldap_uuids(it_users)
+        ldap_uuid_ituser_map = extract_unique_ldap_uuids(it_users)
+        ldap_uuids = set(ldap_uuid_ituser_map.keys())
         uuid_dn_map = await self.ldapapi.convert_ldap_uuids_to_dns(ldap_uuids)
         dns = set(uuid_dn_map.values())
         dns.discard(None)

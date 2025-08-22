@@ -30,7 +30,8 @@ def test_extract_unique_ldap_uuids() -> None:
     it_user_1 = create_ituser(ldap_uuid_1)
     it_user_2 = create_ituser(ldap_uuid_2)
 
-    ldap_uuids = extract_unique_ldap_uuids([it_user_1, it_user_2])
+    results = extract_unique_ldap_uuids([it_user_1, it_user_2])
+    ldap_uuids = set(results.keys())
     assert ldap_uuids == {LDAPUUID(ldap_uuid_1), LDAPUUID(ldap_uuid_2)}
 
 
