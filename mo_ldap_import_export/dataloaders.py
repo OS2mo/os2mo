@@ -33,6 +33,26 @@ class NoGoodLDAPAccountFound(ValueError):
     pass
 
 
+def extract_unique_ldap_uuids(it_users: list[ITUser]) -> set[LDAPUUID]:
+    """
+    Extracts unique ldap uuids from a list of it-users
+    """
+    it_user_keys = {ituser.user_key for ituser in it_users}
+    not_uuids, uuids = partition(is_uuid, it_user_keys)
+    not_uuid_set = set(not_uuids)
+    if not_uuid_set:
+        logger.warning("Non UUID IT-user user-keys", user_keys=not_uuid_set)
+        raise ExceptionGroup(
+            "Exceptions during IT-user UUID extraction",
+            [
+                ValueError(f"Non UUID IT-user user-key: {user_key}")
+                for user_key in not_uuid_set
+            ],
+        )
+    # TODO: Check for duplicates?
+    return set(map(LDAPUUID, uuids))
+
+
 class DataLoader:
     def __init__(
         self, settings: Settings, moapi: MOAPI, ldapapi: LDAPAPI, username_generator
@@ -75,25 +95,6 @@ class DataLoader:
         logger.info("No matching employee", dn=dn)
         return None
 
-    def extract_unique_ldap_uuids(self, it_users: list[ITUser]) -> set[LDAPUUID]:
-        """
-        Extracts unique ldap uuids from a list of it-users
-        """
-        it_user_keys = {ituser.user_key for ituser in it_users}
-        not_uuids, uuids = partition(is_uuid, it_user_keys)
-        not_uuid_set = set(not_uuids)
-        if not_uuid_set:
-            logger.warning("Non UUID IT-user user-keys", user_keys=not_uuid_set)
-            raise ExceptionGroup(
-                "Exceptions during IT-user UUID extraction",
-                [
-                    ValueError(f"Non UUID IT-user user-key: {user_key}")
-                    for user_key in not_uuid_set
-                ],
-            )
-        # TODO: Check for duplicates?
-        return set(map(LDAPUUID, uuids))
-
     async def find_mo_employee_dn_by_itsystem(self, uuid: UUID) -> set[DN]:
         """Tries to find the LDAP DNs belonging to a MO employee via ITUsers.
 
@@ -113,7 +114,7 @@ class DataLoader:
 
         it_system_uuid = UUID(raw_it_system_uuid)
         it_users = await self.moapi.load_mo_employee_it_users(uuid, it_system_uuid)
-        ldap_uuids = self.extract_unique_ldap_uuids(it_users)
+        ldap_uuids = extract_unique_ldap_uuids(it_users)
         uuid_dn_map = await self.ldapapi.convert_ldap_uuids_to_dns(ldap_uuids)
         dns = set(uuid_dn_map.values())
         dns.discard(None)
