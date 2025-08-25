@@ -25,6 +25,7 @@ from .types import DN
 from .types import LDAPUUID
 from .types import CPRNumber
 from .types import EmployeeUUID
+from .utils import mo_today
 
 logger = structlog.stdlib.get_logger()
 
@@ -127,6 +128,21 @@ class DataLoader:
         ldap_uuid_ituser_map = extract_unique_ldap_uuids(it_users)
         ldap_uuids = set(ldap_uuid_ituser_map.keys())
         uuid_dn_map = await self.ldapapi.convert_ldap_uuids_to_dns(ldap_uuids)
+
+        # Find the LDAP UUIDs that could not be mapped to DNs
+        missing_dn_uuids = {
+            ldap_uuid for ldap_uuid, dn in uuid_dn_map.items() if dn is None
+        }
+        # Find the MO UUIDs referring to the LDAP UUIDs that could not be found
+        missing_dn_mo_uuid = {
+            ldap_uuid_ituser_map[ldap_uuid].uuid for ldap_uuid in missing_dn_uuids
+        }
+        # Terminate the ITUsers reffering to the LDAP UUIDs that could not be found
+        async with asyncio.TaskGroup() as tg:
+            for mo_uuid in missing_dn_mo_uuid:
+                logger.info("Terminating correlation link it-user", uuid=mo_uuid)
+                tg.create_task(self.moapi.terminate_ituser(mo_uuid, mo_today()))
+
         dns = set(uuid_dn_map.values())
         dns.discard(None)
         # No DNs, no problem
