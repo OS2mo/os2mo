@@ -5,7 +5,7 @@
 from pydantic import BaseModel
 from pydantic import Extra
 
-from mo_ldap_import_export.types import DN
+from .types import DN
 
 
 class LdapObject(BaseModel, extra=Extra.allow):  # type: ignore

@@ -14,9 +14,6 @@ import structlog
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 
-from mo_ldap_import_export.types import DN
-from mo_ldap_import_export.types import RDN
-
 from .models import Address
 from .models import Class
 from .models import Employee
@@ -26,6 +23,8 @@ from .models import ITUser
 from .models import JobTitleFromADToMO
 from .models import MOBase
 from .models import OrganisationUnit
+from .types import DN
+from .types import RDN
 
 logger = structlog.stdlib.get_logger()
 
