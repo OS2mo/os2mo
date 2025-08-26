@@ -3,7 +3,6 @@
 import asyncio
 from contextlib import suppress
 from typing import Any
-from typing import cast
 
 import structlog
 from ldap3 import BASE
@@ -17,7 +16,6 @@ from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import safe_rdn
 from more_itertools import one
 from more_itertools import only
-from more_itertools import partition
 
 from .config import Settings
 from .exceptions import NoObjectsReturnedException
@@ -36,7 +34,6 @@ from .types import CPRNumber
 from .utils import combine_dn_strings
 from .utils import ensure_list
 from .utils import extract_ou_from_dn
-from .utils import is_exception
 
 logger = structlog.stdlib.get_logger()
 
@@ -112,15 +109,14 @@ class LDAPAPI:
             )
         return None
 
-    async def get_ldap_dn(self, unique_ldap_uuid: LDAPUUID) -> DN:
+    async def get_ldap_dn(self, unique_ldap_uuid: LDAPUUID) -> DN | None:
         """
         Given an unique_ldap_uuid, find the DistinguishedName
         """
         ldap_object = await self.get_object_by_uuid(unique_ldap_uuid)
         if ldap_object is None:
-            raise NoObjectsReturnedException(
-                f"Found no entries for uuid={unique_ldap_uuid}"
-            )
+            logger.warning("Unable to convert LDAP UUID to DN", uuid=unique_ldap_uuid)
+            return None
         return ldap_object.dn
 
     async def ensure_ldap_object(
@@ -174,7 +170,9 @@ class LDAPAPI:
         }
         ldap_uuid = await self.get_ldap_unique_ldap_uuid(dn)
         await self.modify_ldap_object(dn, ldap_changes, old_state)
-        return await self.get_ldap_dn(ldap_uuid)
+        possibly_new_dn = await self.get_ldap_dn(ldap_uuid)
+        assert possibly_new_dn is not None
+        return possibly_new_dn
 
     async def add_ldap_object(
         self, dn: DN, attributes: dict[str, list], object_class: str
@@ -266,27 +264,18 @@ class LDAPAPI:
             )
         return LDAPUUID(uuid)
 
-    async def convert_ldap_uuids_to_dns(self, ldap_uuids: set[LDAPUUID]) -> set[DN]:
-        # TODO: DataLoader / bulk here instead of this
-        results = await asyncio.gather(
-            *[self.get_ldap_dn(uuid) for uuid in ldap_uuids],
-            return_exceptions=True,
-        )
-        dns, exceptions = partition(is_exception, results)
-        other_exceptions, not_found_exceptions = partition(
-            lambda e: isinstance(e, NoObjectsReturnedException), exceptions
-        )
-        if not_found_exceptions_list := list(not_found_exceptions):
-            logger.warning(
-                "Unable to convert LDAP UUIDs to DNs",
-                not_found=not_found_exceptions_list,
-            )
-        if other_exceptions_list := list(other_exceptions):
-            raise ExceptionGroup(
-                "Exceptions during UUID2DN translation",
-                cast(list[Exception], other_exceptions_list),
-            )
-        return cast(set[DN], set(dns))
+    async def convert_ldap_uuids_to_dns(
+        self, ldap_uuids: set[LDAPUUID]
+    ) -> dict[LDAPUUID, DN | None]:
+        try:
+            async with asyncio.TaskGroup() as tg:
+                tasks = {
+                    uuid: tg.create_task(self.get_ldap_dn(uuid)) for uuid in ldap_uuids
+                }
+        except Exception as e:
+            raise ValueError("Exceptions during UUID2DN translation") from e
+
+        return {uuid: task.result() for uuid, task in tasks.items()}
 
     async def dn2cpr(self, dn: DN) -> CPRNumber | None:
         if self.settings.ldap_cpr_attribute is None:

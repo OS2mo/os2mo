@@ -62,7 +62,6 @@ from mo_ldap_import_export.moapi import Verb
 from mo_ldap_import_export.moapi import extract_current_or_latest_validity
 from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
-from mo_ldap_import_export.models import ITUser
 from mo_ldap_import_export.models import Termination
 from mo_ldap_import_export.routes import load_all_current_it_users
 from mo_ldap_import_export.types import LDAPUUID
@@ -710,84 +709,55 @@ async def test_make_mo_employee_dn_no_cpr(
     assert log_events == ["Generating DN for user"]
 
 
-def test_extract_unique_objectGUIDs(dataloader: DataLoader) -> None:
-    ad_it_user_1 = ITUser(
-        user_key=str(uuid4()),
-        itsystem=uuid4(),
-        person=uuid4(),
-        validity={"start": datetime.datetime.today()},
-    )
-    ad_it_user_2 = ITUser(
-        user_key=str(uuid4()),
-        itsystem=uuid4(),
-        person=uuid4(),
-        validity={"start": datetime.datetime.today()},
-    )
-
-    objectGUIDs = dataloader.extract_unique_ldap_uuids([ad_it_user_1, ad_it_user_2])
-    assert UUID(ad_it_user_1.user_key) in objectGUIDs
-    assert UUID(ad_it_user_2.user_key) in objectGUIDs
-    assert len(objectGUIDs) == 2
-
-    ad_it_user_3 = ITUser(
-        user_key="not_an_uuid",
-        itsystem=uuid4(),
-        person=uuid4(),
-        validity={"start": datetime.datetime.today()},
-    )
-    with pytest.raises(ExceptionGroup) as exc_info:
-        dataloader.extract_unique_ldap_uuids([ad_it_user_1, ad_it_user_2, ad_it_user_3])
-    exception = one(exc_info.value.exceptions)
-    assert str(exception) == "Non UUID IT-user user-key: not_an_uuid"
-
-
 @pytest.mark.parametrize(
-    "ldap_dns,expected",
+    "ldap_dns",
     [
-        ([], set()),
-        (["CN=foo"], {"CN=foo"}),
-        (["CN=foo", "CN=foo"], {"CN=foo"}),
-        (["CN=foo", "CN=bar"], {"CN=foo", "CN=bar"}),
-        (["CN=foo", "CN=bar", "CN=bar"], {"CN=foo", "CN=bar"}),
-        (["CN=foo", "CN=bar", "CN=baz"], {"CN=foo", "CN=bar", "CN=baz"}),
+        [],
+        ["CN=foo"],
+        ["CN=foo", "CN=foo"],
+        ["CN=foo", "CN=bar"],
+        ["CN=foo", "CN=bar", "CN=bar"],
+        ["CN=foo", "CN=bar", "CN=baz"],
     ],
 )
 async def test_convert_ldap_uuids_to_dns(
     dataloader: DataLoader,
     ldap_dns: list[str],
-    expected: set[str],
 ) -> None:
     dataloader.ldapapi.get_ldap_dn = AsyncMock()  # type: ignore
     dataloader.ldapapi.get_ldap_dn.side_effect = ldap_dns
 
-    dns = await dataloader.ldapapi.convert_ldap_uuids_to_dns(
-        {cast(LDAPUUID, uuid4()) for _ in ldap_dns}
-    )
-    assert dns == expected
+    uuids = {cast(LDAPUUID, uuid4()) for _ in ldap_dns}
+    dns = await dataloader.ldapapi.convert_ldap_uuids_to_dns(uuids)
+    assert dns == dict(zip(uuids, ldap_dns, strict=False))
 
 
 async def test_convert_ldap_uuids_to_dns_exception(dataloader: DataLoader) -> None:
     dataloader.ldapapi.get_ldap_dn = AsyncMock()  # type: ignore
     dataloader.ldapapi.get_ldap_dn.side_effect = ["CN=foo", ValueError("BOOM")]
 
-    with pytest.raises(ExceptionGroup) as exc_info:
+    with pytest.raises(ValueError) as exc_info:
         await dataloader.ldapapi.convert_ldap_uuids_to_dns(
             {cast(LDAPUUID, uuid4()), cast(LDAPUUID, uuid4())}
         )
     assert "Exceptions during UUID2DN translation" in str(exc_info.value)
-    assert len(exc_info.value.exceptions) == 1
+    assert exc_info.value.__cause__ is not None
+    assert isinstance(exc_info.value.__cause__, ExceptionGroup)
+    assert len(exc_info.value.__cause__.exceptions) == 1
 
     dataloader.ldapapi.get_ldap_dn.side_effect = [
         ValueError("BANG"),
         ValueError("BOOM"),
     ]
 
-    with pytest.raises(ExceptionGroup) as exc_info:
+    with pytest.raises(ValueError) as exc_info:
         await dataloader.ldapapi.convert_ldap_uuids_to_dns(
             {cast(LDAPUUID, uuid4()), cast(LDAPUUID, uuid4())}
         )
     assert "Exceptions during UUID2DN translation" in str(exc_info.value)
-    assert len(exc_info.value.exceptions) == 2
+    assert exc_info.value.__cause__ is not None
+    assert isinstance(exc_info.value.__cause__, ExceptionGroup)
+    assert len(exc_info.value.__cause__.exceptions) == 2
 
 
 async def test_get_ldap_dn(dataloader: DataLoader):

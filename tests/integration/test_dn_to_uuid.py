@@ -12,6 +12,7 @@ async def test_uuid_to_dn_to_uuid(
     ldap_api: LDAPAPI, ldap_person_uuid: LDAPUUID
 ) -> None:
     dn = await ldap_api.get_ldap_dn(ldap_person_uuid)
+    assert dn is not None
     assert await ldap_api.get_ldap_unique_ldap_uuid(dn) == ldap_person_uuid
 
 

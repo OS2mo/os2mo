@@ -4,12 +4,13 @@
 
 import asyncio
 from contextlib import suppress
+from typing import cast
 from uuid import UUID
 
 import structlog
 from fastramqpi.ramqp.utils import RequeueMessage
+from more_itertools import duplicates_everseen
 from more_itertools import one
-from more_itertools import partition
 
 from .config import Settings
 from .exceptions import MultipleObjectsReturnedException
@@ -24,12 +25,43 @@ from .types import DN
 from .types import LDAPUUID
 from .types import CPRNumber
 from .types import EmployeeUUID
+from .utils import mo_today
 
 logger = structlog.stdlib.get_logger()
 
 
 class NoGoodLDAPAccountFound(ValueError):
     pass
+
+
+def extract_unique_ldap_uuids(it_users: list[ITUser]) -> dict[LDAPUUID, ITUser]:
+    """
+    Extracts unique ldap uuids from a list of it-users
+    """
+    it_user_keys = [ituser.user_key for ituser in it_users]
+    not_uuid_set = {user_key for user_key in it_user_keys if not is_uuid(user_key)}
+    if not_uuid_set:
+        logger.error("Non UUID IT-user user-keys", user_keys=not_uuid_set)
+        raise ExceptionGroup(
+            "Exceptions during IT-user UUID extraction",
+            [
+                ValueError(f"Non UUID IT-user user-key: {user_key}")
+                for user_key in not_uuid_set
+            ],
+        )
+
+    duplicates = set(duplicates_everseen(it_user_keys))
+    if duplicates:
+        logger.error("Duplicate UUID IT-user", user_keys=duplicates)
+        raise ExceptionGroup(
+            "Duplicates during IT-user UUID extraction",
+            [
+                ValueError(f"Duplicate UUID IT-user user-key: {user_key}")
+                for user_key in duplicates
+            ],
+        )
+
+    return {LDAPUUID(ituser.user_key): ituser for ituser in it_users}
 
 
 class DataLoader:
@@ -74,25 +106,6 @@ class DataLoader:
         logger.info("No matching employee", dn=dn)
         return None
 
-    def extract_unique_ldap_uuids(self, it_users: list[ITUser]) -> set[LDAPUUID]:
-        """
-        Extracts unique ldap uuids from a list of it-users
-        """
-        it_user_keys = {ituser.user_key for ituser in it_users}
-        not_uuids, uuids = partition(is_uuid, it_user_keys)
-        not_uuid_set = set(not_uuids)
-        if not_uuid_set:
-            logger.warning("Non UUID IT-user user-keys", user_keys=not_uuid_set)
-            raise ExceptionGroup(
-                "Exceptions during IT-user UUID extraction",
-                [
-                    ValueError(f"Non UUID IT-user user-key: {user_key}")
-                    for user_key in not_uuid_set
-                ],
-            )
-        # TODO: Check for duplicates?
-        return set(map(LDAPUUID, uuids))
-
     async def find_mo_employee_dn_by_itsystem(self, uuid: UUID) -> set[DN]:
         """Tries to find the LDAP DNs belonging to a MO employee via ITUsers.
 
@@ -112,8 +125,26 @@ class DataLoader:
 
         it_system_uuid = UUID(raw_it_system_uuid)
         it_users = await self.moapi.load_mo_employee_it_users(uuid, it_system_uuid)
-        ldap_uuids = self.extract_unique_ldap_uuids(it_users)
-        dns = await self.ldapapi.convert_ldap_uuids_to_dns(ldap_uuids)
+        ldap_uuid_ituser_map = extract_unique_ldap_uuids(it_users)
+        ldap_uuids = set(ldap_uuid_ituser_map.keys())
+        uuid_dn_map = await self.ldapapi.convert_ldap_uuids_to_dns(ldap_uuids)
+
+        # Find the LDAP UUIDs that could not be mapped to DNs
+        missing_dn_uuids = {
+            ldap_uuid for ldap_uuid, dn in uuid_dn_map.items() if dn is None
+        }
+        # Find the MO UUIDs referring to the LDAP UUIDs that could not be found
+        missing_dn_mo_uuid = {
+            ldap_uuid_ituser_map[ldap_uuid].uuid for ldap_uuid in missing_dn_uuids
+        }
+        # Terminate the ITUsers reffering to the LDAP UUIDs that could not be found
+        async with asyncio.TaskGroup() as tg:
+            for mo_uuid in missing_dn_mo_uuid:
+                logger.info("Terminating correlation link it-user", uuid=mo_uuid)
+                tg.create_task(self.moapi.terminate_ituser(mo_uuid, mo_today()))
+
+        dns = set(uuid_dn_map.values())
+        dns.discard(None)
         # No DNs, no problem
         if not dns:
             return set()
@@ -124,7 +155,7 @@ class DataLoader:
             dns=dns,
             employee_uuid=uuid,
         )
-        return dns
+        return cast(set[DN], dns)
 
     async def find_mo_employee_dn_by_cpr_number(self, uuid: UUID) -> set[DN]:
         """Tries to find the LDAP DNs belonging to a MO employee via CPR numbers.

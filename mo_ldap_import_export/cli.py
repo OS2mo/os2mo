@@ -7,8 +7,8 @@ import os
 import typer
 from more_itertools import one
 
-from mo_ldap_import_export.config import AuthBackendEnum
-from mo_ldap_import_export.config import Settings
+from .config import AuthBackendEnum
+from .config import Settings
 
 
 def generate_ldapsearch_command() -> list[str]:
