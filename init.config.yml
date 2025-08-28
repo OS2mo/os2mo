@@ -3,7 +3,7 @@ root_organisation:
 
 facets:
   org_unit_address_type:
-    "P-nummer":
+    Pnummer:
       title: "P-nummer"
       scope: "PNUMBER"
     AdresseSDOrgUnit:
