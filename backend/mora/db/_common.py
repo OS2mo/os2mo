@@ -5,11 +5,12 @@ from typing import NewType
 from uuid import UUID
 
 from psycopg.types.range import TimestamptzRange
-from sqlalchemy import BigInteger
+from sqlalchemy import BigInteger, Column, String, func
 from sqlalchemy import CheckConstraint
 from sqlalchemy import ColumnElement
 from sqlalchemy import Enum
 from sqlalchemy import Text
+from sqlalchemy import bindparam
 from sqlalchemy import select
 from sqlalchemy import text
 from sqlalchemy import type_coerce
@@ -119,6 +120,8 @@ class _VirkningMixin:
         ),
     )
 
+    virkning = Column(String)
+
     @declared_attr
     @classmethod
     def _virkning_period_attr(cls) -> Mapped[TimestamptzRange]:
@@ -131,7 +134,7 @@ class _VirkningMixin:
     @virkning_period.inplace.expression
     @classmethod
     def _virkning_period(cls) -> ColumnElement[TimestamptzRange]:
-        return type_coerce(text("(virkning).timeperiod"), TSTZRANGE)
+        return type_coerce(func.foobar(cls.virkning), TSTZRANGE)
 
 
 HasValidity = NewType("HasValidity", _VirkningMixin)

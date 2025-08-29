@@ -1,0 +1,38 @@
+query read {
+  org_units(filter: { uuids: "f06ee470-9f17-566f-acbe-e938112d46d9" }) {
+    objects {
+      current {
+        uuid
+        parent_uuid
+      }
+    }
+  }
+}
+
+mutation FOO {
+  org_unit_update(
+    input: {
+      uuid: "f06ee470-9f17-566f-acbe-e938112d46d9"
+      parent: "230593e9-8151-585d-8e7b-a63f74864395"
+      validity: { from: "1960-01-01", to: "2030-01-01" }
+      name: "foo"
+      user_key: "foo"
+    }
+  ) {
+    uuid
+  }
+}
+
+mutation BAR {
+  org_unit_update(
+    input: {
+      uuid: "f06ee470-9f17-566f-acbe-e938112d46d9"
+      parent: "78aa2acc-01f7-5c9e-b921-d061f89b7293"
+      validity: { from: "1960-01-01", to: "2030-01-01" }
+      name: "bar"
+      user_key: "bar"
+    }
+  ) {
+    uuid
+  }
+}

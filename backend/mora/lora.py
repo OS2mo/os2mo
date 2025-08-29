@@ -269,9 +269,12 @@ class Connector:
         return self.__validity
 
     def is_range_relevant(self, start, end, effect):
+        print("is_range_relevant", self.start, self.end, start, end)
         if self.validity == "present":
             return util.do_ranges_overlap(self.start, self.end, start, end)
-        return start > self.start and end <= self.end
+        ret = start > self.start and end <= self.end
+        print(ret)
+        return ret
 
     def scope(self, type_: LoraObjectType) -> "Scope":
         if type_ in self.__scopes:
@@ -775,11 +778,17 @@ class Scope(BaseScope):
             return
 
         effects = list(get_effects(reg, relevant, also))
+        print("effects", effects)
 
-        return filter(
-            lambda a: self.connector.is_range_relevant(*a),  # noqa: FURB111
-            effects,
+        ret = list(
+            filter(
+                lambda a: self.connector.is_range_relevant(*a),  # noqa: FURB111
+                effects,
+            )
         )
+
+        print("filtered", ret)
+        return ret
 
 
 class AutocompleteScope(BaseScope):

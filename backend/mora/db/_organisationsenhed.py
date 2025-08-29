@@ -3,9 +3,12 @@
 from sqlalchemy import Column
 from sqlalchemy import ForeignKey
 from sqlalchemy import Text
+from sqlalchemy import and_
+from sqlalchemy import cast
 from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import relationship
 from sqlalchemy.orm import synonym
 
 from ._common import Base
@@ -25,6 +28,83 @@ class OrganisationEnhedRegistrering(_RegistreringMixin, Base):
     organisationenhed_id = Column(ForeignKey("organisationenhed.id"), index=True)
     uuid = synonym("organisationenhed_id")
 
+    # Base
+    attr_egenskaber: Mapped[list["OrganisationEnhedAttrEgenskaber"]] = relationship(
+        back_populates="registrering",
+        order_by=lambda: OrganisationEnhedAttrEgenskaber.virkning_period.asc(),
+    )
+    relationer: Mapped[list["OrganisationEnhedRelation"]] = relationship(
+        back_populates="registrering",
+        order_by=lambda: OrganisationEnhedRelation.virkning_period.asc(),
+    )
+    tils_gyldighed: Mapped[list["OrganisationEnhedTilsGyldighed"]] = relationship(
+        back_populates="registrering",
+        order_by=lambda: OrganisationEnhedTilsGyldighed.virkning_period.asc(),
+    )
+
+    # Relationer
+    enhedstype: Mapped[list["OrganisationEnhedRelation"]] = relationship(
+        primaryjoin=lambda: and_(
+            OrganisationEnhedRegistrering.id
+            == OrganisationEnhedRelation.organisationenhed_registrering_id,
+            OrganisationEnhedRelation.rel_type
+            == cast("enhedstype", OrganisationEnhedRelationKode),
+        ),
+        viewonly=True,
+        order_by=lambda: OrganisationEnhedRelation.virkning_period.asc(),
+    )
+    niveau: Mapped[list["OrganisationEnhedRelation"]] = relationship(
+        primaryjoin=lambda: and_(
+            OrganisationEnhedRegistrering.id
+            == OrganisationEnhedRelation.organisationenhed_registrering_id,
+            OrganisationEnhedRelation.rel_type
+            == cast("niveau", OrganisationEnhedRelationKode),
+        ),
+        viewonly=True,
+        order_by=lambda: OrganisationEnhedRelation.virkning_period.asc(),
+    )
+    opmærkning: Mapped[list["OrganisationEnhedRelation"]] = relationship(
+        primaryjoin=lambda: and_(
+            OrganisationEnhedRegistrering.id
+            == OrganisationEnhedRelation.organisationenhed_registrering_id,
+            OrganisationEnhedRelation.rel_type
+            == cast("opmærkning", OrganisationEnhedRelationKode),
+        ),
+        viewonly=True,
+        order_by=lambda: OrganisationEnhedRelation.virkning_period.asc(),
+    )
+    overordnet: Mapped[list["OrganisationEnhedRelation"]] = relationship(
+        primaryjoin=lambda: and_(
+            OrganisationEnhedRegistrering.id
+            == OrganisationEnhedRelation.organisationenhed_registrering_id,
+            OrganisationEnhedRelation.rel_type
+            == cast("overordnet", OrganisationEnhedRelationKode),
+        ),
+        viewonly=True,
+        order_by=lambda: OrganisationEnhedRelation.virkning_period.asc(),
+    )
+    tidsregistrering: Mapped[list["OrganisationEnhedRelation"]] = relationship(
+        primaryjoin=lambda: and_(
+            OrganisationEnhedRegistrering.id
+            == OrganisationEnhedRelation.organisationenhed_registrering_id,
+            OrganisationEnhedRelation.rel_type
+            == cast("opgaver", OrganisationEnhedRelationKode),
+            OrganisationEnhedRelation.objekt_type == "tidsregistrering",
+        ),
+        viewonly=True,
+        order_by=lambda: OrganisationEnhedRelation.virkning_period.asc(),
+    )
+    tilhoerer: Mapped[list["OrganisationEnhedRelation"]] = relationship(
+        primaryjoin=lambda: and_(
+            OrganisationEnhedRegistrering.id
+            == OrganisationEnhedRelation.organisationenhed_registrering_id,
+            OrganisationEnhedRelation.rel_type
+            == cast("tilhoerer", OrganisationEnhedRelationKode),
+        ),
+        viewonly=True,
+        order_by=lambda: OrganisationEnhedRelation.virkning_period.asc(),
+    )
+
 
 class OrganisationEnhedAttrEgenskaber(_AttrEgenskaberMixin, Base):
     __tablename__ = "organisationenhed_attr_egenskaber"
@@ -33,6 +113,9 @@ class OrganisationEnhedAttrEgenskaber(_AttrEgenskaberMixin, Base):
 
     organisationenhed_registrering_id = Column(
         ForeignKey("organisationenhed_registrering.id"), index=True
+    )
+    registrering: Mapped["OrganisationEnhedRegistrering"] = relationship(
+        back_populates="attr_egenskaber",
     )
 
 
@@ -55,6 +138,9 @@ class OrganisationEnhedRelation(_RelationMixin, Base):
     organisationenhed_registrering_id = Column(
         ForeignKey("organisationenhed_registrering.id"), index=True
     )
+    registrering: Mapped["OrganisationEnhedRegistrering"] = relationship(
+        back_populates="relationer"
+    )
 
 
 class OrganisationEnhedTilsGyldighed(_TilsGyldighedMixin("organisationenhed"), Base):
@@ -62,4 +148,7 @@ class OrganisationEnhedTilsGyldighed(_TilsGyldighedMixin("organisationenhed"), B
 
     organisationenhed_registrering_id = Column(
         ForeignKey("organisationenhed_registrering.id"), index=True
+    )
+    registrering: Mapped["OrganisationEnhedRegistrering"] = relationship(
+        back_populates="tils_gyldighed"
     )

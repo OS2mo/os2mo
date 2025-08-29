@@ -2,20 +2,28 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import dataclasses
+import itertools
 import re
+import time
 from collections.abc import Callable
+from collections.abc import Iterable
 from datetime import datetime
 from datetime import timedelta
 from functools import lru_cache
 from textwrap import dedent
 from typing import Annotated
 from typing import Any
+from typing import TypeVar
 from typing import cast as tcast
 from uuid import UUID
 
 import strawberry
+from more_itertools import first
 from more_itertools import flatten
+from more_itertools import last
+from more_itertools import one
 from more_itertools import only
+from more_itertools import split_when
 from more_itertools import unique_everseen
 from psycopg.types.range import TimestamptzRange
 from pydantic import ValidationError
@@ -27,6 +35,8 @@ from sqlalchemy import distinct
 from sqlalchemy import exists
 from sqlalchemy import func
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import raiseload
 from starlette_context import context
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
@@ -43,8 +53,10 @@ from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationEnhedRelation
 from mora.db import OrganisationEnhedRelationKode
 from mora.db import OrganisationEnhedTilsGyldighed
+from mora.db._common import _VirkningMixin
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
+from mora.graphapi.gmodels.mo import Validity
 from mora.graphapi.gmodels.mo.details import AssociationRead
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.gmodels.mo.details import ITSystemRead
@@ -1040,20 +1052,44 @@ async def organisation_unit_resolver(
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Any:
+    print("organisation_unit_resolver", filter)
     """Resolve organisation units."""
     if filter is None:
         filter = OrganisationUnitFilter()
 
-    query = await organisation_unit_resolver_query(
+    uuids = await organisation_unit_resolver_query(
         info=info,
         filter=filter,
         limit=limit,
         cursor=cursor,
     )
 
+    start = time.time()
+    the_old = await old(uuids, info, filter, limit, cursor)
+    print("TIME:OLD", time.time() - start)
+
+    start = time.time()
+    the_new = await new(uuids, info, filter, limit, cursor)
+    print("TIME:NEW", time.time() - start)
+
+    for (n_k, n_v), (o_k, o_v) in zip(the_new.items(), the_old.items()):
+        print("OLD", o_v)
+        print("NEW", n_v)
+        assert n_v == o_v
+
+    return the_old
+
+
+async def old(
+    uuids: Select,
+    info: Info,
+    filter: OrganisationUnitFilter,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+):
     # Execute
     session: AsyncSession = info.context["session"]
-    result = await session.execute(query)
+    result = await session.execute(uuids)
     uuids = [row[0] for row in result]
 
     # See lora.py:fetch()'s is_paged
@@ -1084,6 +1120,233 @@ async def organisation_unit_resolver(
             to_date=filter.to_date,
         ),
     )
+
+
+async def new(
+    uuids: Select,
+    info: Info,
+    filter: OrganisationUnitFilter,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+):
+    session: AsyncSession = info.context["session"]
+
+    start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
+
+    def _registrering() -> ColumnElement:
+        return and_(
+            OrganisationEnhedRegistrering.lifecycle != cast("Slettet", LivscyklusKode),
+            OrganisationEnhedRegistrering.registrering_period.contains(
+                cursor.registration_time if cursor is not None else func.now()
+            ),
+        )
+
+    def _gyldighed() -> ColumnElement:
+        return OrganisationEnhedRegistrering.id.in_(
+            select(
+                OrganisationEnhedTilsGyldighed.organisationenhed_registrering_id
+            ).where(
+                OrganisationEnhedTilsGyldighed.gyldighed == "Aktiv",
+                _virkning(OrganisationEnhedTilsGyldighed),
+            )
+        )
+
+    def _virkning(cls: type[HasValidity]) -> ColumnElement:
+        return cls.virkning_period.overlaps(TimestamptzRange(start, end))
+
+    query = (
+        select(OrganisationEnhedRegistrering)
+        .where(
+            OrganisationEnhedRegistrering.organisationenhed_id.in_(uuids),
+            _registrering(),
+            _gyldighed(),
+        )
+        .order_by(OrganisationEnhedRegistrering.organisationenhed_id)
+        .options(
+            raiseload("*"),
+            joinedload(
+                OrganisationEnhedRegistrering.attr_egenskaber.and_(
+                    # _virkning(OrganisationEnhedAttrEgenskaber)
+                ),
+            ),
+            joinedload(
+                OrganisationEnhedRegistrering.enhedstype.and_(
+                    # _virkning(OrganisationEnhedRelation)
+                ),
+            ),
+            joinedload(
+                OrganisationEnhedRegistrering.overordnet.and_(
+                    # _virkning(OrganisationEnhedRelation)
+                ),
+            ),
+            joinedload(
+                OrganisationEnhedRegistrering.tidsregistrering.and_(
+                    # _virkning(OrganisationEnhedRelation)
+                ),
+            ),
+            joinedload(
+                OrganisationEnhedRegistrering.niveau.and_(
+                    # _virkning(OrganisationEnhedRelation)
+                ),
+            ),
+            joinedload(
+                OrganisationEnhedRegistrering.opmærkning.and_(
+                    # _virkning(OrganisationEnhedRelation)
+                ),
+            ),
+        )
+    )
+
+    T = TypeVar("T", bound=_VirkningMixin)
+
+    def filter_virkning(
+        objects: list[T], start: datetime, end: datetime
+    ) -> Iterable[T]:
+        print("filter_virkning", [o.virkning_period for o in objects], start, end)
+        for obj in objects:
+            print(obj.virkning_period, start, end)
+        return (
+            obj
+            for obj in objects
+            if obj.virkning_period.lower < end and obj.virkning_period.upper > start
+        )
+
+    def fuck(dt: datetime) -> datetime:
+        return dt.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    def do_ranges_overlap(s, e):
+        return max(start, s) < min(end, e)
+
+    # def is_range_relevant(s, e) -> bool:
+    #     return s > start and e <= end
+
+    def motherfucker(
+        reg: OrganisationEnhedRegistrering,
+    ) -> Iterable[OrganisationUnitRead]:
+        print("MOTHERFUCKER", reg)
+        print("start", start, "end", end)
+
+        # Collect all start and end timestamps in the FKK Klasse
+        validity_objects = itertools.chain(
+            reg.attr_egenskaber,
+            reg.enhedstype,
+            reg.overordnet,
+            reg.tidsregistrering,
+            reg.niveau,
+            reg.opmærkning,
+        )
+        timestamps = set()
+        for obj in validity_objects:
+            timestamps.add(obj.virkning_period.lower)
+            timestamps.add(obj.virkning_period.upper)
+
+        # Construct intermediate Class validity state for each timestamp pair
+        for s, e in itertools.pairwise(sorted(timestamps)):
+            print(s, e)
+            print([e.virkning_period for e in reg.attr_egenskaber])
+            if not do_ranges_overlap(s, e):
+                print("not overlap", s, e)
+                continue
+
+            attr_egenskaber = one(filter_virkning(reg.attr_egenskaber, s, e))
+            enhedstype = one(filter_virkning(reg.enhedstype, s, e))
+            overordnet = one(filter_virkning(reg.overordnet, s, e))
+            tidsregistrering = only(filter_virkning(reg.tidsregistrering, s, e))
+            niveau = only(filter_virkning(reg.niveau, s, e))
+            opmærkning = only(filter_virkning(reg.opmærkning, s, e))
+
+            yield OrganisationUnitRead.construct(
+                uuid=reg.organisationenhed_id,
+                user_key=attr_egenskaber.brugervendtnoegle,
+                name=attr_egenskaber.enhedsnavn,
+                parent_uuid=overordnet.rel_maal_uuid,
+                org_unit_hierarchy=(
+                    opmærkning.rel_maal_uuid if opmærkning is not None else None
+                ),
+                unit_type_uuid=enhedstype.rel_maal_uuid,
+                org_unit_level_uuid=(
+                    niveau.rel_maal_uuid if niveau is not None else None
+                ),
+                time_planning_uuid=(
+                    tidsregistrering.rel_maal_uuid
+                    if tidsregistrering is not None
+                    else None
+                ),
+                # validity=Validity.construct(
+                #     from_date=(
+                #         fuck(s.astimezone(util.DEFAULT_TIMEZONE))
+                #         if s is not util.NEGATIVE_INFINITY
+                #         else None
+                #     ),
+                #     to_date=(
+                #         fuck(e.astimezone(util.DEFAULT_TIMEZONE) - timedelta(minutes=1))
+                #         if e is not util.POSITIVE_INFINITY
+                #         else None
+                #     ),
+                # ),
+                validity=Validity.construct(
+                    from_date=s,
+                    to_date=e,
+                ),
+            )
+
+    result = await session.execute(query)
+    registrations = [row.tuple()[0] for row in result]
+
+    def consolidate(
+        org_units: Iterable[OrganisationUnitRead],
+    ) -> Iterable[OrganisationUnitRead]:
+        interval_groups = split_when(
+            org_units,
+            lambda a, b: a.validity.to_date != b.validity.from_date
+            or a.copy(exclude={"validity"}) != b.copy(exclude={"validity"}),
+        )
+        for group in interval_groups:
+            group_first = first(group)
+            group_last = last(group)
+            yield group_first.copy(
+                update={
+                    "validity": Validity.construct(
+                        # from_date=group_first.validity.from_date,
+                        # to_date=group_last.validity.to_date,
+                        from_date=(
+                            fuck(
+                                group_first.validity.from_date.astimezone(
+                                    util.DEFAULT_TIMEZONE
+                                )
+                            )
+                            if group_first.validity.from_date
+                            is not util.NEGATIVE_INFINITY
+                            else None
+                        ),
+                        to_date=(
+                            fuck(
+                                group_last.validity.to_date.astimezone(
+                                    util.DEFAULT_TIMEZONE
+                                )
+                                - timedelta(minutes=1)
+                            )
+                            if group_last.validity.to_date is not util.POSITIVE_INFINITY
+                            else None
+                        ),
+                    )
+                }
+            )
+
+    ret = {}
+    for reg in registrations:
+        motherfucked = list(motherfucker(reg))
+        print("DONE MOTHERFUCKING", motherfucked)
+
+        consolidated = list(consolidate(motherfucked))
+        print("DONE CONSOLIDATING", consolidated)
+
+        if consolidated != motherfucked:
+            print("🎉" * 50)
+            print("CONSOLIDATE ACTUALLY DID SOMETHING")
+
+        ret[reg.organisationenhed_id] = consolidated
+    return ret
 
 
 async def organisation_unit_has_children(
