@@ -480,6 +480,14 @@ class ManagerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
             """
         ),
     )
+    engagement: EngagementFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Engagement filter limiting which entries are returned.
+            """
+        ),
+    )
 
     responsibility: ClassFilter | None = strawberry.field(
         default=None,

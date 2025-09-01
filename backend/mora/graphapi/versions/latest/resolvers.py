@@ -621,7 +621,10 @@ async def manager_resolver(
         kwargs["opgaver"] = lora_filter(
             await filter2uuids_func(class_resolver, info, class_filter)
         )
-
+    if filter.engagement is not None:  # pragma: no cover
+        kwargs["tilknyttedefunktioner"] = lora_filter(
+            await filter2uuids_func(engagement_resolver, info, filter.engagement)
+        )
     result = await generic_resolver(
         ManagerRead,
         info=info,

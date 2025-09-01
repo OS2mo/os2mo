@@ -56,9 +56,11 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         cls, effect, start, end, funcid, flat: bool = False
     ):
         person = mapping.USER_FIELD.get_uuid(effect)
+        engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
         manager_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
         manager_level = mapping.MANAGER_LEVEL_FIELD.get_uuid(effect)
         responsibilities = list(mapping.RESPONSIBILITY_FIELD.get_uuids(effect))
+
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
 
         base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
@@ -67,6 +69,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
             return {
                 **base_obj,
                 "employee_uuid": person,
+                "engagement_uuid": engagement_uuid,
                 "manager_type_uuid": manager_type,
                 "manager_level_uuid": manager_level,
                 "responsibility_uuids": responsibilities,
