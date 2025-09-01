@@ -29,6 +29,30 @@ services:
       ORIGIN: http://localhost:5000
     restart: unless-stopped
 
+  opentelemetry-collector:
+    image: docker.io/otel/opentelemetry-collector:0.133.0
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./dev-environment/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+
+  tempo:
+    image: docker.io/grafana/tempo:2.8.2
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./dev-environment/tempo.yaml:/etc/tempo.yaml:ro
+
+  grafana:
+    image: grafana/grafana:12.1.0
+    volumes:
+      - ./dev-environment/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor
+    ports:
+      - "127.0.0.1:3000:3000"
+
   mo:
     # Enabling tty and stdin allows setting a breakpoint() and doing
     # `docker attach os2mo-mo-1` to enter pdb. Detach with Ctrl+P Ctrl+Q.

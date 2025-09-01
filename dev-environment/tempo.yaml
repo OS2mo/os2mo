@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+overrides:
+  defaults:
+    global:
+      max_bytes_per_trace: 50000000
+
+usage_report:
+  # actually cringe that this isn't the default
+  reporting_enabled: false
+
+server:
+  http_listen_port: 3200
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:4317"
+
+ingester: {}
+
+compactor: {}
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /tmp/tempo/blocks
