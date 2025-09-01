@@ -489,7 +489,14 @@ class ManagerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
             """
         ),
     )
-
+    manager_type: ClassFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Manager_type filter limiting which entries are returned.
+            """
+        ),
+    )
     exclude: EmployeeFilter | None = strawberry.field(
         default=None,
         description=dedent(

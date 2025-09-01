@@ -621,6 +621,11 @@ async def manager_resolver(
         kwargs["opgaver"] = lora_filter(
             await filter2uuids_func(class_resolver, info, class_filter)
         )
+    if filter.manager_type is not None:
+        class_filter = filter.manager_type or ClassFilter()
+        kwargs["organisatoriskfunktionstype"] = lora_filter(
+            await filter2uuids_func(class_resolver, info, class_filter)
+        )
 
     result = await generic_resolver(
         ManagerRead,
