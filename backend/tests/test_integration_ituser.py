@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Any
+from uuid import uuid4
 
 import freezegun
 import pytest
@@ -1045,3 +1046,49 @@ def test_create_multiple_itusers_linked_to_engagement(
         "uuid": engagement2_uuid,
         "itusers": itusers,
     }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_create_itusers_engagement_and_engagements(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    CREATE_ITUSER = """
+    mutation MyMutation($engagements: [UUID!], $engagement: UUID) {
+      ituser_create(
+        input: {
+          person: "6ee24785-ee9a-4502-81c2-7697009c9053"
+          validity: { from: "2020-08-01" }
+          itsystem: "0872fb72-926d-4c5c-a063-ff800b8ee697"
+          engagements: $engagements
+          user_key: "username"
+          engagement: $engagement
+        }
+      ) {
+        uuid
+      }
+    }
+    """
+
+    response = graphapi_post(
+        CREATE_ITUSER,
+        variables={
+            "engagements": [str(uuid4()), str(uuid4())],
+            "engagement": str(uuid4()),
+        },
+    )
+    assert response.errors == [
+        {
+            "extensions": {
+                "error_context": {
+                    "description": "Attempted use of both 'engagement' and 'engagements'",
+                    "error": True,
+                    "error_key": "E_INVALID_INPUT",
+                    "status": 400,
+                }
+            },
+            "locations": [{"column": 7, "line": 3}],
+            "message": "(<ErrorCodes.E_INVALID_INPUT: (400, 'Invalid input.')>, \"Attempted use of both 'engagement' and 'engagements'\")",
+            "path": ["ituser_create"],
+        }
+    ]

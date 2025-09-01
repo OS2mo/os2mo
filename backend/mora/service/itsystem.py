@@ -115,8 +115,6 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         engagement = util.checked_get(req, mapping.ENGAGEMENT, {}, required=False)
         engagements = util.checked_get(req, mapping.ENGAGEMENTS, [], required=False)
-        if engagement and engagements:
-            raise ValueError("Can't use both `engagement` and `engagements`")
 
         # "engagement" is deprecated - use the list "engagements"
         # Ensure backwards compatibility
@@ -274,7 +272,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         ):
             if engagements is None:
                 engagements = [data.get(mapping.ENGAGEMENT)]
-            if not engagements:
+            if not engagements:  # pragma: no cover
                 # If an empty list is returned it is registered as a relation to a function with no uuid
                 # This is how we "delete" a list of engagements
                 update_fields.append(
