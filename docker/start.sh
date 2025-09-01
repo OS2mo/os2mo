@@ -24,8 +24,9 @@ fi
 # though.
 if [ "$ENVIRONMENT" = "development" ]; then
     echo "Running MO in development mode (live reload)"
-    exec uvicorn --reload --reload-dir=backend/mora/ --reload-dir=backend/oio_rest/ --reload-dir=backend/ramodels/ --host 0.0.0.0 --port 5000 --factory mora.app:create_app --timeout-keep-alive 100
+    # uvicorn's --reload does not work with opentelemetry-instrument
+    exec watchmedo auto-restart --no-restart-on-command-exit --recursive --directory=backend/mora/ --directory=backend/oio_rest/ --directory=backend/ramodels/ -- opentelemetry-instrument uvicorn --host 0.0.0.0 --port 5000 --factory mora.app:create_app --timeout-keep-alive 100
 else
     echo "Running MO in production mode"
-    exec gunicorn --config /app/docker/gunicorn-settings.py 'mora.app:create_app()'
+    exec opentelemetry-instrument gunicorn --config /app/docker/gunicorn-settings.py 'mora.app:create_app()'
 fi
