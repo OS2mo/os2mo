@@ -168,8 +168,8 @@ services:
     # We expose the ports here, so decoupled agents can be developed with more
     # ease.
     ports:
-      - "127.0.0.1:5672:5672"    # amqp port
-      - "127.0.0.1:15672:15672"  # management port
+      - "127.0.0.1:5672:5672" # amqp port
+      - "127.0.0.1:15672:15672" # management port
     restart: unless-stopped
 
   keycloak:
@@ -190,7 +190,7 @@ services:
       - keycloak-volume:/srv/:ro
 
   keycloak-realm-builder:
-    image: magentaaps/os2mo-keycloak-realm-builder:7  # please also update gitlab-ci-templates
+    image: magentaaps/os2mo-keycloak-realm-builder:7 # please also update gitlab-ci-templates
     environment:
       KEYCLOAK_VERSION: 14.0.0
 
@@ -206,48 +206,49 @@ services:
       KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["http://localhost:5050/*", "http://localhost:5000/*", "http://localhost:5001/*", "http://localhost:5173/*", "http://localhost:4173/*"]'
       KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["http://localhost:5050", "http://localhost:5000", "http://localhost:5001", "http://localhost:5173", "http://localhost:4173"]'
       KEYCLOAK_RBAC_ENABLED: "true"
-      KEYCLOAK_REALM_USERS: '[
-        {
-          "enabled": true,
-          "uuid": "0fb62199-cb9e-4083-ba45-2a63bfd142d7",
-          "email": "alvidan@kolding.dk",
-          "username": "alvida",
-          "password": "alvida",
-          "firstname": "Alvida",
-          "lastname": "Nibe",
-          "roles": ["admin", "service_api"]
-        },
-        {
-          "enabled": true,
-          "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
-          "email": "bruce@kung.fu",
-          "username": "bruce",
-          "password": "bruce",
-          "firstname": "Bruce",
-          "lastname": "Lee",
-          "roles": ["reader", "service_api"]
-        },
-        {
-          "enabled": true,
-          "uuid": "1c571f8f-0e3e-4ffa-9ff0-d35505781924",
-          "email": "elinec@kolding.dk",
-          "username": "eline",
-          "password": "eline",
-          "firstname": "Eline",
-          "lastname": "Wedsgaard Christensen",
-          "roles": ["owner", "reader", "service_api"]
-        },
-        {
-          "enabled": true,
-          "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-          "email": "anders@andeby.dk",
-          "username": "anders",
-          "password": "anders",
-          "firstname": "Anders",
-          "lastname": "And",
-          "roles": ["owner", "reader", "service_api"]
-        }
-      ]'
+      KEYCLOAK_REALM_USERS: |
+        [
+          {
+            "enabled": true,
+            "uuid": "0fb62199-cb9e-4083-ba45-2a63bfd142d7",
+            "email": "alvidan@kolding.dk",
+            "username": "alvida",
+            "password": "alvida",
+            "firstname": "Alvida",
+            "lastname": "Nibe",
+            "roles": ["admin", "service_api"]
+          },
+          {
+            "enabled": true,
+            "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
+            "email": "bruce@kung.fu",
+            "username": "bruce",
+            "password": "bruce",
+            "firstname": "Bruce",
+            "lastname": "Lee",
+            "roles": ["reader", "service_api"]
+          },
+          {
+            "enabled": true,
+            "uuid": "1c571f8f-0e3e-4ffa-9ff0-d35505781924",
+            "email": "elinec@kolding.dk",
+            "username": "eline",
+            "password": "eline",
+            "firstname": "Eline",
+            "lastname": "Wedsgaard Christensen",
+            "roles": ["owner", "reader", "service_api"]
+          },
+          {
+            "enabled": true,
+            "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            "email": "anders@andeby.dk",
+            "username": "anders",
+            "password": "anders",
+            "firstname": "Anders",
+            "lastname": "And",
+            "roles": ["owner", "reader", "service_api"]
+          }
+        ]
     restart: on-failure
     volumes:
       - keycloak-volume:/srv/
