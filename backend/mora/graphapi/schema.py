@@ -2,19 +2,29 @@
 # SPDX-License-Identifier: MPL-2.0
 import time
 from collections.abc import AsyncIterator
+from collections.abc import Callable
+from collections.abc import Iterator
+from contextlib import contextmanager
 from contextlib import suppress
 from functools import cache
+from typing import Any
 
 import strawberry
 from fastapi.encoders import jsonable_encoder
 from graphql import ExecutionResult
 from graphql import GraphQLError
+from graphql import GraphQLResolveInfo
+from graphql.pyutils import Path
+from opentelemetry import trace
 from pydantic import PositiveInt
 from strawberry import Schema
 from strawberry.exceptions import StrawberryGraphQLError
 from strawberry.extensions import SchemaExtension
 from strawberry.schema.config import StrawberryConfig
+from strawberry.types import ExecutionContext
 from strawberry.utils.await_maybe import AsyncIteratorOrIterator
+from strawberry.utils.await_maybe import AwaitableOrValue
+from strawberry.utils.await_maybe import await_maybe
 from structlog import get_logger
 
 from mora import config
@@ -118,6 +128,95 @@ class IntrospectionQueryCacheExtension(SchemaExtension):
         self.cache.setdefault(cache_key, execution_context.result)
 
 
+class OpenTelemetryExtension(SchemaExtension):
+    """Based on Strawberry's upstream OpenTelemetryExtension, but with proper nesting of spans.
+
+    https://github.com/strawberry-graphql/strawberry/blob/58ea8c9a8d880ecdf86629bc8e521ae305fd4d10/strawberry/extensions/tracing/opentelemetry.py
+    https://github.com/strawberry-graphql/strawberry/issues/3788
+    """
+
+    def __init__(self, *, execution_context: ExecutionContext) -> None:
+        super().__init__(execution_context=execution_context)
+        self.tracer = trace.get_tracer("strawberry")
+        self.spans: dict[Path | None, trace.Span] = {}
+
+    def on_operation(self) -> Iterator[None]:
+        with self.tracer.start_as_current_span(
+            name=f"GraphQL Operation: {self.execution_context.operation_name}",
+        ):
+            yield
+
+    def on_validate(self) -> Iterator[None]:
+        with self.tracer.start_as_current_span(
+            name="GraphQL Validate",
+        ):
+            yield
+
+    def on_parse(self) -> Iterator[None]:
+        with self.tracer.start_as_current_span(
+            name="GraphQL Parse",
+        ):
+            yield
+
+    def on_execute(self) -> Iterator[None]:
+        with self.tracer.start_as_current_span(
+            name="GraphQL Execute",
+        ) as span:
+            # Use this span as the parent for resolve() spans
+            self.spans[None] = span
+            yield
+
+    @contextmanager
+    def _use_span(self, path: Path | None) -> Iterator[trace.Span]:
+        # The GraphQL path looks something like
+        #
+        # ['engagements', 'objects', 5, 'validities', 2, 'org_unit', 0, 'name'],
+        #
+        # where strings represent GraphQL field names and integers represent
+        # entries in a list. Strawberry won't call resolve() for list entries
+        # (when the rightmost path component is an integer), so we CANNOT
+        # assume that parent spans are created before their children.
+
+        # Return spans that already exist without wrapping in
+        # start_as_current_span(). This avoids starting and ending the same
+        # span multiple times, which is illegal.
+        with suppress(KeyError):
+            yield self.spans[path]
+            return
+        assert path is not None  # self.spans[None] is inserted in on_execute()
+
+        # If the parent is a field name (string), it was already created and
+        # this call will simply return it from the cache. Otherwise, if the
+        # parent is a list entry (integer), the call will create a new span
+        # **and start it**. Since we don't have any lifecycle hooks without
+        # calls to resolve(), we immediately close it.
+        with self._use_span(path.prev) as parent_span:
+            pass
+
+        # Wrap new spans in start_as_current_span(), tying our own
+        # contextmanager lifecycle to the span's.
+        with self.tracer.start_as_current_span(
+            name=f"GraphQL Resolve: {path.key}",
+            context=trace.set_span_in_context(span=parent_span),
+            attributes={
+                "graphql.path": ".".join(map(str, path.as_list())),
+            },
+        ) as span:
+            self.spans[path] = span
+            yield span
+
+    async def resolve(
+        self,
+        _next: Callable,
+        root: Any,
+        info: GraphQLResolveInfo,
+        *args: str,
+        **kwargs: Any,
+    ) -> AwaitableOrValue[object]:
+        with self._use_span(info.path):
+            return await await_maybe(_next(root, info, *args, **kwargs))
+
+
 @cache
 def get_schema(version: Version) -> CustomSchema:
     """Instantiate Strawberry Schema."""
@@ -133,6 +232,7 @@ def get_schema(version: Version) -> CustomSchema:
             UnknownActor,
         ],
         extensions=[
+            OpenTelemetryExtension,
             StarletteContextExtension,
             LogContextExtension,
             RuntimeContextExtension,

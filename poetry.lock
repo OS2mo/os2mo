@@ -3671,6 +3671,8 @@ files = [
 
 [package.dependencies]
 graphql-core = ">=3.2.0,<3.4.0"
+opentelemetry-api = {version = "<2", optional = true, markers = "extra == \"opentelemetry\""}
+opentelemetry-sdk = {version = "<2", optional = true, markers = "extra == \"opentelemetry\""}
 python-dateutil = ">=2.7.0,<3.0.0"
 typing-extensions = ">=4.5.0"
 
@@ -4267,4 +4269,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "0092c9a1363354f92d33d2701cedde38810920472f77ade89ba92693d8ec466e"
+content-hash = "5aa1f3003e5cc88af567098c73b5e9c19de3284ea341f039e34eddd56a677d3b"
