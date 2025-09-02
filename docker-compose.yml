@@ -97,12 +97,14 @@ services:
     image: magentaaps/os2mo-fixture-loader:1
     # For a list of supported fixtures, see:
     # https://git.magenta.dk/rammearkitektur/os2mo-fixture-loader.
-    command: ["${FIXTURE:-kolding}"]
+    # command: ["${FIXTURE:-kolding}"]
+    entrypoint: ["sleep"]
+    command: ["0"]
     environment:
       PGHOST: mox-db
       PGDATABASE: mox
-      PGUSER: postgres
-      PGPASSWORD: mysecretpassword
+      PGUSER: mox
+      PGPASSWORD: mox
       # Remove GRACEFUL to overwrite your DB
       GRACEFUL: si
     # volumes:
@@ -130,7 +132,9 @@ services:
   mox-db:
     image: postgres:11
     environment:
-      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_USER: mox
+      POSTGRES_PASSWORD: mox
+      POSTGRES_DB: mox
     volumes:
       - ./dev-environment/moxdb-install-pgtap.sh:/docker-entrypoint-initdb.d/10-install-pgtap.sh:ro
     # The following will mount the database data directory to RAM. It
@@ -140,21 +144,6 @@ services:
     # tmpfs:
     #   - /var/lib/postgresql/data
     restart: unless-stopped
-
-  mox-db-init:
-    image: magentaaps/postgres-os2mo:12.2-11.7-test
-    # build:
-    #   context: ../postgres-os2mo
-    #   dockerfile: docker/Dockerfile
-    environment:
-      POSTGRES_HOST: mox-db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: mysecretpassword
-
-      DB_NAME: mox
-      DB_USER: mox
-      DB_PASSWORD: mox
-    restart: on-failure
 
   msg-broker:
     # Normally, we expect the `rabbitmq` image. The -management images come

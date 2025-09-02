@@ -46,12 +46,12 @@ variables:
     # LoRa postgres database
     # TODO: replace the custom image with upstream postgres when tests no longer depend
     # on pgtap. See dev-environment/moxdb-install-pgtap.sh / docker-compose.yml.
-    - name: magentaaps/postgres-os2mo:11-11.7-test
+    - name: postgres:11
       alias: mox-db
       variables:
-        DB_NAME: "mox"
-        DB_USER: "mox"
-        DB_PASSWORD: "mox"
+        POSTGRES_USER: mox
+        POSTGRES_PASSWORD: mox
+        POSTGRES_DB: mox
     # RabbitMQ AMQP
     # The -management images come with a set of management plugins installed and
     # enabled by default. They can be accessed through the web interface on port 15672.
