@@ -428,10 +428,6 @@ def _extract_letters(name: list[str]) -> list[str]:
         first_ascii_letter is not None
     ), "first name part must contain at least one ASCII letter"
 
-    # Take first letter of first name part (regardless of whether it is a vowel or
-    # a consonant.)
-    result = [first_ascii_letter]
-
     consonants = ascii_lowercase_set - set("aeiouy")
 
     def strip_vowels(part: str) -> str:
@@ -439,9 +435,19 @@ def _extract_letters(name: list[str]) -> list[str]:
 
     consonant_name = [strip_vowels(part) for part in name]
 
+    if len(consonant_name) == 1:
+        first_name = first(consonant_name)
+        if len(first_name) < 2:
+            raise ValueError(f"cannot create username for input {name!r}")
+        return [first_ascii_letter] + list(first_name[:2])
+
     # Continue at first letter of the second name part (first part if only one part)
-    p = min(1, len(consonant_name) - 1)  # second name part (or first if only one part)
+    p = 1
     offset = 0  # = first letter
+
+    # Take first letter of first name part (regardless of whether it is a vowel or
+    # a consonant.)
+    result = [first_ascii_letter]
 
     iterations = 0
     while len(result) < length:
