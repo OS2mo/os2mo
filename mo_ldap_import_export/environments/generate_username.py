@@ -417,7 +417,7 @@ def _extract_letters(name: list[str]) -> list[str]:
     name = flatten(map(partial(re.split, r"[\-\s+]"), name))  # type: ignore
 
     # Convert all name parts to lowercase
-    name = list(map(str.lower, name))
+    name = [x.lower() for x in name]
 
     # Check name parts
     ascii_lowercase_set = set(string.ascii_lowercase)
