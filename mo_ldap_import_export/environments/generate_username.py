@@ -419,8 +419,9 @@ def _extract_letters(name: list[str]):
     name = list(map(str.lower, name))
 
     # Check name parts
-    first_ascii = set(name[0]) & set(string.ascii_lowercase)
-    assert first_ascii, "first name part must contain at least one ASCII letter"
+    ascii_lowercase_set = set(string.ascii_lowercase)
+    has_ascii = any(c in ascii_lowercase_set for c in name[0])
+    assert has_ascii, "first name part must contain at least one ASCII letter"
 
     def only(allowed: str, part: str):
         return "".join(ch for ch in part if ch.lower() in allowed)
