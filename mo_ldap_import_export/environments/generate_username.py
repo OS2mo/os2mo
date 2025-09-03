@@ -406,6 +406,60 @@ async def generate_username(
     )
 
 
+def _extract_letters(name: list[str]):
+    length = 3
+    consonants = "".join(set(string.ascii_lowercase) - set("aeiouy"))
+    max_iterations = 1000
+
+    # Convert ["Firstname", "Last Name"] -> ["Firstname", "Last", "Name"]
+    # and ["First-Name", "Last-Name"] -> ["First", "Name", "Last", "Name"]
+    name = flatten(map(partial(re.split, r"[\-\s+]"), name))  # type: ignore
+
+    # Convert all name parts to lowercase
+    name = list(map(str.lower, name))
+
+    # Check name parts
+    first_ascii = set(name[0]) & set(string.ascii_lowercase)
+    assert len(name) > 0, "name must have at least one part"
+    assert first_ascii, "first name part must contain at least one ASCII character"
+
+    def only(allowed: str, part: str):
+        return "".join(ch for ch in part if ch.lower() in allowed)
+
+    result = []
+
+    # Take first letter of first name part (regardless of whether it is a vowel or
+    # a consonant.)
+    result.append(only(string.ascii_lowercase, name[0])[0])
+
+    # Continue at first letter of the second name part (first part if only one part)
+    p = min(1, len(name) - 1)  # second name part (or first if only one part)
+    offset = 0  # = first letter
+
+    iterations = 0
+    while len(result) < length:
+        part = name[p]
+        try:
+            result.append(only(consonants, part)[offset])
+        except IndexError:
+            # Check if there are still more name parts to use
+            if p < len(name) - 1:
+                # If yes, use next name part, starting at first letter
+                p += 1
+                offset = 0
+            else:
+                # If no, go back to first name
+                p = 0
+        else:
+            offset += 1
+
+        iterations += 1
+        if iterations > max_iterations:
+            raise ValueError(f"cannot create username for input {name!r}")
+
+    return result
+
+
 class UserNameGenPermutation:
     def __init__(self):
         self.occupied_names = set()
@@ -421,7 +475,7 @@ class UserNameGenPermutation:
     def create_username(self, name: list[str]) -> str:
         suffix = 1
         while True:
-            letters = self._extract_letters(name)
+            letters = _extract_letters(name)
             new_username = "%s%d" % ("".join(letters), suffix)
             if not self.is_username_occupied(new_username):
                 # An unused username was found, add it to the list of
@@ -432,56 +486,3 @@ class UserNameGenPermutation:
                 # We are still looking for an available username.
                 # Bump the `suffix` variable.
                 suffix += 1
-
-    def _extract_letters(self, name: list[str]):
-        length = 3
-        consonants = "".join(set(string.ascii_lowercase) - set("aeiouy"))
-        max_iterations = 1000
-
-        # Convert ["Firstname", "Last Name"] -> ["Firstname", "Last", "Name"]
-        # and ["First-Name", "Last-Name"] -> ["First", "Name", "Last", "Name"]
-        name = flatten(map(partial(re.split, r"[\-\s+]"), name))  # type: ignore
-
-        # Convert all name parts to lowercase
-        name = list(map(str.lower, name))
-
-        # Check name parts
-        first_ascii = set(name[0]) & set(string.ascii_lowercase)
-        assert len(name) > 0, "name must have at least one part"
-        assert first_ascii, "first name part must contain at least one ASCII character"
-
-        def only(allowed: str, part: str):
-            return "".join(ch for ch in part if ch.lower() in allowed)
-
-        result = []
-
-        # Take first letter of first name part (regardless of whether it is a vowel or
-        # a consonant.)
-        result.append(only(string.ascii_lowercase, name[0])[0])
-
-        # Continue at first letter of the second name part (first part if only one part)
-        p = min(1, len(name) - 1)  # second name part (or first if only one part)
-        offset = 0  # = first letter
-
-        iterations = 0
-        while len(result) < length:
-            part = name[p]
-            try:
-                result.append(only(consonants, part)[offset])
-            except IndexError:
-                # Check if there are still more name parts to use
-                if p < len(name) - 1:
-                    # If yes, use next name part, starting at first letter
-                    p += 1
-                    offset = 0
-                else:
-                    # If no, go back to first name
-                    p = 0
-            else:
-                offset += 1
-
-            iterations += 1
-            if iterations > max_iterations:
-                raise ValueError(f"cannot create username for input {name!r}")
-
-        return result
