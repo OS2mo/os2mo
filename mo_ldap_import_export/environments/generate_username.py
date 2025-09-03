@@ -422,17 +422,19 @@ def _extract_letters(name: list[str]) -> list[str]:
     # Check name parts
     ascii_lowercase_set = set(string.ascii_lowercase)
     # We assume that name has atleast a given_name
-    has_ascii = any(c in ascii_lowercase_set for c in first(name))
-    assert has_ascii, "first name part must contain at least one ASCII letter"
+    first_ascii_letter = first(
+        (c for c in first(name) if c in ascii_lowercase_set), None
+    )
+    assert (
+        first_ascii_letter is not None
+    ), "first name part must contain at least one ASCII letter"
 
     def only(allowed: str, part: str) -> str:
         return "".join(ch for ch in part if ch.lower() in allowed)
 
-    result = []
-
     # Take first letter of first name part (regardless of whether it is a vowel or
     # a consonant.)
-    result.append(only(string.ascii_lowercase, name[0])[0])
+    result = [first_ascii_letter]
 
     # Continue at first letter of the second name part (first part if only one part)
     p = min(1, len(name) - 1)  # second name part (or first if only one part)
