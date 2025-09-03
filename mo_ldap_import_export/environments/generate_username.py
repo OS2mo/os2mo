@@ -441,29 +441,24 @@ def _extract_letters(name: list[str]) -> list[str]:
             raise ValueError(f"cannot create username for input {name!r}")
         return [first_ascii_letter] + list(first_name[:2])
 
-    # Continue at first letter of the second name part (first part if only one part)
-    p = 1
-    offset = 0  # = first letter
-
     # Take first letter of first name part (regardless of whether it is a vowel or
     # a consonant.)
     result = [first_ascii_letter]
 
     iterations = 0
     while len(result) < length:
-        part = consonant_name[p]
-        if offset >= len(part):
-            # Check if there are still more name parts to use
-            if p < len(consonant_name) - 1:
-                # If yes, use next name part, starting at first letter
-                p += 1
-                offset = 0
-            else:
-                # If no, go back to first name
-                p = 0
-        else:
-            result.append(part[offset])
-            offset += 1
+        for part in consonant_name[1:]:
+            for letter in part:
+                result.append(letter)
+                if len(result) >= length:
+                    return result
+
+        part = consonant_name[0]
+        offset = len(consonant_name[-1])
+        for letter in part[offset:]:
+            result.append(letter)
+            if len(result) >= length:
+                return result
 
         iterations += 1
         if iterations > max_iterations:
