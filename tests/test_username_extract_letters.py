@@ -41,8 +41,7 @@ def test_extract_letters_assertion_error(name: list[str]) -> None:
     """Test _extract_letters with invalid inputs expecting AssertionErrors."""
     with pytest.raises(AssertionError) as exc_info:
         _extract_letters(name)
-    # This error message does not really make sense, as it refuses valid ASCII characters
-    assert "first name part must contain at least one ASCII character" in str(
+    assert "first name part must contain at least one ASCII letter" in str(
         exc_info.value
     )
 

@@ -421,7 +421,7 @@ def _extract_letters(name: list[str]):
     # Check name parts
     first_ascii = set(name[0]) & set(string.ascii_lowercase)
     assert len(name) > 0, "name must have at least one part"
-    assert first_ascii, "first name part must contain at least one ASCII character"
+    assert first_ascii, "first name part must contain at least one ASCII letter"
 
     def only(allowed: str, part: str):
         return "".join(ch for ch in part if ch.lower() in allowed)
