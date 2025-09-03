@@ -10,7 +10,6 @@ from typing import cast
 from uuid import UUID
 
 import structlog
-from fastramqpi.ra_utils.load_settings import load_setting
 from ldap3 import NO_ATTRIBUTES
 from ldap3 import SUBTREE
 from ldap3 import Connection
@@ -410,49 +409,6 @@ async def generate_username(
 
 
 class UserNameGen:
-    _setting_prefix = "integrations.ad_writer.user_names"
-
-    @classmethod
-    def get_implementation(cls) -> "UserNameGen":
-        """Returns an implementation of `UserNameGen`.
-
-        If you want to load occupied usernames from AD or elsewhere, you can
-        call `load_occupied_names` on the instance returned by this method.
-
-        By default, no occupied names are loaded on the instance returned by
-        this method. This can be used in the cases where we want to spare the
-        overhead of retrieving all AD usernames, for instance.
-        """
-        implementation_class = UserNameGenMethod2  # this is the default
-
-        get_class_name = load_setting(f"{cls._setting_prefix}.class")
-
-        try:
-            name = get_class_name()
-            implementation_class = cls._lookup_class_by_name(name)
-        except (ValueError, FileNotFoundError):
-            # ValueError: "not in settings file and no default"
-            # FileNotFoundError: could not find "settings.json"
-            logger.warning(
-                "could not read settings, defaulting to %r",
-                implementation_class,
-            )
-        except NameError:
-            logger.warning(
-                "could not find class %r, defaulting to %r",
-                name,
-                implementation_class,
-            )
-
-        instance = implementation_class()
-        return instance
-
-    @classmethod
-    def _lookup_class_by_name(cls, name):
-        if name and name in globals():
-            return globals()[name]
-        raise NameError(f"could not find class {name}")
-
     def __init__(self):
         self.occupied_names = set()
         self._loaded_occupied_name_sets = []

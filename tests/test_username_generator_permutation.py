@@ -1,75 +1,24 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import unittest
-from unittest import mock
 
 from hypothesis import given
 from hypothesis import strategies as st
 from parameterized import parameterized
 
 from ..user_names import UserNameGen
-from ..user_names import UserNameGenMethod2
 from ..user_names import UserNameGenPermutation
-from .mocks import MockADParameterReader
 
 
 class TestUserNameGen(unittest.TestCase):
-    _load_setting_path = "integrations.ad_integration.user_names.load_setting"
-
-    @parameterized.expand(
-        [
-            ("UserNameGenMethod2", UserNameGenMethod2),
-            ("UserNameGenUnknown", UserNameGenMethod2),
-            ("UserNameGenPermutation", UserNameGenPermutation),
-        ]
-    )
-    def test_override_implementation(self, name, expected_class):
-        """Test that `get_implementation` returns the expected implementation
-        configured by setting 'integrations.ad_writer.user_names.class'.
-        """
-        with mock.patch(self._load_setting_path, return_value=lambda: name):
-            impl = UserNameGen.get_implementation()
-            self.assertIsInstance(impl, expected_class)
-            self.assertEqual(len(impl._loaded_occupied_name_sets), 0)
-
-    def test_default_if_no_settings(self):
-        """Test that `get_implementation` returns the default implementation
-        if 'settings.json' could not be read.
-        """
-
-        def raise_filenotfound():
-            raise FileNotFoundError()
-
-        with mock.patch(self._load_setting_path, return_value=raise_filenotfound):
-            impl = UserNameGen.get_implementation()
-            self.assertIsInstance(impl, UserNameGenMethod2)
-            self.assertEqual(len(impl._loaded_occupied_name_sets), 0)
-
     def test_is_username_occupied_is_case_insensitive(self):
-        impl = self._get_instance("UserNameSet")
+        impl = self._get_instance()
         username = list(impl.occupied_names)[0]
         self.assertEqual(username, username.lower())
         self.assertTrue(impl.is_username_occupied(username.upper()))
 
-    def _get_instance(self, usernameset_class_name: str) -> "UserNameGen":
-        cls_names = [usernameset_class_name]
-        settings = {
-            f"{UserNameGen._setting_prefix}.extra_occupied_name_classes": cls_names
-        }
-        with self._patch_settings(settings):
-            # Use mock `ADParameterReader` in `UserNameSetInAD`
-            with mock.patch(
-                "integrations.ad_integration.user_names.ADParameterReader",
-                new=MockADParameterReader,
-            ):
-                impl = UserNameGen.get_implementation()
-                return impl
-
-    def _patch_settings(self, settings: dict):
-        return mock.patch(
-            self._load_setting_path,
-            new=lambda name, default=None: lambda: settings.get(name, default),
-        )
+    def _get_instance(self) -> "UserNameGen":
+        return UserNameGenPermutation()
 
 
 class TestUserNameGenPermutation(unittest.TestCase):
