@@ -29,7 +29,6 @@ from ..models import Employee
 from ..types import EmployeeUUID
 from ..usernames import generate_person_name
 from ..utils import remove_vowels
-from .ad_exceptions import ImproperlyConfigured
 
 NameType = list[str]
 
@@ -464,30 +463,6 @@ class UserNameGen:
 
     def create_username(self, name: NameType, dry_run=False) -> str:
         raise NotImplementedError("must be implemented by subclass")
-
-    def load_occupied_names(self):
-        # Always load AD usernames when this method is called
-        self.add_occupied_names(UserNameSetInAD())
-
-        # Load any extra username sets specified in settings
-        setting_name = f"{self._setting_prefix}.extra_occupied_name_classes"
-        get_usernameset_class_names = load_setting(setting_name, default=[])
-        try:
-            usernameset_class_names = get_usernameset_class_names()
-        except FileNotFoundError:  # could not find "settings.json"
-            logger.info("could not read settings, not adding extra username sets")
-        else:
-            for name in usernameset_class_names:
-                try:
-                    cls = self._lookup_class_by_name(name)
-                except NameError:
-                    raise ImproperlyConfigured(
-                        f"{setting_name!r} refers to unknown class {name!r}"
-                    )
-                else:
-                    username_set = cls()
-                    self.add_occupied_names(username_set)
-                    logger.debug("added %r to set of occupied names", username_set)
 
     def is_username_occupied(self, username):
         return username.lower() in set(map(str.lower, self.occupied_names))

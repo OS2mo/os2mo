@@ -7,12 +7,9 @@ from hypothesis import given
 from hypothesis import strategies as st
 from parameterized import parameterized
 
-from ..ad_exceptions import ImproperlyConfigured
 from ..user_names import UserNameGen
 from ..user_names import UserNameGenMethod2
 from ..user_names import UserNameGenPermutation
-from ..user_names import UserNameSet
-from ..user_names import UserNameSetInAD
 from .mocks import MockADParameterReader
 
 
@@ -48,37 +45,6 @@ class TestUserNameGen(unittest.TestCase):
             self.assertIsInstance(impl, UserNameGenMethod2)
             self.assertEqual(len(impl._loaded_occupied_name_sets), 0)
 
-    def test_load_occupied_names(self):
-        """Test that we can configure `UserNameGen` to load one or more
-        `UserNameSet` classes and add their individual sets of occupied names.
-        """
-        # Get `UserNameGen` implementation which loads occupied usernames from
-        # `UserNameSet` (= an empty implementation.)
-        impl = self._get_instance("UserNameSet")
-
-        # Assert that we loaded two username sets (from AD and from the
-        # `UserNameSet` specified in settings.)
-        self.assertEqual(len(impl._loaded_occupied_name_sets), 2)
-
-        # Assert that the first username set is the AD username set.
-        self.assertIsInstance(impl._loaded_occupied_name_sets[0], UserNameSetInAD)
-
-        # Assert that the second username set is the one we specified
-        # via settings, and is an empty set.
-        self.assertIsInstance(impl._loaded_occupied_name_sets[1], UserNameSet)
-        self.assertSetEqual(set(impl._loaded_occupied_name_sets[1]), set())
-
-        # Assert that the total set of occupied usernames is equal to
-        # the usernames "found" by our mock `ADParameterReader`.
-        self.assertSetEqual(
-            impl.occupied_names,
-            set(impl._loaded_occupied_name_sets[0]),
-        )
-
-    def test_load_occupied_names_invalid_name_raises(self):
-        with self.assertRaises(ImproperlyConfigured):
-            self._get_instance("InvalidUserNameSetName")
-
     def test_is_username_occupied_is_case_insensitive(self):
         impl = self._get_instance("UserNameSet")
         username = list(impl.occupied_names)[0]
@@ -97,7 +63,6 @@ class TestUserNameGen(unittest.TestCase):
                 new=MockADParameterReader,
             ):
                 impl = UserNameGen.get_implementation()
-                impl.load_occupied_names()
                 return impl
 
     def _patch_settings(self, settings: dict):
