@@ -410,9 +410,6 @@ class UserNameGenPermutation:
     def __init__(self):
         self.occupied_names = set()
         self._loaded_occupied_name_sets = []
-        self.length = 3
-        self.consonants = "".join(set(string.ascii_lowercase) - set("aeiouy"))
-        self._max_iterations = 1000
 
     def add_occupied_names(self, occupied_names: set) -> None:
         self.occupied_names.update(set(occupied_names))
@@ -421,7 +418,7 @@ class UserNameGenPermutation:
     def is_username_occupied(self, username):
         return username.lower() in set(map(str.lower, self.occupied_names))
 
-    def create_username(self, name: list[str], dry_run: bool = False) -> str:
+    def create_username(self, name: list[str]) -> str:
         suffix = 1
         while True:
             letters = self._extract_letters(name)
@@ -437,6 +434,10 @@ class UserNameGenPermutation:
                 suffix += 1
 
     def _extract_letters(self, name: list[str]):
+        length = 3
+        consonants = "".join(set(string.ascii_lowercase) - set("aeiouy"))
+        max_iterations = 1000
+
         # Convert ["Firstname", "Last Name"] -> ["Firstname", "Last", "Name"]
         # and ["First-Name", "Last-Name"] -> ["First", "Name", "Last", "Name"]
         name = flatten(map(partial(re.split, r"[\-\s+]"), name))  # type: ignore
@@ -463,10 +464,10 @@ class UserNameGenPermutation:
         offset = 0  # = first letter
 
         iterations = 0
-        while len(result) < self.length:
+        while len(result) < length:
             part = name[p]
             try:
-                result.append(only(self.consonants, part)[offset])
+                result.append(only(consonants, part)[offset])
             except IndexError:
                 # Check if there are still more name parts to use
                 if p < len(name) - 1:
@@ -480,7 +481,7 @@ class UserNameGenPermutation:
                 offset += 1
 
             iterations += 1
-            if iterations > self._max_iterations:
+            if iterations > max_iterations:
                 raise ValueError(f"cannot create username for input {name!r}")
 
         return result
