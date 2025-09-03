@@ -409,7 +409,6 @@ async def generate_username(
 
 def _extract_letters(name: list[str]) -> list[str]:
     length = 3
-    consonants = "".join(set(string.ascii_lowercase) - set("aeiouy"))
     max_iterations = 1000
 
     # Convert ["Firstname", "Last Name"] -> ["Firstname", "Last", "Name"]
@@ -429,25 +428,29 @@ def _extract_letters(name: list[str]) -> list[str]:
         first_ascii_letter is not None
     ), "first name part must contain at least one ASCII letter"
 
-    def only(allowed: str, part: str) -> str:
-        return "".join(ch for ch in part if ch.lower() in allowed)
-
     # Take first letter of first name part (regardless of whether it is a vowel or
     # a consonant.)
     result = [first_ascii_letter]
 
+    consonants = ascii_lowercase_set - set("aeiouy")
+
+    def strip_vowels(part: str) -> str:
+        return "".join(ch for ch in part if ch.lower() in consonants)
+
+    consonant_name = [strip_vowels(part) for part in name]
+
     # Continue at first letter of the second name part (first part if only one part)
-    p = min(1, len(name) - 1)  # second name part (or first if only one part)
+    p = min(1, len(consonant_name) - 1)  # second name part (or first if only one part)
     offset = 0  # = first letter
 
     iterations = 0
     while len(result) < length:
-        part = name[p]
+        part = consonant_name[p]
         try:
-            result.append(only(consonants, part)[offset])
+            result.append(part[offset])
         except IndexError:
             # Check if there are still more name parts to use
-            if p < len(name) - 1:
+            if p < len(consonant_name) - 1:
                 # If yes, use next name part, starting at first letter
                 p += 1
                 offset = 0
