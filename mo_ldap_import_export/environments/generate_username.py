@@ -438,26 +438,26 @@ def _extract_letters(name: list[str]) -> list[str]:
             raise ValueError(f"cannot create username for input {name!r}")
         return [first_ascii_letter] + list(first_name[:2])
 
-    # Take first letter of first name part (regardless of whether it is a vowel or
-    # a consonant.)
-    result = [first_ascii_letter]
+    def consonant_stream(name: list[str]) -> Iterator[str]:
+        first, *rest = name
 
-    length = 3
-    for _ in range(2):
-        for part in consonant_name[1:]:
+        for part in rest:
             for letter in part:
-                result.append(letter)
-                if len(result) >= length:
-                    return result
+                yield letter
 
-        part = consonant_name[0]
-        offset = len(consonant_name[-1])
-        for letter in part[offset:]:
-            result.append(letter)
-            if len(result) >= length:
-                return result
+        offset = len(rest[-1])
+        for letter in first[offset:]:
+            yield letter
 
-    raise ValueError(f"cannot create username for input {name!r}")
+    all_consonants = list(consonant_stream(consonant_name))
+    # No consonants mean we have no chance at constructing the username
+    if len(all_consonants) == 0:
+        raise ValueError(f"cannot create username for input {name!r}")
+
+    if len(all_consonants) == 1:
+        return list(first_ascii_letter + all_consonants[0] + all_consonants[0])
+
+    return list(first_ascii_letter + all_consonants[0] + all_consonants[1])
 
 
 class UserNameGenPermutation:
