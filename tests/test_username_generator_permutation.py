@@ -4,9 +4,9 @@ import unittest
 
 from hypothesis import given
 from hypothesis import strategies as st
-from parameterized import parameterized
+from more_itertools import one
 
-from ..user_names import UserNameGenPermutation
+from mo_ldap_import_export.environments.generate_username import UserNameGenPermutation
 
 
 class TestUserNameGenPermutation(unittest.TestCase):
@@ -15,7 +15,10 @@ class TestUserNameGenPermutation(unittest.TestCase):
         self.instance = UserNameGenPermutation()
 
     def test_is_username_occupied_is_case_insensitive(self):
-        username = list(self.instance.occupied_names)[0]
+        assert self.instance.occupied_names == set()
+        self.instance.add_occupied_names({"hans"})
+
+        username = one(self.instance.occupied_names)
         self.assertEqual(username, username.lower())
         self.assertTrue(self.instance.is_username_occupied(username.upper()))
 
@@ -49,8 +52,8 @@ class TestUserNameGenPermutation(unittest.TestCase):
             username = self.instance.create_username(name)
             self.assertEqual(username, expected_username)
 
-    @parameterized.expand(
-        [
+    def test_by_example(self):
+        cases = [
             ("Abel Spendabel", "asp1"),  # First name starts with a vowel
             ("Erik Ejegod", "ejg1"),  # Both first name and last name start with a vowel
             ("Erik Episk Ejegod", "eps1"),  # All parts start with a vowel
@@ -62,11 +65,11 @@ class TestUserNameGenPermutation(unittest.TestCase):
             ("Ivan Aaaa", "ivn1"),  # Last name contains *only* vocals
             ("Ab Aaa", "abb1"),  # Only *one* consonant across *all* name parts
         ]
-    )
-    def test_by_example(self, name, expected_username):
-        name = name.split(maxsplit=1)
-        actual_username = self.instance.create_username(name)
-        self.assertEqual(actual_username, expected_username)
+        for name, expected_username in cases:
+            with self.subTest((name, expected_username)):
+                name = name.split(maxsplit=1)
+                actual_username = self.instance.create_username(name)
+                self.assertEqual(actual_username, expected_username)
 
     def test_check_is_case_insensitive(self):
         name = ["Fornavn", "Efternavn"]
