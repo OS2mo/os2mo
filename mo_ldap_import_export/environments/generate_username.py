@@ -410,6 +410,8 @@ async def generate_username(
 def _extract_letters(name: list[str]) -> list[str]:
     # Convert ["Firstname", "Last Name"] -> ["Firstname", "Last", "Name"]
     # and ["First-Name", "Last-Name"] -> ["First", "Name", "Last", "Name"]
+    # NOTE: This regex is likely wrong as it splits on "-", "\s" and "+",
+    #       not on "-" and "\s+" as one might expect.
     name = flatten(map(partial(re.split, r"[\-\s+]"), name))  # type: ignore
 
     # Convert all name parts to lowercase
