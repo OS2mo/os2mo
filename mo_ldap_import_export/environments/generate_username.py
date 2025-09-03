@@ -407,7 +407,7 @@ async def generate_username(
     )
 
 
-def _extract_letters(name: list[str]):
+def _extract_letters(name: list[str]) -> list[str]:
     length = 3
     consonants = "".join(set(string.ascii_lowercase) - set("aeiouy"))
     max_iterations = 1000
@@ -425,7 +425,7 @@ def _extract_letters(name: list[str]):
     has_ascii = any(c in ascii_lowercase_set for c in first(name))
     assert has_ascii, "first name part must contain at least one ASCII letter"
 
-    def only(allowed: str, part: str):
+    def only(allowed: str, part: str) -> str:
         return "".join(ch for ch in part if ch.lower() in allowed)
 
     result = []
