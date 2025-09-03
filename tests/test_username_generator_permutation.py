@@ -19,8 +19,8 @@ class TestUserNameGenPermutation(unittest.TestCase):
         self.instance.add_occupied_names({"hans"})
 
         username = one(self.instance.occupied_names)
-        self.assertEqual(username, username.lower())
-        self.assertTrue(self.instance.is_username_occupied(username.upper()))
+        assert username == username.lower()
+        assert self.instance.is_username_occupied(username.upper())
 
     @given(
         st.lists(
@@ -43,14 +43,14 @@ class TestUserNameGenPermutation(unittest.TestCase):
         name = ["B", "C", "D"]
         for expected_suffix in range(1, 100):
             username = self.instance.create_username(name)
-            self.assertEqual(username, "bcd%d" % expected_suffix)
+            assert username == "bcd%d" % expected_suffix
 
     def test_skips_names_already_taken(self):
         name = ["First Name", "Last-Name"]
         self.instance.add_occupied_names({"fnm1", "fnm4"})
         for expected_username in ("fnm2", "fnm3", "fnm5"):
             username = self.instance.create_username(name)
-            self.assertEqual(username, expected_username)
+            assert username == expected_username
 
     def test_by_example(self):
         cases = [
@@ -69,7 +69,7 @@ class TestUserNameGenPermutation(unittest.TestCase):
             with self.subTest((name, expected_username)):
                 name = name.split(maxsplit=1)
                 actual_username = self.instance.create_username(name)
-                self.assertEqual(actual_username, expected_username)
+                assert actual_username == expected_username
 
     def test_check_is_case_insensitive(self):
         name = ["Fornavn", "Efternavn"]
@@ -80,7 +80,7 @@ class TestUserNameGenPermutation(unittest.TestCase):
         # Generate second username from same name
         second_username = self.instance.create_username(name)
         # Assert new username is different, even when case is ignored
-        self.assertNotEqual(first_username.lower(), second_username.lower())
+        assert first_username.lower() != second_username.lower()
 
     def test_max_iterations(self):
         with self.assertRaises(ValueError):
