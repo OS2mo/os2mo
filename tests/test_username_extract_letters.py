@@ -12,7 +12,7 @@ from mo_ldap_import_export.environments.generate_username import _extract_letter
 
 def test_extract_letters_empty_list_error() -> None:
     """Test _extract_letters with an empty list which should raise IndexError."""
-    with pytest.raises(IndexError):
+    with pytest.raises(ValueError):
         _extract_letters([])
 
 

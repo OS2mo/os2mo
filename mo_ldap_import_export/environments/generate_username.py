@@ -13,6 +13,7 @@ import structlog
 from ldap3 import NO_ATTRIBUTES
 from ldap3 import SUBTREE
 from ldap3 import Connection
+from more_itertools import first
 from more_itertools import flatten
 from more_itertools import ilen
 
@@ -420,7 +421,8 @@ def _extract_letters(name: list[str]):
 
     # Check name parts
     ascii_lowercase_set = set(string.ascii_lowercase)
-    has_ascii = any(c in ascii_lowercase_set for c in name[0])
+    # We assume that name has atleast a given_name
+    has_ascii = any(c in ascii_lowercase_set for c in first(name))
     assert has_ascii, "first name part must contain at least one ASCII letter"
 
     def only(allowed: str, part: str):
