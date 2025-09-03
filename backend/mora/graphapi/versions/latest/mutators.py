@@ -1249,7 +1249,7 @@ class Mutation:
         ],
     )
     async def manager_update(self, input: ManagerUpdateInput) -> Response[Manager]:
-        return uuid2response(await update_manager(input.to_pydantic()), ManagerRead)
+        return uuid2response(await update_manager(input), ManagerRead)
 
     @strawberry.mutation(
         description="Terminates a manager relation.",
