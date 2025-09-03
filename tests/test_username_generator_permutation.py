@@ -8,9 +8,14 @@ from more_itertools import one
 from mo_ldap_import_export.environments.generate_username import UserNameGenPermutation
 
 
-def test_is_username_occupied_is_case_insensitive():
-    username_generator = UserNameGenPermutation()
+@pytest.fixture(scope="function")
+def username_generator() -> UserNameGenPermutation:
+    return UserNameGenPermutation()
 
+
+def test_is_username_occupied_is_case_insensitive(
+    username_generator: UserNameGenPermutation,
+) -> None:
     assert username_generator.occupied_names == set()
     username_generator.add_occupied_names({"hans"})
 
@@ -31,26 +36,21 @@ def test_is_username_occupied_is_case_insensitive():
         min_size=2,
     )
 )
-def test_valid_input(name):
-    username_generator = UserNameGenPermutation()
-
+def test_valid_input(name: list[str]) -> None:
     # If `name` has at least two items, each item being a string of at least
     # one consonant, we should be able to create a username.
+    username_generator = UserNameGenPermutation()
     username_generator.create_username(name)
 
 
-def test_suffix_increments():
-    username_generator = UserNameGenPermutation()
-
+def test_suffix_increments(username_generator: UserNameGenPermutation) -> None:
     name = ["B", "C", "D"]
     for expected_suffix in range(1, 100):
         username = username_generator.create_username(name)
         assert username == "bcd%d" % expected_suffix
 
 
-def test_skips_names_already_taken():
-    username_generator = UserNameGenPermutation()
-
+def test_skips_names_already_taken(username_generator: UserNameGenPermutation) -> None:
     name = ["First Name", "Last-Name"]
     username_generator.add_occupied_names({"fnm1", "fnm4"})
     for expected_username in ("fnm2", "fnm3", "fnm5"):
@@ -73,17 +73,15 @@ def test_skips_names_already_taken():
         ("Ab Aaa", "abb1"),  # Only *one* consonant across *all* name parts
     ],
 )
-def test_by_example(name: str, expected_username: str):
-    username_generator = UserNameGenPermutation()
-
+def test_by_example(
+    username_generator: UserNameGenPermutation, name: str, expected_username: str
+) -> None:
     name_parts = name.split(maxsplit=1)
     actual_username = username_generator.create_username(name_parts)
     assert actual_username == expected_username
 
 
-def test_check_is_case_insensitive():
-    username_generator = UserNameGenPermutation()
-
+def test_check_is_case_insensitive(username_generator: UserNameGenPermutation) -> None:
     name = ["Fornavn", "Efternavn"]
     # Generate username (no occupied names yet)
     first_username = username_generator.create_username(name)
@@ -95,8 +93,6 @@ def test_check_is_case_insensitive():
     assert first_username.lower() != second_username.lower()
 
 
-def test_max_iterations():
-    username_generator = UserNameGenPermutation()
-
+def test_max_iterations(username_generator: UserNameGenPermutation) -> None:
     with pytest.raises(ValueError):
         username_generator.create_username(["A"])
