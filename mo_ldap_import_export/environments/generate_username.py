@@ -446,9 +446,7 @@ def _extract_letters(name: list[str]) -> list[str]:
     iterations = 0
     while len(result) < length:
         part = consonant_name[p]
-        try:
-            result.append(part[offset])
-        except IndexError:
+        if offset >= len(part):
             # Check if there are still more name parts to use
             if p < len(consonant_name) - 1:
                 # If yes, use next name part, starting at first letter
@@ -458,6 +456,7 @@ def _extract_letters(name: list[str]) -> list[str]:
                 # If no, go back to first name
                 p = 0
         else:
+            result.append(part[offset])
             offset += 1
 
         iterations += 1
