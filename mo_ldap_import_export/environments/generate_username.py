@@ -438,18 +438,19 @@ def _extract_letters(name: list[str]) -> list[str]:
             raise ValueError(f"cannot create username for input {name!r}")
         return [first_ascii_letter] + list(first_name[:2])
 
-    def consonant_stream(name: list[str]) -> Iterator[str]:
-        first, *rest = name
+    start, *rest = consonant_name
 
-        for part in rest:
-            for letter in part:
-                yield letter
+    # Convert ["AB", "CD", "EF"] to ["A", "B", "C", "D", "E", "F"]
+    rest_consonants = list("".join(rest))
 
-        offset = len(rest[-1])
-        for letter in first[offset:]:
-            yield letter
+    # NOTE: This looks really weird, I do not understand why we use the len of the last
+    #       entry in rest as the starting offset into first, but that is what the code
+    #       always did, and I merely refactored it.
+    offset = len(rest[-1])
+    first_consonants = list(start[offset:])
 
-    all_consonants = list(consonant_stream(consonant_name))
+    all_consonants = rest_consonants + first_consonants
+
     # No consonants mean we have no chance at constructing the username
     if len(all_consonants) == 0:
         raise ValueError(f"cannot create username for input {name!r}")
