@@ -36,6 +36,9 @@ def upgrade() -> None:
     op.execute(
         f"alter database {database_name} set search_path to actual_state, public"
     )
+    # The database's new search path only affects new connections, but we want
+    # the rest of this migration to use it too.
+    op.execute("set search_path to actual_state, public")
     op.execute(f"alter database {database_name} set datestyle to 'ISO, YMD'")
     op.execute(f"alter database {database_name} set intervalstyle to 'sql_standard'")
     # These steps are required by the LoRa test suite, which assumes that
