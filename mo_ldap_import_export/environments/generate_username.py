@@ -408,28 +408,20 @@ async def generate_username(
     )
 
 
-class UserNameGen:
+class UserNameGenPermutation:
     def __init__(self):
         self.occupied_names = set()
         self._loaded_occupied_name_sets = []
+        self.length = 3
+        self.consonants = "".join(set(string.ascii_lowercase) - set("aeiouy"))
+        self._max_iterations = 1000
 
     def add_occupied_names(self, occupied_names: set) -> None:
         self.occupied_names.update(set(occupied_names))
         self._loaded_occupied_name_sets.append(occupied_names)
 
-    def create_username(self, name: NameType, dry_run=False) -> str:
-        raise NotImplementedError("must be implemented by subclass")
-
     def is_username_occupied(self, username):
         return username.lower() in set(map(str.lower, self.occupied_names))
-
-
-class UserNameGenPermutation(UserNameGen):
-    def __init__(self):
-        super().__init__()
-        self.length = 3
-        self.consonants = "".join(set(string.ascii_lowercase) - set("aeiouy"))
-        self._max_iterations = 1000
 
     def create_username(self, name: NameType, dry_run: bool = False) -> str:
         suffix = 1

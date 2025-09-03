@@ -6,25 +6,18 @@ from hypothesis import given
 from hypothesis import strategies as st
 from parameterized import parameterized
 
-from ..user_names import UserNameGen
 from ..user_names import UserNameGenPermutation
-
-
-class TestUserNameGen(unittest.TestCase):
-    def test_is_username_occupied_is_case_insensitive(self):
-        impl = self._get_instance()
-        username = list(impl.occupied_names)[0]
-        self.assertEqual(username, username.lower())
-        self.assertTrue(impl.is_username_occupied(username.upper()))
-
-    def _get_instance(self) -> "UserNameGen":
-        return UserNameGenPermutation()
 
 
 class TestUserNameGenPermutation(unittest.TestCase):
     def setUp(self):
         super().setUp()
         self.instance = UserNameGenPermutation()
+
+    def test_is_username_occupied_is_case_insensitive(self):
+        username = list(self.instance.occupied_names)[0]
+        self.assertEqual(username, username.lower())
+        self.assertTrue(self.instance.is_username_occupied(username.upper()))
 
     @given(
         st.lists(
