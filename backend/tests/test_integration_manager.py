@@ -12,6 +12,7 @@ from mora import util as mora_util
 from more_itertools import one
 
 from tests.cases import assert_registrations_equal
+from tests.conftest import GraphAPIPost
 
 mock_uuid = "1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"
 userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
@@ -936,3 +937,29 @@ def test_read_inherit_manager_none_found_all_the_way_up(
     )
     assert response.status_code == 200
     assert response.json() == []
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_manager_type_filter(graphapi_post: GraphAPIPost) -> None:
+    manager_type = "32547559-cfc1-4d97-94c6-70b192eff825"
+    GET_MANAGER = """
+    query GetManagers($manager_type: UUID!) {
+      managers(filter: { manager_type: { uuids: [$manager_type] } }) {
+        objects {
+          current {
+            manager_type {
+              uuid
+            }
+          }
+        }
+      }
+    }
+    """
+
+    # Find only managers with the correct manager_type
+    response = graphapi_post(GET_MANAGER, variables={"manager_type": manager_type})
+    assert response.errors is None
+    managers = response.data["managers"]["objects"]
+    assert len(managers) > 0
+    assert all(m["current"]["manager_type"]["uuid"] == manager_type for m in managers)
