@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+.aider*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
