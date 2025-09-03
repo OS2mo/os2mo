@@ -55,9 +55,10 @@ variables:
   - backend/**/*
   - docker/**/*
   - Dockerfile
-  - pyproject.toml
-  - poetry.lock
+  - gitlab-ci-templates/**/*
   - .gitlab-ci.yml
+  - poetry.lock
+  - pyproject.toml
 
 
 include:
