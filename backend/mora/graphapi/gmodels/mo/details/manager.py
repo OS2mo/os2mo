@@ -20,6 +20,9 @@ class ManagerRead(MOBase):
     employee_uuid: UUID | None = Field(
         description="UUID of the employee related to the manager."
     )
+    engagement_uuid: UUID | None = Field(
+        description="UUID of the engagement that provides this manager-role."
+    )
     manager_type_uuid: UUID | None = Field(description="UUID of the manager type.")
     manager_level_uuid: UUID | None = Field(description="UUID of the manager level.")
     responsibility_uuids: list[UUID] | None = Field(

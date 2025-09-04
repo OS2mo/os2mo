@@ -963,3 +963,105 @@ def test_manager_type_filter(graphapi_post: GraphAPIPost) -> None:
     managers = response.data["managers"]["objects"]
     assert len(managers) > 0
     assert all(m["current"]["manager_type"]["uuid"] == manager_type for m in managers)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_create_manager_with_engagement(graphapi_post: GraphAPIPost) -> None:
+    # Find two engagements to use
+    FIND_ENGAGEMENT = """
+    query FindEngagementUUID {
+      engagements(limit: "2") {
+        objects {
+          uuid
+        }
+      }
+    }
+    """
+    response = graphapi_post(
+        FIND_ENGAGEMENT,
+    )
+    assert response.errors is None
+    engagement_1, engagement_2 = response.data["engagements"]["objects"]
+    engagement_1_uuid = engagement_1["uuid"]
+    engagement_2_uuid = engagement_2["uuid"]
+
+    # Create a manager connected to the first engagement
+
+    CREATE_MANAGER = """
+    mutation CreateManager($input: ManagerCreateInput!) {
+      manager_create(input: $input) {
+        uuid
+        current {
+          engagement {
+            uuid
+          }
+        }
+      }
+    }
+    """
+
+    response = graphapi_post(
+        CREATE_MANAGER,
+        variables={
+            "input": {
+                "person": "6ee24785-ee9a-4502-81c2-7697009c9053",
+                "responsibility": [],
+                "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                "manager_type": "62ec821f-4179-4758-bfdf-134529d186e9",
+                "manager_level": "ca76a441-6226-404f-88a9-31e02e420e52",
+                "engagement": engagement_1_uuid,
+                "validity": {"from": "2020-01-01"},
+            }
+        },
+    )
+    # Assert that the manager was created with the correct engagement
+    assert response.errors is None
+    assert (
+        response.data["manager_create"]["current"]["engagement"]["uuid"]
+        == engagement_1_uuid
+    )
+
+    # Update the manager with the second engagement
+    manager_uuid = response.data["manager_create"]["uuid"]
+    UPDATE_MANAGER = """
+    mutation UpdateManager($input: ManagerUpdateInput!) {
+      manager_update(input: $input) {
+        uuid
+        current {
+          engagement {
+            uuid
+          }
+        }
+      }
+    }
+    """
+    response = graphapi_post(
+        UPDATE_MANAGER,
+        variables={
+            "input": {
+                "uuid": manager_uuid,
+                "engagement": engagement_2_uuid,
+                "validity": {"from": "2020-01-01"},
+            }
+        },
+    )
+    assert response.errors is None
+    assert (
+        response.data["manager_update"]["current"]["engagement"]["uuid"]
+        == engagement_2_uuid
+    )
+
+    # Update the manager to remove the engagement.
+    response = graphapi_post(
+        UPDATE_MANAGER,
+        variables={
+            "input": {
+                "uuid": manager_uuid,
+                "engagement": None,
+                "validity": {"from": "2020-01-01"},
+            }
+        },
+    )
+    assert response.errors is None
+    assert response.data["manager_update"]["current"]["engagement"] is None
