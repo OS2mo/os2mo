@@ -45,6 +45,8 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
 
         responsibilities = util.checked_get(req, mapping.RESPONSIBILITY, [])
 
+        engagement_uuid = util.get_mapping_uuid(req, mapping.ENGAGEMENT)
+
         opgaver = [
             {"objekttype": "lederansvar", "uuid": util.get_uuid(responsibility)}
             for responsibility in responsibilities
@@ -72,6 +74,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid],
             funktionstype=manager_type_uuid,
+            tilknyttedefunktioner=[engagement_uuid],
             opgaver=opgaver,
         )
 
@@ -203,6 +206,18 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                 },
             )
         )
+        if mapping.ENGAGEMENT in data:
+            engagement_uuid = util.get_mapping_uuid(data, mapping.ENGAGEMENT)
+            if engagement_uuid:
+                update_payload = {"uuid": engagement_uuid}
+            else:
+                update_payload = {"uuid": "", "urn": ""}
+            update_fields.append(
+                (
+                    mapping.ASSOCIATED_FUNCTION_FIELD,
+                    update_payload,
+                )
+            )
 
         payload = common.update_payload(
             new_from, new_to, update_fields, original, payload

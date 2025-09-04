@@ -3409,6 +3409,23 @@ class Manager:
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
+    engagement: LazyEngagement | None = strawberry.field(
+        resolver=to_arbitrary_only(
+            seed_resolver(
+                engagement_resolver,
+                {"uuids": lambda root: uuid2list(root.engagement_uuid)},
+            )
+        ),
+        description=dedent(
+            """\
+            The engagement that enables this managerrole.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("engagement"),
+        ],
+    )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=to_list(
