@@ -16,6 +16,7 @@ list of UUIDs exist:
 |-----------------------------|--------------------------------------|
 | AD2Mo Sync                  | ad21105c-baad-c0de-6164-326d6f73796e |
 | ADGUID Sync                 | ad5711c0-baad-c0de-0000-616467756964 |
+| APOS migration              | a1705000-baad-c0de-0000-000061706f73 |
 | Calculate Primary           | ca1c0000-baad-c0de-6361-6c637072696d |
 | Developer                   | de7e104e-baad-c0de-6465-76656c6f7065 |
 | DIPEX                       | d1fec000-baad-c0de-0000-004449504558 |
