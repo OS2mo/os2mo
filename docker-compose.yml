@@ -109,7 +109,7 @@ services:
     image: magentaaps/os2mo-init:5
     environment:
       MO_URL: "http://mo:5000"
-      CLIENT_ID: "dipex"
+      CLIENT_ID: "apos"
       CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
       AUTH_SERVER: "http://keycloak:8080/auth"
       AUTH_REALM: "mo"
@@ -249,18 +249,18 @@ services:
     volumes:
       - keycloak-volume:/srv/
 
-  keycloak-dipex-builder:
+  keycloak-apos-builder:
     image: magentaaps/os2mo-keycloak-integration-builder:6
     environment:
       POSTGRES_CONNECTION_STRING: postgres://keycloak:keycloak@keycloak-db/keycloak?sslmode=disable
-      POSTGRES_SCHEMA_NAME: terraform_remote_state_dipex_client
+      POSTGRES_SCHEMA_NAME: terraform_remote_state_apos_client
 
       TF_VAR_url: "http://keycloak:8080"
       TF_VAR_admin_password: admin
 
-      TF_VAR_client_name: dipex
+      TF_VAR_client_name: apos
       TF_VAR_client_secret: "603f1c82-d012-4d04-9382-dbe659c533fb"
-      TF_VAR_client_uuid: "d1fec000-baad-c0de-0000-004449504558"
+      TF_VAR_client_uuid: "a1705000-baad-c0de-0000-000061706f73"
       TF_VAR_client_roles: '["admin", "service_api"]'
     depends_on:
       keycloak-realm-builder:
