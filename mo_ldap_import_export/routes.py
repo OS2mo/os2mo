@@ -755,7 +755,7 @@ def construct_router(settings: Settings) -> APIRouter:
                 )
 
             # Emit a refresh event
-            await publish_uuids(ldap_amqpsystem, [ldap_uuid])
+            await publish_uuids(graphql_client, ldap_amqpsystem, [ldap_uuid])
 
         return cleaned
 

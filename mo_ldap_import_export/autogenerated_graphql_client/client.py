@@ -11,8 +11,6 @@ from ._testing__employee_read import TestingEmployeeRead
 from ._testing__employee_read import TestingEmployeeReadEmployees
 from ._testing__engagement_read import TestingEngagementRead
 from ._testing__engagement_read import TestingEngagementReadEngagements
-from ._testing__event_namespaces import TestingEventNamespaces
-from ._testing__event_namespaces import TestingEventNamespacesEventNamespaces
 from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
 from ._testing__itsystem_read import TestingItsystemRead
@@ -27,6 +25,7 @@ from ._testing__person_update import TestingPersonUpdate
 from ._testing__person_update import TestingPersonUpdateEmployeeUpdate
 from ._testing__rolebinding_create import TestingRolebindingCreate
 from ._testing__rolebinding_create import TestingRolebindingCreateRolebindingCreate
+from .acknowledge_event import AcknowledgeEvent
 from .address_create import AddressCreate
 from .address_create import AddressCreateAddressCreate
 from .address_refresh import AddressRefresh
@@ -48,6 +47,8 @@ from .class_terminate import ClassTerminate
 from .class_terminate import ClassTerminateClassTerminate
 from .class_update import ClassUpdate
 from .class_update import ClassUpdateClassUpdate
+from .declare_event_listener import DeclareEventListener
+from .declare_event_listener import DeclareEventListenerEventListenerDeclare
 from .engagement_create import EngagementCreate
 from .engagement_create import EngagementCreateEngagementCreate
 from .engagement_refresh import EngagementRefresh
@@ -58,6 +59,10 @@ from .engagement_update import EngagementUpdate
 from .engagement_update import EngagementUpdateEngagementUpdate
 from .facet_refresh import FacetRefresh
 from .facet_refresh import FacetRefreshFacetRefresh
+from .fetch_event import FetchEvent
+from .fetch_event import FetchEventEventFetch
+from .get_event_namespaces import GetEventNamespaces
+from .get_event_namespaces import GetEventNamespacesEventNamespaces
 from .input_types import AddressCreateInput
 from .input_types import AddressFilter
 from .input_types import AddressTerminateInput
@@ -73,6 +78,7 @@ from .input_types import EngagementCreateInput
 from .input_types import EngagementFilter
 from .input_types import EngagementTerminateInput
 from .input_types import EngagementUpdateInput
+from .input_types import EventSendInput
 from .input_types import FacetFilter
 from .input_types import ITSystemCreateInput
 from .input_types import ITSystemFilter
@@ -82,7 +88,9 @@ from .input_types import ITUserCreateInput
 from .input_types import ITUserFilter
 from .input_types import ITUserTerminateInput
 from .input_types import ITUserUpdateInput
+from .input_types import ListenerCreateInput
 from .input_types import ManagerCreateInput
+from .input_types import NamespaceFilter
 from .input_types import OrganisationUnitCreateInput
 from .input_types import OrganisationUnitFilter
 from .input_types import OrganisationUnitTerminateInput
@@ -220,6 +228,7 @@ from .related_unit_refresh import RelatedUnitRefresh
 from .related_unit_refresh import RelatedUnitRefreshRelatedUnitRefresh
 from .rolebinding_refresh import RolebindingRefresh
 from .rolebinding_refresh import RolebindingRefreshRolebindingRefresh
+from .send_event import SendEvent
 from .set_job_title import SetJobTitle
 from .set_job_title import SetJobTitleEngagementUpdate
 from .who_am_i import WhoAmI
@@ -231,6 +240,92 @@ def gql(q: str) -> str:
 
 
 class GraphQLClient(AsyncBaseClient):
+    async def get_event_namespaces(
+        self, filter: NamespaceFilter | None | UnsetType = UNSET
+    ) -> GetEventNamespacesEventNamespaces:
+        query = gql(
+            """
+            query get_event_namespaces($filter: NamespaceFilter) {
+              event_namespaces(filter: $filter) {
+                objects {
+                  name
+                  owner
+                  public
+                  listeners {
+                    owner
+                    routing_key
+                    user_key
+                    uuid
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return GetEventNamespaces.parse_obj(data).event_namespaces
+
+    async def send_event(self, input: EventSendInput) -> bool:
+        query = gql(
+            """
+            mutation send_event($input: EventSendInput!) {
+              event_send(input: $input)
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return SendEvent.parse_obj(data).event_send
+
+    async def declare_event_listener(
+        self, input: ListenerCreateInput
+    ) -> DeclareEventListenerEventListenerDeclare:
+        query = gql(
+            """
+            mutation declare_event_listener($input: ListenerCreateInput!) {
+              event_listener_declare(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return DeclareEventListener.parse_obj(data).event_listener_declare
+
+    async def fetch_event(self, listener: UUID) -> FetchEventEventFetch | None:
+        query = gql(
+            """
+            query fetch_event($listener: UUID!) {
+              event_fetch(filter: {listener: $listener}) {
+                token
+                subject
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"listener": listener}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return FetchEvent.parse_obj(data).event_fetch
+
+    async def acknowledge_event(self, token: Any) -> bool:
+        query = gql(
+            """
+            mutation acknowledge_event($token: EventToken!) {
+              event_acknowledge(input: {token: $token})
+            }
+            """
+        )
+        variables: dict[str, object] = {"token": token}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return AcknowledgeEvent.parse_obj(data).event_acknowledge
+
     async def address_create(
         self, input: AddressCreateInput
     ) -> AddressCreateAddressCreate:
@@ -1945,31 +2040,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return OrgUnitEngagementsRefresh.parse_obj(data).engagement_refresh
-
-    async def _testing__event_namespaces(self) -> TestingEventNamespacesEventNamespaces:
-        query = gql(
-            """
-            query __testing__event_namespaces {
-              event_namespaces {
-                objects {
-                  name
-                  owner
-                  public
-                  listeners {
-                    owner
-                    routing_key
-                    user_key
-                    uuid
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingEventNamespaces.parse_obj(data).event_namespaces
 
     async def _testing__address_read(
         self, filter: AddressFilter | None | UnsetType = UNSET

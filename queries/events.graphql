@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+
+query get_event_namespaces($filter: NamespaceFilter) {
+  event_namespaces(filter: $filter) {
+    objects {
+      name
+      owner
+      public
+      listeners {
+        owner
+        routing_key
+        user_key
+        uuid
+      }
+    }
+  }
+}
+
+mutation send_event($input: EventSendInput!) {
+  event_send(input: $input)
+}
+
+mutation declare_event_listener($input: ListenerCreateInput!) {
+  event_listener_declare(input: $input) {
+    uuid
+  }
+}
+
+query fetch_event($listener: UUID!) {
+  event_fetch(filter: { listener: $listener }) {
+    token
+    subject
+  }
+}
+
+mutation acknowledge_event($token: EventToken!) {
+  event_acknowledge(input: { token: $token })
+}
