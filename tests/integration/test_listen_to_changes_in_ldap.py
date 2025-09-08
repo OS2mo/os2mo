@@ -101,7 +101,7 @@ async def test_event_generator_runs_with_listen(
     }
 )
 @pytest.mark.usefixtures("mo_org_unit")
-async def test_event_handler_runs_without_listen(
+async def test_event_handler_does_not_run_without_listen(
     context: Context,
     dn2uuid: DN2UUID,
     get_num_queued_messages: Callable[[], Awaitable[int]],
@@ -136,12 +136,10 @@ async def test_event_handler_runs_without_listen(
     assert await get_num_queued_messages() == 0
     await publish_uuids(graphql_client, ldap_amqpsystem, [person_uuid])
 
-    # Wait until AMQP has seen the message, and it has been processed
-    async for attempt in retrying():
-        with attempt:
-            assert await get_num_published_messages() > 0
-            assert await get_num_queued_messages() == 0
+    # Prove that no messages have been published, and none have been consumed
+    assert await get_num_published_messages() == 0
+    assert await get_num_queued_messages() == 0
 
-    # Prove that the person was created, even when configured not to listen
+    # Prove that no person was created
     result = await graphql_client.read_person_uuid()
-    assert len(result.objects) == 1
+    assert len(result.objects) == 0

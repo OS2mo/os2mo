@@ -173,7 +173,7 @@ def configure_ldap_amqpsystem(fastramqpi: FastRAMQPI, settings: Settings) -> AMQ
     logger.info("Initializing LDAP AMQP system")
     ldap_amqpsystem = AMQPSystem(
         settings=settings.ldap_amqp,
-        router=ldap_amqp_router,
+        router=Router(),
         dependencies=[
             Depends(rate_limit(10)),
             Depends(logger_bound_message_id),
