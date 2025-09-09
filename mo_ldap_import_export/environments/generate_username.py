@@ -475,9 +475,16 @@ def generate_username_permutation(settings: Settings, name: list[str]) -> str:
 
     for suffix in count(start=1):
         letters = _extract_letters(name)
-        new_username = "".join(letters) + str(suffix)
-        if is_username_occupied(new_username):
+        username = "".join(letters) + str(suffix)
+
+        username_logger = logger.bind(username=username)
+
+        if is_username_occupied(username):
+            username_logger.debug("Rejecting forbidden username")
             continue
-        return new_username
+
+        username_logger.info("Generated username based on name", name=name)
+        return username
+
     # This assert is needed for mypy to understand that this cannot be reached
     raise AssertionError()  # pragma: no cover
