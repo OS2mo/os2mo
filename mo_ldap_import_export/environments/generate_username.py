@@ -465,10 +465,16 @@ def _extract_letters(name: list[str]) -> list[str]:
     return list(first_ascii_letter + all_consonants[0] + all_consonants[1])
 
 
-async def generate_username_permutation(settings: Settings, employee: Employee) -> str:
+async def generate_username_permutation_func(
+    settings: Settings,
+    ldap_connection: Connection,
+    moapi: MOAPI,
+    employee: Employee,
+) -> str:
     assert employee.given_name is not None
     assert employee.surname is not None
     name = [employee.given_name, employee.surname]
+    employee_uuid = EmployeeUUID(employee.uuid)
 
     username_generator_settings = settings.conversion_mapping.username_generator
     forbidden_usernames = username_generator_settings.forbidden_usernames
@@ -487,8 +493,40 @@ async def generate_username_permutation(settings: Settings, employee: Employee) 
             username_logger.debug("Rejecting forbidden username")
             continue
 
+        if not await _ldap_allows_username(ldap_connection, settings, username):
+            username_logger.debug(
+                "Rejecting username candidate due to existing LDAP usage"
+            )
+            continue
+
+        if not await _mo_allows_username(
+            moapi, username_generator_settings, employee_uuid, username
+        ):
+            username_logger.debug(
+                "Rejecting username candidate due to disallowed MO usernames"
+            )
+            continue
+
         username_logger.info("Generated username based on name", name=name)
         return username
 
     # This assert is needed for mypy to understand that this cannot be reached
     raise AssertionError()  # pragma: no cover
+
+
+async def generate_username_permutation(
+    dataloader: DataLoader,
+    employee_uuid: UUID,
+) -> str:
+    employee = await dataloader.moapi.load_mo_employee(employee_uuid)
+    if employee is None:  # pragma: no cover
+        raise NoObjectsReturnedException(f"Unable to lookup employee: {employee_uuid}")
+    return cast(
+        str,
+        await generate_username_permutation_func(
+            dataloader.settings,
+            dataloader.ldapapi.connection,
+            dataloader.moapi,
+            employee,
+        ),
+    )
