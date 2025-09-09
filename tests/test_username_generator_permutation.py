@@ -1,27 +1,31 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import json
+from collections.abc import Callable
+
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
-from more_itertools import one
 
-from mo_ldap_import_export.environments.generate_username import UserNameGenPermutation
-
-
-@pytest.fixture(scope="function")
-def username_generator() -> UserNameGenPermutation:
-    return UserNameGenPermutation()
+from mo_ldap_import_export.config import Settings
+from mo_ldap_import_export.environments.generate_username import (
+    generate_username_permutation,
+)
 
 
-def test_is_username_occupied_is_case_insensitive(
-    username_generator: UserNameGenPermutation,
-) -> None:
-    assert username_generator.occupied_names == set()
-    username_generator.add_occupied_names({"hans"})
+@pytest.fixture
+def set_forbidden_usernames(
+    monkeypatch: pytest.MonkeyPatch,
+) -> Callable[[set[str]], None]:
+    def inner(usernames: set[str]) -> None:
+        monkeypatch.setenv(
+            "CONVERSION_MAPPING",
+            json.dumps(
+                {"username_generator": {"forbidden_usernames": list(usernames)}}
+            ),
+        )
 
-    username = one(username_generator.occupied_names)
-    assert username == username.lower()
-    assert username_generator.is_username_occupied(username.upper())
+    return inner
 
 
 @given(
@@ -36,26 +40,44 @@ def test_is_username_occupied_is_case_insensitive(
         min_size=2,
     )
 )
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
 def test_valid_input(name: list[str]) -> None:
+    settings = Settings()
     # If `name` has at least two items, each item being a string of at least
     # one consonant, we should be able to create a username.
-    username_generator = UserNameGenPermutation()
-    username_generator.create_username(name)
+    generate_username_permutation(settings, name)
 
 
-def test_suffix_increments(username_generator: UserNameGenPermutation) -> None:
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+def test_suffix_increments(set_forbidden_usernames: Callable[[set[str]], None]) -> None:
+    forbidden_usernames: set[str] = set()
+
     name = ["B", "C", "D"]
     for expected_suffix in range(1, 100):
-        username = username_generator.create_username(name)
+        set_forbidden_usernames(forbidden_usernames)
+        settings = Settings()
+
+        username = generate_username_permutation(settings, name)
         assert username == "bcd%d" % expected_suffix
 
+        forbidden_usernames.add(username)
 
-def test_skips_names_already_taken(username_generator: UserNameGenPermutation) -> None:
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+def test_skips_names_already_taken(
+    set_forbidden_usernames: Callable[[set[str]], None],
+) -> None:
+    forbidden_usernames = {"fnm1", "fnm4"}
+
     name = ["First Name", "Last-Name"]
-    username_generator.add_occupied_names({"fnm1", "fnm4"})
     for expected_username in ("fnm2", "fnm3", "fnm5"):
-        username = username_generator.create_username(name)
+        set_forbidden_usernames(forbidden_usernames)
+        settings = Settings()
+
+        username = generate_username_permutation(settings, name)
         assert username == expected_username
+
+        forbidden_usernames.add(username)
 
 
 @pytest.mark.parametrize(
@@ -73,26 +95,38 @@ def test_skips_names_already_taken(username_generator: UserNameGenPermutation) -
         ("Ab Aaa", "abb1"),  # Only *one* consonant across *all* name parts
     ],
 )
-def test_by_example(
-    username_generator: UserNameGenPermutation, name: str, expected_username: str
-) -> None:
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+def test_by_example(name: str, expected_username: str) -> None:
+    settings = Settings()
+
     name_parts = name.split(maxsplit=1)
-    actual_username = username_generator.create_username(name_parts)
+    actual_username = generate_username_permutation(settings, name_parts)
     assert actual_username == expected_username
 
 
-def test_check_is_case_insensitive(username_generator: UserNameGenPermutation) -> None:
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+def test_check_is_case_insensitive(
+    set_forbidden_usernames: Callable[[set[str]], None],
+) -> None:
     name = ["Fornavn", "Efternavn"]
     # Generate username (no occupied names yet)
-    first_username = username_generator.create_username(name)
+    settings = Settings()
+    first_username = generate_username_permutation(settings, name)
+
     # Add upper-case version of generated username to list of occupied names
-    username_generator.add_occupied_names({first_username.upper()})
+    set_forbidden_usernames({first_username.upper()})
+
     # Generate second username from same name
-    second_username = username_generator.create_username(name)
+    settings = Settings()
+    second_username = generate_username_permutation(settings, name)
+
     # Assert new username is different, even when case is ignored
     assert first_username.lower() != second_username.lower()
 
 
-def test_max_iterations(username_generator: UserNameGenPermutation) -> None:
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+def test_max_iterations() -> None:
+    settings = Settings()
+
     with pytest.raises(ValueError):
-        username_generator.create_username(["A"])
+        generate_username_permutation(settings, ["A"])

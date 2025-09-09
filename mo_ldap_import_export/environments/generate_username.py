@@ -489,3 +489,14 @@ class UserNameGenPermutation:
             return new_username
         # This assert is needed for mypy to understand that this cannot be reached
         raise AssertionError()  # pragma: no cover
+
+
+def generate_username_permutation(settings: Settings, name: list[str]) -> str:
+    username_generator_settings = settings.conversion_mapping.username_generator
+    forbidden_usernames = username_generator_settings.forbidden_usernames
+    logger.debug("Found forbidden usernames", count=len(forbidden_usernames))
+
+    username_generator = UserNameGenPermutation()
+    username_generator.add_occupied_names(set(forbidden_usernames))
+
+    return username_generator.create_username(name)
