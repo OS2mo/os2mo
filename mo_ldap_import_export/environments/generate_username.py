@@ -4,6 +4,7 @@ import re
 import string
 from collections.abc import Iterator
 from contextlib import suppress
+from itertools import count
 from itertools import groupby
 from typing import cast
 from uuid import UUID
@@ -477,16 +478,14 @@ class UserNameGenPermutation:
         return username.lower() in set(map(str.lower, self.occupied_names))
 
     def create_username(self, name: list[str]) -> str:
-        suffix = 1
-        while True:
+        for suffix in count(start=1):
             letters = _extract_letters(name)
             new_username = "".join(letters) + str(suffix)
-            if not self.is_username_occupied(new_username):
-                # An unused username was found, add it to the list of
-                # occupied names and return.
-                self.occupied_names.add(new_username)
-                return new_username
-            else:
-                # We are still looking for an available username.
-                # Bump the `suffix` variable.
-                suffix += 1
+            if self.is_username_occupied(new_username):
+                continue
+            # An unused username was found, add it to the list of
+            # occupied names and return.
+            self.occupied_names.add(new_username)
+            return new_username
+        # This assert is needed for mypy to understand that this cannot be reached
+        raise AssertionError()  # pragma: no cover
