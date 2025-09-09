@@ -465,38 +465,19 @@ def _extract_letters(name: list[str]) -> list[str]:
     return list(first_ascii_letter + all_consonants[0] + all_consonants[1])
 
 
-class UserNameGenPermutation:
-    def __init__(self):
-        self.occupied_names = set()
-        self._loaded_occupied_name_sets = []
-
-    def add_occupied_names(self, occupied_names: set) -> None:
-        self.occupied_names.update(set(occupied_names))
-        self._loaded_occupied_name_sets.append(occupied_names)
-
-    def is_username_occupied(self, username):
-        return username.lower() in set(map(str.lower, self.occupied_names))
-
-    def create_username(self, name: list[str]) -> str:
-        for suffix in count(start=1):
-            letters = _extract_letters(name)
-            new_username = "".join(letters) + str(suffix)
-            if self.is_username_occupied(new_username):
-                continue
-            # An unused username was found, add it to the list of
-            # occupied names and return.
-            self.occupied_names.add(new_username)
-            return new_username
-        # This assert is needed for mypy to understand that this cannot be reached
-        raise AssertionError()  # pragma: no cover
-
-
 def generate_username_permutation(settings: Settings, name: list[str]) -> str:
     username_generator_settings = settings.conversion_mapping.username_generator
     forbidden_usernames = username_generator_settings.forbidden_usernames
     logger.debug("Found forbidden usernames", count=len(forbidden_usernames))
 
-    username_generator = UserNameGenPermutation()
-    username_generator.add_occupied_names(set(forbidden_usernames))
+    def is_username_occupied(username):
+        return username.lower() in set(map(str.lower, forbidden_usernames))
 
-    return username_generator.create_username(name)
+    for suffix in count(start=1):
+        letters = _extract_letters(name)
+        new_username = "".join(letters) + str(suffix)
+        if is_username_occupied(new_username):
+            continue
+        return new_username
+    # This assert is needed for mypy to understand that this cannot be reached
+    raise AssertionError()  # pragma: no cover
