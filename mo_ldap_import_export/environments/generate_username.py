@@ -480,7 +480,7 @@ class UserNameGenPermutation:
         suffix = 1
         while True:
             letters = _extract_letters(name)
-            new_username = "%s%d" % ("".join(letters), suffix)
+            new_username = "".join(letters) + str(suffix)
             if not self.is_username_occupied(new_username):
                 # An unused username was found, add it to the list of
                 # occupied names and return.
