@@ -22,6 +22,7 @@ from fastapi import HTTPException
 from fastramqpi.events import Event
 from fastramqpi.events import GraphQLEvents
 from fastramqpi.events import Listener
+from fastramqpi.events import Namespace
 from fastramqpi.main import FastRAMQPI
 from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
@@ -426,7 +427,7 @@ async def lifespan(
             logger.info("Initializing LDAP event generator")
             sessionmaker = fastramqpi.get_context()["sessionmaker"]
             ldap_event_generator = LDAPEventGenerator(
-                sessionmaker, settings, ldap_amqpsystem, ldap_connection
+                sessionmaker, settings, graphql_client, ldap_amqpsystem, ldap_connection
             )
             fastramqpi.add_healthcheck(
                 name="LDAPEventGenerator", healthcheck=ldap_event_generator.healthcheck
@@ -551,6 +552,9 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
         graphql_client_cls=GraphQLClient,
         database_metadata=Base.metadata,
         graphql_events=GraphQLEvents(
+            declare_namespaces=[
+                Namespace(name="ldap"),
+            ],
             declare_listeners=[
                 # Configure dynamic listeners
                 Listener(
@@ -562,7 +566,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
                 for mapping in settings.conversion_mapping.mo_to_ldap
             ]
             if settings.listen_to_changes_in_mo
-            else []
+            else [],
         ),
     )
     fastramqpi.add_context(settings=settings)

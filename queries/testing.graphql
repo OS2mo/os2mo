@@ -1,22 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
-query __testing__event_namespaces {
-  event_namespaces {
-    objects {
-      name
-      owner
-      public
-      listeners {
-        owner
-        routing_key
-        user_key
-        uuid
-      }
-    }
-  }
-}
-
 query __testing__address_read($filter: AddressFilter) {
   addresses(filter: $filter) {
     objects {

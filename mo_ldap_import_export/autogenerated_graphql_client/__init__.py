@@ -44,12 +44,6 @@ from ._testing__engagement_read import (
 from ._testing__engagement_read import (
     TestingEngagementReadEngagementsObjectsValiditiesValidity,
 )
-from ._testing__event_namespaces import TestingEventNamespaces
-from ._testing__event_namespaces import TestingEventNamespacesEventNamespaces
-from ._testing__event_namespaces import TestingEventNamespacesEventNamespacesObjects
-from ._testing__event_namespaces import (
-    TestingEventNamespacesEventNamespacesObjectsListeners,
-)
 from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
 from ._testing__itsystem_read import TestingItsystemRead
@@ -79,6 +73,7 @@ from ._testing__person_update import TestingPersonUpdate
 from ._testing__person_update import TestingPersonUpdateEmployeeUpdate
 from ._testing__rolebinding_create import TestingRolebindingCreate
 from ._testing__rolebinding_create import TestingRolebindingCreateRolebindingCreate
+from .acknowledge_event import AcknowledgeEvent
 from .address_create import AddressCreate
 from .address_create import AddressCreateAddressCreate
 from .address_refresh import AddressRefresh
@@ -100,6 +95,8 @@ from .class_terminate import ClassTerminateClassTerminate
 from .class_update import ClassUpdate
 from .class_update import ClassUpdateClassUpdate
 from .client import GraphQLClient
+from .declare_event_listener import DeclareEventListener
+from .declare_event_listener import DeclareEventListenerEventListenerDeclare
 from .engagement_create import EngagementCreate
 from .engagement_create import EngagementCreateEngagementCreate
 from .engagement_refresh import EngagementRefresh
@@ -119,6 +116,12 @@ from .exceptions import GraphQLClientHttpError
 from .exceptions import GraphQlClientInvalidResponseError
 from .facet_refresh import FacetRefresh
 from .facet_refresh import FacetRefreshFacetRefresh
+from .fetch_event import FetchEvent
+from .fetch_event import FetchEventEventFetch
+from .get_event_namespaces import GetEventNamespaces
+from .get_event_namespaces import GetEventNamespacesEventNamespaces
+from .get_event_namespaces import GetEventNamespacesEventNamespacesObjects
+from .get_event_namespaces import GetEventNamespacesEventNamespacesObjectsListeners
 from .input_types import AccessLogFilter
 from .input_types import AddressCreateInput
 from .input_types import AddressFilter
@@ -516,6 +519,7 @@ from .related_unit_refresh import RelatedUnitRefresh
 from .related_unit_refresh import RelatedUnitRefreshRelatedUnitRefresh
 from .rolebinding_refresh import RolebindingRefresh
 from .rolebinding_refresh import RolebindingRefreshRolebindingRefresh
+from .send_event import SendEvent
 from .set_job_title import SetJobTitle
 from .set_job_title import SetJobTitleEngagementUpdate
 from .who_am_i import WhoAmI
@@ -525,6 +529,7 @@ from .who_am_i import WhoAmIMeActor
 __all__ = [
     "AccessLogFilter",
     "AccessLogModel",
+    "AcknowledgeEvent",
     "AddressCreate",
     "AddressCreateAddressCreate",
     "AddressCreateInput",
@@ -562,6 +567,8 @@ __all__ = [
     "ClassUpdateClassUpdate",
     "ClassUpdateInput",
     "ConfigurationFilter",
+    "DeclareEventListener",
+    "DeclareEventListenerEventListenerDeclare",
     "DescendantParentBoundOrganisationUnitFilter",
     "EmployeeCreateInput",
     "EmployeeFilter",
@@ -600,9 +607,15 @@ __all__ = [
     "FacetTerminateInput",
     "FacetUpdateInput",
     "FacetsBoundClassFilter",
+    "FetchEvent",
+    "FetchEventEventFetch",
     "FileFilter",
     "FileStore",
     "FullEventFilter",
+    "GetEventNamespaces",
+    "GetEventNamespacesEventNamespaces",
+    "GetEventNamespacesEventNamespacesObjects",
+    "GetEventNamespacesEventNamespacesObjectsListeners",
     "GraphQLClient",
     "GraphQLClientError",
     "GraphQLClientGraphQLError",
@@ -895,6 +908,7 @@ __all__ = [
     "RoleRegistrationFilter",
     "RolebindingRefresh",
     "RolebindingRefreshRolebindingRefresh",
+    "SendEvent",
     "SetJobTitle",
     "SetJobTitleEngagementUpdate",
     "TestingAddressRead",
@@ -927,10 +941,6 @@ __all__ = [
     "TestingEngagementReadEngagementsObjectsValiditiesPerson",
     "TestingEngagementReadEngagementsObjectsValiditiesPrimary",
     "TestingEngagementReadEngagementsObjectsValiditiesValidity",
-    "TestingEventNamespaces",
-    "TestingEventNamespacesEventNamespaces",
-    "TestingEventNamespacesEventNamespacesObjects",
-    "TestingEventNamespacesEventNamespacesObjectsListeners",
     "TestingItsystemCreate",
     "TestingItsystemCreateItsystemCreate",
     "TestingItsystemRead",

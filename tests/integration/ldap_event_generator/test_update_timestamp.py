@@ -59,13 +59,17 @@ async def test_update_timestamp_postgres(context: Context) -> None:
         last_run = await get_last_run(sessionmaker, search_base)
         assert last_run is None
 
-        await _generate_events(AsyncMock(), search_base, sessionmaker, seeded_poller)
+        await _generate_events(
+            AsyncMock(), AsyncMock(), search_base, sessionmaker, seeded_poller
+        )
         first_run = await get_last_run(sessionmaker, search_base)
         assert first_run is not None
         assert first_run > test_start
         assert await num_last_run_entries(sessionmaker) == count + 1
 
-        await _generate_events(AsyncMock(), search_base, sessionmaker, seeded_poller)
+        await _generate_events(
+            AsyncMock(), AsyncMock(), search_base, sessionmaker, seeded_poller
+        )
         last_run = await get_last_run(sessionmaker, search_base)
         assert last_run is not None
         assert last_run > first_run
@@ -95,13 +99,19 @@ async def test_update_timestamp_no_changes(context: Context) -> None:
     last_run = await get_last_run(sessionmaker, search_base)
     assert last_run is None
 
-    await _generate_events(AsyncMock(), search_base, sessionmaker, seeded_poller)
+    await _generate_events(
+        AsyncMock(), AsyncMock(), search_base, sessionmaker, seeded_poller
+    )
     first_run = await get_last_run(sessionmaker, search_base)
     assert first_run is not None
     assert first_run > test_start
 
     await _generate_events(
-        AsyncMock(), search_base, sessionmaker, seeded_poller_without_results
+        AsyncMock(),
+        AsyncMock(),
+        search_base,
+        sessionmaker,
+        seeded_poller_without_results,
     )
     last_run = await get_last_run(sessionmaker, search_base)
     assert last_run == first_run
