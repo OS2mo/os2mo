@@ -27,6 +27,14 @@ mutation declare_event_listener($input: ListenerCreateInput!) {
   }
 }
 
+query list_events($listener: UUID!) {
+  events(filter: { listeners: { uuids: [$listener] } }) {
+    objects {
+      subject
+    }
+  }
+}
+
 query fetch_event($listener: UUID!) {
   event_fetch(filter: { listener: $listener }) {
     token

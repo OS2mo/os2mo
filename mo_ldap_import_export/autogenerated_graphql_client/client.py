@@ -118,6 +118,8 @@ from .kle_refresh import KleRefresh
 from .kle_refresh import KleRefreshKleRefresh
 from .leave_refresh import LeaveRefresh
 from .leave_refresh import LeaveRefreshLeaveRefresh
+from .list_events import ListEvents
+from .list_events import ListEventsEvents
 from .manager_refresh import ManagerRefresh
 from .manager_refresh import ManagerRefreshManagerRefresh
 from .org_unit_create import OrgUnitCreate
@@ -296,6 +298,23 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return DeclareEventListener.parse_obj(data).event_listener_declare
+
+    async def list_events(self, listener: UUID) -> ListEventsEvents:
+        query = gql(
+            """
+            query list_events($listener: UUID!) {
+              events(filter: {listeners: {uuids: [$listener]}}) {
+                objects {
+                  subject
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"listener": listener}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ListEvents.parse_obj(data).events
 
     async def fetch_event(self, listener: UUID) -> FetchEventEventFetch | None:
         query = gql(
