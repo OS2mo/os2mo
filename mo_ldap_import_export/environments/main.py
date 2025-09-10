@@ -69,6 +69,7 @@ from ..utils import extract_ou_from_dn
 from ..utils import get_delete_flag
 from ..utils import mo_today
 from .generate_username import generate_username
+from .generate_username import generate_username_permutation
 
 logger = structlog.stdlib.get_logger()
 T = TypeVar("T")
@@ -886,6 +887,9 @@ def construct_globals_dict(
         "load_mo_org_unit_address": partial(load_org_unit_address, moapi),
         "create_mo_it_user": partial(create_mo_it_user, moapi),
         "generate_username": partial(generate_username, dataloader),
+        "generate_username_permutation": partial(
+            generate_username_permutation, dataloader
+        ),
         "generate_common_name": partial(generate_common_name, dataloader),
         "generate_dn": dataloader.make_mo_employee_dn,
         "get_person_uuid": partial(get_person_uuid, graphql_client),
