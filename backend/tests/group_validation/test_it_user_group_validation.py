@@ -23,8 +23,7 @@ class TestITUserGroupValidationBase:
             {
                 mapping.PERSON: _mo_uuid,
                 mapping.ITSYSTEM: _mo_uuid,
-                mapping.ENGAGEMENT: _mo_uuid | st.none(),
-                mapping.ENGAGEMENTS: st.lists(_mo_uuid) | st.none(),
+                mapping.ENGAGEMENTS: st.lists(_mo_uuid),
                 mapping.PRIMARY: _mo_uuid,
                 mapping.USER_KEY: st.text(),
             },
@@ -41,8 +40,7 @@ class TestITUserGroupValidationBase:
             assert isinstance(items[0]["uuid"], (str, type(None)))
             assert isinstance(items[0]["employee_uuid"], str)
             assert isinstance(items[0]["it_system_uuid"], str)
-            assert isinstance(items[0]["engagement_uuid"], (str, type(None)))
-            assert isinstance(items[0]["engagement_uuids"], (tuple, type(None)))
+            assert isinstance(items[0]["engagement_uuids"], (tuple))
             assert isinstance(items[0]["it_user_username"], str)
             assert isinstance(items[0]["is_primary"], bool)
 
@@ -56,7 +54,6 @@ class TestITUserUniqueGroupValidation:
         obj = {
             "employee_uuid": "uuid",
             "it_system_uuid": "uuid",
-            "engagement_uuid": "uuid",
             "engagement_uuids": ("uuid",),
             "it_user_username": "uuid",
         }

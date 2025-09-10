@@ -48,7 +48,6 @@ class _ITUserGroupValidation(GroupValidation):
                 "uuid": util.get_uuid(mo_object, required=False),
                 "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
                 "it_system_uuid": util.get_mapping_uuid(mo_object, mapping.ITSYSTEM),
-                "engagement_uuid": util.get_mapping_uuid(mo_object, mapping.ENGAGEMENT),
                 "engagement_uuids": tuple(
                     util.checked_get(mo_object, mapping.ENGAGEMENTS, [], required=False)
                 ),
@@ -72,7 +71,6 @@ class ITUserUniqueGroupValidation(_ITUserGroupValidation):
                 "employee_uuid",
                 "it_system_uuid",
                 "it_user_username",
-                "engagement_uuid",
                 "engagement_uuids",
             ],
             exceptions.ErrorCodes.V_DUPLICATED_IT_USER,
@@ -115,18 +113,15 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         engagement = util.checked_get(req, mapping.ENGAGEMENT, {}, required=False)
         engagements = util.checked_get(req, mapping.ENGAGEMENTS, [], required=False)
 
-        # "engagement" is deprecated - use the list "engagements"
-        # Ensure backwards compatibility
-        if engagement and not engagements:
-            engagements = [engagement]
-        engagement_uuids = tuple(eng["uuid"] for eng in engagements)
-
-        associated_functions = [
-            common.associated_orgfunc(
-                uuid=engagement_uuid, orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
+        # Ensure backwards compatibility with the deprecated single engagement
+        # uuid.
+        if engagement and engagements:  # pragma: no cover
+            exceptions.ErrorCodes.E_INVALID_INPUT(
+                "Attempted use of both 'engagement' and 'engagements'"
             )
-            for engagement_uuid in engagement_uuids
-        ]
+        if engagement:
+            engagements = [engagement]
+        engagement_uuids = [util.get_uuid(e) for e in engagements]
 
         org_uuid = (
             await org.get_configured_organisation(
@@ -164,8 +159,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     employee_uuid=employee_uuid,
                     it_system_uuid=systemid,
                     it_user_username=bvn,
-                    engagement_uuid=min(engagement_uuids) if engagement_uuids else None,
-                    engagement_uuids=engagement_uuids,
+                    engagement_uuids=tuple(engagement_uuids),
                 )
             ).validate()
 
@@ -198,7 +192,12 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
             tilknyttedeitsystemer=[systemid],
-            tilknyttedefunktioner=associated_functions,
+            tilknyttedefunktioner=[
+                common.associated_orgfunc(
+                    uuid=engagement_uuid, orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
+                )
+                for engagement_uuid in engagement_uuids
+            ],
             udvidelse_attributter={mapping.EXTENSION_1: external_id}
             if external_id is not None
             else None,
@@ -264,6 +263,12 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
+        if (
+            mapping.ENGAGEMENT in data and mapping.ENGAGEMENTS in data
+        ):  # pragma: no cover
+            exceptions.ErrorCodes.E_INVALID_INPUT(
+                "Attempted use of both 'engagement' and 'engagements'"
+            )
         if (engagements := data.get(mapping.ENGAGEMENTS)) is not None or data.get(
             mapping.ENGAGEMENT
         ):
@@ -374,7 +379,6 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     it_system_uuid=systemid,
                     it_user_username=bvn,
                     engagement_uuids=engagement_uuids,
-                    engagement_uuid=min(engagement_uuids) if engagement_uuids else None,
                 ),
             ).validate()
 

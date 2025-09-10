@@ -754,8 +754,10 @@ def test_create_ituser_multiple_engagements(graphapi_post: GraphAPIPost) -> None
             uuid
             user_key
             itusers {
-              uuid
-              user_key
+              current {
+                uuid
+                user_key
+              }
             }
           }
         }
@@ -864,10 +866,12 @@ def test_update_ituser_engagements(graphapi_post: GraphAPIPost) -> None:
         objects {
           current {
             uuid
-            engagements {
+            engagement_uuid
+            engagement_uuids
+            engagement {
                 uuid
             }
-            engagement {
+            engagements {
                 uuid
             }
           }
@@ -922,8 +926,10 @@ def test_update_ituser_engagements(graphapi_post: GraphAPIPost) -> None:
 
     assert result == {
         "uuid": ituser_uuid,
-        "engagements": engagements,
+        "engagement_uuid": engagement1_uuid,
+        "engagement_uuids": [engagement1_uuid, engagement2_uuid],
         "engagement": [engagement1],
+        "engagements": engagements,
     }
     # update the ituser again to remove the link to one engagement
     response = graphapi_post(
@@ -941,8 +947,10 @@ def test_update_ituser_engagements(graphapi_post: GraphAPIPost) -> None:
 
     assert result == {
         "uuid": ituser_uuid,
-        "engagements": [engagement2],
+        "engagement_uuid": engagement2_uuid,
+        "engagement_uuids": [engagement2_uuid],
         "engagement": [engagement2],
+        "engagements": [engagement2],
     }
     # update the ituser again to remove the link to the final engagement
     response = graphapi_post(
@@ -958,7 +966,13 @@ def test_update_ituser_engagements(graphapi_post: GraphAPIPost) -> None:
     assert response.errors is None
     result = one(response.data["itusers"]["objects"])["current"]
 
-    assert result == {"uuid": ituser_uuid, "engagements": [], "engagement": None}
+    assert result == {
+        "uuid": ituser_uuid,
+        "engagement_uuid": None,
+        "engagement_uuids": [],
+        "engagement": None,
+        "engagements": [],
+    }
 
 
 @pytest.mark.integration_test

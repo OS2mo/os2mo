@@ -64,7 +64,9 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         itsystem_uuid = mapping.SINGLE_ITSYSTEM_FIELD.get_uuid(effect)
         primary_uuid = mapping.PRIMARY_FIELD.get_uuid(effect)
-        # Emptied lists of engagements contains an empty uuid which we need to remove:
+        # New code should handle multiple engagement UUIDs. The engagement_uuid
+        # is a compatibility shim for old code.
+        engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
         engagement_uuids = list(mapping.ASSOCIATED_FUNCTION_FIELD.get_uuids(effect))
 
         extensions = mapping.ORG_FUNK_UDVIDELSER_FIELD(effect)
@@ -78,6 +80,7 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
                 **base_obj,
                 "employee_uuid": person_uuid,
                 "org_unit_uuid": org_unit_uuid,
+                "engagement_uuid": engagement_uuid,
                 "engagement_uuids": engagement_uuids,
                 "itsystem_uuid": itsystem_uuid,
                 "primary_uuid": primary_uuid,
@@ -108,11 +111,10 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
                 details=orgunit.UnitDetails.MINIMAL,
                 only_primary_uuid=only_primary_uuid,
             )
-        if engagement_uuids:
-            # For backwards compatibility we only return one engagement.
-            # Use graphql to fetch more than one engagement for an ituser.
+
+        if engagement_uuid:
             r[mapping.ENGAGEMENT] = await get_engagement(
-                get_connector(), uuid=min(engagement_uuids)
+                get_connector(), uuid=engagement_uuid
             )
 
         if primary_uuid:  # pragma: no cover
