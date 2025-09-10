@@ -29,8 +29,6 @@ from ..types import EmployeeUUID
 from ..usernames import generate_person_name
 from ..utils import remove_vowels
 
-NameType = list[str]
-
 logger = structlog.stdlib.get_logger()
 
 
@@ -423,7 +421,7 @@ class UserNameGenPermutation:
     def is_username_occupied(self, username):
         return username.lower() in set(map(str.lower, self.occupied_names))
 
-    def create_username(self, name: NameType, dry_run: bool = False) -> str:
+    def create_username(self, name: list[str], dry_run: bool = False) -> str:
         suffix = 1
         while True:
             letters = self._extract_letters(name)
@@ -438,7 +436,7 @@ class UserNameGenPermutation:
                 # Bump the `suffix` variable.
                 suffix += 1
 
-    def _extract_letters(self, name: NameType):
+    def _extract_letters(self, name: list[str]):
         # Convert ["Firstname", "Last Name"] -> ["Firstname", "Last", "Name"]
         # and ["First-Name", "Last-Name"] -> ["First", "Name", "Last", "Name"]
         name = flatten(map(partial(re.split, r"[\-\s+]"), name))  # type: ignore
