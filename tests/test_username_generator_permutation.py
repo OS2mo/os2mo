@@ -46,15 +46,17 @@ def name2employee(name: list[str]) -> Employee:
     )
 )
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
-def test_valid_input(name: list[str]) -> None:
+async def test_valid_input(name: list[str]) -> None:
     settings = Settings()
     # If `name` has at least two items, each item being a string of at least
     # one consonant, we should be able to create a username.
-    generate_username_permutation(settings, name2employee(name))
+    await generate_username_permutation(settings, name2employee(name))
 
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
-def test_suffix_increments(set_forbidden_usernames: Callable[[set[str]], None]) -> None:
+async def test_suffix_increments(
+    set_forbidden_usernames: Callable[[set[str]], None],
+) -> None:
     forbidden_usernames: set[str] = set()
 
     name = ["B", "C", "D"]
@@ -62,14 +64,14 @@ def test_suffix_increments(set_forbidden_usernames: Callable[[set[str]], None]) 
         set_forbidden_usernames(forbidden_usernames)
         settings = Settings()
 
-        username = generate_username_permutation(settings, name2employee(name))
+        username = await generate_username_permutation(settings, name2employee(name))
         assert username == "bcd%d" % expected_suffix
 
         forbidden_usernames.add(username)
 
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
-def test_skips_names_already_taken(
+async def test_skips_names_already_taken(
     set_forbidden_usernames: Callable[[set[str]], None],
 ) -> None:
     forbidden_usernames = {"fnm1", "fnm4"}
@@ -79,7 +81,7 @@ def test_skips_names_already_taken(
         set_forbidden_usernames(forbidden_usernames)
         settings = Settings()
 
-        username = generate_username_permutation(settings, name2employee(name))
+        username = await generate_username_permutation(settings, name2employee(name))
         assert username == expected_username
 
         forbidden_usernames.add(username)
@@ -101,37 +103,39 @@ def test_skips_names_already_taken(
     ],
 )
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
-def test_by_example(name: str, expected_username: str) -> None:
+async def test_by_example(name: str, expected_username: str) -> None:
     settings = Settings()
 
     name_parts = name.split(maxsplit=1)
-    actual_username = generate_username_permutation(settings, name2employee(name_parts))
+    actual_username = await generate_username_permutation(
+        settings, name2employee(name_parts)
+    )
     assert actual_username == expected_username
 
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
-def test_check_is_case_insensitive(
+async def test_check_is_case_insensitive(
     set_forbidden_usernames: Callable[[set[str]], None],
 ) -> None:
     name = ["Fornavn", "Efternavn"]
     # Generate username (no occupied names yet)
     settings = Settings()
-    first_username = generate_username_permutation(settings, name2employee(name))
+    first_username = await generate_username_permutation(settings, name2employee(name))
 
     # Add upper-case version of generated username to list of occupied names
     set_forbidden_usernames({first_username.upper()})
 
     # Generate second username from same name
     settings = Settings()
-    second_username = generate_username_permutation(settings, name2employee(name))
+    second_username = await generate_username_permutation(settings, name2employee(name))
 
     # Assert new username is different, even when case is ignored
     assert first_username.lower() != second_username.lower()
 
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
-def test_max_iterations() -> None:
+async def test_max_iterations() -> None:
     settings = Settings()
 
     with pytest.raises(ValueError):
-        generate_username_permutation(settings, name2employee(["A"]))
+        await generate_username_permutation(settings, name2employee(["A"]))

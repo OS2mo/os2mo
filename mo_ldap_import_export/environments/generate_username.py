@@ -465,7 +465,7 @@ def _extract_letters(name: list[str]) -> list[str]:
     return list(first_ascii_letter + all_consonants[0] + all_consonants[1])
 
 
-def generate_username_permutation(settings: Settings, employee: Employee) -> str:
+async def generate_username_permutation(settings: Settings, employee: Employee) -> str:
     assert employee.given_name is not None
     assert employee.surname is not None
     name = [employee.given_name, employee.surname]
