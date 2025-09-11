@@ -409,6 +409,7 @@ class MOAPI:
             itsystem=entry["itsystem_uuid"],
             person=entry["employee_uuid"],
             engagement=entry["engagement_uuid"],
+            engagements=entry["engagement_uuids"],
             validity=entry["validity"],
         )
         return it_user
@@ -664,6 +665,7 @@ class MOAPI:
                 person=obj.person,
                 org_unit=obj.org_unit,
                 engagement=obj.engagement,
+                engagements=obj.engagements,
                 validity=RAValidityInput(
                     from_=obj.validity.start,
                     to=obj.validity.end,
@@ -811,6 +813,7 @@ class MOAPI:
                 person=obj.person,
                 org_unit=obj.org_unit,
                 engagement=obj.engagement,
+                engagements=obj.engagements,
                 validity=RAValidityInput(
                     from_=obj.validity.start,
                     to=obj.validity.end,

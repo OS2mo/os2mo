@@ -46,6 +46,7 @@ async def test_load_it_user(
     result = await load_it_user(dataloader.moapi, mo_person, "ADtitle")
     assert result is not None
     assert result.dict(exclude_none=True) == {
+        "engagements": [],
         "itsystem": adtitle,
         "person": mo_person,
         "user_key": title,

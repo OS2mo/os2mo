@@ -138,6 +138,7 @@ async def test_check_it_user(graphql_mock: GraphQLMocker) -> None:
                             "employee_uuid": employee_uuid,
                             "itsystem_uuid": itsystem_uuid,
                             "rolebindings": [],
+                            "engagement_uuids": [],
                         }
                     ]
                 }

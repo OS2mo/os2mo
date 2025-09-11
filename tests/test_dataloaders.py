@@ -1341,6 +1341,7 @@ async def test_find_mo_employee_dn_by_itsystem(
                             "employee_uuid": employee_uuid,
                             "itsystem_uuid": itsystem_uuid,
                             "engagement_uuid": None,
+                            "engagement_uuids": [],
                             "rolebindings": [],
                         }
                     ]
