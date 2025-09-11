@@ -1549,7 +1549,7 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
     }
     """
     EDIT_ADDRESS_ITUSER = """
-    mutation EditAddress($uuid: UUID!, $engagement: UUID!, $ituser: UUID!) {
+    mutation EditAddress($uuid: UUID!, $engagement: UUID, $ituser: UUID) {
       address_update(
         input: {
           uuid: $uuid
@@ -1662,6 +1662,32 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
         "user_key": edited_user_key,
         "engagement": [engagement],
         "ituser": [ituser2],
+    }
+
+    # Remove ituser and engagement connections
+    response = graphapi_post(
+        EDIT_ADDRESS_ITUSER,
+        variables={
+            "uuid": address_uuid,
+            "engagement": None,
+            "ituser": None,
+        },
+    )
+    assert response.errors is None
+
+    # Verify that the edit was successful
+    response = graphapi_post(
+        GET_ADDRESS,
+        variables={
+            "uuid": address_uuid,
+        },
+    )
+    assert response.errors is None
+    assert one(response.data["addresses"]["objects"])["current"] == {
+        "uuid": address_uuid,
+        "user_key": edited_user_key,
+        "engagement": [],
+        "ituser": [],
     }
 
 
