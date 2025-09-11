@@ -1492,6 +1492,7 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
             engagement {
               uuid
             }
+            ituser_uuid
             ituser {
               uuid
               user_key
@@ -1610,6 +1611,7 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
         "uuid": address_uuid,
         "user_key": initial_user_key,
         "engagement": [engagement],
+        "ituser_uuid": ituser1_uuid,
         "ituser": [ituser1],
     }
 
@@ -1635,6 +1637,7 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
         "uuid": address_uuid,
         "user_key": edited_user_key,
         "engagement": [engagement],
+        "ituser_uuid": ituser1_uuid,
         "ituser": [ituser1],
     }
 
@@ -1661,6 +1664,7 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
         "uuid": address_uuid,
         "user_key": edited_user_key,
         "engagement": [engagement],
+        "ituser_uuid": ituser2_uuid,
         "ituser": [ituser2],
     }
 

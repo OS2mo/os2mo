@@ -1008,6 +1008,13 @@ class Address:
         return root.engagement_uuid
 
     @strawberry.field(
+        description="UUID of the it-user related to the address.",
+        deprecation_reason=gen_uuid_field_deprecation("ituser"),
+    )
+    async def ituser_uuid(self, root: AddressRead) -> UUID | None:
+        return root.it_user_uuid
+
+    @strawberry.field(
         description="UUID of the visibility class of the address.",
         deprecation_reason=gen_uuid_field_deprecation("visibility"),
     )
