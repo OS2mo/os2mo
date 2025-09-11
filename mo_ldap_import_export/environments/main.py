@@ -346,6 +346,7 @@ async def create_mo_it_user(
     it_system_uuid = UUID(await moapi.get_it_system_uuid(itsystem_user_key))
 
     # Make a new it-user
+    # TODO: Take all ITUser arguments in the function arguments?
     it_user = ITUser(
         user_key=user_key,
         itsystem=it_system_uuid,

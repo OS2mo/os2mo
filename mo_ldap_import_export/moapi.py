@@ -405,6 +405,7 @@ class MOAPI:
         it_user = ITUser(
             uuid=uuid,
             user_key=entry["user_key"],
+            external_id=entry["external_id"],
             itsystem=entry["itsystem_uuid"],
             person=entry["employee_uuid"],
             engagement=entry["engagement_uuid"],
@@ -656,6 +657,7 @@ class MOAPI:
             input=ITUserCreateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
+                external_id=obj.external_id,
                 itsystem=obj.itsystem,
                 person=obj.person,
                 org_unit=obj.org_unit,
@@ -801,6 +803,7 @@ class MOAPI:
             input=ITUserUpdateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
+                external_id=obj.external_id,
                 itsystem=obj.itsystem,
                 person=obj.person,
                 org_unit=obj.org_unit,

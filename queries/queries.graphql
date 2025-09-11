@@ -217,6 +217,7 @@ query read_itusers($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
         rolebindings {
           uuid
         }
+        external_id
       }
     }
   }

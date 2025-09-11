@@ -102,6 +102,7 @@ class ITUser(StrictBaseModel):
     uuid: UUID = Field(default_factory=uuid4)
     user_key: str
 
+    external_id: str | None
     itsystem: UUID
     person: UUID | None
     org_unit: UUID | None
