@@ -56,7 +56,9 @@ class LdapConverter:
 
         # TODO: Is it possible to render a dictionary directly?
         #       Instead of converting from a string
-        if "{" in value and ":" in value and "}" in value:
+        looks_like_a_dict = "{" in value and ":" in value and "}" in value
+        looks_like_a_list = value.startswith("[") and value.endswith("]")
+        if looks_like_a_dict or looks_like_a_list:
             try:
                 value = self.str_to_dict(value)
             except JSONDecodeError as error:
