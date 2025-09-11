@@ -198,6 +198,9 @@ type Address {
   """Optional UUID of an associated engagement."""
   engagement_uuid: UUID @deprecated(reason: "Will be removed in a future version of GraphQL.\nUse `engagement {uuid}` instead.\n")
 
+  """UUID of the it-user related to the address."""
+  ituser_uuid: UUID @deprecated(reason: "Will be removed in a future version of GraphQL.\nUse `ituser {uuid}` instead.\n")
+
   """UUID of the visibility class of the address."""
   visibility_uuid: UUID @deprecated(reason: "Will be removed in a future version of GraphQL.\nUse `visibility {uuid}` instead.\n")
 
@@ -1474,6 +1477,7 @@ input EmployeesBoundManagerFilter {
   to_date: DateTime
   registration: ManagerRegistrationFilter = null
   responsibility: ClassFilter = null
+  manager_type: ClassFilter = null
   exclude: EmployeeFilter = null
 }
 
@@ -1556,6 +1560,17 @@ type Engagement {
     cursor: Cursor = null
   ): [OrganisationUnit!]!
 
+  "Connected IT-user.\n"
+  itusers(
+    filter: EngagementBoundITUserFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): [ITUserResponse!]!
+
   """UUID of the entity"""
   uuid: UUID!
 
@@ -1637,6 +1652,21 @@ type Engagement {
 
   """Optional extra information."""
   extension_10: String
+}
+
+input EngagementBoundITUserFilter {
+  org_unit: OrganisationUnitFilter = null
+  org_units: [UUID!] = null
+  employee: EmployeeFilter
+  employees: [UUID!] = null
+  uuids: [UUID!] = null
+  user_keys: [String!] = null
+  from_date: DateTime
+  to_date: DateTime
+  registration: ITUserRegistrationFilter = null
+  itsystem: ITSystemFilter = null
+  itsystem_uuids: [UUID!] = null
+  external_ids: [String!] = null
 }
 
 input EngagementCreateInput {
@@ -2453,6 +2483,17 @@ type ITUser {
     cursor: Cursor = null
   ): [OrganisationUnit!]
 
+  "Engagement scoping of the account.\n\nA person may have multiple IT accounts with each account being relevant for any number of engagement.\n"
+  engagements(
+    filter: UuidsBoundEngagementFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): [EngagementResponse!]!
+
   "Engagement scoping of the account.\n\nA person may have multiple IT accounts with each account being relevant for only a single engagement.\nThis field allows scoping IT accounts such that it is obvious which engagement has given which it-access.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   engagement(
     filter: UuidsBoundEngagementFilter
@@ -2530,7 +2571,10 @@ type ITUser {
   org_unit_uuid: UUID @deprecated(reason: "Will be removed in a future version of GraphQL.\nUse `org_unit {uuid}` instead.\n")
 
   """UUID of the engagement related to the user."""
-  engagement_uuid: UUID @deprecated(reason: "Will be removed in a future version of GraphQL.\nUse `engagement {uuid}` instead.\n")
+  engagement_uuid: UUID @deprecated(reason: "Use `engagement_uuids` instead.")
+
+  """UUIDs of the engagements related to the user."""
+  engagement_uuids: [UUID!]! @deprecated(reason: "Will be removed in a future version of GraphQL.\nUse `engagements {uuid}` instead.\n")
 
   """UUID of the primary klasse of the user."""
   primary_uuid: UUID @deprecated(reason: "Will be removed in a future version of GraphQL.\nUse `primary {uuid}` instead.\n")
@@ -2558,8 +2602,11 @@ input ITUserCreateInput {
   """Reference to the organisation unit of the IT user (if any)."""
   org_unit: UUID = null
 
-  """Reference to the engagement of the IT user (if any)."""
+  """Deprecated! Use `engagements` instead."""
   engagement: UUID = null
+
+  """Reference to the engagements related to the IT user (if any)."""
+  engagements: [UUID!] = null
 
   """Validity of the created IT user object."""
   validity: RAValidityInput!
@@ -2690,8 +2737,11 @@ input ITUserUpdateInput {
   """Reference to the organisation unit of the IT user (if any)."""
   org_unit: UUID = null
 
-  """Reference to the engagement of the IT user (if any)."""
+  """Deprecated! Use `engagements` instead."""
   engagement: UUID = null
+
+  """Reference to the engagements related to the IT user (if any)."""
+  engagements: [UUID!] = null
 
   """Validity of the created IT user object."""
   validity: RAValidityInput!
@@ -3365,6 +3415,9 @@ input ManagerFilter {
   "Responsibility filter limiting which entries are returned.\n"
   responsibility: ClassFilter = null
 
+  "Manager_type filter limiting which entries are returned.\n"
+  manager_type: ClassFilter = null
+
   "Employee filter for managers to exclude from the result.\n"
   exclude: EmployeeFilter = null
 }
@@ -3843,6 +3896,9 @@ type Mutation {
   """Terminate a rolebinding."""
   rolebinding_terminate(input: RoleBindingTerminateInput!): RoleBindingResponse!
 
+  "Deletes a rolebinding.\n**Warning**:\nThis mutator does bitemporal deletion, **not** temporal termination.\nDo **not** use this mutator **unless** you **fully understand** its implications.\n\nBitemporal deletion and temporal termination are **very** different operations and should **not** be confused.\nIf you do not know which of the operations you need, you most likely need temporal termination.\n\nBitemporal deletion works on the bitemporal time-axis, and should **only** be used by clients that **fully understand** the underlying bitemporal model, including how a bitemporal delete affects the registration history.\n\nAfter this call the deleted entity will no longer show up in **any** temporal listing.\n\nNote:\nIt is currently the callers responsibility to ensure that references are dealt with before doing bitemporal deletions.\nFailure to do so **will** leave dangling references breaking temporal foreign-keys, and potentially breaking invariants in the data.\n"
+  rolebinding_delete(uuid: UUID!): RoleBindingResponse!
+
   """Refresh rolebindings."""
   rolebinding_refresh(
     filter: RoleBindingFilter = null
@@ -4074,6 +4130,7 @@ input OrgUnitsboundmanagerfilter {
   to_date: DateTime
   registration: ManagerRegistrationFilter = null
   responsibility: ClassFilter = null
+  manager_type: ClassFilter = null
   exclude: EmployeeFilter = null
 }
 

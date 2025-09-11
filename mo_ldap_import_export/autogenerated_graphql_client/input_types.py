@@ -366,7 +366,23 @@ class EmployeesBoundManagerFilter(BaseModel):
     to_date: datetime | None | UnsetType = UNSET
     registration: Optional["ManagerRegistrationFilter"] = None
     responsibility: Optional["ClassFilter"] = None
+    manager_type: Optional["ClassFilter"] = None
     exclude: Optional["EmployeeFilter"] = None
+
+
+class EngagementBoundITUserFilter(BaseModel):
+    org_unit: Optional["OrganisationUnitFilter"] = None
+    org_units: list[UUID] | None = None
+    employee: Optional["EmployeeFilter"] | UnsetType = UNSET
+    employees: list[UUID] | None = None
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None | UnsetType = UNSET
+    to_date: datetime | None | UnsetType = UNSET
+    registration: Optional["ITUserRegistrationFilter"] = None
+    itsystem: Optional["ITSystemFilter"] = None
+    itsystem_uuids: list[UUID] | None = None
+    external_ids: list[str] | None = None
 
 
 class EngagementCreateInput(BaseModel):
@@ -605,6 +621,7 @@ class ITUserCreateInput(BaseModel):
     person: UUID | None = None
     org_unit: UUID | None = None
     engagement: UUID | None = None
+    engagements: list[UUID] | None = None
     validity: "RAValidityInput"
     user_key: str
     itsystem: UUID
@@ -646,6 +663,7 @@ class ITUserUpdateInput(BaseModel):
     person: UUID | None = None
     org_unit: UUID | None = None
     engagement: UUID | None = None
+    engagements: list[UUID] | None = None
     validity: "RAValidityInput"
     user_key: str | None = None
     itsystem: UUID | None = None
@@ -826,6 +844,7 @@ class ManagerFilter(BaseModel):
     org_units: list[UUID] | None = None
     registration: Optional["ManagerRegistrationFilter"] = None
     responsibility: Optional["ClassFilter"] = None
+    manager_type: Optional["ClassFilter"] = None
     exclude: Optional["EmployeeFilter"] = None
 
 
@@ -970,6 +989,7 @@ class OrgUnitsboundmanagerfilter(BaseModel):
     to_date: datetime | None | UnsetType = UNSET
     registration: Optional["ManagerRegistrationFilter"] = None
     responsibility: Optional["ClassFilter"] = None
+    manager_type: Optional["ClassFilter"] = None
     exclude: Optional["EmployeeFilter"] = None
 
 
@@ -1345,6 +1365,7 @@ EmployeesBoundEngagementFilter.update_forward_refs()
 EmployeesBoundITUserFilter.update_forward_refs()
 EmployeesBoundLeaveFilter.update_forward_refs()
 EmployeesBoundManagerFilter.update_forward_refs()
+EngagementBoundITUserFilter.update_forward_refs()
 EngagementCreateInput.update_forward_refs()
 EngagementFilter.update_forward_refs()
 EngagementRegistrationFilter.update_forward_refs()

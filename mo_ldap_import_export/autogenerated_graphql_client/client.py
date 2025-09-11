@@ -1140,6 +1140,7 @@ class GraphQLClient(AsyncBaseClient):
                     employee_uuid
                     org_unit_uuid
                     engagement_uuid
+                    ituser_uuid
                     person: employee {
                       cpr_number
                     }
