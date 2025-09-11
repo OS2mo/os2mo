@@ -68,6 +68,7 @@ from mora.util import now
 
 from ...version import Version as GraphQLVersion
 from .filters import EmployeeFilter
+from .filters import EngagementFilter
 from .filters import ITSystemFilter
 from .filters import ITUserFilter
 from .filters import ManagerFilter
@@ -2221,6 +2222,23 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
+    itusers: list[Response[LazyITUser]] = strawberry.field(
+        resolver=to_response_list(LazyITUser)(
+            seed_resolver(
+                it_user_resolver,
+                {
+                    "engagement": lambda root: EngagementFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
+            )
+        ),
+        description="Connected IT-user.\n",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
+    )
+
     @strawberry.field(
         description=dedent(
             """\
@@ -2771,6 +2789,26 @@ class ITUser:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
+    engagements: list[Response[LazyEngagement]] = strawberry.field(
+        resolver=to_response_list(LazyEngagement)(
+            seed_resolver(
+                engagement_resolver,
+                {"uuids": lambda root: root.engagement_uuids},
+            )
+        ),
+        description=dedent(
+            """\
+            Engagement scoping of the account.
+
+            A person may have multiple IT accounts with each account being relevant for any number of engagement.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("engagement"),
+        ],
+    )
+
     engagement: list[LazyEngagement] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
@@ -2916,10 +2954,17 @@ class ITUser:
 
     @strawberry.field(
         description="UUID of the engagement related to the user.",
-        deprecation_reason=gen_uuid_field_deprecation("engagement"),
+        deprecation_reason="Use `engagement_uuids` instead.",
     )
     async def engagement_uuid(self, root: ITUserRead) -> UUID | None:
         return root.engagement_uuid
+
+    @strawberry.field(
+        description="UUIDs of the engagements related to the user.",
+        deprecation_reason=gen_uuid_field_deprecation("engagements"),
+    )
+    async def engagement_uuids(self, root: ITUserRead) -> list[UUID]:
+        return root.engagement_uuids
 
     @strawberry.field(
         description="UUID of the primary klasse of the user.",

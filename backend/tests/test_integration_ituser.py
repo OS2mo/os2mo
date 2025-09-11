@@ -1,14 +1,17 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Any
+from uuid import uuid4
 
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
 from mora import lora
+from more_itertools import first
 from more_itertools import one
 
 from tests.cases import assert_registrations_equal
+from tests.conftest import GraphAPIPost
 
 engagement_uuid = "d000591f-8705-4324-897a-075e3623f37b"
 
@@ -738,3 +741,368 @@ def test_reading_unit(
     )
     assert response.status_code == 200
     assert response.json() == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_create_ituser_multiple_engagements(graphapi_post: GraphAPIPost) -> None:
+    GET_ENGAGEMENT = """
+    query GetEngagement {
+      engagements(limit: 2) {
+        objects {
+          current {
+            uuid
+            user_key
+            itusers {
+              current {
+                uuid
+                user_key
+              }
+            }
+          }
+        }
+      }
+    }
+    """
+
+    GET_ITUSER_BY_UUID = """
+    query GetITUser($uuid: UUID!) {
+      itusers(filter: {uuids: [$uuid]}) {
+        objects {
+          current {
+            uuid
+            engagements {
+                uuid
+            }
+            engagement {
+                uuid
+            }
+          }
+        }
+      }
+    }
+    """
+    CREATE_ITUSER = """
+    mutation MyMutation($engagements: [UUID!], $user_key: String = "") {
+      ituser_create(
+        input: {
+          person: "6ee24785-ee9a-4502-81c2-7697009c9053"
+          validity: { from: "2020-08-01" }
+          itsystem: "0872fb72-926d-4c5c-a063-ff800b8ee697"
+          engagements: $engagements
+          user_key: $user_key
+        }
+      ) {
+        uuid
+      }
+    }
+    """
+
+    # Get two engagements
+    response = graphapi_post(GET_ENGAGEMENT)
+    assert response.errors is None
+    engagement1 = response.data["engagements"]["objects"][0]["current"]
+    engagement2 = response.data["engagements"]["objects"][1]["current"]
+    assert engagement1 != engagement2
+    engagement1_uuid = engagement1["uuid"]
+    engagement2_uuid = engagement2["uuid"]
+
+    engagements = [{"uuid": engagement1_uuid}, {"uuid": engagement2_uuid}]
+    engagements.sort(key=lambda e: e["uuid"])
+
+    # Create ituser with two engagements attached
+    response = graphapi_post(
+        CREATE_ITUSER,
+        variables={
+            "engagements": [engagement1_uuid, engagement2_uuid],
+        },
+    )
+    assert response.errors is None
+    ituser_uuid = response.data["ituser_create"]["uuid"]
+
+    # Verify that both engagements are connected when querying through IT user
+    response = graphapi_post(GET_ITUSER_BY_UUID, variables={"uuid": ituser_uuid})
+    assert response.errors is None
+    result = one(response.data["itusers"]["objects"])["current"]
+    result["engagements"].sort(key=lambda e: e["uuid"])
+
+    assert result == {
+        "uuid": ituser_uuid,
+        "engagements": engagements,
+        # Test backward compatibility by ensuring "engagement" only has one object
+        "engagement": [first(engagements)],
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_update_ituser_engagements(graphapi_post: GraphAPIPost) -> None:
+    GET_ENGAGEMENTS = """
+    query GetEngagement {
+      engagements(limit: 2) {
+        objects {
+          current {
+            uuid
+          }
+        }
+      }
+    }
+    """
+
+    GET_ITUSER = """
+    query GetITUser {
+      itusers(limit: 1) {
+        objects {
+          current {
+            uuid
+          }
+        }
+      }
+    }
+    """
+    GET_ITUSER_BY_UUID = """
+    query GetITUser($uuid: UUID!) {
+      itusers(filter: {uuids: [$uuid]}) {
+        objects {
+          current {
+            uuid
+            engagement_uuid
+            engagement_uuids
+            engagement {
+                uuid
+            }
+            engagements {
+                uuid
+            }
+          }
+        }
+      }
+    }
+    """
+    UPDATE_ITUSER = """
+    mutation MyMutation($uuid: UUID!, $engagements: [UUID!]) {
+      ituser_update(
+        input: {
+          uuid: $uuid
+          validity: { from: "2020-08-01" }
+          engagements: $engagements
+        }
+      ) {
+        uuid
+      }
+    }
+    """
+
+    # Get an it_user
+    response = graphapi_post(GET_ITUSER)
+    assert response.errors is None
+    ituser_uuid = response.data["itusers"]["objects"][0]["current"]["uuid"]
+
+    # Get two engagements
+    response = graphapi_post(GET_ENGAGEMENTS)
+    engagement1 = response.data["engagements"]["objects"][0]["current"]
+    engagement2 = response.data["engagements"]["objects"][1]["current"]
+    assert engagement1 != engagement2
+    engagement1_uuid = engagement1["uuid"]
+    engagement2_uuid = engagement2["uuid"]
+
+    engagements = [{"uuid": engagement1_uuid}, {"uuid": engagement2_uuid}]
+    engagements.sort(key=lambda e: e["uuid"])
+
+    # update the ituser to link the two engagements
+    response = graphapi_post(
+        UPDATE_ITUSER,
+        variables={
+            "uuid": ituser_uuid,
+            "engagements": [engagement1_uuid, engagement2_uuid],
+        },
+    )
+    assert response.errors is None
+    # Verify that both engagements are connected when querying through IT user
+    response = graphapi_post(GET_ITUSER_BY_UUID, variables={"uuid": ituser_uuid})
+    assert response.errors is None
+    result = one(response.data["itusers"]["objects"])["current"]
+    result["engagements"].sort(key=lambda e: e["uuid"])
+
+    assert result == {
+        "uuid": ituser_uuid,
+        "engagement_uuid": engagement1_uuid,
+        "engagement_uuids": [engagement1_uuid, engagement2_uuid],
+        "engagement": [engagement1],
+        "engagements": engagements,
+    }
+    # update the ituser again to remove the link to one engagement
+    response = graphapi_post(
+        UPDATE_ITUSER,
+        variables={
+            "uuid": ituser_uuid,
+            "engagements": [engagement2_uuid],
+        },
+    )
+    assert response.errors is None
+    # Verify that only one of the engagements are connected when querying through IT user
+    response = graphapi_post(GET_ITUSER_BY_UUID, variables={"uuid": ituser_uuid})
+    assert response.errors is None
+    result = one(response.data["itusers"]["objects"])["current"]
+
+    assert result == {
+        "uuid": ituser_uuid,
+        "engagement_uuid": engagement2_uuid,
+        "engagement_uuids": [engagement2_uuid],
+        "engagement": [engagement2],
+        "engagements": [engagement2],
+    }
+    # update the ituser again to remove the link to the final engagement
+    response = graphapi_post(
+        UPDATE_ITUSER,
+        variables={
+            "uuid": ituser_uuid,
+            "engagements": [],
+        },
+    )
+    assert response.errors is None
+    # Verify that none of the engagements are connected when querying through IT user
+    response = graphapi_post(GET_ITUSER_BY_UUID, variables={"uuid": ituser_uuid})
+    assert response.errors is None
+    result = one(response.data["itusers"]["objects"])["current"]
+
+    assert result == {
+        "uuid": ituser_uuid,
+        "engagement_uuid": None,
+        "engagement_uuids": [],
+        "engagement": None,
+        "engagements": [],
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_create_multiple_itusers_linked_to_engagement(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    GET_ENGAGEMENT = """
+    query GetEngagement($limit: int = null, $uuid: [UUID!] = null) {
+      engagements(limit: $limit, filter: { uuids: $uuid }) {
+        objects {
+          current {
+            uuid
+            itusers {
+              uuid
+            }
+          }
+        }
+      }
+    }
+    """
+
+    CREATE_ITUSER = """
+    mutation MyMutation($engagements: [UUID!]) {
+      ituser_create(
+        input: {
+          person: "6ee24785-ee9a-4502-81c2-7697009c9053"
+          validity: { from: "2020-08-01" }
+          itsystem: "0872fb72-926d-4c5c-a063-ff800b8ee697"
+          engagements: $engagements
+          user_key: "username"
+        }
+      ) {
+        uuid
+      }
+    }
+    """
+
+    # Get two engagements
+    response = graphapi_post(GET_ENGAGEMENT, variables={"limit": 2})
+    assert response.errors is None
+    engagement1 = response.data["engagements"]["objects"][0]["current"]
+    engagement1_uuid = engagement1["uuid"]
+    engagement2 = response.data["engagements"]["objects"][1]["current"]
+    engagement2_uuid = engagement2["uuid"]
+    # Create two itusers with same engagements attached
+    response = graphapi_post(
+        CREATE_ITUSER,
+        variables={
+            "engagements": [engagement1_uuid, engagement2_uuid],
+        },
+    )
+    assert response.errors is None
+    ituser1_uuid = response.data["ituser_create"]["uuid"]
+
+    response = graphapi_post(
+        CREATE_ITUSER,
+        variables={
+            "engagements": [engagement2_uuid, engagement1_uuid],
+        },
+    )
+    assert response.errors is None
+    ituser2_uuid = response.data["ituser_create"]["uuid"]
+
+    itusers = [{"uuid": ituser1_uuid}, {"uuid": ituser2_uuid}]
+    itusers.sort(key=lambda e: e["uuid"])
+
+    # Verify that both engagements are connected when querying through IT user
+    response = graphapi_post(GET_ENGAGEMENT, variables={"uuid": [engagement1_uuid]})
+    assert response.errors is None
+    result = one(response.data["engagements"]["objects"])["current"]
+    result["itusers"].sort(key=lambda e: e["uuid"])
+
+    assert result == {
+        "uuid": engagement1_uuid,
+        "itusers": itusers,
+    }
+    # Same for engagement_2
+    response = graphapi_post(GET_ENGAGEMENT, variables={"uuid": [engagement2_uuid]})
+    assert response.errors is None
+    result = one(response.data["engagements"]["objects"])["current"]
+    result["itusers"].sort(key=lambda e: e["uuid"])
+
+    assert result == {
+        "uuid": engagement2_uuid,
+        "itusers": itusers,
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_create_itusers_engagement_and_engagements(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    CREATE_ITUSER = """
+    mutation MyMutation($engagements: [UUID!], $engagement: UUID) {
+      ituser_create(
+        input: {
+          person: "6ee24785-ee9a-4502-81c2-7697009c9053"
+          validity: { from: "2020-08-01" }
+          itsystem: "0872fb72-926d-4c5c-a063-ff800b8ee697"
+          engagements: $engagements
+          user_key: "username"
+          engagement: $engagement
+        }
+      ) {
+        uuid
+      }
+    }
+    """
+
+    response = graphapi_post(
+        CREATE_ITUSER,
+        variables={
+            "engagements": [str(uuid4()), str(uuid4())],
+            "engagement": str(uuid4()),
+        },
+    )
+    assert response.errors == [
+        {
+            "extensions": {
+                "error_context": {
+                    "description": "Attempted use of both 'engagement' and 'engagements'",
+                    "error": True,
+                    "error_key": "E_INVALID_INPUT",
+                    "status": 400,
+                }
+            },
+            "locations": [{"column": 7, "line": 3}],
+            "message": "(<ErrorCodes.E_INVALID_INPUT: (400, 'Invalid input.')>, \"Attempted use of both 'engagement' and 'engagements'\")",
+            "path": ["ituser_create"],
+        }
+    ]

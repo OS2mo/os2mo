@@ -900,7 +900,10 @@ class ITUserUpsert(UUIDBase):
         description="Reference to the organisation unit of the IT user (if any)."
     )
     engagement: UUID | None = Field(
-        description="Reference to the engagement of the IT user (if any)."
+        description="Deprecated! Use `engagements` instead."
+    )
+    engagements: list[UUID] | None = Field(
+        description="Reference to the engagements related to the IT user (if any)."
     )
     validity: RAValidity = Field(description="Validity of the created IT user object.")
 
@@ -912,6 +915,11 @@ class ITUserUpsert(UUIDBase):
             "person": gen_uuid(self.person),
             "org_unit": gen_uuid(self.org_unit),
             "engagement": gen_uuid(self.engagement),
+            "engagements": (
+                [gen_uuid(e) for e in self.engagements]
+                if self.engagements is not None
+                else None
+            ),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()

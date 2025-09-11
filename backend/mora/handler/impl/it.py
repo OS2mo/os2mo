@@ -64,7 +64,10 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         itsystem_uuid = mapping.SINGLE_ITSYSTEM_FIELD.get_uuid(effect)
         primary_uuid = mapping.PRIMARY_FIELD.get_uuid(effect)
+        # New code should handle multiple engagement UUIDs. The engagement_uuid
+        # is a compatibility shim for old code.
         engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
+        engagement_uuids = list(mapping.ASSOCIATED_FUNCTION_FIELD.get_uuids(effect))
 
         extensions = mapping.ORG_FUNK_UDVIDELSER_FIELD(effect)
         extensions = extensions[0] if extensions else {}
@@ -78,6 +81,7 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
                 "employee_uuid": person_uuid,
                 "org_unit_uuid": org_unit_uuid,
                 "engagement_uuid": engagement_uuid,
+                "engagement_uuids": engagement_uuids,
                 "itsystem_uuid": itsystem_uuid,
                 "primary_uuid": primary_uuid,
                 "external_id": external_id,
