@@ -163,6 +163,7 @@ async def test_non_existing_account_names(
         "abk": {
             "employee_uuid": mo_person,
             "engagement_uuid": None,
+            "engagement_uuids": [],
             "itsystem_uuid": account_name_itsystem,
             "user_key": "abk",
             "external_id": None,
@@ -172,6 +173,7 @@ async def test_non_existing_account_names(
         "cba": {
             "employee_uuid": mo_person,
             "engagement_uuid": None,
+            "engagement_uuids": [],
             "itsystem_uuid": account_name_itsystem,
             "user_key": "cba",
             "external_id": None,

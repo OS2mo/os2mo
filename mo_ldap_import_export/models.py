@@ -108,6 +108,7 @@ class ITUser(StrictBaseModel):
     person: UUID | None
     org_unit: UUID | None
     engagement: UUID | None
+    engagements: list[UUID] = []
     validity: Validity
 
 
