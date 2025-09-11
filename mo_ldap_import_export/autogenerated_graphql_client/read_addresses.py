@@ -27,6 +27,7 @@ class ReadAddressesAddressesObjectsValidities(BaseModel):
     employee_uuid: UUID | None
     org_unit_uuid: UUID | None
     engagement_uuid: UUID | None
+    ituser_uuid: UUID | None
     person: list["ReadAddressesAddressesObjectsValiditiesPerson"] | None
     validity: "ReadAddressesAddressesObjectsValiditiesValidity"
     address_type: "ReadAddressesAddressesObjectsValiditiesAddressType"

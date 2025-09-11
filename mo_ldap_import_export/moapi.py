@@ -490,6 +490,7 @@ class MOAPI:
             person=entry["employee_uuid"],
             org_unit=entry["org_unit_uuid"],
             engagement=entry["engagement_uuid"],
+            ituser=entry["ituser_uuid"],
             visibility=entry["visibility_uuid"],
             validity=entry["validity"],
         )
@@ -602,6 +603,7 @@ class MOAPI:
                 value=obj.value,
                 address_type=obj.address_type,
                 person=obj.person,
+                ituser=obj.ituser,
                 engagement=obj.engagement,
                 visibility=obj.visibility,
                 validity=RAValidityInput(
@@ -753,6 +755,7 @@ class MOAPI:
                 address_type=obj.address_type,
                 person=obj.person,
                 engagement=obj.engagement,
+                ituser=obj.ituser,
                 visibility=obj.visibility,
                 validity=RAValidityInput(
                     from_=obj.validity.start,

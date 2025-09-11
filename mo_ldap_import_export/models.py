@@ -35,6 +35,7 @@ class Address(StrictBaseModel):
     address_type: UUID
     person: UUID | None
     org_unit: UUID | None
+    ituser: UUID | None
     engagement: UUID | None
     visibility: UUID | None
     validity: Validity
