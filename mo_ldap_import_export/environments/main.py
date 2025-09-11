@@ -646,6 +646,11 @@ def requeue_if_none(obj: T | None) -> T:
     return obj
 
 
+def assert_not_none(obj: T | None) -> T:
+    assert obj is not None, "assert_not_none failed"
+    return obj
+
+
 def parent_dn(dn: DN) -> DN:
     dn_parts = to_dn(dn)
     parent_dn_parts = dn_parts[1:]
@@ -929,6 +934,7 @@ def construct_default_environment() -> Environment:
     environment.globals["now"] = datetime.utcnow  # TODO: timezone-aware datetime
     environment.globals["skip_if_none"] = skip_if_none
     environment.globals["requeue_if_none"] = requeue_if_none
+    environment.globals["assert_not_none"] = assert_not_none
     environment.globals["uuid4"] = uuid4
     environment.globals["parent_dn"] = parent_dn
     environment.globals["dn_has_ou"] = dn_has_ou
