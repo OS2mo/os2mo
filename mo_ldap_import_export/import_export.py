@@ -560,28 +560,12 @@ class SyncTool:
             "employee_uuid": str(employee_uuid),
         }
 
-        # First import the Employee, then Engagement if present, then the rest.
-        # We want this order so dependencies exist before their dependent objects
-        if "Employee" in json_keys:
+        # The template author should make sure to define objects in order, so
+        # dependencies exist before their dependent objects.
+        for json_key in json_keys:
             await self.import_single_entity(
-                self.get_mapping("Employee"), dn, template_context
+                self.get_mapping(json_key), dn, template_context
             )
-            json_keys.discard("Employee")
-
-        if "Engagement" in json_keys:
-            await self.import_single_entity(
-                self.get_mapping("Engagement"), dn, template_context
-            )
-            json_keys.discard("Engagement")
-
-        await asyncio.gather(
-            *[
-                self.import_single_entity(
-                    self.get_mapping(json_key), dn, template_context
-                )
-                for json_key in json_keys
-            ]
-        )
 
     @wait_for_import_to_finish
     @with_exitstack
