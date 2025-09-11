@@ -39,3 +39,26 @@ async def test_create_ituser_read_equivalence(
     ituser = ituser.copy(update={"user_key": "modified"})
     await moapi.edit([ituser])
     assert await moapi.load_mo_it_user(ituser_uuid) == ituser
+
+
+@pytest.mark.integration_test
+async def test_create_ituser_external_id_read_equivalence(
+    moapi: MOAPI,
+    mo_person: UUID,
+    adtitle: UUID,
+) -> None:
+    ituser_uuid = uuid4()
+    ituser = ITUser(
+        uuid=ituser_uuid,
+        user_key="ava",
+        itsystem=adtitle,
+        person=mo_person,
+        external_id="my_external_id",
+        validity={"from": datetime(1970, 1, 1, tzinfo=MO_TZ)},
+    )
+    await moapi.create([ituser])
+    assert await moapi.load_mo_it_user(ituser_uuid) == ituser
+
+    ituser = ituser.copy(update={"external_id": "modified"})
+    await moapi.edit([ituser])
+    assert await moapi.load_mo_it_user(ituser_uuid) == ituser

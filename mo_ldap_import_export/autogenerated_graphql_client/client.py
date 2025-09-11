@@ -1015,6 +1015,7 @@ class GraphQLClient(AsyncBaseClient):
                     rolebindings {
                       uuid
                     }
+                    external_id
                   }
                 }
               }
