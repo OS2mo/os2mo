@@ -576,12 +576,8 @@ class SyncTool:
         exit_stack.enter_context(bound_contextvars(object_class=object_class, dn=dn))
         logger.info("Importing object class")
         mappings = self.settings.conversion_mapping.ldap_to_mo_any[object_class]
-        await asyncio.gather(
-            *[
-                self.import_single_entity(mapping, dn, template_context={})
-                for mapping in mappings.values()
-            ]
-        )
+        for mapping in mappings.values():
+            await self.import_single_entity(mapping, dn, template_context={})
 
     async def import_single_entity(
         self,
