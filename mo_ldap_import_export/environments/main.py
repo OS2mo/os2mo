@@ -901,6 +901,7 @@ def construct_globals_dict(
             ituser_uuid_to_rolebinding_uuids, graphql_client
         ),
         "refresh": partial(refresh, graphql_client, amqpsystem),
+        "find_mo_employee_uuid": dataloader.find_mo_employee_uuid,
     }
 
 
