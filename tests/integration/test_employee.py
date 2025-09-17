@@ -9,7 +9,6 @@ from unittest.mock import ANY
 
 import pytest
 from fastramqpi.pytest_util import retrying
-from ldap3 import Connection
 from more_itertools import one
 from structlog.testing import capture_logs
 
@@ -350,17 +349,21 @@ async def test_edit_existing_in_ldap(
 )
 async def test_none_handling_empty(
     trigger_mo_person: Callable[[], Awaitable[None]],
-    ldap_connection: Connection,
+    ldap_api: LDAPAPI,
     ldap_person_dn: DN,
 ) -> None:
-    ldap_object = await get_ldap_object(ldap_connection, ldap_person_dn)
+    ldap_object = await get_ldap_object(
+        ldap_api.ldap_connection.connection, ldap_person_dn
+    )
     assert ldap_object.dn == ldap_person_dn
     assert hasattr(ldap_object, "carLicense") is False
 
     # As Seniority is None, the field should remain empty
     await trigger_mo_person()
 
-    ldap_object = await get_ldap_object(ldap_connection, ldap_person_dn)
+    ldap_object = await get_ldap_object(
+        ldap_api.ldap_connection.connection, ldap_person_dn
+    )
     assert ldap_object.dn == ldap_person_dn
     assert hasattr(ldap_object, "carLicense") is False
 
@@ -390,7 +393,6 @@ async def test_none_handling_empty(
 )
 async def test_none_handling_clearing(
     trigger_mo_person: Callable[[], Awaitable[None]],
-    ldap_connection: Connection,
     ldap_api: LDAPAPI,
     ldap_person_dn: DN,
 ) -> None:
@@ -401,7 +403,9 @@ async def test_none_handling_clearing(
         },
     )
 
-    ldap_object = await get_ldap_object(ldap_connection, ldap_person_dn)
+    ldap_object = await get_ldap_object(
+        ldap_api.ldap_connection.connection, ldap_person_dn
+    )
     assert ldap_object.dn == ldap_person_dn
     assert hasattr(ldap_object, "carLicense") is True
     assert getattr(ldap_object, "carLicense", None) == ["TEST_VALUE"]
@@ -409,7 +413,9 @@ async def test_none_handling_clearing(
     # As Seniority is None, the field should be cleared
     await trigger_mo_person()
 
-    ldap_object = await get_ldap_object(ldap_connection, ldap_person_dn)
+    ldap_object = await get_ldap_object(
+        ldap_api.ldap_connection.connection, ldap_person_dn
+    )
     assert ldap_object.dn == ldap_person_dn
     assert hasattr(ldap_object, "carLicense") is False
 

@@ -28,7 +28,6 @@ from mo_ldap_import_export.customer_specific_checks import ImportChecks
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.import_export import SyncTool
-from mo_ldap_import_export.ldap import LDAPConnection
 from mo_ldap_import_export.ldap import apply_discriminator
 from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap import construct_server_pool
@@ -126,15 +125,20 @@ def ldap_connection(settings: Settings, ldap_container_dn: DN) -> Iterable[Conne
 
 
 @pytest.fixture
+def ldap_api(settings: Settings, ldap_connection: Connection) -> LDAPAPI:
+    return LDAPAPI(settings, ldap_connection)
+
+
+@pytest.fixture
 def ldap_dn(settings: Settings, ldap_container_dn: DN) -> DN:
     return DN(f"CN={settings.ldap_user},{ldap_container_dn}")
 
 
 async def test_searching_mocked(
-    ldap_connection: Connection, settings: Settings, ldap_container_dn: DN
+    ldap_api: LDAPAPI, settings: Settings, ldap_container_dn: DN
 ) -> None:
     """Test that we can use the mocked ldap_connection to search for our default user."""
-    connection = LDAPConnection(ldap_connection)
+    connection = ldap_api.ldap_connection
     response, result = await connection.ldap_search(
         search_base=ldap_container_dn,
         search_filter=f"(cn={settings.ldap_user})",
@@ -162,14 +166,14 @@ async def test_searching_mocked(
     }
 
 
-async def test_searching_newly_added(ldap_connection: Connection) -> None:
+async def test_searching_newly_added(ldap_api: LDAPAPI) -> None:
     """Test that we can use the mocked ldap_connection to find newly added users."""
     username = str(uuid4())
     password = str(uuid4())
     container = str(uuid4())
     entryUUID = str(uuid4())
     # Add new entry
-    ldap_connection.strategy.add_entry(
+    ldap_api.ldap_connection.connection.strategy.add_entry(
         f"cn={username},o={container}",
         {
             "objectClass": "inetOrgPerson",
@@ -181,7 +185,7 @@ async def test_searching_newly_added(ldap_connection: Connection) -> None:
         },
     )
 
-    connection = LDAPConnection(ldap_connection)
+    connection = ldap_api.ldap_connection
     response, result = await connection.ldap_search(
         search_base=f"o={container}",
         search_filter=f"(cn={username})",
@@ -210,10 +214,10 @@ async def test_searching_newly_added(ldap_connection: Connection) -> None:
 
 
 async def test_searching_dn_lookup(
-    ldap_connection: Connection, settings: Settings, ldap_dn: DN, ldap_container_dn: DN
+    ldap_api: LDAPAPI, settings: Settings, ldap_dn: DN, ldap_container_dn: DN
 ) -> None:
     """Test that we can read our default user."""
-    connection = LDAPConnection(ldap_connection)
+    connection = ldap_api.ldap_connection
     response, result = await connection.ldap_search(
         search_base=ldap_dn,
         search_filter="(objectclass=*)",
@@ -285,11 +289,11 @@ async def test_get_ldap_object(
 
 
 async def test_get_ldap_cpr_object(
-    ldap_connection: Connection,
+    ldap_api: LDAPAPI,
     settings: Settings,
     ldap_container_dn: DN,
 ) -> None:
-    connection = LDAPConnection(ldap_connection)
+    connection = ldap_api.ldap_connection
     response, result = await connection.ldap_search(
         search_base=ldap_container_dn,
         search_filter="(&(objectclass=inetOrgPerson)(employeeID=0101700001))",
