@@ -33,7 +33,7 @@ from tests.oio_rest.util import ExtTestCase
 CallableReturnType = TypeVar("CallableReturnType")
 
 
-async def get_args(request, as_lists=False):
+async def get_args(request: Request, as_lists=False):
     return _process_args(await _get_args_from_request(request), as_lists)
 
 
@@ -48,10 +48,10 @@ class TestClassStandardHierarchy(OIOStandardHierarchy):
 
 class TestOIORestObjectCreateApi:
     @pytest.fixture(autouse=True)
-    def setup_testclass(self):
+    def setup_testclass(self) -> None:
         self.testclass = TestClassRestObject
 
-    def assert_api_rule(self, router, name, method, function):
+    def assert_api_rule(self, router: APIRouter, name: str, method: str, function) -> None:
         # Check for existence of rule in args list
         endpoints = router.routes
         endpoints = filter(lambda route: method in route.methods, endpoints)
@@ -61,11 +61,11 @@ class TestOIORestObjectCreateApi:
         rule = next(endpoints, None)
         assert rule is not None, f"Expected {method} {name}"
 
-    def test_create_api_call_returns_router(self):
+    def test_create_api_call_returns_router(self) -> None:
         router = self.testclass.create_api(hierarchy="Hierarchy")
         assert isinstance(router, APIRouter)
 
-    def test_create_api_has_get_objects_rule(self):
+    def test_create_api_has_get_objects_rule(self) -> None:
         router = self.testclass.create_api(hierarchy="Hierarchy")
         assert isinstance(router, APIRouter)
         self.assert_api_rule(
@@ -75,7 +75,7 @@ class TestOIORestObjectCreateApi:
             self.testclass.get_objects,
         )
 
-    def test_create_api_adds_get_object_rule(self):
+    def test_create_api_adds_get_object_rule(self) -> None:
         router = self.testclass.create_api(hierarchy="Hierarchy")
         assert isinstance(router, APIRouter)
         self.assert_api_rule(
@@ -85,7 +85,7 @@ class TestOIORestObjectCreateApi:
             self.testclass.get_object,
         )
 
-    def test_create_api_adds_put_object_rule(self):
+    def test_create_api_adds_put_object_rule(self) -> None:
         router = self.testclass.create_api(hierarchy="Hierarchy")
         assert isinstance(router, APIRouter)
         self.assert_api_rule(
@@ -95,7 +95,7 @@ class TestOIORestObjectCreateApi:
             self.testclass.put_object,
         )
 
-    def test_create_api_adds_patch_object_rule(self):
+    def test_create_api_adds_patch_object_rule(self) -> None:
         router = self.testclass.create_api(hierarchy="Hierarchy")
         assert isinstance(router, APIRouter)
         self.assert_api_rule(
@@ -105,7 +105,7 @@ class TestOIORestObjectCreateApi:
             self.testclass.patch_object,
         )
 
-    def test_create_api_adds_create_object_rule(self):
+    def test_create_api_adds_create_object_rule(self) -> None:
         router = self.testclass.create_api(hierarchy="Hierarchy")
         assert isinstance(router, APIRouter)
         self.assert_api_rule(
@@ -115,7 +115,7 @@ class TestOIORestObjectCreateApi:
             self.testclass.create_object,
         )
 
-    def test_create_api_adds_delete_object_rule(self):
+    def test_create_api_adds_delete_object_rule(self) -> None:
         router = self.testclass.create_api(hierarchy="Hierarchy")
         assert isinstance(router, APIRouter)
         self.assert_api_rule(
@@ -125,7 +125,7 @@ class TestOIORestObjectCreateApi:
             self.testclass.delete_object,
         )
 
-    def test_create_api_adds_fields_rule(self):
+    def test_create_api_adds_fields_rule(self) -> None:
         router = self.testclass.create_api(hierarchy="Hierarchy")
         assert isinstance(router, APIRouter)
         self.assert_api_rule(
@@ -147,7 +147,7 @@ class TestOIORestObject(ExtTestCase):
     }
 
     @pytest.fixture(autouse=True)
-    def setup_helpers(self):
+    def setup_helpers(self) -> None:
         self.testclass = TestClassRestObject()
         db_helpers._search_params = {}
         db_helpers._attribute_fields = {}
@@ -155,7 +155,7 @@ class TestOIORestObject(ExtTestCase):
         db_helpers._relation_names = {}
         db_helpers._state_names = {}
 
-    def create_request(self, method=None, params=None, headers=None, data=None):
+    def create_request(self, method=None, params=None, headers=None, data=None) -> Request:
         params = params or {}
         method = method or "GET"
         data = data or ""
@@ -1075,7 +1075,7 @@ class TestOIORestObject(ExtTestCase):
         with pytest.raises(BadRequestException):
             await self.testclass.delete_object(uuid, request)
 
-    def test_gather_registration(self):
+    def test_gather_registration(self) -> None:
         # Arrange
         attrs = {"attribut": [{"whatever": "123"}]}
         states = {"tilstand": [{"whatever": "123"}]}
@@ -1091,7 +1091,7 @@ class TestOIORestObject(ExtTestCase):
         # Assert
         assert expected == actual
 
-    def test_gather_registration_empty_input(self):
+    def test_gather_registration_empty_input(self) -> None:
         # Arrange
         input = {}
 
@@ -1103,7 +1103,7 @@ class TestOIORestObject(ExtTestCase):
         # Assert
         assert expected == actual
 
-    def test_gather_registration_empty_lists(self):
+    def test_gather_registration_empty_lists(self) -> None:
         # Arrange
         input = {"attributter": {}, "tilstande": {}, "relationer": {}}
 
@@ -1115,7 +1115,7 @@ class TestOIORestObject(ExtTestCase):
         # Assert
         assert expected == actual
 
-    def test_gather_registration_raises_on_bad_attributter_input(self):
+    def test_gather_registration_raises_on_bad_attributter_input(self) -> None:
         # Arrange
         input = {
             "attributter": "not a dict",
@@ -1125,7 +1125,7 @@ class TestOIORestObject(ExtTestCase):
         with pytest.raises(BadRequestException):
             self.testclass.gather_registration(input)
 
-    def test_gather_registration_raises_on_bad_tilstande_input(self):
+    def test_gather_registration_raises_on_bad_tilstande_input(self) -> None:
         # Arrange
         input = {
             "tilstande": "not a dict",
@@ -1135,7 +1135,7 @@ class TestOIORestObject(ExtTestCase):
         with pytest.raises(BadRequestException):
             self.testclass.gather_registration(input)
 
-    def test_gather_registration_raises_on_bad_relationer_input(self):
+    def test_gather_registration_raises_on_bad_relationer_input(self) -> None:
         # Arrange
         input = {
             "relationer": "not a dict",
@@ -1148,11 +1148,11 @@ class TestOIORestObject(ExtTestCase):
 
 class TestOIOStandardHierarchy(ExtTestCase):
     @pytest.fixture(autouse=True)
-    def setup_and_reset(self):
+    def setup_and_reset(self) -> None:
         self.testclass = TestClassStandardHierarchy()
         TestClassStandardHierarchy._classes = []
 
-    def test_setup_api_calls_create_api_on_classes(self):
+    def test_setup_api_calls_create_api_on_classes(self) -> None:
         # Arrange
         cls1 = MagicMock()
         cls2 = MagicMock()
@@ -1165,7 +1165,7 @@ class TestOIOStandardHierarchy(ExtTestCase):
         cls1.create_api.assert_called_once()
         cls2.create_api.assert_called_once()
 
-    def test_setup_api_call_router_has_expected_endpoint(self):
+    def test_setup_api_call_router_has_expected_endpoint(self) -> None:
         # Arrange
         TestClassStandardHierarchy._classes = [MagicMock()]
 
@@ -1207,7 +1207,7 @@ class TestOIOStandardHierarchy(ExtTestCase):
 
 
 class TestOIORest:
-    def test_typed_get_returns_value(self):
+    def test_typed_get_returns_value(self) -> None:
         # Arrange
         expected_result = "value"
         testkey = "testkey"
@@ -1219,7 +1219,7 @@ class TestOIORest:
         # Assert
         assert expected_result == actual_result
 
-    def test_typed_get_returns_default_if_value_none(self):
+    def test_typed_get_returns_default_if_value_none(self) -> None:
         # Arrange
         expected_result = "default"
         testkey = "testkey"
@@ -1231,7 +1231,7 @@ class TestOIORest:
         # Assert
         assert expected_result == actual_result
 
-    def test_typed_get_raises_on_wrong_type(self):
+    def test_typed_get_raises_on_wrong_type(self) -> None:
         # Arrange
         default = 1234
 
@@ -1242,7 +1242,7 @@ class TestOIORest:
         with pytest.raises(BadRequestException):
             oio_base.typed_get(d, testkey, default)
 
-    def test_get_virkning_dates_virkningstid(self):
+    def test_get_virkning_dates_virkningstid(self) -> None:
         # Arrange
         args = {
             "virkningstid": "2020-01-01",
@@ -1258,7 +1258,7 @@ class TestOIORest:
         assert expected_from == actual_from
         assert expected_to == actual_to
 
-    def test_get_virkning_dates_from_to(self):
+    def test_get_virkning_dates_from_to(self) -> None:
         # Arrange
         args = {
             "virkningfra": "2006-01-01",
@@ -1276,7 +1276,7 @@ class TestOIORest:
         assert expected_to == actual_to
 
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
-    def test_get_virkning_dates_defaults(self):
+    def test_get_virkning_dates_defaults(self) -> None:
         # Arrange
         args = {}
 
@@ -1290,7 +1290,7 @@ class TestOIORest:
         assert expected_from == actual_from
         assert expected_to == actual_to
 
-    def test_get_virkning_dates_raises_on_invalid_args_combination(self):
+    def test_get_virkning_dates_raises_on_invalid_args_combination(self) -> None:
         # Arrange
         args = {
             "virkningstid": "2020-01-01",
@@ -1302,7 +1302,7 @@ class TestOIORest:
         with pytest.raises(BadRequestException):
             oio_base.get_virkning_dates(args)
 
-    def test_get_registreret_dates_registreringstid(self):
+    def test_get_registreret_dates_registreringstid(self) -> None:
         # Arrange
         args = {
             "registreringstid": "2020-01-01",
@@ -1318,7 +1318,7 @@ class TestOIORest:
         assert expected_from == actual_from
         assert expected_to == actual_to
 
-    def test_get_registreret_dates_from_to(self):
+    def test_get_registreret_dates_from_to(self) -> None:
         # Arrange
         args = {
             "registreretfra": "2006-01-01",
@@ -1336,7 +1336,7 @@ class TestOIORest:
         assert expected_to == actual_to
 
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
-    def test_get_registreret_dates_defaults(self):
+    def test_get_registreret_dates_defaults(self) -> None:
         # Arrange
         args = {}
 
@@ -1350,7 +1350,7 @@ class TestOIORest:
         assert expected_from == actual_from
         assert expected_to == actual_to
 
-    def test_get_registreret_dates_raises_on_invalid_args_combination(self):
+    def test_get_registreret_dates_raises_on_invalid_args_combination(self) -> None:
         # Arrange
         args = {
             "registreringstid": "2020-01-01",

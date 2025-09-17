@@ -5,7 +5,7 @@ from uuid import UUID
 import mora.auth.keycloak.uuid_extractor as extractors
 
 
-def test_extract_uuids_from_get_ancestor_uuids():
+def test_extract_uuids_from_get_ancestor_uuids() -> None:
     valid_uuids = {
         UUID("f06ee470-9f17-566f-acbe-e938112d46d9"),
         UUID("23a2ace2-52ca-458d-bead-d1a42080579f"),

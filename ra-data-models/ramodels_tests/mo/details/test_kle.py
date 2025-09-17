@@ -71,23 +71,23 @@ def kle_strat(draw):
 
 class TestKLE:
     @given(kle_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert KLE(**model_dict)
 
     @given(kle_strat(), not_from_regex(r"^kle"))
-    def test_validators(self, model_dict, invalid_type):
+    def test_validators(self, model_dict, invalid_type) -> None:
         with pytest.raises(ValidationError, match="type may only be its default"):
             model_dict["type"] = invalid_type
             KLE(**model_dict)
 
     @given(base_strat())
-    def test_base(self, model_dict):
+    def test_base(self, model_dict) -> None:
         assert KLEBase(**model_dict)
 
     @given(read_strat())
-    def test_read(self, model_dict):
+    def test_read(self, model_dict) -> None:
         assert KLERead(**model_dict)
 
     @given(write_strat())
-    def test_write(self, model_dict):
+    def test_write(self, model_dict) -> None:
         assert KLEWrite(**model_dict)

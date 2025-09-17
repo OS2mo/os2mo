@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from unittest.mock import AsyncMock
+from unittest.mock import _patch
 from unittest import mock
 from uuid import uuid4
 
@@ -28,7 +30,7 @@ class TestPrimaryClassHelpers:
             ({}, False),
         ]
     )
-    def test_is_class_primary(self, mo_class: dict, expected_result: bool):
+    def test_is_class_primary(self, mo_class: dict, expected_result: bool) -> None:
         assert is_class_primary(mo_class) == expected_result
 
     @parameterized.expand(
@@ -74,7 +76,7 @@ class TestPrimaryClassHelpers:
         with self._mock_get_one_class(""):
             assert (await get_mo_object_primary_value(mo_object)) == expected_result
 
-    def _mock_get_one_class(self, scope: str):
+    def _mock_get_one_class(self, scope: str) -> _patch[AsyncMock]:
         mock_get = mock.AsyncMock(
             return_value={mapping.USER_KEY: "dummy_user_key", mapping.SCOPE: scope}
         )

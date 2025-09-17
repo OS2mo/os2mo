@@ -72,23 +72,23 @@ def role_strat(draw):
 
 class TestRole:
     @given(base_strat())
-    def test_base(self, model_dict):
+    def test_base(self, model_dict) -> None:
         assert RoleBase(**model_dict)
 
     @given(read_strat())
-    def test_read(self, model_dict):
+    def test_read(self, model_dict) -> None:
         assert RoleRead(**model_dict)
 
     @given(write_strat())
-    def test_write(self, model_dict):
+    def test_write(self, model_dict) -> None:
         assert RoleWrite(**model_dict)
 
     @given(role_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert Role(**model_dict)
 
     @given(role_strat(), not_from_regex(r"^role$"))
-    def test_validators(self, model_dict, invalid_type):
+    def test_validators(self, model_dict, invalid_type) -> None:
         with unexpected_value_error():
             model_dict["type"] = invalid_type
             Role(**model_dict)

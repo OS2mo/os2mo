@@ -41,7 +41,7 @@ class Attribute:
     value_type: ValueType  # e.g. '0' could mean a bool False or the literal string
 
     @staticmethod
-    def get_valid_attr(class_name) -> dict[str, list[str]]:
+    def get_valid_attr(class_name: str) -> dict[str, list[str]]:
         """
         This style object
 

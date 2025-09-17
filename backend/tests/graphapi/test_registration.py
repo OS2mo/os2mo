@@ -188,7 +188,7 @@ def test_read_registration_dates_filter(graphapi_post) -> None:
     )
     assert response.errors is None
 
-    def registrations(start, end):
+    def registrations(start: date | datetime | None, end: date | datetime | None):
         query = """
             query ReadRegistrations(
               $uuid: UUID!,

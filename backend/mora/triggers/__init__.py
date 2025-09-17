@@ -48,7 +48,7 @@ class Trigger:
     ] = {}
 
     class Error(Exception):
-        def __init__(self, message, **extra):
+        def __init__(self, message, **extra) -> None:
             super().__init__(message)
             self.extra = extra
 

@@ -215,7 +215,7 @@ class FieldTuple:
         path: tuple[str, str],
         type: FieldTypes,
         filter_fn: typing.Callable[[dict], bool] | None = None,
-    ):
+    ) -> None:
         self.__path = path
         self.__type = type
         self.__filter_fn = filter_fn
@@ -230,7 +230,7 @@ class FieldTuple:
 
     __call__ = get
 
-    def _get_elems(self, obj, key):
+    def _get_elems(self, obj, key: str):
         for item in self.get(obj):
             with suppress(KeyError):
                 yield item[key]
@@ -256,7 +256,7 @@ class FieldTuple:
     def filter_fn(self) -> typing.Callable[[dict], bool] | None:
         return self.__filter_fn
 
-    def __repr__(self):  # pragma: no cover
+    def __repr__(self) -> str:  # pragma: no cover
         return "{}({!r}, FieldTypes.{}, {!r})".format(
             type(self).__name__,
             self.path,

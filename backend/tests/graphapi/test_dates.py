@@ -7,7 +7,7 @@ from ..conftest import GraphAPIPost
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_timestamp_parsing(graphapi_post: GraphAPIPost):
+def test_timestamp_parsing(graphapi_post: GraphAPIPost) -> None:
     """Test that GraphQL timestamp-parsing works as expected."""
     # Create employee with a very old birthday (cpr)
     create_response = graphapi_post(
@@ -71,7 +71,7 @@ def test_timestamp_parsing(graphapi_post: GraphAPIPost):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_dates_dont_leak(graphapi_post: GraphAPIPost):
+def test_dates_dont_leak(graphapi_post: GraphAPIPost) -> None:
     """Test that GraphQL dates don't leak across resolvers."""
     # Create employee from 2000-01-01
     create = graphapi_post(

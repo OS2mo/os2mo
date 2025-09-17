@@ -6,7 +6,7 @@ from alembic.operations import MigrateOperation
 class DropFunctionOp(MigrateOperation):
     """Drop a FUNCTION."""
 
-    def __init__(self, function_name, schema=None):
+    def __init__(self, function_name, schema=None) -> None:
         self.function_name = function_name
         self.schema = schema
 
@@ -18,7 +18,7 @@ class DropFunctionOp(MigrateOperation):
         return operations.invoke(op)
 
 
-def drop_function(operations, operation):
+def drop_function(operations, operation) -> None:
     if operation.schema is not None:
         name = f"{operation.schema}.{operation.function_name}"
     else:

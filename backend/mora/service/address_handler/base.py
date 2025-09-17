@@ -1,5 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from typing import Self
+from _typeshed import Self
+from typing import TypeVar
+from typing_extensions import TypeVar
 import abc
 from typing import Any
 
@@ -16,7 +20,7 @@ class _AddressHandlerMeta(abc.ABCMeta):
     """Metaclass for automatically registering handlers."""
 
     @staticmethod
-    def __new__(mcls, name, bases, namespace):
+    def __new__(mcls, name, bases, namespace) -> TypeVar[Self]:
         cls = super().__new__(mcls, name, bases, namespace)
 
         cls._register()
@@ -31,10 +35,10 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
     _value2 = None
 
     @classmethod
-    def _register(cls):
+    def _register(cls) -> None:
         ADDRESS_HANDLERS[cls.scope] = cls
 
-    def __init__(self, value, visibility, value2=None):
+    def __init__(self, value, visibility, value2=None) -> None:
         self.visibility = visibility
         self._value = value
         self._value2 = value2
@@ -63,7 +67,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
 
     @staticmethod
     @abc.abstractmethod
-    async def validate_value(value):  # pragma: no cover
+    async def validate_value(value: str):  # pragma: no cover
         """Validate that the address value is correctly formed"""
         pass
 
@@ -83,12 +87,12 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         return self._value2
 
     @property
-    def name(self):
+    def name(self) -> None:
         """The pretty human-readable value"""
         return self._value
 
     @property
-    def href(self):
+    def href(self) -> None:
         """A hyperlink based on the value, if any"""
         return None
 

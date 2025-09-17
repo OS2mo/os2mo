@@ -3,7 +3,7 @@
 from mora.common import create_organisationsenhed_payload
 
 
-def test_create_organisationenhed():
+def test_create_organisationenhed() -> None:
     output_org_unit = {
         "attributter": {
             "organisationenhedegenskaber": [

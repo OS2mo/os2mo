@@ -23,7 +23,7 @@ async def test_mocking_and_cache_clearing(mock_organisation):
     assert raw_org == {"uuid": str(uuid), "name": "name", "user_key": "user_key"}
 
 
-def test_query_organisation(graphapi_post: GraphAPIPost, mock_organisation):
+def test_query_organisation(graphapi_post: GraphAPIPost, mock_organisation) -> None:
     """Test that we are able to query our organisation."""
     uuid = mock_organisation
 

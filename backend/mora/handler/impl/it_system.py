@@ -20,7 +20,7 @@ logger = get_logger()
 @reading.register(ROLE_TYPE)
 class ITSystemReader(reading.ReadingHandler):
     @classmethod
-    async def get(cls, c, search_fields, flat=False):
+    async def get(cls, c, search_fields, flat: bool=False):
         object_tuples = await cls._get_lora_object(c=c, search_fields=search_fields)
         return await cls._get_obj_effects(c, object_tuples)
 

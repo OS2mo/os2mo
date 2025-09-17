@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from sqlalchemy.sql.selectable import CTE
 from datetime import date
 from uuid import UUID
 
@@ -242,7 +243,7 @@ def _gql_get_orgunit_path(org_unit_graphql: dict):
     return path + [org_unit_graphql["name"]]
 
 
-def _get_cte_orgunit_uuid_hits(query: str, at_sql: str):
+def _get_cte_orgunit_uuid_hits(query: str, at_sql: str) -> CTE:
     search_phrase = util.query_to_search_phrase(query)
     return (
         select(OrganisationEnhedRegistrering.organisationenhed_id.label("uuid"))
@@ -262,7 +263,7 @@ def _get_cte_orgunit_uuid_hits(query: str, at_sql: str):
     )
 
 
-def _get_cte_orgunit_name_hits(query: str, at_sql: str):
+def _get_cte_orgunit_name_hits(query: str, at_sql: str) -> CTE:
     search_phrase = util.query_to_search_phrase(query)
     return (
         select(OrganisationEnhedRegistrering.organisationenhed_id.label("uuid"))
@@ -282,7 +283,7 @@ def _get_cte_orgunit_name_hits(query: str, at_sql: str):
     )
 
 
-def _get_cte_orgunit_itsystem_hits(query: str, at_sql: str):
+def _get_cte_orgunit_itsystem_hits(query: str, at_sql: str) -> CTE:
     search_phrase = util.query_to_search_phrase(query)
     return (
         select(OrganisationFunktionRelation.rel_maal_uuid.label("uuid"))

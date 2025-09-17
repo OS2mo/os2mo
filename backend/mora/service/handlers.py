@@ -1,5 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from typing import Self
+from _typeshed import Self
+from typing import TypeVar
+from typing_extensions import TypeVar
 """This module provides infrastructure for registering and invoking
 handlers for the various detail types.
 
@@ -36,7 +40,7 @@ class _RequestHandlerMeta(abc.ABCMeta):
     """Metaclass for automatically registering handlers"""
 
     @staticmethod
-    def __new__(mcls, name, bases, namespace):
+    def __new__(mcls, name, bases, namespace) -> TypeVar[Self]:
         cls = super().__new__(mcls, name, bases, namespace)
 
         if not inspect.isabstract(cls):
@@ -63,13 +67,13 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
     """
 
     @classmethod
-    def _register(cls):
+    def _register(cls) -> None:
         assert cls.role_type is not None
         assert cls.role_type not in HANDLERS_BY_ROLE_TYPE
 
         HANDLERS_BY_ROLE_TYPE[cls.role_type] = cls
 
-    def __init__(self, request: dict, request_type: RequestType):
+    def __init__(self, request: dict, request_type: RequestType) -> None:
         """
         Initialize a request, and perform all required validation.
 
@@ -140,7 +144,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         return obj
 
     @abc.abstractmethod
-    def prepare_create(self, request: dict):
+    def prepare_create(self, request: dict) -> None:
         """
         Initialize a 'create' request. Performs validation and all
         necessary processing
@@ -166,7 +170,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         raise NotImplementedError
 
-    def prepare_refresh(self, request: dict):  # pragma: no cover
+    def prepare_refresh(self, request: dict) -> None:  # pragma: no cover
         """
         Initialize a 'refresh' request. Performs validation and all
         necessary processing
@@ -267,7 +271,7 @@ class OrgFunkRequestHandler(RequestHandler):
     """
 
     @classmethod
-    def _register(cls):
+    def _register(cls) -> None:
         super()._register()
 
         # sanity checks

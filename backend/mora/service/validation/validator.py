@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from backend.mora.exceptions import ErrorCodes
 import asyncio
 import collections
 import datetime
@@ -68,7 +69,7 @@ async def _is_date_range_valid(
     effects = await lora_scope.get_effects(obj, {"tilstande": (gyldighed_key,)})
 
     def get_valid_effects(effects):
-        def overlap_filter_fn(effect):
+        def overlap_filter_fn(effect) -> bool:
             start, end, _ = effect
             return not (end < valid_from or valid_to < start)
 
@@ -183,7 +184,7 @@ async def is_date_range_in_org_unit_range(org_unit_obj, valid_from, valid_to):
 @forceable
 def is_distinct_responsibility(
     fields: list[tuple[mapping.FieldTuple, typing.Mapping]],
-):
+) -> None:
     uuid_counts = collections.Counter(
         value["uuid"]
         for field, value in fields
@@ -271,8 +272,8 @@ async def is_date_range_in_obj_range(
 
 @forceable
 def is_contained_in_range(
-    candidate_from, candidate_to, valid_from, valid_to, exception
-):
+    candidate_from, candidate_to, valid_from: datetime, valid_to: datetime, exception: ErrorCodes
+) -> None:
     if valid_from < candidate_from or candidate_to < valid_to:
         exception(
             valid_from=util.to_iso_date(candidate_from),
@@ -412,7 +413,7 @@ async def does_uuid_have_existing_association(
 
 
 @forceable
-def is_substitute_allowed(association_type_uuid: UUID):
+def is_substitute_allowed(association_type_uuid: UUID) -> None:
     """
     checks whether the chosen association needs a substitute
     """
@@ -423,7 +424,7 @@ def is_substitute_allowed(association_type_uuid: UUID):
 
 
 @forceable
-def is_substitute_self(employee_uuid: str, substitute_uuid: str):
+def is_substitute_self(employee_uuid: str, substitute_uuid: str) -> None:
     """
     Check if substitute is the same as employee
 

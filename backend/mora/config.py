@@ -56,7 +56,7 @@ class ServicePlatformenSettings(BaseSettings):
         return v
 
     @validator("sp_api_version")
-    def validate_api_version(cls, v):
+    def validate_api_version(cls, v) -> int:
         if v not in {4, 5}:
             raise ValueError(
                 f"Serviceplatformen API version must be either 4 or 5 (not {v!r})"

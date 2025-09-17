@@ -26,7 +26,7 @@ async def test_dates(graphapi_post: GraphAPIPost):
     )
     facet_uuid = facet_create.data["facet_create"]["uuid"]
 
-    def create_class(parent, from_date, to_date) -> str:
+    def create_class(parent: str | None, from_date: str | None, to_date: str | None) -> str:
         r = graphapi_post(
             """
                 mutation CreateClass(

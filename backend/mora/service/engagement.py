@@ -240,7 +240,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             )
             return addr_uuid, addr_handler
 
-        def to_create_request(address_obj):  # pragma: no cover
+        def to_create_request(address_obj) -> tuple[str, AddressRequestHandler]:  # pragma: no cover
             addr_uuid = str(uuid.uuid4())
             addr_handler = AddressRequestHandler(
                 {

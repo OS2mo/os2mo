@@ -136,27 +136,27 @@ def engagement_fsf_strat(draw):
 
 class TestEngagement:
     @given(engagement_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert Engagement(**model_dict)
 
     @given(engagement_strat(), not_from_regex(r"^engagement$"))
-    def test_validators(self, model_dict, invalid_type):
+    def test_validators(self, model_dict, invalid_type) -> None:
         with unexpected_value_error():
             model_dict["type"] = invalid_type
             Engagement(**model_dict)
 
     @given(engagement_fsf_strat())
-    def test_from_simplified_fields(self, simp_fields_dict):
+    def test_from_simplified_fields(self, simp_fields_dict) -> None:
         assert Engagement.from_simplified_fields(**simp_fields_dict)
 
     @given(base_strat())
-    def test_base(self, model_dict):
+    def test_base(self, model_dict) -> None:
         assert EngagementBase(**model_dict)
 
     @given(read_strat())
-    def test_read(self, model_dict):
+    def test_read(self, model_dict) -> None:
         assert EngagementRead(**model_dict)
 
     @given(write_strat())
-    def test_write(self, model_dict):
+    def test_write(self, model_dict) -> None:
         assert EngagementWrite(**model_dict)

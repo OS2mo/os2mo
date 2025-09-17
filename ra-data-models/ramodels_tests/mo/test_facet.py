@@ -43,11 +43,11 @@ def facet_write_strat(draw):
 
 class TestFacetRead:
     @given(read_strat())
-    def test_read(self, model_dict):
+    def test_read(self, model_dict) -> None:
         assert FacetRead(**model_dict)
 
 
 class TestFacetWrite:
     @given(facet_write_strat())
-    def test_write(self, model_dict):
+    def test_write(self, model_dict) -> None:
         assert FacetWrite(**model_dict)

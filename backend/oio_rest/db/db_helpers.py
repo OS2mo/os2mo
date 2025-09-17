@@ -87,7 +87,7 @@ def get_relation_names(class_name):
     return _relation_names[class_name.lower()]
 
 
-def get_document_part_relation_names():  # pragma: no cover
+def get_document_part_relation_names() -> list[str]:  # pragma: no cover
     """Return the list of all recognized relations for DokumentDel"""
     return ["underredigeringaf"]
 
@@ -108,7 +108,7 @@ VaerdiRelationAttr = namedtuple(
 )
 
 
-def input_list(_type, input, key):  # pragma: no cover
+def input_list(_type: type[DokumentDelEgenskaberType] | type[DokumentDelType] | type[DokumentVariantEgenskaberType], input, key: str):  # pragma: no cover
     """Take a value with key from the input and return a list.
 
     _type.input is called for each value in the list. If the key is not
@@ -119,7 +119,7 @@ def input_list(_type, input, key):  # pragma: no cover
     return [_type.input(v) for v in values]
 
 
-def input_dict_list(_type, input):  # pragma: no cover
+def input_dict_list(_type: type[DokumentDelRelationType], input):  # pragma: no cover
     """Take a dict input and return a generator.
 
     Input is assumed to be a dict with list values.
@@ -131,7 +131,7 @@ def input_dict_list(_type, input):  # pragma: no cover
     return [_type.input(k, v) for k in input for v in input[k]]
 
 
-def to_bool(s):  # pragma: no cover
+def to_bool(s) -> bool | None:  # pragma: no cover
     """Convert string to boolean. Passes through bool and None values."""
     if isinstance(s, bool):
         return s
@@ -161,7 +161,7 @@ class DokumentVariantType(
     namedtuple("DokumentVariantType", "varianttekst egenskaber dele")
 ):
     @classmethod
-    def input(cls, i):  # pragma: no cover
+    def input(cls, i) -> DokumentVariantType | None:  # pragma: no cover
         if i is None:
             return None
         return cls(
@@ -179,7 +179,7 @@ class DokumentVariantEgenskaberType(
     ),
 ):
     @classmethod
-    def input(cls, i):  # pragma: no cover
+    def input(cls, i) -> DokumentVariantEgenskaberType | None:  # pragma: no cover
         if i is None:
             return None
         return cls(
@@ -193,7 +193,7 @@ class DokumentVariantEgenskaberType(
 
 class DokumentDelType(namedtuple("DokumentDelType", "deltekst egenskaber relationer")):
     @classmethod
-    def input(cls, i):  # pragma: no cover
+    def input(cls, i) -> DokumentDelType | None:  # pragma: no cover
         if i is None:
             return None
         return cls(
@@ -205,7 +205,7 @@ class DokumentDelType(namedtuple("DokumentDelType", "deltekst egenskaber relatio
 
 class Virkning(namedtuple("Virkning", "timeperiod aktoerref aktoertypekode notetekst")):
     @classmethod
-    def input(cls, i):  # pragma: no cover
+    def input(cls, i) -> Virkning | None:  # pragma: no cover
         if i is None:
             return None
         return cls(
@@ -223,7 +223,7 @@ class DokumentDelEgenskaberType(
     ),
 ):
     @classmethod
-    def _get_file_storage_for_content_url(cls, url):  # pragma: no cover
+    def _get_file_storage_for_content_url(cls, url) -> None:  # pragma: no cover
         """
         Return a FileStorage object for the form field specified by the URL.
 
@@ -237,7 +237,7 @@ class DokumentDelEgenskaberType(
             raise NotImplementedError("Document support dropped!")
 
     @classmethod
-    def input(cls, i):  # pragma: no cover
+    def input(cls, i) -> DokumentDelEgenskaberType | None:  # pragma: no cover
         if i is None:
             return None
         indhold = i.get("indhold", None)
@@ -263,7 +263,7 @@ class DokumentDelRelationType(
     )
 ):
     @classmethod
-    def input(cls, key, i):  # pragma: no cover
+    def input(cls, key, i) -> DokumentDelRelationType | None:  # pragma: no cover
         if i is None:
             return None
         return cls(

@@ -45,7 +45,7 @@ def test_birthdate_validation_disabled(service_client: TestClient) -> None:
         assert response.json() == {}
 
 
-def _sp_config(monkeypatch, **overrides):
+def _sp_config(monkeypatch, **overrides) -> None:
     UUID_OK = "12345678-9abc-def1-1111-111111111111"
 
     env_vars = {
@@ -59,7 +59,7 @@ def _sp_config(monkeypatch, **overrides):
         monkeypatch.setenv(env_var, value)
 
 
-def test_serviceplatformen_missing_path(monkeypatch):
+def test_serviceplatformen_missing_path(monkeypatch) -> None:
     monkeypatch.setenv("ENABLE_SP", "true")
     _sp_config(monkeypatch)
 
@@ -68,7 +68,7 @@ def test_serviceplatformen_missing_path(monkeypatch):
     assert "sp_certificate_path\n  field required" in str(exc_info.value)
 
 
-def test_serviceplatformen_empty_file(monkeypatch, tmp_path):
+def test_serviceplatformen_empty_file(monkeypatch, tmp_path) -> None:
     tmp_file = tmp_path / "testfile"
     tmp_file.write_text("")
 
@@ -80,7 +80,7 @@ def test_serviceplatformen_empty_file(monkeypatch, tmp_path):
     assert "Serviceplatformen certificate can not be empty" in str(exc_info.value)
 
 
-def test_serviceplatformen_happy_path(monkeypatch, tmp_path):
+def test_serviceplatformen_happy_path(monkeypatch, tmp_path) -> None:
     tmp_file = tmp_path / "testfile"
     tmp_file.write_text("This is a certificate")
 
@@ -104,7 +104,7 @@ def test_serviceplatformen_api_version_validation(
     sp_configuration,
     sp_api_version,
     expected_exception,
-):
+) -> None:
     """Test validation in `ServicePlatformenSettings.validate_api_version`"""
     _sp_config(monkeypatch, SP_API_VERSION=str(sp_api_version))
     if expected_exception:
@@ -115,7 +115,7 @@ def test_serviceplatformen_api_version_validation(
         assert settings.sp_settings.sp_api_version == sp_api_version
 
 
-def test_get_citizen_uses_version_kwarg():
+def test_get_citizen_uses_version_kwarg() -> None:
     # Test that the `version` kwargs is actually used in the call to
     # `service_person_stamdata_udvidet.get_citizen`.
     settings = MagicMock()

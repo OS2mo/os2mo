@@ -90,19 +90,19 @@ def write_strat(draw):
 
 class TestEmployee:
     @given(employee_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert Employee(**model_dict)
 
     @given(base_strat())
-    def test_base(self, model_dict):
+    def test_base(self, model_dict) -> None:
         assert EmployeeBase(**model_dict)
 
     @given(read_strat())
-    def test_read(self, model_dict):
+    def test_read(self, model_dict) -> None:
         assert EmployeeRead(**model_dict)
 
     @given(write_strat(), st.text())
-    def test_write(self, model_dict, name):
+    def test_write(self, model_dict, name) -> None:
         assert EmployeeWrite(**model_dict)
         # We should be able to create a Write model
         # in the deprecated fashion.

@@ -57,7 +57,7 @@ jinja_env = Environment(
 transformer = Transformer(None)
 
 
-def adapt(value):
+def adapt(value: list[DokumentVariantType | None] | None) -> str:
     literal = transformer.as_literal(value)
     string = str(literal, encoding="utf-8")
     # The SQL templates return statements ready to be executed as-is but SQLAlchemy
@@ -183,7 +183,7 @@ def convert_relations(relations, class_name):
     return relations
 
 
-def convert_variants(variants):  # pragma: no cover
+def convert_variants(variants) -> list[DokumentVariantType | None] | None:  # pragma: no cover
     """Convert variants."""
     # TODO
     if variants is None:
@@ -207,21 +207,21 @@ class Livscyklus(enum.Enum):
 """
 
 
-def sql_state_array(state, periods, class_name):
+def sql_state_array(state, periods, class_name) -> str:
     """Return an SQL array of type <state>TilsType."""
     t = jinja_env.get_template("state_array.sql")
     sql = t.render(class_name=class_name, state_name=state, state_periods=periods)
     return sql
 
 
-def sql_attribute_array(attribute, periods):
+def sql_attribute_array(attribute, periods) -> str:
     """Return an SQL array of type <attribute>AttrType[]."""
     t = jinja_env.get_template("attribute_array.sql")
     sql = t.render(attribute_name=attribute, attribute_periods=periods)
     return sql
 
 
-def sql_relations_array(class_name, relations):
+def sql_relations_array(class_name, relations) -> str:
     """Return an SQL array of type <class_name>RelationType[]."""
     t = jinja_env.get_template("relations_array.sql")
     sql = t.render(class_name=class_name, relations=relations)
@@ -265,8 +265,8 @@ def sql_convert_registration(registration, class_name):
 
 
 def sql_get_registration(
-    class_name, time_period, life_cycle_code, user_ref, note, registration
-):
+    class_name, time_period: TimestamptzRange | None, life_cycle_code, user_ref, note, registration
+) -> str:
     """
     Return a an SQL registrering object of type
     <class_name>RegistreringType[].
@@ -424,7 +424,7 @@ async def passivate_object(class_name, note, registration, uuid):
 
 
 async def update_object(
-    class_name, note, registration, uuid=None, life_cycle_code=Livscyklus.RETTET.value
+    class_name, note, registration, uuid=None, life_cycle_code: str=Livscyklus.RETTET.value
 ):
     """Update object with the partial data supplied."""
     user_ref = str(get_authenticated_user())
@@ -489,8 +489,8 @@ async def list_and_consolidate_objects(
 async def list_objects(
     class_name: str,
     uuid: list | None,
-    virkning_fra,
-    virkning_til,
+    virkning_fra: datetime,
+    virkning_til: datetime,
     registreret_fra,
     registreret_til,
 ):
@@ -761,7 +761,7 @@ def _trim_virkninger(virkninger_list, valid_from, valid_to):
     valid_from = _parse_timestamp(valid_from)
     valid_to = _parse_timestamp(valid_to)
 
-    def filter_fn(virkning):
+    def filter_fn(virkning) -> bool:
         virkning_to = _parse_timestamp(virkning["virkning"]["to"])
         to_included = virkning["virkning"]["to_included"]
         if to_included and virkning_to < valid_from:  # pragma: no cover
@@ -794,8 +794,8 @@ async def search_objects(
     note=None,
     any_attr_value_arr=None,
     any_rel_uuid_arr=None,
-    first_result=0,
-    max_results=2147483647,
+    first_result: int=0,
+    max_results: int=2147483647,
 ):
     if not any_attr_value_arr:
         any_attr_value_arr = []

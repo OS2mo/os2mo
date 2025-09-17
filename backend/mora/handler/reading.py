@@ -98,7 +98,7 @@ class ReadingHandler:
 
     @classmethod
     async def __async_get_mo_object_from_effect(
-        cls, c, function_id, function_obj, flat: bool = False
+        cls, c: Connector, function_id: str, function_obj, flat: bool = False
     ) -> list[Any]:
         """
         just a wrapper that makes calls in parallel. Not encapsulating / motivated by

@@ -23,14 +23,14 @@ from .conftest import fake_auth
 from .conftest import serviceapiless_auth
 
 
-def lookup_auth_dependency(route, auth_coro):
+def lookup_auth_dependency(route, auth_coro) -> bool:
     # Check if auth dependency exists
     return any(d.dependency == auth_coro for d in route.dependencies)
 
 
 def ensure_endpoints_depend_on_oidc_auth_function(
     all_routes, no_auth_endpoints, auth_coro
-):
+) -> None:
     """
     Loop through all FastAPI routes (except the ones from the above
     exclude list) and make sure they depend (via fastapi.Depends) on the
@@ -63,7 +63,7 @@ def ensure_endpoints_depend_on_oidc_auth_function(
 
 def ensure_no_auth_endpoints_do_not_depend_on_auth_function(
     all_routes, no_auth_endpoints, auth_coro
-):
+) -> None:
     """
     Loop through the FastAPI routes that do not require authentication
     (except the ones from the above exclude list) and make sure they do not
@@ -156,7 +156,7 @@ def all_routes(fastapi_test_app: FastAPI) -> list[APIRoute]:
     return list(routes)
 
 
-def test_ensure_endpoints_depend_on_oidc_auth_function(all_routes, no_auth_endpoints):
+def test_ensure_endpoints_depend_on_oidc_auth_function(all_routes, no_auth_endpoints) -> None:
     """
     Test that OIDC auth is enabled on all endpoints except from those
     specified in an explicit exclude list (see the NO_AUTH_ENDPOINTS below)
@@ -171,7 +171,7 @@ def test_ensure_endpoints_depend_on_oidc_auth_function(all_routes, no_auth_endpo
 
 def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(
     all_routes, no_auth_endpoints
-):
+) -> None:
     """
     Test that OIDC auth is enabled on all endpoints except from those
     specified in an explicit exclude list (see the NO_AUTH_ENDPOINTS below)
@@ -268,20 +268,20 @@ async def test_auth_graphql(
 
 
 @util.override_config(Settings(keycloak_rbac_enabled=True))
-def test_uuid_parsed_correctly_uuid():
+def test_uuid_parsed_correctly_uuid() -> None:
     token = Token(azp="mo-frontend", uuid="30c89ad2-e0bb-42ae-82a8-1ae36943cb9e")
     assert token.uuid == UUID("30c89ad2-e0bb-42ae-82a8-1ae36943cb9e")
 
 
 @util.override_config(Settings(keycloak_rbac_enabled=True))
-def test_uuid_parsed_correctly_base64():
+def test_uuid_parsed_correctly_base64() -> None:
     token = Token(azp="mo-frontend", uuid="0prIMLvgrkKCqBrjaUPLng==")
 
     assert token.uuid == UUID("30c89ad2-e0bb-42ae-82a8-1ae36943cb9e")
 
 
 @util.override_config(Settings(keycloak_rbac_enabled=True))
-def test_uuid_parse_fails_on_garbage():
+def test_uuid_parse_fails_on_garbage() -> None:
     with pytest.raises(ValidationError) as err:
         Token(
             azp="mo-frontend",

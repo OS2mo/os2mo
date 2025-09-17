@@ -75,7 +75,7 @@ async def test_get_mo_address():
     assert expected == actual
 
 
-def test_get_lora_address():
+def test_get_lora_address() -> None:
     # Arrange
     value = "12345678"
     visibility = "d99b500c-34b4-4771-9381-5c989eede969"

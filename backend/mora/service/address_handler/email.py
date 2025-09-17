@@ -14,7 +14,7 @@ class EmailAddressHandler(base.AddressHandler):
     prefix = "urn:mailto:"
 
     @property
-    def href(self):
+    def href(self) -> str:
         return f"mailto:{self.value}"
 
     @staticmethod

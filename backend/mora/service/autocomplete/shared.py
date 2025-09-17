@@ -91,7 +91,7 @@ async def string_to_urn(urn_string: str) -> str:
     return util.urnquote(urn_string)
 
 
-def gql_object_validity_valid(gql_obj: dict, at_date: date | None):  # pragma: no cover
+def gql_object_validity_valid(gql_obj: dict, at_date: date | None) -> bool | None:  # pragma: no cover
     if at_date is None:
         return None
 

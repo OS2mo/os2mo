@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from sqlalchemy.connectors import Connector
+from backend.mora.lora import Connector
 """
 Organisation
 ------------
@@ -27,7 +29,7 @@ class ConfiguredOrganisation:
 
     @classmethod
     async def validate(cls):
-        async def get_lora_organisation(c, orgid, org=None):
+        async def get_lora_organisation(c: Connector, orgid: str, org=None):
             if not org:  # pragma: no cover
                 org = await c.organisation.get(orgid)
 
@@ -56,7 +58,7 @@ class ConfiguredOrganisation:
         cls.valid = True
 
     @classmethod
-    def clear(cls):
+    def clear(cls) -> None:
         cls.organisation = None
         cls.valid = False
 

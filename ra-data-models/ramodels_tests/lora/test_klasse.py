@@ -51,14 +51,14 @@ def klasse_fsf_strat(draw):
 
 class TestKlasse:
     @given(klasse_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert Klasse(**model_dict)
 
     @given(klasse_fsf_strat())
-    def test_from_simplified_fields(self, simp_fields_dict):
+    def test_from_simplified_fields(self, simp_fields_dict) -> None:
         assert Klasse.from_simplified_fields(**simp_fields_dict)
 
-    def test_fixture(self):
+    def test_fixture(self) -> None:
         content = Path("ramodels_tests/fixture/lora/klasse.json").read_text()
         payload = json.loads(content)
         assert KlasseRead(**payload)

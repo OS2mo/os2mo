@@ -60,7 +60,7 @@ async def test_get_mo_address():
         assert expected == actual
 
 
-def test_get_lora_address():
+def test_get_lora_address() -> None:
     # Arrange
     address_handler = WWWAddressHandler(URL_VALUE, None)
 

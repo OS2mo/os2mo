@@ -11,7 +11,7 @@ NINFINITY = "-infinity"
 
 
 class TestInfiniteDatetime:
-    def test_parsing(self):
+    def test_parsing(self) -> None:
         base = datetime.now()
         base_str = base.isoformat()
 
@@ -20,7 +20,7 @@ class TestInfiniteDatetime:
         assert INFINITY == InfiniteDatetime.from_date_string(INFINITY).value
         assert NINFINITY == InfiniteDatetime.from_date_string(NINFINITY).value
 
-    def test_comparison(self):
+    def test_comparison(self) -> None:
         base = datetime.now()
 
         ninf = InfiniteDatetime.from_date_string(NINFINITY)

@@ -7,7 +7,7 @@ from tests.oio_rest.util import DBTestCase
 
 
 class TestItSystem(DBTestCase):
-    def test_it_system(self):
+    def test_it_system(self) -> None:
         result = self.client.post(
             "lora/organisation/itsystem",
             data={

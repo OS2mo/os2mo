@@ -58,12 +58,12 @@ single_item_error = partial(
 
 
 class TestLoraBase:
-    def test_init(self):
+    def test_init(self) -> None:
         # LoraBase cannot be instantiated
         with pytest.raises(TypeError, match="may not be instantiated"):
             LoraBase()
 
-    def test_fields(self):
+    def test_fields(self) -> None:
         # Subclasses of LoraBase should have a UUID field
         class LoraSub(LoraBase):
             pass
@@ -71,7 +71,7 @@ class TestLoraBase:
         assert LoraSub.__fields__.get("uuid")
 
     @given(st.uuids())
-    def test_uuid_validator(self, hy_uuid):
+    def test_uuid_validator(self, hy_uuid) -> None:
         class LoraSub(LoraBase):
             pass
 
@@ -83,7 +83,7 @@ class TestLoraBase:
         lora_sub_with_uuid = LoraSub(uuid=hy_uuid)
         assert lora_sub_with_uuid.uuid == hy_uuid
 
-    def test_object_type_validator(self):
+    def test_object_type_validator(self) -> None:
         class LoRaSub(LoraBase):
             object_type: Literal["my_type"] = Field("my_type")
 
@@ -125,7 +125,7 @@ class TestInfiniteDatetime:
         ),
         st.integers(),
     )
-    def test_init(self, ht_str, ht_int):
+    def test_init(self, ht_str, ht_int) -> None:
         # Unfortunately, this currently works just fine :(
         assert isinstance(InfiniteDatetime(ht_str), InfiniteDatetime)
         assert isinstance(InfiniteDatetime(ht_int), InfiniteDatetime)
@@ -143,7 +143,7 @@ class TestInfiniteDatetime:
         ),
         st.integers(),
     )
-    def test_from_value(self, valid_infdt, ht_str, ht_int):
+    def test_from_value(self, valid_infdt, ht_str, ht_int) -> None:
         # This should always work
         assert InfiniteDatetime.from_value(valid_infdt)
 
@@ -167,7 +167,7 @@ class TestInfiniteDatetime:
         ),
         st.integers(),
     )
-    def test_in_model(self, valid_infdt, ht_str, ht_int):
+    def test_in_model(self, valid_infdt, ht_str, ht_int) -> None:
         class DTModel(BaseModel):
             dt: InfiniteDatetime
 
@@ -195,7 +195,7 @@ class TestInfiniteDatetime:
             datetime.fromisoformat("2000-01-01T00:00:00+00:00"),
         ),
     )
-    def test_ordering(self, ht_dts, not_inf_dt):
+    def test_ordering(self, ht_dts, not_inf_dt) -> None:
         from_dt, to_dt = ht_dts
         from_inf_dt, to_inf_dt = InfiniteDatetime(from_dt), InfiniteDatetime(to_dt)
         assert from_inf_dt < to_inf_dt
@@ -246,13 +246,13 @@ class TestEffectiveTime:
             "to_date": InfiniteDatetime("2000-01-01T00:00:00+00:00"),
         }
     )
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert EffectiveTime(**model_dict)
 
     @given(
         st.tuples(valid_inf_dt(), valid_inf_dt()).filter(lambda dts: dts[0] >= dts[1])
     )
-    def test_validator(self, dt_range):
+    def test_validator(self, dt_range) -> None:
         from_dt, to_dt = dt_range
         with pytest.raises(
             ValidationError, match="from_date must be strictly less than to_date"
@@ -284,11 +284,11 @@ def authority_strat(draw):
 
 class TestAuthority:
     @given(authority_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert Authority(**model_dict)
 
     @given(authority_strat(), not_from_regex(urn_pat))
-    def test_validators(self, model_dict, invalid_urn):
+    def test_validators(self, model_dict, invalid_urn) -> None:
         model_dict["urn"] = invalid_urn
         with pytest.raises(ValidationError, match="string does not match regex"):
             Authority(**model_dict)
@@ -310,17 +310,17 @@ def facet_prop_strat(draw):
 
 class TestFacetProperties:
     @given(facet_prop_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert FacetProperties(**model_dict)
 
     @given(facet_prop_strat())
-    def test_remove_integration_data(self, model_dict):
+    def test_remove_integration_data(self, model_dict) -> None:
         model_dict["integration_data"] = "test"
         result = FacetProperties(**model_dict)
         assert "integration_data" not in result.dict()
 
     @given(facet_prop_strat())
-    def test_remove_integrationsdata(self, model_dict):
+    def test_remove_integrationsdata(self, model_dict) -> None:
         model_dict["integrationsdata"] = "test"
         result = FacetProperties(**model_dict)
         assert "integrationsdata" not in result.dict()
@@ -351,11 +351,11 @@ def invalid_facet_attr_strat(draw):
 
 class TestFacetAttributes:
     @given(facet_attr_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert FacetAttributes(**model_dict)
 
     @given(invalid_facet_attr_strat())
-    def test_validators(self, invalid_model_dict):
+    def test_validators(self, invalid_model_dict) -> None:
         with single_item_error():
             FacetAttributes(**invalid_model_dict)
 
@@ -376,7 +376,7 @@ def published_strat(draw):
 
 class TestPublished:
     @given(published_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert Published(**model_dict)
 
 
@@ -403,11 +403,11 @@ def invalid_facet_states_strat(draw):
 
 class TestFacetStates:
     @given(facet_states_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert FacetStates(**model_dict)
 
     @given(invalid_facet_states_strat())
-    def test_validators(self, invalid_model_dict):
+    def test_validators(self, invalid_model_dict) -> None:
         with single_item_error():
             FacetStates(**invalid_model_dict)
 
@@ -428,11 +428,11 @@ def responsible_strat(draw):
 
 class TestResponsible:
     @given(responsible_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert Responsible(**model_dict)
 
     @given(responsible_strat(), not_from_regex(r"^organisation$"))
-    def test_validators(self, model_dict, invalid_object_type):
+    def test_validators(self, model_dict, invalid_object_type) -> None:
         model_dict["object_type"] = invalid_object_type
         with unexpected_value_error():
             Responsible(**model_dict)
@@ -454,11 +454,11 @@ def facet_ref_strat(draw):
 
 class TestFacetRef:
     @given(facet_ref_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert FacetRef(**model_dict)
 
     @given(facet_ref_strat(), not_from_regex(r"^facet$"))
-    def test_validators(self, model_dict, invalid_object_type):
+    def test_validators(self, model_dict, invalid_object_type) -> None:
         model_dict["object_type"] = invalid_object_type
         with unexpected_value_error():
             FacetRef(**model_dict)
@@ -480,11 +480,11 @@ def owner_ref_strat(draw):
 
 class TestOwnerRef:
     @given(owner_ref_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert OwnerRef(**model_dict)
 
     @given(owner_ref_strat(), not_from_regex(r"^organisationenhed$"))
-    def test_validators(self, model_dict, invalid_object_type):
+    def test_validators(self, model_dict, invalid_object_type) -> None:
         model_dict["object_type"] = invalid_object_type
         with unexpected_value_error():
             OwnerRef(**model_dict)
@@ -518,11 +518,11 @@ def invalid_facet_relations_strat(draw):
 
 class TestFacetRelations:
     @given(facet_relations_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert FacetRelations(**model_dict)
 
     @given(invalid_facet_relations_strat())
-    def test_validators(self, invalid_model_dict):
+    def test_validators(self, invalid_model_dict) -> None:
         with single_item_error():
             FacetRelations(**invalid_model_dict)
 
@@ -547,7 +547,7 @@ def itsys_prop_strat(draw):
 
 class TestITSysProperties:
     @given(itsys_prop_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert ITSystemProperties(**model_dict)
 
 
@@ -578,11 +578,11 @@ def invalid_itsys_attr_strat(draw):
 
 class TestITSysAttributes:
     @given(itsys_attr_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert ITSystemAttributes(**model_dict)
 
     @given(invalid_itsys_attr_strat())
-    def test_validators(self, invalid_model_dict):
+    def test_validators(self, invalid_model_dict) -> None:
         with single_item_error():
             ITSystemAttributes(**invalid_model_dict)
 
@@ -602,7 +602,7 @@ def relation_strat(draw):
 
 class TestRelation:
     @given(relation_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert Relation(**model_dict)
 
 
@@ -624,7 +624,7 @@ def get_relations_strat(draw):
 
 class TestGetRelations:
     @given(get_relations_strat())
-    def test_get_relations(self, params):
+    def test_get_relations(self, params) -> None:
         uuids = params.get("uuids")
         if uuids is None:
             assert get_relations(**params) is None
@@ -678,11 +678,11 @@ def invalid_itsys_relations_strat(draw):
 
 class TestITSysRelations:
     @given(itsys_relations_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert ITSystemRelations(**model_dict)
 
     @given(invalid_itsys_relations_strat())
-    def test_validators(self, invalid_model_dict):
+    def test_validators(self, invalid_model_dict) -> None:
         with single_item_error():
             ITSystemRelations(**invalid_model_dict)
 
@@ -702,7 +702,7 @@ def itsys_valid_state_strat(draw):
 
 class TestITSysValidState:
     @given(itsys_valid_state_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert ITSystemValidState(**model_dict)
 
 
@@ -733,11 +733,11 @@ def invalid_itsys_states_strat(draw):
 
 class TestITSysStates:
     @given(itsys_states_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert ITSystemStates(**model_dict)
 
     @given(invalid_itsys_states_strat())
-    def test_validators(self, invalid_model_dict):
+    def test_validators(self, invalid_model_dict) -> None:
         with single_item_error():
             ITSystemStates(**invalid_model_dict)
 
@@ -766,7 +766,7 @@ def klasse_prop_strat(draw):
 
 class TestKlasseProperties:
     @given(klasse_prop_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert KlasseProperties(**model_dict)
 
 
@@ -789,7 +789,7 @@ def klasse_relations_strat(draw):
 
 class TestKlasseRelations:
     @given(klasse_relations_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert KlasseRelations(**model_dict)
 
     # Max size explicitly set for faster data generation
@@ -798,7 +798,7 @@ class TestKlasseRelations:
     )
 
     @given(klasse_relations_strat(), invalid_resp)
-    def test_validators_resp(self, model_dict, invalid_resp):
+    def test_validators_resp(self, model_dict, invalid_resp) -> None:
         model_dict["responsible"] = invalid_resp
         with single_item_error():
             KlasseRelations(**model_dict)
@@ -809,7 +809,7 @@ class TestKlasseRelations:
     )
 
     @given(klasse_relations_strat(), invalid_fref)
-    def test_validators_fref(self, model_dict, invalid_fref):
+    def test_validators_fref(self, model_dict, invalid_fref) -> None:
         model_dict["facet"] = invalid_fref
         with single_item_error():
             KlasseRelations(**model_dict)
@@ -830,7 +830,7 @@ def klasse_attr_strat(draw):
 
 class TestKlasseAttributes:
     @given(klasse_attr_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert KlasseAttributes(**model_dict)
 
     # Max size explicitly set for faster data generation
@@ -839,7 +839,7 @@ class TestKlasseAttributes:
     )
 
     @given(klasse_attr_strat(), invalid_klsprop)
-    def test_validators(self, model_dict, invalid_klsprop):
+    def test_validators(self, model_dict, invalid_klsprop) -> None:
         model_dict["properties"] = invalid_klsprop
         with single_item_error():
             KlasseAttributes(**model_dict)
@@ -860,7 +860,7 @@ def klasse_states_strat(draw):
 
 class TestKlasseStates:
     @given(klasse_states_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert KlasseStates(**model_dict)
 
     # Max size explicitly set for faster data generation
@@ -869,7 +869,7 @@ class TestKlasseStates:
     )
 
     @given(klasse_states_strat(), invalid_pub)
-    def test_validators(self, model_dict, invalid_pub):
+    def test_validators(self, model_dict, invalid_pub) -> None:
         model_dict["published_state"] = invalid_pub
         with single_item_error():
             KlasseStates(**model_dict)
@@ -890,7 +890,7 @@ def org_prop_strat(draw):
 
 class TestOrganisationProperties:
     @given(org_prop_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert OrganisationProperties(**model_dict)
 
 
@@ -909,7 +909,7 @@ def org_attr_strat(draw):
 
 class TestOrganisationAttributes:
     @given(org_attr_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert OrganisationAttributes(**model_dict)
 
     # Max size explicitly set for faster data generation
@@ -918,7 +918,7 @@ class TestOrganisationAttributes:
     )
 
     @given(org_attr_strat(), invalid_orgprop)
-    def test_validators(self, model_dict, invalid_orgprop):
+    def test_validators(self, model_dict, invalid_orgprop) -> None:
         model_dict["properties"] = invalid_orgprop
         with single_item_error():
             OrganisationAttributes(**model_dict)
@@ -940,7 +940,7 @@ def org_valid_states_strat(draw):
 
 class TestOrganisationValidState:
     @given(org_valid_states_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert OrganisationValidState(**model_dict)
 
 
@@ -959,7 +959,7 @@ def org_states_strat(draw):
 
 class TestOrganisationStates:
     @given(org_states_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert OrganisationStates(**model_dict)
 
     # Max size explicitly set for faster data generation
@@ -968,7 +968,7 @@ class TestOrganisationStates:
     )
 
     @given(org_states_strat(), invalid_orgstate)
-    def test_validators(self, model_dict, invalid_orgstate):
+    def test_validators(self, model_dict, invalid_orgstate) -> None:
         model_dict["valid_state"] = invalid_orgstate
         with single_item_error():
             OrganisationStates(**model_dict)
@@ -989,7 +989,7 @@ def org_relations_strat(draw):
 
 class TestOrganisationRelations:
     @given(org_relations_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert OrganisationRelations(**model_dict)
 
     # Max size explicitly set for faster data generation
@@ -998,7 +998,7 @@ class TestOrganisationRelations:
     )
 
     @given(org_relations_strat(), invalid_auth)
-    def test_validators(self, model_dict, invalid_auth):
+    def test_validators(self, model_dict, invalid_auth) -> None:
         model_dict["authority"] = invalid_auth
         with single_item_error():
             OrganisationRelations(**model_dict)

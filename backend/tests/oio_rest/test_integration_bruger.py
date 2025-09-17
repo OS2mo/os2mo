@@ -4,7 +4,7 @@ from tests.oio_rest.test_integration_helper import TestCreateObject
 
 
 class TestCreateBruger(TestCreateObject):
-    def test_bruger(self):
+    def test_bruger(self) -> None:
         # test create
         facet = {
             "attributter": {

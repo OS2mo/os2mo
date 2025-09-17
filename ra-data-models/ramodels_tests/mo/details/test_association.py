@@ -142,37 +142,37 @@ def association_fsf_strat(draw):
 
 class TestAssociation:
     @given(association_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert Association(**model_dict)
 
     @given(association_strat(), not_from_regex(r"^association$"))
-    def test_invalid_type(self, model_dict, invalid_type):
+    def test_invalid_type(self, model_dict, invalid_type) -> None:
         model_dict["type"] = invalid_type
         with unexpected_value_error():
             Association(**model_dict)
 
     @given(association_fsf_strat())
-    def test_from_simplified_fields(self, simp_fields_dict):
+    def test_from_simplified_fields(self, simp_fields_dict) -> None:
         assert Association.from_simplified_fields(**simp_fields_dict)
 
     @given(base_strat())
-    def test_base(self, model_dict):
+    def test_base(self, model_dict) -> None:
         assert AssociationBase(**model_dict)
 
     @given(read_strat())
-    def test_read(self, model_dict):
+    def test_read(self, model_dict) -> None:
         assert AssociationRead(**model_dict)
 
     @given(read_strat())
-    def test_read_empty_string_is_converted_to_none(self, model_dict):
+    def test_read_empty_string_is_converted_to_none(self, model_dict) -> None:
         model_dict["employee_uuid"] = ""
         assert AssociationRead(**model_dict).employee_uuid is None
 
     @given(write_strat())
-    def test_write(self, model_dict):
+    def test_write(self, model_dict) -> None:
         assert AssociationWrite(**model_dict)
 
     @given(write_strat_invalid())
-    def test_write_validates_mutually_exclusive_fields(self, model_dict):
+    def test_write_validates_mutually_exclusive_fields(self, model_dict) -> None:
         with pytest.raises(ValueError):
             AssociationWrite(**model_dict)

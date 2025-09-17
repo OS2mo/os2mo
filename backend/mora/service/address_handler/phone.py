@@ -12,7 +12,7 @@ class PhoneAddressHandler(base.AddressHandler):
     prefix = "urn:magenta.dk:telefon:"
 
     @property
-    def href(self):
+    def href(self) -> str:
         return f"tel:{self._value}"
 
     @staticmethod

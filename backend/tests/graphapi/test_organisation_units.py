@@ -39,7 +39,7 @@ validity_builder = st.builds(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_query_all(graphapi_post: GraphAPIPost):
+def test_query_all(graphapi_post: GraphAPIPost) -> None:
     """Test that we can query all our organisation units."""
     query = """
         query {

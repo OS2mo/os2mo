@@ -36,15 +36,15 @@ class make_interval(GenericFunction):
     inherit_cache = True
 
     def __init__(
-        self, years=0, months=0, weeks=0, days=0, hours=0, mins=0, secs=0, **kw
-    ):
+        self, years: int=0, months: int=0, weeks: int=0, days: int=0, hours: int=0, mins: int=0, secs: int=0, **kw
+    ) -> None:
         super().__init__(years, months, weeks, days, hours, mins, secs, **kw)
 
 
 class _OIOEntityMixin:
     id: Mapped[UUID] = mapped_column(primary_key=True)
 
-    def __repr__(self):  # pragma: no cover
+    def __repr__(self) -> str:  # pragma: no cover
         return f"{self.__class__.__name__}(id={self.id})"
 
 
@@ -108,7 +108,7 @@ class _RegistreringMixin:
     def _lifecycle(cls) -> ColumnElement[ENUM]:
         return type_coerce(text("(registrering).livscykluskode"), LivscyklusKode)
 
-    def __repr__(self):  # pragma: no cover
+    def __repr__(self) -> str:  # pragma: no cover
         return f"{self.__class__.__name__}(id={self.id}, registrering_period={self.registrering_period!r})"
 
 
@@ -144,7 +144,7 @@ class _AttrEgenskaberMixin(_VirkningMixin):
 
 class _RelationMixin(_VirkningMixin):
     @declared_attr
-    def __table_args__(cls):
+    def __table_args__(cls) -> tuple[CheckConstraint, CheckConstraint]:
         return (
             *_VirkningMixin.__table_args__,
             CheckConstraint(
@@ -159,7 +159,7 @@ class _RelationMixin(_VirkningMixin):
     objekt_type: Mapped[str | None]
     rel_type: Mapped[str]
 
-    def __repr__(self):  # pragma: no cover
+    def __repr__(self) -> str:  # pragma: no cover
         return f"{self.__class__.__name__}(id={self.id}, rel_maal_uuid={self.rel_maal_uuid!r}, rel_maal_urn={self.rel_maal_urn!r}, objekt_type={self.objekt_type!r}, rel_type={self.rel_type!r})"
 
 
@@ -168,7 +168,7 @@ Gyldighed = Literal["Aktiv", "Inaktiv", ""]
 PubliceretStatus = Literal["Publiceret", "IkkePubliceret", ""]
 
 
-def _TilsGyldighedMixin(oio_type):
+def _TilsGyldighedMixin(oio_type) -> type[_Mixin]:
     class _Mixin(_VirkningMixin):
         id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
 
@@ -177,7 +177,7 @@ def _TilsGyldighedMixin(oio_type):
             index=True,
         )
 
-        def __repr__(self):  # pragma: no cover
+        def __repr__(self) -> str:  # pragma: no cover
             return (
                 f"{self.__class__.__name__}(id={self.id}, gyldighed={self.gyldighed!r})"
             )

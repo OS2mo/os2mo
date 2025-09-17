@@ -95,7 +95,7 @@ async def test_get_mo_address_w_default():
     assert expected == actual
 
 
-def test_get_lora_address():
+def test_get_lora_address() -> None:
     # Arrange
     address_handler = MultifieldTextAddressHandler(TEXT_VALUE_ONE, None, TEXT_VALUE_TWO)
 

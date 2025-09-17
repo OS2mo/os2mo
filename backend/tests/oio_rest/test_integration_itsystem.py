@@ -4,7 +4,7 @@ from tests.oio_rest.test_integration_helper import TestCreateObject
 
 
 class TestCreateItsystem(TestCreateObject):
-    def test_create_itsystem(self):
+    def test_create_itsystem(self) -> None:
         # Create itsystem
 
         itsystem = {

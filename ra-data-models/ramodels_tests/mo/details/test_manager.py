@@ -103,33 +103,33 @@ def manager_fsf_strat(draw):
 
 class TestManager:
     @given(base_strat())
-    def test_base(self, model_dict):
+    def test_base(self, model_dict) -> None:
         assert ManagerBase(**model_dict)
 
     @given(read_strat())
-    def test_read(self, model_dict):
+    def test_read(self, model_dict) -> None:
         assert ManagerRead(**model_dict)
 
     @given(read_strat())
-    def test_read_empty_string_is_converted_to_none(self, model_dict):
+    def test_read_empty_string_is_converted_to_none(self, model_dict) -> None:
         model_dict["employee_uuid"] = ""
         assert ManagerRead(**model_dict).employee_uuid is None
 
     @given(write_strat())
-    def test_write(self, model_dict):
+    def test_write(self, model_dict) -> None:
         assert ManagerWrite(**model_dict)
 
     @given(manager_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert Manager(**model_dict)
 
     @given(manager_strat(), not_from_regex(r"^manager$"))
-    def test_validators(self, model_dict, invalid_type):
+    def test_validators(self, model_dict, invalid_type) -> None:
         with unexpected_value_error():
             model_dict["type"] = invalid_type
             Manager(**model_dict)
 
     @given(manager_fsf_strat())
-    def test_from_simplified_fields(self, simp_fields_dict):
+    def test_from_simplified_fields(self, simp_fields_dict) -> None:
         # Required
         assert Manager.from_simplified_fields(**simp_fields_dict)

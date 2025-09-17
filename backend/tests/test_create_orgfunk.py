@@ -3,7 +3,7 @@
 from mora.common import create_organisationsfunktion_payload
 
 
-def test_create_organisation_full():
+def test_create_organisation_full() -> None:
     output_org_funk = {
         "attributter": {
             "organisationfunktionegenskaber": [
@@ -136,7 +136,7 @@ def test_create_organisation_full():
     ), "Org funktion not created correctly from FE req"
 
 
-def test_create_organisationfunktion_minimal():
+def test_create_organisationfunktion_minimal() -> None:
     output_org_funk = {
         "attributter": {
             "organisationfunktionegenskaber": [

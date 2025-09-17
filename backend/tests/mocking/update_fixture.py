@@ -18,7 +18,7 @@ import requests
 @click.argument(
     "files", type=click.Path(exists=True, dir_okay=False), required=True, nargs=-1
 )
-def main(base_url, files):
+def main(base_url, files) -> None:
     sess = requests.Session()
 
     def get(url):

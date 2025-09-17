@@ -15,7 +15,7 @@ from tests.oio_rest.util import DBTestCase
 @freezegun.freeze_time("2018-01-01")
 class TestCreateObject(DBTestCase):
     @pytest.fixture(autouse=True)
-    def setup_objects(self):
+    def setup_objects(self) -> None:
         self.standard_virkning1 = {
             "from": "2000-01-01 12:00:00+01",
             "from_included": True,
@@ -35,7 +35,7 @@ class TestCreateObject(DBTestCase):
 
     def parametrized_basic_integration(
         self, path: str, lora_object: dict[str, Any], search_params: dict[str, Any]
-    ):
+    ) -> None:
         """
         Tests basic create-search-delete-search flow
         :param path: url-style specification, e.g.: /organisation/bruger

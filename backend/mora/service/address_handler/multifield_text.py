@@ -20,12 +20,12 @@ class MultifieldTextAddressHandler(base.AddressHandler):
     prefix2 = "urn:multifield_text2:"
 
     @property
-    def name(self):
+    def name(self) -> str:
         return name(self._value, self._value2)
 
     @staticmethod
-    def _value_from_effect(effect, prefix: str):
-        def unquote_value(urn):
+    def _value_from_effect(effect, prefix: str) -> str | None:
+        def unquote_value(urn) -> str:
             quoted_value = urn[len(prefix) :]
             return util.urnunquote(quoted_value)
 
@@ -46,7 +46,7 @@ class MultifieldTextAddressHandler(base.AddressHandler):
         return cls(value, visibility, value2=value2)
 
     @staticmethod
-    async def validate_value(value):
+    async def validate_value(value: str):
         """Text value is not restricted."""
         pass
 
@@ -61,7 +61,7 @@ class MultifieldTextAddressHandler(base.AddressHandler):
 
         return cls(value, visibility, value2=value2)
 
-    def get_lora_address(self):
+    def get_lora_address(self) -> list[dict[str, str]]:
         """
         Get a LoRa object fragment for the address
 

@@ -59,7 +59,7 @@ def gen_accesslog_middleware() -> Callable[[Request, Any], Awaitable[Response]]:
     return accesslog_middleware
 
 
-def init(log_level: str, json: bool = True):
+def init(log_level: str, json: bool = True) -> None:
     # Heavily inspired by https://gist.github.com/nymous/f138c7f06062b7c43c060bf03759c29e
     timestamper = structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S", utc=True)
 

@@ -16,7 +16,7 @@ class TestServiceApp:
             b'"status":500,"error_key":"E_UNKNOWN"}'
         )
 
-    def test_failing_service(self, service_client: TestClient):
+    def test_failing_service(self, service_client: TestClient) -> None:
         response = service_client.request("GET", "/service/kaflaflibob")
         assert response.status_code == 404
         assert response.json() == {
@@ -28,7 +28,7 @@ class TestServiceApp:
 
     def test_exception_handling(
         self, service_client_not_raising: TestClient, monkeypatch
-    ):
+    ) -> None:
         def raise_value_error():
             raise ValueError("ARGH")
 

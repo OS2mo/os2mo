@@ -15,7 +15,7 @@ from mora.service.autocomplete.orgunits import search_orgunits
 
 @patch("mora.service.autocomplete.get_results")
 @patch("mora.service.orgunit.config.get_settings")
-def test_v2_legacy_logic(mock_get_settings, mock_get_results, service_client):
+def test_v2_legacy_logic(mock_get_settings, mock_get_results, service_client) -> None:
     class_uuids = [
         uuid.UUID("e8ea1a09-d3d4-4203-bfe9-d9a213371337"),
     ]

@@ -25,7 +25,7 @@ _it_user_uuid = "11111111-1111-1111-1111-111111111111"
 _job_function_uuid = str(uuid4())
 
 
-def _lora_virkning(**kwargs):
+def _lora_virkning(**kwargs) -> dict[str, dict[str, bool | str]]:
     virkning = {
         "virkning": {
             "from": "2017-12-01 00:00:00+01",
@@ -38,7 +38,7 @@ def _lora_virkning(**kwargs):
     return virkning
 
 
-def _lora_organisationfunktion(**kwargs):
+def _lora_organisationfunktion(**kwargs) -> dict[str, dict[str, list[dict[str, dict[str, bool | str]]]] | str]:
     doc = {
         "livscykluskode": "Importeret",
         "tilstande": {
@@ -78,7 +78,7 @@ def _lora_organisationfunktion(**kwargs):
     return doc
 
 
-def _mo_create_it_user_doc():
+def _mo_create_it_user_doc() -> dict[str, dict[str, str | None] | dict[str, str] | str | None]:
     return {
         "type": "it",
         "uuid": _it_user_uuid,
@@ -91,7 +91,7 @@ def _mo_create_it_user_doc():
     }
 
 
-def _mo_return_it_user_doc():
+def _mo_return_it_user_doc() -> dict[str, dict[str, str | None] | dict[str, str] | str | None]:
     doc = _mo_create_it_user_doc()
     del doc["type"]
     doc["primary"] = None
@@ -152,7 +152,7 @@ async def test_create_association(
     mo_expected: dict[str, Any],
     lora_expected: dict[str, Any],
 ) -> None:
-    def url(employee_uuid: str, **kwargs):
+    def url(employee_uuid: str, **kwargs) -> str:
         base = f"/service/e/{employee_uuid}/details/association"
         args = {"validity": "future", "only_primary_uuid": "1"}
         if "it" in mo_data and "first_party_perspective" not in kwargs:
@@ -294,7 +294,7 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
     unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
     subid = "7626ad64-327d-481f-8b32-36c78eb12f8c"
 
-    def payload(assoc_uuid, include_person=True):
+    def payload(assoc_uuid: str, include_person=True):
         """
         :param assoc_uuid: uuid to use
         :param include_person: change between formats (both legal)
@@ -442,7 +442,7 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
 
         assert_registrations_equal(expected, actual_association)
 
-    def assoc_content_only_primary_uuid(assoc_uuid):
+    def assoc_content_only_primary_uuid(assoc_uuid: str):
         """
         creates expected format
 

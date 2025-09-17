@@ -11,7 +11,7 @@ from mora import util
 from mora.util import parsedatetime
 
 
-def get_uuid_test_id():
+def get_uuid_test_id() -> str:
     return "00000000-0000-0000-0000-000000000000"
 
 
@@ -32,7 +32,7 @@ def get_uuid_test_id():
         ("2018-06-01", "2018-06-01T00:00:00+02:00"),
     ],
 )
-def test_to_lora_time(testing_time, expected_time):
+def test_to_lora_time(testing_time, expected_time) -> None:
     assert util.to_lora_time(testing_time) == expected_time
 
 
@@ -45,11 +45,11 @@ def test_to_lora_time(testing_time, expected_time):
         ("31-12-9999", util.POSITIVE_INFINITY),
     ],
 )
-def test_parse_datetime(testing_parse_date, expected_parse_date):
+def test_parse_datetime(testing_parse_date, expected_parse_date) -> None:
     assert util.parsedatetime(testing_parse_date) == expected_parse_date
 
 
-def test_pase_datetime_fallback():
+def test_pase_datetime_fallback() -> None:
     # test fallback
     string_parse = ("blyf", "flaf")
     assert util.parsedatetime(*string_parse) == "flaf"
@@ -59,7 +59,7 @@ def test_pase_datetime_fallback():
     "testing_uuid, expected",
     [("00000000-0000-0000-0000-000000000000", True), ("42", False), (None, False)],
 )
-def test_is_uuid(testing_uuid, expected):
+def test_is_uuid(testing_uuid, expected) -> None:
     assert util.is_uuid(testing_uuid) == expected
 
 
@@ -67,7 +67,7 @@ def test_is_uuid(testing_uuid, expected):
     "testing_cpr, expected",
     [("0101011000", True), ("123456789", False), ("42", False), (None, False)],
 )
-def test_is_cpr_number(testing_cpr, expected):
+def test_is_cpr_number(testing_cpr, expected) -> None:
     assert util.is_cpr_number(testing_cpr) == expected
 
 
@@ -91,7 +91,7 @@ def test_is_cpr_number(testing_cpr, expected):
         (10101010000, "", pytest.raises(ValueError, match="^invalid CPR number")),
     ],
 )
-def test_get_cpr_birthdate(valid_cpr, isodate, expected_raise):
+def test_get_cpr_birthdate(valid_cpr, isodate, expected_raise) -> None:
     with expected_raise:
         assert util.get_cpr_birthdate(valid_cpr) == util.from_iso_time(isodate)
 
@@ -107,7 +107,7 @@ def test_get_cpr_birthdate(valid_cpr, isodate, expected_raise):
         ("El Niño", "%45l%20%4ei%c3%b1o"),
     ],
 )
-def test_urnquote(quote, expected_quote):
+def test_urnquote(quote, expected_quote) -> None:
     assert util.urnquote(quote) == expected_quote
     assert util.urnunquote(util.urnquote(quote)) == quote
 
@@ -131,7 +131,7 @@ def test_urnquote(quote, expected_quote):
         ({"whatever": "no", "test1": 42}, ("test1", "test2"), None),  # Weird
     ],
 )
-def test_get_obj(obj, path, expected_location):
+def test_get_obj(obj, path, expected_location) -> None:
     assert util.get_obj_value(obj, path) == expected_location
 
 
@@ -159,7 +159,7 @@ def test_get_obj(obj, path, expected_location):
         ({}, ("test1", "test2"), "42", {"test1": {"test2": "42"}}),  # New path string.
     ],
 )
-def test_set_obj(obj, path, value, expected_result):
+def test_set_obj(obj, path, value, expected_result) -> None:
     assert util.set_obj_value(obj, path, value) == expected_result
 
 
@@ -203,7 +203,7 @@ def test_set_obj(obj, path, value, expected_result):
         ),
     ],
 )
-def test_get_valid_from(valid_from, expected_result, expected_raise):
+def test_get_valid_from(valid_from, expected_result, expected_raise) -> None:
     with expected_raise:
         assert util.get_valid_from(*valid_from) == expected_result
 
@@ -237,7 +237,7 @@ def test_get_valid_from(valid_from, expected_result, expected_raise):
         ),
     ],
 )
-def test_get_valid_to(valid_to, expected_result):
+def test_get_valid_to(valid_to, expected_result) -> None:
     assert util.get_valid_to(*valid_to) == expected_result
 
 
@@ -310,7 +310,7 @@ def test_get_valid_to(valid_to, expected_result):
         ),
     ],
 )
-def test_get_validities(validations, expected_result, expected_raise):
+def test_get_validities(validations, expected_result, expected_raise) -> None:
     with expected_raise:
         assert util.get_validities(validations) == expected_result
 
@@ -323,16 +323,16 @@ def test_get_validities(validations, expected_result, expected_raise):
         (({"uuid": 42}, None), pytest.raises(exceptions.HTTPException)),
     ],
 )
-def test_get_uuid_py(value, expected_raise):
+def test_get_uuid_py(value, expected_raise) -> None:
     with expected_raise:
         assert util.get_uuid(*value) == get_uuid_test_id()
 
 
-def test_get_uuid_with_required():
+def test_get_uuid_with_required() -> None:
     assert util.get_uuid({}, required=False) is None
 
 
-def test_get_uuid_with_key():
+def test_get_uuid_with_key() -> None:
     testing_uuid = get_uuid_test_id()
     key = "kaflabibob"
     assert util.get_uuid({key: testing_uuid, "uuid": 42}, key=key) == testing_uuid
@@ -368,7 +368,7 @@ def test_get_uuid_with_key():
         ),
     ],
 )
-def test_checked_get_py(key, default, required, expected_raise):
+def test_checked_get_py(key, default, required, expected_raise) -> None:
     mapping = {
         "list": [1337],
         "dict": {1337: 1337},
@@ -396,7 +396,7 @@ def test_checked_get_py(key, default, required, expected_raise):
         ("empty_str", "", True),
     ],
 )
-def test_checked_get_exception(key, default, required):
+def test_checked_get_exception(key, default, required) -> None:
     mapping = {
         "dict": {1337: 1337},
         "empty_dict": {},
@@ -429,7 +429,7 @@ def test_checked_get_exception(key, default, required):
     assert output == err.value.detail
 
 
-def test_know_timezone_trigger():
+def test_know_timezone_trigger() -> None:
     start = "2052-06-30 22:00:00+00"
     end = "2052-06-30 23:00:00+00"
 

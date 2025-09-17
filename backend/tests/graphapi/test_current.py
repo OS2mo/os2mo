@@ -81,7 +81,7 @@ def setup_data(graphapi_post: Any) -> None:
     }
 
 
-def current_response(expected):
+def current_response(expected: str | None):
     return [
         {
             "uuid": uuid,

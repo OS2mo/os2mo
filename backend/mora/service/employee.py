@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from datetime import datetime
 """
 Employees
 ---------
@@ -317,7 +318,7 @@ async def get_one_employee(
     c: lora.Connector,
     userid,
     user: dict[str, Any] | None = None,
-    details=EmployeeDetails.MINIMAL,
+    details: EmployeeDetails=EmployeeDetails.MINIMAL,
     only_primary_uuid: bool = False,
 ):
     if not user:
@@ -600,7 +601,7 @@ async def create_employee(req: dict = Body(...), permissions=Depends(oidc.rbac_a
     return await request.submit()
 
 
-def _inject_persons(details, employee_uuid, valid_from, valid_to):
+def _inject_persons(details, employee_uuid: str, valid_from: datetime, valid_to: datetime):
     decorated = copy.deepcopy(details)
     for detail in decorated:
         detail["person"] = {

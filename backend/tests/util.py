@@ -35,7 +35,7 @@ jinja_env = jinja2.Environment(
 )
 
 
-def jsonfile_to_dict(path):
+def jsonfile_to_dict(path: str):
     """
     Reads JSON from resources folder and converts to Python dictionary
     :param path: path to json resource
@@ -338,7 +338,7 @@ class mock(requests_mock.Mocker):
 
     """
 
-    def __init__(self, names=None, allow_mox=False, **kwargs):
+    def __init__(self, names=None, allow_mox: bool=False, **kwargs) -> None:
         super().__init__(**kwargs)
 
         self.__names = names
@@ -364,17 +364,17 @@ class mock(requests_mock.Mocker):
             real_http=True,
         )
 
-    def copy(self):
+    def copy(self) -> mock:
         """Returns an exact copy of current mock"""
         return mock(self.__names, self.__allow_mox, **self.__kwargs)
 
-    def start(self):
+    def start(self) -> None:
         if self.__overrider:
             self.__overrider.__enter__()
 
         super().start()
 
-    def stop(self):
+    def stop(self) -> None:
         super().stop()
 
         if self.__overrider:
@@ -382,14 +382,14 @@ class mock(requests_mock.Mocker):
 
 
 class MockAioresponses(aioresponses.aioresponses):
-    def __init__(self, names=None, override_lora=True, **kwargs):
+    def __init__(self, names=None, override_lora: bool=True, **kwargs) -> None:
         self.__names = names
         self.__kwargs = kwargs
         self.__override_lora = override_lora
         self.__names_need_init = True
         super().__init__(**kwargs)
 
-    def __enter__(self):
+    def __enter__(self) -> aioresponses:
         # if self.__override_lora:
         #     self.__overrider.__enter__()
 
@@ -410,7 +410,7 @@ class MockAioresponses(aioresponses.aioresponses):
 
 
 class darmock(aioresponses.aioresponses):
-    def __init__(self, names=None, allow_mox=False, real_http=False, **kwargs):
+    def __init__(self, names=None, allow_mox: bool=False, real_http: bool=False, **kwargs) -> None:
         passthrough = []
         if real_http:
             passthrough.append("https://api.dataforsyningen.dk")
@@ -425,13 +425,13 @@ class darmock(aioresponses.aioresponses):
                 for url, value in get_mock_data(name).items():
                     self.__mock_gets[url] = value
 
-    def start(self):
+    def start(self) -> None:
         result = super().start()
         for url, value in self.__mock_gets.items():
             self.get(url, json=value)
         return result
 
-    def get(self, *args, json=None, body="", **kwargs):
+    def get(self, *args, json=None, body="", **kwargs) -> None:
         if json is not None and body != "":
             raise ValueError("Cannot pass json and body simultaneously")
         if json is not None:

@@ -65,7 +65,7 @@ class GroupValidation:
         # Flatten the lists from each task into a single list of all validation items
         return list(flatten(await asyncio.gather(*tasks)))
 
-    def __init__(self, validation_items: list[dict]):
+    def __init__(self, validation_items: list[dict]) -> None:
         self.validation_items = validation_items
 
     def validate(self) -> None:  # pragma: no cover

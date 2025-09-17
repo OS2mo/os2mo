@@ -7,13 +7,13 @@ from oio_rest.db import db_templating
 
 
 @click.group()
-def cli():
+def cli() -> None:
     """Management script for OIO REST."""
 
 
 @cli.command()
 @click.option("-o", "--output", type=click.File("wt"), default="-")
-def sql(output):
+def sql(output) -> None:
     """Write database SQL structure to standard output"""
 
     for line in db_templating.get_sql():

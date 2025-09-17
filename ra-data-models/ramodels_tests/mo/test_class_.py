@@ -45,9 +45,9 @@ def write_strat(draw):
 
 class TestClass:
     @given(read_strat())
-    def test_read(self, model_dict):
+    def test_read(self, model_dict) -> None:
         assert ClassRead(**model_dict)
 
     @given(write_strat())
-    def test_write(self, model_dict):
+    def test_write(self, model_dict) -> None:
         assert ClassWrite(**model_dict)

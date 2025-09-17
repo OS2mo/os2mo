@@ -1,5 +1,15 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from starlette.responses import Response
+from gunicorn.http.wsgi import Response
+from fastapi.openapi.models import Response
+from h11._events import Response
+from requests.models import Response
+from aiohttp.web_response import Response
+from httpx._models import Response
+from strawberry.http.typevars import Response
+from httpcore._models import Response
+from backend.mora.graphapi.versions.latest.schema import Response
 import contextlib
 import json
 import os
@@ -34,12 +44,12 @@ class BaseTestCase:
     """Basic testcase without database support, but with various helper functions."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, service_client: TestClient):
+    def setup(self, service_client: TestClient) -> None:
         self.client = service_client
 
     def assertRequestResponse(
-        self, path, expected, message=None, status_code=None, drop_keys=(), **kwargs
-    ):
+        self, path, expected, message=None, status_code=None, drop_keys: tuple[()]=(), **kwargs
+    ) -> None:
         """Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
@@ -84,7 +94,7 @@ class BaseTestCase:
 
             raise
 
-    def assertRequestFails(self, path, code, message=None, **kwargs):
+    def assertRequestFails(self, path, code, message=None, **kwargs) -> None:
         """Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
@@ -99,7 +109,7 @@ class BaseTestCase:
 
         assert r.status_code == code, (message + ": ") + r.text
 
-    def perform_request(self, path, **kwargs):
+    def perform_request(self, path, **kwargs) -> Response:
         if "json" in kwargs:
             kwargs.setdefault("method", "POST")
             kwargs.setdefault("data", json.dumps(kwargs.pop("json"), indent=2))
@@ -107,7 +117,7 @@ class BaseTestCase:
         kwargs.setdefault("method", "GET")
         return self.client.request(url="/lora" + path, **kwargs)
 
-    def assertRegistrationsEqual(self, expected, actual, message=None):
+    def assertRegistrationsEqual(self, expected, actual, message=None) -> None:
         # drop lora-generated timestamps & users
         if isinstance(expected, dict):
             expected.pop("fratidspunkt", None)
@@ -122,18 +132,18 @@ class BaseTestCase:
         # Sort all inner lists and compare
         assert sort_inner_lists(expected) == sort_inner_lists(actual), message
 
-    def assertOK(self, response, message=None):
+    def assertOK(self, response: Response, message=None) -> None:
         assert 200 <= response.status_code < 300, (
             message or f"request failed with {response.status_code}!"
         )
 
-    def assertUUID(self, s):
+    def assertUUID(self, s) -> None:
         try:
             uuid.UUID(s)
         except (TypeError, ValueError):
             self.fail(f"{s!r} is not a uuid!")
 
-    def assert201(self, response):
+    def assert201(self, response) -> None:
         """
         Verify that the response from LoRa is 201 and contains the correct
         JSON.
@@ -191,7 +201,7 @@ class BaseTestCase:
 
         return r.json()["uuid"]
 
-    def assertQueryResponse(self, path, expected, **params):
+    def assertQueryResponse(self, path, expected, **params) -> None:
         """Perform a request towards LoRa, and assert that it yields the
         expected output.
 

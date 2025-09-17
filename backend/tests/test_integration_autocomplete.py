@@ -12,7 +12,7 @@ from pytest import MonkeyPatch
 
 
 @pytest.fixture
-def mock_get_settings(monkeypatch: MonkeyPatch):
+def mock_get_settings(monkeypatch: MonkeyPatch) -> None:
     def mock():
         return Settings(
             confdb_autocomplete_v2_use_legacy=False,
@@ -22,7 +22,7 @@ def mock_get_settings(monkeypatch: MonkeyPatch):
 
 
 @pytest.fixture
-def mock_get_settings_custom_attrs(monkeypatch: MonkeyPatch):
+def mock_get_settings_custom_attrs(monkeypatch: MonkeyPatch) -> None:
     def mock():
         return Settings(
             confdb_autocomplete_v2_use_legacy=False,
@@ -54,7 +54,7 @@ def mock_get_settings_custom_attrs(monkeypatch: MonkeyPatch):
 @pytest.mark.usefixtures("fixture_db")
 def test_v2_search_employee_by_uuid(
     mock_get_settings_custom_attrs, service_client: TestClient
-):
+) -> None:
     at = datetime.now().date()
     query = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
     response = service_client.request(
@@ -109,7 +109,7 @@ def test_v2_search_employee_by_uuid(
 @pytest.mark.usefixtures("fixture_db")
 def test_v2_search_employee_by_name(
     mock_get_settings_custom_attrs, service_client: TestClient
-):
+) -> None:
     at = datetime.now().date()
     query = "Anders And"
     response = service_client.request(
@@ -191,7 +191,7 @@ def test_v2_search_employee_by_name(
 @pytest.mark.usefixtures("fixture_db")
 def test_v2_search_employee_by_itsystem(
     mock_get_settings_custom_attrs, service_client: TestClient
-):
+) -> None:
     at = datetime.now().date()
     query = "donald"
     response = service_client.request(
@@ -244,7 +244,7 @@ def test_v2_search_employee_by_itsystem(
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-def test_v2_search_orgunit_by_uuid(mock_get_settings, service_client: TestClient):
+def test_v2_search_orgunit_by_uuid(mock_get_settings, service_client: TestClient) -> None:
     at = datetime.now().date()
     query = "f494ad89-039d-478e-91f2-a63566554666"
     response = service_client.request(
@@ -286,7 +286,7 @@ def test_v2_search_orgunit_by_uuid(mock_get_settings, service_client: TestClient
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-def test_v2_search_orgunit_by_name(mock_get_settings, service_client: TestClient):
+def test_v2_search_orgunit_by_name(mock_get_settings, service_client: TestClient) -> None:
     at = datetime.now().date()
     query = "Fake Corp"
     response = service_client.request(
@@ -337,7 +337,7 @@ def test_v2_search_orgunit_by_name(mock_get_settings, service_client: TestClient
 @pytest.mark.usefixtures("fixture_db")
 def test_v2_search_orgunit_by_name_with_custom_fields(
     mock_get_settings_custom_attrs, service_client: TestClient
-):
+) -> None:
     at = datetime.now().date()
     query = "Fake Corp"
     response = service_client.request(
@@ -370,7 +370,7 @@ def test_v2_search_orgunit_by_name_with_custom_fields(
 @patch("mora.service.orgunit.autocomplete.search_orgunits")
 def test_v2_only_gql_decorate_orgunits(
     mock_search_orgunits, mock_get_settings_custom_attrs, service_client: TestClient
-):
+) -> None:
     """Verifies that GraphQL part of the autocomplete works as intended."""
 
     mock_search_orgunits.return_value = [
@@ -409,7 +409,7 @@ def test_v2_only_gql_decorate_orgunits(
 @patch("mora.service.employee.autocomplete.search_employees")
 def test_v2_only_gql_decorate_employees(
     mock_search_employees, mock_get_settings_custom_attrs, service_client: TestClient
-):
+) -> None:
     """Verifies that GraphQL part of the autocomplete works as intended."""
     mock_search_employees.return_value = [
         uuid.UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a")

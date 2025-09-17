@@ -11,7 +11,7 @@ class TestDetailTerminate:
             lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
         )
     )
-    def test_to_dict(self, dt_from_to):
+    def test_to_dict(self, dt_from_to) -> None:
         given_from_date, given_to_date = dt_from_to
 
         details_terminate_args = {

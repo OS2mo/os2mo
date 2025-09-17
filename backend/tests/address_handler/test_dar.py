@@ -165,7 +165,7 @@ async def test_failed_lookup_from_effect():
         assert expected == await address_handler.get_mo_address_and_properties()
 
 
-def test_get_lora_address():
+def test_get_lora_address() -> None:
     # Arrange
     visibility = "d99b500c-34b4-4771-9381-5c989eede969"
     address_handler = DARAddressHandler(VALID_VALUE, visibility)

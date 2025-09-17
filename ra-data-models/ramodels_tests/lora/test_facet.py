@@ -46,14 +46,14 @@ def facet_fsf_strat(draw):
 
 class TestFacet:
     @given(facet_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert Facet(**model_dict)
 
     @given(facet_fsf_strat())
-    def test_from_simplified_fields(self, simp_fields_dict):
+    def test_from_simplified_fields(self, simp_fields_dict) -> None:
         assert Facet.from_simplified_fields(**simp_fields_dict)
 
-    def test_fixture(self):
+    def test_fixture(self) -> None:
         content = Path("ramodels_tests/fixture/lora/facet.json").read_text()
         payload = json.loads(content)
         assert FacetRead(**payload)

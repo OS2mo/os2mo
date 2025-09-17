@@ -122,7 +122,7 @@ def to_lora_time(s: str | datetime.date | datetime.datetime) -> str:
     return dt.isoformat()
 
 
-def to_iso_date(s, is_end: bool = False):
+def to_iso_date(s: datetime, is_end: bool = False) -> str | None:
     """Return an ISO 8601 string representing date given by ``s``.
 
     We round times up or down, depending on whether ``is_end`` is set.
@@ -166,7 +166,7 @@ def to_iso_date(s, is_end: bool = False):
     return dt.date().isoformat()
 
 
-def from_iso_time(s):
+def from_iso_time(s: str) -> datetime:
     dt = dateutil.parser.isoparse(s)
 
     if not dt.tzinfo:
@@ -206,7 +206,7 @@ def now() -> datetime.datetime:
         return _now()
 
 
-def is_uuid(v):
+def is_uuid(v: str) -> bool:
     try:
         uuid.UUID(v)
         return True
@@ -233,7 +233,7 @@ class CPR(str):
         yield cls.validate
 
     @classmethod
-    def validate(cls, v: str):
+    def validate(cls, v: str) -> str:
         settings = config.get_settings()
 
         # First, check length of value given
@@ -254,7 +254,7 @@ class CPR(str):
 
         return v
 
-    def __repr__(self):  # pragma: no cover
+    def __repr__(self) -> str:  # pragma: no cover
         return f"CPR({super().__repr__()})"
 
 
@@ -289,7 +289,7 @@ def get_cpr_birthdate(number: int | str) -> datetime.datetime:
 URN_SAFE = frozenset(b"abcdefghijklmnopqrstuvwxyz0123456789+")
 
 
-def urnquote(s):
+def urnquote(s) -> str:
     """Quote the given string so that it may safely pass through
     case-insensitive URN handling.
 
@@ -419,7 +419,7 @@ def get_uuid(
     return v
 
 
-def get_mapping_uuid(mapping, key, *, fallback=None, required=False):
+def get_mapping_uuid(mapping, key, *, fallback=None, required=False) -> str | None:
     """Extract a UUID from a mapping structure identified by 'key'.
     Expects a structure along the lines of:
 
@@ -477,7 +477,7 @@ def get_obj_value(
     return props
 
 
-def get_obj_uuid(obj, path: tuple):
+def get_obj_uuid(obj, path: tuple) -> str | None:
     (obj,) = get_obj_value(obj, path, default={})
     return get_uuid(obj)
 
@@ -490,7 +490,7 @@ def get_effect_to(effect: dict) -> datetime.datetime:
     return parsedatetime(effect["virkning"]["to"])
 
 
-def get_effect_validity(effect):
+def get_effect_validity(effect) -> dict[str, str | None]:
     return {
         mapping.FROM: to_iso_date(get_effect_from(effect)),
         mapping.TO: to_iso_date(get_effect_to(effect), is_end=True),
@@ -613,7 +613,7 @@ def get_valid_to(obj, fallback=None, required=False) -> datetime.datetime:
         )
 
 
-def get_validities(obj, fallback=None) -> tuple[datetime.datetime, datetime.datetime]:
+def get_validities(obj: str, fallback=None) -> tuple[datetime.datetime, datetime.datetime]:
     valid_from = get_valid_from(obj, fallback)
     valid_to = get_valid_to(obj, fallback)
     if valid_to < valid_from:
@@ -622,7 +622,7 @@ def get_validities(obj, fallback=None) -> tuple[datetime.datetime, datetime.date
 
 
 # todo: timezone, quickfix, remove when the timezone mess in 56846 is fixed
-def get_validity_object(start, end):
+def get_validity_object(start, end) -> dict[str, str | None]:
     return {mapping.FROM: to_iso_date(start), mapping.TO: to_iso_date(end, is_end=True)}
 
 
@@ -631,7 +631,7 @@ def get_states(reg):
         yield from tilstand
 
 
-def is_reg_valid(reg):
+def is_reg_valid(reg) -> bool:
     """
     Check if a given registration is valid
     i.e. that the registration contains a 'gyldighed' that is 'Aktiv'
@@ -658,7 +658,7 @@ def get_query_args():
     return copy.deepcopy(context.get("query_args"))
 
 
-def get_args_flag(name: str):
+def get_args_flag(name: str) -> bool:
     """
     Get an argument from the Flask request as a boolean flag.
 
@@ -683,7 +683,7 @@ def ensure_list(obj: T | list[T]) -> list[T]:
     return obj if isinstance(obj, list) else [obj]
 
 
-def query_to_search_phrase(query: str):
+def query_to_search_phrase(query: str) -> str:
     # If query consists of only digits, spaces and separators, try to
     # treat it as purely numeric, to support whole and partial matches on
     # CPR numbers, etc.
@@ -698,7 +698,7 @@ def query_to_search_phrase(query: str):
 
 def is_detail_unpublished(
     detail_value: str, detail_type_published_attr: str | None = None
-):
+) -> bool:
     """Checks if a mo details have been un-published (IkkePubliceret)
 
     Starts by checking if the detail_attr "published", if set.

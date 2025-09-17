@@ -13,7 +13,7 @@ from sqlalchemy.orm import sessionmaker
 async def run_async_upgrade(async_engine: AsyncEngine) -> None:
     # https://alembic.sqlalchemy.org/en/latest/cookbook.html#programmatic-api-use-connection-sharing-with-asyncio
 
-    def run_upgrade(connection):
+    def run_upgrade(connection) -> None:
         config_path = os.environ["ALEMBIC_CONFIG"]
         config = Config(config_path)
         config.attributes["connection"] = connection
@@ -23,7 +23,7 @@ async def run_async_upgrade(async_engine: AsyncEngine) -> None:
         await conn.run_sync(run_upgrade)
 
 
-def apply_sql_from_file(relpath: str):
+def apply_sql_from_file(relpath: str) -> None:
     path = os.path.join(
         os.path.dirname(__file__), "..", "..", "alembic", "versions", relpath
     )

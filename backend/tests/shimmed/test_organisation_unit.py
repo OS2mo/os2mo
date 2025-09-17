@@ -13,7 +13,7 @@ org_unit_type_facet = {
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_nonexistent(service_client: TestClient):
+def test_nonexistent(service_client: TestClient) -> None:
     response = service_client.request(
         "GET", "/service/ou/00000000-0000-0000-0000-000000000000/"
     )
@@ -22,7 +22,7 @@ def test_nonexistent(service_client: TestClient):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_nonexistent_at(service_client: TestClient):
+def test_nonexistent_at(service_client: TestClient) -> None:
     response = service_client.request(
         "GET",
         "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/",
@@ -34,7 +34,7 @@ def test_nonexistent_at(service_client: TestClient):
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @set_get_configuration("mora.service.shimmed.org_unit.get_configuration")
-def test_get(service_client: TestClient):
+def test_get(service_client: TestClient) -> None:
     response = service_client.request(
         "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/"
     )
@@ -73,7 +73,7 @@ def test_get(service_client: TestClient):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_get_with_counts(service_client: TestClient):
+def test_get_with_counts(service_client: TestClient) -> None:
     response = service_client.request(
         "GET",
         "/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/",
@@ -87,7 +87,7 @@ def test_get_with_counts(service_client: TestClient):
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @set_get_configuration("mora.service.orgunit.get_configuration")
-def test_ou_details(service_client: TestClient):
+def test_ou_details(service_client: TestClient) -> None:
     response = service_client.request(
         "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/details/org_unit"
     )
@@ -130,7 +130,7 @@ def test_ou_details(service_client: TestClient):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_get_children(service_client: TestClient):
+def test_get_children(service_client: TestClient) -> None:
     response = service_client.request(
         "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
     )
@@ -169,7 +169,7 @@ def test_get_children(service_client: TestClient):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_get_children_with_counts(service_client: TestClient):
+def test_get_children_with_counts(service_client: TestClient) -> None:
     response = service_client.request(
         "GET",
         "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
@@ -218,7 +218,7 @@ def test_get_children_with_counts(service_client: TestClient):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_no_children(service_client: TestClient):
+def test_no_children(service_client: TestClient) -> None:
     # b688513d-11f7-4efc-b679-ab082a2055d0 samf has no children
     response = service_client.request(
         "GET",
@@ -230,7 +230,7 @@ def test_no_children(service_client: TestClient):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_get_children_invalid(service_client: TestClient):
+def test_get_children_invalid(service_client: TestClient) -> None:
     # Doesn't exist
     response = service_client.request(
         "GET", "/service/ou/00000000-0000-0000-0000-000000000000/children"
@@ -246,7 +246,7 @@ def test_get_children_invalid(service_client: TestClient):
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @set_get_configuration("mora.service.shimmed.org_unit.get_configuration")
-def test_read_root(service_client: TestClient):
+def test_read_root(service_client: TestClient) -> None:
     response = service_client.request(
         "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/"
     )
@@ -285,7 +285,7 @@ def test_read_root(service_client: TestClient):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_children_filtered(service_client: TestClient):
+def test_children_filtered(service_client: TestClient) -> None:
     # When asking for "&org_unit_hierarchy=<uuid>", the result should only
     # contain org units which have an 'opmærkning' with a UUID of '<uuid>'.
     # With the default test database contents, that means nothing should be

@@ -26,7 +26,7 @@ async def prepare_ancestor_tree(
     mapping_parent: FieldTuple,
     uuids: list[UUID],
     get_children_args,
-    with_siblings=False,
+    with_siblings: bool=False,
 ):
     """Return a tree helper structure, bounded by the given uuids.
 
@@ -70,14 +70,14 @@ async def prepare_ancestor_tree(
         cache.update(objs)
         return objs
 
-    async def get_children(uuid, parent_uuid) -> dict:
+    async def get_children(uuid: UUID, parent_uuid) -> dict:
         children = dict(
             await connector_entry.get_all(**get_children_args(uuid, parent_uuid, cache))
         )
         cache.update(children)
         return children
 
-    async def get_parent(uuid):
+    async def get_parent(uuid: UUID):
         obj = await get(uuid)
         for parent_uuid in mapping_parent.get_uuids(obj):
             return parent_uuid

@@ -27,17 +27,17 @@ class TestUUIDBase:
     class UUIDSub(UUIDBase):
         pass
 
-    def test_init(self):
+    def test_init(self) -> None:
         # UUIDBase cannot be instantiated.
         with pytest.raises(TypeError, match="may not be instantiated"):
             UUIDBase()
 
-    def test_fields(self):
+    def test_fields(self) -> None:
         # Subclasses of UUIDBase should have a UUID field
         assert self.UUIDSub.__fields__.get("uuid")
 
     @given(st.uuids())
-    def test_validators(self, ht_uuid):
+    def test_validators(self, ht_uuid) -> None:
         # UUIDs should be auto-generated
         assert self.UUIDSub().uuid.version == 4
 
@@ -49,16 +49,16 @@ class TestMOBase:
     class MOSub(MOBase):
         pass
 
-    def test_init(self):
+    def test_init(self) -> None:
         # MOBase cannot be instantiated
         with pytest.raises(TypeError, match="may not be instantiated"):
             MOBase()
 
-    def test_fields(self):
+    def test_fields(self) -> None:
         # Subclasses of MOBase should have a user_key field
         assert self.MOSub.__fields__.get("user_key")
 
-    def test_validators(self):
+    def test_validators(self) -> None:
         # User key must default to UUID
         mo_sub = self.MOSub()
         assert mo_sub.user_key == str(mo_sub.uuid)
@@ -66,7 +66,7 @@ class TestMOBase:
         assert self.MOSub(user_key="test").user_key == "test"
 
     @given(st.text(), st.text())
-    def test_type_validator(self, type_1, type_2):
+    def test_type_validator(self, type_1, type_2) -> None:
         # Things should work with no type_ present in the model
         assert self.MOSub()
 
@@ -98,7 +98,7 @@ def mo_ref_strat(draw):
 
 class TestMORef:
     @given(mo_ref_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert MORef(**model_dict)
 
 
@@ -122,14 +122,14 @@ def validity_strat(draw):
 
 class TestOpenValidity:
     @given(open_validity_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert OpenValidity(**model_dict)
 
     @given(
         st.tuples(st.datetimes(), st.datetimes()).filter(lambda dts: dts[0] > dts[1]),
         st.dates(),
     )
-    def test_validators(self, dt_tup, from_date_no_tz):
+    def test_validators(self, dt_tup, from_date_no_tz) -> None:
         # tz unaware date becomes tz aware datetime
         validity = OpenValidity(from_date=from_date_no_tz)
         assert isinstance(validity.from_date, datetime)
@@ -146,11 +146,11 @@ class TestOpenValidity:
 
 class TestValidity:
     @given(validity_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert Validity(**model_dict)
 
     @given(st.none())
-    def test_none_date(self, from_date):
+    def test_none_date(self, from_date) -> None:
         # from_date is not allowed to be None
         # We test this because it's allowed in Validity's super class
         with pytest.raises(ValidationError, match="none is not an allowed value"):
@@ -168,17 +168,17 @@ def invalid_name_combo(draw):
 
 
 class TestValidatorFunctions:
-    def test_deprecation(self):
+    def test_deprecation(self) -> None:
         msg = "Deprecated"
         with pytest.deprecated_call(match=msg):
             deprecation(msg)
 
     @given(st.text())
-    def test_split_name(self, name):
+    def test_split_name(self, name) -> None:
         assert len(split_name(name)) == 2
 
     @given(invalid_name_combo(), st.text())
-    def test_validate_names(self, invalid_name_dict, name):
+    def test_validate_names(self, invalid_name_dict, name) -> None:
         # Test dict with mutually exclusive keys
         with pytest.raises(ValueError, match="mutually exclusive"):
             validate_names(invalid_name_dict, "name", "givenname", "surname")
@@ -192,7 +192,7 @@ class TestValidatorFunctions:
     @example("", "3201559101")
     @example("", "3201016101")
     @example("", "3201767101")
-    def test_cpr_validation(self, invalid_regex, invalid_cpr):
+    def test_cpr_validation(self, invalid_regex, invalid_cpr) -> None:
         with pytest.raises(ValueError, match="string is invalid"):
             validate_cpr(invalid_regex)
         with pytest.raises(ValueError, match="number is invalid"):

@@ -70,13 +70,13 @@ class TestITAssociationGroupValidationBase:
             )
             assert actual_result == expected_result
 
-    def test_get_mo_object_reading_handler(self):
+    def test_get_mo_object_reading_handler(self) -> None:
         handler = _ITAssociationGroupValidation.get_mo_object_reading_handler()
         assert isinstance(handler, AssociationReader)
 
 
 class TestITAssociationUniqueGroupValidation:
-    def test_validate_additional_object(self):
+    def test_validate_additional_object(self) -> None:
         obj = {"employee_uuid": "uuid", "org_unit_uuid": "uuid", "it_user_uuid": "uuid"}
         validation = ITAssociationUniqueGroupValidation([obj])
         with pytest.raises(HTTPException):
@@ -84,7 +84,7 @@ class TestITAssociationUniqueGroupValidation:
 
 
 class TestITAssociationPrimaryGroupValidation:
-    def test_validate_additional_object(self):
+    def test_validate_additional_object(self) -> None:
         obj = {"it_user_uuid": "uuid", "is_primary": True}
         validation = ITAssociationPrimaryGroupValidation([obj])
         with pytest.raises(HTTPException):

@@ -44,13 +44,13 @@ class TestITUserGroupValidationBase:
             assert isinstance(items[0]["it_user_username"], str)
             assert isinstance(items[0]["is_primary"], bool)
 
-    def test_get_mo_object_reading_handler(self):
+    def test_get_mo_object_reading_handler(self) -> None:
         handler = _ITUserGroupValidation.get_mo_object_reading_handler()
         assert isinstance(handler, ItSystemBindingReader)
 
 
 class TestITUserUniqueGroupValidation:
-    def test_validate_additional_object(self):
+    def test_validate_additional_object(self) -> None:
         obj = {
             "employee_uuid": "uuid",
             "it_system_uuid": "uuid",
@@ -63,7 +63,7 @@ class TestITUserUniqueGroupValidation:
 
 
 class TestITAssociationPrimaryGroupValidation:
-    def test_validate_additional_object(self):
+    def test_validate_additional_object(self) -> None:
         obj = {"it_system_uuid": "uuid", "is_primary": True}
         validation = ITUserPrimaryGroupValidation([obj])
         with pytest.raises(HTTPException):

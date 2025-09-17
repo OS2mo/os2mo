@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from sqlalchemy.connectors import Connector
+from backend.mora.lora import Connector
 """
 Facets
 ------
@@ -209,7 +211,7 @@ request_bulked_get_one_class_full = partial(
 
 async def get_one_class(
     c: lora.Connector,
-    classid,
+    classid: str,
     clazz=None,
     details: set[ClassDetails] | None = None,
     only_primary_uuid: bool = False,
@@ -249,7 +251,7 @@ async def get_one_class(
         rel = clazz["relationer"]
         return rel["ejer"][0]["uuid"] if rel.get("ejer") else None
 
-    def get_full_name(parents):
+    def get_full_name(parents) -> str:
         full_name = " - ".join(
             [get_attrs(clazz).get("titel") for clazz in reversed(parents)]
         )
@@ -286,7 +288,7 @@ async def get_one_class(
         facetid = get_facet_uuid(clazz)
         return await getfacet(facetid=facetid)
 
-    async def count_class_children(c, parent_uuid):  # pragma: no cover
+    async def count_class_children(c: Connector, parent_uuid):  # pragma: no cover
         """Find the number of children under the class given by uuid."""
         return len(
             list(

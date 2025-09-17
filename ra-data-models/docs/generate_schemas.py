@@ -9,7 +9,7 @@ from ramodels import mo
 
 
 def model_writer(model_list: Iterator[BaseModel], md_file: Path) -> None:
-    def to_schema_string(model: BaseModel):
+    def to_schema_string(model: BaseModel) -> str:
         model_title = model.schema().get("title")
         schema = model.schema_json(indent=2)
         return f"## {model_title}\n```json\n {schema} \n```"

@@ -21,7 +21,7 @@ jinja_env = Environment(
 )
 
 
-def create_lora_router():
+def create_lora_router() -> APIRouter:
     router = APIRouter()
 
     @router.get("/", tags=["Meta"])

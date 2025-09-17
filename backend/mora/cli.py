@@ -1,6 +1,17 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 # pragma: no cover file
+from hypothesis.strategies._internal.types import name
+from sqlalchemy.sql.coercions import name
+from os import name
+from backend.mora.service.address_handler.multifield_text import name
+from rich.color import name
+from unicodedata import name
+from asyncio.tasks import wait
+from concurrent.futures._base import wait
+from multiprocessing.connection import wait
+from os import wait
+from psycopg.waiting import wait
 """Management utility for MORA.
 
 Please note that each command below also takes a ``--help`` argument
@@ -41,14 +52,14 @@ sessionmaker = create_sessionmaker(
 
 
 @click.group()
-def cli():
+def cli() -> None:
     pass
 
 
 _SLEEPING_TIME = 0.5
 
 
-def _wait_for_service(name, wait_fn, unavailable_exception, wait):
+def _wait_for_service(name: str, wait_fn: (...) -> None, unavailable_exception: tuple[type[ValueError], type[ConnectionError]], wait) -> int | None:
     attempts = int(wait // _SLEEPING_TIME) or 1
     for i in range(1, attempts + 1):
         try:
@@ -69,7 +80,7 @@ def _wait_for_service(name, wait_fn, unavailable_exception, wait):
     type=int,
     help="Wait up to n seconds for rabbitmq.",
 )
-def wait_for_rabbitmq(seconds):
+def wait_for_rabbitmq(seconds) -> int:
     if not settings.amqp_enable:
         logger.info("AMQP is disabled. MO will not send messages.")
         return 0
@@ -94,11 +105,11 @@ def wait_for_rabbitmq(seconds):
 
 
 @cli.group()
-def amqp():
+def amqp() -> None:
     """Commands for the event generator and AMQP subsystem."""
 
 
-async def _set_last_run(date):
+async def _set_last_run(date: str):
     async with sessionmaker() as session:
         async with session.begin():
             await session.execute(

@@ -64,7 +64,7 @@ FIELDS = UUID_SEARCHABLE_FIELDS + [
 )
 @pytest.mark.parametrize("field", FIELDS)
 @given(data=st.data())
-def test_queries(data, field, graphapi_post: GraphAPIPost):
+def test_queries(data, field, graphapi_post: GraphAPIPost) -> None:
     """Test queries generated from the entire schema.
 
     This tests all manners of valid queries generated from the GraphAPI schema.
@@ -115,7 +115,7 @@ class TestManagerInheritance:
         }
     """
 
-    def test_manager_no_inheritance(self, graphapi_post: GraphAPIPost):
+    def test_manager_no_inheritance(self, graphapi_post: GraphAPIPost) -> None:
         """No inheritance - no manager for filins."""
         variables = {"uuids": [self.filins], "inherit": False}
         response = graphapi_post(query=self.query, variables=variables)
@@ -124,7 +124,7 @@ class TestManagerInheritance:
         managers = flatten_data(response.data["org_units"]["objects"])
         assert managers == [{"managers": []}]
 
-    def test_manager_with_inheritance(self, graphapi_post: GraphAPIPost):
+    def test_manager_with_inheritance(self, graphapi_post: GraphAPIPost) -> None:
         """Inheritance - Anders And is manager of both humfak & filins."""
         variables = {"uuids": [self.humfak, self.filins], "inherit": True}
         response = graphapi_post(query=self.query, variables=variables)
@@ -135,7 +135,7 @@ class TestManagerInheritance:
 
 
 @pytest.mark.integration_test
-def test_regression_51523_1(graphapi_post):
+def test_regression_51523_1(graphapi_post) -> None:
     query = """
         query TestQuery {
             org_units(filter: {uuids: ["deadbeef-dead-beef-0000-000000000000"]}) {
@@ -153,7 +153,7 @@ def test_regression_51523_1(graphapi_post):
 
 
 @pytest.mark.integration_test
-def test_regression_51523_2(graphapi_post):
+def test_regression_51523_2(graphapi_post) -> None:
     query = """
         query TestQuery {
             org_units(filter: {uuids: ["deadbeef-dead-beef-0000-000000000000"]}) {
@@ -174,7 +174,7 @@ def test_regression_51523_2(graphapi_post):
 
 @pytest.mark.integration_test
 @pytest.mark.parametrize("field", UUID_SEARCHABLE_FIELDS)
-def test_regression_51523_generalised(graphapi_post: GraphAPIPost, field):
+def test_regression_51523_generalised(graphapi_post: GraphAPIPost, field) -> None:
     query = f"""
         query TestQuery {{
             {field}(filter: {{uuids: ["deadbeef-dead-beef-0000-000000000000"]}}) {{

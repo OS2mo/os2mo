@@ -11,7 +11,7 @@ from tests.oio_rest.test_integration_helper import TestCreateObject
 
 class TestCreateOrganisation(TestCreateObject):
     @pytest.fixture(autouse=True)
-    def setup_org(self):
+    def setup_org(self) -> None:
         self.org = {
             "attributter": {
                 "organisationegenskaber": [
@@ -30,7 +30,7 @@ class TestCreateOrganisation(TestCreateObject):
         }
         self.URL = "/organisation/organisation"
 
-    def test_no_note_valid_bvn_no_org_name_no_relations(self):
+    def test_no_note_valid_bvn_no_org_name_no_relations(self) -> None:
         """
         Equivalence classes covered: [2][6][9][13][21][24][29][38]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -51,7 +51,7 @@ class TestCreateOrganisation(TestCreateObject):
             "/organisation/organisation", self.org, uuid=r.json()["uuid"]
         )
 
-    def test_valid_note_valid_org_name_two_org_egenskaber(self):
+    def test_valid_note_valid_org_name_two_org_egenskaber(self) -> None:
         """
         Equivalence classes covered: [3][10][15]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -82,7 +82,7 @@ class TestCreateOrganisation(TestCreateObject):
             virkningtil="infinity",
         )
 
-    def test_invalid_note(self):
+    def test_invalid_note(self) -> None:
         """
         Equivalence classes covered: [1]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -92,7 +92,7 @@ class TestCreateOrganisation(TestCreateObject):
         self.org["note"] = ["Note cannot be e.g. a list"]
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    def test_bvn_missing(self):
+    def test_bvn_missing(self) -> None:
         """
         Equivalence classes covered: [4]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -102,7 +102,7 @@ class TestCreateOrganisation(TestCreateObject):
         del self.org["attributter"]["organisationegenskaber"][0]["brugervendtnoegle"]
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    def test_bvn_not_string(self):
+    def test_bvn_not_string(self) -> None:
         """
         Equivalence classes covered: [5]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -114,7 +114,7 @@ class TestCreateOrganisation(TestCreateObject):
         ]
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    def test_org_name_not_string(self):
+    def test_org_name_not_string(self) -> None:
         """
         Equivalence classes covered: [8]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -126,7 +126,7 @@ class TestCreateOrganisation(TestCreateObject):
         ]
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    def test_virkning_missing_attributter(self):
+    def test_virkning_missing_attributter(self) -> None:
         """
         Equivalence classes covered: [11]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -136,7 +136,7 @@ class TestCreateOrganisation(TestCreateObject):
         del self.org["attributter"]["organisationegenskaber"][0]["virkning"]
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    def test_org_egenskaber_missing(self):
+    def test_org_egenskaber_missing(self) -> None:
         """
         Equivalence classes covered: [14]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -146,7 +146,7 @@ class TestCreateOrganisation(TestCreateObject):
         self.org["attributter"]["organisationegenskaber"].pop()
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    def test_virkning_malformed_attributter(self):
+    def test_virkning_malformed_attributter(self) -> None:
         """
         Equivalence classes covered: [12]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -160,7 +160,7 @@ class TestCreateOrganisation(TestCreateObject):
         r = self.perform_request(self.URL, json=self.org)
         assert r.status_code == 400
 
-    def test_different_org_names_for_overlapping_virkninger(self):
+    def test_different_org_names_for_overlapping_virkninger(self) -> None:
         """Sending org names that overlap in virkning should fail
 
         Equivalence classes covered: [16]
@@ -183,7 +183,7 @@ class TestCreateOrganisation(TestCreateObject):
         with pytest.raises(IntegrityError):
             self.perform_request(self.URL, json=self.org)
 
-    def test_empty_org_not_allowed(self):
+    def test_empty_org_not_allowed(self) -> None:
         """
         Equivalence classes covered: [17]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -193,7 +193,7 @@ class TestCreateOrganisation(TestCreateObject):
         self.org = {}
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    def test_attributter_missing(self):
+    def test_attributter_missing(self) -> None:
         """
         Equivalence classes covered: [18]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -203,7 +203,7 @@ class TestCreateOrganisation(TestCreateObject):
         del self.org["attributter"]
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    def test_attributter_key_not_allowed_twice(self):
+    def test_attributter_key_not_allowed_twice(self) -> None:
         """Setting "attributter" several times in the request JSON should fail
 
         Equivalence classes covered: [40]
@@ -222,7 +222,7 @@ class TestCreateOrganisation(TestCreateObject):
         r = self.perform_request(self.URL, json=self.org)
         assert r.status_code == 201
 
-    def test_two_valid_org_gyldigheder_one_gyldighed_inactive(self):
+    def test_two_valid_org_gyldigheder_one_gyldighed_inactive(self) -> None:
         """
         Equivalence classes covered: [22][25]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -249,7 +249,7 @@ class TestCreateOrganisation(TestCreateObject):
             virkningtil="infinity",
         )
 
-    def test_tilstande_missing(self):
+    def test_tilstande_missing(self) -> None:
         """
         Equivalence classes covered: [19]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -259,7 +259,7 @@ class TestCreateOrganisation(TestCreateObject):
         del self.org["tilstande"]
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    def test_tilstande_key_not_allowed_twice(self):
+    def test_tilstande_key_not_allowed_twice(self) -> None:
         """Setting "tilstande" several times in the request should fail
 
         Equivalence classes covered: [41]
@@ -278,7 +278,7 @@ class TestCreateOrganisation(TestCreateObject):
         r = self.perform_request(self.URL, json=self.org)
         assert r.status_code == 201
 
-    def test_org_gyldighed_missing(self):
+    def test_org_gyldighed_missing(self) -> None:
         """
         Equivalence classes covered: [20]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -288,7 +288,7 @@ class TestCreateOrganisation(TestCreateObject):
         self.org["tilstande"]["organisationgyldighed"].pop()
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    def test_gyldighed_invalid(self):
+    def test_gyldighed_invalid(self) -> None:
         """
         Equivalence classes covered: [23]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -298,7 +298,7 @@ class TestCreateOrganisation(TestCreateObject):
         self.org["tilstande"]["organisationgyldighed"][0]["gyldighed"] = "invalid"
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    def test_gyldighed_missing(self):
+    def test_gyldighed_missing(self) -> None:
         """
         Equivalence classes covered: [26]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -308,7 +308,7 @@ class TestCreateOrganisation(TestCreateObject):
         del self.org["tilstande"]["organisationgyldighed"][0]["gyldighed"]
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    def test_virkning_missing_tilstande(self):
+    def test_virkning_missing_tilstande(self) -> None:
         """
         Equivalence classes covered: [27]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -318,7 +318,7 @@ class TestCreateOrganisation(TestCreateObject):
         del self.org["tilstande"]["organisationgyldighed"][0]["virkning"]
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    def test_virkning_malformed_tilstande(self):
+    def test_virkning_malformed_tilstande(self) -> None:
         """
         Equivalence classes covered: [28]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -331,7 +331,7 @@ class TestCreateOrganisation(TestCreateObject):
         }
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    def test_different_gyldigheder_for_overlapping_virkninger(self):
+    def test_different_gyldigheder_for_overlapping_virkninger(self) -> None:
         """Sending gyldigheder that overlap in virkning should fail
 
         Equivalence classes covered: [30]
@@ -353,7 +353,7 @@ class TestCreateOrganisation(TestCreateObject):
         with pytest.raises(IntegrityError):
             self.perform_request(self.URL, json=self.org)
 
-    def test_empty_list_of_relations(self):
+    def test_empty_list_of_relations(self) -> None:
         """
         Equivalence classes covered: [31]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -374,7 +374,7 @@ class TestCreateOrganisation(TestCreateObject):
             "/organisation/organisation", self.org, uuid=r.json()["uuid"]
         )
 
-    def test_specific_relation_list_empty(self):
+    def test_specific_relation_list_empty(self) -> None:
         """
         Equivalence classes covered: [42]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -395,7 +395,7 @@ class TestCreateOrganisation(TestCreateObject):
             "/organisation/organisation", self.org, uuid=r.json()["uuid"]
         )
 
-    def test_one_uuid_per_relation_reference_all_relation_names_tested(self):
+    def test_one_uuid_per_relation_reference_all_relation_names_tested(self) -> None:
         """
         Equivalence classes covered: [32][35][37]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -458,7 +458,7 @@ class TestCreateOrganisation(TestCreateObject):
             "/organisation/organisation", self.org, uuid=r.json()["uuid"]
         )
 
-    def test_adding_two_relations(self):
+    def test_adding_two_relations(self) -> None:
         """
         Equivalence classes covered: [33]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -489,7 +489,7 @@ class TestCreateOrganisation(TestCreateObject):
             "/organisation/organisation", self.org, uuid=r.json()["uuid"]
         )
 
-    def test_reference_in_relation_must_be_an_uuid(self):
+    def test_reference_in_relation_must_be_an_uuid(self) -> None:
         """
         Equivalence classes covered: [34]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -501,7 +501,7 @@ class TestCreateOrganisation(TestCreateObject):
         }
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    def test_invalid_relation_name_not_allowed(self):
+    def test_invalid_relation_name_not_allowed(self) -> None:
         """
         Equivalence classes covered: [36]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -511,7 +511,7 @@ class TestCreateOrganisation(TestCreateObject):
         self.org["relationer"] = {"unknown": [self.reference]}
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    def test_relationer_key_not_allowed_twice(self):
+    def test_relationer_key_not_allowed_twice(self) -> None:
         """Setting "relationer" several times in the request JSON should fail
 
         Equivalence classes covered: [39]

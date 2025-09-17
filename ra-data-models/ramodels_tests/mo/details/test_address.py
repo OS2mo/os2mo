@@ -114,29 +114,29 @@ def address_fsf_strat(draw):
 
 class TestAddress:
     @given(address_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert Address(**model_dict)
 
     @given(address_strat(), not_from_regex(r"^address$"))
-    def test_invalid_type(self, model_dict, invalid_type):
+    def test_invalid_type(self, model_dict, invalid_type) -> None:
         model_dict["type"] = invalid_type
         with unexpected_value_error():
             Address(**model_dict)
 
     @given(address_fsf_strat())
-    def test_from_simplified_fields(self, simp_fields_dict):
+    def test_from_simplified_fields(self, simp_fields_dict) -> None:
         assert Address.from_simplified_fields(**simp_fields_dict)
 
     @given(base_strat())
-    def test_base(self, model_dict):
+    def test_base(self, model_dict) -> None:
         assert AddressBase(**model_dict)
 
     @given(read_strat())
-    def test_read(self, model_dict):
+    def test_read(self, model_dict) -> None:
         assert AddressRead(**model_dict)
 
     @given(write_strat(), ref_check_strat())
-    def test_write(self, model_dict, refs_dict):
+    def test_write(self, model_dict, refs_dict) -> None:
         assert AddressWrite(**model_dict)
         # Too many references given.
         too_many_refs = {**model_dict, **refs_dict}

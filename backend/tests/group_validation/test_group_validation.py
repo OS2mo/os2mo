@@ -33,7 +33,7 @@ class TestGroupValidationConstructors:
         instance = await GroupValidation.from_mo_objects(search_fields)
         assert instance.validation_items == [self._mock_validation_item]
 
-    def _monkeypatch_get_validation_item_from_mo_object(self, monkeypatch):
+    def _monkeypatch_get_validation_item_from_mo_object(self, monkeypatch) -> None:
         async def mock_impl(*args):
             return [self._mock_validation_item]
 
@@ -57,7 +57,7 @@ class TestGroupValidation:
     _additional_object = {"uuid": "b", "foo": "baz"}
     _updated_object = {"uuid": "a", "foo": "baz"}
 
-    def test_validate_additional_object(self):
+    def test_validate_additional_object(self) -> None:
         # Create an initial `GroupValidation` instance of one validation item
         instance = GroupValidation(self._initial_validation_items)
         assert instance.validation_items == self._initial_validation_items
@@ -68,7 +68,7 @@ class TestGroupValidation:
         )
         assert instance is not instance_copy
 
-    def test_validate_updated_object(self):
+    def test_validate_updated_object(self) -> None:
         # Create an initial `GroupValidation` instance of one validation item
         instance = GroupValidation(self._initial_validation_items)
         assert instance.validation_items == self._initial_validation_items
@@ -88,8 +88,8 @@ class TestGroupValidation:
     )
     def test_validate_unique_constraint(
         self, validation_items: list[dict], expected_exception: Exception
-    ):
-        def _act():
+    ) -> None:
+        def _act() -> None:
             instance = GroupValidation(validation_items)
             instance.validate_unique_constraint(
                 ["foo"],  # field names of unique constraint
@@ -108,14 +108,14 @@ class TestGroupValidation:
     )
     def test_validate_at_most_one(
         self, validation_items: list[dict], expected_exception: Exception
-    ):
-        def _act():
+    ) -> None:
+        def _act() -> None:
             instance = GroupValidation(validation_items)
             instance.validate_at_most_one(itemgetter("foo"), lambda val: val == "baz")
 
     def _assert_conditional_exception(
         self, func: Callable, exception: Exception | None
-    ):
+    ) -> None:
         if exception:
             with pytest.raises(exception):
                 func()

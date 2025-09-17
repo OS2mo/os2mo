@@ -38,7 +38,7 @@ class ITAssociationRead(AssociationRead):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_query_all(graphapi_post: GraphAPIPost):
+def test_query_all(graphapi_post: GraphAPIPost) -> None:
     """Test that we can query all our ITAssociations."""
     query = """
         query {
@@ -71,7 +71,7 @@ def test_query_all(graphapi_post: GraphAPIPost):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_query_flag(graphapi_post: GraphAPIPost):
+def test_query_flag(graphapi_post: GraphAPIPost) -> None:
     """Test that the flag works."""
     query = """
         query ITAssociation($it_association: Boolean) {

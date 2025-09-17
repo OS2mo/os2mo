@@ -119,7 +119,7 @@ st.register_type_strategy(GValidity, validity_model_strat())
 
 
 @pytest.fixture(autouse=True)
-def clear_configured_organisation():
+def clear_configured_organisation() -> None:
     ConfiguredOrganisation.clear()
 
 
@@ -266,7 +266,7 @@ class SessionmakerMaker:
     def get_sessionmaker(self, _):
         return self.sessionmaker
 
-    def get_database_name(self):
+    def get_database_name(self) -> None:
         if self.database_name is None:
             pytest.fail(
                 "Improperly-configured test: you are probably trying to access the database without requesting a database fixture"
@@ -913,7 +913,7 @@ def get_keycloak_token() -> str:
 
 
 @pytest.fixture
-def auth_headers():
+def auth_headers() -> dict[str, str]:
     return {"Authorization": f"Bearer {get_keycloak_token()}"}
 
 

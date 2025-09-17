@@ -229,7 +229,7 @@ def validity_tuple(
 
 
 class Connector:
-    def __init__(self, **defaults):
+    def __init__(self, **defaults) -> None:
         self.__validity = defaults.pop("validity", None) or "present"
 
         self.now = util.parsedatetime(
@@ -386,7 +386,7 @@ class ParameterValuesExtractor:
 
 
 class BaseScope:
-    def __init__(self, connector, path):
+    def __init__(self, connector, path) -> None:
         self.connector = connector
         self.path = path
 
@@ -410,7 +410,7 @@ class BaseScope:
 
 
 class Scope(BaseScope):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.loaders: dict[tuple[str], DataLoader] = {}
 
@@ -426,7 +426,7 @@ class Scope(BaseScope):
         # Fetch directly if feature flag turned off, or if we won't be able to map the
         # results back to the call params, or if using GraphQL, since we really don't
         # need nested DataLoaders in our life right now.
-        def has_validity_params():
+        def has_validity_params() -> bool:
             return not params.keys().isdisjoint(
                 {
                     "validity",
@@ -437,10 +437,10 @@ class Scope(BaseScope):
                 }
             )
 
-        def has_arbitrary_rel():
+        def has_arbitrary_rel() -> bool:
             return not params.keys().isdisjoint({"vilkaarligattr", "vilkaarligrel"})
 
-        def has_wildcards():
+        def has_wildcards() -> bool:
             return any("%" in v for v in params.values() if isinstance(v, str))
 
         if (
@@ -738,7 +738,7 @@ class Scope(BaseScope):
         # If we did not include an interval, we expect only one registration
         return one(registrations)
 
-    async def create(self, obj, uuid=None) -> str:
+    async def create(self, obj, uuid: type[dict] | None=None) -> str:
         obj = uuid_to_str(obj)
 
         with lora_to_mo_exception():
@@ -783,7 +783,7 @@ class Scope(BaseScope):
 
 
 class AutocompleteScope(BaseScope):
-    def __init__(self, connector, path):  # pragma: no cover
+    def __init__(self, connector, path) -> None:  # pragma: no cover
         self.connector = connector
         if path == "bruger":
             self.autocomplete = find_users_matching

@@ -8,26 +8,26 @@ from oio_rest import utils
 
 
 class TestBuildRegistration:
-    def test_is_urn_returns_true_when_string_begins_with_urn(self):
+    def test_is_urn_returns_true_when_string_begins_with_urn(self) -> None:
         urn1 = "urn:thisisaurn"
         assert utils.is_urn(urn1)
 
         urn2 = "URN:thisisaurn"
         assert utils.is_urn(urn2)
 
-    def test_is_urn_returns_false_when_string_does_not_begin_with_urn(self):
+    def test_is_urn_returns_false_when_string_does_not_begin_with_urn(self) -> None:
         urn = "this is not a urn"
         assert not utils.is_urn(urn)
 
-    def test_is_uuid_returns_true_when_string_is_uuid(self):
+    def test_is_uuid_returns_true_when_string_is_uuid(self) -> None:
         uuid = "c97e1dee-1477-4dd4-a2e6-0bfc6b6b04da"
         assert utils.is_uuid(uuid)
 
-    def test_is_uuid_returns_false_when_string_is_not_uuid(self):
+    def test_is_uuid_returns_false_when_string_is_not_uuid(self) -> None:
         uuid = "notuuid"
         assert not utils.is_uuid(uuid)
 
-    def test_escape_underscores(self):
+    def test_escape_underscores(self) -> None:
         # Arrange
         value = "a_string_with_underscores"
 
@@ -37,7 +37,7 @@ class TestBuildRegistration:
         # Assert
         assert expected_result == actual_result
 
-    def test_escape_underscores_if_none(self):
+    def test_escape_underscores_if_none(self) -> None:
         # Arrange
         value = None
 
@@ -46,7 +46,7 @@ class TestBuildRegistration:
         # Assert
         assert value == actual_result
 
-    def test_build_relation_builds_correct_relation_with_uuid_value(self):
+    def test_build_relation_builds_correct_relation_with_uuid_value(self) -> None:
         virkning = "VIRKNING"
         objekttype = "OBJEKTTYPE"
 
@@ -64,7 +64,7 @@ class TestBuildRegistration:
 
         assert expected_relation == actual_relation
 
-    def test_build_relation_builds_correct_relation_with_urn_value(self):
+    def test_build_relation_builds_correct_relation_with_urn_value(self) -> None:
         virkning = "VIRKNING"
         objekttype = "OBJEKTTYPE"
 
@@ -82,13 +82,13 @@ class TestBuildRegistration:
 
         assert expected_relation == actual_relation
 
-    def test_build_relation_raises_ValueError_on_non_uuid_or_non_urn_value(self):
+    def test_build_relation_raises_ValueError_on_non_uuid_or_non_urn_value(self) -> None:
         value = "not urn or uuid"
 
         with pytest.raises(ValueError):
             utils.build_relation(value)
 
-    def test_split_param_splits_on_colon(self):
+    def test_split_param_splits_on_colon(self) -> None:
         # Arrange
         value = "first:second"
         expected_result = ("first", "second")
@@ -99,7 +99,7 @@ class TestBuildRegistration:
         # Assert
         assert expected_result == actual_result
 
-    def test_split_param_handles_valueerror(self):
+    def test_split_param_handles_valueerror(self) -> None:
         # Arrange
         value = "nosplit"
         expected_result = ("nosplit", None)
@@ -110,7 +110,7 @@ class TestBuildRegistration:
         # Assert
         assert expected_result == actual_result
 
-    def test_to_lower_param_lowers_first_item(self):
+    def test_to_lower_param_lowers_first_item(self) -> None:
         # Arrange
         value = "FIRST:second"
         expected_result = "first:second"
@@ -121,7 +121,7 @@ class TestBuildRegistration:
         # Assert
         assert expected_result == actual_result
 
-    def test_to_lower_param_handles_value_error(self):
+    def test_to_lower_param_handles_value_error(self) -> None:
         # Arrange
         value = "Nosplit"
         expected_result = "nosplit"
@@ -132,7 +132,7 @@ class TestBuildRegistration:
         # Assert
         assert expected_result == actual_result
 
-    def test_dict_from_dot_notation(self):
+    def test_dict_from_dot_notation(self) -> None:
         # Arrange
         notation = "a.b.c"
         value = 1
@@ -144,7 +144,7 @@ class TestBuildRegistration:
         # Assert
         assert expected_result == actual_result
 
-    def test_add_journal_post_relation_fields_journalpostkode(self):
+    def test_add_journal_post_relation_fields_journalpostkode(self) -> None:
         # Arrange
         param = "journalpostkode"
         values = ["value_with_underscores", "value"]
@@ -164,7 +164,7 @@ class TestBuildRegistration:
         # Assert
         assert expected_result == relation
 
-    def test_add_journal_post_relation_fields_non_journalpostkode(self):
+    def test_add_journal_post_relation_fields_non_journalpostkode(self) -> None:
         # Arrange
         param = "journaldokument.dokumenttitel"
         values = ["value_with_underscores", "value"]
@@ -190,7 +190,7 @@ class TestBuildRegistration:
         # Assert
         assert expected_result == relation
 
-    def test_add_journal_post_relation_fields_unknown_param(self):
+    def test_add_journal_post_relation_fields_unknown_param(self) -> None:
         # Arrange
         param = "testparam"
         values = ["value_with_underscores", "value"]
@@ -210,7 +210,7 @@ class TestBuildRegistration:
     @patch("oio_rest.utils.get_attribute_names")
     def test_build_registration_attributes(
         self, mock_get_attribute_names, mock_get_attribute_fields
-    ):
+    ) -> None:
         # type: (MagicMock, MagicMock) -> None
         # Arrange
         mock_get_attribute_names.return_value = ["attributename"]
@@ -237,7 +237,7 @@ class TestBuildRegistration:
     @patch("oio_rest.utils.get_state_names")
     @patch("oio_rest.utils.get_attribute_fields", new=MagicMock())
     @patch("oio_rest.utils.get_attribute_names", new=MagicMock())
-    def test_build_registration_states(self, mock_get_state_names):
+    def test_build_registration_states(self, mock_get_state_names) -> None:
         # type: (MagicMock, MagicMock) -> None
         # Arrange
         mock_get_state_names.return_value = ["statename"]
@@ -269,7 +269,7 @@ class TestBuildRegistration:
     @patch("oio_rest.utils.get_state_names", new=MagicMock())
     @patch("oio_rest.utils.get_attribute_fields", new=MagicMock())
     @patch("oio_rest.utils.get_attribute_names", new=MagicMock())
-    def test_build_registration_relations(self, mock_get_relation_names):
+    def test_build_registration_relations(self, mock_get_relation_names) -> None:
         # type: (MagicMock) -> None
         # Arrange
         mock_get_relation_names.return_value = ["relationname"]

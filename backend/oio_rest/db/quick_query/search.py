@@ -80,7 +80,7 @@ class JoinTable:
     alias: str | None = None
 
     @property
-    def ref(self):
+    def ref(self) -> str:
         if self.alias is not None:
             return self.alias
         return self.name
@@ -97,7 +97,7 @@ class SearchQueryBuilder:
         uuid: str | None = None,
         registreret_fra: datetime | str | None = None,
         registreret_til: datetime | str | None = None,
-    ):
+    ) -> None:
         """
         :param class_name: determines where to query
         :param virkning_fra: mandatory, applies to ALL filters added
@@ -198,7 +198,7 @@ class SearchQueryBuilder:
         self,
         reg_start: str | datetime | None,
         reg_end: str | datetime | None,
-    ):
+    ) -> None:
         """
         validate, and optionally add conditions
         :param reg_start:
@@ -275,7 +275,7 @@ class SearchQueryBuilder:
         raise Exception(f"unexpected type_: {type_}, with associated value {value}")
         # coverage: unpause
 
-    def add_attribute(self, attr: Attribute):
+    def add_attribute(self, attr: Attribute) -> None:
         """
         adds a filter to the query (in WHERE-clause, solely 'AND'-filtering)
         internally inner-joins tables as needed
@@ -292,7 +292,7 @@ class SearchQueryBuilder:
         )
         self.__conditions.append(f"{join_table.ref}.{attr.key} {comparison}")
 
-    def add_state(self, state: State):
+    def add_state(self, state: State) -> None:
         """
         adds a filter to the query (in WHERE-clause, solely 'AND'-filtering)
         internally inner-joins tables as needed
@@ -306,7 +306,7 @@ class SearchQueryBuilder:
             self.__inner_join_tables.append(join_table)
         self.__conditions.append(f"{join_table.ref}.{state.key} = '{state.value}'")
 
-    def add_relation(self, relation: Relation):
+    def add_relation(self, relation: Relation) -> None:
         """
         adds a filter to the query (in WHERE-clause, solely 'AND'-filtering)
         internally inner-joins tables as needed
@@ -374,7 +374,7 @@ class SearchQueryBuilder:
 
         self.__relation_conditions[relation.type].append("(" + condition + ")")
 
-    def __build_subquery(self):
+    def __build_subquery(self) -> str:
         """
         This is the cool query, where we actually do stuff with the DB
 

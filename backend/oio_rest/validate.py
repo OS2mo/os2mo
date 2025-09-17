@@ -16,7 +16,7 @@ INTEGER = {"type": "integer"}
 STRING = {"type": "string"}
 
 
-def _generate_schema_array(items, maxItems=None):
+def _generate_schema_array(items, maxItems: int | None=None):
     schema_array = {"type": "array", "items": items}
     if maxItems:
         schema_array["maxItems"] = maxItems
@@ -80,7 +80,7 @@ TYPE_MAP = {
 }
 
 
-def _get_metadata(obj, metadata_type, key):
+def _get_metadata(obj, metadata_type: str, key: str):
     """
     Get the metadata for a given attribute
     :param obj: The type of LoRa object, i.e. 'bruger', 'organisation' etc.
@@ -421,7 +421,7 @@ def get_schema(obj_type, do_create=True):
     return schema
 
 
-def validate(input_json, obj_type, do_create=True):
+def validate(input_json, obj_type, do_create: bool=True) -> None:
     """
     Validate request JSON according to JSON schema.
     :param input_json: The request JSON

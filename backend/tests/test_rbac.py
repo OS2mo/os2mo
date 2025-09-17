@@ -323,7 +323,7 @@ class TestGetEntityOwners:
         assert owners == {owner_uuid}
 
 
-def test__get_employee_uuid_via_token():
+def test__get_employee_uuid_via_token() -> None:
     uuid = uuid4()
     employee_uuid = _get_employee_uuid_via_token(
         Token(

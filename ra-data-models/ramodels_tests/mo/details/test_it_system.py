@@ -21,5 +21,5 @@ def read_strat(draw):
 
 class TestITSystem:
     @given(read_strat())
-    def test_read(self, model_dict):
+    def test_read(self, model_dict) -> None:
         assert ITSystemRead(**model_dict)

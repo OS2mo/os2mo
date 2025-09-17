@@ -44,7 +44,7 @@ def patch_orgunit_uuid(monkeypatch):
     yield
 
 
-def expected_error_response(error_key, **overrides):
+def expected_error_response(error_key: str, **overrides):
     errors = {
         "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES": {
             "description": "Cannot terminate unit with active children and roles.",
@@ -1248,7 +1248,7 @@ async def test_edit_parent_reads_from_previous_relation(
     lønorganisation = "b1f69701-86d8-496e-a3f1-ccef18ac1958"
     humanistisk_fakultet = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
-    async def edit_parent(parent, validity):
+    async def edit_parent(parent: str, validity: dict[str, str]):
         response = service_client.request(
             "POST",
             "/service/details/edit",
@@ -1266,7 +1266,7 @@ async def test_edit_parent_reads_from_previous_relation(
         assert response.status_code == 200
         assert response.json() == humanistisk_fakultet
 
-    async def assert_parent_is(expected_parent, at):
+    async def assert_parent_is(expected_parent: str, at: str):
         with freezegun.freeze_time(at):
             response = service_client.request(
                 "GET", f"/service/ou/{humanistisk_fakultet}/"
@@ -1616,7 +1616,7 @@ def test_edit_org_unit_earlier_start(service_client: TestClient) -> None:
 def test_edit_org_unit_extending_end(service_client: TestClient) -> None:
     unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
 
-    def check_future_names(*names):
+    def check_future_names(*names) -> None:
         response = service_client.request(
             "GET",
             f"/service/ou/{unitid}/details/org_unit",

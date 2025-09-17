@@ -55,7 +55,7 @@ async def test_feature_flag_employee_hide_association_columns(
         assert response.data.get(feature_flag_name_computed) == confdb_expected_return
 
 
-def _compute_feature_flag_name(feature_flag_name: str):
+def _compute_feature_flag_name(feature_flag_name: str) -> str:
     # Create computed version of the feature flag, which are the keys that actually
     # exist on the Settings class / is returned from our GraphQL
     # SERVICE_ENDPOINTS_CONFIGURATIONS-endpoint.

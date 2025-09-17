@@ -16,7 +16,7 @@ def is_urn(s):
     return s.startswith("urn:") or s.startswith("URN:")
 
 
-def is_uuid(s):
+def is_uuid(s) -> bool | None:
     """Return whether the string is a UUID (and not a URN)"""
     if not is_urn(s):
         try:
@@ -101,7 +101,7 @@ def dict_from_dot_notation(notation, value):  # pragma: no cover
     return {element: dict_from_dot_notation(".".join(path), value)}
 
 
-def add_journal_post_relation_fields(param, values, relation):
+def add_journal_post_relation_fields(param, values, relation) -> None:
     """Add journalpost-specific parameters to the relations list."""
     if param in ACCEPTED_JOURNAL_POST_PARAMS:  # pragma: no cover
         relation.setdefault("journalpost", [])

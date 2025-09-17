@@ -18,7 +18,7 @@ from tests.conftest import GraphAPIPost
 
 
 class AnyOrder(list):
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if isinstance(other, list):
             if len(self) != len(other):
                 return False

@@ -5,7 +5,7 @@ from tests.oio_rest.util import DBTestCase
 
 
 class Tests(DBTestCase):
-    def test_virkningstid(self):
+    def test_virkningstid(self) -> None:
         uuid = "931ee7bf-10d6-4cc3-8938-83aa6389aaba"
 
         self.load_fixture("/organisation/bruger", "test_bruger.json", uuid)
@@ -16,7 +16,7 @@ class Tests(DBTestCase):
             "/organisation/bruger", expected, uuid=uuid, virkningstid="2004-01-01"
         )
 
-    def test_empty_update(self):
+    def test_empty_update(self) -> None:
         # Ensure that nothing is deleted when an empty update is made
         # Arrange
         uuid = "931ee7bf-10d6-4cc3-8938-83aa6389aaba"

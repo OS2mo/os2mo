@@ -11,7 +11,7 @@ from oio_rest.db.quick_query.registration_parsing import ValueType
 
 
 class TestParseAttribute:
-    def test_get_valid_attribute_format(self):
+    def test_get_valid_attribute_format(self) -> None:
         for class_name in REAL_DB_STRUCTURE.keys():
             attr_cand = Attribute.get_valid_attr(class_name)
             assert isinstance(attr_cand, dict)
@@ -21,7 +21,7 @@ class TestParseAttribute:
                 for inner_val in value:
                     assert isinstance(inner_val, str)
 
-    def test_from_attr_egenskaber(self):
+    def test_from_attr_egenskaber(self) -> None:
         class_name = "bruger"
         valid_attr = Attribute.get_valid_attr(class_name)
 
@@ -87,7 +87,7 @@ class TestParseAttribute:
         )
         assert expected == actual
 
-    def test_parse_registration_attributes(self):
+    def test_parse_registration_attributes(self) -> None:
         class_name = "organisationfunktion"
         attrs = {
             "organisationfunktionegenskaber": [
@@ -122,7 +122,7 @@ class TestParseAttribute:
 
 
 class TestParseState:
-    def test_get_valid_states_format(self):
+    def test_get_valid_states_format(self) -> None:
         for class_name in REAL_DB_STRUCTURE.keys():
             state_cand = State.get_valid_states(class_name)
             assert isinstance(state_cand, dict)
@@ -132,7 +132,7 @@ class TestParseState:
                 for inner_val in value:
                     assert isinstance(inner_val, str)
 
-    def test_from_state_dict(self):
+    def test_from_state_dict(self) -> None:
         class_name = "bruger"
         valid_states = State.get_valid_states(class_name)
 
@@ -188,7 +188,7 @@ class TestParseState:
         actual = State.from_state_dict(state=state_cand, valid_states=valid_states)
         assert expected == actual
 
-    def test_parse_registration_state(self):
+    def test_parse_registration_state(self) -> None:
         # commonly used
         class_name = "organisationfunktion"
         states = {"gyldighed": [{"gyldighed": "Aktiv", "virkning": None}]}
@@ -211,14 +211,14 @@ class TestParseState:
 
 
 class TestParseRelation:
-    def test_get_valid_relations_format(self):
+    def test_get_valid_relations_format(self) -> None:
         for class_name in REAL_DB_STRUCTURE.keys():
             relation_cand = Relation.get_valid_relations(class_name)
             assert isinstance(relation_cand, list)
             for value in relation_cand:
                 assert isinstance(value, str)
 
-    def test_from_relation_list(self):
+    def test_from_relation_list(self) -> None:
         class_name = "organisationfunktion"
         valid_relations = Relation.get_valid_relations(class_name)
         key = "tilknyttedebrugere"
@@ -431,7 +431,7 @@ class TestParseRelation:
         )
         assert expected == actual
 
-    def test_parse_registration_relation(self):
+    def test_parse_registration_relation(self) -> None:
         class_name = "organisationfunktion"
         nul_til_en = "organisatoriskfunktionstype"
         nul_til_mange = "tilknyttedebrugere"

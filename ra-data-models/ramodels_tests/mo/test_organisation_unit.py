@@ -121,22 +121,22 @@ def organisation_unit_fsf_strat(draw):
 class TestOrganisationUnit:
     # backwards compatibility
     @given(organisation_unit_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert OrganisationUnit(**model_dict)
 
     @given(organisation_unit_fsf_strat())
-    def test_from_simplified_fields(self, simp_fields_dict):
+    def test_from_simplified_fields(self, simp_fields_dict) -> None:
         assert OrganisationUnit.from_simplified_fields(**simp_fields_dict)
 
     # New tests
     @given(base_strat())
-    def test_base(self, model_dict):
+    def test_base(self, model_dict) -> None:
         assert OrganisationUnitBase(**model_dict)
 
     @given(read_strat())
-    def test_read(self, model_dict):
+    def test_read(self, model_dict) -> None:
         assert OrganisationUnitRead(**model_dict)
 
     @given(write_start())
-    def test_write(self, model_dict):
+    def test_write(self, model_dict) -> None:
         assert OrganisationUnitWrite(**model_dict)

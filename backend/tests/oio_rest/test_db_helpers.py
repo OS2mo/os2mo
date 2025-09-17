@@ -15,7 +15,7 @@ from tests.oio_rest.util import ExtTestCase
 
 class TestDBHelpers(ExtTestCase):
     @pytest.fixture(autouse=True)
-    def setup_db_helpers(self):
+    def setup_db_helpers(self) -> None:
         db_helpers._attribute_fields = {}
         db_helpers._attribute_names = {}
         db_helpers._relation_names = {}
@@ -43,7 +43,7 @@ class TestDBHelpers(ExtTestCase):
         assert expected_fields == actual_fields
         assert expected_result == actual_result
 
-    def test_get_attribute_fields_uses_cache(self):
+    def test_get_attribute_fields_uses_cache(self) -> None:
         # Arrange
         expected_result = ["value1", "value2"]
         db_helpers._attribute_fields = {"test": expected_result}
@@ -54,7 +54,7 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert expected_result == actual_result
 
-    def test_get_field_type_default(self):
+    def test_get_field_type_default(self) -> None:
         # Arrange
         expected_result = "text"
 
@@ -190,7 +190,7 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert expected_result == actual_result
 
-    def test_get_attribute_names_default(self):
+    def test_get_attribute_names_default(self) -> None:
         # Arrange
         expected_result = {
             "itsystem": ["itsystemegenskaber"],
@@ -221,7 +221,7 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert expected_result == actual_result
 
-    def test_get_attribute_names_uses_cache(self):
+    def test_get_attribute_names_uses_cache(self) -> None:
         # Arrange
         expected_result = ["value1", "value2"]
         db_helpers._attribute_names = {"testclass1": expected_result}
@@ -295,7 +295,7 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert expected_result == actual_result
 
-    def test_get_relation_names_default(self):
+    def test_get_relation_names_default(self) -> None:
         # Arrange
         expected_result = {
             "itsystem": [
@@ -512,7 +512,7 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert expected_result == actual_result
 
-    def test_get_relation_names_uses_cache(self):
+    def test_get_relation_names_uses_cache(self) -> None:
         # Arrange
 
         expected_result = ["value1", "value2", "value3", "value4"]
@@ -524,7 +524,7 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert expected_result == actual_result
 
-    def test_get_state_names_order(self):
+    def test_get_state_names_order(self) -> None:
         # Arrange
         expected_result = {
             "itsystem": [
@@ -586,7 +586,7 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert expected_result == actual_result
 
-    def test_get_state_names_default(self):
+    def test_get_state_names_default(self) -> None:
         # Arrange
         expected_result = {
             "itsystem": [
@@ -616,7 +616,7 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert expected_result == actual_result
 
-    def test_input_list(self):
+    def test_input_list(self) -> None:
         # Arrange
         _type = MagicMock()
         _type.input.return_value = "listvalue"
@@ -635,7 +635,7 @@ class TestDBHelpers(ExtTestCase):
         assert _type.input.call_count == 2
         assert expected_args == _type.input.call_args_list
 
-    def test_input_list_none_value(self):
+    def test_input_list_none_value(self) -> None:
         # Arrange
         _type = MagicMock()
         _type.input.return_value = "generatorvalue"
@@ -646,7 +646,7 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert actual_result is None
 
-    def test_input_dict_list(self):
+    def test_input_dict_list(self) -> None:
         # Arrange
         _type = MagicMock()
         _type.input.return_value = "generatorvalue"
@@ -665,7 +665,7 @@ class TestDBHelpers(ExtTestCase):
         assert _type.input.call_count == 2
         assert expected_args == _type.input.call_args_list
 
-    def test_input_dict_list_none_value(self):
+    def test_input_dict_list_none_value(self) -> None:
         # Arrange
         _type = MagicMock()
         _type.input.return_value = "generatorvalue"
@@ -680,7 +680,7 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert expected_result == actual_result
 
-    def test_to_bool_correctly_parses_bools(self):
+    def test_to_bool_correctly_parses_bools(self) -> None:
         # Arrange
         # Act
         actual_true = db_helpers.to_bool(True)
@@ -689,7 +689,7 @@ class TestDBHelpers(ExtTestCase):
         assert actual_true
         assert not actual_false
 
-    def test_to_bool_correctly_parses_true_strings(self):
+    def test_to_bool_correctly_parses_true_strings(self) -> None:
         # Arrange
         # Act
         actual_true_capital = db_helpers.to_bool("True")
@@ -701,7 +701,7 @@ class TestDBHelpers(ExtTestCase):
         assert actual_true_lc
         assert actual_true_one
 
-    def test_to_bool_correctly_parses_false_strings(self):
+    def test_to_bool_correctly_parses_false_strings(self) -> None:
         # Arrange
         # Act
         actual_false_capital = db_helpers.to_bool("False")
@@ -713,7 +713,7 @@ class TestDBHelpers(ExtTestCase):
         assert not actual_false_lc
         assert not actual_false_one
 
-    def test_to_bool_handles_none(self):
+    def test_to_bool_handles_none(self) -> None:
         # Arrange
         expected_result = None
         # Act
@@ -722,13 +722,13 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert expected_result == actual_result
 
-    def test_to_bool_raises_on_invalid_value(self):
+    def test_to_bool_raises_on_invalid_value(self) -> None:
         # Arrange
         # Act & Assert
         with pytest.raises(ValueError):
             db_helpers.to_bool("This is not a valid boolean value")
 
-    def test_dokumentvarianttype_input_when_none(self):
+    def test_dokumentvarianttype_input_when_none(self) -> None:
         from oio_rest.db.db_helpers import DokumentVariantType
 
         # Arrange
@@ -740,7 +740,7 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert expected_result == actual_result
 
-    def test_dokumentvariantegenskabertype_input_when_none(self):
+    def test_dokumentvariantegenskabertype_input_when_none(self) -> None:
         from oio_rest.db.db_helpers import DokumentVariantEgenskaberType
 
         # Arrange
@@ -752,7 +752,7 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert expected_result == actual_result
 
-    def test_dokumentdeltype_input_when_none(self):
+    def test_dokumentdeltype_input_when_none(self) -> None:
         from oio_rest.db.db_helpers import DokumentDelType
 
         # Arrange
@@ -764,7 +764,7 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert expected_result == actual_result
 
-    def test_virkning_input_when_none(self):
+    def test_virkning_input_when_none(self) -> None:
         from oio_rest.db.db_helpers import Virkning
 
         # Arrange
@@ -777,7 +777,7 @@ class TestDBHelpers(ExtTestCase):
         assert expected_result == actual_result
 
     @skip("Document support destroyed when introducint FastAPI")
-    def test_dokumentdelegenskabertype_get_file_storage_raises_bre(self):
+    def test_dokumentdelegenskabertype_get_file_storage_raises_bre(self) -> None:
         from oio_rest.db.db_helpers import DokumentDelEgenskaberType
 
         # Arrange
@@ -793,7 +793,7 @@ class TestDBHelpers(ExtTestCase):
             )
 
     @skip("Document support destroyed when introducint FastAPI")
-    def test_dokumentdelegenskabertype_get_file_storage(self):
+    def test_dokumentdelegenskabertype_get_file_storage(self) -> None:
         from oio_rest.db.db_helpers import DokumentDelEgenskaberType
 
         # Arrange
@@ -812,7 +812,7 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert mockfile == actual_result
 
-    def test_dokumentdelegenskabertype_get_file_storage_returns_none(self):
+    def test_dokumentdelegenskabertype_get_file_storage_returns_none(self) -> None:
         from oio_rest.db.db_helpers import DokumentDelEgenskaberType
 
         # Arrange
@@ -833,7 +833,7 @@ class TestDBHelpers(ExtTestCase):
     @patch("oio_rest.db.db_helpers.content_store.save_file_object")
     def test_dokumentdelegenskabertype_input_update_file(
         self, mock_save_file, mock_get_file
-    ):
+    ) -> None:
         # type: (MagicMock, MagicMock) -> None
         from oio_rest.db.db_helpers import DokumentDelEgenskaberType
 
@@ -852,7 +852,7 @@ class TestDBHelpers(ExtTestCase):
         mock_get_file.assert_called_with("field:testdata")
         mock_save_file.assert_called_with(mockfile)
 
-    def test_dokumentdelegenskabertype_input_when_none(self):
+    def test_dokumentdelegenskabertype_input_when_none(self) -> None:
         from oio_rest.db.db_helpers import DokumentDelEgenskaberType
 
         # Arrange
@@ -864,7 +864,7 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert expected_result == actual_result
 
-    def test_dokumentdelrelationtype_input_when_none(self):
+    def test_dokumentdelrelationtype_input_when_none(self) -> None:
         from oio_rest.db.db_helpers import DokumentDelRelationType
 
         # Arrange
@@ -878,7 +878,7 @@ class TestDBHelpers(ExtTestCase):
 
 
 class TestSearchable:
-    def test_searchable_get_fields(self):
+    def test_searchable_get_fields(self) -> None:
         # Arrange
         from oio_rest.db.db_helpers import Searchable
 
@@ -893,7 +893,7 @@ class TestSearchable:
         # Assert
         assert expected_result == actual_result
 
-    def test_searchable_get_fields_with_virkning(self):
+    def test_searchable_get_fields_with_virkning(self) -> None:
         # Arrange
         from oio_rest.db.db_helpers import Searchable
 

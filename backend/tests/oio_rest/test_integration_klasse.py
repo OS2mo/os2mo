@@ -4,7 +4,7 @@ from tests.oio_rest.test_integration_helper import TestCreateObject
 
 
 class TestCreateKlasse(TestCreateObject):
-    def test_create_klasse(self):
+    def test_create_klasse(self) -> None:
         klasse = {
             "attributter": {
                 "klasseegenskaber": [

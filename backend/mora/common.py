@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from backend.mora.lora import Connector
+from sqlalchemy.connectors import Connector
 """Common LoRA logic
 -----------------
 
@@ -39,11 +41,11 @@ _CREATE_CONNECTOR_MIDDLEWARE_KEY = "create_connector"
 
 async def lora_connector_context(request: Request) -> AsyncIterator[None]:
     @functools.lru_cache
-    def cached_lora_connector(**kwargs):
+    def cached_lora_connector(**kwargs) -> Connector:
         return lora.Connector(**kwargs)
 
     @functools.lru_cache
-    def cached_create_connector(**kwargs):
+    def cached_create_connector(**kwargs) -> Connector:
         return _create_connector(**kwargs)
 
     graphql_match = re.match(r"/graphql/v(\d+)", request.url.path)

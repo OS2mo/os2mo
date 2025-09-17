@@ -61,7 +61,7 @@ async def test_get_mo_address():
         assert expected == actual
 
 
-def test_get_lora_address():
+def test_get_lora_address() -> None:
     # Arrange
     value = "Test text whatever"
     address_handler = TextAddressHandler(value, None)

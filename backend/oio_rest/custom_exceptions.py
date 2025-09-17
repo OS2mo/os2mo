@@ -5,7 +5,7 @@
 class OIOException(Exception):
     status_code = None  # Please supply in subclass!
 
-    def __init__(self, *args, payload=None):
+    def __init__(self, *args, payload=None) -> None:
         Exception.__init__(self, *args)
         self.payload = payload
 
@@ -41,6 +41,6 @@ class GoneException(OIOException):
 
 
 class DBException(OIOException):
-    def __init__(self, status_code, *args, payload=None):
+    def __init__(self, status_code, *args, payload=None) -> None:
         OIOException.__init__(self, *args, payload)
         self.status_code = status_code

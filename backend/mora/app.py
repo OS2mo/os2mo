@@ -128,7 +128,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     return http_exception_to_json_response(exc=exc)
 
 
-def create_app(settings_overrides: dict[str, Any] | None = None):
+def create_app(settings_overrides: dict[str, Any] | None = None) -> FastAPI:
     """
     Create and return a FastApi app instance for MORA.
     """
@@ -329,12 +329,12 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
 
     # These two exception handlers are for LoRas API:
     @app.exception_handler(OIOException)
-    def handle_not_allowed(request: Request, exc: OIOException):
+    def handle_not_allowed(request: Request, exc: OIOException) -> JSONResponse:
         dct = exc.to_dict()
         return JSONResponse(status_code=exc.status_code, content=dct)
 
     @app.exception_handler(DataError)
-    def handle_db_error(request: Request, exc: DataError):
+    def handle_db_error(request: Request, exc: DataError) -> JSONResponse:
         message = exc.orig.diag.message_primary
         context = exc.orig.diag.context
         return JSONResponse(

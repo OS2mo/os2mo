@@ -34,7 +34,7 @@ invalid_uuids = [UUID("7626ad64-327d-481f-8b32-36c78eb12f8c")]
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_query_all(graphapi_post: GraphAPIPost):
+def test_query_all(graphapi_post: GraphAPIPost) -> None:
     """Test that we can query all our employees."""
     query = """
         query {
@@ -557,7 +557,7 @@ def _get_lora_mutator_arg(mutator_key: str, lora_employee: dict):
     return None
 
 
-def _get_employee_verify_query():
+def _get_employee_verify_query() -> str:
     return """
         query VerifyQuery($uuid: UUID!) {
           employees(filter: {uuids: [$uuid], from_date: null, to_date: null}) {

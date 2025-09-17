@@ -44,7 +44,7 @@ def mock_sql_session(monkeypatch: MonkeyPatch) -> AsyncMock:
 
 class TestDB:
     @patch("oio_rest.db.get_relation_field_type")
-    def test_convert_relation_value_default(self, mock_get_rel):
+    def test_convert_relation_value_default(self, mock_get_rel) -> None:
         mock_get_rel.return_value = "not a known field type"
 
         value = "value"
@@ -54,7 +54,7 @@ class TestDB:
         assert value == actual_value
 
     @patch("oio_rest.db.get_relation_field_type")
-    def test_convert_relation_value_journalnotat(self, mock_get_rel):
+    def test_convert_relation_value_journalnotat(self, mock_get_rel) -> None:
         from oio_rest.db.db_helpers import JournalNotat
 
         # Arrange
@@ -74,7 +74,7 @@ class TestDB:
         assert expected_result == actual_result
 
     @patch("oio_rest.db.get_relation_field_type")
-    def test_convert_relation_value_journaldokument(self, mock_get_rel):
+    def test_convert_relation_value_journaldokument(self, mock_get_rel) -> None:
         from oio_rest.db.db_helpers import JournalDokument
         from oio_rest.db.db_helpers import OffentlighedUndtaget
 
@@ -104,7 +104,7 @@ class TestDB:
         assert expected_result == actual_result
 
     @patch("oio_rest.db.get_relation_field_type")
-    def test_convert_relation_value_aktoerattr(self, mock_get_rel):
+    def test_convert_relation_value_aktoerattr(self, mock_get_rel) -> None:
         from oio_rest.db.db_helpers import AktoerAttr
 
         # Arrange
@@ -133,7 +133,7 @@ class TestDB:
         assert expected_result == actual_result
 
     @patch("oio_rest.db.get_relation_field_type")
-    def test_convert_relation_value_aktoerattr_no_value(self, mock_get_rel):
+    def test_convert_relation_value_aktoerattr_no_value(self, mock_get_rel) -> None:
         # Arrange
         mock_get_rel.return_value = "aktoerattr"
 
@@ -148,7 +148,7 @@ class TestDB:
         assert expected_result == actual_result
 
     @patch("oio_rest.db.get_relation_field_type")
-    def test_convert_relation_value_vaerdirelationattr(self, mock_get_rel):
+    def test_convert_relation_value_vaerdirelationattr(self, mock_get_rel) -> None:
         from oio_rest.db.db_helpers import VaerdiRelationAttr
 
         # Arrange
@@ -168,7 +168,7 @@ class TestDB:
         assert expected_result == actual_result
 
     @patch("oio_rest.db.get_attribute_fields")
-    def test_convert_attributes_no_value(self, mock_get_attr):
+    def test_convert_attributes_no_value(self, mock_get_attr) -> None:
         # Arrange
         mock_get_attr.return_value = ["field1", "field2", "field3", "field4"]
 
@@ -181,7 +181,7 @@ class TestDB:
         assert attributes == actual_result
 
     @patch("oio_rest.db.get_attribute_fields")
-    def test_convert_attributes_is_correct_order(self, mock_get_attr):
+    def test_convert_attributes_is_correct_order(self, mock_get_attr) -> None:
         # Arrange
         mock_get_attr.return_value = ["field1", "field2", "field3", "field4"]
 
@@ -213,7 +213,7 @@ class TestDB:
         assert expected_result == actual_result
 
     @patch("oio_rest.db.get_attribute_fields")
-    def test_convert_attributes_adds_none_values(self, mock_get_attr):
+    def test_convert_attributes_adds_none_values(self, mock_get_attr) -> None:
         # Arrange
         mock_get_attr.return_value = ["field1", "field2", "field3", "field4"]
 
@@ -236,7 +236,7 @@ class TestDB:
         assert expected_result == actual_result
 
     @patch("oio_rest.db.get_attribute_fields")
-    def test_convert_attributes_handles_multiple_attributes(self, mock_get_attr):
+    def test_convert_attributes_handles_multiple_attributes(self, mock_get_attr) -> None:
         # Arrange
         mock_get_attr.return_value = ["field1", "field2", "field3", "field4"]
 
@@ -325,7 +325,7 @@ class TestDB:
         # Assert
         assert expected_result == actual_result
 
-    def test_convert_relations_raises_on_malformed_relation(self):
+    def test_convert_relations_raises_on_malformed_relation(self) -> None:
         # Arrange
         relations = {"relation": ["This is not a dict"]}
 
@@ -333,7 +333,7 @@ class TestDB:
         with pytest.raises(BadRequestException):
             db.convert_relations(relations, "classname")
 
-    def test_convert_variants_none_value(self):
+    def test_convert_variants_none_value(self) -> None:
         # Arrange
         variants = None
 
@@ -492,7 +492,7 @@ class TestDB:
         actual_output = db.filter_json_output(expected_output)
         assert expected_output == actual_output
 
-    def test_simplify_cleared_wrappers_dict_with_cleared(self):
+    def test_simplify_cleared_wrappers_dict_with_cleared(self) -> None:
         # Arrange
         value = {"cleared": "", "value": "testvalue", "bla": "whatever"}
 
@@ -502,7 +502,7 @@ class TestDB:
         # Assert
         assert actual_result == "testvalue"
 
-    def test_simplify_cleared_wrappers_dict_without_cleared(self):
+    def test_simplify_cleared_wrappers_dict_without_cleared(self) -> None:
         # Arrange
         value = {"key1": "val1", "key2": "val2"}
 
@@ -512,7 +512,7 @@ class TestDB:
         # Assert
         assert value == actual_result
 
-    def test_simplify_cleared_wrappers_list(self):
+    def test_simplify_cleared_wrappers_list(self) -> None:
         # Arrange
         value = ["cleared", "val1", "val2", "val3"]
 
@@ -522,7 +522,7 @@ class TestDB:
         # Assert
         assert value == actual_result
 
-    def test_simplify_cleared_wrappers_tuple(self):
+    def test_simplify_cleared_wrappers_tuple(self) -> None:
         # Arrange
         value = ("cleared", "val1", "val2", "val3")
 
@@ -532,7 +532,7 @@ class TestDB:
         # Assert
         assert value == actual_result
 
-    def test_simplify_cleared_wrappers_recursive(self):
+    def test_simplify_cleared_wrappers_recursive(self) -> None:
         # Arrange
         value = (
             {"cleared": "", "value": "val1", "whatever": "1234"},
@@ -555,7 +555,7 @@ class TestDB:
         # Assert
         assert expected_result == actual_result
 
-    def test_simplify_cleared_wrappers_default(self):
+    def test_simplify_cleared_wrappers_default(self) -> None:
         # Arrange
         value = 1234
 
@@ -565,7 +565,7 @@ class TestDB:
         # Assert
         assert value == actual_result
 
-    def test_transform_virkning_parses_included(self):
+    def test_transform_virkning_parses_included(self) -> None:
         # Arrange
         value = (
             {"timeperiod": "[12345678,12345678]"},
@@ -579,7 +579,7 @@ class TestDB:
         assert not actual_result[1]["from_included"]
         assert not actual_result[1]["to_included"]
 
-    def test_transform_virkning_removes_quotes(self):
+    def test_transform_virkning_removes_quotes(self) -> None:
         # Arrange
         value = {"timeperiod": '("12345678","12345678")'}
 
@@ -590,7 +590,7 @@ class TestDB:
         assert actual_result["from"] == "12345678"
         assert actual_result["to"] == "12345678"
 
-    def test_transform_virkning_dict_with_timeperiod(self):
+    def test_transform_virkning_dict_with_timeperiod(self) -> None:
         # Arrange
         value = {"timeperiod": '(12345678,"12345678"]'}
 
@@ -607,7 +607,7 @@ class TestDB:
         # Assert
         assert expected_result == actual_result
 
-    def test_transform_virkning_dict_without_timeperiod(self):
+    def test_transform_virkning_dict_without_timeperiod(self) -> None:
         # Arrange
         value = {"nottimeperiod": "asdasdasd test"}
 
@@ -617,7 +617,7 @@ class TestDB:
         # Assert
         assert value == actual_result
 
-    def test_transform_virkning_list(self):
+    def test_transform_virkning_list(self) -> None:
         # Arrange
         value = ["nottimeperiod", "asdasdasd test"]
 
@@ -627,7 +627,7 @@ class TestDB:
         # Assert
         assert value == actual_result
 
-    def test_transform_virkning_tuple(self):
+    def test_transform_virkning_tuple(self) -> None:
         # Arrange
         value = ("nottimeperiod", "asdasdasd test")
 
@@ -637,7 +637,7 @@ class TestDB:
         # Assert
         assert value == actual_result
 
-    def test_transform_virkning_recursive(self):
+    def test_transform_virkning_recursive(self) -> None:
         # Arrange
         value = (
             {"timeperiod": '(12345678,"12345678"]', "untouched": "1234"},
@@ -683,7 +683,7 @@ class TestDB:
         # Assert
         assert expected_result == actual_result
 
-    def test_transform_virkning_default(self):
+    def test_transform_virkning_default(self) -> None:
         # Arrange
         value = 1234
 
@@ -693,7 +693,7 @@ class TestDB:
         # Assert
         assert value == actual_result
 
-    def test_filter_empty_with_dict(self):
+    def test_filter_empty_with_dict(self) -> None:
         # Arrange
         value = {"emptykey1": "", "emptykey2": None, "nonempty": "12345"}
 
@@ -705,7 +705,7 @@ class TestDB:
         # Assert
         assert expected_result == actual_result
 
-    def test_filter_empty_recursive(self):
+    def test_filter_empty_recursive(self) -> None:
         # Arrange
         value = (
             {"emptykey": "", "untouched": "1234"},
@@ -728,7 +728,7 @@ class TestDB:
         # Assert
         assert expected_result == actual_result
 
-    def test_transform_relations_with_list_dict(self):
+    def test_transform_relations_with_list_dict(self) -> None:
         # Arrange
         value = {
             "relationer": [
@@ -750,7 +750,7 @@ class TestDB:
         # Assert
         assert expected_result == actual_value
 
-    def test_transform_relations_with_tuple_dict(self):
+    def test_transform_relations_with_tuple_dict(self) -> None:
         # Arrange
         value = {
             "relationer": (
@@ -772,7 +772,7 @@ class TestDB:
         # Assert
         assert expected_result == actual_value
 
-    def test_transform_relations_recursive(self):
+    def test_transform_relations_recursive(self) -> None:
         # Arrange
         value = (
             [
@@ -852,7 +852,7 @@ class TestDB:
 
 
 class TestConsolidateVirkninger:
-    def test_consolidate_effects_works_correctly(self):
+    def test_consolidate_effects_works_correctly(self) -> None:
         # Arrange
         effects = [
             {
@@ -893,7 +893,7 @@ class TestConsolidateVirkninger:
         # Assert
         assert expected == actual
 
-    def test_consolidate_handles_differing_attributes(self):
+    def test_consolidate_handles_differing_attributes(self) -> None:
         # Arrange
         effects = [
             {
@@ -931,7 +931,7 @@ class TestConsolidateVirkninger:
         # Assert
         assert effects == actual
 
-    def test_consolidate_handles_zero_to_many(self):
+    def test_consolidate_handles_zero_to_many(self) -> None:
         """Handle overlapping intervals as found in zero-to-many relations"""
         # Arrange
         effects = [
@@ -1000,7 +1000,7 @@ class TestConsolidateVirkninger:
         # Assert
         assert expected == actual
 
-    def test_consolidate_handles_zero_to_many_many_equal_overlaps(self):
+    def test_consolidate_handles_zero_to_many_many_equal_overlaps(self) -> None:
         """Handle overlapping intervals as found in zero-to-many relations"""
         # Arrange
         effects = [
@@ -1069,7 +1069,7 @@ class TestConsolidateVirkninger:
         # Assert
         assert expected == actual
 
-    def test_consolidate_handles_non_sequential_periods(self):
+    def test_consolidate_handles_non_sequential_periods(self) -> None:
         # Arrange
         effects = [
             {
@@ -1098,7 +1098,7 @@ class TestConsolidateVirkninger:
         # Assert
         assert effects == actual
 
-    def test_consolidate_handles_single_element(self):
+    def test_consolidate_handles_single_element(self) -> None:
         # Arrange
         effects = [
             {
@@ -1118,7 +1118,7 @@ class TestConsolidateVirkninger:
         # Assert
         assert effects == actual
 
-    def test_consolidate_handles_empty_list(self):
+    def test_consolidate_handles_empty_list(self) -> None:
         # Arrange
         effects = []
 
@@ -1128,7 +1128,7 @@ class TestConsolidateVirkninger:
         # Assert
         assert effects == actual
 
-    def test_consolidate_and_trim_removes_empty_keys(self):
+    def test_consolidate_and_trim_removes_empty_keys(self) -> None:
         obj = [
             [
                 {
@@ -1183,7 +1183,7 @@ class TestConsolidateVirkninger:
         assert "organisationfunktionegenskaber" in actual_attributes
         assert "organisationfunktionudvidelser" not in actual_attributes
 
-    def test_consolidate_and_trim_removes_empty_categories(self):
+    def test_consolidate_and_trim_removes_empty_categories(self) -> None:
         obj = [
             [
                 {
@@ -1226,7 +1226,7 @@ class TestConsolidateVirkninger:
         # 'attributter' should be gone at this point
         assert "attributter" not in actual_registration
 
-    def test_trim_virkninger_lower_bound_not_included(self):
+    def test_trim_virkninger_lower_bound_not_included(self) -> None:
         effects = [
             {
                 "whatever": "garbage",
@@ -1264,7 +1264,7 @@ class TestConsolidateVirkninger:
 
         assert expected == actual
 
-    def test_trim_virkninger_lower_bound_included(self):
+    def test_trim_virkninger_lower_bound_included(self) -> None:
         effects = [
             {
                 "whatever": "garbage",
@@ -1311,7 +1311,7 @@ class TestConsolidateVirkninger:
 
         assert expected == actual
 
-    def test_trim_virkninger_upper_bound_not_included(self):
+    def test_trim_virkninger_upper_bound_not_included(self) -> None:
         effects = [
             {
                 "whatever": "garbage",
@@ -1349,7 +1349,7 @@ class TestConsolidateVirkninger:
 
         assert expected == actual
 
-    def test_trim_virkninger_upper_bound_included(self):
+    def test_trim_virkninger_upper_bound_included(self) -> None:
         effects = [
             {
                 "whatever": "garbage",
@@ -1630,12 +1630,12 @@ Diagnostics = collections.namedtuple("Diagnostics", ["message_primary"])
 @patch("oio_rest.db.jinja_env.get_template", new=get_template_mock)
 class TestPGErrors:
     class FakeException(Exception):
-        def __init__(self, code="MO123", message="1 2 3 testing..."):
+        def __init__(self, code: str="MO123", message: str="1 2 3 testing...") -> None:
             self.pgcode = code
             self.diag = Diagnostics(message)
 
         @property
-        def orig(self):
+        def orig(self) -> Orig:
             return Orig(sqlstate=self.pgcode, diag=self.diag)
 
     @patch("oio_rest.db.StatementError", new=FakeException)

@@ -12,7 +12,7 @@ from ..conftest import GraphAPIPost
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_query_all(graphapi_post: GraphAPIPost):
+def test_query_all(graphapi_post: GraphAPIPost) -> None:
     """Test that we can query all attributes of the facets data model."""
     query = """
         query {

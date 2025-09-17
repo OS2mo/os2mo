@@ -44,13 +44,13 @@ def write_strat(draw):
 
 class TestRELATED_UNIT:
     @given(base_strat())
-    def test_base(self, model_dict):
+    def test_base(self, model_dict) -> None:
         assert RelatedUnitBase(**model_dict)
 
     @given(read_strat())
-    def test_read(self, model_dict):
+    def test_read(self, model_dict) -> None:
         assert RelatedUnitRead(**model_dict)
 
     @given(write_strat())
-    def test_write(self, model_dict):
+    def test_write(self, model_dict) -> None:
         assert RelatedUnitWrite(**model_dict)

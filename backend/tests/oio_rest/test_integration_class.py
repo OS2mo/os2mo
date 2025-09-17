@@ -5,7 +5,7 @@ from tests.oio_rest.util import DBTestCase
 
 
 class Tests(DBTestCase):
-    def test_import(self):
+    def test_import(self) -> None:
         objid = self.load_fixture("/klassifikation/klasse", "klasse_opret.json")
 
         expected = {
@@ -108,7 +108,7 @@ class Tests(DBTestCase):
 
         self.assertQueryResponse("/klassifikation/klasse", expected, uuid=objid)
 
-    def test_edit_put(self):
+    def test_edit_put(self) -> None:
         objid = self.load_fixture("/klassifikation/klasse", "klasse_opret.json")
 
         self.assertRequestResponse(
@@ -223,7 +223,7 @@ class Tests(DBTestCase):
             uuid=objid,
         )
 
-    def test_edit(self):
+    def test_edit(self) -> None:
         objid = self.load_fixture("/klassifikation/klasse", "klasse_opret.json")
 
         self.assertRequestResponse(
@@ -335,7 +335,7 @@ class Tests(DBTestCase):
             uuid=objid,
         )
 
-    def test_deleting_nothing(self):
+    def test_deleting_nothing(self) -> None:
         msg = "No Klasse with ID 00000000-0000-0000-0000-000000000000 found."
 
         self.assertRequestResponse(
@@ -347,7 +347,7 @@ class Tests(DBTestCase):
             status_code=404,
         )
 
-    def test_deleting_something(self):
+    def test_deleting_something(self) -> None:
         objid = self.load_fixture("/klassifikation/klasse", "klasse_opret.json")
 
         r = self.client.delete(
@@ -367,7 +367,7 @@ class Tests(DBTestCase):
             method="DELETE",
         )
 
-    def test_bad_import(self):
+    def test_bad_import(self) -> None:
         """import a class into an organisation -- not expected to work"""
         data = util.get_fixture("klasse_opret.json")
 
@@ -378,7 +378,7 @@ class Tests(DBTestCase):
             json=data,
         )
 
-    def test_lowercase_state(self):
+    def test_lowercase_state(self) -> None:
         objid = self.load_fixture("/klassifikation/klasse", "klasse_opret.json")
 
         self.assertRequestFails(

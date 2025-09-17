@@ -133,7 +133,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                 {"uuid": parent_uuid}, valid_from, valid_to
             )
 
-        def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
+        def _inject_org_units(details, org_unit_uuid: str, valid_from: datetime, valid_to: datetime):
             decorated = copy.deepcopy(details)
             for detail in decorated:
                 detail["org_unit"] = {
@@ -390,7 +390,7 @@ async def request_bulked_get_one_orgunit(
 
 async def get_one_orgunit(
     c: lora.Connector,
-    unitid,
+    unitid: UUID | str,
     unit=None,
     details=UnitDetails.NCHILDREN,
     validity=None,
@@ -778,7 +778,7 @@ async def trigger_external_integration(unitid: UUID, only_primary_uuid: bool = F
     return result
 
 
-def get_details_from_query_args(args):
+def get_details_from_query_args(args) -> UnitDetails:
     arg_map = {
         "minimal": UnitDetails.MINIMAL,
         "nchildren": UnitDetails.NCHILDREN,

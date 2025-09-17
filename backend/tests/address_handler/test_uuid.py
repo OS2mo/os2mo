@@ -40,7 +40,7 @@ async def test_from_request():
     assert VALUE_FIXED == actual_value
 
 
-def test_get_lora_address():
+def test_get_lora_address() -> None:
     # Arrange
     address_handler = UUIDAddressHandler(VALUE_FIXED, None)
 

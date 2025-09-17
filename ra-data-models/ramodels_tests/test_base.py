@@ -19,7 +19,7 @@ from ramodels_tests.conftest import tz_dt_strat
 
 
 class TestRABase:
-    def test_init(self):
+    def test_init(self) -> None:
         # RABase should not be able to be instantiated
         with pytest.raises(TypeError, match="may not be instantiated"):
             RABase()
@@ -29,7 +29,7 @@ class TestConfig:
     class ConfigClass(RABase):
         test_field: str = Field(alias="Field alias")
 
-    def test_frozen(self):
+    def test_frozen(self) -> None:
         config_class = self.ConfigClass(test_field="test")
 
         # config_class should be immutable
@@ -39,17 +39,17 @@ class TestConfig:
         # and have a __hash__() method
         assert hasattr(config_class, "__hash__")
 
-    def test_allow_population_by_field_name(self):
+    def test_allow_population_by_field_name(self) -> None:
         # We should be able to populate using Field alias
         assert self.ConfigClass(**{"Field alias": "test"})
 
-    def test_extra_forbid(self):
+    def test_extra_forbid(self) -> None:
         # This is verboten
         with pytest.raises(ValidationError, match="extra fields not permitted"):
             self.ConfigClass(test_field="test", fail="oh no")  # type: ignore
 
 
-def is_isodt_str(s):
+def is_isodt_str(s: str) -> bool:
     try:
         datetime.fromisoformat(s)
     except Exception:
@@ -62,23 +62,23 @@ def is_isodt_str(s):
 
 class TestTZISODate:
     @given(tz_dt_strat())
-    def test_init(self, dt):
+    def test_init(self, dt) -> None:
         iso_dt = tz_isodate(dt)
         assert iso_dt
         assert iso_dt.tzinfo
 
     @given(date_strat().map(lambda date: date.isoformat()))  # type: ignore
-    def test_str_input(self, dt_str):
+    def test_str_input(self, dt_str) -> None:
         iso_dt = tz_isodate(dt_str)
         assert iso_dt
         assert iso_dt.tzinfo
 
     @given(st.text().filter(lambda s: not is_isodt_str(s)))
-    def test_fail_input(self, fail_str):
+    def test_fail_input(self, fail_str) -> None:
         with pytest.raises(ISOParseError):
             tz_isodate(fail_str)
 
-    def test_pre_1894(self):
+    def test_pre_1894(self) -> None:
         assert tz_isodate("1885-05-01") == datetime(
             1885, 5, 1, 0, 0, tzinfo=ZoneInfo("Europe/Copenhagen")
         )

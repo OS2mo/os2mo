@@ -72,23 +72,23 @@ def leave_strat(draw):
 
 class TestLeave:
     @given(base_strat())
-    def test_base(self, model_dict):
+    def test_base(self, model_dict) -> None:
         assert LeaveBase(**model_dict)
 
     @given(read_strat())
-    def test_read(self, model_dict):
+    def test_read(self, model_dict) -> None:
         assert LeaveRead(**model_dict)
 
     @given(write_strat())
-    def test_write(self, model_dict):
+    def test_write(self, model_dict) -> None:
         assert LeaveWrite(**model_dict)
 
     @given(leave_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert Leave(**model_dict)
 
     @given(leave_strat(), not_from_regex(r"^leave$"))
-    def test_validators(self, model_dict, invalid_type):
+    def test_validators(self, model_dict, invalid_type) -> None:
         with unexpected_value_error():
             model_dict["type"] = invalid_type
             Leave(**model_dict)

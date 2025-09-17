@@ -52,7 +52,7 @@ DETAIL_TYPES = {
 }
 
 
-def filter_by_validity(validity: ValidityLiteral, element: dict):
+def filter_by_validity(validity: ValidityLiteral, element: dict) -> bool:
     # This is **not** a complete filter that follows all rules of MO and Lora.
     # If validity is past and the element ends after today -> False
     # If validity is future and the element started before today -> False

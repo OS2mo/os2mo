@@ -12,7 +12,7 @@ ORG_UNIT_UUID = "f4f28810-cdd9-4ff5-821e-427378ab4bf7"
 
 
 @patch("mora.service.validate.validator.is_date_range_in_org_unit_range")
-def test_candidate_org_unit(mock, service_client):
+def test_candidate_org_unit(mock, service_client) -> None:
     payload = {
         "org_unit": UUID,
         "validity": {"from": FROM_DATE, "to": None},
@@ -28,7 +28,7 @@ def test_candidate_org_unit(mock, service_client):
 
 
 @patch("mora.service.validate.validator.is_date_range_in_employee_range")
-def test_validate_employee(mock, service_client):
+def test_validate_employee(mock, service_client) -> None:
     payload = {
         "person": UUID,
         "validity": {"from": FROM_DATE, "to": None},
@@ -44,7 +44,7 @@ def test_validate_employee(mock, service_client):
 
 
 @patch("mora.service.validate.validator.does_employee_with_cpr_already_exist")
-def test_cpr(mock, service_client):
+def test_cpr(mock, service_client) -> None:
     cpr_no = "1234567890"
 
     org_uuid = "52e8d1ff-6fe0-4e8a-a19c-8bd8e1154b3b"
@@ -58,7 +58,7 @@ def test_cpr(mock, service_client):
 
 
 @patch("mora.service.validate.validator.does_employee_have_active_engagement")
-def test_employee_engagements(mock, service_client):
+def test_employee_engagements(mock, service_client) -> None:
     payload = {
         "person": {"uuid": PERSON_UUID},
         "validity": {"from": FROM_DATE, "to": None},
@@ -75,7 +75,7 @@ def test_employee_engagements(mock, service_client):
 
 
 @patch("mora.service.validate.validator.does_employee_have_existing_association")
-def test_existing_associations(mock, service_client):
+def test_existing_associations(mock, service_client) -> None:
     association_uuid = "7cd87e2a-e41a-4b68-baca-ff69426be753"
     payload = {
         "person": {"uuid": PERSON_UUID},
@@ -96,7 +96,7 @@ def test_existing_associations(mock, service_client):
 
 
 @patch("mora.service.validate.validator.is_candidate_parent_valid")
-def test_parent_org_unit(mock, service_client):
+def test_parent_org_unit(mock, service_client) -> None:
     parent_uuid = "cc1fc948-d3f6-4bbc-9faf-288e0f956135"
 
     payload = {
@@ -118,7 +118,7 @@ def test_parent_org_unit(mock, service_client):
 
 @patch("mora.service.address_handler.base.get_handler_for_scope")
 @patch("mora.service.facet.get_one_class")
-def test_address(get_one_class, get_handler_for_scope, service_client):
+def test_address(get_one_class, get_handler_for_scope, service_client) -> None:
     value = "12341234"
     scope = "SCOPE"
 

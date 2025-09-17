@@ -48,14 +48,14 @@ def organisation_fsf_strat(draw):
 
 class TestOrganisation:
     @given(organisation_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert Organisation(**model_dict)
 
     @given(organisation_fsf_strat())
-    def test_from_simplified_fields(self, simp_fields_dict):
+    def test_from_simplified_fields(self, simp_fields_dict) -> None:
         assert Organisation.from_simplified_fields(**simp_fields_dict)
 
-    def test_fixture(self):
+    def test_fixture(self) -> None:
         content = Path("ramodels_tests/fixture/lora/organisation.json").read_text()
         payload = json.loads(content)
         assert OrganisationRead(**payload)

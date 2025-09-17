@@ -11,7 +11,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from mora import config
 
 
-def keycloak_router():
+def keycloak_router() -> APIRouter:
     router = APIRouter()
 
     settings = config.get_settings()

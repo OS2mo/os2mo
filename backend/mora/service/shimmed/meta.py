@@ -9,7 +9,7 @@ from mora.graphapi.shim import execute_graphql
 from .errors import handle_gql_error
 
 
-def meta_router():
+def meta_router() -> APIRouter:
     router = APIRouter()
 
     @router.get("/version/")

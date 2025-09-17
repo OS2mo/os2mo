@@ -7,7 +7,7 @@ from tests.oio_rest.util import DBTestCase
 
 class Tests(DBTestCase):
     @pytest.fixture(autouse=True)
-    def setup_classes(self, setup, empty_db):
+    def setup_classes(self, setup, empty_db) -> None:
         self.a = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
         self.b = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
         self.c = "cccccccc-cccc-cccc-cccc-cccccccccccc"
@@ -73,7 +73,7 @@ class Tests(DBTestCase):
         )
         return uuid
 
-    def test_multi_uuid_list(self):
+    def test_multi_uuid_list(self) -> None:
         """
         Test getting multiple objects (by their UUID) in one call.
         """
@@ -86,7 +86,7 @@ class Tests(DBTestCase):
         expected = {self.a_a, self.a_b, self.b_b}
         assert actual == expected
 
-    def test_multi_relation_search(self):
+    def test_multi_relation_search(self) -> None:
         """
         Test getting multiple objects (by their relations) in one call.
         """

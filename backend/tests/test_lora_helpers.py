@@ -6,7 +6,7 @@ from parameterized import parameterized
 
 
 class TestLoraGroupParams:
-    def test_group_params(self):
+    def test_group_params(self) -> None:
         actual = group_params(
             param_keys=("a", "b"),
             params_list=[
@@ -23,7 +23,7 @@ class TestLoraGroupParams:
 
 
 class TestLoraParameterValuesExtractor:
-    def test_traverse(self):
+    def test_traverse(self) -> None:
         d = {
             "a": {
                 "b": 1,
@@ -69,10 +69,10 @@ class TestLoraParameterValuesExtractor:
             (["a", "relationer", "b", 3, "id"], "b"),
         ]
     )
-    def test_get_key_for_path(self, path, expected):
+    def test_get_key_for_path(self, path, expected) -> None:
         assert ParameterValuesExtractor.get_key_for_path(path) == expected
 
-    def test_get_key_value_items(self):
+    def test_get_key_value_items(self) -> None:
         d = {
             "a": 1,
             "b": 2,

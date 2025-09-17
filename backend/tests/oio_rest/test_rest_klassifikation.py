@@ -9,7 +9,7 @@ from tests.oio_rest.util import DBTestCase
 
 
 class Test21660PutUpdate(DBTestCase):
-    def test_21660(self):
+    def test_21660(self) -> None:
         result = self.client.post(
             "lora/klassifikation/facet",
             data={
@@ -34,7 +34,7 @@ class Test21660PutUpdate(DBTestCase):
 
 
 class TestKlasse(DBTestCase):
-    def test_klasse(self):
+    def test_klasse(self) -> None:
         result = self.client.post(
             "lora/klassifikation/klasse",
             data={
@@ -56,7 +56,7 @@ class TestKlasse(DBTestCase):
 
 
 class TestImportDeletedPassivated(DBTestCase):
-    def test_import_delete_passivated(self):
+    def test_import_delete_passivated(self) -> None:
         result = self.client.post(
             "lora/klassifikation/facet",
             data={
@@ -110,7 +110,7 @@ class TestImportDeletedPassivated(DBTestCase):
 
 
 class TestFacet(DBTestCase):
-    def test_facet(self):
+    def test_facet(self) -> None:
         result = self.client.post(
             "lora/klassifikation/facet",
             data={

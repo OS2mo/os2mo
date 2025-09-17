@@ -213,7 +213,7 @@ def generate_token(parsed_token: dict, key: bytes) -> str:
     return token
 
 
-def test_auth_exception_handler_return_401_for_client_side_error():
+def test_auth_exception_handler_return_401_for_client_side_error() -> None:
     exc = AuthenticationError(InvalidSignatureError())
     authentication_exception_handler = get_auth_exception_handler(get_logger())
 
@@ -222,7 +222,7 @@ def test_auth_exception_handler_return_401_for_client_side_error():
     )
 
 
-def test_auth_exception_handler_return_500_for_server_side_error():
+def test_auth_exception_handler_return_500_for_server_side_error() -> None:
     exc = AuthenticationError(PyJWTError())
     authentication_exception_handler = get_auth_exception_handler(get_logger())
     assert (
@@ -410,32 +410,32 @@ async def test_token_accepted_when_aud_in_token_and_verify_aud_is_false(
     assert await auth(token)
 
 
-def test_exception_set_correctly():
+def test_exception_set_correctly() -> None:
     exc = AuthenticationError(InvalidSignatureError())
     assert isinstance(exc.exc, InvalidSignatureError)
 
 
-def test_is_client_side_error_true_for_invalid_token_error():
+def test_is_client_side_error_true_for_invalid_token_error() -> None:
     exc = AuthenticationError(InvalidTokenError())
     assert exc.is_client_side_error()
 
 
-def test_is_client_side_error_true_for_http_exception_401():
+def test_is_client_side_error_true_for_http_exception_401() -> None:
     exc = AuthenticationError(HTTPException(status_code=HTTP_401_UNAUTHORIZED))
     assert exc.is_client_side_error()
 
 
-def test_is_client_side_error_false_for_http_exception_500():
+def test_is_client_side_error_false_for_http_exception_500() -> None:
     exc = AuthenticationError(HTTPException(status_code=HTTP_500_INTERNAL_SERVER_ERROR))
     assert not exc.is_client_side_error()
 
 
-def test_is_client_side_error_false_for_server_error():
+def test_is_client_side_error_false_for_server_error() -> None:
     exc = AuthenticationError(PyJWTError())
     assert not exc.is_client_side_error()
 
 
-def test_azp_mandatory():
+def test_azp_mandatory() -> None:
     with pytest.raises(ValidationError) as exc_info:
         Token()
     errors = exc_info.value.errors()[0]
@@ -444,24 +444,24 @@ def test_azp_mandatory():
     assert errors["type"] == "value_error.missing"
 
 
-def test_should_ignore_extra_fields():
+def test_should_ignore_extra_fields() -> None:
     token = Token(azp="some-client", extra=0)
     with pytest.raises(AttributeError):
         token.extra
 
 
-def test_should_set_realm_access_to_default_value():
+def test_should_set_realm_access_to_default_value() -> None:
     token = Token(azp="some-client")
     assert token.realm_access.roles == set()
 
 
-def test_should_set_roles_correctly():
+def test_should_set_roles_correctly() -> None:
     roles = {"admin", "owner"}
     token = Token(azp="some-client", realm_access=RealmAccess(roles=roles))
     assert token.realm_access.roles == roles
 
 
-def test_invalid_email_address_not_allowed():
+def test_invalid_email_address_not_allowed() -> None:
     with pytest.raises(ValidationError) as exc_info:
         Token(azp="mo", uuid=uuid4(), email="Invalid email")
     errors = exc_info.value.errors()[0]
@@ -470,7 +470,7 @@ def test_invalid_email_address_not_allowed():
     assert errors["type"] == "value_error.email"
 
 
-def test_token_with_all_fields_set():
+def test_token_with_all_fields_set() -> None:
     uuid = uuid4()
     roles = {"admin", "owner"}
     token = Token(

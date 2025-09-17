@@ -405,7 +405,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         await super().prepare_terminate(request)
 
     async def validate_unique_group_on_create(
-        self, employee_uuid, it_user_uuid, org_unit_uuid
+        self, employee_uuid: str, it_user_uuid: str, org_unit_uuid: str
     ):
         validation = await ITAssociationUniqueGroupValidation.from_mo_objects(
             dict(
@@ -421,7 +421,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             ),
         ).validate()
 
-    async def validate_primary_group_on_create(self, employee_uuid, it_user_uuid):
+    async def validate_primary_group_on_create(self, employee_uuid: str, it_user_uuid: str):
         validation = await ITAssociationPrimaryGroupValidation.from_mo_objects(
             dict(tilknyttedebrugere=employee_uuid),
         )
@@ -437,7 +437,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         self,
         association_uuid,
         employee_uuid,
-        it_user_uuid,
+        it_user_uuid: str,
         org_unit_uuid,
     ):
         validation = await ITAssociationUniqueGroupValidation.from_mo_objects(
@@ -453,7 +453,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         ).validate()
 
     async def validate_primary_group_on_edit(
-        self, association_uuid, employee_uuid, it_user_uuid
+        self, association_uuid, employee_uuid, it_user_uuid: str
     ):
         validation = await ITAssociationPrimaryGroupValidation.from_mo_objects(
             dict(tilknyttedebrugere=employee_uuid),

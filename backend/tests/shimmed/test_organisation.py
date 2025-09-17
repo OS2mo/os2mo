@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 class TestOrganisationEndpoints:
-    def test_list_organisation(self, service_client: TestClient):
+    def test_list_organisation(self, service_client: TestClient) -> None:
         response = service_client.request("GET", "/service/o/")
         assert response.status_code == 200
         assert response.json() == [
@@ -20,7 +20,7 @@ class TestOrganisationEndpoints:
             }
         ]
 
-    def test_get_organisation(self, service_client: TestClient):
+    def test_get_organisation(self, service_client: TestClient) -> None:
         response = service_client.request(
             "GET", "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
         )
@@ -39,7 +39,7 @@ class TestOrganisationEndpoints:
             "child_count": 3,
         }
 
-    def test_get_children(self, service_client: TestClient):
+    def test_get_children(self, service_client: TestClient) -> None:
         response = service_client.request(
             "GET",
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children",
@@ -75,7 +75,7 @@ class TestOrganisationEndpoints:
             },
         ]
 
-    def test_get_children_with_counts(self, service_client: TestClient):
+    def test_get_children_with_counts(self, service_client: TestClient) -> None:
         response = service_client.request(
             "GET",
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children",
@@ -118,7 +118,7 @@ class TestOrganisationEndpoints:
             },
         ]
 
-    def test_get_children_with_hierarchy(self, service_client: TestClient):
+    def test_get_children_with_hierarchy(self, service_client: TestClient) -> None:
         response = service_client.request(
             "GET",
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children",
@@ -128,7 +128,7 @@ class TestOrganisationEndpoints:
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_get_children_invalid(self, service_client: TestClient):
+    def test_get_children_invalid(self, service_client: TestClient) -> None:
         # Doesn't exist
         response = service_client.request(
             "GET", "/service/o/00000000-0000-0000-0000-000000000000/children"

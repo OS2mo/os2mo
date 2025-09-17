@@ -4,6 +4,7 @@
 # It assumes that the underlying LoRa database contains the MO extensions
 # defined in `mo-01.json`. Thus, it cannot be used with a basic LoRa database
 # where the MO extensions have not been installed.
+from sqlalchemy.sql.selectable import CTE
 from uuid import UUID
 
 from mora.access_log import access_log
@@ -26,7 +27,7 @@ from oio_rest.db.metadata import metadata
 UUID_SEARCH_MIN_PHRASE_LENGTH = 7
 
 
-async def get_table(name, connection: AsyncConnection):  # pragma: no cover
+async def get_table(name: str, connection: AsyncConnection):  # pragma: no cover
     """Return SQLAlchemy `Table` instance of SQL table called `name`"""
     return await connection.run_sync(lambda c: Table(name, metadata, autoload_with=c))
 
@@ -358,7 +359,7 @@ async def find_org_units_matching(
     return rows
 
 
-async def _org_unit_path(session, all_hits, enhed_uuid):  # pragma: no cover
+async def _org_unit_path(session: AsyncSession, all_hits: CTE, enhed_uuid):  # pragma: no cover
     # Construct a scalar subselect which will return the path for each found
     # org unit in `all_hits`.
     connection = await session.connection()

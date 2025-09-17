@@ -4,7 +4,7 @@ from tests.oio_rest.test_integration_helper import TestCreateObject
 
 
 class TestCreateFacet(TestCreateObject):
-    def test_create_facet(self):
+    def test_create_facet(self) -> None:
         facet = {
             "attributter": {
                 "facetegenskaber": [

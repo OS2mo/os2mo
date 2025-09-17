@@ -375,11 +375,11 @@ async def test_details(details: UnitDetails, expected_keys: set[str]) -> None:
     assert set(orgunit.keys()) == expected_keys
 
 
-def _assert_matching_ou_has(doc, user_key=None, **attrs):
+def _assert_matching_ou_has(doc, user_key=None, **attrs) -> None:
     # Recurse into `doc` until we find a dictionary whose `user_key` equals
     # `user_key`. Then, assert that each key-value pair in `attrs` is
     # present in the matching dict, and has the expected value.
-    def visit(node):
+    def visit(node) -> None:
         if isinstance(node, list):
             for ou in node:
                 visit(ou)

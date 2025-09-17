@@ -10,7 +10,7 @@ class TextAddressHandler(base.AddressHandler):
     prefix = "urn:text:"
 
     @property
-    def urn(self):
+    def urn(self) -> str:
         return self.prefix + util.urnquote(self.value)
 
     @classmethod

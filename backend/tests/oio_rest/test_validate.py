@@ -16,25 +16,25 @@ from . import util
 
 class TestBase:
     @pytest.fixture(autouse=True)
-    def setup_schemas(self):
+    def setup_schemas(self) -> None:
         validate.SCHEMAS = {}
 
 
 class TestGetMandatory(TestBase):
-    def test_facet(self):
+    def test_facet(self) -> None:
         assert ["brugervendtnoegle"] == validate._get_mandatory("facet", "egenskaber")
 
-    def test_organisation(self):
+    def test_organisation(self) -> None:
         assert ["brugervendtnoegle"] == validate._get_mandatory(
             "organisation", "egenskaber"
         )
 
-    def test_klasse(self):
+    def test_klasse(self) -> None:
         assert ["brugervendtnoegle", "titel"] == validate._get_mandatory(
             "klasse", "egenskaber"
         )
 
-    def test_sag(self):
+    def test_sag(self) -> None:
         assert [
             "beskrivelse",
             "brugervendtnoegle",
@@ -43,7 +43,7 @@ class TestGetMandatory(TestBase):
             "titel",
         ] == validate._get_mandatory("sag", "egenskaber")
 
-    def test_dokument(self):
+    def test_dokument(self) -> None:
         assert [
             "beskrivelse",
             "brevdato",
@@ -52,13 +52,13 @@ class TestGetMandatory(TestBase):
             "titel",
         ] == validate._get_mandatory("dokument", "egenskaber")
 
-    def test_loghaendelse(self):
+    def test_loghaendelse(self) -> None:
         assert ["tidspunkt"] == validate._get_mandatory("loghaendelse", "egenskaber")
 
 
 class TestGenerateJSONSchema(TestBase):
     @pytest.fixture(autouse=True)
-    def setup_relations(self):
+    def setup_relations(self) -> None:
         self.relation_nul_til_mange = {
             "type": "array",
             "items": {
@@ -99,7 +99,7 @@ class TestGenerateJSONSchema(TestBase):
 
         self.relation_nul_til_en = copy.deepcopy(self.relation_nul_til_mange)
 
-    def _json_to_dict(self, filename):
+    def _json_to_dict(self, filename: str):
         """
         Load a JSON file from ``tests/fixtures`` and return it as JSON.
 
@@ -110,7 +110,7 @@ class TestGenerateJSONSchema(TestBase):
         with open(json_file) as fp:
             return json.load(fp)
 
-    def test_tilstande_organisation(self):
+    def test_tilstande_organisation(self) -> None:
         expected = {
             "type": "object",
             "properties": {
@@ -138,7 +138,7 @@ class TestGenerateJSONSchema(TestBase):
         del expected["required"]
         assert expected == validate._generate_tilstande("organisation", do_create=False)
 
-    def test_tilstande_bruger(self):
+    def test_tilstande_bruger(self) -> None:
         assert {
             "type": "object",
             "properties": {
@@ -162,7 +162,7 @@ class TestGenerateJSONSchema(TestBase):
             "additionalProperties": False,
         } == validate._generate_tilstande("bruger", do_create=True)
 
-    def test_tilstande_klassifikation(self):
+    def test_tilstande_klassifikation(self) -> None:
         assert {
             "type": "object",
             "properties": {
@@ -186,7 +186,7 @@ class TestGenerateJSONSchema(TestBase):
             "additionalProperties": False,
         } == validate._generate_tilstande("klassifikation", do_create=True)
 
-    def test_relationer_facet(self):
+    def test_relationer_facet(self) -> None:
         assert {
             "type": "object",
             "properties": {
@@ -198,7 +198,7 @@ class TestGenerateJSONSchema(TestBase):
             "additionalProperties": False,
         } == validate._generate_relationer("facet", do_create=True)
 
-    def test_relationer_klassifikation(self):
+    def test_relationer_klassifikation(self) -> None:
         assert {
             "type": "object",
             "properties": {
@@ -208,7 +208,7 @@ class TestGenerateJSONSchema(TestBase):
             "additionalProperties": False,
         } == validate._generate_relationer("klassifikation", do_create=True)
 
-    def test_relationer_aktivitet(self):
+    def test_relationer_aktivitet(self) -> None:
         aktoerattr = {
             "aktoerattr": {
                 "type": "object",
@@ -265,7 +265,7 @@ class TestGenerateJSONSchema(TestBase):
             "additionalProperties": False,
         } == validate._generate_relationer("aktivitet", do_create=False)
 
-    def test_relationer_indsats(self):
+    def test_relationer_indsats(self) -> None:
         self.relation_nul_til_mange["items"]["oneOf"][0]["properties"]["indeks"] = {
             "type": "integer"
         }
@@ -286,7 +286,7 @@ class TestGenerateJSONSchema(TestBase):
             "additionalProperties": False,
         } == validate._generate_relationer("indsats", do_create=True)
 
-    def test_relationer_tilstand(self):
+    def test_relationer_tilstand(self) -> None:
         self.relation_nul_til_mange["items"]["oneOf"][0]["properties"]["indeks"] = {
             "type": "integer"
         }
@@ -331,7 +331,7 @@ class TestGenerateJSONSchema(TestBase):
             "additionalProperties": False,
         } == validate._generate_relationer("tilstand", do_create=True)
 
-    def test_relationer_sag(self):
+    def test_relationer_sag(self) -> None:
         self.relation_nul_til_mange["items"]["oneOf"][0]["properties"]["indeks"] = {
             "type": "integer"
         }
@@ -466,7 +466,7 @@ class TestGenerateJSONSchema(TestBase):
             "additionalProperties": False,
         } == validate._generate_relationer("sag", do_create=True)
 
-    def test_attributter_organisation(self):
+    def test_attributter_organisation(self) -> None:
         assert {
             "type": "object",
             "properties": {
@@ -488,7 +488,7 @@ class TestGenerateJSONSchema(TestBase):
             "additionalProperties": False,
         } == validate._generate_attributter("organisation", do_create=True)
 
-    def test_attributter_bruger(self):
+    def test_attributter_bruger(self) -> None:
         assert {
             "type": "object",
             "properties": {
@@ -527,7 +527,7 @@ class TestGenerateJSONSchema(TestBase):
             "additionalProperties": False,
         } == validate._generate_attributter("bruger", do_create=True)
 
-    def test_attributter_klasse(self):
+    def test_attributter_klasse(self) -> None:
         expected = {
             "type": "object",
             "properties": {
@@ -564,7 +564,7 @@ class TestGenerateJSONSchema(TestBase):
         expected["properties"]["klasseegenskaber"]["items"]["required"] = ["virkning"]
         assert expected == validate._generate_attributter("klasse", do_create=False)
 
-    def test_attributter_itsystem(self):
+    def test_attributter_itsystem(self) -> None:
         assert {
             "type": "object",
             "properties": {
@@ -591,7 +591,7 @@ class TestGenerateJSONSchema(TestBase):
             "additionalProperties": False,
         } == validate._generate_attributter("itsystem", do_create=True)
 
-    def test_attributter_sag(self):
+    def test_attributter_sag(self) -> None:
         assert {
             "type": "object",
             "properties": {
@@ -629,7 +629,7 @@ class TestGenerateJSONSchema(TestBase):
             "additionalProperties": False,
         } == validate._generate_attributter("sag", do_create=True)
 
-    def test_attributter_dokument(self):
+    def test_attributter_dokument(self) -> None:
         assert {
             "type": "object",
             "properties": {
@@ -667,7 +667,7 @@ class TestGenerateJSONSchema(TestBase):
             "additionalProperties": False,
         } == validate._generate_attributter("dokument", do_create=True)
 
-    def test_index_allowed_in_relations_for_aktivitet(self):
+    def test_index_allowed_in_relations_for_aktivitet(self) -> None:
         relationer = validate._generate_relationer("aktivitet", do_create=True)
         assert {"type": "integer"} == relationer["properties"]["deltager"]["items"][
             "oneOf"
@@ -676,7 +676,7 @@ class TestGenerateJSONSchema(TestBase):
             "oneOf"
         ][1]["properties"]["indeks"]
 
-    def test_index_allowed_in_relations_for_sag(self):
+    def test_index_allowed_in_relations_for_sag(self) -> None:
         relationer = validate._generate_relationer("sag", do_create=True)
         assert {"type": "integer"} == relationer["properties"]["andrebehandlere"][
             "items"
@@ -685,7 +685,7 @@ class TestGenerateJSONSchema(TestBase):
             "items"
         ]["oneOf"][1]["properties"]["indeks"]
 
-    def test_index_allowed_in_relations_for_tilstand(self):
+    def test_index_allowed_in_relations_for_tilstand(self) -> None:
         relationer = validate._generate_relationer("tilstand", do_create=True)
         assert {"type": "integer"} == relationer["properties"]["samtykke"]["items"][
             "oneOf"
@@ -694,7 +694,7 @@ class TestGenerateJSONSchema(TestBase):
             "oneOf"
         ][1]["properties"]["indeks"]
 
-    def test_index_allowed_in_relations_for_indsats(self):
+    def test_index_allowed_in_relations_for_indsats(self) -> None:
         relationer = validate._generate_relationer("indsats", do_create=True)
         assert {"type": "integer"} == relationer["properties"]["samtykke"]["items"][
             "oneOf"
@@ -703,7 +703,7 @@ class TestGenerateJSONSchema(TestBase):
             "oneOf"
         ][1]["properties"]["indeks"]
 
-    def test_index_not_allowed_for_non_special_nul_til_mange_relations(self):
+    def test_index_not_allowed_for_non_special_nul_til_mange_relations(self) -> None:
         relationer = validate._generate_relationer("organisation", do_create=True)
         assert (
             "indeks"
@@ -719,11 +719,11 @@ class TestGenerateJSONSchema(TestBase):
         )
 
     @pytest.mark.parametrize("obj", db.db_structure.REAL_DB_STRUCTURE)
-    def test_create_request_valid(self, obj):
+    def test_create_request_valid(self, obj) -> None:
         req = self._json_to_dict(f"{obj}_opret.json")
         validate.validate(req, obj)
 
-    def test_create_facet_request_invalid(self):
+    def test_create_facet_request_invalid(self) -> None:
         req = self._json_to_dict("facet_opret.json")
 
         # Change JSON key to invalid value
@@ -735,7 +735,7 @@ class TestGenerateJSONSchema(TestBase):
             obj = "facet"
             validate.validate(req, obj)
 
-    def test_create_misdirected_invalid(self):
+    def test_create_misdirected_invalid(self) -> None:
         req = self._json_to_dict("facet_opret.json")
 
         # note: 'klasse' ≠ 'facet'!
@@ -745,7 +745,7 @@ class TestGenerateJSONSchema(TestBase):
 
 class TestFacetSystematically(TestBase):
     @pytest.fixture(autouse=True)
-    def setup_objects(self):
+    def setup_objects(self) -> None:
         self.standard_virkning1 = {
             "from": "2000-01-01 12:00:00+01",
             "from_included": True,
@@ -775,11 +775,11 @@ class TestFacetSystematically(TestBase):
             },
         }
 
-    def assertValidationError(self):
+    def assertValidationError(self) -> None:
         with pytest.raises(jsonschema.exceptions.ValidationError):
             jsonschema.validate(self.facet, validate.get_schema("facet"))
 
-    def test_valid_equivalence_classes1(self):
+    def test_valid_equivalence_classes1(self) -> None:
         """
         Equivalence classes covered: [44][48][80][53][77][79][83][86][89][92]
         [61][63][67][68][101][102][108][109][111]
@@ -788,7 +788,7 @@ class TestFacetSystematically(TestBase):
         """
         jsonschema.validate(self.facet, validate.get_schema("facet"))
 
-    def test_valid_equivalence_classes2(self):
+    def test_valid_equivalence_classes2(self) -> None:
         """
         Equivalence classes covered: [45][50][81][84][87][90][93][55][62]
         [64][69]
@@ -816,7 +816,7 @@ class TestFacetSystematically(TestBase):
 
         jsonschema.validate(self.facet, validate.get_schema("facet"))
 
-    def test_valid_equivalence_classes3(self):
+    def test_valid_equivalence_classes3(self) -> None:
         """
         Equivalence classes covered: [70][72]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -826,7 +826,7 @@ class TestFacetSystematically(TestBase):
 
         jsonschema.validate(self.facet, validate.get_schema("facet"))
 
-    def test_valid_equivalence_classes4(self):
+    def test_valid_equivalence_classes4(self) -> None:
         """
         Equivalence classes covered: [71][74][76][112]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -842,7 +842,7 @@ class TestFacetSystematically(TestBase):
 
         jsonschema.validate(self.facet, validate.get_schema("facet"))
 
-    def test_note_not_string(self):
+    def test_note_not_string(self) -> None:
         """
         Equivalence classes covered: [43]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -851,7 +851,7 @@ class TestFacetSystematically(TestBase):
         self.facet["note"] = ["This is not a string"]
         self.assertValidationError()
 
-    def test_bvn_missing(self):
+    def test_bvn_missing(self) -> None:
         """
         Equivalence classes covered: [46]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -860,7 +860,7 @@ class TestFacetSystematically(TestBase):
         del self.facet["attributter"]["facetegenskaber"][0]["brugervendtnoegle"]
         self.assertValidationError()
 
-    def test_bvn_not_string(self):
+    def test_bvn_not_string(self) -> None:
         """
         Equivalence classes covered: [47]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -871,7 +871,7 @@ class TestFacetSystematically(TestBase):
         }
         self.assertValidationError()
 
-    def test_beskrivelse_not_string(self):
+    def test_beskrivelse_not_string(self) -> None:
         """
         Equivalence classes covered: [49]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -882,7 +882,7 @@ class TestFacetSystematically(TestBase):
         }
         self.assertValidationError()
 
-    def test_plan_not_string(self):
+    def test_plan_not_string(self) -> None:
         """
         Equivalence classes covered: [78]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -893,7 +893,7 @@ class TestFacetSystematically(TestBase):
         }
         self.assertValidationError()
 
-    def test_opbygning_not_string(self):
+    def test_opbygning_not_string(self) -> None:
         """
         Equivalence classes covered: [82]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -904,7 +904,7 @@ class TestFacetSystematically(TestBase):
         }
         self.assertValidationError()
 
-    def test_ophavsret_not_string(self):
+    def test_ophavsret_not_string(self) -> None:
         """
         Equivalence classes covered: [85]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -915,7 +915,7 @@ class TestFacetSystematically(TestBase):
         }
         self.assertValidationError()
 
-    def test_supplement_not_string(self):
+    def test_supplement_not_string(self) -> None:
         """
         Equivalence classes covered: [88]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -926,7 +926,7 @@ class TestFacetSystematically(TestBase):
         }
         self.assertValidationError()
 
-    def test_retskilde_not_string(self):
+    def test_retskilde_not_string(self) -> None:
         """
         Equivalence classes covered: [91]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -937,7 +937,7 @@ class TestFacetSystematically(TestBase):
         }
         self.assertValidationError()
 
-    def test_virkning_missing_attributter(self):
+    def test_virkning_missing_attributter(self) -> None:
         """
         Equivalence classes covered: [51]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -946,7 +946,7 @@ class TestFacetSystematically(TestBase):
         del self.facet["attributter"]["facetegenskaber"][0]["virkning"]
         self.assertValidationError()
 
-    def test_egenskaber_missing(self):
+    def test_egenskaber_missing(self) -> None:
         """
         Equivalence classes covered: [54]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -955,7 +955,7 @@ class TestFacetSystematically(TestBase):
         del self.facet["attributter"]["facetegenskaber"]
         self.assertValidationError()
 
-    def test_unknown_key_in_facetegenskaber(self):
+    def test_unknown_key_in_facetegenskaber(self) -> None:
         """
         Equivalence classes covered: [94]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -964,7 +964,7 @@ class TestFacetSystematically(TestBase):
         self.facet["attributter"]["facetegenskaber"][0]["unknown"] = "xyz"
         self.assertValidationError()
 
-    def test_empty_facet(self):
+    def test_empty_facet(self) -> None:
         """
         Equivalence classes covered: [56]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -973,7 +973,7 @@ class TestFacetSystematically(TestBase):
         self.facet = {}
         self.assertValidationError()
 
-    def test_attributter_missing(self):
+    def test_attributter_missing(self) -> None:
         """
         Equivalence classes covered: [57]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -982,7 +982,7 @@ class TestFacetSystematically(TestBase):
         del self.facet["attributter"]
         self.assertValidationError()
 
-    def test_tilstande_missing(self):
+    def test_tilstande_missing(self) -> None:
         """
         Equivalence classes covered: [58]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -991,7 +991,7 @@ class TestFacetSystematically(TestBase):
         del self.facet["tilstande"]
         self.assertValidationError()
 
-    def test_facetpubliceret_missing(self):
+    def test_facetpubliceret_missing(self) -> None:
         """
         Equivalence classes covered: [60]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -1000,7 +1000,7 @@ class TestFacetSystematically(TestBase):
         del self.facet["tilstande"]["facetpubliceret"]
         self.assertValidationError()
 
-    def test_publiceret_not_valid_enum(self):
+    def test_publiceret_not_valid_enum(self) -> None:
         """
         Equivalence classes covered: [61]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -1009,7 +1009,7 @@ class TestFacetSystematically(TestBase):
         self.facet["tilstande"]["facetpubliceret"][0]["publiceret"] = "invalid"
         self.assertValidationError()
 
-    def test_publiceret_missing(self):
+    def test_publiceret_missing(self) -> None:
         """
         Equivalence classes covered: [62]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -1018,7 +1018,7 @@ class TestFacetSystematically(TestBase):
         del self.facet["tilstande"]["facetpubliceret"][0]["publiceret"]
         self.assertValidationError()
 
-    def test_virkning_malformed_tilstande(self):
+    def test_virkning_malformed_tilstande(self) -> None:
         """
         Equivalence classes covered: [66]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -1027,7 +1027,7 @@ class TestFacetSystematically(TestBase):
         del self.facet["tilstande"]["facetpubliceret"][0]["virkning"]["from"]
         self.assertValidationError()
 
-    def test_unknown_key_in_facetpubliceret(self):
+    def test_unknown_key_in_facetpubliceret(self) -> None:
         """
         Equivalence classes covered: [95]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -1036,7 +1036,7 @@ class TestFacetSystematically(TestBase):
         self.facet["tilstande"]["facetpubliceret"][0]["unknown"] = "xyz"
         self.assertValidationError()
 
-    def test_reference_not_an_uuid(self):
+    def test_reference_not_an_uuid(self) -> None:
         """
         Equivalence classes covered: [73]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -1048,7 +1048,7 @@ class TestFacetSystematically(TestBase):
         }
         self.assertValidationError()
 
-    def test_urn_reference_not_valid(self):
+    def test_urn_reference_not_valid(self) -> None:
         """
         Equivalence classes covered: [114]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -1059,7 +1059,7 @@ class TestFacetSystematically(TestBase):
         self.facet["relationer"] = {"ansvarlig": [self.reference]}
         self.assertValidationError()
 
-    def test_uuid_and_urn_not_allowed_simultaneously_in_reference(self):
+    def test_uuid_and_urn_not_allowed_simultaneously_in_reference(self) -> None:
         """
         Equivalence classes covered: [113]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -1069,7 +1069,7 @@ class TestFacetSystematically(TestBase):
         self.facet["relationer"] = {"ansvarlig": [self.reference]}
         self.assertValidationError()
 
-    def test_unknown_relation_name(self):
+    def test_unknown_relation_name(self) -> None:
         """
         Equivalence classes covered: [75]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -1080,7 +1080,7 @@ class TestFacetSystematically(TestBase):
         }
         self.assertValidationError()
 
-    def test_virkning_aktoer_and_note_ok(self):
+    def test_virkning_aktoer_and_note_ok(self) -> None:
         """
         Equivalence classes covered: [104][106][110]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -1095,7 +1095,7 @@ class TestFacetSystematically(TestBase):
         )
         jsonschema.validate(self.facet, validate.get_schema("facet"))
 
-    def test_virkning_from_missing(self):
+    def test_virkning_from_missing(self) -> None:
         """
         Equivalence classes covered: [52][97]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -1104,7 +1104,7 @@ class TestFacetSystematically(TestBase):
         del self.facet["attributter"]["facetegenskaber"][0]["virkning"]["from"]
         self.assertValidationError()
 
-    def test_virkning_to_missing(self):
+    def test_virkning_to_missing(self) -> None:
         """
         Equivalence classes covered: [99]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -1113,7 +1113,7 @@ class TestFacetSystematically(TestBase):
         del self.facet["attributter"]["facetegenskaber"][0]["virkning"]["to"]
         self.assertValidationError()
 
-    def test_virkning_from_not_string(self):
+    def test_virkning_from_not_string(self) -> None:
         """
         Equivalence classes covered: [98]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -1124,7 +1124,7 @@ class TestFacetSystematically(TestBase):
         }
         self.assertValidationError()
 
-    def test_virkning_to_not_string(self):
+    def test_virkning_to_not_string(self) -> None:
         """
         Equivalence classes covered: [100]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -1135,7 +1135,7 @@ class TestFacetSystematically(TestBase):
         }
         self.assertValidationError()
 
-    def test_virkning_aktoerref_not_uuid(self):
+    def test_virkning_aktoerref_not_uuid(self) -> None:
         """
         Equivalence classes covered: [103]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -1146,7 +1146,7 @@ class TestFacetSystematically(TestBase):
         )
         self.assertValidationError()
 
-    def test_virkning_aktoertype_not_string(self):
+    def test_virkning_aktoertype_not_string(self) -> None:
         """
         Equivalence classes covered: [105]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -1157,7 +1157,7 @@ class TestFacetSystematically(TestBase):
         ] = {"key": "This is not a string"}
         self.assertValidationError()
 
-    def test_virkning_notetekst_not_string(self):
+    def test_virkning_notetekst_not_string(self) -> None:
         """
         Equivalence classes covered: [107]
         See https://github.com/magenta-aps/mox/doc/Systematic_testing.rst for
@@ -1170,7 +1170,7 @@ class TestFacetSystematically(TestBase):
 
 
 class TestSchemaEndPoints(util.DBTestCase):
-    def assertSchemaOK(self, hierarchy):
+    def assertSchemaOK(self, hierarchy) -> None:
         """
         Check that the schema endpoints for the classes in the given hierarchy
         respond with HTTP status code 200 and return JSON.
@@ -1184,8 +1184,8 @@ class TestSchemaEndPoints(util.DBTestCase):
             assert r.status_code == 200
             json.loads(r.text)
 
-    def test_klassifikation_hierarchy(self):
+    def test_klassifikation_hierarchy(self) -> None:
         self.assertSchemaOK(klassifikation.KlassifikationsHierarki)
 
-    def test_organisation_hierarchy(self):
+    def test_organisation_hierarchy(self) -> None:
         self.assertSchemaOK(organisation.OrganisationsHierarki)

@@ -69,7 +69,7 @@ def async_lora_return(*args):
     return f
 
 
-def _get_address_query():
+def _get_address_query() -> str:
     return """
         query VerifyQuery($uuid: UUID!) {
           addresses(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
@@ -110,7 +110,7 @@ def _get_address_query():
 
 
 def _create_address_create_hypothesis_test_data(
-    data, graphapi_post: GraphAPIPost, test_data_samples
+    data, graphapi_post: GraphAPIPost, test_data_samples: list[tuple[UUID, None, UUID, UUID] | tuple[UUID, None, None, UUID] | tuple[None, UUID, UUID, UUID] | tuple[None, UUID, None, UUID]] | list[tuple[UUID, None, None, UUID] | tuple[None, UUID, None, UUID]]
 ):
     (
         test_data_org_unit_uuid,
@@ -197,7 +197,7 @@ def _create_address_create_hypothesis_test_data(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_query_all(graphapi_post: GraphAPIPost):
+def test_query_all(graphapi_post: GraphAPIPost) -> None:
     """Test that we can query all attributes of the address data model."""
     query = """
         query {

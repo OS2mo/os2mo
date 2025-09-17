@@ -186,18 +186,18 @@ class QuickSearcher(Searcher):
 
 
 class ConfiguredDBInterface:
-    def __init__(self):
+    def __init__(self) -> None:
         if config.get_settings().quick_search:
             self._searcher: Searcher = QuickSearcher()
         else:  # pragma: no cover
             self._searcher: Searcher = DefaultSearcher()
 
     @property
-    def searcher(self):
+    def searcher(self) -> Searcher:
         return self._searcher
 
 
-def typed_get(d, field, default):
+def typed_get(d, field: str, default):
     v = d.get(field, default)
     t = type(default)
 
@@ -272,7 +272,7 @@ def _remove_deleted(objects):
 
 
 class Registration:
-    def __init__(self, oio_class, states, attributes, relations):  # pragma: no cover
+    def __init__(self, oio_class, states, attributes, relations) -> None:  # pragma: no cover
         self.oio_class = oio_class
         self.states = states
         self.attributes = attributes
@@ -286,7 +286,7 @@ class OIOStandardHierarchy:
     _classes = []
 
     @classmethod
-    def setup_api(cls):
+    def setup_api(cls) -> APIRouter:
         """Set up API for the classes included in the hierarchy.
 
         Note that version number etc. may have to be added to the URL."""
@@ -776,7 +776,7 @@ class OIORestObject:
         return validate.get_schema(cls.__name__.lower())
 
     @classmethod
-    def create_api(cls, hierarchy):
+    def create_api(cls, hierarchy) -> APIRouter:
         """Set up API with correct database access functions."""
         cls.service_name = hierarchy
         hierarchy = hierarchy.lower()

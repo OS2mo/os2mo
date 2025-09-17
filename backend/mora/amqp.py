@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from sqlalchemy.sql.elements import ColumnElement
+from sqlalchemy.sql.elements import BinaryExpression
 """This file implements the event subsystem.
 
 It was originally written for the AMQP subsystem, but now emits AMQP and
@@ -128,16 +130,16 @@ async def _emit_events(
     )
     now = await session.scalar(select(func.now()))
 
-    def registration_condition(cls):
+    def registration_condition(cls) -> BinaryExpression[bool]:
         return func.lower(cls.registrering_period).between(last_run, now)
 
-    def latest_registrering_condition(cls):
+    def latest_registrering_condition(cls) -> ColumnElement[bool]:
         return and_(
             cls.lifecycle != cast("Slettet", LivscyklusKode),
             cls.registrering_period.contains(func.now()),
         )
 
-    def validity_condition(v: _VirkningMixin):
+    def validity_condition(v: _VirkningMixin) -> ColumnElement[bool]:
         return or_(
             func.lower(v.virkning_period).between(last_run, now),
             func.upper(v.virkning_period).between(last_run, now),

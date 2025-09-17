@@ -58,9 +58,9 @@ def itsystem_fsf_strat(draw):
 
 class TestITSystem:
     @given(itsystem_strat())
-    def test_init(self, model_dict):
+    def test_init(self, model_dict) -> None:
         assert ITSystem(**model_dict)
 
     @given(itsystem_fsf_strat())
-    def test_from_simplified_fields(self, simp_fields_dict):
+    def test_from_simplified_fields(self, simp_fields_dict) -> None:
         assert ITSystem.from_simplified_fields(**simp_fields_dict)
