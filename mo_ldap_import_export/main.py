@@ -501,7 +501,7 @@ def mo_to_ldap_handler(
         ldapapi = dataloader.ldapapi
         try:
             await ldapapi.ensure_ldap_object(
-                parsed.dn, parsed.attributes, object_class, parsed.create
+                parsed.dn, parsed.attributes, object_class, parsed.create, dry_run=False
             )
         except NoObjectsReturnedException as exc:
             message = "Unable to find Jinja referenced dn"

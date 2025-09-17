@@ -78,6 +78,15 @@ class InvalidCPR(HTTPException):
         super().__init__(status_code=422, detail=message)
 
 
+class DryRunException(HTTPException):
+    def __init__(self, message: str, dn: DN, details: dict[str, Any]) -> None:
+        assert "dn" not in details
+        assert "message" not in details
+        super().__init__(
+            status_code=451, detail={"message": message, "dn": dn, **details}
+        )
+
+
 class SkipObject(Exception):
     """Exception raised if the ldap_to_mo object should be skipped."""
 

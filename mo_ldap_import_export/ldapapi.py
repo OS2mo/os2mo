@@ -18,6 +18,7 @@ from more_itertools import one
 from more_itertools import only
 
 from .config import Settings
+from .exceptions import DryRunException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import ReadOnlyException
 from .ldap import LDAPConnection
@@ -122,7 +123,12 @@ class LDAPAPI:
         return ldap_object.dn
 
     async def ensure_ldap_object(
-        self, dn: DN, attributes: dict[str, list], object_class: str, create: bool
+        self,
+        dn: DN,
+        attributes: dict[str, list],
+        object_class: str,
+        create: bool,
+        dry_run: bool = False,
     ) -> DN:
         """
         Ensures an object exists at `dn` with the provided attributes and object_class.
@@ -137,13 +143,14 @@ class LDAPAPI:
                 For details
             object_class: The object class to set on newly created objects.
             create: Whether to modify or create the object.
+            dry_run: Whether to dry-run or not.
 
         Return:
             The (possibly new) DN for the object.
         """
         if create:
             # The object does not yet exist, thus we must create it
-            await self.add_ldap_object(dn, attributes, object_class)
+            await self.add_ldap_object(dn, attributes, object_class, dry_run)
             return dn
 
         # To avoid spamming server logs with noop changes / empty writes,
@@ -171,13 +178,17 @@ class LDAPAPI:
             if key not in current_state or current_state[key] != value
         }
         ldap_uuid = await self.get_ldap_unique_ldap_uuid(dn)
-        await self.modify_ldap_object(dn, ldap_changes, old_state)
+        await self.modify_ldap_object(dn, ldap_changes, old_state, dry_run)
         possibly_new_dn = await self.get_ldap_dn(ldap_uuid)
         assert possibly_new_dn is not None
         return possibly_new_dn
 
     async def add_ldap_object(
-        self, dn: DN, attributes: dict[str, list], object_class: str
+        self,
+        dn: DN,
+        attributes: dict[str, list],
+        object_class: str,
+        dry_run: bool = False,
     ) -> None:
         """
         Add an object at `dn` with the provided attributes and object_class.
@@ -192,6 +203,7 @@ class LDAPAPI:
                 For details
             object_class:
                 The object class to set on newly created objects.
+            dry_run: Whether to dry-run or not.
         """
         if not self.ou_in_ous_to_write_to(dn):
             logger.info(
@@ -228,6 +240,13 @@ class LDAPAPI:
             attributes=attributes,
             object_class=object_class,
         )
+        # If dry-running we do not want to makes changes in LDAP
+        if dry_run:
+            raise DryRunException(
+                "Would have created",
+                dn,
+                {"object_class": object_class, "attributes": attributes},
+            )
         _, result = await self.ldap_connection.ldap_add(
             dn,
             object_class,
@@ -318,6 +337,7 @@ class LDAPAPI:
         dn: DN,
         requested_changes: dict[str, list],
         old_state: dict[str, Any] | None = None,
+        dry_run: bool = False,
     ) -> None:
         """
         Modify the object at `dn` to ensure it has the provided attributes.
@@ -368,12 +388,12 @@ class LDAPAPI:
         }
 
         # MODIFY-LDAP
-        # Transform key-value changes to LDAP format
         modify_changes = {
-            attribute: [(MODIFY_REPLACE, values)]
+            attribute.casefold(): values
             for attribute, values in requested_changes.items()
             if attribute.casefold() not in modify_dn_attributes
         }
+
         # We do not attempt to call ldap_modify if there are no attribute changes,
         # otherwise it would produce an error and block us from making the DN changes
         # Thus to ensure we can change DN attributes alone, we must have this check.
@@ -381,7 +401,21 @@ class LDAPAPI:
             try:
                 # Modify LDAP
                 logger.info("Uploading the changes", changes=requested_changes, dn=dn)
-                _, result = await self.ldap_connection.ldap_modify(dn, modify_changes)
+                # If dry-running we do not want to makes changes in LDAP
+                if dry_run:
+                    raise DryRunException(
+                        "Would have changed attributes",
+                        dn,
+                        {"attributes": modify_changes},
+                    )
+                _, result = await self.ldap_connection.ldap_modify(
+                    dn,
+                    # Transform key-value changes to LDAP format
+                    {
+                        attribute: [(MODIFY_REPLACE, values)]
+                        for attribute, values in modify_changes.items()
+                    },
+                )
                 logger.info("LDAP Result", result=result, dn=dn)
             except LDAPInvalidValueError as exc:
                 logger.exception("LDAP modify failed", dn=dn, changes=requested_changes)
@@ -397,6 +431,7 @@ class LDAPAPI:
                 if key.casefold() in desired_rdn_dict
             }
         )
+
         # If the desired DN is what we already have, there is nothing left for us to do
         if desired_rdn_dict == modify_dn_attributes:
             logger.info("Updating DN is not required")
@@ -408,6 +443,8 @@ class LDAPAPI:
         try:
             # Modify LDAP-DN
             logger.info("Changing object RDN", dn=dn, new_rdn=new_rdn)
+            if dry_run:
+                raise DryRunException("Would have changed DN", dn, {"new_rdn": new_rdn})
             # TODO: Use Assertion Control here
             _, result = await self.ldap_connection.ldap_modify_dn(dn, new_rdn)
             logger.info("LDAP Result", result=result, dn=dn)

@@ -29,6 +29,7 @@ from .dataloaders import DN
 from .dataloaders import DataLoader
 from .dataloaders import NoGoodLDAPAccountFound
 from .environments.main import get_or_create_job_function_uuid
+from .exceptions import DryRunException
 from .exceptions import IncorrectMapping
 from .exceptions import SkipObject
 from .ldap import apply_discriminator
@@ -311,11 +312,6 @@ class SyncTool:
         exit_stack.enter_context(bound_contextvars(dn=best_dn))
         ldap_desired_state = await self.render_ldap2mo(uuid, best_dn)
 
-        # If dry-running we do not want to makes changes in LDAP
-        if dry_run:
-            logger.info("Not writing to LDAP due to dry-running")
-            return ldap_desired_state
-
         if not ldap_desired_state:
             logger.info("Not writing to LDAP as changeset is empty")
             return {}
@@ -339,8 +335,14 @@ class SyncTool:
             best_dn = await self.dataloader.make_mo_employee_dn(uuid, common_name)
 
         current_dn = await self.dataloader.ldapapi.ensure_ldap_object(
-            best_dn, ldap_desired_state, self.settings.ldap_object_class, create
+            best_dn,
+            ldap_desired_state,
+            self.settings.ldap_object_class,
+            create,
+            dry_run,
         )
+        if dry_run:
+            raise DryRunException("No changes", best_dn, details={})
         await self.ensure_ituser_link(uuid, current_dn)
         return ldap_desired_state
 
