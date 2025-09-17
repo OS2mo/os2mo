@@ -292,6 +292,18 @@ async def load_primary_engagement(
     return fetched_engagement
 
 
+async def load_engagement(moapi: MOAPI, uuid: UUID) -> Engagement | None:
+    fetched_engagement = await moapi.load_mo_engagement(uuid, start=None, end=None)
+    if fetched_engagement is None:  # pragma: no cover
+        logger.error("Unable to load mo engagement", uuid=uuid)
+        raise RequeueMessage("Unable to load mo engagement")
+    delete = get_delete_flag(jsonable_encoder(fetched_engagement))
+    if delete:
+        logger.debug("Engagement is terminated", uuid=uuid)
+        return None
+    return fetched_engagement
+
+
 async def load_it_user(
     moapi: MOAPI,
     employee_uuid: UUID,
@@ -861,6 +873,7 @@ def construct_globals_dict(
         # TODO: Rename these functions once the old template system is gone
         "load_mo_employee": moapi.load_mo_employee,
         "load_mo_primary_engagement": partial(load_primary_engagement, moapi),
+        "load_mo_engagement": partial(load_engagement, moapi),
         "load_mo_it_user": partial(load_it_user, moapi),
         "load_mo_address": partial(load_address, moapi),
         "load_mo_org_unit_address": partial(load_org_unit_address, moapi),
