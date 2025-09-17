@@ -117,7 +117,7 @@ async def _ldap_allows_username(
 
     for search_filter in search_filters:
         response, result = await LDAPConnection(
-            ldap_connection, read_only=True
+            ldap_connection, read_only=True, add_objects_to_ldap=False
         ).ldap_search(
             search_base=settings.ldap_search_base,
             search_filter=search_filter,

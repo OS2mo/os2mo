@@ -41,7 +41,9 @@ logger = structlog.stdlib.get_logger()
 class LDAPAPI:
     def __init__(self, settings: Settings, ldap_connection: Connection) -> None:
         self.settings = settings
-        self.ldap_connection = LDAPConnection(ldap_connection, settings.ldap_read_only)
+        self.ldap_connection = LDAPConnection(
+            ldap_connection, settings.ldap_read_only, settings.add_objects_to_ldap
+        )
 
     @property
     def connection(self) -> Connection:
@@ -191,15 +193,6 @@ class LDAPAPI:
             object_class:
                 The object class to set on newly created objects.
         """
-        if not self.settings.add_objects_to_ldap:
-            logger.info(
-                "Adding LDAP objects is disabled",
-                operation="add_ldap_object",
-                dn=dn,
-                attributes=attributes,
-            )
-            raise ReadOnlyException("Adding LDAP objects is disabled")
-
         if not self.ou_in_ous_to_write_to(dn):
             logger.info(
                 "Not allowed to write to the specified OU",

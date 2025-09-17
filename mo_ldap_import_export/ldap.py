@@ -221,7 +221,7 @@ async def ldap_healthcheck(context: dict | Context) -> bool:
     try:
         # Try to do a 'SELECT 1' like query, selecting the empty DN
         response, result = await LDAPConnection(
-            ldap_connection, read_only=True
+            ldap_connection, read_only=True, add_objects_to_ldap=False
         ).ldap_search(
             search_base="",
             search_filter="(objectclass=*)",
@@ -251,9 +251,12 @@ async def ldap_healthcheck(context: dict | Context) -> bool:
 
 
 class LDAPConnection:
-    def __init__(self: Self, connection: Connection, read_only: bool) -> None:
+    def __init__(
+        self: Self, connection: Connection, read_only: bool, add_objects_to_ldap: bool
+    ) -> None:
         self.connection = connection
         self.read_only = read_only
+        self.add_objects_to_ldap = add_objects_to_ldap
 
     def check_readonly(self: Self, dn: DN, attributes: dict[str, Any]) -> None:
         # TODO: Remove this when ldap3s read-only flag works
@@ -270,6 +273,14 @@ class LDAPConnection:
         self: Self, dn: DN, object_class, attributes=None
     ) -> tuple[dict, dict]:
         self.check_readonly(dn, attributes or {})
+
+        if not self.add_objects_to_ldap:
+            logger.info(
+                "Adding LDAP objects is disabled",
+                dn=dn,
+                attributes=attributes,
+            )
+            raise ReadOnlyException("Adding LDAP objects is disabled")
 
         status, result, response, request = await asyncio.to_thread(
             self.connection.add, dn, object_class, attributes
@@ -523,7 +534,7 @@ async def _paged_search(
         # TODO: Fetch multiple pages in parallel using asyncio.gather?
         try:
             response, result = await LDAPConnection(
-                ldap_connection, read_only=True
+                ldap_connection, read_only=True, add_objects_to_ldap=False
             ).ldap_search(**searchParameters)
         except LDAPNoSuchObjectResult:
             return responses
@@ -632,9 +643,9 @@ async def object_search(
     responses = []
     # TODO: Asyncio.gather this? - or combine the filters?
     for search_base in search_bases:
-        response, _ = await LDAPConnection(ldap_connection, read_only=True).ldap_search(
-            **ChainMap(searchParameters, {"search_base": search_base})
-        )
+        response, _ = await LDAPConnection(
+            ldap_connection, read_only=True, add_objects_to_ldap=False
+        ).ldap_search(**ChainMap(searchParameters, {"search_base": search_base}))
         if response:
             responses.extend(response)
     search_entries = ldapresponse2entries(responses)
