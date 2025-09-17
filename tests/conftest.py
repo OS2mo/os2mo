@@ -21,7 +21,6 @@ from fastramqpi.main import FastRAMQPI
 from fastramqpi.ramqp import AMQPSystem
 from httpx import AsyncClient
 from ldap3 import NO_ATTRIBUTES
-from ldap3 import Connection
 from pytest import Item
 from respx import MockRouter
 
@@ -366,12 +365,6 @@ async def graphql_client(mo_client: AsyncClient) -> AsyncIterator[GraphQLClient]
 async def mo_api(graphql_client: GraphQLClient) -> MOAPI:
     """MO API GraphQL wrapper."""
     return MOAPI(Settings(), graphql_client)
-
-
-@pytest.fixture
-async def ldap_connection() -> Connection:
-    """The integration LDAP connection"""
-    return configure_ldap_connection(Settings())
 
 
 @pytest.fixture
