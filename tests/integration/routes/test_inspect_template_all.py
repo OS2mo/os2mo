@@ -1,29 +1,142 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
-import csv
+import json
 from uuid import UUID
 
 import pytest
 from httpx import AsyncClient
 
+from mo_ldap_import_export.types import DN
+
+
+def read_jsonl_file(filename: str) -> list[dict]:
+    with open(filename) as fin:
+        file_data = []
+        for line in fin.readlines():
+            file_data.append(json.loads(line))
+        return file_data
+
 
 @pytest.mark.integration_test
-async def test_ldap_template_all(test_client: AsyncClient, mo_person: UUID) -> None:
+async def test_ldap_template_create(test_client: AsyncClient, mo_person: UUID) -> None:
     response = await test_client.get("/Inspect/mo2ldap/all")
     assert response.status_code == 200
     result = response.json()
     assert result == "OK"
 
-    with open("/tmp/mo2ldap.csv") as fin:
-        reader = csv.reader(fin)
-        file_data = [row for row in reader]
+    file_data = read_jsonl_file("/tmp/mo2ldap.jsonl")
     assert file_data == [
-        [
-            "2108613133",
-            "Aage",
-            "Bach Klarskov",
-            str(mo_person),
-            str(mo_person),
-        ]
+        {
+            "__mo_uuid": str(mo_person),
+            "dn": "CN=Aage Bach Klarskov,ou=os2mo,o=magenta,dc=magenta,dc=dk",
+            "message": "Would have created",
+            "object_class": "inetOrgPerson",
+            "attributes": {
+                "employeeNumber": ["2108613133"],
+                "givenName": [
+                    "Aage",
+                ],
+                "sn": [
+                    "Bach Klarskov",
+                ],
+                "title": [str(mo_person)],
+            },
+        }
+    ]
+
+
+@pytest.mark.integration_test
+async def test_ldap_template_modify(
+    test_client: AsyncClient, mo_person: UUID, ldap_person_dn: DN
+) -> None:
+    response = await test_client.get("/Inspect/mo2ldap/all")
+    assert response.status_code == 200
+    result = response.json()
+    assert result == "OK"
+
+    file_data = read_jsonl_file("/tmp/mo2ldap.jsonl")
+    assert file_data == [
+        {
+            "__mo_uuid": str(mo_person),
+            "dn": ldap_person_dn,
+            "message": "Would have changed attributes",
+            "attributes": {"title": [str(mo_person)]},
+        }
+    ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "mo2ldap": """
+                {% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}
+                {{
+                    {
+                        "uid": mo_employee.cpr_number,
+                        "employeeNumber": mo_employee.cpr_number,
+                        "givenName": mo_employee.given_name,
+                        "sn": mo_employee.surname,
+                    }|tojson
+                }}
+            """
+            }
+        )
+    }
+)
+async def test_ldap_template_modify_dn(
+    test_client: AsyncClient, mo_person: UUID, ldap_person_dn: DN
+) -> None:
+    response = await test_client.get("/Inspect/mo2ldap/all")
+    assert response.status_code == 200
+    result = response.json()
+    assert result == "OK"
+
+    file_data = read_jsonl_file("/tmp/mo2ldap.jsonl")
+    assert file_data == [
+        {
+            "__mo_uuid": str(mo_person),
+            "dn": ldap_person_dn,
+            "message": "Would have changed DN",
+            "new_rdn": "uid=2108613133",
+        }
+    ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "mo2ldap": """
+                {% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}
+                {{
+                    {
+                        "employeeNumber": mo_employee.cpr_number,
+                        "givenName": mo_employee.given_name,
+                        "sn": mo_employee.surname,
+                    }|tojson
+                }}
+            """
+            }
+        )
+    }
+)
+async def test_ldap_template_no_changes(
+    test_client: AsyncClient, mo_person: UUID, ldap_person_dn: DN
+) -> None:
+    response = await test_client.get("/Inspect/mo2ldap/all")
+    assert response.status_code == 200
+    result = response.json()
+    assert result == "OK"
+
+    file_data = read_jsonl_file("/tmp/mo2ldap.jsonl")
+    assert file_data == [
+        {
+            "__mo_uuid": str(mo_person),
+            "dn": ldap_person_dn,
+            "message": "No changes",
+        }
     ]
