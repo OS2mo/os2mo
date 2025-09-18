@@ -23,7 +23,6 @@ class ReadItusersItusersObjectsValidities(BaseModel):
     validity: "ReadItusersItusersObjectsValiditiesValidity"
     employee_uuid: UUID | None
     itsystem_uuid: UUID
-    engagement_uuid: UUID | None
     engagement_uuids: list[UUID]
     rolebindings: list["ReadItusersItusersObjectsValiditiesRolebindings"]
     external_id: str | None

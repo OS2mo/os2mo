@@ -408,7 +408,6 @@ class MOAPI:
             external_id=entry["external_id"],
             itsystem=entry["itsystem_uuid"],
             person=entry["employee_uuid"],
-            engagement=entry["engagement_uuid"],
             engagements=entry["engagement_uuids"],
             validity=entry["validity"],
         )
@@ -664,7 +663,6 @@ class MOAPI:
                 itsystem=obj.itsystem,
                 person=obj.person,
                 org_unit=obj.org_unit,
-                engagement=obj.engagement,
                 engagements=obj.engagements,
                 validity=RAValidityInput(
                     from_=obj.validity.start,
@@ -812,7 +810,6 @@ class MOAPI:
                 itsystem=obj.itsystem,
                 person=obj.person,
                 org_unit=obj.org_unit,
-                engagement=obj.engagement,
                 engagements=obj.engagements,
                 validity=RAValidityInput(
                     from_=obj.validity.start,

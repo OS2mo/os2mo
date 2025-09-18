@@ -92,14 +92,10 @@ async def test_create_ituser_engagements_read_equivalence(
     await mo_api.create([ituser])
     mo_ituser = await mo_api.load_mo_it_user(ituser_uuid)
     assert mo_ituser is not None
-    # MO adds backwards compatability to engagement, we ingore this in our comparison
-    mo_ituser = mo_ituser.copy(update={"engagement": None})
     assert mo_ituser == ituser
 
     ituser = ituser.copy(update={"engagements": []})
     await mo_api.edit([ituser])
     mo_ituser = await mo_api.load_mo_it_user(ituser_uuid)
     assert mo_ituser is not None
-    # MO adds backwards compatability to engagement, we ingore this in our comparison
-    mo_ituser = mo_ituser.copy(update={"engagement": None})
     assert mo_ituser == ituser

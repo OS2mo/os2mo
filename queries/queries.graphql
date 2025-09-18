@@ -213,7 +213,6 @@ query read_itusers($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
         }
         employee_uuid
         itsystem_uuid
-        engagement_uuid
         engagement_uuids
         rolebindings {
           uuid

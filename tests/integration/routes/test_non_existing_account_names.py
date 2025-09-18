@@ -162,7 +162,6 @@ async def test_non_existing_account_names(
     assert obj_map == {
         "abk": {
             "employee_uuid": mo_person,
-            "engagement_uuid": None,
             "engagement_uuids": [],
             "itsystem_uuid": account_name_itsystem,
             "user_key": "abk",
@@ -172,7 +171,6 @@ async def test_non_existing_account_names(
         },
         "cba": {
             "employee_uuid": mo_person,
-            "engagement_uuid": None,
             "engagement_uuids": [],
             "itsystem_uuid": account_name_itsystem,
             "user_key": "cba",
