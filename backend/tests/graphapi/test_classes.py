@@ -1180,3 +1180,31 @@ async def test_class_description(
         variables={"uuid": uuid},
     )
     assert "en ny beskrivelse" == read_class_description(uuid)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_empty_name(graphapi_post: GraphAPIPost):
+    """Test that classes with empty names can be read."""
+    graphql_mutation = """
+      mutation CreateClass {
+        class_create(
+          input: {
+            facet_uuid: "fc917e7c-fc3b-47c2-8aa5-a0383342a280"
+            name: ""
+            user_key: "En brugervendtnøgle"
+            description: "en beskrivelse"
+            validity: { from: "2024-03-01" }
+          }
+        ) {
+          uuid
+          current {
+            name
+          }
+        }
+      }
+    """
+    response = graphapi_post(query=graphql_mutation)
+    assert response.errors is None
+    assert response.data is not None
+    assert response.data["class_create"]["current"]["name"] == ""

@@ -618,7 +618,9 @@ def filter_json_output(output):
         return {
             k: v2
             for k, v in output.items()
-            if (v2 := filter_json_output(v)) or (k == "brugervendtnoegle" and v == "")
+            if (v2 := filter_json_output(v))
+            or (k == "brugervendtnoegle" and v == "")
+            or (k == "titel" and v == "")
         }
     elif isinstance(output, list):
         return [v2 for v in output if (v2 := filter_json_output(v))]
