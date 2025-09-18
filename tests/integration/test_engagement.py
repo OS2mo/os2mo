@@ -11,7 +11,6 @@ from uuid import UUID
 
 import pytest
 from fastramqpi.pytest_util import retrying
-from ldap3 import Connection
 from more_itertools import one
 from structlog.testing import capture_logs
 
@@ -75,7 +74,6 @@ async def test_to_mo(
     graphql_client: GraphQLClient,
     mo_person: UUID,
     mo_org_unit: UUID,
-    ldap_connection: Connection,
     ldap_api: LDAPAPI,
     ldap_org_unit: list[str],
     ansat: UUID,

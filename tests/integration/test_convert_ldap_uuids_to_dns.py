@@ -6,7 +6,6 @@ from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
-from ldap3 import Connection
 from more_itertools import one
 from structlog.testing import capture_logs
 
@@ -24,7 +23,6 @@ from mo_ldap_import_export.types import LDAPUUID
 async def test_convert_ldap_uuids_to_dns(
     ldap_api: LDAPAPI,
     ldap_person_uuid: LDAPUUID,
-    ldap_connection: Connection,
 ) -> None:
     missing_uuid = cast(LDAPUUID, uuid4())
 

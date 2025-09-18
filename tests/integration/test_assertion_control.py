@@ -3,7 +3,6 @@
 from typing import Any
 
 import pytest
-from ldap3 import Connection
 from ldap3.core.exceptions import LDAPAssertionFailedResult
 from more_itertools import one
 
@@ -22,7 +21,6 @@ from mo_ldap_import_export.utils import combine_dn_strings
     }
 )
 async def test_assertion_controls_allows(
-    ldap_connection: Connection,
     ldap_api: LDAPAPI,
     ldap_org_unit: list[str],
 ) -> None:
@@ -34,7 +32,7 @@ async def test_assertion_controls_allows(
         object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
         attributes={"givenName": "Dana", "sn": "Valdez", "cn": "Valdez"},
     )
-    result = await get_ldap_object(ldap_connection, person_dn)
+    result = await get_ldap_object(ldap_api.ldap_connection.connection, person_dn)
     assert hasattr(result, "givenName")
     assert one(result.givenName) == "Dana"
 
@@ -45,7 +43,7 @@ async def test_assertion_controls_allows(
         controls=[construct_assertion_control(search_filter)],
     )
 
-    result = await get_ldap_object(ldap_connection, person_dn)
+    result = await get_ldap_object(ldap_api.ldap_connection.connection, person_dn)
     assert hasattr(result, "givenName")
     assert one(result.givenName) == "Erika"
 
@@ -58,7 +56,6 @@ async def test_assertion_controls_allows(
     }
 )
 async def test_assertion_controls_blocks(
-    ldap_connection: Connection,
     ldap_api: LDAPAPI,
     ldap_org_unit: list[str],
 ) -> None:
@@ -70,7 +67,7 @@ async def test_assertion_controls_blocks(
         object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
         attributes={"givenName": "Dana", "sn": "Valdez", "cn": "Valdez"},
     )
-    result = await get_ldap_object(ldap_connection, person_dn)
+    result = await get_ldap_object(ldap_api.ldap_connection.connection, person_dn)
     assert hasattr(result, "givenName")
     assert one(result.givenName) == "Dana"
 
@@ -83,7 +80,7 @@ async def test_assertion_controls_blocks(
         )
     assert "LDAPAssertionFailedResult - 122 - assertionFailed" in str(exc_info.value)
 
-    result = await get_ldap_object(ldap_connection, person_dn)
+    result = await get_ldap_object(ldap_api.ldap_connection.connection, person_dn)
     assert hasattr(result, "givenName")
     assert one(result.givenName) == "Dana"
 
@@ -96,7 +93,6 @@ async def test_assertion_controls_blocks(
     }
 )
 async def test_assertion_controls_empty(
-    ldap_connection: Connection,
     ldap_api: LDAPAPI,
     ldap_org_unit: list[str],
 ) -> None:
@@ -108,7 +104,7 @@ async def test_assertion_controls_empty(
         object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
         attributes={"sn": "Valdez", "cn": "Valdez"},
     )
-    result = await get_ldap_object(ldap_connection, person_dn)
+    result = await get_ldap_object(ldap_api.ldap_connection.connection, person_dn)
     assert hasattr(result, "givenName") is False
 
     # Construct Assertion Control filter checking that givenName is empty
@@ -121,7 +117,7 @@ async def test_assertion_controls_empty(
         changes={"givenName": [("MODIFY_REPLACE", "Dana")]},
         controls=[assertion_control],
     )
-    result = await get_ldap_object(ldap_connection, person_dn)
+    result = await get_ldap_object(ldap_api.ldap_connection.connection, person_dn)
     assert hasattr(result, "givenName")
     assert one(result.givenName) == "Dana"
 
@@ -143,7 +139,6 @@ async def test_assertion_controls_empty(
     }
 )
 async def test_assertion_controls_multivalued(
-    ldap_connection: Connection,
     ldap_api: LDAPAPI,
     ldap_org_unit: list[str],
 ) -> None:
@@ -155,7 +150,7 @@ async def test_assertion_controls_multivalued(
         object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
         attributes={"sn": "Valdez", "cn": ["Valdez", "Koi"]},
     )
-    result = await get_ldap_object(ldap_connection, person_dn)
+    result = await get_ldap_object(ldap_api.ldap_connection.connection, person_dn)
     assert hasattr(result, "cn")
     assert result.cn == ["Valdez", "Koi"]
 
@@ -169,7 +164,7 @@ async def test_assertion_controls_multivalued(
         changes={"cn": [("MODIFY_REPLACE", "Valdez")]},
         controls=[assertion_control],
     )
-    result = await get_ldap_object(ldap_connection, person_dn)
+    result = await get_ldap_object(ldap_api.ldap_connection.connection, person_dn)
     assert hasattr(result, "cn")
     assert one(result.cn) == "Valdez"
 
@@ -191,7 +186,6 @@ async def test_assertion_controls_multivalued(
     }
 )
 async def test_assertion_controls_spaces(
-    ldap_connection: Connection,
     ldap_api: LDAPAPI,
     ldap_org_unit: list[str],
 ) -> None:
@@ -203,7 +197,7 @@ async def test_assertion_controls_spaces(
         object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
         attributes={"sn": "Valdez", "cn": ["De Valdez"], "carLicense": " "},
     )
-    result = await get_ldap_object(ldap_connection, person_dn)
+    result = await get_ldap_object(ldap_api.ldap_connection.connection, person_dn)
     assert hasattr(result, "cn")
     assert result.cn == ["De Valdez"]
     assert hasattr(result, "carLicense")
@@ -221,7 +215,7 @@ async def test_assertion_controls_spaces(
         changes={"carLicense": [("MODIFY_REPLACE", "Renewed")]},
         controls=[assertion_control],
     )
-    result = await get_ldap_object(ldap_connection, person_dn)
+    result = await get_ldap_object(ldap_api.ldap_connection.connection, person_dn)
     assert hasattr(result, "cn")
     assert one(result.cn) == "De Valdez"
     assert hasattr(result, "carLicense")

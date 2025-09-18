@@ -3,11 +3,11 @@
 import json
 
 import pytest
-from ldap3 import Connection
 
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.ldap import apply_discriminator
+from mo_ldap_import_export.ldapapi import LDAPAPI
 from mo_ldap_import_export.utils import combine_dn_strings
 from tests.integration.conftest import AddLdapPerson
 
@@ -26,7 +26,7 @@ from tests.integration.conftest import AddLdapPerson
     }
 )
 async def test_prefers_shorter_usernames(
-    ldap_connection: Connection,
+    ldap_api: LDAPAPI,
     add_ldap_person: AddLdapPerson,
 ) -> None:
     settings = Settings()
@@ -35,13 +35,19 @@ async def test_prefers_shorter_usernames(
     cleo = combine_dn_strings(await add_ldap_person("cleo", "0101700001"))
     emily = combine_dn_strings(await add_ldap_person("emily", "0101700002"))
 
-    result = await apply_discriminator(settings, ldap_connection, {ava, cleo, emily})
+    result = await apply_discriminator(
+        settings, ldap_api.ldap_connection.connection, {ava, cleo, emily}
+    )
     assert result == ava
 
-    result = await apply_discriminator(settings, ldap_connection, {cleo, emily})
+    result = await apply_discriminator(
+        settings, ldap_api.ldap_connection.connection, {cleo, emily}
+    )
     assert result == cleo
 
-    result = await apply_discriminator(settings, ldap_connection, {emily})
+    result = await apply_discriminator(
+        settings, ldap_api.ldap_connection.connection, {emily}
+    )
     assert result == emily
 
 
@@ -53,7 +59,7 @@ async def test_prefers_shorter_usernames(
     }
 )
 async def test_ignore_substring(
-    ldap_connection: Connection,
+    ldap_api: LDAPAPI,
     add_ldap_person: AddLdapPerson,
 ) -> None:
     settings = Settings()
@@ -69,39 +75,49 @@ async def test_ignore_substring(
     assessment = combine_dn_strings(await add_ldap_person("assessment", "0101700005"))
 
     # No entries, returns None
-    result = await apply_discriminator(settings, ldap_connection, set())
+    result = await apply_discriminator(
+        settings, ldap_api.ldap_connection.connection, set()
+    )
     assert result is None
 
     # One invalid, returns None
-    result = await apply_discriminator(settings, ldap_connection, {classic})
+    result = await apply_discriminator(
+        settings, ldap_api.ldap_connection.connection, {classic}
+    )
     assert result is None
 
     # Multiple invalid, returns None
     result = await apply_discriminator(
-        settings, ldap_connection, {classic, grass, passenger}
+        settings, ldap_api.ldap_connection.connection, {classic, grass, passenger}
     )
     assert result is None
 
     # Two valid means conflict
     with pytest.raises(MultipleObjectsReturnedException) as exc_info:
-        await apply_discriminator(settings, ldap_connection, {ava, cleo})
+        await apply_discriminator(
+            settings, ldap_api.ldap_connection.connection, {ava, cleo}
+        )
     assert "Ambiguous account result from apply discriminator" in str(exc_info.value)
 
     # One valid, one excluded returns the valid
-    result = await apply_discriminator(settings, ldap_connection, {classic, ava})
-    assert result == ava
-
-    result = await apply_discriminator(settings, ldap_connection, {passenger, cleo})
-    assert result == cleo
-
-    # One valid, multiple excluded returns the valid
     result = await apply_discriminator(
-        settings, ldap_connection, {ava, grass, assessment}
+        settings, ldap_api.ldap_connection.connection, {classic, ava}
     )
     assert result == ava
 
     result = await apply_discriminator(
-        settings, ldap_connection, {cleo, classic, passenger}
+        settings, ldap_api.ldap_connection.connection, {passenger, cleo}
+    )
+    assert result == cleo
+
+    # One valid, multiple excluded returns the valid
+    result = await apply_discriminator(
+        settings, ldap_api.ldap_connection.connection, {ava, grass, assessment}
+    )
+    assert result == ava
+
+    result = await apply_discriminator(
+        settings, ldap_api.ldap_connection.connection, {cleo, classic, passenger}
     )
     assert result == cleo
 
@@ -109,7 +125,7 @@ async def test_ignore_substring(
     with pytest.raises(MultipleObjectsReturnedException) as exc_info:
         await apply_discriminator(
             settings,
-            ldap_connection,
+            ldap_api.ldap_connection.connection,
             {ava, cleo, classic, grass, passenger, assessment},
         )
     assert "Ambiguous account result from apply discriminator" in str(exc_info.value)

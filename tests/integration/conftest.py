@@ -67,9 +67,9 @@ def ldap_suffix() -> list[str]:
 
 
 @pytest.fixture
-async def ldap_org(ldap_api: LDAPAPI, ldap_suffix: list[str]) -> list[str]:
+async def ldap_org(write_ldap_api: LDAPAPI, ldap_suffix: list[str]) -> list[str]:
     o_dn = ["o=magenta"] + ldap_suffix
-    await ldap_api.ldap_connection.ldap_add(
+    await write_ldap_api.ldap_connection.ldap_add(
         combine_dn_strings(o_dn),
         object_class=["top", "organization"],
         attributes={"objectClass": ["top", "organization"], "o": "magenta"},
@@ -78,9 +78,9 @@ async def ldap_org(ldap_api: LDAPAPI, ldap_suffix: list[str]) -> list[str]:
 
 
 @pytest.fixture
-async def ldap_org_unit(ldap_api: LDAPAPI, ldap_org: list[str]) -> list[str]:
+async def ldap_org_unit(write_ldap_api: LDAPAPI, ldap_org: list[str]) -> list[str]:
     ou_dn = ["ou=os2mo"] + ldap_org
-    await ldap_api.ldap_connection.ldap_add(
+    await write_ldap_api.ldap_connection.ldap_add(
         combine_dn_strings(ou_dn),
         object_class=["top", "organizationalUnit"],
         attributes={"objectClass": ["top", "organizationalUnit"], "ou": "os2mo"},
@@ -99,10 +99,12 @@ AddLdapPerson: TypeAlias = Callable[[str, str], Awaitable[list[str]]]
 
 
 @pytest.fixture
-async def add_ldap_person(ldap_api: LDAPAPI, ldap_org_unit: list[str]) -> AddLdapPerson:
+async def add_ldap_person(
+    write_ldap_api: LDAPAPI, ldap_org_unit: list[str]
+) -> AddLdapPerson:
     async def adder(identifier: str, cpr_number: str) -> list[str]:
         person_dn = ["uid=" + identifier] + ldap_org_unit
-        await ldap_api.ldap_connection.ldap_add(
+        await write_ldap_api.ldap_connection.ldap_add(
             combine_dn_strings(person_dn),
             object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
             attributes={
@@ -129,9 +131,9 @@ async def add_ldap_person(ldap_api: LDAPAPI, ldap_org_unit: list[str]) -> AddLda
 
 
 @pytest.fixture
-async def ldap_person(ldap_api: LDAPAPI, ldap_org_unit: list[str]) -> list[str]:
+async def ldap_person(write_ldap_api: LDAPAPI, ldap_org_unit: list[str]) -> list[str]:
     person_dn = ["uid=abk"] + ldap_org_unit
-    await ldap_api.ldap_connection.ldap_add(
+    await write_ldap_api.ldap_connection.ldap_add(
         combine_dn_strings(person_dn),
         object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
         attributes={

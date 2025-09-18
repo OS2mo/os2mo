@@ -205,19 +205,6 @@ async def test_upload_ldap_object_invalid_value(
 
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
-async def test_modify_ldap_object_read_only(
-    dataloader: DataLoader,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("LDAP_READ_ONLY", "True")
-    dataloader.ldapapi.settings = Settings()
-
-    with pytest.raises(ReadOnlyException) as exc_info:
-        await dataloader.ldapapi.modify_ldap_object("CN=Foo", {})
-    assert "LDAP connection is read-only" in str(exc_info.value)
-
-
-@pytest.mark.usefixtures("minimal_valid_environmental_variables")
 async def test_modify_ldap_object_invalid_ou(
     dataloader: DataLoader,
     monkeypatch: pytest.MonkeyPatch,
@@ -888,24 +875,8 @@ async def test_load_mo_facet_uuid_no_result(dataloader: DataLoader):
 async def test_add_ldap_object(settings: Settings, ldap_connection: MagicMock) -> None:
     ldapapi = LDAPAPI(settings, ldap_connection)
 
-    ldap_connection.add.return_value = None, {"type": "test"}, [], None
-
-    await ldapapi.add_ldap_object(
-        "CN=foo", attributes={"foo": [2]}, object_class=settings.ldap_object_class
-    )
-    ldap_connection.add.assert_called_once()  # type: ignore
-
     ldapapi.settings = MagicMock()  # type: ignore
-    ldapapi.settings.add_objects_to_ldap = False
     ldapapi.settings.ldap_read_only = False
-
-    with pytest.raises(ReadOnlyException) as exc:
-        await ldapapi.add_ldap_object(
-            "CN=foo", attributes={}, object_class=settings.ldap_object_class
-        )
-    assert "Adding LDAP objects is disabled" in str(exc.value)
-
-    ldapapi.connection.reset_mock()  # type: ignore
     ldapapi.settings.add_objects_to_ldap = True
     ldapapi.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     ldapapi.ou_in_ous_to_write_to.return_value = False
@@ -915,13 +886,6 @@ async def test_add_ldap_object(settings: Settings, ldap_connection: MagicMock) -
             "CN=foo", attributes={}, object_class=settings.ldap_object_class
         )
     assert "Not allowed to write to the specified OU" in str(exc.value)
-
-    ldapapi.settings.ldap_read_only = True
-    with pytest.raises(ReadOnlyException) as exc:
-        await ldapapi.add_ldap_object(
-            "CN=foo", attributes={}, object_class=settings.ldap_object_class
-        )
-    assert "LDAP connection is read-only" in str(exc.value)
 
 
 def test_ou_in_ous_to_write_to(dataloader: DataLoader):
