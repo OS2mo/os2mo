@@ -6,6 +6,7 @@
 import os
 from collections.abc import Iterator
 from contextlib import contextmanager
+from functools import partial
 from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -322,7 +323,10 @@ async def test_incorrect_ous_to_search_in() -> None:
         (NoObjectsReturnedException, RequeueMessage),
         (RequeueMessage, RequeueMessage),
         (IgnoreChanges, RejectMessage),
-        (ReadOnlyException, RejectMessage),
+        (
+            partial(ReadOnlyException, dn="CN=foo", requested_state=dict()),
+            RejectMessage,
+        ),
         (Exception, RequeueMessage),
     ],
 )

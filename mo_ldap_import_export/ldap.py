@@ -267,7 +267,9 @@ class LDAPConnection:
                 dn=dn,
                 attributes=attributes,
             )
-            raise ReadOnlyException("LDAP connection is read-only")
+            raise ReadOnlyException(
+                "LDAP connection is read-only", dn=dn, requested_state=attributes
+            )
 
     async def ldap_add(
         self: Self, dn: DN, object_class, attributes=None
@@ -280,7 +282,11 @@ class LDAPConnection:
                 dn=dn,
                 attributes=attributes,
             )
-            raise ReadOnlyException("Adding LDAP objects is disabled")
+            raise ReadOnlyException(
+                "Adding LDAP objects is disabled",
+                dn=dn,
+                requested_state=attributes or {},
+            )
 
         status, result, response, request = await asyncio.to_thread(
             self.connection.add, dn, object_class, attributes

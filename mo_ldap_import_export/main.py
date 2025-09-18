@@ -52,6 +52,7 @@ from .customer_specific_checks import ImportChecks
 from .database import Base
 from .dataloaders import DataLoader
 from .exceptions import NoObjectsReturnedException
+from .exceptions import ReadOnlyException
 from .exceptions import SkipObject
 from .exceptions import amqp_reject_on_failure
 from .exceptions import http_reject_on_failure
@@ -489,11 +490,11 @@ def mo_to_ldap_handler(
         except json.JSONDecodeError as exc:
             message = "Unable to parse Jinja template output as JSON"
             logger.exception(message, result=result)
-            raise HTTPException(status_code=500, detail=message) from exc
+            raise HTTPException(status_code=500, detail={"message": message}) from exc
         except ValidationError as exc:
             message = "Unable to parse Jinja template output as model"
             logger.exception(message, result=result)
-            raise HTTPException(status_code=500, detail=message) from exc
+            raise HTTPException(status_code=500, detail={"message": message}) from exc
 
         logger.debug("Parsed jinja template", parsed=parsed)
 
@@ -505,19 +506,23 @@ def mo_to_ldap_handler(
         except NoObjectsReturnedException as exc:
             message = "Unable to find Jinja referenced dn"
             logger.exception(message)
-            raise HTTPException(status_code=500, detail=message) from exc
+            raise HTTPException(status_code=500, detail={"message": message}) from exc
         except LDAPUnwillingToPerformResult as exc:
             message = "The LDAP server was unwilling to perform the change"
             logger.exception(message)
-            raise HTTPException(status_code=500, detail=message) from exc
+            raise HTTPException(status_code=500, detail={"message": message}) from exc
         except LDAPObjectClassViolationResult as exc:
             message = "The LDAP server states that required attributes are missing"
             logger.exception(message)
-            raise HTTPException(status_code=500, detail=message) from exc
+            raise HTTPException(status_code=500, detail={"message": message}) from exc
         except LDAPNoSuchObjectResult as exc:
             message = "The LDAP server could not find the superior"
             logger.exception(message)
-            raise HTTPException(status_code=500, detail=message) from exc
+            raise HTTPException(status_code=500, detail={"message": message}) from exc
+        except ReadOnlyException as exc:
+            message = "LDAP connection is read-only"
+            logger.exception(message)
+            raise exc
 
     return inner
 

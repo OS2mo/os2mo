@@ -3,6 +3,7 @@
 from collections.abc import Awaitable
 from collections.abc import Callable
 from functools import wraps
+from typing import Any
 from typing import ParamSpec
 from typing import TypeVar
 
@@ -12,52 +13,68 @@ from fastramqpi.ramqp.utils import RejectMessage
 from fastramqpi.ramqp.utils import RequeueMessage
 from gql.transport.exceptions import TransportQueryError
 
+from mo_ldap_import_export.types import DN
+
 logger = structlog.stdlib.get_logger()
 
 
 class MultipleObjectsReturnedException(HTTPException):
-    def __init__(self, message):
+    def __init__(self, message: str) -> None:
         super().__init__(status_code=409, detail=message)
 
 
 class NoObjectsReturnedException(HTTPException):
-    def __init__(self, message):
+    def __init__(self, message: str) -> None:
         super().__init__(status_code=500, detail=message)
 
 
 class IncorrectMapping(HTTPException):
     """Raised when the integration is improperly configured."""
 
-    def __init__(self, message):
+    def __init__(self, message: str) -> None:
         super().__init__(status_code=500, detail=message)
 
 
 class ReadOnlyException(HTTPException):
     """Raised when the integration would write if not in read-only mode."""
 
-    def __init__(self, message):
-        super().__init__(status_code=451, detail=message)
+    def __init__(
+        self,
+        message: str,
+        dn: DN,
+        requested_state: dict[str, list],
+        old_state: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(
+            status_code=451,
+            detail={
+                "message": message,
+                "dn": dn,
+                "requested_state": requested_state,
+                "old_state": old_state,
+            },
+        )
 
 
 class UUIDNotFoundException(HTTPException):
-    def __init__(self, message):
+    def __init__(self, message: str) -> None:
         super().__init__(status_code=404, detail=message)
 
 
 class TimeOutException(HTTPException):
-    def __init__(self, message):
+    def __init__(self, message: str) -> None:
         super().__init__(status_code=408, detail=message)
 
 
 class IgnoreChanges(HTTPException):
     """Exception raised if the import/export checks reject a message."""
 
-    def __init__(self, message):
+    def __init__(self, message: str) -> None:
         super().__init__(status_code=451, detail=message)
 
 
 class InvalidCPR(HTTPException):
-    def __init__(self, message):
+    def __init__(self, message: str) -> None:
         super().__init__(status_code=422, detail=message)
 
 
