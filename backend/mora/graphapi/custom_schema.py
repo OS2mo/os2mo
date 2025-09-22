@@ -1,11 +1,16 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
+import re
 import traceback
+from collections.abc import AsyncIterator
 from typing import Any
 from typing import cast
 
 from graphql import GraphQLError
+from starlette.requests import Request
+from starlette_context import context
+from starlette_context import request_cycle_context
 from strawberry import Schema
 from strawberry.schema import BaseSchema
 from strawberry.types import ExecutionContext
@@ -61,3 +66,29 @@ def get_version(schema: BaseSchema) -> Version:
     # strawberry.Schema or strawberry.BaseSchema type.
     assert isinstance(schema, CustomSchema)
     return schema.version
+
+
+_GRAPHQL_VERSION_MIDDLEWARE_KEY = "graphql_version"
+
+
+async def graphql_version_context(request: Request) -> AsyncIterator[None]:
+    """Application dependency to create the `graphql_version` context variable."""
+    graphql_match = re.match(r"/graphql/v(\d+)", request.url.path)
+    if graphql_match is None:
+        version = None
+    else:
+        version = Version(int(graphql_match.group(1)))
+
+    data = {**context, _GRAPHQL_VERSION_MIDDLEWARE_KEY: version}
+    with request_cycle_context(data):
+        yield
+
+
+def get_graphql_version() -> Version | None:
+    """Get Schema version, but indirectly through the context.
+
+    Please, let's stop passing things around the stack. Use get_version(schema)
+    if you are able -- it also has better typing. This one is useful for deep
+    in LoRa/RequestHandler code 🥲👍
+    """
+    return context[_GRAPHQL_VERSION_MIDDLEWARE_KEY]
