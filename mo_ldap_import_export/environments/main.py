@@ -59,6 +59,7 @@ from ..models import Class
 from ..models import Engagement
 from ..models import ITSystem
 from ..models import ITUser
+from ..models import OrganisationUnit
 from ..types import DN
 from ..types import EmployeeUUID
 from ..types import EngagementUUID
@@ -302,6 +303,18 @@ async def load_engagement(moapi: MOAPI, uuid: UUID) -> Engagement | None:
         logger.debug("Engagement is terminated", uuid=uuid)
         return None
     return fetched_engagement
+
+
+async def load_org_unit(moapi: MOAPI, uuid: UUID) -> OrganisationUnit | None:
+    fetched_org_unit = await moapi.load_mo_org_unit(uuid, current_objects_only=False)
+    if fetched_org_unit is None:  # pragma: no cover
+        logger.error("Unable to load mo org_unit", uuid=uuid)
+        raise RequeueMessage("Unable to load mo org_unit")
+    delete = get_delete_flag(jsonable_encoder(fetched_org_unit))
+    if delete:
+        logger.debug("Org unit is terminated", uuid=uuid)
+        return None
+    return fetched_org_unit
 
 
 async def load_it_user(
@@ -874,6 +887,7 @@ def construct_globals_dict(
         "load_mo_employee": moapi.load_mo_employee,
         "load_mo_primary_engagement": partial(load_primary_engagement, moapi),
         "load_mo_engagement": partial(load_engagement, moapi),
+        "load_mo_org_unit": partial(load_org_unit, moapi),
         "load_mo_it_user": partial(load_it_user, moapi),
         "load_mo_address": partial(load_address, moapi),
         "load_mo_org_unit_address": partial(load_org_unit_address, moapi),
