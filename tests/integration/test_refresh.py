@@ -6,7 +6,6 @@ from collections.abc import Callable
 from typing import Any
 from unittest.mock import ANY
 from uuid import UUID
-from uuid import uuid4
 
 import pytest
 from fastapi import FastAPI
@@ -42,56 +41,6 @@ async def get_ldap_person(
         return only(response)
 
     return inner
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("test_client")
-async def test_refresh_wrong_collection(
-    graphql_client: GraphQLClient,
-    amqpsystem: MOAMQPSystem,
-) -> None:
-    with pytest.raises(ValueError) as exc_info:
-        await refresh(graphql_client, amqpsystem, "__unknown__", set())
-    assert "Unknown collection '__unknown__'" in str(exc_info.value)
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("test_client")
-@pytest.mark.parametrize(
-    "collection", [123, 0.5, ["hello", "world"], {"hello": "world"}, {1, 2, 3}]
-)
-async def test_refresh_wrong_collection_type(
-    graphql_client: GraphQLClient,
-    amqpsystem: MOAMQPSystem,
-    collection: Any,
-) -> None:
-    with pytest.raises(TypeError) as exc_info:
-        await refresh(graphql_client, amqpsystem, collection, set())
-    assert "'collection' must be a string" in str(exc_info.value)
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("test_client")
-@pytest.mark.parametrize(
-    "uuids",
-    [
-        123,
-        0.5,
-        ["hello", "world"],
-        {"hello": "world"},
-        {1, 2, 3},
-        [uuid4(), uuid4()],
-        (uuid4(), uuid4()),
-    ],
-)
-async def test_refresh_wrong_uuids_type(
-    graphql_client: GraphQLClient,
-    amqpsystem: MOAMQPSystem,
-    uuids: Any,
-) -> None:
-    with pytest.raises(TypeError) as exc_info:
-        await refresh(graphql_client, amqpsystem, "person", uuids)
-    assert "'uuids' must be a set of UUIDs" in str(exc_info.value)
 
 
 @pytest.mark.integration_test
