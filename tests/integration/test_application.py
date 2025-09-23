@@ -542,7 +542,6 @@ async def test_mismatched_json_key_and_itsystem(
         "validities": [
             {
                 "employee_uuid": person_uuid,
-                "engagement_uuid": None,
                 "engagement_uuids": [],
                 "itsystem_uuid": ldap_uuid_itsystem_uuid,
                 "user_key": str(ldap_person_uuid),
@@ -621,7 +620,6 @@ async def test_default_validity(
         "validities": [
             {
                 "employee_uuid": person_uuid,
-                "engagement_uuid": None,
                 "engagement_uuids": [],
                 "itsystem_uuid": ldap_uuid_itsystem_uuid,
                 "user_key": ANY,

@@ -236,7 +236,6 @@ class SyncTool:
             person=uuid,
             validity=Validity(start=mo_today(), end=None),
             org_unit=None,
-            engagement=None,
         )
         await self.dataloader.moapi.create_ituser(it_user)
 

@@ -1304,7 +1304,6 @@ async def test_find_mo_employee_dn_by_itsystem(
                             "validity": {"from": "1970-01-01T00:00:00Z"},
                             "employee_uuid": employee_uuid,
                             "itsystem_uuid": itsystem_uuid,
-                            "engagement_uuid": None,
                             "engagement_uuids": [],
                             "rolebindings": [],
                         }
