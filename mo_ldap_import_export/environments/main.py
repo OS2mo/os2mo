@@ -802,8 +802,6 @@ def collection2refresher(graphql_client: GraphQLClient, collection: str) -> Refr
         "related_unit": graphql_client.related_unit_refresh,
         "rolebinding": graphql_client.rolebinding_refresh,
     }
-    if collection not in refreshers:
-        raise ValueError(f"Unknown collection '{collection}'")
     return refreshers[collection]
 
 
@@ -825,15 +823,10 @@ async def refresh(
         ValueError: If the provided collection is not one of the defined collections.
         TypeError: If UUIDs is not a set of UUIDs or collection is not a string.
     """
-
-    def is_uuid_set(xs: Any) -> bool:
-        return isinstance(xs, set) and all(isinstance(x, UUID) for x in xs)
-
-    if not isinstance(collection, str):
-        raise TypeError("'collection' must be a string")
-
-    if not is_uuid_set(uuids):
-        raise TypeError("'uuids' must be a set of UUIDs")
+    # This is a noop according to the typing, but it's actually required
+    # because the input is from jinja, and thus not type-checkable.
+    collection = parse_obj_as(str, collection)
+    uuids = parse_obj_as(set[UUID], uuids)
 
     logger.info("refresh called", collection=collection, uuids=uuids)
     exchange = amqpsystem.exchange_name
