@@ -956,6 +956,7 @@ def construct_default_environment() -> Environment:
     environment.filters["strip_non_digits"] = filter_strip_non_digits
     environment.filters["remove_curly_brackets"] = filter_remove_curly_brackets
     environment.filters["set"] = set
+    environment.filters["uuid"] = UUID
 
     environment.globals["now"] = datetime.utcnow  # TODO: timezone-aware datetime
     environment.globals["skip_if_none"] = skip_if_none
