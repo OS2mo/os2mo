@@ -193,6 +193,7 @@ async def test_ldap_template_empty_changeset(
         )
     }
 )
+@pytest.mark.xfail(reason="Currently produces incorrect jsonl file")
 async def test_ldap_template_multiple_lines(
     test_client: AsyncClient, graphql_client: GraphQLClient
 ) -> None:
@@ -217,5 +218,5 @@ async def test_ldap_template_multiple_lines(
     result = response.json()
     assert result == "OK"
 
-    with pytest.raises(json.JSONDecodeError):
-        read_jsonl_file("/tmp/mo2ldap.jsonl")
+    file_data = read_jsonl_file("/tmp/mo2ldap.jsonl")
+    assert len(file_data) == 2
