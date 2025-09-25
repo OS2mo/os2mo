@@ -15,6 +15,7 @@ from uuid import uuid4
 
 import structlog
 from fastapi.encoders import jsonable_encoder
+from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.mo import MOAMQPSystem
 from fastramqpi.ramqp.utils import RequeueMessage
 from jinja2 import Environment
@@ -897,7 +898,10 @@ def construct_filters_dict(dataloader: DataLoader) -> dict[str, Any]:
 
 
 def construct_globals_dict(
-    settings: Settings, dataloader: DataLoader, amqpsystem: MOAMQPSystem
+    settings: Settings,
+    dataloader: DataLoader,
+    mo_amqpsystem: MOAMQPSystem,
+    ldap_amqpsystem: AMQPSystem,
 ) -> dict[str, Any]:
     moapi = dataloader.moapi
     graphql_client = moapi.graphql_client
@@ -1016,9 +1020,14 @@ def construct_default_environment() -> Environment:
 
 
 def construct_environment(
-    settings: Settings, dataloader: DataLoader, amqpsystem: MOAMQPSystem
+    settings: Settings,
+    dataloader: DataLoader,
+    mo_amqpsystem: MOAMQPSystem,
+    ldap_amqpsystem: AMQPSystem,
 ) -> Environment:
     environment = construct_default_environment()
     environment.filters.update(construct_filters_dict(dataloader))
-    environment.globals.update(construct_globals_dict(settings, dataloader, amqpsystem))
+    environment.globals.update(
+        construct_globals_dict(settings, dataloader, mo_amqpsystem, ldap_amqpsystem)
+    )
     return environment
