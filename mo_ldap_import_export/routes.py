@@ -430,8 +430,14 @@ def construct_router(settings: Settings) -> APIRouter:
 
         async def process_uuid(uuid: UUID) -> dict[str, Any]:
             try:
-                await sync_tool.listen_to_changes_in_employees(uuid, dry_run=True)
-                raise AssertionError("This should never happen")  # pragma: no cover
+                result = await sync_tool.listen_to_changes_in_employees(
+                    uuid, dry_run=True
+                )
+                assert result == {}
+                return {
+                    "__mo_uuid": uuid,
+                    "message": "No changes",
+                }
             except DryRunException as exc:
                 assert isinstance(exc.detail, dict)
                 return {
