@@ -1693,6 +1693,8 @@ class GraphQLClient(AsyncBaseClient):
                         zip_code
                         zip_code_name
                         road_name
+                        house_number
+                        supplementary_city
                       }
                       value
                     }

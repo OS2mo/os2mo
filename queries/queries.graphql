@@ -598,6 +598,8 @@ query resolve_dar_address($filter: AddressFilter) {
             zip_code
             zip_code_name
             road_name
+            house_number
+            supplementary_city
           }
           value
         }
