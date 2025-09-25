@@ -120,5 +120,10 @@ async def test_resolve_dar(
 
     result = await resolve_dar_address(graphql_client, filter={"uuids": [address.uuid]})
     assert result == [
-        DARAddress(postal_code="8230", city="Åbyhøj", streetname="Silkeborgvej"),
+        DARAddress(
+            postal_code="8230",
+            city="Åbyhøj",
+            streetname="Silkeborgvej",
+            house_number="260",
+        ),
     ]

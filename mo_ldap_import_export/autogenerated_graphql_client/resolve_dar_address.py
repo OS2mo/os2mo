@@ -40,6 +40,8 @@ class ResolveDarAddressAddressesObjectsCurrentResolveDARAddress(BaseModel):
     zip_code: str
     zip_code_name: str
     road_name: str
+    house_number: str
+    supplementary_city: str | None
     value: str
 
 

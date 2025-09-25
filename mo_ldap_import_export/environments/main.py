@@ -853,6 +853,8 @@ class DARAddress(BaseModel):
     postal_code: str
     city: str
     streetname: str
+    house_number: str
+    supplementary_city: str | None
 
 
 async def resolve_dar_address(
@@ -880,6 +882,8 @@ async def resolve_dar_address(
                 postal_code=resolve.zip_code,
                 city=resolve.zip_code_name,
                 streetname=resolve.road_name,
+                house_number=resolve.house_number,
+                supplementary_city=resolve.supplementary_city,
             )
         )
     return dar_addresses
