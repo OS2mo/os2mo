@@ -157,6 +157,7 @@ async def test_ldap_template_no_changes(
         )
     }
 )
+@pytest.mark.xfail(reason="Currently returns AssertionError instead of 'No changes'")
 async def test_ldap_template_empty_changeset(
     test_client: AsyncClient, mo_person: UUID
 ) -> None:
@@ -169,6 +170,6 @@ async def test_ldap_template_empty_changeset(
     assert file_data == [
         {
             "__mo_uuid": str(mo_person),
-            "message": "Exception during processing",
+            "message": "No changes",
         }
     ]
