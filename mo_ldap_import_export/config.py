@@ -103,13 +103,13 @@ class ServerList(ConstrainedList):
 class LDAPAMQPConnectionSettings(AMQPConnectionSettings):
     exchange = "ldap_ie_ldap"
     queue_prefix = "ldap_ie_ldap"
-    prefetch_count = 1  # MO cannot handle too many requests
+    prefetch_count = 10  # MO cannot handle too many requests
 
 
 class ExternalAMQPConnectionSettings(AMQPConnectionSettings):
     queue_prefix = "ldap_ie"
     upstream_exchange = "os2mo"
-    prefetch_count: int = 1  # MO cannot handle too many requests
+    prefetch_count: int = 10  # MO cannot handle too many requests
 
     @root_validator
     def set_exchange_by_queue_prefix(cls, values: dict[str, Any]) -> dict[str, Any]:
