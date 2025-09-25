@@ -24,7 +24,7 @@ from fastramqpi.events import GraphQLEvents
 from fastramqpi.events import Listener
 from fastramqpi.events import Namespace
 from fastramqpi.main import FastRAMQPI
-from fastramqpi.ramqp import AMQPSystem
+from fastramqpi.ramqp.amqp import AMQPSystem
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from fastramqpi.ramqp.depends import rate_limit
 from fastramqpi.ramqp.mo import MOAMQPSystem

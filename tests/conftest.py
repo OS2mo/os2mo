@@ -18,7 +18,7 @@ import pytest
 from fastapi import FastAPI
 from fastramqpi.context import Context
 from fastramqpi.main import FastRAMQPI
-from fastramqpi.ramqp import AMQPSystem
+from fastramqpi.ramqp.amqp import AMQPSystem
 from httpx import AsyncClient
 from ldap3 import NO_ATTRIBUTES
 from pytest import Item

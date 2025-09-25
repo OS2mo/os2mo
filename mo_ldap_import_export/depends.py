@@ -9,7 +9,7 @@ from uuid import uuid4
 
 from fastapi import Depends
 from fastramqpi.depends import from_user_context
-from fastramqpi.ramqp import AMQPSystem as _AMQPSystem
+from fastramqpi.ramqp.amqp import AMQPSystem as _AMQPSystem
 from fastramqpi.ramqp.depends import Message
 from fastramqpi.ramqp.depends import from_context
 from fastramqpi.ramqp.mo import MOAMQPSystem as _MOAMQPSystem

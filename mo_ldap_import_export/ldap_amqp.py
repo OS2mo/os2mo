@@ -8,7 +8,7 @@ from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
 from fastramqpi.main import FastRAMQPI
-from fastramqpi.ramqp import AMQPSystem
+from fastramqpi.ramqp.amqp import AMQPSystem
 from fastramqpi.ramqp.amqp import Router
 from fastramqpi.ramqp.depends import get_payload_as_type
 from fastramqpi.ramqp.depends import rate_limit
