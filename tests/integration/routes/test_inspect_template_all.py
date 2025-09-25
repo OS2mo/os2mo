@@ -140,3 +140,35 @@ async def test_ldap_template_no_changes(
             "message": "No changes",
         }
     ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "mo2ldap": """
+                {% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}
+                {{
+                    {}|tojson
+                }}
+            """
+            }
+        )
+    }
+)
+async def test_ldap_template_empty_changeset(
+    test_client: AsyncClient, mo_person: UUID
+) -> None:
+    response = await test_client.get("/Inspect/mo2ldap/all")
+    assert response.status_code == 200
+    result = response.json()
+    assert result == "OK"
+
+    file_data = read_jsonl_file("/tmp/mo2ldap.jsonl")
+    assert file_data == [
+        {
+            "__mo_uuid": str(mo_person),
+            "message": "Exception during processing",
+        }
+    ]
