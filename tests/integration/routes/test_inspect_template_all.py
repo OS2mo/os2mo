@@ -193,7 +193,6 @@ async def test_ldap_template_empty_changeset(
         )
     }
 )
-@pytest.mark.xfail(reason="Currently produces incorrect jsonl file")
 async def test_ldap_template_multiple_lines(
     test_client: AsyncClient, graphql_client: GraphQLClient
 ) -> None:

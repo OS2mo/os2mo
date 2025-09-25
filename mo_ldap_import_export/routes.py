@@ -454,7 +454,8 @@ def construct_router(settings: Settings) -> APIRouter:
         with open("/tmp/mo2ldap.jsonl", "w") as fout:
             for uuid in uuids:
                 context = await process_uuid(uuid)
-                fout.write(json.dumps(encode_result(context)))
+                fout.write(json.dumps(encode_result(context)) + "\n")
+                fout.flush()
 
         return "OK"
 
