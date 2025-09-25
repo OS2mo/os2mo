@@ -587,3 +587,21 @@ query read_rolebindings($filter: RoleBindingFilter) {
     }
   }
 }
+
+query resolve_dar_address($filter: AddressFilter) {
+  addresses(filter: $filter) {
+    objects {
+      uuid
+      current {
+        resolve {
+          ... on DARAddress {
+            zip_code
+            zip_code_name
+            road_name
+          }
+          value
+        }
+      }
+    }
+  }
+}
