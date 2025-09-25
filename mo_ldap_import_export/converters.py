@@ -14,7 +14,7 @@ from .config import LDAP2MOMapping
 from .config import Settings
 from .config import get_required_attributes
 from .dataloaders import DataLoader
-from .environments import construct_environment
+from .environments.main import construct_environment
 from .exceptions import IncorrectMapping
 from .exceptions import SkipObject
 from .ldap_classes import LdapObject
