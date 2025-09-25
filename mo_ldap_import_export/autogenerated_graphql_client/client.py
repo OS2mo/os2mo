@@ -228,6 +228,8 @@ from .read_rolebindings import ReadRolebindings
 from .read_rolebindings import ReadRolebindingsRolebindings
 from .related_unit_refresh import RelatedUnitRefresh
 from .related_unit_refresh import RelatedUnitRefreshRelatedUnitRefresh
+from .resolve_dar_address import ResolveDarAddress
+from .resolve_dar_address import ResolveDarAddressAddresses
 from .rolebinding_refresh import RolebindingRefresh
 from .rolebinding_refresh import RolebindingRefreshRolebindingRefresh
 from .send_event import SendEvent
@@ -1674,6 +1676,36 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadRolebindings.parse_obj(data).rolebindings
+
+    async def resolve_dar_address(
+        self, filter: AddressFilter | None | UnsetType = UNSET
+    ) -> ResolveDarAddressAddresses:
+        query = gql(
+            """
+            query resolve_dar_address($filter: AddressFilter) {
+              addresses(filter: $filter) {
+                objects {
+                  uuid
+                  current {
+                    resolve {
+                      __typename
+                      ... on DARAddress {
+                        zip_code
+                        zip_code_name
+                        road_name
+                      }
+                      value
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ResolveDarAddress.parse_obj(data).addresses
 
     async def address_refresh(
         self,

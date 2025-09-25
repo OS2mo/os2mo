@@ -521,6 +521,16 @@ from .read_rolebindings import ReadRolebindingsRolebindingsObjectsCurrentItuserP
 from .read_rolebindings import ReadRolebindingsRolebindingsObjectsCurrentRole
 from .related_unit_refresh import RelatedUnitRefresh
 from .related_unit_refresh import RelatedUnitRefreshRelatedUnitRefresh
+from .resolve_dar_address import ResolveDarAddress
+from .resolve_dar_address import ResolveDarAddressAddresses
+from .resolve_dar_address import ResolveDarAddressAddressesObjects
+from .resolve_dar_address import ResolveDarAddressAddressesObjectsCurrent
+from .resolve_dar_address import (
+    ResolveDarAddressAddressesObjectsCurrentResolveDARAddress,
+)
+from .resolve_dar_address import (
+    ResolveDarAddressAddressesObjectsCurrentResolveResolvedAddress,
+)
 from .rolebinding_refresh import RolebindingRefresh
 from .rolebinding_refresh import RolebindingRefreshRolebindingRefresh
 from .send_event import SendEvent
@@ -909,6 +919,12 @@ __all__ = [
     "RelatedUnitRefresh",
     "RelatedUnitRefreshRelatedUnitRefresh",
     "RelatedUnitsUpdateInput",
+    "ResolveDarAddress",
+    "ResolveDarAddressAddresses",
+    "ResolveDarAddressAddressesObjects",
+    "ResolveDarAddressAddressesObjectsCurrent",
+    "ResolveDarAddressAddressesObjectsCurrentResolveDARAddress",
+    "ResolveDarAddressAddressesObjectsCurrentResolveResolvedAddress",
     "RoleBindingCreateInput",
     "RoleBindingFilter",
     "RoleBindingTerminateInput",
