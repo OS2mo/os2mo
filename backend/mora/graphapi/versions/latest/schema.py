@@ -635,6 +635,7 @@ class DARAddress(ResolvedAddress):
     zip_code: str = extract_field("postnr")
     zip_code_name: str = extract_field("postnrnavn")
     municipality_code: str = extract_field("kommunekode")
+    supplementary_city: str | None = extract_field("supplerendebynavn")
 
     # Global position
     longitude: float = extract_field("x")

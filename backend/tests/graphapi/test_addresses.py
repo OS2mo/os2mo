@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import datetime
+from collections.abc import Callable
 from datetime import datetime as dt
+from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -1004,6 +1006,102 @@ def test_address_resolver(graphapi_post: GraphAPIPost) -> None:
                         "value": "bruger@example.com",
                     }
                 },
+            ]
+        }
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_address_resolver_supplementary_city(
+    graphapi_post: GraphAPIPost,
+    create_person: Callable[..., UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+) -> None:
+    employee_address_type_facet = create_facet(
+        {
+            "user_key": "employee_address_type",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+    post_address_class = create_class(
+        {
+            "user_key": "AdressePostEmployee",
+            "scope": "DAR",
+            "name": "Postadresse",
+            "facet_uuid": str(employee_address_type_facet),
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+    person_uuid = create_person()
+    value = "1a6da4cb-e2b4-40a3-b9c0-ff4f2f5fba97"
+
+    create_address_mutation = """
+    mutation CreateAddress($input: AddressCreateInput!) {
+      address_create(input: $input) {
+        uuid
+      }
+    }
+    """
+    input = {
+        "address_type": str(post_address_class),
+        "value": value,
+        "person": str(person_uuid),
+        "validity": {"from": "2000-01-01T00:00:00Z"},
+    }
+    response = graphapi_post(create_address_mutation, variables={"input": input})
+    assert response.errors is None
+    assert response.data is not None
+    address_uuid = response.data["address_create"]["uuid"]
+
+    query = """
+        query ResolveAddresses {
+          addresses {
+            objects {
+              current {
+                uuid
+                value
+                resolve {
+                  ... on DARAddress {
+                    __typename
+                    name
+                    road_name
+                    house_number
+                    supplementary_city
+                    zip_code
+                    zip_code_name
+                  }
+                }
+              }
+            }
+          }
+        }
+    """
+
+    jonstrupvangvej = {
+        "__typename": "DARAddress",
+        "name": "Jonstrupvangvej 150D, Jonstrup, 3500 Værløse",
+        "road_name": "Jonstrupvangvej",
+        "house_number": "150D",
+        "supplementary_city": "Jonstrup",
+        "zip_code": "3500",
+        "zip_code_name": "Værløse",
+    }
+
+    response = graphapi_post(query)
+    assert response.errors is None
+    assert response.data == {
+        "addresses": {
+            "objects": [
+                {
+                    "current": {
+                        "resolve": jonstrupvangvej,
+                        "uuid": address_uuid,
+                        "value": value,
+                    }
+                }
             ]
         }
     }
