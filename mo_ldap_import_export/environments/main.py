@@ -967,6 +967,7 @@ def construct_globals_dict(
         ),
         "refresh": partial(refresh, graphql_client, amqpsystem),
         "find_mo_employee_uuid": dataloader.find_mo_employee_uuid,
+        "resolve_dar_address": partial(resolve_dar_address, graphql_client),
     }
 
 
