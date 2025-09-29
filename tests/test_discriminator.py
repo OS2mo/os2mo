@@ -446,8 +446,7 @@ async def sync_tool_and_context(
     )
     context["user_context"]["dataloader"] = dataloader
 
-    # Needs context, user_context, settings, raw_mapping, dataloader
-    converter = LdapConverter(settings, dataloader, MagicMock())
+    converter = LdapConverter(settings, dataloader, MagicMock(), MagicMock())
     context["user_context"]["converter"] = converter
 
     export_checks = ExportChecks(dataloader)

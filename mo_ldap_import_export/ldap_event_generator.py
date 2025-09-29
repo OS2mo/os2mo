@@ -19,7 +19,7 @@ import structlog
 from fastapi import APIRouter
 from fastapi import Body
 from fastramqpi.context import Context
-from fastramqpi.ramqp import AMQPSystem
+from fastramqpi.ramqp.amqp import AMQPSystem
 from ldap3 import Connection
 from sqlalchemy import ARRAY
 from sqlalchemy import TIMESTAMP

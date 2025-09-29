@@ -404,7 +404,7 @@ async def fetch_dn_mapping(
 
 @cache
 def construct_template(template: str) -> Template:
-    from .environments import construct_default_environment
+    from .environments.main import construct_default_environment
 
     environment = construct_default_environment()
     return environment.from_string(template)

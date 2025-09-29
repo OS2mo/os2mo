@@ -24,7 +24,7 @@ from fastramqpi.events import GraphQLEvents
 from fastramqpi.events import Listener
 from fastramqpi.events import Namespace
 from fastramqpi.main import FastRAMQPI
-from fastramqpi.ramqp import AMQPSystem
+from fastramqpi.ramqp.amqp import AMQPSystem
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from fastramqpi.ramqp.depends import rate_limit
 from fastramqpi.ramqp.mo import MOAMQPSystem
@@ -402,9 +402,11 @@ async def lifespan(
         export_checks = ExportChecks(dataloader)
         import_checks = ImportChecks()
 
+        ldap_amqpsystem = configure_ldap_amqpsystem(fastramqpi, settings)
+
         logger.info("Initializing converters")
-        amqpsystem = fastramqpi.get_amqpsystem()
-        converter = LdapConverter(settings, dataloader, amqpsystem)
+        mo_amqpsystem = fastramqpi.get_amqpsystem()
+        converter = LdapConverter(settings, dataloader, mo_amqpsystem, ldap_amqpsystem)
         fastramqpi.add_context(converter=converter)
 
         logger.info("Initializing Sync tool")
@@ -419,10 +421,9 @@ async def lifespan(
         fastramqpi.add_context(sync_tool=sync_tool)
 
         logger.info("Starting AMQP listener")
-        await stack.enter_async_context(amqpsystem)
+        await stack.enter_async_context(mo_amqpsystem)
 
         logger.info("Initializing LDAP listener")
-        ldap_amqpsystem = configure_ldap_amqpsystem(fastramqpi, settings)
         await stack.enter_async_context(ldap_amqpsystem)
         if settings.listen_to_changes_in_ldap:
             logger.info("Initializing LDAP event generator")
