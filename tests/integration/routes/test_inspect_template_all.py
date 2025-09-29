@@ -66,6 +66,7 @@ async def test_ldap_template_modify(
             "dn": ldap_person_dn,
             "message": "Would have changed attributes",
             "attributes": {"title": [str(mo_person)]},
+            "old_attributes": {"title": ["Skole underviser"]},
         }
     ]
 

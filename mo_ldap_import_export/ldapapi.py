@@ -403,10 +403,21 @@ class LDAPAPI:
                 logger.info("Uploading the changes", changes=requested_changes, dn=dn)
                 # If dry-running we do not want to makes changes in LDAP
                 if dry_run:
+                    old_attributes = None
+                    if old_state:
+                        old_attributes = {
+                            key.casefold(): value for key, value in old_state.items()
+                        }
+                        old_attributes = {
+                            key: old_attributes.get(key) for key in modify_changes
+                        }
                     raise DryRunException(
                         "Would have changed attributes",
                         dn,
-                        {"attributes": modify_changes},
+                        {
+                            "attributes": modify_changes,
+                            "old_attributes": old_attributes,
+                        },
                     )
                 _, result = await self.ldap_connection.ldap_modify(
                     dn,
