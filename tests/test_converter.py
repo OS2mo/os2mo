@@ -109,8 +109,6 @@ def context(
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(converter_mapping))
     monkeypatch.setenv("LDAP_DIALECT", "AD")
     monkeypatch.setenv("LDAP_SEARCH_BASE", "bar")
-    monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "Afdeling")
-    monkeypatch.setenv("DEFAULT_ORG_UNIT_LEVEL", "N1")
     monkeypatch.setenv("ORG_UNIT_PATH_STRING_SEPARATOR", "\\")
 
     settings = Settings()
