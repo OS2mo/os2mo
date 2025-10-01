@@ -86,7 +86,7 @@ class OrganisationUnit(MOBase):
     org_unit_type: OrgUnitType = Field(
         description="Reference to the organisation unit type."
     )
-    org_unit_level: OrgUnitLevel = Field(
+    org_unit_level: OrgUnitLevel | None = Field(
         description="Reference to the organisation unit level type."
     )
     details: list[OrgUnitDetails] | None = Field(
@@ -103,10 +103,10 @@ class OrganisationUnit(MOBase):
         user_key: str,
         name: str,
         org_unit_type_uuid: UUID,
-        org_unit_level_uuid: UUID,
         from_date: str,
         uuid: UUID | None = None,
         parent_uuid: UUID | None = None,
+        org_unit_level_uuid: UUID | None = None,
         org_unit_hierarchy_uuid: UUID | None = None,
         to_date: str | None = None,
     ) -> "OrganisationUnit":
@@ -117,6 +117,10 @@ class OrganisationUnit(MOBase):
             if org_unit_hierarchy_uuid
             else None
         )
+        org_unit_level = (
+            OrgUnitLevel(uuid=org_unit_level_uuid) if org_unit_level_uuid else None
+        )
+
         validity = Validity(from_date=from_date, to_date=to_date)
 
         return cls(
@@ -127,7 +131,7 @@ class OrganisationUnit(MOBase):
             parent=parent,
             org_unit_hierarchy=org_unit_hierarchy,
             org_unit_type=OrgUnitType(uuid=org_unit_type_uuid),
-            org_unit_level=OrgUnitLevel(uuid=org_unit_level_uuid),
+            org_unit_level=org_unit_level,
         )
 
 
