@@ -85,11 +85,11 @@ def organisation_unit_strat(draw):
         "validity": st.builds(Validity),
         "name": st.text(),
         "org_unit_type": st.builds(OrgUnitType),
-        "org_unit_level": st.builds(OrgUnitLevel),
     }
     optional = {
         "type": st.just("org_unit"),
         "parent": st.none() | st.builds(ParentRef),
+        "org_unit_level": st.none() | st.builds(OrgUnitLevel),
         "org_unit_hierarchy": st.none() | st.builds(OrgUnitHierarchy),
         "details": st.none() | st.lists(valid_details()),
     }
@@ -104,12 +104,12 @@ def organisation_unit_fsf_strat(draw):
         "user_key": st.text(),
         "name": st.text(),
         "org_unit_type_uuid": st.uuids(),
-        "org_unit_level_uuid": st.uuids(),
         "from_date": from_date_strat(),
     }
     optional = {
         "uuid": st.none() | st.uuids(),
         "parent_uuid": st.none() | st.uuids(),
+        "org_unit_level_uuid": st.none() | st.uuids(),
         "org_unit_hierarchy_uuid": st.none() | st.uuids(),
         "to_date": st.none() | to_date_strat(),
     }
