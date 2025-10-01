@@ -116,8 +116,6 @@ def settings(minimal_mapping: dict[str, Any], monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("LDAP_SEARCH_BASE", "DC=ad,DC=addev")
     monkeypatch.setenv("LDAP_OBJECT_CLASS", "inetOrgPerson")
     monkeypatch.setenv("LDAP_CPR_ATTRIBUTE", "employeeID")
-    monkeypatch.setenv("DEFAULT_ORG_UNIT_LEVEL", "foo")
-    monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "foo")
     monkeypatch.setenv("LDAP_OUS_TO_WRITE_TO", '[""]')
     monkeypatch.setenv("FASTRAMQPI__AMQP__URL", "amqp://guest:guest@msg_broker:5672/")
     monkeypatch.setenv("INTERNAL_AMQP__URL", "amqp://guest:guest@msg_broker:5672/")
