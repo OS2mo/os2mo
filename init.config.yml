@@ -22,7 +22,10 @@ facets:
       scope: "EMAIL"
   manager_address_type: {}
   address_property: {}
-  engagement_job_function: {}
+  engagement_job_function:
+    unknown:
+      title: "Ukendt"
+      scope: "TEXT"
   org_unit_type: {}
   engagement_type: {}
   association_type: {}
