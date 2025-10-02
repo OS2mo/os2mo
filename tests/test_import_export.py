@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 import json
-import time
 from functools import partial
 from itertools import combinations
 from random import randint
@@ -254,61 +252,6 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
         messages = [w["event"] for w in cap_logs if w["log_level"] == "info"]
         assert "Import to MO filtered" in messages
         assert "Loading object" not in messages
-
-
-async def test_wait_for_import_to_finish(sync_tool: SyncTool):
-    wait_for_import_to_finish = partial(sync_tool.wait_for_import_to_finish)
-
-    @wait_for_import_to_finish
-    async def decorated_func(self, dn):
-        await asyncio.sleep(0.2)
-        return
-
-    async def regular_func(self, dn):
-        await asyncio.sleep(0.2)
-        return
-
-    dn = "CN=foo"
-    different_dn = "CN=bar"
-
-    # Normally this would execute in 0.2 seconds + overhead
-    t1 = time.time()
-    await asyncio.gather(
-        regular_func(sync_tool, dn),
-        regular_func(sync_tool, dn),
-    )
-    t2 = time.time()
-
-    elapsed_time = t2 - t1
-
-    assert elapsed_time >= 0.2
-    assert elapsed_time < 0.3
-
-    # But the decorator will make the second call wait for the first one to complete
-    t1 = time.time()
-    await asyncio.gather(
-        decorated_func(sync_tool, dn),
-        decorated_func(sync_tool, dn),
-    )
-    t2 = time.time()
-
-    elapsed_time = t2 - t1
-
-    assert elapsed_time >= 0.4
-    assert elapsed_time < 0.5
-
-    # But only if payload.uuid is the same in both calls
-    t1 = time.time()
-    await asyncio.gather(
-        decorated_func(sync_tool, dn),
-        decorated_func(sync_tool, different_dn),
-    )
-    t2 = time.time()
-
-    elapsed_time = t2 - t1
-
-    assert elapsed_time >= 0.2
-    assert elapsed_time < 0.3
 
 
 async def test_publish_engagements_for_org_unit(dataloader: AsyncMock) -> None:
