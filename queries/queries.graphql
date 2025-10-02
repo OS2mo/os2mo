@@ -494,6 +494,18 @@ query read_org_unit_uuid($filter: OrganisationUnitFilter!) {
   }
 }
 
+query read_manager_person_uuid($filter: ManagerFilter!, $inherit: Boolean!) {
+  managers(filter: $filter, inherit: $inherit) {
+    objects {
+      current {
+        person {
+          uuid
+        }
+      }
+    }
+  }
+}
+
 query read_person_uuid($filter: EmployeeFilter) {
   employees(filter: $filter) {
     objects {
