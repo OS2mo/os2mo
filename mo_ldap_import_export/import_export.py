@@ -132,16 +132,6 @@ class SyncTool:
         self.settings: Settings = settings
         self.ldap_connection: Connection = ldap_connection
 
-    @staticmethod
-    def wait_for_import_to_finish(func: Callable):
-        """Runs the function while ensuring sequentiality w.r.t. the dn parameter."""
-
-        def dn_extractor(self, *args, **kwargs):
-            dn = args[0] if args else kwargs["dn"]
-            return dn
-
-        return handle_exclusively_decorator(dn_extractor)(func)
-
     async def perform_export_checks(self, employee_uuid: UUID) -> None:
         """
         Perform a number of customer-specific checks. Raising IgnoreChanges() if a
@@ -453,7 +443,6 @@ class SyncTool:
         # We found a match, so we are editing the object we matched
         return converted_object_uuid_checked, Verb.EDIT
 
-    @wait_for_import_to_finish
     @with_exitstack
     async def import_single_user(self, dn: DN, exit_stack: ExitStack) -> None:
         """Imports a single user from LDAP into MO.
@@ -568,7 +557,6 @@ class SyncTool:
                 self.get_mapping(json_key), dn, template_context
             )
 
-    @wait_for_import_to_finish
     @with_exitstack
     async def import_single_object_class(
         self, object_class: str, dn: DN, exit_stack: ExitStack
@@ -580,6 +568,7 @@ class SyncTool:
         for mapping in mappings.values():
             await self.import_single_entity(mapping, dn, template_context={})
 
+    @handle_exclusively_decorator(key=lambda self, mapping, dn, template_context: dn)
     async def import_single_entity(
         self,
         mapping: LDAP2MOMapping,
