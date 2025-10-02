@@ -25,7 +25,7 @@ facets:
   engagement_job_function:
     unknown:
       title: "Ukendt"
-      scope: "TEXT"
+      scope: "0"
   org_unit_type: {}
   engagement_type: {}
   association_type: {}
