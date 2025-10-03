@@ -55,6 +55,7 @@ from ..exceptions import NoObjectsReturnedException
 from ..exceptions import SkipObject
 from ..exceptions import UUIDNotFoundException
 from ..ldap import get_ldap_object
+from ..ldap import is_uuid
 from ..ldap_emit import publish_uuids
 from ..ldapapi import LDAPAPI
 from ..moapi import MOAPI
@@ -1018,6 +1019,7 @@ def construct_default_environment() -> Environment:
     environment.globals["requeue_if_none"] = requeue_if_none
     environment.globals["assert_not_none"] = assert_not_none
     environment.globals["uuid4"] = uuid4
+    environment.globals["is_uuid"] = is_uuid
     environment.globals["parent_dn"] = parent_dn
     environment.globals["dn_has_ou"] = dn_has_ou
 
