@@ -181,6 +181,25 @@ async def test_ldap_template_empty_changeset(
 
 @pytest.mark.integration_test
 @pytest.mark.envvar(
+    {"CONVERSION_MAPPING": json.dumps({"mo2ldap": "{{ skip_if_none(None) }}"})}
+)
+async def test_ldap_template_skip(test_client: AsyncClient, mo_person: UUID) -> None:
+    response = await test_client.get("/Inspect/mo2ldap/all")
+    assert response.status_code == 200
+    result = response.json()
+    assert result == "OK"
+
+    file_data = read_jsonl_file("/tmp/mo2ldap.jsonl")
+    assert file_data == [
+        {
+            "__mo_uuid": str(mo_person),
+            "message": "No changes",
+        }
+    ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
     {
         "CONVERSION_MAPPING": json.dumps(
             {

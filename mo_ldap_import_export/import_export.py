@@ -299,7 +299,11 @@ class SyncTool:
                 return {}
 
         exit_stack.enter_context(bound_contextvars(dn=best_dn))
-        ldap_desired_state = await self.render_ldap2mo(uuid, best_dn)
+        try:
+            ldap_desired_state = await self.render_ldap2mo(uuid, best_dn)
+        except SkipObject:
+            logger.info("Not writing to LDAP as skip was requested")
+            return {}
 
         if not ldap_desired_state:
             logger.info("Not writing to LDAP as changeset is empty")
