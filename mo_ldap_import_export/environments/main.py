@@ -1098,6 +1098,8 @@ def construct_default_environment() -> Environment:
     environment.globals["is_uuid"] = is_uuid
     environment.globals["parent_dn"] = parent_dn
     environment.globals["dn_has_ou"] = dn_has_ou
+    environment.globals["only"] = only
+    environment.globals["one"] = one
 
     return environment
 
