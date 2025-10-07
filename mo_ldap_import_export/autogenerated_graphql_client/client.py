@@ -90,6 +90,7 @@ from .input_types import ITUserTerminateInput
 from .input_types import ITUserUpdateInput
 from .input_types import ListenerCreateInput
 from .input_types import ManagerCreateInput
+from .input_types import ManagerFilter
 from .input_types import NamespaceFilter
 from .input_types import OrganisationUnitCreateInput
 from .input_types import OrganisationUnitFilter
@@ -212,6 +213,8 @@ from .read_ituser_uuid import ReadItuserUuid
 from .read_ituser_uuid import ReadItuserUuidItusers
 from .read_itusers import ReadItusers
 from .read_itusers import ReadItusersItusers
+from .read_manager_person_uuid import ReadManagerPersonUuid
+from .read_manager_person_uuid import ReadManagerPersonUuidManagers
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNames
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnits
 from .read_org_unit_ancestors import ReadOrgUnitAncestors
@@ -1509,6 +1512,29 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadOrgUnitUuid.parse_obj(data).org_units
+
+    async def read_manager_person_uuid(
+        self, filter: ManagerFilter, inherit: bool
+    ) -> ReadManagerPersonUuidManagers:
+        query = gql(
+            """
+            query read_manager_person_uuid($filter: ManagerFilter!, $inherit: Boolean!) {
+              managers(filter: $filter, inherit: $inherit) {
+                objects {
+                  current {
+                    person {
+                      uuid
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter, "inherit": inherit}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadManagerPersonUuid.parse_obj(data).managers
 
     async def read_person_uuid(
         self, filter: EmployeeFilter | None | UnsetType = UNSET

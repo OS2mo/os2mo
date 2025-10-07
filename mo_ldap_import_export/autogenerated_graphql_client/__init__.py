@@ -483,6 +483,11 @@ from .read_itusers import ReadItusersItusersObjects
 from .read_itusers import ReadItusersItusersObjectsValidities
 from .read_itusers import ReadItusersItusersObjectsValiditiesRolebindings
 from .read_itusers import ReadItusersItusersObjectsValiditiesValidity
+from .read_manager_person_uuid import ReadManagerPersonUuid
+from .read_manager_person_uuid import ReadManagerPersonUuidManagers
+from .read_manager_person_uuid import ReadManagerPersonUuidManagersObjects
+from .read_manager_person_uuid import ReadManagerPersonUuidManagersObjectsCurrent
+from .read_manager_person_uuid import ReadManagerPersonUuidManagersObjectsCurrentPerson
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNames
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnits
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnitsObjects
@@ -880,6 +885,11 @@ __all__ = [
     "ReadItusersItusersObjectsValidities",
     "ReadItusersItusersObjectsValiditiesRolebindings",
     "ReadItusersItusersObjectsValiditiesValidity",
+    "ReadManagerPersonUuid",
+    "ReadManagerPersonUuidManagers",
+    "ReadManagerPersonUuidManagersObjects",
+    "ReadManagerPersonUuidManagersObjectsCurrent",
+    "ReadManagerPersonUuidManagersObjectsCurrentPerson",
     "ReadOrgUnitAncestorNames",
     "ReadOrgUnitAncestorNamesOrgUnits",
     "ReadOrgUnitAncestorNamesOrgUnitsObjects",
