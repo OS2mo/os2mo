@@ -82,6 +82,10 @@ from .address_terminate import AddressTerminate
 from .address_terminate import AddressTerminateAddressTerminate
 from .address_update import AddressUpdate
 from .address_update import AddressUpdateAddressUpdate
+from .addresses import Addresses
+from .addresses import AddressesAddresses
+from .addresses import AddressesAddressesObjects
+from .addresses import AddressesAddressesObjectsCurrent
 from .association_refresh import AssociationRefresh
 from .association_refresh import AssociationRefreshAssociationRefresh
 from .async_base_client import AsyncBaseClient
@@ -270,6 +274,10 @@ from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .ituser_update import ItuserUpdate
 from .ituser_update import ItuserUpdateItuserUpdate
+from .itusers import Itusers
+from .itusers import ItusersItusers
+from .itusers import ItusersItusersObjects
+from .itusers import ItusersItusersObjectsCurrent
 from .kle_refresh import KleRefresh
 from .kle_refresh import KleRefreshKleRefresh
 from .leave_refresh import LeaveRefresh
@@ -562,6 +570,10 @@ __all__ = [
     "AddressUpdate",
     "AddressUpdateAddressUpdate",
     "AddressUpdateInput",
+    "Addresses",
+    "AddressesAddresses",
+    "AddressesAddressesObjects",
+    "AddressesAddressesObjectsCurrent",
     "AssociationCreateInput",
     "AssociationFilter",
     "AssociationRefresh",
@@ -676,6 +688,10 @@ __all__ = [
     "ItuserTerminateItuserTerminate",
     "ItuserUpdate",
     "ItuserUpdateItuserUpdate",
+    "Itusers",
+    "ItusersItusers",
+    "ItusersItusersObjects",
+    "ItusersItusersObjectsCurrent",
     "KLECreateInput",
     "KLEFilter",
     "KLERegistrationFilter",

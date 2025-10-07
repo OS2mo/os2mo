@@ -223,6 +223,28 @@ query read_itusers($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
   }
 }
 
+query itusers($filter: ITUserFilter!) {
+  itusers(filter: $filter) {
+    objects {
+      uuid
+      current {
+        external_id
+      }
+    }
+  }
+}
+
+query addresses($filter: AddressFilter!) {
+  addresses(filter: $filter) {
+    objects {
+      uuid
+      current {
+        ituser_uuid
+      }
+    }
+  }
+}
+
 query read_employee_uuid_by_ituser_user_key($user_key: String!) {
   itusers(filter: { user_keys: [$user_key] }) {
     objects {
