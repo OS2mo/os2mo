@@ -234,6 +234,17 @@ query itusers($filter: ITUserFilter!) {
   }
 }
 
+query addresses($filter: AddressFilter!) {
+  addresses(filter: $filter) {
+    objects {
+      uuid
+      current {
+        ituser_uuid
+      }
+    }
+  }
+}
+
 query read_employee_uuid_by_ituser_user_key($user_key: String!) {
   itusers(filter: { user_keys: [$user_key] }) {
     objects {

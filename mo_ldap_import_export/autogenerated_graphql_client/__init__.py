@@ -82,6 +82,10 @@ from .address_terminate import AddressTerminate
 from .address_terminate import AddressTerminateAddressTerminate
 from .address_update import AddressUpdate
 from .address_update import AddressUpdateAddressUpdate
+from .addresses import Addresses
+from .addresses import AddressesAddresses
+from .addresses import AddressesAddressesObjects
+from .addresses import AddressesAddressesObjectsCurrent
 from .association_refresh import AssociationRefresh
 from .association_refresh import AssociationRefreshAssociationRefresh
 from .async_base_client import AsyncBaseClient
@@ -566,6 +570,10 @@ __all__ = [
     "AddressUpdate",
     "AddressUpdateAddressUpdate",
     "AddressUpdateInput",
+    "Addresses",
+    "AddressesAddresses",
+    "AddressesAddressesObjects",
+    "AddressesAddressesObjectsCurrent",
     "AssociationCreateInput",
     "AssociationFilter",
     "AssociationRefresh",

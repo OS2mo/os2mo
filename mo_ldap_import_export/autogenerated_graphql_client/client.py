@@ -34,6 +34,8 @@ from .address_terminate import AddressTerminate
 from .address_terminate import AddressTerminateAddressTerminate
 from .address_update import AddressUpdate
 from .address_update import AddressUpdateAddressUpdate
+from .addresses import Addresses
+from .addresses import AddressesAddresses
 from .association_refresh import AssociationRefresh
 from .association_refresh import AssociationRefreshAssociationRefresh
 from .async_base_client import AsyncBaseClient
@@ -1057,6 +1059,26 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return Itusers.parse_obj(data).itusers
+
+    async def addresses(self, filter: AddressFilter) -> AddressesAddresses:
+        query = gql(
+            """
+            query addresses($filter: AddressFilter!) {
+              addresses(filter: $filter) {
+                objects {
+                  uuid
+                  current {
+                    ituser_uuid
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return Addresses.parse_obj(data).addresses
 
     async def read_employee_uuid_by_ituser_user_key(
         self, user_key: str
