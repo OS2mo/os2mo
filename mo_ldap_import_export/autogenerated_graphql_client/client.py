@@ -115,6 +115,8 @@ from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .ituser_update import ItuserUpdate
 from .ituser_update import ItuserUpdateItuserUpdate
+from .itusers import Itusers
+from .itusers import ItusersItusers
 from .kle_refresh import KleRefresh
 from .kle_refresh import KleRefreshKleRefresh
 from .leave_refresh import LeaveRefresh
@@ -1035,6 +1037,26 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadItusers.parse_obj(data).itusers
+
+    async def itusers(self, filter: ITUserFilter) -> ItusersItusers:
+        query = gql(
+            """
+            query itusers($filter: ITUserFilter!) {
+              itusers(filter: $filter) {
+                objects {
+                  uuid
+                  current {
+                    external_id
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return Itusers.parse_obj(data).itusers
 
     async def read_employee_uuid_by_ituser_user_key(
         self, user_key: str
