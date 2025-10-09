@@ -4,6 +4,7 @@ import asyncio
 import string
 from collections.abc import Awaitable
 from contextlib import suppress
+from datetime import UTC
 from datetime import datetime
 from functools import partial
 from typing import Any
@@ -1092,7 +1093,7 @@ def construct_default_environment() -> Environment:
     environment.filters["set"] = set
     environment.filters["uuid"] = UUID
 
-    environment.globals["now"] = datetime.utcnow  # TODO: timezone-aware datetime
+    environment.globals["now"] = lambda: datetime.now(tz=UTC)
     environment.globals["skip_if_none"] = skip_if_none
     environment.globals["requeue_if_none"] = requeue_if_none
     environment.globals["assert_not_none"] = assert_not_none
