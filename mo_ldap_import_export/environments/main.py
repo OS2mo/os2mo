@@ -935,6 +935,8 @@ class DARAddress(BaseModel):
     streetname: str
     house_number: str
     supplementary_city: str | None
+    floor: str | None
+    door: str | None
 
 
 async def resolve_dar_address(
@@ -964,6 +966,8 @@ async def resolve_dar_address(
                 streetname=resolve.road_name,
                 house_number=resolve.house_number,
                 supplementary_city=resolve.supplementary_city,
+                floor=resolve.floor,
+                door=resolve.door,
             )
         )
     return dar_addresses

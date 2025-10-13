@@ -39,6 +39,8 @@ class ResolveDarAddressAddressesObjectsCurrentResolveDARAddress(BaseModel):
     typename__: Literal["DARAddress"] = Field(alias="__typename")
     zip_code: str
     zip_code_name: str
+    floor: str | None
+    door: str | None
     road_name: str
     house_number: str
     supplementary_city: str | None

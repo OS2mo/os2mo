@@ -1762,6 +1762,8 @@ class GraphQLClient(AsyncBaseClient):
                       ... on DARAddress {
                         zip_code
                         zip_code_name
+                        floor
+                        door
                         road_name
                         house_number
                         supplementary_city
