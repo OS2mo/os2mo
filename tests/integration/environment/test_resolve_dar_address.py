@@ -135,6 +135,8 @@ async def test_resolve_dar_non_dar(
                 city="København K",
                 streetname="Pilestræde",
                 house_number="43",
+                floor="3",
+                door="tv",
             ),
         ),
     ],
