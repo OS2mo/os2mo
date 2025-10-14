@@ -285,7 +285,9 @@ get_or_create_job_function_uuid = partial(
 
 
 async def load_primary_engagement(
-    moapi: MOAPI, employee_uuid: UUID
+    moapi: MOAPI,
+    employee_uuid: UUID,
+    return_terminated: bool = False,
 ) -> Engagement | None:
     primary_engagement_uuid = await get_primary_engagement(
         moapi.graphql_client, EmployeeUUID(employee_uuid)
@@ -302,6 +304,10 @@ async def load_primary_engagement(
     if fetched_engagement is None:  # pragma: no cover
         logger.error("Unable to load mo engagement", uuid=primary_engagement_uuid)
         raise RequeueMessage("Unable to load mo engagement")
+    # If allowed to return terminated, there is no reason to check for it
+    # we simply return whatever we found and use that
+    if return_terminated:
+        return fetched_engagement
     delete = get_delete_flag(jsonable_encoder(fetched_engagement))
     if delete:
         logger.debug("Primary engagement is terminated", uuid=primary_engagement_uuid)

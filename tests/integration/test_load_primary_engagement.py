@@ -45,12 +45,24 @@ async def test_load_primary_engagement(
             job_function=jurist,
             primary=primary,
             extension_1=title,
-            validity={"from": "2001-02-03T04:05:06Z"},
+            validity={"from": "2001-02-03T04:05:06Z", "to": "2002-03-04T05:06:07Z"},
         )
     )
 
     dataloader = context["user_context"]["dataloader"]
-    result = await load_primary_engagement(dataloader.moapi, mo_person)
+
+    result = await load_primary_engagement(
+        dataloader.moapi,
+        mo_person,
+        return_terminated=False,
+    )
+    assert result is None
+
+    result = await load_primary_engagement(
+        dataloader.moapi,
+        mo_person,
+        return_terminated=True,
+    )
     assert result is not None
     assert result.dict(exclude_none=True) == {
         "engagement_type": ansat,
@@ -61,7 +73,10 @@ async def test_load_primary_engagement(
         "primary": primary,
         "user_key": title,
         "uuid": ANY,
-        "validity": {"start": datetime(2001, 2, 3, 0, 0, tzinfo=MO_TZ)},
+        "validity": {
+            "start": datetime(2001, 2, 3, 0, 0, tzinfo=MO_TZ),
+            "end": datetime(2002, 3, 4, 0, 0, tzinfo=MO_TZ),
+        },
     }
 
 
