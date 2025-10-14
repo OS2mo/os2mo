@@ -1109,6 +1109,9 @@ def test_address_resolver_supplementary_city(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
+@pytest.mark.xfail(
+    reason="fails with GraphQL errors as historic DAR does not have floor/door"
+)
 def test_address_resolver_missing_fields(
     graphapi_post: GraphAPIPost,
     create_person: Callable[..., UUID],
@@ -1183,18 +1186,7 @@ def test_address_resolver_missing_fields(
     }
 
     response = graphapi_post(query)
-    assert response.errors == [
-        {
-            "locations": [{"column": 21, "line": 12}],
-            "message": "'etage'",
-            "path": ["addresses", "objects", 0, "current", "resolve", "floor"],
-        },
-        {
-            "locations": [{"column": 21, "line": 13}],
-            "message": "'dør'",
-            "path": ["addresses", "objects", 0, "current", "resolve", "door"],
-        },
-    ]
+    assert response.errors is None
     assert response.data == {
         "addresses": {
             "objects": [
