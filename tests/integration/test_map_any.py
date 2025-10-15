@@ -26,8 +26,8 @@ from tests.integration.conftest import DN2UUID
         "CONVERSION_MAPPING": json.dumps(
             {
                 "ldap_to_mo_any": {
-                    "organizationalUnit": {
-                        "OrganisationUnit": {
+                    "organizationalUnit": [
+                        {
                             "objectClass": "OrganisationUnit",
                             "_import_to_mo_": "true",
                             "_ldap_attributes_": ["entryUUID", "ou", "l"],
@@ -38,7 +38,7 @@ from tests.integration.conftest import DN2UUID
                             "name": "{{ ldap.ou }}",
                             "unit_type": "{{ get_org_unit_type_uuid('Afdeling') }}",
                         },
-                    }
+                    ]
                 },
                 # TODO: why is this required?
                 "username_generator": {
@@ -127,8 +127,8 @@ async def test_to_mo_org_unit(
         "CONVERSION_MAPPING": json.dumps(
             {
                 "ldap_to_mo_any": {
-                    "inetOrgPerson": {
-                        "Employee": {
+                    "inetOrgPerson": [
+                        {
                             "objectClass": "Employee",
                             "_import_to_mo_": "true",
                             "_ldap_attributes_": ["employeeNumber", "givenName", "sn"],
@@ -139,7 +139,7 @@ async def test_to_mo_org_unit(
                             "nickname_given_name": "foo",
                             "nickname_surname": "bar",
                         },
-                    }
+                    ]
                 },
                 # TODO: why is this required?
                 "username_generator": {

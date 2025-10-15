@@ -28,8 +28,8 @@ from tests.integration.conftest import DN2UUID
             {
                 "ldap_to_mo_any": {
                     # GroupOfNames is the objectClass we listen to
-                    "groupOfNames": {
-                        "Class": {
+                    "groupOfNames": [
+                        {
                             "objectClass": "Class",
                             "_import_to_mo_": "true",
                             "_ldap_attributes_": ["cn", "entryUUID", "description"],
@@ -44,7 +44,7 @@ from tests.integration.conftest import DN2UUID
                             # "published": "..."
                             "scope": "TEXT",
                         }
-                    }
+                    ]
                 },
                 # TODO: why is this required?
                 "username_generator": {

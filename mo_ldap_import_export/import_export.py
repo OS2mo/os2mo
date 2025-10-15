@@ -569,7 +569,7 @@ class SyncTool:
         exit_stack.enter_context(bound_contextvars(object_class=object_class, dn=dn))
         logger.info("Importing object class")
         mappings = self.settings.conversion_mapping.ldap_to_mo_any[object_class]
-        for mapping in mappings.values():
+        for mapping in mappings:
             await self.import_single_entity(mapping, dn, template_context={})
 
     @handle_exclusively_decorator(key=lambda self, mapping, dn, template_context: dn)
