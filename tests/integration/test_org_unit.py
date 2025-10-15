@@ -36,8 +36,8 @@ from tests.integration.conftest import DN2UUID
         "CONVERSION_MAPPING": json.dumps(
             {
                 "ldap_to_mo_any": {
-                    "organizationalUnit": {
-                        "OrganisationUnit": {
+                    "organizationalUnit": [
+                        {
                             "objectClass": "OrganisationUnit",
                             "_import_to_mo_": "true",
                             "_ldap_attributes_": ["entryUUID", "ou", "l"],
@@ -48,7 +48,7 @@ from tests.integration.conftest import DN2UUID
                             "name": "{{ ldap.ou }}",
                             "unit_type": "{{ get_org_unit_type_uuid('Afdeling') }}",
                         },
-                    }
+                    ]
                 },
                 # TODO: why is this required?
                 "username_generator": {
@@ -137,8 +137,8 @@ async def test_to_mo(
         "CONVERSION_MAPPING": json.dumps(
             {
                 "ldap_to_mo_any": {
-                    "organizationalUnit": {
-                        "OrganisationUnit": {
+                    "organizationalUnit": [
+                        {
                             "objectClass": "OrganisationUnit",
                             "_import_to_mo_": "true",
                             "_ldap_attributes_": ["entryUUID", "ou"],
@@ -153,7 +153,7 @@ async def test_to_mo(
                             """,
                             "unit_type": "{{ get_org_unit_type_uuid('Afdeling') }}",
                         },
-                    }
+                    ]
                 },
                 # TODO: why is this required?
                 "username_generator": {
@@ -305,8 +305,8 @@ async def test_to_mo_parent(
         "CONVERSION_MAPPING": json.dumps(
             {
                 "ldap_to_mo_any": {
-                    "organizationalUnit": {
-                        "OrganisationUnit": {
+                    "organizationalUnit": [
+                        {
                             "objectClass": "OrganisationUnit",
                             "_import_to_mo_": "true",
                             "_ldap_attributes_": ["entryUUID", "ou"],
@@ -321,7 +321,7 @@ async def test_to_mo_parent(
                             """,
                             "unit_type": "{{ get_org_unit_type_uuid('Afdeling') }}",
                         },
-                    }
+                    ]
                 },
                 # TODO: why is this required?
                 "username_generator": {
@@ -471,8 +471,8 @@ async def test_to_mo_change_parent(
                     },
                 },
                 "ldap_to_mo_any": {
-                    "organizationalUnit": {
-                        "OrganisationUnit": {
+                    "organizationalUnit": [
+                        {
                             "objectClass": "OrganisationUnit",
                             "_import_to_mo_": "true",
                             "_ldap_attributes_": ["entryUUID", "ou"],
@@ -481,7 +481,7 @@ async def test_to_mo_change_parent(
                             "name": "{{ ldap.ou }}",
                             "unit_type": "{{ get_org_unit_type_uuid('Afdeling') }}",
                         },
-                    }
+                    ]
                 },
                 # TODO: why is this required?
                 "username_generator": {

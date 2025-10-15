@@ -323,13 +323,12 @@ class MO2LDAPMapping(MappingBaseModel):
 
 class ConversionMapping(MappingBaseModel):
     ldap_to_mo: dict[str, LDAP2MOMapping] | None = None
-    ldap_to_mo_any: dict[str, dict[str, LDAP2MOMapping]] = Field(
+    ldap_to_mo_any: dict[str, list[LDAP2MOMapping]] = Field(
         default_factory=dict,
         description="""
         LDAP to MO mapping.
 
-        Outer-dict keys are the objectClass for which the mapping will be called.
-        The inner-mapping is equivalent to `ldap_to_mo_org_unit`.
+        Dict keys are the objectClass for which the mapping will be called.
         """,
     )
     mo2ldap: JinjaTemplate | None = Field(
