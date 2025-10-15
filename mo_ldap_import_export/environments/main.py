@@ -625,9 +625,8 @@ async def get_org_unit_uuid(
 
 
 async def get_legacy_manager_person_uuids(
-    graphql_client: GraphQLClient, filter: dict[str, Any]
+    graphql_client: GraphQLClient, manager_filter: ManagerFilter
 ) -> set[UUID | None]:
-    manager_filter = parse_obj_as(ManagerFilter, filter)
     result = await graphql_client.read_manager_person_uuid(manager_filter, inherit=True)
 
     manager_uuids: set[UUID | None] = set()
@@ -647,7 +646,7 @@ async def get_legacy_manager_for_org_unit(
     graphql_client: GraphQLClient, uuid: OrgUnitUUID
 ) -> UUID | None:
     manager_uuids = await get_legacy_manager_person_uuids(
-        graphql_client, {"org_unit": {"uuids": [uuid]}}
+        graphql_client, ManagerFilter(org_unit=OrganisationUnitFilter(uuids=[uuid]))
     )
     if manager_uuids == {None}:
         return None
