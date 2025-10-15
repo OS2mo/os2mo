@@ -641,12 +641,20 @@ async def get_legacy_manager_person_uuids(
 
 
 async def get_legacy_manager_for_org_unit(
-    graphql_client: GraphQLClient, uuid: OrgUnitUUID
+    graphql_client: GraphQLClient,
+    uuid: OrgUnitUUID,
+    primary_manager_responsibility: UUID | None,
 ) -> UUID | None:
+    manager_filter = ManagerFilter(
+        org_unit=OrganisationUnitFilter(uuids=[uuid]),
+        responsibility=ClassFilter(uuids=[primary_manager_responsibility])
+        if primary_manager_responsibility
+        else None,
+    )
     manager_uuids = {
         person_uuid
         async for person_uuid in get_legacy_manager_person_uuids(
-            graphql_client, ManagerFilter(org_unit=OrganisationUnitFilter(uuids=[uuid]))
+            graphql_client, manager_filter
         )
     }
     if manager_uuids == {None}:
@@ -658,7 +666,7 @@ async def get_legacy_manager_for_org_unit(
 
 
 async def get_legacy_manager_person_uuid(
-    moapi: MOAPI, uuid: EmployeeUUID
+    moapi: MOAPI, uuid: EmployeeUUID, primary_manager_responsibility: UUID | None = None
 ) -> UUID | None:
     primary_engagement = await load_primary_engagement(moapi, uuid)
     if primary_engagement is None:
@@ -667,7 +675,7 @@ async def get_legacy_manager_person_uuid(
     manager_org_unit = OrgUnitUUID(primary_engagement.org_unit)
     while True:
         manager_uuid = await get_legacy_manager_for_org_unit(
-            moapi.graphql_client, manager_org_unit
+            moapi.graphql_client, manager_org_unit, primary_manager_responsibility
         )
         if manager_uuid != uuid:
             return manager_uuid

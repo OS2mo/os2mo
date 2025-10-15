@@ -261,7 +261,7 @@ async def test_get_legacy_manager_for_org_unit_unknown(
     # TODO: Should this actually raise like this on unknown org-units?
     # NOTE: This also occurs if no manager exists anywhere in the hierarchy
     with pytest.raises(ValueError) as exc_info:
-        await get_legacy_manager_for_org_unit(graphql_client, OrgUnitUUID(uuid))
+        await get_legacy_manager_for_org_unit(graphql_client, OrgUnitUUID(uuid), None)
     assert str(exc_info.value) == "max() arg is an empty sequence"
 
 
@@ -272,7 +272,7 @@ async def test_get_legacy_manager_for_org_unit_vacant(
     mo_org_unit: OrgUnitUUID,
 ) -> None:
     await create_manager(None, datetime(2000, 1, 1), None, None)
-    result = await get_legacy_manager_for_org_unit(graphql_client, mo_org_unit)
+    result = await get_legacy_manager_for_org_unit(graphql_client, mo_org_unit, None)
     assert result is None
 
 
@@ -305,7 +305,7 @@ async def test_get_legacy_manager_for_org_unit(
 
     highest_person_uuid = max(person1.uuid, person2.uuid)
 
-    result = await get_legacy_manager_for_org_unit(graphql_client, mo_org_unit)
+    result = await get_legacy_manager_for_org_unit(graphql_client, mo_org_unit, None)
     assert result == highest_person_uuid
 
 
