@@ -651,18 +651,20 @@ async def get_legacy_manager_for_org_unit(
         if primary_manager_responsibility
         else None,
     )
-    manager_uuids = {
-        person_uuid
-        async for person_uuid in get_legacy_manager_person_uuids(
-            graphql_client, manager_filter
-        )
-    }
-    if manager_uuids == {None}:
+    manager_person_uuids = get_legacy_manager_person_uuids(
+        graphql_client, manager_filter
+    )
+    vacant_found = False
+    async for manager_person_uuid in manager_person_uuids:
+        if manager_person_uuid is None:
+            vacant_found = True
+            continue
+        return manager_person_uuid
+
+    if vacant_found:
         return None
-    manager_uuids.discard(None)
-    assert None not in manager_uuids
-    manager_uuid = max(cast(set[UUID], manager_uuids))
-    return manager_uuid
+
+    raise ValueError("No manager found")
 
 
 async def get_legacy_manager_person_uuid(

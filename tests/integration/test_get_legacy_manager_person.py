@@ -262,7 +262,7 @@ async def test_get_legacy_manager_for_org_unit_unknown(
     # NOTE: This also occurs if no manager exists anywhere in the hierarchy
     with pytest.raises(ValueError) as exc_info:
         await get_legacy_manager_for_org_unit(graphql_client, OrgUnitUUID(uuid), None)
-    assert str(exc_info.value) == "max() arg is an empty sequence"
+    assert str(exc_info.value) == "No manager found"
 
 
 @pytest.mark.integration_test
@@ -292,7 +292,9 @@ async def test_get_legacy_manager_for_org_unit(
             cpr_number="0101700000",
         )
     )
-    await create_manager(EmployeeUUID(person1.uuid), datetime(2000, 1, 1), None, None)
+    manager1 = await create_manager(
+        EmployeeUUID(person1.uuid), datetime(2000, 1, 1), None, None
+    )
 
     person2 = await graphql_client.person_create(
         input=EmployeeCreateInput(
@@ -301,12 +303,14 @@ async def test_get_legacy_manager_for_org_unit(
             cpr_number="0101700001",
         )
     )
-    await create_manager(EmployeeUUID(person2.uuid), datetime(2000, 1, 1), None, None)
+    manager2 = await create_manager(
+        EmployeeUUID(person2.uuid), datetime(2000, 1, 1), None, None
+    )
 
-    highest_person_uuid = max(person1.uuid, person2.uuid)
+    expected_person_uuid = person1.uuid if manager1 < manager2 else person2.uuid
 
     result = await get_legacy_manager_for_org_unit(graphql_client, mo_org_unit, None)
-    assert result == highest_person_uuid
+    assert result == expected_person_uuid
 
 
 @pytest.mark.integration_test
@@ -339,7 +343,7 @@ async def test_get_legacy_manager_person_uuid_engagement(
     # TODO: Should this actually raise like this on missing managers?
     with pytest.raises(ValueError) as exc_info:
         await get_legacy_manager_person_uuid(mo_api, mo_person)
-    assert str(exc_info.value) == "max() arg is an empty sequence"
+    assert str(exc_info.value) == "No manager found"
 
 
 @pytest.mark.integration_test
