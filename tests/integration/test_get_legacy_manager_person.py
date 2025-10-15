@@ -134,7 +134,12 @@ async def test_get_legacy_manager_person_uuids_no_org_filter(
     graphql_client: GraphQLClient,
 ) -> None:
     with pytest.raises(GraphQLClientGraphQLMultiError) as exc_info:
-        await get_legacy_manager_person_uuids(graphql_client, ManagerFilter())
+        {
+            item
+            async for item in get_legacy_manager_person_uuids(
+                graphql_client, ManagerFilter()
+            )
+        }
     assert (
         str(exc_info.value) == "The inherit flag requires an organizational unit filter"
     )
@@ -144,9 +149,12 @@ async def test_get_legacy_manager_person_uuids_no_org_filter(
 async def test_get_legacy_manager_person_uuids(
     graphql_client: GraphQLClient,
 ) -> None:
-    result = await get_legacy_manager_person_uuids(
-        graphql_client, ManagerFilter(org_unit=OrganisationUnitFilter())
-    )
+    result = {
+        item
+        async for item in get_legacy_manager_person_uuids(
+            graphql_client, ManagerFilter(org_unit=OrganisationUnitFilter())
+        )
+    }
     assert result == set()
 
 
@@ -172,9 +180,12 @@ async def test_get_legacy_manager_person_uuids_only_current(
 ) -> None:
     await create_manager(mo_person, manager_start, manager_end, None)
 
-    result = await get_legacy_manager_person_uuids(
-        graphql_client, ManagerFilter(org_unit=OrganisationUnitFilter())
-    )
+    result = {
+        item
+        async for item in get_legacy_manager_person_uuids(
+            graphql_client, ManagerFilter(org_unit=OrganisationUnitFilter())
+        )
+    }
     assert result == ({mo_person} if found_manager else set())
 
 
@@ -199,9 +210,12 @@ async def test_get_legacy_manager_person_uuids_vacant_manager(
 ) -> None:
     await create_manager(None, manager_start, manager_end, None)
 
-    result = await get_legacy_manager_person_uuids(
-        graphql_client, ManagerFilter(org_unit=OrganisationUnitFilter())
-    )
+    result = {
+        item
+        async for item in get_legacy_manager_person_uuids(
+            graphql_client, ManagerFilter(org_unit=OrganisationUnitFilter())
+        )
+    }
     assert result == ({None} if found_manager else set())
 
 
@@ -228,9 +242,12 @@ async def test_get_legacy_manager_person_uuids_multiple_managers(
     )
     await create_manager(EmployeeUUID(person2.uuid), datetime(2000, 1, 1), None, None)
 
-    result = await get_legacy_manager_person_uuids(
-        graphql_client, ManagerFilter(org_unit=OrganisationUnitFilter())
-    )
+    result = {
+        item
+        async for item in get_legacy_manager_person_uuids(
+            graphql_client, ManagerFilter(org_unit=OrganisationUnitFilter())
+        )
+    }
     assert result == {person1.uuid, person2.uuid}
 
 

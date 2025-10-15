@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import string
+from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from contextlib import suppress
 from datetime import UTC
@@ -626,28 +627,28 @@ async def get_org_unit_uuid(
 
 async def get_legacy_manager_person_uuids(
     graphql_client: GraphQLClient, manager_filter: ManagerFilter
-) -> set[UUID | None]:
+) -> AsyncIterator[UUID | None]:
     result = await graphql_client.read_manager_person_uuid(manager_filter, inherit=True)
 
-    manager_uuids: set[UUID | None] = set()
     for obj in result.objects:
         # 'current' should never be none, as the object should simply be missing instead
         assert obj.current is not None
         if obj.current.person is None:
-            manager_uuids.add(None)
+            yield None
             continue
         for person_validity in obj.current.person:
-            manager_uuids.add(person_validity.uuid)
-
-    return manager_uuids
+            yield person_validity.uuid
 
 
 async def get_legacy_manager_for_org_unit(
     graphql_client: GraphQLClient, uuid: OrgUnitUUID
 ) -> UUID | None:
-    manager_uuids = await get_legacy_manager_person_uuids(
-        graphql_client, ManagerFilter(org_unit=OrganisationUnitFilter(uuids=[uuid]))
-    )
+    manager_uuids = {
+        person_uuid
+        async for person_uuid in get_legacy_manager_person_uuids(
+            graphql_client, ManagerFilter(org_unit=OrganisationUnitFilter(uuids=[uuid]))
+        )
+    }
     if manager_uuids == {None}:
         return None
     manager_uuids.discard(None)
