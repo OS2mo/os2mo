@@ -255,7 +255,9 @@ class DataLoader:
         if not dns:
             return None
         logger.info("Found DNs for user", dns=dns, uuid=uuid)
-        best_dn = await apply_discriminator(self.settings, self.ldapapi.connection, dns)
+        best_dn = await apply_discriminator(
+            self.settings, self.ldapapi.connection, self.moapi, dns
+        )
         # If no good LDAP account was found, we do not want to synchronize at all
         if not best_dn:
             logger.warning(

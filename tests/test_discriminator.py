@@ -323,19 +323,21 @@ async def test_get_ldap_cpr_object(
 
 
 async def test_apply_discriminator_no_config(
-    ldap_connection: Connection, settings: Settings
+    ldap_connection: Connection, settings: Settings, mo_api: MOAPI
 ) -> None:
     """Test that apply_discriminator only allows one DN when not configured."""
     assert settings.discriminator_fields == []
 
-    result = await apply_discriminator(settings, ldap_connection, set())
+    result = await apply_discriminator(settings, ldap_connection, mo_api, set())
     assert result is None
 
-    result = await apply_discriminator(settings, ldap_connection, {"CN=Anzu"})
+    result = await apply_discriminator(settings, ldap_connection, mo_api, {"CN=Anzu"})
     assert result == "CN=Anzu"
 
     with pytest.raises(ValueError) as exc_info:
-        await apply_discriminator(settings, ldap_connection, {"CN=Anzu", "CN=Arak"})
+        await apply_discriminator(
+            settings, ldap_connection, mo_api, {"CN=Anzu", "CN=Arak"}
+        )
     assert "Expected exactly one item in iterable" in str(exc_info.value)
 
 
@@ -354,6 +356,7 @@ async def test_apply_discriminator_no_config(
 async def test_apply_discriminator_settings_invariants(
     ldap_connection: Connection,
     settings: Settings,
+    mo_api: MOAPI,
     ldap_dn: DN,
     discriminator_settings: dict[str, Any],
 ) -> None:
@@ -361,23 +364,27 @@ async def test_apply_discriminator_settings_invariants(
     with pytest.raises(AssertionError):
         # Need values
         new_settings = settings.copy(update=discriminator_settings)
-        await apply_discriminator(new_settings, ldap_connection, {ldap_dn})
+        await apply_discriminator(new_settings, ldap_connection, mo_api, {ldap_dn})
 
 
 async def test_apply_discriminator_unknown_dn(
-    monkeypatch: pytest.MonkeyPatch, ldap_connection: Connection
+    monkeypatch: pytest.MonkeyPatch, ldap_connection: Connection, mo_api: MOAPI
 ) -> None:
     """Test that apply_discriminator requeues on missing DNs."""
     monkeypatch.setenv("DISCRIMINATOR_FIELDS", '["sn"]')
     monkeypatch.setenv("DISCRIMINATOR_VALUES", '["__never_gonna_match__"]')
     settings = Settings()
     with pytest.raises(RequeueMessage) as exc_info:
-        await apply_discriminator(settings, ldap_connection, {"CN=__missing__dn__"})
+        await apply_discriminator(
+            settings, ldap_connection, mo_api, {"CN=__missing__dn__"}
+        )
     assert "Unable to lookup DN(s)" in str(exc_info.value)
 
 
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
 async def test_apply_discriminator_missing_field(
     monkeypatch: pytest.MonkeyPatch,
+    mo_api: MOAPI,
     ldap_connection: Connection,
     ldap_container_dn: DN,
 ) -> None:
@@ -400,7 +407,9 @@ async def test_apply_discriminator_missing_field(
 
     settings = Settings()
     with capture_logs() as cap_logs:
-        result = await apply_discriminator(settings, ldap_connection, {another_ldap_dn})
+        result = await apply_discriminator(
+            settings, ldap_connection, mo_api, {another_ldap_dn}
+        )
         assert "Discriminator value is None" in (x["event"] for x in cap_logs)
     assert result is None
 
@@ -878,6 +887,7 @@ async def test_listen_to_changes_in_employees(
 )
 async def test_apply_discriminator_template(
     settings: Settings,
+    mo_api: MOAPI,
     fields: str,
     dn_map: dict[DN, dict[str, Any]],
     template: str,
@@ -898,7 +908,7 @@ async def test_apply_discriminator_template(
 
     with patch("mo_ldap_import_export.ldap.get_ldap_object", wraps=get_ldap_object):
         result = await apply_discriminator(
-            settings, ldap_connection, set(dn_map.keys())
+            settings, ldap_connection, mo_api, set(dn_map.keys())
         )
         assert result == expected
 
