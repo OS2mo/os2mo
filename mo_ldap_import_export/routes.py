@@ -642,7 +642,9 @@ def construct_router(settings: Settings) -> APIRouter:
             raise HTTPException(status_code=404, detail="No DNs found for CPR number")
 
         dns = await filter_dns(settings, ldap_connection, dns)
-        best_dn = await apply_discriminator(settings, ldap_connection, dns)
+        best_dn = await apply_discriminator(
+            settings, ldap_connection, dataloader.moapi, dns
+        )
         if best_dn is None:
             logger.info("No DNs survived discriminator")
             raise HTTPException(status_code=404, detail="No DNs survived discriminator")
@@ -679,7 +681,9 @@ def construct_router(settings: Settings) -> APIRouter:
             raise HTTPException(status_code=404, detail="No DNs found for CPR number")
 
         dns = await filter_dns(settings, ldap_connection, dns)
-        best_dn = await apply_discriminator(settings, ldap_connection, dns)
+        best_dn = await apply_discriminator(
+            settings, ldap_connection, dataloader.moapi, dns
+        )
         if best_dn is None:
             logger.info("No DNs survived discriminator")
             raise HTTPException(status_code=404, detail="No DNs survived discriminator")

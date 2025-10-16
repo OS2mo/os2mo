@@ -8,6 +8,7 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.ldap import apply_discriminator
 from mo_ldap_import_export.ldapapi import LDAPAPI
+from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.utils import combine_dn_strings
 from tests.integration.conftest import AddLdapPerson
 
@@ -27,6 +28,7 @@ from tests.integration.conftest import AddLdapPerson
 )
 async def test_prefers_shorter_usernames(
     ldap_api: LDAPAPI,
+    mo_api: MOAPI,
     add_ldap_person: AddLdapPerson,
 ) -> None:
     settings = Settings()
@@ -36,17 +38,17 @@ async def test_prefers_shorter_usernames(
     emily = combine_dn_strings(await add_ldap_person("emily", "0101700002"))
 
     result = await apply_discriminator(
-        settings, ldap_api.ldap_connection.connection, {ava, cleo, emily}
+        settings, ldap_api.ldap_connection.connection, mo_api, {ava, cleo, emily}
     )
     assert result == ava
 
     result = await apply_discriminator(
-        settings, ldap_api.ldap_connection.connection, {cleo, emily}
+        settings, ldap_api.ldap_connection.connection, mo_api, {cleo, emily}
     )
     assert result == cleo
 
     result = await apply_discriminator(
-        settings, ldap_api.ldap_connection.connection, {emily}
+        settings, ldap_api.ldap_connection.connection, mo_api, {emily}
     )
     assert result == emily
 
@@ -60,6 +62,7 @@ async def test_prefers_shorter_usernames(
 )
 async def test_ignore_substring(
     ldap_api: LDAPAPI,
+    mo_api: MOAPI,
     add_ldap_person: AddLdapPerson,
 ) -> None:
     settings = Settings()
@@ -76,48 +79,54 @@ async def test_ignore_substring(
 
     # No entries, returns None
     result = await apply_discriminator(
-        settings, ldap_api.ldap_connection.connection, set()
+        settings, ldap_api.ldap_connection.connection, mo_api, set()
     )
     assert result is None
 
     # One invalid, returns None
     result = await apply_discriminator(
-        settings, ldap_api.ldap_connection.connection, {classic}
+        settings, ldap_api.ldap_connection.connection, mo_api, {classic}
     )
     assert result is None
 
     # Multiple invalid, returns None
     result = await apply_discriminator(
-        settings, ldap_api.ldap_connection.connection, {classic, grass, passenger}
+        settings,
+        ldap_api.ldap_connection.connection,
+        mo_api,
+        {classic, grass, passenger},
     )
     assert result is None
 
     # Two valid means conflict
     with pytest.raises(MultipleObjectsReturnedException) as exc_info:
         await apply_discriminator(
-            settings, ldap_api.ldap_connection.connection, {ava, cleo}
+            settings, ldap_api.ldap_connection.connection, mo_api, {ava, cleo}
         )
     assert "Ambiguous account result from apply discriminator" in str(exc_info.value)
 
     # One valid, one excluded returns the valid
     result = await apply_discriminator(
-        settings, ldap_api.ldap_connection.connection, {classic, ava}
+        settings, ldap_api.ldap_connection.connection, mo_api, {classic, ava}
     )
     assert result == ava
 
     result = await apply_discriminator(
-        settings, ldap_api.ldap_connection.connection, {passenger, cleo}
+        settings, ldap_api.ldap_connection.connection, mo_api, {passenger, cleo}
     )
     assert result == cleo
 
     # One valid, multiple excluded returns the valid
     result = await apply_discriminator(
-        settings, ldap_api.ldap_connection.connection, {ava, grass, assessment}
+        settings, ldap_api.ldap_connection.connection, mo_api, {ava, grass, assessment}
     )
     assert result == ava
 
     result = await apply_discriminator(
-        settings, ldap_api.ldap_connection.connection, {cleo, classic, passenger}
+        settings,
+        ldap_api.ldap_connection.connection,
+        mo_api,
+        {cleo, classic, passenger},
     )
     assert result == cleo
 
@@ -126,6 +135,7 @@ async def test_ignore_substring(
         await apply_discriminator(
             settings,
             ldap_api.ldap_connection.connection,
+            mo_api,
             {ava, cleo, classic, grass, passenger, assessment},
         )
     assert "Ambiguous account result from apply discriminator" in str(exc_info.value)
