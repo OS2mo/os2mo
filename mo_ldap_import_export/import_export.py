@@ -514,7 +514,11 @@ class SyncTool:
         # Thus we process the list of DNs found for the user to pick the best one.
         dns = await filter_dns(self.settings, self.ldap_connection, dns)
         best_dn = await apply_discriminator(
-            self.settings, self.ldap_connection, self.dataloader.moapi, dns
+            self.settings,
+            self.ldap_connection,
+            self.dataloader.moapi,
+            employee_uuid,
+            dns,
         )
         # If no good LDAP account was found, we do not want to synchronize at all
         if best_dn is None:

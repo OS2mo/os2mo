@@ -39,6 +39,7 @@ from mo_ldap_import_export.main import GRAPHQL_VERSION
 from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.routes import load_ldap_OUs
 from mo_ldap_import_export.types import DN
+from mo_ldap_import_export.types import EmployeeUUID
 from mo_ldap_import_export.usernames import UserNameGenerator
 from mo_ldap_import_export.utils import extract_ou_from_dn
 from tests.graphql_mocker import GraphQLMocker
@@ -328,15 +329,23 @@ async def test_apply_discriminator_no_config(
     """Test that apply_discriminator only allows one DN when not configured."""
     assert settings.discriminator_fields == []
 
-    result = await apply_discriminator(settings, ldap_connection, mo_api, set())
+    result = await apply_discriminator(
+        settings, ldap_connection, mo_api, EmployeeUUID(uuid4()), set()
+    )
     assert result is None
 
-    result = await apply_discriminator(settings, ldap_connection, mo_api, {"CN=Anzu"})
+    result = await apply_discriminator(
+        settings, ldap_connection, mo_api, EmployeeUUID(uuid4()), {"CN=Anzu"}
+    )
     assert result == "CN=Anzu"
 
     with pytest.raises(ValueError) as exc_info:
         await apply_discriminator(
-            settings, ldap_connection, mo_api, {"CN=Anzu", "CN=Arak"}
+            settings,
+            ldap_connection,
+            mo_api,
+            EmployeeUUID(uuid4()),
+            {"CN=Anzu", "CN=Arak"},
         )
     assert "Expected exactly one item in iterable" in str(exc_info.value)
 
@@ -364,7 +373,9 @@ async def test_apply_discriminator_settings_invariants(
     with pytest.raises(AssertionError):
         # Need values
         new_settings = settings.copy(update=discriminator_settings)
-        await apply_discriminator(new_settings, ldap_connection, mo_api, {ldap_dn})
+        await apply_discriminator(
+            new_settings, ldap_connection, mo_api, EmployeeUUID(uuid4()), {ldap_dn}
+        )
 
 
 async def test_apply_discriminator_unknown_dn(
@@ -376,7 +387,11 @@ async def test_apply_discriminator_unknown_dn(
     settings = Settings()
     with pytest.raises(RequeueMessage) as exc_info:
         await apply_discriminator(
-            settings, ldap_connection, mo_api, {"CN=__missing__dn__"}
+            settings,
+            ldap_connection,
+            mo_api,
+            EmployeeUUID(uuid4()),
+            {"CN=__missing__dn__"},
         )
     assert "Unable to lookup DN(s)" in str(exc_info.value)
 
@@ -408,7 +423,7 @@ async def test_apply_discriminator_missing_field(
     settings = Settings()
     with capture_logs() as cap_logs:
         result = await apply_discriminator(
-            settings, ldap_connection, mo_api, {another_ldap_dn}
+            settings, ldap_connection, mo_api, EmployeeUUID(uuid4()), {another_ldap_dn}
         )
         assert "Discriminator value is None" in (x["event"] for x in cap_logs)
     assert result is None
@@ -908,7 +923,7 @@ async def test_apply_discriminator_template(
 
     with patch("mo_ldap_import_export.ldap.get_ldap_object", wraps=get_ldap_object):
         result = await apply_discriminator(
-            settings, ldap_connection, mo_api, set(dn_map.keys())
+            settings, ldap_connection, mo_api, EmployeeUUID(uuid4()), set(dn_map.keys())
         )
         assert result == expected
 
