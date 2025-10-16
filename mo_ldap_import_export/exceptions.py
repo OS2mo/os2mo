@@ -13,7 +13,7 @@ from fastramqpi.ramqp.utils import RejectMessage
 from fastramqpi.ramqp.utils import RequeueMessage
 from gql.transport.exceptions import TransportQueryError
 
-from mo_ldap_import_export.types import DN
+from .types import DN
 
 logger = structlog.stdlib.get_logger()
 
