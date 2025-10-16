@@ -53,6 +53,7 @@ from .ldap_classes import LdapObject
 from .moapi import MOAPI
 from .types import DN
 from .types import RDN
+from .types import EmployeeUUID
 from .utils import combine_dn_strings
 from .utils import ensure_list
 from .utils import is_list
@@ -455,7 +456,11 @@ async def filter_dns(
 
 
 async def apply_discriminator(
-    settings: Settings, ldap_connection: Connection, moapi: MOAPI, dns: set[DN]
+    settings: Settings,
+    ldap_connection: Connection,
+    moapi: MOAPI,
+    uuid: EmployeeUUID,
+    dns: set[DN],
 ) -> DN | None:
     """Find the account to synchronize from a set of DNs.
 
