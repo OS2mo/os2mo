@@ -6,16 +6,12 @@ from typing import Any
 
 import pydantic
 import structlog
-from fastramqpi.depends import MOAMQPSystem
-from fastramqpi.ramqp.amqp import AMQPSystem
 from fastramqpi.ramqp.utils import RequeueMessage
+from jinja2 import Environment
 from more_itertools import one
 
 from .config import LDAP2MOMapping
-from .config import Settings
 from .config import get_required_attributes
-from .dataloaders import DataLoader
-from .environments.main import construct_environment
 from .exceptions import IncorrectMapping
 from .exceptions import SkipObject
 from .ldap_classes import LdapObject
@@ -28,16 +24,8 @@ logger = structlog.stdlib.get_logger()
 
 
 class LdapConverter:
-    def __init__(
-        self,
-        settings: Settings,
-        dataloader: DataLoader,
-        mo_amqpsystem: MOAMQPSystem,
-        ldap_amqpsystem: AMQPSystem,
-    ) -> None:
-        self.environment = construct_environment(
-            settings, dataloader, mo_amqpsystem, ldap_amqpsystem
-        )
+    def __init__(self, environment: Environment) -> None:
+        self.environment = environment
 
     @staticmethod
     def str_to_dict(text):

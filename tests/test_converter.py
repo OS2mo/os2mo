@@ -27,6 +27,7 @@ from mo_ldap_import_export.config import ConversionMapping
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.environments.main import _create_facet_class
+from mo_ldap_import_export.environments.main import construct_environment
 from mo_ldap_import_export.environments.main import get_employee_address_type_uuid
 from mo_ldap_import_export.environments.main import get_job_function_name
 from mo_ldap_import_export.environments.main import get_or_create_job_function_uuid
@@ -177,12 +178,13 @@ def context(
 
 @pytest.fixture
 async def converter(context: Context) -> LdapConverter:
-    converter = LdapConverter(
+    template_environment = construct_environment(
         context["user_context"]["settings"],
         context["user_context"]["dataloader"],
         MagicMock(),
         MagicMock(),
     )
+    converter = LdapConverter(template_environment)
     return converter
 
 
@@ -269,12 +271,13 @@ async def test_ldap_to_mo_dict_error(
         },
     }
     settings = Settings(conversion_mapping=bad_mapping)
-    converter = LdapConverter(
+    template_environment = construct_environment(
         settings=settings,
         dataloader=MagicMock(),
         mo_amqpsystem=MagicMock(),
         ldap_amqpsystem=MagicMock(),
     )
+    converter = LdapConverter(template_environment)
 
     with pytest.raises(IncorrectMapping):
         assert settings.conversion_mapping.ldap_to_mo is not None
@@ -317,7 +320,10 @@ async def test_ldap_to_mo_dict_validation_error(
     settings = Settings()
     dataloader = context["user_context"]["dataloader"]
 
-    converter = LdapConverter(settings, dataloader, MagicMock(), MagicMock())
+    template_environment = construct_environment(
+        settings, dataloader, MagicMock(), MagicMock()
+    )
+    converter = LdapConverter(template_environment)
 
     with pytest.raises(ValidationError) as exc_info:
         assert settings.conversion_mapping.ldap_to_mo is not None
@@ -373,9 +379,10 @@ async def test_template_strictness(
     }
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
     settings = Settings()
-    converter = LdapConverter(
+    template_environment = construct_environment(
         settings, context["user_context"]["dataloader"], MagicMock(), MagicMock()
     )
+    converter = LdapConverter(template_environment)
     assert settings.conversion_mapping.ldap_to_mo is not None
     employee = await converter.from_ldap(
         LdapObject(dn="CN=foo", **ldap_values),
@@ -723,7 +730,11 @@ async def test_ldap_to_mo_termination(
     dataloader: AsyncMock,
 ) -> None:
     settings = Settings()
-    converter = LdapConverter(settings, dataloader, MagicMock(), MagicMock())
+    template_environment = construct_environment(
+        settings, dataloader, MagicMock(), MagicMock()
+    )
+
+    converter = LdapConverter(template_environment)
 
     employee_uuid = uuid4()
     assert settings.conversion_mapping.ldap_to_mo is not None
@@ -751,7 +762,10 @@ async def test_ldap_to_mo_termination(
     converter_mapping["ldap_to_mo"]["Email"]["uuid"] = str(address_uuid)
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(converter_mapping))
     settings = Settings()
-    converter = LdapConverter(settings, dataloader, MagicMock(), MagicMock())
+    template_environment = construct_environment(
+        settings, dataloader, MagicMock(), MagicMock()
+    )
+    converter = LdapConverter(template_environment)
 
     assert settings.conversion_mapping.ldap_to_mo is not None
     mail = await converter.from_ldap(
