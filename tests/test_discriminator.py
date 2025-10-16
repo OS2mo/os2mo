@@ -381,6 +381,7 @@ async def test_apply_discriminator_unknown_dn(
     assert "Unable to lookup DN(s)" in str(exc_info.value)
 
 
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
 async def test_apply_discriminator_missing_field(
     monkeypatch: pytest.MonkeyPatch,
     mo_api: MOAPI,
