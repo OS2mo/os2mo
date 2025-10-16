@@ -51,6 +51,7 @@ from .customer_specific_checks import ExportChecks
 from .customer_specific_checks import ImportChecks
 from .database import Base
 from .dataloaders import DataLoader
+from .environments.main import construct_environment
 from .exceptions import NoObjectsReturnedException
 from .exceptions import ReadOnlyException
 from .exceptions import SkipObject
@@ -404,9 +405,14 @@ async def lifespan(
 
         ldap_amqpsystem = configure_ldap_amqpsystem(fastramqpi, settings)
 
-        logger.info("Initializing converters")
+        logger.info("Initializing jinja template environment")
         mo_amqpsystem = fastramqpi.get_amqpsystem()
-        converter = LdapConverter(settings, dataloader, mo_amqpsystem, ldap_amqpsystem)
+        template_environment = construct_environment(
+            settings, dataloader, mo_amqpsystem, ldap_amqpsystem
+        )
+
+        logger.info("Initializing converters")
+        converter = LdapConverter(template_environment)
         fastramqpi.add_context(converter=converter)
 
         logger.info("Initializing Sync tool")

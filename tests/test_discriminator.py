@@ -27,6 +27,7 @@ from mo_ldap_import_export.customer_specific_checks import ExportChecks
 from mo_ldap_import_export.customer_specific_checks import ImportChecks
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.depends import GraphQLClient
+from mo_ldap_import_export.environments.main import construct_environment
 from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.ldap import apply_discriminator
 from mo_ldap_import_export.ldap import configure_ldap_connection
@@ -446,7 +447,10 @@ async def sync_tool_and_context(
     )
     context["user_context"]["dataloader"] = dataloader
 
-    converter = LdapConverter(settings, dataloader, MagicMock(), MagicMock())
+    template_environment = construct_environment(
+        settings, dataloader, MagicMock(), MagicMock()
+    )
+    converter = LdapConverter(template_environment)
     context["user_context"]["converter"] = converter
 
     export_checks = ExportChecks(dataloader)
