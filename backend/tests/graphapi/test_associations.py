@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
 from datetime import datetime
+from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -203,7 +204,7 @@ async def test_create_association_integration_test(
     graphapi_post: GraphAPIPost,
     org_uuids,
     employee_uuids,
-    trade_union_uuids,
+    trade_union_uuids: list[UUID],
     set_settings: Callable[..., None],
 ) -> None:
     """Test that associations can be created in LoRa via GraphQL."""
@@ -375,8 +376,8 @@ async def test_create_association_integration_test(
 )
 async def test_update_association_integration_test(
     graphapi_post: GraphAPIPost,
-    test_data,
-    trade_union_uuids,
+    test_data: dict[str, Any],
+    trade_union_uuids: list[UUID],
     set_settings: Callable[..., None],
 ) -> None:
     async def query_data(uuid: str) -> GQLResponse:
