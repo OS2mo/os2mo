@@ -368,8 +368,8 @@ async def test_create_association_integration_test(
             "substitute": "7626ad64-327d-481f-8b32-36c78eb12f8c",
             # "trade_union": Added from fixture in the test,
             "validity": {
-                "to": "2025-10-02T00:00:00+02:00",
                 "from": "2017-01-01T00:00:00+01:00",
+                "to": "3025-10-02T00:00:00+02:00",
             },
         },
     ],
