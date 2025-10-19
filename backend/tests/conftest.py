@@ -766,9 +766,7 @@ def employee_and_engagement_uuids(
 
 @pytest.fixture
 @pytest.mark.usefixtures("fixture_db")
-def trade_union_uuids(
-    graphapi_post: GraphAPIPost,
-) -> list[tuple[UUID, UUID]]:
+def trade_union_uuids(graphapi_post: GraphAPIPost) -> list[UUID]:
     # Fixture that creates the facet "medarbejderorganisation" and a class under that facet called "AC (Akademikerne)"
     facet_mutate_query = """
         mutation CreateFacet($input: FacetCreateInput!) {
@@ -788,6 +786,7 @@ def trade_union_uuids(
         },
     )
     assert facet_response.errors is None
+    assert facet_response.data is not None
 
     class_mutate_query = """
         mutation CreateClass($input: ClassCreateInput!) {
@@ -808,6 +807,7 @@ def trade_union_uuids(
         },
     )
     assert class_response.errors is None
+    assert class_response.data is not None
 
     classes_query = """
         query FetchDynamicClasses {
@@ -820,10 +820,8 @@ def trade_union_uuids(
     """
     response = graphapi_post(classes_query)
     assert response.errors is None
-    uuids = list(
-        map(UUID, map(itemgetter("uuid"), response.data["classes"]["objects"]))
-    )
-    return uuids
+    assert response.data is not None
+    return [UUID(obj["uuid"]) for obj in response.data["classes"]["objects"]]
 
 
 @pytest.fixture
