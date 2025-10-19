@@ -415,6 +415,8 @@ async def test_update_association_integration_test(
     test_data["trade_union"] = str(one(trade_union_uuids))
 
     prior_data = await query_data(test_data["uuid"])
+    assert prior_data.errors is None
+    assert prior_data.data is not None
 
     prior_data = one(
         one(prior_data.data.get("associations", {})["objects"]).get("objects")
@@ -457,6 +459,8 @@ async def test_update_association_integration_test(
     query_response = graphapi_post(
         query=query_query, variables={"uuid": test_data["uuid"]}
     )
+    assert query_response.errors is None
+    assert query_response.data is not None
 
     response_data = one(
         one(query_response.data.get("associations", {})["objects"]).get("objects")
@@ -464,6 +468,7 @@ async def test_update_association_integration_test(
 
     # Assert returned UUID from mutator is correct
     assert response.errors is None
+    assert response.data is not None
     assert (
         response.data.get("association_update", {}).get("uuid", {}) == test_data["uuid"]
     )
