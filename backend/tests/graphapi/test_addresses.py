@@ -1105,3 +1105,98 @@ def test_address_resolver_supplementary_city(
             ]
         }
     }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+@pytest.mark.xfail(
+    reason="fails with GraphQL errors as historic DAR does not have floor/door"
+)
+def test_address_resolver_missing_fields(
+    graphapi_post: GraphAPIPost,
+    create_person: Callable[..., UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+) -> None:
+    employee_address_type_facet = create_facet(
+        {
+            "user_key": "employee_address_type",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+    post_address_class = create_class(
+        {
+            "user_key": "AdressePostEmployee",
+            "scope": "DAR",
+            "name": "Postadresse",
+            "facet_uuid": str(employee_address_type_facet),
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+    person_uuid = create_person()
+    # Kirke Værløsevej 36, 3500 Værløse is a historic DAR address, thus missing fields
+    # compared to a current address.
+    value = "0a3f507e-31b9-32b8-e044-0003ba298018"
+
+    create_address_mutation = """
+    mutation CreateAddress($input: AddressCreateInput!) {
+      address_create(input: $input) {
+        uuid
+      }
+    }
+    """
+    input = {
+        "address_type": str(post_address_class),
+        "value": value,
+        "person": str(person_uuid),
+        "validity": {"from": "2000-01-01T00:00:00Z"},
+    }
+    response = graphapi_post(create_address_mutation, variables={"input": input})
+    assert response.errors is None
+    assert response.data is not None
+    address_uuid = response.data["address_create"]["uuid"]
+
+    query = """
+        query ResolveAddresses {
+          addresses {
+            objects {
+              current {
+                uuid
+                value
+                resolve {
+                  ... on DARAddress {
+                    __typename
+                    name
+                    floor
+                    door
+                  }
+                }
+              }
+            }
+          }
+        }
+    """
+
+    jonstrupvangvej = {
+        "__typename": "DARAddress",
+        "name": "Kirke Værløsevej 36, 3500 Værløse",
+        "floor": None,
+        "door": None,
+    }
+
+    response = graphapi_post(query)
+    assert response.errors is None
+    assert response.data == {
+        "addresses": {
+            "objects": [
+                {
+                    "current": {
+                        "resolve": jonstrupvangvej,
+                        "uuid": address_uuid,
+                        "value": value,
+                    }
+                }
+            ]
+        }
+    }
