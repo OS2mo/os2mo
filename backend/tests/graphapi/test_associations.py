@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
 from datetime import datetime
+from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -203,7 +204,7 @@ async def test_create_association_integration_test(
     graphapi_post: GraphAPIPost,
     org_uuids,
     employee_uuids,
-    trade_union_uuids,
+    trade_union_uuids: list[UUID],
     set_settings: Callable[..., None],
 ) -> None:
     """Test that associations can be created in LoRa via GraphQL."""
@@ -367,16 +368,16 @@ async def test_create_association_integration_test(
             "substitute": "7626ad64-327d-481f-8b32-36c78eb12f8c",
             # "trade_union": Added from fixture in the test,
             "validity": {
-                "to": "2025-10-02T00:00:00+02:00",
                 "from": "2017-01-01T00:00:00+01:00",
+                "to": "3025-10-02T00:00:00+02:00",
             },
         },
     ],
 )
 async def test_update_association_integration_test(
     graphapi_post: GraphAPIPost,
-    test_data,
-    trade_union_uuids,
+    test_data: dict[str, Any],
+    trade_union_uuids: list[UUID],
     set_settings: Callable[..., None],
 ) -> None:
     async def query_data(uuid: str) -> GQLResponse:
@@ -402,7 +403,6 @@ async def test_update_association_integration_test(
                     }
                 }
             }
-
         """
         response = graphapi_post(query=query, variables={"uuid": uuid})
 
@@ -412,9 +412,11 @@ async def test_update_association_integration_test(
     set_settings(CONFDB_SUBSTITUTE_ROLES='["45751985-321f-4d4f-ae16-847f0a633360"]')
 
     # Add trade_union UUID from fixture `trade_union_uuids`
-    test_data["trade_union"] = str(trade_union_uuids[0])
+    test_data["trade_union"] = str(one(trade_union_uuids))
 
     prior_data = await query_data(test_data["uuid"])
+    assert prior_data.errors is None
+    assert prior_data.data is not None
 
     prior_data = one(
         one(prior_data.data.get("associations", {})["objects"]).get("objects")
@@ -429,7 +431,7 @@ async def test_update_association_integration_test(
     """
     response = graphapi_post(mutate_query, {"input": jsonable_encoder(test_data)})
 
-    """Query data to check that it actually gets written to database"""
+    # Query data to check that it actually gets written to database
     query_query = """
         query ($uuid: [UUID!]!){
             __typename
@@ -452,26 +454,28 @@ async def test_update_association_integration_test(
                 }
             }
         }
-
     """
 
     query_response = graphapi_post(
         query=query_query, variables={"uuid": test_data["uuid"]}
     )
+    assert query_response.errors is None
+    assert query_response.data is not None
 
     response_data = one(
         one(query_response.data.get("associations", {})["objects"]).get("objects")
     )
 
-    """Assert returned UUID from mutator is correct"""
+    # Assert returned UUID from mutator is correct
     assert response.errors is None
+    assert response.data is not None
     assert (
         response.data.get("association_update", {}).get("uuid", {}) == test_data["uuid"]
     )
 
     updated_test_data = {k: v or prior_data[k] for k, v in test_data.items()}
 
-    """Asssert data written to db is correct when queried"""
+    # Assert data written to db is correct when queried
     assert query_response.errors is None
     assert updated_test_data == response_data
 
