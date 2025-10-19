@@ -403,7 +403,6 @@ async def test_update_association_integration_test(
                     }
                 }
             }
-
         """
         response = graphapi_post(query=query, variables={"uuid": uuid})
 
@@ -430,7 +429,7 @@ async def test_update_association_integration_test(
     """
     response = graphapi_post(mutate_query, {"input": jsonable_encoder(test_data)})
 
-    """Query data to check that it actually gets written to database"""
+    # Query data to check that it actually gets written to database
     query_query = """
         query ($uuid: [UUID!]!){
             __typename
@@ -453,7 +452,6 @@ async def test_update_association_integration_test(
                 }
             }
         }
-
     """
 
     query_response = graphapi_post(
@@ -464,7 +462,7 @@ async def test_update_association_integration_test(
         one(query_response.data.get("associations", {})["objects"]).get("objects")
     )
 
-    """Assert returned UUID from mutator is correct"""
+    # Assert returned UUID from mutator is correct
     assert response.errors is None
     assert (
         response.data.get("association_update", {}).get("uuid", {}) == test_data["uuid"]
@@ -472,7 +470,7 @@ async def test_update_association_integration_test(
 
     updated_test_data = {k: v or prior_data[k] for k, v in test_data.items()}
 
-    """Asssert data written to db is correct when queried"""
+    # Assert data written to db is correct when queried
     assert query_response.errors is None
     assert updated_test_data == response_data
 
