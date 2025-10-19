@@ -413,7 +413,7 @@ async def test_update_association_integration_test(
     set_settings(CONFDB_SUBSTITUTE_ROLES='["45751985-321f-4d4f-ae16-847f0a633360"]')
 
     # Add trade_union UUID from fixture `trade_union_uuids`
-    test_data["trade_union"] = str(trade_union_uuids[0])
+    test_data["trade_union"] = str(one(trade_union_uuids))
 
     prior_data = await query_data(test_data["uuid"])
 
