@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import string
+from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from contextlib import suppress
 from datetime import UTC
@@ -625,40 +626,49 @@ async def get_org_unit_uuid(
 
 
 async def get_legacy_manager_person_uuids(
-    graphql_client: GraphQLClient, filter: dict[str, Any]
-) -> set[UUID | None]:
-    manager_filter = parse_obj_as(ManagerFilter, filter)
+    graphql_client: GraphQLClient, manager_filter: ManagerFilter
+) -> AsyncIterator[UUID | None]:
     result = await graphql_client.read_manager_person_uuid(manager_filter, inherit=True)
 
-    manager_uuids: set[UUID | None] = set()
     for obj in result.objects:
         # 'current' should never be none, as the object should simply be missing instead
         assert obj.current is not None
         if obj.current.person is None:
-            manager_uuids.add(None)
+            yield None
             continue
         for person_validity in obj.current.person:
-            manager_uuids.add(person_validity.uuid)
-
-    return manager_uuids
+            yield person_validity.uuid
 
 
 async def get_legacy_manager_for_org_unit(
-    graphql_client: GraphQLClient, uuid: OrgUnitUUID
+    graphql_client: GraphQLClient,
+    uuid: OrgUnitUUID,
+    primary_manager_responsibility: UUID | None,
 ) -> UUID | None:
-    manager_uuids = await get_legacy_manager_person_uuids(
-        graphql_client, {"org_unit": {"uuids": [uuid]}}
+    manager_filter = ManagerFilter(
+        org_unit=OrganisationUnitFilter(uuids=[uuid]),
+        responsibility=ClassFilter(uuids=[primary_manager_responsibility])
+        if primary_manager_responsibility
+        else None,
     )
-    if manager_uuids == {None}:
+    manager_person_uuids = get_legacy_manager_person_uuids(
+        graphql_client, manager_filter
+    )
+    vacant_found = False
+    async for manager_person_uuid in manager_person_uuids:
+        if manager_person_uuid is None:
+            vacant_found = True
+            continue
+        return manager_person_uuid
+
+    if vacant_found:
         return None
-    manager_uuids.discard(None)
-    assert None not in manager_uuids
-    manager_uuid = max(cast(set[UUID], manager_uuids))
-    return manager_uuid
+
+    raise ValueError("No manager found")
 
 
 async def get_legacy_manager_person_uuid(
-    moapi: MOAPI, uuid: EmployeeUUID
+    moapi: MOAPI, uuid: EmployeeUUID, primary_manager_responsibility: UUID | None = None
 ) -> UUID | None:
     primary_engagement = await load_primary_engagement(moapi, uuid)
     if primary_engagement is None:
@@ -667,7 +677,7 @@ async def get_legacy_manager_person_uuid(
     manager_org_unit = OrgUnitUUID(primary_engagement.org_unit)
     while True:
         manager_uuid = await get_legacy_manager_for_org_unit(
-            moapi.graphql_client, manager_org_unit
+            moapi.graphql_client, manager_org_unit, primary_manager_responsibility
         )
         if manager_uuid != uuid:
             return manager_uuid
