@@ -482,6 +482,61 @@ async def apply_discriminator(
     if not dns:
         return None
 
+    if settings.discriminator_legacy_bypass_via_itsystem:  # pragma: no cover
+        # This branch attempts to implement a emulation of the discriminator behavior
+        # found in the old AD integration by a method entirely different from the one
+        # used in the old AD integration.
+        #
+        # The old AD integration discriminates multiple AD users by picking the first
+        # user returned by the `Get-ADUser` PowerShell command, which has an undefined
+        # order based on the domain controllers storage engine.
+        #
+        # We cannot get this order when connecting to the domain controller via the LDAP
+        # protocol, and thus we cannot simply reproduce the code here. Instead we are
+        # going to use the data left behind by the old integration to attempt to target
+        # the same AD accounts as the old AD integration did.
+        #
+        # If no such leftover information can be found, we will instead revert to our
+        # own arbitrary, but deterministic behavior of picking the AD account with the
+        # (alphabetically) lowest DN.
+        # This arbitrary choice should then be cemented when we ourselves create an IT
+        # user which is found as if it was created by the old AD integration.
+
+        # If only one account exists, we simply use it whatever it is
+        if len(dns) == 1:
+            return one(dns)
+
+        # If multiple accounts exist, we try to find the one that was synchronized
+        # "last time" by looking at an IT-user that should be created during
+        # synchronization using the old AD integration.
+        itusers = await moapi.load_mo_employee_it_users(
+            uuid, settings.discriminator_legacy_bypass_via_itsystem
+        )
+        # If multiple IT-user links are found, we panic and bail out
+        if len(itusers) > 1:
+            raise MultipleObjectsReturnedException(
+                f"Ambiguous account result from apply discriminator {dns=} {itusers=}"
+            )
+        # If only one IT-user link was found, try to find the account where its user-key
+        # matches the sAMAccountName of the DN.
+        if len(itusers) == 1:
+
+            async def dn2sam(dn: DN) -> str:
+                obj = await get_ldap_object(
+                    ldap_connection, dn, attributes={"sAMAccountName"}
+                )
+                assert hasattr(obj, "sAMAccountName")
+                assert isinstance(obj.sAMAccountName, str)
+                return obj.sAMAccountName
+
+            expected_sam_account_name = one(itusers).user_key
+            sam_account_name_map = {await dn2sam(dn): dn for dn in dns}
+            if expected_sam_account_name not in sam_account_name_map:
+                raise ValueError("Unable to find IT-user account")
+            return sam_account_name_map[expected_sam_account_name]
+        # If no IT-user links were found, simply return the IT-user with the lowest DN
+        return min(dns)
+
     discriminator_fields = settings.discriminator_fields
     # If discriminator is not configured, there can be only one user
     if not discriminator_fields:
