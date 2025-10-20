@@ -422,10 +422,14 @@ def construct_router(settings: Settings) -> APIRouter:
 
     @router.get("/Inspect/mo2ldap/all", status_code=200, tags=["LDAP"])
     async def mo2ldap_templating_all(
-        graphql_client: depends.GraphQLClient, sync_tool: depends.SyncTool
+        graphql_client: depends.GraphQLClient,
+        sync_tool: depends.SyncTool,
+        start_at: UUID | None = None,
     ) -> Any:
         result = await graphql_client.read_person_uuid()
         uuids = [person.uuid for person in result.objects]
+        if start_at:
+            uuids = [uuid for uuid in uuids if uuid > start_at]
 
         async def process_uuid(uuid: UUID) -> dict[str, Any]:
             try:
