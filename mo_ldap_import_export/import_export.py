@@ -12,6 +12,7 @@ from uuid import UUID
 from uuid import uuid4
 
 import structlog
+from fastapi.encoders import jsonable_encoder
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from ldap3 import Connection
 from more_itertools import only
@@ -80,7 +81,7 @@ def with_exitstack(
 
 
 async def sync_JobTitleFromADToMO(
-    moapi: MOAPI, ldap_connection: Connection, dn: DN
+    moapi: MOAPI, ldap_connection: Connection, dn: DN, dry_run: bool = False
 ) -> None:
     # NOTE: This function is scheduled for removal, see #62802
     ldap_object = await get_ldap_object(
@@ -102,6 +103,13 @@ async def sync_JobTitleFromADToMO(
         ldap_object.hkStsuuid
     )
     engagements = [x.current for x in result.objects if x.current is not None]
+    if dry_run:  # pragma: no cover
+        raise DryRunException(
+            "Would have set job-title",
+            dn,
+            details={"engagements": engagements, "job_function": job_function},
+        )
+
     await asyncio.gather(
         *[
             moapi.graphql_client.set_job_title(
@@ -448,7 +456,9 @@ class SyncTool:
         return converted_object_uuid_checked, Verb.EDIT
 
     @with_exitstack
-    async def import_single_user(self, dn: DN, exit_stack: ExitStack) -> None:
+    async def import_single_user(
+        self, dn: DN, exit_stack: ExitStack, dry_run: bool = False
+    ) -> None:
         """Imports a single user from LDAP into MO.
 
         Args:
@@ -564,7 +574,7 @@ class SyncTool:
         # dependencies exist before their dependent objects.
         for json_key in json_keys:
             await self.import_single_entity(
-                self.get_mapping(json_key), dn, template_context
+                self.get_mapping(json_key), dn, template_context, dry_run=dry_run
             )
 
     @with_exitstack
@@ -576,18 +586,23 @@ class SyncTool:
         logger.info("Importing object class")
         mappings = self.settings.conversion_mapping.ldap_to_mo_any[object_class]
         for mapping in mappings:
-            await self.import_single_entity(mapping, dn, template_context={})
+            await self.import_single_entity(
+                mapping, dn, template_context={}, dry_run=False
+            )
 
-    @handle_exclusively_decorator(key=lambda self, mapping, dn, template_context: dn)
+    @handle_exclusively_decorator(
+        key=lambda self, mapping, dn, template_context, dry_run: dn
+    )
     async def import_single_entity(
         self,
         mapping: LDAP2MOMapping,
         dn: DN,
         template_context: dict[str, Any],
+        dry_run: bool,
     ) -> None:
         if mapping.objectClass == "Custom.JobTitleFromADToMO":  # pragma: no cover
             await sync_JobTitleFromADToMO(
-                self.dataloader.moapi, self.ldap_connection, dn
+                self.dataloader.moapi, self.ldap_connection, dn, dry_run
             )
             return
 
@@ -632,4 +647,12 @@ class SyncTool:
             operation=operation,
             dn=dn,
         )
+        if dry_run:
+            obj, verb = operation
+            raise DryRunException(
+                "Would have uploaded changes to MO",
+                dn,
+                details={"verb": str(verb), "obj": jsonable_encoder(obj.dict())},
+            )
+
         await self.dataloader.moapi.create_or_edit_mo_objects([operation])
