@@ -468,6 +468,13 @@ def construct_router(settings: Settings) -> APIRouter:
             await sync_tool.listen_to_changes_in_employees(uuid, dry_run=True)
         )
 
+    @router.get("/Inspect/ldap2mo/{uuid}", status_code=200, tags=["MO"])
+    async def ldap2mo_templating(sync_tool: depends.SyncTool, uuid: LDAPUUID) -> None:
+        dn = await sync_tool.dataloader.ldapapi.get_ldap_dn(uuid)
+        if dn is None:
+            return
+        await sync_tool.import_single_user(dn, dry_run=True)
+
     @router.get("/Inspect/mo/uuid2dn/{uuid}", status_code=200, tags=["LDAP"])
     async def mo_uuid_to_ldap_dn(dataloader: depends.DataLoader, uuid: UUID) -> set[DN]:
         return await dataloader.find_mo_employee_dn(uuid)
