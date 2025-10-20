@@ -239,3 +239,56 @@ async def test_ldap_template_multiple_lines(
 
     file_data = read_jsonl_file("/tmp/mo2ldap.jsonl")
     assert len(file_data) == 2
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "mo2ldap": """
+                {% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}
+                {{
+                    {}|tojson
+                }}
+            """
+            }
+        )
+    }
+)
+async def test_ldap_template_start_at(
+    test_client: AsyncClient, graphql_client: GraphQLClient
+) -> None:
+    person1 = await graphql_client.person_create(
+        input=EmployeeCreateInput(
+            given_name="First",
+            surname="Person",
+            cpr_number="0101700000",
+        )
+    )
+    person2 = await graphql_client.person_create(
+        input=EmployeeCreateInput(
+            given_name="Second",
+            surname="Person",
+            cpr_number="0101700001",
+        )
+    )
+    person3 = await graphql_client.person_create(
+        input=EmployeeCreateInput(
+            given_name="Third",
+            surname="Person",
+            cpr_number="0101700002",
+        )
+    )
+    person_order = sorted([person1.uuid, person2.uuid, person3.uuid])
+
+    for idx, uuid in enumerate(person_order, start=1):
+        response = await test_client.get(
+            "/Inspect/mo2ldap/all", params={"start_at": str(uuid)}
+        )
+        assert response.status_code == 200
+        result = response.json()
+        assert result == "OK"
+
+        file_data = read_jsonl_file("/tmp/mo2ldap.jsonl")
+        assert len(file_data) == 3 - idx
