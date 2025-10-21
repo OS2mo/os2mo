@@ -416,7 +416,6 @@ async def test_mo2ldap_template_address(
         ),
     }
 )
-@pytest.mark.xfail(reason="Termination current fail with an exception")
 async def test_mo2ldap_template_address_terminate(
     graphql_client: GraphQLClient,
     test_client: AsyncClient,
