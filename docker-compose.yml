@@ -40,11 +40,9 @@ services:
         # Use uid/gid <= 65536 to allow rootless podman
         uid: 52020
         gid: 52020
-    # The `volumes` and `command` mounts the backend directory in the docker
-    # container and overwrites the CMD from Dockerfile. With this gunicorn
-    # reloads on file changes. This is very useful when developing the backend.
-    # We also change the Flask app to one where a testing API for testcafe
-    # e2e-tests is enabled.
+    deploy:
+      mode: replicated
+      replicas: 3
     volumes:
       # Uncomment this with the path you would like to use for queries, and set
       # the setting FILE_STORAGE=filesystem
@@ -58,8 +56,6 @@ services:
       - ./dev-environment/wait-for-rabbitmq.sh:/wait-for-rabbitmq.sh
     entrypoint: ["/wait-for-rabbitmq.sh"]
     command: ["./docker/start.sh"]
-    ports:
-      - "127.0.0.1:5002:5000"
     env_file: dev-environment/os2mo.env
     restart: unless-stopped
     depends_on:

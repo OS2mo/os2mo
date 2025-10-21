@@ -16,16 +16,12 @@ else
     exit 1
 fi
 
-# In production, we use gunicorn with the worker class
-# "uvicorn.workers.UvicornWorker", but that does not work with --reload, so we
-# use uvicorn in development at the cost of some dev/prod parity. This has one
-# issue in dev where the service won't restart (because of the --reload flag)
-# when an error occurs. The service restarts as soon as a file is edited
-# though.
 if [ "$ENVIRONMENT" = "development" ]; then
     echo "Running MO in development mode (live reload)"
-    exec uvicorn --reload --reload-dir=backend/mora/ --reload-dir=backend/oio_rest/ --reload-dir=backend/ramodels/ --host 0.0.0.0 --port 5000 --factory mora.app:create_app --timeout-keep-alive 100
+    exec uvicorn --reload --reload-dir=backend/mora/ --reload-dir=backend/oio_rest/ --reload-dir=backend/ramodels/ --host 0.0.0.0 --port 5000 --factory mora.app:create_app --timeout-keep-alive 100 --workers 1
 else
     echo "Running MO in production mode"
-    exec gunicorn --config /app/docker/gunicorn-settings.py 'mora.app:create_app()'
+    # If you change this, beware that metrics are currently counted per worker
+    # so we would not scrape them correctly.
+    exec uvicorn --host 0.0.0.0 --port 5000 --factory mora.app:create_app --timeout-keep-alive 100 --workers 1
 fi
