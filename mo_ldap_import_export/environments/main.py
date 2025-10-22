@@ -342,34 +342,19 @@ async def load_org_unit(moapi: MOAPI, uuid: UUID) -> OrganisationUnit | None:
 
 async def load_it_user(
     moapi: MOAPI,
-    employee_uuid: UUID,
-    itsystem_user_key: str,
+    filter: dict[str, Any],
     return_terminated: bool = False,
 ) -> ITUser | None:
-    result = await moapi.graphql_client.read_filtered_itusers(
-        ITUserFilter(
-            employee=EmployeeFilter(uuids=[employee_uuid]),
-            itsystem=ITSystemFilter(user_keys=[itsystem_user_key]),
-            from_date=None,
-            to_date=None,
-        )
-    )
+    ituser_filter = parse_obj_as(ITUserFilter, filter)
+    result = await moapi.graphql_client.read_filtered_itusers(ituser_filter)
     if not result.objects:
-        logger.info(
-            "Could not find it-user",
-            employee_uuid=employee_uuid,
-            itsystem_user_key=itsystem_user_key,
-        )
+        logger.info("Could not find it-user", filter=ituser_filter)
         return None
     # Flatten all validities to a list
     validities = list(flatten_validities(result))
     validity = extract_current_or_latest_validity(validities)
     if validity is None:  # pragma: no cover
-        logger.error(
-            "No active validities on it-user",
-            employee_uuid=employee_uuid,
-            itsystem_user_key=itsystem_user_key,
-        )
+        logger.error("No active validities on it-user", filter=ituser_filter)
         raise RequeueMessage("No active validities on it-user")
     fetched_ituser = await moapi.load_mo_it_user(
         validity.uuid, current_objects_only=False
@@ -416,7 +401,15 @@ async def create_mo_it_user(
         validity={"start": mo_today()},
     )
     await moapi.create_ituser(it_user)
-    return await load_it_user(moapi, employee_uuid, itsystem_user_key)
+    return await load_it_user(
+        moapi,
+        ITUserFilter(
+            employee=EmployeeFilter(uuids=[employee_uuid]),
+            itsystem=ITSystemFilter(user_keys=[itsystem_user_key]),
+            from_date=None,
+            to_date=None,
+        ).dict(exclude_unset=True),
+    )
 
 
 async def load_address(

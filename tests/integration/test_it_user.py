@@ -145,7 +145,7 @@ async def test_to_mo(
         "CONVERSION_MAPPING": json.dumps(
             {
                 "mo2ldap": """
-                {% set mo_employee_it_user = load_mo_it_user(uuid, "ADtitle") %}
+                {% set mo_employee_it_user = load_mo_it_user({"employee": {"uuids": [uuid]}, "itsystem": {"user_keys": ["ADtitle"]}, "from_date": None, "to_date": None}) %}
                 {{
                     {
                         "title": mo_employee_it_user.user_key if mo_employee_it_user else [],
@@ -245,7 +245,7 @@ async def test_to_ldap(
         "CONVERSION_MAPPING": json.dumps(
             {
                 "mo2ldap": """
-                {% set mo_employee_it_user = load_mo_it_user(uuid, "ADtitle") %}
+                {% set mo_employee_it_user = load_mo_it_user({"employee": {"uuids": [uuid]}, "itsystem": {"user_keys": ["ADtitle"]}, "from_date": None, "to_date": None}) %}
                 {% if mo_employee_it_user is none %}
                     {% set mo_employee_it_user = create_mo_it_user(uuid, "ADtitle", "mytitle") %}
                 {% endif %}
@@ -344,7 +344,7 @@ async def test_to_ldap_create_it_user_if_non_existent(
         "CONVERSION_MAPPING": json.dumps(
             {
                 "mo2ldap": """
-                {% set mo_employee_it_user = load_mo_it_user(uuid, "ADtitle") %}
+                {% set mo_employee_it_user = load_mo_it_user({"employee": {"uuids": [uuid]}, "itsystem": {"user_keys": ["ADtitle"]}, "from_date": None, "to_date": None}) %}
                 {% if mo_employee_it_user is none %}
                     {% set username = generate_username(uuid) %}
                 {% else %}

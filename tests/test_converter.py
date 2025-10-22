@@ -85,7 +85,7 @@ def converter_mapping() -> dict[str, Any]:
         },
         "mo2ldap": """
             {% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}
-            {% set mo_employee_it_user = load_mo_it_user(uuid, "Active Directory") %}
+            {% set mo_employee_it_user = load_mo_it_user({"employee": {"uuids": [uuid]}, "itsystem": {"user_keys": ["Active Directory"]}, "from_date": None, "to_date": None}) %}
             {{
                 {
                     "givenName": mo_employee.given_name,
