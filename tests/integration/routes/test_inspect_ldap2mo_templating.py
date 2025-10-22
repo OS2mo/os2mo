@@ -10,6 +10,7 @@ from structlog.testing import capture_logs
 
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.types import LDAPUUID
+from mo_ldap_import_export.utils import mo_today
 
 
 @pytest.mark.integration_test
@@ -312,5 +313,75 @@ async def test_mo2ldap_template_existing_change(
         "Found employee via CPR matching",
         "No discriminator filter set, not filtering",
         "Setting values on upload dict",
+        "Importing object",
+    }.issubset(events)
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "ldap_to_mo": {
+                    "EmailEmployee": {
+                        "objectClass": "Address",
+                        "_import_to_mo_": "true",
+                        "_ldap_attributes_": ["mail"],
+                        "uuid": "{{ get_address_uuid({'address_type': {'user_key': 'EmailEmployee'}, 'employee': {'uuids': [employee_uuid]}}) }}",
+                        "value": "{{ ldap.mail }}",
+                        "address_type": "{{ get_employee_address_type_uuid('EmailEmployee') }}",
+                        "person": "{{ employee_uuid }}",
+                        "visibility": "{{ get_visibility_uuid('Public') }}",
+                    },
+                }
+            }
+        ),
+    }
+)
+async def test_mo2ldap_template_address(
+    test_client: AsyncClient,
+    mo_person: UUID,
+    ldap_person_dn: DN,
+    ldap_person_uuid: LDAPUUID,
+    email_employee: UUID,
+    public: UUID,
+) -> None:
+    with capture_logs() as cap_logs:
+        response = await test_client.get(f"/Inspect/ldap2mo/{ldap_person_uuid}")
+        assert response.status_code == 451
+        result = response.json()
+        assert result == {
+            "detail": {
+                "message": "Would have uploaded changes to MO",
+                "dn": ldap_person_dn,
+                "verb": "Verb.CREATE",
+                "obj": {
+                    "uuid": ANY,
+                    "user_key": ANY,
+                    "address_type": str(email_employee),
+                    "visibility": str(public),
+                    "engagement": None,
+                    "ituser": None,
+                    "org_unit": None,
+                    "person": str(mo_person),
+                    "value": "abk@ad.kolding.dk",
+                    "value2": None,
+                    "validity": {
+                        "from": mo_today().isoformat(),
+                        "to": None,
+                    },
+                },
+            }
+        }
+
+    events = {log["event"] for log in cap_logs}
+    assert {
+        "Looking for LDAP object",
+        "Found DN",
+        "Found employee via CPR matching",
+        "No discriminator filter set, not filtering",
+        "Loading address",
         "Importing object",
     }.issubset(events)
