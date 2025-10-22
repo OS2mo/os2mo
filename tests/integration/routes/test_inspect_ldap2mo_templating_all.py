@@ -29,6 +29,8 @@ def read_jsonl_file(filename: str) -> list[dict]:
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "LISTEN_TO_CHANGES_IN_MO": "False",
         "CONVERSION_MAPPING": json.dumps(
             {
                 "ldap_to_mo": {
@@ -43,7 +45,7 @@ def read_jsonl_file(filename: str) -> list[dict]:
                     }
                 }
             }
-        )
+        ),
     }
 )
 async def test_ldap2mo_template_all_create(
@@ -80,6 +82,8 @@ async def test_ldap2mo_template_all_create(
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "LISTEN_TO_CHANGES_IN_MO": "False",
         "CONVERSION_MAPPING": json.dumps(
             {
                 "ldap_to_mo": {
@@ -96,7 +100,7 @@ async def test_ldap2mo_template_all_create(
                     }
                 }
             }
-        )
+        ),
     }
 )
 async def test_ldap2mo_template_all_edit(
@@ -134,6 +138,8 @@ async def test_ldap2mo_template_all_edit(
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "LISTEN_TO_CHANGES_IN_MO": "False",
         "CONVERSION_MAPPING": json.dumps(
             {
                 "ldap_to_mo": {
@@ -148,7 +154,7 @@ async def test_ldap2mo_template_all_edit(
                     }
                 }
             }
-        )
+        ),
     }
 )
 @pytest.mark.usefixtures("mo_person")
@@ -171,7 +177,13 @@ async def test_ldap2mo_template_all_no_changes(
 
 
 @pytest.mark.integration_test
-@pytest.mark.envvar({"CONVERSION_MAPPING": json.dumps({})})
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "CONVERSION_MAPPING": json.dumps({}),
+    }
+)
 async def test_ldap2mo_template_all_no_config(
     test_client: AsyncClient, ldap_person_uuid: LDAPUUID
 ) -> None:
@@ -190,7 +202,13 @@ async def test_ldap2mo_template_all_no_config(
 
 
 @pytest.mark.integration_test
-@pytest.mark.envvar({"CONVERSION_MAPPING": json.dumps({"ldap_to_mo": {}})})
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "CONVERSION_MAPPING": json.dumps({"ldap_to_mo": {}}),
+    }
+)
 async def test_ldap2mo_template_all_empty_config(
     test_client: AsyncClient, ldap_person_uuid: LDAPUUID
 ) -> None:
@@ -211,6 +229,8 @@ async def test_ldap2mo_template_all_empty_config(
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "LISTEN_TO_CHANGES_IN_MO": "False",
         "CONVERSION_MAPPING": json.dumps(
             {
                 "ldap_to_mo": {
@@ -222,7 +242,7 @@ async def test_ldap2mo_template_all_empty_config(
                     }
                 }
             }
-        )
+        ),
     }
 )
 async def test_ldap2mo_template_all_skip_config(
@@ -245,6 +265,8 @@ async def test_ldap2mo_template_all_skip_config(
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "LISTEN_TO_CHANGES_IN_MO": "False",
         "CONVERSION_MAPPING": json.dumps(
             {
                 "ldap_to_mo": {
@@ -259,7 +281,7 @@ async def test_ldap2mo_template_all_skip_config(
                     }
                 }
             }
-        )
+        ),
     }
 )
 async def test_ldap2mo_template_all_multiple_lines(
@@ -282,6 +304,8 @@ async def test_ldap2mo_template_all_multiple_lines(
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "LISTEN_TO_CHANGES_IN_MO": "False",
         "CONVERSION_MAPPING": json.dumps(
             {
                 "ldap_to_mo": {
@@ -296,7 +320,7 @@ async def test_ldap2mo_template_all_multiple_lines(
                     }
                 }
             }
-        )
+        ),
     }
 )
 async def test_ldap_template_start_at(
