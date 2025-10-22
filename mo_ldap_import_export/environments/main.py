@@ -1107,6 +1107,7 @@ def construct_default_environment() -> Environment:
     environment.filters["uuid"] = UUID
 
     environment.globals["now"] = lambda: datetime.now(tz=UTC)
+    environment.globals["mo_today"] = mo_today
     environment.globals["skip_if_none"] = skip_if_none
     environment.globals["requeue_if_none"] = requeue_if_none
     environment.globals["assert_not_none"] = assert_not_none
