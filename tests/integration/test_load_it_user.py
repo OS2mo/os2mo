@@ -43,7 +43,15 @@ async def test_load_it_user(
     )
 
     dataloader = context["user_context"]["dataloader"]
-    result = await load_it_user(dataloader.moapi, mo_person, "ADtitle")
+    result = await load_it_user(
+        dataloader.moapi,
+        {
+            "employee": {"uuids": [mo_person]},
+            "itsystem": {"user_keys": ["ADtitle"]},
+            "from_date": None,
+            "to_date": None,
+        },
+    )
     assert result is not None
     assert result.dict(exclude_none=True) == {
         "engagements": [],
@@ -83,7 +91,15 @@ async def test_load_it_user_deleted(
 
     dataloader = context["user_context"]["dataloader"]
     with capture_logs() as cap_logs:
-        result = await load_it_user(dataloader.moapi, mo_person, "ADtitle")
+        result = await load_it_user(
+            dataloader.moapi,
+            {
+                "employee": {"uuids": [mo_person]},
+                "itsystem": {"user_keys": ["ADtitle"]},
+                "from_date": None,
+                "to_date": None,
+            },
+        )
     assert result is None
 
     events = [m["event"] for m in cap_logs]
@@ -121,7 +137,14 @@ async def test_load_it_user_deleted_return_terminated(
 
     dataloader = context["user_context"]["dataloader"]
     result = await load_it_user(
-        dataloader.moapi, mo_person, "ADtitle", return_terminated=True
+        dataloader.moapi,
+        {
+            "employee": {"uuids": [mo_person]},
+            "itsystem": {"user_keys": ["ADtitle"]},
+            "from_date": None,
+            "to_date": None,
+        },
+        return_terminated=True,
     )
     assert result == ITUser(
         uuid=ituser.uuid,
@@ -168,7 +191,15 @@ async def test_load_it_user_multiple_matches(
 
     dataloader = context["user_context"]["dataloader"]
     with pytest.raises(ValueError) as exc_info:
-        await load_it_user(dataloader.moapi, mo_person, "ADtitle")
+        await load_it_user(
+            dataloader.moapi,
+            {
+                "employee": {"uuids": [mo_person]},
+                "itsystem": {"user_keys": ["ADtitle"]},
+                "from_date": None,
+                "to_date": None,
+            },
+        )
     assert "Expected exactly one item in iterable" in str(exc_info.value)
 
 
@@ -184,7 +215,15 @@ async def test_load_it_user_invalid_employee(context: Context) -> None:
     dataloader = context["user_context"]["dataloader"]
     employee_uuid = uuid4()
     with capture_logs() as cap_logs:
-        result = await load_it_user(dataloader.moapi, employee_uuid, "ADtitle")
+        result = await load_it_user(
+            dataloader.moapi,
+            {
+                "employee": {"uuids": [employee_uuid]},
+                "itsystem": {"user_keys": ["ADtitle"]},
+                "from_date": None,
+                "to_date": None,
+            },
+        )
     assert result is None
 
     events = [m["event"] for m in cap_logs]
@@ -203,7 +242,13 @@ async def test_load_it_user_invalid_itsystem(context: Context, mo_person: UUID) 
     dataloader = context["user_context"]["dataloader"]
     with capture_logs() as cap_logs:
         result = await load_it_user(
-            dataloader.moapi, mo_person, "non_existing_it_system"
+            dataloader.moapi,
+            {
+                "employee": {"uuids": [mo_person]},
+                "itsystem": {"user_keys": ["non_existing_it_system"]},
+                "from_date": None,
+                "to_date": None,
+            },
         )
     assert result is None
 
@@ -222,7 +267,15 @@ async def test_load_it_user_invalid_itsystem(context: Context, mo_person: UUID) 
 async def test_load_it_user_no_it_user(context: Context, mo_person: UUID) -> None:
     dataloader = context["user_context"]["dataloader"]
     with capture_logs() as cap_logs:
-        result = await load_it_user(dataloader.moapi, mo_person, "ADtitle")
+        result = await load_it_user(
+            dataloader.moapi,
+            {
+                "employee": {"uuids": [mo_person]},
+                "itsystem": {"user_keys": ["ADtitle"]},
+                "from_date": None,
+                "to_date": None,
+            },
+        )
     assert result is None
 
     events = [m["event"] for m in cap_logs]
@@ -258,6 +311,14 @@ async def test_load_itusers_multiple_disjoint_matches(
     )
 
     dataloader = context["user_context"]["dataloader"]
-    result = await load_it_user(dataloader.moapi, mo_person, "ADtitle")
+    result = await load_it_user(
+        dataloader.moapi,
+        {
+            "employee": {"uuids": [mo_person]},
+            "itsystem": {"user_keys": ["ADtitle"]},
+            "from_date": None,
+            "to_date": None,
+        },
+    )
     assert result is not None
     assert result.user_key == "User2"

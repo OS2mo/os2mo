@@ -574,29 +574,29 @@ class MOAPI:
         if exceptions:  # pragma: no cover
             raise ExceptionGroup("Exceptions during creation", exceptions)
 
-    async def create_object(self, obj: MOBase) -> None:
+    async def create_object(self, obj: MOBase) -> UUID:
         if isinstance(obj, Address):
-            await self.create_address(obj)
+            return await self.create_address(obj)
         elif isinstance(obj, Employee):
-            await self.create_employee(obj)
+            return await self.create_employee(obj)
         elif isinstance(obj, Engagement):  # pragma: no cover
-            await self.create_engagement(obj)
+            return await self.create_engagement(obj)
         elif isinstance(obj, ITUser):
-            await self.create_ituser(obj)
+            return await self.create_ituser(obj)
         elif isinstance(obj, ITSystem):
-            await self.create_itsystem(obj)
+            return await self.create_itsystem(obj)
         elif isinstance(obj, Class):
-            await self.create_class(obj)
+            return await self.create_class(obj)
         elif isinstance(obj, OrganisationUnit):
-            await self.create_org_unit(obj)
+            return await self.create_org_unit(obj)
         else:  # pragma: no cover
             raise NotImplementedError(f"Unable to create {obj}")
 
-    async def create_address(self, obj: Address) -> None:
+    async def create_address(self, obj: Address) -> UUID:
         assert obj.person is not None
         assert obj.org_unit is None
         assert obj.value2 is None
-        await self.graphql_client.address_create(
+        address = await self.graphql_client.address_create(
             input=AddressCreateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
@@ -612,9 +612,10 @@ class MOAPI:
                 ),
             ),
         )
+        return address.uuid
 
-    async def create_employee(self, obj: Employee) -> None:
-        await self.graphql_client.person_create(
+    async def create_employee(self, obj: Employee) -> UUID:
+        person = await self.graphql_client.person_create(
             input=EmployeeCreateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
@@ -626,9 +627,10 @@ class MOAPI:
                 nickname_surname=obj.nickname_surname,
             ),
         )
+        return person.uuid
 
-    async def create_engagement(self, obj: Engagement) -> None:  # pragma: no cover
-        await self.graphql_client.engagement_create(
+    async def create_engagement(self, obj: Engagement) -> UUID:  # pragma: no cover
+        engagement = await self.graphql_client.engagement_create(
             input=EngagementCreateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
@@ -653,9 +655,10 @@ class MOAPI:
                 ),
             )
         )
+        return engagement.uuid
 
-    async def create_ituser(self, obj: ITUser) -> None:
-        await self.graphql_client.ituser_create(
+    async def create_ituser(self, obj: ITUser) -> UUID:
+        ituser = await self.graphql_client.ituser_create(
             input=ITUserCreateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
@@ -670,9 +673,10 @@ class MOAPI:
                 ),
             )
         )
+        return ituser.uuid
 
-    async def create_itsystem(self, obj: ITSystem) -> None:
-        await self.graphql_client.itsystem_create(
+    async def create_itsystem(self, obj: ITSystem) -> UUID:
+        itsystem = await self.graphql_client.itsystem_create(
             input=ITSystemCreateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
@@ -683,9 +687,10 @@ class MOAPI:
                 ),
             )
         )
+        return itsystem.uuid
 
-    async def create_class(self, obj: Class) -> None:
-        await self.graphql_client.class_create(
+    async def create_class(self, obj: Class) -> UUID:
+        class_ = await self.graphql_client.class_create(
             input=ClassCreateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
@@ -702,9 +707,10 @@ class MOAPI:
                 ),
             )
         )
+        return class_.uuid
 
-    async def create_org_unit(self, obj: OrganisationUnit) -> None:
-        await self.graphql_client.org_unit_create(
+    async def create_org_unit(self, obj: OrganisationUnit) -> UUID:
+        org_unit = await self.graphql_client.org_unit_create(
             input=OrganisationUnitCreateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
@@ -717,6 +723,7 @@ class MOAPI:
                 ),
             )
         )
+        return org_unit.uuid
 
     async def edit(self, edits: list[MOBase]) -> None:
         tasks = [self.edit_object(obj) for obj in edits]
@@ -725,29 +732,29 @@ class MOAPI:
         if exceptions:  # pragma: no cover
             raise ExceptionGroup("Exceptions during modification", exceptions)
 
-    async def edit_object(self, obj: MOBase) -> None:
+    async def edit_object(self, obj: MOBase) -> UUID:
         if isinstance(obj, Address):
-            await self.edit_address(obj)
+            return await self.edit_address(obj)
         elif isinstance(obj, Employee):  # pragma: no cover
-            await self.edit_employee(obj)
+            return await self.edit_employee(obj)
         elif isinstance(obj, Engagement):
-            await self.edit_engagement(obj)
+            return await self.edit_engagement(obj)
         elif isinstance(obj, ITUser):
-            await self.edit_ituser(obj)
+            return await self.edit_ituser(obj)
         elif isinstance(obj, ITSystem):
-            await self.edit_itsystem(obj)
+            return await self.edit_itsystem(obj)
         elif isinstance(obj, Class):
-            await self.edit_class(obj)
+            return await self.edit_class(obj)
         elif isinstance(obj, OrganisationUnit):
-            await self.edit_org_unit(obj)
+            return await self.edit_org_unit(obj)
         else:  # pragma: no cover
             raise NotImplementedError(f"Unable to edit {obj}")
 
-    async def edit_address(self, obj: Address) -> None:
+    async def edit_address(self, obj: Address) -> UUID:
         assert obj.person is not None
         assert obj.org_unit is None
         assert obj.value2 is None
-        await self.graphql_client.address_update(
+        address = await self.graphql_client.address_update(
             input=AddressUpdateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
@@ -763,8 +770,9 @@ class MOAPI:
                 ),
             ),
         )
+        return address.uuid
 
-    async def edit_employee(self, obj: Employee) -> None:  # pragma: no cover
+    async def edit_employee(self, obj: Employee) -> UUID:  # pragma: no cover
         # GraphQL employee_create actually updates if the employee already exists,
         # using validity from the CPR-number like with creates. We need to use this
         # undocumented feature of the GraphQL API to avoid calculating the validity
@@ -772,10 +780,10 @@ class MOAPI:
         # validity through the legacy ramodels employee object.
         # TODO: do not use create when we receive an employee object with proper
         # validity.
-        await self.create_employee(obj)
+        return await self.create_employee(obj)
 
-    async def edit_engagement(self, obj: Engagement) -> None:
-        await self.graphql_client.engagement_update(
+    async def edit_engagement(self, obj: Engagement) -> UUID:
+        engagement = await self.graphql_client.engagement_update(
             input=EngagementUpdateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
@@ -800,9 +808,10 @@ class MOAPI:
                 ),
             )
         )
+        return engagement.uuid
 
-    async def edit_ituser(self, obj: ITUser) -> None:
-        await self.graphql_client.ituser_update(
+    async def edit_ituser(self, obj: ITUser) -> UUID:
+        ituser = await self.graphql_client.ituser_update(
             input=ITUserUpdateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
@@ -817,9 +826,10 @@ class MOAPI:
                 ),
             )
         )
+        return ituser.uuid
 
-    async def edit_itsystem(self, obj: ITSystem) -> None:
-        await self.graphql_client.itsystem_update(
+    async def edit_itsystem(self, obj: ITSystem) -> UUID:
+        itsystem = await self.graphql_client.itsystem_update(
             input=ITSystemUpdateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
@@ -830,9 +840,10 @@ class MOAPI:
                 ),
             )
         )
+        return itsystem.uuid
 
-    async def edit_class(self, obj: Class) -> None:
-        await self.graphql_client.class_update(
+    async def edit_class(self, obj: Class) -> UUID:
+        class_ = await self.graphql_client.class_update(
             input=ClassUpdateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
@@ -849,9 +860,10 @@ class MOAPI:
                 ),
             )
         )
+        return class_.uuid
 
-    async def edit_org_unit(self, obj: OrganisationUnit) -> None:
-        await self.graphql_client.org_unit_update(
+    async def edit_org_unit(self, obj: OrganisationUnit) -> UUID:
+        org_unit = await self.graphql_client.org_unit_update(
             input=OrganisationUnitUpdateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
@@ -864,6 +876,7 @@ class MOAPI:
                 ),
             )
         )
+        return org_unit.uuid
 
     async def terminate(self, terminatees: list[Termination]) -> None:
         """Terminate a list of details.
@@ -890,50 +903,58 @@ class MOAPI:
         if exceptions:  # pragma: no cover
             raise ExceptionGroup("Exceptions during termination", exceptions)
 
-    async def terminate_object(self, uuid: UUID, at: datetime, motype: type) -> None:
+    async def terminate_object(self, uuid: UUID, at: datetime, motype: type) -> UUID:
         """Terminate a detail."""
         if issubclass(motype, Address):
-            await self.terminate_address(uuid, at)
+            return await self.terminate_address(uuid, at)
         elif issubclass(motype, Engagement):
-            await self.terminate_engagement(uuid, at)
+            return await self.terminate_engagement(uuid, at)
         elif issubclass(motype, ITUser):
-            await self.terminate_ituser(uuid, at)
+            return await self.terminate_ituser(uuid, at)
         elif issubclass(motype, ITSystem):
-            await self.terminate_itsystem(uuid, at)
+            return await self.terminate_itsystem(uuid, at)
         elif issubclass(motype, Class):
-            await self.terminate_class(uuid, at)
+            return await self.terminate_class(uuid, at)
         elif issubclass(motype, OrganisationUnit):
-            await self.terminate_org_unit(uuid, at)
+            return await self.terminate_org_unit(uuid, at)
         else:  # pragma: no cover
             raise NotImplementedError(f"Unable to terminate {motype}")
 
-    async def terminate_address(self, uuid: UUID, at: datetime) -> None:
-        await self.graphql_client.address_terminate(
+    async def terminate_address(self, uuid: UUID, at: datetime) -> UUID:
+        address = await self.graphql_client.address_terminate(
             AddressTerminateInput(uuid=uuid, to=at)
         )
+        return address.uuid
 
-    async def terminate_engagement(self, uuid: UUID, at: datetime) -> None:
-        await self.graphql_client.engagement_terminate(
+    async def terminate_engagement(self, uuid: UUID, at: datetime) -> UUID:
+        engagement = await self.graphql_client.engagement_terminate(
             EngagementTerminateInput(uuid=uuid, to=at)
         )
+        return engagement.uuid
 
-    async def terminate_ituser(self, uuid: UUID, at: datetime) -> None:
-        await self.graphql_client.ituser_terminate(
+    async def terminate_ituser(self, uuid: UUID, at: datetime) -> UUID:
+        ituser = await self.graphql_client.ituser_terminate(
             ITUserTerminateInput(uuid=uuid, to=at)
         )
+        return ituser.uuid
 
-    async def terminate_itsystem(self, uuid: UUID, at: datetime) -> None:
-        await self.graphql_client.itsystem_terminate(
+    async def terminate_itsystem(self, uuid: UUID, at: datetime) -> UUID:
+        itsystem = await self.graphql_client.itsystem_terminate(
             ITSystemTerminateInput(uuid=uuid, to=at)
         )
+        return itsystem.uuid
 
-    async def terminate_class(self, uuid: UUID, at: datetime) -> None:
-        await self.graphql_client.class_terminate(ClassTerminateInput(uuid=uuid, to=at))
+    async def terminate_class(self, uuid: UUID, at: datetime) -> UUID:
+        class_ = await self.graphql_client.class_terminate(
+            ClassTerminateInput(uuid=uuid, to=at)
+        )
+        return class_.uuid
 
-    async def terminate_org_unit(self, uuid: UUID, at: datetime) -> None:
-        await self.graphql_client.org_unit_terminate(
+    async def terminate_org_unit(self, uuid: UUID, at: datetime) -> UUID:
+        org_unit = await self.graphql_client.org_unit_terminate(
             OrganisationUnitTerminateInput(uuid=uuid, to=at)
         )
+        return org_unit.uuid
 
     async def create_mo_class(
         self,
