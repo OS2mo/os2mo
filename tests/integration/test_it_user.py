@@ -247,7 +247,7 @@ async def test_to_ldap(
                 "mo2ldap": """
                 {% set mo_employee_it_user = load_mo_it_user({"employee": {"uuids": [uuid]}, "itsystem": {"user_keys": ["ADtitle"]}, "from_date": None, "to_date": None}) %}
                 {% if mo_employee_it_user is none %}
-                    {% set mo_employee_it_user = create_mo_it_user(uuid, "ADtitle", "mytitle") %}
+                    {% set mo_employee_it_user = create_mo_it_user({"person": uuid, "itsystem": get_itsystem_uuid({"user_keys": ["ADtitle"]}), "user_key": "mytitle", "validity": {"start": mo_today()}}) %}
                 {% endif %}
 
                 {{

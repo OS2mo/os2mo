@@ -387,25 +387,14 @@ async def mo_addresses(
     return await graphql_client.addresses(addresses_filter)
 
 
-async def create_mo_it_user(
-    moapi: MOAPI, employee_uuid: UUID, itsystem_user_key: str, user_key: str
-) -> ITUser | None:
-    it_system_uuid = UUID(await moapi.get_it_system_uuid(itsystem_user_key))
-
-    # Make a new it-user
-    # TODO: Take all ITUser arguments in the function arguments?
-    it_user = ITUser(
-        user_key=user_key,
-        itsystem=it_system_uuid,
-        person=employee_uuid,
-        validity={"start": mo_today()},
-    )
-    await moapi.create_ituser(it_user)
+async def create_mo_it_user(moapi: MOAPI, it_user: dict[str, Any]) -> ITUser | None:
+    it_user_object = parse_obj_as(ITUser, it_user)
+    assert it_user_object.person is not None
+    uuid = await moapi.create_ituser(it_user_object)
     return await load_it_user(
         moapi,
         ITUserFilter(
-            employee=EmployeeFilter(uuids=[employee_uuid]),
-            itsystem=ITSystemFilter(user_keys=[itsystem_user_key]),
+            uuids=[uuid],
             from_date=None,
             to_date=None,
         ).dict(exclude_unset=True),
