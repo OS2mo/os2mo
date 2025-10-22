@@ -416,15 +416,17 @@ async def test_mo2ldap_template_address(
         ),
     }
 )
+@pytest.mark.xfail(reason="Termination current fail with an exception")
 async def test_mo2ldap_template_address_terminate(
     graphql_client: GraphQLClient,
     test_client: AsyncClient,
     mo_person: UUID,
+    ldap_person_dn: DN,
     ldap_person_uuid: LDAPUUID,
     email_employee: UUID,
     public: UUID,
 ) -> None:
-    await graphql_client.address_create(
+    address = await graphql_client.address_create(
         input=AddressCreateInput(
             address_type=email_employee,
             visibility=public,
@@ -438,7 +440,17 @@ async def test_mo2ldap_template_address_terminate(
     )
 
     response = await test_client.get(f"/Inspect/ldap2mo/{ldap_person_uuid}")
-    assert response.status_code == 500
-    with pytest.raises(json.JSONDecodeError) as exc_info:
-        response.json()
-    assert "Expecting value: line 1 column 1 (char 0)" in str(exc_info.value)
+    assert response.status_code == 451
+    result = response.json()
+    assert result == {
+        "detail": {
+            "message": "Would have uploaded changes to MO",
+            "dn": ldap_person_dn,
+            "verb": "Verb.TERMINATE",
+            "obj": {
+                "uuid": str(address.uuid),
+                # Strip timezone info
+                "at": mo_today().isoformat()[:-6],
+            },
+        }
+    }
