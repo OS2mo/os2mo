@@ -21,9 +21,6 @@ variables:
     PYTHONDEVMODE: "1"
     PYTHONMALLOC: "default"
 
-    MAX_WORKERS: "1"
-    GUNICORN_WORKERS: "1"
-
     DB_HOST: "mox-db"
     DB_NAME: "mox"
     DB_USER: "mox"
@@ -218,9 +215,6 @@ variables:
         # https://docs.python.org/3/library/devmode.html
         PYTHONDEVMODE: "1"
         PYTHONMALLOC: "default"
-
-        MAX_WORKERS: "1"
-        GUNICORN_WORKERS: "1"
 
         DB_HOST: "mox-db"
         DB_NAME: "mox"
