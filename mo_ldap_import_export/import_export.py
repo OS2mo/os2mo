@@ -652,7 +652,10 @@ class SyncTool:
             raise DryRunException(
                 "Would have uploaded changes to MO",
                 dn,
-                details={"verb": str(verb), "obj": jsonable_encoder(obj.dict())},
+                details={
+                    "verb": str(verb),
+                    "obj": jsonable_encoder(obj, exclude={"mo_class"}),
+                },
             )
 
         await self.dataloader.moapi.create_or_edit_mo_objects([operation])
