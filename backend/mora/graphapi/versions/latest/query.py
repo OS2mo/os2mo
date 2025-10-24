@@ -54,7 +54,7 @@ from .permissions import IsAuthenticatedPermission
 from .permissions import gen_read_permission
 from .permissions import gen_role_permission
 from .registration import Registration
-from .registration import registration_resolver
+from .registration_resolver import registration_resolver
 from .resolvers import address_resolver
 from .resolvers import association_resolver
 from .resolvers import class_resolver

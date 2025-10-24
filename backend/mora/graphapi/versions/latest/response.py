@@ -39,8 +39,7 @@ from .models import ClassRead
 from .models import FacetRead
 from .models import RoleBindingRead
 from .permissions import IsAuthenticatedPermission
-from .registration import Registration
-from .registration import registration_resolver
+from .registration_resolver import registration_resolver
 from .resolver_map import resolver_map
 from .seed_resolver import seed_resolver
 
