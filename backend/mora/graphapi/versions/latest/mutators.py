@@ -192,6 +192,7 @@ from .resolvers import organisation_unit_resolver
 from .resolvers import owner_resolver
 from .resolvers import related_unit_resolver
 from .resolvers import rolebinding_resolver
+from .response import Response
 from .role import create_rolebinding
 from .role import terminate_rolebinding
 from .role import update_rolebinding
@@ -210,7 +211,6 @@ from .schema import Organisation
 from .schema import OrganisationUnit
 from .schema import Owner
 from .schema import RelatedUnit
-from .schema import Response
 from .schema import RoleBinding
 
 logger = logging.getLogger(__name__)
