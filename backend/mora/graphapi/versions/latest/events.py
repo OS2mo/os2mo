@@ -21,11 +21,11 @@ from mora.auth.middleware import get_authenticated_user
 from mora.db import AsyncSession
 
 from ..latest.filters import gen_filter_string
+from .graphql_utils import uuid2list
 from .paged import CursorType
 from .paged import LimitType
 from .permissions import IsAuthenticatedPermission
 from .permissions import gen_read_permission
-from .schema import uuid2list
 from .seed_resolver import seed_resolver
 
 

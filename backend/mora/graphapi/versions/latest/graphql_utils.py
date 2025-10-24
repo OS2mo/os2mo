@@ -36,3 +36,17 @@ class LoadKey(NamedTuple):
     uuid: UUID
     start: datetime | UnsetType | None
     end: datetime | UnsetType | None
+
+
+def uuid2list(uuid: UUID | None) -> list[UUID]:
+    """Convert an optional uuid to a list.
+
+    Args:
+        uuid: Optional uuid to wrap in a list.
+
+    Return:
+        Empty list if uuid was none, single element list containing the uuid otherwise.
+    """
+    if uuid is None:
+        return []
+    return [uuid]

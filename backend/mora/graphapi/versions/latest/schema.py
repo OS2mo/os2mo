@@ -75,6 +75,7 @@ from .filters import ManagerFilter
 from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .graphql_utils import LoadKey
+from .graphql_utils import uuid2list
 from .health import health_map
 from .lazy import LazyAddress
 from .lazy import LazyAssociation
@@ -183,20 +184,6 @@ def force_none_return_wrapper(func: Callable) -> Callable:
             return None
 
     return wrapper
-
-
-def uuid2list(uuid: UUID | None) -> list[UUID]:
-    """Convert an optional uuid to a list.
-
-    Args:
-        uuid: Optional uuid to wrap in a list.
-
-    Return:
-        Empty list if uuid was none, single element list containing the uuid otherwise.
-    """
-    if uuid is None:
-        return []
-    return [uuid]
 
 
 def model2name(model: Any) -> Any:
