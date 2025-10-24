@@ -7,6 +7,9 @@ from uuid import UUID
 
 import strawberry
 
+from .actor import Actor
+from .actor import actor_uuid_to_actor
+
 MOObject = TypeVar("MOObject")
 
 
@@ -77,6 +80,16 @@ class Registration:
         """
         )
     )
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            Object for the actor (integration or user) who changed the data.
+            """
+        )
+    )
+    async def actor_object(self, root: "Registration", info: strawberry.Info) -> Actor:
+        return await actor_uuid_to_actor(root.actor, info=info)
 
     # Name of the entity model
     model: str = strawberry.field(

@@ -23,6 +23,7 @@ from mora.exceptions import HTTPException
 from mora.graphapi.custom_schema import CustomSchema
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.version import Version
+from mora.graphapi.versions.latest.actor import PersonActor
 from mora.graphapi.versions.latest.actor import SpecialActor
 from mora.graphapi.versions.latest.actor import UnknownActor
 from mora.graphapi.versions.latest.mutators import Mutation
@@ -130,6 +131,7 @@ def get_schema(version: Version) -> CustomSchema:
             DARAddress,
             MultifieldAddress,
             SpecialActor,
+            PersonActor,
             UnknownActor,
         ],
         extensions=[

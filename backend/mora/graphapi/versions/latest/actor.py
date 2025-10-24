@@ -6,8 +6,12 @@ from textwrap import dedent
 from uuid import UUID
 
 import strawberry
+from more_itertools import flatten
+from more_itertools import only
 from strawberry.types import Info
 
+from backend.mora.graphapi.versions.latest.filters import ITUserFilter
+from backend.mora.graphapi.versions.latest.resolvers import it_user_resolver
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import LEGACY_AUTH_UUID
 from mora.auth.keycloak.oidc import NO_AUTH_UUID
@@ -15,6 +19,7 @@ from mora.auth.middleware import LORA_USER_UUID
 from mora.auth.middleware import MISSING_UUID_ON_TOKEN_UUID
 from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from mora.auth.middleware import UNABLE_TO_PARSE_TOKEN_UUID
+from mora.graphapi.gmodels.mo.employee import EmployeeRead
 
 from .events import Listener
 from .events import Namespace
@@ -22,9 +27,12 @@ from .events import listener_resolver
 from .events import namespace_resolver
 from .permissions import IsAuthenticatedPermission
 from .permissions import gen_read_permission
+from .response import Response
+from .schema import Employee
 from .seed_resolver import seed_resolver
 
 BEFORE_ACTOR_UUID = UUID("42c432e8-9c4a-11e6-9f62-873cf34a735f")
+ACTOR_NAME_LOADER_KEY = "actor_name_loader"
 
 
 @strawberry.enum
@@ -107,6 +115,15 @@ class Actor:
     )
 
 
+@strawberry.type
+class PersonActor(Actor):
+    person_uuid: strawberry.Private[UUID]
+
+    @strawberry.field
+    async def person(self, root: "PersonActor") -> Response[Employee]:
+        return Response[EmployeeRead](uuid=root.person_uuid)  # type: ignore
+
+
 @strawberry.type(
     description=dedent(
         """\
@@ -139,7 +156,7 @@ class UnknownActor(Actor):
     error: str = strawberry.field(description="Descriptive error message")
 
 
-def actor_uuid_to_actor(actor_uuid: UUID | None) -> Actor:
+async def actor_uuid_to_actor(actor_uuid: UUID | None, info: Info) -> Actor:
     """Translate an actor UUID to its corresponding Actor object.
 
     Args:
@@ -163,8 +180,17 @@ def actor_uuid_to_actor(actor_uuid: UUID | None) -> Actor:
         HardcodedActor(actor_uuid)
         return SpecialActor(uuid=actor_uuid)
 
-    # TODO: Add PersonActor type and resolve it here
-    #       Be sure to check whether the user has permission to resolve people
+    # Check if the UUID is an it-user
+    result = await it_user_resolver(
+        info=info,
+        filter=ITUserFilter(
+            external_ids=[str(actor_uuid)], from_date=None, to_date=None
+        ),
+    )
+    if result:
+        person_uuid = only({r.employee_uuid for r in flatten(result.values())})
+        return PersonActor(uuid=actor_uuid, person_uuid=person_uuid)
+
     # TODO: Add IntegrationActor type and resolve it here
     #       Be sure to check whether the user has permission to resolve integrations
 
@@ -197,7 +223,7 @@ class Myself:
 async def myself_resolver(info: Info) -> Myself:
     token: Token = await info.context["get_token"]()
     return Myself(
-        actor=actor_uuid_to_actor(token.uuid),
+        actor=await actor_uuid_to_actor(token.uuid, info=info),
         email=token.email,
         username=token.preferred_username,
         roles=sorted(token.realm_access.roles),
