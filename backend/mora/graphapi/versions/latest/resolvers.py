@@ -182,7 +182,7 @@ async def registration_filter(info: Info, filter: Any) -> None:
     if filter.registration is None:
         return
     # coverage: pause
-    from .registration import registration_resolver
+    from .registration_resolver import registration_resolver
 
     uuids = lora_filter(
         await filter2uuids_func(
