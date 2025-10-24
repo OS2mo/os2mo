@@ -139,7 +139,7 @@ class UnknownActor(Actor):
     error: str = strawberry.field(description="Descriptive error message")
 
 
-def actor_uuid_to_actor(actor_uuid: UUID | None) -> Actor:
+async def actor_uuid_to_actor(actor_uuid: UUID | None, info: Info) -> Actor:
     """Translate an actor UUID to its corresponding Actor object.
 
     Args:
@@ -197,7 +197,7 @@ class Myself:
 async def myself_resolver(info: Info) -> Myself:
     token: Token = await info.context["get_token"]()
     return Myself(
-        actor=actor_uuid_to_actor(token.uuid),
+        actor=await actor_uuid_to_actor(token.uuid, info=info),
         email=token.email,
         username=token.preferred_username,
         roles=sorted(token.realm_access.roles),

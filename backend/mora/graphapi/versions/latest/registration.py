@@ -31,6 +31,8 @@ from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRegistrering
 from mora.util import parsedatetime
 
+from .actor import Actor
+from .actor import actor_uuid_to_actor
 from .filters import RegistrationFilter
 from .paged import CursorType
 from .paged import LimitType
@@ -106,6 +108,16 @@ class Registration:
         """
         )
     )
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            Object for the actor (integration or user) who changed the data.
+            """
+        )
+    )
+    async def actor_object(self, root: "Registration", info: Info) -> Actor:
+        return await actor_uuid_to_actor(root.actor, info=info)
 
     # Name of the entity model
     model: str = strawberry.field(
