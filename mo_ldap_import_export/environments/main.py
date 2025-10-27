@@ -4,11 +4,13 @@ import asyncio
 import string
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
+from collections.abc import Callable
 from contextlib import suppress
 from datetime import UTC
 from datetime import datetime
 from functools import partial
 from typing import Any
+from typing import ParamSpec
 from typing import Protocol
 from typing import TypeVar
 from typing import cast
@@ -88,6 +90,7 @@ from .generate_username import generate_username
 from .generate_username import generate_username_permutation
 
 logger = structlog.stdlib.get_logger()
+P = ParamSpec("P")
 T = TypeVar("T")
 
 
@@ -748,6 +751,16 @@ def skip_if_none(obj: T | None) -> T:
     return obj
 
 
+def skip_if_exception(func: Callable[P, T]) -> Callable[P, T]:
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        try:
+            return func(*args, **kwargs)
+        except Exception as exc:
+            raise SkipObject(f"Skipping: '{func.__name__}' due to: '{exc}'") from exc
+
+    return wrapper
+
+
 def requeue_if_none(obj: T | None) -> T:
     if obj is None:
         raise RequeueMessage("Requeueing: Object is None")
@@ -1098,6 +1111,7 @@ def construct_default_environment() -> Environment:
     environment.globals["now"] = lambda: datetime.now(tz=UTC)
     environment.globals["mo_today"] = mo_today
     environment.globals["skip_if_none"] = skip_if_none
+    environment.globals["skip_if_exception"] = skip_if_exception
     environment.globals["requeue_if_none"] = requeue_if_none
     environment.globals["assert_not_none"] = assert_not_none
     environment.globals["uuid4"] = uuid4
