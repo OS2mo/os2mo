@@ -751,12 +751,12 @@ def skip_if_none(obj: T | None) -> T:
     return obj
 
 
-def skip_if_exception(func: Callable[P, T]) -> Callable[P, T]:
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+def skip_if_exception(func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         try:
-            return func(*args, **kwargs)
+            return await func(*args, **kwargs)
         except Exception as exc:
-            raise SkipObject(f"Skipping: '{func.__name__}' due to: '{exc}'") from exc
+            raise SkipObject(f"Skipping due to: '{exc}'") from exc
 
     return wrapper
 
