@@ -568,6 +568,11 @@ class Settings(BaseSettings):
         description="Check that OU is below or equal one of these, see #57426",
     )
 
+    ldap_to_mo_legacy_skip_invalid_cpr_accounts: bool = Field(
+        False,
+        description="Skip LDAP accounts with invalid CPR number.",
+    )
+
     discriminator_legacy_bypass_via_itsystem: UUID | None = Field(
         None,
         description="Flag to bypass the discriminator logic with a sorry attempt at using MO itusers leftover from the old AD integration instead. This flag should be eliminated as soon as possible.",

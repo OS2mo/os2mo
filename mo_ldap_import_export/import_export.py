@@ -32,6 +32,7 @@ from .dataloaders import NoGoodLDAPAccountFound
 from .environments.main import get_or_create_job_function_uuid
 from .exceptions import DryRunException
 from .exceptions import IncorrectMapping
+from .exceptions import InvalidCPR
 from .exceptions import SkipObject
 from .ldap import apply_discriminator
 from .ldap import filter_dns
@@ -473,7 +474,12 @@ class SyncTool:
             return
 
         # Get the employee's UUID (if they exists)
-        employee_uuid = await self.dataloader.find_mo_employee_uuid(dn)
+        try:
+            employee_uuid = await self.dataloader.find_mo_employee_uuid(dn)
+        except InvalidCPR:  # pragma: no cover
+            if self.settings.ldap_to_mo_legacy_skip_invalid_cpr_accounts:
+                return
+            raise
         if employee_uuid:
             # If we found an employee UUID, we want to use that to find all DNs
             dns = await self.dataloader.find_mo_employee_dn(employee_uuid)
