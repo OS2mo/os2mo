@@ -76,6 +76,20 @@ from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .graphql_utils import LoadKey
 from .health import health_map
+from .lazy import LazyAddress
+from .lazy import LazyAssociation
+from .lazy import LazyClass
+from .lazy import LazyEmployee
+from .lazy import LazyEngagement
+from .lazy import LazyFacet
+from .lazy import LazyITSystem
+from .lazy import LazyITUser
+from .lazy import LazyKLE
+from .lazy import LazyLeave
+from .lazy import LazyManager
+from .lazy import LazyOrganisationUnit
+from .lazy import LazyRelatedUnit
+from .lazy import LazyRoleBinding
 from .models import AddressRead
 from .models import ClassRead
 from .models import FacetRead
@@ -456,25 +470,6 @@ def response2model(response: Response[MOObject]) -> MOObject:
         )
     model = get_args(response.__orig_class__)[0]
     return model
-
-
-LazySchema = strawberry.lazy(".schema")
-
-LazyAddress = Annotated["Address", LazySchema]
-LazyAssociation = Annotated["Association", LazySchema]
-LazyClass = Annotated["Class", LazySchema]
-LazyEmployee = Annotated["Employee", LazySchema]
-LazyEngagement = Annotated["Engagement", LazySchema]
-LazyFacet = Annotated["Facet", LazySchema]
-LazyITSystem = Annotated["ITSystem", LazySchema]
-LazyITUser = Annotated["ITUser", LazySchema]
-LazyKLE = Annotated["KLE", LazySchema]
-LazyLeave = Annotated["Leave", LazySchema]
-LazyManager = Annotated["Manager", LazySchema]
-LazyOwner = Annotated["Owner", LazySchema]
-LazyOrganisationUnit = Annotated["OrganisationUnit", LazySchema]
-LazyRelatedUnit = Annotated["RelatedUnit", LazySchema]
-LazyRoleBinding = Annotated["RoleBinding", LazySchema]
 
 
 def gen_uuid_field_deprecation(field: str) -> str:
