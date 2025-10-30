@@ -11,10 +11,12 @@ from inspect import Parameter
 from inspect import signature
 from types import NoneType
 from typing import Any
+from typing import ParamSpec
 from typing import TypeVar
 
 import strawberry
 
+P = ParamSpec("P")
 R = TypeVar("R")
 
 
@@ -163,3 +165,79 @@ def seed_resolver(
     seeded_resolver.__signature__ = new_sig  # type: ignore[attr-defined]
 
     return seeded_resolver
+
+
+def strip_args(
+    resolver_func: Callable[P, Awaitable[R]],
+    remove_parameters: set[str] | None = None,
+) -> Callable[..., Awaitable[R]]:
+    """Strip parameters from the provided resolver function.
+
+    This function serves to filter out parameters from the provided resolver, such that
+    the caller does not see the parameter and thus cannot override the default value.
+
+    This is useful if the removed parameters serve no purpose in the given call context,
+    for instance pagination controls when a single object is returned.
+
+    Example:
+        A resolver exists to load classes, namely `class_resolver`.
+        This resolver accepts both a `cursor` and a `limit` parameter which can be used
+        to paginate through the result set. This is useful for the top-level `Query`
+        object context in which the result set is actually `Paged`, it is however
+        meaningless for say the `address_type` class on `Address`es, since they have
+        one and always one entry in the result set.
+
+        Thus we wish to remove the parameters as they would just be confusing for the
+        GraphQL user and provide no value whatsoever. This can be achieved by setting
+        `remove_parameters` to the set `{"cursor", "filter"}`:
+        ```
+        address_type_response: Response[LazyClass] = strawberry.field(
+            resolver=to_response(LazyClass)(
+                strip_args(
+                    seed_resolver(
+                        class_resolver, {"uuids": lambda root: [root.address_type_uuid]}
+                    ),
+                    {"cursor", "limit"}
+                )
+            ),
+            ...
+        )
+        ```
+
+    Args:
+        resolver_func: The top-level resolver function to remove arguments from.
+        remove_parameters: A set of parameter names to remove.
+
+    Returns:
+        A stripped resolver function that accepts the same parameters as `resolver_func`,
+        except for the parameters with names matching `remove_parameters`, all removed
+        parameters must have default values or be optional.
+    """
+    # If remove_parameters is not set, we do not need to modify the resolver function
+    if not remove_parameters:
+        return resolver_func
+
+    assert "root" not in remove_parameters, "Cannot remove parameter: root"
+    assert "info" not in remove_parameters, "Cannot remove parameter: info"
+
+    # Wrap the original resolver to assert that the stripped fields are not provided
+    async def stripped_resolver(*args: P.args, **kwargs: P.kwargs) -> R:
+        # Ensure that we did not get called with removed parameters
+        for key in kwargs.keys():
+            assert key not in remove_parameters, (
+                f"stripped_resolver called with removed key: {key}"
+            )
+
+        return await resolver_func(*args, **kwargs)  # type: ignore[misc]
+
+    # Remove the configured parameters from our signature ensuring they cannot be set by
+    # the GraphQL caller and thus always get called with their default values.
+    sig = signature(resolver_func)
+    parameters = sig.parameters.copy()
+    for key in remove_parameters:
+        parameters.pop(key)
+    new_sig = sig.replace(parameters=list(parameters.values()))
+
+    # Update our signature and return the stripped resolver function
+    stripped_resolver.__signature__ = new_sig  # type: ignore[attr-defined]
+    return stripped_resolver
