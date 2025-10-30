@@ -89,6 +89,39 @@ PRETTIER_SCRIPT = """
 </script>
 """
 
+# Snippet to optionally strip deprecated fields from GraphQL introspection queries
+# GraphiQL uses the introspection query provided by graphql.js to do introspection
+# The getIntrospectionQuery method is hardcoded to always return deprecated fields
+# See: https://github.com/graphql/graphql-js/blob/v16.0.0/src/utilities/getIntrospectionQuery.ts#L88
+# The below defines a custom GraphiQL fetcher, which strips deprecation from the
+# introspection query based on the "show_deprecated" URL parameter
+NO_DEPRECATION_FETCHER_SNIPPER = """
+const DEFAULT_INTROSPECTION_OPERATION = 'IntrospectionQuery';
+const query_string = window.location.search;
+const url_parameters = new URLSearchParams(query_string);
+const show_deprecated = url_parameters.get('show_deprecated');
+
+const no_deprecation_fetcher = (graphQLParams, opts) => {
+    // If configured to show deprecated fields use the default fetcher
+    if (show_deprecated === "1") {
+        return fetcher(graphQLParams, opts);
+    }
+
+    // At this point we are configured to hide deprecated fields
+    // If we are not running an introspection query use the default fetcher
+    if (graphQLParams.operationName !== DEFAULT_INTROSPECTION_OPERATION) {
+        return fetcher(graphQLParams, opts);
+    }
+
+    // At this point we are running an introspection query
+    console.log('Intercepted default introspection, removing deprecated fields.');
+    // Strip all deprecation inclusion arguments from the query
+    const deprecation_argument = "(includeDeprecated: true)";
+    graphQLParams["query"] = graphQLParams["query"].replaceAll(deprecation_argument, "");
+    return fetcher(graphQLParams, opts);
+};
+"""
+
 
 class CustomGraphQLRouter(GraphQLRouter):
     """Custom GraphQL router to inject HTML into the GraphiQL interface."""
@@ -117,5 +150,13 @@ class CustomGraphQLRouter(GraphQLRouter):
         # https://github.com/unpkg/unpkg/issues/412
         # https://github.com/strawberry-graphql/strawberry/issues/3826
         html = html.replace("https://unpkg.com", "https://cdn.jsdelivr.net/npm")
+
+        # Add our custom fetcher to GraphiQL, we use the "root.render" as an insertion
+        # marker inserting our custom code just above the render call.
+        RENDER_MARKER = "root.render("
+        html = html.replace(
+            RENDER_MARKER, NO_DEPRECATION_FETCHER_SNIPPER + "\n" + RENDER_MARKER
+        )
+        html = html.replace("fetcher: fetcher,", "fetcher: no_deprecation_fetcher,")
 
         return HTMLResponse(html)
