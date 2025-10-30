@@ -76,6 +76,7 @@ from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .graphql_utils import LoadKey
 from .health import health_map
+from .model2name import model2name
 from .models import AddressRead
 from .models import ClassRead
 from .models import FacetRead
@@ -170,25 +171,6 @@ def force_none_return_wrapper(func: Callable) -> Callable:
             return None
 
     return wrapper
-
-
-def model2name(model: Any) -> Any:
-    mapping = {
-        ClassRead: "class",
-        EmployeeRead: "employee",
-        FacetRead: "facet",
-        OrganisationUnitRead: "org_unit",
-        AddressRead: "address",
-        AssociationRead: "association",
-        EngagementRead: "engagement",
-        ITSystemRead: "itsystem",
-        ITUserRead: "ituser",
-        KLERead: "kle",
-        LeaveRead: "leave",
-        RoleBindingRead: "rolebinding",
-        ManagerRead: "manager",
-    }
-    return mapping[model]
 
 
 @strawberry.type(
