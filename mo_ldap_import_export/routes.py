@@ -24,6 +24,7 @@ from ldap3.protocol import oid
 from more_itertools import always_iterable
 from more_itertools import bucket
 from more_itertools import one
+from more_itertools import only
 from pydantic import parse_obj_as
 
 from mo_ldap_import_export.ldap_event_generator import MICROSOFT_EPOCH
@@ -728,16 +729,21 @@ def construct_router(settings: Settings) -> APIRouter:
             raise HTTPException(status_code=404, detail="No DNs found for CPR number")
 
         dns = await filter_dns(settings, ldap_connection, dns)
-        mo_uuid = one(
-            await dataloader.moapi.cpr2uuids(cpr_number),
-            too_short=HTTPException(status_code=404, detail="Person not found in MO"),
-        )
-        best_dn = await apply_discriminator(
-            settings, ldap_connection, dataloader.moapi, mo_uuid, dns
+
+        # SD-changed-at only calls this endpoint when creating users in MO (to
+        # know which UUID to use), but apply_discriminator requires a MO person
+        # UUID. Therefore, we cannot apply discriminator here, but must assume
+        # only a single DN exists.
+        best_dn = only(
+            dns,
+            too_long=HTTPException(
+                status_code=501,
+                detail="Multiple DNs found, but unable to apply_discriminator",
+            ),
         )
         if best_dn is None:
-            logger.info("No DNs survived discriminator")
-            raise HTTPException(status_code=404, detail="No DNs survived discriminator")
+            logger.info("No DNs found")
+            raise HTTPException(status_code=404, detail="No DNs found")
 
         # Note: get_ldap_object handles ADs non-standard entryUUID lookup format
         ldap_object = await get_ldap_object(ldap_connection, best_dn, attributes)
