@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import uuid
 from datetime import datetime
+from unittest import TestCase
 from unittest.mock import patch
 
 import freezegun
@@ -312,8 +313,9 @@ def test_v2_search_orgunit_by_name(mock_get_settings, service_client: TestClient
     )
 
     assert response.status_code == 200
-    assert response.json() == {
-        "items": [
+    TestCase().assertCountEqual(
+        response.json()["items"],
+        [
             {
                 "uuid": "68c5d78e-ae26-441f-a143-0103eca8b62a",
                 "name": "Social og sundhed",
@@ -328,8 +330,8 @@ def test_v2_search_orgunit_by_name(mock_get_settings, service_client: TestClient
                 "attrs": [],
                 "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
             },
-        ]
-    }
+        ],
+    )
 
 
 @pytest.mark.integration_test

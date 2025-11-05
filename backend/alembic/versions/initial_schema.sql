@@ -569,7 +569,7 @@ CREATE OR REPLACE FUNCTION _uuid_to_text(UUID) RETURNS TEXT AS 'SELECT $1::TEXT'
 -- SPDX-License-Identifier: MPL-2.0
 
 
-CREATE OR REPLACE FUNCTION actual_state._json_object_delete_keys(json json, keys_to_delete TEXT[])
+CREATE OR REPLACE FUNCTION actual_state._json_object_delete_keys(jsonblob json, keys_to_delete TEXT[])
   RETURNS json
   LANGUAGE sql
   IMMUTABLE
@@ -577,7 +577,7 @@ CREATE OR REPLACE FUNCTION actual_state._json_object_delete_keys(json json, keys
 AS $function$
 SELECT COALESCE(
   (SELECT ('{' || string_agg(to_json(key) || ':' || value::json::text, ',') || '}')
-   FROM json_each(json)
+   FROM json_each(jsonblob)
    WHERE key not in (select key from unnest(keys_to_delete) as a(key))),
   '{}'
 )::json

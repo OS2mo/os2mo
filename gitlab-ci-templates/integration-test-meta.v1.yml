@@ -41,7 +41,7 @@ variables:
 .services:mo-backing:
   services:
     # LoRa postgres database
-    - name: postgres:11.22-bookworm
+    - name: postgres:18.0
       alias: mox-db
       # TODO: remove custom entrypoint when tests no longer depend on pgtap
       entrypoint:
@@ -50,7 +50,7 @@ variables:
         - |
           # Install pgtap
           apt-get update
-          apt-get install -y postgresql-11-pgtap
+          apt-get install -y postgresql-18-pgtap
           # Run image as normally (from `docker image inspect`)
           exec docker-entrypoint.sh postgres
       variables:
@@ -259,7 +259,7 @@ variables:
             echo 'OS2MO_INIT_CONFIG is empty: Skipping OS2mo-init'
           fi
           touch /builds/.os2mo-init-finished
-    - name: postgres:16
+    - name: postgres:18
       alias: db
       command: ["postgres", "-c", "port=54321"]
       variables:
