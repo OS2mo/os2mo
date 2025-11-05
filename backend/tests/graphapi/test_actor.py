@@ -10,20 +10,21 @@ from more_itertools import one
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_reading_actor(graphapi_post, set_auth) -> None:
-    """Integrationtest for reading PersonActor."""
+    """Integrationtest for reading UserActor."""
     # Set the logged in user to have a known uuid
     objectguid = uuid4()
     set_auth("admin", objectguid)
     # Create an it-account with this uuid in external id
+    anders_and = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
     it = graphapi_post(
         """
-            mutation MyMutation($external_id: String!) {
+            mutation MyMutation($external_id: String!, $person_uuid: UUID!) {
               ituser_create(
                 input: {
-                  person: "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+                  person: $person_uuid
                   validity: { from: "2020-08-01" }
                   itsystem: "0872fb72-926d-4c5c-a063-ff800b8ee697"
-                  user_key: "username"
+                  user_key: "AA"
                   external_id: $external_id
                 }
               ) {
@@ -31,7 +32,7 @@ async def test_reading_actor(graphapi_post, set_auth) -> None:
               }
             }
         """,
-        variables={"external_id": str(objectguid)},
+        variables={"external_id": str(objectguid), "person_uuid": anders_and},
     )
     assert it.errors is None
 
@@ -59,25 +60,29 @@ async def test_reading_actor(graphapi_post, set_auth) -> None:
     # Fetch registrations and the person who made the registrations
     response = graphapi_post(
         """
-        query ReadObjectRegistration($uuid: UUID!) {
-          org_units(filter: {uuids: [$uuid]}) {
-            objects {
-              uuid
-              registrations {
-              actor
-              actor_object {
-                ... on PersonActor {
-                  person {
-                    current {
-                      name
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+           query ReadObjectRegistration($uuid: UUID!) {
+             org_units(filter: { uuids: [$uuid] }) {
+               objects {
+                 uuid
+                 registrations {
+                   actor
+                   actor_object {
+                     ... on UserActor {
+                       it_user {
+                         current {
+                           user_key
+                           person {
+                             name
+                             uuid
+                           }
+                         }
+                       }
+                     }
+                   }
+                 }
+               }
+             }
+           }
     """,
         {"uuid": uuid},
     )
@@ -90,6 +95,10 @@ async def test_reading_actor(graphapi_post, set_auth) -> None:
     old_registration, new_registration = org_unit["registrations"]
     # The first is not made by a person
     assert old_registration["actor_object"] == {}
+    assert old_registration["actor"] == "5ec0fa11-baad-1110-006d-696477617265"
     # The other is created by Anders And
     assert UUID(new_registration["actor"]) == objectguid
-    assert new_registration["actor_object"]["person"]["current"]["name"] == "Anders And"
+    assert new_registration["actor_object"]["it_user"]["current"]["user_key"] == "AA"
+    actor_person = one(new_registration["actor_object"]["it_user"]["current"]["person"])
+    assert actor_person["uuid"] == anders_and
+    assert actor_person["name"] == "Anders And"

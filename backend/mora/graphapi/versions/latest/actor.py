@@ -6,7 +6,6 @@ from textwrap import dedent
 from uuid import UUID
 
 import strawberry
-from more_itertools import flatten
 from more_itertools import only
 from strawberry.types import Info
 
@@ -19,7 +18,7 @@ from mora.auth.middleware import LORA_USER_UUID
 from mora.auth.middleware import MISSING_UUID_ON_TOKEN_UUID
 from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from mora.auth.middleware import UNABLE_TO_PARSE_TOKEN_UUID
-from mora.graphapi.gmodels.mo.employee import EmployeeRead
+from mora.graphapi.gmodels.mo.details.it_system import ITUserRead
 
 from .events import Listener
 from .events import Namespace
@@ -28,7 +27,7 @@ from .events import namespace_resolver
 from .permissions import IsAuthenticatedPermission
 from .permissions import gen_read_permission
 from .response import Response
-from .schema import Employee
+from .schema import ITUser
 from .seed_resolver import seed_resolver
 
 BEFORE_ACTOR_UUID = UUID("42c432e8-9c4a-11e6-9f62-873cf34a735f")
@@ -116,12 +115,12 @@ class Actor:
 
 
 @strawberry.type
-class PersonActor(Actor):
-    person_uuid: strawberry.Private[UUID]
+class UserActor(Actor):
+    external_id: strawberry.Private[UUID]
 
     @strawberry.field
-    async def person(self, root: "PersonActor") -> Response[Employee]:
-        return Response[EmployeeRead](uuid=root.person_uuid)  # type: ignore
+    async def it_user(self, root: "UserActor") -> Response[ITUser]:
+        return Response[ITUserRead](uuid=root.external_id)  # type: ignore
 
 
 @strawberry.type(
@@ -188,8 +187,7 @@ async def actor_uuid_to_actor(actor_uuid: UUID | None, info: Info) -> Actor:
         ),
     )
     if result:
-        person_uuid = only({r.employee_uuid for r in flatten(result.values())})
-        return PersonActor(uuid=actor_uuid, person_uuid=person_uuid)
+        return UserActor(uuid=actor_uuid, external_id=only(result))
 
     # TODO: Add IntegrationActor type and resolve it here
     #       Be sure to check whether the user has permission to resolve integrations
