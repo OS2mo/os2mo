@@ -9,7 +9,9 @@ import strawberry
 from more_itertools import only
 from strawberry.types import Info
 
+from backend.mora.graphapi.versions.latest.filters import EmployeeFilter
 from backend.mora.graphapi.versions.latest.filters import ITUserFilter
+from backend.mora.graphapi.versions.latest.resolvers import employee_resolver
 from backend.mora.graphapi.versions.latest.resolvers import it_user_resolver
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import LEGACY_AUTH_UUID
@@ -19,6 +21,7 @@ from mora.auth.middleware import MISSING_UUID_ON_TOKEN_UUID
 from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from mora.auth.middleware import UNABLE_TO_PARSE_TOKEN_UUID
 from mora.graphapi.gmodels.mo.details.it_system import ITUserRead
+from mora.graphapi.gmodels.mo.employee import EmployeeRead
 
 from .events import Listener
 from .events import Namespace
@@ -27,6 +30,7 @@ from .events import namespace_resolver
 from .permissions import IsAuthenticatedPermission
 from .permissions import gen_read_permission
 from .response import Response
+from .schema import Employee
 from .schema import ITUser
 from .seed_resolver import seed_resolver
 
@@ -116,11 +120,18 @@ class Actor:
 
 @strawberry.type
 class UserActor(Actor):
-    external_id: strawberry.Private[UUID]
+    person_uuid: strawberry.Private[UUID]
+    it_user_uuid: strawberry.Private[UUID | None]
 
     @strawberry.field
-    async def it_user(self, root: "UserActor") -> Response[ITUser]:
-        return Response[ITUserRead](uuid=root.external_id)  # type: ignore
+    async def it_user(self, root: "UserActor") -> Response[ITUser] | None:
+        if not root.it_user_uuid:
+            return None
+        return Response[ITUserRead](uuid=root.it_user_uuid)  # type: ignore
+
+    @strawberry.field
+    async def person(self, root: "UserActor") -> Response[Employee]:
+        return Response[EmployeeRead](uuid=root.person_uuid)  # type: ignore
 
 
 @strawberry.type(
@@ -186,8 +197,22 @@ async def actor_uuid_to_actor(actor_uuid: UUID | None, info: Info) -> Actor:
             external_ids=[str(actor_uuid)], from_date=None, to_date=None
         ),
     )
-    if result:
-        return UserActor(uuid=actor_uuid, external_id=only(result))
+    # If there is an it_user we expect only one.
+    it_user = only(only(result.values(), []))
+    # If not check if there is a MO-person with this uuid
+    person = only(
+        await employee_resolver(info=info, filter=EmployeeFilter(uuids=[actor_uuid]))
+    )
+
+    if it_user or person:
+        # The UserActor always has a "person", which can either come from the employee on an it-user
+        # or directly from the person-object having the same uuid as the "actor" uuid. In the last case
+        # there are no it-user.
+        return UserActor(
+            uuid=actor_uuid,
+            it_user_uuid=it_user.uuid if it_user else None,
+            person_uuid=it_user.employee_uuid if it_user else person,
+        )
 
     # TODO: Add IntegrationActor type and resolve it here
     #       Be sure to check whether the user has permission to resolve integrations
