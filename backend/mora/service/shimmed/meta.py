@@ -20,7 +20,6 @@ def meta_router():
             mo_hash
             mo_version
             lora_version
-            dipex_version
           }
         }
         """
