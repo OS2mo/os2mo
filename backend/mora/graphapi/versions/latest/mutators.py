@@ -2063,7 +2063,9 @@ async def refresh(
     uuids = page.objects
 
     # coverage: pause
-    if owner is None:
+    send_in_old_amqp = owner is None
+
+    if send_in_old_amqp:
         amqp_system = info.context["amqp_system"]
         tasks = (
             amqp_system.publish_message(
@@ -2075,8 +2077,11 @@ async def refresh(
             for uuid in uuids
         )
         await gather_with_concurrency(100, *tasks)
-
-    if owner is not None and exchange is None:
+    else:
+        if exchange is not None:
+            raise ValueError(
+                "owner and exchange are mutually exclusive. Exchanges are part of the legacy event system. If you are using GraphQL Events, do NOT use exchange."
+            )
         session: AsyncSession = info.context["session"]
         for uuid in uuids:
             await add_event(
@@ -2086,9 +2091,6 @@ async def refresh(
                 subject=str(uuid),
                 listener_owner=owner,
             )
-
-    if owner is None and exchange is None or owner is not None and exchange is not None:
-        raise ValueError("You must refresh with and owner or an exchange")
 
     # Return the page to reduce duplicated boilerplate in the callers
     return page
