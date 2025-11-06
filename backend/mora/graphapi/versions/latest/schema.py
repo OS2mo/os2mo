@@ -4688,24 +4688,6 @@ class Version:
         """
         return config.get_settings().commit_tag
 
-    @strawberry.field(
-        description=dedent(
-            """\
-            DIPEX version.
-
-            Contains a [semantic version](https://semver.org/) if configured.
-            Contains the `null` on development builds of OS2mo.
-
-            Examples:
-            * `null`
-            * `4.34.1`
-            * `4.28.0`
-            """
-        )
-    )
-    async def dipex_version(self) -> str | None:
-        return config.get_settings().confdb_dipex_version__do_not_use
-
 
 @strawberry.type(description="Status on whether a specific subsystem is working")
 class Health:
