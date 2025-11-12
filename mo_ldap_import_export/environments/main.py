@@ -108,6 +108,16 @@ def filter_mo_datestring(datetime_object):
     return datetime_object.strftime("%Y-%m-%dT00:00:00")
 
 
+def filter_strftime(datetime_object: datetime, format: str) -> str:
+    """Format datetime to string."""
+    return datetime_object.strftime(format)
+
+
+def filter_strptime(date_string: str, format: str) -> datetime:
+    """Parse string to datetime."""
+    return datetime.strptime(date_string, format)
+
+
 def filter_strip_non_digits(input_string):
     if not isinstance(input_string, str):
         return None
@@ -1103,6 +1113,8 @@ def construct_default_environment() -> Environment:
 
     environment.filters["bitwise_and"] = bitwise_and
     environment.filters["mo_datestring"] = filter_mo_datestring
+    environment.filters["strftime"] = filter_strftime
+    environment.filters["strptime"] = filter_strptime
     environment.filters["strip_non_digits"] = filter_strip_non_digits
     environment.filters["remove_curly_brackets"] = filter_remove_curly_brackets
     environment.filters["set"] = set

@@ -4,6 +4,7 @@
 import datetime
 
 from mo_ldap_import_export.environments.main import bitwise_and
+from mo_ldap_import_export.environments.main import construct_default_environment
 from mo_ldap_import_export.environments.main import filter_mo_datestring
 from mo_ldap_import_export.environments.main import filter_remove_curly_brackets
 from mo_ldap_import_export.environments.main import filter_strip_non_digits
@@ -38,3 +39,12 @@ def test_bitwise_and():
 
     result = bitwise_and(input=0x08, bitmask=0x03)
     assert result == 0
+
+
+async def test_strftime_strptime() -> None:
+    environment = construct_default_environment()
+    template = environment.from_string(
+        '{{ "2026-01-05" | strptime("%Y-%m-%d") | strftime("%d/%m/%Y") }}'
+    )
+    result = await template.render_async()
+    assert result == "05/01/2026"
