@@ -21,6 +21,7 @@ from mora.graphapi.schema import get_schema
 from mora.graphapi.version import LATEST_VERSION
 from mora.graphapi.version import Version
 from mora.graphapi.versions.latest.access_log import get_access_log_loaders
+from mora.graphapi.versions.latest.actor import get_actor_loaders
 from mora.graphapi.versions.latest.dataloaders import get_loaders
 
 router = APIRouter()
@@ -39,6 +40,7 @@ async def get_context(
         "amqp_system": amqp_system,
         "session": session,
         **get_access_log_loaders(session),
+        **get_actor_loaders(session),
     }
 
 
