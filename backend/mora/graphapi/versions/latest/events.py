@@ -25,8 +25,14 @@ from .paged import CursorType
 from .paged import LimitType
 from .permissions import IsAuthenticatedPermission
 from .permissions import gen_read_permission
-from .schema import uuid2list
 from .seed_resolver import seed_resolver
+
+
+def uuid2list(uuid: UUID | None) -> list[UUID]:
+    # delay import to avoid cycle
+    from .schema import uuid2list as _uuid2list
+
+    return _uuid2list(uuid)
 
 
 @strawberry.input(description="Listener filter.")
