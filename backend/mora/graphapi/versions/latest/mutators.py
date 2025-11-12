@@ -1832,7 +1832,7 @@ class Mutation:
             METRIC_ACKNOWLEDGED_EVENTS.labels(
                 owner=listener.owner,
                 user_key=listener.user_key,
-                namespace=listener.namespace_fk,
+                ns=listener.namespace_fk,
                 routing_key=listener.routing_key,
             ).inc()
         return True
