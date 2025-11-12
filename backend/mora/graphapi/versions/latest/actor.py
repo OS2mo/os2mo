@@ -2,10 +2,14 @@
 # SPDX-License-Identifier: MPL-2.0
 from contextlib import suppress
 from enum import Enum
+from functools import partial
 from textwrap import dedent
 from uuid import UUID
 
 import strawberry
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
 from mora.auth.keycloak.models import Token
@@ -15,6 +19,7 @@ from mora.auth.middleware import LORA_USER_UUID
 from mora.auth.middleware import MISSING_UUID_ON_TOKEN_UUID
 from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from mora.auth.middleware import UNABLE_TO_PARSE_TOKEN_UUID
+from mora.db import Actor as ActorTable
 
 from .events import Listener
 from .events import Namespace
@@ -25,6 +30,7 @@ from .permissions import gen_read_permission
 from .seed_resolver import seed_resolver
 
 BEFORE_ACTOR_UUID = UUID("42c432e8-9c4a-11e6-9f62-873cf34a735f")
+ACTOR_NAME_LOADER_KEY = "actor_name_loader"
 
 
 @strawberry.enum
@@ -74,6 +80,30 @@ class HardcodedActor(Enum):
         NO_AUTH_MIDDLEWARE_UUID,
         description="The change was made by-passing the authentication middleware",
     )
+
+
+async def actor_name_resolver(
+    session: AsyncSession, keys: list[UUID]
+) -> list[str | None]:
+    """Load actor names from database.
+
+    Args:
+        session: The database session to execute our query on.
+        keys: list of actor_uuids to lookup.
+
+    Returns:
+        List of actor names found via the lookup.
+    """
+    query = select(ActorTable).where(ActorTable.actor.in_(keys))
+    rows = (await session.scalars(query)).all()
+    results = {r.actor: r.name for r in rows}
+    return [results.get(id) for id in keys]
+
+
+def get_actor_loaders(session: AsyncSession) -> dict[str, DataLoader]:
+    return {
+        ACTOR_NAME_LOADER_KEY: DataLoader(load_fn=partial(actor_name_resolver, session))
+    }
 
 
 @strawberry.interface(
