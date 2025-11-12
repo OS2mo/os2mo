@@ -8,11 +8,14 @@ from collections.abc import Callable
 from uuid import UUID
 
 from fastapi import Depends
+from sqlalchemy.dialects.postgresql import insert
 from starlette_context import context
 from starlette_context import request_cycle_context
 
+from mora import depends
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import token_getter
+from mora.db import Actor
 from mora.log import canonical_log_context
 
 # This magical UUID was introduced into LoRas source code back in
@@ -37,12 +40,21 @@ _MIDDLEWARE_KEY = "authenticated_user"
 
 
 async def set_authenticated_user(
+    session: depends.Session,
     get_token: Callable[[], Awaitable[Token]] = Depends(token_getter),
 ) -> AsyncIterator[None]:
+    # TODO: refactor this auth method
+    # https://redmine.magenta.dk/issues/67592
     try:
         token = await get_token()
         uuid = token.uuid
         name = token.preferred_username
+        if uuid is not None:
+            await session.execute(
+                insert(Actor)
+                .values(actor=uuid, name=name)
+                .on_conflict_do_update(index_elements=["actor"], set_={"name": name})
+            )
     except Exception:
         uuid = UNABLE_TO_PARSE_TOKEN_UUID
         name = "Unable to parse token"
