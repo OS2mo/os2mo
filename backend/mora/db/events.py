@@ -30,25 +30,25 @@ DEFAULT_PRIORITY = 10000
 METRIC_EVENTS = Gauge(
     "os2mo_events",
     "Events",
-    ["owner", "user_key", "namespace", "routing_key", "silenced"],
+    ["owner", "user_key", "ns", "routing_key", "silenced"],
 )
 
 METRIC_OLD_EVENTS = Gauge(
     "os2mo_event_oldest",
     "Timestamp of oldest event per listener",
-    ["owner", "user_key", "namespace", "routing_key", "silenced"],
+    ["owner", "user_key", "ns", "routing_key", "silenced"],
 )
 
 METRIC_ACKNOWLEDGED_EVENTS = Counter(
     "os2mo_event_acknowledged",
     "Acknowledged events",
-    ["owner", "user_key", "namespace", "routing_key"],
+    ["owner", "user_key", "ns", "routing_key"],
 )
 
 METRIC_SENT_EVENTS = Counter(
     "os2mo_event_sent",
     "Sent events",
-    ["namespace", "routing_key"],
+    ["ns", "routing_key"],
 )
 
 
@@ -170,7 +170,7 @@ async def add_event(
 
     await session.execute(stmt)
 
-    METRIC_SENT_EVENTS.labels(namespace=namespace, routing_key=routing_key).inc()
+    METRIC_SENT_EVENTS.labels(ns=namespace, routing_key=routing_key).inc()
 
 
 def setup_event_metrics(instrumentator: Instrumentator) -> None:
@@ -208,7 +208,7 @@ def setup_event_metrics(instrumentator: Instrumentator) -> None:
                     METRIC_OLD_EVENTS.labels(
                         owner=listener.owner,
                         user_key=listener.user_key,
-                        namespace=listener.namespace_fk,
+                        ns=listener.namespace_fk,
                         routing_key=listener.routing_key,
                         silenced="false",
                     ).set(int(active.timestamp()))
@@ -216,7 +216,7 @@ def setup_event_metrics(instrumentator: Instrumentator) -> None:
                     METRIC_OLD_EVENTS.labels(
                         owner=listener.owner,
                         user_key=listener.user_key,
-                        namespace=listener.namespace_fk,
+                        ns=listener.namespace_fk,
                         routing_key=listener.routing_key,
                         silenced="true",
                     ).set(int(silenced.timestamp()))
@@ -246,7 +246,7 @@ def setup_event_metrics(instrumentator: Instrumentator) -> None:
                 METRIC_EVENTS.labels(
                     owner=listener.owner,
                     user_key=listener.user_key,
-                    namespace=listener.namespace_fk,
+                    ns=listener.namespace_fk,
                     routing_key=listener.routing_key,
                     silenced=str(silenced).lower(),  # prometheus does not have booleans
                 ).set(count)
