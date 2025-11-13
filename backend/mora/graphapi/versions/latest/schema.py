@@ -2413,6 +2413,17 @@ class Engagement:
 
     validity: Validity = strawberry.auto
 
+    @strawberry.field(
+        description="First day of the engagement.",
+    )
+    async def begin_date(self, root: EngagementRead, info: Info) -> datetime:
+        eng = await engagement_resolver(
+            info=info,
+            filter=EngagementFilter(uuids=[root.uuid], from_date=None, to_date=None),
+        )
+        begin_date = min(e.validity.from_date for e in one(eng.values()))
+        return begin_date
+
     # VALIDITY HACKS
 
     @strawberry.field(
