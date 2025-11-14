@@ -93,10 +93,6 @@ class Settings(BaseSettings):
     # This hotfix will be removed again later, once the security issues has been fixed.
     graphql_rbac: bool = False
 
-    # TODO (#55042): Backwards-compatible fix for !1594. Remove when Aarhus is
-    # migrated to Azure.
-    graphql_rbac_legacy_admin_role: bool = False
-
     @root_validator
     def graphql_rbac_dependencies(cls, values: dict[str, Any]) -> dict[str, Any]:
         if not values["graphql_rbac"]:

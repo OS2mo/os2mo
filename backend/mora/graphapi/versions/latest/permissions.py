@@ -122,13 +122,6 @@ def gen_role_permission(
             token = await info.context["get_token"]()
             token_roles = token.realm_access.roles
 
-            # TODO (#55042): Backwards-compatible fix for !1594. Remove when Aarhus is
-            # migrated to Azure.
-            if (
-                settings.graphql_rbac_legacy_admin_role and "admin" in token_roles
-            ):  # pragma: no cover
-                return True
-
             # Allow access if token has required role
             if permission_role in token_roles:
                 return True
