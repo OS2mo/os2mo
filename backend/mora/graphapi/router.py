@@ -48,7 +48,7 @@ def get_router(version: Version) -> APIRouter:
     router = CustomGraphQLRouter(
         graphql_ide="graphiql",  # TODO: pathfinder seems a lot nicer
         schema=schema,
-        context_getter=get_context,
+        context_getter=get_context,  # type: ignore
     )
 
     @router.get("/schema.graphql", response_class=PlainTextResponse)
