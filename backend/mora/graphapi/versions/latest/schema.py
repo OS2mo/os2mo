@@ -1248,6 +1248,23 @@ class Address:
     description="Connects organisation units and employees",
 )
 class Association:
+    association_type_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.association_type_uuid)
+        if root.association_type_uuid
+        else None,
+        description=dedent(
+            """\
+            The type of connection that the employee has to the organisation unit.
+
+            Examples:
+            * `"Chairman"`
+            * `"Leader"`
+            * `"Employee"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
     association_type: LazyClass | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
@@ -1263,6 +1280,30 @@ class Association:
             * `"Chairman"`
             * `"Leader"`
             * `"Employee"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'association_type_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    dynamic_class_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.dynamic_class_uuid)
+        if root.dynamic_class_uuid
+        else None,
+        # TODO: Document this
+        # https://git.magenta.dk/rammearkitektur/os2mo/-/merge_requests/1694#note_216859
+        description=dedent(
+            """\
+            List of arbitrary classes.
+
+            The purpose of this field is ill-defined.
+            It is currently mainly used for (trade) union specification.
+            """
+        ),
+        deprecation_reason=dedent(
+            """\
+            Will be removed in a future version of GraphQL.
+            Currently no replacement is in place, but specialized fields will probably arive in the future.
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -1285,10 +1326,17 @@ class Association:
             It is currently mainly used for (trade) union specification.
             """
         ),
-        deprecation_reason=dedent(
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'dynamic_class_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    trade_union_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.dynamic_class_uuid)
+        if root.dynamic_class_uuid
+        else None,
+        description=dedent(
             """\
-            Will be removed in a future version of GraphQL.
-            Currently no replacement is in place, but specialized fields will probably arive in the future.
+            Marks associations with a trade union
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -1304,6 +1352,34 @@ class Association:
         description=dedent(
             """\
             Marks associations with a trade union
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'trade_union_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.primary_uuid)
+        if root.primary_uuid
+        else None,
+        description=dedent(
+            """\
+            Marks which association is primary.
+
+            When exporting data from OS2mo to external systems, that only support a single engagement or associations, this field can be used to export the primary one.
+            What primarity means is vaguely defined, but usually derived from workload or time-allocation.
+
+            Examples  of user-keys:
+            * `"primary"`
+            * `"non-primary"`
+            * `"explicitly-primary"`
+
+            It is a convention that at most one association for each employee is set as either `primary` or `explicitly-primary`.
+            This convention is in place as if more associations are primary, the entire purpose of the field breaks down.
+            In the future this convention may become an invariant.
+
+            Note:
+            The calculate-primary integration can be used to automatically calculate and update primarity fields.
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -1336,6 +1412,7 @@ class Association:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'primary_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     employee: list[LazyEmployee] = strawberry.field(
@@ -1354,6 +1431,19 @@ class Association:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
+    person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[EmployeeRead](uuid=root.employee_uuid)
+        if root.employee_uuid
+        else None,
+        description=dedent(
+            """\
+            Associated person.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+    )
+
     person: list[LazyEmployee] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -1367,6 +1457,18 @@ class Association:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid),
+        description=dedent(
+            """\
+            Associated organisation unit.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
@@ -1383,6 +1485,20 @@ class Association:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    substitute_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[EmployeeRead](uuid=root.substitute_uuid)
+        if root.substitute_uuid
+        else None,
+        description=dedent(
+            """\
+            Optional substitute if `employee` is unavailable.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
     substitute: list[LazyEmployee] = strawberry.field(
@@ -1399,6 +1515,24 @@ class Association:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'subsitute_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    job_function_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.job_function_uuid)
+        if root.job_function_uuid
+        else None,
+        description=dedent(
+            """\
+            The position held by the employee in the organisation unit.
+
+            Examples of user-keys:
+            * `"Payroll consultant"`
+            * `"Office student"`
+            * `"Jurist"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
     job_function: LazyClass | None = strawberry.field(
@@ -1419,6 +1553,20 @@ class Association:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'job_function_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    it_user_response: Response[LazyITUser] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ITUserRead](uuid=root.it_user_uuid)
+        if root.it_user_uuid
+        else None,
+        description=dedent(
+            """\
+            The IT-user utilized by the employee when fulfilling the association responsibilities.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
     it_user: list[LazyITUser] = strawberry.field(
@@ -1434,6 +1582,7 @@ class Association:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
+        deprecation_reason="Use 'it_user_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
