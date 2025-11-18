@@ -5,7 +5,6 @@ from datetime import datetime
 from itertools import starmap
 from textwrap import dedent
 from typing import Any
-from typing import TypeVar
 from uuid import UUID
 
 import strawberry
@@ -35,8 +34,6 @@ from .filters import RegistrationFilter
 from .paged import CursorType
 from .paged import LimitType
 from .resolvers import get_sqlalchemy_date_interval
-
-MOObject = TypeVar("MOObject")
 
 
 @strawberry.type(

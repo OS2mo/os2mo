@@ -96,6 +96,7 @@ from .models import FacetRead
 from .models import FileStore
 from .models import OwnerInferencePriority
 from .models import RoleBindingRead
+from .moobject import MOObject
 from .permissions import IsAuthenticatedPermission
 from .permissions import gen_read_permission
 from .registration import Registration
@@ -133,7 +134,6 @@ from .validity import Validity
 # TODO: Document everything fields on org-units
 
 
-MOObject = TypeVar("MOObject")
 R = TypeVar("R")
 
 
