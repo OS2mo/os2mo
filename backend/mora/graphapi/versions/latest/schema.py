@@ -122,6 +122,7 @@ from .seed_resolver import get_bound_filter
 from .seed_resolver import seed_resolver
 from .seed_resolver import strip_args
 from .types import CPRType
+from .utils import uuid2list
 from .validity import OpenValidity
 from .validity import Validity
 
@@ -184,20 +185,6 @@ def force_none_return_wrapper(func: Callable) -> Callable:
             return None
 
     return wrapper
-
-
-def uuid2list(uuid: UUID | None) -> list[UUID]:
-    """Convert an optional uuid to a list.
-
-    Args:
-        uuid: Optional uuid to wrap in a list.
-
-    Return:
-        Empty list if uuid was none, single element list containing the uuid otherwise.
-    """
-    if uuid is None:
-        return []
-    return [uuid]
 
 
 def model2name(model: Any) -> Any:
