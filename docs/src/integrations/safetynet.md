@@ -22,6 +22,7 @@ udgangspunkt een gang i døgnet, men dette kan justeres efter behov.
      * Startdato
      * Slutdato
      * Leders medarbejdernummer
+     * Leders CPR (valgfrit)
      * Brugernavn
      * Titel
      * Faggruppe
