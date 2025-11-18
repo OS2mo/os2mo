@@ -120,6 +120,7 @@ from .resolvers import related_unit_resolver
 from .resolvers import rolebinding_resolver
 from .seed_resolver import get_bound_filter
 from .seed_resolver import seed_resolver
+from .seed_resolver import strip_args
 from .types import CPRType
 from .validity import OpenValidity
 from .validity import Validity
@@ -449,6 +450,17 @@ def to_response_list(
     return result_translation(result2response_list)
 
 
+def to_response(
+    model: type[MOObject],
+) -> Callable[[ResolverFunction], Callable[..., Awaitable[Response[MOObject]]]]:
+    def result2response_list(result: ResolverResult) -> Response[MOObject]:
+        # For details on this "type: ignore" check the comment in to_response_list
+        uuid, objects = one(result.items())
+        return Response[model](uuid=uuid, object_cache=objects)  # type: ignore
+
+    return result_translation(result2response_list)
+
+
 to_list = result_translation(
     lambda result: list(chain.from_iterable(result.values())),
 )
@@ -711,6 +723,41 @@ async def _get_handler_object(root: AddressRead, info: Info) -> AddressHandler:
     ),
 )
 class Address:
+    address_type_response: Response[LazyClass] = strawberry.field(  # type: ignore
+        resolver=to_response(ClassRead)(
+            strip_args(
+                seed_resolver(
+                    class_resolver, {"uuids": lambda root: [root.address_type_uuid]}
+                ),
+                # We filter out:
+                # * 'cursor' and 'limit' as there is at most one object returned
+                # * 'filter' as you cannot filter on uuids and something else at once
+                # Once the resolver supports mixed uuid and non-uuid filtering we may
+                # remove 'filter' from the list here.
+                {"cursor", "limit", "filter"},
+            )
+        ),
+        description=dedent(
+            """\
+            The address category or type.
+
+            In OS2mo addresses can be of a variety of different types:
+            * Phone numbers
+            * Addresses
+            * Registration numbers
+            * Card codes
+
+            This field is what encodes the type of an address.
+
+            Examples of user-keys:
+            * `"EmailUnit"`
+            * `"p-nummer"`
+            * `"PhoneEmployee"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
     address_type: LazyClass = strawberry.field(
         resolver=to_one(
             seed_resolver(
@@ -733,6 +780,44 @@ class Address:
             * `"EmailUnit"`
             * `"p-nummer"`
             * `"PhoneEmployee"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'address_type_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    visibility_response: Response[LazyClass] | None = strawberry.field(
+        resolver=to_response(ClassRead)(
+            strip_args(
+                seed_resolver(
+                    class_resolver, {"uuids": lambda root: [root.address_type_uuid]}
+                ),
+                # We filter out:
+                # * 'cursor' and 'limit' as there is at most one object returned
+                # * 'filter' as you cannot filter on uuids and something else at once
+                # Once the resolver supports mixed uuid and non-uuid filtering we may
+                # remove 'filter' from the list here.
+                {"cursor", "limit", "filter"},
+            )
+        ),
+        description=dedent(
+            """\
+            Determines who can see the address and how it is exported.
+
+            In OS2mo addresses can be of a variety of privacy classes.
+            For instance OS2mo may contain a list of phone numbers for an employee;
+            * A private mobile phone number
+            * An internal work mobile phone number
+            * A shared external phone number
+
+            This field is what encodes the privacy class of an address.
+            Thereby stating who should be allowed to see what addresses.
+
+            Examples of user-keys:
+            * `null`: Undetermined / non-classified.
+            * `"Secret"`: Should be treated carefully and perhaps not be exported.
+            * `"Internal"` Should be treated carefully but perhaps exposed to an internal intranet.
+            * `"External"`: Can probably be exposed to the internet
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -765,6 +850,7 @@ class Address:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'visibility_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     employee: list[LazyEmployee] | None = strawberry.field(
@@ -794,6 +880,40 @@ class Address:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
+    person_response: Response[LazyEmployee] | None = strawberry.field(
+        resolver=force_none_return_wrapper(
+            to_response(EmployeeRead)(
+                strip_args(
+                    seed_resolver(
+                        employee_resolver,
+                        {
+                            "uuids": partial(
+                                raise_force_none_return_if_uuid_none,
+                                get_uuid=lambda root: root.employee_uuid,
+                            )
+                        },
+                    ),
+                    # We filter out:
+                    # * 'cursor' and 'limit' as there is at most one object returned
+                    # * 'filter' as you cannot filter on uuids and something else at once
+                    # Once the resolver supports mixed uuid and non-uuid filtering we may
+                    # remove 'filter' from the list here.
+                    {"cursor", "limit", "filter"},
+                )
+            )
+        ),
+        description=dedent(
+            """\
+            Connected person.
+
+            Note:
+            This field is mutually exclusive with the `org_unit` field.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+    )
+
     person: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
@@ -818,6 +938,40 @@ class Address:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(
+        resolver=force_none_return_wrapper(
+            to_response(OrganisationUnitRead)(
+                strip_args(
+                    seed_resolver(
+                        organisation_unit_resolver,
+                        {
+                            "uuids": partial(
+                                raise_force_none_return_if_uuid_none,
+                                get_uuid=lambda root: root.org_unit_uuid,
+                            )
+                        },
+                    ),
+                    # We filter out:
+                    # * 'cursor' and 'limit' as there is at most one object returned
+                    # * 'filter' as you cannot filter on uuids and something else at once
+                    # Once the resolver supports mixed uuid and non-uuid filtering we may
+                    # remove 'filter' from the list here.
+                    {"cursor", "limit", "filter"},
+                )
+            )
+        ),
+        description=dedent(
+            """\
+            Connected organisation unit.
+
+            Note:
+            This field is mutually exclusive with the `employee` field.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
@@ -843,6 +997,43 @@ class Address:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    engagement_response: Response[LazyEngagement] | None = strawberry.field(
+        resolver=force_none_return_wrapper(
+            to_response(EngagementRead)(
+                strip_args(
+                    seed_resolver(
+                        engagement_resolver,
+                        {
+                            "uuids": partial(
+                                raise_force_none_return_if_uuid_none,
+                                get_uuid=lambda root: root.engagement_uuid,
+                            )
+                        },
+                    ),
+                    # We filter out:
+                    # * 'cursor' and 'limit' as there is at most one object returned
+                    # * 'filter' as you cannot filter on uuids and something else at once
+                    # Once the resolver supports mixed uuid and non-uuid filtering we may
+                    # remove 'filter' from the list here.
+                    {"cursor", "limit", "filter"},
+                )
+            )
+        ),
+        description=dedent(
+            """\
+            Connected engagement.
+
+            Note:
+            This field is **not** mutually exclusive with neither the `employee` nor the `org_unit` field.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("engagement"),
+        ],
     )
 
     engagement: list[LazyEngagement] | None = strawberry.field(
@@ -871,6 +1062,33 @@ class Address:
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
+        deprecation_reason="Use 'engagement_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    ituser_response: Response[LazyITUser] | None = strawberry.field(
+        resolver=force_none_return_wrapper(
+            to_response(ITUserRead)(
+                strip_args(
+                    seed_resolver(
+                        it_user_resolver,
+                        {
+                            "uuids": partial(
+                                raise_force_none_return_if_uuid_none,
+                                get_uuid=lambda root: root.it_user_uuid,
+                            )
+                        },
+                    ),
+                    # We filter out:
+                    # * 'cursor' and 'limit' as there is at most one object returned
+                    # * 'filter' as you cannot filter on uuids and something else at once
+                    # Once the resolver supports mixed uuid and non-uuid filtering we may
+                    # remove 'filter' from the list here.
+                    {"cursor", "limit", "filter"},
+                )
+            )
+        ),
+        description="Connected IT-user.\n",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
     ituser: list[LazyITUser] = strawberry.field(
@@ -881,6 +1099,7 @@ class Address:
         ),
         description="Connected IT-user.\n",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
+        deprecation_reason="Use 'ituser_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
