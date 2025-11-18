@@ -5,6 +5,7 @@ from textwrap import dedent
 from typing import Any
 from typing import TypeVar
 from uuid import UUID
+from .lazy import LazyClass
 
 import strawberry
 from starlette_context import context
@@ -224,7 +225,7 @@ class Query:
 
     # Classes
     # -------
-    classes: Paged[Response[Class]] = strawberry.field(
+    classes: Paged[Response[LazyClass]] = strawberry.field(
         resolver=to_paged_response(class_resolver, ClassRead),
         description="Get classes.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],

@@ -20,6 +20,7 @@ from typing import TypeVar
 from typing import cast
 from urllib.parse import urlparse
 from uuid import UUID
+from .paged import Paged, to_paged
 
 import strawberry
 from fastapi.encoders import jsonable_encoder
@@ -225,6 +226,20 @@ def to_response_list(
         ]
 
     return result_translation(result2response_list)
+
+
+
+def to_paged_response(
+    model: type[MOObject],
+) -> Callable[[ResolverFunction], Callable[..., Awaitable[Paged[Response[MOObject]]]]]:
+    def result2paged_responses(model: type[MOObject], result: ResolverResult) -> Paged[Response[MOObject]]:
+        # For details on this "type: ignore" check the comment in to_response_list
+        return [
+            Response[model](uuid=uuid, object_cache=objects)  # type: ignore
+            for uuid, objects in result.items()
+        ]
+
+    return partial(to_paged, model=model, result_transformer=result2paged_responses)
 
 
 def to_response(
@@ -1702,6 +1717,35 @@ class Association:
     ),
 )
 class Class:
+    parent_response: Response[LazyClass] | None = strawberry.field(
+
+        resolver=to_response(ClassRead)(
+            strip_args(
+            seed_resolver(
+                class_resolver, {"uuids": lambda root: uuid2list(root.parent_uuid)}
+),
+                # We filter out:
+                # * 'cursor' and 'limit' as there is at most one object returned
+                # * 'filter' as you cannot filter on uuids and something else at once
+                # Once the resolver supports mixed uuid and non-uuid filtering we may
+                # remove 'filter' from the list here.
+                {"cursor", "limit", "filter"},
+
+            )
+        ),
+        description=dedent(
+            """\
+            Parent class.
+
+            Almost always `null` as class hierarchies are rare.
+            Currently mostly used to describe (trade) union hierachies.
+
+            The inverse operation of `children`.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
     parent: LazyClass | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
@@ -1716,6 +1760,27 @@ class Class:
             Currently mostly used to describe (trade) union hierachies.
 
             The inverse operation of `children`.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'parent_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    children_responses: Paged[Response[LazyClass]] = strawberry.field(
+        resolver=to_paged_response(ClassRead)(
+            seed_resolver(
+                class_resolver,
+                {"parents": lambda root: [root.uuid]},
+            )
+        ),
+        description=dedent(
+            """\
+            Class children.
+
+            Almost always an empty list as class hierarchies are rare.
+            Currently mostly used to describe (trade) union hierachies.
+
+            The inverse operation of `parent`.
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -1739,6 +1804,7 @@ class Class:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'children_responses' instead. Will be removed in a future version of OS2mo.",
     )
 
     facet: LazyFacet = strawberry.field(
