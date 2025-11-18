@@ -118,6 +118,7 @@ from .resolvers import organisation_unit_resolver
 from .resolvers import owner_resolver
 from .resolvers import related_unit_resolver
 from .resolvers import rolebinding_resolver
+from .response import model2name
 from .seed_resolver import get_bound_filter
 from .seed_resolver import seed_resolver
 from .seed_resolver import strip_args
@@ -185,25 +186,6 @@ def force_none_return_wrapper(func: Callable) -> Callable:
             return None
 
     return wrapper
-
-
-def model2name(model: Any) -> Any:
-    mapping = {
-        ClassRead: "class",
-        EmployeeRead: "employee",
-        FacetRead: "facet",
-        OrganisationUnitRead: "org_unit",
-        AddressRead: "address",
-        AssociationRead: "association",
-        EngagementRead: "engagement",
-        ITSystemRead: "itsystem",
-        ITUserRead: "ituser",
-        KLERead: "kle",
-        LeaveRead: "leave",
-        RoleBindingRead: "rolebinding",
-        ManagerRead: "manager",
-    }
-    return mapping[model]
 
 
 @strawberry.type(
