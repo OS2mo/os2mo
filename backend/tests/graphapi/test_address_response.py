@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
 from typing import Any
-from unittest.mock import ANY
 from uuid import UUID
 
 import pytest
@@ -114,7 +113,7 @@ def test_address_resolver_response_fields(
                         "ituser_response": None,
                         "org_unit_response": None,
                         "person_response": {"uuid": str(person_uuid)},
-                        "visibility_response": {"uuid": ANY},
+                        "visibility_response": None,
                     }
                 }
             ]
