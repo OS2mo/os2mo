@@ -20,7 +20,6 @@ from oio_rest.views import create_lora_router
 from prometheus_client import Gauge
 from prometheus_client import Info
 from prometheus_fastapi_instrumentator import Instrumentator
-from sentry_sdk.integrations.strawberry import StrawberryIntegration
 from sqlalchemy.exc import DataError
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -342,11 +341,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         )
 
     if settings.sentry_dsn:  # pragma: no cover
-        sentry_sdk.init(
-            dsn=settings.sentry_dsn,
-            integrations=[
-                StrawberryIntegration(async_execution=True),
-            ],
-        )
+        sentry_sdk.init(dsn=settings.sentry_dsn)
 
     return app
