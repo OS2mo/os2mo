@@ -58,7 +58,7 @@ class BaseFilter:
     )
 
 
-@strawberry.interface
+@strawberry.input
 class EmployeeFiltered:
     employee: EmployeeFilter | None = strawberry.field(
         default=UNSET,
@@ -75,7 +75,7 @@ class EmployeeFiltered:
     )
 
 
-@strawberry.interface
+@strawberry.input
 class OrganisationUnitFiltered:
     org_unit: OrganisationUnitFilter | None = strawberry.field(
         default=None,
