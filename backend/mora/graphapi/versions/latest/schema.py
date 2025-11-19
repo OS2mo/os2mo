@@ -3565,6 +3565,22 @@ class KLE:
     ),
 )
 class Leave:
+    leave_type_response: Response[LazyClass] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.leave_type_uuid),
+        description=dedent(
+            """\
+            The kind of leave of absence.
+
+            Examples:
+            * `"Maternity leave"`
+            * `"Parental leave"`
+            * `"Furlough"`
+            * `"Garden Leave"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
     leave_type: LazyClass = strawberry.field(
         resolver=to_one(
             seed_resolver(
@@ -3583,6 +3599,7 @@ class Leave:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'leave_type_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     employee: list[LazyEmployee] = strawberry.field(
@@ -3601,6 +3618,17 @@ class Leave:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
+    person_response: Response[LazyEmployee] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[EmployeeRead](uuid=root.employee_uuid),
+        description=dedent(
+            """\
+            The absent person.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+    )
+
     person: list[LazyEmployee] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -3614,6 +3642,20 @@ class Leave:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    engagement_response: Response[LazyEngagement] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[EngagementRead](uuid=root.engagement_uuid),
+        description=dedent(
+            """\
+            The engagement the employee is absent from.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("engagement"),
+        ],
     )
 
     engagement: LazyEngagement = strawberry.field(
@@ -3632,6 +3674,7 @@ class Leave:
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
+        deprecation_reason="Use 'engagement_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
