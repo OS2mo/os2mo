@@ -790,7 +790,7 @@ class Address:
         resolver=to_response(ClassRead)(
             strip_args(
                 seed_resolver(
-                    class_resolver, {"uuids": lambda root: [root.address_type_uuid]}
+                    class_resolver, {"uuids": lambda root: [root.visibility_uuid]}
                 ),
                 # We filter out:
                 # * 'cursor' and 'limit' as there is at most one object returned
