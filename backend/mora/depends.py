@@ -6,10 +6,10 @@ from fastapi import Depends
 from fastapi import Request
 from fastramqpi.ramqp import AMQPSystem as _AMQPSystem
 
-from .db import AsyncSession
+from .db import AsyncSessionWithLock
 from .db import get_session
 
-Session = Annotated[AsyncSession, Depends(get_session)]
+Session = Annotated[AsyncSessionWithLock, Depends(get_session)]
 
 
 def get_amqp_system(request: Request) -> _AMQPSystem:

@@ -8,6 +8,7 @@ from collections.abc import Callable
 from uuid import UUID
 
 from fastapi import Depends
+from fastapi import Request
 from sqlalchemy.dialects.postgresql import insert
 from starlette_context import context
 from starlette_context import request_cycle_context
@@ -39,7 +40,27 @@ NO_AUTH_MIDDLEWARE_UUID = UUID("5ec0fa11-baad-1110-006d-696477617265")
 _MIDDLEWARE_KEY = "authenticated_user"
 
 
+def _is_testing_snapshot_or_restore(request):
+    return request.url.path.startswith("/testing")
+
+
+def _is_unit_testing_with_fake_db(session):
+    return session.under_testing_with_fake_db
+
+
+def _should_save_actor(uuid, name, request, session):
+    return (
+        uuid is not None
+        and name is not None
+        and not (
+            _is_testing_snapshot_or_restore(request)
+            or _is_unit_testing_with_fake_db(session)
+        )
+    )
+
+
 async def set_authenticated_user(
+    request: Request,
     session: depends.Session,
     get_token: Callable[[], Awaitable[Token]] = Depends(token_getter),
 ) -> AsyncIterator[None]:
@@ -47,7 +68,7 @@ async def set_authenticated_user(
         token = await get_token()
         uuid = token.uuid
         name = token.preferred_username
-        if uuid is not None:
+        if _should_save_actor(uuid, name, request, session):
             await session.execute(
                 insert(Actor)
                 .values(actor=uuid, name=name)
