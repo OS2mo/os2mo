@@ -112,6 +112,7 @@ from .resolvers import rolebinding_resolver
 from .response import Response
 from .seed_resolver import get_bound_filter
 from .seed_resolver import seed_resolver
+from .seed_resolver import strip_args
 from .types import CPRType
 from .utils import uuid2list
 from .validity import OpenValidity
@@ -195,6 +196,19 @@ def result_translation(
         return mapped_resolver
 
     return wrapper
+
+
+def to_response(
+    model: type[MOObject],
+) -> Callable[[ResolverFunction], Callable[..., Awaitable[Response[MOObject]]]]:
+    def result2response_list(
+        result: ResolverResult,
+    ) -> Response[MOObject]:  # pragma: no cover
+        # For details on this "type: ignore" check the comment in to_response_list
+        uuid, objects = one(result.items())
+        return Response[model](uuid=uuid, object_cache=objects)  # type: ignore
+
+    return result_translation(result2response_list)
 
 
 def to_response_list(
@@ -1005,6 +1019,23 @@ class Address:
     description="Connects organisation units and employees",
 )
 class Association:
+    association_type_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.association_type_uuid)
+        if root.association_type_uuid
+        else None,
+        description=dedent(
+            """\
+            The type of connection that the employee has to the organisation unit.
+
+            Examples:
+            * `"Chairman"`
+            * `"Leader"`
+            * `"Employee"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
     association_type: LazyClass | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
@@ -1020,6 +1051,30 @@ class Association:
             * `"Chairman"`
             * `"Leader"`
             * `"Employee"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'association_type_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    dynamic_class_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.dynamic_class_uuid)
+        if root.dynamic_class_uuid
+        else None,
+        # TODO: Document this
+        # https://git.magenta.dk/rammearkitektur/os2mo/-/merge_requests/1694#note_216859
+        description=dedent(
+            """\
+            List of arbitrary classes.
+
+            The purpose of this field is ill-defined.
+            It is currently mainly used for (trade) union specification.
+            """
+        ),
+        deprecation_reason=dedent(
+            """\
+            Will be removed in a future version of GraphQL.
+            Currently no replacement is in place, but specialized fields will probably arive in the future.
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -1042,10 +1097,17 @@ class Association:
             It is currently mainly used for (trade) union specification.
             """
         ),
-        deprecation_reason=dedent(
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'dynamic_class_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    trade_union_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.dynamic_class_uuid)
+        if root.dynamic_class_uuid
+        else None,
+        description=dedent(
             """\
-            Will be removed in a future version of GraphQL.
-            Currently no replacement is in place, but specialized fields will probably arive in the future.
+            Marks associations with a trade union
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -1061,6 +1123,34 @@ class Association:
         description=dedent(
             """\
             Marks associations with a trade union
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'trade_union_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.primary_uuid)
+        if root.primary_uuid
+        else None,
+        description=dedent(
+            """\
+            Marks which association is primary.
+
+            When exporting data from OS2mo to external systems, that only support a single engagement or associations, this field can be used to export the primary one.
+            What primarity means is vaguely defined, but usually derived from workload or time-allocation.
+
+            Examples  of user-keys:
+            * `"primary"`
+            * `"non-primary"`
+            * `"explicitly-primary"`
+
+            It is a convention that at most one association for each employee is set as either `primary` or `explicitly-primary`.
+            This convention is in place as if more associations are primary, the entire purpose of the field breaks down.
+            In the future this convention may become an invariant.
+
+            Note:
+            The calculate-primary integration can be used to automatically calculate and update primarity fields.
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -1093,6 +1183,7 @@ class Association:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'primary_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     employee: list[LazyEmployee] = strawberry.field(
@@ -1111,6 +1202,19 @@ class Association:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
+    person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[EmployeeRead](uuid=root.employee_uuid)
+        if root.employee_uuid
+        else None,
+        description=dedent(
+            """\
+            Associated person.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+    )
+
     person: list[LazyEmployee] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -1124,6 +1228,18 @@ class Association:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid),
+        description=dedent(
+            """\
+            Associated organisation unit.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
@@ -1140,6 +1256,20 @@ class Association:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    substitute_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[EmployeeRead](uuid=root.substitute_uuid)
+        if root.substitute_uuid
+        else None,
+        description=dedent(
+            """\
+            Optional substitute if `employee` is unavailable.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
     substitute: list[LazyEmployee] = strawberry.field(
@@ -1156,6 +1286,24 @@ class Association:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'subsitute_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    job_function_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.job_function_uuid)
+        if root.job_function_uuid
+        else None,
+        description=dedent(
+            """\
+            The position held by the employee in the organisation unit.
+
+            Examples of user-keys:
+            * `"Payroll consultant"`
+            * `"Office student"`
+            * `"Jurist"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
     job_function: LazyClass | None = strawberry.field(
@@ -1176,6 +1324,20 @@ class Association:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'job_function_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    it_user_response: Response[LazyITUser] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ITUserRead](uuid=root.it_user_uuid)
+        if root.it_user_uuid
+        else None,
+        description=dedent(
+            """\
+            The IT-user utilized by the employee when fulfilling the association responsibilities.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
     it_user: list[LazyITUser] = strawberry.field(
@@ -1191,6 +1353,7 @@ class Association:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
+        deprecation_reason="Use 'it_user_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
@@ -1347,6 +1510,23 @@ class Association:
     ),
 )
 class Class:
+    parent_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.parent_uuid)
+        if root.parent_uuid
+        else None,
+        description=dedent(
+            """\
+            Parent class.
+
+            Almost always `null` as class hierarchies are rare.
+            Currently mostly used to describe (trade) union hierachies.
+
+            The inverse operation of `children`.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
     parent: LazyClass | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
@@ -1364,8 +1544,10 @@ class Class:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'parent_response' instead. Will be removed in a future version of OS2mo.",
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for children_response
     children: list[LazyClass] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -1386,6 +1568,21 @@ class Class:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
+    facet_response: Response[LazyFacet] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[FacetRead](uuid=root.facet_uuid),
+        description=dedent(
+            """\
+            Facet this class is defined under.
+
+            Examples of user-keys:
+            * `"employee_address_type"`
+            * `"primary_type"`
+            * `"engagement_job_function"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
+    )
+
     facet: LazyFacet = strawberry.field(
         resolver=to_one(
             seed_resolver(facet_resolver, {"uuids": lambda root: [root.facet_uuid]})
@@ -1401,6 +1598,7 @@ class Class:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
+        deprecation_reason="Use 'facet_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
@@ -1431,6 +1629,20 @@ class Class:
         return await Class.top_level_facet(self=self, root=parent_node, info=info)
         # coverage: unpause
 
+    it_system_response: Response[LazyITSystem] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ITSystemRead](uuid=root.it_system_uuid)
+        if root.it_system_uuid
+        else None,
+        description=dedent(
+            """\
+            The IT-System associated with the class.
+
+            This is intended to be used for (IT) roles.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
+    )
+
     it_system: LazyITSystem | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
@@ -1446,6 +1658,7 @@ class Class:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
+        deprecation_reason="Use 'it_system_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
@@ -1674,6 +1887,7 @@ class Employee:
     async def user_key(self, root: EmployeeRead) -> str:
         return root.user_key
 
+    # TODO: Add Paged[Response[LazyClass]] for engagements_response
     engagements: list[LazyEngagement] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -1694,6 +1908,7 @@ class Employee:
         ],
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for manager_roles_response
     manager_roles: list[LazyManager] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -1711,6 +1926,7 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for addresses_response
     addresses: list[LazyAddress] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -1734,6 +1950,7 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for leaves_response
     leaves: list[LazyLeave] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -1751,6 +1968,7 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for associations_response
     associations: list[LazyAssociation] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -1771,6 +1989,7 @@ class Employee:
         ],
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for itusers_response
     itusers: list[LazyITUser] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -1989,6 +2208,21 @@ class Engagement:
     async def user_key(self, root: EngagementRead) -> str:
         return root.user_key
 
+    engagement_type_response: Response[LazyClass] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.engagement_type_uuid),
+        description=dedent(
+            """\
+            Describes the employee's affiliation to an organisation unit
+
+            Examples:
+            * `"Employed"`
+            * `"Social worker"`
+            * `"Employee (hourly wage)"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
     engagement_type: LazyClass = strawberry.field(
         resolver=to_arbitrary_only(
             seed_resolver(
@@ -2004,6 +2238,22 @@ class Engagement:
             * `"Employed"`
             * `"Social worker"`
             * `"Employee (hourly wage)"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'engagement_type_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    job_function_response: Response[LazyClass] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.job_function_uuid),
+        description=dedent(
+            """\
+            Describes the position of the employee in the organisation unit
+
+            Examples:
+            * `"Payroll consultant"`
+            * `"Office student"`
+            * `"Jurist"`
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -2024,6 +2274,34 @@ class Engagement:
             * `"Payroll consultant"`
             * `"Office student"`
             * `"Jurist"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'job_function_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.primary_uuid)
+        if root.primary_uuid
+        else None,
+        description=dedent(
+            """\
+            Marks which engagement is primary.
+
+            When exporting data from OS2mo to external systems, that only support a single engagement or associations, this field can be used to export the primary one.
+            What primarity means is vaguely defined, but usually derived from workload or time-allocation.
+
+            Examples  of user-keys:
+            * `"primary"`
+            * `"non-primary"`
+            * `"explicitly-primary"`
+
+            It is a convention that at most one engagement for each employee is set as either `primary` or `explicitly-primary`.
+            This convention is in place as if more engagements are primary, the entire purpose of the field breaks down.
+            In the future this convention may become an invariant.
+
+            Note:
+            The calculate-primary integration can be used to automatically calculate and update primarity fields.
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -2056,6 +2334,7 @@ class Engagement:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'primary_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
@@ -2074,6 +2353,14 @@ class Engagement:
         #       Then utilize is_class_primary as result_translation
         return await is_class_uuid_primary(str(root.primary_uuid))
 
+    leave_response: Response[LazyLeave] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[LeaveRead](uuid=root.leave_uuid)
+        if root.leave_uuid
+        else None,
+        description="Related leave",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
+    )
+
     leave: LazyLeave | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
@@ -2082,6 +2369,7 @@ class Engagement:
         ),
         description="Related leave",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
+        deprecation_reason="Use 'leave_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     employee: list[LazyEmployee] = strawberry.field(
@@ -2100,6 +2388,17 @@ class Engagement:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
+    person_response: Response[LazyEmployee] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[EmployeeRead](uuid=root.employee_uuid),
+        description=dedent(
+            """\
+            The person fulfilling the engagement.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+    )
+
     person: list[LazyEmployee] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -2113,6 +2412,18 @@ class Engagement:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid),
+        description=dedent(
+            """\
+            The organisation unit where the engagement is being fulfilled.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
@@ -2129,8 +2440,10 @@ class Engagement:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for itusers_response
     itusers: list[Response[LazyITUser]] = strawberry.field(
         resolver=to_response_list(LazyITUser)(
             seed_resolver(
@@ -2209,6 +2522,7 @@ class Engagement:
     async def primary_uuid(self, root: EngagementRead) -> UUID | None:
         return root.primary_uuid
 
+    # TODO: Add Paged[Response[LazyClass]] managers_response
     @strawberry.field(
         description=dedent(
             """\
@@ -2336,12 +2650,30 @@ class Engagement:
     description="The key component of the class/facet choice setup",
 )
 class Facet:
+    # TODO: Add Paged[Response[LazyClass]] for classess_response
     classes: list[LazyClass] = strawberry.field(
         resolver=to_list(
             seed_resolver(class_resolver, {"facets": lambda root: [root.uuid]})
         ),
         description="Associated classes",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
+    parent_response: Response[LazyFacet] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[FacetRead](uuid=root.parent_uuid)
+        if root.parent_uuid
+        else None,
+        description=dedent(
+            """\
+            Parent facet.
+
+            Almost always `null` as facet hierarchies are rare.
+            Currently mostly used to describe (trade) union hierachies.
+
+            The inverse operation of `children`.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
 
     parent: LazyFacet | None = strawberry.field(
@@ -2361,8 +2693,10 @@ class Facet:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
+        deprecation_reason="Use 'parent_response' instead. Will be removed in a future version of OS2mo.",
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for children_response
     children: list[LazyFacet] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -2540,6 +2874,7 @@ class ITSystem:
     async def user_key(self, root: ITSystemRead) -> str:
         return root.user_key
 
+    # TODO: Add Paged[Response[LazyClass]] for roles_response
     roles: list[Response[LazyClass]] = strawberry.field(
         resolver=to_response_list(LazyClass)(
             seed_resolver(
@@ -2644,6 +2979,22 @@ class ITUser:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
+    person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[EmployeeRead](uuid=root.employee_uuid)
+        if root.employee_uuid
+        else None,
+        description=dedent(
+            """\
+            Person using the IT account.
+
+            Note:
+            This field is mutually exclusive with the `org_unit` field.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+    )
+
     person: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
@@ -2668,6 +3019,25 @@ class ITUser:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid)
+        if root.org_unit_uuid
+        else None,
+        description=dedent(
+            """\
+            Organisation unit using the IT account.
+
+            This is mostly set for service accounts.
+
+            Note:
+            This field is mutually exclusive with the `org_unit` field.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
@@ -2696,8 +3066,10 @@ class ITUser:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for engagements_response
     engagements: list[Response[LazyEngagement]] = strawberry.field(
         resolver=to_response_list(LazyEngagement)(
             seed_resolver(
@@ -2712,6 +3084,25 @@ class ITUser:
             A person may have multiple IT accounts with each account being relevant for any number of engagement.
             """
         ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("engagement"),
+        ],
+    )
+
+    engagement_response: Response[LazyEngagement] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[EngagementRead](uuid=root.engagement_uuid)
+        if root.engagement_uuid
+        else None,
+        description=dedent(
+            """\
+            Engagement scoping of the account.
+
+            A person may have multiple IT accounts with each account being relevant for only a single engagement.
+            This field allows scoping IT accounts such that it is obvious which engagement has given which it-access.
+            """
+        )
+        + list_to_optional_field_warning,
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
@@ -2745,8 +3136,10 @@ class ITUser:
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
+        deprecation_reason="Use 'engagement_response' instead. Will be removed in a future version of OS2mo.",
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for addresses_response
     addresses: list[LazyAddress] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -2767,6 +3160,18 @@ class ITUser:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
 
+    itsystem_response: Response[LazyITSystem] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ITSystemRead](uuid=root.itsystem_uuid)
+        if root.itsystem_uuid
+        else None,
+        description=dedent(
+            """\
+            ITSystem this account is for.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
+    )
+
     itsystem: LazyITSystem = strawberry.field(
         resolver=to_one(
             seed_resolver(
@@ -2779,8 +3184,10 @@ class ITUser:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
+        deprecation_reason="Use 'itsystem_response' instead. Will be removed in a future version of OS2mo.",
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for rolebindings_response
     rolebindings: list[LazyRoleBinding] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -2793,6 +3200,30 @@ class ITUser:
             IsAuthenticatedPermission,
             gen_read_permission("rolebinding"),
         ],
+    )
+
+    primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.primary_uuid)
+        if root.primary_uuid
+        else None,
+        description=dedent(
+            """\
+            Marks which IT account is primary.
+
+            When exporting data from OS2mo to external systems, that only support a single IT account, this field can be used to export the primary one.
+            What primarity means is vaguely defined, but usually derived from workload or time-allocation.
+
+            Examples  of user-keys:
+            * `"primary"`
+            * `"non-primary"`
+            * `"explicitly-primary"`
+
+            It is a convention that at most one IT account for each employee / employee+engagement is set as either `primary` or `explicitly-primary`.
+            This convention is in place as if more IT accounts are primary, the entire purpose of the field breaks down.
+            In the future this convention may become an invariant.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
     primary: LazyClass | None = strawberry.field(
@@ -2819,6 +3250,7 @@ class ITUser:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'primary_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
@@ -2978,6 +3410,18 @@ class KLE:
         metadata=Metadata(version=lambda v: v <= GraphQLVersion.VERSION_22),
     )
 
+    kle_number_response: Response[LazyClass] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.kle_number_uuid),
+        description=dedent(
+            """\
+            The KLE number specifies the responsibility.
+
+            For more details read the `KLE` description.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
     kle_number__v23: list[LazyClass] = strawberry.field(
         name="kle_number",
         resolver=to_list(
@@ -2994,8 +3438,10 @@ class KLE:
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
         metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_23),
+        deprecation_reason="Use 'kle_number_response' instead. Will be removed in a future version of OS2mo.",
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for kle_aspects_response
     kle_aspects: list[LazyClass] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -3018,6 +3464,18 @@ class KLE:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
+    org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid)
+        if root.org_unit_uuid
+        else None,
+        description=dedent(
+            """\
+            The organisation unit the responsibility is mapped to.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
+
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
@@ -3038,6 +3496,7 @@ class KLE:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
@@ -3120,6 +3579,22 @@ class KLE:
     ),
 )
 class Leave:
+    leave_type_response: Response[LazyClass] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.leave_type_uuid),
+        description=dedent(
+            """\
+            The kind of leave of absence.
+
+            Examples:
+            * `"Maternity leave"`
+            * `"Parental leave"`
+            * `"Furlough"`
+            * `"Garden Leave"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
     leave_type: LazyClass = strawberry.field(
         resolver=to_one(
             seed_resolver(
@@ -3138,6 +3613,7 @@ class Leave:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'leave_type_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     employee: list[LazyEmployee] = strawberry.field(
@@ -3156,6 +3632,17 @@ class Leave:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
+    person_response: Response[LazyEmployee] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[EmployeeRead](uuid=root.employee_uuid),
+        description=dedent(
+            """\
+            The absent person.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+    )
+
     person: list[LazyEmployee] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -3169,6 +3656,20 @@ class Leave:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    engagement_response: Response[LazyEngagement] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[EngagementRead](uuid=root.engagement_uuid),
+        description=dedent(
+            """\
+            The engagement the employee is absent from.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("engagement"),
+        ],
     )
 
     engagement: LazyEngagement = strawberry.field(
@@ -3187,6 +3688,7 @@ class Leave:
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
+        deprecation_reason="Use 'engagement_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
@@ -3252,6 +3754,23 @@ class Leave:
     ),
 )
 class Manager:
+    manager_type_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.manager_type_uuid)
+        if root.manager_type_uuid
+        else None,
+        description=dedent(
+            """\
+            Title of the manager.
+
+            Examples:
+            * `"Director"`
+            * `"Area manager"`
+            * `"Center manager"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
     manager_type: LazyClass = strawberry.field(
         resolver=to_arbitrary_only(
             seed_resolver(
@@ -3267,6 +3786,25 @@ class Manager:
             * `"Director"`
             * `"Area manager"`
             * `"Center manager"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'manager_type_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    manager_level_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.manager_level_uuid)
+        if root.manager_level_uuid
+        else None,
+        # TODO: Check production system values
+        description=dedent(
+            """\
+            Hierarchical level of the manager.
+
+            Examples:
+            * `"Level 1"`
+            * `"Level 2"`
+            * `"Level 3"`
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -3291,8 +3829,10 @@ class Manager:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'manager_level_response' instead. Will be removed in a future version of OS2mo.",
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for responsibilities_response
     responsibilities: list[LazyClass] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -3339,6 +3879,21 @@ class Manager:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
+    person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[EmployeeRead](uuid=root.employee_uuid)
+        if root.employee_uuid
+        else None,
+        description=dedent(
+            """\
+            Person fulfilling the managerial position.
+
+            May be empty in which case the managerial position is unfilfilled (vacant).
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+    )
+
     person: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
@@ -3362,6 +3917,18 @@ class Manager:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid),
+        description=dedent(
+            """\
+            Organisation unit being managed.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
@@ -3378,6 +3945,7 @@ class Manager:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
@@ -3479,6 +4047,22 @@ class Owner:
     # TODO: Document this
     user_key: str = strawberry.auto
 
+    org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid)
+        if root.org_unit_uuid
+        else None,
+        description=dedent(
+            """\
+            The owned organisation unit.
+
+            Note:
+            This field is mutually exclusive with the `employee` field.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
+
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
@@ -3503,6 +4087,7 @@ class Owner:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
@@ -3511,6 +4096,22 @@ class Owner:
     )
     async def org_unit_uuid(self, root: OwnerRead) -> UUID | None:
         return root.org_unit_uuid
+
+    person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[EmployeeRead](uuid=root.employee_uuid)
+        if root.employee_uuid
+        else None,
+        description=dedent(
+            """\
+            The owned person.
+
+            Note:
+            This field is mutually exclusive with the `org_unit` field.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+    )
 
     person: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
@@ -3536,6 +4137,7 @@ class Owner:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
@@ -3544,6 +4146,19 @@ class Owner:
     )
     async def employee_uuid(self, root: OwnerRead) -> UUID | None:
         return root.employee_uuid
+
+    owner_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[EmployeeRead](uuid=root.owner_uuid)
+        if root.owner_uuid
+        else None,
+        description=dedent(
+            """\
+        Owner of the connected person or organisation unit.
+        """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("owner")],
+    )
 
     owner: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
@@ -3566,6 +4181,7 @@ class Owner:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("owner")],
+        deprecation_reason="Use 'owner_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
@@ -3698,6 +4314,18 @@ class Organisation:
     description="Organisation unit within the organisation tree",
 )
 class OrganisationUnit:
+    parent_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[OrganisationRead](uuid=root.parent_uuid)
+        if root.parent_uuid
+        else None,
+        description=dedent(
+            """\
+            The parent organisation unit in the organisation tree.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
+
     parent: LazyOrganisationUnit | None = strawberry.field(
         resolver=to_arbitrary_only(
             seed_resolver(
@@ -3711,7 +4339,37 @@ class OrganisationUnit:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        deprecation_reason="Use 'parent_response' instead. Will be removed in a future version of OS2mo.",
     )
+
+    root_response: Response[LazyOrganisationUnit] | None = strawberry.field(
+        resolver=to_response(OrganisationUnitRead)(
+            strip_args(
+                seed_resolver(
+                    organisation_unit_resolver,
+                    {
+                        "descendant": lambda root: OrganisationUnitFilter(
+                            uuids=[root.uuid]
+                        ),
+                        "parent": lambda root: None,
+                    },
+                ),
+                # We filter out:
+                # * 'cursor' and 'limit' as there is at most one object returned
+                # * 'filter' as you cannot filter on uuids and something else at once
+                # Once the resolver supports mixed uuid and non-uuid filtering we may
+                # remove 'filter' from the list here.
+                {"cursor", "limit", "filter"},
+            )
+        ),
+        description=dedent(
+            """\
+            The top-unit (root) of the organisation unit, in the hierarchy.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
+
     root: list[LazyOrganisationUnit] | None = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -3730,8 +4388,10 @@ class OrganisationUnit:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        deprecation_reason="Use 'root_response' instead. Will be removed in a future version of OS2mo.",
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for ancestors_response
     @strawberry.field(
         description=dedent(
             """\
@@ -3757,6 +4417,7 @@ class OrganisationUnit:
         ancestors = await OrganisationUnit.ancestors(self=self, root=parent, info=info)  # type: ignore
         return [parent] + ancestors
 
+    # TODO: Add Paged[Response[LazyClass]] for children_response
     children: list[LazyOrganisationUnit] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -3808,6 +4469,30 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
+    # TODO: Should this be a list?
+    unit_hierarchy_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.org_unit_hierarchy)
+        if root.org_unit_hierarchy
+        else None,
+        description=dedent(
+            """\
+            Organisation unit hierarchy.
+
+            Can be used to label an organisational structure to belong to a certain subset of the organisation tree.
+
+            Examples of user-keys:
+            * `"Line-management"`
+            * `"Self-owned institution"`
+            * `"Outside organisation"`
+            * `"Hidden"`
+
+            Note:
+            The organisation-gatekeeper integration is one option to keep hierarchy labels up-to-date.
+        """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
     # TODO: Remove org prefix from RAModel and remove it here too
     # TODO: Add _uuid suffix to RAModel and remove _model suffix here
     # TODO: Should this be a list?
@@ -3833,6 +4518,34 @@ class OrganisationUnit:
             Note:
             The organisation-gatekeeper integration is one option to keep hierarchy labels up-to-date.
         """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'unit_hierarchy_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    unit_type_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.unit_type_uuid)
+        if root.unit_type_uuid
+        else None,
+        description=dedent(
+            """\
+            Organisation unit type.
+
+            Organisation units can represent a lot of different classes of hierarchical structures.
+            Sometimes they represent cooperations, governments, NGOs or other true organisation types.
+            Oftentimes they represent the inner structure of these organisations.
+            Othertimes they represent project management structures such as project or teams.
+
+            This field is used to distriguish all these different types of organisations.
+
+            Examples of user-keys:
+            * `"Private Company"`
+            * `"Educational Institution"`
+            * `"Activity Center"`
+            * `"Daycare"`
+            * `"Team"`
+            * `"Project"`
+            """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
@@ -3864,6 +4577,25 @@ class OrganisationUnit:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'unit_type_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    unit_level_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.org_unit_level_uuid)
+        if root.org_unit_level_uuid
+        else None,
+        # TODO: Document this
+        description=dedent(
+            """\
+            Organisation unit level.
+
+            Examples of user-keys:
+            * `"N1"`
+            * `"N5"`
+            * `"N7"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
     # TODO: Remove org prefix from RAModel and remove it here too
@@ -3886,6 +4618,20 @@ class OrganisationUnit:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'unit_level_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    time_planning_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.time_planning_uuid)
+        if root.time_planning_uuid
+        else None,
+        # TODO: Document this
+        description=dedent(
+            """\
+            Time planning strategy.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
     time_planning: LazyClass | None = strawberry.field(
@@ -3895,15 +4641,17 @@ class OrganisationUnit:
                 {"uuids": lambda root: uuid2list(root.time_planning_uuid)},
             )
         ),
-        # TODO: DOcument this
+        # TODO: Document this
         description=dedent(
             """\
             Time planning strategy.
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'time_planning_response' instead. Will be removed in a future version of OS2mo.",
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for engagements_response
     engagements: list[LazyEngagement] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -4025,6 +4773,7 @@ class OrganisationUnit:
         resolver = to_list(seed_resolver(manager_resolver))
         return await resolver(root=root, info=info, filter=filter, inherit=inherit)
 
+    # TODO: Add Paged[Response[LazyClass]] for managers_response
     managers: list[LazyManager] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -4044,6 +4793,7 @@ class OrganisationUnit:
         metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_24),
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for owners_response
     @strawberry.field(
         description=dedent(
             """\
@@ -4096,6 +4846,7 @@ class OrganisationUnit:
             self=self, root=parent, info=info, inherit=True
         )
 
+    # TODO: Add Paged[Response[LazyClass]] for addresses_response
     addresses: list[LazyAddress] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -4116,6 +4867,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for leaves_response
     leaves: list[LazyLeave] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -4131,6 +4883,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for associations_response
     associations: list[LazyAssociation] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -4152,6 +4905,7 @@ class OrganisationUnit:
         ],
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for itusers_response
     itusers: list[LazyITUser] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -4170,6 +4924,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for kles_response
     kles: list[LazyKLE] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -4187,6 +4942,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("kle")],
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for related_units_response
     related_units: list[LazyRelatedUnit] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -4412,6 +5168,7 @@ class RelatedUnit:
         """Implemented for backwards compatability."""
         return root.type_
 
+    # TODO: Add Paged[Response[LazyClass]] for org_units_response
     org_units: list[LazyOrganisationUnit] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -4459,6 +5216,22 @@ class RoleBinding:
     # TODO: Document this
     user_key: str = strawberry.auto
 
+    role_response: Response[LazyClass] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.role),
+        description=dedent(
+            """\
+            The role that is being fulfilled.
+
+            Examples of user-keys:
+            * `"AD Read"`
+            * `"AD Write"`
+            * `"SAP Admin"`
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
     role: list[LazyClass] = strawberry.field(
         resolver=to_list(
             seed_resolver(class_resolver, {"uuids": lambda root: [root.role]})
@@ -4475,6 +5248,14 @@ class RoleBinding:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'role_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    ituser_response: Response[LazyITUser] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ITUserRead](uuid=root.it_user_uuid),
+        description="The IT-user that should be granted this role\n"
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
     ituser: list[LazyITUser] = strawberry.field(
@@ -4486,6 +5267,20 @@ class RoleBinding:
         description="The IT-user that should be granted this role\n"
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
+        deprecation_reason="Use 'ituser_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid)
+        if root.org_unit_uuid
+        else None,
+        description=dedent(
+            """\
+            The organisational unit in which the role is being fulfilled.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
@@ -4502,6 +5297,7 @@ class RoleBinding:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     validity: Validity = strawberry.auto
