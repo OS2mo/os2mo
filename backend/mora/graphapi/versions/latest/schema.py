@@ -1873,6 +1873,7 @@ class Employee:
     async def user_key(self, root: EmployeeRead) -> str:
         return root.user_key
 
+    # TODO: Add Paged[Response[LazyClass]] for engagements_response
     engagements: list[LazyEngagement] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -1893,6 +1894,7 @@ class Employee:
         ],
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for manager_roles_response
     manager_roles: list[LazyManager] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -1910,6 +1912,7 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for addresses_response
     addresses: list[LazyAddress] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -1933,6 +1936,7 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for leaves_response
     leaves: list[LazyLeave] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -1950,6 +1954,7 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for associations_response
     associations: list[LazyAssociation] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -1970,6 +1975,7 @@ class Employee:
         ],
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for itusers_response
     itusers: list[LazyITUser] = strawberry.field(
         resolver=to_list(
             seed_resolver(
