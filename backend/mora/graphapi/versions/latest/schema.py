@@ -120,7 +120,6 @@ from .resolvers import related_unit_resolver
 from .resolvers import rolebinding_resolver
 from .seed_resolver import get_bound_filter
 from .seed_resolver import seed_resolver
-from .seed_resolver import strip_args
 from .types import CPRType
 from .validity import OpenValidity
 from .validity import Validity
@@ -724,19 +723,7 @@ async def _get_handler_object(root: AddressRead, info: Info) -> AddressHandler:
 )
 class Address:
     address_type_response: Response[LazyClass] = strawberry.field(  # type: ignore
-        resolver=to_response(ClassRead)(
-            strip_args(
-                seed_resolver(
-                    class_resolver, {"uuids": lambda root: [root.address_type_uuid]}
-                ),
-                # We filter out:
-                # * 'cursor' and 'limit' as there is at most one object returned
-                # * 'filter' as you cannot filter on uuids and something else at once
-                # Once the resolver supports mixed uuid and non-uuid filtering we may
-                # remove 'filter' from the list here.
-                {"cursor", "limit", "filter"},
-            )
-        ),
+        resolver=lambda root: Response[ClassRead](uuid=root.address_type_uuid),
         description=dedent(
             """\
             The address category or type.
@@ -786,20 +773,10 @@ class Address:
         deprecation_reason="Use 'address_type_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    visibility_response: Response[LazyClass] | None = strawberry.field(
-        resolver=to_response(ClassRead)(
-            strip_args(
-                seed_resolver(
-                    class_resolver, {"uuids": lambda root: [root.visibility_uuid]}
-                ),
-                # We filter out:
-                # * 'cursor' and 'limit' as there is at most one object returned
-                # * 'filter' as you cannot filter on uuids and something else at once
-                # Once the resolver supports mixed uuid and non-uuid filtering we may
-                # remove 'filter' from the list here.
-                {"cursor", "limit", "filter"},
-            )
-        ),
+    visibility_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.visibility_uuid)
+        if root.visibility_uuid
+        else None,
         description=dedent(
             """\
             Determines who can see the address and how it is exported.
@@ -880,28 +857,10 @@ class Address:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
-    person_response: Response[LazyEmployee] | None = strawberry.field(
-        resolver=force_none_return_wrapper(
-            to_response(EmployeeRead)(
-                strip_args(
-                    seed_resolver(
-                        employee_resolver,
-                        {
-                            "uuids": partial(
-                                raise_force_none_return_if_uuid_none,
-                                get_uuid=lambda root: root.employee_uuid,
-                            )
-                        },
-                    ),
-                    # We filter out:
-                    # * 'cursor' and 'limit' as there is at most one object returned
-                    # * 'filter' as you cannot filter on uuids and something else at once
-                    # Once the resolver supports mixed uuid and non-uuid filtering we may
-                    # remove 'filter' from the list here.
-                    {"cursor", "limit", "filter"},
-                )
-            )
-        ),
+    person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[EmployeeRead](uuid=root.employee_uuid)
+        if root.employee_uuid
+        else None,
         description=dedent(
             """\
             Connected person.
@@ -941,28 +900,10 @@ class Address:
         deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(
-        resolver=force_none_return_wrapper(
-            to_response(OrganisationUnitRead)(
-                strip_args(
-                    seed_resolver(
-                        organisation_unit_resolver,
-                        {
-                            "uuids": partial(
-                                raise_force_none_return_if_uuid_none,
-                                get_uuid=lambda root: root.org_unit_uuid,
-                            )
-                        },
-                    ),
-                    # We filter out:
-                    # * 'cursor' and 'limit' as there is at most one object returned
-                    # * 'filter' as you cannot filter on uuids and something else at once
-                    # Once the resolver supports mixed uuid and non-uuid filtering we may
-                    # remove 'filter' from the list here.
-                    {"cursor", "limit", "filter"},
-                )
-            )
-        ),
+    org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid)
+        if root.org_unit_uuid
+        else None,
         description=dedent(
             """\
             Connected organisation unit.
@@ -1000,28 +941,10 @@ class Address:
         deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    engagement_response: Response[LazyEngagement] | None = strawberry.field(
-        resolver=force_none_return_wrapper(
-            to_response(EngagementRead)(
-                strip_args(
-                    seed_resolver(
-                        engagement_resolver,
-                        {
-                            "uuids": partial(
-                                raise_force_none_return_if_uuid_none,
-                                get_uuid=lambda root: root.engagement_uuid,
-                            )
-                        },
-                    ),
-                    # We filter out:
-                    # * 'cursor' and 'limit' as there is at most one object returned
-                    # * 'filter' as you cannot filter on uuids and something else at once
-                    # Once the resolver supports mixed uuid and non-uuid filtering we may
-                    # remove 'filter' from the list here.
-                    {"cursor", "limit", "filter"},
-                )
-            )
-        ),
+    engagement_response: Response[LazyEngagement] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[EngagementRead](uuid=root.engagement_uuid)
+        if root.engagement_uuid
+        else None,
         description=dedent(
             """\
             Connected engagement.
@@ -1065,28 +988,10 @@ class Address:
         deprecation_reason="Use 'engagement_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    ituser_response: Response[LazyITUser] | None = strawberry.field(
-        resolver=force_none_return_wrapper(
-            to_response(ITUserRead)(
-                strip_args(
-                    seed_resolver(
-                        it_user_resolver,
-                        {
-                            "uuids": partial(
-                                raise_force_none_return_if_uuid_none,
-                                get_uuid=lambda root: root.it_user_uuid,
-                            )
-                        },
-                    ),
-                    # We filter out:
-                    # * 'cursor' and 'limit' as there is at most one object returned
-                    # * 'filter' as you cannot filter on uuids and something else at once
-                    # Once the resolver supports mixed uuid and non-uuid filtering we may
-                    # remove 'filter' from the list here.
-                    {"cursor", "limit", "filter"},
-                )
-            )
-        ),
+    ituser_response: Response[LazyITUser] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ITUserRead](uuid=root.it_user_uuid)
+        if root.it_user_uuid
+        else None,
         description="Connected IT-user.\n",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
