@@ -1496,6 +1496,23 @@ class Association:
     ),
 )
 class Class:
+    parent_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.parent_uuid)
+        if root.parent_uuid
+        else None,
+        description=dedent(
+            """\
+            Parent class.
+
+            Almost always `null` as class hierarchies are rare.
+            Currently mostly used to describe (trade) union hierachies.
+
+            The inverse operation of `children`.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
     parent: LazyClass | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
@@ -1513,8 +1530,10 @@ class Class:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'parent_response' instead. Will be removed in a future version of OS2mo.",
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for children_response
     children: list[LazyClass] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -1535,6 +1554,21 @@ class Class:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
+    facet_response: Response[LazyFacet] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[FacetRead](uuid=root.facet_uuid),
+        description=dedent(
+            """\
+            Facet this class is defined under.
+
+            Examples of user-keys:
+            * `"employee_address_type"`
+            * `"primary_type"`
+            * `"engagement_job_function"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
+    )
+
     facet: LazyFacet = strawberry.field(
         resolver=to_one(
             seed_resolver(facet_resolver, {"uuids": lambda root: [root.facet_uuid]})
@@ -1550,6 +1584,7 @@ class Class:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
+        deprecation_reason="Use 'facet_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
@@ -1580,6 +1615,20 @@ class Class:
         return await Class.top_level_facet(self=self, root=parent_node, info=info)
         # coverage: unpause
 
+    it_system_response: Response[LazyITSystem] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ITSystemRead](uuid=root.it_system_uuid)
+        if root.it_system_uuid
+        else None,
+        description=dedent(
+            """\
+            The IT-System associated with the class.
+
+            This is intended to be used for (IT) roles.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
+    )
+
     it_system: LazyITSystem | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
@@ -1595,6 +1644,7 @@ class Class:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
+        deprecation_reason="Use 'it_system_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
