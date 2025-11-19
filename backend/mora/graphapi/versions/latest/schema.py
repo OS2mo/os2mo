@@ -2860,6 +2860,7 @@ class ITSystem:
     async def user_key(self, root: ITSystemRead) -> str:
         return root.user_key
 
+    # TODO: Add Paged[Response[LazyClass]] for roles_response
     roles: list[Response[LazyClass]] = strawberry.field(
         resolver=to_response_list(LazyClass)(
             seed_resolver(
