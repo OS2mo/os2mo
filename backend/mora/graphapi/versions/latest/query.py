@@ -236,6 +236,12 @@ class Query:
         resolver=to_paged_response(employee_resolver, EmployeeRead),
         description="Get employees.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'persons' instead. Will be removed in a future version of OS2mo.",
+    )
+    persons: Paged[Response[Employee]] = strawberry.field(
+        resolver=to_paged_response(employee_resolver, EmployeeRead),
+        description="Get persons.",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
     # Engagements
