@@ -251,7 +251,7 @@ async def test_access_log_filters(
             async def get_token() -> Token:
                 return Token(azp="mo", uuid=access_event["actor"])
 
-            async for _ in set_authenticated_user(get_token):
+            async for _ in set_authenticated_user(..., session, get_token):
                 # TODO: Set time somehow
                 access_log(
                     session,

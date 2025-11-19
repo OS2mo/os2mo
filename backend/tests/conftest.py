@@ -295,6 +295,8 @@ class FakeDatabaseSession:
             async def noop(): ...
 
             return noop
+        elif attr == "under_testing_with_fake_db":
+            return True
         else:
             pytest.fail("This test is not connected to a database")
 
