@@ -2879,12 +2879,30 @@ class Engagement:
     description="The key component of the class/facet choice setup",
 )
 class Facet:
+    # TODO: Add Paged[Response[LazyClass]] for classess_response
     classes: list[LazyClass] = strawberry.field(
         resolver=to_list(
             seed_resolver(class_resolver, {"facets": lambda root: [root.uuid]})
         ),
         description="Associated classes",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
+    parent_response: Response[LazyFacet] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[FacetRead](uuid=root.parent_uuid)
+        if root.parent_uuid
+        else None,
+        description=dedent(
+            """\
+            Parent facet.
+
+            Almost always `null` as facet hierarchies are rare.
+            Currently mostly used to describe (trade) union hierachies.
+
+            The inverse operation of `children`.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
 
     parent: LazyFacet | None = strawberry.field(
@@ -2904,8 +2922,10 @@ class Facet:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
+        deprecation_reason="Use 'parent_response' instead. Will be removed in a future version of OS2mo.",
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for children_response
     children: list[LazyFacet] = strawberry.field(
         resolver=to_list(
             seed_resolver(
