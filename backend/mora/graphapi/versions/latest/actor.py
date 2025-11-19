@@ -6,15 +6,14 @@ from textwrap import dedent
 from uuid import UUID
 
 import strawberry
-from strawberry.types import Info
 
-from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import LEGACY_AUTH_UUID
 from mora.auth.keycloak.oidc import NO_AUTH_UUID
 from mora.auth.middleware import LORA_USER_UUID
 from mora.auth.middleware import MISSING_UUID_ON_TOKEN_UUID
 from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from mora.auth.middleware import UNABLE_TO_PARSE_TOKEN_UUID
+from mora.graphapi.info import CustomInfo
 
 from .events import Listener
 from .events import Namespace
@@ -194,8 +193,8 @@ class Myself:
     )
 
 
-async def myself_resolver(info: Info) -> Myself:
-    token: Token = await info.context["get_token"]()
+async def myself_resolver(info: CustomInfo) -> Myself:
+    token = await info.token
     return Myself(
         actor=actor_uuid_to_actor(token.uuid),
         email=token.email,

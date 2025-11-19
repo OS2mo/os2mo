@@ -14,6 +14,7 @@ from strawberry.types import Info
 
 from mora.auth.exceptions import AuthorizationError
 from mora.config import get_settings
+from mora.graphapi.info import CustomInfo
 
 Collections = Literal[
     "accesslog",
@@ -71,7 +72,8 @@ class IsAuthenticatedPermission(BasePermission):
         if not settings.os2mo_auth:  # pragma: no cover
             return True
         try:
-            token = await info.context["get_token"]()
+            assert isinstance(info, CustomInfo)
+            token = await info.token
         except HTTPException as e:
             raise PermissionError(e.detail) from e
         return token is not None
@@ -119,7 +121,8 @@ def gen_role_permission(
             if (not settings.graphql_rbac) and (not force_permission_check):
                 return True
 
-            token = await info.context["get_token"]()
+            assert isinstance(info, CustomInfo)
+            token = await info.token
             token_roles = token.realm_access.roles
 
             # Allow access if token has required role

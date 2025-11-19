@@ -34,6 +34,8 @@ from mora.graphapi.versions.latest.types import CPRType
 from mora.log import canonical_gql_context
 from mora.util import CPR
 
+from .info import CustomInfo
+
 logger = get_logger()
 
 
@@ -151,6 +153,7 @@ def get_schema(version: Version) -> CustomSchema:
             #
             # Additionally, it preserves the naming of the underlying Python functions.
             auto_camel_case=False,
+            info_class=CustomInfo,
         ),
         scalar_overrides={
             CPR: CPRType,
