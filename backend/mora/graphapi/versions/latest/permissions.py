@@ -15,6 +15,8 @@ from strawberry.types import Info
 from mora.auth.exceptions import AuthorizationError
 from mora.config import get_settings
 
+from ...info import MOInfo
+
 Collections = Literal[
     "accesslog",
     "address",
@@ -64,14 +66,26 @@ class IsAuthenticatedPermission(BasePermission):
 
     message = "User is not authenticated"
 
+    # We would like to type this using `info: MOInfo` but mypy does not like this:
+    # Argument 2 of "has_permission" is incompatible with supertype "BasePermission";
+    #   supertype defines the argument type as "Info[Any, Any]"  [override]
+    # note: This violates the Liskov substitution principle
+    # note: See https://mypy.readthedocs.io/en/stable/common_issues.html#incompatible-overrides
+    #
+    # This is likely due to an issue in Strawberry where typing of custom info classes
+    # is not properly supported on the BasePermission API.
+    #
+    # A question about this has been asked in the strawberry-graphql Discord server:
+    # https://discord.com/channels/689806334337482765/1462881301173371035/1462881301173371035
     async def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
         """Returns `True` if a valid token exists."""
+        assert isinstance(info, MOInfo)
         settings = get_settings()
         # Always grant access if auth is disabled
         if not settings.os2mo_auth:  # pragma: no cover
             return True
         try:
-            token = await info.context["get_token"]()
+            token = await info.mo.token
         except HTTPException as e:
             raise PermissionError(e.detail) from e
         return token is not None
@@ -112,6 +126,8 @@ def gen_role_permission(
 
         async def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
             """Returns `True` if `role_name` exists in the token's roles."""
+            # NOTE: See the comment in IsAuthenticatedPermission about this assert
+            assert isinstance(info, MOInfo)
             settings = get_settings()
 
             # Do not check permissions (always allow) if GraphQL RBAC is disabled,
@@ -119,7 +135,7 @@ def gen_role_permission(
             if (not settings.graphql_rbac) and (not force_permission_check):
                 return True
 
-            token = await info.context["get_token"]()
+            token = await info.mo.token
             token_roles = token.realm_access.roles
 
             # Allow access if token has required role
