@@ -21,6 +21,7 @@ from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from mora.auth.middleware import UNABLE_TO_PARSE_TOKEN_UUID
 from mora.db import Actor as ActorTable
 
+from ...info import CustomInfo
 from .events import Listener
 from .events import Namespace
 from .events import listener_resolver
@@ -231,8 +232,8 @@ class Myself:
     )
 
 
-async def myself_resolver(info: Info) -> Myself:
-    token: Token = await info.context["get_token"]()
+async def myself_resolver(info: CustomInfo) -> Myself:
+    token: Token = await info.mo.token
     return Myself(
         actor=actor_uuid_to_actor(token.uuid),
         email=token.email,
