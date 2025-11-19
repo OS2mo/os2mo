@@ -3639,6 +3639,18 @@ class KLE:
         metadata=Metadata(version=lambda v: v <= GraphQLVersion.VERSION_22),
     )
 
+    kle_number_response: Response[LazyClass] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.kle_number_uuid),
+        description=dedent(
+            """\
+            The KLE number specifies the responsibility.
+
+            For more details read the `KLE` description.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
     kle_number__v23: list[LazyClass] = strawberry.field(
         name="kle_number",
         resolver=to_list(
@@ -3655,8 +3667,10 @@ class KLE:
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
         metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_23),
+        deprecation_reason="Use 'kle_number_response' instead. Will be removed in a future version of OS2mo.",
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for kle_aspects_response
     kle_aspects: list[LazyClass] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -3679,6 +3693,18 @@ class KLE:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
+    org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid)
+        if root.org_unit_uuid
+        else None,
+        description=dedent(
+            """\
+            The organisation unit the responsibility is mapped to.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
+
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
@@ -3699,6 +3725,7 @@ class KLE:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
