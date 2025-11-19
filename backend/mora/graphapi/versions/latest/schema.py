@@ -5168,6 +5168,7 @@ class RelatedUnit:
         """Implemented for backwards compatability."""
         return root.type_
 
+    # TODO: Add Paged[Response[LazyClass]] for org_units_response
     org_units: list[LazyOrganisationUnit] = strawberry.field(
         resolver=to_list(
             seed_resolver(
