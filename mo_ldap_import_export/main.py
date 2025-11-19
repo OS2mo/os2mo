@@ -556,6 +556,20 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
         settings.ldap_ous_to_write_to,
     )
 
+    # GraphQL event listeners
+    listeners: list[Listener] = []
+    if settings.listen_to_changes_in_mo:
+        # Dynamic listeners
+        listeners.extend(
+            Listener(
+                namespace="mo",
+                user_key=mapping.identifier,
+                routing_key=mapping.routing_key,
+                path=f"/mo_to_ldap/{mapping.identifier}",
+            )
+            for mapping in settings.conversion_mapping.mo_to_ldap
+        )
+
     logger.info("Setting up FastRAMQPI")
     fastramqpi = FastRAMQPI(
         application_name="ldap_ie",
@@ -567,18 +581,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
             declare_namespaces=[
                 Namespace(name="ldap"),
             ],
-            declare_listeners=[
-                # Configure dynamic listeners
-                Listener(
-                    namespace="mo",
-                    user_key=mapping.identifier,
-                    routing_key=mapping.routing_key,
-                    path=f"/mo_to_ldap/{mapping.identifier}",
-                )
-                for mapping in settings.conversion_mapping.mo_to_ldap
-            ]
-            if settings.listen_to_changes_in_mo
-            else [],
+            declare_listeners=listeners,
         ),
     )
     fastramqpi.add_context(settings=settings)
