@@ -3983,6 +3983,23 @@ class Leave:
     ),
 )
 class Manager:
+    manager_type_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.manager_type_uuid)
+        if root.manager_type_uuid
+        else None,
+        description=dedent(
+            """\
+            Title of the manager.
+
+            Examples:
+            * `"Director"`
+            * `"Area manager"`
+            * `"Center manager"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
     manager_type: LazyClass = strawberry.field(
         resolver=to_arbitrary_only(
             seed_resolver(
@@ -3998,6 +4015,25 @@ class Manager:
             * `"Director"`
             * `"Area manager"`
             * `"Center manager"`
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'manager_type_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    manager_level_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[ClassRead](uuid=root.manager_level_uuid)
+        if root.manager_level_uuid
+        else None,
+        # TODO: Check production system values
+        description=dedent(
+            """\
+            Hierarchical level of the manager.
+
+            Examples:
+            * `"Level 1"`
+            * `"Level 2"`
+            * `"Level 3"`
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -4022,8 +4058,10 @@ class Manager:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        deprecation_reason="Use 'manager_level_response' instead. Will be removed in a future version of OS2mo.",
     )
 
+    # TODO: Add Paged[Response[LazyClass]] for responsibilities_response
     responsibilities: list[LazyClass] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -4070,6 +4108,21 @@ class Manager:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
+    person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[EmployeeRead](uuid=root.employee_uuid)
+        if root.employee_uuid
+        else None,
+        description=dedent(
+            """\
+            Person fulfilling the managerial position.
+
+            May be empty in which case the managerial position is unfilfilled (vacant).
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+    )
+
     person: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
@@ -4093,6 +4146,18 @@ class Manager:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid),
+        description=dedent(
+            """\
+            Organisation unit being managed.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
@@ -4109,6 +4174,7 @@ class Manager:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
