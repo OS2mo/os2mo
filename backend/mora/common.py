@@ -98,14 +98,17 @@ def _create_graphql_connector(**loraparams) -> lora.Connector:
         # default to present
         from_date = util.now()
         to_date = from_date + datetime.timedelta(milliseconds=1)
+        reg_date = None
     else:
         # None in MO -> ±infinity in LoRa
         from_date = dates.from_date if dates.from_date is not None else "-infinity"
         to_date = dates.to_date if dates.to_date is not None else "infinity"
+        reg_date = dates.regdate if dates.regdate is not None else None
 
     loraparams["validity"] = "present"
     loraparams["virkningfra"] = from_date
     loraparams["virkningtil"] = to_date
+    loraparams["registrationstidpunks"] = regdate
 
     return _construct_connector_cached(**loraparams)
 

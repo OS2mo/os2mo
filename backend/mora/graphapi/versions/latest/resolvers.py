@@ -1272,6 +1272,7 @@ async def generic_resolver(
     filter: BaseFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
+    registration_time_at: datetime | None = None,
     **kwargs: Any,
 ) -> Any:
     """The internal resolve interface, allowing for kwargs."""
@@ -1297,7 +1298,7 @@ async def generic_resolver(
         return await get_by_uuid(
             dataloader=info.context[resolver_name],
             keys=[
-                LoadKey(uuid, dates.from_date, dates.to_date) for uuid in filter.uuids
+                LoadKey(uuid, dates.from_date, dates.to_date, registration_time_at) for uuid in filter.uuids
             ],
         )
 
@@ -1314,6 +1315,10 @@ async def generic_resolver(
     if cursor is not None:
         kwargs["foersteresultat"] = cursor.offset
         kwargs["registreringstid"] = str(cursor.registration_time)
+    if registration_time_at is not None:
+        if cursor is not None:
+            assert cursor.registrering_time == registration_time_at, "Cannot change registration time during pagination"
+        kwargs["registreringstid"] = str(registration_time_at)
 
     resolver_name = resolver_map[model]["getter"]
     with with_graphql_dates(dates):

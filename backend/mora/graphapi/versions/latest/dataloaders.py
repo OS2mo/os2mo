@@ -126,7 +126,7 @@ async def load_mo(keys: list[LoadKey], model: type[MOModel]) -> list[list[MOMode
         return parsed_results
 
     # Group keys by start/end intervals to allowing batching request(s) to LoRa
-    interval_buckets = bucket(keys, key=lambda key: (key.start, key.end))
+    interval_buckets = bucket(keys, key=lambda key: (key.start, key.end, key.registration_time))
     gets = [
         get([key.uuid for key in interval_buckets[interval]], *interval)
         for interval in interval_buckets
