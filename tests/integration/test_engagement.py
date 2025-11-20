@@ -104,7 +104,7 @@ async def test_to_mo(
             validity={"from": "2001-02-03T04:05:06Z"},
         )
     )
-    mo_engagement = {
+    mo_engagement: dict = {
         "uuid": ANY,
         "user_key": "existing",
         "person": [{"uuid": mo_person}],

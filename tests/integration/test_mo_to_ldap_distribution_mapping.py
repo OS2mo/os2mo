@@ -71,7 +71,7 @@ async def trigger_sync(identifier: str, uuid: UUID) -> None:
                     },
                     {
                         "identifier": "rolebinding_to_roles",
-                        "routing_key": "role",
+                        "routing_key": "rolebinding",
                         "object_class": "-",
                         "template": """
                         {% set role_uuid = rolebinding_uuid_to_role_uuid(uuid) %}
