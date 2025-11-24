@@ -75,7 +75,7 @@ async def test_refresh_no_uuids(
                         {% set dn = get_person_dn(uuid) %}
                         {% set create = False %}
                         {% if not dn %}
-                            {% set dn = generate_dn(uuid, mo_employee.cpr_number) %}
+                            {% set dn = generate_dn(uuid, mo_employee.given_name + " " + mo_employee.surname) %}
                             {% set create = True %}
                         {% endif %}
 
@@ -104,7 +104,7 @@ async def test_refresh_no_uuids(
         ),
     }
 )
-async def test_refresh_graphql(
+async def test_mo_to_ldap(
     amqp_emit_events: Callable[[], Awaitable[None]],
     get_ldap_person: Callable[[UUID], Awaitable[dict[str, Any] | None]],
     graphql_client: GraphQLClient,
@@ -130,10 +130,9 @@ async def test_refresh_graphql(
                 ldap_person = await get_ldap_person(mo_person)
                 assert ldap_person is not None
 
-    # TODO: Why is DN here different from the following test
     assert ldap_person == {
         "raw_dn": ANY,
-        "dn": "cn=2108613133,ou=os2mo,o=magenta,dc=magenta,dc=dk",
+        "dn": "cn=Aage Bach Klarskov,ou=os2mo,o=magenta,dc=magenta,dc=dk",
         "raw_attributes": ANY,
         "attributes": {
             "carLicense": [str(mo_person)],
@@ -143,7 +142,7 @@ async def test_refresh_graphql(
             "sn": ["Bach Klarskov"],
             "uid": ["2108613133"],
             "objectClass": ["inetOrgPerson"],
-            "cn": ["2108613133"],
+            "cn": ["Aage Bach Klarskov"],
         },
         "type": "searchResEntry",
     }
@@ -177,7 +176,7 @@ async def test_refresh_graphql(
         ),
     }
 )
-async def test_refresh_amqp(
+async def test_mo2ldap(
     amqp_emit_events: Callable[[], Awaitable[None]],
     get_ldap_person: Callable[[UUID], Awaitable[dict[str, Any] | None]],
     graphql_client: GraphQLClient,
@@ -203,7 +202,6 @@ async def test_refresh_amqp(
                 ldap_person = await get_ldap_person(mo_person)
                 assert ldap_person is not None
 
-    # TODO: Why is DN here different from the prior test
     assert ldap_person == {
         "raw_dn": ANY,
         "dn": "cn=Aage Bach Klarskov,ou=os2mo,o=magenta,dc=magenta,dc=dk",
@@ -239,7 +237,7 @@ async def test_refresh_amqp(
                         {% set dn = get_person_dn(uuid) %}
                         {% set create = False %}
                         {% if not dn %}
-                            {% set dn = generate_dn(uuid, mo_employee.cpr_number) %}
+                            {% set dn = generate_dn(uuid, mo_employee.given_name + " " + mo_employee.surname) %}
                             {% set create = True %}
                         {% endif %}
 
@@ -322,7 +320,7 @@ async def test_refresh_chain_graphql(
 
     assert ldap_person == {
         "raw_dn": ANY,
-        "dn": "cn=2108613133,ou=os2mo,o=magenta,dc=magenta,dc=dk",
+        "dn": "cn=Aage Bach Klarskov,ou=os2mo,o=magenta,dc=magenta,dc=dk",
         "raw_attributes": ANY,
         "attributes": {
             "carLicense": [str(mo_person)],
@@ -332,7 +330,7 @@ async def test_refresh_chain_graphql(
             "sn": ["Bach Klarskov"],
             "uid": ["2108613133"],
             "objectClass": ["inetOrgPerson"],
-            "cn": ["2108613133"],
+            "cn": ["Aage Bach Klarskov"],
         },
         "type": "searchResEntry",
     }
