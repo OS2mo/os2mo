@@ -3,6 +3,7 @@
 from datetime import datetime
 from datetime import timedelta
 from typing import Any
+from typing import Callable
 from unittest.mock import ANY
 from uuid import UUID
 from uuid import uuid4
@@ -22,6 +23,7 @@ from mora.db import AccessLogOperation
 from mora.db import AccessLogRead
 from mora.db import AsyncSession
 from mora.graphapi.versions.latest.access_log import AccessLogModel
+from mora.mapping import ADMIN
 from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.orgunits import search_orgunits
 from mora.util import DEFAULT_TIMEZONE
@@ -31,6 +33,7 @@ from sqlalchemy import delete
 from sqlalchemy import select
 
 from tests.conftest import GraphAPIPost
+from tests.conftest import SetAuth
 from tests.conftest import admin_auth_uuid
 
 
@@ -491,3 +494,41 @@ async def test_access_log_graphql_cursor(
     assert response.data == {
         "access_log": {"objects": [ANY], "page_info": {"next_cursor": None}}
     }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_accesslog_actor_object(
+    set_settings: MonkeyPatch,
+    set_auth: SetAuth,
+    graphapi_post,
+    create_person: Callable[..., UUID],
+) -> None:
+    set_settings(ACCESS_LOG_ENABLE="True")
+    read_query = """
+        query ReadActorAccess($uuid: UUID!) {
+          access_log(filter: {uuids: [$uuid]}) {
+            objects {
+              actor_object {
+                display_name
+                uuid
+              }
+            }
+          }
+        }
+    """
+    person_uuid = str(create_person())
+    bruce_uuid = "99e7b256-7dfa-4ee8-95c6-e3abe82e236a"
+
+    response = graphapi_post(read_query, {"uuid": person_uuid})
+    assert response.errors is None
+    assert response.data
+    for obj in response.data["access_log"]["objects"]:
+        assert obj["actor_object"] == {"display_name": "bruce", "uuid": bruce_uuid}
+
+    set_auth(ADMIN, bruce_uuid, preferred_username="new name")
+    response = graphapi_post(read_query, {"uuid": person_uuid})
+    assert response.errors is None
+    assert response.data
+    for obj in response.data["access_log"]["objects"]:
+        assert obj["actor_object"] == {"display_name": "new name", "uuid": bruce_uuid}
