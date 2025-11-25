@@ -103,7 +103,8 @@ class Registration:
         Currently mostly returns `"42c432e8-9c4a-11e6-9f62-873cf34a735f"`.
         Will eventually contain for the UUID of the integration or user who mutated data, based on the JWT token.
         """
-        )
+        ),
+        deprecation_reason="Use actor_object.",
     )
 
     @strawberry.field(
