@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """Pagination primitives."""
 
+from collections.abc import Awaitable
 from collections.abc import Callable
 from functools import wraps
 from textwrap import dedent
@@ -16,6 +17,7 @@ from starlette_context import context
 
 from mora.util import now
 
+from .filters import BaseFilter
 from .types import Cursor
 
 LimitType = Annotated[
@@ -118,19 +120,29 @@ class Paged(Generic[T]):
 def to_paged(  # type: ignore
     resolver_func: Callable,
     model: Any,
-    result_transformer: Any | None = None,
-):
+    result_transformer: Callable | None = None,
+) -> Callable[..., Awaitable[Paged]]:
     result_transformer = result_transformer or (lambda _, x: x)
 
     @wraps(resolver_func)
-    async def resolve_response(*args, limit: LimitType, cursor: CursorType, **kwargs):  # type: ignore
+    async def resolve_response(
+        *args: Any,
+        filter: BaseFilter,
+        limit: LimitType,
+        cursor: CursorType,
+        **kwargs: Any,
+    ) -> Paged:
         if limit and cursor is None:
             cursor = Cursor(
                 offset=0,
-                registration_time=str(now()),
+                registration_time=filter.registration_time
+                if filter.registration_time
+                else str(now()),
             )
 
-        result = await resolver_func(*args, limit=limit, cursor=cursor, **kwargs)
+        result = await resolver_func(
+            *args, filter=filter, limit=limit, cursor=cursor, **kwargs
+        )
 
         end_cursor: CursorType = None
         if limit and cursor is not None:

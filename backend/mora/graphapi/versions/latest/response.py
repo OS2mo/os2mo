@@ -214,7 +214,12 @@ class Response(Generic[MOObject]):
         end: datetime | None = UNSET,
         registration_time: datetime | None = None,
     ) -> list[MOObject]:
-        if start is UNSET and end is UNSET and root.object_cache != UNSET:
+        if (
+            start is UNSET
+            and end is UNSET
+            and registration_time is None
+            and root.object_cache != UNSET
+        ):
             return root.object_cache
         # If the object cache has not been filled we must resolve objects using the uuid
         resolver = resolver_map[response2model(root)]["loader"]

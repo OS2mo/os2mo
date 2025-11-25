@@ -180,8 +180,6 @@ def exotics_to_str(value):
         return list(map(exotics_to_str, value))
     elif isinstance(value, (int, str)):
         return value
-    elif isinstance(value, datetime):
-        return value.isoformat()
     # coverage: pause
     raise TypeError("Unknown type in exotics_to_str", type(value))
     # coverage: unpause
@@ -646,7 +644,7 @@ class Scope(BaseScope):
         """
         kwargs = {}
         if registration_time is not None:
-            kwargs["registreringstid"] = registration_time
+            kwargs["registreringstid"] = registration_time.isoformat()
         ret = await self.load(uuid=uuids, **kwargs)
         return filter_registrations(response=ret, wantregs=False)
 
