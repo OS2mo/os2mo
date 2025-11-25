@@ -135,7 +135,7 @@ async def test_load(test_data, patch_loader):
     """Test load of models."""
     # Sample data & UUIDs
     model, data, uuids, _ = test_data
-    keys = [LoadKey(uuid, None, None) for uuid in uuids]
+    keys = [LoadKey(uuid, None, None, None) for uuid in uuids]
 
     # Patch loader
     with MonkeyPatch.context() as patch:
@@ -155,7 +155,7 @@ async def test_load_nonexistent(test_data, patch_loader):
     """Test load of UUIDs that do not exist in data, including the empty list."""
     # Sample data & UUIDs
     model, data, _, other_uuids = test_data
-    keys = [LoadKey(uuid, None, None) for uuid in other_uuids]
+    keys = [LoadKey(uuid, None, None, None) for uuid in other_uuids]
 
     # Patch loader
     with MonkeyPatch.context() as patch:

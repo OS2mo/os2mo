@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """LoRa data read helpers."""
 
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -54,13 +55,18 @@ async def search_role_type(role_type: str, **kwargs: Any) -> list[dict[str, Any]
 
 
 async def get_role_type_by_uuid(
-    role_type: str, uuid: list[UUID]
+    role_type: str, uuid: list[UUID], registration_time: datetime | None
 ) -> list[dict[str, Any]]:
     c = get_connector()
     cls = get_handler_for_type(role_type)
     return await cls.get(
         c=c,
         search_fields=_extract_search_params(
-            query_args={"at": None, "validity": None, "uuid": uuid}
+            query_args={
+                "at": None,
+                "validity": None,
+                "uuid": uuid,
+                "registration_time": registration_time,
+            }
         ),
     )

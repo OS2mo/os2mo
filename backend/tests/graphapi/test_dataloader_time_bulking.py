@@ -150,8 +150,8 @@ def test_dataloader_time_bulking(
         call(
             AnyOrder(
                 [
-                    LoadKey(uuid=dph, start=ANY, end=ANY),
-                    LoadKey(uuid=maps, start=ANY, end=ANY),
+                    LoadKey(uuid=dph, start=ANY, end=ANY, registration_time=None),
+                    LoadKey(uuid=maps, start=ANY, end=ANY, registration_time=None),
                 ]
             ),
             model=OrganisationUnitRead,
@@ -159,8 +159,15 @@ def test_dataloader_time_bulking(
         call(
             AnyOrder(
                 [
-                    LoadKey(uuid=department_class, start=ANY, end=ANY),
-                    LoadKey(uuid=external_class, start=ANY, end=ANY),
+                    LoadKey(
+                        uuid=department_class,
+                        start=ANY,
+                        end=ANY,
+                        registration_time=None,
+                    ),
+                    LoadKey(
+                        uuid=external_class, start=ANY, end=ANY, registration_time=None
+                    ),
                 ]
             ),
             model=ClassRead,

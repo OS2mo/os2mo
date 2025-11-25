@@ -34,6 +34,7 @@ class OrgUnitReader(reading.ReadingHandler):
         if mapping.UUID in search_fields:
             return await c.organisationenhed.get_all_by_uuid(
                 uuids=search_fields[mapping.UUID],
+                registration_time=search_fields.get("registration_time"),
             )
         # coverage: pause
         return await c.organisationenhed.get_all(

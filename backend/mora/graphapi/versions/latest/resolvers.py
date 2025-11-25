@@ -498,6 +498,7 @@ async def employee_resolver(
                 ),
                 from_date=filter.from_date,
                 to_date=filter.to_date,
+                registration_time=filter.registration_time,
             ),
         )
         # We don't pass limit/cursor to generic_resolver, since that isn't
@@ -1087,6 +1088,7 @@ async def organisation_unit_resolver(
             uuids=uuids,
             from_date=filter.from_date,
             to_date=filter.to_date,
+            registration_time=filter.registration_time,
         ),
     )
 
@@ -1297,7 +1299,8 @@ async def generic_resolver(
         return await get_by_uuid(
             dataloader=info.context[resolver_name],
             keys=[
-                LoadKey(uuid, dates.from_date, dates.to_date) for uuid in filter.uuids
+                LoadKey(uuid, dates.from_date, dates.to_date, filter.registration_time)
+                for uuid in filter.uuids
             ],
         )
 
@@ -1314,6 +1317,9 @@ async def generic_resolver(
     if cursor is not None:
         kwargs["foersteresultat"] = cursor.offset
         kwargs["registreringstid"] = str(cursor.registration_time)
+    if filter.registration_time:
+        kwargs["registreringstid"] = str(filter.registration_time)
+    # TODO: What happens if cursor and registration_time
 
     resolver_name = resolver_map[model]["getter"]
     with with_graphql_dates(dates):
