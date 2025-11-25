@@ -27,6 +27,7 @@ from sqlalchemy import distinct
 from sqlalchemy import exists
 from sqlalchemy import func
 from sqlalchemy import select
+from sqlalchemy.sql.functions import now as SQLNOW
 from starlette_context import context
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
@@ -759,11 +760,25 @@ async def organisation_unit_resolver_query(
         extend_uuids(class_filter, filter.hierarchies)
         return lora_filter(await filter2uuids_func(class_resolver, info, class_filter))
 
+    def _get_registration_time() -> datetime | SQLNOW:
+        if (
+            cursor is not None
+            and filter.registration_time
+            and filter.registration_time != cursor.registration_time
+        ):
+            raise ValueError("Cannot change registration_time during pagination")
+
+        if cursor is not None:
+            return cursor.registration_time
+        if filter.registration_time:
+            return filter.registration_time
+        return func.now()
+
     def _registrering() -> ColumnElement:
         return and_(
             OrganisationEnhedRegistrering.lifecycle != cast("Slettet", LivscyklusKode),
             OrganisationEnhedRegistrering.registrering_period.contains(
-                cursor.registration_time if cursor is not None else func.now()
+                _get_registration_time()
             ),
         )
 
@@ -1310,6 +1325,16 @@ async def generic_resolver(
         if not filter.user_keys:
             return dict()
         kwargs["bvn"] = to_similar(filter.user_keys)
+
+    # Registration time lookup
+    if (
+        cursor is not None
+        and filter.registration_time
+        and filter.registration_time != cursor.registration_time
+    ):
+        raise ValueError("Cannot change registration_time during pagination")
+    if filter.registration_time:
+        kwargs["registreringstid"] = str(filter.registration_time)
 
     # Pagination
     if limit is not None:
