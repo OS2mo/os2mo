@@ -124,6 +124,7 @@ async def add_event(
     routing_key: str,
     subject: str,
     priority: int = DEFAULT_PRIORITY,
+    listener_uuid: UUID | None = None,
     listener_owner: UUID | None = None,
 ) -> None:
     matching_listeners = [
@@ -131,6 +132,8 @@ async def add_event(
         Listener.routing_key == routing_key,
     ]
 
+    if listener_uuid is not None:
+        matching_listeners.append(Listener.pk == listener_uuid)
     if listener_owner is not None:
         matching_listeners.append(Listener.owner == listener_owner)
 
