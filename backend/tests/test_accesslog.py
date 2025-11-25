@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
 from typing import Any
@@ -22,13 +23,16 @@ from mora.db import AccessLogOperation
 from mora.db import AccessLogRead
 from mora.db import AsyncSession
 from mora.graphapi.versions.latest.access_log import AccessLogModel
+from mora.mapping import ADMIN
 from mora.util import DEFAULT_TIMEZONE
 from more_itertools import flatten
 from more_itertools import one
 from sqlalchemy import delete
 from sqlalchemy import select
 
+from tests.conftest import BRUCE_UUID
 from tests.conftest import GraphAPIPost
+from tests.conftest import SetAuth
 from tests.conftest import admin_auth_uuid
 
 
@@ -454,3 +458,43 @@ async def test_access_log_graphql_cursor(
     assert response.data == {
         "access_log": {"objects": [ANY], "page_info": {"next_cursor": None}}
     }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_accesslog_actor_object(
+    set_settings: Callable[..., None],
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    create_person: Callable[..., UUID],
+) -> None:
+    set_settings(ACCESS_LOG_ENABLE="True")
+    read_query = """
+        query ReadActorAccess($uuid: UUID!) {
+          access_log(filter: {uuids: [$uuid]}) {
+            objects {
+              actor_object {
+                display_name
+                uuid
+              }
+            }
+          }
+        }
+    """
+    person_uuid = str(create_person())
+    bruce_uuid = str(BRUCE_UUID)
+
+    response = graphapi_post(read_query, {"uuid": person_uuid})
+    assert response.errors is None
+    assert response.data
+    for obj in response.data["access_log"]["objects"]:
+        assert obj["actor_object"] == {"display_name": "bruce", "uuid": bruce_uuid}
+
+    # This should update MOs database next time it parses a token.
+    set_auth(ADMIN, bruce_uuid, preferred_username="new name")
+
+    response = graphapi_post(read_query, {"uuid": person_uuid})
+    assert response.errors is None
+    assert response.data
+    for obj in response.data["access_log"]["objects"]:
+        assert obj["actor_object"] == {"display_name": "new name", "uuid": bruce_uuid}
