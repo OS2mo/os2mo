@@ -215,6 +215,7 @@ class OrgFunkReadingHandler(ReadingHandler):
         if mapping.UUID in search_fields:
             object_tuples = await c.organisationfunktion.get_all_by_uuid(
                 uuids=search_fields[mapping.UUID],
+                registration_time=search_fields.get("registration_time"),
             )
         else:
             object_tuples = await c.organisationfunktion.get_all(

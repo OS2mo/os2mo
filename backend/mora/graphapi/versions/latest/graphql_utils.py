@@ -36,3 +36,4 @@ class LoadKey(NamedTuple):
     uuid: UUID
     start: datetime | UnsetType | None
     end: datetime | UnsetType | None
+    registration_time: datetime | None

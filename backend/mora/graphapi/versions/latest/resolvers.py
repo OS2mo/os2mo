@@ -27,6 +27,7 @@ from sqlalchemy import distinct
 from sqlalchemy import exists
 from sqlalchemy import func
 from sqlalchemy import select
+from sqlalchemy.sql.functions import now as SQLNOW
 from starlette_context import context
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
@@ -43,6 +44,7 @@ from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationEnhedRelation
 from mora.db import OrganisationEnhedRelationKode
 from mora.db import OrganisationEnhedTilsGyldighed
+from mora.graphapi.gmodels.base import tz_isodate
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import AssociationRead
@@ -498,6 +500,7 @@ async def employee_resolver(
                 ),
                 from_date=filter.from_date,
                 to_date=filter.to_date,
+                registration_time=filter.registration_time,
             ),
         )
         # We don't pass limit/cursor to generic_resolver, since that isn't
@@ -758,11 +761,25 @@ async def organisation_unit_resolver_query(
         extend_uuids(class_filter, filter.hierarchies)
         return lora_filter(await filter2uuids_func(class_resolver, info, class_filter))
 
+    def _get_registration_time() -> datetime | SQLNOW:
+        if (
+            cursor is not None
+            and filter.registration_time
+            and filter.registration_time != cursor.registration_time
+        ):
+            raise ValueError("Cannot change registration_time during pagination")
+
+        if cursor is not None:
+            return tz_isodate(cursor.registration_time)
+        if filter.registration_time:
+            return tz_isodate(filter.registration_time)
+        return func.now()
+
     def _registrering() -> ColumnElement:
         return and_(
             OrganisationEnhedRegistrering.lifecycle != cast("Slettet", LivscyklusKode),
             OrganisationEnhedRegistrering.registrering_period.contains(
-                cursor.registration_time if cursor is not None else func.now()
+                _get_registration_time()
             ),
         )
 
@@ -1088,6 +1105,7 @@ async def organisation_unit_resolver(
             uuids=uuids,
             from_date=filter.from_date,
             to_date=filter.to_date,
+            registration_time=filter.registration_time,
         ),
     )
 
@@ -1298,7 +1316,8 @@ async def generic_resolver(
         return await get_by_uuid(
             dataloader=info.context[resolver_name],
             keys=[
-                LoadKey(uuid, dates.from_date, dates.to_date) for uuid in filter.uuids
+                LoadKey(uuid, dates.from_date, dates.to_date, filter.registration_time)
+                for uuid in filter.uuids
             ],
         )
 
@@ -1309,12 +1328,24 @@ async def generic_resolver(
             return dict()
         kwargs["bvn"] = to_similar(filter.user_keys)
 
+    # Registration time lookup
+    if (
+        cursor is not None
+        and filter.registration_time
+        and filter.registration_time != cursor.registration_time
+    ):
+        raise ValueError("Cannot change registration_time during pagination")
+    if filter.registration_time:
+        kwargs["registreringstid"] = str(filter.registration_time)
+
     # Pagination
     if limit is not None:
         kwargs["maximalantalresultater"] = limit
     if cursor is not None:
         kwargs["foersteresultat"] = cursor.offset
         kwargs["registreringstid"] = str(cursor.registration_time)
+    if filter.registration_time:
+        kwargs["registreringstid"] = str(filter.registration_time)
 
     resolver_name = resolver_map[model]["getter"]
     with with_graphql_dates(dates):

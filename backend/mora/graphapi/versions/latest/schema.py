@@ -467,7 +467,9 @@ async def _get_handler_object(root: AddressRead, info: Info) -> AddressHandler:
     #       This would probably yield better performance than loading all validities,
     #       but for now however we load all of them to check our invariant.
     validities: list[ClassRead] = await info.context["class_loader"].load(
-        LoadKey(uuid=root.address_type_uuid, start=None, end=None)
+        LoadKey(
+            uuid=root.address_type_uuid, start=None, end=None, registration_time=None
+        )
     )
     scopes = {x.scope for x in validities}
     scope = one(scopes)

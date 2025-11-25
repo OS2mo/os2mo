@@ -1015,6 +1015,27 @@ def create_person(
 
 
 @pytest.fixture
+def update_person(
+    graphapi_post: GraphAPIPost,
+    root_org: UUID,
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation UpdatePerson($input: EmployeeUpdateInput!) {
+                employee_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["employee_update"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
 def create_manager(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
@@ -1098,6 +1119,27 @@ def create_facet(
 
 
 @pytest.fixture
+def update_facet(
+    graphapi_post: GraphAPIPost,
+    root_org: UUID,
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation UpdateFacet($input: FacetUpdateInput!) {
+                facet_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["facet_update"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
 def org_unit_type_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
     return create_facet(
         {
@@ -1155,6 +1197,27 @@ def create_class(
         assert response.data
         class_uuid = UUID(response.data["class_create"]["uuid"])
         return class_uuid
+
+    return inner
+
+
+@pytest.fixture
+def update_class(
+    graphapi_post: GraphAPIPost,
+    root_org: UUID,
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation UpdateClass($input: ClassUpdateInput!) {
+                class_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["class_update"]["uuid"])
 
     return inner
 
