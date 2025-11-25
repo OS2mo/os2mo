@@ -37,3 +37,16 @@ repos:
     rev: 0.20.0
     hooks:
       - id: deptry
+
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier
+        language: node
+        additional_dependencies:
+          - prettier
+        entry: prettier
+        args: ["--write", "--log-level=warn"]
+        types_or:
+          - graphql
+          - yaml
