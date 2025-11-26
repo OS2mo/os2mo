@@ -59,6 +59,7 @@ class ListenerFilter:
     uuids: list[UUID] | None = strawberry.field(
         default=None, description=gen_filter_string("UUID", "uuids")
     )
+    user_keys: list[str] | None = strawberry.field(default=None)
     owners: list[UUID] | None = strawberry.field(
         default=None, description=gen_filter_string("Owner", "owners")
     )
@@ -75,6 +76,9 @@ class ListenerFilter:
 
         if self.uuids is not None:
             clauses.append(db.Listener.pk.in_(self.uuids))
+
+        if self.user_keys is not None:
+            clauses.append(db.Listener.user_key.in_(self.user_keys))
 
         if self.owners is not None:  # pragma: no cover
             clauses.append(db.Listener.owner.in_(self.owners))
