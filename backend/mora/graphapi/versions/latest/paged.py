@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """Pagination primitives."""
 
+from collections.abc import Awaitable
 from collections.abc import Callable
 from functools import wraps
 from textwrap import dedent
@@ -115,15 +116,17 @@ class Paged(Generic[T]):
     )
 
 
-def to_paged(  # type: ignore
-    resolver_func: Callable,
+def to_paged(
+    resolver_func: Callable[..., Awaitable[Any]],
     model: Any,
-    result_transformer: Any | None = None,
-):
+    result_transformer: Callable[[Any, Any], Any] | None = None,
+) -> Callable[..., Awaitable[Paged]]:
     result_transformer = result_transformer or (lambda _, x: x)
 
     @wraps(resolver_func)
-    async def resolve_response(*args, limit: LimitType, cursor: CursorType, **kwargs):  # type: ignore
+    async def resolve_response(
+        *args: Any, limit: LimitType, cursor: CursorType, **kwargs: Any
+    ) -> Paged:
         if limit and cursor is None:
             cursor = Cursor(
                 offset=0,
