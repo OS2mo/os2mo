@@ -117,10 +117,10 @@ class Paged(Generic[T]):
     )
 
 
-def to_paged(  # type: ignore
-    resolver_func: Callable,
+def to_paged(
+    resolver_func: Callable[..., Awaitable[Any]],
     model: Any,
-    result_transformer: Callable | None = None,
+    result_transformer: Callable[[Any, Any], Any] | None = None,
 ) -> Callable[..., Awaitable[Paged]]:
     result_transformer = result_transformer or (lambda _, x: x)
 
