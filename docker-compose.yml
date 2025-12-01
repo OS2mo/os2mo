@@ -227,6 +227,23 @@ services:
       keycloak-realm-builder:
         condition: service_completed_successfully
 
+  keycloak-sd-builder:
+    image: magentaaps/os2mo-keycloak-integration-builder:6
+    environment:
+      POSTGRES_CONNECTION_STRING: postgres://keycloak:keycloak@keycloak-db/keycloak?sslmode=disable
+      POSTGRES_SCHEMA_NAME: terraform_remote_state_sd_client
+
+      TF_VAR_url: "http://keycloak:8080"
+      TF_VAR_admin_password: admin
+
+      TF_VAR_client_name: sdtool_plus
+      TF_VAR_client_secret: "ddee847f-6987-4891-a2b2-b395d571ef8c"
+      TF_VAR_client_uuid: "5d700141-baad-c0de-0000-7364746f6f6c"
+      TF_VAR_client_roles: '["admin", "service_api"]'
+    depends_on:
+      keycloak-realm-builder:
+        condition: service_completed_successfully
+
   keycloak-db:
     image: postgres:18
     environment:
