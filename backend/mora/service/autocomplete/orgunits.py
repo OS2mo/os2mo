@@ -5,7 +5,6 @@ from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import Select
-from sqlalchemy import String
 from sqlalchemy import Text
 from sqlalchemy import Tuple
 from sqlalchemy import cast
@@ -19,9 +18,6 @@ from mora.access_log import access_log
 from mora.db import AsyncSession
 from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
-from mora.db import OrganisationFunktionAttrEgenskaber
-from mora.db import OrganisationFunktionRelation
-from mora.db import OrganisationFunktionRelationKode
 from mora.db._common import LivscyklusKode
 from mora.graphapi.shim import execute_graphql
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
@@ -181,7 +177,6 @@ def _sqlalchemy_generate_query(query: str, at_sql: str) -> Select[Tuple]:
         for cte in (
             _get_cte_orgunit_uuid_hits(query, at_sql),
             _get_cte_orgunit_name_hits(query, at_sql),
-            _get_cte_orgunit_itsystem_hits(query, at_sql),
         )
     ]
     all_hits = union(*selects).cte()
@@ -282,26 +277,6 @@ def _get_cte_orgunit_name_hits(query: str, at_sql: str):
                 OrganisationEnhedAttrEgenskaber.enhedsnavn.ilike(search_phrase)
                 | OrganisationEnhedAttrEgenskaber.brugervendtnoegle.ilike(search_phrase)
             ),
-        )
-        .cte()
-    )
-
-
-def _get_cte_orgunit_itsystem_hits(query: str, at_sql: str):
-    search_phrase = util.query_to_search_phrase(query)
-    return (
-        select(OrganisationFunktionRelation.rel_maal_uuid.label("uuid"))
-        .outerjoin(
-            OrganisationFunktionAttrEgenskaber,
-            OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-            == OrganisationFunktionRelation.organisationfunktion_registrering_id,
-        )
-        .where(
-            OrganisationFunktionRelation.rel_maal_uuid != None,  # noqa: E711
-            cast(OrganisationFunktionRelation.rel_type, String)
-            == OrganisationFunktionRelationKode.tilknyttedeenheder,
-            OrganisationFunktionAttrEgenskaber.funktionsnavn == "IT-system",
-            OrganisationFunktionAttrEgenskaber.brugervendtnoegle.ilike(search_phrase),
         )
         .cte()
     )
