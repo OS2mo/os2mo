@@ -22,6 +22,7 @@ from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
+from mora.db._common import LivscyklusKode
 from mora.graphapi.shim import execute_graphql
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 from mora.service.autocomplete.shared import get_at_date_sql
@@ -252,6 +253,8 @@ def _get_cte_orgunit_uuid_hits(query: str, at_sql: str):
             == OrganisationEnhedRegistrering.id,
         )
         .where(
+            OrganisationEnhedRegistrering.lifecycle != cast("Slettet", LivscyklusKode),
+            OrganisationEnhedRegistrering.registrering_period.contains(func.now()),
             func.char_length(search_phrase) > UUID_SEARCH_MIN_PHRASE_LENGTH,
             OrganisationEnhedRegistrering.organisationenhed_id != None,  # noqa: E711
             cast(OrganisationEnhedRegistrering.organisationenhed_id, Text).ilike(
@@ -272,6 +275,8 @@ def _get_cte_orgunit_name_hits(query: str, at_sql: str):
             == OrganisationEnhedRegistrering.id,
         )
         .where(
+            OrganisationEnhedRegistrering.lifecycle != cast("Slettet", LivscyklusKode),
+            OrganisationEnhedRegistrering.registrering_period.contains(func.now()),
             OrganisationEnhedRegistrering.organisationenhed_id != None,  # noqa: E711
             (
                 OrganisationEnhedAttrEgenskaber.enhedsnavn.ilike(search_phrase)
