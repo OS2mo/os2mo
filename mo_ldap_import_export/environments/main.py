@@ -1134,6 +1134,7 @@ def construct_default_environment() -> Environment:
     environment.globals["one"] = one
     environment.globals["first"] = first
     environment.globals["last"] = last
+    environment.globals["logger"] = logger
 
     return environment
 
