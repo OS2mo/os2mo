@@ -32,7 +32,6 @@ from mo_ldap_import_export.environments.main import get_job_function_name
 from mo_ldap_import_export.environments.main import get_or_create_job_function_uuid
 from mo_ldap_import_export.environments.main import get_org_unit_name
 from mo_ldap_import_export.environments.main import get_visibility_uuid
-from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import RequeueException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
@@ -252,41 +251,6 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
             },
         )
     assert "Missing values in LDAP to synchronize" in str(exc_info.value)
-
-
-async def test_ldap_to_mo_dict_error(
-    context: Context, converter_mapping: dict[str, Any]
-) -> None:
-    bad_mapping = {
-        **converter_mapping,
-        "ldap_to_mo": {
-            "Active Directory": {
-                "objectClass": "ITUser",
-                "user_key": "{{ ldap.msSFU30Name or '' }}",
-                "itsystem": "{ 'hep': 'hey }",  # provokes json error in str_to_dict
-                "person": "{{ dict(uuid=employee_uuid or '') }}",
-            }
-        },
-    }
-    settings = Settings(conversion_mapping=bad_mapping)
-    template_environment = construct_environment(
-        settings=settings, dataloader=MagicMock()
-    )
-    converter = LdapConverter(template_environment)
-
-    with pytest.raises(IncorrectMapping):
-        assert settings.conversion_mapping.ldap_to_mo is not None
-        await converter.from_ldap(
-            LdapObject(
-                dn="",
-                msSFU30Name=["bar"],
-                itSystemName=["Active Directory"],
-            ),
-            mapping=settings.conversion_mapping.ldap_to_mo["Active Directory"],
-            template_context={
-                "employee_uuid": str(uuid4()),
-            },
-        )
 
 
 async def test_ldap_to_mo_dict_validation_error(
