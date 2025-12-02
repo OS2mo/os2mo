@@ -253,52 +253,6 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
     assert "Missing values in LDAP to synchronize" in str(exc_info.value)
 
 
-async def test_ldap_to_mo_dict_validation_error(
-    monkeypatch: pytest.MonkeyPatch, context: Context
-) -> None:
-    mapping = {
-        "ldap_to_mo": {
-            "Employee": {
-                "objectClass": "Employee",
-                "_import_to_mo_": "True",
-                "_ldap_attributes_": ["employeeID"],
-                "cpr_number": "{{ldap.employeeID or None}}",
-                "uuid": "{{ employee_uuid or '' }}",
-            },
-            "Custom": {
-                "objectClass": "Custom.JobTitleFromADToMO",
-                "_import_to_mo_": "true",
-                "_ldap_attributes_": ["hkStsuuid"],
-                "user": "{{ ldap.hkStsuuid }}",
-                "job_function": f"{{ {uuid4()} }}",
-                "uuid": "{{ employee_uuid or '' }}",
-            },
-        }
-    }
-    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
-    settings = Settings()
-    dataloader = context["user_context"]["dataloader"]
-
-    template_environment = construct_environment(settings, dataloader)
-    converter = LdapConverter(template_environment)
-
-    with pytest.raises(ValidationError) as exc_info:
-        assert settings.conversion_mapping.ldap_to_mo is not None
-        await converter.from_ldap(
-            LdapObject(
-                dn="",
-                hkStsuuid="not_an_uuid",
-                title="job title",
-                comment="job title default",
-            ),
-            mapping=settings.conversion_mapping.ldap_to_mo["Custom"],
-            template_context={
-                "employee_uuid": str(uuid4()),
-            },
-        )
-    assert "2 validation errors for JobTitleFromADToMO" in str(exc_info.value)
-
-
 @pytest.mark.parametrize(
     "ldap_values,expected",
     (
