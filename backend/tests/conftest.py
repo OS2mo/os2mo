@@ -55,7 +55,6 @@ from oio_rest.config import Settings as LoraSettings
 from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.db.alembic_helpers import run_async_upgrade
 from oio_rest.organisation import Organisation
-from pydantic import parse_obj_as
 from pytest_asyncio import is_async_test
 from ramodels.mo import Validity
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -945,18 +944,10 @@ def graphql_client(
 
 
 @pytest.fixture
-def create_org(graphql_client: GraphQLClient) -> Callable[[dict[str, Any]], UUID]:
-    def inner(input: dict[str, Any]) -> UUID:
-        return graphql_client.create_organisation(
-            parse_obj_as(OrganisationCreate, input)
-        ).uuid
-
-    return inner
-
-
-@pytest.fixture
-def root_org(create_org: Callable[[dict[str, Any]], UUID]) -> UUID:
-    return create_org({"municipality_code": None})
+def root_org(graphql_client: GraphQLClient) -> UUID:
+    return graphql_client.create_organisation(
+        OrganisationCreate(municipality_code=None)
+    )
 
 
 @pytest.fixture

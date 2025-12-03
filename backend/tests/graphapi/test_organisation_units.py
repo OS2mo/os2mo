@@ -1181,7 +1181,7 @@ async def test_has_children(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
+@pytest.mark.usefixtures("empty_db", "root_org")
 @pytest.mark.parametrize(
     "filter,expected",
     [
@@ -1256,21 +1256,6 @@ async def test_org_tree_filters(
         expected: The set of user-keys we expected to get back.
     """
 
-    async def create_org() -> UUID:
-        mutate_query = """
-            mutation CreateOrg($input: OrganisationCreate!) {
-                org_create(input: $input) {
-                    uuid
-                }
-            }
-        """
-        response = graphapi_post(
-            query=mutate_query, variables={"input": {"municipality_code": None}}
-        )
-        assert response.errors is None
-        assert response.data
-        return UUID(response.data["org_create"]["uuid"])
-
     async def create_org_unit(user_key: str, parent: UUID | None = None) -> UUID:
         mutate_query = """
             mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
@@ -1294,8 +1279,6 @@ async def test_org_tree_filters(
         assert response.errors is None
         assert response.data
         return UUID(response.data["org_unit_create"]["uuid"])
-
-    await create_org()
 
     # Construct our test-tree
     #     root
