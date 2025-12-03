@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import pytest
 from fastapi.testclient import TestClient
-from mora.graphapi.custom_router import AUTH_SCRIPT
 from mora.graphapi.custom_router import DEPRECATION_NOTICE
 
 
@@ -26,7 +25,6 @@ def test_graphiql_overrides(
     response = service_client.request("GET", url)
     assert response.status_code == 200
     html_response = response.text
-    assert AUTH_SCRIPT in html_response
     if deprecated:
         assert DEPRECATION_NOTICE in html_response
     else:

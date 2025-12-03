@@ -46,7 +46,6 @@ def get_router(version: Version) -> APIRouter:
     """Get Strawberry FastAPI router serving this GraphQL API version."""
     schema = get_schema(version)
     router = CustomGraphQLRouter(
-        graphql_ide="graphiql",  # TODO: pathfinder seems a lot nicer
         schema=schema,
         context_getter=get_context,  # type: ignore
     )
