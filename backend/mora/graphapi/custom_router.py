@@ -110,7 +110,8 @@ class CustomGraphQLRouter(GraphQLRouter):
 
         # Overwrite query prettifier button with a good prettifier
         # https://github.com/graphql/graphiql/issues/1517
-        html = html.replace("</body>", f"{PRETTIER_SCRIPT}</body>")
+        # TODO(#67779): enable prettier again
+        # html = html.replace("</body>", f"{PRETTIER_SCRIPT}</body>")
 
         # Use jsdelivr instead of unpkg CDN. We've had a bit of - completely
         # fair - reliability issues from unpkg.
