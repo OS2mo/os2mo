@@ -165,13 +165,16 @@ def set_session_settings(
     get_settings.cache_clear()
 
 
+BRUCE_UUID = UUID("99e7b256-7dfa-4ee8-95c6-e3abe82e236a")
+
+
 async def fake_auth() -> Token:
     return Token(
         azp="vue",
         email="bruce@kung.fu",
         preferred_username="bruce",
         realm_access={"roles": {"service_api"}},
-        uuid="99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
+        uuid=str(BRUCE_UUID),
     )
 
 
