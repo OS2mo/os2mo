@@ -79,7 +79,7 @@ class ListenerFilter:
         if self.uuids is not None:
             clauses.append(db.Listener.pk.in_(self.uuids))
 
-        if self.user_keys is not None:  # pragma: no cover
+        if self.user_keys is not None:
             clauses.append(db.Listener.user_key.in_(self.user_keys))
 
         if self.owners is not None:
