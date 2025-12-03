@@ -84,13 +84,16 @@ h_settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "dev"))
 @pytest.hookimpl(trylast=True)
 def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
     # Remove FastRAMQPI fixtures
+    # This list should match the list in FastRAMQPIs: pytest_collection_modifyitems
     fastramqpi_integration_test_fixtures = [
+        "passthrough_backing_services",
         "fastramqpi_database_setup",
         "fastramqpi_database_isolation",
-        "amqp_event_emitter",
         "os2mo_database_snapshot_and_restore",
         "amqp_queue_isolation",
-        "passthrough_backing_services",
+        "amqp_event_emitter",
+        "graphql_events_quick_fetch",
+        "graphql_events_quick_retry",
     ]
     for item in items:
         if item.get_closest_marker("integration_test"):
