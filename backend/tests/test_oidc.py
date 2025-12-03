@@ -3,7 +3,6 @@
 import unittest.mock
 from datetime import datetime
 from typing import Any
-from uuid import UUID
 from uuid import uuid4
 
 import jwt
@@ -24,6 +23,8 @@ from pydantic import ValidationError
 from starlette.status import HTTP_401_UNAUTHORIZED
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 from structlog import get_logger
+
+from tests.conftest import BRUCE_UUID
 
 
 @pytest.fixture
@@ -190,7 +191,7 @@ def parsed_token() -> dict[str, Any]:
         "session_state": "d94f8dc3-d930-49b3-a9dd-9cdc1893b86a",
         "sub": "c420894f-36ba-4cd5-b4f8-1b24bd8c53db",
         "typ": "Bearer",
-        "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
+        "uuid": str(BRUCE_UUID),
     }
 
 
@@ -249,7 +250,7 @@ async def test_auth_decodes_token(
         azp="mo",
         email="bruce@kung.fu",
         preferred_username="bruce",
-        uuid=UUID("99e7b256-7dfa-4ee8-95c6-e3abe82e236a"),
+        uuid=BRUCE_UUID,
     )
 
     assert actual_token == expected_token
@@ -276,7 +277,7 @@ async def test_leeway(
         azp="mo",
         email="bruce@kung.fu",
         preferred_username="bruce",
-        uuid=UUID("99e7b256-7dfa-4ee8-95c6-e3abe82e236a"),
+        uuid=BRUCE_UUID,
     )
 
     assert actual_token == expected_token

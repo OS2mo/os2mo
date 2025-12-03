@@ -12,6 +12,7 @@ from mora.db.events import DEFAULT_PRIORITY
 from mora.mapping import ADMIN
 from more_itertools import one
 
+from tests.conftest import BRUCE_UUID
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
@@ -1004,31 +1005,31 @@ def test_metrics(graphapi_post: GraphAPIPost, service_client: TestClient) -> Non
         in metrics
     )
     assert (
-        f'os2mo_event_acknowledged_total{{ns="metric_test",owner="99e7b256-7dfa-4ee8-95c6-e3abe82e236a",routing_key="rk",user_key="uk"}} {ACK_EVENTS}.0'
+        f'os2mo_event_acknowledged_total{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",user_key="uk"}} {ACK_EVENTS}.0'
         in metrics
     )
     assert (
-        'os2mo_events{ns="metric_test",owner="99e7b256-7dfa-4ee8-95c6-e3abe82e236a",routing_key="rk",silenced="true",user_key="uk"} 1.0'
+        f'os2mo_events{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="true",user_key="uk"}} 1.0'
         in metrics
     )
     assert (
-        f'os2mo_events{{ns="metric_test",owner="99e7b256-7dfa-4ee8-95c6-e3abe82e236a",routing_key="rk",silenced="false",user_key="uk"}} {AMOUNT - ACK_EVENTS - 1}.0'
+        f'os2mo_events{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="false",user_key="uk"}} {AMOUNT - ACK_EVENTS - 1}.0'
         in metrics
     )  # -1 for the silenced event
     assert (
-        f'os2mo_events{{ns="metric_test",owner="99e7b256-7dfa-4ee8-95c6-e3abe82e236a",routing_key="rk",silenced="false",user_key="uk2"}} {AMOUNT}.0'
+        f'os2mo_events{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="false",user_key="uk2"}} {AMOUNT}.0'
         in metrics
     )
     assert (
-        'os2mo_event_oldest{ns="metric_test",owner="99e7b256-7dfa-4ee8-95c6-e3abe82e236a",routing_key="rk",silenced="false",user_key="uk2"}'
+        f'os2mo_event_oldest{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="false",user_key="uk2"}}'
         in metrics
     )
     assert (
-        'os2mo_event_oldest{ns="metric_test",owner="99e7b256-7dfa-4ee8-95c6-e3abe82e236a",routing_key="rk",silenced="false",user_key="uk"}'
+        f'os2mo_event_oldest{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="false",user_key="uk"}}'
         in metrics
     )
     assert (
-        'os2mo_event_oldest{ns="metric_test",owner="99e7b256-7dfa-4ee8-95c6-e3abe82e236a",routing_key="rk",silenced="true",user_key="uk"}'
+        f'os2mo_event_oldest{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="true",user_key="uk"}}'
         in metrics
     )
 
