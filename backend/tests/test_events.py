@@ -18,6 +18,7 @@ from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
 DEFAULT_TEST_NS = "ns"
+NOT_FOUND_UUID = UUID("d0d19f81-36e0-46bd-9be5-49d31b1e15a7")
 
 
 def declare_namespace(
@@ -1079,3 +1080,62 @@ def test_ns_filter(set_auth: SetAuth, graphapi_post: GraphAPIPost) -> None:
     assert get_namespaces(
         graphapi_post, filter={"names": [ns3["name"], ns2["name"]], "public": True}
     ) == [ns3]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+@pytest.mark.parametrize(
+    "filter,expected",
+    [
+        # No filter
+        ({}, True),
+        # UUID filter
+        ({"uuids": []}, False),
+        ({"uuids": [str(NOT_FOUND_UUID)]}, False),
+        # Owners filter
+        ({"owners": []}, False),
+        ({"owners": [str(NOT_FOUND_UUID)]}, False),
+        ({"owners": ["99e7b256-7dfa-4ee8-95c6-e3abe82e236a"]}, True),
+        (
+            {"owners": [str(NOT_FOUND_UUID), "99e7b256-7dfa-4ee8-95c6-e3abe82e236a"]},
+            True,
+        ),
+        # Routing-key filter
+        ({"routing_keys": []}, False),
+        ({"routing_keys": ["__invalid"]}, False),
+        ({"routing_keys": ["person"]}, True),
+        ({"routing_keys": ["__invalid", "person"]}, True),
+        # Namespace filter
+        ({"namespaces": {}}, True),  # TODO: Should this return True??
+        ({"namespaces": {"names": []}}, False),
+        ({"namespaces": {"names": ["__invalid"]}}, False),
+        ({"namespaces": {"names": [DEFAULT_TEST_NS]}}, True),
+        ({"namespaces": {"names": ["__invalid", DEFAULT_TEST_NS]}}, True),
+        ({"namespaces": {"owners": []}}, False),
+        ({"namespaces": {"owners": [str(NOT_FOUND_UUID)]}}, False),
+        ({"namespaces": {"owners": ["99e7b256-7dfa-4ee8-95c6-e3abe82e236a"]}}, True),
+        (
+            {
+                "namespaces": {
+                    "owners": [
+                        str(NOT_FOUND_UUID),
+                        "99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
+                    ]
+                }
+            },
+            True,
+        ),
+        ({"namespaces": {"public": True}}, False),
+        ({"namespaces": {"public": False}}, True),
+    ],
+)
+def test_listener_filters(
+    graphapi_post: GraphAPIPost, namespace: str, filter: dict[str, Any], expected: bool
+) -> None:
+    listener = declare_listener(graphapi_post, namespace, "my_listener", "person")
+    expected_listeners = [listener] if expected else []
+
+    listeners = get_listeners(graphapi_post, filter)
+    actual_listeners = [UUID(x["uuid"]) for x in listeners]
+
+    assert actual_listeners == expected_listeners
