@@ -1156,6 +1156,11 @@ def test_ns_filter(set_auth: SetAuth, graphapi_post: GraphAPIPost) -> None:
         # UUID filter
         ({"uuids": []}, False),
         ({"uuids": [str(NOT_FOUND_UUID)]}, False),
+        # User-key filter
+        ({"user_keys": []}, False),
+        ({"user_keys": ["__invalid"]}, False),
+        ({"user_keys": ["my_listener"]}, True),
+        ({"user_keys": ["__invalid", "my_listener"]}, True),
         # Owners filter
         ({"owners": []}, False),
         ({"owners": [str(NOT_FOUND_UUID)]}, False),
