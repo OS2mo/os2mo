@@ -82,13 +82,13 @@ class ListenerFilter:
         if self.user_keys is not None:  # pragma: no cover
             clauses.append(db.Listener.user_key.in_(self.user_keys))
 
-        if self.owners is not None:  # pragma: no cover
+        if self.owners is not None:
             clauses.append(db.Listener.owner.in_(self.owners))
 
         if self.routing_keys is not None:
             clauses.append(db.Listener.routing_key.in_(self.routing_keys))
 
-        if self.namespaces is not None:  # pragma: no cover
+        if self.namespaces is not None:
             clauses.append(db.Listener.namespace_fk == db.Namespace.name)
             clauses.extend(self.namespaces.where_clauses())
 
@@ -173,7 +173,7 @@ async def listener_resolver(
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> list["Listener"]:
-    if filter is None:  # pragma: no cover
+    if filter is None:
         filter = ListenerFilter()
 
     query = select(db.Listener).where(*filter.where_clauses())
