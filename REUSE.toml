@@ -1,0 +1,28 @@
+version = 1
+SPDX-PackageName = "OS2MO"
+SPDX-PackageSupplier = "Magenta ApS <info@magenta.dk>"
+SPDX-PackageDownloadLocation = "https://os2mo.readthedocs.io/"
+
+[[annotations]]
+path = ["backend/tests/integration_test_data/**", "backend/tests/fixtures/**", "backend/tests/mocking/**.json", ".**yaml", "**.yml"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Magenta ApS <https://magenta.dk>"
+SPDX-License-Identifier = "MPL-2.0"
+
+[[annotations]]
+path = ["**.json", "**.xml", "**.rst", "**.odt", "**.pdf", "**.md", "**.docx", "**.png", "**.html", "**.svg", "**.ico", "**.drawio", "**.j2", "**.terraform.lock.hcl"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Magenta ApS <https://magenta.dk>"
+SPDX-License-Identifier = "MPL-2.0"
+
+[[annotations]]
+path = ["**poetry.lock", "backend/.test_durations"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Magenta ApS <https://magenta.dk>"
+SPDX-License-Identifier = "MPL-2.0"
+
+[[annotations]]
+path = "dev-environment/requirements.txt"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Magenta ApS <https://magenta.dk>"
+SPDX-License-Identifier = "MPL-2.0"
