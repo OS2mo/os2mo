@@ -167,7 +167,7 @@ async def listener_resolver(
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> list["Listener"]:
-    if filter is None:
+    if filter is None:  # pragma: no cover
         filter = ListenerFilter()
 
     query = select(db.Listener).where(*filter.where_clauses())

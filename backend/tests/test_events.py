@@ -1095,11 +1095,8 @@ def test_ns_filter(set_auth: SetAuth, graphapi_post: GraphAPIPost) -> None:
         # Owners filter
         ({"owners": []}, False),
         ({"owners": [str(NOT_FOUND_UUID)]}, False),
-        ({"owners": ["99e7b256-7dfa-4ee8-95c6-e3abe82e236a"]}, True),
-        (
-            {"owners": [str(NOT_FOUND_UUID), "99e7b256-7dfa-4ee8-95c6-e3abe82e236a"]},
-            True,
-        ),
+        ({"owners": [str(BRUCE_UUID)]}, True),
+        ({"owners": [str(NOT_FOUND_UUID), str(BRUCE_UUID)]}, True),
         # Routing-key filter
         ({"routing_keys": []}, False),
         ({"routing_keys": ["__invalid"]}, False),
@@ -1113,13 +1110,13 @@ def test_ns_filter(set_auth: SetAuth, graphapi_post: GraphAPIPost) -> None:
         ({"namespaces": {"names": ["__invalid", DEFAULT_TEST_NS]}}, True),
         ({"namespaces": {"owners": []}}, False),
         ({"namespaces": {"owners": [str(NOT_FOUND_UUID)]}}, False),
-        ({"namespaces": {"owners": ["99e7b256-7dfa-4ee8-95c6-e3abe82e236a"]}}, True),
+        ({"namespaces": {"owners": [str(BRUCE_UUID)]}}, True),
         (
             {
                 "namespaces": {
                     "owners": [
                         str(NOT_FOUND_UUID),
-                        "99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
+                        str(BRUCE_UUID),
                     ]
                 }
             },
