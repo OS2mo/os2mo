@@ -76,13 +76,13 @@ class ListenerFilter:
         if self.uuids is not None:
             clauses.append(db.Listener.pk.in_(self.uuids))
 
-        if self.owners is not None:  # pragma: no cover
+        if self.owners is not None:
             clauses.append(db.Listener.owner.in_(self.owners))
 
         if self.routing_keys is not None:
             clauses.append(db.Listener.routing_key.in_(self.routing_keys))
 
-        if self.namespaces is not None:  # pragma: no cover
+        if self.namespaces is not None:
             clauses.append(db.Listener.namespace_fk == db.Namespace.name)
             clauses.extend(self.namespaces.where_clauses())
 
