@@ -48,6 +48,7 @@ def get_router(version: Version) -> APIRouter:
     router = CustomGraphQLRouter(
         schema=schema,
         context_getter=get_context,  # type: ignore
+        multipart_uploads_enabled=True,
     )
 
     @router.get("/schema.graphql", response_class=PlainTextResponse)
