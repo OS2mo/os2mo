@@ -61,11 +61,6 @@ class UUIDNotFoundException(HTTPException):
         super().__init__(status_code=404, detail=message)
 
 
-class TimeOutException(HTTPException):
-    def __init__(self, message: str) -> None:
-        super().__init__(status_code=408, detail=message)
-
-
 class IgnoreChanges(HTTPException):
     """Exception raised if the import/export checks reject a message."""
 

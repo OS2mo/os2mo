@@ -28,7 +28,6 @@ from mo_ldap_import_export.config import ServerConfig
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
-from mo_ldap_import_export.exceptions import TimeOutException
 from mo_ldap_import_export.ldap import check_ou_in_list_of_ous
 from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap import construct_server
@@ -209,7 +208,7 @@ def test_configure_ldap_connection_timeout(
         patch("mo_ldap_import_export.ldap.Connection", connection_mock),
         patch("mo_ldap_import_export.ldap.construct_server", MagicMock()),
         patch("mo_ldap_import_export.ldap.ServerPool", MagicMock()),
-        pytest.raises(TimeOutException),
+        pytest.raises(TimeoutError),
     ):
         configure_ldap_connection(settings)
 
