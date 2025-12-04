@@ -339,6 +339,12 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        listener: Annotated[
+            UUID | None,
+            strawberry.argument(
+                deprecation_reason="This is not the argument our event system deserves, but the one it needs right now."
+            ),
+        ] = None,
         owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(address_resolver, Address)
@@ -349,7 +355,12 @@ class Mutation:
             cursor=cursor,
         )
         return await refresh(
-            info=info, page=page, model="address", exchange=exchange, owner=owner
+            info=info,
+            page=page,
+            model="address",
+            exchange=exchange,
+            listener=listener,
+            owner=owner,
         )
 
     # Associations
@@ -415,6 +426,12 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        listener: Annotated[
+            UUID | None,
+            strawberry.argument(
+                deprecation_reason="This is not the argument our event system deserves, but the one it needs right now."
+            ),
+        ] = None,
         owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(association_resolver, Association)
@@ -429,6 +446,7 @@ class Mutation:
             page=page,
             model="association",
             exchange=exchange,
+            listener=listener,
             owner=owner,
         )
 
@@ -524,6 +542,12 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        listener: Annotated[
+            UUID | None,
+            strawberry.argument(
+                deprecation_reason="This is not the argument our event system deserves, but the one it needs right now."
+            ),
+        ] = None,
         owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(class_resolver, Class)
@@ -534,7 +558,12 @@ class Mutation:
             cursor=cursor,
         )
         return await refresh(
-            info=info, page=page, model="class", exchange=exchange, owner=owner
+            info=info,
+            page=page,
+            model="class",
+            exchange=exchange,
+            listener=listener,
+            owner=owner,
         )
 
     # Employees
@@ -599,6 +628,12 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        listener: Annotated[
+            UUID | None,
+            strawberry.argument(
+                deprecation_reason="This is not the argument our event system deserves, but the one it needs right now."
+            ),
+        ] = None,
         owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(employee_resolver, Employee)
@@ -611,7 +646,12 @@ class Mutation:
         # NOTE: "employee" is called "person" in the new AMQP system
         # coverage: pause
         return await refresh(
-            info=info, page=page, model="person", exchange=exchange, owner=owner
+            info=info,
+            page=page,
+            model="person",
+            exchange=exchange,
+            listener=listener,
+            owner=owner,
         )
         # coverage: unpause
 
@@ -727,6 +767,12 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        listener: Annotated[
+            UUID | None,
+            strawberry.argument(
+                deprecation_reason="This is not the argument our event system deserves, but the one it needs right now."
+            ),
+        ] = None,
         owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(engagement_resolver, Engagement)
@@ -741,6 +787,7 @@ class Mutation:
             page=page,
             model="engagement",
             exchange=exchange,
+            listener=listener,
             owner=owner,
         )
 
@@ -838,6 +885,12 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        listener: Annotated[
+            UUID | None,
+            strawberry.argument(
+                deprecation_reason="This is not the argument our event system deserves, but the one it needs right now."
+            ),
+        ] = None,
         owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(facet_resolver, Facet)
@@ -848,7 +901,12 @@ class Mutation:
             cursor=cursor,
         )
         return await refresh(
-            info=info, page=page, model="facet", exchange=exchange, owner=owner
+            info=info,
+            page=page,
+            model="facet",
+            exchange=exchange,
+            listener=listener,
+            owner=owner,
         )
 
     # ITAssociations
@@ -990,6 +1048,12 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        listener: Annotated[
+            UUID | None,
+            strawberry.argument(
+                deprecation_reason="This is not the argument our event system deserves, but the one it needs right now."
+            ),
+        ] = None,
         owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(it_system_resolver, ITSystem)
@@ -1000,7 +1064,12 @@ class Mutation:
             cursor=cursor,
         )
         return await refresh(
-            info=info, page=page, model="itsystem", exchange=exchange, owner=owner
+            info=info,
+            page=page,
+            model="itsystem",
+            exchange=exchange,
+            listener=listener,
+            owner=owner,
         )
 
     # ITUsers
@@ -1077,6 +1146,12 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        listener: Annotated[
+            UUID | None,
+            strawberry.argument(
+                deprecation_reason="This is not the argument our event system deserves, but the one it needs right now."
+            ),
+        ] = None,
         owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(it_user_resolver, ITUser)
@@ -1087,7 +1162,12 @@ class Mutation:
             cursor=cursor,
         )
         return await refresh(
-            info=info, page=page, model="ituser", exchange=exchange, owner=owner
+            info=info,
+            page=page,
+            model="ituser",
+            exchange=exchange,
+            listener=listener,
+            owner=owner,
         )
 
     # KLEs
@@ -1139,6 +1219,12 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        listener: Annotated[
+            UUID | None,
+            strawberry.argument(
+                deprecation_reason="This is not the argument our event system deserves, but the one it needs right now."
+            ),
+        ] = None,
         owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(kle_resolver, KLE)
@@ -1149,7 +1235,12 @@ class Mutation:
             cursor=cursor,
         )
         return await refresh(
-            info=info, page=page, model="kle", exchange=exchange, owner=owner
+            info=info,
+            page=page,
+            model="kle",
+            exchange=exchange,
+            listener=listener,
+            owner=owner,
         )
 
     # Leave
@@ -1201,6 +1292,12 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        listener: Annotated[
+            UUID | None,
+            strawberry.argument(
+                deprecation_reason="This is not the argument our event system deserves, but the one it needs right now."
+            ),
+        ] = None,
         owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(leave_resolver, Leave)
@@ -1211,7 +1308,12 @@ class Mutation:
             cursor=cursor,
         )
         return await refresh(
-            info=info, page=page, model="leave", exchange=exchange, owner=owner
+            info=info,
+            page=page,
+            model="leave",
+            exchange=exchange,
+            listener=listener,
+            owner=owner,
         )
 
     # Managers
@@ -1280,6 +1382,12 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        listener: Annotated[
+            UUID | None,
+            strawberry.argument(
+                deprecation_reason="This is not the argument our event system deserves, but the one it needs right now."
+            ),
+        ] = None,
         owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(manager_resolver, Manager)
@@ -1290,7 +1398,12 @@ class Mutation:
             cursor=cursor,
         )
         return await refresh(
-            info=info, page=page, model="manager", exchange=exchange, owner=owner
+            info=info,
+            page=page,
+            model="manager",
+            exchange=exchange,
+            listener=listener,
+            owner=owner,
         )
 
     # Root Organisation
@@ -1374,6 +1487,12 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        listener: Annotated[
+            UUID | None,
+            strawberry.argument(
+                deprecation_reason="This is not the argument our event system deserves, but the one it needs right now."
+            ),
+        ] = None,
         owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(organisation_unit_resolver, OrganisationUnit)
@@ -1384,7 +1503,12 @@ class Mutation:
             cursor=cursor,
         )
         return await refresh(
-            info=info, page=page, model="org_unit", exchange=exchange, owner=owner
+            info=info,
+            page=page,
+            model="org_unit",
+            exchange=exchange,
+            listener=listener,
+            owner=owner,
         )
 
     # Owner
@@ -1436,6 +1560,12 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        listener: Annotated[
+            UUID | None,
+            strawberry.argument(
+                deprecation_reason="This is not the argument our event system deserves, but the one it needs right now."
+            ),
+        ] = None,
         owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(owner_resolver, Owner)
@@ -1446,7 +1576,12 @@ class Mutation:
             cursor=cursor,
         )
         return await refresh(
-            info=info, page=page, model="owner", exchange=exchange, owner=owner
+            info=info,
+            page=page,
+            model="owner",
+            exchange=exchange,
+            listener=listener,
+            owner=owner,
         )
 
     # Related Units
@@ -1481,6 +1616,12 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        listener: Annotated[
+            UUID | None,
+            strawberry.argument(
+                deprecation_reason="This is not the argument our event system deserves, but the one it needs right now."
+            ),
+        ] = None,
         owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(related_unit_resolver, RelatedUnit)
@@ -1495,6 +1636,7 @@ class Mutation:
             page=page,
             model="related_unit",
             exchange=exchange,
+            listener=listener,
             owner=owner,
         )
 
@@ -1583,6 +1725,12 @@ class Mutation:
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
+        listener: Annotated[
+            UUID | None,
+            strawberry.argument(
+                deprecation_reason="This is not the argument our event system deserves, but the one it needs right now."
+            ),
+        ] = None,
         owner: UUID | None = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(rolebinding_resolver, RoleBindingRead)
@@ -1597,6 +1745,7 @@ class Mutation:
             page=page,
             model="rolebinding",
             exchange=exchange,
+            listener=listener,
             owner=owner,
         )
 
@@ -2056,6 +2205,7 @@ async def refresh(
     page: Paged[UUID],
     model: str,
     exchange: str | None,
+    listener: UUID | None,
     owner: UUID | None,
 ) -> Paged[UUID]:
     """Publish AMQP messages for UUIDs in the page, optionally to a specific exchange."""
@@ -2063,7 +2213,7 @@ async def refresh(
     uuids = page.objects
 
     # coverage: pause
-    send_in_old_amqp = owner is None
+    send_in_old_amqp = listener is None and owner is None
 
     if send_in_old_amqp:
         amqp_system = info.context["amqp_system"]
@@ -2080,7 +2230,7 @@ async def refresh(
     else:
         if exchange is not None:
             raise ValueError(
-                "owner and exchange are mutually exclusive. Exchanges are part of the legacy event system. If you are using GraphQL Events, do NOT use exchange."
+                "listener/owner and exchange are mutually exclusive. Exchanges are part of the legacy event system. If you are using GraphQL Events, do NOT use exchange."
             )
         session: AsyncSession = info.context["session"]
         for uuid in uuids:
@@ -2089,6 +2239,7 @@ async def refresh(
                 namespace="mo",
                 routing_key=model,
                 subject=str(uuid),
+                listener_uuid=listener,
                 listener_owner=owner,
             )
 

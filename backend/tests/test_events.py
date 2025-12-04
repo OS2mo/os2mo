@@ -876,7 +876,7 @@ def test_refresh_person(graphapi_post: GraphAPIPost) -> None:
         ("rolebinding", "1b20d0b9-96a0-42a6-b196-293bb86e62e8"),
     ],
 )
-def test_refresh_mutators(
+def test_refresh_mutators_with_owner(
     graphapi_post: GraphAPIPost, model: str, filter_uuid: str
 ) -> None:
     listener_query = declare_listener_raw(
@@ -906,6 +906,70 @@ def test_refresh_mutators(
     event = fetch_event(graphapi_post, listener)
     assert event is not None
     assert event["subject"] == filter_uuid
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.parametrize(
+    "model,filter_uuid",
+    [
+        ("address", "414044e0-fe5f-4f82-be20-1e107ad50e80"),
+        ("association", "c2153d5d-4a2b-492d-a18c-c498f7bb6221"),
+        ("class", "06f95678-166a-455a-a2ab-121a8d92ea23"),
+        ("engagement", "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab"),
+        ("facet", "1a6045a2-7a8e-4916-ab27-b2402e64f2be"),
+        ("itsystem", "59c135c9-2b15-41cc-97c8-b5dff7180beb"),
+        ("ituser", "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66"),
+        ("kle", "4bee0127-a3a3-419a-8bcc-d1b81d21c5b5"),
+        ("leave", "0895b7f5-86ac-45c5-8fb1-c3047d45b643"),
+        ("manager", "05609702-977f-4869-9fb4-50ad74c6999a"),
+        ("org_unit", "5942ce50-2be8-476f-914b-6769a888a7c8"),
+        ("owner", "c16ff527-3501-42f7-a942-e606c6c1a0a7"),
+        ("related_unit", "5c68402c-2a8d-4776-9237-16349fc72648"),
+        ("rolebinding", "1b20d0b9-96a0-42a6-b196-293bb86e62e8"),
+    ],
+)
+def test_refresh_mutators_with_listener(
+    graphapi_post: GraphAPIPost, model: str, filter_uuid: str
+) -> None:
+    listener1_query = declare_listener_raw(
+        graphapi_post, "mo", f"{model}_listener", model
+    )
+    assert listener1_query.data is not None
+    listener1 = listener1_query.data["event_listener_declare"]["uuid"]
+
+    listener2_query = declare_listener_raw(
+        graphapi_post, "mo", f"{model}_listener", model
+    )
+    assert listener2_query.data is not None
+    listener2 = listener2_query.data["event_listener_declare"]["uuid"]
+
+    # Refresh to listener 1 only
+    mutator = f"{model}_refresh"
+    refresh_query = graphapi_post(
+        f"""
+          mutation RefreshMutation($listener: UUID!, $uuid: UUID!) {{
+            {mutator}(listener: $listener, filter: {{uuids: [$uuid]}}) {{
+              objects
+            }}
+          }}
+        """,
+        variables={
+            "listener": listener1,
+            "uuid": filter_uuid,
+        },
+    )
+    assert refresh_query.data is not None
+    assert refresh_query.data[mutator]["objects"] == [filter_uuid]
+
+    # Listener 1 should receive the event
+    event = fetch_event(graphapi_post, listener1)
+    assert event is not None
+    assert event["subject"] == filter_uuid
+
+    # Listener 2 should not
+    event = fetch_event(graphapi_post, listener2)
+    assert event is None
 
 
 @pytest.mark.integration_test
@@ -1092,6 +1156,11 @@ def test_ns_filter(set_auth: SetAuth, graphapi_post: GraphAPIPost) -> None:
         # UUID filter
         ({"uuids": []}, False),
         ({"uuids": [str(NOT_FOUND_UUID)]}, False),
+        # User-key filter
+        ({"user_keys": []}, False),
+        ({"user_keys": ["__invalid"]}, False),
+        ({"user_keys": ["my_listener"]}, True),
+        ({"user_keys": ["__invalid", "my_listener"]}, True),
         # Owners filter
         ({"owners": []}, False),
         ({"owners": [str(NOT_FOUND_UUID)]}, False),
