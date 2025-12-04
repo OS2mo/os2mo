@@ -17,8 +17,8 @@ services:
       - ./dev-environment/schema/:/container/service/slapd/assets/config/bootstrap/schema/custom/:ro
     networks:
       - default
-#    ports:
-#      - "389:389"
+  #    ports:
+  #      - "389:389"
 
   mo-init:
     image: magentaaps/os2mo-init:5
@@ -40,7 +40,15 @@ services:
   mo_ldap_import_export:
     container_name: mo_ldap_ie
     build: .
-    command: ["uvicorn", "--factory", "mo_ldap_import_export.main:create_app", "--host", "0.0.0.0", "--reload"]
+    command:
+      [
+        "uvicorn",
+        "--factory",
+        "mo_ldap_import_export.main:create_app",
+        "--host",
+        "0.0.0.0",
+        "--reload",
+      ]
     environment:
       # FastRAMQPI
       FASTRAMQPI__JSON_LOGS: False

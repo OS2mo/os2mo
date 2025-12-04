@@ -5,14 +5,14 @@ repos:
     rev: v0.6.4
     hooks:
       - id: ruff
-        args: [ --fix ]
+        args: [--fix]
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.11.2
     hooks:
       - id: mypy
-        args: [ --config-file=pyproject.toml ]
+        args: [--config-file=pyproject.toml]
         language: system
 
   - repo: https://github.com/fsfe/reuse-tool
@@ -31,9 +31,22 @@ repos:
     hooks:
       - id: commitizen
       - id: commitizen-branch
-        stages: [ push ]
+        stages: [push]
 
   - repo: https://github.com/fpgmaas/deptry.git
     rev: 0.20.0
     hooks:
       - id: deptry
+
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier
+        language: node
+        additional_dependencies:
+          - prettier
+        entry: prettier
+        args: ["--write", "--log-level=warn"]
+        types_or:
+          - graphql
+          - yaml
