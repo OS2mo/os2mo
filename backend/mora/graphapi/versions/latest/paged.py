@@ -125,10 +125,7 @@ def to_paged(  # type: ignore
     @wraps(resolver_func)
     async def resolve_response(*args, limit: LimitType, cursor: CursorType, **kwargs):  # type: ignore
         if limit and cursor is None:
-            cursor = Cursor(
-                offset=0,
-                registration_time=str(now()),
-            )
+            cursor = Cursor(offset=0, registration_time=now())
 
         result = await resolver_func(*args, limit=limit, cursor=cursor, **kwargs)
 
