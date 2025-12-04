@@ -48,7 +48,6 @@ from .config import Settings
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import ReadOnlyException
-from .exceptions import TimeOutException
 from .ldap_classes import LdapObject
 from .moapi import MOAPI
 from .types import DN
@@ -137,7 +136,7 @@ def configure_ldap_connection(settings: Settings) -> Connection:
     """
 
     def alarm_handler(signum, frame):
-        raise TimeOutException(
+        raise TimeoutError(
             "Timeout while configuring LDAP connection. Try 'sudo tailscale up'?"
         )
 
