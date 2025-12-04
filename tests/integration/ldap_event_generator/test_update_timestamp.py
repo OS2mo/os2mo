@@ -12,8 +12,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.ldap_event_generator import LastRun
-from mo_ldap_import_export.ldap_event_generator import _generate_events
+from mo_ldap_import_export.ldap_event_generator import LDAPEventGenerator
 from mo_ldap_import_export.types import LDAPUUID
 
 
@@ -48,10 +49,16 @@ async def test_update_timestamp_postgres(context: Context) -> None:
 
     test_start = datetime.now(UTC)
 
-    async def seeded_poller(
-        last_search_time: datetime,
-    ) -> tuple[set[LDAPUUID], datetime | None]:
-        return {cast(LDAPUUID, uuid4())}, datetime.now()
+    event_generator = LDAPEventGenerator(
+        sessionmaker=sessionmaker,
+        settings=Settings(),
+        graphql_client=AsyncMock(),
+        ldap_amqpsystem=AsyncMock(),
+        ldap_connection=AsyncMock(),
+    )
+    event_generator.poll = AsyncMock(  # type: ignore[method-assign]
+        side_effect=lambda *_, **__: ({cast(LDAPUUID, uuid4())}, datetime.now())
+    )
 
     for count, search_base in enumerate(["dc=ad0", "dc=ad1", "dc=ad2"]):
         assert await num_last_run_entries(sessionmaker) == count
@@ -59,17 +66,13 @@ async def test_update_timestamp_postgres(context: Context) -> None:
         last_run = await get_last_run(sessionmaker, search_base)
         assert last_run is None
 
-        await _generate_events(
-            AsyncMock(), AsyncMock(), search_base, sessionmaker, seeded_poller
-        )
+        await event_generator._generate_events(search_base)
         first_run = await get_last_run(sessionmaker, search_base)
         assert first_run is not None
         assert first_run > test_start
         assert await num_last_run_entries(sessionmaker) == count + 1
 
-        await _generate_events(
-            AsyncMock(), AsyncMock(), search_base, sessionmaker, seeded_poller
-        )
+        await event_generator._generate_events(search_base)
         last_run = await get_last_run(sessionmaker, search_base)
         assert last_run is not None
         assert last_run > first_run
@@ -84,34 +87,30 @@ async def test_update_timestamp_no_changes(context: Context) -> None:
 
     test_start = datetime.now(UTC)
 
-    async def seeded_poller(
-        last_search_time: datetime,
-    ) -> tuple[set[LDAPUUID], datetime | None]:
-        return {cast(LDAPUUID, uuid4())}, datetime.now()
-
-    async def seeded_poller_without_results(
-        last_search_time: datetime,
-    ) -> tuple[set[LDAPUUID], datetime | None]:
-        return set(), None
+    event_generator = LDAPEventGenerator(
+        sessionmaker=sessionmaker,
+        settings=Settings(),
+        graphql_client=AsyncMock(),
+        ldap_amqpsystem=AsyncMock(),
+        ldap_connection=AsyncMock(),
+    )
 
     search_base = "dc=ad0"
 
     last_run = await get_last_run(sessionmaker, search_base)
     assert last_run is None
 
-    await _generate_events(
-        AsyncMock(), AsyncMock(), search_base, sessionmaker, seeded_poller
+    event_generator.poll = AsyncMock(  # type: ignore[method-assign]
+        side_effect=lambda *_, **__: ({cast(LDAPUUID, uuid4())}, datetime.now())
     )
+    await event_generator._generate_events(search_base)
     first_run = await get_last_run(sessionmaker, search_base)
     assert first_run is not None
     assert first_run > test_start
 
-    await _generate_events(
-        AsyncMock(),
-        AsyncMock(),
-        search_base,
-        sessionmaker,
-        seeded_poller_without_results,
+    event_generator.poll = AsyncMock(  # type: ignore[method-assign]
+        side_effect=lambda *_, **__: (set(), None),
     )
+    await event_generator._generate_events(search_base)
     last_run = await get_last_run(sessionmaker, search_base)
     assert last_run == first_run

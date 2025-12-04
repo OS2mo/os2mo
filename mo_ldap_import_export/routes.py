@@ -11,12 +11,14 @@ from contextlib import suppress
 from datetime import datetime
 from functools import partial
 from itertools import count
+from typing import Annotated
 from typing import Any
 from typing import cast
 from uuid import UUID
 
 import structlog
 from fastapi import APIRouter
+from fastapi import Body
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 from ldap3 import Connection
@@ -46,7 +48,6 @@ from .ldap import get_ldap_object
 from .ldap import object_search
 from .ldap import paged_search
 from .ldap_emit import publish_uuids
-from .ldap_event_generator import _poll
 from .types import DN
 from .types import LDAPUUID
 from .types import CPRNumber
@@ -475,7 +476,7 @@ def construct_router(settings: Settings) -> APIRouter:
 
     @router.get("/Inspect/ldap2mo/all", status_code=200, tags=["MO"])
     async def ldap2mo_templating_all(
-        ldap_connection: depends.Connection,
+        ldap_event_generator: depends.LDAPEventGenerator,
         settings: depends.Settings,
         sync_tool: depends.SyncTool,
         start_at: UUID | None = None,
@@ -486,11 +487,8 @@ def construct_router(settings: Settings) -> APIRouter:
         }
         uuids_set = set()
         for search_base in search_bases:
-            poll_uuids, _ = await _poll(
-                ldap_connection,
-                search_base,
-                settings.ldap_unique_id_field,
-                MICROSOFT_EPOCH,
+            poll_uuids, _ = await ldap_event_generator.poll(
+                search_base, MICROSOFT_EPOCH
             )
             uuids_set.update(poll_uuids)
 
@@ -869,3 +867,16 @@ def construct_router(settings: Settings) -> APIRouter:
         return cleaned
 
     return router
+
+
+ldap_event_router = APIRouter(prefix="/ldap_event_generator")
+
+
+@ldap_event_router.get("/{since}")
+async def fetch_changes_since(
+    ldap_event_generator: depends.LDAPEventGenerator,
+    since: datetime,
+    search_base: Annotated[str, Body()],
+) -> set[LDAPUUID]:
+    uuids, _ = await ldap_event_generator.poll(search_base, since)
+    return uuids

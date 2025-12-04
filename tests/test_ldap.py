@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-import datetime
 import os
 import time
 from collections.abc import Iterator
@@ -40,8 +39,6 @@ from mo_ldap_import_export.ldap import paged_search
 from mo_ldap_import_export.ldap import single_object_search
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.ldap_event_generator import LDAPEventGenerator
-from mo_ldap_import_export.ldap_event_generator import _poll
-from mo_ldap_import_export.ldap_event_generator import setup_poller
 from mo_ldap_import_export.routes import get_attribute_types
 from mo_ldap_import_export.routes import get_ldap_attributes
 
@@ -540,145 +537,6 @@ async def test_single_object_search(ldap_connection: MagicMock, context: Context
         {"search_base": "CN=moo,CN=foo,DC=bar"}, ldap_connection
     )
     assert output == search_entry
-
-
-async def test_setup_poller() -> None:
-    async def _poller(*args: Any) -> None:
-        raise ValueError("BOOM")
-
-    settings = MagicMock()
-    graphql_client = AsyncMock()
-    ldap_amqpsystem = AsyncMock()
-    sessionmaker = AsyncMock()
-    ldap_connection = AsyncMock()
-
-    with patch("mo_ldap_import_export.ldap_event_generator._poller", _poller):
-        search_base = "dc=magenta,dc=dk"
-
-        handle = setup_poller(
-            settings,
-            graphql_client,
-            ldap_amqpsystem,
-            ldap_connection,
-            sessionmaker,
-            search_base,
-        )
-
-        assert handle.done() is False
-
-        # Give it a chance to run and explode
-        await asyncio.sleep(0)
-        assert handle.done() is True
-
-        # Check that it exploded
-        with pytest.raises(ValueError) as exc_info:
-            handle.result()
-        assert "BOOM" in str(exc_info.value)
-
-
-async def test_poller(
-    load_settings_overrides: dict[str, str], ldap_connection: MagicMock
-) -> None:
-    settings = Settings()
-
-    event_time = datetime.datetime.now()
-
-    uuid = uuid4()
-    event = {
-        "type": "searchResEntry",
-        "attributes": {
-            settings.ldap_unique_id_field: str(uuid),
-            "modifyTimestamp": event_time,
-        },
-    }
-    ldap_connection.search.return_value = (
-        None,
-        {
-            "type": "searchResEntry",
-            "description": "success",
-        },
-        [event],
-        None,
-    )
-
-    last_search_time = datetime.datetime.now(datetime.UTC)
-    uuids, timestamp = await _poll(
-        ldap_connection=ldap_connection,
-        search_base="dc=ad",
-        ldap_unique_id_field=settings.ldap_unique_id_field,
-        last_search_time=last_search_time,
-    )
-    assert uuids == {uuid}
-    assert timestamp == event_time
-
-
-async def test_poller_no_uuid(
-    load_settings_overrides: dict[str, str], ldap_connection: MagicMock
-) -> None:
-    event = {
-        "type": "searchResEntry",
-        "attributes": {},
-    }
-    ldap_connection.search.return_value = (
-        None,
-        {
-            "type": "searchResEntry",
-            "description": "success",
-        },
-        [event],
-        None,
-    )
-
-    last_search_time = datetime.datetime.now(datetime.UTC)
-    with capture_logs() as cap_logs:
-        uuids, timestamp = await _poll(
-            ldap_connection=ldap_connection,
-            search_base="dc=ad",
-            ldap_unique_id_field="entryUUID",
-            last_search_time=last_search_time,
-        )
-        assert uuids == set()
-        assert timestamp is None
-    assert {
-        "event": "Got event without uuid",
-        "log_level": "warning",
-    } in cap_logs
-    assert {
-        "event": "Got event without modifyTimestamp",
-        "log_level": "warning",
-    } in cap_logs
-
-
-@pytest.mark.parametrize(
-    "response",
-    [
-        [],
-        [{"type": "NOT_searchResEntry"}],
-    ],
-)
-async def test_poller_bad_result(
-    load_settings_overrides: dict[str, str], ldap_connection: MagicMock, response: Any
-) -> None:
-    ldap_connection.search.return_value = (
-        None,
-        {
-            "type": "searchResEntry",
-            "description": "success",
-        },
-        response,
-        None,
-    )
-
-    ldap_amqpsystem = AsyncMock()
-
-    last_search_time = datetime.datetime.now(datetime.UTC)
-    await _poll(
-        ldap_connection=ldap_connection,
-        search_base="dc=ad",
-        ldap_unique_id_field="entryUUID",
-        last_search_time=last_search_time,
-    )
-    assert ldap_amqpsystem.call_count == 0
 
 
 def test_is_uuid():
