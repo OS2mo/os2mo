@@ -19,6 +19,7 @@ from more_itertools import only
 
 from .config import Settings
 from .exceptions import DryRunException
+from .exceptions import IncorrectMapping
 from .exceptions import NoObjectsReturnedException
 from .exceptions import ReadOnlyException
 from .ldap import LDAPConnection
@@ -226,9 +227,23 @@ class LDAPAPI:
         # Attributes which are part of the DN should not be set in `attributes` as well.
         # They will automatically be set by indirection via the DN.
         dn_attributes = {
-            attribute.casefold() for attribute, value, seperator in parse_dn(dn)
+            attribute.casefold(): value for attribute, value, seperator in parse_dn(dn)
         }
-        attributes = {
+        mismatched_attributes = {
+            key
+            for key, value in attributes.items()
+            if key.casefold() in dn_attributes
+            and value != [dn_attributes[key.casefold()]]
+        }
+        if mismatched_attributes:
+            logger.warning(
+                "Mismatched attributes",
+                mismatched_attributes=mismatched_attributes,
+                dn_attributes=dn_attributes,
+                attributes=attributes,
+            )
+            raise IncorrectMapping(f"Mismatched attributes {mismatched_attributes}")
+        filtered_attributes = {
             key: value
             for key, value in attributes.items()
             if key.casefold() not in dn_attributes
@@ -237,7 +252,7 @@ class LDAPAPI:
         logger.info(
             "Adding entity to LDAP",
             dn=dn,
-            attributes=attributes,
+            attributes=filtered_attributes,
             object_class=object_class,
         )
         # If dry-running we do not want to makes changes in LDAP
@@ -245,12 +260,12 @@ class LDAPAPI:
             raise DryRunException(
                 "Would have created",
                 dn,
-                {"object_class": object_class, "attributes": attributes},
+                {"object_class": object_class, "attributes": filtered_attributes},
             )
         _, result = await self.ldap_connection.ldap_add(
             dn,
             object_class,
-            attributes=attributes,
+            attributes=filtered_attributes,
         )
         logger.info("LDAP Result", result=result, dn=dn)
 
