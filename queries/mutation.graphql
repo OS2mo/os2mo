@@ -20,7 +20,6 @@ mutation address_terminate($input: AddressTerminateInput!) {
   }
 }
 
-
 # Class
 mutation class_create($input: ClassCreateInput!) {
   class_create(input: $input) {
@@ -39,7 +38,6 @@ mutation class_terminate($input: ClassTerminateInput!) {
     uuid
   }
 }
-
 
 # Engagement
 mutation engagement_create($input: EngagementCreateInput!) {
@@ -79,7 +77,6 @@ mutation itsystem_terminate($input: ITSystemTerminateInput!) {
   }
 }
 
-
 # ITUser
 mutation ituser_create($input: ITUserCreateInput!) {
   ituser_create(input: $input) {
@@ -99,7 +96,6 @@ mutation ituser_terminate($input: ITUserTerminateInput!) {
   }
 }
 
-
 # Organisation Unit
 mutation org_unit_create($input: OrganisationUnitCreateInput!) {
   org_unit_create(input: $input) {
@@ -118,7 +114,6 @@ mutation org_unit_terminate($input: OrganisationUnitTerminateInput!) {
     uuid
   }
 }
-
 
 # User
 mutation person_create($input: EmployeeCreateInput!) {

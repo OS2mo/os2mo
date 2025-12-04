@@ -3,30 +3,30 @@ CONVERSION_MAPPING:
     Employee:
       objectClass: Employee
       _import_to_mo_: "false"
-      _ldap_attributes_: ["employeeNumber" , "title" , "givenName" , "sn"]
-      uuid: '{{ employee_uuid or '''' }}'
-      nickname_given_name: '{{ get_employee_dict(employee_uuid).nickname_given_name }}'
-      nickname_surname: '{{ get_employee_dict(employee_uuid).nickname_surname }}'
-      cpr_number: '{{ldap.employeeNumber|strip_non_digits or ''''}}'
-      user_key: '{{ ldap.title }}'
-      given_name: '{{ ldap.givenName }}'
-      surname: '{{ ldap.sn }}'
+      _ldap_attributes_: ["employeeNumber", "title", "givenName", "sn"]
+      uuid: "{{ employee_uuid or '' }}"
+      nickname_given_name: "{{ get_employee_dict(employee_uuid).nickname_given_name }}"
+      nickname_surname: "{{ get_employee_dict(employee_uuid).nickname_surname }}"
+      cpr_number: "{{ldap.employeeNumber|strip_non_digits or ''}}"
+      user_key: "{{ ldap.title }}"
+      given_name: "{{ ldap.givenName }}"
+      surname: "{{ ldap.sn }}"
     ADtitle:
       objectClass: ITUser
       _import_to_mo_: "true"
       _ldap_attributes_: ["title"]
-      user_key: '{{ ldap.title }}'
-      itsystem: '{{ get_it_system_uuid(''ADtitle'') }}'
-      person: '{{ employee_uuid or '''' }}'
+      user_key: "{{ ldap.title }}"
+      itsystem: "{{ get_it_system_uuid('ADtitle') }}"
+      person: "{{ employee_uuid or '' }}"
     ADUUID:
       objectClass: ITUser
       _import_to_mo_: "true"
       _ldap_attributes_: ["title", "entryUUID"]
       _terminate_: '{{ now()|mo_datestring if ldap.title == "WOW" else '''' }}'
       uuid: "{{ get_ituser_uuid({'it_system': {'user_key': 'ADUUID'}, 'employee': {'uuids': [employee_uuid]}}) }}"
-      user_key: '{{ ldap.entryUUID }}'
-      itsystem: '{{ get_it_system_uuid(''ADUUID'') }}'
-      person: '{{ employee_uuid or '''' }}'
+      user_key: "{{ ldap.entryUUID }}"
+      itsystem: "{{ get_it_system_uuid('ADUUID') }}"
+      person: "{{ employee_uuid or '' }}"
   mo2ldap: |
     {% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}
     {% set mo_employee_it_user = load_mo_it_user({"employee": {"uuids": [uuid]}, "itsystem": {"user_keys": ["ADUUID"]}, "from_date": None, "to_date": None}) %}

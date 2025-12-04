@@ -79,5 +79,4 @@ services:
           }
         }
 
-    env_file:
-      secrets.txt
+    env_file: secrets.txt
