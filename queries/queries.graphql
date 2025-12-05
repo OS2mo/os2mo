@@ -551,6 +551,9 @@ query read_engagement_enddate($employee_uuid: UUID!) {
   ) {
     objects {
       validities {
+        engagement_type_response {
+          uuid
+        }
         validity {
           from
           to

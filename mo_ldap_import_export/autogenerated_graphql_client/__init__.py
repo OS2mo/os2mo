@@ -401,6 +401,9 @@ from .read_engagement_enddate import ReadEngagementEnddateEngagements
 from .read_engagement_enddate import ReadEngagementEnddateEngagementsObjects
 from .read_engagement_enddate import ReadEngagementEnddateEngagementsObjectsValidities
 from .read_engagement_enddate import (
+    ReadEngagementEnddateEngagementsObjectsValiditiesEngagementTypeResponse,
+)
+from .read_engagement_enddate import (
     ReadEngagementEnddateEngagementsObjectsValiditiesValidity,
 )
 from .read_engagement_manager import ReadEngagementManager
@@ -836,6 +839,7 @@ __all__ = [
     "ReadEngagementEnddateEngagements",
     "ReadEngagementEnddateEngagementsObjects",
     "ReadEngagementEnddateEngagementsObjectsValidities",
+    "ReadEngagementEnddateEngagementsObjectsValiditiesEngagementTypeResponse",
     "ReadEngagementEnddateEngagementsObjectsValiditiesValidity",
     "ReadEngagementManager",
     "ReadEngagementManagerEngagements",

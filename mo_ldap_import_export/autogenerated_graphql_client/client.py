@@ -1610,6 +1610,9 @@ class GraphQLClient(AsyncBaseClient):
               ) {
                 objects {
                   validities {
+                    engagement_type_response {
+                      uuid
+                    }
                     validity {
                       from
                       to

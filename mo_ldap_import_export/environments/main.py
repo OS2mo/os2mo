@@ -684,7 +684,9 @@ async def get_legacy_manager_person_uuid(
 
 
 async def get_employment_interval(
-    graphql_client: GraphQLClient, employee_uuid: UUID
+    graphql_client: GraphQLClient,
+    employee_uuid: UUID,
+    exclude_engagement_types: set[UUID] | None = None,
 ) -> tuple[datetime | None, datetime | None]:
     result = await graphql_client.read_engagement_enddate(employee_uuid)
     if not result.objects:
@@ -695,6 +697,14 @@ async def get_employment_interval(
 
     # Flatten all validities to a list
     validities = list(flatten_validities(result))
+    if exclude_engagement_types is not None:
+        validities = [
+            val
+            for val in validities
+            if val.engagement_type_response.uuid not in exclude_engagement_types
+        ]
+    if not validities:
+        return None, None
 
     start_dates, end_dates = unzip(
         (validity.validity.from_ or tzmin, validity.validity.to or tzmax)
