@@ -19,6 +19,7 @@ from fastapi import Body
 from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import HTTPException
+from fastapi import Query
 from fastramqpi.events import Event
 from fastramqpi.events import GraphQLEvents
 from fastramqpi.events import Listener
@@ -477,6 +478,7 @@ def mo_to_ldap_handler(
         converter: depends.LdapConverter,
         dataloader: depends.DataLoader,
         event: Event[UUID],
+        dry_run: bool = Query(False),
     ) -> None:
         uuid = event.subject
         exit_stack.enter_context(
@@ -508,7 +510,11 @@ def mo_to_ldap_handler(
         ldapapi = dataloader.ldapapi
         try:
             await ldapapi.ensure_ldap_object(
-                parsed.dn, parsed.attributes, object_class, parsed.create, dry_run=False
+                parsed.dn,
+                parsed.attributes,
+                object_class,
+                parsed.create,
+                dry_run=dry_run,
             )
         except NoObjectsReturnedException as exc:
             message = "Unable to find Jinja referenced dn"
