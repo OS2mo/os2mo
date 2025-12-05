@@ -693,10 +693,12 @@ async def get_employment_interval(
     tzmin = datetime.min.replace(tzinfo=MO_TZ)
     tzmax = datetime.max.replace(tzinfo=MO_TZ)
 
+    # Flatten all validities to a list
+    validities = list(flatten_validities(result))
+
     start_dates, end_dates = unzip(
         (validity.validity.from_ or tzmin, validity.validity.to or tzmax)
-        for engagement in result.objects
-        for validity in engagement.validities
+        for validity in validities
     )
     startdate = min(start_dates)
     enddate = max(end_dates)
