@@ -111,6 +111,9 @@ interface Actor {
 "Address information for either an employee or organisational unit\n"
 type Address {
   "The address category or type.\n\nIn OS2mo addresses can be of a variety of different types:\n* Phone numbers\n* Addresses\n* Registration numbers\n* Card codes\n\nThis field is what encodes the type of an address.\n\nExamples of user-keys:\n* `\"EmailUnit\"`\n* `\"p-nummer\"`\n* `\"PhoneEmployee\"`\n"
+  address_type_response: ClassResponse!
+
+  "The address category or type.\n\nIn OS2mo addresses can be of a variety of different types:\n* Phone numbers\n* Addresses\n* Registration numbers\n* Card codes\n\nThis field is what encodes the type of an address.\n\nExamples of user-keys:\n* `\"EmailUnit\"`\n* `\"p-nummer\"`\n* `\"PhoneEmployee\"`\n"
   address_type(
     filter: UuidsBoundClassFilter
 
@@ -120,6 +123,12 @@ type Address {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class!
+    @deprecated(
+      reason: "Use 'address_type_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Determines who can see the address and how it is exported.\n\nIn OS2mo addresses can be of a variety of privacy classes.\nFor instance OS2mo may contain a list of phone numbers for an employee;\n* A private mobile phone number\n* An internal work mobile phone number\n* A shared external phone number\n\nThis field is what encodes the privacy class of an address.\nThereby stating who should be allowed to see what addresses.\n\nExamples of user-keys:\n* `null`: Undetermined / non-classified.\n* `\"Secret\"`: Should be treated carefully and perhaps not be exported.\n* `\"Internal\"` Should be treated carefully but perhaps exposed to an internal intranet.\n* `\"External\"`: Can probably be exposed to the internet\n"
+  visibility_response: ClassResponse
 
   "Determines who can see the address and how it is exported.\n\nIn OS2mo addresses can be of a variety of privacy classes.\nFor instance OS2mo may contain a list of phone numbers for an employee;\n* A private mobile phone number\n* An internal work mobile phone number\n* A shared external phone number\n\nThis field is what encodes the privacy class of an address.\nThereby stating who should be allowed to see what addresses.\n\nExamples of user-keys:\n* `null`: Undetermined / non-classified.\n* `\"Secret\"`: Should be treated carefully and perhaps not be exported.\n* `\"Internal\"` Should be treated carefully but perhaps exposed to an internal intranet.\n* `\"External\"`: Can probably be exposed to the internet\n"
   visibility(
@@ -131,6 +140,9 @@ type Address {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class
+    @deprecated(
+      reason: "Use 'visibility_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   "Connected employee.\n\nNote:\nThis field is mutually exclusive with the `org_unit` field.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   employee(
@@ -147,6 +159,9 @@ type Address {
     )
 
   "Connected person.\n\nNote:\nThis field is mutually exclusive with the `org_unit` field.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  person_response: EmployeeResponse
+
+  "Connected person.\n\nNote:\nThis field is mutually exclusive with the `org_unit` field.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   person(
     filter: UuidsBoundEmployeeFilter
 
@@ -156,6 +171,12 @@ type Address {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Employee!]
+    @deprecated(
+      reason: "Use 'person_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Connected organisation unit.\n\nNote:\nThis field is mutually exclusive with the `employee` field.\n"
+  org_unit_response: OrganisationUnitResponse
 
   "Connected organisation unit.\n\nNote:\nThis field is mutually exclusive with the `employee` field.\n"
   org_unit(
@@ -167,6 +188,12 @@ type Address {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [OrganisationUnit!]
+    @deprecated(
+      reason: "Use 'org_unit_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Connected engagement.\n\nNote:\nThis field is **not** mutually exclusive with neither the `employee` nor the `org_unit` field.\n"
+  engagement_response: EngagementResponse
 
   "Connected engagement.\n\nNote:\nThis field is **not** mutually exclusive with neither the `employee` nor the `org_unit` field.\n"
   engagement(
@@ -178,6 +205,12 @@ type Address {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Engagement!]
+    @deprecated(
+      reason: "Use 'engagement_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Connected IT-user.\n"
+  ituser_response: ITUserResponse
 
   "Connected IT-user.\n"
   ituser(
@@ -189,6 +222,9 @@ type Address {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [ITUser!]!
+    @deprecated(
+      reason: "Use 'ituser_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   "Human readable name of the address.\n\nName is *usually* equal to `value`, but may differ if `value` is not human readable.\nThis may for instance be the case for `DAR` addresses, where the value is the DAR UUID, while the name is a human readable address.\n\nThis is the value that should be shown to users in UIs.\n\nExamples:\n* `\"Vifdam 20, 1. th, 6000 Kolding\"`\n* `\"25052943\"`\n* `\"info@magenta.dk\"`\n* `\"Building 11\"`\n\nNote:\nRequesting this field may incur a performance penalty as the returned value may be dynamically resolved from the `value`-field.\n"
   name: String
@@ -545,6 +581,9 @@ Connects organisation units and employees
 """
 type Association {
   "The type of connection that the employee has to the organisation unit.\n\nExamples:\n* `\"Chairman\"`\n* `\"Leader\"`\n* `\"Employee\"`\n"
+  association_type_response: ClassResponse
+
+  "The type of connection that the employee has to the organisation unit.\n\nExamples:\n* `\"Chairman\"`\n* `\"Leader\"`\n* `\"Employee\"`\n"
   association_type(
     filter: UuidsBoundClassFilter
 
@@ -554,6 +593,15 @@ type Association {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class
+    @deprecated(
+      reason: "Use 'association_type_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "List of arbitrary classes.\n\nThe purpose of this field is ill-defined.\nIt is currently mainly used for (trade) union specification.\n"
+  dynamic_class_response: ClassResponse
+    @deprecated(
+      reason: "Will be removed in a future version of GraphQL.\nCurrently no replacement is in place, but specialized fields will probably arive in the future.\n"
+    )
 
   "List of arbitrary classes.\n\nThe purpose of this field is ill-defined.\nIt is currently mainly used for (trade) union specification.\n"
   dynamic_class(
@@ -566,8 +614,11 @@ type Association {
     cursor: Cursor = null
   ): Class
     @deprecated(
-      reason: "Will be removed in a future version of GraphQL.\nCurrently no replacement is in place, but specialized fields will probably arive in the future.\n"
+      reason: "Use 'dynamic_class_response' instead. Will be removed in a future version of OS2mo."
     )
+
+  "Marks associations with a trade union\n"
+  trade_union_response: ClassResponse
 
   "Marks associations with a trade union\n"
   trade_union(
@@ -579,6 +630,12 @@ type Association {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class
+    @deprecated(
+      reason: "Use 'trade_union_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Marks which association is primary.\n\nWhen exporting data from OS2mo to external systems, that only support a single engagement or associations, this field can be used to export the primary one.\nWhat primarity means is vaguely defined, but usually derived from workload or time-allocation.\n\nExamples  of user-keys:\n* `\"primary\"`\n* `\"non-primary\"`\n* `\"explicitly-primary\"`\n\nIt is a convention that at most one association for each employee is set as either `primary` or `explicitly-primary`.\nThis convention is in place as if more associations are primary, the entire purpose of the field breaks down.\nIn the future this convention may become an invariant.\n\nNote:\nThe calculate-primary integration can be used to automatically calculate and update primarity fields.\n"
+  primary_response: ClassResponse
 
   "Marks which association is primary.\n\nWhen exporting data from OS2mo to external systems, that only support a single engagement or associations, this field can be used to export the primary one.\nWhat primarity means is vaguely defined, but usually derived from workload or time-allocation.\n\nExamples  of user-keys:\n* `\"primary\"`\n* `\"non-primary\"`\n* `\"explicitly-primary\"`\n\nIt is a convention that at most one association for each employee is set as either `primary` or `explicitly-primary`.\nThis convention is in place as if more associations are primary, the entire purpose of the field breaks down.\nIn the future this convention may become an invariant.\n\nNote:\nThe calculate-primary integration can be used to automatically calculate and update primarity fields.\n"
   primary(
@@ -590,6 +647,9 @@ type Association {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class
+    @deprecated(
+      reason: "Use 'primary_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   "Associated employee.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   employee(
@@ -606,6 +666,9 @@ type Association {
     )
 
   "Associated person.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  person_response: EmployeeResponse
+
+  "Associated person.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   person(
     filter: UuidsBoundEmployeeFilter
 
@@ -615,6 +678,12 @@ type Association {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Employee!]!
+    @deprecated(
+      reason: "Use 'person_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Associated organisation unit.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  org_unit_response: OrganisationUnitResponse!
 
   "Associated organisation unit.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   org_unit(
@@ -626,6 +695,12 @@ type Association {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [OrganisationUnit!]!
+    @deprecated(
+      reason: "Use 'org_unit_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Optional substitute if `employee` is unavailable.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  substitute_response: EmployeeResponse
 
   "Optional subsitute if `employee` is unavailable.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   substitute(
@@ -637,6 +712,12 @@ type Association {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Employee!]!
+    @deprecated(
+      reason: "Use 'subsitute_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "The position held by the employee in the organisation unit.\n\nExamples of user-keys:\n* `\"Payroll consultant\"`\n* `\"Office student\"`\n* `\"Jurist\"`\n"
+  job_function_response: ClassResponse
 
   "The position held by the employee in the organisation unit.\n\nExamples of user-keys:\n* `\"Payroll consultant\"`\n* `\"Office student\"`\n* `\"Jurist\"`\n"
   job_function(
@@ -648,6 +729,12 @@ type Association {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class
+    @deprecated(
+      reason: "Use 'job_function_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "The IT-user utilized by the employee when fulfilling the association responsibilities.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  it_user_response: ITUserResponse
 
   "The IT-user utilized by the employee when fulfilling the association responsibilities.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   it_user(
@@ -659,6 +746,9 @@ type Association {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [ITUser!]!
+    @deprecated(
+      reason: "Use 'it_user_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   "The object type.\n\nAlways contains the string `association`.\n"
   type: String!
@@ -1003,6 +1093,9 @@ scalar CPR
 "A value in the facet sample space.\n\nClasses can also be thought of as the value component of the facet/class key-value setup.\n"
 type Class {
   "Parent class.\n\nAlmost always `null` as class hierarchies are rare.\nCurrently mostly used to describe (trade) union hierachies.\n\nThe inverse operation of `children`.\n"
+  parent_response: ClassResponse
+
+  "Parent class.\n\nAlmost always `null` as class hierarchies are rare.\nCurrently mostly used to describe (trade) union hierachies.\n\nThe inverse operation of `children`.\n"
   parent(
     filter: UuidsBoundClassFilter
 
@@ -1012,6 +1105,20 @@ type Class {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class
+    @deprecated(
+      reason: "Use 'parent_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Class children.\n\nAlmost always an empty list as class hierarchies are rare.\nCurrently mostly used to describe (trade) union hierachies.\n\nThe inverse operation of `parent`.\n"
+  children_response(
+    filter: ParentsBoundClassFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): ClassResponsePaged!
 
   "Class children.\n\nAlmost always an empty list as class hierarchies are rare.\nCurrently mostly used to describe (trade) union hierachies.\n\nThe inverse operation of `parent`.\n"
   children(
@@ -1023,6 +1130,12 @@ type Class {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Class!]!
+    @deprecated(
+      reason: "Use 'children_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Facet this class is defined under.\n\nExamples of user-keys:\n* `\"employee_address_type\"`\n* `\"primary_type\"`\n* `\"engagement_job_function\"`\n"
+  facet_response: FacetResponse!
 
   "Facet this class is defined under.\n\nExamples of user-keys:\n* `\"employee_address_type\"`\n* `\"primary_type\"`\n* `\"engagement_job_function\"`\n"
   facet(
@@ -1034,6 +1147,12 @@ type Class {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Facet!
+    @deprecated(
+      reason: "Use 'facet_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "The IT-System associated with the class.\n\nThis is intended to be used for (IT) roles.\n"
+  it_system_response: ITSystemResponse
 
   "The IT-System associated with the class.\n\nThis is intended to be used for (IT) roles.\n"
   it_system(
@@ -1045,6 +1164,9 @@ type Class {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): ITSystem
+    @deprecated(
+      reason: "Use 'it_system_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   "Facet of this class's upmost parent.\n\nThe result of following `parent` until `parent` becomes `null`, then calling `facet`.\n\nAlmost always the same as `facet` as class hierarchies are rare.\nCurrently mostly used to describe (trade) union hierachies.\n"
   top_level_facet: Facet!
@@ -1542,6 +1664,17 @@ Employee/identity specific information
 """
 type Employee {
   "Engagements for the employee.\n\nMay be an empty list if the employee is not employeed.\n"
+  engagements_response(
+    filter: EmployeesBoundEngagementFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): EngagementResponsePaged!
+
+  "Engagements for the employee.\n\nMay be an empty list if the employee is not employeed.\n"
   engagements(
     filter: EmployeesBoundEngagementFilter
 
@@ -1551,6 +1684,23 @@ type Employee {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Engagement!]!
+    @deprecated(
+      reason: "Use 'engagements_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Managerial roles for the employee.\n\nUsually an empty list as most employees are not managers.\n"
+  manager_roles_response(
+    filter: EmployeesBoundManagerFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+
+    "Whether to inherit managerial roles or not.\n\nIf managerial roles exist directly on this organisation unit, the flag does nothing and these managerial roles are returned.\nHowever if no managerial roles exist directly, and this flag is:\n* False: An empty list is returned.\n* True: The result from calling `managers` with `inherit=True` on the parent of this organistion unit is returned.\n\nCalling with `inherit=True` can help ensure that a manager is always found.\n"
+    inherit: Boolean! = false
+  ): ManagerResponsePaged!
 
   "Managerial roles for the employee.\n\nUsually an empty list as most employees are not managers.\n"
   manager_roles(
@@ -1565,6 +1715,20 @@ type Employee {
     "Whether to inherit managerial roles or not.\n\nIf managerial roles exist directly on this organisation unit, the flag does nothing and these managerial roles are returned.\nHowever if no managerial roles exist directly, and this flag is:\n* False: An empty list is returned.\n* True: The result from calling `managers` with `inherit=True` on the parent of this organistion unit is returned.\n\nCalling with `inherit=True` can help ensure that a manager is always found.\n"
     inherit: Boolean! = false
   ): [Manager!]!
+    @deprecated(
+      reason: "Use 'manager_roles_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Addresses for the employee.\n\nCommonly contain addresses such as, their:\n* Work location\n* Office number\n* Work phone number\n* Work email\n* Personal phone number\n* Personal email\n"
+  addresses_response(
+    filter: EmployeesBoundAddressFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): AddressResponsePaged!
 
   "Addresses for the employee.\n\nCommonly contain addresses such as, their:\n* Work location\n* Office number\n* Work phone number\n* Work email\n* Personal phone number\n* Personal email\n"
   addresses(
@@ -1576,6 +1740,20 @@ type Employee {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Address!]!
+    @deprecated(
+      reason: "Use 'addresses_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Leaves of absence for the employee.\n\nUsually empty as most employees are not on leaves of absence.\n"
+  leaves_response(
+    filter: EmployeesBoundLeaveFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): LeaveResponsePaged!
 
   "Leaves of absence for the employee.\n\nUsually empty as most employees are not on leaves of absence.\n"
   leaves(
@@ -1587,6 +1765,20 @@ type Employee {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Leave!]!
+    @deprecated(
+      reason: "Use 'leaves_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Associations for the employee.\n\nMay be an empty list if the employee is not associated with projects, etc.\n"
+  associations_response(
+    filter: EmployeesBoundAssociationFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): AssociationResponsePaged!
 
   "Associations for the employee.\n\nMay be an empty list if the employee is not associated with projects, etc.\n"
   associations(
@@ -1598,6 +1790,20 @@ type Employee {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Association!]!
+    @deprecated(
+      reason: "Use 'associations_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "IT accounts for the employee.\n\nMay be an empty list if the employee does not have any IT-access whatsoever.\n"
+  itusers_response(
+    filter: EmployeesBoundITUserFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): ITUserResponsePaged!
 
   "IT accounts for the employee.\n\nMay be an empty list if the employee does not have any IT-access whatsoever.\n"
   itusers(
@@ -1609,6 +1815,9 @@ type Employee {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [ITUser!]!
+    @deprecated(
+      reason: "Use 'itusers_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   """
   UUID of the entity
@@ -2010,6 +2219,9 @@ Employee engagement in an organisation unit
 """
 type Engagement {
   "Describes the employee's affiliation to an organisation unit\n\nExamples:\n* `\"Employed\"`\n* `\"Social worker\"`\n* `\"Employee (hourly wage)\"`\n"
+  engagement_type_response: ClassResponse!
+
+  "Describes the employee's affiliation to an organisation unit\n\nExamples:\n* `\"Employed\"`\n* `\"Social worker\"`\n* `\"Employee (hourly wage)\"`\n"
   engagement_type(
     filter: UuidsBoundClassFilter
 
@@ -2019,6 +2231,12 @@ type Engagement {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class!
+    @deprecated(
+      reason: "Use 'engagement_type_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Describes the position of the employee in the organisation unit\n\nExamples:\n* `\"Payroll consultant\"`\n* `\"Office student\"`\n* `\"Jurist\"`\n"
+  job_function_response: ClassResponse!
 
   "Describes the position of the employee in the organisation unit\n\nExamples:\n* `\"Payroll consultant\"`\n* `\"Office student\"`\n* `\"Jurist\"`\n"
   job_function(
@@ -2030,6 +2248,12 @@ type Engagement {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class!
+    @deprecated(
+      reason: "Use 'job_function_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Marks which engagement is primary.\n\nWhen exporting data from OS2mo to external systems, that only support a single engagement or associations, this field can be used to export the primary one.\nWhat primarity means is vaguely defined, but usually derived from workload or time-allocation.\n\nExamples  of user-keys:\n* `\"primary\"`\n* `\"non-primary\"`\n* `\"explicitly-primary\"`\n\nIt is a convention that at most one engagement for each employee is set as either `primary` or `explicitly-primary`.\nThis convention is in place as if more engagements are primary, the entire purpose of the field breaks down.\nIn the future this convention may become an invariant.\n\nNote:\nThe calculate-primary integration can be used to automatically calculate and update primarity fields.\n"
+  primary_response: ClassResponse
 
   "Marks which engagement is primary.\n\nWhen exporting data from OS2mo to external systems, that only support a single engagement or associations, this field can be used to export the primary one.\nWhat primarity means is vaguely defined, but usually derived from workload or time-allocation.\n\nExamples  of user-keys:\n* `\"primary\"`\n* `\"non-primary\"`\n* `\"explicitly-primary\"`\n\nIt is a convention that at most one engagement for each employee is set as either `primary` or `explicitly-primary`.\nThis convention is in place as if more engagements are primary, the entire purpose of the field breaks down.\nIn the future this convention may become an invariant.\n\nNote:\nThe calculate-primary integration can be used to automatically calculate and update primarity fields.\n"
   primary(
@@ -2041,6 +2265,14 @@ type Engagement {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class
+    @deprecated(
+      reason: "Use 'primary_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  """
+  Related leave
+  """
+  leave_response: LeaveResponse
 
   """
   Related leave
@@ -2054,6 +2286,9 @@ type Engagement {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Leave
+    @deprecated(
+      reason: "Use 'leave_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   "The employee fulfilling the engagement.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   employee(
@@ -2070,6 +2305,9 @@ type Engagement {
     )
 
   "The person fulfilling the engagement.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  person_response: EmployeeResponse!
+
+  "The person fulfilling the engagement.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   person(
     filter: UuidsBoundEmployeeFilter
 
@@ -2079,6 +2317,12 @@ type Engagement {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Employee!]!
+    @deprecated(
+      reason: "Use 'person_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "The organisation unit where the engagement is being fulfilled.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  org_unit_response: OrganisationUnitResponse!
 
   "The organisation unit where the engagement is being fulfilled.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   org_unit(
@@ -2090,6 +2334,20 @@ type Engagement {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [OrganisationUnit!]!
+    @deprecated(
+      reason: "Use 'org_unit_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Connected IT-user.\n"
+  itusers_response(
+    filter: EngagementBoundITUserFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): ITUserResponsePaged!
 
   "Connected IT-user.\n"
   itusers(
@@ -2101,6 +2359,9 @@ type Engagement {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [ITUserResponse!]!
+    @deprecated(
+      reason: "Use 'itusers_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   """
   UUID of the entity
@@ -2630,6 +2891,19 @@ type Facet {
   """
   Associated classes
   """
+  classes_responses(
+    filter: FacetsBoundClassFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): ClassResponsePaged!
+
+  """
+  Associated classes
+  """
   classes(
     filter: FacetsBoundClassFilter
 
@@ -2639,6 +2913,12 @@ type Facet {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Class!]!
+    @deprecated(
+      reason: "Use 'classes_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Parent facet.\n\nAlmost always `null` as facet hierarchies are rare.\nCurrently mostly used to describe (trade) union hierachies.\n\nThe inverse operation of `children`.\n"
+  parent_response: FacetResponse
 
   "Parent facet.\n\nAlmost always `null` as facet hierarchies are rare.\nCurrently mostly used to describe (trade) union hierachies.\n\nThe inverse operation of `children`.\n"
   parent(
@@ -2650,6 +2930,20 @@ type Facet {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Facet
+    @deprecated(
+      reason: "Use 'parent_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Facet children.\n\nAlmost always an empty list as facet hierarchies are rare.\nCurrently mostly used to describe (trade) union hierachies.\n\nThe inverse operation of `parent`.\n"
+  children_response(
+    filter: ParentsBoundFacetFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): FacetResponsePaged!
 
   "Facet children.\n\nAlmost always an empty list as facet hierarchies are rare.\nCurrently mostly used to describe (trade) union hierachies.\n\nThe inverse operation of `parent`.\n"
   children(
@@ -2661,6 +2955,9 @@ type Facet {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Facet!]!
+    @deprecated(
+      reason: "Use 'children_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   "The object type.\n\nAlways contains the string `facet`.\n"
   type: String!
@@ -3150,6 +3447,17 @@ Systems that IT users are connected to
 """
 type ITSystem {
   "Rolebinding roles related to the IT-system.\n\nExamples of user-keys:\n* `\"AD Read\"`\n* `\"AD Write\"`\n* `\"SAP Admin\"`\n"
+  roles_response(
+    filter: ItSystemboundclassfilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): ClassResponsePaged!
+
+  "Rolebinding roles related to the IT-system.\n\nExamples of user-keys:\n* `\"AD Read\"`\n* `\"AD Write\"`\n* `\"SAP Admin\"`\n"
   roles(
     filter: ItSystemboundclassfilter
 
@@ -3159,6 +3467,9 @@ type ITSystem {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [ClassResponse!]!
+    @deprecated(
+      reason: "Use 'roles_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   "The object type.\n\nAlways contains the string `itsystem`.\n"
   type: String!
@@ -3334,6 +3645,9 @@ type ITUser {
     )
 
   "Person using the IT account.\n\nNote:\nThis field is mutually exclusive with the `org_unit` field.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  person_response: EmployeeResponse
+
+  "Person using the IT account.\n\nNote:\nThis field is mutually exclusive with the `org_unit` field.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   person(
     filter: UuidsBoundEmployeeFilter
 
@@ -3343,6 +3657,12 @@ type ITUser {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Employee!]
+    @deprecated(
+      reason: "Use 'person_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Organisation unit using the IT account.\n\nThis is mostly set for service accounts.\n\nNote:\nThis field is mutually exclusive with the `org_unit` field.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  org_unit_response: OrganisationUnitResponse
 
   "Organisation unit using the IT account.\n\nThis is mostly set for service accounts.\n\nNote:\nThis field is mutually exclusive with the `org_unit` field.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   org_unit(
@@ -3354,6 +3674,20 @@ type ITUser {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [OrganisationUnit!]
+    @deprecated(
+      reason: "Use 'org_unit_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Engagement scoping of the account.\n\nA person may have multiple IT accounts with each account being relevant for any number of engagement.\n"
+  engagements_responses(
+    filter: UuidsBoundEngagementFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): EngagementResponsePaged!
 
   "Engagement scoping of the account.\n\nA person may have multiple IT accounts with each account being relevant for any number of engagement.\n"
   engagements(
@@ -3365,6 +3699,12 @@ type ITUser {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [EngagementResponse!]!
+    @deprecated(
+      reason: "Use 'engagements_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Engagement scoping of the account.\n\nA person may have multiple IT accounts with each account being relevant for only a single engagement.\nThis field allows scoping IT accounts such that it is obvious which engagement has given which it-access.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  engagement_response: EngagementResponse
 
   "Engagement scoping of the account.\n\nA person may have multiple IT accounts with each account being relevant for only a single engagement.\nThis field allows scoping IT accounts such that it is obvious which engagement has given which it-access.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   engagement(
@@ -3376,6 +3716,20 @@ type ITUser {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Engagement!]
+    @deprecated(
+      reason: "Use 'engagement_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Addresses connected with the IT-user.\n\nCommonly contain addresses such as:\n* Email\n* AD GUID\n* FK-org UUID\n"
+  addresses_response(
+    filter: ItuserBoundAddressFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): AddressResponsePaged!
 
   "Addresses connected with the IT-user.\n\nCommonly contain addresses such as:\n* Email\n* AD GUID\n* FK-org UUID\n"
   addresses(
@@ -3387,6 +3741,12 @@ type ITUser {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Address!]!
+    @deprecated(
+      reason: "Use 'addresses_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "ITSystem this account is for.\n"
+  itsystem_response: ITSystemResponse!
 
   "ITSystem this account is for.\n"
   itsystem(
@@ -3398,6 +3758,22 @@ type ITUser {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): ITSystem!
+    @deprecated(
+      reason: "Use 'itsystem_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  """
+  Rolebindings this IT User has in the connected IT system.
+  """
+  rolebindings_response(
+    filter: ItuserBoundRoleBindingFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): RoleBindingResponsePaged!
 
   """
   Rolebindings this IT User has in the connected IT system.
@@ -3411,6 +3787,12 @@ type ITUser {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [RoleBinding!]!
+    @deprecated(
+      reason: "Use 'rolebindings_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Marks which IT account is primary.\n\nWhen exporting data from OS2mo to external systems, that only support a single IT account, this field can be used to export the primary one.\nWhat primarity means is vaguely defined, but usually derived from workload or time-allocation.\n\nExamples  of user-keys:\n* `\"primary\"`\n* `\"non-primary\"`\n* `\"explicitly-primary\"`\n\nIt is a convention that at most one IT account for each employee / employee+engagement is set as either `primary` or `explicitly-primary`.\nThis convention is in place as if more IT accounts are primary, the entire purpose of the field breaks down.\nIn the future this convention may become an invariant.\n"
+  primary_response: ClassResponse
 
   "Marks which IT account is primary.\n\nWhen exporting data from OS2mo to external systems, that only support a single IT account, this field can be used to export the primary one.\nWhat primarity means is vaguely defined, but usually derived from workload or time-allocation.\n\nExamples  of user-keys:\n* `\"primary\"`\n* `\"non-primary\"`\n* `\"explicitly-primary\"`\n\nIt is a convention that at most one IT account for each employee / employee+engagement is set as either `primary` or `explicitly-primary`.\nThis convention is in place as if more IT accounts are primary, the entire purpose of the field breaks down.\nIn the future this convention may become an invariant.\n"
   primary(
@@ -3422,6 +3804,9 @@ type ITUser {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class
+    @deprecated(
+      reason: "Use 'primary_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   """
   UUID of the entity
@@ -3790,6 +4175,9 @@ input ItuserBoundRoleBindingFilter {
 "KLE responsibility mapping.\n\nKLE stands for \"Kommunernes Landsforenings Emnesystematik\" which is a municipality taxonomy for mapping out municipality tasks.\n\nIn OS2mo KLE responsibilities can be mapped to organisation units to signify that a given organisational unit operates within certain municipality tasks.\nAdding KLE responsibilities to organisational units can help out with regards to GDPR by identifying which organisational units operate with sensitive tasks.\n\nThe KLE numbers themselves are dot seperated structured numbers alike this:\n* `\"00.75.00\"`: General data exchanges\n* `\"21.02.05\"`: Library study cafes\n* `\"32.15.08\"`: Alimony\n\nThe first number specifies the main-group, such as:\n* `\"00\"`: Municipality operations (Kommunens styrelse)\n* `\"21\"`: Libraries\n* `\"31\"`: Monetary benefits\n\nThe second number specifies the group, such as (for libraries):\n* `\"02\"`: On-site usage\n* `\"05\"`: AV Materials\n* `\"20\"`: Online services\n\nThe third and final number specifies the topic, such as (for library on-site usage):\n* `\"00\"`: General usage\n* `\"05\"`: Study cafes\n* `\"10\"`: Study centers\n\nSome KLE ranges are pre-reserved by The National Association of Municipalities (Kommunernes Landsforenings), however outside of these pre-reserved ranges municipalies are allowed to add their own local numbers.\nSpecifically no main-groups can be added, only groups and topics, both above 79.\n\nFor more details see: https://www.kle-online.dk\n"
 type KLE {
   "The KLE number specifies the responsibility.\n\nFor more details read the `KLE` description.\n"
+  kle_number_response: ClassResponse!
+
+  "The KLE number specifies the responsibility.\n\nFor more details read the `KLE` description.\n"
   kle_number(
     filter: UuidsBoundClassFilter
 
@@ -3799,6 +4187,20 @@ type KLE {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Class!]!
+    @deprecated(
+      reason: "Use 'kle_number_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "KLE Aspects.\n\nThe KLE aspect describes the kind of relationship the organisation unit has with the responsibility given by the KLE number.\n\nExamples of user-keys:\n* `\"Insight\"`\n* `\"Executive\"`\n* `\"Responsible\"`\n"
+  kle_aspects_response(
+    filter: UuidsBoundClassFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): ClassResponsePaged!
 
   "KLE Aspects.\n\nThe KLE aspect describes the kind of relationship the organisation unit has with the responsibility given by the KLE number.\n\nExamples of user-keys:\n* `\"Insight\"`\n* `\"Executive\"`\n* `\"Responsible\"`\n"
   kle_aspects(
@@ -3810,6 +4212,12 @@ type KLE {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Class!]!
+    @deprecated(
+      reason: "Use 'kle_aspects_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "The organisation unit the responsibility is mapped to.\n"
+  org_unit_response: OrganisationUnitResponse
 
   "The organisation unit the responsibility is mapped to.\n"
   org_unit(
@@ -3821,6 +4229,9 @@ type KLE {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [OrganisationUnit!]!
+    @deprecated(
+      reason: "Use 'org_unit_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   "The object type.\n\nAlways contains the string `kle`.\n"
   type: String!
@@ -4041,6 +4452,9 @@ input KLEUpdateInput {
 "A leave of absence for an employee.\n\nCan be everything from a pregnancy or maternity leave to a furlough or a garden leave.\nThe `leave_type` can be used to determine the type of leave in question.\n"
 type Leave {
   "The kind of leave of absence.\n\nExamples:\n* `\"Maternity leave\"`\n* `\"Parental leave\"`\n* `\"Furlough\"`\n* `\"Garden Leave\"`\n"
+  leave_type_response: ClassResponse!
+
+  "The kind of leave of absence.\n\nExamples:\n* `\"Maternity leave\"`\n* `\"Parental leave\"`\n* `\"Furlough\"`\n* `\"Garden Leave\"`\n"
   leave_type(
     filter: UuidsBoundClassFilter
 
@@ -4050,6 +4464,9 @@ type Leave {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class!
+    @deprecated(
+      reason: "Use 'leave_type_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   "The absent employee.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   employee(
@@ -4066,6 +4483,9 @@ type Leave {
     )
 
   "The absent person.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  person_response: EmployeeResponse!
+
+  "The absent person.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   person(
     filter: UuidsBoundEmployeeFilter
 
@@ -4075,6 +4495,12 @@ type Leave {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Employee!]!
+    @deprecated(
+      reason: "Use 'person_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "The engagement the employee is absent from.\n"
+  engagement_response: EngagementResponse!
 
   "The engagement the employee is absent from.\n"
   engagement(
@@ -4086,6 +4512,9 @@ type Leave {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Engagement!
+    @deprecated(
+      reason: "Use 'engagement_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   "The object type.\n\nAlways contains the string `leave`.\n"
   type: String!
@@ -4397,6 +4826,9 @@ input ListenerFilter {
   "UUID filter limiting which entries are returned.\n\n| `uuids`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
   uuids: [UUID!] = null
 
+  "Listener filter limiting which entries are returned.\n\n| `user_keys`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
+  user_keys: [String!] = null
+
   "Owner filter limiting which entries are returned.\n\n| `owners`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
   owners: [UUID!] = null
 
@@ -4429,6 +4861,9 @@ input ListenersBoundFullEventFilter {
 "Managers of organisation units and their connected identities.\n"
 type Manager {
   "Title of the manager.\n\nExamples:\n* `\"Director\"`\n* `\"Area manager\"`\n* `\"Center manager\"`\n"
+  manager_type_response: ClassResponse
+
+  "Title of the manager.\n\nExamples:\n* `\"Director\"`\n* `\"Area manager\"`\n* `\"Center manager\"`\n"
   manager_type(
     filter: UuidsBoundClassFilter
 
@@ -4438,6 +4873,12 @@ type Manager {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class!
+    @deprecated(
+      reason: "Use 'manager_type_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Hierarchical level of the manager.\n\nExamples:\n* `\"Level 1\"`\n* `\"Level 2\"`\n* `\"Level 3\"`\n"
+  manager_level_response: ClassResponse
 
   "Hierarchical level of the manager.\n\nExamples:\n* `\"Level 1\"`\n* `\"Level 2\"`\n* `\"Level 3\"`\n"
   manager_level(
@@ -4449,6 +4890,20 @@ type Manager {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class!
+    @deprecated(
+      reason: "Use 'manager_level_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Responsibilities that the manager takes care of.\n\nExamples:\n* `[\"Responsible for buildings and areas\"]`\n* `[\"Responsible for buildings and areas\", \"Staff: Sick leave\"]`\n* `[]`\n"
+  responsibilities_response(
+    filter: UuidsBoundClassFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): ClassResponsePaged!
 
   "Responsibilities that the manager takes care of.\n\nExamples:\n* `[\"Responsible for buildings and areas\"]`\n* `[\"Responsible for buildings and areas\", \"Staff: Sick leave\"]`\n* `[]`\n"
   responsibilities(
@@ -4460,6 +4915,9 @@ type Manager {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Class!]!
+    @deprecated(
+      reason: "Use 'responsibilities_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   "Employee fulfilling the managerial position.\n\nMay be empty in which case the managerial position is unfilfilled (vacant).\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   employee(
@@ -4476,6 +4934,9 @@ type Manager {
     )
 
   "Person fulfilling the managerial position.\n\nMay be empty in which case the managerial position is unfilfilled (vacant).\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  person_response: EmployeeResponse
+
+  "Person fulfilling the managerial position.\n\nMay be empty in which case the managerial position is unfilfilled (vacant).\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   person(
     filter: UuidsBoundEmployeeFilter
 
@@ -4485,6 +4946,12 @@ type Manager {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Employee!]
+    @deprecated(
+      reason: "Use 'person_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Organisation unit being managed.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  org_unit_response: OrganisationUnitResponse!
 
   "Organisation unit being managed.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   org_unit(
@@ -4496,6 +4963,9 @@ type Manager {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [OrganisationUnit!]!
+    @deprecated(
+      reason: "Use 'org_unit_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   "The object type.\n\nAlways contains the string `manager`.\n"
   type: String!
@@ -4820,6 +5290,10 @@ type Mutation {
         reason: "Never worked properly. Use `exchange` to target a specific integration instead."
       )
     exchange: String = null
+    listener: UUID = null
+      @deprecated(
+        reason: "This is not the argument our event system deserves, but the one it needs right now."
+      )
     owner: UUID = null
   ): UUIDPaged!
 
@@ -4854,6 +5328,10 @@ type Mutation {
         reason: "Never worked properly. Use `exchange` to target a specific integration instead."
       )
     exchange: String = null
+    listener: UUID = null
+      @deprecated(
+        reason: "This is not the argument our event system deserves, but the one it needs right now."
+      )
     owner: UUID = null
   ): UUIDPaged!
 
@@ -4891,6 +5369,10 @@ type Mutation {
         reason: "Never worked properly. Use `exchange` to target a specific integration instead."
       )
     exchange: String = null
+    listener: UUID = null
+      @deprecated(
+        reason: "This is not the argument our event system deserves, but the one it needs right now."
+      )
     owner: UUID = null
   ): UUIDPaged!
 
@@ -4928,6 +5410,10 @@ type Mutation {
         reason: "Never worked properly. Use `exchange` to target a specific integration instead."
       )
     exchange: String = null
+    listener: UUID = null
+      @deprecated(
+        reason: "This is not the argument our event system deserves, but the one it needs right now."
+      )
     owner: UUID = null
   ): UUIDPaged!
 
@@ -4973,6 +5459,10 @@ type Mutation {
         reason: "Never worked properly. Use `exchange` to target a specific integration instead."
       )
     exchange: String = null
+    listener: UUID = null
+      @deprecated(
+        reason: "This is not the argument our event system deserves, but the one it needs right now."
+      )
     owner: UUID = null
   ): UUIDPaged!
 
@@ -5010,6 +5500,10 @@ type Mutation {
         reason: "Never worked properly. Use `exchange` to target a specific integration instead."
       )
     exchange: String = null
+    listener: UUID = null
+      @deprecated(
+        reason: "This is not the argument our event system deserves, but the one it needs right now."
+      )
     owner: UUID = null
   ): UUIDPaged!
 
@@ -5064,6 +5558,10 @@ type Mutation {
         reason: "Never worked properly. Use `exchange` to target a specific integration instead."
       )
     exchange: String = null
+    listener: UUID = null
+      @deprecated(
+        reason: "This is not the argument our event system deserves, but the one it needs right now."
+      )
     owner: UUID = null
   ): UUIDPaged!
 
@@ -5106,6 +5604,10 @@ type Mutation {
         reason: "Never worked properly. Use `exchange` to target a specific integration instead."
       )
     exchange: String = null
+    listener: UUID = null
+      @deprecated(
+        reason: "This is not the argument our event system deserves, but the one it needs right now."
+      )
     owner: UUID = null
   ): UUIDPaged!
 
@@ -5140,6 +5642,10 @@ type Mutation {
         reason: "Never worked properly. Use `exchange` to target a specific integration instead."
       )
     exchange: String = null
+    listener: UUID = null
+      @deprecated(
+        reason: "This is not the argument our event system deserves, but the one it needs right now."
+      )
     owner: UUID = null
   ): UUIDPaged!
 
@@ -5174,6 +5680,10 @@ type Mutation {
         reason: "Never worked properly. Use `exchange` to target a specific integration instead."
       )
     exchange: String = null
+    listener: UUID = null
+      @deprecated(
+        reason: "This is not the argument our event system deserves, but the one it needs right now."
+      )
     owner: UUID = null
   ): UUIDPaged!
 
@@ -5213,6 +5723,10 @@ type Mutation {
         reason: "Never worked properly. Use `exchange` to target a specific integration instead."
       )
     exchange: String = null
+    listener: UUID = null
+      @deprecated(
+        reason: "This is not the argument our event system deserves, but the one it needs right now."
+      )
     owner: UUID = null
   ): UUIDPaged!
 
@@ -5261,6 +5775,10 @@ type Mutation {
         reason: "Never worked properly. Use `exchange` to target a specific integration instead."
       )
     exchange: String = null
+    listener: UUID = null
+      @deprecated(
+        reason: "This is not the argument our event system deserves, but the one it needs right now."
+      )
     owner: UUID = null
   ): UUIDPaged!
 
@@ -5295,6 +5813,10 @@ type Mutation {
         reason: "Never worked properly. Use `exchange` to target a specific integration instead."
       )
     exchange: String = null
+    listener: UUID = null
+      @deprecated(
+        reason: "This is not the argument our event system deserves, but the one it needs right now."
+      )
     owner: UUID = null
   ): UUIDPaged!
 
@@ -5319,6 +5841,10 @@ type Mutation {
         reason: "Never worked properly. Use `exchange` to target a specific integration instead."
       )
     exchange: String = null
+    listener: UUID = null
+      @deprecated(
+        reason: "This is not the argument our event system deserves, but the one it needs right now."
+      )
     owner: UUID = null
   ): UUIDPaged!
 
@@ -5363,6 +5889,10 @@ type Mutation {
         reason: "Never worked properly. Use `exchange` to target a specific integration instead."
       )
     exchange: String = null
+    listener: UUID = null
+      @deprecated(
+        reason: "This is not the argument our event system deserves, but the one it needs right now."
+      )
     owner: UUID = null
   ): UUIDPaged!
 
@@ -5521,6 +6051,7 @@ type NamespacePaged {
 
 input NamespacesBoundListenerFilter {
   uuids: [UUID!] = null
+  user_keys: [String!] = null
   owners: [UUID!] = null
   routing_keys: [String!] = null
 }
@@ -5678,6 +6209,9 @@ Organisation unit within the organisation tree
 """
 type OrganisationUnit {
   "The parent organisation unit in the organisation tree.\n"
+  parent_response: OrganisationUnitResponse
+
+  "The parent organisation unit in the organisation tree.\n"
   parent(
     filter: UuidsBoundOrganisationUnitFilter
 
@@ -5687,6 +6221,12 @@ type OrganisationUnit {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): OrganisationUnit
+    @deprecated(
+      reason: "Use 'parent_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "The top-unit (root) of the organisation unit, in the hierarchy.\n"
+  root_response: OrganisationUnitResponse
 
   "The top-unit (root) of the organisation unit, in the hierarchy.\n"
   root(
@@ -5698,6 +6238,20 @@ type OrganisationUnit {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [OrganisationUnit!]
+    @deprecated(
+      reason: "Use 'root_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "The immediate descendants in the organisation tree\n"
+  children_response(
+    filter: ParentBoundOrganisationUnitFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): OrganisationUnitResponsePaged!
 
   "The immediate descendants in the organisation tree\n"
   children(
@@ -5709,6 +6263,9 @@ type OrganisationUnit {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [OrganisationUnit!]!
+    @deprecated(
+      reason: "Use 'children_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   """
   Children count of the organisation unit. For performance, consider if `has_children` can answer your query instead.
@@ -5721,6 +6278,9 @@ type OrganisationUnit {
   has_children(filter: ParentBoundOrganisationUnitFilter): Boolean!
 
   "Organisation unit hierarchy.\n\nCan be used to label an organisational structure to belong to a certain subset of the organisation tree.\n\nExamples of user-keys:\n* `\"Line-management\"`\n* `\"Self-owned institution\"`\n* `\"Outside organisation\"`\n* `\"Hidden\"`\n\nNote:\nThe organisation-gatekeeper integration is one option to keep hierarchy labels up-to-date.\n"
+  unit_hierarchy_response: ClassResponse
+
+  "Organisation unit hierarchy.\n\nCan be used to label an organisational structure to belong to a certain subset of the organisation tree.\n\nExamples of user-keys:\n* `\"Line-management\"`\n* `\"Self-owned institution\"`\n* `\"Outside organisation\"`\n* `\"Hidden\"`\n\nNote:\nThe organisation-gatekeeper integration is one option to keep hierarchy labels up-to-date.\n"
   org_unit_hierarchy_model(
     filter: UuidsBoundClassFilter
 
@@ -5730,6 +6290,12 @@ type OrganisationUnit {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class
+    @deprecated(
+      reason: "Use 'unit_hierarchy_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Organisation unit type.\n\nOrganisation units can represent a lot of different classes of hierarchical structures.\nSometimes they represent cooperations, governments, NGOs or other true organisation types.\nOftentimes they represent the inner structure of these organisations.\nOthertimes they represent project management structures such as project or teams.\n\nThis field is used to distriguish all these different types of organisations.\n\nExamples of user-keys:\n* `\"Private Company\"`\n* `\"Educational Institution\"`\n* `\"Activity Center\"`\n* `\"Daycare\"`\n* `\"Team\"`\n* `\"Project\"`\n"
+  unit_type_response: ClassResponse
 
   "Organisation unit type.\n\nOrganisation units can represent a lot of different classes of hierarchical structures.\nSometimes they represent cooperations, governments, NGOs or other true organisation types.\nOftentimes they represent the inner structure of these organisations.\nOthertimes they represent project management structures such as project or teams.\n\nThis field is used to distriguish all these different types of organisations.\n\nExamples of user-keys:\n* `\"Private Company\"`\n* `\"Educational Institution\"`\n* `\"Activity Center\"`\n* `\"Daycare\"`\n* `\"Team\"`\n* `\"Project\"`\n"
   unit_type(
@@ -5741,6 +6307,12 @@ type OrganisationUnit {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class
+    @deprecated(
+      reason: "Use 'unit_type_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Organisation unit level.\n\nExamples of user-keys:\n* `\"N1\"`\n* `\"N5\"`\n* `\"N7\"`\n"
+  unit_level_response: ClassResponse
 
   "Organisation unit level.\n\nExamples of user-keys:\n* `\"N1\"`\n* `\"N5\"`\n* `\"N7\"`\n"
   org_unit_level(
@@ -5752,6 +6324,12 @@ type OrganisationUnit {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class
+    @deprecated(
+      reason: "Use 'unit_level_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Time planning strategy.\n"
+  time_planning_response: ClassResponse
 
   "Time planning strategy.\n"
   time_planning(
@@ -5763,6 +6341,20 @@ type OrganisationUnit {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class
+    @deprecated(
+      reason: "Use 'time_planning_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Engagements for the organistion unit.\n\nMay be an empty list if the organistion unit does not have any people employeed.\nThis situation may occur especially in the middle or the organisation tree.\n"
+  engagements_response(
+    filter: OrgUnitsboundengagementfilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): EngagementResponsePaged!
 
   "Engagements for the organistion unit.\n\nMay be an empty list if the organistion unit does not have any people employeed.\nThis situation may occur especially in the middle or the organisation tree.\n"
   engagements(
@@ -5774,6 +6366,23 @@ type OrganisationUnit {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Engagement!]!
+    @deprecated(
+      reason: "Use 'engagements_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Managerial roles for the organisation unit.\n\nMay be empty in which case managers are usually inherited from parents.\nSee the `inherit`-flag for details.\n"
+  managers_response(
+    filter: OrgUnitsboundmanagerfilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+
+    "Whether to inherit managerial roles or not.\n\nIf managerial roles exist directly on this organisation unit, the flag does nothing and these managerial roles are returned.\nHowever if no managerial roles exist directly, and this flag is:\n* False: An empty list is returned.\n* True: The result from calling `managers` with `inherit=True` on the parent of this organistion unit is returned.\n\nCalling with `inherit=True` can help ensure that a manager is always found.\n"
+    inherit: Boolean! = false
+  ): ManagerResponsePaged!
 
   "Managerial roles for the organisation unit.\n\nMay be empty in which case managers are usually inherited from parents.\nSee the `inherit`-flag for details.\n"
   managers(
@@ -5788,6 +6397,20 @@ type OrganisationUnit {
     "Whether to inherit managerial roles or not.\n\nIf managerial roles exist directly on this organisation unit, the flag does nothing and these managerial roles are returned.\nHowever if no managerial roles exist directly, and this flag is:\n* False: An empty list is returned.\n* True: The result from calling `managers` with `inherit=True` on the parent of this organistion unit is returned.\n\nCalling with `inherit=True` can help ensure that a manager is always found.\n"
     inherit: Boolean! = false
   ): [Manager!]!
+    @deprecated(
+      reason: "Use 'managers_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Addresses for the organisation unit.\n\nCommonly contain addresses such as, their:\n* Location\n* Contact phone number\n* Contact email\n"
+  addresses_response(
+    filter: OrgUnitsboundaddressfilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): AddressResponsePaged!
 
   "Addresses for the organisation unit.\n\nCommonly contain addresses such as, their:\n* Location\n* Contact phone number\n* Contact email\n"
   addresses(
@@ -5799,6 +6422,20 @@ type OrganisationUnit {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Address!]!
+    @deprecated(
+      reason: "Use 'address_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Connection to employees leaves of absence relevant for the organisation unit.\n"
+  leaves_response(
+    filter: OrgUnitsboundleavefilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): LeaveResponsePaged!
 
   "Connection to employees leaves of absence relevant for the organisation unit.\n"
   leaves(
@@ -5810,6 +6447,20 @@ type OrganisationUnit {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Leave!]!
+    @deprecated(
+      reason: "Use 'leaves_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Associations for the organistion unit.\n\nMay be an empty list if the organistion unit is purely hierarchical.\nThis situation may occur especially in the middle or the organisation tree.\n"
+  associations_response(
+    filter: OrgUnitsboundassociationfilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): AssociationResponsePaged!
 
   "Associations for the organistion unit.\n\nMay be an empty list if the organistion unit is purely hierarchical.\nThis situation may occur especially in the middle or the organisation tree.\n"
   associations(
@@ -5821,6 +6472,20 @@ type OrganisationUnit {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Association!]!
+    @deprecated(
+      reason: "Use 'associations_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "IT (service) accounts.\n\nMay be an empty list if the organistion unit does not have any IT (service) accounts whatsoever.\nThis situation may occur especially in the middle or the organisation tree.\n"
+  itusers_response(
+    filter: OrgUnitsboundituserfilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): ITUserResponsePaged!
 
   "IT (service) accounts.\n\nMay be an empty list if the organistion unit does not have any IT (service) accounts whatsoever.\nThis situation may occur especially in the middle or the organisation tree.\n"
   itusers(
@@ -5832,6 +6497,20 @@ type OrganisationUnit {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [ITUser!]!
+    @deprecated(
+      reason: "Use 'itusers_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "KLE responsibilities for the organisation unit.\n\nCan help out with regards to GDPR by identifying which organisational units operate with sensitive tasks.\n"
+  kles_response(
+    filter: OrgUnitsboundklefilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): KLEResponsePaged!
 
   "KLE responsibilities for the organisation unit.\n\nCan help out with regards to GDPR by identifying which organisational units operate with sensitive tasks.\n"
   kles(
@@ -5843,6 +6522,20 @@ type OrganisationUnit {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [KLE!]!
+    @deprecated(
+      reason: "Use 'kles_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Related units for the organisational unit.\n"
+  related_units_response(
+    filter: OrgUnitsboundrelatedunitfilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): RelatedUnitResponsePaged!
 
   "Related units for the organisational unit.\n"
   related_units(
@@ -5854,6 +6547,9 @@ type OrganisationUnit {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [RelatedUnit!]!
+    @deprecated(
+      reason: "Use 'related_units_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   "All ancestor organisational units in the organisation tree.\n\nThe result of collecting organisational units by following `parent` until `parent` becomes `null`.\nI.e. the list of all ancestors on the way to the organisation tree root.\n"
   ancestors: [OrganisationUnit!]!
@@ -6111,6 +6807,9 @@ input OrganisationUnitUpdateInput {
 "\nOwner of organisation units/employees and their connected identities.\n"
 type Owner {
   "The owned organisation unit.\n\nNote:\nThis field is mutually exclusive with the `employee` field.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  org_unit_response: OrganisationUnitResponse
+
+  "The owned organisation unit.\n\nNote:\nThis field is mutually exclusive with the `employee` field.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   org_unit(
     filter: UuidsBoundOrganisationUnitFilter
 
@@ -6120,6 +6819,12 @@ type Owner {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [OrganisationUnit!]
+    @deprecated(
+      reason: "Use 'org_unit_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "The owned person.\n\nNote:\nThis field is mutually exclusive with the `org_unit` field.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  person_response: EmployeeResponse
 
   "The owned person.\n\nNote:\nThis field is mutually exclusive with the `org_unit` field.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   person(
@@ -6131,6 +6836,12 @@ type Owner {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Employee!]
+    @deprecated(
+      reason: "Use 'person_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "Owner of the connected person or organisation unit.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  owner_response: EmployeeResponse
 
   "Owner of the connected person or organisation unit.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   owner(
@@ -6142,6 +6853,9 @@ type Owner {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Employee!]
+    @deprecated(
+      reason: "Use 'owner_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   "\nThe object type.\n\nAlways contains the string `owner`.\n"
   type: String!
@@ -6376,6 +7090,7 @@ input OwnerUpdateInput {
 
 input OwnersBoundListenerFilter {
   uuids: [UUID!] = null
+  user_keys: [String!] = null
   routing_keys: [String!] = null
   namespaces: NamespaceFilter = null
 }
@@ -6483,6 +7198,22 @@ type Query {
   Get employees.
   """
   employees(
+    filter: EmployeeFilter = null
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): EmployeeResponsePaged!
+    @deprecated(
+      reason: "Use 'persons' instead. Will be removed in a future version of OS2mo."
+    )
+
+  """
+  Get persons.
+  """
+  persons(
     filter: EmployeeFilter = null
 
     "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
@@ -6850,6 +7581,17 @@ An organisation unit relation mapping
 """
 type RelatedUnit {
   "Related organisation units.\n\nExamples of user-keys:\n* `[\"Administrative\", \"Payroll\"]`\n* `[\"IT-Support\", \"IT-Support]`\n* `[\"Majora School\", \"Alias School\"]`\n\nNote:\nThe result list should always be of length 2, corresponding to the elements of the bijection.\n"
+  org_units_response(
+    filter: UuidsBoundOrganisationUnitFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): OrganisationUnitResponsePaged!
+
+  "Related organisation units.\n\nExamples of user-keys:\n* `[\"Administrative\", \"Payroll\"]`\n* `[\"IT-Support\", \"IT-Support]`\n* `[\"Majora School\", \"Alias School\"]`\n\nNote:\nThe result list should always be of length 2, corresponding to the elements of the bijection.\n"
   org_units(
     filter: UuidsBoundOrganisationUnitFilter
 
@@ -6859,6 +7601,9 @@ type RelatedUnit {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [OrganisationUnit!]!
+    @deprecated(
+      reason: "Use 'org_units_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   """
   UUID of the entity
@@ -6988,6 +7733,12 @@ interface ResolvedAddress {
 The role a person has within an organisation unit
 """
 type RoleBinding {
+  "The role that is being fulfilled.\n\nExamples of user-keys:\n* `\"AD Read\"`\n* `\"AD Write\"`\n* `\"SAP Admin\"`\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  role_response: ClassResponse!
+
+  "The IT-user that should be granted this role\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  ituser_response: ITUserResponse!
+
   "The IT-user that should be granted this role\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   ituser(
     filter: UuidsBoundITUserFilter
@@ -6998,6 +7749,12 @@ type RoleBinding {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [ITUser!]!
+    @deprecated(
+      reason: "Use 'ituser_response' instead. Will be removed in a future version of OS2mo."
+    )
+
+  "The organisational unit in which the role is being fulfilled.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  org_unit_response: OrganisationUnitResponse
 
   "The organisational unit in which the role is being fulfilled.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   org_unit(
@@ -7009,6 +7766,9 @@ type RoleBinding {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [OrganisationUnit!]!
+    @deprecated(
+      reason: "Use 'org_unit_response' instead. Will be removed in a future version of OS2mo."
+    )
 
   """
   UUID of the entity
@@ -7035,6 +7795,9 @@ type RoleBinding {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Class!]!
+    @deprecated(
+      reason: "Use 'role_response' instead. Will be removed in a future version of OS2mo."
+    )
 }
 
 input RoleBindingCreateInput {
@@ -7450,9 +8213,6 @@ type Version {
   """
   lora_version: String
     @deprecated(reason: "MO and LoRa are shipped and versioned together")
-
-  "DIPEX version.\n\nContains a [semantic version](https://semver.org/) if configured.\nContains the `null` on development builds of OS2mo.\n\nExamples:\n* `null`\n* `4.34.1`\n* `4.28.0`\n"
-  dipex_version: String
 }
 
 scalar int
