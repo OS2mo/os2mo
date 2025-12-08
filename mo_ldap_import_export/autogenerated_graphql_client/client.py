@@ -776,7 +776,7 @@ class GraphQLClient(AsyncBaseClient):
             query read_engagement_uuids($engagement_filter: EngagementFilter!) {
               engagements(filter: $engagement_filter) {
                 objects {
-                  current {
+                  validities {
                     uuid
                     validity {
                       from

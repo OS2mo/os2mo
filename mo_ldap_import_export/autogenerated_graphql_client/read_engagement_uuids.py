@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -16,15 +15,15 @@ class ReadEngagementUuidsEngagements(BaseModel):
 
 
 class ReadEngagementUuidsEngagementsObjects(BaseModel):
-    current: Optional["ReadEngagementUuidsEngagementsObjectsCurrent"]
+    validities: list["ReadEngagementUuidsEngagementsObjectsValidities"]
 
 
-class ReadEngagementUuidsEngagementsObjectsCurrent(BaseModel):
+class ReadEngagementUuidsEngagementsObjectsValidities(BaseModel):
     uuid: UUID
-    validity: "ReadEngagementUuidsEngagementsObjectsCurrentValidity"
+    validity: "ReadEngagementUuidsEngagementsObjectsValiditiesValidity"
 
 
-class ReadEngagementUuidsEngagementsObjectsCurrentValidity(BaseModel):
+class ReadEngagementUuidsEngagementsObjectsValiditiesValidity(BaseModel):
     from_: datetime = Field(alias="from")
     to: datetime | None
 
@@ -32,5 +31,5 @@ class ReadEngagementUuidsEngagementsObjectsCurrentValidity(BaseModel):
 ReadEngagementUuids.update_forward_refs()
 ReadEngagementUuidsEngagements.update_forward_refs()
 ReadEngagementUuidsEngagementsObjects.update_forward_refs()
-ReadEngagementUuidsEngagementsObjectsCurrent.update_forward_refs()
-ReadEngagementUuidsEngagementsObjectsCurrentValidity.update_forward_refs()
+ReadEngagementUuidsEngagementsObjectsValidities.update_forward_refs()
+ReadEngagementUuidsEngagementsObjectsValiditiesValidity.update_forward_refs()

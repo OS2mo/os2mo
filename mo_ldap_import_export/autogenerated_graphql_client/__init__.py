@@ -422,8 +422,10 @@ from .read_engagement_uuid import ReadEngagementUuidEngagementsObjects
 from .read_engagement_uuids import ReadEngagementUuids
 from .read_engagement_uuids import ReadEngagementUuidsEngagements
 from .read_engagement_uuids import ReadEngagementUuidsEngagementsObjects
-from .read_engagement_uuids import ReadEngagementUuidsEngagementsObjectsCurrent
-from .read_engagement_uuids import ReadEngagementUuidsEngagementsObjectsCurrentValidity
+from .read_engagement_uuids import ReadEngagementUuidsEngagementsObjectsValidities
+from .read_engagement_uuids import (
+    ReadEngagementUuidsEngagementsObjectsValiditiesValidity,
+)
 from .read_engagements import ReadEngagements
 from .read_engagements import ReadEngagementsEngagements
 from .read_engagements import ReadEngagementsEngagementsObjects
@@ -847,8 +849,8 @@ __all__ = [
     "ReadEngagementUuids",
     "ReadEngagementUuidsEngagements",
     "ReadEngagementUuidsEngagementsObjects",
-    "ReadEngagementUuidsEngagementsObjectsCurrent",
-    "ReadEngagementUuidsEngagementsObjectsCurrentValidity",
+    "ReadEngagementUuidsEngagementsObjectsValidities",
+    "ReadEngagementUuidsEngagementsObjectsValiditiesValidity",
     "ReadEngagements",
     "ReadEngagementsEngagements",
     "ReadEngagementsEngagementsObjects",
