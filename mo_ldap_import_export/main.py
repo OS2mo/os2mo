@@ -65,10 +65,10 @@ from .ldap import ldap_healthcheck
 from .ldap_amqp import configure_ldap_amqpsystem
 from .ldap_amqp import ldap2mo_router
 from .ldap_event_generator import LDAPEventGenerator
-from .ldap_event_generator import ldap_event_router
 from .ldapapi import LDAPAPI
 from .moapi import MOAPI
 from .routes import construct_router
+from .routes import ldap_event_router
 from .types import EmployeeUUID
 from .usernames import UserNameGenerator
 from .utils import ensure_list
@@ -432,12 +432,16 @@ async def lifespan(
 
         logger.info("Initializing LDAP listener")
         await stack.enter_async_context(ldap_amqpsystem)
+        ldap_event_generator = LDAPEventGenerator(
+            sessionmaker=fastramqpi.get_context()["sessionmaker"],
+            settings=settings,
+            graphql_client=graphql_client,
+            ldap_amqpsystem=ldap_amqpsystem,
+            ldap_connection=ldap_connection,
+        )
+        fastramqpi.add_context(ldap_event_generator=ldap_event_generator)
         if settings.listen_to_changes_in_ldap:
             logger.info("Initializing LDAP event generator")
-            sessionmaker = fastramqpi.get_context()["sessionmaker"]
-            ldap_event_generator = LDAPEventGenerator(
-                sessionmaker, settings, graphql_client, ldap_amqpsystem, ldap_connection
-            )
             fastramqpi.add_healthcheck(
                 name="LDAPEventGenerator", healthcheck=ldap_event_generator.healthcheck
             )
