@@ -53,6 +53,9 @@ facets:
     Ansat:
       title: "Ansat"
       scope: "TEXT"
+    Praktikant:
+      title: "Praktikant"
+      scope: "TEXT"
   primary_type:
     primary:
       title: "Primær"

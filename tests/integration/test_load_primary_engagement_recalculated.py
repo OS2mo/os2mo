@@ -399,3 +399,87 @@ async def test_load_primary_engagement_user_key_distinction(
     result = await load_primary_engagement_recalculated(dataloader.moapi, mo_person)
     assert result is not None
     assert result.user_key == "10"
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+    }
+)
+@pytest.mark.usefixtures("test_client")
+async def test_load_primary_engagement_exclude_engagement_types(
+    graphql_client: GraphQLClient,
+    context: Context,
+    mo_person: UUID,
+    mo_org_unit: UUID,
+    jurist: UUID,
+    primary: UUID,
+    ansat: UUID,
+    praktikant: UUID,
+) -> None:
+    """Test that engagements of excluded types are not considered primary."""
+    await graphql_client.engagement_create(
+        input=EngagementCreateInput(
+            user_key="10",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=ansat,
+            job_function=jurist,
+            primary=primary,
+            fraction=100,
+            validity={"from": "2001-02-03T04:05:06Z"},
+        )
+    )
+    await graphql_client.engagement_create(
+        input=EngagementCreateInput(
+            user_key="20",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=praktikant,
+            job_function=jurist,
+            primary=primary,
+            fraction=100,
+            validity={"from": "2001-02-03T04:05:06Z"},
+        )
+    )
+
+    dataloader = context["user_context"]["dataloader"]
+
+    # Exclude 'Praktikant' engagement type, 'Ansat' should be primary
+    result = await load_primary_engagement_recalculated(
+        dataloader.moapi,
+        mo_person,
+        exclude_engagement_types={praktikant},
+    )
+    assert result is not None
+    assert result.user_key == "10"
+
+    # Exclude 'Ansat' engagement type, 'Praktikant' should be primary
+    result = await load_primary_engagement_recalculated(
+        dataloader.moapi,
+        mo_person,
+        exclude_engagement_types={ansat},
+    )
+    assert result is not None
+    assert result.user_key == "20"
+
+    # Exclude both 'Ansat' and 'Praktikant', no primary should be found
+    result = await load_primary_engagement_recalculated(
+        dataloader.moapi,
+        mo_person,
+        exclude_engagement_types={
+            ansat,
+            praktikant,
+        },
+    )
+    assert result is None
+
+    # No exclusion, 'ansat' should be primary (default sorting by user_key)
+    result = await load_primary_engagement_recalculated(
+        dataloader.moapi,
+        mo_person,
+    )
+    assert result is not None
+    assert result.user_key == "10"
