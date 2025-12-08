@@ -61,8 +61,8 @@ query read_engagements(
   }
 }
 
-query read_engagements_by_employee_uuid($employee_uuid: UUID!) {
-  engagements(filter: { employee: { uuids: [$employee_uuid] } }) {
+query read_engagement_uuids($engagement_filter: EngagementFilter!) {
+  engagements(filter: $engagement_filter) {
     objects {
       current {
         uuid
