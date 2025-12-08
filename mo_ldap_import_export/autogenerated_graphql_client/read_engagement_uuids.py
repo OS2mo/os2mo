@@ -15,11 +15,11 @@ class ReadEngagementUuidsEngagements(BaseModel):
 
 
 class ReadEngagementUuidsEngagementsObjects(BaseModel):
+    uuid: UUID
     validities: list["ReadEngagementUuidsEngagementsObjectsValidities"]
 
 
 class ReadEngagementUuidsEngagementsObjectsValidities(BaseModel):
-    uuid: UUID
     validity: "ReadEngagementUuidsEngagementsObjectsValiditiesValidity"
 
 

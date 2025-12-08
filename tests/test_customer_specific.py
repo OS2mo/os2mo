@@ -60,12 +60,15 @@ async def test_import_jobtitlefromadtomo_objects() -> None:
         {
             "objects": [
                 {
+                    "uuid": str(test_eng_uuid),
                     "validities": [
                         {
-                            "uuid": str(test_eng_uuid),
-                            "validity": {"from": str(start_time), "to": str(end_time)},
+                            "validity": {
+                                "from": str(start_time),
+                                "to": str(end_time),
+                            }
                         }
-                    ]
+                    ],
                 }
             ]
         },

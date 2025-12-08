@@ -105,10 +105,9 @@ async def sync_JobTitleFromADToMO(
         engagement_filter=EngagementFilter(employees=[ldap_object.hkStsuuid])
     )
     engagements = [
-        validity
-        for x in result.objects
-        for validity in x.validities
-        if x.validities is not None
+        (engagement.uuid, validity.validity)
+        for engagement in result.objects
+        for validity in engagement.validities
     ]
     if dry_run:  # pragma: no cover
         raise DryRunException(
@@ -120,12 +119,12 @@ async def sync_JobTitleFromADToMO(
     await asyncio.gather(
         *[
             moapi.graphql_client.set_job_title(
-                uuid=obj.uuid,
-                from_=obj.validity.from_,
-                to=obj.validity.to,
+                uuid=engagement_uuid,
+                from_=validity.from_,
+                to=validity.to,
                 job_function=job_function,
             )
-            for obj in engagements
+            for engagement_uuid, validity in engagements
         ]
     )
 
