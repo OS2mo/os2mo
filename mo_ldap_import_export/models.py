@@ -96,6 +96,7 @@ class Engagement(StrictBaseModel):
     extension_8: str | None
     extension_9: str | None
     extension_10: str | None
+    fraction: int | None
     validity: Validity
 
 

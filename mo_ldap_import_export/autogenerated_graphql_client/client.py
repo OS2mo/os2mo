@@ -743,6 +743,7 @@ class GraphQLClient(AsyncBaseClient):
                     extension_8
                     extension_9
                     extension_10
+                    fraction
                     leave_uuid
                     primary_uuid
                     job_function_uuid
