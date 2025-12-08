@@ -6,13 +6,13 @@ from typing import Any
 
 import pydantic
 import structlog
-from fastramqpi.ramqp.utils import RequeueMessage
 from jinja2 import Environment
 from more_itertools import one
 
 from .config import LDAP2MOMapping
 from .config import get_required_attributes
 from .exceptions import IncorrectMapping
+from .exceptions import RequeueException
 from .exceptions import SkipObject
 from .ldap_classes import LdapObject
 from .models import MOBase
@@ -73,7 +73,7 @@ class LdapConverter:
             if not value:
                 return value
             # We can only handle single element lists
-            too_long = RequeueMessage("Unable to handle list attributes")
+            too_long = RequeueException("Unable to handle list attributes")
             return one(value, too_long=too_long)
 
         ldap_dict = {
@@ -149,7 +149,7 @@ class LdapConverter:
                 mo_class=mo_class,
                 missing_attributes=missing_attributes,
             )
-            raise RequeueMessage("Missing values in LDAP to synchronize")
+            raise RequeueException("Missing values in LDAP to synchronize")
 
         try:
             return mo_class(**mo_dict)

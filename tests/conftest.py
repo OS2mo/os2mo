@@ -4,12 +4,9 @@ import json
 import os
 import warnings
 from collections.abc import AsyncIterator
-from collections.abc import Awaitable
-from collections.abc import Callable
 from collections.abc import Iterator
 from contextlib import suppress
 from typing import Any
-from typing import cast
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from uuid import uuid4
@@ -18,7 +15,6 @@ import pytest
 from fastapi import FastAPI
 from fastramqpi.context import Context
 from fastramqpi.main import FastRAMQPI
-from fastramqpi.ramqp.amqp import AMQPSystem
 from httpx import AsyncClient
 from ldap3 import NO_ATTRIBUTES
 from pytest import Item
@@ -54,12 +50,6 @@ def pytest_collection_modifyitems(items: list[Item]) -> None:
             ]
 
 
-@pytest.fixture(autouse=True)
-def lowered_sleep_on_error(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("mo_ldap_import_export.main.SLEEP_ON_ERROR", 1)
-    monkeypatch.setattr("mo_ldap_import_export.ldap_amqp.SLEEP_ON_ERROR", 1)
-
-
 @pytest.fixture
 def settings_overrides() -> Iterator[dict[str, str]]:
     """Fixture to construct dictionary of minimal overrides for valid settings.
@@ -77,7 +67,6 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_SEARCH_BASE": "DC=ad,DC=addev",
         "LDAP_OBJECT_CLASS": "inetOrgPerson",
         "LDAP_CPR_ATTRIBUTE": "employeeID",
-        "FASTRAMQPI__AMQP__URL": "amqp://guest:guest@msg_broker:5672/",
         "FASTRAMQPI__DATABASE__USER": "fastramqpi",
         "FASTRAMQPI__DATABASE__PASSWORD": "fastramqpi",
         "FASTRAMQPI__DATABASE__HOST": "db",
@@ -375,48 +364,6 @@ async def write_ldap_api() -> LDAPAPI:
     """LDAP API for use in writing fixtures, should not be used in tests themselves."""
     settings = Settings(ldap_read_only=False, add_objects_to_ldap=True)
     return LDAPAPI(settings, configure_ldap_connection(settings))
-
-
-@pytest.fixture
-async def amqpsystem(context: Context) -> AMQPSystem:
-    """The MO AMQPSystem."""
-    return cast(AMQPSystem, context["amqpsystem"])
-
-
-@pytest.fixture
-def get_num_queued_messages(
-    rabbitmq_management_client: AsyncClient,
-) -> Callable[[], Awaitable[int]]:
-    """Get number of queued messages in RabbitMQ AMQP."""
-
-    async def _get_num_queued_messages() -> int:
-        queues = (await rabbitmq_management_client.get("queues")).json()
-        return sum(
-            queue.get("messages_ready", 0) + queue.get("messages_unacknowledged", 0)
-            for queue in queues
-        )
-
-    return _get_num_queued_messages
-
-
-def get_num_x_messages(
-    rabbitmq_management_client: AsyncClient, stats_key: str
-) -> Callable[[], Awaitable[int]]:
-    """Get number of consumed messages in RabbitMQ AMQP."""
-
-    async def _get_num_consumed_messages() -> int:
-        queues = (await rabbitmq_management_client.get("queues")).json()
-        return sum(queue.get("message_stats", {}).get(stats_key, 0) for queue in queues)
-
-    return _get_num_consumed_messages
-
-
-@pytest.fixture
-def get_num_published_messages(
-    rabbitmq_management_client: AsyncClient,
-) -> Callable[[], Awaitable[int]]:
-    """Get number of published messages in RabbitMQ AMQP."""
-    return get_num_x_messages(rabbitmq_management_client, "publish")
 
 
 @pytest.fixture

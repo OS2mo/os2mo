@@ -13,23 +13,21 @@ from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
-from fastramqpi.ramqp.utils import RequeueMessage
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.environments.main import construct_environment
+from mo_ldap_import_export.exceptions import RequeueException
 from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.main import GRAPHQL_VERSION
-from mo_ldap_import_export.main import handle_org_unit
 from mo_ldap_import_export.moapi import Verb
 from mo_ldap_import_export.moapi import get_primary_engagement
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import Engagement
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.types import EmployeeUUID
-from mo_ldap_import_export.types import OrgUnitUUID
 from tests.graphql_mocker import GraphQLMocker
 
 
@@ -45,7 +43,6 @@ def context(
     settings_mock.discriminator_filter = None
     ldap_connection = AsyncMock()
     context = Context(
-        amqpsystem=AsyncMock(),
         user_context={
             "dataloader": dataloader,
             "converter": converter,
@@ -80,7 +77,7 @@ async def test_listen_to_changes_in_employees_no_dn(
 ) -> None:
     employee_uuid = uuid4()
     dataloader.find_mo_employee_dn.return_value = set()
-    dataloader.make_mo_employee_dn.side_effect = RequeueMessage("Not found")
+    dataloader.make_mo_employee_dn.side_effect = RequeueException("Not found")
 
     template = AsyncMock()
     template.render_async.return_value = '{"key": "value"}'
@@ -89,7 +86,7 @@ async def test_listen_to_changes_in_employees_no_dn(
     dataloader._find_best_dn = partial(DataLoader._find_best_dn, dataloader)
 
     with capture_logs() as cap_logs:
-        with pytest.raises(RequeueMessage) as exc_info:
+        with pytest.raises(RequeueException) as exc_info:
             await sync_tool.listen_to_changes_in_employees(employee_uuid)
         assert "Not found" in str(exc_info.value)
 
@@ -252,16 +249,6 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
         messages = [w["event"] for w in cap_logs if w["log_level"] == "info"]
         assert "Import to MO filtered" in messages
         assert "Loading object" not in messages
-
-
-async def test_publish_engagements_for_org_unit(dataloader: AsyncMock) -> None:
-    amqpsystem = AsyncMock()
-    amqpsystem.exchange_name = "my-unique-exchange-name"
-    uuid = OrgUnitUUID(uuid4())
-    await handle_org_unit(uuid, dataloader.graphql_client, amqpsystem)
-    dataloader.graphql_client.org_unit_engagements_refresh.assert_called_with(
-        amqpsystem.exchange_name, uuid
-    )
 
 
 async def test_perform_import_checks_noop(sync_tool: SyncTool) -> None:
@@ -524,7 +511,7 @@ async def test_get_primary_engagement(
     route.result = {"engagements": {"objects": objects}}
 
     if isinstance(expected, str):
-        with pytest.raises(RequeueMessage) as exc_info:
+        with pytest.raises(RequeueException) as exc_info:
             await get_primary_engagement(graphql_client, employee_uuid)
         assert expected in str(exc_info.value)
     else:
@@ -604,7 +591,7 @@ async def test_render_ldap2mo(
 ) -> None:
     sync_tool.settings.conversion_mapping.mo2ldap = template  # type: ignore
     sync_tool.converter.environment = construct_environment(
-        sync_tool.settings, sync_tool.dataloader, MagicMock(), MagicMock()
+        sync_tool.settings, sync_tool.dataloader
     )
     uuid = EmployeeUUID(UUID("fa15edad-da1e-c0de-babe-c1a551f1ab1e"))
     if isinstance(expected, str):

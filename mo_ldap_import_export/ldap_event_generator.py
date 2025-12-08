@@ -13,7 +13,6 @@ from typing import cast
 
 import structlog
 from fastramqpi.context import Context
-from fastramqpi.ramqp.amqp import AMQPSystem
 from ldap3 import Connection
 from sqlalchemy import ARRAY
 from sqlalchemy import TIMESTAMP
@@ -95,14 +94,12 @@ class LDAPEventGenerator(AbstractAsyncContextManager):
         sessionmaker: async_sessionmaker[AsyncSession],
         settings: Settings,
         graphql_client: GraphQLClient,
-        ldap_amqpsystem: AMQPSystem,
         ldap_connection: Connection,
     ) -> None:
         """Periodically poll LDAP for changes."""
         self.sessionmaker = sessionmaker
         self.graphql_client = graphql_client
         self.settings = settings
-        self.ldap_amqpsystem = ldap_amqpsystem
         self.ldap_connection = ldap_connection
 
         self._pollers: set[asyncio.Task] = set()
@@ -261,9 +258,7 @@ class LDAPEventGenerator(AbstractAsyncContextManager):
             # seconds effectively spamming the queue, which is a big issue if the UUID
             # that is getting spammed is stuck.
             if uuids != set(last_run.uuids) or timestamp != last_run.datetime:
-                await publish_uuids(
-                    self.graphql_client, self.ldap_amqpsystem, list(uuids)
-                )
+                await publish_uuids(self.settings, self.graphql_client, list(uuids))
 
             # No events found means no timestamps, which means we reuse the old last_run
             if timestamp is None:

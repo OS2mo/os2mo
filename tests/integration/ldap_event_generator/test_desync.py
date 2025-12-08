@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import sleep
 from datetime import timedelta
-from unittest.mock import AsyncMock
 from uuid import UUID
 
 import pytest
@@ -82,7 +81,6 @@ async def test_no_desync(
         sessionmaker=sessionmaker,
         settings=Settings(),
         graphql_client=graphql_client,
-        ldap_amqpsystem=AsyncMock(),
         ldap_connection=dataloader.ldapapi.connection,
     )
 

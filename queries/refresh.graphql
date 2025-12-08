@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
-mutation address_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+mutation address_refresh($listener: UUID, $owner: UUID, $uuids: [UUID!]!) {
   address_refresh(
-    exchange: $exchange
+    listener: $listener
     owner: $owner
     filter: { uuids: $uuids }
   ) {
@@ -11,13 +11,9 @@ mutation address_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
   }
 }
 
-mutation association_refresh(
-  $exchange: String
-  $owner: UUID
-  $uuids: [UUID!]!
-) {
+mutation association_refresh($listener: UUID, $owner: UUID, $uuids: [UUID!]!) {
   association_refresh(
-    exchange: $exchange
+    listener: $listener
     owner: $owner
     filter: { uuids: $uuids }
   ) {
@@ -25,15 +21,15 @@ mutation association_refresh(
   }
 }
 
-mutation class_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
-  class_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+mutation class_refresh($listener: UUID, $owner: UUID, $uuids: [UUID!]!) {
+  class_refresh(listener: $listener, owner: $owner, filter: { uuids: $uuids }) {
     objects
   }
 }
 
-mutation engagement_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+mutation engagement_refresh($listener: UUID, $owner: UUID, $uuids: [UUID!]!) {
   engagement_refresh(
-    exchange: $exchange
+    listener: $listener
     owner: $owner
     filter: { uuids: $uuids }
   ) {
@@ -41,15 +37,15 @@ mutation engagement_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
   }
 }
 
-mutation facet_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
-  facet_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+mutation facet_refresh($listener: UUID, $owner: UUID, $uuids: [UUID!]!) {
+  facet_refresh(listener: $listener, owner: $owner, filter: { uuids: $uuids }) {
     objects
   }
 }
 
-mutation itsystem_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+mutation itsystem_refresh($listener: UUID, $owner: UUID, $uuids: [UUID!]!) {
   itsystem_refresh(
-    exchange: $exchange
+    listener: $listener
     owner: $owner
     filter: { uuids: $uuids }
   ) {
@@ -57,9 +53,9 @@ mutation itsystem_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
   }
 }
 
-mutation ituser_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+mutation ituser_refresh($listener: UUID, $owner: UUID, $uuids: [UUID!]!) {
   ituser_refresh(
-    exchange: $exchange
+    listener: $listener
     owner: $owner
     filter: { uuids: $uuids }
   ) {
@@ -67,21 +63,21 @@ mutation ituser_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
   }
 }
 
-mutation kle_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
-  kle_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+mutation kle_refresh($listener: UUID, $owner: UUID, $uuids: [UUID!]!) {
+  kle_refresh(listener: $listener, owner: $owner, filter: { uuids: $uuids }) {
     objects
   }
 }
 
-mutation leave_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
-  leave_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+mutation leave_refresh($listener: UUID, $owner: UUID, $uuids: [UUID!]!) {
+  leave_refresh(listener: $listener, owner: $owner, filter: { uuids: $uuids }) {
     objects
   }
 }
 
-mutation manager_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+mutation manager_refresh($listener: UUID, $owner: UUID, $uuids: [UUID!]!) {
   manager_refresh(
-    exchange: $exchange
+    listener: $listener
     owner: $owner
     filter: { uuids: $uuids }
   ) {
@@ -89,9 +85,9 @@ mutation manager_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
   }
 }
 
-mutation org_unit_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+mutation org_unit_refresh($listener: UUID, $owner: UUID, $uuids: [UUID!]!) {
   org_unit_refresh(
-    exchange: $exchange
+    listener: $listener
     owner: $owner
     filter: { uuids: $uuids }
   ) {
@@ -99,15 +95,15 @@ mutation org_unit_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
   }
 }
 
-mutation owner_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
-  owner_refresh(exchange: $exchange, owner: $owner, filter: { uuids: $uuids }) {
+mutation owner_refresh($listener: UUID, $owner: UUID, $uuids: [UUID!]!) {
+  owner_refresh(listener: $listener, owner: $owner, filter: { uuids: $uuids }) {
     objects
   }
 }
 
-mutation person_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
+mutation person_refresh($listener: UUID, $owner: UUID, $uuids: [UUID!]!) {
   employee_refresh(
-    exchange: $exchange
+    listener: $listener
     owner: $owner
     filter: { uuids: $uuids }
   ) {
@@ -115,13 +111,9 @@ mutation person_refresh($exchange: String, $owner: UUID, $uuids: [UUID!]!) {
   }
 }
 
-mutation related_unit_refresh(
-  $exchange: String
-  $owner: UUID
-  $uuids: [UUID!]!
-) {
+mutation related_unit_refresh($listener: UUID, $owner: UUID, $uuids: [UUID!]!) {
   related_unit_refresh(
-    exchange: $exchange
+    listener: $listener
     owner: $owner
     filter: { uuids: $uuids }
   ) {
@@ -129,13 +121,9 @@ mutation related_unit_refresh(
   }
 }
 
-mutation rolebinding_refresh(
-  $exchange: String
-  $owner: UUID
-  $uuids: [UUID!]!
-) {
+mutation rolebinding_refresh($listener: UUID, $owner: UUID, $uuids: [UUID!]!) {
   rolebinding_refresh(
-    exchange: $exchange
+    listener: $listener
     owner: $owner
     filter: { uuids: $uuids }
   ) {
@@ -145,11 +133,13 @@ mutation rolebinding_refresh(
 
 # Special refresh operations
 mutation org_unit_engagements_refresh(
-  $exchange: String!
+  $listener: UUID
+  $owner: UUID
   $org_unit_uuid: UUID!
 ) {
   engagement_refresh(
-    exchange: $exchange
+    listener: $listener
+    owner: $owner
     filter: {
       org_unit: { uuids: [$org_unit_uuid] }
       from_date: null

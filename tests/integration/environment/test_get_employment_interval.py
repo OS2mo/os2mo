@@ -187,10 +187,8 @@ async def test_get_employment_interval_mapping(
     primary: UUID,
 ) -> None:
     async def trigger_sync() -> None:
-        content = str(mo_person)
-        headers = {"Content-Type": "text/plain"}
         result = await test_client.post(
-            "/mo2ldap/person", content=content, headers=headers
+            "/mo2ldap/person", json={"subject": str(mo_person), "priority": 1}
         )
         assert result.status_code == 200
 

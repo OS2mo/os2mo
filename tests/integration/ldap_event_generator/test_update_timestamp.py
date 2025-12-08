@@ -53,7 +53,6 @@ async def test_update_timestamp_postgres(context: Context) -> None:
         sessionmaker=sessionmaker,
         settings=Settings(),
         graphql_client=AsyncMock(),
-        ldap_amqpsystem=AsyncMock(),
         ldap_connection=AsyncMock(),
     )
     event_generator.poll = AsyncMock(  # type: ignore[method-assign]
@@ -91,7 +90,6 @@ async def test_update_timestamp_no_changes(context: Context) -> None:
         sessionmaker=sessionmaker,
         settings=Settings(),
         graphql_client=AsyncMock(),
-        ldap_amqpsystem=AsyncMock(),
         ldap_connection=AsyncMock(),
     )
 

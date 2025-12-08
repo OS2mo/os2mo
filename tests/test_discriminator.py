@@ -6,13 +6,11 @@ from collections.abc import Iterable
 from typing import Any
 from unittest.mock import ANY
 from unittest.mock import AsyncMock
-from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
 from fastramqpi.ramqp.depends import Context
-from fastramqpi.ramqp.utils import RequeueMessage
 from ldap3 import BASE
 from ldap3 import MOCK_SYNC
 from ldap3 import SUBTREE
@@ -28,6 +26,7 @@ from mo_ldap_import_export.customer_specific_checks import ImportChecks
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.environments.main import construct_environment
+from mo_ldap_import_export.exceptions import RequeueException
 from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.ldap import apply_discriminator
 from mo_ldap_import_export.ldap import configure_ldap_connection
@@ -385,7 +384,7 @@ async def test_apply_discriminator_unknown_dn(
     monkeypatch.setenv("DISCRIMINATOR_FIELDS", '["sn"]')
     monkeypatch.setenv("DISCRIMINATOR_VALUES", '["__never_gonna_match__"]')
     settings = Settings()
-    with pytest.raises(RequeueMessage) as exc_info:
+    with pytest.raises(RequeueException) as exc_info:
         await apply_discriminator(
             settings,
             ldap_connection,
@@ -471,9 +470,7 @@ async def sync_tool_and_context(
     )
     context["user_context"]["dataloader"] = dataloader
 
-    template_environment = construct_environment(
-        settings, dataloader, MagicMock(), MagicMock()
-    )
+    template_environment = construct_environment(settings, dataloader)
     converter = LdapConverter(template_environment)
     context["user_context"]["converter"] = converter
 

@@ -19,7 +19,6 @@ from uuid import uuid4
 
 import pytest
 from fastapi.encoders import jsonable_encoder
-from fastramqpi.ramqp.utils import RequeueMessage
 from httpx import Response
 from ldap3.core.exceptions import LDAPInvalidValueError
 from more_itertools import one
@@ -54,6 +53,7 @@ from mo_ldap_import_export.environments.main import get_or_create_job_function_u
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import ReadOnlyException
+from mo_ldap_import_export.exceptions import RequeueException
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.ldapapi import LDAPAPI
 from mo_ldap_import_export.main import GRAPHQL_VERSION
@@ -117,8 +117,6 @@ def settings(minimal_mapping: dict[str, Any], monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("LDAP_OBJECT_CLASS", "inetOrgPerson")
     monkeypatch.setenv("LDAP_CPR_ATTRIBUTE", "employeeID")
     monkeypatch.setenv("LDAP_OUS_TO_WRITE_TO", '[""]')
-    monkeypatch.setenv("FASTRAMQPI__AMQP__URL", "amqp://guest:guest@msg_broker:5672/")
-    monkeypatch.setenv("INTERNAL_AMQP__URL", "amqp://guest:guest@msg_broker:5672/")
 
     return Settings()
 
@@ -583,7 +581,7 @@ async def test_make_mo_employee_dn_no_correlation(
     route2 = graphql_mock.query("read_itsystem_uuid")
     route2.result = {"itsystems": {"objects": []}}
 
-    with pytest.raises(RequeueMessage) as exc_info:
+    with pytest.raises(RequeueException) as exc_info:
         await dataloader.make_mo_employee_dn(employee_uuid)
     assert "Unable to generate DN, no correlation key available" in str(exc_info.value)
 

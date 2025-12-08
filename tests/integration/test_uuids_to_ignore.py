@@ -29,9 +29,7 @@ async def test_uuids_to_ignore(
     test_client: AsyncClient, url: str, ignores_mo: bool, ignores_ldap: bool
 ) -> None:
     with capture_logs() as cap_logs:
-        await test_client.post(
-            url, content=TEST_UUID, headers={"Content-Type": "text/plain"}
-        )
+        await test_client.post(url, json={"subject": str(TEST_UUID), "priority": 1})
 
     log_events = [x["event"] for x in cap_logs]
     if ignores_mo:

@@ -72,18 +72,6 @@ def test_ldapsearch_generate_help() -> None:
         assert expected in result.output
 
 
-def test_ldapsearch_generate_no_envvar() -> None:
-    result = runner.invoke(cli, ["ldapsearch", "generate"])
-    assert result.exit_code == 1
-    expected_output = [
-        "1 validation error for LDAPAMQPConnectionSettings",
-        "url",
-        "field required (type=value_error.missing)",
-    ]
-    for expected in expected_output:
-        assert expected in str(result.exception)
-
-
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
 def test_ldapsearch_generate_invalid_auth() -> None:
     result = runner.invoke(cli, ["ldapsearch", "generate"])

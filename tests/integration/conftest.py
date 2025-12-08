@@ -346,10 +346,8 @@ async def trigger_sync(
     test_client: AsyncClient,
 ) -> Callable[[EmployeeUUID], Awaitable[None]]:
     async def inner(uuid: EmployeeUUID) -> None:
-        content = str(uuid)
-        headers = {"Content-Type": "text/plain"}
         result = await test_client.post(
-            "/mo2ldap/person", content=content, headers=headers
+            "/mo2ldap/person", json={"subject": str(uuid), "priority": 1}
         )
         assert result.status_code == 200, result.text
 
@@ -361,10 +359,8 @@ async def trigger_ldap_sync(
     test_client: AsyncClient,
 ) -> Callable[[LDAPUUID], Awaitable[None]]:
     async def inner(uuid: LDAPUUID) -> None:
-        content = str(uuid)
-        headers = {"Content-Type": "text/plain"}
         result = await test_client.post(
-            "/ldap2mo/uuid", content=content, headers=headers
+            "/ldap2mo/uuid", json={"subject": str(uuid), "priority": 1}
         )
         assert result.status_code == 200, result.text
 
