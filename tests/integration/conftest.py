@@ -244,6 +244,17 @@ async def non_primary(graphql_client: GraphQLClient) -> UUID:
 
 
 @pytest.fixture
+async def explicitly_primary(graphql_client: GraphQLClient) -> UUID:
+    return one(
+        (
+            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
+                "primary_type", "explicitly-primary"
+            )
+        ).objects
+    ).uuid
+
+
+@pytest.fixture
 async def email_employee(graphql_client: GraphQLClient) -> UUID:
     return one(
         (
