@@ -419,22 +419,18 @@ from .read_engagement_manager import (
 from .read_engagement_uuid import ReadEngagementUuid
 from .read_engagement_uuid import ReadEngagementUuidEngagements
 from .read_engagement_uuid import ReadEngagementUuidEngagementsObjects
+from .read_engagement_uuids import ReadEngagementUuids
+from .read_engagement_uuids import ReadEngagementUuidsEngagements
+from .read_engagement_uuids import ReadEngagementUuidsEngagementsObjects
+from .read_engagement_uuids import ReadEngagementUuidsEngagementsObjectsValidities
+from .read_engagement_uuids import (
+    ReadEngagementUuidsEngagementsObjectsValiditiesValidity,
+)
 from .read_engagements import ReadEngagements
 from .read_engagements import ReadEngagementsEngagements
 from .read_engagements import ReadEngagementsEngagementsObjects
 from .read_engagements import ReadEngagementsEngagementsObjectsValidities
 from .read_engagements import ReadEngagementsEngagementsObjectsValiditiesValidity
-from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuid
-from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuidEngagements
-from .read_engagements_by_employee_uuid import (
-    ReadEngagementsByEmployeeUuidEngagementsObjects,
-)
-from .read_engagements_by_employee_uuid import (
-    ReadEngagementsByEmployeeUuidEngagementsObjectsCurrent,
-)
-from .read_engagements_by_employee_uuid import (
-    ReadEngagementsByEmployeeUuidEngagementsObjectsCurrentValidity,
-)
 from .read_engagements_is_primary import ReadEngagementsIsPrimary
 from .read_engagements_is_primary import ReadEngagementsIsPrimaryEngagements
 from .read_engagements_is_primary import ReadEngagementsIsPrimaryEngagementsObjects
@@ -850,12 +846,12 @@ __all__ = [
     "ReadEngagementUuid",
     "ReadEngagementUuidEngagements",
     "ReadEngagementUuidEngagementsObjects",
+    "ReadEngagementUuids",
+    "ReadEngagementUuidsEngagements",
+    "ReadEngagementUuidsEngagementsObjects",
+    "ReadEngagementUuidsEngagementsObjectsValidities",
+    "ReadEngagementUuidsEngagementsObjectsValiditiesValidity",
     "ReadEngagements",
-    "ReadEngagementsByEmployeeUuid",
-    "ReadEngagementsByEmployeeUuidEngagements",
-    "ReadEngagementsByEmployeeUuidEngagementsObjects",
-    "ReadEngagementsByEmployeeUuidEngagementsObjectsCurrent",
-    "ReadEngagementsByEmployeeUuidEngagementsObjectsCurrentValidity",
     "ReadEngagementsEngagements",
     "ReadEngagementsEngagementsObjects",
     "ReadEngagementsEngagementsObjectsValidities",

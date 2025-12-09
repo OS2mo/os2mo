@@ -189,10 +189,10 @@ from .read_engagement_manager import ReadEngagementManager
 from .read_engagement_manager import ReadEngagementManagerEngagements
 from .read_engagement_uuid import ReadEngagementUuid
 from .read_engagement_uuid import ReadEngagementUuidEngagements
+from .read_engagement_uuids import ReadEngagementUuids
+from .read_engagement_uuids import ReadEngagementUuidsEngagements
 from .read_engagements import ReadEngagements
 from .read_engagements import ReadEngagementsEngagements
-from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuid
-from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuidEngagements
 from .read_engagements_is_primary import ReadEngagementsIsPrimary
 from .read_engagements_is_primary import ReadEngagementsIsPrimaryEngagements
 from .read_facet_uuid import ReadFacetUuid
@@ -743,6 +743,7 @@ class GraphQLClient(AsyncBaseClient):
                     extension_8
                     extension_9
                     extension_10
+                    fraction
                     leave_uuid
                     primary_uuid
                     job_function_uuid
@@ -768,16 +769,16 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ReadEngagements.parse_obj(data).engagements
 
-    async def read_engagements_by_employee_uuid(
-        self, employee_uuid: UUID
-    ) -> ReadEngagementsByEmployeeUuidEngagements:
+    async def read_engagement_uuids(
+        self, engagement_filter: EngagementFilter
+    ) -> ReadEngagementUuidsEngagements:
         query = gql(
             """
-            query read_engagements_by_employee_uuid($employee_uuid: UUID!) {
-              engagements(filter: {employee: {uuids: [$employee_uuid]}}) {
+            query read_engagement_uuids($engagement_filter: EngagementFilter!) {
+              engagements(filter: $engagement_filter) {
                 objects {
-                  current {
-                    uuid
+                  uuid
+                  validities {
                     validity {
                       from
                       to
@@ -788,10 +789,10 @@ class GraphQLClient(AsyncBaseClient):
             }
             """
         )
-        variables: dict[str, object] = {"employee_uuid": employee_uuid}
+        variables: dict[str, object] = {"engagement_filter": engagement_filter}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
-        return ReadEngagementsByEmployeeUuid.parse_obj(data).engagements
+        return ReadEngagementUuids.parse_obj(data).engagements
 
     async def set_job_title(
         self,

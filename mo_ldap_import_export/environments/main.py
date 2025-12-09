@@ -329,6 +329,86 @@ async def load_primary_engagement(
     return fetched_engagement
 
 
+async def load_primary_engagement_recalculated(
+    moapi: MOAPI,
+    employee_uuid: UUID,
+    return_terminated: bool = False,
+) -> Engagement | None:
+    # NOTE: This function is a reimplementation of the calculate primary integration
+    engagement_filter = EngagementFilter(
+        employee=EmployeeFilter(uuids=[employee_uuid], from_date=None, to_date=None),
+        from_date=None,
+        to_date=None,
+    )
+    result = await moapi.graphql_client.read_engagement_uuids(engagement_filter)
+
+    engagement_uuids = list({engagement.uuid for engagement in result.objects})
+    if not engagement_uuids:
+        logger.info(
+            "Could not find any engagements for employee", employee_uuid=employee_uuid
+        )
+        return None
+
+    engagements_maybe_missing = await asyncio.gather(
+        *[
+            moapi.load_mo_engagement(uuid, start=None, end=None)
+            for uuid in engagement_uuids
+        ]
+    )
+    unable_to_load_engagements = {
+        uuid
+        for uuid, engagement in zip(
+            engagement_uuids, engagements_maybe_missing, strict=True
+        )
+        if engagement is None
+    }
+    if unable_to_load_engagements:  # pragma: no cover
+        logger.error(
+            "Unable to load mo engagement(s)", uuids=unable_to_load_engagements
+        )
+        raise RequeueMessage("Unable to load mo engagement(s)")
+    assert None not in engagements_maybe_missing
+    engagements = cast(list[Engagement], engagements_maybe_missing)
+
+    if not return_terminated:
+        engagements = [
+            e for e in engagements if not get_delete_flag(jsonable_encoder(e))
+        ]
+
+    if not engagements:
+        logger.info("No active engagements found", employee_uuid=employee_uuid)
+        return None
+
+    fixed_primary_uuid = UUID(
+        await get_primary_type_uuid(moapi.graphql_client, "explicitly-primary")
+    )
+    fixed_primary_engagements = [
+        e for e in engagements if e.primary == fixed_primary_uuid
+    ]
+    if fixed_primary_engagements:
+        raise NotImplementedError("Explicitly primary engagements are not handled")
+
+    def user_key_to_id(user_key: str) -> int:
+        # Engagements with non-integer user_keys are only primary if no other engagements are present
+        try:
+            return int(user_key)
+        except ValueError:
+            return 100000
+
+    # The primary engagement is the engagement with the highest occupation rate.
+    # - The occupation rate is found as 'fraction' on the engagement.
+    #
+    # If two engagements have the same occupation rate, the tie is broken by
+    # picking the one with the lowest user-key integer.
+    primary_engagement = max(
+        engagements,
+        # Sort first by fraction, then reversely by user_key integer
+        # Engagements with non-integer user_keys are only primary if no other engagements are present
+        key=lambda eng: (eng.fraction or 0, -user_key_to_id(eng.user_key)),
+    )
+    return primary_engagement
+
+
 async def load_engagement(moapi: MOAPI, uuid: UUID) -> Engagement | None:
     fetched_engagement = await moapi.load_mo_engagement(uuid, start=None, end=None)
     if fetched_engagement is None:  # pragma: no cover
@@ -1045,6 +1125,9 @@ def construct_globals_dict(
         # TODO: Rename these functions once the old template system is gone
         "load_mo_employee": moapi.load_mo_employee,
         "load_mo_primary_engagement": partial(load_primary_engagement, moapi),
+        "load_mo_primary_engagement_recalculated": partial(
+            load_primary_engagement_recalculated, moapi
+        ),
         "load_mo_engagement": partial(load_engagement, moapi),
         "load_mo_org_unit": partial(load_org_unit, moapi),
         "load_mo_it_user": partial(load_it_user, moapi),

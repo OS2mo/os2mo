@@ -528,6 +528,7 @@ class MOAPI:
             extension_9=entry["extension_9"],
             extension_10=entry["extension_10"],
             validity=entry["validity"],
+            fraction=entry["fraction"],
         )
 
     async def load_mo_employee_it_users(

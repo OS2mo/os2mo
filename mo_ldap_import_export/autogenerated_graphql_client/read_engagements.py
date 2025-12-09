@@ -30,6 +30,7 @@ class ReadEngagementsEngagementsObjectsValidities(BaseModel):
     extension_8: str | None
     extension_9: str | None
     extension_10: str | None
+    fraction: int | None
     leave_uuid: UUID | None
     primary_uuid: UUID | None
     job_function_uuid: UUID
