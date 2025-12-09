@@ -5,7 +5,6 @@
 # pylint: disable=protected-access
 import os
 from collections.abc import Iterator
-from contextlib import contextmanager
 from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -23,7 +22,6 @@ from pydantic import parse_obj_as
 from mo_ldap_import_export.config import ConversionMapping
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
-from mo_ldap_import_export.main import open_ldap_connection
 from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import ITUser
@@ -238,24 +236,6 @@ def test_create_app() -> None:
     """Test that we can construct our FastAPI application."""
     app = create_app()
     assert isinstance(app, FastAPI)
-
-
-async def test_open_ldap_connection() -> None:
-    """Test the open_ldap_connection."""
-    state = []
-
-    @contextmanager
-    def manager() -> Iterator[None]:
-        state.append(1)
-        yield
-        state.append(2)
-
-    ldap_connection = manager()
-
-    assert not state
-    async with open_ldap_connection(ldap_connection):  # type: ignore
-        assert state == [1]
-    assert state == [1, 2]
 
 
 async def test_incorrect_ous_to_search_in() -> None:

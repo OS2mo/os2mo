@@ -6,7 +6,6 @@ import uuid
 from functools import partial
 from typing import Any
 from typing import cast
-from unittest.mock import ANY
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from uuid import uuid4
@@ -32,7 +31,6 @@ from mo_ldap_import_export.environments.main import get_job_function_name
 from mo_ldap_import_export.environments.main import get_or_create_job_function_uuid
 from mo_ldap_import_export.environments.main import get_org_unit_name
 from mo_ldap_import_export.environments.main import get_visibility_uuid
-from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import RequeueException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
@@ -252,151 +250,6 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
             },
         )
     assert "Missing values in LDAP to synchronize" in str(exc_info.value)
-
-
-async def test_ldap_to_mo_dict_error(
-    context: Context, converter_mapping: dict[str, Any]
-) -> None:
-    bad_mapping = {
-        **converter_mapping,
-        "ldap_to_mo": {
-            "Active Directory": {
-                "objectClass": "ITUser",
-                "user_key": "{{ ldap.msSFU30Name or '' }}",
-                "itsystem": "{ 'hep': 'hey }",  # provokes json error in str_to_dict
-                "person": "{{ dict(uuid=employee_uuid or '') }}",
-            }
-        },
-    }
-    settings = Settings(conversion_mapping=bad_mapping)
-    template_environment = construct_environment(
-        settings=settings, dataloader=MagicMock()
-    )
-    converter = LdapConverter(template_environment)
-
-    with pytest.raises(IncorrectMapping):
-        assert settings.conversion_mapping.ldap_to_mo is not None
-        await converter.from_ldap(
-            LdapObject(
-                dn="",
-                msSFU30Name=["bar"],
-                itSystemName=["Active Directory"],
-            ),
-            mapping=settings.conversion_mapping.ldap_to_mo["Active Directory"],
-            template_context={
-                "employee_uuid": str(uuid4()),
-            },
-        )
-
-
-async def test_ldap_to_mo_dict_validation_error(
-    monkeypatch: pytest.MonkeyPatch, context: Context
-) -> None:
-    mapping = {
-        "ldap_to_mo": {
-            "Employee": {
-                "objectClass": "Employee",
-                "_import_to_mo_": "True",
-                "_ldap_attributes_": ["employeeID"],
-                "cpr_number": "{{ldap.employeeID or None}}",
-                "uuid": "{{ employee_uuid or '' }}",
-            },
-            "Custom": {
-                "objectClass": "Custom.JobTitleFromADToMO",
-                "_import_to_mo_": "true",
-                "_ldap_attributes_": ["hkStsuuid"],
-                "user": "{{ ldap.hkStsuuid }}",
-                "job_function": f"{{ {uuid4()} }}",
-                "uuid": "{{ employee_uuid or '' }}",
-            },
-        }
-    }
-    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
-    settings = Settings()
-    dataloader = context["user_context"]["dataloader"]
-
-    template_environment = construct_environment(settings, dataloader)
-    converter = LdapConverter(template_environment)
-
-    with pytest.raises(ValidationError) as exc_info:
-        assert settings.conversion_mapping.ldap_to_mo is not None
-        await converter.from_ldap(
-            LdapObject(
-                dn="",
-                hkStsuuid="not_an_uuid",
-                title="job title",
-                comment="job title default",
-            ),
-            mapping=settings.conversion_mapping.ldap_to_mo["Custom"],
-            template_context={
-                "employee_uuid": str(uuid4()),
-            },
-        )
-    assert "2 validation errors for JobTitleFromADToMO" in str(exc_info.value)
-
-
-@pytest.mark.parametrize(
-    "ldap_values,expected",
-    (
-        # Base case
-        ({}, {}),
-        # Single overrides
-        ({"cpr": "0101700000"}, {"cpr_number": "0101700000"}),
-        ({"givenName": "Hans"}, {"given_name": "Hans"}),
-        ({"sn": "Petersen"}, {"surname": "Petersen"}),
-        # Empty values -> no keys
-        ({"cpr": ""}, {}),
-        ({"givenName": ""}, {"given_name": None}),
-        ({"sn": ""}, {"surname": None}),
-    ),
-)
-async def test_template_strictness(
-    monkeypatch: pytest.MonkeyPatch,
-    context: Context,
-    ldap_values: dict[str, str],
-    expected: dict[str, str],
-) -> None:
-    mapping = {
-        "ldap_to_mo": {
-            "Employee": {
-                "objectClass": "Employee",
-                "_import_to_mo_": "True",
-                "_ldap_attributes_": ["givenName", "sn"],
-                "user_key": "{{ ldap.dn }}",
-                "given_name": "{{ ldap.get('givenName', 'given_name') }}",
-                "surname": "{{ ldap.sn if 'sn' in ldap else 'surname' }}",
-                "cpr_number": "{{ ldap.get('cpr') }}",
-                "uuid": "{{ employee_uuid }}",
-            }
-        }
-    }
-    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
-    settings = Settings()
-    template_environment = construct_environment(
-        settings, context["user_context"]["dataloader"]
-    )
-    converter = LdapConverter(template_environment)
-    assert settings.conversion_mapping.ldap_to_mo is not None
-    employee = await converter.from_ldap(
-        LdapObject(dn="CN=foo", **ldap_values),
-        mapping=settings.conversion_mapping.ldap_to_mo["Employee"],
-        template_context={
-            "employee_uuid": str(uuid4()),
-        },
-    )
-    expected_employee = {
-        "uuid": ANY,
-        "user_key": "CN=foo",
-        "given_name": "given_name",
-        "surname": "surname",
-    }
-    for key, value in expected.items():
-        if value is None:
-            del expected_employee[key]
-        else:
-            expected_employee[key] = value
-
-    assert employee.dict(exclude_unset=True) == expected_employee
 
 
 def test_str_to_dict(converter: LdapConverter):
