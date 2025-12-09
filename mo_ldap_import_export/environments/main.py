@@ -390,7 +390,10 @@ async def load_primary_engagement_recalculated(
         e for e in engagements if e.primary == fixed_primary_uuid
     ]
     if fixed_primary_engagements:
-        raise NotImplementedError("Explicitly primary engagements are not handled")
+        return one(
+            fixed_primary_engagements,
+            too_long=ValueError("Multiple explicitly primary engagements found"),
+        )
 
     def user_key_to_id(user_key: str) -> int:
         # Engagements with non-integer user_keys are only primary if no other engagements are present
