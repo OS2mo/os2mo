@@ -211,6 +211,17 @@ async def ansat(graphql_client: GraphQLClient) -> UUID:
 
 
 @pytest.fixture
+async def praktikant(graphql_client: GraphQLClient) -> UUID:
+    return one(
+        (
+            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
+                "engagement_type", "Praktikant"
+            )
+        ).objects
+    ).uuid
+
+
+@pytest.fixture
 async def jurist(graphql_client: GraphQLClient) -> UUID:
     return one(
         (

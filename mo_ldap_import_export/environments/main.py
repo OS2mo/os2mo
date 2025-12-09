@@ -333,6 +333,7 @@ async def load_primary_engagement_recalculated(
     moapi: MOAPI,
     employee_uuid: UUID,
     return_terminated: bool = False,
+    exclude_engagement_types: set[UUID] | None = None,
 ) -> Engagement | None:
     # NOTE: This function is a reimplementation of the calculate primary integration
     engagement_filter = EngagementFilter(
@@ -369,6 +370,11 @@ async def load_primary_engagement_recalculated(
         raise RequeueMessage("Unable to load mo engagement(s)")
     assert None not in engagements_maybe_missing
     engagements = cast(list[Engagement], engagements_maybe_missing)
+
+    if exclude_engagement_types:
+        engagements = [
+            e for e in engagements if e.engagement_type not in exclude_engagement_types
+        ]
 
     if not return_terminated:
         engagements = [
