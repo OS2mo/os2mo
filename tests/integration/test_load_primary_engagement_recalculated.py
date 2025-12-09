@@ -298,9 +298,58 @@ async def test_load_primary_engagement_explicitly_primary(
     )
 
     dataloader = context["user_context"]["dataloader"]
-    with pytest.raises(NotImplementedError) as exc_info:
+    result = await load_primary_engagement_recalculated(dataloader.moapi, mo_person)
+    assert result is not None
+    assert result.primary == explicitly_primary
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+    }
+)
+@pytest.mark.usefixtures("test_client")
+async def test_load_primary_engagement_multiple_explicitly_primary(
+    graphql_client: GraphQLClient,
+    context: Context,
+    mo_person: UUID,
+    mo_org_unit: UUID,
+    ansat: UUID,
+    jurist: UUID,
+    explicitly_primary: UUID,
+) -> None:
+    """Test that multiple explicitly primary engagements raises a ValueError."""
+    await graphql_client.engagement_create(
+        input=EngagementCreateInput(
+            user_key="10",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=ansat,
+            job_function=jurist,
+            primary=explicitly_primary,
+            fraction=100,
+            validity={"from": "2001-02-03T04:05:06Z"},
+        )
+    )
+    await graphql_client.engagement_create(
+        input=EngagementCreateInput(
+            user_key="20",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=ansat,
+            job_function=jurist,
+            primary=explicitly_primary,
+            fraction=100,
+            validity={"from": "2001-02-03T04:05:06Z"},
+        )
+    )
+
+    dataloader = context["user_context"]["dataloader"]
+    with pytest.raises(ValueError) as exc_info:
         await load_primary_engagement_recalculated(dataloader.moapi, mo_person)
-    assert str(exc_info.value) == "Explicitly primary engagements are not handled"
+    assert str(exc_info.value) == "Multiple explicitly primary engagements found"
 
 
 @pytest.mark.integration_test
