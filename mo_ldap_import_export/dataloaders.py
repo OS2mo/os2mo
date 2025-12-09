@@ -8,13 +8,13 @@ from typing import cast
 from uuid import UUID
 
 import structlog
-from fastramqpi.ramqp.utils import RequeueMessage
 from more_itertools import duplicates_everseen
 from more_itertools import one
 
 from .config import Settings
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
+from .exceptions import RequeueException
 from .ldap import apply_discriminator
 from .ldap import filter_dns
 from .ldap import is_uuid
@@ -237,7 +237,7 @@ class DataLoader:
                     "Refused to generate a DN for employee (no correlation key)",
                     employee_uuid=uuid,
                 )
-                raise RequeueMessage(
+                raise RequeueException(
                     "Unable to generate DN, no correlation key available"
                 )
 

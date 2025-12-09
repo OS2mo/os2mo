@@ -16,7 +16,6 @@ from uuid import UUID
 import ldap3.core.exceptions
 import structlog
 from fastramqpi.context import Context
-from fastramqpi.ramqp.utils import RequeueMessage
 from jinja2 import Template
 from ldap3 import BASE
 from ldap3 import NO_ATTRIBUTES
@@ -48,6 +47,7 @@ from .config import Settings
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import ReadOnlyException
+from .exceptions import RequeueException
 from .ldap_classes import LdapObject
 from .moapi import MOAPI
 from .types import DN
@@ -359,7 +359,7 @@ async def fetch_field_mapping(
         # problem in MO itself, and thus we will be retrying for a long time, likely
         # raising an alarm due to messages not being processed, and thus ensuring that
         # someone will look into the issue.
-        raise RequeueMessage("Unable to lookup DN(s)") from exc
+        raise RequeueException("Unable to lookup DN(s)") from exc
 
     def ldapobject2discriminator(
         ldap_object: LdapObject, discriminator_field: str
@@ -469,7 +469,7 @@ async def apply_discriminator(
         dns: The set of DNs to evaluate.
 
     Raises:
-        RequeueMessage: If the provided DNs could not be read from LDAP.
+        RequeueException: If the provided DNs could not be read from LDAP.
         ValueError: If too many or too few LDAP accounts are found.
 
     Returns:

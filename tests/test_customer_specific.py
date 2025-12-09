@@ -28,7 +28,6 @@ def context(
     settings_mock: MagicMock,
 ) -> Context:
     context = Context(
-        amqpsystem=AsyncMock(),
         user_context={
             "dataloader": dataloader,
             "converter": converter,

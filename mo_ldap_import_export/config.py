@@ -3,7 +3,6 @@
 # pylint: disable=too-few-public-methods
 """Settings handling."""
 
-from contextlib import suppress
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -13,7 +12,6 @@ from uuid import UUID
 import structlog
 import yaml
 from fastramqpi.config import Settings as FastRAMQPISettings
-from fastramqpi.ramqp.config import AMQPConnectionSettings
 from fastramqpi.ramqp.mo import MORoutingKey
 from jinja2 import Environment
 from jinja2 import TemplateSyntaxError
@@ -98,28 +96,6 @@ class ServerList(ConstrainedList):
 
     item_type = ServerConfig
     __args__ = (ServerConfig,)
-
-
-class LDAPAMQPConnectionSettings(AMQPConnectionSettings):
-    exchange = "ldap_ie_ldap"
-    queue_prefix = "ldap_ie_ldap"
-    prefetch_count = 10  # MO cannot handle too many requests
-
-
-class ExternalAMQPConnectionSettings(AMQPConnectionSettings):
-    queue_prefix = "ldap_ie"
-    upstream_exchange = "os2mo"
-    prefetch_count: int = 10  # MO cannot handle too many requests
-
-    @root_validator
-    def set_exchange_by_queue_prefix(cls, values: dict[str, Any]) -> dict[str, Any]:
-        """Ensure that exchange is set based on queue_prefix."""
-        values["exchange"] = "os2mo_" + values["queue_prefix"]
-        return values
-
-
-class FastFAMQPIApplicationSettings(FastRAMQPISettings):
-    amqp: ExternalAMQPConnectionSettings
 
 
 class MappingBaseModel(BaseModel):
@@ -383,25 +359,12 @@ class Settings(BaseSettings):
         description="Conversion mapping between LDAP and OS2mo",
     )
 
-    ldap_amqp: LDAPAMQPConnectionSettings = Field(
-        default_factory=LDAPAMQPConnectionSettings,  # type: ignore
-        description="LDAP amqp settings",
+    event_namespace: str = Field(
+        default="ldap",
+        description="Unique GraphQL event namespace in cases where the integration is deployed multiple times for a single OS2mo.",
     )
 
-    fastramqpi: FastFAMQPIApplicationSettings
-
-    @root_validator(pre=True)
-    def share_amqp_url(cls, values: dict[str, Any]) -> dict[str, Any]:
-        """Use FastRAMQPI__AMQP__URL as a default for AMQP URLs"""
-        # If a key-error occurs, do nothing and let the validation explain it
-        with suppress(KeyError):
-            fastramqpi_amqp_url = values["fastramqpi"]["amqp"]["url"]
-
-            values["ldap_amqp"] = values.get("ldap_amqp", {})
-            values["ldap_amqp"]["url"] = values["ldap_amqp"].get(
-                "url", fastramqpi_amqp_url
-            )
-        return values
+    fastramqpi: FastRAMQPISettings = Field(default_factory=FastRAMQPISettings)
 
     listen_to_changes_in_mo: bool = Field(
         True, description="Whether to write to AD, when changes in MO are registered"

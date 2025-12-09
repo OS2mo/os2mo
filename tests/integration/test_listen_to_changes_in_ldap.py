@@ -11,7 +11,6 @@ from fastramqpi.pytest_util import retrying
 from sqlalchemy import select
 
 from mo_ldap_import_export.depends import GraphQLClient
-from mo_ldap_import_export.ldap_emit import publish_uuids
 from mo_ldap_import_export.ldap_event_generator import MICROSOFT_EPOCH
 from mo_ldap_import_export.ldap_event_generator import LastRun
 from mo_ldap_import_export.ldapapi import LDAPAPI
@@ -101,45 +100,8 @@ async def test_event_generator_runs_with_listen(
     }
 )
 @pytest.mark.usefixtures("mo_org_unit")
-async def test_event_handler_does_not_run_without_listen(
-    context: Context,
-    dn2uuid: DN2UUID,
-    get_num_queued_messages: Callable[[], Awaitable[int]],
-    get_num_published_messages: Callable[[], Awaitable[int]],
+async def test_no_event_handlers_if_no_listen(
     graphql_client: GraphQLClient,
-    ldap_api: LDAPAPI,
-    ldap_org_unit: list[str],
 ) -> None:
-    ldap_amqpsystem = context["user_context"]["ldap_amqpsystem"]
-
-    # Add a person to LDAP and fetch its UUID
-    person_dn = combine_dn_strings(["uid=abk"] + ldap_org_unit)
-    await ldap_api.ldap_connection.ldap_add(
-        dn=person_dn,
-        object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
-        attributes={
-            "objectClass": ["top", "person", "organizationalPerson", "inetOrgPerson"],
-            "ou": "os2mo",
-            "cn": "Aage Bach Klarskov",
-            "sn": "Bach Klarskov",
-            "givenName": "create",
-        },
-    )
-    person_uuid = await dn2uuid(person_dn)
-
-    # Prove that no persons exists in MO
-    result = await graphql_client.read_person_uuid()
-    assert len(result.objects) == 0
-
-    # Publish a message to the LDAP AMQP queue
-    assert await get_num_published_messages() == 0
-    assert await get_num_queued_messages() == 0
-    await publish_uuids(graphql_client, ldap_amqpsystem, [person_uuid])
-
-    # Prove that no messages have been published, and none have been consumed
-    assert await get_num_published_messages() == 0
-    assert await get_num_queued_messages() == 0
-
-    # Prove that no person was created
-    result = await graphql_client.read_person_uuid()
-    assert len(result.objects) == 0
+    listeners = await graphql_client.read_event_listeners()
+    assert listeners.objects == []

@@ -3,9 +3,9 @@
 from typing import Any
 
 import pytest
-from fastramqpi.ramqp.utils import RequeueMessage
 
 from mo_ldap_import_export.environments.main import requeue_if_none
+from mo_ldap_import_export.exceptions import RequeueException
 
 
 @pytest.mark.parametrize(
@@ -28,6 +28,6 @@ async def test_identity(x: Any) -> None:
 
 
 async def test_none_exception() -> None:
-    with pytest.raises(RequeueMessage) as exc_info:
+    with pytest.raises(RequeueException) as exc_info:
         requeue_if_none(None)
     assert "Requeueing: Object is None" in str(exc_info.value)

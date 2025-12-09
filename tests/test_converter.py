@@ -13,7 +13,6 @@ from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
-from fastramqpi.ramqp.utils import RequeueMessage
 from mergedeep import Strategy  # type: ignore
 from mergedeep import merge
 from pydantic import ValidationError
@@ -35,6 +34,7 @@ from mo_ldap_import_export.environments.main import get_org_unit_name
 from mo_ldap_import_export.environments.main import get_visibility_uuid
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
+from mo_ldap_import_export.exceptions import RequeueException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.main import GRAPHQL_VERSION
@@ -181,8 +181,6 @@ async def converter(context: Context) -> LdapConverter:
     template_environment = construct_environment(
         context["user_context"]["settings"],
         context["user_context"]["dataloader"],
-        MagicMock(),
-        MagicMock(),
     )
     converter = LdapConverter(template_environment)
     return converter
@@ -241,7 +239,7 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
     # Note: Date is always at midnight in MO
     assert start == datetime.datetime(2019, 1, 1, 0, 0, 0)
 
-    with pytest.raises(RequeueMessage) as exc_info:
+    with pytest.raises(RequeueException) as exc_info:
         assert settings.conversion_mapping.ldap_to_mo is not None
         await converter.from_ldap(
             LdapObject(
@@ -272,10 +270,7 @@ async def test_ldap_to_mo_dict_error(
     }
     settings = Settings(conversion_mapping=bad_mapping)
     template_environment = construct_environment(
-        settings=settings,
-        dataloader=MagicMock(),
-        mo_amqpsystem=MagicMock(),
-        ldap_amqpsystem=MagicMock(),
+        settings=settings, dataloader=MagicMock()
     )
     converter = LdapConverter(template_environment)
 
@@ -320,9 +315,7 @@ async def test_ldap_to_mo_dict_validation_error(
     settings = Settings()
     dataloader = context["user_context"]["dataloader"]
 
-    template_environment = construct_environment(
-        settings, dataloader, MagicMock(), MagicMock()
-    )
+    template_environment = construct_environment(settings, dataloader)
     converter = LdapConverter(template_environment)
 
     with pytest.raises(ValidationError) as exc_info:
@@ -380,7 +373,7 @@ async def test_template_strictness(
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
     settings = Settings()
     template_environment = construct_environment(
-        settings, context["user_context"]["dataloader"], MagicMock(), MagicMock()
+        settings, context["user_context"]["dataloader"]
     )
     converter = LdapConverter(template_environment)
     assert settings.conversion_mapping.ldap_to_mo is not None
@@ -730,9 +723,7 @@ async def test_ldap_to_mo_termination(
     dataloader: AsyncMock,
 ) -> None:
     settings = Settings()
-    template_environment = construct_environment(
-        settings, dataloader, MagicMock(), MagicMock()
-    )
+    template_environment = construct_environment(settings, dataloader)
 
     converter = LdapConverter(template_environment)
 
@@ -762,9 +753,7 @@ async def test_ldap_to_mo_termination(
     converter_mapping["ldap_to_mo"]["Email"]["uuid"] = str(address_uuid)
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(converter_mapping))
     settings = Settings()
-    template_environment = construct_environment(
-        settings, dataloader, MagicMock(), MagicMock()
-    )
+    template_environment = construct_environment(settings, dataloader)
     converter = LdapConverter(template_environment)
 
     assert settings.conversion_mapping.ldap_to_mo is not None

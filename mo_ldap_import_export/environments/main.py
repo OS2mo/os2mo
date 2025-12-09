@@ -19,9 +19,6 @@ from uuid import uuid4
 
 import structlog
 from fastapi.encoders import jsonable_encoder
-from fastramqpi.ramqp import AMQPSystem
-from fastramqpi.ramqp.mo import MOAMQPSystem
-from fastramqpi.ramqp.utils import RequeueMessage
 from jinja2 import Environment
 from jinja2 import StrictUndefined
 from jinja2 import TemplateRuntimeError
@@ -60,6 +57,7 @@ from ..config import Settings
 from ..dataloaders import DataLoader
 from ..dataloaders import NoGoodLDAPAccountFound
 from ..exceptions import NoObjectsReturnedException
+from ..exceptions import RequeueException
 from ..exceptions import SkipObject
 from ..exceptions import UUIDNotFoundException
 from ..ldap import get_ldap_object
@@ -317,7 +315,7 @@ async def load_primary_engagement(
     )
     if fetched_engagement is None:  # pragma: no cover
         logger.error("Unable to load mo engagement", uuid=primary_engagement_uuid)
-        raise RequeueMessage("Unable to load mo engagement")
+        raise RequeueException("Unable to load mo engagement")
     # If allowed to return terminated, there is no reason to check for it
     # we simply return whatever we found and use that
     if return_terminated:
@@ -367,7 +365,7 @@ async def load_primary_engagement_recalculated(
         logger.error(
             "Unable to load mo engagement(s)", uuids=unable_to_load_engagements
         )
-        raise RequeueMessage("Unable to load mo engagement(s)")
+        raise RequeueException("Unable to load mo engagement(s)")
     assert None not in engagements_maybe_missing
     engagements = cast(list[Engagement], engagements_maybe_missing)
 
@@ -419,7 +417,7 @@ async def load_engagement(moapi: MOAPI, uuid: UUID) -> Engagement | None:
     fetched_engagement = await moapi.load_mo_engagement(uuid, start=None, end=None)
     if fetched_engagement is None:  # pragma: no cover
         logger.error("Unable to load mo engagement", uuid=uuid)
-        raise RequeueMessage("Unable to load mo engagement")
+        raise RequeueException("Unable to load mo engagement")
     delete = get_delete_flag(jsonable_encoder(fetched_engagement))
     if delete:
         logger.debug("Engagement is terminated", uuid=uuid)
@@ -431,7 +429,7 @@ async def load_org_unit(moapi: MOAPI, uuid: UUID) -> OrganisationUnit | None:
     fetched_org_unit = await moapi.load_mo_org_unit(uuid, current_objects_only=False)
     if fetched_org_unit is None:  # pragma: no cover
         logger.error("Unable to load mo org_unit", uuid=uuid)
-        raise RequeueMessage("Unable to load mo org_unit")
+        raise RequeueException("Unable to load mo org_unit")
     delete = get_delete_flag(jsonable_encoder(fetched_org_unit))
     if delete:
         logger.debug("Org unit is terminated", uuid=uuid)
@@ -454,13 +452,13 @@ async def load_it_user(
     validity = extract_current_or_latest_validity(validities)
     if validity is None:  # pragma: no cover
         logger.error("No active validities on it-user", filter=ituser_filter)
-        raise RequeueMessage("No active validities on it-user")
+        raise RequeueException("No active validities on it-user")
     fetched_ituser = await moapi.load_mo_it_user(
         validity.uuid, current_objects_only=False
     )
     if fetched_ituser is None:  # pragma: no cover
         logger.error("Unable to load it-user", uuid=validity.uuid)
-        raise RequeueMessage("Unable to load it-user")
+        raise RequeueException("Unable to load it-user")
     # If allowed to return terminated, there is no reason to check for it
     # we simply return whatever we found and use that
     if return_terminated:
@@ -527,13 +525,13 @@ async def load_address(
             employee_uuid=employee_uuid,
             address_type_user_key=address_type_user_key,
         )
-        raise RequeueMessage("No active validities on employee address")
+        raise RequeueException("No active validities on employee address")
     fetched_address = await moapi.load_mo_address(
         validity.uuid, current_objects_only=False
     )
     if fetched_address is None:  # pragma: no cover
         logger.error("Unable to load employee address", uuid=validity.uuid)
-        raise RequeueMessage("Unable to load employee address")
+        raise RequeueException("Unable to load employee address")
     delete = get_delete_flag(jsonable_encoder(fetched_address))
     if delete:
         logger.debug("Employee address is terminated", uuid=validity.uuid)
@@ -586,7 +584,7 @@ async def load_org_unit_address(
     )
     if fetched_address is None:  # pragma: no cover
         logger.error("Unable to load org-unit address", uuid=validity.uuid)
-        raise RequeueMessage("Unable to load org-unit address")
+        raise RequeueException("Unable to load org-unit address")
     delete = get_delete_flag(jsonable_encoder(fetched_address))
     if delete:
         logger.debug("Org-unit address is terminated", uuid=validity.uuid)
@@ -871,7 +869,7 @@ def skip_if_exception(func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[
 
 def requeue_if_none(obj: T | None) -> T:
     if obj is None:
-        raise RequeueMessage("Requeueing: Object is None")
+        raise RequeueException("Requeueing: Object is None")
     return obj
 
 
@@ -982,7 +980,7 @@ class Refresher(Protocol):
     def __call__(
         self,
         uuids: list[UUID],
-        exchange: str | None | UnsetType = UNSET,
+        listener: UUID | None | UnsetType = UNSET,
         owner: UUID | None | UnsetType = UNSET,
     ) -> Awaitable[Any]: ...
 
@@ -1010,7 +1008,6 @@ def collection2refresher(graphql_client: GraphQLClient, collection: str) -> Refr
 
 async def refresh(
     graphql_client: GraphQLClient,
-    amqpsystem: MOAMQPSystem,
     collection: str,
     uuids: set[UUID],
 ) -> None:
@@ -1021,31 +1018,24 @@ async def refresh(
     uuids = parse_obj_as(set[UUID], uuids)
 
     logger.info("refresh called", collection=collection, uuids=uuids)
-    exchange = amqpsystem.exchange_name
 
     result = await graphql_client.who_am_i()
     owner = result.actor.uuid
 
     refresher = collection2refresher(graphql_client, collection)
-    await asyncio.gather(
-        # Refresh on the AMQP system
-        refresher(uuids=list(uuids), exchange=exchange),
-        # Refresh on GraphQL events
-        refresher(uuids=list(uuids), owner=owner),
-    )
+    # Refresh on GraphQL events
+    await refresher(uuids=list(uuids), owner=owner)
 
 
 async def refresh_ldap(
-    graphql_client: GraphQLClient,
-    amqpsystem: AMQPSystem,
-    uuids: set[LDAPUUID],
+    settings: Settings, graphql_client: GraphQLClient, uuids: set[LDAPUUID]
 ) -> None:
-    """Send events for the provided UUIDs on both AMQP and GraphQL Events."""
+    """Send GraphQL events for the provided UUIDs."""
     # This is a noop according to the typing, but it's actually required
     # because the input is from jinja, and thus not type-checkable.
     uuids = parse_obj_as(set[LDAPUUID], uuids)
     logger.info("refresh_ldap called", uuids=uuids)
-    await publish_uuids(graphql_client, amqpsystem, list(uuids))
+    await publish_uuids(settings, graphql_client, list(uuids))
 
 
 class DARAddress(BaseModel):
@@ -1100,10 +1090,7 @@ def construct_filters_dict(dataloader: DataLoader) -> dict[str, Any]:
 
 
 def construct_globals_dict(
-    settings: Settings,
-    dataloader: DataLoader,
-    mo_amqpsystem: MOAMQPSystem,
-    ldap_amqpsystem: AMQPSystem,
+    settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
     moapi = dataloader.moapi
     graphql_client = moapi.graphql_client
@@ -1180,8 +1167,8 @@ def construct_globals_dict(
         "ituser_uuid_to_rolebinding_uuids": partial(
             ituser_uuid_to_rolebinding_uuids, graphql_client
         ),
-        "refresh": partial(refresh, graphql_client, mo_amqpsystem),
-        "refresh_ldap": partial(refresh_ldap, graphql_client, ldap_amqpsystem),
+        "refresh": partial(refresh, graphql_client),
+        "refresh_ldap": partial(refresh_ldap, settings, graphql_client),
         "find_mo_employee_uuid": dataloader.find_mo_employee_uuid,
         "resolve_dar_address": partial(resolve_dar_address, graphql_client),
         "get_legacy_manager_person_uuid": partial(
@@ -1240,15 +1227,8 @@ def construct_default_environment() -> Environment:
     return environment
 
 
-def construct_environment(
-    settings: Settings,
-    dataloader: DataLoader,
-    mo_amqpsystem: MOAMQPSystem,
-    ldap_amqpsystem: AMQPSystem,
-) -> Environment:
+def construct_environment(settings: Settings, dataloader: DataLoader) -> Environment:
     environment = construct_default_environment()
     environment.filters.update(construct_filters_dict(dataloader))
-    environment.globals.update(
-        construct_globals_dict(settings, dataloader, mo_amqpsystem, ldap_amqpsystem)
-    )
+    environment.globals.update(construct_globals_dict(settings, dataloader))
     return environment
