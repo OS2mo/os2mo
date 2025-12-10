@@ -422,6 +422,8 @@ async def test_load_mo_employee_not_found(
 async def test_load_mo_engagement(
     dataloader: DataLoader, graphql_mock: GraphQLMocker
 ) -> None:
+    uuid = uuid4()
+
     route = graphql_mock.query("read_engagements")
     route.result = {
         "engagements": {
@@ -429,6 +431,7 @@ async def test_load_mo_engagement(
                 {
                     "validities": [
                         {
+                            "uuid": uuid,
                             "user_key": "foo",
                             "validity": {"from": "2021-01-01T00:00:00", "to": None},
                             "extension_1": "extra info",
@@ -454,7 +457,7 @@ async def test_load_mo_engagement(
         }
     }
 
-    output = await dataloader.moapi.load_mo_engagement(uuid4())
+    output = await dataloader.moapi.load_mo_engagement(uuid)
     assert output is not None
     assert output.user_key == "foo"
     assert output.validity.start.date() == datetime.date(2021, 1, 1)

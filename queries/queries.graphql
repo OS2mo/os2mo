@@ -35,6 +35,7 @@ query read_engagements(
   ) {
     objects {
       validities {
+        uuid
         user_key
         extension_1
         extension_2

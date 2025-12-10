@@ -756,6 +756,7 @@ class GraphQLClient(AsyncBaseClient):
               engagements(filter: {uuids: $uuids, from_date: $from_date, to_date: $to_date}) {
                 objects {
                   validities {
+                    uuid
                     user_key
                     extension_1
                     extension_2
