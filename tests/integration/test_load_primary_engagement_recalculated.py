@@ -748,3 +748,54 @@ async def test_load_primary_engagement_prefers_future_validity(
     )
     assert result is not None
     assert result.user_key == "engagement1"
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+    }
+)
+@pytest.mark.usefixtures("test_client")
+async def test_load_primary_engagement_prefers_now_over_past(
+    graphql_client: GraphQLClient,
+    context: Context,
+    mo_person: UUID,
+    mo_org_unit: UUID,
+    ansat: UUID,
+    jurist: UUID,
+    primary: UUID,
+) -> None:
+    """Test that valitidies now are preferred over past ones."""
+
+    await graphql_client.engagement_create(
+        input=EngagementCreateInput(
+            user_key="engagement1",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=ansat,
+            job_function=jurist,
+            primary=primary,
+            fraction=100,
+            validity={"from": "2000-01-01T00:00:00Z", "to": None},
+        )
+    )
+    await graphql_client.engagement_create(
+        input=EngagementCreateInput(
+            user_key="engagement2",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=ansat,
+            job_function=jurist,
+            primary=primary,
+            fraction=None,
+            validity={"from": "1970-01-01T00:00:00Z", "to": None},
+        )
+    )
+
+    # Check that both are excluded and thus we cannot find a primary
+    dataloader = context["user_context"]["dataloader"]
+    result = await load_primary_engagement_recalculated(dataloader.moapi, mo_person)
+    assert result is not None
+    assert result.user_key == "engagement1"

@@ -360,6 +360,7 @@ async def load_primary_engagement_recalculated(
 
     # Only consider the latest engagements ignore all others
     min_cut_date = min(e.validity.start for e in engagements)
+    min_cut_date = max(mo_today(), min_cut_date)
     engagements = [
         e
         for e in engagements
