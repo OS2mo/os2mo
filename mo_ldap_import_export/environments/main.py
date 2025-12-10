@@ -330,7 +330,6 @@ async def load_primary_engagement(
 async def load_primary_engagement_recalculated(
     moapi: MOAPI,
     employee_uuid: UUID,
-    return_terminated: bool = False,
     exclude_engagement_types: set[UUID] | None = None,
 ) -> Engagement | None:
     # NOTE: This function is a reimplementation of the calculate primary integration
@@ -356,10 +355,7 @@ async def load_primary_engagement_recalculated(
             e for e in engagements if e.engagement_type not in exclude_engagement_types
         ]
 
-    if not return_terminated:
-        engagements = [
-            e for e in engagements if not get_delete_flag(jsonable_encoder(e))
-        ]
+    engagements = [e for e in engagements if not get_delete_flag(jsonable_encoder(e))]
 
     if not engagements:
         logger.info("No active engagements found", employee_uuid=employee_uuid)
