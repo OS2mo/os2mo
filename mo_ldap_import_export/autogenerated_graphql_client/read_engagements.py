@@ -19,6 +19,7 @@ class ReadEngagementsEngagementsObjects(BaseModel):
 
 
 class ReadEngagementsEngagementsObjectsValidities(BaseModel):
+    uuid: UUID
     user_key: str
     extension_1: str | None
     extension_2: str | None

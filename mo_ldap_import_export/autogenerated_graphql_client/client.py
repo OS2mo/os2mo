@@ -745,17 +745,15 @@ class GraphQLClient(AsyncBaseClient):
         return ReadClassUuid.parse_obj(data).classes
 
     async def read_engagements(
-        self,
-        uuids: list[UUID],
-        from_date: datetime | None | UnsetType = UNSET,
-        to_date: datetime | None | UnsetType = UNSET,
+        self, filter: EngagementFilter
     ) -> ReadEngagementsEngagements:
         query = gql(
             """
-            query read_engagements($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
-              engagements(filter: {uuids: $uuids, from_date: $from_date, to_date: $to_date}) {
+            query read_engagements($filter: EngagementFilter!) {
+              engagements(filter: $filter) {
                 objects {
                   validities {
+                    uuid
                     user_key
                     extension_1
                     extension_2
@@ -784,11 +782,7 @@ class GraphQLClient(AsyncBaseClient):
             }
             """
         )
-        variables: dict[str, object] = {
-            "uuids": uuids,
-            "from_date": from_date,
-            "to_date": to_date,
-        }
+        variables: dict[str, object] = {"filter": filter}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEngagements.parse_obj(data).engagements
