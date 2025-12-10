@@ -383,6 +383,17 @@ async def load_primary_engagement_recalculated(
         logger.info("No active engagements found", employee_uuid=employee_uuid)
         return None
 
+    def date_or_max(dt: datetime | None) -> datetime:
+        return dt or datetime.max.replace(tzinfo=UTC)
+
+    # Only consider the latest engagements ignore all others
+    min_cut_date = min(e.validity.start for e in engagements)
+    engagements = [
+        e
+        for e in engagements
+        if e.validity.start <= min_cut_date < date_or_max(e.validity.end)
+    ]
+
     fixed_primary_uuid = UUID(
         await get_primary_type_uuid(moapi.graphql_client, "explicitly-primary")
     )
@@ -407,13 +418,12 @@ async def load_primary_engagement_recalculated(
     #
     # If two engagements have the same occupation rate, the tie is broken by
     # picking the one with the lowest user-key integer.
-    primary_engagement = max(
+    return max(
         engagements,
         # Sort first by fraction, then reversely by user_key integer
         # Engagements with non-integer user_keys are only primary if no other engagements are present
         key=lambda eng: (eng.fraction or 0, -user_key_to_id(eng.user_key)),
     )
-    return primary_engagement
 
 
 async def load_engagement(moapi: MOAPI, uuid: UUID) -> Engagement | None:
