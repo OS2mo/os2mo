@@ -91,10 +91,7 @@ async def test_load_primary_engagement_deleted(
     assert result is None
 
     events = [m["event"] for m in cap_logs]
-    assert events == [
-        "Returning delete=True because to_date <= current_date",
-        "No active engagements found",
-    ]
+    assert events == ["Could not find any engagements for employee"]
 
 
 @pytest.mark.integration_test
@@ -200,9 +197,7 @@ async def test_load_primary_engagement_invalid_employee(context: Context) -> Non
     assert result is None
 
     events = [m["event"] for m in cap_logs]
-    assert events == [
-        "Could not find any engagements for employee",
-    ]
+    assert events == ["Could not find any engagements for employee"]
 
 
 @pytest.mark.integration_test
@@ -222,9 +217,7 @@ async def test_load_primary_engagement_no_engagement(
     assert result is None
 
     events = [m["event"] for m in cap_logs]
-    assert events == [
-        "Could not find any engagements for employee",
-    ]
+    assert events == ["Could not find any engagements for employee"]
 
 
 @pytest.mark.integration_test

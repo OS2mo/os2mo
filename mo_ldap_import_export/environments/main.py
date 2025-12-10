@@ -335,7 +335,6 @@ async def load_primary_engagement_recalculated(
     # NOTE: This function is a reimplementation of the calculate primary integration
     engagement_filter = EngagementFilter(
         employee=EmployeeFilter(uuids=[employee_uuid], from_date=None, to_date=None),
-        from_date=None,
         to_date=None,
     )
     result = await moapi.graphql_client.read_engagements(engagement_filter)
@@ -344,21 +343,16 @@ async def load_primary_engagement_recalculated(
         for engagement in result.objects
         for validity in engagement.validities
     ]
-    if not engagements:
-        logger.info(
-            "Could not find any engagements for employee", employee_uuid=employee_uuid
-        )
-        return None
 
     if exclude_engagement_types:
         engagements = [
             e for e in engagements if e.engagement_type not in exclude_engagement_types
         ]
 
-    engagements = [e for e in engagements if not get_delete_flag(jsonable_encoder(e))]
-
     if not engagements:
-        logger.info("No active engagements found", employee_uuid=employee_uuid)
+        logger.info(
+            "Could not find any engagements for employee", employee_uuid=employee_uuid
+        )
         return None
 
     def date_or_max(dt: datetime | None) -> datetime:
