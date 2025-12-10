@@ -532,3 +532,174 @@ async def test_load_primary_engagement_exclude_engagement_types(
     )
     assert result is not None
     assert result.user_key == "10"
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+    }
+)
+@pytest.mark.usefixtures("test_client")
+async def test_load_primary_engagement_prefers_current(
+    graphql_client: GraphQLClient,
+    context: Context,
+    mo_person: UUID,
+    mo_org_unit: UUID,
+    ansat: UUID,
+    jurist: UUID,
+    primary: UUID,
+) -> None:
+    """Test that current engagements are preferred over past and future ones."""
+    await graphql_client.engagement_create(
+        input=EngagementCreateInput(
+            user_key="past",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=ansat,
+            job_function=jurist,
+            primary=primary,
+            fraction=100,
+            validity={"from": "1970-01-01T00:00:00Z", "to": "2000-01-01T00:00:00Z"},
+        )
+    )
+    await graphql_client.engagement_create(
+        input=EngagementCreateInput(
+            user_key="current",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=ansat,
+            job_function=jurist,
+            primary=primary,
+            fraction=20,
+            validity={"from": "2000-01-01T00:00:00Z", "to": "3000-01-01T00:00:00Z"},
+        )
+    )
+    await graphql_client.engagement_create(
+        input=EngagementCreateInput(
+            user_key="future",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=ansat,
+            job_function=jurist,
+            primary=primary,
+            fraction=50,
+            validity={"from": "3000-01-01T00:00:00Z", "to": "4000-01-01T00:00:00Z"},
+        )
+    )
+
+    dataloader = context["user_context"]["dataloader"]
+    result = await load_primary_engagement_recalculated(
+        dataloader.moapi,
+        mo_person,
+        return_terminated=False,
+    )
+    assert result is not None
+    assert result.user_key == "current"
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+    }
+)
+@pytest.mark.usefixtures("test_client")
+async def test_load_primary_engagement_prefers_future(
+    graphql_client: GraphQLClient,
+    context: Context,
+    mo_person: UUID,
+    mo_org_unit: UUID,
+    ansat: UUID,
+    jurist: UUID,
+    primary: UUID,
+) -> None:
+    """Test that future engagements are preferred over past ones."""
+    await graphql_client.engagement_create(
+        input=EngagementCreateInput(
+            user_key="past",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=ansat,
+            job_function=jurist,
+            primary=primary,
+            fraction=100,
+            validity={"from": "1970-01-01T00:00:00Z", "to": "2000-01-01T00:00:00Z"},
+        )
+    )
+    await graphql_client.engagement_create(
+        input=EngagementCreateInput(
+            user_key="future",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=ansat,
+            job_function=jurist,
+            primary=primary,
+            fraction=50,
+            validity={"from": "3000-01-01T00:00:00Z", "to": "4000-01-01T00:00:00Z"},
+        )
+    )
+
+    dataloader = context["user_context"]["dataloader"]
+    result = await load_primary_engagement_recalculated(
+        dataloader.moapi,
+        mo_person,
+        return_terminated=False,
+    )
+    assert result is not None
+    assert result.user_key == "future"
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+    }
+)
+@pytest.mark.usefixtures("test_client")
+async def test_load_primary_engagement_prefers_less_futuristic(
+    graphql_client: GraphQLClient,
+    context: Context,
+    mo_person: UUID,
+    mo_org_unit: UUID,
+    ansat: UUID,
+    jurist: UUID,
+    primary: UUID,
+) -> None:
+    """Test that less futuristic engagements are preferred over more futuristic ones."""
+    await graphql_client.engagement_create(
+        input=EngagementCreateInput(
+            user_key="future",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=ansat,
+            job_function=jurist,
+            primary=primary,
+            fraction=20,
+            validity={"from": "3000-01-01T00:00:00Z", "to": "4000-01-01T00:00:00Z"},
+        )
+    )
+    await graphql_client.engagement_create(
+        input=EngagementCreateInput(
+            user_key="far-future",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=ansat,
+            job_function=jurist,
+            primary=primary,
+            fraction=100,
+            validity={"from": "3500-01-01T00:00:00Z", "to": "4000-01-01T00:00:00Z"},
+        )
+    )
+
+    dataloader = context["user_context"]["dataloader"]
+    result = await load_primary_engagement_recalculated(
+        dataloader.moapi,
+        mo_person,
+        return_terminated=False,
+    )
+    assert result is not None
+    assert result.user_key == "future"
