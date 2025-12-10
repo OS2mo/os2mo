@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 import string
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
@@ -68,6 +67,7 @@ from ..moapi import MOAPI
 from ..moapi import extract_current_or_latest_validity
 from ..moapi import flatten_validities
 from ..moapi import get_primary_engagement
+from ..moapi import read_engagement_to_engagement
 from ..models import Address
 from ..models import Class
 from ..models import Engagement
@@ -339,35 +339,17 @@ async def load_primary_engagement_recalculated(
         from_date=None,
         to_date=None,
     )
-    result = await moapi.graphql_client.read_engagement_uuids(engagement_filter)
-
-    engagement_uuids = list({engagement.uuid for engagement in result.objects})
-    if not engagement_uuids:
+    result = await moapi.graphql_client.read_engagements(engagement_filter)
+    engagements = [
+        read_engagement_to_engagement(validity)
+        for engagement in result.objects
+        for validity in engagement.validities
+    ]
+    if not engagements:
         logger.info(
             "Could not find any engagements for employee", employee_uuid=employee_uuid
         )
         return None
-
-    engagements_maybe_missing = await asyncio.gather(
-        *[
-            moapi.load_mo_engagement(uuid, start=None, end=None)
-            for uuid in engagement_uuids
-        ]
-    )
-    unable_to_load_engagements = {
-        uuid
-        for uuid, engagement in zip(
-            engagement_uuids, engagements_maybe_missing, strict=True
-        )
-        if engagement is None
-    }
-    if unable_to_load_engagements:  # pragma: no cover
-        logger.error(
-            "Unable to load mo engagement(s)", uuids=unable_to_load_engagements
-        )
-        raise RequeueException("Unable to load mo engagement(s)")
-    assert None not in engagements_maybe_missing
-    engagements = cast(list[Engagement], engagements_maybe_missing)
 
     if exclude_engagement_types:
         engagements = [
