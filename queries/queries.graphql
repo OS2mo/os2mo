@@ -25,14 +25,8 @@ query read_class_uuid($filter: ClassFilter!) {
   }
 }
 
-query read_engagements(
-  $uuids: [UUID!]!
-  $from_date: DateTime
-  $to_date: DateTime
-) {
-  engagements(
-    filter: { uuids: $uuids, from_date: $from_date, to_date: $to_date }
-  ) {
+query read_engagements($filter: EngagementFilter!) {
+  engagements(filter: $filter) {
     objects {
       validities {
         uuid

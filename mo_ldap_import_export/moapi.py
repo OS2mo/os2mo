@@ -534,7 +534,13 @@ class MOAPI:
         start: datetime | None | UnsetType = UNSET,
         end: datetime | None | UnsetType = UNSET,
     ) -> Engagement | None:
-        results = await self.graphql_client.read_engagements([uuid], start, end)
+        engagement_filter = EngagementFilter(uuids=[uuid])
+        if start is not UNSET:
+            engagement_filter.from_date = start
+        if end is not UNSET:
+            engagement_filter.to_date = end
+
+        results = await self.graphql_client.read_engagements(engagement_filter)
         result = only(results.objects)
         if result is None:
             return None
