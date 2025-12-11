@@ -21,14 +21,70 @@ from ...conftest import GraphAPIPost
 
 
 @pytest.fixture
-def read_person_registration(
+def create_org_unit(
+    graphapi_post: GraphAPIPost,
+    root_org: UUID,
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation CreateOrganisationUnit($input: OrganisationUnitCreateInput!) {
+                org_unit_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["org_unit_create"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
+def update_org_unit(
+    graphapi_post: GraphAPIPost,
+    root_org: UUID,
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation UpdateOrganisationUnit($input: OrganisationUnitUpdateInput!) {
+                org_unit_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["org_unit_update"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
+def org_unit_type(
+    create_class: Callable[[dict[str, Any]], UUID], org_unit_type_facet: UUID
+) -> UUID:
+    return create_class(
+        {
+            "user_key": "department",
+            "name": "Department",
+            "facet_uuid": str(org_unit_type_facet),
+            "validity": {"from": "1970-01-01", "to": None},
+        }
+    )
+
+
+@pytest.fixture
+def read_org_unit_registration(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
 ) -> Callable[[dict[str, Any]], list[dict[str, Any]]]:
     def inner(filter: dict[str, Any]) -> list[dict[str, Any]]:
         query = """
-            query ReadPersonRegistration($filter: EmployeeFilter!) {
-              persons(filter: $filter) {
+            query ReadOrganisationUnitRegistration($filter: OrganisationUnitFilter!) {
+              org_units(filter: $filter) {
                 objects {
                   registrations {
                     actor
@@ -42,25 +98,25 @@ def read_person_registration(
         response = graphapi_post(query=query, variables={"filter": filter})
         assert response.errors is None
         assert response.data
-        obj = one(response.data["persons"]["objects"])
+        obj = one(response.data["org_units"]["objects"])
         return obj["registrations"]
 
     return inner
 
 
 @pytest.fixture
-def read_person_validities(
+def read_org_unit_validities(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
 ) -> Callable[[dict[str, Any]], list[dict[str, Any]] | None]:
     def inner(filter: dict[str, Any]) -> list[dict[str, Any]] | None:
         query = """
-            query ReadPersonValidities($filter: EmployeeFilter!) {
-              persons(filter: $filter) {
+            query ReadOrganisationUnitValidities($filter: OrganisationUnitFilter!) {
+              org_units(filter: $filter) {
                 objects {
                   validities {
-                    given_name
-                    surname
+                    name
+                    user_key
                     validity {
                       from
                       to
@@ -73,7 +129,7 @@ def read_person_validities(
         response = graphapi_post(query=query, variables={"filter": filter})
         assert response.errors is None
         assert response.data
-        obj = only(response.data["persons"]["objects"])
+        obj = only(response.data["org_units"]["objects"])
         if obj is None:
             return None
         return obj["validities"]
@@ -82,7 +138,7 @@ def read_person_validities(
 
 
 @pytest.fixture
-def read_person_response_validities(
+def read_org_unit_response_validities(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
 ) -> Callable[[dict[str, Any], str], list[dict[str, Any]] | None]:
@@ -90,15 +146,15 @@ def read_person_response_validities(
         filter: dict[str, Any], registration_time: str | None
     ) -> list[dict[str, Any]] | None:
         query = """
-            query ReadPersonResponseValidities(
-              $filter: EmployeeFilter!
+            query ReadOrganisationUnitResponseValidities(
+              $filter: OrganisationUnitFilter!
               $registration_time: DateTime
             ) {
-              persons(filter: $filter) {
+              org_units(filter: $filter) {
                 objects {
                   validities(registration_time: $registration_time) {
-                    given_name
-                    surname
+                    name
+                    user_key
                     validity {
                       from
                       to
@@ -114,7 +170,7 @@ def read_person_response_validities(
         )
         assert response.errors is None
         assert response.data
-        obj = only(response.data["persons"]["objects"])
+        obj = only(response.data["org_units"]["objects"])
         if obj is None:
             return None
         return obj["validities"] or None
@@ -122,59 +178,61 @@ def read_person_response_validities(
     return inner
 
 
-# Different filters take entirely different paths through the backend
-# Using these filters as parameterizations help to ensure that all codepaths are tested
-employee_filter_generators = [
-    # This filter is resolved using the person loader
+org_unit_filter_generators = [
+    # This filter is resolved using the org_unit loader
     lambda uuid, _: {"uuids": [str(uuid)]},
-    # This filter is resolved using the person getter
-    lambda _, cpr_number: {"cpr_numbers": cpr_number},
+    # This filter is resolved using the org_unit getter
+    lambda _, user_key: {"user_keys": [user_key]},
     # This filter is resolved using searching
-    lambda _, cpr_number: {"query": cpr_number},
+    lambda _, user_key: {"query": user_key},
 ]
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-@pytest.mark.parametrize("filter_generator", employee_filter_generators)
-def test_read_person_registrations(
-    create_person: Callable[[dict[str, Any]], UUID],
-    update_person: Callable[[dict[str, Any]], UUID],
-    read_person_registration: Callable[[dict[str, Any]], list[dict[str, Any]]],
-    read_person_validities: Callable[[dict[str, Any]], list[dict[str, Any]] | None],
-    read_person_response_validities: Callable[
+@pytest.mark.parametrize("filter_generator", org_unit_filter_generators)
+def test_read_org_unit_registrations(
+    create_org_unit: Callable[[dict[str, Any]], UUID],
+    update_org_unit: Callable[[dict[str, Any]], UUID],
+    org_unit_type: UUID,
+    read_org_unit_registration: Callable[[dict[str, Any]], list[dict[str, Any]]],
+    read_org_unit_validities: Callable[[dict[str, Any]], list[dict[str, Any]] | None],
+    read_org_unit_response_validities: Callable[
         [dict[str, Any], str | None], list[dict[str, Any]] | None
     ],
     filter_generator: Callable[[UUID, str], dict[str, Any]],
 ) -> None:
-    """Test that we can read objects at any registration time."""
     test_start = now()
-    cpr_number = "0101700000"
-    person_uuid = create_person(
+    user_key = "root"
+    org_unit_uuid = create_org_unit(
         {
-            "given_name": "Egon",
-            "surname": "Olsen",
-            "cpr_number": cpr_number,
+            "user_key": user_key,
+            "name": "Kolding Kommune",
+            "org_unit_type": str(org_unit_type),
+            "validity": {
+                "from": "1970-01-01T00:00:00+01:00",
+                "to": None,
+            },
         }
     )
-    person_filter = filter_generator(person_uuid, cpr_number)
+    org_unit_filter = filter_generator(org_unit_uuid, user_key)
 
-    # Check that we can read our newly created person
-    olsen = [
+    # Check that we can read our newly created org_unit
+    kolding = [
         {
-            "given_name": "Egon",
-            "surname": "Olsen",
+            "user_key": user_key,
+            "name": "Kolding Kommune",
             "validity": {
                 "from": "1970-01-01T00:00:00+01:00",
                 "to": None,
             },
         }
     ]
-    validities = read_person_validities(person_filter)
-    assert validities == olsen
+    validities = read_org_unit_validities(org_unit_filter)
+    assert validities == kolding
 
     # Check that we have one and only one registration
-    registration = one(read_person_registration(person_filter))
+    registration = one(read_org_unit_registration(org_unit_filter))
     assert registration == {
         "actor": str(BRUCE_UUID),
         "start": ANY,
@@ -185,57 +243,63 @@ def test_read_person_registrations(
     registration_start_time = datetime.fromisoformat(registration_start)
     assert test_start < registration_start_time < now()
 
-    # Read the person validities at varying registration times
+    # Read the org_unit validities at varying registration times
     expected = {
         # No registration_time filter
-        None: olsen,
-        # Before the person was registered, we expect no object result
+        None: kolding,
+        # Before the org_unit was registered, we expect no object result
         "1900-01-01": None,
-        # Right after the person was registered, we expect our person
-        registration_start_time.isoformat(): olsen,
-        # Far in the future, we expect our person
-        "3000-01-01": olsen,
+        # Right after the org_unit was registered, we expect our org_unit
+        registration_start_time.isoformat(): kolding,
+        # Far in the future, we expect our org_unit
+        "3000-01-01": kolding,
     }
     for registration_time, expected_validities in expected.items():
-        registration_filter = {**person_filter, "registration_time": registration_time}
-        validities = read_person_validities(registration_filter)
+        registration_filter = {
+            **org_unit_filter,
+            "registration_time": registration_time,
+        }
+        validities = read_org_unit_validities(registration_filter)
         assert validities == expected_validities
         # Check validities can be read either via top-level filter or via response
-        assert validities == read_person_response_validities(
-            person_filter, registration_time
+        assert validities == read_org_unit_response_validities(
+            org_unit_filter, registration_time
         )
 
-    # Update our person creating another registration
-    update_uuid = update_person(
+    # Update our org_unit creating another registration
+    update_uuid = update_org_unit(
         {
-            "uuid": str(person_uuid),
-            "surname": "Newsen",
+            "name": "Vejle Kommune",
+            # These are unchanged
+            "uuid": str(org_unit_uuid),
+            "user_key": "root",
+            "org_unit_type": str(org_unit_type),
             "validity": {
                 "from": "1970-01-01",
                 "to": None,
             },
         }
     )
-    assert update_uuid == person_uuid
+    assert update_uuid == org_unit_uuid
 
     # Check that we can read our updated state
-    newsen = [
+    vejle = [
         {
-            "given_name": "Egon",
-            "surname": "Newsen",
+            "user_key": "root",
+            "name": "Vejle Kommune",
             "validity": {
                 "from": "1970-01-01T00:00:00+01:00",
                 "to": None,
             },
         }
     ]
-    validities = read_person_validities(person_filter)
-    assert validities == newsen
+    validities = read_org_unit_validities(org_unit_filter)
+    assert validities == vejle
 
     # Check that we have exactly two registrations
     # The first should have the same starting time as before, but a new end time
     # The last should have no end time, but its start must be equal to the priors end
-    registrations = read_person_registration(person_filter)
+    registrations = read_org_unit_registration(org_unit_filter)
     assert registrations == [
         {
             "actor": str(BRUCE_UUID),
@@ -255,69 +319,80 @@ def test_read_person_registrations(
     # Firsts start must be before its end
     assert registration_start_time < first_registration_end_time
 
-    # Read the person validities at varying registration times
+    # Read the org_unit validities at varying registration times
     expected = {
         # No registration_time filter
-        None: newsen,
-        # Before the person was registered
+        None: vejle,
+        # Before the org_unit was registered
         "1900-01-01": None,
-        # Right after the person was first registered
-        registration_start_time.isoformat(): olsen,
-        # Right after the person was updated
-        last_registration_start_time.isoformat(): newsen,
+        # Right after the org_unit was first registered
+        registration_start_time.isoformat(): kolding,
+        # Right after the org_unit was updated
+        last_registration_start_time.isoformat(): vejle,
         # Far in the future
-        "3000-01-01": newsen,
+        "3000-01-01": vejle,
     }
     for registration_time, expected_validities in expected.items():
-        registration_filter = {**person_filter, "registration_time": registration_time}
-        validities = read_person_validities(registration_filter)
+        registration_filter = {
+            **org_unit_filter,
+            "registration_time": registration_time,
+        }
+        validities = read_org_unit_validities(registration_filter)
         assert validities == expected_validities
         # Check validities can be read either via top-level filter or via response
-        assert validities == read_person_response_validities(
-            person_filter, registration_time
+        assert validities == read_org_unit_response_validities(
+            org_unit_filter, registration_time
         )
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 def test_pagination_with_registration_time(
-    create_person: Callable[[dict[str, Any]], UUID],
-    update_person: Callable[[dict[str, Any]], UUID],
+    create_org_unit: Callable[[dict[str, Any]], UUID],
+    update_org_unit: Callable[[dict[str, Any]], UUID],
+    org_unit_type: UUID,
     graphapi_post: GraphAPIPost,
 ) -> None:
-    """Test that pagination respects registration time."""
-    # Create two person, then save a timestamp for use in registration_time filtering
-    person1_uuid = create_person(
+    # Create two org_unit, then save a timestamp for use in registration_time filtering
+    org_unit1_uuid = create_org_unit(
         {
-            "given_name": "First",
-            "surname": "Employee",
-            "cpr_number": "0101700000",
+            "user_key": "first",
+            "name": "Kolding Kommune",
+            "org_unit_type": str(org_unit_type),
+            "validity": {
+                "from": "1970-01-01T00:00:00+01:00",
+                "to": None,
+            },
         }
     )
-    person2_uuid = create_person(
+    org_unit2_uuid = create_org_unit(
         {
-            "given_name": "Second",
-            "surname": "Employee",
-            "cpr_number": "0101700001",
+            "user_key": "second",
+            "name": "Kolding Kommune",
+            "org_unit_type": str(org_unit_type),
+            "validity": {
+                "from": "1970-01-01T00:00:00+01:00",
+                "to": None,
+            },
         }
     )
     create_time = now()
 
     # These updates create a new registration to 'hide' the create one
-    update_person(
+    update_org_unit(
         {
-            "uuid": str(person1_uuid),
-            "surname": "Person",
+            "uuid": str(org_unit1_uuid),
+            "name": "New Name",
             "validity": {
                 "from": "1970-01-01",
                 "to": None,
             },
         }
     )
-    update_person(
+    update_org_unit(
         {
-            "uuid": str(person2_uuid),
-            "surname": "Person",
+            "uuid": str(org_unit2_uuid),
+            "name": "New Name",
             "validity": {
                 "from": "1970-01-01",
                 "to": None,
@@ -327,17 +402,17 @@ def test_pagination_with_registration_time(
 
     # Iterating through the paginated set with limit=1 and a registration_time
     query = """
-        query ReadPersonResponseValidities(
-            $filter: EmployeeFilter!
+        query Readorg_unitResponseValidities(
+            $filter: OrganisationUnitFilter!
             $limit: int!
             $cursor: Cursor
         ) {
-          persons(filter: $filter, limit: $limit, cursor: $cursor) {
+          org_units(filter: $filter, limit: $limit, cursor: $cursor) {
             objects {
               uuid
               validities {
-                given_name
-                surname
+                name
+                user_key
                 validity {
                   from
                   to
@@ -359,8 +434,8 @@ def test_pagination_with_registration_time(
     )
     assert response.errors is None
     assert response.data
-    first_response = one(response.data["persons"]["objects"])
-    cursor = response.data["persons"]["page_info"]["next_cursor"]
+    first_response = one(response.data["org_units"]["objects"])
+    cursor = response.data["org_units"]["page_info"]["next_cursor"]
     assert cursor is not None
 
     response = graphapi_post(
@@ -373,21 +448,21 @@ def test_pagination_with_registration_time(
     )
     assert response.errors is None
     assert response.data
-    second_response = one(response.data["persons"]["objects"])
+    second_response = one(response.data["org_units"]["objects"])
 
     # Our GraphQL responses may be in any order
     # We assume they are in correct order and if not we swap them
     response_1 = first_response
     response_2 = second_response
-    if UUID(first_response["uuid"]) == person2_uuid:
+    if UUID(first_response["uuid"]) == org_unit2_uuid:
         response_1, response_2 = response_2, response_1
 
     # Check that we see the data as of registration_time, i.e. before update
     # This proves that registration_time is respected during pagination
     expected_1 = [
         {
-            "given_name": "First",
-            "surname": "Employee",
+            "user_key": "first",
+            "name": "Kolding Kommune",
             "validity": {
                 "from": "1970-01-01T00:00:00+01:00",
                 "to": None,
@@ -396,8 +471,8 @@ def test_pagination_with_registration_time(
     ]
     expected_2 = [
         {
-            "given_name": "Second",
-            "surname": "Employee",
+            "user_key": "second",
+            "name": "Kolding Kommune",
             "validity": {
                 "from": "1970-01-01T00:00:00+01:00",
                 "to": None,
@@ -411,34 +486,42 @@ def test_pagination_with_registration_time(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 def test_modifying_registration_time_during_pagination(
-    create_person: Callable[[dict[str, Any]], UUID],
+    create_org_unit: Callable[[dict[str, Any]], UUID],
+    org_unit_type: UUID,
     graphapi_post: GraphAPIPost,
 ) -> None:
-    """Test that an error occurs if registration_time is modified during pagination."""
-    # Create two people so we have data to iterate
-    create_person(
+    # Create two org_units so we have data to iterate
+    create_org_unit(
         {
-            "given_name": "First",
-            "surname": "Employee",
-            "cpr_number": "0101700000",
+            "user_key": "first",
+            "name": "Kolding Kommune",
+            "org_unit_type": str(org_unit_type),
+            "validity": {
+                "from": "1970-01-01T00:00:00+01:00",
+                "to": None,
+            },
         }
     )
-    create_person(
+    create_org_unit(
         {
-            "given_name": "Second",
-            "surname": "Employee",
-            "cpr_number": "0101700001",
+            "user_key": "second",
+            "name": "Kolding Kommune",
+            "org_unit_type": str(org_unit_type),
+            "validity": {
+                "from": "1970-01-01T00:00:00+01:00",
+                "to": None,
+            },
         }
     )
 
     # Iterating through the paginated set with limit=1 and a registration_time
     query = """
-        query ReadPersonResponseValidities(
-            $filter: EmployeeFilter!
+        query Readorg_unitResponseValidities(
+            $filter: OrganisationUnitFilter!
             $limit: int!
             $cursor: Cursor
         ) {
-          persons(filter: $filter, limit: $limit, cursor: $cursor) {
+          org_units(filter: $filter, limit: $limit, cursor: $cursor) {
             page_info {
               next_cursor
             }
@@ -454,7 +537,7 @@ def test_modifying_registration_time_during_pagination(
     )
     assert response.errors is None
     assert response.data
-    cursor = response.data["persons"]["page_info"]["next_cursor"]
+    cursor = response.data["org_units"]["page_info"]["next_cursor"]
     assert cursor is not None
 
     # Check that changing the registration_time during pagination is disallowed
@@ -474,7 +557,7 @@ def test_modifying_registration_time_during_pagination(
             "locations": ANY,
             "message": "Cannot change registration_time during pagination",
             "path": [
-                "persons",
+                "org_units",
             ],
         },
     ]
@@ -482,30 +565,34 @@ def test_modifying_registration_time_during_pagination(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-@pytest.mark.parametrize("filter_generator", employee_filter_generators)
+@pytest.mark.parametrize("filter_generator", org_unit_filter_generators)
 def test_different_registration_times_via_aliassing(
-    create_person: Callable[[dict[str, Any]], UUID],
-    update_person: Callable[[dict[str, Any]], UUID],
+    create_org_unit: Callable[[dict[str, Any]], UUID],
+    update_org_unit: Callable[[dict[str, Any]], UUID],
+    org_unit_type: UUID,
     graphapi_post: GraphAPIPost,
     filter_generator: Callable[[UUID, str], dict[str, Any]],
 ) -> None:
-    """Test that we can read multiple different pagination times with one query."""
     test_start_time = now()
 
-    cpr_number = "0101700000"
-    person_uuid = create_person(
+    user_key = "0101700000"
+    org_unit_uuid = create_org_unit(
         {
-            "given_name": "Alpha",
-            "surname": "Male",
-            "cpr_number": cpr_number,
+            "name": "Alpha",
+            "user_key": user_key,
+            "org_unit_type": str(org_unit_type),
+            "validity": {
+                "from": "1970-01-01T00:00:00+01:00",
+                "to": None,
+            },
         }
     )
     alpha_time = now()
 
-    update_person(
+    update_org_unit(
         {
-            "uuid": str(person_uuid),
-            "given_name": "Beta",
+            "uuid": str(org_unit_uuid),
+            "name": "Beta",
             "validity": {
                 "from": "1970-01-01",
                 "to": None,
@@ -514,10 +601,10 @@ def test_different_registration_times_via_aliassing(
     )
     beta_time = now()
 
-    update_person(
+    update_org_unit(
         {
-            "uuid": str(person_uuid),
-            "given_name": "Gamma",
+            "uuid": str(org_unit_uuid),
+            "name": "Gamma",
             "validity": {
                 "from": "1970-01-01",
                 "to": None,
@@ -527,45 +614,45 @@ def test_different_registration_times_via_aliassing(
     gamma_time = now()
 
     query = """
-        query ReadPersonResponseValidities(
-            $filter: EmployeeFilter!
+        query Readorg_unitResponseValidities(
+            $filter: OrganisationUnitFilter!
             $test_start_time: DateTime!
             $alpha_time: DateTime!
             $beta_time: DateTime!
             $gamma_time: DateTime!
         ) {
-          persons(filter: $filter) {
+          org_units(filter: $filter) {
             objects {
               test_start: validities(registration_time: $test_start_time) {
-                given_name
+                name
               }
               alpha: validities(registration_time: $alpha_time) {
-                given_name
+                name
               }
               beta: validities(registration_time: $beta_time) {
-                given_name
+                name
               }
               gamma: validities(registration_time: $gamma_time) {
-                given_name
+                name
               }
               past: validities(registration_time: "2000-01-01") {
-                given_name
+                name
               }
               future: validities(registration_time: "3000-01-01") {
-                given_name
+                name
               }
               now: validities {
-                given_name
+                name
               }
             }
           }
         }
     """
-    person_filter = filter_generator(person_uuid, cpr_number)
+    org_unit_filter = filter_generator(org_unit_uuid, user_key)
     response = graphapi_post(
         query=query,
         variables={
-            "filter": person_filter,
+            "filter": org_unit_filter,
             "test_start_time": test_start_time.isoformat(),
             "alpha_time": alpha_time.isoformat(),
             "beta_time": beta_time.isoformat(),
@@ -574,90 +661,99 @@ def test_different_registration_times_via_aliassing(
     )
     assert response.errors is None
     assert response.data
-    person = one(response.data["persons"]["objects"])
-    assert person == {
+    org_unit = one(response.data["org_units"]["objects"])
+    assert org_unit == {
         "test_start": [],
-        "alpha": [{"given_name": "Alpha"}],
-        "beta": [{"given_name": "Beta"}],
-        "gamma": [{"given_name": "Gamma"}],
+        "alpha": [{"name": "Alpha"}],
+        "beta": [{"name": "Beta"}],
+        "gamma": [{"name": "Gamma"}],
         "past": [],
-        "future": [{"given_name": "Gamma"}],
-        "now": [{"given_name": "Gamma"}],
+        "future": [{"name": "Gamma"}],
+        "now": [{"name": "Gamma"}],
     }
 
 
 class StateKey(IntEnum):
     test_start = 1
-    person1_created = 2
-    person2_created = 3
-    person1_updated = 4
-    person2_updated = 5
+    org_unit1_created = 2
+    org_unit2_created = 3
+    org_unit1_updated = 4
+    org_unit2_updated = 5
     now = 6
 
 
 @pytest.fixture
-def temporally_spread_persons_data(
-    create_person: Callable[[dict[str, Any]], UUID],
-    update_person: Callable[[dict[str, Any]], UUID],
+def temporally_spread_org_units_data(
+    create_org_unit: Callable[[dict[str, Any]], UUID],
+    update_org_unit: Callable[[dict[str, Any]], UUID],
+    org_unit_type: UUID,
 ) -> tuple[dict[StateKey, datetime], UUID, str, UUID, str]:
     test_start_time = now()
 
-    person1_cpr_number = "0101700000"
-    person1_uuid = create_person(
+    org_unit1_user_key = "0101700000"
+    org_unit1_uuid = create_org_unit(
         {
-            "given_name": "Created",
-            "surname": "Entity",
-            "cpr_number": person1_cpr_number,
+            "name": "Created",
+            "user_key": org_unit1_user_key,
+            "org_unit_type": str(org_unit_type),
+            "validity": {
+                "from": "1970-01-01T00:00:00+01:00",
+                "to": None,
+            },
         }
     )
-    person1_created_time = now()
+    org_unit1_created_time = now()
 
-    person2_cpr_number = "0101700001"
-    person2_uuid = create_person(
+    org_unit2_user_key = "0101700001"
+    org_unit2_uuid = create_org_unit(
         {
-            "given_name": "Created",
-            "surname": "Entity",
-            "cpr_number": person2_cpr_number,
+            "name": "Created",
+            "user_key": org_unit2_user_key,
+            "org_unit_type": str(org_unit_type),
+            "validity": {
+                "from": "1970-01-01T00:00:00+01:00",
+                "to": None,
+            },
         }
     )
-    person2_created_time = now()
+    org_unit2_created_time = now()
 
-    update_person(
+    update_org_unit(
         {
-            "uuid": str(person1_uuid),
-            "given_name": "Updated",
+            "uuid": str(org_unit1_uuid),
+            "name": "Updated",
             "validity": {
                 "from": "1970-01-01",
                 "to": None,
             },
         }
     )
-    person1_updated_time = now()
+    org_unit1_updated_time = now()
 
-    update_person(
+    update_org_unit(
         {
-            "uuid": str(person2_uuid),
-            "given_name": "Updated",
+            "uuid": str(org_unit2_uuid),
+            "name": "Updated",
             "validity": {
                 "from": "1970-01-01",
                 "to": None,
             },
         }
     )
-    person2_updated_time = now()
+    org_unit2_updated_time = now()
 
     return (
         {
             StateKey.test_start: test_start_time,
-            StateKey.person1_created: person1_created_time,
-            StateKey.person2_created: person2_created_time,
-            StateKey.person1_updated: person1_updated_time,
-            StateKey.person2_updated: person2_updated_time,
+            StateKey.org_unit1_created: org_unit1_created_time,
+            StateKey.org_unit2_created: org_unit2_created_time,
+            StateKey.org_unit1_updated: org_unit1_updated_time,
+            StateKey.org_unit2_updated: org_unit2_updated_time,
         },
-        person1_uuid,
-        person1_cpr_number,
-        person2_uuid,
-        person2_cpr_number,
+        org_unit1_uuid,
+        org_unit1_user_key,
+        org_unit2_uuid,
+        org_unit2_user_key,
     )
 
 
@@ -672,91 +768,100 @@ def test_generator() -> Iterator[
             return None
         # Created, but not yet updated --> created validity
         elif state_key < updated:
-            return {"validities": [{"given_name": "Created"}]}
+            return {"validities": [{"name": "Created"}]}
         # Created, then updated --> updated validity
-        return {"validities": [{"given_name": "Updated"}]}
+        return {"validities": [{"name": "Updated"}]}
 
     state_key_permutations = permutations(list(StateKey), 2)
-    for person1_state_key, person2_state_key in state_key_permutations:
-        person1_expected = calculate_expected(
-            person1_state_key, StateKey.person1_created, StateKey.person1_updated
+    for org_unit1_state_key, org_unit2_state_key in state_key_permutations:
+        org_unit1_expected = calculate_expected(
+            org_unit1_state_key, StateKey.org_unit1_created, StateKey.org_unit1_updated
         )
-        person2_expected = calculate_expected(
-            person2_state_key, StateKey.person2_created, StateKey.person2_updated
+        org_unit2_expected = calculate_expected(
+            org_unit2_state_key, StateKey.org_unit2_created, StateKey.org_unit2_updated
         )
-        yield person1_state_key, person2_state_key, person1_expected, person2_expected
+        yield (
+            org_unit1_state_key,
+            org_unit2_state_key,
+            org_unit1_expected,
+            org_unit2_expected,
+        )
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-@pytest.mark.parametrize("person1_filter_generator", employee_filter_generators)
-@pytest.mark.parametrize("person2_filter_generator", employee_filter_generators)
+@pytest.mark.parametrize("org_unit1_filter_generator", org_unit_filter_generators)
+@pytest.mark.parametrize("org_unit2_filter_generator", org_unit_filter_generators)
 @pytest.mark.parametrize(
-    "person1_state_key, person2_state_key, person1_expected, person2_expected",
+    "org_unit1_state_key, org_unit2_state_key, org_unit1_expected, org_unit2_expected",
     test_generator(),
 )
 def test_different_registration_times_on_toplevel(
-    temporally_spread_persons_data: tuple[dict[StateKey, Any], UUID, str, UUID, str],
-    person1_state_key: StateKey,
-    person2_state_key: StateKey,
-    person1_expected: dict[str, Any] | None,
-    person2_expected: dict[str, Any] | None,
-    person1_filter_generator: Callable[[UUID, str], dict[str, Any]],
-    person2_filter_generator: Callable[[UUID, str], dict[str, Any]],
+    temporally_spread_org_units_data: tuple[dict[StateKey, Any], UUID, str, UUID, str],
+    org_unit1_state_key: StateKey,
+    org_unit2_state_key: StateKey,
+    org_unit1_expected: dict[str, Any] | None,
+    org_unit2_expected: dict[str, Any] | None,
+    org_unit1_filter_generator: Callable[[UUID, str], dict[str, Any]],
+    org_unit2_filter_generator: Callable[[UUID, str], dict[str, Any]],
     graphapi_post: GraphAPIPost,
 ) -> None:
-    def read_people(
+    def read_org_units(
         p1_registration_time: datetime | None,
         p2_registration_time: datetime | None,
     ) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
         query = """
-            query ReadPersonsResponseValidities(
-                $p1_filter: EmployeeFilter, $p2_filter: EmployeeFilter!
+            query Readorg_unitsResponseValidities(
+                $p1_filter: OrganisationUnitFilter, $p2_filter: OrganisationUnitFilter!
             ) {
-              p1: persons(filter: $p1_filter) {
+              p1: org_units(filter: $p1_filter) {
                 objects {
                   validities {
-                    given_name
+                    name
                   }
                 }
               }
-              p2: persons(filter: $p2_filter) {
+              p2: org_units(filter: $p2_filter) {
                 objects {
                   validities {
-                    given_name
+                    name
                   }
                 }
               }
             }
         """
-        person1_filter = person1_filter_generator(person1_uuid, person1_cpr_number)
-        person1_filter["registration_time"] = (
+        org_unit1_filter = org_unit1_filter_generator(
+            org_unit1_uuid, org_unit1_user_key
+        )
+        org_unit1_filter["registration_time"] = (
             p1_registration_time.isoformat() if p1_registration_time else None
         )
-        person2_filter = person2_filter_generator(person2_uuid, person2_cpr_number)
-        person2_filter["registration_time"] = (
+        org_unit2_filter = org_unit2_filter_generator(
+            org_unit2_uuid, org_unit2_user_key
+        )
+        org_unit2_filter["registration_time"] = (
             p2_registration_time.isoformat() if p2_registration_time else None
         )
 
         response = graphapi_post(
             query=query,
             variables={
-                "p1_filter": person1_filter,
-                "p2_filter": person2_filter,
+                "p1_filter": org_unit1_filter,
+                "p2_filter": org_unit2_filter,
             },
         )
         assert response.errors is None
         assert response.data
-        person1 = only(response.data["p1"]["objects"])
-        person2 = only(response.data["p2"]["objects"])
-        return person1, person2
+        org_unit1 = only(response.data["p1"]["objects"])
+        org_unit2 = only(response.data["p2"]["objects"])
+        return org_unit1, org_unit2
 
-    time_map, person1_uuid, person1_cpr_number, person2_uuid, person2_cpr_number = (
-        temporally_spread_persons_data
+    time_map, org_unit1_uuid, org_unit1_user_key, org_unit2_uuid, org_unit2_user_key = (
+        temporally_spread_org_units_data
     )
-    person1_time = time_map.get(person1_state_key)
-    person2_time = time_map.get(person2_state_key)
+    org_unit1_time = time_map.get(org_unit1_state_key)
+    org_unit2_time = time_map.get(org_unit2_state_key)
 
-    person1, person2 = read_people(person1_time, person2_time)
-    assert person1 == person1_expected
-    assert person2 == person2_expected
+    org_unit1, org_unit2 = read_org_units(org_unit1_time, org_unit2_time)
+    assert org_unit1 == org_unit1_expected
+    assert org_unit2 == org_unit2_expected
