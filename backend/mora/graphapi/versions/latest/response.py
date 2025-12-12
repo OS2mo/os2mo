@@ -139,7 +139,7 @@ class Response(Generic[MOObject]):
                 return POSITIVE_INFINITY
             return obj.validity.to_date
 
-        if at:
+        if at or registration_time:
             objects = await Response.validities(
                 self, root, info, at, UNSET, registration_time
             )
