@@ -800,7 +800,7 @@ async def organisation_unit_resolver_query(
 
         engagement_uuids = await engagement_resolver(info, filter.engagement)
         engagement_responses = [
-            Response[EngagementRead](uuid=uuid) for uuid in engagement_uuids
+            Response(model=EngagementRead, uuid=uuid) for uuid in engagement_uuids
         ]
         # NOTE: We have to set start != UNSET to invoke the new temporality behavior
         # TODO: Remove this code when the new temporality behavior is the default

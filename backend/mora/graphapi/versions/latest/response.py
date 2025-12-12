@@ -6,7 +6,6 @@ from datetime import datetime
 from textwrap import dedent
 from typing import Any
 from typing import Generic
-from typing import get_args
 from uuid import UUID
 
 import strawberry
@@ -87,6 +86,9 @@ class Response(Generic[MOObject]):
     # Object cache is a temporary workaround ensuring that current resolvers keep
     # working as-is while also allowing for lazy resolution based entirely on the UUID.
     object_cache: strawberry.Private[list[MOObject]] = UNSET
+
+    # Reference to the underlying model type
+    model: strawberry.Private[type[MOObject]]
 
     @strawberry.field(
         description=dedent(
@@ -207,7 +209,7 @@ class Response(Generic[MOObject]):
         if start is UNSET and end is UNSET and root.object_cache != UNSET:
             return root.object_cache
         # If the object cache has not been filled we must resolve objects using the uuid
-        resolver = resolver_map[response2model(root)]["loader"]
+        resolver = resolver_map[root.model]["loader"]
         dataloader = info.context[resolver]
         return await dataloader.load(LoadKey(root.uuid, start, end))
 
@@ -236,16 +238,7 @@ class Response(Generic[MOObject]):
             registration_resolver,
             {
                 "uuids": lambda root: uuid2list(root.uuid),
-                "models": lambda root: [model2name(response2model(root))],
+                "models": lambda root: [model2name(root.model)],
             },
         ),
     )
-
-
-def response2model(response: Response[MOObject]) -> MOObject:
-    if not hasattr(response, "__orig_class__"):  # pragma: no cover
-        raise ValueError(
-            "Please ensure that `Response` is always instantiated with a type parameter, such as Response[Address](...) instead of Response(...)"
-        )
-    model = get_args(response.__orig_class__)[0]
-    return model
