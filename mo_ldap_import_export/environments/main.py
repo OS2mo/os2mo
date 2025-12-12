@@ -7,6 +7,7 @@ from collections.abc import Callable
 from contextlib import suppress
 from datetime import UTC
 from datetime import datetime
+from datetime import time
 from functools import partial
 from typing import Any
 from typing import ParamSpec
@@ -355,8 +356,12 @@ async def load_primary_engagement_recalculated(
         )
         return None
 
-    def date_or_max(dt: datetime | None) -> datetime:
-        return dt or datetime.max.replace(tzinfo=UTC)
+    def get_mo_end_date(dt: datetime | None) -> datetime:
+        if dt is None:
+            return datetime.max.replace(tzinfo=UTC)
+        # When MO says an end-date is 2025-12-12T00:00:00+01:00 it actually
+        # means 2025-12-12T23:59:59+01:00.
+        return datetime.combine(dt, time.max, dt.tzinfo)
 
     # Only consider the latest engagements ignore all others
     min_cut_date = min(e.validity.start for e in engagements)
@@ -364,7 +369,7 @@ async def load_primary_engagement_recalculated(
     engagements = [
         e
         for e in engagements
-        if e.validity.start <= min_cut_date < date_or_max(e.validity.end)
+        if e.validity.start <= min_cut_date < get_mo_end_date(e.validity.end)
     ]
 
     fixed_primary_uuid = UUID(

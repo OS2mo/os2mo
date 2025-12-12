@@ -1,5 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from datetime import UTC
+from datetime import datetime
+from datetime import timedelta
 from uuid import UUID
 from uuid import uuid4
 
@@ -799,3 +802,60 @@ async def test_load_primary_engagement_prefers_now_over_past(
     result = await load_primary_engagement_recalculated(dataloader.moapi, mo_person)
     assert result is not None
     assert result.user_key == "engagement1"
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+    }
+)
+@pytest.mark.usefixtures("test_client")
+async def test_load_primary_engagement_ending_today(
+    graphql_client: GraphQLClient,
+    context: Context,
+    mo_person: UUID,
+    mo_org_unit: UUID,
+    ansat: UUID,
+    jurist: UUID,
+    primary: UUID,
+) -> None:
+    engagement_today = await graphql_client.engagement_create(
+        input=EngagementCreateInput(
+            user_key="eng_today",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=ansat,
+            job_function=jurist,
+            primary=primary,
+            fraction=100,
+            validity={
+                "from": "2000-01-01T00:00:00Z",
+                "to": None,
+            },
+        )
+    )
+
+    # Engagement starting tomorrow
+    await graphql_client.engagement_update(
+        input=EngagementUpdateInput(
+            uuid=engagement_today.uuid,
+            user_key="eng_tomorrow",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=ansat,
+            job_function=jurist,
+            primary=primary,
+            fraction=100,
+            validity={
+                "from": (datetime.now(tz=UTC) + timedelta(days=1)).isoformat(),
+                "to": None,
+            },
+        )
+    )
+
+    dataloader = context["user_context"]["dataloader"]
+    result = await load_primary_engagement_recalculated(dataloader.moapi, mo_person)
+    assert result is not None
+    assert result.user_key == "eng_today"
