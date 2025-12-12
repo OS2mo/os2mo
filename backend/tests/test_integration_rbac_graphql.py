@@ -32,7 +32,8 @@ SOCIAL_OG_SUNDHED = "68c5d78e-ae26-441f-a143-0103eca8b62a"
 ACTIVE_DIRECTORY = UUID("59c135c9-2b15-41cc-97c8-b5dff7180beb")
 
 # IT users
-ANDERS_AND_AD_USER = "18d2271a-45c4-406c-a482-04ab12f80881"
+ANDERS_AND_AD_USER_KEY = "18d2271a-45c4-406c-a482-04ab12f80881"
+ANDERS_AND_AD_EXTERNAL_ID = "e5595d6a-590c-4cae-9164-9fcf8e1178a2"
 
 
 @pytest.fixture(autouse=True)
@@ -716,7 +717,8 @@ def test_terminate_x_as_owner_of_unit(
 @pytest.mark.parametrize(
     "token_uuid,success",
     [
-        (ANDERS_AND_AD_USER, True),
+        (ANDERS_AND_AD_USER_KEY, False),
+        (ANDERS_AND_AD_EXTERNAL_ID, True),
         (ANDERS_AND, False),
     ],
 )
@@ -754,7 +756,7 @@ def test_ownership_through_it_system(
 @pytest.mark.usefixtures("fixture_db")
 async def test_it_user_to_employee_uuid():
     result = await _get_employee_uuid_via_it_system(
-        ACTIVE_DIRECTORY, ANDERS_AND_AD_USER
+        ACTIVE_DIRECTORY, ANDERS_AND_AD_EXTERNAL_ID
     )
     assert ANDERS_AND == str(result)
 

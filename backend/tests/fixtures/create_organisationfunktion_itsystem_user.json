@@ -9,6 +9,15 @@
           "to": "infinity"
         }
       }
+    ],
+    "organisationfunktionudvidelser": [
+      {
+        "udvidelse_1": "e5595d6a-590c-4cae-9164-9fcf8e1178a2",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
     ]
   },
   "note": "Automatisk indl\u00e6sning",
