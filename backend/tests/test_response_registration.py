@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """
 This file contains tests proving the equivalence between reading data from the
-temporal axis via the top-level 'registrations' collection versus reading it from the
+temporal axis via `Response`'s `registrations` field versus reading it from the
 specific collection top-level fields (e.g. 'facets') using registration_time filter or
 by passing registration_time to the `current` field on `Response`.
 
@@ -11,7 +11,9 @@ filter as that behavior is already extensively tested within the
 `tests/graphapi/registration_time/*.py` tests.
 
 This file only tests equivalence for `Facet` as the code path is identical for all
-registration types, as they all utilize the same generic 'ModelRegistration' class.
+registration types, as they all utilize the same generic 'ResponseRegistration' class.
+
+A very similar test-suite is found in backend/tests/test_model_registration.py
 """
 
 from collections.abc import Callable
@@ -90,13 +92,13 @@ def test_facet_registration_equivalence(
     graphapi_post: GraphAPIPost,
     query_comparison: str,
 ) -> None:
-    """Verify equivalence between the registrations and facet collections."""
+    """Verify equivalence between the registations and current with filter."""
     # Query the registrations collection
     query_registrations = """
         query Registrations {
-            registrations {
+            facets {
                 objects {
-                    ... on FacetRegistration {
+                    registrations {
                         start
                         current {
                             user_key
@@ -109,7 +111,7 @@ def test_facet_registration_equivalence(
     response = graphapi_post(query_registrations)
     assert response.errors is None
     assert response.data is not None
-    objects = response.data["registrations"]["objects"]
+    objects = one(response.data["facets"]["objects"])["registrations"]
     # We expect one create and one update registration
     assert len(objects) == 2
 
@@ -197,9 +199,9 @@ def test_facet_registration_equivalence_with_at(
     # Query the registrations collection
     query_registrations = """
         query RegistrationsWithAt($at: DateTime!) {
-            registrations {
+            facets {
                 objects {
-                    ... on FacetRegistration {
+                    registrations {
                         start
                         current(at: $at) {
                             user_key
@@ -215,7 +217,7 @@ def test_facet_registration_equivalence_with_at(
     )
     assert response.errors is None
     assert response.data is not None
-    objects = response.data["registrations"]["objects"]
+    objects = one(response.data["facets"]["objects"])["registrations"]
     # We expect one create and one update registration
     assert len(objects) == 2
 
@@ -243,7 +245,7 @@ def test_facet_registration_equivalence_with_at(
 
 @pytest.mark.parametrize("temporal_field_name", ["current", "validities"])
 def test_temporal_field_argument_consistency(temporal_field_name: str) -> None:
-    """Verify field equivalence for FacetRegistration and FacetResponse.
+    """Verify field equivalence for FacetResponseRegistration and FacetResponse.
 
     This test uses introspection on the GraphQL schema to prove that the
     FacetRegistration and FacetResponse models both take the same arguments in their
@@ -252,9 +254,9 @@ def test_temporal_field_argument_consistency(temporal_field_name: str) -> None:
     I.e. that the argument list at (1) and (2) are both the same:
     ```graphql
     {
-        registrations {
+        facets {
             objects {
-                ... on FacetRegistration {
+                registrations {
                     current(
                         at: "2022-01-01"  # <--- (1)
                     ) {
@@ -279,10 +281,9 @@ def test_temporal_field_argument_consistency(temporal_field_name: str) -> None:
     With the exception that former does not accept the `registration_time` parameter
     (since it is implicitly passed by the context) while the former accept it.
 
-    Thus this is in essence a test for the behavior of the `registration_time_decorator`
-    however as the implementation may change in the future we test the desired outcome,
-    i.e. equivalence between call-sites rather than the specific implementation
-    achieving such equivalence.
+    Thus this is in essence a test to ensure that the list of fields on `current` and
+    `validities` in `ResponseRegistration` match with the list of fields on `current`
+    and `validities` in `Response` itself.
     """
     schema_sdl = get_schema(LATEST_VERSION).as_str()
     schema = build_schema(schema_sdl)
@@ -297,7 +298,7 @@ def test_temporal_field_argument_consistency(temporal_field_name: str) -> None:
         return find_by_name(types, name)
 
     # Find the arguments taken by the temporal field on FacetRegistration
-    reg_type = get_type("FacetRegistration")
+    reg_type = get_type("FacetResponseRegistration")
     reg_fields = reg_type["fields"]
     reg_temporal_field = find_by_name(reg_fields, temporal_field_name)
     reg_args_list = reg_temporal_field["args"]

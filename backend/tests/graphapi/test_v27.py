@@ -15,7 +15,7 @@ from more_itertools import one
     "version,expected",
     (
         (Version.VERSION_26, "Registration"),
-        (Version.VERSION_27, "ResponseRegistration"),
+        (Version.VERSION_27, "FacetResponseRegistration"),
     ),
 )
 def test_schema(version: Version, expected: str) -> None:

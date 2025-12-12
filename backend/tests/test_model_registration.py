@@ -12,6 +12,8 @@ filter as that behavior is already extensively tested within the
 
 This file only tests equivalence for `Facet` as the code path is identical for all
 registration types, as they all utilize the same generic 'ModelRegistration' class.
+
+A very similar test-suite is found in backend/test/test_response_registration.py
 """
 
 from collections.abc import Callable

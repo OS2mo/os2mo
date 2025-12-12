@@ -175,12 +175,63 @@ async def validity_resolver(
     )
 )
 class ResponseRegistration(RegistrationBase, Generic[MOObject]):
-    pass
+    # NOTE: This field cannot be rewritten as the one above due to:
+    # https://github.com/strawberry-graphql/strawberry/issues/4139
+    @strawberry.field(
+        description=dedent(
+            """
+            Temporal state entrypoint.
+
+            Returns the state of the object at varying validities and current assertion time.
+
+            A list of objects are returned as only many different validity intervals can be active at a given assertion time.
+
+            Note:
+            This the entrypoint should be used for temporal integrations and UIs.
+            For actual-state integrations, please consider using `current` instead.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission],
+    )
+    async def current(
+        self,
+        root: "ResponseRegistration",
+        info: Info,
+        at: datetime | None = UNSET,
+    ) -> MOObject | None:
+        return await current_resolver(root, info, at, root.start)
+
+    # NOTE: This field cannot be rewritten as the one above due to:
+    # https://github.com/strawberry-graphql/strawberry/issues/4139
+    @strawberry.field(
+        description=dedent(
+            """
+            Temporal state entrypoint.
+
+            Returns the state of the object at varying validities and current assertion time.
+
+            A list of objects are returned as only many different validity intervals can be active at a given assertion time.
+
+            Note:
+            This the entrypoint should be used for temporal integrations and UIs.
+            For actual-state integrations, please consider using `current` instead.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission],
+    )
+    async def validities(
+        self,
+        root: "ResponseRegistration",
+        info: Info,
+        start: datetime | None = UNSET,
+        end: datetime | None = UNSET,
+    ) -> list[MOObject]:  # pragma: no cover
+        return await validity_resolver(root, info, start, end, root.start)
 
 
 @strawberry.type(
     description=dedent(
-        """
+        """\
     Top-level container for (bi)-temporal and actual state data access.
 
     Contains a UUID uniquely denoting the bitemporal object.
