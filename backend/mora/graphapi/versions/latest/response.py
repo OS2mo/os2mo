@@ -42,6 +42,7 @@ from .utils import uuid2list
 
 
 def model2name(model: Any) -> Any:
+
     mapping = {
         ClassRead: "class",
         EmployeeRead: "employee",
