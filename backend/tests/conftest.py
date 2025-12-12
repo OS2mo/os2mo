@@ -1302,3 +1302,45 @@ def read_rolebinding_uuids(
         return {UUID(obj["uuid"]) for obj in response.data["rolebindings"]["objects"]}
 
     return inner
+
+
+@pytest.fixture
+def create_address(
+    graphapi_post: GraphAPIPost,
+    root_org: UUID,
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation CreateAddress($input: AddressCreateInput!) {
+                address_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["address_create"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
+def update_address(
+    graphapi_post: GraphAPIPost,
+    root_org: UUID,
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation UpdateAddress($input: AddressUpdateInput!) {
+                address_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["address_update"]["uuid"])
+
+    return inner
