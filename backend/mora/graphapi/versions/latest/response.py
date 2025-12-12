@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Strawberry type for chosing validity."""
+from functools import wraps
 
 from datetime import datetime
 from textwrap import dedent
@@ -57,6 +58,98 @@ def model2name(model: Any) -> Any:
         ManagerRead: "manager",
     }
     return mapping[model]
+
+
+@strawberry.type(
+    description=dedent(
+        """\
+    Bitemporal container.
+
+    Mostly useful for auditing purposes seeing when data-changes were made and by whom.
+
+    Note:
+    Will eventually contain a full temporal axis per bitemporal container.
+
+    **Warning**:
+    This entry should **not** be used to implement event-driven integrations.
+    Such integration should rather utilize the AMQP-based event-system.
+    """
+    )
+)
+class ModelRegistration(Registration, Generic[MOObject]):
+    zmodel: strawberry.Private[Any]
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            Actual / current state entrypoint.
+
+            Returns the state of the object at current validity and current assertion time.
+
+            A single object is returned as only one validity can be active at a given assertion time.
+
+            Note:
+            This the entrypoint is appropriate to use for actual-state integrations and UIs.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission],
+    )
+    async def current(
+        self,
+        root: "ModelRegistration",
+        info: Info,
+        at: datetime | None = UNSET,
+    ) -> MOObject | None:
+        response = Response[root.zmodel](model=root.zmodel, uuid=root.uuid, object_cache=None)
+        return await response.current(root=response, info=info, at=at, registration_time=root.start)
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            Actual / current state entrypoint.
+
+            Returns the state of the object at current validity and current assertion time.
+
+            A single object is returned as only one validity can be active at a given assertion time.
+
+            Note:
+            This the entrypoint is appropriate to use for actual-state integrations and UIs.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission],
+    )
+    async def validities(
+        self,
+        root: "ModelRegistration",
+        info: Info,
+        start: datetime | None = UNSET,
+        end: datetime | None = UNSET,
+    ) -> list[MOObject]:
+        response = Response[root.zmodel](model=root.zmodel, uuid=root.uuid, object_cache=None)
+        return await response.validities(root=response, info=info, start=start, end=end, registration_time=root.start)
+
+
+def to_model_registration(func):
+    @wraps(func)
+    async def wrapper(*args, root: Any, **kwargs):
+        registrations = await func(*args, root=root, **kwargs)
+        model_registrations = [
+            ModelRegistration[root.model](
+                zmodel=root.model,
+
+                model=registration.model,
+                uuid=registration.uuid,
+                registration_id=registration.registration_id,
+                start=registration.start,
+                end=registration.end,
+                actor=registration.actor,
+                note=registration.note,
+            )
+            for registration in registrations
+        ]
+        return model_registrations
+
+    return wrapper
 
 
 @strawberry.type(
@@ -139,7 +232,7 @@ class Response(Generic[MOObject]):
                 return POSITIVE_INFINITY
             return obj.validity.to_date
 
-        if at:
+        if at or registration_time:
             objects = await Response.validities(
                 self, root, info, at, UNSET, registration_time
             )
@@ -229,7 +322,7 @@ class Response(Generic[MOObject]):
         return await dataloader.load(LoadKey(root.uuid, start, end, registration_time))
 
     # TODO: Implement using a dataloader
-    registrations: list[Registration] = strawberry.field(
+    registrations: list[ModelRegistration[MOObject]] = strawberry.field(
         description=dedent(
             """\
             Bitemporal state entrypoint.
@@ -249,11 +342,11 @@ class Response(Generic[MOObject]):
             """
         ),
         permission_classes=[IsAuthenticatedPermission],
-        resolver=seed_resolver(
+        resolver=to_model_registration(seed_resolver(
             registration_resolver,
             {
                 "uuids": lambda root: uuid2list(root.uuid),
                 "models": lambda root: [model2name(root.model)],
             },
-        ),
+        )),
     )
