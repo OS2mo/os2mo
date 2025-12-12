@@ -1181,6 +1181,26 @@ def create_itsystem(
 
 
 @pytest.fixture
+def update_itsystem(
+    graphapi_post: GraphAPIPost, root_org: UUID
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation UpdateITSystem($input: ITSystemUpdateInput!) {
+                itsystem_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["itsystem_update"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
 def create_class(
     graphapi_post: GraphAPIPost, root_org: UUID
 ) -> Callable[[dict[str, Any]], UUID]:
