@@ -206,9 +206,8 @@ def to_response(
     def result2response_list(
         result: ResolverResult,
     ) -> Response[MOObject]:  # pragma: no cover
-        # For details on this "type: ignore" check the comment in to_response_list
         uuid, objects = one(result.items())
-        return Response[model](uuid=uuid, object_cache=objects)  # type: ignore
+        return Response(model=model, uuid=uuid, object_cache=objects)
 
     return result_translation(result2response_list)
 
@@ -217,25 +216,8 @@ def to_response_list(
     model: type[MOObject],
 ) -> Callable[[ResolverFunction], Callable[..., Awaitable[list[Response[MOObject]]]]]:
     def result2response_list(result: ResolverResult) -> list[Response[MOObject]]:
-        # The type checker really does not like the below code.
-        #
-        # Mypy says: 'error: Variable "model" is not valid as a type', however every
-        # attept to appease mypy by fixing the typing has ended up making the code
-        # non-functional on runtime.
-        #
-        # Additionally it complains about construction of the Response object being
-        # illegal as it 'Expected no arguments to "Response" constructor', however
-        # attempting to resolve this using Pydantic's 'parse_obj_as' results in an
-        # 'Fields of type \"<class 'Response'>\" are not supported."' error from
-        # strawberry on runtime, whether implemented as:
-        # '[parse_obj_as(T, x) for x in xs]' or 'parse_obj_as(list[T], xs)'.
-        #
-        # If you try to fix this typing issues here, please increment the following
-        # counter as a warning to the next guy:
-        #
-        # total_hours_wasted_here = 4
         return [
-            Response[model](uuid=uuid, object_cache=objects)  # type: ignore
+            Response(model=model, uuid=uuid, object_cache=objects)
             for uuid, objects in result.items()
         ]
 
@@ -261,7 +243,7 @@ def to_paged_response(model: type[MOObject]) -> Callable:
         to_paged,
         model=model,
         result_transformer=lambda model, result: [
-            Response[model](uuid=uuid, object_cache=objects)  # type: ignore
+            Response(model=model, uuid=uuid, object_cache=objects)
             for uuid, objects in result.items()
         ],
     )
@@ -507,7 +489,7 @@ async def _get_handler_object(root: AddressRead, info: Info) -> AddressHandler:
 )
 class Address:
     address_type_response: Response[LazyClass] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.address_type_uuid),
+        resolver=lambda root: Response(model=ClassRead, uuid=root.address_type_uuid),
         description=dedent(
             """\
             The address category or type.
@@ -558,7 +540,7 @@ class Address:
     )
 
     visibility_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.visibility_uuid)
+        resolver=lambda root: Response(model=ClassRead, uuid=root.visibility_uuid)
         if root.visibility_uuid
         else None,
         description=dedent(
@@ -642,7 +624,7 @@ class Address:
     )
 
     person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[EmployeeRead](uuid=root.employee_uuid)
+        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
         if root.employee_uuid
         else None,
         description=dedent(
@@ -685,7 +667,9 @@ class Address:
     )
 
     org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid)
+        resolver=lambda root: Response(
+            model=OrganisationUnitRead, uuid=root.org_unit_uuid
+        )
         if root.org_unit_uuid
         else None,
         description=dedent(
@@ -726,7 +710,7 @@ class Address:
     )
 
     engagement_response: Response[LazyEngagement] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[EngagementRead](uuid=root.engagement_uuid)
+        resolver=lambda root: Response(model=EngagementRead, uuid=root.engagement_uuid)
         if root.engagement_uuid
         else None,
         description=dedent(
@@ -773,7 +757,7 @@ class Address:
     )
 
     ituser_response: Response[LazyITUser] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ITUserRead](uuid=root.it_user_uuid)
+        resolver=lambda root: Response(model=ITUserRead, uuid=root.it_user_uuid)
         if root.it_user_uuid
         else None,
         description="Connected IT-user.\n",
@@ -1033,7 +1017,7 @@ class Address:
 )
 class Association:
     association_type_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.association_type_uuid)
+        resolver=lambda root: Response(model=ClassRead, uuid=root.association_type_uuid)
         if root.association_type_uuid
         else None,
         description=dedent(
@@ -1071,7 +1055,7 @@ class Association:
     )
 
     dynamic_class_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.dynamic_class_uuid)
+        resolver=lambda root: Response(model=ClassRead, uuid=root.dynamic_class_uuid)
         if root.dynamic_class_uuid
         else None,
         # TODO: Document this
@@ -1115,7 +1099,7 @@ class Association:
     )
 
     trade_union_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.dynamic_class_uuid)
+        resolver=lambda root: Response(model=ClassRead, uuid=root.dynamic_class_uuid)
         if root.dynamic_class_uuid
         else None,
         description=dedent(
@@ -1143,7 +1127,7 @@ class Association:
     )
 
     primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.primary_uuid)
+        resolver=lambda root: Response(model=ClassRead, uuid=root.primary_uuid)
         if root.primary_uuid
         else None,
         description=dedent(
@@ -1216,7 +1200,7 @@ class Association:
     )
 
     person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[EmployeeRead](uuid=root.employee_uuid)
+        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
         if root.employee_uuid
         else None,
         description=dedent(
@@ -1245,7 +1229,9 @@ class Association:
     )
 
     org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid),
+        resolver=lambda root: Response(
+            model=OrganisationUnitRead, uuid=root.org_unit_uuid
+        ),
         description=dedent(
             """\
             Associated organisation unit.
@@ -1273,7 +1259,7 @@ class Association:
     )
 
     substitute_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[EmployeeRead](uuid=root.substitute_uuid)
+        resolver=lambda root: Response(model=EmployeeRead, uuid=root.substitute_uuid)
         if root.substitute_uuid
         else None,
         description=dedent(
@@ -1303,7 +1289,7 @@ class Association:
     )
 
     job_function_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.job_function_uuid)
+        resolver=lambda root: Response(model=ClassRead, uuid=root.job_function_uuid)
         if root.job_function_uuid
         else None,
         description=dedent(
@@ -1341,7 +1327,7 @@ class Association:
     )
 
     it_user_response: Response[LazyITUser] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ITUserRead](uuid=root.it_user_uuid)
+        resolver=lambda root: Response(model=ITUserRead, uuid=root.it_user_uuid)
         if root.it_user_uuid
         else None,
         description=dedent(
@@ -1524,7 +1510,7 @@ class Association:
 )
 class Class:
     parent_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.parent_uuid)
+        resolver=lambda root: Response(model=ClassRead, uuid=root.parent_uuid)
         if root.parent_uuid
         else None,
         description=dedent(
@@ -1602,7 +1588,7 @@ class Class:
     )
 
     facet_response: Response[LazyFacet] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[FacetRead](uuid=root.facet_uuid),
+        resolver=lambda root: Response(model=FacetRead, uuid=root.facet_uuid),
         description=dedent(
             """\
             Facet this class is defined under.
@@ -1663,7 +1649,7 @@ class Class:
         # coverage: unpause
 
     it_system_response: Response[LazyITSystem] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ITSystemRead](uuid=root.it_system_uuid)
+        resolver=lambda root: Response(model=ITSystemRead, uuid=root.it_system_uuid)
         if root.it_system_uuid
         else None,
         description=dedent(
@@ -2356,7 +2342,7 @@ class Engagement:
         return root.user_key
 
     engagement_type_response: Response[LazyClass] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.engagement_type_uuid),
+        resolver=lambda root: Response(model=ClassRead, uuid=root.engagement_type_uuid),
         description=dedent(
             """\
             Describes the employee's affiliation to an organisation unit
@@ -2392,7 +2378,7 @@ class Engagement:
     )
 
     job_function_response: Response[LazyClass] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.job_function_uuid),
+        resolver=lambda root: Response(model=ClassRead, uuid=root.job_function_uuid),
         description=dedent(
             """\
             Describes the position of the employee in the organisation unit
@@ -2428,7 +2414,7 @@ class Engagement:
     )
 
     primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.primary_uuid)
+        resolver=lambda root: Response(model=ClassRead, uuid=root.primary_uuid)
         if root.primary_uuid
         else None,
         description=dedent(
@@ -2501,7 +2487,7 @@ class Engagement:
         return await is_class_uuid_primary(str(root.primary_uuid))
 
     leave_response: Response[LazyLeave] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[LeaveRead](uuid=root.leave_uuid)
+        resolver=lambda root: Response(model=LeaveRead, uuid=root.leave_uuid)
         if root.leave_uuid
         else None,
         description="Related leave",
@@ -2536,7 +2522,7 @@ class Engagement:
     )
 
     person_response: Response[LazyEmployee] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[EmployeeRead](uuid=root.employee_uuid),
+        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid),
         description=dedent(
             """\
             The person fulfilling the engagement.
@@ -2563,7 +2549,9 @@ class Engagement:
     )
 
     org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid),
+        resolver=lambda root: Response(
+            model=OrganisationUnitRead, uuid=root.org_unit_uuid
+        ),
         description=dedent(
             """\
             The organisation unit where the engagement is being fulfilled.
@@ -2832,7 +2820,7 @@ class Facet:
     )
 
     parent_response: Response[LazyFacet] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[FacetRead](uuid=root.parent_uuid)
+        resolver=lambda root: Response(model=FacetRead, uuid=root.parent_uuid)
         if root.parent_uuid
         else None,
         description=dedent(
@@ -3205,7 +3193,7 @@ class ITUser:
     )
 
     person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[EmployeeRead](uuid=root.employee_uuid)
+        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
         if root.employee_uuid
         else None,
         description=dedent(
@@ -3248,7 +3236,9 @@ class ITUser:
     )
 
     org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid)
+        resolver=lambda root: Response(
+            model=OrganisationUnitRead, uuid=root.org_unit_uuid
+        )
         if root.org_unit_uuid
         else None,
         description=dedent(
@@ -3336,7 +3326,7 @@ class ITUser:
     )
 
     engagement_response: Response[LazyEngagement] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[EngagementRead](uuid=root.engagement_uuid)
+        resolver=lambda root: Response(model=EngagementRead, uuid=root.engagement_uuid)
         if root.engagement_uuid
         else None,
         description=dedent(
@@ -3426,7 +3416,7 @@ class ITUser:
     )
 
     itsystem_response: Response[LazyITSystem] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ITSystemRead](uuid=root.itsystem_uuid)
+        resolver=lambda root: Response(model=ITSystemRead, uuid=root.itsystem_uuid)
         if root.itsystem_uuid
         else None,
         description=dedent(
@@ -3482,7 +3472,7 @@ class ITUser:
     )
 
     primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.primary_uuid)
+        resolver=lambda root: Response(model=ClassRead, uuid=root.primary_uuid)
         if root.primary_uuid
         else None,
         description=dedent(
@@ -3690,7 +3680,7 @@ class KLE:
     )
 
     kle_number_response: Response[LazyClass] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.kle_number_uuid),
+        resolver=lambda root: Response(model=ClassRead, uuid=root.kle_number_uuid),
         description=dedent(
             """\
             The KLE number specifies the responsibility.
@@ -3766,7 +3756,9 @@ class KLE:
     )
 
     org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid)
+        resolver=lambda root: Response(
+            model=OrganisationUnitRead, uuid=root.org_unit_uuid
+        )
         if root.org_unit_uuid
         else None,
         description=dedent(
@@ -3881,7 +3873,7 @@ class KLE:
 )
 class Leave:
     leave_type_response: Response[LazyClass] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.leave_type_uuid),
+        resolver=lambda root: Response(model=ClassRead, uuid=root.leave_type_uuid),
         description=dedent(
             """\
             The kind of leave of absence.
@@ -3934,7 +3926,7 @@ class Leave:
     )
 
     person_response: Response[LazyEmployee] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[EmployeeRead](uuid=root.employee_uuid),
+        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid),
         description=dedent(
             """\
             The absent person.
@@ -3961,7 +3953,7 @@ class Leave:
     )
 
     engagement_response: Response[LazyEngagement] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[EngagementRead](uuid=root.engagement_uuid),
+        resolver=lambda root: Response(model=EngagementRead, uuid=root.engagement_uuid),
         description=dedent(
             """\
             The engagement the employee is absent from.
@@ -4056,7 +4048,7 @@ class Leave:
 )
 class Manager:
     manager_type_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.manager_type_uuid)
+        resolver=lambda root: Response(model=ClassRead, uuid=root.manager_type_uuid)
         if root.manager_type_uuid
         else None,
         description=dedent(
@@ -4094,7 +4086,7 @@ class Manager:
     )
 
     manager_level_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.manager_level_uuid)
+        resolver=lambda root: Response(model=ClassRead, uuid=root.manager_level_uuid)
         if root.manager_level_uuid
         else None,
         # TODO: Check production system values
@@ -4201,7 +4193,7 @@ class Manager:
     )
 
     person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[EmployeeRead](uuid=root.employee_uuid)
+        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
         if root.employee_uuid
         else None,
         description=dedent(
@@ -4242,7 +4234,9 @@ class Manager:
     )
 
     org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid),
+        resolver=lambda root: Response(
+            model=OrganisationUnitRead, uuid=root.org_unit_uuid
+        ),
         description=dedent(
             """\
             Organisation unit being managed.
@@ -4369,7 +4363,9 @@ class Owner:
     user_key: str = strawberry.auto
 
     org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid)
+        resolver=lambda root: Response(
+            model=OrganisationUnitRead, uuid=root.org_unit_uuid
+        )
         if root.org_unit_uuid
         else None,
         description=dedent(
@@ -4419,7 +4415,7 @@ class Owner:
         return root.org_unit_uuid
 
     person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[EmployeeRead](uuid=root.employee_uuid)
+        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
         if root.employee_uuid
         else None,
         description=dedent(
@@ -4469,7 +4465,7 @@ class Owner:
         return root.employee_uuid
 
     owner_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[EmployeeRead](uuid=root.owner_uuid)
+        resolver=lambda root: Response(model=EmployeeRead, uuid=root.owner_uuid)
         if root.owner_uuid
         else None,
         description=dedent(
@@ -4636,7 +4632,9 @@ class Organisation:
 )
 class OrganisationUnit:
     parent_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.parent_uuid)
+        resolver=lambda root: Response(
+            model=OrganisationUnitRead, uuid=root.parent_uuid
+        )
         if root.parent_uuid
         else None,
         description=dedent(
@@ -4813,7 +4811,7 @@ class OrganisationUnit:
 
     # TODO: Should this be a list?
     unit_hierarchy_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.org_unit_hierarchy)
+        resolver=lambda root: Response(model=ClassRead, uuid=root.org_unit_hierarchy)
         if root.org_unit_hierarchy
         else None,
         description=dedent(
@@ -4866,7 +4864,7 @@ class OrganisationUnit:
     )
 
     unit_type_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.unit_type_uuid)
+        resolver=lambda root: Response(model=ClassRead, uuid=root.unit_type_uuid)
         if root.unit_type_uuid
         else None,
         description=dedent(
@@ -4923,7 +4921,7 @@ class OrganisationUnit:
     )
 
     unit_level_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.org_unit_level_uuid)
+        resolver=lambda root: Response(model=ClassRead, uuid=root.org_unit_level_uuid)
         if root.org_unit_level_uuid
         else None,
         # TODO: Document this
@@ -4964,7 +4962,7 @@ class OrganisationUnit:
     )
 
     time_planning_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.time_planning_uuid)
+        resolver=lambda root: Response(model=ClassRead, uuid=root.time_planning_uuid)
         if root.time_planning_uuid
         else None,
         # TODO: Document this
@@ -5731,7 +5729,7 @@ class RoleBinding:
     user_key: str = strawberry.auto
 
     role_response: Response[LazyClass] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ClassRead](uuid=root.role),
+        resolver=lambda root: Response(model=ClassRead, uuid=root.role),
         description=dedent(
             """\
             The role that is being fulfilled.
@@ -5766,7 +5764,7 @@ class RoleBinding:
     )
 
     ituser_response: Response[LazyITUser] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[ITUserRead](uuid=root.it_user_uuid),
+        resolver=lambda root: Response(model=ITUserRead, uuid=root.it_user_uuid),
         description="The IT-user that should be granted this role\n"
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
@@ -5785,7 +5783,9 @@ class RoleBinding:
     )
 
     org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response[OrganisationUnitRead](uuid=root.org_unit_uuid)
+        resolver=lambda root: Response(
+            model=OrganisationUnitRead, uuid=root.org_unit_uuid
+        )
         if root.org_unit_uuid
         else None,
         description=dedent(

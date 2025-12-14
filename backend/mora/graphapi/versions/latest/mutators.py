@@ -223,7 +223,7 @@ def ensure_uuid(uuid: UUID | str) -> UUID:
 
 
 def uuid2response(uuid: UUID | str, model: Any) -> Response:
-    return Response[model](uuid=ensure_uuid(uuid))
+    return Response(model=model, uuid=ensure_uuid(uuid))
 
 
 delete_warning = dedent(
