@@ -22,7 +22,7 @@ PyJWT = { extras = ["crypto"], version = "^2.9.0" }
 more-itertools = "^9.1.0"
 SQLAlchemy = "2.0.40"
 SQLAlchemy-Utils = "^0.41.2"
-aiohttp = "^3.11.13"
+aiohttp = "^3.13.2"
 httpx = "^0.27.2"
 os2mo-http-trigger-protocol = "^0.0.4"
 fastapi = "^0.115"
@@ -36,10 +36,10 @@ pydantic = { extras = ["email"], version = "^1.10.13" }
 uvicorn = "^0.34"
 strawberry-graphql = "^0.285.0"
 jsonschema = "^4.20.0"
-sentry-sdk = { extras = ["fastapi"], version = "^1.34.0" }
+sentry-sdk = {extras = ["fastapi"], version = "^2.47.0"}
 psycopg = "^3.1.13"
 service-person-stamdata-udvidet = "^1.0.3"
-fastramqpi = "^14.2"
+fastramqpi = "^14.2.1"
 
 [tool.poetry.group.dev.dependencies]
 requests-mock = "^1.11.0"
