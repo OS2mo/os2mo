@@ -345,6 +345,9 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         # https://docs.sentry.io/platforms/python/integrations/strawberry/
         sentry_sdk.init(
             dsn=settings.sentry_dsn,
+            # Add data like request headers and IP for users, if applicable;
+            # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+            send_default_pii=True,
             integrations=[
                 StrawberryIntegration(
                     async_execution=True,
