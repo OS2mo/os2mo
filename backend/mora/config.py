@@ -299,24 +299,3 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings(**kwargs) -> Settings:
     return Settings(**kwargs)
-
-
-def get_public_settings() -> set[str]:
-    """Set of settings keys that are exposed to the world.
-
-    Returns:
-        Set of settings keys.
-    """
-    various_keys = {
-        "commit_tag",
-        "commit_sha",
-        "environment",
-        "navlinks",
-        "show_it_associations_tab",
-        "keycloak_rbac_enabled",
-        "enable_sp",
-    }
-    confdb_keys = filter(
-        lambda key: key.startswith("confdb_"), Settings.__fields__.keys()
-    )
-    return set.union(various_keys, confdb_keys)

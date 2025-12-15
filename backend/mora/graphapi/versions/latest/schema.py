@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 """Strawberry types describing the MO graph."""
 
-import json
 import re
 from base64 import b64encode
 from collections.abc import Awaitable
@@ -22,7 +21,6 @@ from urllib.parse import urlparse
 from uuid import UUID
 
 import strawberry
-from fastapi.encoders import jsonable_encoder
 from more_itertools import last
 from more_itertools import one
 from more_itertools import only
@@ -6000,74 +5998,3 @@ class File:
         content = await db.files.read(session, self.file_store, self.file_name)
         data = b64encode(content)
         return data.decode("ascii")
-
-
-# Configuration
-# -------------
-@strawberry.type(description="A configuration setting.")
-class Configuration:
-    def get_settings_value(self) -> Any:
-        """Get the settings value.
-
-        Args:
-            key: The settings key.
-
-        Returns:
-            The settings value.
-        """
-        return getattr(config.get_settings(), self.key)
-
-    key: str = strawberry.field(
-        description=dedent(
-            """\
-        The unique settings identifier.
-
-        Examples:
-        * `commit_tag`
-        * `environment`
-        * `confdb_show_roles`
-        """
-        )
-    )
-
-    @strawberry.field(
-        description=dedent(
-            """\
-        JSONified settings value.
-
-        Examples:
-        * `"true"`
-        * `"\\"\\""`
-        * `"null"`
-        * `"[]"`
-        """
-        )
-    )
-    def jsonified_value(self) -> str:
-        """Get the jsonified value.
-
-        Returns:
-            The value.
-        """
-        return json.dumps(jsonable_encoder(self.get_settings_value()))
-
-    @strawberry.field(
-        description=dedent(
-            """\
-        Stringified settings value.
-
-        Examples:
-        * `"True"`
-        * `""`
-        * `"None"`
-        * `"[]"`
-        """
-        )
-    )
-    def stringified_value(self) -> str:  # pragma: no cover
-        """Get the stringified value.
-
-        Returns:
-            The value.
-        """
-        return str(self.get_settings_value())

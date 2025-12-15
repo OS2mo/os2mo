@@ -12,7 +12,6 @@ from strawberry.types import Info
 
 from mora import db
 from mora.access_log import access_log
-from mora.config import get_public_settings
 from mora.db import AsyncSession
 from mora.graphapi.gmodels.mo.details.association import AssociationRead
 from mora.graphapi.gmodels.mo.details.engagement import EngagementRead
@@ -38,7 +37,6 @@ from .events import event_resolver
 from .events import full_event_resolver
 from .events import listener_resolver
 from .events import namespace_resolver
-from .filters import ConfigurationFilter
 from .filters import FileFilter
 from .filters import HealthFilter
 from .health import health_map
@@ -75,7 +73,6 @@ from .schema import KLE
 from .schema import Address
 from .schema import Association
 from .schema import Class
-from .schema import Configuration
 from .schema import Employee
 from .schema import Engagement
 from .schema import Facet
@@ -158,25 +155,6 @@ async def file_resolver(
         File(file_store=filter.file_store, file_name=file_name)  # type: ignore[call-arg]
         for file_name in files
     ]
-
-
-async def configuration_resolver(
-    filter: ConfigurationFilter | None = None,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-) -> list[Configuration]:
-    if filter is None:
-        filter = ConfigurationFilter()
-
-    settings_keys = get_public_settings()
-    if filter.identifiers is not None:
-        settings_keys = settings_keys.intersection(set(filter.identifiers))
-
-    settings = paginate(list(settings_keys), cursor, limit)
-    if not settings:  # pragma: no cover
-        context["lora_page_out_of_range"] = True
-
-    return [Configuration(key=key) for key in settings]  # type: ignore[call-arg]
 
 
 def to_func_response(model: Any, result: dict[UUID, list[dict]]) -> list[Response]:
@@ -356,17 +334,6 @@ class Query:
         description="Fetch files from the configured file backend (if any).",
         deprecation_reason="The file-store functionality will be removed in a future version of OS2mo.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("file")],
-    )
-
-    # Configuration
-    # -------------
-    configuration: Paged[Configuration] = strawberry.field(
-        resolver=to_paged(configuration_resolver, Configuration),
-        description="Get configuration variables.",
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("configuration"),
-        ],
     )
 
     registrations: Paged[Registration] = strawberry.field(
