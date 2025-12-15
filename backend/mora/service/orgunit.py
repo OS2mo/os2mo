@@ -31,7 +31,6 @@ from more_itertools import unzip
 
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import get_lora_object
-from mora.service.util import get_configuration
 
 from .. import common
 from .. import config
@@ -492,20 +491,7 @@ async def get_one_orgunit(
                 r[mapping.LOCATION] = ""
 
             if details is UnitDetails.FULL:
-                settings = {}
-                local_settings = {}
-
-                settings.update(local_settings)
-                if parent:
-                    parent_settings = parent[mapping.USER_SETTINGS]["orgunit"]
-                    for setting, value in parent_settings.items():
-                        settings.setdefault(setting, value)
-
-                global_settings = await get_configuration()
-                for setting, value in global_settings.items():
-                    settings.setdefault(setting, value)
-
-                r[mapping.USER_SETTINGS] = {"orgunit": settings}
+                r[mapping.USER_SETTINGS] = {"orgunit": {}}
 
     elif details is UnitDetails.SELF:  # pragma: no cover
         r[mapping.ORG] = await org.get_configured_organisation()

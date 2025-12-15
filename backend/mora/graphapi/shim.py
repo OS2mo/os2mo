@@ -135,25 +135,13 @@ class MOOrgUnit(OrgUnitRead):
                     "parent": None,
                     "time_planning": None,
                     "user_key": "Hj\u00f8rring Kommune",
-                    "user_settings": {
-                        "orgunit": {
-                            "show_location": True,
-                            "show_roles": True,
-                            "show_user_key": False,
-                        }
-                    },
+                    "user_settings": {"orgunit": {}},
                     "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
                     "validity": {"from": "1960-01-01", "to": None},
                 },
                 "time_planning": None,
                 "user_key": "Borgmesterens Afdeling",
-                "user_settings": {
-                    "orgunit": {
-                        "show_location": True,
-                        "show_roles": True,
-                        "show_user_key": False,
-                    }
-                },
+                "user_settings": {"orgunit": {}},
                 "uuid": "b6c11152-0645-4712-a207-ba2c53b391ab",
                 "validity": {"from": "1960-01-01", "to": None},
             }

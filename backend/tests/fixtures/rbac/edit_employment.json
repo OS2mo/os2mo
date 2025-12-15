@@ -24,25 +24,7 @@
       "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
       "location": "Overordnet Enhed",
       "user_settings": {
-        "orgunit": {
-          "show_roles": true,
-          "show_kle": false,
-          "show_user_key": true,
-          "show_location": true,
-          "show_time_planning": false,
-          "show_level": true,
-          "show_primary_engagement": false,
-          "show_primary_association": false,
-          "show_org_unit_button": false,
-          "inherit_manager": true,
-          "association_dynamic_facets": "",
-          "substitute_roles": "",
-          "show_cpr_no": true,
-          "show_user_key_in_search": false,
-          "extension_field_ui_labels": "",
-          "show_engagement_hyperlink": false,
-          "show_seniority": false
-        }
+        "orgunit": {}
       },
       "parent": {
         "name": "Overordnet Enhed",
@@ -50,25 +32,7 @@
         "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
         "location": "",
         "user_settings": {
-          "orgunit": {
-            "show_roles": true,
-            "show_kle": false,
-            "show_user_key": true,
-            "show_location": true,
-            "show_time_planning": false,
-            "show_level": true,
-            "show_primary_engagement": false,
-            "show_primary_association": false,
-            "show_org_unit_button": false,
-            "inherit_manager": true,
-            "association_dynamic_facets": "",
-            "substitute_roles": "",
-            "show_cpr_no": true,
-            "show_user_key_in_search": false,
-            "extension_field_ui_labels": "",
-            "show_engagement_hyperlink": false,
-            "show_seniority": false
-          }
+          "orgunit": {}
         },
         "parent": null,
         "org": {

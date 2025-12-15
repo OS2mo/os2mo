@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import pytest
 from fastapi.testclient import TestClient
-from tests.util import set_get_configuration
 
 org_unit_type_facet = {
     "description": "",
@@ -33,7 +32,6 @@ def test_nonexistent_at(service_client: TestClient):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-@set_get_configuration("mora.service.shimmed.org_unit.get_configuration")
 def test_get(service_client: TestClient):
     response = service_client.request(
         "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/"
@@ -86,7 +84,6 @@ def test_get_with_counts(service_client: TestClient):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-@set_get_configuration("mora.service.orgunit.get_configuration")
 def test_ou_details(service_client: TestClient):
     response = service_client.request(
         "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/details/org_unit"
@@ -245,7 +242,6 @@ def test_get_children_invalid(service_client: TestClient):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-@set_get_configuration("mora.service.shimmed.org_unit.get_configuration")
 def test_read_root(service_client: TestClient):
     response = service_client.request(
         "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/"
