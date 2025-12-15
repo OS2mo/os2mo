@@ -222,28 +222,11 @@ class Settings(BaseSettings):
     lora_auth_realm: str = "lora"
     lora_auth_server: AnyHttpUrl = "http://keycloak:8080/auth"
 
-    # ConfDB settings
-    confdb_show_roles: bool = True
-    confdb_show_kle: bool = False
-    confdb_show_user_key: bool = True
-    confdb_show_location: bool = True
-    confdb_show_time_planning: bool = False
-    confdb_show_level: bool = True
-    confdb_show_primary_engagement: bool = False
-    confdb_show_primary_association: bool = False
+    # MO allows "fictitious" birthdates in CPR numbers, if this is set to False
+    cpr_validate_birthdate: bool = True
 
-    # Show the refresh button for org-units
-    confdb_show_org_unit_button: bool = False
-    confdb_inherit_manager: bool = True
-    confdb_association_dynamic_facets: str = ""
+    # ConfDB settings
     confdb_substitute_roles: list[UUID] = Field(default_factory=list)
-    confdb_show_cpr_no: bool = Field(
-        True, description="Make CPR number visible under the Employee tab"
-    )
-    confdb_show_user_key_in_search: bool = False
-    confdb_extension_field_ui_labels: str = ""
-    confdb_show_seniority: bool = False
-    confdb_show_custom_logo: str = ""
 
     # Autocomplete: use new API? Requires LoRa 1.13 or later.
     # See #38239.
@@ -255,35 +238,8 @@ class Settings(BaseSettings):
     # matching organisation unit.
     confdb_autocomplete_attrs_orgunit: list[UUID] | None
 
-    # MO allows "fictitious" birthdates in CPR numbers, if this is set to False
-    cpr_validate_birthdate: bool = True
-
-    # MO UI displays an "IT associations" tab for employees, if this is set to True
-    show_it_associations_tab: bool = False
-
     # MO displays access address in organiasation-address-autocomplete-endpoint.
     dar_address_autocomplete_includes_access_addresses: bool = True
-
-    # MO disables/enables IT System Entry form-fields when in edit mode.
-    confdb_it_system_entry_edit_fields_disabled: bool = False
-
-    # The flag is used by the frontend to hide employee association columns in the details table
-    # Ex. CONFDB_EMPLOYEE_HIDE_ASSOCIATION_COLUMNS=["org_unit", "third_party_association_type"]
-    confdb_employee_hide_association_columns: list[str] | None
-
-    # This flag fixes the datepicker using different timezones, resulting in choosing
-    # 1 day before the picked date. This feature-flag is temporary,
-    # until feature is accepted by customers.
-    confdb_datepicker_fix_timezone: bool = False
-
-    # This flag shows the birthday of an employee in the search bar
-    confdb_show_employee_birthday_in_search: bool = False
-
-    # This flag makes the search-bar use GraphQL
-    confdb_use_graphql_search: bool = False
-
-    # If flag is set, it will be possible to pick OrgUnit hierarchy for the new units
-    confdb_org_unit_hierarchy_in_create: bool = False
 
     # If set to "False", autocomplete_v2 will use new sqlalchemy models + GraphQL
     confdb_autocomplete_v2_use_legacy: bool = True
@@ -312,7 +268,6 @@ def get_public_settings() -> set[str]:
         "commit_sha",
         "environment",
         "navlinks",
-        "show_it_associations_tab",
         "keycloak_rbac_enabled",
         "enable_sp",
     }
