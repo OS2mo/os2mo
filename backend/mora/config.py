@@ -227,9 +227,6 @@ class Settings(BaseSettings):
     # MO allows "fictitious" birthdates in CPR numbers, if this is set to False
     cpr_validate_birthdate: bool = True
 
-    # MO displays access address in organiasation-address-autocomplete-endpoint.
-    dar_address_autocomplete_includes_access_addresses: bool = True
-
     def is_production(self) -> bool:
         """Return whether we are running in a production environment."""
         return self.environment is Environment.PRODUCTION

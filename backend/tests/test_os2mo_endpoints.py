@@ -38,7 +38,6 @@ service_api_endpoints = {
     "/service/keycloak.json",
     "/service/o/",
     "/service/o/{orgid}/",
-    "/service/o/{orgid}/address_autocomplete/",
     "/service/o/{orgid}/e/",
     "/service/o/{orgid}/f/",
     "/service/o/{orgid}/f/{facet}/",

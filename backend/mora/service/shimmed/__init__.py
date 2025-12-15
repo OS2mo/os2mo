@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from . import address
 from . import cpr
 from . import details
 from . import employee
@@ -12,7 +11,6 @@ from . import org
 from . import org_unit
 
 __all__ = [
-    "address",
     "cpr",
     "employee",
     "exports",
