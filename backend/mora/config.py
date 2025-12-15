@@ -224,21 +224,11 @@ class Settings(BaseSettings):
 
     confdb_substitute_roles: list[UUID] = Field(default_factory=list)
 
-    # List of class UUIDs whose title and value will be displayed for each
-    # matching employee.
-    confdb_autocomplete_attrs_employee: list[UUID] | None
-    # List of class UUIDs whose title and value will be displayed for each
-    # matching organisation unit.
-    confdb_autocomplete_attrs_orgunit: list[UUID] | None
-
     # MO allows "fictitious" birthdates in CPR numbers, if this is set to False
     cpr_validate_birthdate: bool = True
 
     # MO displays access address in organiasation-address-autocomplete-endpoint.
     dar_address_autocomplete_includes_access_addresses: bool = True
-
-    # If set to "False", autocomplete_v2 will use new sqlalchemy models + GraphQL
-    confdb_autocomplete_v2_use_legacy: bool = True
 
     def is_production(self) -> bool:
         """Return whether we are running in a production environment."""

@@ -694,21 +694,3 @@ def query_to_search_phrase(query: str):
     # Make spaces "wildcards" so you can search for e.g. FirstName LastName and
     # still match if a person has a middlename.
     return f"%{'%'.join(query.split(' '))}%"
-
-
-def is_detail_unpublished(
-    detail_value: str, detail_type_published_attr: str | None = None
-):
-    """Checks if a mo details have been un-published (IkkePubliceret)
-
-    Starts by checking if the detail_attr "published", if set.
-    Afterward, if not already un-published, it checks the required detail value as a fallback.
-
-    OBS: We use a fallback, since the detail "itusers.itsystem" does not have a "published" concept.
-    """
-    if (
-        detail_type_published_attr and detail_type_published_attr == "IkkePubliceret"
-    ):  # pragma: no cover
-        return True
-
-    return detail_value == "-"

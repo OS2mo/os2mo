@@ -22,8 +22,6 @@ from mora.db import AccessLogOperation
 from mora.db import AccessLogRead
 from mora.db import AsyncSession
 from mora.graphapi.versions.latest.access_log import AccessLogModel
-from mora.service.autocomplete.employees import search_employees
-from mora.service.autocomplete.orgunits import search_orgunits
 from mora.util import DEFAULT_TIMEZONE
 from more_itertools import flatten
 from more_itertools import one
@@ -143,41 +141,6 @@ async def test_access_log_graphql_self(
     assert new_result["actor"] == str(await admin_auth_uuid())
     assert new_result["model"] == "ACCESS_LOG"
     assert new_result["uuids"] == [old_result["id"]]
-
-
-@pytest.mark.integration_test
-async def test_search_employees(
-    empty_db: AsyncSession, set_settings: MonkeyPatch
-) -> None:
-    set_settings(ACCESS_LOG_ENABLE="True")
-
-    await assert_empty_access_log_tables(empty_db)
-
-    results = await search_employees(empty_db, "")
-    assert results == []
-
-    await assert_one_access_log_entry(
-        empty_db, "Bruger", "search_employees", arguments={"at": None, "query": ""}
-    )
-
-
-@pytest.mark.integration_test
-async def test_search_orgunits(
-    empty_db: AsyncSession, set_settings: MonkeyPatch
-) -> None:
-    set_settings(ACCESS_LOG_ENABLE="True")
-
-    await assert_empty_access_log_tables(empty_db)
-
-    results = await search_orgunits(empty_db, "")
-    assert results == []
-
-    await assert_one_access_log_entry(
-        empty_db,
-        "OrganisationEnhed",
-        "search_orgunits",
-        arguments={"at": None, "query": ""},
-    )
 
 
 simple_text = st.text(alphabet=st.characters(whitelist_categories=("L",)), min_size=1)
