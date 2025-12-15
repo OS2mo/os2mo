@@ -22,7 +22,7 @@ logger = get_logger()
 
 
 async def _get_employee_uuid_via_it_system(
-    it_system: UUID, it_user_key: UUID | str
+    it_system: UUID, it_external_id: UUID | str
 ) -> UUID:
     """Return the employee UUID of the related it user.
 
@@ -31,8 +31,8 @@ async def _get_employee_uuid_via_it_system(
     """
 
     query = """
-    query GetEmployeeUUIDFromItUser($user_keys: [String!]!, $itsystem_uuids: [UUID!]!) {
-      itusers(filter: {itsystem_uuids: $itsystem_uuids, user_keys: $user_keys}) {
+    query GetEmployeeUUIDFromItUser($filter: ITUserFilter!) {
+      itusers(filter: $filter) {
         objects {
           current {
             employee_uuid
@@ -44,7 +44,12 @@ async def _get_employee_uuid_via_it_system(
     r = await execute_graphql(
         query,
         variable_values=jsonable_encoder(
-            {"user_keys": it_user_key, "itsystem_uuids": it_system}
+            {
+                "filter": {
+                    "itsystem": {"uuids": [it_system]},
+                    "external_ids": [it_external_id],
+                }
+            },
         ),
     )
     if r.errors or r.data is None:  # pragma: no cover
