@@ -22,11 +22,20 @@ services:
     restart: unless-stopped
 
   frontend_new_static:
-    image: magentaaps/os2mo-naldo:2
+    image: magentaaps/os2mo-naldo:3
     environment:
       PUBLIC_BASE_URL: http://localhost:5000
-      PUBLIC_GRAPHQL_VERSION: graphql/v3
-      ORIGIN: http://localhost:5000
+      PUBLIC_SHOW_ADMIN_PANEL: "true"
+      PUBLIC_SHOW_INSIGHTS: "true"
+      PUBLIC_AUDITLOG: "true"
+      PUBLIC_SHOW_ROLEBINDINGS: "true"
+      PUBLIC_SHOW_KLE: "true"
+      PUBLIC_SHOW_TIME_PLANNING: "true"
+      PUBLIC_SHOW_PRIMARY_ENGAGEMENT: "true"
+      PUBLIC_SHOW_PRIMARY_ASSOCIATION: "true"
+      PUBLIC_SHOW_IT_ASSOCIATIONS_TAB: "true"
+      PUBLIC_SHOW_EMPLOYEE_BIRTHDAY_IN_SEARCH: "true"
+      PUBLIC_ONBOARDING_LINK: "true"
     restart: unless-stopped
 
   mo:
