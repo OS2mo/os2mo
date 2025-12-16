@@ -15,7 +15,6 @@ import copy
 import enum
 import locale
 import logging
-from datetime import date
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -31,11 +30,8 @@ from more_itertools import unzip
 
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import get_lora_object
-from mora.service.util import get_configuration
 
 from .. import common
-from .. import config
-from .. import depends
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -44,7 +40,6 @@ from ..graphapi.middleware import is_graphql
 from ..handler.reading import get_handler_for_type
 from ..lora import LoraObjectType
 from ..triggers import Trigger
-from . import autocomplete
 from . import facet
 from . import handlers
 from . import org
@@ -492,20 +487,7 @@ async def get_one_orgunit(
                 r[mapping.LOCATION] = ""
 
             if details is UnitDetails.FULL:
-                settings = {}
-                local_settings = {}
-
-                settings.update(local_settings)
-                if parent:
-                    parent_settings = parent[mapping.USER_SETTINGS]["orgunit"]
-                    for setting, value in parent_settings.items():
-                        settings.setdefault(setting, value)
-
-                global_settings = await get_configuration()
-                for setting, value in global_settings.items():
-                    settings.setdefault(setting, value)
-
-                r[mapping.USER_SETTINGS] = {"orgunit": settings}
+                r[mapping.USER_SETTINGS] = {"orgunit": {}}
 
     elif details is UnitDetails.SELF:  # pragma: no cover
         r[mapping.ORG] = await org.get_configured_organisation()
@@ -562,36 +544,6 @@ async def get_one_orgunit(
         r["%s_count" % key] = await reader.get_count(c, "ou", unitid)
 
     return r
-
-
-@router.get("/ou/autocomplete/")
-async def autocomplete_orgunits(
-    session: depends.Session,
-    query: str,
-    at: date | None = Query(
-        None,
-        description='The "at date" to use, e.g. `2020-01-31`. '
-        "Results are only included if they are active at the specified date.",
-    ),
-):
-    settings = config.get_settings()
-
-    # Use LEGACY
-    if settings.confdb_autocomplete_v2_use_legacy:
-        logger.debug("using autocomplete_orgunits_v2 legacy")
-        return await autocomplete.get_results(
-            "organisationsenhed", settings.confdb_autocomplete_attrs_orgunit, query
-        )
-
-    logger.debug("using autocomplete_orgunits_v2 new")
-    search_results = await autocomplete.search_orgunits(session, query, at)
-
-    # Decorate search results with data through GraphQL
-    return {
-        "items": await autocomplete.decorate_orgunit_search_result(
-            settings, search_results, at
-        )
-    }
 
 
 @router.get("/ou/ancestor-tree")

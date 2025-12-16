@@ -12,7 +12,6 @@ from mora.service import orgunit as service_orgunit
 from more_itertools import one
 
 from tests.cases import assert_registrations_equal
-from tests.util import set_get_configuration
 
 from . import util
 
@@ -688,44 +687,43 @@ async def test_create_org_unit(service_client: TestClient) -> None:
     org_unit_type_department_without_published = deepcopy(org_unit_type_department)
     org_unit_type_department_without_published.pop("published")
 
-    with set_get_configuration("mora.service.shimmed.org_unit.get_configuration"):
-        response = service_client.request("GET", f"/service/ou/{unitid}/")
-        assert response.status_code == 200
-        assert response.json() == {
-            "location": "Overordnet Enhed",
-            "name": "Fake Corp",
+    response = service_client.request("GET", f"/service/ou/{unitid}/")
+    assert response.status_code == 200
+    assert response.json() == {
+        "location": "Overordnet Enhed",
+        "name": "Fake Corp",
+        "org": org,
+        "org_unit_level": {
+            "example": None,
+            "facet": org_unit_level_facet,
+            "name": "Niveau 10",
+            "full_name": "Niveau 10",
+            "owner": None,
+            "scope": None,
+            "top_level_facet": org_unit_level_facet,
+            "user_key": "orgunitlevel10",
+            "uuid": "0f015b67-f250-43bb-9160-043ec19fad48",
+        },
+        "time_planning": org_unit_type_institute_without_published,
+        "org_unit_type": org_unit_type_institute_without_published,
+        "parent": {
+            "location": "",
+            "name": "Overordnet Enhed",
             "org": org,
-            "org_unit_level": {
-                "example": None,
-                "facet": org_unit_level_facet,
-                "name": "Niveau 10",
-                "full_name": "Niveau 10",
-                "owner": None,
-                "scope": None,
-                "top_level_facet": org_unit_level_facet,
-                "user_key": "orgunitlevel10",
-                "uuid": "0f015b67-f250-43bb-9160-043ec19fad48",
-            },
-            "time_planning": org_unit_type_institute_without_published,
-            "org_unit_type": org_unit_type_institute_without_published,
-            "parent": {
-                "location": "",
-                "name": "Overordnet Enhed",
-                "org": org,
-                "org_unit_level": None,
-                "org_unit_type": org_unit_type_department_without_published,
-                "parent": None,
-                "time_planning": None,
-                "user_key": "root",
-                "user_settings": {"orgunit": {}},
-                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "validity": {"from": "2016-01-01", "to": None},
-            },
-            "user_key": unitid,
+            "org_unit_level": None,
+            "org_unit_type": org_unit_type_department_without_published,
+            "parent": None,
+            "time_planning": None,
+            "user_key": "root",
             "user_settings": {"orgunit": {}},
-            "uuid": unitid,
-            "validity": {"from": "2016-02-04", "to": "2017-10-21"},
-        }
+            "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+            "validity": {"from": "2016-01-01", "to": None},
+        },
+        "user_key": unitid,
+        "user_settings": {"orgunit": {}},
+        "uuid": unitid,
+        "validity": {"from": "2016-02-04", "to": "2017-10-21"},
+    }
 
 
 @pytest.mark.integration_test
@@ -1469,7 +1467,6 @@ past_org_unit = {
     ],
 )
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@set_get_configuration("mora.service.orgunit.get_configuration")
 def test_org_unit_temporality(
     service_client: TestClient, params: dict[str, Any], expected: list[dict[str, Any]]
 ) -> None:
@@ -1877,7 +1874,6 @@ def test_edit_org_unit_should_fail_validation_when_end_before_start(
     ],
 )
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@set_get_configuration("mora.service.orgunit.get_configuration")
 def test_terminate_org_unit(
     service_client: TestClient,
     inactive_validity: dict[str, str],

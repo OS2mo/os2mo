@@ -1023,6 +1023,7 @@ async def organisation_unit_resolver_query(
 
     # Query search
     if filter.query:
+        # TODO: do this in-line instead...
         query = query.where(
             OrganisationEnhedRegistrering.organisationenhed_id.in_(
                 search_orgunits_query(filter.query)

@@ -37,8 +37,6 @@ from oio_rest import custom_exceptions as loraexc
 from oio_rest import klassifikation
 from oio_rest import organisation
 from oio_rest.db import _parse_timestamp
-from oio_rest.mo.autocomplete import find_org_units_matching
-from oio_rest.mo.autocomplete import find_users_matching
 from sqlalchemy.exc import DataError
 from starlette_context import context
 from starlette_context import request_cycle_context
@@ -48,7 +46,6 @@ from structlog import get_logger
 from . import config
 from . import exceptions
 from . import util
-from .db import get_session
 from .graphapi.middleware import is_graphql
 
 T = TypeVar("T")
@@ -780,26 +777,6 @@ class Scope(BaseScope):
             lambda a: self.connector.is_range_relevant(*a),  # noqa: FURB111
             effects,
         )
-
-
-class AutocompleteScope(BaseScope):
-    def __init__(self, connector, path):  # pragma: no cover
-        self.connector = connector
-        if path == "bruger":
-            self.autocomplete = find_users_matching
-        elif path == "organisationsenhed":
-            self.autocomplete = find_org_units_matching
-        else:
-            raise ValueError(f'{path} must be "bruger" or "organisationsenhed')
-
-    async def fetch(
-        self, phrase: str, class_uuids: list[UUID] | None = None
-    ) -> dict[str, Any]:  # pragma: no cover
-        with lora_to_mo_exception():
-            items = await self.autocomplete(
-                get_session(), phrase, class_uuids=class_uuids
-            )
-            return {"items": items}
 
 
 def get_effects(obj: dict, relevant: dict, additional: dict = None):

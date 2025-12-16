@@ -198,7 +198,6 @@ def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(
         "/service/o/00000000-0000-0000-0000-000000000000/it/",
         "/service/o/",
         "/service/ou/00000000-0000-0000-0000-000000000000/children",
-        "/service/ou/00000000-0000-0000-0000-000000000000/configuration",
     ],
 )
 async def test_auth_service(raw_client: TestClient, url: str) -> None:

@@ -4,15 +4,6 @@ import asyncio
 from datetime import date
 from uuid import UUID
 
-from fastapi.encoders import jsonable_encoder
-from sqlalchemy import String
-from sqlalchemy import Text
-from sqlalchemy import cast
-from sqlalchemy.sql import func
-from sqlalchemy.sql import select
-from sqlalchemy.sql import union
-
-from mora import config
 from mora import util
 from mora.access_log import access_log
 from mora.db import AsyncSession
@@ -22,15 +13,18 @@ from mora.db import BrugerRelation
 from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
-from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.paged import CursorType
 from mora.graphapi.versions.latest.paged import LimitType
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 from mora.service.autocomplete.shared import get_at_date_sql
-from mora.service.autocomplete.shared import get_graphql_equivalent_by_uuid
 from mora.service.autocomplete.shared import read_sqlalchemy_result
 from mora.service.autocomplete.shared import string_to_urn
-from mora.service.util import handle_gql_error
+from sqlalchemy import String
+from sqlalchemy import Text
+from sqlalchemy import cast
+from sqlalchemy.sql import func
+from sqlalchemy.sql import select
+from sqlalchemy.sql import union
 
 
 async def search_employees(
@@ -70,138 +64,6 @@ async def search_employees(
     uuids = [employee.uuid for employee in result]
     access_log(session, "search_employees", "Bruger", {"query": query, "at": at}, uuids)
     return uuids
-
-
-async def decorate_employee_search_result(
-    settings: config.Settings, search_results: list[UUID], at: date | None
-):
-    graphql_vars = {"uuids": search_results}
-    employee_decorate_query = """
-        query EmployeeDecorate($uuids: [UUID!]) {
-            employees(filter: { uuids: $uuids, from_date: null, to_date: null }) {
-                objects {
-                    uuid
-
-                    objects {
-                        ...employee_details
-                    }
-                }
-            }
-        }
-
-        fragment employee_details on Employee {
-            uuid
-            user_key
-            cpr_no
-            name
-            givenname
-            surname
-            nickname
-            nickname_givenname
-            nickname_surname
-
-            validity {
-                from
-                to
-            }
-        }
-    """
-
-    if settings.confdb_autocomplete_attrs_employee:
-        employee_decorate_query = """
-            query EmployeeDecorate($uuids: [UUID!]) {
-                employees(filter: { uuids: $uuids, from_date: null, to_date: null }) {
-                    objects {
-                        uuid
-
-                        objects {
-                            ...employee_details
-                        }
-                    }
-                }
-            }
-
-            fragment employee_details on Employee {
-                uuid
-                user_key
-                cpr_no
-                name
-                givenname
-                surname
-                nickname
-                nickname_givenname
-                nickname_surname
-
-                validity {
-                    from
-                    to
-                }
-
-                engagements(filter: {from_date: null, to_date: null}) {
-                    uuid
-                    user_key
-                    engagement_type(filter: {from_date: null, to_date: null}) {
-                        uuid
-                        name
-                        published
-                    }
-                }
-
-                addresses(filter: {from_date: null, to_date: null}) {
-                    uuid
-                    user_key
-                    value
-                    address_type(filter: {from_date: null, to_date: null}) {
-                        uuid
-                        name
-                        published
-                    }
-                }
-
-                associations(filter: {from_date: null, to_date: null}){
-                    uuid
-                    user_key
-                    association_type(filter: {from_date: null, to_date: null}) {
-                        uuid
-                        name
-                        published
-                    }
-                }
-
-                itusers(filter: {from_date: null, to_date: null}) {
-                    uuid
-                    user_key
-                    itsystem(filter: {from_date: null, to_date: null}){
-                        uuid
-                        name
-                    }
-                }
-            }
-        """
-
-    response = await execute_graphql(
-        employee_decorate_query,
-        variable_values=jsonable_encoder(graphql_vars),
-    )
-    handle_gql_error(response)
-
-    decorated_result = []
-    for employee_uuid in search_results:
-        graphql_equivalent = get_graphql_equivalent_by_uuid(
-            response.data["employees"]["objects"], employee_uuid, at
-        )
-        if not graphql_equivalent:  # pragma: no cover
-            continue
-
-        decorated_result.append(
-            {
-                "uuid": employee_uuid,
-                "name": graphql_equivalent["name"],
-                "attrs": _gql_get_employee_attrs(settings, graphql_equivalent),
-            }
-        )
-
-    return decorated_result
 
 
 async def _get_cte_uuid_hits(query: str):
@@ -309,102 +171,3 @@ async def _get_cte_user_key_hits(query: str):
         )
         .cte()
     )
-
-
-def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
-    attrs = []
-
-    for engagement in gql_employee.get("engagements", []):
-        uuid = engagement["uuid"]
-        value = engagement["user_key"]
-        engagement_type = engagement.get("engagement_type")
-        if (
-            not engagement_type
-            or UUID(engagement_type["uuid"])
-            not in settings.confdb_autocomplete_attrs_employee
-        ):  # pragma: no cover
-            continue
-
-        if util.is_detail_unpublished(
-            value, engagement_type.get("published")
-        ) or util.is_uuid(value):
-            continue
-
-        attrs.append(
-            {
-                "uuid": UUID(uuid),
-                "title": engagement_type["name"],
-                "value": value,
-            }
-        )
-
-    for address in gql_employee.get("addresses", []):
-        uuid = address["uuid"]
-        value = address["value"]
-        addr_type = address.get("address_type")
-        if (
-            not addr_type
-            or UUID(addr_type["uuid"])
-            not in settings.confdb_autocomplete_attrs_employee
-        ):
-            continue
-
-        if util.is_detail_unpublished(
-            value, addr_type.get("published")
-        ) or util.is_uuid(value):  # pragma: no cover
-            continue
-
-        attrs.append(
-            {
-                "uuid": UUID(uuid),
-                "title": addr_type["name"],
-                "value": value,
-            }
-        )
-
-    for assoc in gql_employee.get("associations", []):
-        uuid = assoc["uuid"]
-        value = assoc["user_key"]
-        assoc_type = assoc.get("association_type")
-        if (
-            not assoc_type
-            or UUID(assoc_type["uuid"])
-            not in settings.confdb_autocomplete_attrs_employee
-        ):  # pragma: no cover
-            continue
-
-        if util.is_detail_unpublished(
-            value, assoc_type.get("published")
-        ) or util.is_uuid(value):
-            continue
-
-        attrs.append(
-            {
-                "uuid": UUID(uuid),
-                "title": assoc_type["name"],
-                "value": value,
-            }
-        )
-
-    for ituser in gql_employee.get("itusers", []):
-        uuid = ituser["uuid"]
-        value = ituser["user_key"]
-        itsystem = ituser.get("itsystem")
-        if (
-            not itsystem
-            or UUID(itsystem["uuid"]) not in settings.confdb_autocomplete_attrs_employee
-        ):  # pragma: no cover
-            continue
-
-        if util.is_detail_unpublished(value):  # pragma: no cover
-            continue
-
-        attrs.append(
-            {
-                "uuid": UUID(uuid),
-                "title": itsystem["name"],
-                "value": value,
-            }
-        )
-
-    return attrs

@@ -462,22 +462,3 @@ def set_settings_contextmanager(**kwargs: Any) -> Iterator[None]:
         get_settings.cache_clear()
         yield
     get_settings.cache_clear()
-
-
-@contextlib.contextmanager
-def set_get_configuration(
-    get_configuration_path: str, configuration: dict[str, Any] | None = None
-) -> Iterator[None]:
-    """Contextmanager which makes get_configuration return the provided dict.
-
-    Args:
-        configuration: The configuration dict to return.
-
-    Yields:
-        None
-    """
-    configuration = configuration or {}
-
-    with patch(get_configuration_path) as mock:
-        mock.return_value = configuration
-        yield
