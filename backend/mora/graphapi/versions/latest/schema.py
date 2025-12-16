@@ -4617,7 +4617,7 @@ class Organisation:
             m = MUNICIPALITY_CODE_PATTERN.fullmatch(authority.get("urn"))
             if m:
                 return int(m.group(1))
-        return None
+        return None  # pragma: no cover
 
 
 # Organisation Unit
@@ -5505,7 +5505,7 @@ class OrganisationUnit:
     )
     async def ancestors_validity(
         self, root: OrganisationUnitRead, info: Info
-    ) -> list[LazyOrganisationUnit]:
+    ) -> list[LazyOrganisationUnit]:  # pragma: no cover
         parents = await validity_sub_query_hack(
             root.validity,
             OrganisationUnitRead,

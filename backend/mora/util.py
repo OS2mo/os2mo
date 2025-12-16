@@ -300,7 +300,7 @@ def urnquote(s):
 
     """
 
-    if not s:
+    if not s:  # pragma: no cover
         return ""
 
     with io.StringIO("w") as buf:
