@@ -34,7 +34,7 @@ async def http_process_uuid(
     event: Event[LDAPUUID],
 ) -> None:
     uuid = event.subject
-    logger.info("Received LDAP AMQP event", uuid=uuid)
+    logger.info("Received LDAP event", uuid=uuid)
 
     if uuid in settings.ldap_uuids_to_ignore:
         logger.warning("LDAP event ignored due to ignore-list", ldap_uuid=uuid)
@@ -74,7 +74,7 @@ async def http_reconcile_uuid(
     event: Event[LDAPUUID],
 ) -> None:
     uuid = event.subject
-    logger.info("Received LDAP AMQP event (Reconcile)", uuid=uuid)
+    logger.info("Received LDAP event (Reconcile)", uuid=uuid)
 
     if uuid in settings.ldap_uuids_to_ignore:
         logger.warning("LDAP event ignored due to ignore-list", ldap_uuid=uuid)

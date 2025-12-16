@@ -1002,7 +1002,7 @@ async def refresh(
     collection: str,
     uuids: set[UUID],
 ) -> None:
-    """Send events for the provided UUIDs on both AMQP and GraphQL Events."""
+    """Send GraphQL events for the provided UUIDs."""
     # This is a noop according to the typing, but it's actually required
     # because the input is from jinja, and thus not type-checkable.
     collection = parse_obj_as(str, collection)
