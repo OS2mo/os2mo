@@ -56,7 +56,6 @@ services:
       FASTRAMQPI__DAP: "false"
 
       # MO
-      FASTRAMQPI__AMQP__URL: "amqp://guest:guest@msg-broker"
       FASTRAMQPI__AUTH_SERVER: "http://keycloak:8080/auth"
       FASTRAMQPI__MO_URL: "http://mo:5000"
       FASTRAMQPI__CLIENT_ID: "dipex"

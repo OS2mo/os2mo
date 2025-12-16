@@ -213,11 +213,11 @@ async def get_primary_engagement(
     # If there is validities, but none of them are primary, we need to wait for
     # calculate_primary to determine which validities are supposed to be primary.
     # TODO: Consider if we actually care to wait, we could just return `None` and
-    #       notify that there is no primary while waiting for another AMQP message
-    #       to come in, whenever calculate_primary has made changes.
+    #       notify that there is no primary while waiting for another event to
+    #       come in, whenever calculate_primary has made changes.
     #       This however requires the engagement listener to actually trigger all
     #       code-paths that may end up calling this function.
-    #       So for now we play it safe and keep this AMQP event around by requeuing.
+    #       So for now we play it safe and keep this event around by requeuing.
     if validities and not primary_validities:
         logger.info(
             "Waiting for primary engagement to be decided",
