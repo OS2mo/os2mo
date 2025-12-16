@@ -26,8 +26,10 @@ from sqlalchemy import cast
 from sqlalchemy import distinct
 from sqlalchemy import exists
 from sqlalchemy import func
+from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy.sql.functions import now as SQLNOW
+from sqlalchemy.types import Text
 from starlette_context import context
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
@@ -57,7 +59,6 @@ from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.graphapi.gmodels.mo.details import OwnerRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 from mora.service.autocomplete.employees import search_employees
-from mora.service.autocomplete.orgunits import search_orgunits_query
 
 from ...custom_schema import get_version
 from ...middleware import with_graphql_dates
@@ -1040,11 +1041,27 @@ async def organisation_unit_resolver_query(
 
     # Query search
     if filter.query:
-        # TODO: do this in-line instead...
+        search_phrase = util.query_to_search_phrase(filter.query)
         query = query.where(
-            OrganisationEnhedRegistrering.organisationenhed_id.in_(
-                search_orgunits_query(filter.query)
-            )
+            or_(
+                cast(OrganisationEnhedRegistrering.organisationenhed_id, Text)
+                == filter.query,
+                OrganisationEnhedRegistrering.id.in_(
+                    select(
+                        OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
+                    ).where(
+                        or_(
+                            OrganisationEnhedAttrEgenskaber.brugervendtnoegle.ilike(
+                                search_phrase
+                            ),
+                            OrganisationEnhedAttrEgenskaber.enhedsnavn.ilike(
+                                search_phrase
+                            ),
+                        ),
+                        _virkning(OrganisationEnhedAttrEgenskaber),
+                    )
+                ),
+            ),
         )
 
     # Pagination. Must be done here since the generic_resolver (lora) does not support
