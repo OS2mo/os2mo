@@ -79,10 +79,11 @@ variables:
         KC_DB_URL_HOST: mox-db
         KC_DB_USERNAME: mox
         KC_DB_PASSWORD: mox
-      # Since GitLab CI doesn't support multiple services on the same port,
-      # we cannot (easily) run a separate postgres for keycloak. Override to use
-      # in-memory instead.
-      command: ["start", "-Dkeycloak.saml.deprecated.encryption=true", "--db=dev-mem"]
+      # Since GitLab CI doesn't support multiple services on the same port, we
+      # cannot (easily) run a separate postgres for keycloak. Override to use
+      # file-based database instead, since in-memory one might not work
+      # properly: https://github.com/keycloak/keycloak/issues/13252.
+      command: ["start", "-Dkeycloak.saml.deprecated.encryption=true", "--db=dev-file"]
     - name: magentaaps/os2mo-keycloak-realm-builder:7  # please also update docker-compose
       variables:
         # Since GitLab CI doesn't support multiple services on the same port,
