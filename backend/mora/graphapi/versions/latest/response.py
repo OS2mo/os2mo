@@ -106,7 +106,11 @@ class Response(Generic[MOObject]):
         permission_classes=[IsAuthenticatedPermission],
     )
     async def current(
-        self, root: "Response", info: Info, at: datetime | None = UNSET
+        self,
+        root: "Response",
+        info: Info,
+        at: datetime | None = UNSET,
+        registration_time: datetime | None = None,
     ) -> MOObject | None:
         def active_now(obj: Any) -> bool:
             """Predicate on whether the object is active right now.
@@ -136,7 +140,9 @@ class Response(Generic[MOObject]):
             return obj.validity.to_date
 
         if at:
-            objects = await Response.validities(self, root, info, at, UNSET)
+            objects = await Response.validities(
+                self, root, info, at, UNSET, registration_time
+            )
             return only(objects)
 
         # TODO: This should really do its own instantaneous query to find whatever is
@@ -179,8 +185,11 @@ class Response(Generic[MOObject]):
         info: Info,
         start: datetime | None = UNSET,
         end: datetime | None = UNSET,
+        registration_time: datetime | None = None,
     ) -> list[MOObject]:
-        objects = await Response.validities(self, root, info, start, end)
+        objects = await Response.validities(
+            self, root, info, start, end, registration_time
+        )
         return objects
 
     @strawberry.field(
@@ -205,13 +214,19 @@ class Response(Generic[MOObject]):
         info: Info,
         start: datetime | None = UNSET,
         end: datetime | None = UNSET,
+        registration_time: datetime | None = None,
     ) -> list[MOObject]:
-        if start is UNSET and end is UNSET and root.object_cache != UNSET:
+        if (
+            start is UNSET
+            and end is UNSET
+            and registration_time is None
+            and root.object_cache != UNSET
+        ):
             return root.object_cache
         # If the object cache has not been filled we must resolve objects using the uuid
         resolver = resolver_map[root.model]["loader"]
         dataloader = info.context[resolver]
-        return await dataloader.load(LoadKey(root.uuid, start, end))
+        return await dataloader.load(LoadKey(root.uuid, start, end, registration_time))
 
     # TODO: Implement using a dataloader
     registrations: list[Registration] = strawberry.field(

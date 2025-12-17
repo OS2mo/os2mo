@@ -118,15 +118,18 @@ async def load_mo(keys: list[LoadKey], model: type[MOModel]) -> list[list[MOMode
         uuids: list[UUID],
         start: datetime | UnsetType | None,
         end: datetime | UnsetType | None,
+        registration_time: datetime | None,
     ) -> list[MOModel]:
         dates = get_date_interval(start, end)
         with with_graphql_dates(dates):
-            results = await get_role_type_by_uuid(mo_type, uuids)
+            results = await get_role_type_by_uuid(mo_type, uuids, registration_time)
         parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore[valid-type]
         return parsed_results
 
     # Group keys by start/end intervals to allowing batching request(s) to LoRa
-    interval_buckets = bucket(keys, key=lambda key: (key.start, key.end))
+    interval_buckets = bucket(
+        keys, key=lambda key: (key.start, key.end, key.registration_time)
+    )
     gets = [
         get([key.uuid for key in interval_buckets[interval]], *interval)
         for interval in interval_buckets

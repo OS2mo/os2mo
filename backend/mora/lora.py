@@ -431,6 +431,7 @@ class Scope(BaseScope):
                     "virkningtil",
                     "registreretfra",
                     "registrerettil",
+                    "registreringstid",
                 }
             )
 
@@ -632,12 +633,16 @@ class Scope(BaseScope):
     async def get_all_by_uuid(
         self,
         uuids: list | set,
+        registration_time: datetime | None = None,
     ) -> Iterable[tuple[str, dict[Any, Any]]]:
         """
         Get a list of objects by their UUIDs.
         Returns an iterator of tuples (obj_id, obj) of all matches.
         """
-        ret = await self.load(uuid=uuids)
+        kwargs = {}
+        if registration_time is not None:
+            kwargs["registreringstid"] = registration_time.isoformat()
+        ret = await self.load(uuid=uuids, **kwargs)
         return filter_registrations(response=ret, wantregs=False)
 
     async def paged_get(

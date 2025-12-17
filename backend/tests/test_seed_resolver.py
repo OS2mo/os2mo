@@ -38,13 +38,17 @@ async def dummy_resolver(
 @pytest.mark.parametrize(
     "seeds,expected_filter_fields",
     [
-        ({}, {"uuids", "user_keys", "from_date", "to_date"}),
-        ({"uuids": lambda _: 1}, {"user_keys", "from_date", "to_date"}),
+        ({}, {"uuids", "user_keys", "from_date", "to_date", "registration_time"}),
+        (
+            {"uuids": lambda _: 1},
+            {"user_keys", "from_date", "to_date", "registration_time"},
+        ),
         (
             {
                 "user_keys": lambda _: ["test"],
                 "from_date": lambda _: 1,
                 "to_date": lambda _: 2,
+                "registration_time": lambda _: 3,
             },
             {"uuids"},
         ),

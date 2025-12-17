@@ -56,6 +56,10 @@ class BaseFilter:
         default=UNSET,
         description="Limit the elements returned by their ending validity.",
     )
+    registration_time: datetime | None = strawberry.field(
+        default=None,
+        description="Show elements as they were at the provided registration time",
+    )
 
 
 @strawberry.input
