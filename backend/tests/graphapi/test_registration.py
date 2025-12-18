@@ -1,15 +1,21 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import time
+from collections.abc import Callable
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
+from uuid import UUID
 from uuid import uuid4
 
 import pytest
 from fastapi.encoders import jsonable_encoder
 from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
+from mora.mapping import ADMIN
 from more_itertools import one
+
+from tests.conftest import GraphAPIPost
+from tests.conftest import SetAuth
 
 
 @pytest.mark.integration_test
@@ -258,3 +264,42 @@ def test_read_registration_dates_filter(graphapi_post) -> None:
     assert registrations(r1_end + ms, None) == [r2]
     # TODO: tests on boundary-values are difficult to do as long as now() is handled
     # by LoRa templates and cannot be injected.
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_registration_actor_object(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    create_person: Callable[..., UUID],
+) -> None:
+    read_query = """
+        query ReadActorRegistration($uuid: UUID!) {
+          registrations(filter: {uuids: [$uuid]}) {
+            objects {
+              actor_object {
+                display_name
+                uuid
+              }
+            }
+          }
+        }
+    """
+    person_uuid = str(create_person())
+
+    response = graphapi_post(read_query, {"uuid": person_uuid})
+    assert response.errors is None
+    assert response.data
+    registration = one(response.data["registrations"]["objects"])
+    assert registration["actor_object"]["display_name"] == "bruce"
+    actor_uuid = registration["actor_object"]["uuid"]
+
+    # This should update MOs database next time it parses a token.
+    set_auth(ADMIN, actor_uuid, preferred_username="brucerino")
+
+    response = graphapi_post(read_query, {"uuid": person_uuid})
+    assert response.errors is None
+    assert response.data
+    registration = one(response.data["registrations"]["objects"])
+    assert registration["actor_object"]["display_name"] == "brucerino"
+    assert registration["actor_object"]["uuid"] == actor_uuid

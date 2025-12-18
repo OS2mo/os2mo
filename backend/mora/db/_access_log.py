@@ -8,6 +8,7 @@ from sqlalchemy import JSON
 from sqlalchemy import DateTime
 from sqlalchemy import ForeignKey
 from sqlalchemy import String
+from sqlalchemy import Text
 from sqlalchemy import Uuid
 from sqlalchemy import text
 from sqlalchemy.orm import Mapped
@@ -16,6 +17,14 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from ._common import Base
+
+
+# We keep this table ajour by updating it when we resolve JWT
+class Actor(Base):
+    __tablename__ = "actor"
+
+    actor: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
 
 
 class AccessLogOperation(Base):

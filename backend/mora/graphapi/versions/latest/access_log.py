@@ -21,6 +21,8 @@ from mora.db import AsyncSession
 
 from ..latest.filters import gen_filter_string
 from ..latest.filters import gen_filter_table
+from .actor import Actor
+from .actor import actor_uuid_to_actor
 from .paged import CursorType
 from .paged import LimitType
 from .resolvers import get_sqlalchemy_date_interval
@@ -119,8 +121,19 @@ class AccessLog:
         Currently mostly returns `"42c432e8-9c4a-11e6-9f62-873cf34a735f"`.
         Will eventually contain for the UUID of the integration or user who mutated data, based on the JWT token.
         """
+        ),
+        deprecation_reason="Use actor_object.",
+    )
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            Object for the actor (integration or user) who changed the data.
+            """
         )
     )
+    async def actor_object(self, root: "AccessLog", info: Info) -> Actor:
+        return actor_uuid_to_actor(root.actor)
 
     # Name of the entity model
     model: AccessLogModel = strawberry.field(

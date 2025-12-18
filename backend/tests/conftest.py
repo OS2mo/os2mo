@@ -211,7 +211,7 @@ def admin_token_getter() -> Callable[[], Awaitable[Token]]:
     return get_fake_admin_token
 
 
-SetAuth = Callable[[str | None, UUID | str | None], None]
+SetAuth = Callable[[str | None, UUID | str | None, str], None]
 
 
 @pytest.fixture
@@ -220,7 +220,11 @@ def set_auth(
 ) -> SetAuth:
     """Set authentication token used by GraphAPIPost."""
 
-    def _set_auth(role: str | None = None, user_uuid: UUID | str | None = None) -> None:
+    def _set_auth(
+        role: str | None = None,
+        user_uuid: UUID | str | None = None,
+        preferred_username: str = "bruce",
+    ) -> None:
         token_data = {
             "acr": "1",
             "allowed-origins": ["http://localhost:5001"],
@@ -234,7 +238,7 @@ def set_auth(
             "iss": "http://localhost:8081/auth/realms/mo",
             "jti": "25dbb58d-b3cb-4880-8b51-8b92ada4528a",
             "name": "Bruce Lee",
-            "preferred_username": "bruce",
+            "preferred_username": preferred_username,
             "scope": "email profile",
             "session_state": "d94f8dc3-d930-49b3-a9dd-9cdc1893b86a",
             "sub": "c420894f-36ba-4cd5-b4f8-1b24bd8c53db",
@@ -295,6 +299,8 @@ class FakeDatabaseSession:
             async def noop(): ...
 
             return noop
+        elif attr == "under_testing_with_fake_db":
+            return True
         else:
             pytest.fail("This test is not connected to a database")
 

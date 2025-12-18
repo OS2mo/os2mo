@@ -22,6 +22,7 @@ from . import files
 from ._amqp import AMQPSubsystem
 from ._access_log import AccessLogOperation
 from ._access_log import AccessLogRead
+from ._access_log import Actor
 from ._bruger import Bruger
 from ._bruger import BrugerAttrEgenskaber
 from ._bruger import BrugerAttrUdvidelser
@@ -151,6 +152,10 @@ class AsyncSessionWithLock(AsyncSession):
             original = getattr(self, method)
             wrapped = with_lock()(original)
             setattr(self, method, wrapped)
+
+    @property
+    def under_testing_with_fake_db(self):
+        return False
 
 
 def create_sessionmaker(user, password, host, name) -> async_sessionmaker:

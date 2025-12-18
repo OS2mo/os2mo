@@ -30,6 +30,8 @@ from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRegistrering
 from mora.util import parsedatetime
 
+from .actor import Actor
+from .actor import actor_uuid_to_actor
 from .filters import RegistrationFilter
 from .paged import CursorType
 from .paged import LimitType
@@ -101,8 +103,19 @@ class Registration:
         Currently mostly returns `"42c432e8-9c4a-11e6-9f62-873cf34a735f"`.
         Will eventually contain for the UUID of the integration or user who mutated data, based on the JWT token.
         """
+        ),
+        deprecation_reason="Use actor_object.",
+    )
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            Object for the actor (integration or user) who changed the data.
+            """
         )
     )
+    def actor_object(self, root: "Registration", info: Info) -> Actor:
+        return actor_uuid_to_actor(root.actor)
 
     # Name of the entity model
     model: str = strawberry.field(
