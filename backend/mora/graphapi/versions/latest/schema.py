@@ -51,6 +51,7 @@ from mora.graphapi.middleware import with_graphql_dates
 from mora.graphapi.versions.latest.readers import _extract_search_params
 from mora.handler.reading import ReadingHandler
 from mora.handler.reading import get_handler_for_type
+from mora.service import org
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
 from mora.service.address_handler.base import AddressHandler
@@ -4631,12 +4632,7 @@ class Organisation:
     description="Organisation unit within the organisation tree",
 )
 class OrganisationUnit:
-    parent_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(
-            model=OrganisationUnitRead, uuid=root.parent_uuid
-        )
-        if root.parent_uuid
-        else None,
+    @strawberry.field(
         description=dedent(
             """\
             The parent organisation unit in the organisation tree.
@@ -4644,6 +4640,16 @@ class OrganisationUnit:
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
+    async def parent_response(
+        self, root: OrganisationUnitRead
+    ) -> Response[LazyOrganisationUnit] | None:
+        # Root units aren't actually at the root, but have the special "org"
+        # UUID as parent. That's confusing. Remove it.
+        if root.parent_uuid is None:
+            return None
+        if root.parent_uuid == await org.get_configured_organisation_uuid():
+            return None
+        return Response(model=OrganisationUnitRead, uuid=root.parent_uuid)  # type: ignore
 
     parent: LazyOrganisationUnit | None = strawberry.field(
         resolver=to_arbitrary_only(
@@ -5458,10 +5464,27 @@ class OrganisationUnit:
         return root.org_unit_hierarchy
 
     @strawberry.field(
+        name="parent_uuid",
         description="UUID of the parent organisation unit.",
         deprecation_reason=gen_uuid_field_deprecation("parent"),
+        metadata=Metadata(version=lambda v: v <= GraphQLVersion.VERSION_25),
     )
-    async def parent_uuid(self, root: OrganisationUnitRead) -> UUID | None:
+    async def parent_uuid__v25(self, root: OrganisationUnitRead) -> UUID | None:
+        return root.parent_uuid
+
+    @strawberry.field(
+        name="parent_uuid",
+        description="UUID of the parent organisation unit.",
+        deprecation_reason=gen_uuid_field_deprecation("parent"),
+        metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_26),
+    )
+    async def parent_uuid__v26(self, root: OrganisationUnitRead) -> UUID | None:
+        # Root units aren't actually at the root, but have the special "org"
+        # UUID as parent. That's confusing. Remove it.
+        if root.parent_uuid is None:
+            return None
+        if root.parent_uuid == await org.get_configured_organisation_uuid():
+            return None
         return root.parent_uuid
 
     @strawberry.field(
