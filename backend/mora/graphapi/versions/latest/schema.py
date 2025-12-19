@@ -4631,19 +4631,18 @@ class Organisation:
     description="Organisation unit within the organisation tree",
 )
 class OrganisationUnit:
-    parent_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(
-            model=OrganisationUnitRead, uuid=root.parent_uuid
-        )
-        if root.parent_uuid
-        else None,
-        description=dedent(
-            """\
-            The parent organisation unit in the organisation tree.
-            """
-        ),
+    @strawberry.field(
+        description="The parent organisation unit in the organisation tree.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
+    async def parent_response(
+        self, root: OrganisationUnitRead
+    ) -> Response[LazyOrganisationUnit] | None:
+        return (
+            Response(model=OrganisationUnitRead, uuid=root.parent_uuid)
+            if root.parent_uuid
+            else None
+        )
 
     parent: LazyOrganisationUnit | None = strawberry.field(
         resolver=to_arbitrary_only(
