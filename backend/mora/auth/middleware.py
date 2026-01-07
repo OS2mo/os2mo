@@ -75,7 +75,12 @@ async def set_authenticated_user(
             await session.execute(
                 insert(Actor)
                 .values(actor=uuid, name=name)
-                .on_conflict_do_update(index_elements=["actor"], set_={"name": name})
+                .on_conflict_do_update(
+                    index_elements=["actor"],
+                    set_={"name": name},
+                    # Only update if actually different
+                    where=(Actor.name != name),
+                )
             )
     except Exception:
         uuid = UNABLE_TO_PARSE_TOKEN_UUID
