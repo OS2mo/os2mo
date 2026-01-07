@@ -294,8 +294,15 @@ async def test_registration_actor_object(
     assert registration["actor_object"]["display_name"] == "bruce"
     actor_uuid = registration["actor_object"]["uuid"]
 
-    # This should update MOs database next time it parses a token.
     set_auth(ADMIN, actor_uuid, preferred_username="brucerino")
+    # Actor names are updated on mutations
+    response = graphapi_post("""
+    mutation RandomMutation {
+      facet_create(input: {user_key: "Example", validity: {from: "2021-01-01"}}) {
+        uuid
+      }
+    }
+    """)
 
     response = graphapi_post(read_query, {"uuid": person_uuid})
     assert response.errors is None

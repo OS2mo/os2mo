@@ -14,10 +14,12 @@ from strawberry import Schema
 from strawberry.exceptions import StrawberryGraphQLError
 from strawberry.extensions import SchemaExtension
 from strawberry.schema.config import StrawberryConfig
+from strawberry.types.graphql import OperationType
 from strawberry.utils.await_maybe import AsyncIteratorOrIterator
 from structlog import get_logger
 
 from mora import config
+from mora.db import Actor
 from mora.db import get_session
 from mora.exceptions import HTTPException
 from mora.graphapi.custom_schema import CustomSchema
@@ -32,6 +34,7 @@ from mora.graphapi.versions.latest.schema import DefaultAddress
 from mora.graphapi.versions.latest.schema import MultifieldAddress
 from mora.graphapi.versions.latest.types import CPRType
 from mora.log import canonical_gql_context
+from mora.log import canonical_log_context
 from mora.util import CPR
 
 logger = get_logger()
@@ -71,6 +74,14 @@ class LogContextExtension(SchemaExtension):
         yield
         if self.execution_context.errors:
             canonical_gql_context()["errors"] = self.execution_context.errors
+
+
+class ActorNameExtension(SchemaExtension):
+    async def on_operation(self) -> AsyncIterator[None]:
+        yield
+        if self.execution_context.operation_type == OperationType.MUTATION:
+            actor = canonical_log_context()["actor"]
+            await Actor.save_actor_if_needed(**actor)
 
 
 class RuntimeContextExtension(SchemaExtension):
@@ -137,6 +148,7 @@ def get_schema(version: Version) -> CustomSchema:
             LogContextExtension,
             RuntimeContextExtension,
             RollbackOnError,
+            ActorNameExtension,
             ExtendedErrorFormatExtension,
             IntrospectionQueryCacheExtension,
         ],

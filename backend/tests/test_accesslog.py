@@ -255,7 +255,7 @@ async def test_access_log_filters(
             async def get_token() -> Token:
                 return Token(azp="mo", uuid=access_event["actor"])
 
-            async for _ in set_authenticated_user(..., session, get_token):
+            async for _ in set_authenticated_user(get_token):
                 # TODO: Set time somehow
                 access_log(
                     session,
@@ -490,8 +490,15 @@ async def test_accesslog_actor_object(
     for obj in response.data["access_log"]["objects"]:
         assert obj["actor_object"] == {"display_name": "bruce", "uuid": bruce_uuid}
 
-    # This should update MOs database next time it parses a token.
     set_auth(ADMIN, bruce_uuid, preferred_username="new name")
+    # Actor names are updated on mutations
+    response = graphapi_post("""
+    mutation RandomMutation {
+      facet_create(input: {user_key: "Example", validity: {from: "2021-01-01"}}) {
+        uuid
+      }
+    }
+    """)
 
     response = graphapi_post(read_query, {"uuid": person_uuid})
     assert response.errors is None

@@ -11,6 +11,7 @@ from sqlalchemy import String
 from sqlalchemy import Text
 from sqlalchemy import Uuid
 from sqlalchemy import text
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
@@ -19,12 +20,40 @@ from sqlalchemy.sql import func
 from ._common import Base
 
 
-# We keep this table ajour by updating it when we resolve JWT
+# We keep this table ajour by updating it on mutations
 class Actor(Base):
     __tablename__ = "actor"
 
     actor: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
     name: Mapped[str] = mapped_column(Text, nullable=False)
+
+    @staticmethod
+    async def save_actor(session, uuid: UUID, name: str):
+        await session.execute(
+            insert(Actor)
+            .values(actor=uuid, name=name)
+            .on_conflict_do_update(
+                index_elements=["actor"],
+                set_={"name": name},
+                # Only update if actually different
+                where=(Actor.name != name),
+            )
+        )
+
+    @staticmethod
+    async def save_actor_if_needed(uuid: UUID | None, name: str | None):
+        if uuid is None:
+            return
+        if name is None:
+            return
+
+        from mora.db import get_session
+
+        session = get_session()
+        if session.under_testing_with_fake_db:
+            return
+
+        await Actor.save_actor(session, uuid, name)
 
 
 class AccessLogOperation(Base):
