@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Strawberry type for chosing validity."""
+from functools import wraps
 
 from datetime import datetime
 from textwrap import dedent
@@ -82,6 +83,25 @@ def model2name(model: Any) -> Any:
 )
 class Response(Generic[MOObject]):
     uuid: UUID = strawberry.field(description="UUID of the bitemporal object")
+
+    @classmethod
+    def __class_getitem__(cls, item):
+        import inspect
+        # 1. Inspect what is being passed in []
+        # item might be a tuple if multiple generics, so handle that
+        arg = item[0] if isinstance(item, tuple) else item
+
+        # 2. Check if it's a raw class (BAD) vs a LazyType/String (GOOD)
+        # We assume 'arg' should be a LazyType or a ForwardRef string, NOT a direct class
+        is_raw_class = inspect.isclass(arg) and not isinstance(arg, LazyType)
+        
+        if is_raw_class:
+            print(f"🚨 FOUND EAGER REFERENCE: Response[{arg.__name__}]")
+            # You can uncomment the next line to get a full stack trace to see WHERE it is
+            # raise ValueError(f"Stop! You forgot to make {arg.__name__} lazy!")
+            
+        return super().__class_getitem__(item)
+
 
     # Object cache is a temporary workaround ensuring that current resolvers keep
     # working as-is while also allowing for lazy resolution based entirely on the UUID.

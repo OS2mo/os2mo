@@ -1,6 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import strawberry
+from typing import Any
+from strawberry import Info
+from datetime import datetime
+from strawberry import UNSET
 from .schema import KLE, Association, Employee, Engagement, Facet, ITUser, Leave, Manager, OrganisationUnit, Owner, RelatedUnit
 from .schema import ITSystem
 from .schema import RoleBinding
@@ -31,7 +35,13 @@ class ClassRegistration(ModelRegistration[Class]):
 
 @strawberry.type
 class PersonRegistration(ModelRegistration[Employee]):
-    pass
+    async def current(
+        self,
+        root: Any,
+        info: Info,
+        at: datetime | None = UNSET,
+    ) -> Employee | None:
+        return None
 
 
 @strawberry.type

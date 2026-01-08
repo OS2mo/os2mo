@@ -6,6 +6,7 @@ from typing import Any
 from typing import TypeVar
 from uuid import UUID
 
+from .lazy import LazyAddress
 import strawberry
 from starlette_context import context
 from strawberry.types import Info
@@ -69,25 +70,25 @@ from .resolvers import owner_resolver
 from .resolvers import related_unit_resolver
 from .resolvers import rolebinding_resolver
 from .response import Response
-from .schema import KLE
-from .schema import Address
-from .schema import Association
-from .schema import Class
-from .schema import Employee
-from .schema import Engagement
-from .schema import Facet
 from .schema import File
 from .schema import Health
-from .schema import ITSystem
-from .schema import ITUser
-from .schema import Leave
-from .schema import Manager
 from .schema import Organisation
-from .schema import OrganisationUnit
-from .schema import Owner
-from .schema import RelatedUnit
-from .schema import RoleBinding
 from .schema import Version
+from .lazy import LazyKLE
+from .lazy import LazyAddress
+from .lazy import LazyAssociation
+from .lazy import LazyClass
+from .lazy import LazyEmployee
+from .lazy import LazyEngagement
+from .lazy import LazyFacet
+from .lazy import LazyITSystem
+from .lazy import LazyITUser
+from .lazy import LazyLeave
+from .lazy import LazyManager
+from .lazy import LazyOrganisationUnit
+from .lazy import LazyOwner
+from .lazy import LazyRelatedUnit
+from .lazy import LazyRoleBinding
 
 T = TypeVar("T")
 
@@ -183,7 +184,7 @@ class Query:
 
     # Addresses
     # ---------
-    addresses: Paged[Response[Address]] = strawberry.field(
+    addresses: Paged[Response[LazyAddress]] = strawberry.field(
         resolver=to_paged_response(address_resolver, AddressRead),
         description="Get addresses.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
@@ -191,7 +192,7 @@ class Query:
 
     # Associations
     # ------------
-    associations: Paged[Response[Association]] = strawberry.field(
+    associations: Paged[Response[LazyAssociation]] = strawberry.field(
         resolver=to_paged_response(association_resolver, AssociationRead),
         description="Get associations.",
         permission_classes=[
@@ -202,7 +203,7 @@ class Query:
 
     # Classes
     # -------
-    classes: Paged[Response[Class]] = strawberry.field(
+    classes: Paged[Response[LazyClass]] = strawberry.field(
         resolver=to_paged_response(class_resolver, ClassRead),
         description="Get classes.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -210,13 +211,13 @@ class Query:
 
     # Employees
     # ---------
-    employees: Paged[Response[Employee]] = strawberry.field(
+    employees: Paged[Response[LazyEmployee]] = strawberry.field(
         resolver=to_paged_response(employee_resolver, EmployeeRead),
         description="Get employees.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
         deprecation_reason="Use 'persons' instead. Will be removed in a future version of OS2mo.",
     )
-    persons: Paged[Response[Employee]] = strawberry.field(
+    persons: Paged[Response[LazyEmployee]] = strawberry.field(
         resolver=to_paged_response(employee_resolver, EmployeeRead),
         description="Get persons.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
@@ -224,7 +225,7 @@ class Query:
 
     # Engagements
     # -----------
-    engagements: Paged[Response[Engagement]] = strawberry.field(
+    engagements: Paged[Response[LazyEngagement]] = strawberry.field(
         resolver=to_paged_response(engagement_resolver, EngagementRead),
         description="Get engagements.",
         permission_classes=[
@@ -235,7 +236,7 @@ class Query:
 
     # Facets
     # ------
-    facets: Paged[Response[Facet]] = strawberry.field(
+    facets: Paged[Response[LazyFacet]] = strawberry.field(
         resolver=to_paged_response(facet_resolver, FacetRead),
         description="Get facets.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
@@ -243,7 +244,7 @@ class Query:
 
     # ITSystems
     # ---------
-    itsystems: Paged[Response[ITSystem]] = strawberry.field(
+    itsystems: Paged[Response[LazyITSystem]] = strawberry.field(
         resolver=to_paged_response(it_system_resolver, ITSystemRead),
         description="Get it-systems.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
@@ -251,7 +252,7 @@ class Query:
 
     # ITUsers
     # -------
-    itusers: Paged[Response[ITUser]] = strawberry.field(
+    itusers: Paged[Response[LazyITUser]] = strawberry.field(
         resolver=to_paged_response(it_user_resolver, ITUserRead),
         description="Get it-users.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
@@ -259,7 +260,7 @@ class Query:
 
     # KLEs
     # ----
-    kles: Paged[Response[KLE]] = strawberry.field(
+    kles: Paged[Response[LazyKLE]] = strawberry.field(
         resolver=to_paged_response(kle_resolver, KLERead),
         description="Get kles.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("kle")],
@@ -267,7 +268,7 @@ class Query:
 
     # Leave
     # -----
-    leaves: Paged[Response[Leave]] = strawberry.field(
+    leaves: Paged[Response[LazyLeave]] = strawberry.field(
         resolver=to_paged_response(leave_resolver, LeaveRead),
         description="Get leaves.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
@@ -275,7 +276,7 @@ class Query:
 
     # Managers
     # --------
-    managers: Paged[Response[Manager]] = strawberry.field(
+    managers: Paged[Response[LazyManager]] = strawberry.field(
         resolver=to_paged_response(manager_resolver, ManagerRead),
         description="Get manager roles.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
@@ -283,7 +284,7 @@ class Query:
 
     # Owners
     # ------
-    owners: Paged[Response[Owner]] = strawberry.field(
+    owners: Paged[Response[LazyOwner]] = strawberry.field(
         resolver=to_paged_response(owner_resolver, OwnerRead),
         description="Get owners.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("owner")],
@@ -291,7 +292,7 @@ class Query:
 
     # Organisational Units
     # --------------------
-    org_units: Paged[Response[OrganisationUnit]] = strawberry.field(
+    org_units: Paged[Response[LazyOrganisationUnit]] = strawberry.field(
         resolver=to_paged_response(organisation_unit_resolver, OrganisationUnitRead),
         description="Get organisation units.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
@@ -299,7 +300,7 @@ class Query:
 
     # Related Units
     # -------------
-    related_units: Paged[Response[RelatedUnit]] = strawberry.field(
+    related_units: Paged[Response[LazyRelatedUnit]] = strawberry.field(
         resolver=to_paged_response(related_unit_resolver, RelatedUnitRead),
         description="Get related organisation units.",
         permission_classes=[
@@ -310,7 +311,7 @@ class Query:
 
     # Roles
     # -----
-    rolebindings: Paged[Response[RoleBinding]] = strawberry.field(
+    rolebindings: Paged[Response[LazyRoleBinding]] = strawberry.field(
         resolver=to_paged_response(rolebinding_resolver, RoleBindingRead),
         description="Get role-mappings.",
         permission_classes=[

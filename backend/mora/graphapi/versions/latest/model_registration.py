@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Any
 import strawberry
 from strawberry import Info
 from .moobject import MOObject
@@ -28,9 +27,5 @@ class ModelRegistration(Registration, Generic[MOObject]):
         return True
 
     @strawberry.field
-    async def current(
-        self,
-        root: Any,
-        info: Info,
-    ) -> MOObject | None:
-        return None
+    async def current(self) -> str:
+        return "DEBUG TIME"

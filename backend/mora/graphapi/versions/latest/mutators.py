@@ -8,6 +8,7 @@ from typing import Annotated
 from typing import Any
 from uuid import UUID
 
+from .lazy import LazyAddress
 import sqlalchemy
 import strawberry
 from fastramqpi.ra_utils.asyncio_utils import gather_with_concurrency
@@ -211,7 +212,23 @@ from .schema import Organisation
 from .schema import OrganisationUnit
 from .schema import Owner
 from .schema import RelatedUnit
-from .schema import RoleBinding
+from .lazy import LazyKLE
+from .lazy import LazyAddress
+from .lazy import LazyAssociation
+from .lazy import LazyClass
+from .lazy import LazyEmployee
+from .lazy import LazyEngagement
+from .lazy import LazyFacet
+from .lazy import LazyITSystem
+from .lazy import LazyITUser
+from .lazy import LazyLeave
+from .lazy import LazyManager
+from .lazy import LazyOrganisationUnit
+from .lazy import LazyOwner
+from .lazy import LazyRelatedUnit
+from .lazy import LazyRoleBinding
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -274,7 +291,7 @@ class Mutation:
             gen_create_permission("address"),
         ],
     )
-    async def address_create(self, input: AddressCreateInput) -> Response[Address]:
+    async def address_create(self, input: AddressCreateInput) -> Response[LazyAddress]:
         return uuid2response(await create_address(input.to_pydantic()), AddressRead)  # type: ignore
 
     @strawberry.mutation(
@@ -286,7 +303,7 @@ class Mutation:
     )
     async def addresses_create(
         self, input: list[AddressCreateInput]
-    ) -> list[Response[Address]]:
+    ) -> list[Response[LazyAddress]]:
         created_addresses = await asyncio.gather(
             *[Mutation.address_create(self, address) for address in input]
         )
@@ -299,7 +316,7 @@ class Mutation:
             gen_update_permission("address"),
         ],
     )
-    async def address_update(self, input: AddressUpdateInput) -> Response[Address]:
+    async def address_update(self, input: AddressUpdateInput) -> Response[LazyAddress]:
         return uuid2response(await update_address(input.to_pydantic()), AddressRead)  # type: ignore
 
     @strawberry.mutation(
@@ -311,7 +328,7 @@ class Mutation:
     )
     async def address_terminate(
         self, input: AddressTerminateInput
-    ) -> Response[Address]:
+    ) -> Response[LazyAddress]:
         return uuid2response(await terminate_address(input.to_pydantic()), AddressRead)  # type: ignore
 
     @strawberry.mutation(
@@ -321,7 +338,7 @@ class Mutation:
             gen_delete_permission("address"),
         ],
     )
-    async def address_delete(self, uuid: UUID) -> Response[Address]:
+    async def address_delete(self, uuid: UUID) -> Response[LazyAddress]:
         return uuid2response(await delete_organisationfunktion(uuid), AddressRead)
 
     @strawberry.mutation(
@@ -374,7 +391,7 @@ class Mutation:
     )
     async def association_create(
         self, input: AssociationCreateInput
-    ) -> Response[Association]:
+    ) -> Response[LazyAssociation]:
         return uuid2response(
             await create_association(input.to_pydantic()),  # type: ignore
             AssociationRead,
@@ -389,7 +406,7 @@ class Mutation:
     )
     async def association_update(
         self, input: AssociationUpdateInput
-    ) -> Response[Association]:
+    ) -> Response[LazyAssociation]:
         return uuid2response(
             await update_association(input.to_pydantic()),  # type: ignore
             AssociationRead,
@@ -404,7 +421,7 @@ class Mutation:
     )
     async def association_terminate(
         self, input: AssociationTerminateInput
-    ) -> Response[Association]:
+    ) -> Response[LazyAssociation]:
         return uuid2response(
             await terminate_association(input.to_pydantic()), AssociationRead
         )
@@ -461,7 +478,7 @@ class Mutation:
     )
     async def class_create(
         self, info: Info, input: ClassCreateInput
-    ) -> Response[Class]:
+    ) -> Response[LazyClass]:
         org = await info.context["org_loader"].load(0)
         uuid = await create_class(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, ClassRead)
@@ -475,7 +492,7 @@ class Mutation:
     )
     async def class_update(
         self, info: Info, input: ClassUpdateInput
-    ) -> Response[Class]:
+    ) -> Response[LazyClass]:
         org = await info.context["org_loader"].load(0)
         uuid = await update_class(input.to_pydantic(), org.uuid)
         # coverage: pause
@@ -493,7 +510,7 @@ class Mutation:
     )
     async def class_terminate__v18(
         self, input: ClassTerminateInputV18
-    ) -> Response[Class]:
+    ) -> Response[LazyClass]:
         return await Mutation.class_terminate(
             self,
             input=ClassTerminateInput(
@@ -511,7 +528,7 @@ class Mutation:
         ],
         metadata=Metadata(version=lambda v: v >= Version.VERSION_19),
     )
-    async def class_terminate(self, input: ClassTerminateInput) -> Response[Class]:
+    async def class_terminate(self, input: ClassTerminateInput) -> Response[LazyClass]:
         return uuid2response(await terminate_class(input.to_pydantic()), ClassRead)
 
     @strawberry.mutation(
@@ -521,7 +538,7 @@ class Mutation:
             gen_delete_permission("class"),
         ],
     )
-    async def class_delete(self, uuid: UUID) -> Response[Class]:
+    async def class_delete(self, uuid: UUID) -> Response[LazyClass]:
         uuid = await delete_class(uuid)
         # coverage: pause
         return uuid2response(uuid, ClassRead)
@@ -576,7 +593,7 @@ class Mutation:
             gen_create_permission("employee"),
         ],
     )
-    async def employee_create(self, input: EmployeeCreateInput) -> Response[Employee]:
+    async def employee_create(self, input: EmployeeCreateInput) -> Response[LazyEmployee]:
         return uuid2response(await create_employee(input.to_pydantic()), EmployeeRead)  # type: ignore
 
     @strawberry.mutation(
@@ -586,7 +603,7 @@ class Mutation:
             gen_update_permission("employee"),
         ],
     )
-    async def employee_update(self, input: EmployeeUpdateInput) -> Response[Employee]:
+    async def employee_update(self, input: EmployeeUpdateInput) -> Response[LazyEmployee]:
         return uuid2response(await update_employee(input.to_pydantic()), EmployeeRead)  # type: ignore
 
     @strawberry.mutation(
@@ -598,7 +615,7 @@ class Mutation:
     )
     async def employee_terminate(
         self, input: EmployeeTerminateInput
-    ) -> Response[Employee]:
+    ) -> Response[LazyEmployee]:
         return uuid2response(
             await terminate_employee(input.to_pydantic()), EmployeeRead
         )
@@ -610,7 +627,7 @@ class Mutation:
             gen_delete_permission("employee"),
         ],
     )
-    async def employee_delete(self, uuid: UUID) -> Response[Employee]:
+    async def employee_delete(self, uuid: UUID) -> Response[LazyEmployee]:
         return uuid2response(await delete_bruger(uuid), EmployeeRead)
 
     @strawberry.mutation(
@@ -666,7 +683,7 @@ class Mutation:
     )
     async def engagement_create(
         self, input: EngagementCreateInput
-    ) -> Response[Engagement]:
+    ) -> Response[LazyEngagement]:
         return uuid2response(
             await create_engagement(input.to_pydantic()),  # type: ignore
             EngagementRead,
@@ -681,7 +698,7 @@ class Mutation:
     )
     async def engagements_create(
         self, input: list[EngagementCreateInput]
-    ) -> list[Response[Engagement]]:
+    ) -> list[Response[LazyEngagement]]:
         created_engagements = await asyncio.gather(
             *[Mutation.engagement_create(self, engagement) for engagement in input]
         )
@@ -696,7 +713,7 @@ class Mutation:
     )
     async def engagement_update(
         self, input: EngagementUpdateInput
-    ) -> Response[Engagement]:
+    ) -> Response[LazyEngagement]:
         return uuid2response(
             await update_engagement(input.to_pydantic()),  # type: ignore
             EngagementRead,
@@ -722,7 +739,7 @@ class Mutation:
     )
     async def engagements_update(
         self, input: list[EngagementUpdateInput]
-    ) -> list[Response[Engagement]]:
+    ) -> list[Response[LazyEngagement]]:
         updated_engagements = await asyncio.gather(
             *[Mutation.engagement_update(self, engagement) for engagement in input]
         )
@@ -737,7 +754,7 @@ class Mutation:
     )
     async def engagement_terminate(
         self, input: EngagementTerminateInput
-    ) -> Response[Engagement]:
+    ) -> Response[LazyEngagement]:
         return uuid2response(
             await terminate_engagement(input.to_pydantic()), EngagementRead
         )
@@ -749,7 +766,7 @@ class Mutation:
             gen_delete_permission("engagement"),
         ],
     )
-    async def engagement_delete(self, uuid: UUID) -> Response[Engagement]:
+    async def engagement_delete(self, uuid: UUID) -> Response[LazyEngagement]:
         return uuid2response(await delete_organisationfunktion(uuid), EngagementRead)
 
     @strawberry.mutation(
@@ -802,7 +819,7 @@ class Mutation:
     )
     async def facet_create(
         self, info: Info, input: FacetCreateInput
-    ) -> Response[Facet]:
+    ) -> Response[LazyFacet]:
         org = await info.context["org_loader"].load(0)
         uuid = await create_facet(input.to_pydantic(), org.uuid)
         # coverage: pause
@@ -818,7 +835,7 @@ class Mutation:
     )
     async def facet_update(
         self, info: Info, input: FacetUpdateInput
-    ) -> Response[Facet]:
+    ) -> Response[LazyFacet]:
         org = await info.context["org_loader"].load(0)
         uuid = await update_facet(input.to_pydantic(), org.uuid)
         # coverage: pause
@@ -836,7 +853,7 @@ class Mutation:
     )
     async def facet_terminate__v18(
         self, input: FacetTerminateInputV18
-    ) -> Response[Facet]:
+    ) -> Response[LazyFacet]:
         return await Mutation.facet_terminate(
             self,
             input=FacetTerminateInput(
@@ -854,7 +871,7 @@ class Mutation:
         ],
         metadata=Metadata(version=lambda v: v >= Version.VERSION_19),
     )
-    async def facet_terminate(self, input: FacetTerminateInput) -> Response[Facet]:
+    async def facet_terminate(self, input: FacetTerminateInput) -> Response[LazyFacet]:
         return uuid2response(await terminate_facet(input.to_pydantic()), FacetRead)
 
     @strawberry.mutation(
@@ -864,7 +881,7 @@ class Mutation:
             gen_delete_permission("facet"),
         ],
     )
-    async def facet_delete(self, uuid: UUID) -> Response[Facet]:
+    async def facet_delete(self, uuid: UUID) -> Response[LazyFacet]:
         uuid = await delete_facet(uuid)
         # coverage: pause
         return uuid2response(uuid, FacetRead)
@@ -920,7 +937,7 @@ class Mutation:
     )
     async def itassociation_create(
         self, input: ITAssociationCreateInput
-    ) -> Response[Association]:
+    ) -> Response[LazyAssociation]:
         return uuid2response(
             await create_itassociation(input.to_pydantic()), AssociationRead
         )
@@ -934,7 +951,7 @@ class Mutation:
     )
     async def itassociation_update(
         self, input: ITAssociationUpdateInput
-    ) -> Response[Association]:
+    ) -> Response[LazyAssociation]:
         return uuid2response(
             await update_itassociation(input.to_pydantic()), AssociationRead
         )
@@ -948,7 +965,7 @@ class Mutation:
     )
     async def itassociation_terminate(
         self, input: ITAssociationTerminateInput
-    ) -> Response[Association]:
+    ) -> Response[LazyAssociation]:
         return uuid2response(
             await terminate_itassociation(input.to_pydantic()), AssociationRead
         )
@@ -964,7 +981,7 @@ class Mutation:
     )
     async def itsystem_create(
         self, info: Info, input: ITSystemCreateInput
-    ) -> Response[ITSystem]:
+    ) -> Response[LazyITSystem]:
         org = await info.context["org_loader"].load(0)
         uuid = await create_itsystem(input.to_pydantic(), org.uuid)
         # coverage: pause
@@ -980,7 +997,7 @@ class Mutation:
     )
     async def itsystem_update(
         self, info: Info, input: ITSystemUpdateInput
-    ) -> Response[ITSystem]:
+    ) -> Response[LazyITSystem]:
         org = await info.context["org_loader"].load(0)
         uuid = await update_itsystem(input.to_pydantic(), org.uuid)  # type: ignore
         # coverage: pause
@@ -998,7 +1015,7 @@ class Mutation:
     )
     async def itsystem_terminate__v18(
         self, input: ITSystemTerminateInputV18
-    ) -> Response[ITSystem]:
+    ) -> Response[LazyITSystem]:
         return await Mutation.itsystem_terminate(
             self,
             input=ITSystemTerminateInput(
@@ -1018,7 +1035,7 @@ class Mutation:
     )
     async def itsystem_terminate(
         self, input: ITSystemTerminateInput
-    ) -> Response[ITSystem]:
+    ) -> Response[LazyITSystem]:
         return uuid2response(await terminate_itsystem(input.to_pydantic()), ITUserRead)
 
     @strawberry.mutation(
@@ -1028,7 +1045,7 @@ class Mutation:
             gen_delete_permission("itsystem"),
         ],
     )
-    async def itsystem_delete(self, info: Info, uuid: UUID) -> Response[ITSystem]:
+    async def itsystem_delete(self, info: Info, uuid: UUID) -> Response[LazyITSystem]:
         note = ""
         uuid = await delete_itsystem(uuid, note)
         return uuid2response(uuid, ITSystemRead)
@@ -1081,7 +1098,7 @@ class Mutation:
             gen_create_permission("ituser"),
         ],
     )
-    async def ituser_create(self, input: ITUserCreateInput) -> Response[ITUser]:
+    async def ituser_create(self, input: ITUserCreateInput) -> Response[LazyITUser]:
         return uuid2response(await create_ituser(input.to_pydantic()), ITUserRead)
 
     @strawberry.mutation(
@@ -1093,7 +1110,7 @@ class Mutation:
     )
     async def itusers_create(
         self, input: list[ITUserCreateInput]
-    ) -> list[Response[ITUser]]:
+    ) -> list[Response[LazyITUser]]:
         created_itusers = await asyncio.gather(
             *[Mutation.ituser_create(self, ituser) for ituser in input]
         )
@@ -1106,7 +1123,7 @@ class Mutation:
             gen_update_permission("ituser"),
         ],
     )
-    async def ituser_update(self, input: ITUserUpdateInput) -> Response[ITUser]:
+    async def ituser_update(self, input: ITUserUpdateInput) -> Response[LazyITUser]:
         return uuid2response(await update_ituser(input.to_pydantic()), ITUserRead)
 
     @strawberry.mutation(
@@ -1118,7 +1135,7 @@ class Mutation:
     )
     async def ituser_terminate(
         self, input: ITUserTerminateInput
-    ) -> Response[ITUser]:  # pragma: no cover
+    ) -> Response[LazyITUser]:  # pragma: no cover
         return uuid2response(await terminate_ituser(input.to_pydantic()), ITUserRead)
 
     @strawberry.mutation(
@@ -1128,7 +1145,7 @@ class Mutation:
             gen_delete_permission("ituser"),
         ],
     )
-    async def ituser_delete(self, uuid: UUID) -> Response[ITUser]:
+    async def ituser_delete(self, uuid: UUID) -> Response[LazyITUser]:
         return uuid2response(await delete_organisationfunktion(uuid), ITUserRead)
 
     @strawberry.mutation(
@@ -1179,7 +1196,7 @@ class Mutation:
             gen_create_permission("kle"),
         ],
     )
-    async def kle_create(self, input: KLECreateInput) -> Response[KLE]:
+    async def kle_create(self, input: KLECreateInput) -> Response[LazyKLE]:
         return uuid2response(await create_kle(input.to_pydantic()), KLERead)
 
     @strawberry.mutation(
@@ -1189,7 +1206,7 @@ class Mutation:
             gen_create_permission("kle"),
         ],
     )
-    async def kle_update(self, input: KLEUpdateInput) -> Response[KLE]:
+    async def kle_update(self, input: KLEUpdateInput) -> Response[LazyKLE]:
         return uuid2response(await update_kle(input.to_pydantic()), KLERead)
 
     @strawberry.mutation(
@@ -1199,7 +1216,7 @@ class Mutation:
             gen_terminate_permission("kle"),
         ],
     )
-    async def kle_terminate(self, input: KLETerminateInput) -> Response[KLE]:
+    async def kle_terminate(self, input: KLETerminateInput) -> Response[LazyKLE]:
         return uuid2response(await terminate_kle(input.to_pydantic()), KLERead)
 
     # TODO: kle_delete
@@ -1252,7 +1269,7 @@ class Mutation:
             gen_create_permission("leave"),
         ],
     )
-    async def leave_create(self, input: LeaveCreateInput) -> Response[Leave]:
+    async def leave_create(self, input: LeaveCreateInput) -> Response[LazyLeave]:
         return uuid2response(await create_leave(input.to_pydantic()), LeaveRead)
 
     @strawberry.mutation(
@@ -1262,7 +1279,7 @@ class Mutation:
             gen_create_permission("leave"),
         ],
     )
-    async def leave_update(self, input: LeaveUpdateInput) -> Response[Leave]:
+    async def leave_update(self, input: LeaveUpdateInput) -> Response[LazyLeave]:
         return uuid2response(await update_leave(input.to_pydantic()), LeaveRead)
 
     @strawberry.mutation(
@@ -1272,7 +1289,7 @@ class Mutation:
             gen_terminate_permission("leave"),
         ],
     )
-    async def leave_terminate(self, input: LeaveTerminateInput) -> Response[Leave]:
+    async def leave_terminate(self, input: LeaveTerminateInput) -> Response[LazyLeave]:
         return uuid2response(await terminate_leave(input.to_pydantic()), LeaveRead)
 
     # TODO: leave_delete
@@ -1325,7 +1342,7 @@ class Mutation:
             gen_create_permission("manager"),
         ],
     )
-    async def manager_create(self, input: ManagerCreateInput) -> Response[Manager]:
+    async def manager_create(self, input: ManagerCreateInput) -> Response[LazyManager]:
         return uuid2response(await create_manager(input.to_pydantic()), ManagerRead)
 
     @strawberry.mutation(
@@ -1337,7 +1354,7 @@ class Mutation:
     )
     async def managers_create(
         self, input: list[ManagerCreateInput]
-    ) -> list[Response[Manager]]:
+    ) -> list[Response[LazyManager]]:
         created_managers = await asyncio.gather(
             *[Mutation.manager_create(self, manager) for manager in input]
         )
@@ -1350,7 +1367,7 @@ class Mutation:
             gen_update_permission("manager"),
         ],
     )
-    async def manager_update(self, input: ManagerUpdateInput) -> Response[Manager]:
+    async def manager_update(self, input: ManagerUpdateInput) -> Response[LazyManager]:
         return uuid2response(await update_manager(input.to_pydantic()), ManagerRead)
 
     @strawberry.mutation(
@@ -1362,7 +1379,7 @@ class Mutation:
     )
     async def manager_terminate(
         self, input: ManagerTerminateInput
-    ) -> Response[Manager]:
+    ) -> Response[LazyManager]:
         return uuid2response(await terminate_manager(input.to_pydantic()), ManagerRead)
 
     # TODO: manager_delete
@@ -1438,7 +1455,7 @@ class Mutation:
     )
     async def org_unit_create(
         self, input: OrganisationUnitCreateInput
-    ) -> Response[OrganisationUnit]:
+    ) -> Response[LazyOrganisationUnit]:
         return uuid2response(await create_org_unit(input), OrganisationUnitRead)
 
     @strawberry.mutation(
@@ -1450,7 +1467,7 @@ class Mutation:
     )
     async def org_unit_update(
         self, info: Info, input: OrganisationUnitUpdateInput
-    ) -> Response[OrganisationUnit]:
+    ) -> Response[LazyOrganisationUnit]:
         return uuid2response(
             await update_org_unit(version=get_version(info.schema), input=input),
             OrganisationUnitRead,
@@ -1465,7 +1482,7 @@ class Mutation:
     )
     async def org_unit_terminate(
         self, input: OrganisationUnitTerminateInput
-    ) -> Response[OrganisationUnit]:
+    ) -> Response[LazyOrganisationUnit]:
         return uuid2response(
             await terminate_org_unit(input.to_pydantic()), OrganisationUnitRead
         )
@@ -1520,7 +1537,7 @@ class Mutation:
             gen_create_permission("owner"),
         ],
     )
-    async def owner_create(self, input: OwnerCreateInput) -> Response[Owner]:
+    async def owner_create(self, input: OwnerCreateInput) -> Response[LazyOwner]:
         return uuid2response(await create_owner(input.to_pydantic()), OwnerRead)
 
     @strawberry.mutation(
@@ -1530,7 +1547,7 @@ class Mutation:
             gen_create_permission("owner"),
         ],
     )
-    async def owner_update(self, input: OwnerUpdateInput) -> Response[Owner]:
+    async def owner_update(self, input: OwnerUpdateInput) -> Response[LazyOwner]:
         return uuid2response(await update_owner(input.to_pydantic()), OwnerRead)
 
     @strawberry.mutation(
@@ -1540,7 +1557,7 @@ class Mutation:
             gen_create_permission("owner"),
         ],
     )
-    async def owner_terminate(self, input: OwnerTerminateInput) -> Response[Owner]:
+    async def owner_terminate(self, input: OwnerTerminateInput) -> Response[LazyOwner]:
         return uuid2response(await terminate_owner(input.to_pydantic()), OwnerRead)
 
     # TODO: owner_delete
@@ -1596,7 +1613,7 @@ class Mutation:
     )
     async def related_units_update(
         self, input: RelatedUnitsUpdateInput
-    ) -> Response[RelatedUnit]:
+    ) -> Response[LazyRelatedUnit]:
         return uuid2response(
             await update_related_units(input.to_pydantic()), RelatedUnitRead
         )
@@ -1652,7 +1669,7 @@ class Mutation:
     )
     async def rolebinding_create(
         self, input: RoleBindingCreateInput
-    ) -> Response[RoleBinding]:
+    ) -> Response[LazyRoleBinding]:
         return uuid2response(
             await create_rolebinding(input.to_pydantic()), RoleBindingRead
         )
@@ -1666,7 +1683,7 @@ class Mutation:
     )
     async def rolebindings_create(
         self, input: list[RoleBindingCreateInput]
-    ) -> list[Response[RoleBinding]]:
+    ) -> list[Response[LazyRoleBinding]]:
         created_rolebindings = await asyncio.gather(
             *[Mutation.rolebinding_create(self, rolebinding) for rolebinding in input]
         )
@@ -1681,7 +1698,7 @@ class Mutation:
     )
     async def rolebinding_update(
         self, input: RoleBindingUpdateInput
-    ) -> Response[RoleBinding]:
+    ) -> Response[LazyRoleBinding]:
         return uuid2response(
             await update_rolebinding(input.to_pydantic()), RoleBindingRead
         )
@@ -1695,7 +1712,7 @@ class Mutation:
     )
     async def rolebinding_terminate(
         self, input: RoleBindingTerminateInput
-    ) -> Response[RoleBinding]:
+    ) -> Response[LazyRoleBinding]:
         return uuid2response(
             await terminate_rolebinding(input.to_pydantic()), RoleBindingRead
         )
@@ -1707,7 +1724,7 @@ class Mutation:
             gen_delete_permission("rolebinding"),
         ],
     )
-    async def rolebinding_delete(self, uuid: UUID) -> Response[RoleBinding]:
+    async def rolebinding_delete(self, uuid: UUID) -> Response[LazyRoleBinding]:
         return uuid2response(await delete_organisationfunktion(uuid), RoleBindingRead)
 
     @strawberry.mutation(

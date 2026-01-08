@@ -67,20 +67,6 @@ from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .graphql_utils import LoadKey
 from .health import health_map
-from .lazy import LazyAddress
-from .lazy import LazyAssociation
-from .lazy import LazyClass
-from .lazy import LazyEmployee
-from .lazy import LazyEngagement
-from .lazy import LazyFacet
-from .lazy import LazyITSystem
-from .lazy import LazyITUser
-from .lazy import LazyKLE
-from .lazy import LazyLeave
-from .lazy import LazyManager
-from .lazy import LazyOrganisationUnit
-from .lazy import LazyRelatedUnit
-from .lazy import LazyRoleBinding
 from .models import AddressRead
 from .models import ClassRead
 from .models import FacetRead
@@ -488,7 +474,7 @@ async def _get_handler_object(root: AddressRead, info: Info) -> AddressHandler:
     ),
 )
 class Address:
-    address_type_response: Response[LazyClass] = strawberry.field(  # type: ignore
+    address_type_response: Response["Class"] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.address_type_uuid),
         description=dedent(
             """\
@@ -511,7 +497,7 @@ class Address:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    address_type: LazyClass = strawberry.field(
+    address_type: "Class" = strawberry.field(
         resolver=to_one(
             seed_resolver(
                 class_resolver, {"uuids": lambda root: [root.address_type_uuid]}
@@ -539,7 +525,7 @@ class Address:
         deprecation_reason="Use 'address_type_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    visibility_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+    visibility_response: Response["Class"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.visibility_uuid)
         if root.visibility_uuid
         else None,
@@ -566,7 +552,7 @@ class Address:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    visibility: LazyClass | None = strawberry.field(
+    visibility: "Class" | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
                 class_resolver, {"uuids": lambda root: uuid2list(root.visibility_uuid)}
@@ -596,7 +582,7 @@ class Address:
         deprecation_reason="Use 'visibility_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    employee: list[LazyEmployee] | None = strawberry.field(
+    employee: list["Employee"] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
                 seed_resolver(
@@ -623,7 +609,7 @@ class Address:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
-    person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
+    person_response: Response["Employee"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
         if root.employee_uuid
         else None,
@@ -639,7 +625,7 @@ class Address:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    person: list[LazyEmployee] | None = strawberry.field(
+    person: list["Employee"] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
                 seed_resolver(
@@ -666,7 +652,7 @@ class Address:
         deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
+    org_unit_response: Response["OrganisationUnit"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(
             model=OrganisationUnitRead, uuid=root.org_unit_uuid
         )
@@ -683,7 +669,7 @@ class Address:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
+    org_unit: list["OrganisationUnit"] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
                 seed_resolver(
@@ -709,7 +695,7 @@ class Address:
         deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    engagement_response: Response[LazyEngagement] | None = strawberry.field(  # type: ignore
+    engagement_response: Response["Engagement"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=EngagementRead, uuid=root.engagement_uuid)
         if root.engagement_uuid
         else None,
@@ -727,7 +713,7 @@ class Address:
         ],
     )
 
-    engagement: list[LazyEngagement] | None = strawberry.field(
+    engagement: list["Engagement"] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
                 seed_resolver(
@@ -756,7 +742,7 @@ class Address:
         deprecation_reason="Use 'engagement_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    ituser_response: Response[LazyITUser] | None = strawberry.field(  # type: ignore
+    ituser_response: Response["ITUser"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ITUserRead, uuid=root.it_user_uuid)
         if root.it_user_uuid
         else None,
@@ -764,7 +750,7 @@ class Address:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
-    ituser: list[LazyITUser] = strawberry.field(
+    ituser: list["ITUser"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 it_user_resolver, {"uuids": lambda root: uuid2list(root.it_user_uuid)}
@@ -996,7 +982,7 @@ class Address:
     )
     async def address_type_validity(
         self, root: AddressRead
-    ) -> LazyClass | None:  # pragma: no cover
+    ) -> "Class" | None:  # pragma: no cover
         address_types = await validity_sub_query_hack(
             root.validity,
             ClassRead,
@@ -1016,7 +1002,7 @@ class Address:
     description="Connects organisation units and employees",
 )
 class Association:
-    association_type_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+    association_type_response: Response["Class"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.association_type_uuid)
         if root.association_type_uuid
         else None,
@@ -1033,7 +1019,7 @@ class Association:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    association_type: LazyClass | None = strawberry.field(
+    association_type: "Class" | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
                 class_resolver,
@@ -1054,7 +1040,7 @@ class Association:
         deprecation_reason="Use 'association_type_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    dynamic_class_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+    dynamic_class_response: Response["Class"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.dynamic_class_uuid)
         if root.dynamic_class_uuid
         else None,
@@ -1077,7 +1063,7 @@ class Association:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    dynamic_class: LazyClass | None = strawberry.field(
+    dynamic_class: "Class" | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
                 class_resolver,
@@ -1098,7 +1084,7 @@ class Association:
         deprecation_reason="Use 'dynamic_class_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    trade_union_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+    trade_union_response: Response["Class"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.dynamic_class_uuid)
         if root.dynamic_class_uuid
         else None,
@@ -1110,7 +1096,7 @@ class Association:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    trade_union: LazyClass | None = strawberry.field(
+    trade_union: "Class" | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
                 class_resolver,
@@ -1126,7 +1112,7 @@ class Association:
         deprecation_reason="Use 'trade_union_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+    primary_response: Response["Class"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.primary_uuid)
         if root.primary_uuid
         else None,
@@ -1153,7 +1139,7 @@ class Association:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    primary: LazyClass | None = strawberry.field(
+    primary: "Class" | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
                 class_resolver, {"uuids": lambda root: uuid2list(root.primary_uuid)}
@@ -1183,7 +1169,7 @@ class Association:
         deprecation_reason="Use 'primary_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    employee: list[LazyEmployee] = strawberry.field(
+    employee: list["Employee"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
@@ -1199,7 +1185,7 @@ class Association:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
-    person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
+    person_response: Response["Employee"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
         if root.employee_uuid
         else None,
@@ -1212,7 +1198,7 @@ class Association:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    person: list[LazyEmployee] = strawberry.field(
+    person: list["Employee"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
@@ -1228,7 +1214,7 @@ class Association:
         deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
+    org_unit_response: Response["OrganisationUnit"] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(
             model=OrganisationUnitRead, uuid=root.org_unit_uuid
         ),
@@ -1241,7 +1227,7 @@ class Association:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    org_unit: list[LazyOrganisationUnit] = strawberry.field(
+    org_unit: list["OrganisationUnit"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 organisation_unit_resolver,
@@ -1258,7 +1244,7 @@ class Association:
         deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    substitute_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
+    substitute_response: Response["Employee"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=EmployeeRead, uuid=root.substitute_uuid)
         if root.substitute_uuid
         else None,
@@ -1271,7 +1257,7 @@ class Association:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    substitute: list[LazyEmployee] = strawberry.field(
+    substitute: list["Employee"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 employee_resolver,
@@ -1288,7 +1274,7 @@ class Association:
         deprecation_reason="Use 'subsitute_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    job_function_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+    job_function_response: Response["Class"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.job_function_uuid)
         if root.job_function_uuid
         else None,
@@ -1305,7 +1291,7 @@ class Association:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    job_function: LazyClass | None = strawberry.field(
+    job_function: "Class" | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
                 class_resolver,
@@ -1326,7 +1312,7 @@ class Association:
         deprecation_reason="Use 'job_function_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    it_user_response: Response[LazyITUser] | None = strawberry.field(  # type: ignore
+    it_user_response: Response["ITUser"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ITUserRead, uuid=root.it_user_uuid)
         if root.it_user_uuid
         else None,
@@ -1339,7 +1325,7 @@ class Association:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
-    it_user: list[LazyITUser] = strawberry.field(
+    it_user: list["ITUser"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 it_user_resolver, {"uuids": lambda root: uuid2list(root.it_user_uuid)}
@@ -1483,7 +1469,7 @@ class Association:
     )
     async def association_type_validity(
         self, root: AssociationRead
-    ) -> LazyClass | None:  # pragma: no cover
+    ) -> "Class" | None:  # pragma: no cover
         association_types = await validity_sub_query_hack(
             root.validity,
             ClassRead,
@@ -1509,7 +1495,7 @@ class Association:
     ),
 )
 class Class:
-    parent_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+    parent_response: Response["Class"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.parent_uuid)
         if root.parent_uuid
         else None,
@@ -1526,7 +1512,7 @@ class Class:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    parent: LazyClass | None = strawberry.field(
+    parent: "Class" | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
                 class_resolver, {"uuids": lambda root: uuid2list(root.parent_uuid)}
@@ -1546,7 +1532,7 @@ class Class:
         deprecation_reason="Use 'parent_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    children_response: Paged[Response[LazyClass]] = strawberry.field(
+    children_response: Paged[Response["Class"]] = strawberry.field(
         resolver=to_paged_response(ClassRead)(
             seed_resolver(
                 class_resolver,
@@ -1566,7 +1552,7 @@ class Class:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    children: list[LazyClass] = strawberry.field(
+    children: list["Class"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 class_resolver,
@@ -1587,7 +1573,7 @@ class Class:
         deprecation_reason="Use 'children_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    facet_response: Response[LazyFacet] = strawberry.field(  # type: ignore
+    facet_response: Response["Facet"] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=FacetRead, uuid=root.facet_uuid),
         description=dedent(
             """\
@@ -1602,7 +1588,7 @@ class Class:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
 
-    facet: LazyFacet = strawberry.field(
+    facet: "Facet" = strawberry.field(
         resolver=to_one(
             seed_resolver(facet_resolver, {"uuids": lambda root: [root.facet_uuid]})
         ),
@@ -1640,7 +1626,7 @@ class Class:
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
-    async def top_level_facet(self, root: ClassRead, info: Info) -> LazyFacet:
+    async def top_level_facet(self, root: ClassRead, info: Info) -> "Facet":
         if root.parent_uuid is None:
             return await Class.facet(root=root, info=info)  # type: ignore[operator]
         # coverage: pause
@@ -1648,7 +1634,7 @@ class Class:
         return await Class.top_level_facet(self=self, root=parent_node, info=info)
         # coverage: unpause
 
-    it_system_response: Response[LazyITSystem] | None = strawberry.field(  # type: ignore
+    it_system_response: Response["ITSystem"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ITSystemRead, uuid=root.it_system_uuid)
         if root.it_system_uuid
         else None,
@@ -1662,7 +1648,7 @@ class Class:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
     )
 
-    it_system: LazyITSystem | None = strawberry.field(
+    it_system: "ITSystem" | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
                 it_system_resolver,
@@ -1906,7 +1892,7 @@ class Employee:
     async def user_key(self, root: EmployeeRead) -> str:
         return root.user_key
 
-    engagements_response: Paged[Response[LazyEngagement]] = strawberry.field(
+    engagements_response: Paged[Response["Engagement"]] = strawberry.field(
         resolver=to_paged_response(EngagementRead)(
             seed_resolver(
                 engagement_resolver,
@@ -1926,7 +1912,7 @@ class Employee:
         ],
     )
 
-    engagements: list[LazyEngagement] = strawberry.field(
+    engagements: list["Engagement"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 engagement_resolver,
@@ -1947,7 +1933,7 @@ class Employee:
         deprecation_reason="Use 'engagements_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    manager_roles_response: Paged[Response[LazyManager]] = strawberry.field(
+    manager_roles_response: Paged[Response["Manager"]] = strawberry.field(
         resolver=to_paged_response(ManagerRead)(
             seed_resolver(
                 manager_resolver,
@@ -1964,7 +1950,7 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
     )
 
-    manager_roles: list[LazyManager] = strawberry.field(
+    manager_roles: list["Manager"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 manager_resolver,
@@ -1982,7 +1968,7 @@ class Employee:
         deprecation_reason="Use 'manager_roles_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    addresses_response: Paged[Response[LazyAddress]] = strawberry.field(
+    addresses_response: Paged[Response["Address"]] = strawberry.field(
         resolver=to_paged_response(AddressRead)(
             seed_resolver(
                 address_resolver,
@@ -2005,7 +1991,7 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
 
-    addresses: list[LazyAddress] = strawberry.field(
+    addresses: list["Address"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 address_resolver,
@@ -2029,7 +2015,7 @@ class Employee:
         deprecation_reason="Use 'addresses_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    leaves_response: Paged[Response[LazyLeave]] = strawberry.field(
+    leaves_response: Paged[Response["Leave"]] = strawberry.field(
         resolver=to_paged_response(LeaveRead)(
             seed_resolver(
                 leave_resolver,
@@ -2046,7 +2032,7 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
 
-    leaves: list[LazyLeave] = strawberry.field(
+    leaves: list["Leave"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 leave_resolver,
@@ -2064,7 +2050,7 @@ class Employee:
         deprecation_reason="Use 'leaves_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    associations_response: Paged[Response[LazyAssociation]] = strawberry.field(
+    associations_response: Paged[Response["Association"]] = strawberry.field(
         resolver=to_paged_response(AssociationRead)(
             seed_resolver(
                 association_resolver,
@@ -2084,7 +2070,7 @@ class Employee:
         ],
     )
 
-    associations: list[LazyAssociation] = strawberry.field(
+    associations: list["Association"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 association_resolver,
@@ -2105,7 +2091,7 @@ class Employee:
         deprecation_reason="Use 'associations_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    itusers_response: Paged[Response[LazyITUser]] = strawberry.field(
+    itusers_response: Paged[Response["ITUser"]] = strawberry.field(
         resolver=to_paged_response(ITUserRead)(
             seed_resolver(
                 it_user_resolver,
@@ -2122,7 +2108,7 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
-    itusers: list[LazyITUser] = strawberry.field(
+    itusers: list["ITUser"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 it_user_resolver,
@@ -2225,7 +2211,7 @@ class Employee:
     )
     async def engagements_validity(
         self, root: EmployeeRead, info: Info
-    ) -> list[LazyEngagement]:  # pragma: no cover
+    ) -> list["Engagement"]:  # pragma: no cover
         return await validity_sub_query_hack(
             root.validity,
             EngagementRead,
@@ -2250,7 +2236,7 @@ class Employee:
     )
     async def addresses_validity(
         self, root: EmployeeRead, info: Info
-    ) -> list[LazyAddress]:  # pragma: no cover
+    ) -> list["Address"]:  # pragma: no cover
         return await validity_sub_query_hack(
             root.validity,
             AddressRead,
@@ -2278,7 +2264,7 @@ class Employee:
     )
     async def associations_validity(
         self, root: EmployeeRead, info: Info
-    ) -> list[LazyAssociation]:  # pragma: no cover
+    ) -> list["Association"]:  # pragma: no cover
         return await validity_sub_query_hack(
             root.validity,
             AssociationRead,
@@ -2303,7 +2289,7 @@ class Employee:
     )
     async def itusers_validity(
         self, root: EmployeeRead, info: Info
-    ) -> list[LazyITUser]:  # pragma: no cover
+    ) -> list["ITUser"]:  # pragma: no cover
         return await validity_sub_query_hack(
             root.validity,
             ITUserRead,
@@ -2341,7 +2327,7 @@ class Engagement:
     async def user_key(self, root: EngagementRead) -> str:
         return root.user_key
 
-    engagement_type_response: Response[LazyClass] = strawberry.field(  # type: ignore
+    engagement_type_response: Response["Class"] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.engagement_type_uuid),
         description=dedent(
             """\
@@ -2356,7 +2342,7 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    engagement_type: LazyClass = strawberry.field(
+    engagement_type: "Class" = strawberry.field(
         resolver=to_arbitrary_only(
             seed_resolver(
                 class_resolver,
@@ -2377,7 +2363,7 @@ class Engagement:
         deprecation_reason="Use 'engagement_type_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    job_function_response: Response[LazyClass] = strawberry.field(  # type: ignore
+    job_function_response: Response["Class"] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.job_function_uuid),
         description=dedent(
             """\
@@ -2392,7 +2378,7 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    job_function: LazyClass = strawberry.field(
+    job_function: "Class" = strawberry.field(
         resolver=to_arbitrary_only(
             seed_resolver(
                 class_resolver,
@@ -2413,7 +2399,7 @@ class Engagement:
         deprecation_reason="Use 'job_function_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+    primary_response: Response["Class"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.primary_uuid)
         if root.primary_uuid
         else None,
@@ -2440,7 +2426,7 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    primary: LazyClass | None = strawberry.field(
+    primary: "Class" | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
                 class_resolver, {"uuids": lambda root: uuid2list(root.primary_uuid)}
@@ -2486,7 +2472,7 @@ class Engagement:
         #       Then utilize is_class_primary as result_translation
         return await is_class_uuid_primary(str(root.primary_uuid))
 
-    leave_response: Response[LazyLeave] | None = strawberry.field(  # type: ignore
+    leave_response: Response["Leave"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=LeaveRead, uuid=root.leave_uuid)
         if root.leave_uuid
         else None,
@@ -2494,7 +2480,7 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
 
-    leave: LazyLeave | None = strawberry.field(
+    leave: "Leave" | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
                 leave_resolver, {"uuids": lambda root: uuid2list(root.leave_uuid)}
@@ -2505,7 +2491,7 @@ class Engagement:
         deprecation_reason="Use 'leave_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    employee: list[LazyEmployee] = strawberry.field(
+    employee: list["Employee"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
@@ -2521,7 +2507,7 @@ class Engagement:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
-    person_response: Response[LazyEmployee] = strawberry.field(  # type: ignore
+    person_response: Response["Employee"] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid),
         description=dedent(
             """\
@@ -2532,7 +2518,7 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    person: list[LazyEmployee] = strawberry.field(
+    person: list["Employee"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
@@ -2548,7 +2534,7 @@ class Engagement:
         deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
+    org_unit_response: Response["OrganisationUnit"] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(
             model=OrganisationUnitRead, uuid=root.org_unit_uuid
         ),
@@ -2561,7 +2547,7 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    org_unit: list[LazyOrganisationUnit] = strawberry.field(
+    org_unit: list["OrganisationUnit"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 organisation_unit_resolver,
@@ -2578,7 +2564,7 @@ class Engagement:
         deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    itusers_response: Paged[Response[LazyITUser]] = strawberry.field(
+    itusers_response: Paged[Response["ITUser"]] = strawberry.field(
         resolver=to_paged_response(ITUserRead)(
             seed_resolver(
                 it_user_resolver,
@@ -2595,8 +2581,8 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
-    itusers: list[Response[LazyITUser]] = strawberry.field(
-        resolver=to_response_list(LazyITUser)(
+    itusers: list[Response["ITUser"]] = strawberry.field(
+        resolver=to_response_list(ITUserRead)(
             seed_resolver(
                 it_user_resolver,
                 {
@@ -2674,7 +2660,7 @@ class Engagement:
     async def primary_uuid(self, root: EngagementRead) -> UUID | None:
         return root.primary_uuid
 
-    # TODO: Add Paged[Response[LazyClass]] managers_response
+    # TODO: Add Paged[Response["Class]"] managers_response
     @strawberry.field(
         description=dedent(
             """\
@@ -2724,7 +2710,7 @@ class Engagement:
                 )
             ),
         ] = False,
-    ) -> list[LazyManager]:
+    ) -> list["Manager"]:
         # Recurse up the tree using the parent org-unit
         filter = filter or ManagerFilter()
         seeds: dict[str, Callable[[EngagementRead], Any]] = {
@@ -2782,7 +2768,7 @@ class Engagement:
     )
     async def engagement_type_validity(
         self, root: EngagementRead
-    ) -> LazyClass | None:  # pragma: no cover
+    ) -> "Class" | None:  # pragma: no cover
         engagement_types = await validity_sub_query_hack(
             root.validity,
             ClassRead,
@@ -2802,7 +2788,7 @@ class Engagement:
     description="The key component of the class/facet choice setup",
 )
 class Facet:
-    classes_responses: Paged[Response[LazyClass]] = strawberry.field(
+    classes_responses: Paged[Response["Class"]] = strawberry.field(
         resolver=to_paged_response(ClassRead)(
             seed_resolver(class_resolver, {"facets": lambda root: [root.uuid]})
         ),
@@ -2810,7 +2796,7 @@ class Facet:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    classes: list[LazyClass] = strawberry.field(
+    classes: list["Class"] = strawberry.field(
         resolver=to_list(
             seed_resolver(class_resolver, {"facets": lambda root: [root.uuid]})
         ),
@@ -2819,7 +2805,7 @@ class Facet:
         deprecation_reason="Use 'classes_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    parent_response: Response[LazyFacet] | None = strawberry.field(  # type: ignore
+    parent_response: Response["Facet"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=FacetRead, uuid=root.parent_uuid)
         if root.parent_uuid
         else None,
@@ -2836,7 +2822,7 @@ class Facet:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
 
-    parent: LazyFacet | None = strawberry.field(
+    parent: "Facet" | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
                 facet_resolver, {"uuids": lambda root: uuid2list(root.parent_uuid)}
@@ -2856,7 +2842,7 @@ class Facet:
         deprecation_reason="Use 'parent_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    children_response: Paged[Response[LazyFacet]] = strawberry.field(
+    children_response: Paged[Response["Facet"]] = strawberry.field(
         resolver=to_paged_response(FacetRead)(
             seed_resolver(
                 facet_resolver,
@@ -2876,7 +2862,7 @@ class Facet:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
 
-    children: list[LazyFacet] = strawberry.field(
+    children: list["Facet"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 facet_resolver,
@@ -3054,7 +3040,7 @@ class ITSystem:
     async def user_key(self, root: ITSystemRead) -> str:
         return root.user_key
 
-    roles_response: Paged[Response[LazyClass]] = strawberry.field(
+    roles_response: Paged[Response["Class"]] = strawberry.field(
         resolver=to_paged_response(ClassRead)(
             seed_resolver(
                 class_resolver,
@@ -3087,8 +3073,8 @@ class ITSystem:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    roles: list[Response[LazyClass]] = strawberry.field(
-        resolver=to_response_list(LazyClass)(
+    roles: list[Response["Class"]] = strawberry.field(
+        resolver=to_response_list(ClassRead)(
             seed_resolver(
                 class_resolver,
                 {
@@ -3165,7 +3151,7 @@ class ITUser:
     async def external_id(self, root: ITUserRead) -> str | None:
         return root.external_id
 
-    employee: list[LazyEmployee] | None = strawberry.field(
+    employee: list["Employee"] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
                 seed_resolver(
@@ -3192,7 +3178,7 @@ class ITUser:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
-    person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
+    person_response: Response["Employee"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
         if root.employee_uuid
         else None,
@@ -3208,7 +3194,7 @@ class ITUser:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    person: list[LazyEmployee] | None = strawberry.field(
+    person: list["Employee"] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
                 seed_resolver(
@@ -3235,7 +3221,7 @@ class ITUser:
         deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
+    org_unit_response: Response["OrganisationUnit"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(
             model=OrganisationUnitRead, uuid=root.org_unit_uuid
         )
@@ -3255,7 +3241,7 @@ class ITUser:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
+    org_unit: list["OrganisationUnit"] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
                 seed_resolver(
@@ -3284,7 +3270,7 @@ class ITUser:
         deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    engagements_responses: Paged[Response[LazyEngagement]] = strawberry.field(
+    engagements_responses: Paged[Response["Engagement"]] = strawberry.field(
         resolver=to_paged_response(EngagementRead)(
             seed_resolver(
                 engagement_resolver,
@@ -3304,8 +3290,8 @@ class ITUser:
         ],
     )
 
-    engagements: list[Response[LazyEngagement]] = strawberry.field(
-        resolver=to_response_list(LazyEngagement)(
+    engagements: list[Response["Engagement"]] = strawberry.field(
+        resolver=to_response_list(EngagementRead)(
             seed_resolver(
                 engagement_resolver,
                 {"uuids": lambda root: root.engagement_uuids},
@@ -3325,7 +3311,7 @@ class ITUser:
         deprecation_reason="Use 'engagements_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    engagement_response: Response[LazyEngagement] | None = strawberry.field(  # type: ignore
+    engagement_response: Response["Engagement"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=EngagementRead, uuid=root.engagement_uuid)
         if root.engagement_uuid
         else None,
@@ -3344,7 +3330,7 @@ class ITUser:
         ],
     )
 
-    engagement: list[LazyEngagement] | None = strawberry.field(
+    engagement: list["Engagement"] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
                 seed_resolver(
@@ -3374,7 +3360,7 @@ class ITUser:
         deprecation_reason="Use 'engagement_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    addresses_response: Paged[Response[LazyAddress]] = strawberry.field(
+    addresses_response: Paged[Response["Address"]] = strawberry.field(
         resolver=to_paged_response(AddressRead)(
             seed_resolver(
                 address_resolver,
@@ -3394,7 +3380,7 @@ class ITUser:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
 
-    addresses: list[LazyAddress] = strawberry.field(
+    addresses: list["Address"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 address_resolver,
@@ -3415,7 +3401,7 @@ class ITUser:
         deprecation_reason="Use 'addresses_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    itsystem_response: Response[LazyITSystem] = strawberry.field(  # type: ignore
+    itsystem_response: Response["ITSystem"] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ITSystemRead, uuid=root.itsystem_uuid)
         if root.itsystem_uuid
         else None,
@@ -3427,7 +3413,7 @@ class ITUser:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
     )
 
-    itsystem: LazyITSystem = strawberry.field(
+    itsystem: "ITSystem" = strawberry.field(
         resolver=to_one(
             seed_resolver(
                 it_system_resolver, {"uuids": lambda root: [root.itsystem_uuid]}
@@ -3442,7 +3428,7 @@ class ITUser:
         deprecation_reason="Use 'itsystem_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    rolebindings_response: Paged[Response[LazyRoleBinding]] = strawberry.field(
+    rolebindings_response: Paged[Response["RoleBinding"]] = strawberry.field(
         resolver=to_paged_response(RoleBindingRead)(
             seed_resolver(
                 rolebinding_resolver,
@@ -3456,7 +3442,7 @@ class ITUser:
         ],
     )
 
-    rolebindings: list[LazyRoleBinding] = strawberry.field(
+    rolebindings: list["RoleBinding"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 rolebinding_resolver,
@@ -3471,7 +3457,7 @@ class ITUser:
         deprecation_reason="Use 'rolebindings_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+    primary_response: Response["Class"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.primary_uuid)
         if root.primary_uuid
         else None,
@@ -3495,7 +3481,7 @@ class ITUser:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    primary: LazyClass | None = strawberry.field(
+    primary: "Class" | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
                 class_resolver, {"uuids": lambda root: uuid2list(root.primary_uuid)}
@@ -3607,7 +3593,7 @@ class ITUser:
     )
     async def itsystem_validity(
         self, root: ITUserRead
-    ) -> LazyITSystem:  # pragma: no cover
+    ) -> "ITSystem":  # pragma: no cover
         itsystems = await validity_sub_query_hack(
             root.validity,
             ITSystemRead,
@@ -3661,7 +3647,7 @@ class ITUser:
     ),
 )
 class KLE:
-    kle_number__v22: LazyClass = strawberry.field(
+    kle_number__v22: "Class" = strawberry.field(
         name="kle_number",
         resolver=to_one(
             seed_resolver(
@@ -3679,7 +3665,7 @@ class KLE:
         metadata=Metadata(version=lambda v: v <= GraphQLVersion.VERSION_22),
     )
 
-    kle_number_response: Response[LazyClass] = strawberry.field(  # type: ignore
+    kle_number_response: Response["Class"] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.kle_number_uuid),
         description=dedent(
             """\
@@ -3691,7 +3677,7 @@ class KLE:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    kle_number__v23: list[LazyClass] = strawberry.field(
+    kle_number__v23: list["Class"] = strawberry.field(
         name="kle_number",
         resolver=to_list(
             seed_resolver(
@@ -3710,7 +3696,7 @@ class KLE:
         deprecation_reason="Use 'kle_number_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    kle_aspects_response: Paged[Response[LazyClass]] = strawberry.field(
+    kle_aspects_response: Paged[Response["Class"]] = strawberry.field(
         resolver=to_paged_response(ClassRead)(
             seed_resolver(
                 class_resolver,
@@ -3732,7 +3718,7 @@ class KLE:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    kle_aspects: list[LazyClass] = strawberry.field(
+    kle_aspects: list["Class"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 class_resolver,
@@ -3755,7 +3741,7 @@ class KLE:
         deprecation_reason="Use 'kle_aspects_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
+    org_unit_response: Response["OrganisationUnit"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(
             model=OrganisationUnitRead, uuid=root.org_unit_uuid
         )
@@ -3769,7 +3755,7 @@ class KLE:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    org_unit: list[LazyOrganisationUnit] = strawberry.field(
+    org_unit: list["OrganisationUnit"] = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
                 seed_resolver(
@@ -3872,7 +3858,7 @@ class KLE:
     ),
 )
 class Leave:
-    leave_type_response: Response[LazyClass] = strawberry.field(  # type: ignore
+    leave_type_response: Response["Class"] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.leave_type_uuid),
         description=dedent(
             """\
@@ -3888,7 +3874,7 @@ class Leave:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    leave_type: LazyClass = strawberry.field(
+    leave_type: "Class" = strawberry.field(
         resolver=to_one(
             seed_resolver(
                 class_resolver, {"uuids": lambda root: [root.leave_type_uuid]}
@@ -3909,7 +3895,7 @@ class Leave:
         deprecation_reason="Use 'leave_type_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    employee: list[LazyEmployee] = strawberry.field(
+    employee: list["Employee"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
@@ -3925,7 +3911,7 @@ class Leave:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
-    person_response: Response[LazyEmployee] = strawberry.field(  # type: ignore
+    person_response: Response["Employee"] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid),
         description=dedent(
             """\
@@ -3936,7 +3922,7 @@ class Leave:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    person: list[LazyEmployee] = strawberry.field(
+    person: list["Employee"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
@@ -3952,7 +3938,7 @@ class Leave:
         deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    engagement_response: Response[LazyEngagement] = strawberry.field(  # type: ignore
+    engagement_response: Response["Engagement"] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=EngagementRead, uuid=root.engagement_uuid),
         description=dedent(
             """\
@@ -3965,7 +3951,7 @@ class Leave:
         ],
     )
 
-    engagement: LazyEngagement = strawberry.field(
+    engagement: "Engagement" = strawberry.field(
         resolver=to_arbitrary_only(
             seed_resolver(
                 engagement_resolver,
@@ -4047,7 +4033,7 @@ class Leave:
     ),
 )
 class Manager:
-    manager_type_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+    manager_type_response: Response["Class"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.manager_type_uuid)
         if root.manager_type_uuid
         else None,
@@ -4064,7 +4050,7 @@ class Manager:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    manager_type: LazyClass = strawberry.field(
+    manager_type: "Class" = strawberry.field(
         resolver=to_arbitrary_only(
             seed_resolver(
                 class_resolver,
@@ -4085,7 +4071,7 @@ class Manager:
         deprecation_reason="Use 'manager_type_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    manager_level_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+    manager_level_response: Response["Class"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.manager_level_uuid)
         if root.manager_level_uuid
         else None,
@@ -4103,7 +4089,7 @@ class Manager:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    manager_level: LazyClass = strawberry.field(
+    manager_level: "Class" = strawberry.field(
         resolver=to_arbitrary_only(
             seed_resolver(
                 class_resolver,
@@ -4125,7 +4111,7 @@ class Manager:
         deprecation_reason="Use 'manager_level_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    responsibilities_response: Paged[Response[LazyClass]] = strawberry.field(
+    responsibilities_response: Paged[Response["Class"]] = strawberry.field(
         resolver=to_paged_response(ClassRead)(
             seed_resolver(
                 class_resolver,
@@ -4145,7 +4131,7 @@ class Manager:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    responsibilities: list[LazyClass] = strawberry.field(
+    responsibilities: list["Class"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 class_resolver,
@@ -4166,7 +4152,7 @@ class Manager:
         deprecation_reason="Use 'responsibilities_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    employee: list[LazyEmployee] | None = strawberry.field(
+    employee: list["Employee"] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
                 seed_resolver(
@@ -4192,7 +4178,7 @@ class Manager:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
-    person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
+    person_response: Response["Employee"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
         if root.employee_uuid
         else None,
@@ -4207,7 +4193,7 @@ class Manager:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    person: list[LazyEmployee] | None = strawberry.field(
+    person: list["Employee"] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
                 seed_resolver(
@@ -4233,7 +4219,7 @@ class Manager:
         deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
+    org_unit_response: Response["OrganisationUnit"] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(
             model=OrganisationUnitRead, uuid=root.org_unit_uuid
         ),
@@ -4246,7 +4232,7 @@ class Manager:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    org_unit: list[LazyOrganisationUnit] = strawberry.field(
+    org_unit: list["OrganisationUnit"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 organisation_unit_resolver,
@@ -4362,7 +4348,7 @@ class Owner:
     # TODO: Document this
     user_key: str = strawberry.auto
 
-    org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
+    org_unit_response: Response["OrganisationUnit"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(
             model=OrganisationUnitRead, uuid=root.org_unit_uuid
         )
@@ -4380,7 +4366,7 @@ class Owner:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
+    org_unit: list["OrganisationUnit"] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
                 seed_resolver(
@@ -4414,7 +4400,7 @@ class Owner:
     async def org_unit_uuid(self, root: OwnerRead) -> UUID | None:
         return root.org_unit_uuid
 
-    person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
+    person_response: Response["Employee"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
         if root.employee_uuid
         else None,
@@ -4430,7 +4416,7 @@ class Owner:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    person: list[LazyEmployee] | None = strawberry.field(
+    person: list["Employee"] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
                 seed_resolver(
@@ -4464,7 +4450,7 @@ class Owner:
     async def employee_uuid(self, root: OwnerRead) -> UUID | None:
         return root.employee_uuid
 
-    owner_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
+    owner_response: Response["Employee"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=EmployeeRead, uuid=root.owner_uuid)
         if root.owner_uuid
         else None,
@@ -4477,7 +4463,7 @@ class Owner:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("owner")],
     )
 
-    owner: list[LazyEmployee] | None = strawberry.field(
+    owner: list["Employee"] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
                 seed_resolver(
@@ -4631,7 +4617,7 @@ class Organisation:
     description="Organisation unit within the organisation tree",
 )
 class OrganisationUnit:
-    parent_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
+    parent_response: Response["OrganisationUnit"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(
             model=OrganisationUnitRead, uuid=root.parent_uuid
         )
@@ -4645,7 +4631,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    parent: LazyOrganisationUnit | None = strawberry.field(
+    parent: "OrganisationUnit" | None = strawberry.field(
         resolver=to_arbitrary_only(
             seed_resolver(
                 organisation_unit_resolver,
@@ -4661,7 +4647,7 @@ class OrganisationUnit:
         deprecation_reason="Use 'parent_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    root_response: Response[LazyOrganisationUnit] | None = strawberry.field(
+    root_response: Response["OrganisationUnit"] | None = strawberry.field(
         resolver=to_response(OrganisationUnitRead)(
             strip_args(
                 seed_resolver(
@@ -4689,7 +4675,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    root: list[LazyOrganisationUnit] | None = strawberry.field(
+    root: list["OrganisationUnit"] | None = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 organisation_unit_resolver,
@@ -4710,7 +4696,7 @@ class OrganisationUnit:
         deprecation_reason="Use 'root_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    # TODO: Add Paged[Response[LazyClass]] for ancestors_response
+    # TODO: Add Paged[Response["Class]"] for ancestors_response
     @strawberry.field(
         description=dedent(
             """\
@@ -4724,7 +4710,7 @@ class OrganisationUnit:
     )
     async def ancestors(
         self, root: OrganisationUnitRead, info: Info
-    ) -> list[LazyOrganisationUnit]:
+    ) -> list["OrganisationUnit"]:
         """Get all ancestors in the organisation tree.
 
         Returns:
@@ -4736,7 +4722,7 @@ class OrganisationUnit:
         ancestors = await OrganisationUnit.ancestors(self=self, root=parent, info=info)  # type: ignore
         return [parent] + ancestors
 
-    children_response: Paged[Response[LazyOrganisationUnit]] = strawberry.field(
+    children_response: Paged[Response["OrganisationUnit"]] = strawberry.field(
         resolver=to_paged_response(OrganisationUnitRead)(
             seed_resolver(
                 organisation_unit_resolver,
@@ -4757,7 +4743,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    children: list[LazyOrganisationUnit] = strawberry.field(
+    children: list["OrganisationUnit"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 organisation_unit_resolver,
@@ -4810,7 +4796,7 @@ class OrganisationUnit:
     )
 
     # TODO: Should this be a list?
-    unit_hierarchy_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+    unit_hierarchy_response: Response["Class"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.org_unit_hierarchy)
         if root.org_unit_hierarchy
         else None,
@@ -4836,7 +4822,7 @@ class OrganisationUnit:
     # TODO: Remove org prefix from RAModel and remove it here too
     # TODO: Add _uuid suffix to RAModel and remove _model suffix here
     # TODO: Should this be a list?
-    org_unit_hierarchy_model: LazyClass | None = strawberry.field(
+    org_unit_hierarchy_model: "Class" | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
                 class_resolver,
@@ -4863,7 +4849,7 @@ class OrganisationUnit:
         deprecation_reason="Use 'unit_hierarchy_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    unit_type_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+    unit_type_response: Response["Class"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.unit_type_uuid)
         if root.unit_type_uuid
         else None,
@@ -4890,7 +4876,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    unit_type: LazyClass | None = strawberry.field(
+    unit_type: "Class" | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
                 class_resolver, {"uuids": lambda root: uuid2list(root.unit_type_uuid)}
@@ -4920,7 +4906,7 @@ class OrganisationUnit:
         deprecation_reason="Use 'unit_type_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    unit_level_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+    unit_level_response: Response["Class"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.org_unit_level_uuid)
         if root.org_unit_level_uuid
         else None,
@@ -4939,7 +4925,7 @@ class OrganisationUnit:
     )
 
     # TODO: Remove org prefix from RAModel and remove it here too
-    org_unit_level: LazyClass | None = strawberry.field(
+    org_unit_level: "Class" | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
                 class_resolver,
@@ -4961,7 +4947,7 @@ class OrganisationUnit:
         deprecation_reason="Use 'unit_level_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    time_planning_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+    time_planning_response: Response["Class"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.time_planning_uuid)
         if root.time_planning_uuid
         else None,
@@ -4974,7 +4960,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    time_planning: LazyClass | None = strawberry.field(
+    time_planning: "Class" | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
                 class_resolver,
@@ -4991,7 +4977,7 @@ class OrganisationUnit:
         deprecation_reason="Use 'time_planning_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    engagements_response: Paged[Response[LazyEngagement]] = strawberry.field(
+    engagements_response: Paged[Response["Engagement"]] = strawberry.field(
         resolver=to_paged_response(EngagementRead)(
             seed_resolver(
                 engagement_resolver,
@@ -5012,7 +4998,7 @@ class OrganisationUnit:
         ],
     )
 
-    engagements: list[LazyEngagement] = strawberry.field(
+    engagements: list["Engagement"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 engagement_resolver,
@@ -5134,7 +5120,7 @@ class OrganisationUnit:
         resolver = to_list(seed_resolver(manager_resolver))
         return await resolver(root=root, info=info, filter=filter, inherit=inherit)
 
-    managers_response: Paged[Response[LazyManager]] = strawberry.field(
+    managers_response: Paged[Response["Manager"]] = strawberry.field(
         resolver=to_paged_response(ManagerRead)(
             seed_resolver(
                 manager_resolver,
@@ -5153,7 +5139,7 @@ class OrganisationUnit:
         metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_24),
     )
 
-    managers: list[LazyManager] = strawberry.field(
+    managers: list["Manager"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 manager_resolver,
@@ -5173,7 +5159,7 @@ class OrganisationUnit:
         deprecation_reason="Use 'managers_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    # TODO: Add Paged[Response[LazyClass]] for owners_response
+    # TODO: Add Paged[Response["Class]"] for owners_response
     @strawberry.field(
         description=dedent(
             """\
@@ -5226,7 +5212,7 @@ class OrganisationUnit:
             self=self, root=parent, info=info, inherit=True
         )
 
-    addresses_response: Paged[Response[LazyAddress]] = strawberry.field(
+    addresses_response: Paged[Response["Address"]] = strawberry.field(
         resolver=to_paged_response(AddressRead)(
             seed_resolver(
                 address_resolver,
@@ -5246,7 +5232,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
 
-    addresses: list[LazyAddress] = strawberry.field(
+    addresses: list["Address"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 address_resolver,
@@ -5267,7 +5253,7 @@ class OrganisationUnit:
         deprecation_reason="Use 'address_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    leaves_response: Paged[Response[LazyLeave]] = strawberry.field(
+    leaves_response: Paged[Response["Leave"]] = strawberry.field(
         resolver=to_paged_response(LeaveRead)(
             seed_resolver(
                 leave_resolver,
@@ -5282,7 +5268,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
 
-    leaves: list[LazyLeave] = strawberry.field(
+    leaves: list["Leave"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 leave_resolver,
@@ -5298,7 +5284,7 @@ class OrganisationUnit:
         deprecation_reason="Use 'leaves_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    associations_response: Paged[Response[LazyAssociation]] = strawberry.field(
+    associations_response: Paged[Response["Association"]] = strawberry.field(
         resolver=to_paged_response(AssociationRead)(
             seed_resolver(
                 association_resolver,
@@ -5319,7 +5305,7 @@ class OrganisationUnit:
         ],
     )
 
-    associations: list[LazyAssociation] = strawberry.field(
+    associations: list["Association"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 association_resolver,
@@ -5341,7 +5327,7 @@ class OrganisationUnit:
         deprecation_reason="Use 'associations_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    itusers_response: Paged[Response[LazyITUser]] = strawberry.field(
+    itusers_response: Paged[Response["ITUser"]] = strawberry.field(
         resolver=to_paged_response(ITUserRead)(
             seed_resolver(
                 it_user_resolver,
@@ -5359,7 +5345,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
-    itusers: list[LazyITUser] = strawberry.field(
+    itusers: list["ITUser"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 it_user_resolver,
@@ -5378,7 +5364,7 @@ class OrganisationUnit:
         deprecation_reason="Use 'itusers_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    kles_response: Paged[Response[LazyKLE]] = strawberry.field(
+    kles_response: Paged[Response["KLE"]] = strawberry.field(
         resolver=to_paged_response(KLERead)(
             seed_resolver(
                 kle_resolver,
@@ -5395,7 +5381,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("kle")],
     )
 
-    kles: list[LazyKLE] = strawberry.field(
+    kles: list["KLE"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 kle_resolver,
@@ -5413,7 +5399,7 @@ class OrganisationUnit:
         deprecation_reason="Use 'kles_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    related_units_response: Paged[Response[LazyRelatedUnit]] = strawberry.field(
+    related_units_response: Paged[Response["RelatedUnit"]] = strawberry.field(
         resolver=to_paged_response(RelatedUnitRead)(
             seed_resolver(
                 related_unit_resolver,
@@ -5431,7 +5417,7 @@ class OrganisationUnit:
         ],
     )
 
-    related_units: list[LazyRelatedUnit] = strawberry.field(
+    related_units: list["RelatedUnit"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 related_unit_resolver,
@@ -5507,7 +5493,7 @@ class OrganisationUnit:
     )
     async def ancestors_validity(
         self, root: OrganisationUnitRead, info: Info
-    ) -> list[LazyOrganisationUnit]:  # pragma: no cover
+    ) -> list["OrganisationUnit"]:  # pragma: no cover
         parents = await validity_sub_query_hack(
             root.validity,
             OrganisationUnitRead,
@@ -5549,7 +5535,7 @@ class OrganisationUnit:
     )
     async def associations_validity(
         self, root: OrganisationUnitRead, info: Info
-    ) -> list[LazyAssociation]:  # pragma: no cover
+    ) -> list["Association"]:  # pragma: no cover
         return await validity_sub_query_hack(
             root.validity,
             AssociationRead,
@@ -5574,7 +5560,7 @@ class OrganisationUnit:
     )
     async def addresses_validity(
         self, root: OrganisationUnitRead, info: Info
-    ) -> list[LazyAddress]:  # pragma: no cover
+    ) -> list["Address"]:  # pragma: no cover
         return await validity_sub_query_hack(
             root.validity,
             AddressRead,
@@ -5599,7 +5585,7 @@ class OrganisationUnit:
     )
     async def itusers_validity(
         self, root: OrganisationUnitRead, info: Info
-    ) -> list[LazyITUser]:  # pragma: no cover
+    ) -> list["ITUser"]:  # pragma: no cover
         return await validity_sub_query_hack(
             root.validity,
             ITUserRead,
@@ -5657,7 +5643,7 @@ class RelatedUnit:
         """Implemented for backwards compatability."""
         return root.type_
 
-    org_units_response: Paged[Response[LazyOrganisationUnit]] = strawberry.field(
+    org_units_response: Paged[Response["OrganisationUnit"]] = strawberry.field(
         resolver=to_paged_response(OrganisationUnitRead)(
             seed_resolver(
                 organisation_unit_resolver,
@@ -5680,7 +5666,7 @@ class RelatedUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    org_units: list[LazyOrganisationUnit] = strawberry.field(
+    org_units: list["OrganisationUnit"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 organisation_unit_resolver,
@@ -5728,7 +5714,7 @@ class RoleBinding:
     # TODO: Document this
     user_key: str = strawberry.auto
 
-    role_response: Response[LazyClass] = strawberry.field(  # type: ignore
+    role_response: Response["Class"] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.role),
         description=dedent(
             """\
@@ -5744,7 +5730,7 @@ class RoleBinding:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    role: list[LazyClass] = strawberry.field(
+    role: list["Class"] = strawberry.field(
         resolver=to_list(
             seed_resolver(class_resolver, {"uuids": lambda root: [root.role]})
         ),
@@ -5763,14 +5749,14 @@ class RoleBinding:
         deprecation_reason="Use 'role_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    ituser_response: Response[LazyITUser] = strawberry.field(  # type: ignore
+    ituser_response: Response["ITUser"] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ITUserRead, uuid=root.it_user_uuid),
         description="The IT-user that should be granted this role\n"
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
-    ituser: list[LazyITUser] = strawberry.field(
+    ituser: list["ITUser"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 it_user_resolver, {"uuids": lambda root: uuid2list(root.it_user_uuid)}
@@ -5782,7 +5768,7 @@ class RoleBinding:
         deprecation_reason="Use 'ituser_response' instead. Will be removed in a future version of OS2mo.",
     )
 
-    org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
+    org_unit_response: Response["OrganisationUnit"] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(
             model=OrganisationUnitRead, uuid=root.org_unit_uuid
         )
@@ -5797,7 +5783,7 @@ class RoleBinding:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    org_unit: list[LazyOrganisationUnit] = strawberry.field(
+    org_unit: list["OrganisationUnit"] = strawberry.field(
         resolver=to_list(
             seed_resolver(
                 organisation_unit_resolver,
