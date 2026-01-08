@@ -27,5 +27,5 @@ class ModelRegistration(Registration, Generic[MOObject]):
         return True
 
     @strawberry.field
-    async def current(self) -> str:
-        return "DEBUG TIME"
+    async def current(self) -> MOObject | None:
+        return None
