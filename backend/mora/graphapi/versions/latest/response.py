@@ -60,6 +60,25 @@ def model2name(model: Any) -> Any:
     return mapping[model]
 
 
+def name2model(name: str) -> Any:
+    mapping = {
+        "class": ClassRead,
+        "employee": EmployeeRead,
+        "facet": FacetRead,
+        "org_unit": OrganisationUnitRead,
+        "address": AddressRead,
+        "association": AssociationRead,
+        "engagement": EngagementRead,
+        "itsystem": ITSystemRead,
+        "ituser": ITUserRead,
+        "kle": KLERead,
+        "leave": LeaveRead,
+        "rolebinding": RoleBindingRead,
+        "manager": ManagerRead,
+    }
+    return mapping[name]
+
+
 class HasUUIDModel(Protocol):
     uuid: UUID
     model: type
@@ -122,7 +141,13 @@ async def validity_resolver(
     end: datetime | None = UNSET,
     registration_time: datetime | None = None,
 ) -> list[Any]:
-    resolver = resolver_map[root.model]["loader"]
+    # Hack to ensure model is of the right type
+    # TODO: Refactor model on Response to be a string
+    model = root.model
+    if isinstance(model, str):
+        model = name2model(model)
+
+    resolver = resolver_map[model]["loader"]
     dataloader = info.context[resolver]
     return await dataloader.load(LoadKey(root.uuid, start, end, registration_time))
 
@@ -154,6 +179,7 @@ class Response(Generic[MOObject]):
     # Reference to the underlying model type
     model: strawberry.Private[type[MOObject]]
 
+    # NOTE: The `current` and `validities` field also occur on `ModelRegistration`.
     current: MOObject | None = strawberry.field(
         description=dedent(
             """
