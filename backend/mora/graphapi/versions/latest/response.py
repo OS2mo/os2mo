@@ -33,7 +33,7 @@ from .models import FacetRead
 from .models import RoleBindingRead
 from .moobject import MOObject
 from .permissions import IsAuthenticatedPermission
-from .registration import Registration
+from .model_registration import ModelRegistration
 from .registration import registration_resolver
 from .resolver_map import resolver_map
 from .seed_resolver import seed_resolver
@@ -229,7 +229,7 @@ class Response(Generic[MOObject]):
         return await dataloader.load(LoadKey(root.uuid, start, end, registration_time))
 
     # TODO: Implement using a dataloader
-    registrations: list[Registration] = strawberry.field(
+    registrations: list[ModelRegistration[MOObject]] = strawberry.field(
         description=dedent(
             """\
             Bitemporal state entrypoint.

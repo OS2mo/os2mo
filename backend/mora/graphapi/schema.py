@@ -5,6 +5,7 @@ from collections.abc import AsyncIterator
 from contextlib import suppress
 from functools import cache
 
+from mora.graphapi.versions.latest.registration_types import AddressRegistration, AssociationRegistration, ClassRegistration, FacetRegistration, EngagementRegistration, ITSystemRegistration, ITUserRegistration, KLERegistration, LeaveRegistration, ManagerRegistration, OrganisationUnitRegistration, OwnerRegistration, PersonRegistration, RelatedUnitRegistration, RoleBindingRegistration
 import strawberry
 from fastapi.encoders import jsonable_encoder
 from graphql import ExecutionResult
@@ -131,6 +132,22 @@ def get_schema(version: Version) -> CustomSchema:
             MultifieldAddress,
             SpecialActor,
             UnknownActor,
+            # Concrete registration types
+            AddressRegistration,
+            AssociationRegistration,
+            ClassRegistration,
+            PersonRegistration,
+            EngagementRegistration,
+            FacetRegistration,
+            ITSystemRegistration,
+            ITUserRegistration,
+            KLERegistration,
+            LeaveRegistration,
+            ManagerRegistration,
+            OwnerRegistration,
+            OrganisationUnitRegistration,
+            RelatedUnitRegistration,
+            RoleBindingRegistration,
         ],
         extensions=[
             StarletteContextExtension,

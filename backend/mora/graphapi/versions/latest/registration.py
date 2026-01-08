@@ -38,7 +38,7 @@ from .paged import LimitType
 from .resolvers import get_sqlalchemy_date_interval
 
 
-@strawberry.type(
+@strawberry.interface(
     description=dedent(
         """\
     Bitemporal container.
@@ -144,38 +144,31 @@ class Registration:
         description="Note associated with the registration."
     )
 
-
-def row2registration(
-    model: str, id: int, uuid: UUID, actor: UUID, note: str, start_t: Any, end_t: Any
-) -> Registration:
-    """Construct a registration model.
-
-    Args:
-        model: The name of the entity model.
-        id: Internal ID for the registrationself.
-        uuid: UUID of the modified entryself.
-        actor: UUID of the actor whom made the change.
-        start_t: Start of the active interval.
-        start_t: End of the active interval.
-
-    Returns:
-        The constructed registration model.
-    """
-    start: datetime = parsedatetime(start_t)
-    end: datetime | None = parsedatetime(end_t)
-    assert end is not None
-    if end.date() == date(9999, 12, 31):
-        end = None
-
-    return Registration(  # type: ignore
-        model=model,
-        uuid=uuid,
-        registration_id=id,
-        start=start,
-        end=end,
-        actor=actor,
-        note=note,
-    )
+    @classmethod
+    def resolve_type(
+        cls,
+        model: Any,
+        info: Info,
+        type_def: Any
+    ) -> type | str | None:
+        lookup = {
+            "address": "AddressRegistration",
+            "association": "AssociationRegistration",
+            "class": "ClassRegistration",
+            "employee": "PersonRegistration",
+            "engagement": "EngagementRegistration",
+            "facet": "FacetRegistration",
+            "itsystem": "ITSystemRegistreration",
+            "ituser": "ITUserRegistration",
+            "kle": "KLERegistration",
+            "leave": "LeaveRegistration",
+            "manager": "ManagerRegistration",
+            # "owner": "OwnerRegistration",
+            "org_unit": "OrganisationUnitRegistration",
+            # "related": "RelatedUnitRegistration",
+            "role": "RoleBindingRegistration"
+        }
+        return lookup.get(model.model)
 
 
 async def registration_resolver(
@@ -183,7 +176,7 @@ async def registration_resolver(
     filter: RegistrationFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[Registration]:
+) -> list[dict[str, Any]]:
     if filter is None:  # pragma: no cover
         filter = RegistrationFilter()
 
@@ -321,4 +314,4 @@ async def registration_resolver(
         elif len(result) == limit + 1:
             result = result[:-1]
 
-    return list(starmap(row2registration, result))
+    return result
