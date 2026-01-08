@@ -4,20 +4,20 @@
 
 import pytest
 from hypothesis import given
+from mora.graphapi.gmodels.mo import EmployeeRead
+from mora.graphapi.gmodels.mo import OrganisationUnitRead
+from mora.graphapi.gmodels.mo.details import AssociationRead
+from mora.graphapi.gmodels.mo.details import EngagementRead
+from mora.graphapi.gmodels.mo.details import ITUserRead
+from mora.graphapi.gmodels.mo.details import KLERead
+from mora.graphapi.gmodels.mo.details import LeaveRead
+from mora.graphapi.gmodels.mo.details import ManagerRead
+from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.graphql_utils import LoadKey
-from mora.graphapi.versions.latest.schema import AddressRead
-from mora.graphapi.versions.latest.schema import AssociationRead
-from mora.graphapi.versions.latest.schema import EmployeeRead
-from mora.graphapi.versions.latest.schema import EngagementRead
-from mora.graphapi.versions.latest.schema import ITUserRead
-from mora.graphapi.versions.latest.schema import KLERead
-from mora.graphapi.versions.latest.schema import LeaveRead
-from mora.graphapi.versions.latest.schema import ManagerRead
-from mora.graphapi.versions.latest.schema import OrganisationUnitRead
-from mora.graphapi.versions.latest.schema import RelatedUnitRead
-from mora.graphapi.versions.latest.schema import RoleBindingRead
+from mora.graphapi.versions.latest.models import AddressRead
+from mora.graphapi.versions.latest.models import RoleBindingRead
 from pytest import MonkeyPatch
 
 from .strategies import data_with_uuids_strat

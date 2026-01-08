@@ -18,29 +18,29 @@ from pydantic import parse_obj_as
 from strawberry.dataloader import DataLoader
 from strawberry.types.unset import UnsetType
 
+from mora.graphapi.gmodels.mo import EmployeeRead
+from mora.graphapi.gmodels.mo import OrganisationRead
+from mora.graphapi.gmodels.mo import OrganisationUnitRead
+from mora.graphapi.gmodels.mo.details import AssociationRead
+from mora.graphapi.gmodels.mo.details import EngagementRead
+from mora.graphapi.gmodels.mo.details import ITSystemRead
+from mora.graphapi.gmodels.mo.details import ITUserRead
+from mora.graphapi.gmodels.mo.details import KLERead
+from mora.graphapi.gmodels.mo.details import LeaveRead
+from mora.graphapi.gmodels.mo.details import ManagerRead
+from mora.graphapi.gmodels.mo.details import OwnerRead
+from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 from mora.service import org
 
 from ...middleware import with_graphql_dates
 from .graphql_utils import LoadKey
+from .models import AddressRead
+from .models import ClassRead
+from .models import FacetRead
+from .models import RoleBindingRead
 from .readers import get_role_type_by_uuid
 from .readers import search_role_type
 from .resolvers import get_date_interval
-from .schema import AddressRead
-from .schema import AssociationRead
-from .schema import ClassRead
-from .schema import EmployeeRead
-from .schema import EngagementRead
-from .schema import FacetRead
-from .schema import ITSystemRead
-from .schema import ITUserRead
-from .schema import KLERead
-from .schema import LeaveRead
-from .schema import ManagerRead
-from .schema import OrganisationRead
-from .schema import OrganisationUnitRead
-from .schema import OwnerRead
-from .schema import RelatedUnitRead
-from .schema import RoleBindingRead
 
 MOModel = TypeVar(
     "MOModel",
