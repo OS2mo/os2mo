@@ -33,6 +33,7 @@ list of UUIDs exist:
 | Orgviewer (Legacy)          | 03800000-baad-c0de-006f-726776696577 |
 | Orgviewer (MED)             | 04c71e70-baad-c0de-6f72-677669657761 |
 | OS2Sync                     | 0525711c-baad-c0de-006f-733273796e63 |
+| Rollekatalog                | 2011e000-baad-c0de-726f-6c6c656b6174 |
 | SDChangedAt                 | 5dc4a1ce-baad-c0de-7364-6368616e6765 |
 | SDMox                       | 5d111070-baad-c0de-0000-0073646d6f78 |
 | SDTool                      | 5d100100-baad-c0de-0000-7364746f6f6c |
