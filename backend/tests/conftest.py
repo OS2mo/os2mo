@@ -38,6 +38,7 @@ from hypothesis import strategies as st
 from hypothesis.database import InMemoryExampleDatabase
 from mora import db
 from mora.app import create_app
+from mora.auth import middleware as auth_middleware
 from mora.auth.keycloak.oidc import Token
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import token_getter
@@ -124,6 +125,11 @@ st.register_type_strategy(GValidity, validity_model_strat())
 @pytest.fixture(autouse=True)
 def clear_configured_organisation():
     ConfiguredOrganisation.clear()
+
+
+@pytest.fixture(autouse=True)
+def clear_actor_cache():
+    auth_middleware._actor_cache.clear()
 
 
 @pytest.fixture

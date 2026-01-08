@@ -49,15 +49,28 @@ def _is_unit_testing_with_fake_db(session: AsyncSessionWithLock) -> bool:
     return session.under_testing_with_fake_db
 
 
+# The actor table is very write-heavy, since we write to it on every single
+# request to keep it ajour. However, the table is rather small (typically < 50)
+# so we can easily keep it in memory. If we write on every request, requests
+# from the same actor will "queue up", eventually exhausting the connection
+# pool. It's very common for an actor (integration) to make a lot of requests
+# simultaneously. This cache reduces writes.
+_actor_cache: set[tuple[UUID, str]] = set()
+
+
 def _should_save_actor(
     uuid: UUID | None, name: str | None, request: Request, session: AsyncSessionWithLock
 ) -> bool:
-    return (
+    conditions = (
         uuid is not None
         and name is not None
         and not _is_testing_snapshot_or_restore(request)
         and not _is_unit_testing_with_fake_db(session)
+        and (uuid, name) not in _actor_cache
     )
+    if conditions:
+        _actor_cache.add((uuid, name))
+    return conditions
 
 
 async def set_authenticated_user(
@@ -75,7 +88,12 @@ async def set_authenticated_user(
             await session.execute(
                 insert(Actor)
                 .values(actor=uuid, name=name)
-                .on_conflict_do_update(index_elements=["actor"], set_={"name": name})
+                .on_conflict_do_update(
+                    index_elements=["actor"],
+                    set_={"name": name},
+                    # Only update if actually different
+                    where=(Actor.name != name),
+                )
             )
     except Exception:
         uuid = UNABLE_TO_PARSE_TOKEN_UUID
