@@ -14,10 +14,10 @@ from hypothesis import given
 from hypothesis import settings
 from hypothesis import strategies as st
 from mora.graphapi.gmodels.mo import Validity as RAValidity
+from mora.graphapi.gmodels.mo.details import AssociationRead
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.models import ITAssociationCreate
 from mora.graphapi.versions.latest.models import ITAssociationUpdate
-from mora.graphapi.versions.latest.schema import AssociationRead
 from mora.util import POSITIVE_INFINITY
 from more_itertools import one
 from pydantic import Field

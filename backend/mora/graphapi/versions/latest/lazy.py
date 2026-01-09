@@ -8,37 +8,37 @@ from typing import Annotated
 import strawberry
 
 if TYPE_CHECKING:
-    from .schema import KLE
-    from .schema import Address
-    from .schema import Association
-    from .schema import Class
-    from .schema import Employee
-    from .schema import Engagement
-    from .schema import Facet
-    from .schema import ITSystem
-    from .schema import ITUser
-    from .schema import Leave
-    from .schema import Manager
-    from .schema import OrganisationUnit
-    from .schema import Owner
-    from .schema import RelatedUnit
-    from .schema import RoleBinding
+    from .collections.address import Address
+    from .collections.association import Association
+    from .collections.classes import Class
+    from .collections.employee import Employee
+    from .collections.engagement import Engagement
+    from .collections.facet import Facet
+    from .collections.it import ITSystem
+    from .collections.it import ITUser
+    from .collections.kle import KLE
+    from .collections.leave import Leave
+    from .collections.manager import Manager
+    from .collections.organisation_unit import OrganisationUnit
+    from .collections.owner import Owner
+    from .collections.related_unit import RelatedUnit
+    from .collections.role_binding import RoleBinding
 
 
-LazySchema = strawberry.lazy(".schema")
-
-LazyAddress = Annotated["Address", LazySchema]
-LazyAssociation = Annotated["Association", LazySchema]
-LazyClass = Annotated["Class", LazySchema]
-LazyEmployee = Annotated["Employee", LazySchema]
-LazyEngagement = Annotated["Engagement", LazySchema]
-LazyFacet = Annotated["Facet", LazySchema]
-LazyITSystem = Annotated["ITSystem", LazySchema]
-LazyITUser = Annotated["ITUser", LazySchema]
-LazyKLE = Annotated["KLE", LazySchema]
-LazyLeave = Annotated["Leave", LazySchema]
-LazyManager = Annotated["Manager", LazySchema]
-LazyOwner = Annotated["Owner", LazySchema]
-LazyOrganisationUnit = Annotated["OrganisationUnit", LazySchema]
-LazyRelatedUnit = Annotated["RelatedUnit", LazySchema]
-LazyRoleBinding = Annotated["RoleBinding", LazySchema]
+LazyAddress = Annotated["Address", strawberry.lazy(".collections.address")]
+LazyAssociation = Annotated["Association", strawberry.lazy(".collections.association")]
+LazyClass = Annotated["Class", strawberry.lazy(".collections.classes")]
+LazyEmployee = Annotated["Employee", strawberry.lazy(".collections.employee")]
+LazyEngagement = Annotated["Engagement", strawberry.lazy(".collections.engagement")]
+LazyFacet = Annotated["Facet", strawberry.lazy(".collections.facet")]
+LazyITSystem = Annotated["ITSystem", strawberry.lazy(".collections.it")]
+LazyITUser = Annotated["ITUser", strawberry.lazy(".collections.it")]
+LazyKLE = Annotated["KLE", strawberry.lazy(".collections.kle")]
+LazyLeave = Annotated["Leave", strawberry.lazy(".collections.leave")]
+LazyManager = Annotated["Manager", strawberry.lazy(".collections.manager")]
+LazyOwner = Annotated["Owner", strawberry.lazy(".collections.owner")]
+LazyOrganisationUnit = Annotated[
+    "OrganisationUnit", strawberry.lazy(".collections.organisation_unit")
+]
+LazyRelatedUnit = Annotated["RelatedUnit", strawberry.lazy(".collections.related_unit")]
+LazyRoleBinding = Annotated["RoleBinding", strawberry.lazy(".collections.role_binding")]

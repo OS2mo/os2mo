@@ -25,7 +25,7 @@ from mora.graphapi.schema import get_schema
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.version import LATEST_VERSION
 from mora.graphapi.versions.latest.events import EventToken
-from mora.graphapi.versions.latest.schema import AddressRead
+from mora.graphapi.versions.latest.models import AddressRead
 from strawberry.dataloader import DataLoader
 
 ORG_QUERY = "query { org { uuid } }"
