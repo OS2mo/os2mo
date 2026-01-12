@@ -8,7 +8,6 @@ from typing import cast
 from uuid import UUID
 
 import strawberry
-from strawberry.types import Info
 
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo.details import AssociationRead
@@ -16,7 +15,6 @@ from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.gmodels.mo.details import ITUserRead
 from mora.graphapi.gmodels.mo.details import LeaveRead
 from mora.graphapi.gmodels.mo.details import ManagerRead
-from mora.handler.reading import get_handler_for_type
 
 from ..lazy import LazyAddress
 from ..lazy import LazyAssociation
@@ -37,11 +35,9 @@ from ..resolvers import manager_resolver
 from ..response import Response
 from ..seed_resolver import seed_resolver
 from ..types import CPRType
-from ..utils import uuid2list
 from ..validity import OpenValidity
 from .utils import to_list
 from .utils import to_paged_response
-from .utils import validity_sub_query_hack
 
 
 @strawberry.experimental.pydantic.type(
@@ -367,111 +363,3 @@ class Employee:
     nickname_surname: str | None = strawberry.auto
 
     validity: OpenValidity = strawberry.auto
-
-    # VALIDITY HACKS
-
-    @strawberry.field(
-        description=dedent(
-            """
-            Same as engagements(), but with HACKs to enable validities.
-            """
-        ),
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("engagement"),
-        ],
-        deprecation_reason=dedent(
-            """
-            Should only be used to query engagements when validity dates have been specified, "
-            "ex from_date & to_date."
-            "Will be removed when sub-query date handling is implemented.
-            """
-        ),
-    )
-    async def engagements_validity(
-        self, root: EmployeeRead, info: Info
-    ) -> list[LazyEngagement]:  # pragma: no cover
-        return await validity_sub_query_hack(
-            root.validity,
-            EngagementRead,
-            get_handler_for_type("engagement"),
-            {"tilknyttedebrugere": uuid2list(root.uuid)},
-        )
-
-    @strawberry.field(
-        description=dedent(
-            """
-            Same as addresses(), but with HACKs to enable validities.
-            """
-        ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
-        deprecation_reason=dedent(
-            """
-            Should only be used to query addresses when validity dates have been specified, "
-            "ex from_date & to_date."
-            "Will be removed when sub-query date handling is implemented.
-            """
-        ),
-    )
-    async def addresses_validity(
-        self, root: EmployeeRead, info: Info
-    ) -> list[LazyAddress]:  # pragma: no cover
-        return await validity_sub_query_hack(
-            root.validity,
-            AddressRead,
-            get_handler_for_type("address"),
-            {"tilknyttedebrugere": uuid2list(root.uuid)},
-        )
-
-    @strawberry.field(
-        description=dedent(
-            """
-            Same as associations(), but with HACKs to enable validities.
-            """
-        ),
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("association"),
-        ],
-        deprecation_reason=dedent(
-            """
-            Should only be used to query associations when validity dates have been specified, "
-            "ex from_date & to_date."
-            "Will be removed when sub-query date handling is implemented.
-            """
-        ),
-    )
-    async def associations_validity(
-        self, root: EmployeeRead, info: Info
-    ) -> list[LazyAssociation]:  # pragma: no cover
-        return await validity_sub_query_hack(
-            root.validity,
-            AssociationRead,
-            get_handler_for_type("association"),
-            {"tilknyttedebrugere": uuid2list(root.uuid)},
-        )
-
-    @strawberry.field(
-        description=dedent(
-            """
-            Same as itusers(), but with HACKs to enable validities.
-            """
-        ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
-        deprecation_reason=dedent(
-            """
-            Should only be used to query itusers when validity dates have been specified, "
-            "ex from_date & to_date."
-            "Will be removed when sub-query date handling is implemented.
-            """
-        ),
-    )
-    async def itusers_validity(
-        self, root: EmployeeRead, info: Info
-    ) -> list[LazyITUser]:  # pragma: no cover
-        return await validity_sub_query_hack(
-            root.validity,
-            ITUserRead,
-            get_handler_for_type("it"),
-            {"tilknyttedebrugere": uuid2list(root.uuid)},
-        )

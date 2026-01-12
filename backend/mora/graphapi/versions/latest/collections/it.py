@@ -13,7 +13,6 @@ from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.gmodels.mo.details import ITSystemRead
 from mora.graphapi.gmodels.mo.details import ITUserRead
-from mora.handler.reading import get_handler_for_type
 
 from ..filters import ITSystemFilter
 from ..filters import ITUserFilter
@@ -51,7 +50,6 @@ from .utils import to_one
 from .utils import to_only
 from .utils import to_paged_response
 from .utils import to_response_list
-from .utils import validity_sub_query_hack
 
 
 @strawberry.experimental.pydantic.type(
@@ -648,35 +646,3 @@ class ITUser:
         return root.primary_uuid
 
     validity: Validity = strawberry.auto
-
-    # VALIDITY HACKS
-
-    @strawberry.field(
-        description=dedent(
-            """
-            Same as itsystem, but with HACKs to enable validities.
-            """
-        ),
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("class"),
-        ],
-        deprecation_reason=dedent(
-            """
-            Should only be used to query itsystem when validity dates have been specified, "
-            "ex from_date & to_date."
-            "Will be removed when sub-query date handling is implemented.
-            """
-        ),
-    )
-    async def itsystem_validity(
-        self, root: ITUserRead
-    ) -> LazyITSystem:  # pragma: no cover
-        itsystems = await validity_sub_query_hack(
-            root.validity,
-            ITSystemRead,
-            get_handler_for_type("itsystem"),
-            {"uuid": uuid2list(root.itsystem_uuid)},
-        )
-
-        return itsystems[0]
