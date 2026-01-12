@@ -17,7 +17,6 @@ from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.gmodels.mo.details import ITUserRead
-from mora.handler.reading import get_handler_for_type
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
 from mora.service.address_handler.base import AddressHandler
@@ -49,7 +48,6 @@ from .utils import raise_force_none_return_if_uuid_none
 from .utils import to_list
 from .utils import to_one
 from .utils import to_only
-from .utils import validity_sub_query_hack
 
 
 @strawberry.interface
@@ -672,35 +670,3 @@ class Address:
         return obj.value2
 
     validity: Validity = strawberry.auto
-
-    # VALIDITY HACKS
-
-    @strawberry.field(
-        description=dedent(
-            """
-            Same as address_type, but with HACKs to enable validities.
-            """
-        ),
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("class"),
-        ],
-        deprecation_reason=dedent(
-            """
-            Should only be used to query address_type when validity dates have been specified, "
-            "ex from_date & to_date."
-            "Will be removed when sub-query date handling is implemented.
-            """
-        ),
-    )
-    async def address_type_validity(
-        self, root: AddressRead
-    ) -> LazyClass | None:  # pragma: no cover
-        address_types = await validity_sub_query_hack(
-            root.validity,
-            ClassRead,
-            get_handler_for_type("class"),
-            {"uuid": uuid2list(root.address_type_uuid)},
-        )
-
-        return address_types[0] if address_types else None

@@ -4,8 +4,6 @@
 
 from collections.abc import Awaitable
 from collections.abc import Callable
-from datetime import datetime
-from datetime import time
 from functools import partial
 from functools import wraps
 from itertools import chain
@@ -17,13 +15,6 @@ from uuid import UUID
 from more_itertools import last
 from more_itertools import one
 from more_itertools import only
-from pydantic import parse_obj_as
-
-from mora.common import _create_graphql_connector
-from mora.graphapi.gmodels.mo import OpenValidity as RAMOpenValidity
-from mora.graphapi.middleware import with_graphql_dates
-from mora.graphapi.versions.latest.readers import _extract_search_params
-from mora.handler.reading import ReadingHandler
 
 from ..moobject import MOObject
 from ..paged import to_paged
@@ -178,78 +169,3 @@ list_to_optional_field_warning = dedent(
     This field will probably become an optional entity instead of a list in the future.
     """
 )
-
-
-async def validity_sub_query_hack(
-    root_validity: RAMOpenValidity,
-    item_type: type[Any],
-    item_reading_handler: ReadingHandler,
-    item_lora_query_args: dict,
-) -> list[Any]:
-    # Custom Lora-GraphQL connector - created in order to control dates in sub-queries/recursions
-    if root_validity.to_date:  # pragma: no cover
-        # FYI: This is needed when ex root.validity.to_date == item.validity.from_date
-        # If we just use "root_validity.to_date" where ex time is "00:00:00",
-        # LoRa will return no results, since it needs the time to be "23:59:59" to be inclusive.
-        root_validity = RAMOpenValidity(
-            from_date=root_validity.from_date,
-            to_date=datetime.combine(root_validity.to_date.date(), time.max),
-        )
-
-    with with_graphql_dates(root_validity):
-        c = _create_graphql_connector()
-
-    # potential items
-    item_potentials = await item_reading_handler.get(
-        c=c,
-        search_fields=_extract_search_params(query_args=item_lora_query_args),
-    )
-    item_potentials_models = parse_obj_as(list[item_type], item_potentials)  # type: ignore
-
-    # Filter out items where to_date is before root_validity.from_date
-    item_potentials_models = list(
-        filter(
-            lambda ipm: (  # type: ignore
-                root_validity.from_date is None  # type: ignore
-                or ipm.validity.to_date is None  # type: ignore
-                or ipm.validity.to_date  # type: ignore
-                >= root_validity.from_date  # type: ignore
-            ),
-            item_potentials_models,
-        )
-    )
-
-    # Filter out items where from_date is after root_validity.to_date
-    item_potentials_models = list(
-        filter(
-            lambda ipm: (  # type: ignore
-                root_validity.to_date is None  # type: ignore
-                or ipm.validity.from_date is None  # type: ignore
-                or ipm.validity.from_date  # type: ignore
-                <= root_validity.to_date  # type: ignore
-            ),
-            item_potentials_models,
-        )
-    )
-
-    # Go through models versions and if there are multiple with the same UUID,
-    # use the one with the earliest from_date
-    items_final: list[item_type] = []  # type: ignore
-    for item in item_potentials_models:
-        existing_item = next(
-            (i for i in items_final if i.uuid == item.uuid),  # type: ignore
-            None,
-        )
-        if existing_item is None:
-            items_final.append(item)
-        else:  # pragma: no cover
-            # Handle the case where either from_date could be None
-            if existing_item.validity.from_date is None or (
-                item.validity.from_date is not None
-                and item.validity.from_date  # type: ignore
-                < existing_item.validity.from_date  # type: ignore
-            ):
-                items_final.remove(existing_item)
-                items_final.append(item)
-
-    return items_final

@@ -16,7 +16,6 @@ from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.gmodels.mo.details import ITUserRead
 from mora.graphapi.gmodels.mo.details import LeaveRead
-from mora.handler.reading import get_handler_for_type
 from mora.service.facet import is_class_uuid_primary
 
 from ..filters import EmployeeFilter
@@ -51,7 +50,6 @@ from .utils import to_list
 from .utils import to_only
 from .utils import to_paged_response
 from .utils import to_response_list
-from .utils import validity_sub_query_hack
 
 
 @strawberry.experimental.pydantic.type(
@@ -497,35 +495,3 @@ class Engagement:
     extension_10: str | None = strawberry.auto
 
     validity: Validity = strawberry.auto
-
-    # VALIDITY HACKS
-
-    @strawberry.field(
-        description=dedent(
-            """
-            Same as engagement_type, but with HACKs to enable validities.
-            """
-        ),
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("class"),
-        ],
-        deprecation_reason=dedent(
-            """
-            Should only be used to query engagement_type when validity dates have been specified, ""
-            "ex from_date & to_date."
-            "Will be removed when sub-query date handling is implemented."
-            """
-        ),
-    )
-    async def engagement_type_validity(
-        self, root: EngagementRead
-    ) -> LazyClass | None:  # pragma: no cover
-        engagement_types = await validity_sub_query_hack(
-            root.validity,
-            ClassRead,
-            get_handler_for_type("class"),
-            {"uuid": uuid2list(root.engagement_type_uuid)},
-        )
-
-        return engagement_types[0] if engagement_types else None

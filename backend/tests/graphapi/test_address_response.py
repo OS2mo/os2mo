@@ -179,13 +179,6 @@ def test_address_resolver_response_field_comparison(
                       to
                     }
                 }
-                address_type_validity {
-                    name
-                    validity {
-                      from
-                      to
-                    }
-                }
                 address_type_response {
                   current {
                     name
@@ -210,13 +203,6 @@ def test_address_resolver_response_field_comparison(
                     "current": {
                         "uuid": address_uuid,
                         "address_type": {
-                            "name": "Postadresse",
-                            "validity": {
-                                "from": "1970-01-01T00:00:00+01:00",
-                                "to": None,
-                            },
-                        },
-                        "address_type_validity": {
                             "name": "Postadresse",
                             "validity": {
                                 "from": "1970-01-01T00:00:00+01:00",
@@ -275,13 +261,6 @@ def test_address_resolver_response_field_comparison(
                             "validity": {
                                 "from": "2010-01-01T00:00:00+01:00",
                                 "to": None,
-                            },
-                        },
-                        "address_type_validity": {
-                            "name": "Postadresse",
-                            "validity": {
-                                "from": "1970-01-01T00:00:00+01:00",
-                                "to": "2009-12-31T00:00:00+01:00",
                             },
                         },
                         "address_type_response": {

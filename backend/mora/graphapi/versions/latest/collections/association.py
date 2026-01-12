@@ -11,7 +11,6 @@ from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import AssociationRead
 from mora.graphapi.gmodels.mo.details import ITUserRead
-from mora.handler.reading import get_handler_for_type
 
 from ..lazy import LazyClass
 from ..lazy import LazyEmployee
@@ -32,7 +31,6 @@ from .utils import gen_uuid_field_deprecation
 from .utils import list_to_optional_field_warning
 from .utils import to_list
 from .utils import to_only
-from .utils import validity_sub_query_hack
 
 
 @strawberry.experimental.pydantic.type(
@@ -484,35 +482,3 @@ class Association:
         return root.it_user_uuid
 
     validity: Validity = strawberry.auto
-
-    # VALIDITY HACKS
-
-    @strawberry.field(
-        description=dedent(
-            """
-            Same as association_type, but with HACKs to enable validities.
-            """
-        ),
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("class"),
-        ],
-        deprecation_reason=dedent(
-            """
-            Should only be used to query association_types when validity dates have been specified, "
-            "ex from_date & to_date."
-            "Will be removed when sub-query date handling is implemented.
-            """
-        ),
-    )
-    async def association_type_validity(
-        self, root: AssociationRead
-    ) -> LazyClass | None:  # pragma: no cover
-        association_types = await validity_sub_query_hack(
-            root.validity,
-            ClassRead,
-            get_handler_for_type("class"),
-            {"uuid": uuid2list(root.association_type_uuid)},
-        )
-
-        return association_types[0] if association_types else None
