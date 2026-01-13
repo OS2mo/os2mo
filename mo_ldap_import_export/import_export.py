@@ -34,6 +34,7 @@ from .environments.main import get_or_create_job_function_uuid
 from .exceptions import DryRunException
 from .exceptions import IncorrectMapping
 from .exceptions import InvalidCPR
+from .exceptions import NoObjectsReturnedException
 from .exceptions import SkipObject
 from .ldap import apply_discriminator
 from .ldap import filter_dns
@@ -302,6 +303,12 @@ class SyncTool:
         try:
             best_dn = await self.dataloader._find_best_dn(uuid)
         except NoGoodLDAPAccountFound:
+            return {}
+        except NoObjectsReturnedException:
+            # TODO: Distinguish invalid events and deleted using registration history
+            logger.exception(
+                "Could not find MO employee, likely deleted or invalid event"
+            )
             return {}
 
         # No DN set, means we are creating
