@@ -19,6 +19,7 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.environments.main import construct_environment
+from mo_ldap_import_export.exceptions import AcknowledgeException
 from mo_ldap_import_export.exceptions import RequeueException
 from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.main import GRAPHQL_VERSION
@@ -511,7 +512,7 @@ async def test_get_primary_engagement(
     route.result = {"engagements": {"objects": objects}}
 
     if isinstance(expected, str):
-        with pytest.raises(RequeueException) as exc_info:
+        with pytest.raises(AcknowledgeException) as exc_info:
             await get_primary_engagement(graphql_client, employee_uuid)
         assert expected in str(exc_info.value)
     else:
