@@ -163,6 +163,9 @@ class DataLoader:
         Args:
             uuid: UUID of the employee to try to find DNs for.
 
+        Raises:
+            NoObjectsReturnedException: If the MO employee could not be found.
+
         Returns:
             A potentially empty set of DNs.
         """
@@ -196,6 +199,9 @@ class DataLoader:
 
         Args:
             uuid: UUID of the employee to try to find DNs for.
+
+        Raises:
+            NoObjectsReturnedException: If the MO employee could not be found.
 
         Returns:
             A potentially empty set of DNs.
@@ -249,6 +255,24 @@ class DataLoader:
         return dn
 
     async def _find_best_dn(self, uuid: EmployeeUUID) -> DN | None:
+        """Find the best possible DN for the given user.
+
+        Args:
+            uuid: The MO UUID of the person to lookup.
+
+        Raises:
+            NoObjectsReturnedException: If the MO employee could not be found.
+            NoGoodLDAPAccountFound: If no good LDAP account could be found.
+
+        Returns:
+            The best DN or None if no LDAP account was found.
+
+        Note:
+            Notice the distinction between the function returning None and raising
+            NoGoodLDAPAccountFound. The former is a signal that an account can be
+            created, while the latter is a signal that an account was found, and that
+            synchronization should not take place.
+        """
         dns = await self.find_mo_employee_dn(uuid)
         dns = await filter_dns(self.settings, self.ldapapi.connection, dns)
         # If we found DNs, we want to synchronize to the best of them

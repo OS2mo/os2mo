@@ -271,7 +271,13 @@ async def http_reconcile_person(
         logger.warning("MO event ignored due to ignore-list")
         return
 
-    dns = await dataloader.find_mo_employee_dn(object_uuid)
+    try:
+        dns = await dataloader.find_mo_employee_dn(object_uuid)
+    except NoObjectsReturnedException:
+        # TODO: Distinguish invalid events and deleted using registration history
+        logger.exception("Could not find MO employee, likely deleted or invalid event")
+        return
+
     ldap_uuids = set()
     for dn in dns:
         with suppress(NoObjectsReturnedException):
