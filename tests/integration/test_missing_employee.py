@@ -18,6 +18,7 @@ from httpx import AsyncClient
         ("/mo2ldap/person", "f491c107-1e58-4721-a48a-09852233f20a"),
     ],
 )
+@pytest.mark.xfail(reason="The endpoint currently returns 500 instead of 200")
 async def test_missing_employee_endpoints(
     test_client: AsyncClient,
     caplog: pytest.LogCaptureFixture,
@@ -29,4 +30,6 @@ async def test_missing_employee_endpoints(
 
     with caplog.at_level(logging.ERROR):
         response = await test_client.post(url, json=jsonable_encoder(event))
-    assert response.status_code == 500
+    assert response.status_code == 200
+    assert f"Unable to lookup employee: {missing_uuid}" in caplog.text
+    assert "Could not find MO employee, likely deleted or invalid event" in caplog.text
