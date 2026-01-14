@@ -1048,6 +1048,27 @@ def update_person(
 
 
 @pytest.fixture
+def create_engagement(
+    graphapi_post: GraphAPIPost,
+    root_org: UUID,
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation CreateEngagement($input: EngagementCreateInput!) {
+                engagement_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["engagement_create"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
 def create_manager(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
