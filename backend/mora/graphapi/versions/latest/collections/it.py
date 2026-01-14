@@ -150,7 +150,7 @@ class ITSystem:
     )
 
     roles: list[Response[LazyClass]] = strawberry.field(
-        resolver=to_response_list(LazyClass)(
+        resolver=to_response_list(ClassRead)(  # type: ignore
             seed_resolver(
                 class_resolver,
                 {
@@ -367,7 +367,7 @@ class ITUser:
     )
 
     engagements: list[Response[LazyEngagement]] = strawberry.field(
-        resolver=to_response_list(LazyEngagement)(
+        resolver=to_response_list(EngagementRead)(  # type: ignore
             seed_resolver(
                 engagement_resolver,
                 {"uuids": lambda root: root.engagement_uuids},

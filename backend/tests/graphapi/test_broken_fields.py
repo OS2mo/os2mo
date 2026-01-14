@@ -13,7 +13,6 @@ from tests.conftest import GraphAPIPost
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-@pytest.mark.xfail(reason="Fails 'model2name(root.model)' translation due to LazyType")
 async def test_engagement_itusers(
     graphapi_post: GraphAPIPost,
     create_org_unit: Callable[[str, UUID | None], UUID],
@@ -76,7 +75,6 @@ async def test_engagement_itusers(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-@pytest.mark.xfail(reason="Fails 'model2name(root.model)' translation due to LazyType")
 async def test_itsystem_roles(
     graphapi_post: GraphAPIPost,
     create_itsystem: Callable[[dict[str, Any]], UUID],
@@ -125,7 +123,6 @@ async def test_itsystem_roles(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-@pytest.mark.xfail(reason="Fails 'model2name(root.model)' translation due to LazyType")
 async def test_ituser_engagements(
     graphapi_post: GraphAPIPost,
     create_org_unit: Callable[[str, UUID | None], UUID],
