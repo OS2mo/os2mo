@@ -13,6 +13,7 @@ from tests.conftest import GraphAPIPost
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
+@pytest.mark.xfail(reason="Fails 'model2name(root.model)' translation due to LazyType")
 async def test_engagement_itusers(
     graphapi_post: GraphAPIPost,
     create_org_unit: Callable[[str, UUID | None], UUID],
@@ -39,7 +40,7 @@ async def test_engagement_itusers(
             "validity": {"from": "2010-01-01"},
         }
     )
-    create_ituser(
+    it_user_uuid = create_ituser(
         {
             "user_key": "test_user",
             "itsystem": str(it_system_uuid),
@@ -65,12 +66,17 @@ async def test_engagement_itusers(
         }
     """
     response = graphapi_post(query, variables={"uuid": str(engagement_uuid)})
-    error = one(response.errors)
-    assert "typing.Annotated[ForwardRef('ITUser')" in error["message"]
+    assert response.errors is None
+    assert response.data is not None
+    obj = one(response.data["engagements"]["objects"])
+    ituser = one(obj["current"]["itusers"])
+    registration = one(ituser["registrations"])
+    assert registration["uuid"] == str(it_user_uuid)
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
+@pytest.mark.xfail(reason="Fails 'model2name(root.model)' translation due to LazyType")
 async def test_itsystem_roles(
     graphapi_post: GraphAPIPost,
     create_itsystem: Callable[[dict[str, Any]], UUID],
@@ -83,7 +89,7 @@ async def test_itsystem_roles(
             "validity": {"from": "2010-01-01"},
         }
     )
-    create_class(
+    role_uuid = create_class(
         {
             "facet_uuid": "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7",
             "user_key": "test_role",
@@ -109,12 +115,17 @@ async def test_itsystem_roles(
         }
     """
     response = graphapi_post(query, variables={"uuid": str(it_system_uuid)})
-    error = one(response.errors)
-    assert "typing.Annotated[ForwardRef('Class')" in error["message"]
+    assert response.errors is None
+    assert response.data is not None
+    obj = one(response.data["itsystems"]["objects"])
+    role = one(obj["current"]["roles"])
+    registration = one(role["registrations"])
+    assert registration["uuid"] == str(role_uuid)
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
+@pytest.mark.xfail(reason="Fails 'model2name(root.model)' translation due to LazyType")
 async def test_ituser_engagements(
     graphapi_post: GraphAPIPost,
     create_org_unit: Callable[[str, UUID | None], UUID],
@@ -167,5 +178,9 @@ async def test_ituser_engagements(
         }
     """
     response = graphapi_post(query, variables={"uuid": str(it_user_uuid)})
-    error = one(response.errors)
-    assert "typing.Annotated[ForwardRef('Engagement')" in error["message"]
+    assert response.errors is None
+    assert response.data is not None
+    obj = one(response.data["itusers"]["objects"])
+    engagement = one(obj["current"]["engagements"])
+    registration = one(engagement["registrations"])
+    assert registration["uuid"] == str(engagement_uuid)
