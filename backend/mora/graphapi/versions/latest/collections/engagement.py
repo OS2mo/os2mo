@@ -332,7 +332,7 @@ class Engagement:
     )
 
     itusers: list[Response[LazyITUser]] = strawberry.field(
-        resolver=to_response_list(LazyITUser)(
+        resolver=to_response_list(ITUserRead)(  # type: ignore
             seed_resolver(
                 it_user_resolver,
                 {
