@@ -815,6 +815,7 @@ async def organisation_unit_resolver_query(
         # TODO: This should be reimplemented in SQL; #60285
         # NOTE: Local import to avoid cyclic references
         from .response import Response
+        from .response import validity_resolver
 
         engagement_uuids = await engagement_resolver(info, filter.engagement)
         engagement_responses = [
@@ -827,7 +828,7 @@ async def organisation_unit_resolver_query(
 
         engagement_validities = await asyncio.gather(
             *[
-                response.validities(root=response, info=info, start=start, end=end)
+                validity_resolver(root=response, info=info, start=start, end=end)
                 for response in engagement_responses
             ]
         )

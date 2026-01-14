@@ -59,9 +59,79 @@ def model2name(model: Any) -> Any:
     return mapping[model]
 
 
+async def current_resolver(
+    root: "Response",
+    info: Info,
+    at: datetime | None = UNSET,
+    registration_time: datetime | None = None,
+) -> Any | None:
+    def active_now(obj: Any) -> bool:
+        """Predicate on whether the object is active right now.
+
+        Args:
+            obj: The object to test.
+
+        Returns:
+            True if the object is active right now, False otherwise.
+        """
+        if not hasattr(obj, "validity"):  # pragma: no cover
+            return True
+
+        from_date = obj.validity.from_date or NEGATIVE_INFINITY
+        to_date = obj.validity.to_date or POSITIVE_INFINITY
+
+        # TODO: This should just be a normal datetime compare, but due to legacy systems,
+        #       ex dipex, we must use .date() to compare dates instead of datetimes.
+        #       Remove when legacy systems handle datetimes properly.
+        return from_date.date() <= now().date() <= to_date.date()
+
+    def activity_tuple(obj: Any) -> datetime:
+        if not hasattr(obj, "validity"):  # pragma: no cover
+            return NEGATIVE_INFINITY
+        if obj.validity.to_date is None:
+            return POSITIVE_INFINITY
+        return obj.validity.to_date
+
+    if at or registration_time:
+        objects = await validity_resolver(root, info, at, UNSET, registration_time)
+        return only(objects)
+
+    # TODO: This should really do its own instantaneous query to find whatever is
+    #       active right now, regardless of the values in objects.
+    objects = await validity_resolver(root, info)
+    objects_active_now = filter(active_now, objects)
+
+    # HACK: Due to legacy systems, ex dipex, we must use .date() to compare dates instead of datetimes.
+    #       because of this, if we update entities on the same date shortly after each other,
+    #       we may end up with multiple entities which are "active now", where only one is expected.
+    #       To handle this, we first try to find an entity which is active now and has no end date.
+    #       If we cannot find such an entity, we find the entity with largest to_date
+    return max(objects_active_now, key=activity_tuple, default=None)
+
+
+async def validity_resolver(
+    root: "Response",
+    info: Info,
+    start: datetime | None = UNSET,
+    end: datetime | None = UNSET,
+    registration_time: datetime | None = None,
+) -> list[Any]:
+    if (
+        start is UNSET
+        and end is UNSET
+        and registration_time is None
+        and root.object_cache != UNSET
+    ):
+        return root.object_cache
+    # If the object cache has not been filled we must resolve objects using the uuid
+    resolver = resolver_map[root.model]["loader"]
+    dataloader = info.context[resolver]
+    return await dataloader.load(LoadKey(root.uuid, start, end, registration_time))
+
+
 @strawberry.type(
     description=dedent(
-        """\
+        """
     Top-level container for (bi)-temporal and actual state data access.
 
     Contains a UUID uniquely denoting the bitemporal object.
@@ -90,9 +160,9 @@ class Response(Generic[MOObject]):
     # Reference to the underlying model type
     model: strawberry.Private[type[MOObject]]
 
-    @strawberry.field(
+    current: MOObject | None = strawberry.field(
         description=dedent(
-            """\
+            """
             Actual / current state entrypoint.
 
             Returns the state of the object at current validity and current assertion time.
@@ -104,62 +174,12 @@ class Response(Generic[MOObject]):
             """
         ),
         permission_classes=[IsAuthenticatedPermission],
+        resolver=current_resolver,
     )
-    async def current(
-        self,
-        root: "Response",
-        info: Info,
-        at: datetime | None = UNSET,
-        registration_time: datetime | None = None,
-    ) -> MOObject | None:
-        def active_now(obj: Any) -> bool:
-            """Predicate on whether the object is active right now.
 
-            Args:
-                obj: The object to test.
-
-            Returns:
-                True if the object is active right now, False otherwise.
-            """
-            if not hasattr(obj, "validity"):  # pragma: no cover
-                return True
-
-            from_date = obj.validity.from_date or NEGATIVE_INFINITY
-            to_date = obj.validity.to_date or POSITIVE_INFINITY
-
-            # TODO: This should just be a normal datetime compare, but due to legacy systems,
-            #       ex dipex, we must use .date() to compare dates instead of datetimes.
-            #       Remove when legacy systems handle datetimes properly.
-            return from_date.date() <= now().date() <= to_date.date()
-
-        def activity_tuple(obj: Any) -> datetime:
-            if not hasattr(obj, "validity"):  # pragma: no cover
-                return NEGATIVE_INFINITY
-            if obj.validity.to_date is None:
-                return POSITIVE_INFINITY
-            return obj.validity.to_date
-
-        if at or registration_time:
-            objects = await Response.validities(
-                self, root, info, at, UNSET, registration_time
-            )
-            return only(objects)
-
-        # TODO: This should really do its own instantaneous query to find whatever is
-        #       active right now, regardless of the values in objects.
-        objects = await Response.validities(self, root, info)
-        objects_active_now = filter(active_now, objects)
-
-        # HACK: Due to legacy systems, ex dipex, we must use .date() to compare dates instead of datetimes.
-        #       because of this, if we update entities on the same date shortly after each other,
-        #       we may end up with multiple entities which are "active now", where only one is expected.
-        #       To handle this, we first try to find an entity which is active now and has no end date.
-        #       If we cannot find such an entity, we find the entity with largest to_date
-        return max(objects_active_now, key=activity_tuple, default=None)
-
-    @strawberry.field(
+    objects: list[MOObject] = strawberry.field(
         description=dedent(
-            """\
+            """
             Temporal state entrypoint.
 
             Returns the state of the object at varying validities and current assertion time.
@@ -178,23 +198,14 @@ class Response(Generic[MOObject]):
             Use validities instead.
             """
         ),
+        resolver=validity_resolver,
     )
-    async def objects(
-        self,
-        root: "Response",
-        info: Info,
-        start: datetime | None = UNSET,
-        end: datetime | None = UNSET,
-        registration_time: datetime | None = None,
-    ) -> list[MOObject]:
-        objects = await Response.validities(
-            self, root, info, start, end, registration_time
-        )
-        return objects
 
+    # NOTE: This field cannot be rewritten as the one above due to:
+    # https://github.com/strawberry-graphql/strawberry/issues/4139
     @strawberry.field(
         description=dedent(
-            """\
+            """
             Temporal state entrypoint.
 
             Returns the state of the object at varying validities and current assertion time.
@@ -216,22 +227,12 @@ class Response(Generic[MOObject]):
         end: datetime | None = UNSET,
         registration_time: datetime | None = None,
     ) -> list[MOObject]:
-        if (
-            start is UNSET
-            and end is UNSET
-            and registration_time is None
-            and root.object_cache != UNSET
-        ):
-            return root.object_cache
-        # If the object cache has not been filled we must resolve objects using the uuid
-        resolver = resolver_map[root.model]["loader"]
-        dataloader = info.context[resolver]
-        return await dataloader.load(LoadKey(root.uuid, start, end, registration_time))
+        return await validity_resolver(root, info, start, end, registration_time)
 
     # TODO: Implement using a dataloader
     registrations: list[Registration] = strawberry.field(
         description=dedent(
-            """\
+            """
             Bitemporal state entrypoint.
 
             Returns the state of the object at varying validities and varying assertion times.
