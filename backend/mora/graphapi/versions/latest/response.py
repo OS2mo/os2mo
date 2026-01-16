@@ -80,10 +80,12 @@ async def current_resolver(
         from_date = obj.validity.from_date or NEGATIVE_INFINITY
         to_date = obj.validity.to_date or POSITIVE_INFINITY
 
+        target_date = at if at not in (UNSET, None) else now()
+
         # TODO: This should just be a normal datetime compare, but due to legacy systems,
         #       ex dipex, we must use .date() to compare dates instead of datetimes.
         #       Remove when legacy systems handle datetimes properly.
-        return from_date.date() <= now().date() <= to_date.date()
+        return from_date.date() <= target_date.date() <= to_date.date()
 
     def activity_tuple(obj: Any) -> datetime:
         if not hasattr(obj, "validity"):  # pragma: no cover
@@ -92,13 +94,9 @@ async def current_resolver(
             return POSITIVE_INFINITY
         return obj.validity.to_date
 
-    if at or registration_time:
-        objects = await validity_resolver(root, info, at, UNSET, registration_time)
-        return only(objects)
-
     # TODO: This should really do its own instantaneous query to find whatever is
     #       active right now, regardless of the values in objects.
-    objects = await validity_resolver(root, info)
+    objects = await validity_resolver(root, info, at, UNSET, registration_time)
     objects_active_now = filter(active_now, objects)
 
     # HACK: Due to legacy systems, ex dipex, we must use .date() to compare dates instead of datetimes.
