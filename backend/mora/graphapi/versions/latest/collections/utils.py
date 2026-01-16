@@ -16,8 +16,13 @@ from more_itertools import last
 from more_itertools import one
 from more_itertools import only
 
+from strawberry import UNSET
+from strawberry.types import Info
+
+from ..graphql_utils import LoadKey
 from ..moobject import MOObject
 from ..paged import to_paged
+from ..resolver_map import resolver_map
 from ..response import Response
 from ..utils import uuid2list
 
@@ -80,15 +85,18 @@ ResolverFunction = Callable[..., Awaitable[ResolverResult]]
 
 
 def result_translation(
-    mapper: Callable[[ResolverResult], R],
+    mapper: Callable[[ResolverResult, Info], R],
 ) -> Callable[[ResolverFunction], Callable[..., Awaitable[R]]]:
     def wrapper(
         resolver_func: ResolverFunction,
     ) -> Callable[..., Awaitable[R]]:
         @wraps(resolver_func)
         async def mapped_resolver(*args: Any, **kwargs: Any) -> Any:
+            info = kwargs.get("info")
+            if info is None:
+                info = next(arg for arg in args if isinstance(arg, Info))
             result = await resolver_func(*args, **kwargs)
-            return mapper(result)
+            return mapper(result, info)
 
         return mapped_resolver
 
@@ -100,9 +108,13 @@ def to_response(
 ) -> Callable[[ResolverFunction], Callable[..., Awaitable[Response[MOObject]]]]:
     def result2response_list(
         result: ResolverResult,
+        info: Info,
     ) -> Response[MOObject]:  # pragma: no cover
         uuid, objects = one(result.items())
-        return Response(model=model, uuid=uuid, object_cache=objects)
+        resolver = resolver_map[model]["loader"]
+        dataloader = info.context[resolver]
+        dataloader.prime(LoadKey(uuid, UNSET, UNSET, None), objects)
+        return Response(model=model, uuid=uuid)
 
     return result_translation(result2response_list)
 
@@ -110,37 +122,51 @@ def to_response(
 def to_response_list(
     model: type[MOObject],
 ) -> Callable[[ResolverFunction], Callable[..., Awaitable[list[Response[MOObject]]]]]:
-    def result2response_list(result: ResolverResult) -> list[Response[MOObject]]:
-        return [
-            Response(model=model, uuid=uuid, object_cache=objects)
-            for uuid, objects in result.items()
-        ]
+    def result2response_list(
+        result: ResolverResult,
+        info: Info,
+    ) -> list[Response[MOObject]]:
+        responses = []
+        for uuid, objects in result.items():
+            resolver = resolver_map[model]["loader"]
+            dataloader = info.context[resolver]
+            dataloader.prime(LoadKey(uuid, UNSET, UNSET, None), objects)
+            responses.append(Response(model=model, uuid=uuid))
+        return responses
 
     return result_translation(result2response_list)
 
 
 to_list = result_translation(
-    lambda result: list(chain.from_iterable(result.values())),
+    lambda result, _: list(chain.from_iterable(result.values())),
 )
 to_only = result_translation(
-    lambda result: only(chain.from_iterable(result.values())),
+    lambda result, _: only(chain.from_iterable(result.values())),
 )
 to_one = result_translation(
-    lambda result: one(chain.from_iterable(result.values())),
+    lambda result, _: one(chain.from_iterable(result.values())),
 )
 to_arbitrary_only = result_translation(
-    lambda result: last(chain.from_iterable(result.values()), default=None),
+    lambda result, _: last(chain.from_iterable(result.values()), default=None),
 )
 
 
 def to_paged_response(model: type[MOObject]) -> Callable:
+    def result_transformer(
+        model: type[MOObject], result: ResolverResult, info: Info
+    ) -> list[Response[MOObject]]:
+        responses = []
+        for uuid, objects in result.items():
+            resolver = resolver_map[model]["loader"]
+            dataloader = info.context[resolver]
+            dataloader.prime(LoadKey(uuid, UNSET, UNSET, None), objects)
+            responses.append(Response(model=model, uuid=uuid))
+        return responses
+
     return partial(
         to_paged,
         model=model,
-        result_transformer=lambda model, result: [
-            Response(model=model, uuid=uuid, object_cache=objects)
-            for uuid, objects in result.items()
-        ],
+        result_transformer=result_transformer,
     )
 
 

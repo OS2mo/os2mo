@@ -8,6 +8,7 @@ from uuid import UUID
 
 import strawberry
 from starlette_context import context
+from strawberry import UNSET
 from strawberry.types import Info
 
 from mora import db
@@ -39,6 +40,7 @@ from .events import listener_resolver
 from .events import namespace_resolver
 from .filters import FileFilter
 from .filters import HealthFilter
+from .graphql_utils import LoadKey
 from .health import health_map
 from .models import AddressRead
 from .models import ClassRead
@@ -53,6 +55,7 @@ from .permissions import gen_read_permission
 from .permissions import gen_role_permission
 from .registration import Registration
 from .registration import registration_resolver
+from .resolver_map import resolver_map
 from .resolvers import address_resolver
 from .resolvers import association_resolver
 from .resolvers import class_resolver
@@ -157,14 +160,19 @@ async def file_resolver(
     ]
 
 
-def to_func_response(model: Any, result: dict[UUID, list[dict]]) -> list[Response]:
-    return [
-        Response(model=model, uuid=uuid, object_cache=objects)
-        for uuid, objects in result.items()
-    ]
+def to_func_response(
+    model: Any, result: dict[UUID, list[dict]], info: Info
+) -> list[Response]:
+    responses = []
+    for uuid, objects in result.items():
+        resolver = resolver_map[model]["loader"]
+        dataloader = info.context[resolver]
+        dataloader.prime(LoadKey(uuid, UNSET, UNSET, None), objects)
+        responses.append(Response(model=model, uuid=uuid))
+    return responses
 
 
-def to_func_uuids(model: Any, result: dict[UUID, list[dict]]) -> list[UUID]:
+def to_func_uuids(model: Any, result: dict[UUID, list[dict]], info: Info) -> list[UUID]:
     return list(result.keys())
 
 
