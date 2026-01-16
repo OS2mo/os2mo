@@ -116,14 +116,6 @@ async def validity_resolver(
     end: datetime | None = UNSET,
     registration_time: datetime | None = None,
 ) -> list[Any]:
-    if (
-        start is UNSET
-        and end is UNSET
-        and registration_time is None
-        and root.object_cache != UNSET
-    ):
-        return root.object_cache
-    # If the object cache has not been filled we must resolve objects using the uuid
     resolver = resolver_map[root.model]["loader"]
     dataloader = info.context[resolver]
     return await dataloader.load(LoadKey(root.uuid, start, end, registration_time))
@@ -152,10 +144,6 @@ async def validity_resolver(
 )
 class Response(Generic[MOObject]):
     uuid: UUID = strawberry.field(description="UUID of the bitemporal object")
-
-    # Object cache is a temporary workaround ensuring that current resolvers keep
-    # working as-is while also allowing for lazy resolution based entirely on the UUID.
-    object_cache: strawberry.Private[list[MOObject]] = UNSET
 
     # Reference to the underlying model type
     model: strawberry.Private[type[MOObject]]

@@ -15,10 +15,13 @@ from uuid import UUID
 from more_itertools import last
 from more_itertools import one
 from more_itertools import only
+from strawberry import UNSET
 from strawberry.types import Info
 
+from ..graphql_utils import LoadKey
 from ..moobject import MOObject
 from ..paged import to_paged
+from ..resolver_map import resolver_map
 from ..response import Response
 from ..utils import uuid2list
 
@@ -101,8 +104,24 @@ def result2response_list(
     result: ResolverResult,
     info: Info,
 ) -> list[Response[MOObject]]:
+    # Prime the DataLoader cache with the provided results
+    # TODO: We probably should not be priming the DataLoader at all.
+    #       We should instead separate the filtering and loading stages of the program,
+    #       such that the initial filtering query only returns a list of UUIDs, instead
+    #       of returning validities as well.
+    #       This code moves us closer to that goal by ensuring that the response object
+    #       only handles UUIDs and validities are handled transparently.
+    #       Thus in the future we should remove the for-loop doing the priming as well
+    #       as the code in resolvers / reading handlers that read validities on the
+    #       initial database round-trip.
+    #       This will probably not happen until SQL reads though.
+    for uuid, objects in result.items():
+        resolver = resolver_map[model]["loader"]
+        dataloader = info.context[resolver]
+        dataloader.prime(LoadKey(uuid, UNSET, UNSET, None), objects)
+    # Return our Response objects
     return [
-        Response(model=model, uuid=uuid, object_cache=objects)
+        Response(model=model, uuid=uuid)
         for uuid, objects in result.items()
     ]
 
