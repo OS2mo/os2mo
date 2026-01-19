@@ -3,6 +3,7 @@
 import asyncio
 import dataclasses
 import re
+from collections.abc import Awaitable
 from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
@@ -47,17 +48,7 @@ from mora.db import OrganisationEnhedRelation
 from mora.db import OrganisationEnhedRelationKode
 from mora.db import OrganisationEnhedTilsGyldighed
 from mora.graphapi.gmodels.base import tz_isodate
-from mora.graphapi.gmodels.mo import EmployeeRead
-from mora.graphapi.gmodels.mo import OrganisationUnitRead
-from mora.graphapi.gmodels.mo.details import AssociationRead
 from mora.graphapi.gmodels.mo.details import EngagementRead
-from mora.graphapi.gmodels.mo.details import ITSystemRead
-from mora.graphapi.gmodels.mo.details import ITUserRead
-from mora.graphapi.gmodels.mo.details import KLERead
-from mora.graphapi.gmodels.mo.details import LeaveRead
-from mora.graphapi.gmodels.mo.details import ManagerRead
-from mora.graphapi.gmodels.mo.details import OwnerRead
-from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 from mora.service.autocomplete.employees import search_employees
 
 from ...custom_schema import get_version
@@ -80,13 +71,9 @@ from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
 from .filters import RoleBindingFilter
 from .graphql_utils import LoadKey
-from .models import AddressRead
-from .models import ClassRead
-from .models import FacetRead
-from .models import RoleBindingRead
+from .momodel import MOModel
 from .paged import CursorType
 from .paged import LimitType
-from .resolver_map import resolver_map
 from .validity import OpenValidityModel
 
 
@@ -238,7 +225,7 @@ async def facet_resolver(
         )
 
     return await generic_resolver(
-        FacetRead,
+        info.context["facet_getter"],
         info.context["facet_loader"],
         info=info,
         filter=filter,
@@ -307,7 +294,7 @@ async def class_resolver(
         kwargs["omfang"] = to_similar(filter.scope)
 
     classes = await generic_resolver(
-        ClassRead,
+        info.context["class_getter"],
         info.context["class_loader"],
         info=info,
         filter=filter,
@@ -391,7 +378,7 @@ async def address_resolver(
         kwargs["tilknyttedefunktioner"] = tilknyttedefunktioner
 
     return await generic_resolver(
-        AddressRead,
+        info.context["address_getter"],
         info.context["address_loader"],
         info=info,
         filter=filter,
@@ -444,7 +431,7 @@ async def association_resolver(
         )
 
     associations = await generic_resolver(
-        AssociationRead,
+        info.context["association_getter"],
         info.context["association_loader"],
         info=info,
         filter=filter,
@@ -494,7 +481,7 @@ async def employee_resolver(
         if any(other_fields):
             raise ValueError("filter.query must be used alone")
         r = await generic_resolver(
-            EmployeeRead,
+            info.context["employee_getter"],
             info.context["employee_loader"],
             info=info,
             filter=BaseFilter(
@@ -524,7 +511,7 @@ async def employee_resolver(
         ]
 
     return await generic_resolver(
-        EmployeeRead,
+        info.context["employee_getter"],
         info.context["employee_loader"],
         info=info,
         filter=filter,
@@ -569,7 +556,7 @@ async def engagement_resolver(
         )
 
     return await generic_resolver(
-        EngagementRead,
+        info.context["engagement_getter"],
         info.context["engagement_loader"],
         info=info,
         filter=filter,
@@ -639,7 +626,7 @@ async def manager_resolver(
         )
 
     result = await generic_resolver(
-        ManagerRead,
+        info.context["manager_getter"],
         info.context["manager_loader"],
         info=info,
         filter=filter,
@@ -709,7 +696,7 @@ async def owner_resolver(
         )
 
     return await generic_resolver(
-        OwnerRead,
+        info.context["owner_getter"],
         info.context["owner_loader"],
         info=info,
         filter=filter,
@@ -1126,7 +1113,7 @@ async def organisation_unit_resolver(
     )
 
     return await generic_resolver(
-        OrganisationUnitRead,
+        info.context["org_unit_getter"],
         info.context["org_unit_loader"],
         info=info,
         filter=BaseFilter(
@@ -1174,7 +1161,7 @@ async def it_system_resolver(
     await registration_filter(info, filter)
 
     return await generic_resolver(
-        ITSystemRead,
+        info.context["itsystem_getter"],
         info.context["itsystem_loader"],
         info=info,
         filter=filter,
@@ -1228,7 +1215,7 @@ async def it_user_resolver(
         kwargs["udvidelse_1"] = to_similar(filter.external_ids)
 
     return await generic_resolver(
-        ITUserRead,
+        info.context["ituser_getter"],
         info.context["ituser_loader"],
         info=info,
         filter=filter,
@@ -1257,7 +1244,7 @@ async def kle_resolver(
         )
 
     return await generic_resolver(
-        KLERead,
+        info.context["kle_getter"],
         info.context["kle_loader"],
         info=info,
         filter=filter,
@@ -1292,7 +1279,7 @@ async def leave_resolver(
         )
 
     return await generic_resolver(
-        LeaveRead,
+        info.context["leave_getter"],
         info.context["leave_loader"],
         info=info,
         filter=filter,
@@ -1317,7 +1304,7 @@ async def get_by_uuid(
 
 
 async def generic_resolver(
-    model: Any,
+    getter: Callable[..., Awaitable[dict[UUID, list[MOModel]]]],
     loader: DataLoader,
     # Ordinary
     info: Info,
@@ -1379,9 +1366,8 @@ async def generic_resolver(
     if filter.registration_time:
         kwargs["registreringstid"] = str(filter.registration_time)
 
-    resolver_name = resolver_map[model]["getter"]
     with with_graphql_dates(dates):
-        return await info.context[resolver_name](**kwargs)
+        return await getter(**kwargs)
 
 
 async def related_unit_resolver(
@@ -1403,7 +1389,7 @@ async def related_unit_resolver(
         )
 
     return await generic_resolver(
-        RelatedUnitRead,
+        info.context["rel_unit_getter"],
         info.context["rel_unit_loader"],
         info=info,
         filter=filter,
@@ -1440,7 +1426,7 @@ async def rolebinding_resolver(
         )
 
     return await generic_resolver(
-        RoleBindingRead,
+        info.context["rolebinding_getter"],
         info.context["rolebinding_loader"],
         info=info,
         filter=filter,

@@ -38,28 +38,10 @@ from .models import AddressRead
 from .models import ClassRead
 from .models import FacetRead
 from .models import RoleBindingRead
+from .momodel import MOModel
 from .readers import get_role_type_by_uuid
 from .readers import search_role_type
 from .resolvers import get_date_interval
-
-MOModel = TypeVar(
-    "MOModel",
-    AddressRead,
-    AssociationRead,
-    ClassRead,
-    EmployeeRead,
-    EngagementRead,
-    FacetRead,
-    ITSystemRead,
-    ITUserRead,
-    KLERead,
-    LeaveRead,
-    ManagerRead,
-    OrganisationUnitRead,
-    OwnerRead,
-    RoleBindingRead,
-    RelatedUnitRead,
-)
 
 RoleType = TypeVar("RoleType")
 
