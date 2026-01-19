@@ -7,7 +7,6 @@ from uuid import UUID
 
 import strawberry
 
-from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 
 from ..lazy import LazyOrganisationUnit
@@ -69,7 +68,7 @@ class RelatedUnit:
         return root.type_
 
     org_units_response: Paged[Response[LazyOrganisationUnit]] = strawberry.field(
-        resolver=to_paged_response(OrganisationUnitRead)(
+        resolver=to_paged_response("org_unit")(
             seed_resolver(
                 organisation_unit_resolver,
                 {"uuids": lambda root: root.org_unit_uuids or []},

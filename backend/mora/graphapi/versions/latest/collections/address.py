@@ -13,10 +13,6 @@ from more_itertools import one
 from starlette_context import context
 from strawberry.types import Info
 
-from mora.graphapi.gmodels.mo import EmployeeRead
-from mora.graphapi.gmodels.mo import OrganisationUnitRead
-from mora.graphapi.gmodels.mo.details import EngagementRead
-from mora.graphapi.gmodels.mo.details import ITUserRead
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
 from mora.service.address_handler.base import AddressHandler
@@ -186,7 +182,7 @@ async def _get_handler_object(root: AddressRead, info: Info) -> AddressHandler:
 )
 class Address:
     address_type_response: Response[LazyClass] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.address_type_uuid),
+        resolver=lambda root: Response(model="class", uuid=root.address_type_uuid),
         description=dedent(
             """
             The address category or type.
@@ -237,7 +233,7 @@ class Address:
     )
 
     visibility_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.visibility_uuid)
+        resolver=lambda root: Response(model="class", uuid=root.visibility_uuid)
         if root.visibility_uuid
         else None,
         description=dedent(
@@ -321,7 +317,7 @@ class Address:
     )
 
     person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
+        resolver=lambda root: Response(model="employee", uuid=root.employee_uuid)
         if root.employee_uuid
         else None,
         description=dedent(
@@ -365,7 +361,7 @@ class Address:
 
     org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(
-            model=OrganisationUnitRead, uuid=root.org_unit_uuid
+            model="org_unit", uuid=root.org_unit_uuid
         )
         if root.org_unit_uuid
         else None,
@@ -407,7 +403,7 @@ class Address:
     )
 
     engagement_response: Response[LazyEngagement] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EngagementRead, uuid=root.engagement_uuid)
+        resolver=lambda root: Response(model="engagement", uuid=root.engagement_uuid)
         if root.engagement_uuid
         else None,
         description=dedent(
@@ -454,7 +450,7 @@ class Address:
     )
 
     ituser_response: Response[LazyITUser] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ITUserRead, uuid=root.it_user_uuid)
+        resolver=lambda root: Response(model="ituser", uuid=root.it_user_uuid)
         if root.it_user_uuid
         else None,
         description="Connected IT-user.\n",

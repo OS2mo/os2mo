@@ -8,13 +8,10 @@ from uuid import UUID
 import strawberry
 from strawberry.types import Info
 
-from mora.graphapi.gmodels.mo.details import ITSystemRead
-
 from ..lazy import LazyClass
 from ..lazy import LazyFacet
 from ..lazy import LazyITSystem
 from ..models import ClassRead
-from ..models import FacetRead
 from ..paged import Paged
 from ..permissions import IsAuthenticatedPermission
 from ..permissions import gen_read_permission
@@ -44,7 +41,7 @@ from .utils import to_paged_response
 )
 class Class:
     parent_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.parent_uuid)
+        resolver=lambda root: Response(model="class", uuid=root.parent_uuid)
         if root.parent_uuid
         else None,
         description=dedent(
@@ -81,7 +78,7 @@ class Class:
     )
 
     children_response: Paged[Response[LazyClass]] = strawberry.field(
-        resolver=to_paged_response(ClassRead)(
+        resolver=to_paged_response("class")(
             seed_resolver(
                 class_resolver,
                 {"parents": lambda root: [root.uuid]},
@@ -122,7 +119,7 @@ class Class:
     )
 
     facet_response: Response[LazyFacet] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=FacetRead, uuid=root.facet_uuid),
+        resolver=lambda root: Response(model="facet", uuid=root.facet_uuid),
         description=dedent(
             """
             Facet this class is defined under.
@@ -183,7 +180,7 @@ class Class:
         # coverage: unpause
 
     it_system_response: Response[LazyITSystem] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ITSystemRead, uuid=root.it_system_uuid)
+        resolver=lambda root: Response(model="itsystem", uuid=root.it_system_uuid)
         if root.it_system_uuid
         else None,
         description=dedent(

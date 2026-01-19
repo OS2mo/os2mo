@@ -12,13 +12,6 @@ from strawberry.types import Info
 
 from mora.graphapi.fields import Metadata
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
-from mora.graphapi.gmodels.mo.details import AssociationRead
-from mora.graphapi.gmodels.mo.details import EngagementRead
-from mora.graphapi.gmodels.mo.details import ITUserRead
-from mora.graphapi.gmodels.mo.details import KLERead
-from mora.graphapi.gmodels.mo.details import LeaveRead
-from mora.graphapi.gmodels.mo.details import ManagerRead
-from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 
 from ....version import Version as GraphQLVersion
 from ..filters import ManagerFilter
@@ -35,8 +28,6 @@ from ..lazy import LazyManager
 from ..lazy import LazyOrganisationUnit
 from ..lazy import LazyOwner
 from ..lazy import LazyRelatedUnit
-from ..models import AddressRead
-from ..models import ClassRead
 from ..paged import Paged
 from ..permissions import IsAuthenticatedPermission
 from ..permissions import gen_read_permission
@@ -76,7 +67,7 @@ if TYPE_CHECKING:
 class OrganisationUnit:
     parent_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(
-            model=OrganisationUnitRead, uuid=root.parent_uuid
+            model="org_unit", uuid=root.parent_uuid
         )
         if root.parent_uuid
         else None,
@@ -105,7 +96,7 @@ class OrganisationUnit:
     )
 
     root_response: Response[LazyOrganisationUnit] | None = strawberry.field(
-        resolver=to_response(OrganisationUnitRead)(
+        resolver=to_response("org_unit")(
             strip_args(
                 seed_resolver(
                     organisation_unit_resolver,
@@ -180,7 +171,7 @@ class OrganisationUnit:
         return [parent] + ancestors
 
     children_response: Paged[Response[LazyOrganisationUnit]] = strawberry.field(
-        resolver=to_paged_response(OrganisationUnitRead)(
+        resolver=to_paged_response("org_unit")(
             seed_resolver(
                 organisation_unit_resolver,
                 {
@@ -254,7 +245,7 @@ class OrganisationUnit:
 
     # TODO: Should this be a list?
     unit_hierarchy_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.org_unit_hierarchy)
+        resolver=lambda root: Response(model="class", uuid=root.org_unit_hierarchy)
         if root.org_unit_hierarchy
         else None,
         description=dedent(
@@ -307,7 +298,7 @@ class OrganisationUnit:
     )
 
     unit_type_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.unit_type_uuid)
+        resolver=lambda root: Response(model="class", uuid=root.unit_type_uuid)
         if root.unit_type_uuid
         else None,
         description=dedent(
@@ -364,7 +355,7 @@ class OrganisationUnit:
     )
 
     unit_level_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.org_unit_level_uuid)
+        resolver=lambda root: Response(model="class", uuid=root.org_unit_level_uuid)
         if root.org_unit_level_uuid
         else None,
         # TODO: Document this
@@ -405,7 +396,7 @@ class OrganisationUnit:
     )
 
     time_planning_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.time_planning_uuid)
+        resolver=lambda root: Response(model="class", uuid=root.time_planning_uuid)
         if root.time_planning_uuid
         else None,
         # TODO: Document this
@@ -435,7 +426,7 @@ class OrganisationUnit:
     )
 
     engagements_response: Paged[Response[LazyEngagement]] = strawberry.field(
-        resolver=to_paged_response(EngagementRead)(
+        resolver=to_paged_response("engagement")(
             seed_resolver(
                 engagement_resolver,
                 {"org_units": lambda root: [root.uuid]},
@@ -578,7 +569,7 @@ class OrganisationUnit:
         return await resolver(root=root, info=info, filter=filter, inherit=inherit)
 
     managers_response: Paged[Response[LazyManager]] = strawberry.field(
-        resolver=to_paged_response(ManagerRead)(
+        resolver=to_paged_response("manager")(
             seed_resolver(
                 manager_resolver,
                 {"org_units": lambda root: [root.uuid]},
@@ -670,7 +661,7 @@ class OrganisationUnit:
         )
 
     addresses_response: Paged[Response[LazyAddress]] = strawberry.field(
-        resolver=to_paged_response(AddressRead)(
+        resolver=to_paged_response("address")(
             seed_resolver(
                 address_resolver,
                 {"org_units": lambda root: [root.uuid]},
@@ -711,7 +702,7 @@ class OrganisationUnit:
     )
 
     leaves_response: Paged[Response[LazyLeave]] = strawberry.field(
-        resolver=to_paged_response(LeaveRead)(
+        resolver=to_paged_response("leave")(
             seed_resolver(
                 leave_resolver,
                 {"org_units": lambda root: [root.uuid]},
@@ -742,7 +733,7 @@ class OrganisationUnit:
     )
 
     associations_response: Paged[Response[LazyAssociation]] = strawberry.field(
-        resolver=to_paged_response(AssociationRead)(
+        resolver=to_paged_response("association")(
             seed_resolver(
                 association_resolver,
                 {"org_units": lambda root: [root.uuid]},
@@ -785,7 +776,7 @@ class OrganisationUnit:
     )
 
     itusers_response: Paged[Response[LazyITUser]] = strawberry.field(
-        resolver=to_paged_response(ITUserRead)(
+        resolver=to_paged_response("ituser")(
             seed_resolver(
                 it_user_resolver,
                 {"org_units": lambda root: [root.uuid]},
@@ -822,7 +813,7 @@ class OrganisationUnit:
     )
 
     kles_response: Paged[Response[LazyKLE]] = strawberry.field(
-        resolver=to_paged_response(KLERead)(
+        resolver=to_paged_response("kle")(
             seed_resolver(
                 kle_resolver,
                 {"org_units": lambda root: [root.uuid]},
@@ -857,7 +848,7 @@ class OrganisationUnit:
     )
 
     related_units_response: Paged[Response[LazyRelatedUnit]] = strawberry.field(
-        resolver=to_paged_response(RelatedUnitRead)(
+        resolver=to_paged_response("related")(
             seed_resolver(
                 related_unit_resolver,
                 {"org_units": lambda root: [root.uuid]},

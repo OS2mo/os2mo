@@ -8,8 +8,6 @@ from uuid import UUID
 
 import strawberry
 
-from mora.graphapi.gmodels.mo import EmployeeRead
-from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.gmodels.mo.details import ITSystemRead
 from mora.graphapi.gmodels.mo.details import ITUserRead
@@ -23,9 +21,7 @@ from ..lazy import LazyEngagement
 from ..lazy import LazyITSystem
 from ..lazy import LazyOrganisationUnit
 from ..lazy import LazyRoleBinding
-from ..models import AddressRead
 from ..models import ClassRead
-from ..models import RoleBindingRead
 from ..paged import Paged
 from ..permissions import IsAuthenticatedPermission
 from ..permissions import gen_read_permission
@@ -117,7 +113,7 @@ class ITSystem:
         return root.user_key
 
     roles_response: Paged[Response[LazyClass]] = strawberry.field(
-        resolver=to_paged_response(ClassRead)(
+        resolver=to_paged_response("class")(
             seed_resolver(
                 class_resolver,
                 {
@@ -255,7 +251,7 @@ class ITUser:
     )
 
     person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
+        resolver=lambda root: Response(model="employee", uuid=root.employee_uuid)
         if root.employee_uuid
         else None,
         description=dedent(
@@ -299,7 +295,7 @@ class ITUser:
 
     org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(
-            model=OrganisationUnitRead, uuid=root.org_unit_uuid
+            model="org_unit", uuid=root.org_unit_uuid
         )
         if root.org_unit_uuid
         else None,
@@ -347,7 +343,7 @@ class ITUser:
     )
 
     engagements_responses: Paged[Response[LazyEngagement]] = strawberry.field(
-        resolver=to_paged_response(EngagementRead)(
+        resolver=to_paged_response("engagement")(
             seed_resolver(
                 engagement_resolver,
                 {"uuids": lambda root: root.engagement_uuids},
@@ -388,7 +384,7 @@ class ITUser:
     )
 
     engagement_response: Response[LazyEngagement] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EngagementRead, uuid=root.engagement_uuid)
+        resolver=lambda root: Response(model="engagement", uuid=root.engagement_uuid)
         if root.engagement_uuid
         else None,
         description=dedent(
@@ -437,7 +433,7 @@ class ITUser:
     )
 
     addresses_response: Paged[Response[LazyAddress]] = strawberry.field(
-        resolver=to_paged_response(AddressRead)(
+        resolver=to_paged_response("address")(
             seed_resolver(
                 address_resolver,
                 {"ituser": lambda root: ITUserFilter(uuids=[root.uuid])},
@@ -478,7 +474,7 @@ class ITUser:
     )
 
     itsystem_response: Response[LazyITSystem] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ITSystemRead, uuid=root.itsystem_uuid)
+        resolver=lambda root: Response(model="itsystem", uuid=root.itsystem_uuid)
         if root.itsystem_uuid
         else None,
         description=dedent(
@@ -505,7 +501,7 @@ class ITUser:
     )
 
     rolebindings_response: Paged[Response[LazyRoleBinding]] = strawberry.field(
-        resolver=to_paged_response(RoleBindingRead)(
+        resolver=to_paged_response("rolebinding")(
             seed_resolver(
                 rolebinding_resolver,
                 {"ituser": lambda root: ITUserFilter(uuids=[root.uuid])},
@@ -534,7 +530,7 @@ class ITUser:
     )
 
     primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.primary_uuid)
+        resolver=lambda root: Response(model="class", uuid=root.primary_uuid)
         if root.primary_uuid
         else None,
         description=dedent(

@@ -10,11 +10,6 @@ from uuid import UUID
 import strawberry
 
 from mora.graphapi.gmodels.mo import EmployeeRead
-from mora.graphapi.gmodels.mo.details import AssociationRead
-from mora.graphapi.gmodels.mo.details import EngagementRead
-from mora.graphapi.gmodels.mo.details import ITUserRead
-from mora.graphapi.gmodels.mo.details import LeaveRead
-from mora.graphapi.gmodels.mo.details import ManagerRead
 
 from ..lazy import LazyAddress
 from ..lazy import LazyAssociation
@@ -22,7 +17,6 @@ from ..lazy import LazyEngagement
 from ..lazy import LazyITUser
 from ..lazy import LazyLeave
 from ..lazy import LazyManager
-from ..models import AddressRead
 from ..paged import Paged
 from ..permissions import IsAuthenticatedPermission
 from ..permissions import gen_read_permission
@@ -68,7 +62,7 @@ class Employee:
         return root.user_key
 
     engagements_response: Paged[Response[LazyEngagement]] = strawberry.field(
-        resolver=to_paged_response(EngagementRead)(
+        resolver=to_paged_response("engagement")(
             seed_resolver(
                 engagement_resolver,
                 {"employees": lambda root: [root.uuid]},
@@ -109,7 +103,7 @@ class Employee:
     )
 
     manager_roles_response: Paged[Response[LazyManager]] = strawberry.field(
-        resolver=to_paged_response(ManagerRead)(
+        resolver=to_paged_response("manager")(
             seed_resolver(
                 manager_resolver,
                 {"employees": lambda root: [root.uuid]},
@@ -144,7 +138,7 @@ class Employee:
     )
 
     addresses_response: Paged[Response[LazyAddress]] = strawberry.field(
-        resolver=to_paged_response(AddressRead)(
+        resolver=to_paged_response("address")(
             seed_resolver(
                 address_resolver,
                 {"employees": lambda root: [root.uuid]},
@@ -191,7 +185,7 @@ class Employee:
     )
 
     leaves_response: Paged[Response[LazyLeave]] = strawberry.field(
-        resolver=to_paged_response(LeaveRead)(
+        resolver=to_paged_response("leave")(
             seed_resolver(
                 leave_resolver,
                 {"employees": lambda root: [root.uuid]},
@@ -226,7 +220,7 @@ class Employee:
     )
 
     associations_response: Paged[Response[LazyAssociation]] = strawberry.field(
-        resolver=to_paged_response(AssociationRead)(
+        resolver=to_paged_response("association")(
             seed_resolver(
                 association_resolver,
                 {"employees": lambda root: [root.uuid]},
@@ -267,7 +261,7 @@ class Employee:
     )
 
     itusers_response: Paged[Response[LazyITUser]] = strawberry.field(
-        resolver=to_paged_response(ITUserRead)(
+        resolver=to_paged_response("ituser")(
             seed_resolver(
                 it_user_resolver,
                 {"employees": lambda root: [root.uuid]},

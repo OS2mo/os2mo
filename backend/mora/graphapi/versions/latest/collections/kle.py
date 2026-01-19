@@ -9,13 +9,11 @@ from uuid import UUID
 import strawberry
 
 from mora.graphapi.fields import Metadata
-from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import KLERead
 
 from ....version import Version as GraphQLVersion
 from ..lazy import LazyClass
 from ..lazy import LazyOrganisationUnit
-from ..models import ClassRead
 from ..paged import Paged
 from ..permissions import IsAuthenticatedPermission
 from ..permissions import gen_read_permission
@@ -90,7 +88,7 @@ class KLE:
     )
 
     kle_number_response: Response[LazyClass] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.kle_number_uuid),
+        resolver=lambda root: Response(model="class", uuid=root.kle_number_uuid),
         description=dedent(
             """
             The KLE number specifies the responsibility.
@@ -121,7 +119,7 @@ class KLE:
     )
 
     kle_aspects_response: Paged[Response[LazyClass]] = strawberry.field(
-        resolver=to_paged_response(ClassRead)(
+        resolver=to_paged_response("class")(
             seed_resolver(
                 class_resolver,
                 {"uuids": lambda root: root.kle_aspect_uuids or []},
@@ -167,7 +165,7 @@ class KLE:
 
     org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(
-            model=OrganisationUnitRead, uuid=root.org_unit_uuid
+            model="org_unit", uuid=root.org_unit_uuid
         )
         if root.org_unit_uuid
         else None,

@@ -47,17 +47,6 @@ from mora.db import OrganisationEnhedRelation
 from mora.db import OrganisationEnhedRelationKode
 from mora.db import OrganisationEnhedTilsGyldighed
 from mora.graphapi.gmodels.base import tz_isodate
-from mora.graphapi.gmodels.mo import EmployeeRead
-from mora.graphapi.gmodels.mo import OrganisationUnitRead
-from mora.graphapi.gmodels.mo.details import AssociationRead
-from mora.graphapi.gmodels.mo.details import EngagementRead
-from mora.graphapi.gmodels.mo.details import ITSystemRead
-from mora.graphapi.gmodels.mo.details import ITUserRead
-from mora.graphapi.gmodels.mo.details import KLERead
-from mora.graphapi.gmodels.mo.details import LeaveRead
-from mora.graphapi.gmodels.mo.details import ManagerRead
-from mora.graphapi.gmodels.mo.details import OwnerRead
-from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 from mora.service.autocomplete.employees import search_employees
 
 from ...custom_schema import get_version
@@ -80,10 +69,6 @@ from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
 from .filters import RoleBindingFilter
 from .graphql_utils import LoadKey
-from .models import AddressRead
-from .models import ClassRead
-from .models import FacetRead
-from .models import RoleBindingRead
 from .paged import CursorType
 from .paged import LimitType
 from .resolver_map import resolver_map
@@ -238,7 +223,7 @@ async def facet_resolver(
         )
 
     return await generic_resolver(
-        FacetRead,
+        "facet",
         info=info,
         filter=filter,
         limit=limit,
@@ -306,7 +291,7 @@ async def class_resolver(
         kwargs["omfang"] = to_similar(filter.scope)
 
     classes = await generic_resolver(
-        ClassRead,
+        "class",
         info=info,
         filter=filter,
         limit=limit,
@@ -389,7 +374,7 @@ async def address_resolver(
         kwargs["tilknyttedefunktioner"] = tilknyttedefunktioner
 
     return await generic_resolver(
-        AddressRead,
+        "address",
         info=info,
         filter=filter,
         limit=limit,
@@ -441,7 +426,7 @@ async def association_resolver(
         )
 
     associations = await generic_resolver(
-        AssociationRead,
+        "association",
         info=info,
         filter=filter,
         limit=limit,
@@ -490,7 +475,7 @@ async def employee_resolver(
         if any(other_fields):
             raise ValueError("filter.query must be used alone")
         r = await generic_resolver(
-            EmployeeRead,
+            "employee",
             info=info,
             filter=BaseFilter(
                 uuids=await search_employees(
@@ -519,7 +504,7 @@ async def employee_resolver(
         ]
 
     return await generic_resolver(
-        EmployeeRead,
+        "employee",
         info=info,
         filter=filter,
         limit=limit,
@@ -563,7 +548,7 @@ async def engagement_resolver(
         )
 
     return await generic_resolver(
-        EngagementRead,
+        "engagement",
         info=info,
         filter=filter,
         limit=limit,
@@ -632,7 +617,7 @@ async def manager_resolver(
         )
 
     result = await generic_resolver(
-        ManagerRead,
+        "manager",
         info=info,
         filter=filter,
         limit=limit,
@@ -701,7 +686,7 @@ async def owner_resolver(
         )
 
     return await generic_resolver(
-        OwnerRead,
+        "owner",
         info=info,
         filter=filter,
         limit=limit,
@@ -819,7 +804,7 @@ async def organisation_unit_resolver_query(
 
         engagement_uuids = await engagement_resolver(info, filter.engagement)
         engagement_responses = [
-            Response(model=EngagementRead, uuid=uuid) for uuid in engagement_uuids
+            Response(model="engagement", uuid=uuid) for uuid in engagement_uuids
         ]
         # NOTE: We have to set start != UNSET to invoke the new temporality behavior
         # TODO: Remove this code when the new temporality behavior is the default
@@ -1117,7 +1102,7 @@ async def organisation_unit_resolver(
     )
 
     return await generic_resolver(
-        OrganisationUnitRead,
+        "org_unit",
         info=info,
         filter=BaseFilter(
             uuids=uuids,
@@ -1164,7 +1149,7 @@ async def it_system_resolver(
     await registration_filter(info, filter)
 
     return await generic_resolver(
-        ITSystemRead,
+        "itsystem",
         info=info,
         filter=filter,
         limit=limit,
@@ -1217,7 +1202,7 @@ async def it_user_resolver(
         kwargs["udvidelse_1"] = to_similar(filter.external_ids)
 
     return await generic_resolver(
-        ITUserRead,
+        "ituser",
         info=info,
         filter=filter,
         limit=limit,
@@ -1245,7 +1230,7 @@ async def kle_resolver(
         )
 
     return await generic_resolver(
-        KLERead,
+        "kle",
         info=info,
         filter=filter,
         limit=limit,
@@ -1279,7 +1264,7 @@ async def leave_resolver(
         )
 
     return await generic_resolver(
-        LeaveRead,
+        "leave",
         info=info,
         filter=filter,
         limit=limit,
@@ -1303,7 +1288,7 @@ async def get_by_uuid(
 
 
 async def generic_resolver(
-    model: Any,
+    model: str,
     # Ordinary
     info: Info,
     filter: BaseFilter | None = None,
@@ -1389,7 +1374,7 @@ async def related_unit_resolver(
         )
 
     return await generic_resolver(
-        RelatedUnitRead,
+        "related",
         info=info,
         filter=filter,
         limit=limit,
@@ -1425,7 +1410,7 @@ async def rolebinding_resolver(
         )
 
     return await generic_resolver(
-        RoleBindingRead,
+        "rolebinding",
         info=info,
         filter=filter,
         limit=limit,

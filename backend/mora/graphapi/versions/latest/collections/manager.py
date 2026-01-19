@@ -8,14 +8,11 @@ from uuid import UUID
 
 import strawberry
 
-from mora.graphapi.gmodels.mo import EmployeeRead
-from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import ManagerRead
 
 from ..lazy import LazyClass
 from ..lazy import LazyEmployee
 from ..lazy import LazyOrganisationUnit
-from ..models import ClassRead
 from ..paged import Paged
 from ..permissions import IsAuthenticatedPermission
 from ..permissions import gen_read_permission
@@ -45,7 +42,7 @@ from .utils import to_paged_response
 )
 class Manager:
     manager_type_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.manager_type_uuid)
+        resolver=lambda root: Response(model="class", uuid=root.manager_type_uuid)
         if root.manager_type_uuid
         else None,
         description=dedent(
@@ -83,7 +80,7 @@ class Manager:
     )
 
     manager_level_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.manager_level_uuid)
+        resolver=lambda root: Response(model="class", uuid=root.manager_level_uuid)
         if root.manager_level_uuid
         else None,
         # TODO: Check production system values
@@ -123,7 +120,7 @@ class Manager:
     )
 
     responsibilities_response: Paged[Response[LazyClass]] = strawberry.field(
-        resolver=to_paged_response(ClassRead)(
+        resolver=to_paged_response("class")(
             seed_resolver(
                 class_resolver,
                 {"uuids": lambda root: root.responsibility_uuids or []},
@@ -190,7 +187,7 @@ class Manager:
     )
 
     person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
+        resolver=lambda root: Response(model="employee", uuid=root.employee_uuid)
         if root.employee_uuid
         else None,
         description=dedent(
@@ -232,7 +229,7 @@ class Manager:
 
     org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(
-            model=OrganisationUnitRead, uuid=root.org_unit_uuid
+            model="org_unit", uuid=root.org_unit_uuid
         ),
         description=dedent(
             """

@@ -7,14 +7,11 @@ from uuid import UUID
 
 import strawberry
 
-from mora.graphapi.gmodels.mo import EmployeeRead
-from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.gmodels.mo.details import LeaveRead
 
 from ..lazy import LazyClass
 from ..lazy import LazyEmployee
 from ..lazy import LazyEngagement
-from ..models import ClassRead
 from ..permissions import IsAuthenticatedPermission
 from ..permissions import gen_read_permission
 from ..resolvers import class_resolver
@@ -44,7 +41,7 @@ from .utils import to_one
 )
 class Leave:
     leave_type_response: Response[LazyClass] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.leave_type_uuid),
+        resolver=lambda root: Response(model="class", uuid=root.leave_type_uuid),
         description=dedent(
             """
             The kind of leave of absence.
@@ -97,7 +94,7 @@ class Leave:
     )
 
     person_response: Response[LazyEmployee] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid),
+        resolver=lambda root: Response(model="employee", uuid=root.employee_uuid),
         description=dedent(
             """
             The absent person.
@@ -124,7 +121,7 @@ class Leave:
     )
 
     engagement_response: Response[LazyEngagement] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EngagementRead, uuid=root.engagement_uuid),
+        resolver=lambda root: Response(model="engagement", uuid=root.engagement_uuid),
         description=dedent(
             """
             The engagement the employee is absent from.

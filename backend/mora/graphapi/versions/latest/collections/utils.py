@@ -100,7 +100,7 @@ def result_translation(
 
 
 def result2response_list(
-    model: type[MOObject],
+    model: str,
     result: ResolverResult,
     info: Info,
 ) -> list[Response[MOObject]]:
@@ -124,7 +124,7 @@ def result2response_list(
 
 
 def to_response(
-    model: type[MOObject],
+    model: str,
 ) -> Callable[[ResolverFunction], Callable[..., Awaitable[Response[MOObject]]]]:
     return result_translation(
         lambda result, info: one(result2response_list(model, result, info))
@@ -132,7 +132,7 @@ def to_response(
 
 
 def to_response_list(
-    model: type[MOObject],
+    model: str,
 ) -> Callable[[ResolverFunction], Callable[..., Awaitable[list[Response[MOObject]]]]]:
     return result_translation(
         lambda result, info: result2response_list(model, result, info)
@@ -153,7 +153,7 @@ to_arbitrary_only = result_translation(
 )
 
 
-def to_paged_response(model: type[MOObject]) -> Callable:
+def to_paged_response(model: str) -> Callable:
     return partial(to_paged, model=model, result_transformer=result2response_list)
 
 

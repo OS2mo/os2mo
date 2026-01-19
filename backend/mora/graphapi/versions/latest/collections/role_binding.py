@@ -7,13 +7,9 @@ from uuid import UUID
 
 import strawberry
 
-from mora.graphapi.gmodels.mo import OrganisationUnitRead
-from mora.graphapi.gmodels.mo.details import ITUserRead
-
 from ..lazy import LazyClass
 from ..lazy import LazyITUser
 from ..lazy import LazyOrganisationUnit
-from ..models import ClassRead
 from ..models import RoleBindingRead
 from ..permissions import IsAuthenticatedPermission
 from ..permissions import gen_read_permission
@@ -41,7 +37,7 @@ class RoleBinding:
     user_key: str = strawberry.auto
 
     role_response: Response[LazyClass] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.role),
+        resolver=lambda root: Response(model="class", uuid=root.role),
         description=dedent(
             """
             The role that is being fulfilled.
@@ -76,7 +72,7 @@ class RoleBinding:
     )
 
     ituser_response: Response[LazyITUser] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ITUserRead, uuid=root.it_user_uuid),
+        resolver=lambda root: Response(model="ituser", uuid=root.it_user_uuid),
         description="The IT-user that should be granted this role\n"
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
@@ -96,7 +92,7 @@ class RoleBinding:
 
     org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(
-            model=OrganisationUnitRead, uuid=root.org_unit_uuid
+            model="org_unit", uuid=root.org_unit_uuid
         )
         if root.org_unit_uuid
         else None,

@@ -8,8 +8,6 @@ from uuid import UUID
 
 import strawberry
 
-from mora.graphapi.gmodels.mo import EmployeeRead
-from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import OwnerRead
 
 from ..lazy import LazyEmployee
@@ -66,7 +64,7 @@ class Owner:
 
     org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(
-            model=OrganisationUnitRead, uuid=root.org_unit_uuid
+            model="org_unit", uuid=root.org_unit_uuid
         )
         if root.org_unit_uuid
         else None,
@@ -117,7 +115,7 @@ class Owner:
         return root.org_unit_uuid
 
     person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
+        resolver=lambda root: Response(model="employee", uuid=root.employee_uuid)
         if root.employee_uuid
         else None,
         description=dedent(
@@ -167,7 +165,7 @@ class Owner:
         return root.employee_uuid
 
     owner_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EmployeeRead, uuid=root.owner_uuid)
+        resolver=lambda root: Response(model="employee", uuid=root.owner_uuid)
         if root.owner_uuid
         else None,
         description=dedent(

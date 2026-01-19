@@ -32,7 +32,7 @@ from .utils import to_paged_response
 )
 class Facet:
     classes_responses: Paged[Response[LazyClass]] = strawberry.field(
-        resolver=to_paged_response(ClassRead)(
+        resolver=to_paged_response("class")(
             seed_resolver(class_resolver, {"facets": lambda root: [root.uuid]})
         ),
         description="Associated classes",
@@ -49,7 +49,7 @@ class Facet:
     )
 
     parent_response: Response[LazyFacet] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=FacetRead, uuid=root.parent_uuid)
+        resolver=lambda root: Response(model="facet", uuid=root.parent_uuid)
         if root.parent_uuid
         else None,
         description=dedent(
@@ -86,7 +86,7 @@ class Facet:
     )
 
     children_response: Paged[Response[LazyFacet]] = strawberry.field(
-        resolver=to_paged_response(FacetRead)(
+        resolver=to_paged_response("facet")(
             seed_resolver(
                 facet_resolver,
                 {"parents": lambda root: [root.uuid]},

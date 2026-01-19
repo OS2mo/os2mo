@@ -13,24 +13,11 @@ from more_itertools import only
 from strawberry import UNSET
 from strawberry.types import Info
 
-from mora.graphapi.gmodels.mo import EmployeeRead
-from mora.graphapi.gmodels.mo import OrganisationUnitRead
-from mora.graphapi.gmodels.mo.details import AssociationRead
-from mora.graphapi.gmodels.mo.details import EngagementRead
-from mora.graphapi.gmodels.mo.details import ITSystemRead
-from mora.graphapi.gmodels.mo.details import ITUserRead
-from mora.graphapi.gmodels.mo.details import KLERead
-from mora.graphapi.gmodels.mo.details import LeaveRead
-from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.util import NEGATIVE_INFINITY
 from mora.util import POSITIVE_INFINITY
 from mora.util import now
 
 from .graphql_utils import LoadKey
-from .models import AddressRead
-from .models import ClassRead
-from .models import FacetRead
-from .models import RoleBindingRead
 from .moobject import MOObject
 from .permissions import IsAuthenticatedPermission
 from .registration import Registration
@@ -38,25 +25,6 @@ from .registration import registration_resolver
 from .resolver_map import resolver_map
 from .seed_resolver import seed_resolver
 from .utils import uuid2list
-
-
-def model2name(model: Any) -> Any:
-    mapping = {
-        ClassRead: "class",
-        EmployeeRead: "employee",
-        FacetRead: "facet",
-        OrganisationUnitRead: "org_unit",
-        AddressRead: "address",
-        AssociationRead: "association",
-        EngagementRead: "engagement",
-        ITSystemRead: "itsystem",
-        ITUserRead: "ituser",
-        KLERead: "kle",
-        LeaveRead: "leave",
-        RoleBindingRead: "rolebinding",
-        ManagerRead: "manager",
-    }
-    return mapping[model]
 
 
 async def current_resolver(
@@ -146,7 +114,7 @@ class Response(Generic[MOObject]):
     uuid: UUID = strawberry.field(description="UUID of the bitemporal object")
 
     # Reference to the underlying model type
-    model: strawberry.Private[type[MOObject]]
+    model: strawberry.Private[str]
 
     current: MOObject | None = strawberry.field(
         description=dedent(
@@ -242,7 +210,7 @@ class Response(Generic[MOObject]):
             registration_resolver,
             {
                 "uuids": lambda root: uuid2list(root.uuid),
-                "models": lambda root: [model2name(root.model)],
+                "models": lambda root: [root.model],
             },
         ),
     )

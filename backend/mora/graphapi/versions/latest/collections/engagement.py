@@ -11,11 +11,8 @@ from uuid import UUID
 import strawberry
 from strawberry.types import Info
 
-from mora.graphapi.gmodels.mo import EmployeeRead
-from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.gmodels.mo.details import ITUserRead
-from mora.graphapi.gmodels.mo.details import LeaveRead
 from mora.service.facet import is_class_uuid_primary
 
 from ..filters import EmployeeFilter
@@ -28,7 +25,6 @@ from ..lazy import LazyITUser
 from ..lazy import LazyLeave
 from ..lazy import LazyManager
 from ..lazy import LazyOrganisationUnit
-from ..models import ClassRead
 from ..paged import Paged
 from ..permissions import IsAuthenticatedPermission
 from ..permissions import gen_read_permission
@@ -78,7 +74,7 @@ class Engagement:
         return root.user_key
 
     engagement_type_response: Response[LazyClass] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.engagement_type_uuid),
+        resolver=lambda root: Response(model="class", uuid=root.engagement_type_uuid),
         description=dedent(
             """
             Describes the employee's affiliation to an organisation unit
@@ -114,7 +110,7 @@ class Engagement:
     )
 
     job_function_response: Response[LazyClass] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.job_function_uuid),
+        resolver=lambda root: Response(model="class", uuid=root.job_function_uuid),
         description=dedent(
             """
             Describes the position of the employee in the organisation unit
@@ -150,7 +146,7 @@ class Engagement:
     )
 
     primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.primary_uuid)
+        resolver=lambda root: Response(model="class", uuid=root.primary_uuid)
         if root.primary_uuid
         else None,
         description=dedent(
@@ -223,7 +219,7 @@ class Engagement:
         return await is_class_uuid_primary(str(root.primary_uuid))
 
     leave_response: Response[LazyLeave] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=LeaveRead, uuid=root.leave_uuid)
+        resolver=lambda root: Response(model="leave", uuid=root.leave_uuid)
         if root.leave_uuid
         else None,
         description="Related leave",
@@ -258,7 +254,7 @@ class Engagement:
     )
 
     person_response: Response[LazyEmployee] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid),
+        resolver=lambda root: Response(model="employee", uuid=root.employee_uuid),
         description=dedent(
             """
             The person fulfilling the engagement.
@@ -286,7 +282,7 @@ class Engagement:
 
     org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(
-            model=OrganisationUnitRead, uuid=root.org_unit_uuid
+            model="org_unit", uuid=root.org_unit_uuid
         ),
         description=dedent(
             """
@@ -315,7 +311,7 @@ class Engagement:
     )
 
     itusers_response: Paged[Response[LazyITUser]] = strawberry.field(
-        resolver=to_paged_response(ITUserRead)(
+        resolver=to_paged_response("ituser")(
             seed_resolver(
                 it_user_resolver,
                 {
