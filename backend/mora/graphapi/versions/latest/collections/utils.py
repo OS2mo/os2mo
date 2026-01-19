@@ -95,28 +95,25 @@ def result_translation(
     return wrapper
 
 
+def result2response_list(
+    model: type[MOObject], result: ResolverResult
+) -> list[Response[MOObject]]:
+    return [
+        Response(model=model, uuid=uuid, object_cache=objects)
+        for uuid, objects in result.items()
+    ]
+
+
 def to_response(
     model: type[MOObject],
 ) -> Callable[[ResolverFunction], Callable[..., Awaitable[Response[MOObject]]]]:
-    def result2response_list(
-        result: ResolverResult,
-    ) -> Response[MOObject]:  # pragma: no cover
-        uuid, objects = one(result.items())
-        return Response(model=model, uuid=uuid, object_cache=objects)
-
-    return result_translation(result2response_list)
+    return result_translation(lambda result: one(result2response_list(model, result)))
 
 
 def to_response_list(
     model: type[MOObject],
 ) -> Callable[[ResolverFunction], Callable[..., Awaitable[list[Response[MOObject]]]]]:
-    def result2response_list(result: ResolverResult) -> list[Response[MOObject]]:
-        return [
-            Response(model=model, uuid=uuid, object_cache=objects)
-            for uuid, objects in result.items()
-        ]
-
-    return result_translation(result2response_list)
+    return result_translation(lambda result: result2response_list(model, result))
 
 
 to_list = result_translation(
@@ -134,14 +131,7 @@ to_arbitrary_only = result_translation(
 
 
 def to_paged_response(model: type[MOObject]) -> Callable:
-    return partial(
-        to_paged,
-        model=model,
-        result_transformer=lambda model, result: [
-            Response(model=model, uuid=uuid, object_cache=objects)
-            for uuid, objects in result.items()
-        ],
-    )
+    return partial(to_paged, model=model, result_transformer=result2response_list)
 
 
 def to_func_uuids(model: Any, result: dict[UUID, list[dict]]) -> list[UUID]:
