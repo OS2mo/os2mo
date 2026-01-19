@@ -44,6 +44,7 @@ from ..resolvers import organisation_unit_has_children
 from ..resolvers import organisation_unit_resolver
 from ..resolvers import owner_resolver
 from ..resolvers import related_unit_resolver
+from ..response import OrganisationUnitResponse
 from ..response import Response
 from ..seed_resolver import seed_resolver
 from ..seed_resolver import strip_args
@@ -66,7 +67,7 @@ if TYPE_CHECKING:
 )
 class OrganisationUnit:
     parent_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model="org_unit", uuid=root.parent_uuid)
+        resolver=lambda root: OrganisationUnitResponse(uuid=root.parent_uuid)
         if root.parent_uuid
         else None,
         description=dedent(

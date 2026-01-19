@@ -6,6 +6,7 @@ from datetime import datetime
 from textwrap import dedent
 from typing import Any
 from typing import Generic
+from typing import Self
 from uuid import UUID
 
 import strawberry
@@ -18,6 +19,7 @@ from mora.util import POSITIVE_INFINITY
 from mora.util import now
 
 from .graphql_utils import LoadKey
+from .lazy import LazyOrganisationUnit
 from .moobject import MOObject
 from .permissions import IsAuthenticatedPermission
 from .registration import Registration
@@ -214,3 +216,8 @@ class Response(Generic[MOObject]):
             },
         ),
     )
+
+
+class OrganisationUnitResponse(Response[LazyOrganisationUnit]):
+    def __init__(self: Self, uuid: UUID) -> None:
+        super().__init__(uuid=uuid, model="org_unit")
