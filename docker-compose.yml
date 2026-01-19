@@ -62,9 +62,6 @@ services:
     command: ["./docker/start.sh"]
     env_file: dev-environment/os2mo.env
     restart: unless-stopped
-    depends_on:
-      fixture-loader:
-        condition: service_completed_successfully
 
   amqp-subsystem:
     tty: true
@@ -81,9 +78,6 @@ services:
     command: ["python", "-m", "mora.cli", "amqp", "start"]
     env_file: dev-environment/os2mo.env
     restart: unless-stopped
-    depends_on:
-      fixture-loader:
-        condition: service_completed_successfully
 
   mox:
     image: docker.io/library/caddy:2
@@ -123,9 +117,6 @@ services:
     #    target: /config/config.yml
     #    read_only: true
     restart: on-failure
-    depends_on:
-      fixture-loader:
-        condition: service_completed_successfully
 
   mox-db:
     image: postgres:18
@@ -252,9 +243,7 @@ services:
       TF_VAR_client_secret: "603f1c82-d012-4d04-9382-dbe659c533fb"
       TF_VAR_client_uuid: "d1fec000-baad-c0de-0000-004449504558"
       TF_VAR_client_roles: '["admin", "service_api"]'
-    depends_on:
-      keycloak-realm-builder:
-        condition: service_completed_successfully
+    restart: on-failure
 
   keycloak-db:
     image: postgres:18
