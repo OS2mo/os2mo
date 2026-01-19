@@ -120,7 +120,7 @@ def result2response_list(
         dataloader = info.context[resolver]
         dataloader.prime(LoadKey(uuid, UNSET, UNSET, None), objects)
     # Return our Response objects
-    return [Response(model=model, uuid=uuid) for uuid, objects in result.items()]
+    return [Response(model=model, uuid=uuid) for uuid in result]
 
 
 def to_response(
