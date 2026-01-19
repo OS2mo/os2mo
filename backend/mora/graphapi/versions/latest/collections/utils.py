@@ -15,6 +15,7 @@ from uuid import UUID
 from more_itertools import last
 from more_itertools import one
 from more_itertools import only
+from strawberry.types import Info
 
 from ..moobject import MOObject
 from ..paged import to_paged
@@ -80,15 +81,15 @@ ResolverFunction = Callable[..., Awaitable[ResolverResult]]
 
 
 def result_translation(
-    mapper: Callable[[ResolverResult], R],
+    mapper: Callable[[ResolverResult, Info], R],
 ) -> Callable[[ResolverFunction], Callable[..., Awaitable[R]]]:
     def wrapper(
         resolver_func: ResolverFunction,
     ) -> Callable[..., Awaitable[R]]:
         @wraps(resolver_func)
-        async def mapped_resolver(*args: Any, **kwargs: Any) -> Any:
-            result = await resolver_func(*args, **kwargs)
-            return mapper(result)
+        async def mapped_resolver(info: Info, *args: Any, **kwargs: Any) -> Any:
+            result = await resolver_func(*args, info=info, **kwargs)
+            return mapper(result, info)
 
         return mapped_resolver
 
@@ -96,7 +97,9 @@ def result_translation(
 
 
 def result2response_list(
-    model: type[MOObject], result: ResolverResult
+    model: type[MOObject],
+    result: ResolverResult,
+    info: Info,
 ) -> list[Response[MOObject]]:
     return [
         Response(model=model, uuid=uuid, object_cache=objects)
@@ -107,26 +110,30 @@ def result2response_list(
 def to_response(
     model: type[MOObject],
 ) -> Callable[[ResolverFunction], Callable[..., Awaitable[Response[MOObject]]]]:
-    return result_translation(lambda result: one(result2response_list(model, result)))
+    return result_translation(
+        lambda result, info: one(result2response_list(model, result, info))
+    )
 
 
 def to_response_list(
     model: type[MOObject],
 ) -> Callable[[ResolverFunction], Callable[..., Awaitable[list[Response[MOObject]]]]]:
-    return result_translation(lambda result: result2response_list(model, result))
+    return result_translation(
+        lambda result, info: result2response_list(model, result, info)
+    )
 
 
 to_list = result_translation(
-    lambda result: list(chain.from_iterable(result.values())),
+    lambda result, _: list(chain.from_iterable(result.values())),
 )
 to_only = result_translation(
-    lambda result: only(chain.from_iterable(result.values())),
+    lambda result, _: only(chain.from_iterable(result.values())),
 )
 to_one = result_translation(
-    lambda result: one(chain.from_iterable(result.values())),
+    lambda result, _: one(chain.from_iterable(result.values())),
 )
 to_arbitrary_only = result_translation(
-    lambda result: last(chain.from_iterable(result.values()), default=None),
+    lambda result, _: last(chain.from_iterable(result.values()), default=None),
 )
 
 
@@ -134,7 +141,7 @@ def to_paged_response(model: type[MOObject]) -> Callable:
     return partial(to_paged, model=model, result_transformer=result2response_list)
 
 
-def to_func_uuids(model: Any, result: dict[UUID, list[dict]]) -> list[UUID]:
+def to_func_uuids(model: Any, result: dict[UUID, list[dict]], info: Info) -> list[UUID]:
     return list(result.keys())
 
 

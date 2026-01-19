@@ -14,6 +14,7 @@ from typing import TypeVar
 import strawberry
 from pydantic import PositiveInt
 from starlette_context import context
+from strawberry.types import Info
 
 from mora.util import now
 
@@ -120,13 +121,14 @@ class Paged(Generic[T]):
 def to_paged(
     resolver_func: Callable[..., Awaitable[Any]],
     model: Any,
-    result_transformer: Callable[[Any, Any], Any] | None = None,
+    result_transformer: Callable[[Any, Any, Info], Any] | None = None,
 ) -> Callable[..., Awaitable[Paged]]:
-    result_transformer = result_transformer or (lambda _, x: x)
+    result_transformer = result_transformer or (lambda _, x, __: x)
 
     @wraps(resolver_func)
     async def resolve_response(
         *args: Any,
+        info: Info,
         limit: LimitType,
         cursor: CursorType,
         filter: BaseFilter | None = None,
@@ -139,7 +141,7 @@ def to_paged(
             cursor = Cursor(offset=0, registration_time=registration_time)
 
         result = await resolver_func(
-            *args, filter=filter, limit=limit, cursor=cursor, **kwargs
+            *args, info=info, filter=filter, limit=limit, cursor=cursor, **kwargs
         )
 
         end_cursor: CursorType = None
@@ -153,7 +155,7 @@ def to_paged(
 
         assert result_transformer is not None
         return Paged(  # type: ignore[call-arg]
-            objects=result_transformer(model, result),
+            objects=result_transformer(model, result, info),
             page_info=PageInfo(next_cursor=end_cursor),  # type: ignore[call-arg]
         )
 

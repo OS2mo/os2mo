@@ -99,6 +99,7 @@ def paginate(obj: list[T], cursor: CursorType, limit: LimitType) -> list[T]:
 
 
 async def health_resolver(
+    info: Info,
     filter: HealthFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
