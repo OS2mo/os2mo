@@ -66,9 +66,7 @@ if TYPE_CHECKING:
 )
 class OrganisationUnit:
     parent_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(
-            model="org_unit", uuid=root.parent_uuid
-        )
+        resolver=lambda root: Response(model="org_unit", uuid=root.parent_uuid)
         if root.parent_uuid
         else None,
         description=dedent(

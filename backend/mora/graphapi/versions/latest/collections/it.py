@@ -294,9 +294,7 @@ class ITUser:
     )
 
     org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(
-            model="org_unit", uuid=root.org_unit_uuid
-        )
+        resolver=lambda root: Response(model="org_unit", uuid=root.org_unit_uuid)
         if root.org_unit_uuid
         else None,
         description=dedent(

@@ -228,9 +228,7 @@ class Manager:
     )
 
     org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(
-            model="org_unit", uuid=root.org_unit_uuid
-        ),
+        resolver=lambda root: Response(model="org_unit", uuid=root.org_unit_uuid),
         description=dedent(
             """
             Organisation unit being managed.
