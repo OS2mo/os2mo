@@ -49,6 +49,7 @@ from .classes import create_class
 from .classes import delete_class
 from .classes import terminate_class
 from .classes import update_class
+from .collections.utils import to_paged_uuids
 from .employee import create_employee
 from .employee import terminate_employee
 from .employee import update_employee
@@ -175,7 +176,6 @@ from .permissions import gen_refresh_permission
 from .permissions import gen_role_permission
 from .permissions import gen_terminate_permission
 from .permissions import gen_update_permission
-from .query import to_paged_uuids
 from .related_units import update_related_units
 from .resolvers import address_resolver
 from .resolvers import association_resolver

@@ -144,6 +144,13 @@ def to_paged_response(model: type[MOObject]) -> Callable:
     )
 
 
+def to_func_uuids(model: Any, result: dict[UUID, list[dict]]) -> list[UUID]:
+    return list(result.keys())
+
+
+to_paged_uuids = partial(to_paged, result_transformer=to_func_uuids)
+
+
 def gen_uuid_field_deprecation(field: str) -> str:
     """Generate a deprecation warning for `_uuid` fields.
 

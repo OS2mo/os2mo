@@ -1,10 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from functools import partial
 from textwrap import dedent
-from typing import Any
 from typing import TypeVar
-from uuid import UUID
 
 import strawberry
 from starlette_context import context
@@ -156,13 +153,6 @@ async def file_resolver(
         File(file_store=filter.file_store, file_name=file_name)  # type: ignore[call-arg]
         for file_name in files
     ]
-
-
-def to_func_uuids(model: Any, result: dict[UUID, list[dict]]) -> list[UUID]:
-    return list(result.keys())
-
-
-to_paged_uuids = partial(to_paged, result_transformer=to_func_uuids)
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
