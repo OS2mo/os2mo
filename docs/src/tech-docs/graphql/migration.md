@@ -10,6 +10,18 @@ code is up-to-date with the latest version.
 Below follows the migration guide for each version.
 
 
+## Version 26
+
+GraphQL version 26 introduces a very minor breaking change to the `registrations`
+top-level collection, changing its return-type from `Registration` to
+`IRegistration`, i.e. from a concrete type to an interface with a plethora of
+concrete implementations, for instance `FacetRegistration`.
+
+We believe very few users should be affected by this change, but if needed,
+the migration path is very simple, simply update any references from
+`Registration` to `IRegistration`.
+
+
 ## Version 25
 
 GraphQL version 25 introduces a very minor breaking change to the `managers`
