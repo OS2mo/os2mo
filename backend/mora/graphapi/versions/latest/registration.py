@@ -38,23 +38,8 @@ from .paged import LimitType
 from .resolvers import get_sqlalchemy_date_interval
 
 
-@strawberry.type(
-    description=dedent(
-        """\
-    Bitemporal container.
-
-    Mostly useful for auditing purposes seeing when data-changes were made and by whom.
-
-    Note:
-    Will eventually contain a full temporal axis per bitemporal container.
-
-    **Warning**:
-    This entry should **not** be used to implement event-driven integrations.
-    Such integration should rather utilize the AMQP-based event-system.
-    """
-    )
-)
-class Registration:
+@strawberry.interface(description="Common fields for registrations.")
+class RegistrationBase:
     registration_id: int = strawberry.field(
         description=dedent(
             """\
@@ -114,7 +99,7 @@ class Registration:
             """
         )
     )
-    def actor_object(self, root: "Registration", info: Info) -> Actor:
+    def actor_object(self, root: "RegistrationBase", info: Info) -> Actor:
         return actor_uuid_to_actor(root.actor)
 
     # Name of the entity model
@@ -143,6 +128,26 @@ class Registration:
     note: str | None = strawberry.field(
         description="Note associated with the registration."
     )
+
+
+@strawberry.type(
+    description=dedent(
+        """\
+    Bitemporal container.
+
+    Mostly useful for auditing purposes seeing when data-changes were made and by whom.
+
+    Note:
+    Will eventually contain a full temporal axis per bitemporal container.
+
+    **Warning**:
+    This entry should **not** be used to implement event-driven integrations.
+    Such integration should rather utilize the AMQP-based event-system.
+    """
+    )
+)
+class Registration(RegistrationBase):
+    pass
 
 
 def row2registration(
