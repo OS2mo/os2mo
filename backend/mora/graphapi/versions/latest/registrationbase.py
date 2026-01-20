@@ -7,8 +7,7 @@ from uuid import UUID
 import strawberry
 from strawberry.types import Info
 
-from .actor import Actor
-from .actor import actor_uuid_to_actor
+from .lazy import LazyActor
 
 
 @strawberry.interface(description="Common fields for registrations.")
@@ -72,7 +71,9 @@ class RegistrationBase:
             """
         )
     )
-    def actor_object(self, root: "RegistrationBase", info: Info) -> Actor:
+    def actor_object(self, root: "RegistrationBase", info: Info) -> LazyActor:
+        from .actor import actor_uuid_to_actor
+
         return actor_uuid_to_actor(root.actor)
 
     # Name of the entity model
