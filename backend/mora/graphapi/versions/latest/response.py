@@ -6,6 +6,7 @@ from datetime import datetime
 from textwrap import dedent
 from typing import Any
 from typing import Generic
+from typing import Protocol
 from uuid import UUID
 
 import strawberry
@@ -59,8 +60,13 @@ def model2name(model: Any) -> Any:
     return mapping[model]
 
 
+class HasUUIDModel(Protocol):
+    uuid: UUID
+    model: type
+
+
 async def current_resolver(
-    root: "Response",
+    root: HasUUIDModel,
     info: Info,
     at: datetime | None = UNSET,
     registration_time: datetime | None = None,
@@ -110,7 +116,7 @@ async def current_resolver(
 
 
 async def validity_resolver(
-    root: "Response",
+    root: HasUUIDModel,
     info: Info,
     start: datetime | None = UNSET,
     end: datetime | None = UNSET,
