@@ -266,7 +266,7 @@ class Response(Generic[MOObject]):
 
             **Warning**:
             This entrypoint should **not** be used to implement event-driven integrations.
-            Such integration should rather utilize the AMQP-based event-system.
+            Such integration should rather utilize the GraphQL-based event-system.
             """
         ),
         permission_classes=[IsAuthenticatedPermission],
