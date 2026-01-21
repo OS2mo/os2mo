@@ -40,6 +40,10 @@ async def load_org(keys: list[int]) -> list[OrganisationRead]:
     return [OrganisationRead.parse_obj({"name": "Test org"})] * len(keys)
 
 
+async def load_all_org_units(**kwargs) -> dict[UUID, list[OrganisationUnitRead]]:
+    return {}
+
+
 async def load_org_units(keys: list[UUID]) -> list[list[OrganisationUnitRead]]:
     return [
         [
@@ -133,6 +137,7 @@ async def test_graphql_rbac(
         "address_loader": DataLoader(load_fn=load_addresses),
         "address_getter": load_all_addresses,
         "org_unit_loader": DataLoader(load_fn=load_org_units),
+        "org_unit_getter": load_all_org_units,
         "org_unit_address_loader": DataLoader(load_fn=load_addresses),
         "get_token": get_token,
     }
