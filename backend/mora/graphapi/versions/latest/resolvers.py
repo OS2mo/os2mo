@@ -239,6 +239,7 @@ async def facet_resolver(
 
     return await generic_resolver(
         FacetRead,
+        info.context["facet_loader"],
         info=info,
         filter=filter,
         limit=limit,
@@ -307,6 +308,7 @@ async def class_resolver(
 
     classes = await generic_resolver(
         ClassRead,
+        info.context["class_loader"],
         info=info,
         filter=filter,
         limit=limit,
@@ -390,6 +392,7 @@ async def address_resolver(
 
     return await generic_resolver(
         AddressRead,
+        info.context["address_loader"],
         info=info,
         filter=filter,
         limit=limit,
@@ -442,6 +445,7 @@ async def association_resolver(
 
     associations = await generic_resolver(
         AssociationRead,
+        info.context["association_loader"],
         info=info,
         filter=filter,
         limit=limit,
@@ -491,6 +495,7 @@ async def employee_resolver(
             raise ValueError("filter.query must be used alone")
         r = await generic_resolver(
             EmployeeRead,
+            info.context["employee_loader"],
             info=info,
             filter=BaseFilter(
                 uuids=await search_employees(
@@ -520,6 +525,7 @@ async def employee_resolver(
 
     return await generic_resolver(
         EmployeeRead,
+        info.context["employee_loader"],
         info=info,
         filter=filter,
         limit=limit,
@@ -564,6 +570,7 @@ async def engagement_resolver(
 
     return await generic_resolver(
         EngagementRead,
+        info.context["engagement_loader"],
         info=info,
         filter=filter,
         limit=limit,
@@ -633,6 +640,7 @@ async def manager_resolver(
 
     result = await generic_resolver(
         ManagerRead,
+        info.context["manager_loader"],
         info=info,
         filter=filter,
         limit=limit,
@@ -702,6 +710,7 @@ async def owner_resolver(
 
     return await generic_resolver(
         OwnerRead,
+        info.context["owner_loader"],
         info=info,
         filter=filter,
         limit=limit,
@@ -1118,6 +1127,7 @@ async def organisation_unit_resolver(
 
     return await generic_resolver(
         OrganisationUnitRead,
+        info.context["org_unit_loader"],
         info=info,
         filter=BaseFilter(
             uuids=uuids,
@@ -1165,6 +1175,7 @@ async def it_system_resolver(
 
     return await generic_resolver(
         ITSystemRead,
+        info.context["itsystem_loader"],
         info=info,
         filter=filter,
         limit=limit,
@@ -1218,6 +1229,7 @@ async def it_user_resolver(
 
     return await generic_resolver(
         ITUserRead,
+        info.context["ituser_loader"],
         info=info,
         filter=filter,
         limit=limit,
@@ -1246,6 +1258,7 @@ async def kle_resolver(
 
     return await generic_resolver(
         KLERead,
+        info.context["kle_loader"],
         info=info,
         filter=filter,
         limit=limit,
@@ -1280,6 +1293,7 @@ async def leave_resolver(
 
     return await generic_resolver(
         LeaveRead,
+        info.context["leave_loader"],
         info=info,
         filter=filter,
         limit=limit,
@@ -1304,6 +1318,7 @@ async def get_by_uuid(
 
 async def generic_resolver(
     model: Any,
+    loader: DataLoader,
     # Ordinary
     info: Info,
     filter: BaseFilter | None = None,
@@ -1330,9 +1345,8 @@ async def generic_resolver(
         # Early return on empty UUID list
         if not filter.uuids:
             return dict()
-        resolver_name = resolver_map[model]["loader"]
         return await get_by_uuid(
-            dataloader=info.context[resolver_name],
+            dataloader=loader,
             keys=[
                 LoadKey(uuid, dates.from_date, dates.to_date, filter.registration_time)
                 for uuid in filter.uuids
@@ -1390,6 +1404,7 @@ async def related_unit_resolver(
 
     return await generic_resolver(
         RelatedUnitRead,
+        info.context["rel_unit_loader"],
         info=info,
         filter=filter,
         limit=limit,
@@ -1426,6 +1441,7 @@ async def rolebinding_resolver(
 
     return await generic_resolver(
         RoleBindingRead,
+        info.context["rolebinding_loader"],
         info=info,
         filter=filter,
         limit=limit,

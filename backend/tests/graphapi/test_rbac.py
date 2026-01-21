@@ -130,6 +130,7 @@ async def test_graphql_rbac(
     context = {
         "session": session,
         "org_loader": DataLoader(load_fn=load_org),
+        "address_loader": DataLoader(load_fn=load_addresses),
         "address_getter": load_all_addresses,
         "org_unit_loader": DataLoader(load_fn=load_org_units),
         "org_unit_address_loader": DataLoader(load_fn=load_addresses),
