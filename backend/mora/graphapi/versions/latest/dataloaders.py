@@ -145,7 +145,7 @@ async def load_org(keys: list[int]) -> list[OrganisationRead]:
 async def get_loaders() -> dict[str, DataLoader | Callable]:
     """Get all available dataloaders as a dictionary."""
     return {
-        "org_loader": DataLoader[int, OrganisationUnitRead](load_fn=load_org),
+        "org_loader": DataLoader[int, OrganisationRead](load_fn=load_org),
         # Organisation Unit
         "org_unit_loader": DataLoader[LoadKey, list[OrganisationUnitRead]](
             load_fn=partial(load_mo, model=OrganisationUnitRead)
