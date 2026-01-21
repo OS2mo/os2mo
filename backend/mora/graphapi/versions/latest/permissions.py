@@ -14,6 +14,7 @@ from strawberry.types import Info
 
 from mora.auth.exceptions import AuthorizationError
 from mora.config import get_settings
+from mora.graphapi.context import MOContext
 
 Collections = Literal[
     "accesslog",
@@ -64,14 +65,16 @@ class IsAuthenticatedPermission(BasePermission):
 
     message = "User is not authenticated"
 
-    async def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
+    async def has_permission(
+        self, source: Any, info: Info[MOContext, None], **kwargs: Any
+    ) -> bool:
         """Returns `True` if a valid token exists."""
         settings = get_settings()
         # Always grant access if auth is disabled
         if not settings.os2mo_auth:  # pragma: no cover
             return True
         try:
-            token = await info.context["get_token"]()
+            token = await info.context.get_token()
         except HTTPException as e:
             raise PermissionError(e.detail) from e
         return token is not None
@@ -110,7 +113,9 @@ def gen_role_permission(
 
         message = fail_message
 
-        async def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
+        async def has_permission(
+            self, source: Any, info: Info[MOContext, None], **kwargs: Any
+        ) -> bool:
             """Returns `True` if `role_name` exists in the token's roles."""
             settings = get_settings()
 
@@ -119,7 +124,7 @@ def gen_role_permission(
             if (not settings.graphql_rbac) and (not force_permission_check):
                 return True
 
-            token = await info.context["get_token"]()
+            token = await info.context.get_token()
             token_roles = token.realm_access.roles
 
             # Allow access if token has required role

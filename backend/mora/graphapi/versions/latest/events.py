@@ -19,6 +19,7 @@ from strawberry.types import Info
 from mora import db
 from mora.auth.middleware import get_authenticated_user
 from mora.db import AsyncSession
+from mora.graphapi.context import MOContext
 
 from ..latest.filters import gen_filter_string
 from .paged import CursorType
@@ -107,7 +108,7 @@ class FullEventFilter:
 
 
 async def full_event_resolver(
-    info: Info,
+    info: Info[MOContext, None],
     filter: FullEventFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -121,7 +122,7 @@ async def full_event_resolver(
 
     # Only resolve the owners own events _unless_ they have the
     # "read_event_all" permission.
-    token = await info.context["get_token"]()
+    token = await info.context.get_token()
     if "read_event_all" not in token.realm_access.roles:
         owner = get_authenticated_user()
         clauses.append(db.Listener.owner == owner)
