@@ -80,8 +80,11 @@ def name2model(name: str) -> Any:
 
 
 class HasUUIDModel(Protocol):
-    uuid: UUID
-    model: type
+    @property
+    def uuid(self) -> UUID: ...
+
+    @property
+    def model(self) -> type[Any] | str: ...
 
 
 async def current_resolver(
