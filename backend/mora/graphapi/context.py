@@ -81,6 +81,8 @@ class MOLoaders:
     # ITSysterm
     itsystem_loader: DataLoader[LoadKey, list[ITSystemRead]]
     itsystem_getter: Callable[..., Awaitable[dict[UUID, list]]]
+    # AccessLog Loaders
+    access_log_read_loader: DataLoader[UUID, list[UUID]]
 
 
 @dataclass
@@ -89,9 +91,6 @@ class MOContext(BaseContext):
     amqp_system: AMQPSystem
     session: db.AsyncSession
     dataloaders: MOLoaders
-
-    # AccessLog Loaders
-    access_log_read_loader: DataLoader[UUID, list[UUID]]
 
     # Actor Loaders
     actor_name_loader: DataLoader[UUID, str | None]

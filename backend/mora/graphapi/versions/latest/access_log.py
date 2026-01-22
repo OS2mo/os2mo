@@ -19,6 +19,7 @@ from mora.db import AccessLogOperation as AccessLogOperation
 from mora.db import AccessLogRead as AccessLogRead
 from mora.db import AsyncSession
 
+from ...context import MOInfo
 from ..latest.filters import gen_filter_string
 from ..latest.filters import gen_filter_table
 from .actor import Actor
@@ -152,8 +153,8 @@ class AccessLog:
         """
         )
     )
-    async def uuids(self, info: Info) -> list[UUID]:
-        return await info.context["access_log_read_loader"].load(self.id)
+    async def uuids(self, info: MOInfo) -> list[UUID]:
+        return await info.context.dataloaders.access_log_read_loader.load(self.id)
 
 
 @strawberry.input(description="Access log log filter.")
