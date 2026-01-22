@@ -14,7 +14,6 @@ from sqlalchemy import ColumnElement
 from sqlalchemy import func
 from sqlalchemy import select
 from sqlalchemy import update
-from strawberry.types import Info
 
 from mora import db
 from mora.auth.middleware import get_authenticated_user
@@ -155,7 +154,7 @@ async def full_event_resolver(
     # only used by humans, not by integrations.
     query = query.offset(cursor.offset if cursor else 0)
 
-    session: AsyncSession = info.context["session"]
+    session: AsyncSession = info.context.session
     result = await session.scalars(query)
     return [
         FullEvent(
@@ -169,7 +168,7 @@ async def full_event_resolver(
 
 
 async def listener_resolver(
-    info: Info,
+    info: MOInfo,
     filter: ListenerFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -186,7 +185,7 @@ async def listener_resolver(
     # only used by humans, not by integrations.
     query = query.offset(cursor.offset if cursor else 0)
 
-    session: AsyncSession = info.context["session"]
+    session: AsyncSession = info.context.session
     result = list(await session.scalars(query))
 
     return [
@@ -202,7 +201,7 @@ async def listener_resolver(
 
 
 async def namespace_resolver(
-    info: Info,
+    info: MOInfo,
     filter: NamespaceFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -219,7 +218,7 @@ async def namespace_resolver(
     # only used by humans, not by integrations.
     query = query.offset(cursor.offset if cursor else 0)
 
-    session: AsyncSession = info.context["session"]
+    session: AsyncSession = info.context.session
     result = list(await session.scalars(query))
 
     return [
@@ -402,7 +401,7 @@ class EventFilter:
 
 
 async def event_resolver(
-    info: Info,
+    info: MOInfo,
     filter: EventFilter,
 ) -> Event | None:
     owner = get_authenticated_user()
@@ -447,7 +446,7 @@ async def event_resolver(
         .values(last_tried=func.now(), fetched_count=db.Event.fetched_count + 1)
         .returning(db.Event)
     )
-    session: AsyncSession = info.context["session"]
+    session: AsyncSession = info.context.session
     result = await session.scalar(query)
     if result is None:
         # We sleep a bit when there are no event to reduce the load on the

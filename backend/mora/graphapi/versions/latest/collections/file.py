@@ -6,11 +6,11 @@ from base64 import b64encode
 from textwrap import dedent
 
 import strawberry
-from strawberry.types import Info
 
 from mora import db
 from mora.db import AsyncSession
 
+from ....context import MOInfo
 from ..models import FileStore
 
 
@@ -65,8 +65,8 @@ class File:
         """
         )
     )
-    async def text_contents(self, info: Info) -> str:  # pragma: no cover
-        session: AsyncSession = info.context["session"]
+    async def text_contents(self, info: MOInfo) -> str:  # pragma: no cover
+        session: AsyncSession = info.context.session
         content = await db.files.read(session, self.file_store, self.file_name)
         return content.decode("utf-8")
 
@@ -92,7 +92,7 @@ class File:
         """
         )
     )
-    async def base64_contents(self, info: Info) -> str:
-        session: AsyncSession = info.context["session"]
+    async def base64_contents(self, info: MOInfo) -> str:
+        session: AsyncSession = info.context.session
         content = await db.files.read(session, self.file_store, self.file_name)
         return b64encode(content).decode("utf-8")

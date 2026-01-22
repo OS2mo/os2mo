@@ -126,7 +126,7 @@ async def health_resolver(
 
 
 async def file_resolver(
-    info: Info,
+    info: MOInfo,
     filter: FileFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -134,7 +134,7 @@ async def file_resolver(
     if filter is None:  # pragma: no cover
         filter = FileFilter()
 
-    session: AsyncSession = info.context["session"]
+    session: AsyncSession = info.context.session
     # We do not need the access log elsewhere for files, because this is the
     # only way to resolve a `File` (which is needed to read the content).
     access_log(

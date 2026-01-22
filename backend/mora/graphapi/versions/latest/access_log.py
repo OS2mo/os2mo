@@ -212,7 +212,7 @@ class AccessLogFilter:
 
 
 async def access_log_resolver(
-    info: Info,
+    info: MOInfo,
     filter: AccessLogFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -252,7 +252,7 @@ async def access_log_resolver(
         query = query.limit(limit + 1)
     query = query.offset(cursor.offset if cursor else 0)
 
-    session: AsyncSession = info.context["session"]
+    session: AsyncSession = info.context.session
     result = list(await session.scalars(query))
     access_log(
         session,
