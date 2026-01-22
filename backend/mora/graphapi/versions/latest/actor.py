@@ -10,7 +10,6 @@ import strawberry
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from strawberry.dataloader import DataLoader
-from strawberry.types import Info
 
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import LEGACY_AUTH_UUID
@@ -232,8 +231,8 @@ class Myself:
     )
 
 
-async def myself_resolver(info: Info) -> Myself:
-    token: Token = await info.context["get_token"]()
+async def myself_resolver(info: MOInfo) -> Myself:
+    token: Token = await info.context.get_token()
     return Myself(
         actor=actor_uuid_to_actor(token.uuid),
         email=token.email,
