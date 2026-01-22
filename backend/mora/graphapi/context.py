@@ -83,6 +83,8 @@ class MOLoaders:
     itsystem_getter: Callable[..., Awaitable[dict[UUID, list]]]
     # AccessLog Loaders
     access_log_read_loader: DataLoader[UUID, list[UUID]]
+    # Actor Loaders
+    actor_name_loader: DataLoader[UUID, str | None]
 
 
 @dataclass
@@ -91,9 +93,6 @@ class MOContext(BaseContext):
     amqp_system: AMQPSystem
     session: db.AsyncSession
     dataloaders: MOLoaders
-
-    # Actor Loaders
-    actor_name_loader: DataLoader[UUID, str | None]
 
     # Hack to allow old dictionary style access to the context
     # TODO: Convert all context uses to attr access then remove this

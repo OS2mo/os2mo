@@ -38,14 +38,13 @@ async def get_context(
 ) -> MOContext:
     loaders = await get_loaders()
     loaders.update(get_access_log_loaders(session))
+    loaders.update(get_actor_loaders(session))
     moloaders = MOLoaders(**loaders)  # type: ignore
     return MOContext(
         get_token=get_token,
         amqp_system=amqp_system,
         session=session,
         dataloaders=moloaders,
-        # TODO: Construct typed contexts directly
-        **get_actor_loaders(session),  # type: ignore
     )
 
 
