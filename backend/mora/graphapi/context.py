@@ -4,9 +4,11 @@ from collections.abc import Awaitable
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
+from typing import TypeAlias
 from uuid import UUID
 
 from fastramqpi.ramqp import AMQPSystem
+from strawberry import Info
 from strawberry.dataloader import DataLoader
 from strawberry.fastapi import BaseContext
 
@@ -97,3 +99,6 @@ class MOContext(MOLoaders, BaseContext):
     # TODO: Convert all context uses to attr access then remove this
     def __getitem__(self, key: str) -> Any:
         return getattr(self, key)
+
+
+MOInfo: TypeAlias = Info[MOContext, None]
