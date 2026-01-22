@@ -27,6 +27,8 @@ from mora.util import NEGATIVE_INFINITY
 from mora.util import POSITIVE_INFINITY
 from mora.util import now
 
+from ...fields import Metadata
+from ...version import Version as GraphQLVersion
 from .graphql_utils import LoadKey
 from .models import AddressRead
 from .models import ClassRead
@@ -36,6 +38,7 @@ from .moobject import MOObject
 from .permissions import IsAuthenticatedPermission
 from .registration import Registration
 from .registration import registration_resolver
+from .registrationbase import RegistrationBase
 from .resolver_map import resolver_map
 from .seed_resolver import seed_resolver
 from .utils import uuid2list
@@ -80,8 +83,11 @@ def name2model(name: str) -> Any:
 
 
 class HasUUIDModel(Protocol):
-    uuid: UUID
-    model: type
+    @property
+    def uuid(self) -> UUID: ...
+
+    @property
+    def model(self) -> type[Any] | str: ...
 
 
 async def current_resolver(
@@ -154,7 +160,78 @@ async def validity_resolver(
 
 @strawberry.type(
     description=dedent(
-        """
+        """\
+    Bitemporal container.
+
+    Mostly useful for auditing purposes seeing when data-changes were made and by whom.
+
+    Note:
+    Will eventually contain a full temporal axis per bitemporal container.
+
+    **Warning**:
+    This entry should **not** be used to implement event-driven integrations.
+    Such integration should rather utilize the GraphQL-based event-system.
+    """
+    )
+)
+class ResponseRegistration(RegistrationBase, Generic[MOObject]):
+    # NOTE: This field cannot be rewritten as the one above due to:
+    # https://github.com/strawberry-graphql/strawberry/issues/4139
+    @strawberry.field(
+        description=dedent(
+            """
+            Temporal state entrypoint.
+
+            Returns the state of the object at varying validities and current assertion time.
+
+            A list of objects are returned as only many different validity intervals can be active at a given assertion time.
+
+            Note:
+            This the entrypoint should be used for temporal integrations and UIs.
+            For actual-state integrations, please consider using `current` instead.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission],
+    )
+    async def current(
+        self,
+        root: "ResponseRegistration",
+        info: Info,
+        at: datetime | None = UNSET,
+    ) -> MOObject | None:
+        return await current_resolver(root, info, at, root.start)
+
+    # NOTE: This field cannot be rewritten as the one above due to:
+    # https://github.com/strawberry-graphql/strawberry/issues/4139
+    @strawberry.field(
+        description=dedent(
+            """
+            Temporal state entrypoint.
+
+            Returns the state of the object at varying validities and current assertion time.
+
+            A list of objects are returned as only many different validity intervals can be active at a given assertion time.
+
+            Note:
+            This the entrypoint should be used for temporal integrations and UIs.
+            For actual-state integrations, please consider using `current` instead.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission],
+    )
+    async def validities(
+        self,
+        root: "ResponseRegistration",
+        info: Info,
+        start: datetime | None = UNSET,
+        end: datetime | None = UNSET,
+    ) -> list[MOObject]:  # pragma: no cover
+        return await validity_resolver(root, info, start, end, root.start)
+
+
+@strawberry.type(
+    description=dedent(
+        """\
     Top-level container for (bi)-temporal and actual state data access.
 
     Contains a UUID uniquely denoting the bitemporal object.
@@ -250,7 +327,8 @@ class Response(Generic[MOObject]):
         return await validity_resolver(root, info, start, end, registration_time)
 
     # TODO: Implement using a dataloader
-    registrations: list[Registration] = strawberry.field(
+    registrations__v26: list[Registration] = strawberry.field(
+        name="registrations",
         description=dedent(
             """
             Bitemporal state entrypoint.
@@ -277,4 +355,36 @@ class Response(Generic[MOObject]):
                 "models": lambda root: [model2name(root.model)],
             },
         ),
+        metadata=Metadata(version=lambda v: v <= GraphQLVersion.VERSION_26),
+    )
+
+    registrations__v27: list[ResponseRegistration[MOObject]] = strawberry.field(
+        name="registrations",
+        description=dedent(
+            """
+            Bitemporal state entrypoint.
+
+            Returns the state of the object at varying validities and varying assertion times.
+
+            A list of bitemporal container objects are returned, each containing many different validity intervals.
+
+            Note:
+            This the entrypoint should only be used for bitemporal integrations and UIs, such as for auditing purposes.
+            For temporal integration, please consider using `objects` instead.
+            For actual-state integrations, please consider using `current` instead.
+
+            **Warning**:
+            This entrypoint should **not** be used to implement event-driven integrations.
+            Such integration should rather utilize the GraphQL-based event-system.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission],
+        resolver=seed_resolver(
+            registration_resolver,
+            {
+                "uuids": lambda root: uuid2list(root.uuid),
+                "models": lambda root: [model2name(root.model)],
+            },
+        ),
+        metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_27),
     )

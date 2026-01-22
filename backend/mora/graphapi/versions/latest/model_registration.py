@@ -14,7 +14,7 @@ import strawberry
 
 from .moobject import MOObject
 from .permissions import IsAuthenticatedPermission
-from .registration import RegistrationBase
+from .registrationbase import RegistrationBase
 from .response import HasUUIDModel
 from .response import current_resolver
 from .response import validity_resolver

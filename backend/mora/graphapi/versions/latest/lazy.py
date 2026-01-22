@@ -8,6 +8,7 @@ from typing import Annotated
 import strawberry
 
 if TYPE_CHECKING:
+    from .actor import Actor
     from .collections.address import Address
     from .collections.association import Association
     from .collections.classes import Class
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
     from .collections.role_binding import RoleBinding
 
 
+LazyActor = Annotated["Actor", strawberry.lazy(".actor")]
 LazyAddress = Annotated["Address", strawberry.lazy(".collections.address")]
 LazyAssociation = Annotated["Association", strawberry.lazy(".collections.association")]
 LazyClass = Annotated["Class", strawberry.lazy(".collections.classes")]
