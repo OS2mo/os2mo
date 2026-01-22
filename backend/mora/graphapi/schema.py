@@ -25,6 +25,23 @@ from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.version import Version
 from mora.graphapi.versions.latest.actor import SpecialActor
 from mora.graphapi.versions.latest.actor import UnknownActor
+from mora.graphapi.versions.latest.model_registration import AddressRegistration
+from mora.graphapi.versions.latest.model_registration import AssociationRegistration
+from mora.graphapi.versions.latest.model_registration import ClassRegistration
+from mora.graphapi.versions.latest.model_registration import EngagementRegistration
+from mora.graphapi.versions.latest.model_registration import FacetRegistration
+from mora.graphapi.versions.latest.model_registration import ITSystemRegistration
+from mora.graphapi.versions.latest.model_registration import ITUserRegistration
+from mora.graphapi.versions.latest.model_registration import KLERegistration
+from mora.graphapi.versions.latest.model_registration import LeaveRegistration
+from mora.graphapi.versions.latest.model_registration import ManagerRegistration
+from mora.graphapi.versions.latest.model_registration import (
+    OrganisationUnitRegistration,
+)
+from mora.graphapi.versions.latest.model_registration import OwnerRegistration
+from mora.graphapi.versions.latest.model_registration import PersonRegistration
+from mora.graphapi.versions.latest.model_registration import RelatedUnitRegistration
+from mora.graphapi.versions.latest.model_registration import RoleBindingRegistration
 from mora.graphapi.versions.latest.mutators import Mutation
 from mora.graphapi.versions.latest.query import Query
 from mora.graphapi.versions.latest.schema import DARAddress
@@ -131,6 +148,22 @@ def get_schema(version: Version) -> CustomSchema:
             MultifieldAddress,
             SpecialActor,
             UnknownActor,
+            # Concrete registration types
+            AddressRegistration,
+            AssociationRegistration,
+            ClassRegistration,
+            PersonRegistration,
+            EngagementRegistration,
+            FacetRegistration,
+            ITSystemRegistration,
+            ITUserRegistration,
+            KLERegistration,
+            LeaveRegistration,
+            ManagerRegistration,
+            OwnerRegistration,
+            OrganisationUnitRegistration,
+            RelatedUnitRegistration,
+            RoleBindingRegistration,
         ],
         extensions=[
             StarletteContextExtension,

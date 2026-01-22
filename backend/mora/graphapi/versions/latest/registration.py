@@ -38,23 +38,8 @@ from .paged import LimitType
 from .resolvers import get_sqlalchemy_date_interval
 
 
-@strawberry.type(
-    description=dedent(
-        """\
-    Bitemporal container.
-
-    Mostly useful for auditing purposes seeing when data-changes were made and by whom.
-
-    Note:
-    Will eventually contain a full temporal axis per bitemporal container.
-
-    **Warning**:
-    This entry should **not** be used to implement event-driven integrations.
-    Such integration should rather utilize the AMQP-based event-system.
-    """
-    )
-)
-class Registration:
+@strawberry.interface(description="Common fields for registrations.")
+class RegistrationBase:
     registration_id: int = strawberry.field(
         description=dedent(
             """\
@@ -114,7 +99,7 @@ class Registration:
             """
         )
     )
-    def actor_object(self, root: "Registration", info: Info) -> Actor:
+    def actor_object(self, root: "RegistrationBase", info: Info) -> Actor:
         return actor_uuid_to_actor(root.actor)
 
     # Name of the entity model
@@ -145,6 +130,26 @@ class Registration:
     )
 
 
+@strawberry.type(
+    description=dedent(
+        """\
+    Bitemporal container.
+
+    Mostly useful for auditing purposes seeing when data-changes were made and by whom.
+
+    Note:
+    Will eventually contain a full temporal axis per bitemporal container.
+
+    **Warning**:
+    This entry should **not** be used to implement event-driven integrations.
+    Such integration should rather utilize the GraphQL-based event-system.
+    """
+    )
+)
+class Registration(RegistrationBase):
+    pass
+
+
 def row2registration(
     model: str, id: int, uuid: UUID, actor: UUID, note: str, start_t: Any, end_t: Any
 ) -> Registration:
@@ -167,7 +172,42 @@ def row2registration(
     if end.date() == date(9999, 12, 31):
         end = None
 
-    return Registration(  # type: ignore
+    from .model_registration import AddressRegistration
+    from .model_registration import AssociationRegistration
+    from .model_registration import ClassRegistration
+    from .model_registration import EngagementRegistration
+    from .model_registration import FacetRegistration
+    from .model_registration import ITSystemRegistration
+    from .model_registration import ITUserRegistration
+    from .model_registration import KLERegistration
+    from .model_registration import LeaveRegistration
+    from .model_registration import ManagerRegistration
+    from .model_registration import OrganisationUnitRegistration
+    from .model_registration import OwnerRegistration
+    from .model_registration import PersonRegistration
+    from .model_registration import RelatedUnitRegistration
+    from .model_registration import RoleBindingRegistration
+
+    lookup = {
+        "address": AddressRegistration,
+        "association": AssociationRegistration,
+        "class": ClassRegistration,
+        "employee": PersonRegistration,
+        "engagement": EngagementRegistration,
+        "facet": FacetRegistration,
+        "itsystem": ITSystemRegistration,
+        "ituser": ITUserRegistration,
+        "kle": KLERegistration,
+        "leave": LeaveRegistration,
+        "manager": ManagerRegistration,
+        "owner": OwnerRegistration,
+        "org_unit": OrganisationUnitRegistration,
+        "related": RelatedUnitRegistration,
+        "role": RoleBindingRegistration,
+    }
+    cls = lookup.get(model)
+
+    return cls(  # type: ignore
         model=model,
         uuid=uuid,
         registration_id=id,
@@ -183,7 +223,7 @@ async def registration_resolver(
     filter: RegistrationFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[Registration]:
+) -> list[Any]:
     if filter is None:  # pragma: no cover
         filter = RegistrationFilter()
 

@@ -22,6 +22,8 @@ from mora.graphapi.gmodels.mo.details.related_unit import RelatedUnitRead
 from mora.graphapi.gmodels.mo.employee import EmployeeRead
 from mora.graphapi.gmodels.mo.organisation_unit import OrganisationUnitRead
 
+from ...fields import Metadata
+from ...version import Version as GraphQLVersion
 from .access_log import AccessLog
 from .access_log import access_log_resolver
 from .actor import Myself
@@ -38,6 +40,7 @@ from .events import namespace_resolver
 from .filters import FileFilter
 from .filters import HealthFilter
 from .health import health_map
+from .model_registration import IRegistration
 from .models import AddressRead
 from .models import ClassRead
 from .models import FacetRead
@@ -320,7 +323,8 @@ class Query:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("file")],
     )
 
-    registrations: Paged[Registration] = strawberry.field(
+    registrations__v25: Paged[Registration] = strawberry.field(
+        name="registrations",
         resolver=to_paged(registration_resolver, Registration),
         description=dedent(
             """\
@@ -330,13 +334,34 @@ class Query:
 
             **Warning**:
             This entry should **not** be used to implement event-driven integrations.
-            Such integration should rather utilize the AMQP-based event-system.
+            Such integration should rather utilize the GraphQL-based event-system.
             """
         ),
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("registration"),
         ],
+        metadata=Metadata(version=lambda v: v <= GraphQLVersion.VERSION_25),
+    )
+    registrations__v26: Paged[IRegistration] = strawberry.field(
+        name="registrations",
+        resolver=to_paged(registration_resolver, IRegistration),
+        description=dedent(
+            """\
+            Get a list of registrations.
+
+            Mostly useful for auditing purposes seeing when data-changes were made and by whom.
+
+            **Warning**:
+            This entry should **not** be used to implement event-driven integrations.
+            Such integration should rather utilize the GraphQL-based event-system.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("registration"),
+        ],
+        metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_26),
     )
 
     access_log: Paged[AccessLog] = strawberry.field(
