@@ -172,7 +172,42 @@ def row2registration(
     if end.date() == date(9999, 12, 31):
         end = None
 
-    return Registration(  # type: ignore
+    from .model_registration import AddressRegistration
+    from .model_registration import AssociationRegistration
+    from .model_registration import ClassRegistration
+    from .model_registration import EngagementRegistration
+    from .model_registration import FacetRegistration
+    from .model_registration import ITSystemRegistration
+    from .model_registration import ITUserRegistration
+    from .model_registration import KLERegistration
+    from .model_registration import LeaveRegistration
+    from .model_registration import ManagerRegistration
+    from .model_registration import OrganisationUnitRegistration
+    from .model_registration import OwnerRegistration
+    from .model_registration import PersonRegistration
+    from .model_registration import RelatedUnitRegistration
+    from .model_registration import RoleBindingRegistration
+
+    lookup = {
+        "address": AddressRegistration,
+        "association": AssociationRegistration,
+        "class": ClassRegistration,
+        "employee": PersonRegistration,
+        "engagement": EngagementRegistration,
+        "facet": FacetRegistration,
+        "itsystem": ITSystemRegistration,
+        "ituser": ITUserRegistration,
+        "kle": KLERegistration,
+        "leave": LeaveRegistration,
+        "manager": ManagerRegistration,
+        "owner": OwnerRegistration,
+        "org_unit": OrganisationUnitRegistration,
+        "related": RelatedUnitRegistration,
+        "role": RoleBindingRegistration,
+    }
+    cls = lookup.get(model)
+
+    return cls(  # type: ignore
         model=model,
         uuid=uuid,
         registration_id=id,
@@ -188,7 +223,7 @@ async def registration_resolver(
     filter: RegistrationFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[Registration]:
+) -> list[Any]:
     if filter is None:  # pragma: no cover
         filter = RegistrationFilter()
 
