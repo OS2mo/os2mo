@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from textwrap import dedent
 from typing import TypeVar
+from typing import cast
 
 import strawberry
 from starlette_context import context
@@ -10,6 +11,7 @@ from strawberry.types import Info
 from mora import db
 from mora.access_log import access_log
 from mora.db import AsyncSession
+from mora.graphapi.context import MOInfo
 from mora.graphapi.gmodels.mo.details.association import AssociationRead
 from mora.graphapi.gmodels.mo.details.engagement import EngagementRead
 from mora.graphapi.gmodels.mo.details.it_system import ITSystemRead
@@ -392,8 +394,8 @@ class Query:
         deprecation_reason="The root organisation concept will be removed in a future version of OS2mo.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org")],
     )
-    async def org(self, info: Info) -> Organisation:
-        return await info.context["org_loader"].load(0)
+    async def org(self, info: MOInfo) -> Organisation:
+        return cast(Organisation, await info.context.org_loader.load(0))
 
     # Version
     # -------

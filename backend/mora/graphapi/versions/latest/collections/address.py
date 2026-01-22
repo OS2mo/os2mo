@@ -11,8 +11,8 @@ from uuid import UUID
 import strawberry
 from more_itertools import one
 from starlette_context import context
-from strawberry.types import Info
 
+from mora.graphapi.context import MOInfo
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import EngagementRead
@@ -146,7 +146,7 @@ class DARAddress(ResolvedAddress):
         return dar.open_street_map_href_from_dar_object(dar_response)
 
 
-async def _get_handler_object(root: AddressRead, info: Info) -> AddressHandler:
+async def _get_handler_object(root: AddressRead, info: MOInfo) -> AddressHandler:
     # This function assumes that scope never changes for a class
     # If this assumption was to be broken, we would have to split the Address object on
     # scope changes, or alternatively return the attributes (value, name, etc) as
@@ -163,7 +163,7 @@ async def _get_handler_object(root: AddressRead, info: Info) -> AddressHandler:
     #       address_type class validity here, instead of loading all of them.
     #       This would probably yield better performance than loading all validities,
     #       but for now however we load all of them to check our invariant.
-    validities: list[ClassRead] = await info.context["class_loader"].load(
+    validities: list[ClassRead] = await info.context.class_loader.load(
         LoadKey(
             uuid=root.address_type_uuid, start=None, end=None, registration_time=None
         )
@@ -493,7 +493,7 @@ class Address:
         """
         )
     )
-    async def name(self, root: AddressRead, info: Info) -> str | None:
+    async def name(self, root: AddressRead, info: MOInfo) -> str | None:
         obj = await _get_handler_object(root, info)
 
         # TODO: Use AddressHandler implementation?
@@ -505,7 +505,7 @@ class Address:
         return obj.name
 
     @strawberry.field
-    async def resolve(self, root: AddressRead, info: Info) -> ResolvedAddress:
+    async def resolve(self, root: AddressRead, info: MOInfo) -> ResolvedAddress:
         obj = await _get_handler_object(root, info)
 
         if obj.scope == "MULTIFIELD_TEXT":  # pragma: no cover
@@ -535,7 +535,7 @@ class Address:
         """
         )
     )
-    async def href(self, root: AddressRead, info: Info) -> str | None:
+    async def href(self, root: AddressRead, info: MOInfo) -> str | None:
         obj = await _get_handler_object(root, info)
 
         # TODO: Use AddressHandler implementation?
@@ -647,7 +647,7 @@ class Address:
             """
         )
     )
-    async def value(self, root: AddressRead, info: Info) -> str:
+    async def value(self, root: AddressRead, info: MOInfo) -> str:
         obj = await _get_handler_object(root, info)
         return obj.value
 
@@ -665,7 +665,7 @@ class Address:
             """
         )
     )
-    async def value2(self, root: AddressRead, info: Info) -> str | None:
+    async def value2(self, root: AddressRead, info: MOInfo) -> str | None:
         obj = await _get_handler_object(root, info)
         return obj.value2
 

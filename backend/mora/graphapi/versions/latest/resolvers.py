@@ -34,7 +34,6 @@ from sqlalchemy.types import Text
 from starlette_context import context
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
-from strawberry.types import Info
 from strawberry.types.unset import UnsetType
 
 from mora import util
@@ -51,6 +50,7 @@ from mora.graphapi.gmodels.base import tz_isodate
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.service.autocomplete.employees import search_employees
 
+from ...context import MOInfo
 from ...custom_schema import get_version
 from ...middleware import with_graphql_dates
 from ...version import Version
@@ -79,7 +79,7 @@ from .validity import OpenValidityModel
 
 async def filter2uuids_func(
     resolver_func: Callable,
-    info: Info,
+    info: MOInfo,
     filter: BaseFilter,
     mapper: Callable[[Any], list[UUID]] | None = None,
 ) -> list[UUID]:
@@ -132,21 +132,21 @@ def extend_user_keys(output_filter: BaseFilter, input: list[str] | None) -> None
     output_filter.user_keys.extend(input)
 
 
-async def get_employee_uuids(info: Info, filter: Any) -> list[UUID]:
+async def get_employee_uuids(info: MOInfo, filter: Any) -> list[UUID]:
     employee_filter = filter.employee or EmployeeFilter()
     # Handle deprecated filter
     extend_uuids(employee_filter, filter.employees)
     return await filter2uuids_func(employee_resolver, info, employee_filter)
 
 
-async def get_engagement_uuids(info: Info, filter: Any) -> list[UUID]:
+async def get_engagement_uuids(info: MOInfo, filter: Any) -> list[UUID]:
     engagement_filter = filter.engagement or EngagementFilter()
     # Handle deprecated filter
     extend_uuids(engagement_filter, filter.engagements)
     return await filter2uuids_func(engagement_resolver, info, engagement_filter)
 
 
-async def get_org_unit_uuids(info: Info, filter: Any) -> list[UUID]:
+async def get_org_unit_uuids(info: MOInfo, filter: Any) -> list[UUID]:
     org_unit_filter = filter.org_unit or OrganisationUnitFilter()
     # Handle deprecated filter
     extend_uuids(org_unit_filter, filter.org_units)
@@ -168,7 +168,7 @@ def to_similar(keys: list[str]) -> str:
     return use_is_similar_sentinel + "|".join(escaped_keys)
 
 
-async def registration_filter(info: Info, filter: Any) -> None:
+async def registration_filter(info: MOInfo, filter: Any) -> None:
     if filter.registration is None:
         return
     # coverage: pause
@@ -187,7 +187,7 @@ async def registration_filter(info: Info, filter: Any) -> None:
 
 
 async def facet_resolver(
-    info: Info,
+    info: MOInfo,
     filter: FacetFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -195,7 +195,7 @@ async def facet_resolver(
     """Resolve facets."""
 
     async def _get_parent_uuids(
-        info: Info, filter: FacetFilter
+        info: MOInfo, filter: FacetFilter
     ) -> list[UUID]:  # pragma: no cover
         facet_filter = filter.parent or FacetFilter()
         # Handle deprecated filter
@@ -225,8 +225,8 @@ async def facet_resolver(
         )
 
     return await generic_resolver(
-        info.context["facet_getter"],
-        info.context["facet_loader"],
+        info.context.facet_getter,
+        info.context.facet_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -236,21 +236,21 @@ async def facet_resolver(
 
 
 async def class_resolver(
-    info: Info,
+    info: MOInfo,
     filter: ClassFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Any:
     """Resolve classes."""
 
-    async def _get_facet_uuids(info: Info, filter: ClassFilter) -> list[UUID]:
+    async def _get_facet_uuids(info: MOInfo, filter: ClassFilter) -> list[UUID]:
         facet_filter = filter.facet or FacetFilter()
         # Handle deprecated filter
         extend_uuids(facet_filter, filter.facets)
         extend_user_keys(facet_filter, filter.facet_user_keys)
         return lora_filter(await filter2uuids_func(facet_resolver, info, facet_filter))
 
-    async def _get_parent_uuids(info: Info, filter: ClassFilter) -> list[UUID]:
+    async def _get_parent_uuids(info: MOInfo, filter: ClassFilter) -> list[UUID]:
         class_filter = filter.parent or ClassFilter()
         # Handle deprecated filter
         extend_uuids(class_filter, filter.parents)
@@ -258,7 +258,7 @@ async def class_resolver(
         return lora_filter(await filter2uuids_func(class_resolver, info, class_filter))
 
     async def _resolve_org_unit_filter(
-        info: Info, filter: OrganisationUnitFilter
+        info: MOInfo, filter: OrganisationUnitFilter
     ) -> list[UUID]:
         query = await organisation_unit_resolver_query(info, filter)
         session: AsyncSession = info.context["session"]
@@ -294,8 +294,8 @@ async def class_resolver(
         kwargs["omfang"] = to_similar(filter.scope)
 
     classes = await generic_resolver(
-        info.context["class_getter"],
-        info.context["class_loader"],
+        info.context.class_getter,
+        info.context.class_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -319,14 +319,16 @@ async def class_resolver(
 
 
 async def address_resolver(
-    info: Info,
+    info: MOInfo,
     filter: AddressFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Any:
     """Resolve addresses."""
 
-    async def _get_address_type_uuids(info: Info, filter: AddressFilter) -> list[UUID]:
+    async def _get_address_type_uuids(
+        info: MOInfo, filter: AddressFilter
+    ) -> list[UUID]:
         class_filter = filter.address_type or ClassFilter()
         # Handle deprecated filter
         extend_uuids(class_filter, filter.address_types)
@@ -378,8 +380,8 @@ async def address_resolver(
         kwargs["tilknyttedefunktioner"] = tilknyttedefunktioner
 
     return await generic_resolver(
-        info.context["address_getter"],
-        info.context["address_loader"],
+        info.context.address_getter,
+        info.context.address_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -389,7 +391,7 @@ async def address_resolver(
 
 
 async def association_resolver(
-    info: Info,
+    info: MOInfo,
     filter: AssociationFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -397,7 +399,7 @@ async def association_resolver(
     """Resolve associations."""
 
     async def _get_association_type_uuids(
-        info: Info, filter: AssociationFilter
+        info: MOInfo, filter: AssociationFilter
     ) -> list[UUID]:
         class_filter = filter.association_type or ClassFilter()
         # Handle deprecated filter
@@ -431,8 +433,8 @@ async def association_resolver(
         )
 
     associations = await generic_resolver(
-        info.context["association_getter"],
-        info.context["association_loader"],
+        info.context.association_getter,
+        info.context.association_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -463,7 +465,7 @@ async def association_resolver(
 
 
 async def employee_resolver(
-    info: Info,
+    info: MOInfo,
     filter: EmployeeFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -481,8 +483,8 @@ async def employee_resolver(
         if any(other_fields):
             raise ValueError("filter.query must be used alone")
         r = await generic_resolver(
-            info.context["employee_getter"],
-            info.context["employee_loader"],
+            info.context.employee_getter,
+            info.context.employee_loader,
             info=info,
             filter=BaseFilter(
                 uuids=await search_employees(
@@ -511,8 +513,8 @@ async def employee_resolver(
         ]
 
     return await generic_resolver(
-        info.context["employee_getter"],
-        info.context["employee_loader"],
+        info.context.employee_getter,
+        info.context.employee_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -522,7 +524,7 @@ async def employee_resolver(
 
 
 async def engagement_resolver(
-    info: Info,
+    info: MOInfo,
     filter: EngagementFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -556,8 +558,8 @@ async def engagement_resolver(
         )
 
     return await generic_resolver(
-        info.context["engagement_getter"],
-        info.context["engagement_loader"],
+        info.context.engagement_getter,
+        info.context.engagement_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -567,7 +569,7 @@ async def engagement_resolver(
 
 
 async def manager_resolver(
-    info: Info,
+    info: MOInfo,
     filter: ManagerFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -626,8 +628,8 @@ async def manager_resolver(
         )
 
     result = await generic_resolver(
-        info.context["manager_getter"],
-        info.context["manager_loader"],
+        info.context.manager_getter,
+        info.context.manager_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -668,7 +670,7 @@ async def manager_resolver(
 
 
 async def owner_resolver(
-    info: Info,
+    info: MOInfo,
     filter: OwnerFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -696,8 +698,8 @@ async def owner_resolver(
         )
 
     return await generic_resolver(
-        info.context["owner_getter"],
-        info.context["owner_loader"],
+        info.context.owner_getter,
+        info.context.owner_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -707,7 +709,7 @@ async def owner_resolver(
 
 
 async def organisation_unit_resolver_query(
-    info: Info,
+    info: MOInfo,
     filter: OrganisationUnitFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -732,7 +734,7 @@ async def organisation_unit_resolver_query(
         # craft a query which will fetch it. We assume the user didn't supply
         # any other filters if they're looking for the root unit and return its
         # UUID directly.
-        root_org: UUID = (await info.context["org_loader"].load(0)).uuid
+        root_org: UUID = (await info.context.org_loader.load(0)).uuid
         if filter.parents is None or filter.parent is None:
             return [root_org]
         if filter.parents is not UNSET and root_org in filter.parents:
@@ -1072,7 +1074,7 @@ async def organisation_unit_resolver_query(
 
 
 async def organisation_unit_resolver(
-    info: Info,
+    info: MOInfo,
     filter: OrganisationUnitFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -1113,8 +1115,8 @@ async def organisation_unit_resolver(
     )
 
     return await generic_resolver(
-        info.context["org_unit_getter"],
-        info.context["org_unit_loader"],
+        info.context.org_unit_getter,
+        info.context.org_unit_loader,
         info=info,
         filter=BaseFilter(
             uuids=uuids,
@@ -1126,7 +1128,7 @@ async def organisation_unit_resolver(
 
 
 async def organisation_unit_has_children(
-    info: Info,
+    info: MOInfo,
     filter: OrganisationUnitFilter | None,
 ) -> bool:
     """Resolve whether an organisation unit has children."""
@@ -1137,7 +1139,7 @@ async def organisation_unit_has_children(
 
 
 async def organisation_unit_child_count(
-    info: Info,
+    info: MOInfo,
     filter: OrganisationUnitFilter | None,
 ) -> int:
     """Resolve the number of children of an organisation unit."""
@@ -1150,7 +1152,7 @@ async def organisation_unit_child_count(
 
 
 async def it_system_resolver(
-    info: Info,
+    info: MOInfo,
     filter: ITSystemFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -1161,8 +1163,8 @@ async def it_system_resolver(
     await registration_filter(info, filter)
 
     return await generic_resolver(
-        info.context["itsystem_getter"],
-        info.context["itsystem_loader"],
+        info.context.itsystem_getter,
+        info.context.itsystem_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -1171,14 +1173,14 @@ async def it_system_resolver(
 
 
 async def it_user_resolver(
-    info: Info,
+    info: MOInfo,
     filter: ITUserFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Any:
     """Resolve it-users."""
 
-    async def _get_itsystem_uuids(info: Info, filter: ITUserFilter) -> list[UUID]:
+    async def _get_itsystem_uuids(info: MOInfo, filter: ITUserFilter) -> list[UUID]:
         itsystem_filter = filter.itsystem or ITSystemFilter()
         # Handle deprecated filter
         extend_uuids(itsystem_filter, filter.itsystem_uuids)
@@ -1215,8 +1217,8 @@ async def it_user_resolver(
         kwargs["udvidelse_1"] = to_similar(filter.external_ids)
 
     return await generic_resolver(
-        info.context["ituser_getter"],
-        info.context["ituser_loader"],
+        info.context.ituser_getter,
+        info.context.ituser_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -1226,7 +1228,7 @@ async def it_user_resolver(
 
 
 async def kle_resolver(
-    info: Info,
+    info: MOInfo,
     filter: KLEFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -1244,8 +1246,8 @@ async def kle_resolver(
         )
 
     return await generic_resolver(
-        info.context["kle_getter"],
-        info.context["kle_loader"],
+        info.context.kle_getter,
+        info.context.kle_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -1255,7 +1257,7 @@ async def kle_resolver(
 
 
 async def leave_resolver(
-    info: Info,
+    info: MOInfo,
     filter: LeaveFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -1279,8 +1281,8 @@ async def leave_resolver(
         )
 
     return await generic_resolver(
-        info.context["leave_getter"],
-        info.context["leave_loader"],
+        info.context.leave_getter,
+        info.context.leave_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -1307,7 +1309,7 @@ async def generic_resolver(
     getter: Callable[..., Awaitable[dict[UUID, list[MOModel]]]],
     loader: DataLoader,
     # Ordinary
-    info: Info,
+    info: MOInfo,
     filter: BaseFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -1371,7 +1373,7 @@ async def generic_resolver(
 
 
 async def related_unit_resolver(
-    info: Info,
+    info: MOInfo,
     filter: RelatedUnitFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -1389,8 +1391,8 @@ async def related_unit_resolver(
         )
 
     return await generic_resolver(
-        info.context["rel_unit_getter"],
-        info.context["rel_unit_loader"],
+        info.context.rel_unit_getter,
+        info.context.rel_unit_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -1400,7 +1402,7 @@ async def related_unit_resolver(
 
 
 async def rolebinding_resolver(
-    info: Info,
+    info: MOInfo,
     filter: RoleBindingFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -1426,8 +1428,8 @@ async def rolebinding_resolver(
         )
 
     return await generic_resolver(
-        info.context["rolebinding_getter"],
-        info.context["rolebinding_loader"],
+        info.context.rolebinding_getter,
+        info.context.rolebinding_loader,
         info=info,
         filter=filter,
         limit=limit,
