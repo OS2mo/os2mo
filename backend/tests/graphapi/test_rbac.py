@@ -131,16 +131,21 @@ async def test_graphql_rbac(
     session = AsyncMock()
     session.execute.return_value = [[uuid4()]]
 
-    context = {
-        "session": session,
-        "org_loader": DataLoader(load_fn=load_org),
-        "address_loader": DataLoader(load_fn=load_addresses),
-        "address_getter": load_all_addresses,
-        "org_unit_loader": DataLoader(load_fn=load_org_units),
-        "org_unit_getter": load_all_org_units,
-        "org_unit_address_loader": DataLoader(load_fn=load_addresses),
-        "get_token": get_token,
-    }
+    # Configure context to allow both attribute and dictionary access
+    context = AsyncMock()
+    context.__getitem__.side_effect = lambda key: getattr(context, key)
+
+    context.session = session
+    context.get_token = get_token
+
+    # Configure dataloaders container
+    context.dataloaders = AsyncMock()
+    context.dataloaders.org_loader = DataLoader(load_fn=load_org)
+    context.dataloaders.address_loader = DataLoader(load_fn=load_addresses)
+    context.dataloaders.address_getter = AsyncMock(side_effect=load_all_addresses)
+    context.dataloaders.org_unit_loader = DataLoader(load_fn=load_org_units)
+    context.dataloaders.org_unit_getter = AsyncMock(side_effect=load_all_org_units)
+    context.dataloaders.org_unit_address_loader = DataLoader(load_fn=load_addresses)
 
     response = await execute_graphql(query=query, context_value=context)
 
@@ -211,9 +216,10 @@ async def test_mutators_require_rbac(
             realm_access=RealmAccess(roles=[]),
         )
 
-    context = {
-        "get_token": get_token,
-    }
+    context = AsyncMock()
+    context.__getitem__.side_effect = lambda key: getattr(context, key)
+    context.get_token = get_token
+
     response = await execute_graphql(query=mutation, context_value=context)
     assert len(response.errors) >= 1
     error_messages = set(map(attrgetter("message"), response.errors))
