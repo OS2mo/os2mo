@@ -464,7 +464,7 @@ class Mutation:
     async def class_create(
         self, info: MOInfo, input: ClassCreateInput
     ) -> Response[Class]:
-        org = await info.context.org_loader.load(0)
+        org = await info.context.dataloaders.org_loader.load(0)
         uuid = await create_class(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, ClassRead)
 
@@ -478,7 +478,7 @@ class Mutation:
     async def class_update(
         self, info: MOInfo, input: ClassUpdateInput
     ) -> Response[Class]:
-        org = await info.context.org_loader.load(0)
+        org = await info.context.dataloaders.org_loader.load(0)
         uuid = await update_class(input.to_pydantic(), org.uuid)
         # coverage: pause
         return uuid2response(uuid, ClassRead)
@@ -805,7 +805,7 @@ class Mutation:
     async def facet_create(
         self, info: MOInfo, input: FacetCreateInput
     ) -> Response[Facet]:
-        org = await info.context.org_loader.load(0)
+        org = await info.context.dataloaders.org_loader.load(0)
         uuid = await create_facet(input.to_pydantic(), org.uuid)
         # coverage: pause
         return uuid2response(uuid, FacetRead)
@@ -821,7 +821,7 @@ class Mutation:
     async def facet_update(
         self, info: MOInfo, input: FacetUpdateInput
     ) -> Response[Facet]:
-        org = await info.context.org_loader.load(0)
+        org = await info.context.dataloaders.org_loader.load(0)
         uuid = await update_facet(input.to_pydantic(), org.uuid)
         # coverage: pause
         return uuid2response(uuid, FacetRead)
@@ -967,7 +967,7 @@ class Mutation:
     async def itsystem_create(
         self, info: MOInfo, input: ITSystemCreateInput
     ) -> Response[ITSystem]:
-        org = await info.context.org_loader.load(0)
+        org = await info.context.dataloaders.org_loader.load(0)
         uuid = await create_itsystem(input.to_pydantic(), org.uuid)
         # coverage: pause
         return uuid2response(uuid, ITSystemRead)
@@ -983,7 +983,7 @@ class Mutation:
     async def itsystem_update(
         self, info: MOInfo, input: ITSystemUpdateInput
     ) -> Response[ITSystem]:
-        org = await info.context.org_loader.load(0)
+        org = await info.context.dataloaders.org_loader.load(0)
         uuid = await update_itsystem(input.to_pydantic(), org.uuid)  # type: ignore
         # coverage: pause
         return uuid2response(uuid, ITSystemRead)
@@ -1422,7 +1422,7 @@ class Mutation:
         # Called for side-effect
         await create_org(input)
         # coverage: pause
-        return cast(Organisation, await info.context.org_loader.load(0))
+        return cast(Organisation, await info.context.dataloaders.org_loader.load(0))
         # coverage: unpause
 
     # TODO: org_update

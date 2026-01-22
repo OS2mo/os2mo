@@ -163,7 +163,7 @@ async def _get_handler_object(root: AddressRead, info: MOInfo) -> AddressHandler
     #       address_type class validity here, instead of loading all of them.
     #       This would probably yield better performance than loading all validities,
     #       but for now however we load all of them to check our invariant.
-    validities: list[ClassRead] = await info.context.class_loader.load(
+    validities: list[ClassRead] = await info.context.dataloaders.class_loader.load(
         LoadKey(
             uuid=root.address_type_uuid, start=None, end=None, registration_time=None
         )

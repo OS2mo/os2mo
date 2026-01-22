@@ -84,10 +84,11 @@ class MOLoaders:
 
 
 @dataclass
-class MOContext(MOLoaders, BaseContext):
+class MOContext(BaseContext):
     get_token: Callable[[], Awaitable[Token]]
     amqp_system: AMQPSystem
     session: db.AsyncSession
+    dataloaders: MOLoaders
 
     # AccessLog Loaders
     access_log_read_loader: DataLoader[UUID, list[UUID]]

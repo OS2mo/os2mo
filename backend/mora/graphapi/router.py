@@ -24,6 +24,7 @@ from mora.graphapi.versions.latest.actor import get_actor_loaders
 from mora.graphapi.versions.latest.dataloaders import get_loaders
 
 from .context import MOContext
+from .context import MOLoaders
 
 router = APIRouter()
 
@@ -35,14 +36,16 @@ async def get_context(
     amqp_system: AMQPSystem = Depends(depends.get_amqp_system),
     session: db.AsyncSession = Depends(db.get_session),
 ) -> MOContext:
+    loaders = await get_loaders()
+    moloaders = MOLoaders(**loaders)  # type: ignore
     return MOContext(
         get_token=get_token,
         amqp_system=amqp_system,
         session=session,
+        dataloaders=moloaders,
         # TODO: Construct typed contexts directly
         **get_access_log_loaders(session),  # type: ignore
         **get_actor_loaders(session),  # type: ignore
-        **await get_loaders(),  # type: ignore
     )
 
 

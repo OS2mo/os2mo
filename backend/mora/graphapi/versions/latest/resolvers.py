@@ -225,8 +225,8 @@ async def facet_resolver(
         )
 
     return await generic_resolver(
-        info.context.facet_getter,
-        info.context.facet_loader,
+        info.context.dataloaders.facet_getter,
+        info.context.dataloaders.facet_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -294,8 +294,8 @@ async def class_resolver(
         kwargs["omfang"] = to_similar(filter.scope)
 
     classes = await generic_resolver(
-        info.context.class_getter,
-        info.context.class_loader,
+        info.context.dataloaders.class_getter,
+        info.context.dataloaders.class_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -380,8 +380,8 @@ async def address_resolver(
         kwargs["tilknyttedefunktioner"] = tilknyttedefunktioner
 
     return await generic_resolver(
-        info.context.address_getter,
-        info.context.address_loader,
+        info.context.dataloaders.address_getter,
+        info.context.dataloaders.address_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -433,8 +433,8 @@ async def association_resolver(
         )
 
     associations = await generic_resolver(
-        info.context.association_getter,
-        info.context.association_loader,
+        info.context.dataloaders.association_getter,
+        info.context.dataloaders.association_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -483,8 +483,8 @@ async def employee_resolver(
         if any(other_fields):
             raise ValueError("filter.query must be used alone")
         r = await generic_resolver(
-            info.context.employee_getter,
-            info.context.employee_loader,
+            info.context.dataloaders.employee_getter,
+            info.context.dataloaders.employee_loader,
             info=info,
             filter=BaseFilter(
                 uuids=await search_employees(
@@ -513,8 +513,8 @@ async def employee_resolver(
         ]
 
     return await generic_resolver(
-        info.context.employee_getter,
-        info.context.employee_loader,
+        info.context.dataloaders.employee_getter,
+        info.context.dataloaders.employee_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -558,8 +558,8 @@ async def engagement_resolver(
         )
 
     return await generic_resolver(
-        info.context.engagement_getter,
-        info.context.engagement_loader,
+        info.context.dataloaders.engagement_getter,
+        info.context.dataloaders.engagement_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -628,8 +628,8 @@ async def manager_resolver(
         )
 
     result = await generic_resolver(
-        info.context.manager_getter,
-        info.context.manager_loader,
+        info.context.dataloaders.manager_getter,
+        info.context.dataloaders.manager_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -698,8 +698,8 @@ async def owner_resolver(
         )
 
     return await generic_resolver(
-        info.context.owner_getter,
-        info.context.owner_loader,
+        info.context.dataloaders.owner_getter,
+        info.context.dataloaders.owner_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -734,7 +734,7 @@ async def organisation_unit_resolver_query(
         # craft a query which will fetch it. We assume the user didn't supply
         # any other filters if they're looking for the root unit and return its
         # UUID directly.
-        root_org: UUID = (await info.context.org_loader.load(0)).uuid
+        root_org: UUID = (await info.context.dataloaders.org_loader.load(0)).uuid
         if filter.parents is None or filter.parent is None:
             return [root_org]
         if filter.parents is not UNSET and root_org in filter.parents:
@@ -1115,8 +1115,8 @@ async def organisation_unit_resolver(
     )
 
     return await generic_resolver(
-        info.context.org_unit_getter,
-        info.context.org_unit_loader,
+        info.context.dataloaders.org_unit_getter,
+        info.context.dataloaders.org_unit_loader,
         info=info,
         filter=BaseFilter(
             uuids=uuids,
@@ -1163,8 +1163,8 @@ async def it_system_resolver(
     await registration_filter(info, filter)
 
     return await generic_resolver(
-        info.context.itsystem_getter,
-        info.context.itsystem_loader,
+        info.context.dataloaders.itsystem_getter,
+        info.context.dataloaders.itsystem_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -1217,8 +1217,8 @@ async def it_user_resolver(
         kwargs["udvidelse_1"] = to_similar(filter.external_ids)
 
     return await generic_resolver(
-        info.context.ituser_getter,
-        info.context.ituser_loader,
+        info.context.dataloaders.ituser_getter,
+        info.context.dataloaders.ituser_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -1246,8 +1246,8 @@ async def kle_resolver(
         )
 
     return await generic_resolver(
-        info.context.kle_getter,
-        info.context.kle_loader,
+        info.context.dataloaders.kle_getter,
+        info.context.dataloaders.kle_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -1281,8 +1281,8 @@ async def leave_resolver(
         )
 
     return await generic_resolver(
-        info.context.leave_getter,
-        info.context.leave_loader,
+        info.context.dataloaders.leave_getter,
+        info.context.dataloaders.leave_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -1391,8 +1391,8 @@ async def related_unit_resolver(
         )
 
     return await generic_resolver(
-        info.context.rel_unit_getter,
-        info.context.rel_unit_loader,
+        info.context.dataloaders.rel_unit_getter,
+        info.context.dataloaders.rel_unit_loader,
         info=info,
         filter=filter,
         limit=limit,
@@ -1428,8 +1428,8 @@ async def rolebinding_resolver(
         )
 
     return await generic_resolver(
-        info.context.rolebinding_getter,
-        info.context.rolebinding_loader,
+        info.context.dataloaders.rolebinding_getter,
+        info.context.dataloaders.rolebinding_loader,
         info=info,
         filter=filter,
         limit=limit,
