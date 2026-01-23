@@ -119,12 +119,6 @@ class ModelRegistration(IRegistration, Generic[MOObject]):
             """
         ),
         permission_classes=[IsAuthenticatedPermission],
-        deprecation_reason=dedent(
-            """
-            Will be removed in a future version of GraphQL.
-            Use validities instead.
-            """
-        ),
         resolver=registration_time_decorator(validity_resolver),
     )
 
