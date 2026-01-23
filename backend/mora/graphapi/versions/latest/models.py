@@ -1130,6 +1130,7 @@ class ManagerCreate(UUIDBase):
     responsibility: list[UUID] = Field(
         description="UUID of the managers responsibilities."
     )
+    engagement: UUID | None = Field(description="UUID of the related engagement.")
     org_unit: UUID = Field(description="UUID of the managers organisation unit.")
     manager_level: UUID = Field(description="UUID of the managers level.")
     manager_type: UUID = Field(description="UUID of the managers type..")
@@ -1142,6 +1143,7 @@ class ManagerCreate(UUIDBase):
             "user_key": self.user_key,
             "type": "manager",
             "person": gen_uuid(self.person),
+            "engagement": gen_uuid(self.engagement),
             "responsibility": responsibilities,
             "org_unit": gen_uuid(self.org_unit),
             "manager_level": gen_uuid(self.manager_level),
@@ -1170,6 +1172,8 @@ class ManagerUpdate(UUIDBase):
         description="UUID of the manager as person to be updated."
     )
 
+    engagement: UUID | None = Field(description="UUID of the related engagement.")
+
     responsibility: list[UUID] | None = Field(
         description="UUID of the managers responsibilities to be updated."
     )
@@ -1195,6 +1199,7 @@ class ManagerUpdate(UUIDBase):
             },
             "user_key": self.user_key,
             "person": gen_uuid(self.person),
+            "engagement": gen_uuid(self.engagement),
             "org_unit": gen_uuid(self.org_unit),
             "manager_type": gen_uuid(self.manager_type),
             "manager_level": gen_uuid(self.manager_level),
@@ -1202,7 +1207,11 @@ class ManagerUpdate(UUIDBase):
         if self.responsibility:
             data_dict["responsibility"] = list(map(gen_uuid, self.responsibility))
 
-        return {k: v for k, v in data_dict.items() if (v is not None) or k == "person"}
+        return {
+            k: v
+            for k, v in data_dict.items()
+            if (v is not None) or k in ["person", "engagement"]
+        }
 
 
 class ManagerTerminate(ValidityTerminate):

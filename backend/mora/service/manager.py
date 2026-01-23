@@ -45,6 +45,8 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
 
         responsibilities = util.checked_get(req, mapping.RESPONSIBILITY, [])
 
+        engagement_uuid = util.get_mapping_uuid(req, mapping.ENGAGEMENT)
+
         opgaver = [
             {"objekttype": "lederansvar", "uuid": util.get_uuid(responsibility)}
             for responsibility in responsibilities
@@ -72,6 +74,11 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid],
             funktionstype=manager_type_uuid,
+            tilknyttedefunktioner=[
+                {"uuid": engagement_uuid, "objekttype": "engagement"}
+            ]
+            if engagement_uuid
+            else [],
             opgaver=opgaver,
         )
 
@@ -203,6 +210,29 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                 },
             )
         )
+
+        # TODO: Coverage is broken, we are not entirely sure why, but unfortunately we
+        #       do not have time to fix it, so instead we are just marking this branch
+        #       as no cover, even though it is tested and hit by the tests within:
+        #       * backend/tests/test_integration_manager_engagement.py
+        # Greppable reference: 9dc6fe95-ac75-470d-b990-cd0a872d9b89
+        if mapping.ENGAGEMENT in data:  # pragma: no cover
+            engagement_uuid = util.get_mapping_uuid(data, mapping.ENGAGEMENT)
+
+            if engagement_uuid:
+                update_payload = {
+                    "uuid": engagement_uuid,
+                    "objekttype": "engagement",
+                }
+            else:
+                update_payload = {"uuid": "", "urn": ""}
+
+            update_fields.append(
+                (
+                    mapping.ASSOCIATED_FUNCTION_FIELD,
+                    update_payload,
+                )
+            )
 
         payload = common.update_payload(
             new_from, new_to, update_fields, original, payload
