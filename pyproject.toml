@@ -96,6 +96,9 @@ force-single-line = true
 # fastapi, strawberry and (async) sqlalchemy. A lot of our `#coverage: pause`
 # pragmas are actually covered, but not counted by coverage. The `concurrency`
 # setting is supposed to fix it, but I have not managed to make it work yet.
+#
+# Once coverage has been fixed, please remove the TODO within manager.py, grep
+# after: 9dc6fe95-ac75-470d-b990-cd0a872d9b89
 concurrency = ["greenlet", "thread"]
 
 [tool.coverage.report]
