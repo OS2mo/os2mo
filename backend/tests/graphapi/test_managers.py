@@ -524,7 +524,12 @@ async def test_update_manager_mutation_unit_test(
     assert response.errors is None
     assert response.data == {"manager_update": {"uuid": str(test_data.uuid)}}
 
-    update_manager.assert_called_with(test_data)
+    from mora.graphapi.versions.latest.inputs import ManagerUpdateInput
+
+    update_manager.assert_called_once()
+    call_args = update_manager.call_args[0][0]
+    assert isinstance(call_args, ManagerUpdateInput)
+    assert call_args.uuid == test_data.uuid
 
 
 async def read_manager_validities(

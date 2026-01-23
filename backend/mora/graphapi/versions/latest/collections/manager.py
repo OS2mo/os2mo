@@ -10,10 +10,12 @@ import strawberry
 
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
+from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.gmodels.mo.details import ManagerRead
 
 from ..lazy import LazyClass
 from ..lazy import LazyEmployee
+from ..lazy import LazyEngagement
 from ..lazy import LazyOrganisationUnit
 from ..models import ClassRead
 from ..paged import Paged
@@ -258,6 +260,21 @@ class Manager:
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
         deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    engagement_response: Response[LazyEngagement] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response(model=EngagementRead, uuid=root.engagement_uuid)
+        if root.engagement_uuid
+        else None,
+        description=dedent(
+            """
+            Engagement that this manager role is associated with.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("engagement"),
+        ],
     )
 
     @strawberry.field(

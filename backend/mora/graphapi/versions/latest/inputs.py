@@ -519,6 +519,8 @@ class ManagerCreateInput:
 class ManagerUpdateInput:
     """Input model for updating a manager."""
 
+    engagement: UUID | None = strawberry.UNSET
+
 
 @strawberry.experimental.pydantic.input(
     model=ManagerTerminate,

@@ -963,3 +963,204 @@ def test_manager_type_filter(graphapi_post: GraphAPIPost) -> None:
     managers = response.data["managers"]["objects"]
     assert len(managers) > 0
     assert all(m["current"]["manager_type"]["uuid"] == manager_type for m in managers)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_create_manager_with_engagement(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Any,
+    create_person: Any,
+    create_engagement: Any,
+    create_facet: Any,
+    create_class: Any,
+) -> None:
+    # Setup dependencies
+    org_unit_uuid = create_org_unit("unit", None)
+    person_uuid = create_person(None)
+
+    # Facets
+    manager_type_facet = create_facet(
+        {"user_key": "manager_type", "validity": {"from": "1900-01-01"}}
+    )
+    manager_level_facet = create_facet(
+        {"user_key": "manager_level", "validity": {"from": "1900-01-01"}}
+    )
+    engagement_type_facet = create_facet(
+        {"user_key": "engagement_type", "validity": {"from": "1900-01-01"}}
+    )
+    job_function_facet = create_facet(
+        {"user_key": "job_function", "validity": {"from": "1900-01-01"}}
+    )
+
+    # Classes
+    manager_type = create_class(
+        {
+            "facet_uuid": str(manager_type_facet),
+            "user_key": "manager_type_1",
+            "name": "Manager Type 1",
+            "validity": {"from": "1900-01-01"},
+        }
+    )
+    manager_level = create_class(
+        {
+            "facet_uuid": str(manager_level_facet),
+            "user_key": "manager_level_1",
+            "name": "Manager Level 1",
+            "validity": {"from": "1900-01-01"},
+        }
+    )
+    engagement_type = create_class(
+        {
+            "facet_uuid": str(engagement_type_facet),
+            "user_key": "engagement_type_1",
+            "name": "Engagement Type 1",
+            "validity": {"from": "1900-01-01"},
+        }
+    )
+    job_function = create_class(
+        {
+            "facet_uuid": str(job_function_facet),
+            "user_key": "job_function_1",
+            "name": "Job Function 1",
+            "validity": {"from": "1900-01-01"},
+        }
+    )
+
+    # Engagements
+    engagement_1_uuid = create_engagement(
+        {
+            "org_unit": str(org_unit_uuid),
+            "person": str(person_uuid),
+            "engagement_type": str(engagement_type),
+            "job_function": str(job_function),
+            "validity": {"from": "2020-01-01"},
+        }
+    )
+    engagement_2_uuid = create_engagement(
+        {
+            "org_unit": str(org_unit_uuid),
+            "person": str(person_uuid),
+            "engagement_type": str(engagement_type),
+            "job_function": str(job_function),
+            "validity": {"from": "2020-01-01"},
+        }
+    )
+
+    # Create a manager connected to the first engagement
+
+    CREATE_MANAGER = """
+    mutation CreateManager($input: ManagerCreateInput!) {
+      manager_create(input: $input) {
+        uuid
+      }
+    }
+    """
+
+    READ_MANAGER = """
+    query ReadManager($uuid: [UUID!]) {
+      managers(filter: { uuids: $uuid }) {
+        objects {
+          current {
+            engagement_response {
+              uuid
+            }
+          }
+        }
+      }
+    }
+    """
+
+    response = graphapi_post(
+        CREATE_MANAGER,
+        variables={
+            "input": {
+                "person": str(person_uuid),
+                "responsibility": [],
+                "org_unit": str(org_unit_uuid),
+                "manager_type": str(manager_type),
+                "manager_level": str(manager_level),
+                "engagement": str(engagement_1_uuid),
+                "validity": {"from": "2020-01-01"},
+            }
+        },
+    )
+    # Assert that the manager was created
+    assert response.errors is None
+    manager_uuid = response.data["manager_create"]["uuid"]
+
+    # Verify via read query
+    response = graphapi_post(READ_MANAGER, variables={"uuid": [manager_uuid]})
+    assert response.errors is None
+    assert one(response.data["managers"]["objects"])["current"]["engagement_response"][
+        "uuid"
+    ] == str(engagement_1_uuid)
+
+    # Update the manager with the second engagement
+    UPDATE_MANAGER = """
+    mutation UpdateManager($input: ManagerUpdateInput!) {
+      manager_update(input: $input) {
+        uuid
+      }
+    }
+    """
+    response = graphapi_post(
+        UPDATE_MANAGER,
+        variables={
+            "input": {
+                "uuid": manager_uuid,
+                "engagement": str(engagement_2_uuid),
+                "validity": {"from": "2020-01-01"},
+            }
+        },
+    )
+    assert response.errors is None
+
+    # Verify via read query
+    response = graphapi_post(READ_MANAGER, variables={"uuid": [manager_uuid]})
+    assert response.errors is None
+    assert one(response.data["managers"]["objects"])["current"]["engagement_response"][
+        "uuid"
+    ] == str(engagement_2_uuid)
+
+    # Partial update: Update validity without sending engagement.
+    # Expected behavior: Engagement should remain unchanged.
+    response = graphapi_post(
+        UPDATE_MANAGER,
+        variables={
+            "input": {
+                "uuid": manager_uuid,
+                # engagement is omitted here
+                "validity": {"from": "2020-02-01"},
+            }
+        },
+    )
+    assert response.errors is None
+
+    # Verify via read query
+    response = graphapi_post(READ_MANAGER, variables={"uuid": [manager_uuid]})
+    assert response.errors is None
+    assert one(response.data["managers"]["objects"])["current"]["engagement_response"][
+        "uuid"
+    ] == str(engagement_2_uuid)
+
+    # Update the manager to remove the engagement.
+    response = graphapi_post(
+        UPDATE_MANAGER,
+        variables={
+            "input": {
+                "uuid": manager_uuid,
+                "engagement": None,
+                "validity": {"from": "2020-01-01"},
+            }
+        },
+    )
+    assert response.errors is None
+
+    # Verify via read query
+    response = graphapi_post(READ_MANAGER, variables={"uuid": [manager_uuid]})
+    assert response.errors is None
+    assert (
+        one(response.data["managers"]["objects"])["current"]["engagement_response"]
+        is None
+    )
