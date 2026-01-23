@@ -235,24 +235,37 @@ def setup_event_metrics(instrumentator: Instrumentator) -> None:
             session.begin(),
         ):
             query = (
-                select(Listener, func.count(Event.pk), Event.silenced)
-                .join(
+                select(
+                    Listener,
+                    func.count(Event.pk).filter(Event.silenced == sqlalchemy.true()),
+                    func.count(Event.pk).filter(Event.silenced == sqlalchemy.false()),
+                )
+                # We outerjoin so we still get the metric even if there are no events.
+                # This ensures that our dataseries go to zero instead of disappearing.
+                .outerjoin(
                     Event,
                     Listener.pk == Event.listener_fk,
                 )
-                .group_by(Listener.pk, Event.silenced)
+                .group_by(Listener.pk)
             )
 
             result = await session.execute(query)
 
-            for listener, count, silenced in result.all():
+            for listener, silenced, active in result.all():
                 METRIC_EVENTS.labels(
                     owner=listener.owner,
                     user_key=listener.user_key,
                     ns=listener.namespace_fk,
                     routing_key=listener.routing_key,
-                    silenced=str(silenced).lower(),  # prometheus does not have booleans
-                ).set(count)
+                    silenced="true",  # prometheus does not have booleans
+                ).set(silenced)
+                METRIC_EVENTS.labels(
+                    owner=listener.owner,
+                    user_key=listener.user_key,
+                    ns=listener.namespace_fk,
+                    routing_key=listener.routing_key,
+                    silenced="false",  # prometheus does not have booleans
+                ).set(active)
 
     instrumentator.add(oldest_event_per_listener)
     instrumentator.add(count_events)

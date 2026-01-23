@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import concurrent.futures
+from collections.abc import Callable
 from typing import Any
 from unittest.mock import ANY
 from uuid import UUID
@@ -19,6 +20,19 @@ from tests.conftest import SetAuth
 
 DEFAULT_TEST_NS = "ns"
 NOT_FOUND_UUID = UUID("d0d19f81-36e0-46bd-9be5-49d31b1e15a7")
+
+
+@pytest.fixture
+def fetch_metrics(service_client: TestClient) -> Callable[[], str]:
+    def inner() -> str:
+        # The metrics are calculated, but not returned on the first request...
+        service_client.request("GET", "/metrics")
+        response = service_client.request("GET", "/metrics")
+        assert response.status_code == 200
+        metrics = response.text
+        return metrics
+
+    return inner
 
 
 def declare_namespace(
@@ -1035,7 +1049,10 @@ def test_you_cannot_create_listener_in_nonpublic_namespace(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-def test_metrics(graphapi_post: GraphAPIPost, service_client: TestClient) -> None:
+def test_metrics(
+    graphapi_post: GraphAPIPost,
+    fetch_metrics: Callable[[], str],
+) -> None:
     AMOUNT = 58
     ACK_EVENTS = 3
 
@@ -1059,11 +1076,7 @@ def test_metrics(graphapi_post: GraphAPIPost, service_client: TestClient) -> Non
         {"subjects": ["alice_10"], "listeners": {"uuids": [str(listener)]}},
     )
 
-    # The metrics are calculated, but not returned on the first request..
-    service_client.request("GET", "/metrics")
-    response = service_client.request("GET", "/metrics")
-    assert response.status_code == 200
-    metrics = response.text
+    metrics = fetch_metrics()
 
     assert (
         f'os2mo_event_sent_total{{ns="metric_test",routing_key="rk"}} {AMOUNT}.0'
@@ -1205,3 +1218,166 @@ def test_listener_filters(
     actual_listeners = [UUID(x["uuid"]) for x in listeners]
 
     assert actual_listeners == expected_listeners
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_metrics_empty_namespace(
+    graphapi_post: GraphAPIPost,
+    fetch_metrics: Callable[[], str],
+) -> None:
+    """Ensure that empty namespaces occur in the os2mo_events metric."""
+    namespace = "namespace"
+    routing_key = "routing_key"
+    user_key = "user_key"
+
+    # Expected metric names
+    unsilenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(BRUCE_UUID)}",routing_key="{routing_key}",silenced="false",user_key="{user_key}"}}'
+    silenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(BRUCE_UUID)}",routing_key="{routing_key}",silenced="true",user_key="{user_key}"}}'
+
+    response = declare_namespace(graphapi_post, namespace)
+    assert response.data is not None
+    assert response.data["event_namespace_declare"]["name"] == namespace
+
+    # Check that our metrics are not there yet
+    metrics = fetch_metrics()
+    assert unsilenced_metric_name not in metrics, (
+        "unsilenced_metric unexpectedly found in metrics"
+    )
+    assert silenced_metric_name not in metrics, (
+        "silenced_metric unexpectedly found in metrics"
+    )
+
+    # Declare our listener without emitting any events whatsoever
+    declare_listener(graphapi_post, namespace, user_key, routing_key)
+
+    # Check that we can see two metrics for our listener, both with zero events
+    metrics = fetch_metrics()
+    assert unsilenced_metric_name in metrics, "unsilenced_metric missing from metrics"
+    assert silenced_metric_name in metrics, "silenced_metric missing from metrics"
+    assert f"{unsilenced_metric_name} 0.0" in metrics, (
+        "unsilenced_metric value wrong (should be 0.0)"
+    )
+    assert f"{silenced_metric_name} 0.0" in metrics, (
+        "silenced_metric value wrong (should be 0.0)"
+    )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_metrics_goes_to_zero(
+    graphapi_post: GraphAPIPost,
+    fetch_metrics: Callable[[], str],
+) -> None:
+    """Ensure that the os2mo_events metric can go from one to zero."""
+    namespace = "namespace"
+    routing_key = "routing_key"
+    user_key = "user_key"
+
+    # Expected metric name
+    metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(BRUCE_UUID)}",routing_key="{routing_key}",silenced="false",user_key="{user_key}"}}'
+
+    # Declare our namespace
+    response = declare_namespace(graphapi_post, namespace)
+    assert response.data is not None
+    assert response.data["event_namespace_declare"]["name"] == namespace
+
+    # Check that our metrics are not there yet
+    metrics = fetch_metrics()
+    assert metric_name not in metrics, "unsilenced_metric unexpectedly found in metrics"
+
+    # Declare our listener and emit an event on it
+    listener = declare_listener(graphapi_post, namespace, user_key, routing_key)
+    send_event(graphapi_post, namespace, routing_key, "payload")
+
+    # Check that we can see the metric for our listener with our one event
+    metrics = fetch_metrics()
+    assert metric_name in metrics, "metric missing from metrics"
+    assert f"{metric_name} 1.0" in metrics, "metric value wrong (should be 1.0)"
+
+    # Consume the event
+    event = fetch_event(graphapi_post, listener)
+    assert event is not None
+    ack_event(graphapi_post, event["token"])
+
+    # Check that we can see the metric for our listener with now zero events
+    metrics = fetch_metrics()
+    assert f"{metric_name} 0.0" in metrics, "metric value wrong (should be 0.0)"
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_metrics_silenced_goes_to_zero(
+    graphapi_post: GraphAPIPost,
+    fetch_metrics: Callable[[], str],
+) -> None:
+    """Ensure that the os2mo_events metric handles silence / unsilence correctly."""
+    namespace = "namespace"
+    routing_key = "routing_key"
+    user_key = "user_key"
+    payload = "payload"
+
+    # Expected metric names
+    unsilenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(BRUCE_UUID)}",routing_key="{routing_key}",silenced="false",user_key="{user_key}"}}'
+    silenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(BRUCE_UUID)}",routing_key="{routing_key}",silenced="true",user_key="{user_key}"}}'
+
+    # Declare our namespace
+    response = declare_namespace(graphapi_post, namespace)
+    assert response.data is not None
+    assert response.data["event_namespace_declare"]["name"] == namespace
+
+    # Check that our metrics are not there yet
+    metrics = fetch_metrics()
+    assert unsilenced_metric_name not in metrics, (
+        "unsilenced_metric unexpectedly found in metrics"
+    )
+    assert silenced_metric_name not in metrics, (
+        "silenced_metric unexpectedly found in metrics"
+    )
+
+    # Declare our listener and emit an event on it
+    listener = declare_listener(graphapi_post, namespace, user_key, routing_key)
+    send_event(graphapi_post, namespace, routing_key, payload)
+
+    # Check that metrics return our metrics
+    metrics = fetch_metrics()
+    assert unsilenced_metric_name in metrics, "unsilenced_metric missing from metrics"
+    assert silenced_metric_name in metrics, "silenced_metric missing from metrics"
+
+    # Check that we can see the metric for our listener with zero silenced and one unsilenced
+    metrics = fetch_metrics()
+    assert f"{unsilenced_metric_name} 1.0" in metrics, (
+        "unsilenced_metric value wrong (should be 1.0)"
+    )
+    assert f"{silenced_metric_name} 0.0" in metrics, (
+        "silenced_metric value wrong (should be 0.0)"
+    )
+
+    # Silence the event and it should move to the silenced metric
+    silence_event(
+        graphapi_post,
+        {"subjects": [payload], "listeners": {"uuids": [str(listener)]}},
+    )
+
+    # Check that we can see the metric for our listener with one silenced and zero unsilenced
+    metrics = fetch_metrics()
+    assert f"{unsilenced_metric_name} 0.0" in metrics, (
+        "unsilenced_metric value wrong (should be 0.0)"
+    )
+    assert f"{silenced_metric_name} 1.0" in metrics, (
+        "silenced_metric value wrong (should be 1.0)"
+    )
+
+    # Unsilence the event and it should move to the unsilenced metric
+    unsilence_event(
+        graphapi_post, {"subjects": [payload], "listeners": {"uuids": [str(listener)]}}
+    )
+
+    # Check that we can see the metric for our listener with zero silenced and one unsilenced
+    metrics = fetch_metrics()
+    assert f"{unsilenced_metric_name} 1.0" in metrics, (
+        "unsilenced_metric value wrong (should be 1.0)"
+    )
+    assert f"{silenced_metric_name} 0.0" in metrics, (
+        "silenced_metric value wrong (should be 0.0)"
+    )
