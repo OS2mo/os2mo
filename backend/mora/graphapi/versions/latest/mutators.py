@@ -2210,14 +2210,17 @@ async def refresh(
     listener: UUID | None,
     owner: UUID | None,
 ) -> Paged[UUID]:
-    """Publish AMQP messages for UUIDs in the page, optionally to a specific exchange."""
-    # Publish UUIDs to AMQP
+    """Publish events for the given UUIDs to AMQP and/or GraphQL."""
     uuids = page.objects
 
     # coverage: pause
-    send_in_old_amqp = listener is None and owner is None
+    if exchange and (listener or owner):
+        raise ValueError(
+            "listener/owner and exchange are mutually exclusive. Exchanges are part of the legacy event system. If you are using GraphQL Events, do NOT use exchange."
+        )
 
-    if send_in_old_amqp:
+    # Legacy AMQP
+    if not listener and not owner:
         amqp_system = info.context.amqp_system
         tasks = (
             amqp_system.publish_message(
@@ -2229,11 +2232,9 @@ async def refresh(
             for uuid in uuids
         )
         await gather_with_concurrency(100, *tasks)
-    else:
-        if exchange is not None:
-            raise ValueError(
-                "listener/owner and exchange are mutually exclusive. Exchanges are part of the legacy event system. If you are using GraphQL Events, do NOT use exchange."
-            )
+
+    # GraphQL Events
+    if not exchange:
         session: AsyncSession = info.context.session
         for uuid in uuids:
             await add_event(
