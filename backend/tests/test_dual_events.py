@@ -72,8 +72,16 @@ async def test_refresh_exclusivity_error(
 @pytest.mark.parametrize(
     "use_exchange, use_listener, expect_amqp, expect_graphql",
     [
-        # No exchange nor listener filter -> only AMQP system gets the event
-        (False, False, True, False),
+        # No exchange nor listener filter -> both AMQP and GraphQL gets the event
+        pytest.param(
+            False,
+            False,
+            True,
+            True,
+            marks=pytest.mark.xfail(
+                reason="Currently only the AMQP System gets the event"
+            ),
+        ),
         # Exchange filter -> only AMQP system gets the event
         (True, False, True, False),
         # Listener filter -> only GraphQL gets the event
