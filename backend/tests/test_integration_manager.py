@@ -1111,6 +1111,9 @@ def test_create_manager_with_engagement(
                 "uuid": manager_uuid,
                 "engagement": str(engagement_2_uuid),
                 "validity": {"from": "2020-01-01"},
+                "org_unit": str(org_unit_uuid),
+                "manager_type": str(manager_type),
+                "manager_level": str(manager_level),
             }
         },
     )
@@ -1132,6 +1135,9 @@ def test_create_manager_with_engagement(
                 "uuid": manager_uuid,
                 # engagement is omitted here
                 "validity": {"from": "2020-02-01"},
+                "org_unit": str(org_unit_uuid),
+                "manager_type": str(manager_type),
+                "manager_level": str(manager_level),
             }
         },
     )
@@ -1152,6 +1158,9 @@ def test_create_manager_with_engagement(
                 "uuid": manager_uuid,
                 "engagement": None,
                 "validity": {"from": "2020-01-01"},
+                "org_unit": str(org_unit_uuid),
+                "manager_type": str(manager_type),
+                "manager_level": str(manager_level),
             }
         },
     )
@@ -1294,6 +1303,9 @@ def test_manager_update_validity_preservation_scenarios(
             "input": {
                 "uuid": manager_uuid,
                 "validity": {"from": "2020-02-01"},
+                "org_unit": str(org_unit_uuid),
+                "manager_type": str(manager_type),
+                "manager_level": str(manager_level),
             }
         },
     )
@@ -1315,6 +1327,9 @@ def test_manager_update_validity_preservation_scenarios(
             "input": {
                 "uuid": manager_uuid,
                 "validity": {"from": "2020-07-01"},
+                "org_unit": str(org_unit_uuid),
+                "manager_type": str(manager_type),
+                "manager_level": str(manager_level),
             }
         },
     )

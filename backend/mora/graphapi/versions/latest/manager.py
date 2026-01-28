@@ -40,18 +40,26 @@ def to_handler_dict(input: ManagerUpdateInput) -> dict:
 
     if input_any.user_key is not strawberry.UNSET:
         data_dict["user_key"] = input_any.user_key
+    else:
+        data_dict["user_key"] = None
 
     if input_any.person is not strawberry.UNSET:
         data_dict["person"] = gen_uuid(input_any.person)
 
     if input_any.org_unit is not strawberry.UNSET:
         data_dict["org_unit"] = gen_uuid(input_any.org_unit)
+    else:
+        data_dict["org_unit"] = None
 
     if input_any.manager_type is not strawberry.UNSET:
         data_dict["manager_type"] = gen_uuid(input_any.manager_type)
+    else:
+        data_dict["manager_type"] = None
 
     if input_any.manager_level is not strawberry.UNSET:
         data_dict["manager_level"] = gen_uuid(input_any.manager_level)
+    else:
+        data_dict["manager_level"] = None
 
     if input_any.engagement is not strawberry.UNSET:
         data_dict["engagement"] = (
@@ -63,7 +71,16 @@ def to_handler_dict(input: ManagerUpdateInput) -> dict:
     return {
         k: v
         for k, v in data_dict.items()
-        if (v is not None) or k in ("person", "engagement")
+        if (v is not None)
+        or k
+        in (
+            "person",
+            "engagement",
+            "user_key",
+            "org_unit",
+            "manager_type",
+            "manager_level",
+        )
     }
 
 

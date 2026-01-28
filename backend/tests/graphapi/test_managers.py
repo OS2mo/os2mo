@@ -370,8 +370,8 @@ async def test_create_multiple_managers_integration_test(
             "person": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             "responsibility": None,
             "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
-            "manager_level": None,
-            "manager_type": None,
+            "manager_level": "ca76a441-6226-404f-88a9-31e02e420e52",
+            "manager_type": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
         {
@@ -379,9 +379,9 @@ async def test_create_multiple_managers_integration_test(
             "user_key": None,
             "person": None,
             "responsibility": None,
-            "org_unit": None,
-            "manager_type": None,
-            "manager_level": None,
+            "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+            "manager_type": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
+            "manager_level": "ca76a441-6226-404f-88a9-31e02e420e52",
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
         {
@@ -389,9 +389,9 @@ async def test_create_multiple_managers_integration_test(
             "user_key": None,
             "person": None,
             "responsibility": ["93ea44f9-127c-4465-a34c-77d149e3e928"],
-            "org_unit": None,
-            "manager_level": None,
-            "manager_type": None,
+            "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+            "manager_level": "ca76a441-6226-404f-88a9-31e02e420e52",
+            "manager_type": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
         {
@@ -495,7 +495,13 @@ async def test_update_manager_integration_test(
     )
 
     expected_updated_manager = {
-        k: v if v is not None or k == "person" else pre_update_manager[k]
+        k: (
+            ""
+            if v is None and k == "user_key"
+            else (
+                v if v is not None or k != "responsibility" else pre_update_manager[k]
+            )
+        )
         for k, v in test_data.items()
     }
 

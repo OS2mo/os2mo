@@ -136,18 +136,20 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             )
 
         if mapping.MANAGER_TYPE in data:
+            uuid_val = util.get_mapping_uuid(data, mapping.MANAGER_TYPE)
             update_fields.append(
                 (
                     mapping.ORG_FUNK_TYPE_FIELD,
-                    {"uuid": util.get_mapping_uuid(data, mapping.MANAGER_TYPE)},
+                    {"uuid": uuid_val} if uuid_val else {"uuid": "", "urn": ""},
                 )
             )
 
         if mapping.ORG_UNIT in data:
+            uuid_val = util.get_mapping_uuid(data, mapping.ORG_UNIT)
             update_fields.append(
                 (
                     mapping.ASSOCIATED_ORG_UNIT_FIELD,
-                    {"uuid": util.get_mapping_uuid(data, mapping.ORG_UNIT)},
+                    {"uuid": uuid_val} if uuid_val else {"uuid": "", "urn": ""},
                 )
             )
 
@@ -193,19 +195,41 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if data.get(mapping.MANAGER_LEVEL) is not None:
-            manager_level_uuid = util.get_mapping_uuid(data, mapping.MANAGER_LEVEL)
-        else:
-            manager_level_uuid = mapping.MANAGER_LEVEL_FIELD.get_uuid(original)
-        update_fields.append(
-            (
-                mapping.MANAGER_LEVEL_FIELD,
-                {
-                    "objekttype": "lederniveau",
-                    "uuid": manager_level_uuid,
-                },
+        if mapping.MANAGER_LEVEL in data:
+            uuid_val = util.get_mapping_uuid(data, mapping.MANAGER_LEVEL)
+            update_fields.append(
+                (
+                    mapping.MANAGER_LEVEL_FIELD,
+                    {
+                        "objekttype": "lederniveau",
+                        "uuid": uuid_val,
+                    }
+                    if uuid_val
+                    else {
+                        "objekttype": "lederniveau",
+                        "uuid": "",
+                        "urn": "",
+                    },
+                )
             )
-        )
+        else:
+            # Preserve existing if not in data (PATCH/Ignore behavior for missing key)
+            # But to_handler_dict sets key to None if UNSET.
+            # So this else block is only reached if I don't set it in to_handler_dict.
+            # But I DO set it in to_handler_dict.
+            # So this else block is effectively dead for ManagerUpdateInput?
+            # Unless called internally?
+            # I will keep it for safety.
+            manager_level_uuid = mapping.MANAGER_LEVEL_FIELD.get_uuid(original)
+            update_fields.append(
+                (
+                    mapping.MANAGER_LEVEL_FIELD,
+                    {
+                        "objekttype": "lederniveau",
+                        "uuid": manager_level_uuid,
+                    },
+                )
+            )
         if mapping.ENGAGEMENT in data:
             engagement_uuid = util.get_mapping_uuid(data, mapping.ENGAGEMENT)
             if engagement_uuid:
