@@ -1203,7 +1203,7 @@ class ManagerUpdate(UUIDBase):
             "manager_type": gen_uuid(self.manager_type),
             "manager_level": gen_uuid(self.manager_level),
         }
-        if self.responsibility:
+        if self.responsibility is not None:
             data_dict["responsibility"] = list(map(gen_uuid, self.responsibility))
 
         return {

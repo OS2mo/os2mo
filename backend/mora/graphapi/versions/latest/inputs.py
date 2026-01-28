@@ -54,6 +54,7 @@ from .models import LeaveTerminate
 from .models import LeaveUpdate
 from .models import ManagerCreate
 from .models import ManagerTerminate
+from .models import ManagerUpdate
 from .models import Organisation
 from .models import OrganisationUnitTerminate
 from .models import OwnerCreate

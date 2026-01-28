@@ -57,7 +57,7 @@ def to_handler_dict(input: ManagerUpdateInput) -> dict:
         data_dict["engagement"] = (
             gen_uuid(input_any.engagement) if input_any.engagement else None
         )
-    if input_any.responsibility is not strawberry.UNSET and input_any.responsibility:
+    if input_any.responsibility is not strawberry.UNSET and input_any.responsibility is not None:
         data_dict["responsibility"] = list(map(gen_uuid, input_any.responsibility))
 
     return {
