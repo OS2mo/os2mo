@@ -27,66 +27,9 @@ async def create_manager(input: ManagerCreate) -> UUID:
     return UUID(uuid)
 
 
-def to_handler_dict(input: ManagerUpdateInput) -> dict:
-    input_any: Any = input
-    data_dict: dict = {
-        "validity": {
-            "from": input_any.validity.from_date.date().isoformat(),
-            "to": input_any.validity.to_date.date().isoformat()
-            if input_any.validity.to_date
-            else None,
-        },
-    }
-
-    if input_any.user_key is not strawberry.UNSET:
-        data_dict["user_key"] = input_any.user_key
-    else:
-        data_dict["user_key"] = None
-
-    if input_any.person is not strawberry.UNSET:
-        data_dict["person"] = gen_uuid(input_any.person)
-
-    if input_any.org_unit is not strawberry.UNSET:
-        data_dict["org_unit"] = gen_uuid(input_any.org_unit)
-    else:
-        data_dict["org_unit"] = None
-
-    if input_any.manager_type is not strawberry.UNSET:
-        data_dict["manager_type"] = gen_uuid(input_any.manager_type)
-    else:
-        data_dict["manager_type"] = None
-
-    if input_any.manager_level is not strawberry.UNSET:
-        data_dict["manager_level"] = gen_uuid(input_any.manager_level)
-    else:
-        data_dict["manager_level"] = None
-
-    if input_any.engagement is not strawberry.UNSET:
-        data_dict["engagement"] = (
-            gen_uuid(input_any.engagement) if input_any.engagement else None
-        )
-    if input_any.responsibility is not strawberry.UNSET and input_any.responsibility is not None:
-        data_dict["responsibility"] = list(map(gen_uuid, input_any.responsibility))
-
-    return {
-        k: v
-        for k, v in data_dict.items()
-        if (v is not None)
-        or k
-        in (
-            "person",
-            "engagement",
-            "user_key",
-            "org_unit",
-            "manager_type",
-            "manager_level",
-        )
-    }
-
-
 async def update_manager(input: ManagerUpdateInput) -> UUID:
     """Updating a manager."""
-    input_dict = jsonable_encoder(to_handler_dict(input))
+    input_dict = jsonable_encoder(input.to_pydantic().to_handler_dict())
 
     req = {
         mapping.TYPE: mapping.MANAGER,

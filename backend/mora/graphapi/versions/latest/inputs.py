@@ -514,7 +514,7 @@ class ManagerCreateInput:
 
 @strawberry.input
 class ManagerUpdateInput:
-    """Input model for updating a manager."""
+    """Input for updating a manager."""
 
     uuid: UUID
     validity: RAValidityInput
@@ -525,6 +525,20 @@ class ManagerUpdateInput:
     org_unit: UUID | None = strawberry.UNSET
     manager_type: UUID | None = strawberry.UNSET
     manager_level: UUID | None = strawberry.UNSET
+
+    def to_pydantic(self) -> ManagerUpdate:
+        """Convert to Pydantic model."""
+        return ManagerUpdate(
+            uuid=self.uuid,
+            validity=self.validity.to_pydantic(),
+            user_key=self.user_key,
+            person=self.person,
+            engagement=self.engagement,
+            responsibility=self.responsibility,
+            org_unit=self.org_unit,
+            manager_type=self.manager_type,
+            manager_level=self.manager_level,
+        )
 
 
 @strawberry.experimental.pydantic.input(

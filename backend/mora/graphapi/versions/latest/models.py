@@ -1160,33 +1160,68 @@ class ManagerCreate(UUIDBase):
 class ManagerUpdate(UUIDBase):
     """Model for updating a manager."""
 
-    uuid: UUID = Field(description="UUID of the manager to be updated.")
-
+    uuid: UUID = Field(description="The UUID of the manager.")
     validity: RAValidity = Field(
         description="Validity range for the manager to be updated."
     )
-
-    user_key: str | None = Field(description="Extra info or uuid.")
-
-    person: UUID | None = Field(
-        description="UUID of the manager as person to be updated."
+    user_key: str | None | object = Field(
+        default=strawberry.UNSET, description="User key for the manager."
     )
-    engagement: UUID | None = Field(description="UUID of the related engagement.")
-
-    responsibility: list[UUID] | None = Field(
-        description="UUID of the managers responsibilities to be updated."
+    person: UUID | None | object = Field(
+        default=strawberry.UNSET, description="UUID of the person to be updated."
+    )
+    engagement: UUID | None | object = Field(
+        default=strawberry.UNSET, description="UUID of the related engagement."
+    )
+    responsibility: list[UUID] | None | object = Field(
+        default=strawberry.UNSET,
+        description="List of UUIDs of the responsibilities to be updated.",
+    )
+    org_unit: UUID | None | object = Field(
+        default=strawberry.UNSET, description="UUID of the organisation unit."
+    )
+    manager_type: UUID | None | object = Field(
+        default=strawberry.UNSET, description="UUID of the managers type to be updated."
+    )
+    manager_level: UUID | None | object = Field(
+        default=strawberry.UNSET,
+        description="UUID of the managers level to be updated.",
     )
 
-    org_unit: UUID | None = Field(
-        description="UUID of the managers organisation unit to be updated."
-    )
-    manager_type: UUID | None = Field(
-        description="UUID of the managers type to be updated."
-    )
+    def to_handler_dict(self) -> dict:
+        """Convert the model to a dict for the handler."""
+        data_dict: dict = {
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
 
-    manager_level: UUID | None = Field(
-        description="UUID of the managers level to be updated."
-    )
+        # Fields that are UUIDs and need gen_uuid conversion
+        uuid_fields = [
+            "person",
+            "engagement",
+            "org_unit",
+            "manager_type",
+            "manager_level",
+        ]
+
+        for field in uuid_fields:
+            val = getattr(self, field)
+            if val is not strawberry.UNSET:
+                data_dict[field] = gen_uuid(val) if val else None
+
+        # Simple fields
+        if self.user_key is not strawberry.UNSET:
+            data_dict["user_key"] = self.user_key
+
+        # Responsibility (List)
+        if self.responsibility is not strawberry.UNSET and self.responsibility is not None:
+             data_dict["responsibility"] = list(map(gen_uuid, self.responsibility))
+
+        return data_dict
 
 
 class ManagerTerminate(ValidityTerminate):
