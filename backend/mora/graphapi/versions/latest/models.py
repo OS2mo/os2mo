@@ -1188,30 +1188,6 @@ class ManagerUpdate(UUIDBase):
         description="UUID of the managers level to be updated."
     )
 
-    def to_handler_dict(self) -> dict:
-        data_dict: dict = {
-            "validity": {
-                "from": self.validity.from_date.date().isoformat(),
-                "to": self.validity.to_date.date().isoformat()
-                if self.validity.to_date
-                else None,
-            },
-            "user_key": self.user_key,
-            "person": gen_uuid(self.person),
-            "engagement": gen_uuid(self.engagement) if self.engagement else None,
-            "org_unit": gen_uuid(self.org_unit),
-            "manager_type": gen_uuid(self.manager_type),
-            "manager_level": gen_uuid(self.manager_level),
-        }
-        if self.responsibility is not None:
-            data_dict["responsibility"] = list(map(gen_uuid, self.responsibility))
-
-        return {
-            k: v
-            for k, v in data_dict.items()
-            if (v is not None) or k in ("person", "engagement")
-        }
-
 
 class ManagerTerminate(ValidityTerminate):
     """Model representing a manager termination."""

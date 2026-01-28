@@ -1164,3 +1164,167 @@ def test_create_manager_with_engagement(
         one(response.data["managers"]["objects"])["current"]["engagement_response"]
         is None
     )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_manager_update_validity_preservation_scenarios(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Any,
+    create_person: Any,
+    create_engagement: Any,
+    create_facet: Any,
+    create_class: Any,
+) -> None:
+    # Setup dependencies
+    org_unit_uuid = create_org_unit("unit", None)
+    person_uuid = create_person(None)
+
+    # Facets & Classes
+    manager_type_facet = create_facet(
+        {"user_key": "manager_type", "validity": {"from": "1900-01-01"}}
+    )
+    manager_level_facet = create_facet(
+        {"user_key": "manager_level", "validity": {"from": "1900-01-01"}}
+    )
+    engagement_type_facet = create_facet(
+        {"user_key": "engagement_type", "validity": {"from": "1900-01-01"}}
+    )
+    job_function_facet = create_facet(
+        {"user_key": "job_function", "validity": {"from": "1900-01-01"}}
+    )
+
+    manager_type = create_class(
+        {
+            "facet_uuid": str(manager_type_facet),
+            "user_key": "mt",
+            "name": "MT",
+            "validity": {"from": "1900-01-01"},
+        }
+    )
+    manager_level = create_class(
+        {
+            "facet_uuid": str(manager_level_facet),
+            "user_key": "ml",
+            "name": "ML",
+            "validity": {"from": "1900-01-01"},
+        }
+    )
+    engagement_type = create_class(
+        {
+            "facet_uuid": str(engagement_type_facet),
+            "user_key": "et",
+            "name": "ET",
+            "validity": {"from": "1900-01-01"},
+        }
+    )
+    job_function = create_class(
+        {
+            "facet_uuid": str(job_function_facet),
+            "user_key": "jf",
+            "name": "JF",
+            "validity": {"from": "1900-01-01"},
+        }
+    )
+
+    # Engagement 1: 2020-01-01 to 2020-06-01
+    engagement_1_uuid = create_engagement(
+        {
+            "org_unit": str(org_unit_uuid),
+            "person": str(person_uuid),
+            "engagement_type": str(engagement_type),
+            "job_function": str(job_function),
+            "validity": {"from": "2020-01-01", "to": "2020-06-01"},
+        }
+    )
+
+    # Create Manager linked to Eng 1: 2020-01-01 to Infinity
+    CREATE_MANAGER = """
+    mutation CreateManager($input: ManagerCreateInput!) {
+      manager_create(input: $input) {
+        uuid
+      }
+    }
+    """
+    response = graphapi_post(
+        CREATE_MANAGER,
+        variables={
+            "input": {
+                "person": str(person_uuid),
+                "responsibility": [],
+                "org_unit": str(org_unit_uuid),
+                "manager_type": str(manager_type),
+                "manager_level": str(manager_level),
+                "engagement": str(engagement_1_uuid),
+                "validity": {"from": "2020-01-01"},
+            }
+        },
+    )
+    assert response.errors is None
+    manager_uuid = response.data["manager_create"]["uuid"]
+
+    UPDATE_MANAGER = """
+    mutation UpdateManager($input: ManagerUpdateInput!) {
+      manager_update(input: $input) {
+        uuid
+      }
+    }
+    """
+
+    READ_MANAGER = """
+    query ReadManager($uuid: [UUID!]) {
+      managers(filter: { uuids: $uuid }) {
+        objects {
+          current {
+            engagement_response {
+              uuid
+            }
+          }
+        }
+      }
+    }
+    """
+
+    # Scenario 1: Shrink Manager to 2020-02-01.
+    # Engagement (Jan-Jun) overlaps Feb-Inf (result Feb-Jun).
+    # Should be preserved and cropped.
+    response = graphapi_post(
+        UPDATE_MANAGER,
+        variables={
+            "input": {
+                "uuid": manager_uuid,
+                "validity": {"from": "2020-02-01"},
+            }
+        },
+    )
+    assert response.errors is None
+
+    # Verify
+    response = graphapi_post(READ_MANAGER, variables={"uuid": [manager_uuid]})
+    assert response.errors is None
+    eng_res = one(response.data["managers"]["objects"])["current"]["engagement_response"]
+    assert eng_res is not None
+    assert eng_res["uuid"] == str(engagement_1_uuid)
+
+    # Scenario 2: Move Manager to 2020-07-01.
+    # Engagement ends 2020-06-01.
+    # No overlap. Engagement should be dropped.
+    response = graphapi_post(
+        UPDATE_MANAGER,
+        variables={
+            "input": {
+                "uuid": manager_uuid,
+                "validity": {"from": "2020-07-01"},
+            }
+        },
+    )
+    assert response.errors is None
+
+    # Verify
+    response = graphapi_post(READ_MANAGER, variables={"uuid": [manager_uuid]})
+    assert response.errors is None
+    # Current manager starts at 2020-07-01.
+    # ensure_bounds extends the engagement end to Infinity, so it overlaps.
+    eng_res = one(response.data["managers"]["objects"])["current"]["engagement_response"]
+    assert eng_res is not None
+    assert eng_res["uuid"] == str(engagement_1_uuid)
