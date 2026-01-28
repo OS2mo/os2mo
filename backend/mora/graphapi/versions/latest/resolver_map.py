@@ -4,6 +4,9 @@
 
 from typing import Any
 
+from strawberry.dataloader import DataLoader
+
+from mora.graphapi.context import MOInfo
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import AssociationRead
@@ -15,36 +18,30 @@ from mora.graphapi.gmodels.mo.details import LeaveRead
 from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.graphapi.gmodels.mo.details import OwnerRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
+from mora.graphapi.versions.latest.graphql_utils import LoadKey
 
 from .models import AddressRead
 from .models import ClassRead
 from .models import FacetRead
 from .models import RoleBindingRead
 
-# TODO: Encode this relation using Annotated types
-# FacetRead = Annotated[FacetRead, FacetResolver(...)]
-# Then later extract the resolver from the type using typing.get_args
-_resolver_tuples = [
-    (FacetRead, "facet_getter", "facet_loader"),
-    (ClassRead, "class_getter", "class_loader"),
-    (AddressRead, "address_getter", "address_loader"),
-    (AssociationRead, "association_getter", "association_loader"),
-    (EmployeeRead, "employee_getter", "employee_loader"),
-    (EngagementRead, "engagement_getter", "engagement_loader"),
-    (ManagerRead, "manager_getter", "manager_loader"),
-    (OwnerRead, "owner_getter", "owner_loader"),
-    (OrganisationUnitRead, "org_unit_getter", "org_unit_loader"),
-    (ITSystemRead, "itsystem_getter", "itsystem_loader"),
-    (ITUserRead, "ituser_getter", "ituser_loader"),
-    (KLERead, "kle_getter", "kle_loader"),
-    (LeaveRead, "leave_getter", "leave_loader"),
-    (RelatedUnitRead, "rel_unit_getter", "rel_unit_loader"),
-    (RoleBindingRead, "rolebinding_getter", "rolebinding_loader"),
-]
-resolver_map: dict[Any, Any] = {
-    model: {
-        "getter": getter,
-        "loader": loader,
+
+def get_dataloader(info: MOInfo, model: type[Any]) -> DataLoader[LoadKey, list[Any]]:
+    mapping: dict[type[Any], DataLoader[LoadKey, list[Any]]] = {
+        FacetRead: info.context.dataloaders.facet_loader,
+        ClassRead: info.context.dataloaders.class_loader,
+        AddressRead: info.context.dataloaders.address_loader,
+        AssociationRead: info.context.dataloaders.association_loader,
+        EmployeeRead: info.context.dataloaders.employee_loader,
+        EngagementRead: info.context.dataloaders.engagement_loader,
+        ManagerRead: info.context.dataloaders.manager_loader,
+        OwnerRead: info.context.dataloaders.owner_loader,
+        OrganisationUnitRead: info.context.dataloaders.org_unit_loader,
+        ITSystemRead: info.context.dataloaders.itsystem_loader,
+        ITUserRead: info.context.dataloaders.ituser_loader,
+        KLERead: info.context.dataloaders.kle_loader,
+        LeaveRead: info.context.dataloaders.leave_loader,
+        RelatedUnitRead: info.context.dataloaders.rel_unit_loader,
+        RoleBindingRead: info.context.dataloaders.rolebinding_loader,
     }
-    for model, getter, loader in _resolver_tuples
-}
+    return mapping[model]

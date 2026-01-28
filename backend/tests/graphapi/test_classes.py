@@ -320,10 +320,15 @@ async def test_unit_create_class(
 
     payload = jsonable_encoder(test_data)
 
+    context = AsyncMock()
+    context.__getitem__.side_effect = lambda key: getattr(context, key)
+    context.get_token = noauth
+    context.dataloaders = AsyncMock()
+
     response = await execute_graphql(
         query=mutate_query,
         variable_values={"input": payload},
-        context_value={"org_loader": AsyncMock(), "get_token": noauth},
+        context_value=context,
     )
 
     assert response.errors is None

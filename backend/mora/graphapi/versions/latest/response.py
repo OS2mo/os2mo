@@ -12,8 +12,8 @@ from uuid import UUID
 import strawberry
 from more_itertools import only
 from strawberry import UNSET
-from strawberry.types import Info
 
+from mora.graphapi.context import MOInfo
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import AssociationRead
@@ -39,7 +39,7 @@ from .permissions import IsAuthenticatedPermission
 from .registration import Registration
 from .registration import registration_resolver
 from .registrationbase import RegistrationBase
-from .resolver_map import resolver_map
+from .resolver_map import get_dataloader
 from .seed_resolver import seed_resolver
 from .utils import uuid2list
 
@@ -92,7 +92,7 @@ class HasUUIDModel(Protocol):
 
 async def current_resolver(
     root: HasUUIDModel,
-    info: Info,
+    info: MOInfo,
     at: datetime | None = UNSET,
     registration_time: datetime | None = None,
 ) -> Any | None:
@@ -142,7 +142,7 @@ async def current_resolver(
 
 async def validity_resolver(
     root: HasUUIDModel,
-    info: Info,
+    info: MOInfo,
     start: datetime | None = UNSET,
     end: datetime | None = UNSET,
     registration_time: datetime | None = None,
@@ -153,8 +153,8 @@ async def validity_resolver(
     if isinstance(model, str):
         model = name2model(model)
 
-    resolver = resolver_map[model]["loader"]
-    dataloader = info.context[resolver]
+    assert isinstance(model, type)
+    dataloader = get_dataloader(info, model)
     return await dataloader.load(LoadKey(root.uuid, start, end, registration_time))
 
 
@@ -196,7 +196,7 @@ class ResponseRegistration(RegistrationBase, Generic[MOObject]):
     async def current(
         self,
         root: "ResponseRegistration",
-        info: Info,
+        info: MOInfo,
         at: datetime | None = UNSET,
     ) -> MOObject | None:
         return await current_resolver(root, info, at, root.start)
@@ -222,7 +222,7 @@ class ResponseRegistration(RegistrationBase, Generic[MOObject]):
     async def validities(
         self,
         root: "ResponseRegistration",
-        info: Info,
+        info: MOInfo,
         start: datetime | None = UNSET,
         end: datetime | None = UNSET,
     ) -> list[MOObject]:  # pragma: no cover
@@ -319,7 +319,7 @@ class Response(Generic[MOObject]):
     async def validities(
         self,
         root: "Response",
-        info: Info,
+        info: MOInfo,
         start: datetime | None = UNSET,
         end: datetime | None = UNSET,
         registration_time: datetime | None = None,

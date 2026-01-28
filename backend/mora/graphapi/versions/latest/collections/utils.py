@@ -16,12 +16,13 @@ from more_itertools import last
 from more_itertools import one
 from more_itertools import only
 from strawberry import UNSET
-from strawberry.types import Info
+
+from mora.graphapi.context import MOInfo
 
 from ..graphql_utils import LoadKey
 from ..moobject import MOObject
 from ..paged import to_paged
-from ..resolver_map import resolver_map
+from ..resolver_map import get_dataloader
 from ..response import Response
 from ..utils import uuid2list
 
@@ -84,13 +85,13 @@ ResolverFunction = Callable[..., Awaitable[ResolverResult]]
 
 
 def result_translation(
-    mapper: Callable[[ResolverResult, Info], R],
+    mapper: Callable[[ResolverResult, MOInfo], R],
 ) -> Callable[[ResolverFunction], Callable[..., Awaitable[R]]]:
     def wrapper(
         resolver_func: ResolverFunction,
     ) -> Callable[..., Awaitable[R]]:
         @wraps(resolver_func)
-        async def mapped_resolver(info: Info, *args: Any, **kwargs: Any) -> Any:
+        async def mapped_resolver(info: MOInfo, *args: Any, **kwargs: Any) -> Any:
             result = await resolver_func(*args, info=info, **kwargs)
             return mapper(result, info)
 
@@ -102,7 +103,7 @@ def result_translation(
 def result2response_list(
     model: type[MOObject],
     result: ResolverResult,
-    info: Info,
+    info: MOInfo,
 ) -> list[Response[MOObject]]:
     # Prime the DataLoader cache with the provided results
     # TODO: We probably should not be priming the DataLoader at all.
@@ -116,8 +117,7 @@ def result2response_list(
     #       initial database round-trip.
     #       This will probably not happen until SQL reads though.
     for uuid, objects in result.items():
-        resolver = resolver_map[model]["loader"]
-        dataloader = info.context[resolver]
+        dataloader = get_dataloader(info, model)
         dataloader.prime(LoadKey(uuid, UNSET, UNSET, None), objects)
     # Return our Response objects
     return [Response(model=model, uuid=uuid) for uuid in result]
@@ -157,7 +157,9 @@ def to_paged_response(model: type[MOObject]) -> Callable:
     return partial(to_paged, model=model, result_transformer=result2response_list)
 
 
-def to_func_uuids(model: Any, result: dict[UUID, list[dict]], info: Info) -> list[UUID]:
+def to_func_uuids(
+    model: Any, result: dict[UUID, list[dict]], info: MOInfo
+) -> list[UUID]:
     return list(result.keys())
 
 
