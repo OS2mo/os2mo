@@ -518,13 +518,13 @@ class ManagerUpdateInput:
 
     uuid: UUID
     validity: RAValidityInput
-    user_key: str | None = strawberry.UNSET
-    person: UUID | None = strawberry.UNSET
+    user_key: str | None = None
+    person: UUID | None = None
     engagement: UUID | None = strawberry.UNSET
-    responsibility: list[UUID] | None = strawberry.UNSET
-    org_unit: UUID | None = strawberry.UNSET
-    manager_type: UUID | None = strawberry.UNSET
-    manager_level: UUID | None = strawberry.UNSET
+    responsibility: list[UUID] | None = None
+    org_unit: UUID | None = None
+    manager_type: UUID | None = None
+    manager_level: UUID | None = None
 
     def to_pydantic(self) -> ManagerUpdate:
         """Convert to Pydantic model."""

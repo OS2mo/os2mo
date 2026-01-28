@@ -1164,27 +1164,27 @@ class ManagerUpdate(UUIDBase):
     validity: RAValidity = Field(
         description="Validity range for the manager to be updated."
     )
-    user_key: str | None | object = Field(
-        default=strawberry.UNSET, description="User key for the manager."
+    user_key: str | None = Field(
+        default=None, description="User key for the manager."
     )
-    person: UUID | None | object = Field(
-        default=strawberry.UNSET, description="UUID of the person to be updated."
+    person: UUID | None = Field(
+        default=None, description="UUID of the person to be updated."
     )
     engagement: UUID | None | object = Field(
         default=strawberry.UNSET, description="UUID of the related engagement."
     )
-    responsibility: list[UUID] | None | object = Field(
-        default=strawberry.UNSET,
+    responsibility: list[UUID] | None = Field(
+        default=None,
         description="List of UUIDs of the responsibilities to be updated.",
     )
-    org_unit: UUID | None | object = Field(
-        default=strawberry.UNSET, description="UUID of the organisation unit."
+    org_unit: UUID | None = Field(
+        default=None, description="UUID of the organisation unit."
     )
-    manager_type: UUID | None | object = Field(
-        default=strawberry.UNSET, description="UUID of the managers type to be updated."
+    manager_type: UUID | None = Field(
+        default=None, description="UUID of the managers type to be updated."
     )
-    manager_level: UUID | None | object = Field(
-        default=strawberry.UNSET,
+    manager_level: UUID | None = Field(
+        default=None,
         description="UUID of the managers level to be updated.",
     )
 
