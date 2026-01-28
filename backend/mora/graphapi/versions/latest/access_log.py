@@ -19,6 +19,7 @@ from mora.db import AccessLogOperation as AccessLogOperation
 from mora.db import AccessLogRead as AccessLogRead
 from mora.db import AsyncSession
 
+from ...context import MOInfo
 from ..latest.filters import gen_filter_string
 from ..latest.filters import gen_filter_table
 from .actor import Actor
@@ -152,8 +153,8 @@ class AccessLog:
         """
         )
     )
-    async def uuids(self, info: Info) -> list[UUID]:
-        return await info.context["access_log_read_loader"].load(self.id)
+    async def uuids(self, info: MOInfo) -> list[UUID]:
+        return await info.context.dataloaders.access_log_read_loader.load(self.id)
 
 
 @strawberry.input(description="Access log log filter.")
@@ -211,7 +212,7 @@ class AccessLogFilter:
 
 
 async def access_log_resolver(
-    info: Info,
+    info: MOInfo,
     filter: AccessLogFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -251,7 +252,7 @@ async def access_log_resolver(
         query = query.limit(limit + 1)
     query = query.offset(cursor.offset if cursor else 0)
 
-    session: AsyncSession = info.context["session"]
+    session: AsyncSession = info.context.session
     result = list(await session.scalars(query))
     access_log(
         session,

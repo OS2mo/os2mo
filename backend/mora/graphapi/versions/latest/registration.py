@@ -17,7 +17,6 @@ from sqlalchemy import select
 from sqlalchemy import union
 from sqlalchemy.sql.expression import Select
 from starlette_context import context
-from strawberry.types import Info
 
 from mora.access_log import access_log
 from mora.db import AsyncSession
@@ -30,6 +29,7 @@ from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRegistrering
 from mora.util import parsedatetime
 
+from ...context import MOInfo
 from .filters import RegistrationFilter
 from .paged import CursorType
 from .paged import LimitType
@@ -126,7 +126,7 @@ def row2registration(
 
 
 async def registration_resolver(
-    info: Info,
+    info: MOInfo,
     filter: RegistrationFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
@@ -242,7 +242,7 @@ async def registration_resolver(
         query = query.limit(limit + 1)
     query = query.offset(cursor.offset if cursor else 0)
 
-    session: AsyncSession = info.context["session"]
+    session: AsyncSession = info.context.session
     result = list(await session.execute(query))
     access_log(
         session,

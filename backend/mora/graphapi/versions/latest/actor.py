@@ -10,7 +10,6 @@ import strawberry
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from strawberry.dataloader import DataLoader
-from strawberry.types import Info
 
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import LEGACY_AUTH_UUID
@@ -21,6 +20,7 @@ from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from mora.auth.middleware import UNABLE_TO_PARSE_TOKEN_UUID
 from mora.db import Actor as ActorTable
 
+from ...context import MOInfo
 from .events import Listener
 from .events import Namespace
 from .events import listener_resolver
@@ -119,8 +119,8 @@ class Actor:
     @strawberry.field(
         description="Appropriate display text for any actor (regardless of type)"
     )
-    async def display_name(self, root: "Actor", info: Info) -> str | None:
-        loader: DataLoader = info.context[ACTOR_NAME_LOADER_KEY]
+    async def display_name(self, root: "Actor", info: MOInfo) -> str | None:
+        loader: DataLoader = info.context.dataloaders.actor_name_loader
         return await loader.load(root.uuid)
 
     event_namespaces: list[Namespace] = strawberry.field(
@@ -231,8 +231,8 @@ class Myself:
     )
 
 
-async def myself_resolver(info: Info) -> Myself:
-    token: Token = await info.context["get_token"]()
+async def myself_resolver(info: MOInfo) -> Myself:
+    token: Token = await info.context.get_token()
     return Myself(
         actor=actor_uuid_to_actor(token.uuid),
         email=token.email,

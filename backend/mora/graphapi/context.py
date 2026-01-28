@@ -3,7 +3,6 @@
 from collections.abc import Awaitable
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
 from typing import TypeAlias
 from uuid import UUID
 
@@ -81,6 +80,10 @@ class MOLoaders:
     # ITSysterm
     itsystem_loader: DataLoader[LoadKey, list[ITSystemRead]]
     itsystem_getter: Callable[..., Awaitable[dict[UUID, list]]]
+    # AccessLog Loaders
+    access_log_read_loader: DataLoader[UUID, list[UUID]]
+    # Actor Loaders
+    actor_name_loader: DataLoader[UUID, str | None]
 
 
 @dataclass
@@ -89,17 +92,6 @@ class MOContext(BaseContext):
     amqp_system: AMQPSystem
     session: db.AsyncSession
     dataloaders: MOLoaders
-
-    # AccessLog Loaders
-    access_log_read_loader: DataLoader[UUID, list[UUID]]
-
-    # Actor Loaders
-    actor_name_loader: DataLoader[UUID, str | None]
-
-    # Hack to allow old dictionary style access to the context
-    # TODO: Convert all context uses to attr access then remove this
-    def __getitem__(self, key: str) -> Any:
-        return getattr(self, key)
 
 
 MOInfo: TypeAlias = Info[MOContext, None]

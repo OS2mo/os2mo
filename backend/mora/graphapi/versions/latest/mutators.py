@@ -335,7 +335,7 @@ class Mutation:
     )
     async def address_refresh(
         self,
-        info: Info,
+        info: MOInfo,
         filter: AddressFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
@@ -422,7 +422,7 @@ class Mutation:
     )
     async def association_refresh(
         self,
-        info: Info,
+        info: MOInfo,
         filter: AssociationFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
@@ -538,7 +538,7 @@ class Mutation:
     )
     async def class_refresh(
         self,
-        info: Info,
+        info: MOInfo,
         filter: ClassFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
@@ -624,7 +624,7 @@ class Mutation:
     )
     async def employee_refresh(
         self,
-        info: Info,
+        info: MOInfo,
         filter: EmployeeFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
@@ -763,7 +763,7 @@ class Mutation:
     )
     async def engagement_refresh(
         self,
-        info: Info,
+        info: MOInfo,
         filter: EngagementFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
@@ -881,7 +881,7 @@ class Mutation:
     )
     async def facet_refresh(
         self,
-        info: Info,
+        info: MOInfo,
         filter: FacetFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
@@ -1044,7 +1044,7 @@ class Mutation:
     )
     async def itsystem_refresh(
         self,
-        info: Info,
+        info: MOInfo,
         filter: ITSystemFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
@@ -1142,7 +1142,7 @@ class Mutation:
     )
     async def ituser_refresh(
         self,
-        info: Info,
+        info: MOInfo,
         filter: ITUserFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
@@ -1215,7 +1215,7 @@ class Mutation:
     )
     async def kle_refresh(
         self,
-        info: Info,
+        info: MOInfo,
         filter: KLEFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
@@ -1288,7 +1288,7 @@ class Mutation:
     )
     async def leave_refresh(
         self,
-        info: Info,
+        info: MOInfo,
         filter: LeaveFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
@@ -1378,7 +1378,7 @@ class Mutation:
     )
     async def manager_refresh(
         self,
-        info: Info,
+        info: MOInfo,
         filter: ManagerFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
@@ -1483,7 +1483,7 @@ class Mutation:
     )
     async def org_unit_refresh(
         self,
-        info: Info,
+        info: MOInfo,
         filter: OrganisationUnitFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
@@ -1556,7 +1556,7 @@ class Mutation:
     )
     async def owner_refresh(
         self,
-        info: Info,
+        info: MOInfo,
         filter: OwnerFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
@@ -1612,7 +1612,7 @@ class Mutation:
     )
     async def related_unit_refresh(
         self,
-        info: Info,
+        info: MOInfo,
         filter: RelatedUnitFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
@@ -1721,7 +1721,7 @@ class Mutation:
     )
     async def rolebinding_refresh(
         self,
-        info: Info,
+        info: MOInfo,
         filter: RoleBindingFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
@@ -1769,9 +1769,9 @@ class Mutation:
         ],
     )
     async def event_namespace_declare(
-        self, info: Info, input: NamespaceCreateInput
+        self, info: MOInfo, input: NamespaceCreateInput
     ) -> Namespace:
-        session: AsyncSession = info.context["session"]
+        session: AsyncSession = info.context.session
         owner = get_authenticated_user()
 
         stmt = (
@@ -1823,10 +1823,10 @@ class Mutation:
     )
     async def event_namespace_delete(
         self,
-        info: Info,
+        info: MOInfo,
         input: NamespaceDeleteInput,
     ) -> bool:
-        session: AsyncSession = info.context["session"]
+        session: AsyncSession = info.context.session
 
         # coverage: pause
         try:
@@ -1856,9 +1856,9 @@ class Mutation:
         ],
     )
     async def event_listener_declare(
-        self, info: Info, input: ListenerCreateInput
+        self, info: MOInfo, input: ListenerCreateInput
     ) -> Listener:
-        session: AsyncSession = info.context["session"]
+        session: AsyncSession = info.context.session
         owner = get_authenticated_user()
 
         namespace = await session.scalar(
@@ -1919,10 +1919,10 @@ class Mutation:
     )
     async def event_listener_delete(
         self,
-        info: Info,
+        info: MOInfo,
         input: ListenerDeleteInput,
     ) -> bool:
-        session: AsyncSession = info.context["session"]
+        session: AsyncSession = info.context.session
 
         # coverage: pause
         if input.delete_pending_events:
@@ -1950,11 +1950,11 @@ class Mutation:
     )
     async def event_acknowledge(
         self,
-        info: Info,
+        info: MOInfo,
         input: EventAcknowledgeInput,
     ) -> bool:
         owner = get_authenticated_user()
-        session: AsyncSession = info.context["session"]
+        session: AsyncSession = info.context.session
 
         # Sadly, we have to select the listener, because PostgreSQL does not
         # support returning values from tables other than the one being deleted
@@ -1998,7 +1998,7 @@ class Mutation:
     )
     async def event_send(
         self,
-        info: Info,
+        info: MOInfo,
         input: EventSendInput,
     ) -> bool:
         if input.priority < 1:
@@ -2012,7 +2012,7 @@ class Mutation:
             )
 
         # coverage: pause
-        session: AsyncSession = info.context["session"]
+        session: AsyncSession = info.context.session
         namespace = await session.scalar(
             select(db.Namespace).where(db.Namespace.name == input.namespace)
         )
@@ -2046,11 +2046,11 @@ class Mutation:
     )
     async def event_silence(
         self,
-        info: Info,
+        info: MOInfo,
         input: EventSilenceInput,
     ) -> bool:
         # coverage: pause
-        session: AsyncSession = info.context["session"]
+        session: AsyncSession = info.context.session
         await session.execute(
             update(db.Event)
             .where(
@@ -2072,7 +2072,7 @@ class Mutation:
     )
     async def event_unsilence(
         self,
-        info: Info,
+        info: MOInfo,
         input: EventUnsilenceInput,
     ) -> bool:
         clauses = [
@@ -2089,7 +2089,7 @@ class Mutation:
             clauses.append(db.Event.priority.in_(input.priorities))
 
         # coverage: pause
-        session: AsyncSession = info.context["session"]
+        session: AsyncSession = info.context.session
         await session.execute(
             update(db.Event)
             .where(*clauses)
@@ -2146,7 +2146,7 @@ class Mutation:
     )
     async def upload_file(
         self,
-        info: Info,
+        info: MOInfo,
         file_store: Annotated[
             FileStore,
             strawberry.argument(description="The filestore to upload the file into"),
@@ -2176,7 +2176,7 @@ class Mutation:
         actor = get_authenticated_user()
 
         await db.files.write(
-            info.context["session"], actor, file_store, file_name, file_bytes, force
+            info.context.session, actor, file_store, file_name, file_bytes, force
         )
 
         # coverage: pause
@@ -2203,7 +2203,7 @@ async def delete_organisationfunktion(uuid: UUID) -> UUID:
 
 
 async def refresh(
-    info: Info,
+    info: MOInfo,
     page: Paged[UUID],
     model: str,
     exchange: str | None,
@@ -2218,7 +2218,7 @@ async def refresh(
     send_in_old_amqp = listener is None and owner is None
 
     if send_in_old_amqp:
-        amqp_system = info.context["amqp_system"]
+        amqp_system = info.context.amqp_system
         tasks = (
             amqp_system.publish_message(
                 routing_key=model,
@@ -2234,7 +2234,7 @@ async def refresh(
             raise ValueError(
                 "listener/owner and exchange are mutually exclusive. Exchanges are part of the legacy event system. If you are using GraphQL Events, do NOT use exchange."
             )
-        session: AsyncSession = info.context["session"]
+        session: AsyncSession = info.context.session
         for uuid in uuids:
             await add_event(
                 session,

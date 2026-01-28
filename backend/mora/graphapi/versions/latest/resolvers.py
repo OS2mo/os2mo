@@ -261,7 +261,7 @@ async def class_resolver(
         info: MOInfo, filter: OrganisationUnitFilter
     ) -> list[UUID]:
         query = await organisation_unit_resolver_query(info, filter)
-        session: AsyncSession = info.context["session"]
+        session: AsyncSession = info.context.session
         result = await session.scalars(query)
         return list(result.all())
 
@@ -488,7 +488,7 @@ async def employee_resolver(
             info=info,
             filter=BaseFilter(
                 uuids=await search_employees(
-                    session=info.context["session"],
+                    session=info.context.session,
                     query=filter.query,
                     limit=limit,
                     cursor=cursor,
@@ -1091,7 +1091,7 @@ async def organisation_unit_resolver(
     )
 
     # Execute
-    session: AsyncSession = info.context["session"]
+    session: AsyncSession = info.context.session
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
@@ -1134,7 +1134,7 @@ async def organisation_unit_has_children(
     """Resolve whether an organisation unit has children."""
     assert filter is not None  # cannot be None, but signature required for seeding
     query = await organisation_unit_resolver_query(info=info, filter=filter)
-    session: AsyncSession = info.context["session"]
+    session: AsyncSession = info.context.session
     return (await session.scalars(select(exists(query)))).one()
 
 
@@ -1145,7 +1145,7 @@ async def organisation_unit_child_count(
     """Resolve the number of children of an organisation unit."""
     assert filter is not None  # cannot be None, but signature required for seeding
     query = await organisation_unit_resolver_query(info=info, filter=filter)
-    session: AsyncSession = info.context["session"]
+    session: AsyncSession = info.context.session
     return (
         await session.scalars(select(func.count()).select_from(query.subquery()))
     ).one()
