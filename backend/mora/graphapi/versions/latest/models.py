@@ -1173,7 +1173,7 @@ class ManagerUpdate(UUIDBase):
     )
 
     engagement: UUID | None = Field(
-        default=None, description="UUID of the related engagement."
+        description="UUID of the related engagement."
     )
 
     responsibility: list[UUID] | None = Field(
@@ -1226,23 +1226,12 @@ class ManagerUpdate(UUIDBase):
                 data_dict["responsibility"] = list(map(gen_uuid, self.responsibility))
 
         # Backwards compatibility for person fallback in return dict
-        # Master logic: return {k: v for k, v in data_dict.items() if (v is not None) or k == "person"}
-        # We need to preserve that, but ALSO respect __fields_set__ for Omit.
-        # If it's NOT in fields_set, it's NOT in data_dict (except validity).
-        # If it IS in fields_set and is None -> Added as None.
-        # If k == "person" and is None -> Keep it (Clears person).
-        # If k != "person" and is None -> Master filtered it?
-        # Actually, master used standard model where fields defaulted to None.
-        # So Omit was indistinguishable from None.
-        # And it cleared everything except person? No, it cleared nothing if None.
-        # Wait, if v is None and k != "person" -> Filtered out.
-        # So Omit/None meant "Ignore" for everything except person.
-        # This is PATCH behavior.
-        
-        # We want to maintain this but allow engagement to be cleared.
+        # See notes in Step 32 reasoning.
+        # We allow engagement to be cleared (if None in data_dict).
+        # We allow person to be cleared.
+        # Others are filtered out if None.
         
         return {k: v for k, v in data_dict.items() if (v is not None) or k in ("person", "engagement")}
-
 
 class ManagerTerminate(ValidityTerminate):
     """Model representing a manager termination."""

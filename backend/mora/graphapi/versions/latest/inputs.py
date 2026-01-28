@@ -548,7 +548,7 @@ class ManagerUpdateInput:
             if val is not strawberry.UNSET:
                 data[field] = val
 
-        return ManagerUpdate(**data)
+        return ManagerUpdate.construct(**data)
 
 
 @strawberry.experimental.pydantic.input(
