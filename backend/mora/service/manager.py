@@ -230,6 +230,43 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             new_from, new_to, bounds_fields, original, payload
         )
 
+        # Fix for shrinking validity: ensure_bounds doesn't include fields if they
+        # are "inside" the new bounds (i.e. don't need expanding). But since we
+        # are creating a new slice, we need to explicitly carry over at least the
+        # engagement if it hasn't been updated or bounded.
+        if mapping.ASSOCIATED_FUNCTION_FIELD in bounds_fields:
+            current_funcs = (
+                util.get_obj_value(payload, mapping.ASSOCIATED_FUNCTION_FIELD.path)
+                or []
+            )
+            current_engs = [
+                f for f in current_funcs if mapping.ENGAGEMENT_FIELD.filter_fn(f)
+            ]
+
+            if not current_engs:
+                original_engs = mapping.ENGAGEMENT_FIELD.get(original)
+                valid_engs = []
+                for eng in original_engs:
+                    eng_from = util.get_effect_from(eng)
+                    eng_to = util.get_effect_to(eng)
+
+                    start = max(eng_from, new_from)
+                    end = min(eng_to, new_to)
+
+                    if start < end:
+                        new_eng = eng.copy()
+                        new_eng["virkning"] = eng["virkning"].copy()
+                        new_eng["virkning"]["from"] = util.to_lora_time(start)
+                        new_eng["virkning"]["to"] = util.to_lora_time(end)
+                        valid_engs.append(new_eng)
+
+                if valid_engs:
+                    payload = util.set_obj_value(
+                        payload,
+                        mapping.ASSOCIATED_FUNCTION_FIELD.path,
+                        current_funcs + valid_engs,
+                    )
+
         await validator.is_date_range_in_org_unit_range(org_unit, new_from, new_to)
 
         if employee:

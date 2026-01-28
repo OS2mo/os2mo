@@ -498,6 +498,17 @@ async def test_update_manager_integration_test(
         k: v if v is not None or k == "person" else pre_update_manager[k]
         for k, v in test_data.items()
     }
+
+    if manager_objects_post_update.get("responsibility"):
+        manager_objects_post_update["responsibility"] = sorted(
+            manager_objects_post_update["responsibility"]
+        )
+
+    if expected_updated_manager.get("responsibility"):
+        expected_updated_manager["responsibility"] = sorted(
+            expected_updated_manager["responsibility"]
+        )
+
     assert manager_objects_post_update == expected_updated_manager
 
 

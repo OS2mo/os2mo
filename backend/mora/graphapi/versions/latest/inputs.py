@@ -54,7 +54,6 @@ from .models import LeaveTerminate
 from .models import LeaveUpdate
 from .models import ManagerCreate
 from .models import ManagerTerminate
-from .models import ManagerUpdate
 from .models import Organisation
 from .models import OrganisationUnitTerminate
 from .models import OwnerCreate
@@ -512,14 +511,19 @@ class ManagerCreateInput:
     """Input model for creating a manager."""
 
 
-@strawberry.experimental.pydantic.input(
-    model=ManagerUpdate,
-    all_fields=True,
-)
+@strawberry.input
 class ManagerUpdateInput:
     """Input model for updating a manager."""
 
+    uuid: UUID
+    validity: RAValidityInput
+    user_key: str | None = strawberry.UNSET
+    person: UUID | None = strawberry.UNSET
     engagement: UUID | None = strawberry.UNSET
+    responsibility: list[UUID] | None = strawberry.UNSET
+    org_unit: UUID | None = strawberry.UNSET
+    manager_type: UUID | None = strawberry.UNSET
+    manager_level: UUID | None = strawberry.UNSET
 
 
 @strawberry.experimental.pydantic.input(

@@ -36,17 +36,28 @@ def to_handler_dict(input: ManagerUpdateInput) -> dict:
             if input_any.validity.to_date
             else None,
         },
-        "user_key": input_any.user_key,
-        "person": gen_uuid(input_any.person),
-        "org_unit": gen_uuid(input_any.org_unit),
-        "manager_type": gen_uuid(input_any.manager_type),
-        "manager_level": gen_uuid(input_any.manager_level),
     }
+
+    if input_any.user_key is not strawberry.UNSET:
+        data_dict["user_key"] = input_any.user_key
+
+    if input_any.person is not strawberry.UNSET:
+        data_dict["person"] = gen_uuid(input_any.person)
+
+    if input_any.org_unit is not strawberry.UNSET:
+        data_dict["org_unit"] = gen_uuid(input_any.org_unit)
+
+    if input_any.manager_type is not strawberry.UNSET:
+        data_dict["manager_type"] = gen_uuid(input_any.manager_type)
+
+    if input_any.manager_level is not strawberry.UNSET:
+        data_dict["manager_level"] = gen_uuid(input_any.manager_level)
+
     if input_any.engagement is not strawberry.UNSET:
         data_dict["engagement"] = (
             gen_uuid(input_any.engagement) if input_any.engagement else None
         )
-    if input_any.responsibility:
+    if input_any.responsibility is not strawberry.UNSET and input_any.responsibility:
         data_dict["responsibility"] = list(map(gen_uuid, input_any.responsibility))
 
     return {
