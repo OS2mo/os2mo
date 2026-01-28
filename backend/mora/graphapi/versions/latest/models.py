@@ -1160,32 +1160,35 @@ class ManagerCreate(UUIDBase):
 class ManagerUpdate(UUIDBase):
     """Model for updating a manager."""
 
-    uuid: UUID = Field(description="The UUID of the manager.")
+    uuid: UUID = Field(description="UUID of the manager to be updated.")
+
     validity: RAValidity = Field(
         description="Validity range for the manager to be updated."
     )
-    user_key: str | None = Field(
-        default=None, description="User key for the manager."
-    )
+
+    user_key: str | None = Field(description="Extra info or uuid.")
+
     person: UUID | None = Field(
-        default=None, description="UUID of the person to be updated."
+        description="UUID of the manager as person to be updated."
     )
-    engagement: UUID | None | object = Field(
-        default=strawberry.UNSET, description="UUID of the related engagement."
+
+    engagement: UUID | None = Field(
+        default=None, description="UUID of the related engagement."
     )
+
     responsibility: list[UUID] | None = Field(
-        default=None,
-        description="List of UUIDs of the responsibilities to be updated.",
+        description="UUID of the managers responsibilities to be updated."
     )
+
     org_unit: UUID | None = Field(
-        default=None, description="UUID of the organisation unit."
+        description="UUID of the managers organisation unit to be updated."
     )
     manager_type: UUID | None = Field(
-        default=None, description="UUID of the managers type to be updated."
+        description="UUID of the managers type to be updated."
     )
+
     manager_level: UUID | None = Field(
-        default=None,
-        description="UUID of the managers level to be updated.",
+        description="UUID of the managers level to be updated."
     )
 
     def to_handler_dict(self) -> dict:
@@ -1209,19 +1212,36 @@ class ManagerUpdate(UUIDBase):
         ]
 
         for field in uuid_fields:
-            val = getattr(self, field)
-            if val is not strawberry.UNSET:
+            if field in self.__fields_set__:
+                val = getattr(self, field)
                 data_dict[field] = gen_uuid(val) if val else None
 
         # Simple fields
-        if self.user_key is not strawberry.UNSET:
+        if "user_key" in self.__fields_set__:
             data_dict["user_key"] = self.user_key
 
         # Responsibility (List)
-        if self.responsibility is not strawberry.UNSET and self.responsibility is not None:
-             data_dict["responsibility"] = list(map(gen_uuid, self.responsibility))
+        if "responsibility" in self.__fields_set__:
+            if self.responsibility is not None:
+                data_dict["responsibility"] = list(map(gen_uuid, self.responsibility))
 
-        return data_dict
+        # Backwards compatibility for person fallback in return dict
+        # Master logic: return {k: v for k, v in data_dict.items() if (v is not None) or k == "person"}
+        # We need to preserve that, but ALSO respect __fields_set__ for Omit.
+        # If it's NOT in fields_set, it's NOT in data_dict (except validity).
+        # If it IS in fields_set and is None -> Added as None.
+        # If k == "person" and is None -> Keep it (Clears person).
+        # If k != "person" and is None -> Master filtered it?
+        # Actually, master used standard model where fields defaulted to None.
+        # So Omit was indistinguishable from None.
+        # And it cleared everything except person? No, it cleared nothing if None.
+        # Wait, if v is None and k != "person" -> Filtered out.
+        # So Omit/None meant "Ignore" for everything except person.
+        # This is PATCH behavior.
+        
+        # We want to maintain this but allow engagement to be cleared.
+        
+        return {k: v for k, v in data_dict.items() if (v is not None) or k in ("person", "engagement")}
 
 
 class ManagerTerminate(ValidityTerminate):

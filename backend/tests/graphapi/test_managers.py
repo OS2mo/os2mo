@@ -495,13 +495,7 @@ async def test_update_manager_integration_test(
     )
 
     expected_updated_manager = {
-        k: (
-            ""
-            if v is None and k == "user_key"
-            else (
-                v if v is not None or k != "responsibility" else pre_update_manager[k]
-            )
-        )
+        k: v if v is not None or k in ("person", "engagement") else pre_update_manager[k]
         for k, v in test_data.items()
     }
 

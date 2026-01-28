@@ -514,31 +514,41 @@ class ManagerCreateInput:
 
 @strawberry.input
 class ManagerUpdateInput:
-    """Input for updating a manager."""
+    """Input model for updating a manager."""
 
     uuid: UUID
     validity: RAValidityInput
-    user_key: str | None = None
-    person: UUID | None = None
+    user_key: str | None = strawberry.UNSET
+    person: UUID | None = strawberry.UNSET
     engagement: UUID | None = strawberry.UNSET
-    responsibility: list[UUID] | None = None
-    org_unit: UUID | None = None
-    manager_type: UUID | None = None
-    manager_level: UUID | None = None
+    responsibility: list[UUID] | None = strawberry.UNSET
+    org_unit: UUID | None = strawberry.UNSET
+    manager_type: UUID | None = strawberry.UNSET
+    manager_level: UUID | None = strawberry.UNSET
 
     def to_pydantic(self) -> ManagerUpdate:
-        """Convert to Pydantic model."""
-        return ManagerUpdate(
-            uuid=self.uuid,
-            validity=self.validity.to_pydantic(),
-            user_key=self.user_key,
-            person=self.person,
-            engagement=self.engagement,
-            responsibility=self.responsibility,
-            org_unit=self.org_unit,
-            manager_type=self.manager_type,
-            manager_level=self.manager_level,
-        )
+        """Convert to Pydantic model, preserving unset fields."""
+        data = {
+            "uuid": self.uuid,
+            "validity": self.validity.to_pydantic(),
+        }
+
+        optional_fields = [
+            "user_key",
+            "person",
+            "engagement",
+            "responsibility",
+            "org_unit",
+            "manager_type",
+            "manager_level",
+        ]
+
+        for field in optional_fields:
+            val = getattr(self, field)
+            if val is not strawberry.UNSET:
+                data[field] = val
+
+        return ManagerUpdate(**data)
 
 
 @strawberry.experimental.pydantic.input(
