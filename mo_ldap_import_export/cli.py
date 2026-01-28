@@ -58,14 +58,14 @@ def generate_ldapsearch_command() -> list[str]:
     # It might be possible to extend this code to support Kerberos over SASL in the
     # future, however for now, we can only generate the ldapsearch command if the server
     # allows standard compliant Simple Bind.
-    assert (
-        settings.ldap_auth_method == AuthBackendEnum.SIMPLE
-    ), f"Can only generate script for {AuthBackendEnum.SIMPLE}"
+    assert settings.ldap_auth_method == AuthBackendEnum.SIMPLE, (
+        f"Can only generate script for {AuthBackendEnum.SIMPLE}"
+    )
     command.append("-x")
     # Configure connection string
-    assert (
-        len(settings.ldap_controllers) == 1
-    ), "Cannot generate script for multiple LDAP controllers"
+    assert len(settings.ldap_controllers) == 1, (
+        "Cannot generate script for multiple LDAP controllers"
+    )
     ldap_controller = one(settings.ldap_controllers)
     ldap_url = "ldaps://" if ldap_controller.use_ssl else "ldap://"
     ldap_url += ldap_controller.host

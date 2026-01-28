@@ -425,9 +425,9 @@ def _extract_letters(name: list[str]) -> list[str]:
     first_ascii_letter = first(
         (c for c in first(name) if c in ascii_lowercase_set), None
     )
-    assert (
-        first_ascii_letter is not None
-    ), "first name part must contain at least one ASCII letter"
+    assert first_ascii_letter is not None, (
+        "first name part must contain at least one ASCII letter"
+    )
 
     consonants = ascii_lowercase_set - set("aeiouy")
 

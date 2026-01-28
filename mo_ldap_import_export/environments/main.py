@@ -128,6 +128,27 @@ def filter_remove_curly_brackets(text: str) -> str:
     return text.replace("{", "").replace("}", "")
 
 
+def filter_extract_mitid_uuid(
+    alt_security_identities: list[str] | str | None,
+) -> str | None:
+    """
+    Extracts the MitID UUID from a list of altSecurityIdentities.
+    Looks for a value starting with 'NL3UUID', splits it by '.', and returns the 3rd component.
+    """
+    if not alt_security_identities:
+        return None
+
+    for identity in ensure_list(alt_security_identities):
+        if not isinstance(identity, str):
+            continue
+        if identity.startswith("NL3UUID"):
+            parts = identity.split(".")
+            # "The user's MitUUID is always the 3rd value in the row." -> Index 2
+            if len(parts) > 2:
+                return parts[2]
+    return None
+
+
 def bitwise_and(input: int, bitmask: int) -> int:
     """Bitwise and jinja filter.
 
@@ -1196,6 +1217,7 @@ def construct_default_environment() -> Environment:
     environment.filters["strptime"] = filter_strptime
     environment.filters["strip_non_digits"] = filter_strip_non_digits
     environment.filters["remove_curly_brackets"] = filter_remove_curly_brackets
+    environment.filters["extract_mitid_uuid"] = filter_extract_mitid_uuid
     environment.filters["set"] = set
     environment.filters["uuid"] = UUID
 
