@@ -131,17 +131,21 @@ def init(log_level: str, json: bool = True):
 
 _CANONICAL_LOG_KEY = "canonical"
 _CANONICAL_GQL_KEY = "gql"
+NOLOG_PATHS = ["/metrics", "/health"]
 
 
 async def canonical_log_dependency():
     data = {**context, _CANONICAL_LOG_KEY: {}}
     with request_cycle_context(data):
         yield
-        logger_function = (
-            logger.warning
-            if data[_CANONICAL_LOG_KEY].get("gql", {}).get("errors")
-            else logger.info
-        )
+        if "errors" in data[_CANONICAL_LOG_KEY].get(_CANONICAL_GQL_KEY, {}):
+            logger_function = logger.warning
+        else:
+            logger_function = logger.info
+            path = data[_CANONICAL_LOG_KEY]["path"]
+            for nolog_path in NOLOG_PATHS:
+                if path.startswith(nolog_path):
+                    return
         logger_function("Canonical log line", **data[_CANONICAL_LOG_KEY])
 
 
