@@ -1172,7 +1172,9 @@ class ManagerUpdate(UUIDBase):
         description="UUID of the manager as person to be updated."
     )
 
-    engagement: UUID | None = Field(description="UUID of the related engagement.")
+    engagement: UUID | None = Field(
+        default=None, description="UUID of the related engagement."
+    )
 
     responsibility: list[UUID] | None = Field(
         description="UUID of the managers responsibilities to be updated."
@@ -1199,11 +1201,14 @@ class ManagerUpdate(UUIDBase):
             },
             "user_key": self.user_key,
             "person": gen_uuid(self.person),
-            "engagement": gen_uuid(self.engagement),
             "org_unit": gen_uuid(self.org_unit),
             "manager_type": gen_uuid(self.manager_type),
             "manager_level": gen_uuid(self.manager_level),
         }
+
+        if "engagement" in self.__fields_set__:
+            data_dict["engagement"] = gen_uuid(self.engagement)
+
         if self.responsibility:
             data_dict["responsibility"] = list(map(gen_uuid, self.responsibility))
 
