@@ -303,6 +303,7 @@ def test_update_manager_explicit_none_clears_engagement(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
+@pytest.mark.xfail(reason="PATCH semantics not implemented yet")
 def test_update_manager_partial_update_clears_engagement(
     create_engagement: Callable[[dict[str, Any]], UUID],
     create_manager: Callable[[dict[str, Any]], UUID],
@@ -342,9 +343,7 @@ def test_update_manager_partial_update_clears_engagement(
     assert read_manager_engagement(manager_uuid) == engagement_uuid
 
     # Update the manager WITHOUT providing engagement
-    # With PATCH semantics this would leave the engagement relation alone
-    # However with PUT semantics this clears the engagement field
-    # We currently have PUT semantics, so the field is cleared
+    # With PATCH semantics this leaves the engagement relation alone
     update_manager(
         {
             "uuid": str(manager_uuid),
@@ -355,4 +354,4 @@ def test_update_manager_partial_update_clears_engagement(
             "manager_level": str(manager_level),
         }
     )
-    assert read_manager_engagement(manager_uuid) is None
+    assert read_manager_engagement(manager_uuid) == engagement_uuid
