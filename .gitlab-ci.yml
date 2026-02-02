@@ -74,6 +74,7 @@ include:
       - gitlab-ci-templates/common/docker-release-meta.v1.yml
       - gitlab-ci-templates/common/config-updater-salt.v1.yml
       - gitlab-ci-templates/common/config-updater-flux.v1.yml
+    ref: feat_xxxxx_coverage_debug
   - project: labs/salt-automation
     file: gitlab-ci-templates/common/pre-commit.v1.yml
     rules:
