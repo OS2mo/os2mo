@@ -1319,6 +1319,9 @@ async def generic_resolver(
     # The HOPEFULLY_NOT_IN_LORA_UUID is used to force an empty response from
     # LoRa, so why even bother asking the database?
     if any(v == [HOPEFULLY_NOT_IN_LORA_UUID] for v in kwargs.values()):
+        # Since we are always returning an empty response, no reason to paginate
+        if cursor is not None and cursor.offset > 0:
+            context["lora_page_out_of_range"] = True
         return {}
 
     # Filter

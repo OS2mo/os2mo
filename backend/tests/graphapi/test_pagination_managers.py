@@ -101,7 +101,6 @@ async def test_terminates_when_known(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-@pytest.mark.xfail(reason="Paginates forever")
 async def test_terminates_when_unknown(
     read_managers: Callable[[UUID, str | None], str | None],
     root_org: UUID,
@@ -130,7 +129,6 @@ async def test_terminates_when_unknown(
         (datetime(3000, 1, 1), None),
     ],
 )
-@pytest.mark.xfail(reason="Paginates forever")
 async def test_terminates_with_validity(
     read_managers: Callable[[UUID, str | None], str | None],
     create_org_unit_with_validity: Callable[[datetime, datetime | None], UUID],
