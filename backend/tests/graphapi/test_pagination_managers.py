@@ -101,20 +101,22 @@ async def test_terminates_when_known(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-async def test_loops_forever_when_unknown(
+@pytest.mark.xfail(reason="Paginates forever")
+async def test_terminates_when_unknown(
     read_managers: Callable[[UUID, str | None], str | None],
     root_org: UUID,
 ) -> None:
-    """Test that pagination fails to terminate when using an unknown ancestor UUID."""
+    """Test that pagination terminates when using an unknown ancestor UUID."""
     # Arbitrary hardcoded UUID used for greppability
     unknown_uuid = UUID("8f7be3e7-b695-49e6-b9da-86a4266417bd")
 
-    cursor = None
-    for _ in range(10):
-        cursor = read_managers(unknown_uuid, cursor)
-        assert cursor is not None, "Expected infinite pagination"
+    # First page is empty but returns a cursor for the next page
+    cursor = read_managers(unknown_uuid, None)
+    assert cursor is not None
 
-    # Cursor never seems to be None, leading to an infinite pagination.
+    # Second page is empty and correctly terminates
+    cursor = read_managers(unknown_uuid, cursor)
+    assert cursor is None
 
 
 @pytest.mark.integration_test
@@ -128,18 +130,20 @@ async def test_loops_forever_when_unknown(
         (datetime(3000, 1, 1), None),
     ],
 )
-async def test_loops_forever_when_invalid_validity(
+@pytest.mark.xfail(reason="Paginates forever")
+async def test_terminates_with_validity(
     read_managers: Callable[[UUID, str | None], str | None],
     create_org_unit_with_validity: Callable[[datetime, datetime | None], UUID],
     start: datetime,
     end: datetime | None,
 ) -> None:
-    """Test that pagination fails to terminate when the ancestor org-unit has invalid validity (past or future)."""
+    """Test that pagination terminates regardless of ancestor org-unit validity."""
     invalid_ou_uuid = create_org_unit_with_validity(start, end)
 
-    cursor = None
-    for _ in range(10):
-        cursor = read_managers(invalid_ou_uuid, cursor)
-        assert cursor is not None, "Expected infinite pagination"
+    # First page is empty but returns a cursor for the next page
+    cursor = read_managers(invalid_ou_uuid, None)
+    assert cursor is not None
 
-    # Cursor never seems to be None, leading to an infinite pagination.
+    # Second page is empty and correctly terminates
+    cursor = read_managers(invalid_ou_uuid, cursor)
+    assert cursor is None
