@@ -303,7 +303,6 @@ def test_update_manager_explicit_none_clears_engagement(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-@pytest.mark.xfail(reason="PATCH semantics not implemented yet")
 def test_update_manager_partial_update_clears_engagement(
     create_engagement: Callable[[dict[str, Any]], UUID],
     create_manager: Callable[[dict[str, Any]], UUID],
