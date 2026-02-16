@@ -512,12 +512,38 @@ class ManagerCreateInput:
     """Input model for creating a manager."""
 
 
-@strawberry.experimental.pydantic.input(
-    model=ManagerUpdate,
-    all_fields=True,
-)
+@strawberry.input
 class ManagerUpdateInput:
     """Input model for updating a manager."""
+
+    uuid: UUID
+    validity: RAValidityInput
+
+    user_key: str | None = None
+    person: UUID | None = None
+    engagement: UUID | None = UNSET
+    responsibility: list[UUID] | None = None
+    org_unit: UUID | None = None
+    manager_type: UUID | None = None
+    manager_level: UUID | None = None
+
+    def to_pydantic(self) -> ManagerUpdate:
+        kwargs = {
+            "uuid": self.uuid,
+            "validity": self.validity.to_pydantic(),
+            "user_key": self.user_key,
+            "person": self.person,
+            "responsibility": self.responsibility,
+            "org_unit": self.org_unit,
+            "manager_type": self.manager_type,
+            "manager_level": self.manager_level,
+        }
+
+        # ONLY engagement is passed conditionally to support PATCH semantics
+        if self.engagement is not UNSET:
+            kwargs["engagement"] = self.engagement
+
+        return ManagerUpdate(**kwargs)
 
 
 @strawberry.experimental.pydantic.input(

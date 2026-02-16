@@ -498,6 +498,14 @@ async def test_update_manager_integration_test(
         k: v if v is not None or k == "person" else pre_update_manager[k]
         for k, v in test_data.items()
     }
+
+    # Sort lists of relations to ensure deterministic comparison, as LoRa does
+    # not guarantee retrieval order (consistent with test_integration_ituser.py).
+    if "responsibility" in manager_objects_post_update:
+        manager_objects_post_update["responsibility"].sort()
+    if "responsibility" in expected_updated_manager:
+        expected_updated_manager["responsibility"].sort()
+
     assert manager_objects_post_update == expected_updated_manager
 
 
