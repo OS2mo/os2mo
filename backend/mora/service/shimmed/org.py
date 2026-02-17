@@ -1,7 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Iterable
 from datetime import date
 from datetime import datetime
+from typing import Any
 from typing import Literal
 from uuid import UUID
 
@@ -20,7 +22,6 @@ from mora.graphapi.shim import flatten_data
 from mora.service.org import router as org_router
 
 from .errors import handle_gql_error
-from .util import filter_data
 
 
 @org_router.get(
@@ -95,6 +96,9 @@ async def get_organisation(
 
     if response.data["org"]["uuid"] != str(orgid):  # pragma: no cover
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
+
+    def filter_data(data: Iterable, key: str, value: Any) -> filter:
+        return filter(lambda obj: obj[key] == value, data)
 
     org_units = flatten_data(response.data["org_units"]["objects"])
     child_count = ilen(filter_data(org_units, "parent_uuid", str(orgid)))
