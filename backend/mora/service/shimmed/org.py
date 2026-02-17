@@ -1,16 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Iterable
 from datetime import date
 from datetime import datetime
-from typing import Any
 from typing import Literal
 from uuid import UUID
 
 from fastapi import Path
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
-from more_itertools import ilen
 from more_itertools import one
 from ramodels.mo import OrganisationRead
 
@@ -97,11 +94,8 @@ async def get_organisation(
     if response.data["org"]["uuid"] != str(orgid):  # pragma: no cover
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
-    def filter_data(data: Iterable, key: str, value: Any) -> filter:
-        return filter(lambda obj: obj[key] == value, data)
-
     org_units = flatten_data(response.data["org_units"]["objects"])
-    child_count = ilen(filter_data(org_units, "parent_uuid", None))
+    child_count = sum(u["parent_uuid"] is None for u in org_units)
     return {
         "uuid": response.data["org"]["uuid"],
         "user_key": response.data["org"]["user_key"],

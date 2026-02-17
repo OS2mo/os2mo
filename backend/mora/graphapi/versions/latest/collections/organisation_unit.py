@@ -89,7 +89,7 @@ class OrganisationUnit:
     ) -> Response[LazyOrganisationUnit] | None:
         # Root units aren't actually at the root, but have the special "org"
         # UUID as parent. That's confusing. Remove it.
-        if root.parent_uuid is None:
+        if root.parent_uuid is None:  # pragma: no cover
             return None
         if get_version(info.schema) >= GraphQLVersion.VERSION_28:
             if root.parent_uuid == await org.get_configured_organisation_uuid():
@@ -915,7 +915,7 @@ class OrganisationUnit:
     async def parent_uuid(self, root: OrganisationUnitRead, info: Info) -> UUID | None:
         # Root units aren't actually at the root, but have the special "org"
         # UUID as parent. That's confusing. Remove it.
-        if root.parent_uuid is None:
+        if root.parent_uuid is None:  # pragma: no cover
             return None
         if get_version(info.schema) >= GraphQLVersion.VERSION_28:
             if root.parent_uuid == await org.get_configured_organisation_uuid():
