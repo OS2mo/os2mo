@@ -101,7 +101,7 @@ async def get_organisation(
         return filter(lambda obj: obj[key] == value, data)
 
     org_units = flatten_data(response.data["org_units"]["objects"])
-    child_count = ilen(filter_data(org_units, "parent_uuid", str(orgid)))
+    child_count = ilen(filter_data(org_units, "parent_uuid", None))
     return {
         "uuid": response.data["org"]["uuid"],
         "user_key": response.data["org"]["user_key"],
