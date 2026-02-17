@@ -10,6 +10,7 @@ from uuid import UUID
 import strawberry
 from strawberry.types import Info
 
+from mora.graphapi.custom_schema import get_version
 from mora.graphapi.fields import Metadata
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import AssociationRead
@@ -19,6 +20,7 @@ from mora.graphapi.gmodels.mo.details import KLERead
 from mora.graphapi.gmodels.mo.details import LeaveRead
 from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
+from mora.service import org
 
 from ....version import Version as GraphQLVersion
 from ..filters import ManagerFilter
@@ -74,12 +76,7 @@ if TYPE_CHECKING:
     description="Organisation unit within the organisation tree",
 )
 class OrganisationUnit:
-    parent_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(
-            model=OrganisationUnitRead, uuid=root.parent_uuid
-        )
-        if root.parent_uuid
-        else None,
+    @strawberry.field(
         description=dedent(
             """
             The parent organisation unit in the organisation tree.
@@ -87,6 +84,17 @@ class OrganisationUnit:
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
+    async def parent_response(
+        self, root: OrganisationUnitRead, info: Info
+    ) -> Response[LazyOrganisationUnit] | None:
+        # Root units aren't actually at the root, but have the special "org"
+        # UUID as parent. That's confusing. Remove it.
+        if root.parent_uuid is None:  # pragma: no cover
+            return None
+        if get_version(info.schema) >= GraphQLVersion.VERSION_28:
+            if root.parent_uuid == await org.get_configured_organisation_uuid():
+                return None
+        return Response(model=OrganisationUnitRead, uuid=root.parent_uuid)  # type: ignore
 
     parent: LazyOrganisationUnit | None = strawberry.field(
         resolver=to_arbitrary_only(
@@ -904,7 +912,14 @@ class OrganisationUnit:
         description="UUID of the parent organisation unit.",
         deprecation_reason=gen_uuid_field_deprecation("parent"),
     )
-    async def parent_uuid(self, root: OrganisationUnitRead) -> UUID | None:
+    async def parent_uuid(self, root: OrganisationUnitRead, info: Info) -> UUID | None:
+        # Root units aren't actually at the root, but have the special "org"
+        # UUID as parent. That's confusing. Remove it.
+        if root.parent_uuid is None:  # pragma: no cover
+            return None
+        if get_version(info.schema) >= GraphQLVersion.VERSION_28:
+            if root.parent_uuid == await org.get_configured_organisation_uuid():
+                return None
         return root.parent_uuid
 
     @strawberry.field(

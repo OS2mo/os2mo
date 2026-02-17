@@ -7,6 +7,8 @@ Organisation
 This section describes how to interact with organisations.
 """
 
+from uuid import UUID
+
 from fastapi import APIRouter
 from more_itertools import one
 
@@ -73,3 +75,9 @@ async def get_configured_organisation(uuid=None):
         exceptions.ErrorCodes.E_ORG_NOT_ALLOWED(uuid=uuid)
 
     return org
+
+
+async def get_configured_organisation_uuid() -> UUID:
+    configured_organisation = await get_configured_organisation()
+    assert configured_organisation is not None
+    return UUID(configured_organisation["uuid"])

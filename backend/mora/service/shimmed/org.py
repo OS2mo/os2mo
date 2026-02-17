@@ -8,7 +8,6 @@ from uuid import UUID
 from fastapi import Path
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
-from more_itertools import ilen
 from more_itertools import one
 from ramodels.mo import OrganisationRead
 
@@ -20,7 +19,6 @@ from mora.graphapi.shim import flatten_data
 from mora.service.org import router as org_router
 
 from .errors import handle_gql_error
-from .util import filter_data
 
 
 @org_router.get(
@@ -97,7 +95,7 @@ async def get_organisation(
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
     org_units = flatten_data(response.data["org_units"]["objects"])
-    child_count = ilen(filter_data(org_units, "parent_uuid", str(orgid)))
+    child_count = sum(u["parent_uuid"] is None for u in org_units)
     return {
         "uuid": response.data["org"]["uuid"],
         "user_key": response.data["org"]["user_key"],

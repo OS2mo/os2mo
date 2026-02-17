@@ -9,6 +9,55 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 28
+
+This version fixes `OrganisationUnit` returning inconsistent
+`parent_uuid`/`parent`/`parent_response` for organisation units without a
+parent:
+
+```json
+{
+  "data": {
+    "org_units": {
+      "objects": [
+        {
+          "current": {
+            "parent_uuid": "<root org uuid>",
+            "parent": null,
+            "parent_response": {
+              "uuid": "<root org uuid"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+The root org concept is deprecated in OS2mo, and it should not leak to
+organisation units. GraphQL v28 correctly returns `null` for top-level units:
+
+```json
+{
+  "data": {
+    "org_units": {
+      "objects": [
+        {
+          "current": {
+            "parent_uuid": null,
+            "parent": null,
+            "parent_response": null
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+You can use the `org` field in GraphQL if you still need to UUID of the
+organisation.
 
 ## Version 27
 
