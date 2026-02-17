@@ -9,6 +9,223 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 29
+
+Prior to this version, dates in the GraphQL API would often be off-by-one. This
+is no longer the case. For example:
+
+```graphql
+mutation CreateOrgUnit {
+  org_unit_create(
+    input: {
+      name: "create"
+      validity: {
+        from: "2021-01-01T00:00:00+01:00"
+        to: "2023-03-03T00:00:00+01:00"
+      }
+    }
+  ) {
+    uuid
+  }
+}
+
+mutation UpdateOrgUnit {
+  org_unit_update(
+    input: {
+      name: "update"
+      validity: {
+        from: "2022-02-02T00:00:00+01:00"
+        to: "2024-04-04T00:00:00+01:00"
+      }
+    }
+  ) {
+    uuid
+  }
+}
+
+query ReadOrgUnit {
+  org_units(filter: { uuids: [$uuid], from_date: null, to_date: null }) {
+    objects {
+      validities(start: null, end: null) {
+        name
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+```
+
+**GraphQL v28** returns the wrong `to` date on the first validity, but it seems
+like the `to` date on the second validity is correct:
+
+```json
+{
+  "validities": [
+    {
+      "name": "create",
+      "validity": {
+        "from": "2021-01-01T00:00:00+01:00",
+        "to": "2022-02-01T00:00:00+01:00"
+      }
+    },
+    {
+      "name": "update",
+      "validity": {
+        "from": "2022-02-02T00:00:00+01:00",
+        "to": "2024-04-04T00:00:00+02:00"
+      }
+    }
+  ]
+}
+```
+
+_This is not the case, however_. This does not correspond to the data in the
+database! The object will actually be valid until `2024-04-05 00:00:00`, _a day
+later_ than indicated by the GraphQL response and requested in the mutators.
+
+```text
+ id  |                             virkning                             | gyldighed | organisationenhed_registrering_id
+-----+------------------------------------------------------------------+-----------+-----------------------------------
+   1 | ("[""2021-01-01 00:00:00+01"",""2023-03-04 00:00:00+01"")",,,"") | Aktiv     |                                 1
+   2 | ("[""2021-01-01 00:00:00+01"",""2022-02-02 00:00:00+01"")",,,"") | Aktiv     |                                 2
+   3 | ("[""2022-02-02 00:00:00+01"",""2024-04-05 00:00:00+02"")",,,"") | Aktiv     |                                 2
+```
+
+**GraphQL v29** returns and saves the correct data:
+
+```json
+{
+  "validities": [
+    {
+      "name": "create",
+      "validity": {
+        "from": "2021-01-01T00:00:00+01:00",
+        "to": "2022-02-02T00:00:00+01:00"
+      }
+    },
+    {
+      "name": "update",
+      "validity": {
+        "from": "2022-02-02T00:00:00+01:00",
+        "to": "2024-04-04T00:00:00+02:00"
+      }
+    }
+  ]
+}
+```
+
+```text
+ id  |                             virkning                             | gyldighed | organisationenhed_registrering_id
+-----+------------------------------------------------------------------+-----------+-----------------------------------
+   1 | ("[""2021-01-01 00:00:00+01"",""2023-03-03 00:00:00+01"")",,,"") | Aktiv     |                                 1
+   2 | ("[""2021-01-01 00:00:00+01"",""2022-02-02 00:00:00+01"")",,,"") | Aktiv     |                                 2
+   3 | ("[""2022-02-02 00:00:00+01"",""2024-04-04 00:00:00+02"")",,,"") | Aktiv     |                                 2
+```
+
+Worse, when terminating:
+
+```graphql
+mutation TerminateOrgUnit {
+  org_unit_terminate(
+    input: {
+      ...
+      from: "2021-12-12T00:00:00+01:00"
+      to: "2022-12-12T00:00:00+01:00"
+    }
+  ) {
+    uuid
+  }
+}
+```
+
+**GraphQL v28** _seems_ to terminate the validity from `2021-12-11 00:00:00`, a
+day _earlier_ than we requested, and until `2022-12-13 00:00:00`, a day _later_
+than we requested.
+
+```json
+{
+  "validities": [
+    {
+      "name": "create",
+      "validity": {
+        "from": "2021-01-01T00:00:00+01:00",
+        "to": "2021-12-11T00:00:00+01:00"
+      }
+    },
+    {
+      "name": "update",
+      "validity": {
+        "from": "2022-12-13T00:00:00+01:00",
+        "to": "2024-04-04T00:00:00+02:00"
+      }
+    }
+  ]
+}
+```
+
+Looking in the database, however, we see that, actually, the object is
+terminated from `2021-12-12 00:00:00` - `2022-12-13 00:00:00`, so only a day
+too long.
+
+```text
+ id  |                             virkning                             | gyldighed | organisationenhed_registrering_id
+-----+------------------------------------------------------------------+-----------+-----------------------------------
+   1 | ("[""2021-01-01 00:00:00+01"",""2023-03-04 00:00:00+01"")",,,"") | Aktiv     |                                 1
+   2 | ("[""2021-01-01 00:00:00+01"",""2022-02-02 00:00:00+01"")",,,"") | Aktiv     |                                 2
+   3 | ("[""2022-02-02 00:00:00+01"",""2024-04-05 00:00:00+02"")",,,"") | Aktiv     |                                 2
+   4 | ("[""2021-01-01 00:00:00+01"",""2021-12-12 00:00:00+01"")",,,"") | Aktiv     |                                 3
+   5 | ("[""2021-12-12 00:00:00+01"",""2022-12-13 00:00:00+01"")",,,"") | Inaktiv   |                                 3
+   6 | ("[""2022-12-13 00:00:00+01"",""2024-04-05 00:00:00+02"")",,,"") | Aktiv     |                                 3
+```
+
+**GraphQL v29** again returns and saves the expected data:
+
+```json
+{
+  "validities": [
+    {
+      "name": "create",
+      "validity": {
+        "from": "2021-01-01T00:00:00+01:00",
+        "to": "2021-12-12T00:00:00+01:00"
+      }
+    },
+    {
+      "name": "update",
+      "validity": {
+        "from": "2022-12-12T00:00:00+01:00",
+        "to": "2024-04-04T00:00:00+02:00"
+      }
+    }
+  ]
+}
+```
+
+```text
+ id  |                             virkning                             | gyldighed | organisationenhed_registrering_id
+-----+------------------------------------------------------------------+-----------+-----------------------------------
+   1 | ("[""2021-01-01 00:00:00+01"",""2023-03-03 00:00:00+01"")",,,"") | Aktiv     |                                 1
+   2 | ("[""2021-01-01 00:00:00+01"",""2022-02-02 00:00:00+01"")",,,"") | Aktiv     |                                 2
+   3 | ("[""2022-02-02 00:00:00+01"",""2024-04-04 00:00:00+02"")",,,"") | Aktiv     |                                 2
+   4 | ("[""2021-01-01 00:00:00+01"",""2021-12-12 00:00:00+01"")",,,"") | Aktiv     |                                 3
+   5 | ("[""2021-12-12 00:00:00+01"",""2022-12-12 00:00:00+01"")",,,"") | Inaktiv   |                                 3
+   6 | ("[""2022-12-12 00:00:00+01"",""2024-04-04 00:00:00+02"")",,,"") | Aktiv     |                                 3
+```
+
+**So, to migrate:** If you previously accounted for these discrepancies by
+adding or subtracting a day, or if you assumed behaviour such as "the 'to' date
+implicitly includes until `23:59:59` that day", **simply remove all of these
+workarounds when upgrading**. The date**time** of all validities is now
+accurate to the second, so if an object is valid until `2020-02-02 00:00:00`
+that _actually_ means `2020-02-02` at midnight (between `2020-02-01 23:59:59`
+and `2020-02-02 00:00:01`).
+
+All intervals follow the commonly accepted standard that the lower bound is
+inclusive and the upper bound is exclusive (`[)`).
+
 ## Version 28
 
 This version fixes `OrganisationUnit` returning inconsistent

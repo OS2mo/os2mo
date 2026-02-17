@@ -27,6 +27,8 @@ from mora.graphapi.gmodels.mo._shared import ITUserRef
 from mora.graphapi.gmodels.mo._shared import OrgUnitRef
 from mora.graphapi.gmodels.mo._shared import UUIDBase
 from mora.graphapi.gmodels.mo.details import AddressRead as RAAddressRead
+from mora.graphapi.middleware import get_version_from_url
+from mora.graphapi.version import Version
 from mora.util import CPR
 from mora.util import NEGATIVE_INFINITY
 from mora.util import ONE_DAY
@@ -110,6 +112,11 @@ class Validity(RAOpenValidity):
             exceptions.ErrorCodes.E_INVALID_INPUT(
                 f"{self.to_date.isoformat()!r} is not at midnight!",
             )
+
+        # get_version_from_url() doesn't return a version for service-api shims
+        graphql_version = get_version_from_url()
+        if graphql_version is not None and graphql_version >= Version.VERSION_29:
+            return self.to_date
 
         return self.to_date + ONE_DAY
 
