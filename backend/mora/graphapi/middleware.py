@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """Starlette plugins to create context variables that can be used in the service app."""
 
+import re
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from collections.abc import Iterator
@@ -10,13 +11,17 @@ from contextvars import ContextVar
 from inspect import isasyncgen
 from typing import Any
 
+from fastapi import Request
 from starlette_context import context
 from starlette_context import request_cycle_context
+from starlette_context.errors import ContextDoesNotExistError
 from strawberry.extensions import SchemaExtension
 
 from mora.graphapi.gmodels.mo import OpenValidity
+from mora.graphapi.version import Version
 
 _IS_GRAPHQL_MIDDLEWARE_KEY = "is_graphql"
+_GRAPHQL_VERSION_MIDDLEWARE_KEY = "graphql_version"
 
 
 async def is_graphql_context() -> AsyncIterator[None]:
@@ -105,3 +110,29 @@ def with_graphql_dates(dates: OpenValidity) -> Iterator[None]:
 
 def get_graphql_dates() -> OpenValidity | None:
     return _graphql_dates.get()
+
+
+def _parse_graphql_version_from_request(request: Request) -> Version | None:
+    graphql_match = re.match(r"/graphql/v(\d+)", request.url.path)
+    if graphql_match is None:
+        return None
+    return Version(int(graphql_match.group(1)))
+
+
+async def set_graphql_version_from_url(request: Request) -> AsyncIterator[None]:
+    data = {
+        **context,
+        _GRAPHQL_VERSION_MIDDLEWARE_KEY: _parse_graphql_version_from_request(request),
+    }
+    with request_cycle_context(data):
+        yield
+
+
+def get_version_from_url() -> Version | None:
+    """You should probably use get_version() from customs_schema.py instead!"""
+    # We really shouldn't have a fallback here, but if we don't, all unittests,
+    # which run outside the request context, will fail.
+    try:
+        return context.get(_GRAPHQL_VERSION_MIDDLEWARE_KEY)
+    except ContextDoesNotExistError:
+        return None
