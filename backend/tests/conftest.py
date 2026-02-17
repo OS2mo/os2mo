@@ -1377,3 +1377,88 @@ def update_address(
         return UUID(response.data["address_update"]["uuid"])
 
     return inner
+
+
+@pytest.fixture
+async def facets(graphapi_post: GraphAPIPost) -> dict[str, UUID]:
+    facets = (
+        "address_property",
+        "association_type",
+        "confederation",
+        "employee_address_type",
+        "engagement_job_function",
+        "engagement_type",
+        "kle_aspect",
+        "kle_number",
+        "leave_type",
+        "manager_address_type",
+        "manager_level",
+        "manager_type",
+        "org_unit_address_type",
+        "org_unit_hierarchy",
+        "org_unit_level",
+        "org_unit_type",
+        "primary_type",
+        "responsibility",
+        "role",
+        "time_planning",
+        "trade_union",
+        "visibility",
+    )
+
+    async def create(user_key: str) -> UUID:
+        response = graphapi_post(
+            """
+            mutation CreateFacet($input: FacetCreateInput!) {
+                facet_create(input: $input) {
+                    uuid
+                }
+            }
+            """,
+            variables={
+                "input": {
+                    "user_key": user_key,
+                    "validity": {
+                        "from": None,
+                        "to": None,
+                    },
+                }
+            },
+        )
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["facet_create"]["uuid"])
+
+    uuids = await asyncio.gather(*[create(f) for f in facets])
+    return dict(zip(facets, uuids))
+
+
+@pytest.fixture
+async def afdeling(
+    graphapi_post: GraphAPIPost,
+    root_org: UUID,
+    facets: dict[str, UUID],
+) -> UUID:
+    response = graphapi_post(
+        """
+        mutation CreateClass($input: ClassCreateInput!) {
+            class_create(input: $input) {
+                uuid
+            }
+        }
+        """,
+        variables={
+            "input": {
+                "facet_uuid": str(facets["org_unit_type"]),
+                "user_key": "afdeling",
+                "name": "afdeling",
+                "validity": {
+                    "from": "1900-01-01T00:00:00+01:00",
+                    "to": None,
+                },
+            }
+        },
+    )
+    assert response.errors is None
+    assert response.data
+    return UUID(response.data["class_create"]["uuid"])
