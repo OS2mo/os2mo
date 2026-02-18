@@ -431,7 +431,7 @@ async def test_update_manager_vacate_integration_test(
             "uuid": str(uuid),
             "validity": {
                 "from": "2017-01-01T00:00:00+01:00",
-                "to": "2019-12-31T00:00:00+01:00",
+                "to": "2020-01-01T00:00:00+01:00",
             },
         },
         {
