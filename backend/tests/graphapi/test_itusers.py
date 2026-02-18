@@ -421,7 +421,7 @@ async def test_it_user_external_id(graphapi_post: GraphAPIPost) -> None:
             "external_id": "foo",
             "validity": {
                 "from": "2021-01-01T00:00:00+01:00",
-                "to": "2022-02-01T00:00:00+01:00",
+                "to": "2022-02-02T00:00:00+01:00",
             },
         },
         {

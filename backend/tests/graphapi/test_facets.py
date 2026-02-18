@@ -187,7 +187,7 @@ async def test_update_facet(graphapi_post) -> None:
             "user_key": "engagement_job_function",
             "validity": {
                 "from": "1900-01-01T00:00:00+01:00",
-                "to": "1989-12-31T00:00:00+01:00",
+                "to": "1990-01-01T00:00:00+01:00",
             },
         },
         {

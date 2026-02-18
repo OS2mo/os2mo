@@ -137,7 +137,6 @@ async def test_create_multiple_addresses_integration_test(
     graphapi_post: GraphAPIPost, org_uuids, employee_uuids
 ) -> None:
     """Test that multiple addresses can be created using the list mutator."""
-
     org_uuid = org_uuids[0]
     org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
 
