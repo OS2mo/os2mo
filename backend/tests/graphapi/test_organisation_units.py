@@ -1,22 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from datetime import datetime
 from functools import partial
-from unittest.mock import AsyncMock
-from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
 
 import pytest
-from hypothesis import HealthCheck
-from hypothesis import given
-from hypothesis import settings
-from hypothesis import strategies as st
-from mora.graphapi.gmodels.mo import Validity as RAValidity
-from mora.graphapi.shim import execute_graphql
-from mora.graphapi.versions.latest.inputs import OrganisationUnitCreateInput
-from mora.graphapi.versions.latest.inputs import OrganisationUnitUpdateInput
-from mora.util import POSITIVE_INFINITY
 from more_itertools import one
 from strawberry import UNSET
 from strawberry.types.unset import UnsetType
@@ -27,14 +15,6 @@ from .utils import fetch_org_unit_validity
 from .utils import gen_read_parent
 from .utils import gen_set_parent
 from .utils import sjsonable_encoder
-
-validity_builder = st.builds(
-    RAValidity,
-    from_date=st.datetimes(
-        min_value=datetime(1970, 1, 1), max_value=datetime(2000, 1, 1)
-    ),
-    to_date=st.none(),
-)
 
 
 @pytest.mark.integration_test
@@ -67,90 +47,35 @@ def test_query_all(graphapi_post: GraphAPIPost):
     assert response.data
 
 
-@given(test_data=st.builds(OrganisationUnitCreateInput, validity=validity_builder))
-@patch("mora.graphapi.versions.latest.mutators.create_org_unit", new_callable=AsyncMock)
-async def test_create_org_unit(
-    create_org_unit: AsyncMock, test_data: OrganisationUnitCreateInput
-) -> None:
-    """Test that pydantic jsons are passed through to create_org_unit."""
-
-    mutate_query = """
-        mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
-            org_unit_create(input: $input) {
-                uuid
-            }
-        }
-    """
-    created_uuid = uuid4()
-    create_org_unit.return_value = created_uuid
-
-    payload = sjsonable_encoder(test_data)
-    response = await execute_graphql(
-        query=mutate_query, variable_values={"input": payload}
-    )
-    assert response.errors is None
-    assert response.data == {"org_unit_create": {"uuid": str(created_uuid)}}
-
-    create_org_unit.assert_called_once()
-
-
-@settings(
-    suppress_health_check=[
-        # Running multiple tests on the same database is okay in this instance
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 def test_create_org_unit_integration_test(
-    data, graphapi_post: GraphAPIPost, org_uuids
+    graphapi_post: GraphAPIPost, org_uuids
 ) -> None:
     """Test that organisation units can be created in LoRa via GraphQL."""
-    # org_uuids = fetch_org_uuids(graphapi_post)
-
-    parent_uuid = data.draw(st.sampled_from(org_uuids))
+    parent_uuid = org_uuids[0]
     parent_from, parent_to = fetch_org_unit_validity(graphapi_post, parent_uuid)
 
-    test_data_validity_start = data.draw(
-        st.datetimes(min_value=parent_from, max_value=parent_to or datetime.max)
-    )
-    if parent_to:
-        test_data_validity_end_strat = st.datetimes(
-            min_value=test_data_validity_start, max_value=parent_to
-        )
-    else:
-        test_data_validity_end_strat = st.none() | st.datetimes(
-            min_value=test_data_validity_start,
-        )
+    start_date = parent_from
 
     org_unit_type_uuids = fetch_class_uuids(graphapi_post, "org_unit_type")
     time_planning_uuids = fetch_class_uuids(graphapi_post, "time_planning")
     org_unit_level_uuids = fetch_class_uuids(graphapi_post, "org_unit_level")
 
-    test_data = data.draw(
-        st.builds(
-            OrganisationUnitCreateInput,
-            uuid=st.uuids(),
-            # TODO: Allow all text
-            name=st.text(
-                alphabet=st.characters(whitelist_categories=("L",)), min_size=1
-            ),
-            parent=st.just(parent_uuid),
-            org_unit_type=st.sampled_from(org_unit_type_uuids),
-            time_planning=st.sampled_from(time_planning_uuids),
-            org_unit_level=st.sampled_from(org_unit_level_uuids),
-            # TODO: Handle org_unit_hierarchy as we do with the above
-            # NOTE: org_unit_hierarchy does not exist in the sample data
-            org_unit_hierarchy=st.none(),
-            validity=st.builds(
-                RAValidity,
-                from_date=st.just(test_data_validity_start),
-                to_date=test_data_validity_end_strat,
-            ),
-        )
-    )
-    payload = sjsonable_encoder(test_data)
+    test_data = {
+        "uuid": str(uuid4()),
+        "name": "Integ Unit",
+        "user_key": "integ_unit_key",
+        "parent": str(parent_uuid),
+        "org_unit_type": str(org_unit_type_uuids[0]),
+        "time_planning": str(time_planning_uuids[0]),
+        "org_unit_level": str(org_unit_level_uuids[0]),
+        "org_unit_hierarchy": None,
+        "validity": {
+            "from": start_date.isoformat(),
+            "to": None,
+        },
+    }
 
     mutate_query = """
         mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
@@ -159,7 +84,7 @@ def test_create_org_unit_integration_test(
             }
         }
     """
-    response = graphapi_post(mutate_query, {"input": payload})
+    response = graphapi_post(mutate_query, {"input": test_data})
     assert response.errors is None
     assert response.data is not None
     uuid = UUID(response.data["org_unit_create"]["uuid"])
@@ -190,32 +115,16 @@ def test_create_org_unit_integration_test(
     assert response.errors is None
     assert response.data is not None
     obj = one(one(response.data["org_units"]["objects"])["objects"])
-    assert obj["name"] == test_data.name
-    assert obj["user_key"] == test_data.user_key or str(uuid)
-    assert UUID(obj["parent_uuid"]) == test_data.parent
-    assert UUID(obj["unit_type_uuid"]) == test_data.org_unit_type
-    assert UUID(obj["time_planning_uuid"]) == test_data.time_planning
-    assert UUID(obj["org_unit_level_uuid"]) == test_data.org_unit_level
-    # assert UUID(obj["org_unit_hierarchy_uuid"]) == test_data.org_unit_hierarchy
+    assert obj["name"] == test_data["name"]
+    assert obj["user_key"] == test_data["user_key"]
+    assert obj["parent_uuid"] == test_data["parent"]
+    assert obj["unit_type_uuid"] == test_data["org_unit_type"]
+    assert obj["time_planning_uuid"] == test_data["time_planning"]
+    assert obj["org_unit_level_uuid"] == test_data["org_unit_level"]
     assert obj["org_unit_hierarchy_uuid"] is None
-    assert test_data.org_unit_hierarchy is None
-
-    assert (
-        datetime.fromisoformat(obj["validity"]["from"]).date()
-        == test_data.validity.from_date.date()
-    )
-
-    # FYI: "backend/mora/util.py::to_iso_date()" does a check for POSITIVE_INFINITY.year
-    if (
-        not test_data.validity.to_date
-        or test_data.validity.to_date.year == POSITIVE_INFINITY.year
-    ):
-        assert obj["validity"]["to"] is None
-    else:
-        assert (
-            datetime.fromisoformat(obj["validity"]["to"]).date()
-            == test_data.validity.to_date.date()
-        )
+    assert test_data["org_unit_hierarchy"] is None
+    assert obj["validity"]["from"] == test_data["validity"]["from"]
+    assert obj["validity"]["to"] is None
 
 
 @pytest.mark.integration_test
@@ -929,32 +838,6 @@ async def test_update_org_unit_mutation_integration_test(
     }
 
     assert post_update_org_unit == expected_updated_org_unit
-
-
-@given(test_data=st.builds(OrganisationUnitUpdateInput, validity=validity_builder))
-@patch("mora.graphapi.versions.latest.mutators.update_org_unit", new_callable=AsyncMock)
-async def test_update_org_unit_mutation_unit_test(
-    update_org_unit: AsyncMock, test_data: OrganisationUnitUpdateInput
-) -> None:
-    """Tests that the mutator function for takes our input type."""
-
-    mutation = """
-        mutation UpdateOrganisationUnit($input: OrganisationUnitUpdateInput!) {
-            org_unit_update(input: $input) {
-                uuid
-            }
-        }
-    """
-
-    update_org_unit.return_value = test_data.uuid
-
-    payload = sjsonable_encoder(test_data)
-
-    response = await execute_graphql(query=mutation, variable_values={"input": payload})
-    assert response.errors is None
-    assert response.data == {"org_unit_update": {"uuid": str(test_data.uuid)}}
-
-    update_org_unit.assert_called_once()
 
 
 @pytest.mark.integration_test

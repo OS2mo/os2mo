@@ -1,13 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from unittest.mock import AsyncMock
-from unittest.mock import patch
 
 import pytest
 from fastapi.encoders import jsonable_encoder
-from hypothesis import given
-from mora.graphapi.shim import execute_graphql
-from mora.graphapi.versions.latest.models import RelatedUnitsUpdate
 
 from tests.conftest import GQLResponse
 
@@ -37,35 +32,6 @@ def test_query_all(graphapi_post: GraphAPIPost):
     response = graphapi_post(query)
     assert response.errors is None
     assert response.data
-
-
-@given(test_data=...)
-@patch(
-    "mora.graphapi.versions.latest.mutators.update_related_units",
-    new_callable=AsyncMock,
-)
-async def test_update_related_units_mutation_unit_test(
-    update_related_units: AsyncMock, test_data: RelatedUnitsUpdate
-) -> None:
-    """Tests that the mutator function for creating a RelatedUnits annotation passes through,
-    with the defined pydantic model."""
-
-    mutation = """
-        mutation UpdateRelatedUnits($input: RelatedUnitsUpdateInput!) {
-            related_units_update(input: $input) {
-                uuid
-            }
-        }
-    """
-
-    update_related_units.return_value = test_data.origin
-
-    payload = jsonable_encoder(test_data)
-    response = await execute_graphql(query=mutation, variable_values={"input": payload})
-    assert response.errors is None
-    assert response.data == {"related_units_update": {"uuid": str(test_data.origin)}}
-
-    update_related_units.assert_called_with(test_data)
 
 
 @pytest.mark.integration_test

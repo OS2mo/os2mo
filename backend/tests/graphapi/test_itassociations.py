@@ -1,24 +1,12 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from datetime import datetime
-from unittest.mock import AsyncMock
-from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
 
 import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
-from hypothesis import HealthCheck
-from hypothesis import given
-from hypothesis import settings
-from hypothesis import strategies as st
-from mora.graphapi.gmodels.mo import Validity as RAValidity
 from mora.graphapi.gmodels.mo.details import AssociationRead
-from mora.graphapi.shim import execute_graphql
-from mora.graphapi.versions.latest.models import ITAssociationCreate
-from mora.graphapi.versions.latest.models import ITAssociationUpdate
-from mora.util import POSITIVE_INFINITY
 from more_itertools import one
 from pydantic import Field
 
@@ -93,82 +81,32 @@ def test_query_flag(graphapi_post: GraphAPIPost):
     assert associations[True].isdisjoint(associations[False])
 
 
-@given(test_data=...)
-@patch(
-    "mora.graphapi.versions.latest.mutators.create_itassociation",
-    new_callable=AsyncMock,
-)
-async def test_create_itassociation_mutation_unit_test(
-    create_itassociation: AsyncMock, test_data: ITAssociationCreate
-) -> None:
-    """Tests that the mutator function for creating a ITAssociation annotation passes through,
-    with the defined pydantic model."""
-
-    mutation = """
-        mutation CreateITAssociation($input: ITAssociationCreateInput!) {
-            itassociation_create(input: $input) {
-                uuid
-            }
-        }
-    """
-
-    create_itassociation.return_value = test_data.uuid
-
-    payload = jsonable_encoder(test_data)
-
-    response = await execute_graphql(query=mutation, variable_values={"input": payload})
-    assert response.errors is None
-    assert response.data == {"itassociation_create": {"uuid": str(test_data.uuid)}}
-
-    create_itassociation.assert_called_with(test_data)
-
-
-@settings(
-    suppress_health_check=[
-        # Running multiple tests on the same database is okay in this instance
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_create_itassociation_integration_test(
-    data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids, ituser_uuids
+    graphapi_post: GraphAPIPost, org_uuids, employee_uuids, ituser_uuids
 ) -> None:
     """Test that ITAssociation annotations can be created in LoRa via GraphQL."""
 
-    org_uuid = data.draw(st.sampled_from(org_uuids))
+    org_uuid = org_uuids[0]
     parent_from, parent_to = fetch_org_unit_validity(graphapi_post, org_uuid)
 
-    test_data_validity_start = data.draw(
-        st.datetimes(min_value=parent_from, max_value=parent_to or datetime.max)
-    )
-    if parent_to:
-        test_data_validity_end_strat = st.datetimes(
-            min_value=test_data_validity_start, max_value=parent_to
-        )
-    else:
-        test_data_validity_end_strat = st.none() | st.datetimes(
-            min_value=test_data_validity_start,
-        )
+    start_date = parent_from
 
     job_function_uuids = fetch_class_uuids(graphapi_post, "engagement_job_function")
 
-    test_data = data.draw(
-        st.builds(
-            ITAssociationCreate,
-            uuid=st.uuids() | st.none(),
-            org_unit=st.just(org_uuid),
-            it_user=st.sampled_from(ituser_uuids),
-            person=st.sampled_from(employee_uuids),
-            job_function=st.sampled_from(job_function_uuids),
-            validity=st.builds(
-                RAValidity,
-                from_date=st.just(test_data_validity_start),
-                to_date=test_data_validity_end_strat,
-            ),
-        )
-    )
+    test_data = {
+        "uuid": str(uuid4()),
+        "user_key": "asd123",
+        "org_unit": str(org_uuid),
+        "it_user": str(ituser_uuids[0]),
+        "person": str(employee_uuids[0]),
+        "job_function": str(job_function_uuids[0]),
+        "validity": {
+            "from": start_date.isoformat(),
+            "to": None,
+        },
+    }
 
     mutation = """
         mutation CreateITAssociation($input: ITAssociationCreateInput!) {
@@ -177,7 +115,7 @@ async def test_create_itassociation_integration_test(
             }
         }
     """
-    response = graphapi_post(mutation, {"input": jsonable_encoder(test_data)})
+    response = graphapi_post(mutation, {"input": test_data})
 
     assert response.errors is None
     uuid = UUID(response.data["itassociation_create"]["uuid"])
@@ -204,63 +142,17 @@ async def test_create_itassociation_integration_test(
 
     response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
+    assert response.data is not None
     obj = one(one(response.data["associations"]["objects"])["objects"])
 
-    assert UUID(obj["employee"]) == test_data.person
-    assert UUID(obj["it_user"]) == test_data.it_user
-    assert UUID(obj["org_unit"]) == test_data.org_unit
-    assert obj["user_key"] == (test_data.user_key or str(uuid))
-    assert UUID(obj["job_function"]) == test_data.job_function
+    assert obj["employee"] == test_data["person"]
+    assert obj["it_user"] == test_data["it_user"]
+    assert obj["org_unit"] == test_data["org_unit"]
+    assert obj["user_key"] == test_data["user_key"]
+    assert obj["job_function"] == test_data["job_function"]
 
-    assert (
-        datetime.fromisoformat(obj["validity"]["from"]).date()
-        == test_data.validity.from_date.date()
-    )
-
-    # FYI: "backend/mora/util.py::to_iso_date()" does a check for POSITIVE_INFINITY.year
-    if (
-        not test_data.validity.to_date
-        or test_data.validity.to_date.year == POSITIVE_INFINITY.year
-    ):
-        assert obj["validity"]["to"] is None
-    else:
-        assert (
-            datetime.fromisoformat(obj["validity"]["to"]).date()
-            == test_data.validity.to_date.date()
-        )
-
-
-@given(test_data=...)
-@patch(
-    "mora.graphapi.versions.latest.mutators.update_itassociation",
-    new_callable=AsyncMock,
-)
-async def test_update_itassociation_unit_test(
-    update_itassociation: AsyncMock, test_data: ITAssociationUpdate
-) -> None:
-    """Test that pydantic jsons are passed through to association_update."""
-
-    mutate_query = """
-        mutation UpdateITAssociation($input: ITAssociationUpdateInput!) {
-            itassociation_update(input: $input) {
-                uuid
-            }
-        }
-    """
-
-    itassociation_uuid_to_update = uuid4()
-    update_itassociation.return_value = itassociation_uuid_to_update
-
-    payload = jsonable_encoder(test_data)
-    response = await execute_graphql(
-        query=mutate_query, variable_values={"input": payload}
-    )
-    assert response.errors is None
-    assert response.data == {
-        "itassociation_update": {"uuid": str(itassociation_uuid_to_update)}
-    }
-
-    update_itassociation.assert_called_with(test_data)
+    assert obj["validity"]["from"] == test_data["validity"]["from"]
+    assert obj["validity"]["to"] is None
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)

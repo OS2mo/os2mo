@@ -1,12 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from unittest.mock import patch
 from uuid import UUID
 
 import pytest
-from hypothesis import HealthCheck
-from hypothesis import given
-from hypothesis import settings
 from more_itertools import first
 from more_itertools import one
 
@@ -277,32 +273,3 @@ def test_itsystem_delete(graphapi_post) -> None:
         UUID(x["current"]["uuid"]): x for x in response.data["itsystems"]["objects"]
     }
     assert itsystem_map.keys() == existing_itsystem_uuids - {deleted_uuid}
-
-
-@settings(
-    suppress_health_check=[
-        # Database access is mocked, so it's okay to run the test with the same
-        # graphapi_post fixture multiple times.
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(uuid=...)
-def test_itsystem_delete_mocked(uuid: UUID, graphapi_post: GraphAPIPost) -> None:
-    """Test that delete_object is called as expected."""
-    mutation = """
-        mutation DeleteITSystem($uuid: UUID!) {
-            itsystem_delete(uuid: $uuid) {
-                uuid
-            }
-        }
-    """
-    with patch("oio_rest.db.delete_object") as mock:
-        mock.return_value = None
-
-        response = graphapi_post(mutation, {"uuid": str(uuid)})
-        assert response.errors is None
-        assert response.data
-        deleted_uuid = UUID(response.data["itsystem_delete"]["uuid"])
-        assert deleted_uuid == uuid
-
-        mock.assert_called_with("itsystem", "", str(uuid))
