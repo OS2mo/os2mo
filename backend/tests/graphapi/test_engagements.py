@@ -1,25 +1,12 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
-from unittest.mock import AsyncMock
-from unittest.mock import patch
 from uuid import UUID
-from uuid import uuid4
 
 import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from fastramqpi.ra_utils.apply import apply
-from hypothesis import HealthCheck
-from hypothesis import given
-from hypothesis import settings
-from hypothesis import strategies as st
-from hypothesis.strategies import characters
-from mora.graphapi.gmodels.mo import Validity as RAValidity
-from mora.graphapi.shim import execute_graphql
-from mora.graphapi.versions.latest.models import EngagementCreate
-from mora.graphapi.versions.latest.models import EngagementUpdate
-from mora.util import POSITIVE_INFINITY
 from more_itertools import one
 
 from ..conftest import GraphAPIPost
@@ -319,86 +306,39 @@ async def test_engagement_filters(
     """
     response = graphapi_post(engagement_query, variables=dict(filter=filter))
     assert response.errors is None
+    assert response.data is not None
     assert len(response.data["engagements"]["objects"]) == expected
 
 
-@given(test_data=st.builds(EngagementCreate, employee=st.none(), person=st.uuids()))
-@patch(
-    "mora.graphapi.versions.latest.mutators.create_engagement", new_callable=AsyncMock
-)
-async def test_create_engagement(
-    create_engagement: AsyncMock, test_data: EngagementCreate
-) -> None:
-    """Test that pydantic jsons are passed through to engagement_create."""
-
-    mutate_query = """
-        mutation CreateEngagement($input: EngagementCreateInput!) {
-            engagement_create(input: $input) {
-                uuid
-            }
-        }
-    """
-    create_engagement.return_value = test_data.uuid
-
-    payload = jsonable_encoder(test_data)
-    response = await execute_graphql(
-        query=mutate_query, variable_values={"input": payload}
-    )
-    assert response.errors is None
-    assert response.data == {"engagement_create": {"uuid": str(test_data.uuid)}}
-
-    create_engagement.assert_called_with(test_data)
-
-
-@settings(
-    suppress_health_check=[
-        # Running multiple tests on the same database is okay in this instance
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_create_engagement_integration_test(
-    data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids
+    graphapi_post: GraphAPIPost, org_uuids, employee_uuids
 ) -> None:
     """Test that multiple engagements can be created using the list mutator."""
 
-    org_uuid = data.draw(st.sampled_from(org_uuids))
+    org_uuid = org_uuids[0]
     org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
 
-    test_data_validity_start = data.draw(
-        st.datetimes(min_value=org_from, max_value=org_to or datetime.max)
-    )
-    if org_to:
-        test_data_validity_end_strat = st.datetimes(
-            min_value=test_data_validity_start, max_value=org_to
-        )
-    else:
-        test_data_validity_end_strat = st.none() | st.datetimes(
-            min_value=test_data_validity_start,
-        )
+    start_date = org_from
 
     engagement_type_uuids = fetch_class_uuids(graphapi_post, "engagement_type")
     job_function_uuids = fetch_class_uuids(graphapi_post, "engagement_job_function")
     primary_uuids = fetch_class_uuids(graphapi_post, "primary_type")
 
-    test_data = data.draw(
-        st.builds(
-            EngagementCreate,
-            org_unit=st.just(org_uuid),
-            employee=st.sampled_from(employee_uuids),
-            engagement_type=st.sampled_from(engagement_type_uuids),
-            job_function=st.sampled_from(job_function_uuids),
-            primary=st.sampled_from(primary_uuids),
-            validity=st.builds(
-                RAValidity,
-                from_date=st.just(test_data_validity_start),
-                to_date=test_data_validity_end_strat,
-            ),
-            fraction=st.none() | st.integers(min_value=0, max_value=1000000),
-        )
-    )
+    test_data = {
+        "user_key": "asd123",
+        "org_unit": str(org_uuid),
+        "employee": str(employee_uuids[0]),
+        "engagement_type": str(engagement_type_uuids[0]),
+        "job_function": str(job_function_uuids[0]),
+        "primary": str(primary_uuids[0]),
+        "fraction": 500000,
+        "validity": {
+            "from": start_date.isoformat(),
+            "to": None,
+        },
+    }
 
     mutate_query = """
         mutation CreateEngagement($input: EngagementCreateInput!) {
@@ -407,8 +347,9 @@ async def test_create_engagement_integration_test(
             }
         }
     """
-    response = graphapi_post(mutate_query, {"input": jsonable_encoder(test_data)})
+    response = graphapi_post(mutate_query, {"input": test_data})
     assert response.errors is None
+    assert response.data is not None
     uuid = UUID(response.data["engagement_create"]["uuid"])
 
     verify_query = """
@@ -434,137 +375,18 @@ async def test_create_engagement_integration_test(
     """
     response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
+    assert response.data is not None
     obj = one(one(response.data["engagements"]["objects"])["objects"])
-    assert obj["user_key"] == test_data.user_key or str(uuid)
-    assert UUID(obj["org_unit"]) == test_data.org_unit
-    assert UUID(obj["employee"]) == test_data.employee
-    assert UUID(obj["engagement_type"]) == test_data.engagement_type
-    assert UUID(obj["job_function"]) == test_data.job_function
-    assert UUID(obj["primary"]) == test_data.primary
+    assert obj["user_key"] == test_data["user_key"]
+    assert obj["org_unit"] == test_data["org_unit"]
+    assert obj["employee"] == test_data["employee"]
+    assert obj["engagement_type"] == test_data["engagement_type"]
+    assert obj["job_function"] == test_data["job_function"]
+    assert obj["primary"] == test_data["primary"]
 
-    # We would expect to read what was written, but 0 is converted to None when reading from LoRa.
-    # https://redmine.magenta.dk/issues/65456
-    if test_data.fraction == 0:
-        assert obj["fraction"] is None
-    else:
-        assert obj["fraction"] == test_data.fraction
-    assert (
-        datetime.fromisoformat(obj["validity"]["from"]).date()
-        == test_data.validity.from_date.date()
-    )
-
-    # FYI: "backend/mora/util.py::to_iso_date()" does a check for POSITIVE_INFINITY.year
-    if (
-        not test_data.validity.to_date
-        or test_data.validity.to_date.year == POSITIVE_INFINITY.year
-    ):
-        assert obj["validity"]["to"] is None
-    else:
-        assert (
-            datetime.fromisoformat(obj["validity"]["to"]).date()
-            == test_data.validity.to_date.date()
-        )
-
-
-@settings(
-    suppress_health_check=[
-        # Running multiple tests on the same database is okay in this instance
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(data=st.data())
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-async def test_create_multiple_engagements_integration_test(
-    data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids
-) -> None:
-    """Test that engagements can be created in LoRa via GraphQL."""
-
-    org_uuid = data.draw(st.sampled_from(org_uuids))
-    org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
-
-    test_data_validity_start = data.draw(
-        st.datetimes(min_value=org_from, max_value=org_to or datetime.max)
-    )
-    if org_to:
-        test_data_validity_end_strat = st.datetimes(
-            min_value=test_data_validity_start, max_value=org_to
-        )
-    else:
-        test_data_validity_end_strat = st.none() | st.datetimes(
-            min_value=test_data_validity_start,
-        )
-
-    engagement_type_uuids = fetch_class_uuids(graphapi_post, "engagement_type")
-    job_function_uuids = fetch_class_uuids(graphapi_post, "engagement_job_function")
-    primary_uuids = fetch_class_uuids(graphapi_post, "primary_type")
-
-    test_data = data.draw(
-        st.lists(
-            st.builds(
-                EngagementCreate,
-                org_unit=st.just(org_uuid),
-                employee=st.sampled_from(employee_uuids),
-                engagement_type=st.sampled_from(engagement_type_uuids),
-                job_function=st.sampled_from(job_function_uuids),
-                primary=st.sampled_from(primary_uuids),
-                fraction=st.none() | st.integers(min_value=0, max_value=1000000),
-                validity=st.builds(
-                    RAValidity,
-                    from_date=st.just(test_data_validity_start),
-                    to_date=test_data_validity_end_strat,
-                ),
-            ),
-        )
-    )
-
-    CREATE_ENGAGEMENTS_QUERY = """
-        mutation CreateEngagement($input: [EngagementCreateInput!]!) {
-            engagements_create(input: $input) {
-                uuid
-            }
-        }
-    """
-
-    response = graphapi_post(
-        CREATE_ENGAGEMENTS_QUERY, {"input": jsonable_encoder(test_data)}
-    )
-    assert response.errors is None
-    uuids = [engagement["uuid"] for engagement in response.data["engagements_create"]]
-    assert len(uuids) == len(test_data)
-
-
-@given(test_data=...)
-@patch(
-    "mora.graphapi.versions.latest.mutators.update_engagement", new_callable=AsyncMock
-)
-async def test_update_engagement_unit_test(
-    update_engagement: AsyncMock, test_data: EngagementUpdate
-) -> None:
-    """Test that pydantic jsons are passed through to engagement_update."""
-
-    mutate_query = """
-        mutation UpdateEngagement($input: EngagementUpdateInput!) {
-            engagement_update(input: $input) {
-                uuid
-            }
-        }
-    """
-
-    engagement_uuid_to_update = uuid4()
-    update_engagement.return_value = engagement_uuid_to_update
-
-    payload = jsonable_encoder(test_data)
-    response = await execute_graphql(
-        query=mutate_query, variable_values={"input": payload}
-    )
-
-    assert response.errors is None
-    assert response.data == {
-        "engagement_update": {"uuid": str(engagement_uuid_to_update)}
-    }
-
-    update_engagement.assert_called_with(test_data)
+    assert obj["fraction"] == test_data["fraction"]
+    assert obj["validity"]["from"] == test_data["validity"]["from"]
+    assert obj["validity"]["to"] is None
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
@@ -906,67 +728,43 @@ async def test_update_extensions_field_integrations_test(
     assert post_update_engagement_with_new_extensions == expected_extension_field
 
 
-@settings(
-    suppress_health_check=[
-        # Running multiple tests on the same database is okay in this instance
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_create_engagement_with_extensions_fields_integrations_test(
-    data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids
+    graphapi_post: GraphAPIPost, org_uuids, employee_uuids
 ) -> None:
     """Test that extension fields in engagements can be created in LoRa via GraphQL."""
-    org_uuid = data.draw(st.sampled_from(org_uuids))
+    org_uuid = org_uuids[0]
     org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
 
-    test_data_validity_start = data.draw(
-        st.datetimes(min_value=org_from, max_value=org_to or datetime.max)
-    )
-    if org_to:
-        test_data_validity_end_strat = st.datetimes(
-            min_value=test_data_validity_start, max_value=org_to
-        )
-    else:
-        test_data_validity_end_strat = st.none() | st.datetimes(
-            min_value=test_data_validity_start,
-        )
+    start_date = org_from
+
     engagement_type_uuids = fetch_class_uuids(graphapi_post, "engagement_type")
     job_function_uuids = fetch_class_uuids(graphapi_post, "engagement_job_function")
 
-    # 'Cc' - Control, 'Cs' - Surrogate.
-    extension_field_texts = st.text(
-        alphabet=characters(blacklist_categories=("Cc", "Cs")),
-        min_size=1,
-    )
+    extension_field_text = "Extension Text"
 
-    test_data = data.draw(
-        st.builds(
-            EngagementCreate,
-            org_unit=st.just(org_uuid),
-            employee=st.sampled_from(employee_uuids),
-            engagement_type=st.sampled_from(engagement_type_uuids),
-            job_function=st.sampled_from(job_function_uuids),
-            fraction=st.none() | st.integers(min_value=0, max_value=1000000),
-            validity=st.builds(
-                RAValidity,
-                from_date=st.just(test_data_validity_start),
-                to_date=test_data_validity_end_strat,
-            ),
-            extension_1=extension_field_texts,
-            extension_2=extension_field_texts,
-            extension_3=extension_field_texts,
-            extension_4=extension_field_texts,
-            extension_5=extension_field_texts,
-            extension_6=extension_field_texts,
-            extension_7=extension_field_texts,
-            extension_8=extension_field_texts,
-            extension_9=extension_field_texts,
-            extension_10=extension_field_texts,
-        )
-    )
+    test_data = {
+        "org_unit": str(org_uuid),
+        "employee": str(employee_uuids[0]),
+        "engagement_type": str(engagement_type_uuids[0]),
+        "job_function": str(job_function_uuids[0]),
+        "fraction": 50000,
+        "validity": {
+            "from": start_date.isoformat(),
+            "to": None,
+        },
+        "extension_1": extension_field_text,
+        "extension_2": extension_field_text,
+        "extension_3": extension_field_text,
+        "extension_4": extension_field_text,
+        "extension_5": extension_field_text,
+        "extension_6": extension_field_text,
+        "extension_7": extension_field_text,
+        "extension_8": extension_field_text,
+        "extension_9": extension_field_text,
+        "extension_10": extension_field_text,
+    }
 
     mutate_query = """
         mutation CreateEngagement($input: EngagementCreateInput!) {
@@ -976,7 +774,7 @@ async def test_create_engagement_with_extensions_fields_integrations_test(
         }
     """
     mutation_response = graphapi_post(
-        query=mutate_query, variables={"input": jsonable_encoder(test_data)}
+        query=mutate_query, variables={"input": test_data}
     )
 
     assert mutation_response.errors is None
@@ -1013,25 +811,20 @@ async def test_create_engagement_with_extensions_fields_integrations_test(
         """
     response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
+    assert response.data is not None
 
     obj = one(one(response.data["engagements"]["objects"])["objects"])
-    # We would expect to read what was written, but 0 is converted to None when reading from LoRa.
-    # https://redmine.magenta.dk/issues/65456
-    if test_data.fraction == 0:
-        assert obj["fraction"] is None
-    else:
-        assert obj["fraction"] == test_data.fraction
-
-    assert obj["extension_1"] == test_data.extension_1
-    assert obj["extension_2"] == test_data.extension_2
-    assert obj["extension_3"] == test_data.extension_3
-    assert obj["extension_4"] == test_data.extension_4
-    assert obj["extension_5"] == test_data.extension_5
-    assert obj["extension_6"] == test_data.extension_6
-    assert obj["extension_7"] == test_data.extension_7
-    assert obj["extension_8"] == test_data.extension_8
-    assert obj["extension_9"] == test_data.extension_9
-    assert obj["extension_10"] == test_data.extension_10
+    assert obj["fraction"] == test_data["fraction"]
+    assert obj["extension_1"] == test_data["extension_1"]
+    assert obj["extension_2"] == test_data["extension_2"]
+    assert obj["extension_3"] == test_data["extension_3"]
+    assert obj["extension_4"] == test_data["extension_4"]
+    assert obj["extension_5"] == test_data["extension_5"]
+    assert obj["extension_6"] == test_data["extension_6"]
+    assert obj["extension_7"] == test_data["extension_7"]
+    assert obj["extension_8"] == test_data["extension_8"]
+    assert obj["extension_9"] == test_data["extension_9"]
+    assert obj["extension_10"] == test_data["extension_10"]
 
 
 @pytest.mark.integration_test

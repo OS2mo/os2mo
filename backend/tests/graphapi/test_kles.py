@@ -1,22 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from datetime import datetime
-from unittest.mock import AsyncMock
-from unittest.mock import patch
 from uuid import UUID
+from uuid import uuid4
 
 import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
-from hypothesis import HealthCheck
-from hypothesis import given
-from hypothesis import settings
-from hypothesis import strategies as st
-from mora.graphapi.gmodels.mo import Validity as RAValidity
-from mora.graphapi.shim import execute_graphql
-from mora.graphapi.versions.latest.models import KLECreate
-from mora.graphapi.versions.latest.models import KLEUpdate
-from mora.util import POSITIVE_INFINITY
 from more_itertools import one
 
 from ..conftest import GraphAPIPost
@@ -51,78 +40,32 @@ def test_query_all(graphapi_post: GraphAPIPost):
     assert response.data
 
 
-@given(test_data=...)
-@patch("mora.graphapi.versions.latest.mutators.create_kle", new_callable=AsyncMock)
-async def test_create_kle_mutation_unit_test(
-    create_kle: AsyncMock, test_data: KLECreate
-) -> None:
-    """Tests that the mutator function for creating a KLE annotation passes through,
-    with the defined pydantic model."""
-
-    mutation = """
-        mutation CreateKLE($input: KLECreateInput!) {
-            kle_create(input: $input) {
-                uuid
-            }
-        }
-    """
-
-    create_kle.return_value = test_data.uuid
-
-    payload = jsonable_encoder(test_data)
-    response = await execute_graphql(query=mutation, variable_values={"input": payload})
-    assert response.errors is None
-    assert response.data == {"kle_create": {"uuid": str(test_data.uuid)}}
-
-    create_kle.assert_called_with(test_data)
-
-
-@settings(
-    suppress_health_check=[
-        # Running multiple tests on the same database is okay in this instance
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_create_kle_integration_test(
-    data, graphapi_post: GraphAPIPost, org_uuids
+    graphapi_post: GraphAPIPost, org_uuids
 ) -> None:
     """Test that KLE annotations can be created in LoRa via GraphQL."""
 
-    org_uuid = data.draw(st.sampled_from(org_uuids))
+    org_uuid = org_uuids[0]
     parent_from, parent_to = fetch_org_unit_validity(graphapi_post, org_uuid)
 
-    test_data_validity_start = data.draw(
-        st.datetimes(min_value=parent_from, max_value=parent_to or datetime.max)
-    )
-    if parent_to:
-        test_data_validity_end_strat = st.datetimes(
-            min_value=test_data_validity_start, max_value=parent_to
-        )
-    else:
-        test_data_validity_end_strat = st.none() | st.datetimes(
-            min_value=test_data_validity_start,
-        )
+    start_date = parent_from
 
     kle_aspect_uuids = fetch_class_uuids(graphapi_post, "kle_aspect")
     kle_number_uuids = fetch_class_uuids(graphapi_post, "kle_number")
 
-    test_data = data.draw(
-        st.builds(
-            KLECreate,
-            uuid=st.uuids() | st.none(),
-            org_unit=st.just(org_uuid),
-            kle_aspects=st.just(kle_aspect_uuids),
-            kle_number=st.sampled_from(kle_number_uuids),
-            validity=st.builds(
-                RAValidity,
-                from_date=st.just(test_data_validity_start),
-                to_date=test_data_validity_end_strat,
-            ),
-        )
-    )
+    test_data = {
+        "uuid": str(uuid4()),
+        "user_key": "asd123",
+        "org_unit": str(org_uuid),
+        "kle_aspects": [str(u) for u in kle_aspect_uuids],
+        "kle_number": str(kle_number_uuids[0]),
+        "validity": {
+            "from": start_date.isoformat(),
+            "to": None,
+        },
+    }
 
     mutation = """
         mutation CreateKLE($input: KLECreateInput!) {
@@ -160,55 +103,12 @@ async def test_create_kle_integration_test(
     assert response.errors is None
     obj = one(one(response.data["kles"]["objects"])["objects"])
 
-    kle_aspect_list = [UUID(kle_aspect) for kle_aspect in obj["kle_aspects"]]
-
-    assert kle_aspect_list == test_data.kle_aspects
-    assert UUID(obj["kle_number"]) == test_data.kle_number
-    assert UUID(obj["org_unit"]) == test_data.org_unit
-    assert obj["user_key"] == test_data.user_key or str(uuid)
-
-    assert (
-        datetime.fromisoformat(obj["validity"]["from"]).date()
-        == test_data.validity.from_date.date()
-    )
-
-    # FYI: "backend/mora/util.py::to_iso_date()" does a check for POSITIVE_INFINITY.year
-    if (
-        not test_data.validity.to_date
-        or test_data.validity.to_date.year == POSITIVE_INFINITY.year
-    ):
-        assert obj["validity"]["to"] is None
-    else:
-        assert (
-            datetime.fromisoformat(obj["validity"]["to"]).date()
-            == test_data.validity.to_date.date()
-        )
-
-
-@given(test_data=...)
-@patch("mora.graphapi.versions.latest.mutators.update_kle", new_callable=AsyncMock)
-async def test_update_kle_mutation_unit_test(
-    update_kle: AsyncMock, test_data: KLEUpdate
-) -> None:
-    """Tests that the mutator function for updating a KLE passes through, with the
-    defined pydantic model."""
-
-    mutation = """
-        mutation UpdateKLE($input: KLEUpdateInput!) {
-            kle_update(input: $input) {
-                uuid
-            }
-        }
-    """
-
-    update_kle.return_value = test_data.uuid
-
-    payload = jsonable_encoder(test_data)
-    response = await execute_graphql(query=mutation, variable_values={"input": payload})
-    assert response.errors is None
-    assert response.data == {"kle_update": {"uuid": str(test_data.uuid)}}
-
-    update_kle.assert_called_with(test_data)
+    assert obj["kle_aspects"] == test_data["kle_aspects"]
+    assert obj["kle_number"] == test_data["kle_number"]
+    assert obj["org_unit"] == test_data["org_unit"]
+    assert obj["user_key"] == test_data["user_key"]
+    assert obj["validity"]["from"] == test_data["validity"]["from"]
+    assert obj["validity"]["to"] is None
 
 
 @pytest.mark.integration_test

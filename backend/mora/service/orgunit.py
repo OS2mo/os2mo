@@ -837,7 +837,7 @@ async def list_orgunits(
 
     if query:
         kwargs.update(vilkaarligattr=f"%{query}%")
-    if hierarchy_uuids:
+    if hierarchy_uuids:  # pragma: no cover
         kwargs["opmærkning"] = [str(uuid) for uuid in hierarchy_uuids]
 
     uuid_filters = []

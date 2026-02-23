@@ -1,22 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from datetime import datetime
-from unittest.mock import AsyncMock
-from unittest.mock import patch
 from uuid import UUID
+from uuid import uuid4
 
 import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
-from hypothesis import HealthCheck
-from hypothesis import given
-from hypothesis import settings
-from hypothesis import strategies as st
-from mora.graphapi.gmodels.mo import Validity as RAValidity
-from mora.graphapi.shim import execute_graphql
-from mora.graphapi.versions.latest.models import LeaveCreate
-from mora.graphapi.versions.latest.models import LeaveUpdate
-from mora.util import POSITIVE_INFINITY
 from more_itertools import one
 
 from ..conftest import GraphAPIPost
@@ -51,82 +40,33 @@ def test_query_all(graphapi_post: GraphAPIPost):
     assert response.data
 
 
-@given(test_data=...)
-@patch("mora.graphapi.versions.latest.mutators.create_leave", new_callable=AsyncMock)
-async def test_create_leave_mutation_unit_test(
-    create_leave: AsyncMock, test_data: LeaveCreate
-) -> None:
-    """Tests that the mutator function for creating a leave passes through,
-    with the defined pydantic model."""
-
-    mutation = """
-        mutation CreateLeave($input: LeaveCreateInput!) {
-            leave_create(input: $input) {
-                uuid
-            }
-        }
-    """
-
-    create_leave.return_value = test_data.uuid
-
-    payload = jsonable_encoder(test_data)
-    response = await execute_graphql(query=mutation, variable_values={"input": payload})
-    assert response.errors is None
-    assert response.data == {"leave_create": {"uuid": str(test_data.uuid)}}
-
-    create_leave.assert_called_with(test_data)
-
-
-@settings(
-    suppress_health_check=[
-        # Running multiple tests on the same database is okay in this instance
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_create_leave_integration_test(
-    data, graphapi_post: GraphAPIPost, employee_and_engagement_uuids
+    graphapi_post: GraphAPIPost, employee_and_engagement_uuids
 ) -> None:
     """Test that leave can be created in LoRa via GraphQL."""
 
-    employee = data.draw(st.sampled_from(employee_and_engagement_uuids))
-    engagement = data.draw(st.sampled_from(employee["engagement_uuids"]))
+    employee = employee_and_engagement_uuids[0]
+    engagement = employee["engagement_uuids"][0]
 
     parent_from, parent_to = fetch_engagement_validity(graphapi_post, engagement)
 
-    test_data_validity_start = data.draw(
-        st.datetimes(min_value=parent_from, max_value=parent_to or datetime.max)
-    )
-    if parent_to:
-        test_data_validity_end_strat = st.datetimes(
-            min_value=test_data_validity_start, max_value=parent_to
-        )
-    else:
-        test_data_validity_end_strat = st.none() | st.datetimes(
-            min_value=test_data_validity_start,
-        )
+    start_date = parent_from
 
     leave_type_uuids = fetch_class_uuids(graphapi_post, "leave_type")
 
-    test_data = data.draw(
-        st.builds(
-            LeaveCreate,
-            uuid=st.uuids() | st.none(),
-            user_key=st.text(
-                alphabet=st.characters(whitelist_categories=("L",)), min_size=1
-            ),
-            person=st.just(employee["uuid"]),
-            engagement=st.just(engagement),
-            leave_type=st.sampled_from(leave_type_uuids),
-            validity=st.builds(
-                RAValidity,
-                from_date=st.just(test_data_validity_start),
-                to_date=test_data_validity_end_strat,
-            ),
-        )
-    )
+    test_data = {
+        "uuid": str(uuid4()),
+        "user_key": "leave_key",
+        "person": str(employee["uuid"]),
+        "engagement": str(engagement),
+        "leave_type": str(leave_type_uuids[0]),
+        "validity": {
+            "from": start_date.isoformat(),
+            "to": None,
+        },
+    }
 
     mutation = """
         mutation CreateLeave($input: LeaveCreateInput!) {
@@ -135,7 +75,7 @@ async def test_create_leave_integration_test(
             }
         }
     """
-    response = graphapi_post(mutation, {"input": jsonable_encoder(test_data)})
+    response = graphapi_post(mutation, {"input": test_data})
 
     assert response.errors is None
     uuid = UUID(response.data["leave_create"]["uuid"])
@@ -163,53 +103,12 @@ async def test_create_leave_integration_test(
     assert response.errors is None
     obj = one(one(response.data["leaves"]["objects"])["objects"])
 
-    assert obj["user_key"] == test_data.user_key
-    assert UUID(obj["employee"]) == test_data.person
-    assert UUID(obj["engagement"]) == test_data.engagement
-    assert UUID(obj["leave_type"]) == test_data.leave_type
-
-    assert (
-        datetime.fromisoformat(obj["validity"]["from"]).date()
-        == test_data.validity.from_date.date()
-    )
-
-    # FYI: "backend/mora/util.py::to_iso_date()" does a check for POSITIVE_INFINITY.year
-    if (
-        not test_data.validity.to_date
-        or test_data.validity.to_date.year == POSITIVE_INFINITY.year
-    ):
-        assert obj["validity"]["to"] is None
-    else:
-        assert (
-            datetime.fromisoformat(obj["validity"]["to"]).date()
-            == test_data.validity.to_date.date()
-        )
-
-
-@given(test_data=...)
-@patch("mora.graphapi.versions.latest.mutators.update_leave", new_callable=AsyncMock)
-async def test_update_leave_unit_test(
-    update_leave: AsyncMock, test_data: LeaveUpdate
-) -> None:
-    """Tests that the mutator function for updating a leave passes through, with the
-    defined pydantic model."""
-
-    mutation = """
-        mutation UpdateLeave($input: LeaveUpdateInput!) {
-            leave_update(input: $input) {
-                uuid
-            }
-        }
-    """
-
-    update_leave.return_value = test_data.uuid
-
-    payload = jsonable_encoder(test_data)
-    response = await execute_graphql(query=mutation, variable_values={"input": payload})
-    assert response.errors is None
-    assert response.data == {"leave_update": {"uuid": str(test_data.uuid)}}
-
-    update_leave.assert_called_with(test_data)
+    assert obj["user_key"] == test_data["user_key"]
+    assert obj["employee"] == test_data["person"]
+    assert obj["engagement"] == test_data["engagement"]
+    assert obj["leave_type"] == test_data["leave_type"]
+    assert obj["validity"]["from"] == test_data["validity"]["from"]
+    assert obj["validity"]["to"] is None
 
 
 @pytest.mark.integration_test

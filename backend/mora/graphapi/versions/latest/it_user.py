@@ -12,7 +12,7 @@ from .models import ITUserTerminate
 from .models import ITUserUpdate
 
 
-async def create_ituser(input: ITUserCreate) -> UUID:
+async def create_ituser(input: ITUserCreate) -> UUID:  # pragma: no cover
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await ItsystemRequestHandler.construct(

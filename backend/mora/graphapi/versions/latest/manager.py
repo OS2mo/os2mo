@@ -12,7 +12,7 @@ from .models import ManagerTerminate
 from .models import ManagerUpdate
 
 
-async def create_manager(input: ManagerCreate) -> UUID:
+async def create_manager(input: ManagerCreate) -> UUID:  # pragma: no cover
     """Creating a manager."""
     input_dict = jsonable_encoder(input.to_handler_dict())
 

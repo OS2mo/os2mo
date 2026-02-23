@@ -42,12 +42,8 @@ def fetch_org_unit_validity(
     response = graphapi_post(validity_query, {"uuid": str(org_uuid)})
     assert response.errors is None
     validity = one(one(response.data["org_units"]["objects"])["objects"])["validity"]
-    from_time = datetime.fromisoformat(validity["from"]).replace(tzinfo=None)
-    to_time = (
-        datetime.fromisoformat(validity["to"]).replace(tzinfo=None)
-        if validity["to"]
-        else None
-    )
+    from_time = datetime.fromisoformat(validity["from"])
+    to_time = datetime.fromisoformat(validity["to"]) if validity["to"] else None
     return from_time, to_time
 
 
@@ -72,12 +68,8 @@ def fetch_employee_validity(
     response = graphapi_post(validity_query, {"uuid": str(employee_uuid)})
     assert response.errors is None
     validity = one(one(response.data["employees"]["objects"])["objects"])["validity"]
-    from_time = datetime.fromisoformat(validity["from"]).replace(tzinfo=None)
-    to_time = (
-        datetime.fromisoformat(validity["to"]).replace(tzinfo=None)
-        if validity["to"]
-        else None
-    )
+    from_time = datetime.fromisoformat(validity["from"])
+    to_time = datetime.fromisoformat(validity["to"]) if validity["to"] else None
     return from_time, to_time
 
 
@@ -102,12 +94,8 @@ def fetch_engagement_validity(
     response = graphapi_post(validity_query, {"uuid": str(engagement_uuid)})
     assert response.errors is None
     validity = one(one(response.data["engagements"]["objects"])["objects"])["validity"]
-    from_time = datetime.fromisoformat(validity["from"]).replace(tzinfo=None)
-    to_time = (
-        datetime.fromisoformat(validity["to"]).replace(tzinfo=None)
-        if validity["to"]
-        else None
-    )
+    from_time = datetime.fromisoformat(validity["from"])
+    to_time = datetime.fromisoformat(validity["to"]) if validity["to"] else None
     return from_time, to_time
 
 

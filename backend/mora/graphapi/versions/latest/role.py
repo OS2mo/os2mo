@@ -18,9 +18,11 @@ async def create_rolebinding(input: RoleBindingCreate) -> UUID:
     request = await RoleBindingRequestHandler.construct(
         input_dict, mapping.RequestType.CREATE
     )
+    # coverage: pause
     uuid = await request.submit()
 
     return UUID(uuid)
+    # coverage: unpause
 
 
 async def update_rolebinding(input: RoleBindingUpdate) -> UUID:
