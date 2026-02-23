@@ -23,6 +23,7 @@ from mora import db
 from mora.auth.middleware import get_authenticated_user
 from mora.common import get_connector
 from mora.db import AsyncSession
+from mora.db import events
 from mora.db.events import METRIC_ACKNOWLEDGED_EVENTS
 from mora.db.events import add_event
 from mora.graphapi.context import MOInfo
@@ -255,6 +256,13 @@ QueueType = Annotated[
     ),
 ]
 
+PriorityType = Annotated[
+    int,
+    strawberry.argument(
+        description="Priority of the event. 1 is the highest priority.",
+    ),
+]
+
 
 @strawberry.type(
     description=dedent(
@@ -348,6 +356,7 @@ class Mutation:
             ),
         ] = None,
         owner: UUID | None = None,
+        priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(address_resolver, Address)
         page = await resolve(
@@ -363,6 +372,7 @@ class Mutation:
             exchange=exchange,
             listener=listener,
             owner=owner,
+            priority=priority,
         )
 
     # Associations
@@ -435,6 +445,7 @@ class Mutation:
             ),
         ] = None,
         owner: UUID | None = None,
+        priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(association_resolver, Association)
         page = await resolve(
@@ -450,6 +461,7 @@ class Mutation:
             exchange=exchange,
             listener=listener,
             owner=owner,
+            priority=priority,
         )
 
     # Classes
@@ -553,6 +565,7 @@ class Mutation:
             ),
         ] = None,
         owner: UUID | None = None,
+        priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(class_resolver, Class)
         page = await resolve(
@@ -568,6 +581,7 @@ class Mutation:
             exchange=exchange,
             listener=listener,
             owner=owner,
+            priority=priority,
         )
 
     # Employees
@@ -639,6 +653,7 @@ class Mutation:
             ),
         ] = None,
         owner: UUID | None = None,
+        priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(employee_resolver, Employee)
         page = await resolve(
@@ -656,6 +671,7 @@ class Mutation:
             exchange=exchange,
             listener=listener,
             owner=owner,
+            priority=priority,
         )
         # coverage: unpause
 
@@ -778,6 +794,7 @@ class Mutation:
             ),
         ] = None,
         owner: UUID | None = None,
+        priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(engagement_resolver, Engagement)
         page = await resolve(
@@ -793,6 +810,7 @@ class Mutation:
             exchange=exchange,
             listener=listener,
             owner=owner,
+            priority=priority,
         )
 
     # Facets
@@ -896,6 +914,7 @@ class Mutation:
             ),
         ] = None,
         owner: UUID | None = None,
+        priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(facet_resolver, Facet)
         page = await resolve(
@@ -911,6 +930,7 @@ class Mutation:
             exchange=exchange,
             listener=listener,
             owner=owner,
+            priority=priority,
         )
 
     # ITAssociations
@@ -1061,6 +1081,7 @@ class Mutation:
             ),
         ] = None,
         owner: UUID | None = None,
+        priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(it_system_resolver, ITSystem)
         page = await resolve(
@@ -1076,6 +1097,7 @@ class Mutation:
             exchange=exchange,
             listener=listener,
             owner=owner,
+            priority=priority,
         )
 
     # ITUsers
@@ -1159,6 +1181,7 @@ class Mutation:
             ),
         ] = None,
         owner: UUID | None = None,
+        priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(it_user_resolver, ITUser)
         page = await resolve(
@@ -1174,6 +1197,7 @@ class Mutation:
             exchange=exchange,
             listener=listener,
             owner=owner,
+            priority=priority,
         )
 
     # KLEs
@@ -1232,6 +1256,7 @@ class Mutation:
             ),
         ] = None,
         owner: UUID | None = None,
+        priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(kle_resolver, KLE)
         page = await resolve(
@@ -1247,6 +1272,7 @@ class Mutation:
             exchange=exchange,
             listener=listener,
             owner=owner,
+            priority=priority,
         )
 
     # Leave
@@ -1305,6 +1331,7 @@ class Mutation:
             ),
         ] = None,
         owner: UUID | None = None,
+        priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(leave_resolver, Leave)
         page = await resolve(
@@ -1320,6 +1347,7 @@ class Mutation:
             exchange=exchange,
             listener=listener,
             owner=owner,
+            priority=priority,
         )
 
     # Managers
@@ -1395,6 +1423,7 @@ class Mutation:
             ),
         ] = None,
         owner: UUID | None = None,
+        priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(manager_resolver, Manager)
         page = await resolve(
@@ -1410,6 +1439,7 @@ class Mutation:
             exchange=exchange,
             listener=listener,
             owner=owner,
+            priority=priority,
         )
 
     # Root Organisation
@@ -1500,6 +1530,7 @@ class Mutation:
             ),
         ] = None,
         owner: UUID | None = None,
+        priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(organisation_unit_resolver, OrganisationUnit)
         page = await resolve(
@@ -1515,6 +1546,7 @@ class Mutation:
             exchange=exchange,
             listener=listener,
             owner=owner,
+            priority=priority,
         )
 
     # Owner
@@ -1573,6 +1605,7 @@ class Mutation:
             ),
         ] = None,
         owner: UUID | None = None,
+        priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(owner_resolver, Owner)
         page = await resolve(
@@ -1588,6 +1621,7 @@ class Mutation:
             exchange=exchange,
             listener=listener,
             owner=owner,
+            priority=priority,
         )
 
     # Related Units
@@ -1629,6 +1663,7 @@ class Mutation:
             ),
         ] = None,
         owner: UUID | None = None,
+        priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(related_unit_resolver, RelatedUnit)
         page = await resolve(
@@ -1644,6 +1679,7 @@ class Mutation:
             exchange=exchange,
             listener=listener,
             owner=owner,
+            priority=priority,
         )
 
     # Rolebindings
@@ -1738,6 +1774,7 @@ class Mutation:
             ),
         ] = None,
         owner: UUID | None = None,
+        priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(rolebinding_resolver, RoleBindingRead)
         page = await resolve(
@@ -1753,6 +1790,7 @@ class Mutation:
             exchange=exchange,
             listener=listener,
             owner=owner,
+            priority=priority,
         )
 
     # Event system
@@ -2213,6 +2251,7 @@ async def refresh(
     exchange: str | None,
     listener: UUID | None,
     owner: UUID | None,
+    priority: int,
 ) -> Paged[UUID]:
     """Publish events for the given UUIDs to AMQP and/or GraphQL."""
     uuids = page.objects
@@ -2246,6 +2285,7 @@ async def refresh(
                 namespace="mo",
                 routing_key=model,
                 subject=str(uuid),
+                priority=priority,
                 listener_uuid=listener,
                 listener_owner=owner,
             )
