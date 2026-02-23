@@ -408,7 +408,7 @@ def test_address_resolver_response_field_validity(
                                     "name": "Postadresse",
                                     "validity": {
                                         "from": "1970-01-01T00:00:00+01:00",
-                                        "to": "2009-12-31T00:00:00+01:00",
+                                        "to": "2010-01-01T00:00:00+01:00",
                                     },
                                 },
                                 {

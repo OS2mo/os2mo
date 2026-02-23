@@ -14,7 +14,6 @@ import collections
 import copy
 import datetime
 import functools
-import re
 import uuid
 from collections.abc import AsyncIterator
 
@@ -23,6 +22,7 @@ from starlette_context import context
 from starlette_context import request_cycle_context
 
 from mora.graphapi.middleware import get_graphql_dates
+from mora.graphapi.middleware import get_version_from_url
 from mora.graphapi.middleware import is_graphql
 
 from . import exceptions
@@ -46,11 +46,8 @@ async def lora_connector_context(request: Request) -> AsyncIterator[None]:
     def cached_create_connector(**kwargs):
         return _create_connector(**kwargs)
 
-    graphql_match = re.match(r"/graphql/v(\d+)", request.url.path)
-    if (
-        graphql_match is not None
-        and Version(int(graphql_match.group(1))) <= Version.VERSION_20
-    ):
+    graphql_version = get_version_from_url()
+    if graphql_version is not None and graphql_version <= Version.VERSION_20:
         lora_connector = lora.Connector
         create_connector = cached_create_connector
     else:

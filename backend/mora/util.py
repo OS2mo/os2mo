@@ -32,6 +32,9 @@ from starlette_context import request_cycle_context
 from starlette_context.errors import ContextDoesNotExistError
 from structlog import get_logger
 
+from mora.graphapi.middleware import get_version_from_url
+from mora.graphapi.version import Version
+
 from . import config
 from . import exceptions
 from . import mapping
@@ -159,6 +162,11 @@ def to_iso_date(s, is_end: bool = False):
 
     if dt.tzinfo != DEFAULT_TIMEZONE and dt.year != POSITIVE_INFINITY.year:
         dt = dt.astimezone(DEFAULT_TIMEZONE)
+
+    # get_version_from_url() doesn't return a version for service-api shims
+    graphql_version = get_version_from_url()
+    if graphql_version is not None and graphql_version >= Version.VERSION_29:
+        return dt.date().isoformat()
 
     if is_end:
         dt -= datetime.timedelta(minutes=1)
@@ -595,6 +603,11 @@ def get_valid_to(obj, fallback=None, required=False) -> datetime.datetime:
                 exceptions.ErrorCodes.E_INVALID_INPUT(
                     f"{dt.isoformat()!r} is not at midnight!",
                 )
+
+            # get_version_from_url() doesn't return a version for service-api shims
+            graphql_version = get_version_from_url()
+            if graphql_version is not None and graphql_version >= Version.VERSION_29:
+                return dt
 
             # this is the reverse of to_iso_date, and an end date
             # _includes_ the day in question, so the end of the

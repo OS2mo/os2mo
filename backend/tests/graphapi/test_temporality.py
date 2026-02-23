@@ -98,13 +98,13 @@ def validity_employee_uuid(graphapi_post: GraphAPIPost) -> UUID:
             [
                 {
                     "given_name": "Startasia",
-                    "validity": {"from": None, "to": gentime("1999-12-31")},
+                    "validity": {"from": None, "to": gentime("2000-01-01")},
                 },
                 {
                     "given_name": "Middleton",
                     "validity": {
                         "from": gentime("2000-01-01"),
-                        "to": gentime("2019-12-31"),
+                        "to": gentime("2020-01-01"),
                     },
                 },
                 {
@@ -125,13 +125,13 @@ def validity_employee_uuid(graphapi_post: GraphAPIPost) -> UUID:
             [
                 {
                     "given_name": "Startasia",
-                    "validity": {"from": None, "to": gentime("1999-12-31")},
+                    "validity": {"from": None, "to": gentime("2000-01-01")},
                 },
                 {
                     "given_name": "Middleton",
                     "validity": {
                         "from": gentime("2000-01-01"),
-                        "to": gentime("2019-12-31"),
+                        "to": gentime("2020-01-01"),
                     },
                 },
             ],
@@ -144,7 +144,7 @@ def validity_employee_uuid(graphapi_post: GraphAPIPost) -> UUID:
                     "given_name": "Middleton",
                     "validity": {
                         "from": gentime("2000-01-01"),
-                        "to": gentime("2019-12-31"),
+                        "to": gentime("2020-01-01"),
                     },
                 },
             ],
@@ -157,7 +157,7 @@ def validity_employee_uuid(graphapi_post: GraphAPIPost) -> UUID:
                     "given_name": "Middleton",
                     "validity": {
                         "from": gentime("2000-01-01"),
-                        "to": gentime("2019-12-31"),
+                        "to": gentime("2020-01-01"),
                     },
                 },
                 {
@@ -176,7 +176,7 @@ def validity_employee_uuid(graphapi_post: GraphAPIPost) -> UUID:
             [
                 {
                     "given_name": "Startasia",
-                    "validity": {"from": None, "to": gentime("1999-12-31")},
+                    "validity": {"from": None, "to": gentime("2000-01-01")},
                 }
             ],
         ),
@@ -201,7 +201,7 @@ def validity_employee_uuid(graphapi_post: GraphAPIPost) -> UUID:
                     "given_name": "Middleton",
                     "validity": {
                         "from": gentime("2000-01-01"),
-                        "to": gentime("2019-12-31"),
+                        "to": gentime("2020-01-01"),
                     },
                 }
             ],
@@ -212,13 +212,13 @@ def validity_employee_uuid(graphapi_post: GraphAPIPost) -> UUID:
             [
                 {
                     "given_name": "Startasia",
-                    "validity": {"from": None, "to": gentime("1999-12-31")},
+                    "validity": {"from": None, "to": gentime("2000-01-01")},
                 },
                 {
                     "given_name": "Middleton",
                     "validity": {
                         "from": gentime("2000-01-01"),
-                        "to": gentime("2019-12-31"),
+                        "to": gentime("2020-01-01"),
                     },
                 },
                 {
@@ -295,14 +295,14 @@ async def test_validity_queries(
             "1920-01-01",
             {
                 "given_name": "Startasia",
-                "validity": {"from": None, "to": gentime("1999-12-31")},
+                "validity": {"from": None, "to": gentime("2000-01-01")},
             },
         ),
         (
             "1995-01-01",
             {
                 "given_name": "Startasia",
-                "validity": {"from": None, "to": gentime("1999-12-31")},
+                "validity": {"from": None, "to": gentime("2000-01-01")},
             },
         ),
         (
@@ -311,7 +311,7 @@ async def test_validity_queries(
                 "given_name": "Middleton",
                 "validity": {
                     "from": gentime("2000-01-01"),
-                    "to": gentime("2019-12-31"),
+                    "to": gentime("2020-01-01"),
                 },
             },
         ),
