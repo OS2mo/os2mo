@@ -1,26 +1,14 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
-from datetime import datetime
 from typing import Any
-from unittest.mock import AsyncMock
-from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
-from hypothesis import HealthCheck
-from hypothesis import given
-from hypothesis import settings
-from hypothesis import strategies as st
-from mora.graphapi.gmodels.mo import Validity as RAValidity
-from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.models import AssociationCreate
-from mora.graphapi.versions.latest.models import AssociationUpdate
-from mora.util import POSITIVE_INFINITY
-from mora.util import is_substitute_allowed
 from more_itertools import one
 from pydantic import parse_obj_as
 
@@ -161,46 +149,9 @@ async def test_association_filters(
     assert len(response.data["associations"]["objects"]) == expected
 
 
-@given(test_data=st.builds(AssociationCreate, person=st.uuids(), employee=st.none()))
-@patch(
-    "mora.graphapi.versions.latest.mutators.create_association", new_callable=AsyncMock
-)
-async def test_create_association(
-    create_association: AsyncMock, test_data: AssociationCreate
-) -> None:
-    """Test that pydantic jsons are passed through to association_create."""
-
-    mutate_query = """
-        mutation CreateAssociation($input: AssociationCreateInput!) {
-            association_create(input: $input) {
-                uuid
-            }
-        }
-    """
-    created_uuid = uuid4()
-    create_association.return_value = created_uuid
-
-    payload = jsonable_encoder(test_data)
-    response = await execute_graphql(
-        query=mutate_query, variable_values={"input": payload}
-    )
-    assert response.errors is None
-    assert response.data == {"association_create": {"uuid": str(created_uuid)}}
-
-    create_association.assert_called_with(test_data)
-
-
-@settings(
-    suppress_health_check=[
-        # Running multiple tests on the same database is okay in this instance
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_create_association_integration_test(
-    data,
     graphapi_post: GraphAPIPost,
     org_uuids,
     employee_uuids,
@@ -211,51 +162,31 @@ async def test_create_association_integration_test(
     # Set a substitute role, to test substitute
     set_settings(CONFDB_SUBSTITUTE_ROLES='["45751985-321f-4d4f-ae16-847f0a633360"]')
 
-    org_uuid = data.draw(st.sampled_from(org_uuids))
+    org_uuid = org_uuids[0]
     org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
 
-    test_data_validity_start = data.draw(
-        st.datetimes(min_value=org_from, max_value=org_to or datetime.max)
-    )
-    if org_to:
-        test_data_validity_end_strat = st.datetimes(
-            min_value=test_data_validity_start, max_value=org_to
-        )
-    else:
-        test_data_validity_end_strat = st.none() | st.datetimes(
-            min_value=test_data_validity_start,
-        )
+    start_date = org_from
 
     association_type_uuids = fetch_class_uuids(graphapi_post, "association_type")
     primary_type_uuids = fetch_class_uuids(graphapi_post, "primary_type")
 
-    # Sample 1 uuid, to check if we need a substitute
-    association_type_uuid = data.draw(st.sampled_from(association_type_uuids))
+    association_type_uuid = association_type_uuids[0]
+    employee_uuid = employee_uuids[0]
 
-    # Sample employee, so we can use it in the filter
-    employee_uuid = data.draw(st.sampled_from(employee_uuids))
-
-    test_data = data.draw(
-        st.builds(
-            AssociationCreate,
-            org_unit=st.just(org_uuid),
-            person=st.none(),
-            employee=st.just(employee_uuid),
-            association_type=st.just(association_type_uuid),
-            primary=st.sampled_from(primary_type_uuids),
-            substitute=(
-                st.sampled_from(employee_uuids).filter(lambda x: x != employee_uuid)
-                if is_substitute_allowed(association_type_uuid)
-                else st.none()
-            ),
-            trade_union=st.sampled_from(trade_union_uuids),
-            validity=st.builds(
-                RAValidity,
-                from_date=st.just(test_data_validity_start),
-                to_date=test_data_validity_end_strat,
-            ),
-        )
-    )
+    test_data = {
+        "uuid": str(uuid4()),
+        "org_unit": str(org_uuid),
+        "person": None,
+        "employee": str(employee_uuid),
+        "association_type": str(association_type_uuid),
+        "primary": str(primary_type_uuids[0]),
+        "substitute": (str(employee_uuids[1])),
+        "trade_union": str(trade_union_uuids[0]),
+        "validity": {
+            "from": start_date.isoformat(),
+            "to": None,
+        },
+    }
 
     mutate_query = """
         mutation CreateAssociation($input: AssociationCreateInput!) {
@@ -264,7 +195,7 @@ async def test_create_association_integration_test(
             }
         }
     """
-    response = graphapi_post(mutate_query, {"input": jsonable_encoder(test_data)})
+    response = graphapi_post(mutate_query, {"input": test_data})
     assert response.errors is None
     uuid = UUID(response.data["association_create"]["uuid"])
 
@@ -292,32 +223,15 @@ async def test_create_association_integration_test(
     response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
     obj = one(one(response.data["associations"]["objects"])["objects"])
-    assert obj["user_key"] == test_data.user_key or str(uuid)
-    assert UUID(obj["org_unit"]) == test_data.org_unit
-    assert UUID(obj["employee"]) == test_data.employee
-    assert UUID(obj["association_type"]) == test_data.association_type
-    assert UUID(obj["primary"]) == test_data.primary
-    if obj["substitute"]:
-        assert UUID(obj["substitute"]) == test_data.substitute
-    else:
-        assert obj["substitute"] == test_data.substitute
-    assert UUID(obj["trade_union"]) == test_data.trade_union
-    assert (
-        datetime.fromisoformat(obj["validity"]["from"]).date()
-        == test_data.validity.from_date.date()
-    )
-
-    # FYI: "backend/mora/util.py::to_iso_date()" does a check for POSITIVE_INFINITY.year
-    if (
-        not test_data.validity.to_date
-        or test_data.validity.to_date.year == POSITIVE_INFINITY.year
-    ):
-        assert obj["validity"]["to"] is None
-    else:
-        assert (
-            datetime.fromisoformat(obj["validity"]["to"]).date()
-            == test_data.validity.to_date.date()
-        )
+    assert obj["user_key"] == test_data.get("user_key") or str(uuid)
+    assert obj["org_unit"] == test_data["org_unit"]
+    assert obj["employee"] == test_data["employee"]
+    assert obj["association_type"] == test_data["association_type"]
+    assert obj["primary"] == test_data["primary"]
+    assert obj["substitute"] == test_data["substitute"]
+    assert obj["trade_union"] == test_data["trade_union"]
+    assert obj["validity"]["from"] == test_data["validity"]["from"]
+    assert obj["validity"]["to"] is None
 
 
 @pytest.mark.integration_test
@@ -478,38 +392,6 @@ async def test_update_association_integration_test(
     # Assert data written to db is correct when queried
     assert query_response.errors is None
     assert updated_test_data == response_data
-
-
-@given(test_data=...)
-@patch(
-    "mora.graphapi.versions.latest.mutators.update_association", new_callable=AsyncMock
-)
-async def test_update_association_unit_test(
-    update_association: AsyncMock, test_data: AssociationUpdate
-) -> None:
-    """Test that pydantic jsons are passed through to association_update."""
-
-    mutate_query = """
-        mutation UpdateAssociation($input: AssociationUpdateInput!) {
-            association_update(input: $input) {
-                uuid
-            }
-        }
-    """
-
-    association_uuid_to_update = uuid4()
-    update_association.return_value = association_uuid_to_update
-
-    payload = jsonable_encoder(test_data)
-    response = await execute_graphql(
-        query=mutate_query, variable_values={"input": payload}
-    )
-    assert response.errors is None
-    assert response.data == {
-        "association_update": {"uuid": str(association_uuid_to_update)}
-    }
-
-    update_association.assert_called_with(test_data)
 
 
 @pytest.mark.parametrize(

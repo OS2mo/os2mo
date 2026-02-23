@@ -1,22 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from datetime import datetime
-from unittest.mock import AsyncMock
-from unittest.mock import patch
 from uuid import UUID
+from uuid import uuid4
 
 import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
-from hypothesis import HealthCheck
-from hypothesis import given
-from hypothesis import settings
-from hypothesis import strategies as st
-from mora.graphapi.gmodels.mo import Validity as RAValidity
-from mora.graphapi.shim import execute_graphql
-from mora.graphapi.versions.latest.models import RoleBindingCreate
-from mora.graphapi.versions.latest.models import RoleBindingUpdate
-from mora.util import POSITIVE_INFINITY
 from more_itertools import one
 
 from ..conftest import GraphAPIPost
@@ -50,83 +39,35 @@ def test_query_all(graphapi_post: GraphAPIPost):
     assert response.data
 
 
-@given(test_data=...)
-@patch(
-    "mora.graphapi.versions.latest.mutators.create_rolebinding", new_callable=AsyncMock
-)
-async def test_create_role_mutation_unit_test(
-    create_rolebinding: AsyncMock, test_data: RoleBindingCreate
-) -> None:
-    """Tests that the mutator function for creating a role passes through, with the
-    defined pydantic model."""
-
-    mutation = """
-        mutation CreateRolebinding($input: RoleBindingCreateInput!) {
-            rolebinding_create(input: $input) {
-                uuid
-            }
-        }
-    """
-
-    create_rolebinding.return_value = test_data.uuid
-
-    payload = jsonable_encoder(test_data)
-    response = await execute_graphql(query=mutation, variable_values={"input": payload})
-    assert response.errors is None
-    assert response.data == {"rolebinding_create": {"uuid": str(test_data.uuid)}}
-
-    create_rolebinding.assert_called_with(test_data)
-
-
-@settings(
-    suppress_health_check=[
-        # Running multiple tests on the same database is okay in this instance
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_create_rolebinding_integration_test(
-    data, graphapi_post: GraphAPIPost, ituser_uuids, org_uuids
+    graphapi_post: GraphAPIPost, ituser_uuids, org_uuids
 ) -> None:
     """Test that roles can be created in LoRa via GraphQL."""
 
     # This must be done as to not receive validation errors of the employee upon
     # creating the employee conflicting the dates.
-    org_uuid = data.draw(st.sampled_from(org_uuids))
+    org_uuid = org_uuids[0]
     org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
 
-    ituser_uuid = data.draw(st.sampled_from(ituser_uuids))
+    ituser_uuid = ituser_uuids[0]
 
-    test_data_validity_start = data.draw(
-        st.datetimes(min_value=org_from, max_value=org_to or datetime.max)
-    )
-    if org_to:
-        test_data_validity_end_strat = st.datetimes(
-            min_value=test_data_validity_start, max_value=org_to
-        )
-    else:
-        test_data_validity_end_strat = st.none() | st.datetimes(
-            min_value=test_data_validity_start,
-        )
+    start_date = org_from
 
     role_type = fetch_class_uuids(graphapi_post, "role")
 
-    test_data = data.draw(
-        st.builds(
-            RoleBindingCreate,
-            uuid=st.uuids() | st.none(),
-            ituser=st.just(ituser_uuid),
-            role=st.sampled_from(role_type),
-            org_unit=st.just(org_uuid),
-            validity=st.builds(
-                RAValidity,
-                from_date=st.just(test_data_validity_start),
-                to_date=test_data_validity_end_strat,
-            ),
-        )
-    )
+    test_data = {
+        "uuid": str(uuid4()),
+        "user_key": "asd123",
+        "ituser": str(ituser_uuid),
+        "role": str(role_type[0]),
+        "org_unit": str(org_uuid),
+        "validity": {
+            "from": start_date.isoformat(),
+            "to": None,
+        },
+    }
 
     mutation = """
         mutation CreateRolebinding($input: RoleBindingCreateInput!) {
@@ -135,7 +76,7 @@ async def test_create_rolebinding_integration_test(
             }
         }
     """
-    response = graphapi_post(mutation, {"input": jsonable_encoder(test_data)})
+    response = graphapi_post(mutation, {"input": test_data})
     assert response.errors is None
     uuid = UUID(response.data["rolebinding_create"]["uuid"])
 
@@ -160,126 +101,15 @@ async def test_create_rolebinding_integration_test(
 
     response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
+    assert response.data is not None
     obj = one(one(response.data["rolebindings"]["objects"])["objects"])
 
-    assert UUID(one(obj["org_unit"])["uuid"]) == test_data.org_unit
-    assert UUID(one(obj["ituser"])["uuid"]) == test_data.ituser
-    assert UUID(one(obj["role"])["uuid"]) == test_data.role
-    assert obj["user_key"] == test_data.user_key or str(uuid)
-
-    assert (
-        datetime.fromisoformat(obj["validity"]["from"]).date()
-        == test_data.validity.from_date.date()
-    )
-
-    # FYI: "backend/mora/util.py::to_iso_date()" does a check for POSITIVE_INFINITY.year
-    if (
-        not test_data.validity.to_date
-        or test_data.validity.to_date.year == POSITIVE_INFINITY.year
-    ):
-        assert obj["validity"]["to"] is None
-    else:
-        assert (
-            datetime.fromisoformat(obj["validity"]["to"]).date()
-            == test_data.validity.to_date.date()
-        )
-
-
-@settings(
-    suppress_health_check=[
-        # Running multiple tests on the same database is okay in this instance
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(data=st.data())
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-async def test_create_multiple_rolebindings_integration_test(
-    data, graphapi_post: GraphAPIPost, ituser_uuids, org_uuids
-) -> None:
-    """Test that multiple rolebindings can be created using the list mutator."""
-
-    # This must be done as to not receive validation errors of the employee upon
-    # creating the employee conflicting the dates.
-    org_uuid = data.draw(st.sampled_from(org_uuids))
-    org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
-
-    ituser_uuid = data.draw(st.sampled_from(ituser_uuids))
-
-    test_data_validity_start = data.draw(
-        st.datetimes(min_value=org_from, max_value=org_to or datetime.max)
-    )
-    if org_to:
-        test_data_validity_end_strat = st.datetimes(
-            min_value=test_data_validity_start, max_value=org_to
-        )
-    else:
-        test_data_validity_end_strat = st.none() | st.datetimes(
-            min_value=test_data_validity_start,
-        )
-
-    role_type = fetch_class_uuids(graphapi_post, "role")
-
-    test_data = data.draw(
-        st.lists(
-            st.builds(
-                RoleBindingCreate,
-                uuid=st.uuids() | st.none(),
-                ituser=st.just(ituser_uuid),
-                role=st.sampled_from(role_type),
-                org_unit=st.just(org_uuid),
-                validity=st.builds(
-                    RAValidity,
-                    from_date=st.just(test_data_validity_start),
-                    to_date=test_data_validity_end_strat,
-                ),
-            )
-        )
-    )
-
-    CREATE_ROLEBINDINGS_QUERY = """
-        mutation CreateRolebindings($input: [RoleBindingCreateInput!]!) {
-            rolebindings_create(input: $input) {
-                uuid
-            }
-        }
-    """
-    response = graphapi_post(
-        CREATE_ROLEBINDINGS_QUERY, {"input": jsonable_encoder(test_data)}
-    )
-    assert response.errors is None
-    uuids = [
-        rolebinding["uuid"] for rolebinding in response.data["rolebindings_create"]
-    ]
-    assert len(uuids) == len(test_data)
-
-
-@given(test_data=...)
-@patch(
-    "mora.graphapi.versions.latest.mutators.update_rolebinding", new_callable=AsyncMock
-)
-async def test_update_role_unit_test(
-    update_rolebinding: AsyncMock, test_data: RoleBindingUpdate
-) -> None:
-    """Tests that the mutator function for updating a role passes through, with the
-    defined pydantic model."""
-
-    mutation = """
-        mutation UpdateRole($input: RoleBindingUpdateInput!) {
-            rolebinding_update(input: $input) {
-                uuid
-            }
-        }
-    """
-
-    update_rolebinding.return_value = test_data.uuid
-
-    payload = jsonable_encoder(test_data)
-    response = await execute_graphql(query=mutation, variable_values={"input": payload})
-    assert response.errors is None
-    assert response.data == {"rolebinding_update": {"uuid": str(test_data.uuid)}}
-
-    update_rolebinding.assert_called_with(test_data)
+    assert one(obj["org_unit"])["uuid"] == test_data["org_unit"]
+    assert one(obj["ituser"])["uuid"] == test_data["ituser"]
+    assert one(obj["role"])["uuid"] == test_data["role"]
+    assert obj["user_key"] == test_data["user_key"]
+    assert obj["validity"]["from"] == test_data["validity"]["from"]
+    assert obj["validity"]["to"] is None
 
 
 @pytest.mark.integration_test

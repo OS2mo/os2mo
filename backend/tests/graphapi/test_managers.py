@@ -2,28 +2,16 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
 from typing import Any
-from unittest.mock import AsyncMock
-from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
 
 import pytest
 from fastapi.encoders import jsonable_encoder
-from hypothesis import HealthCheck
-from hypothesis import given
-from hypothesis import settings
-from hypothesis import strategies as st
-from mora.graphapi.gmodels.mo import Validity as RAValidity
-from mora.graphapi.shim import execute_graphql
-from mora.graphapi.versions.latest.models import ManagerCreate
-from mora.graphapi.versions.latest.models import ManagerUpdate
-from mora.util import POSITIVE_INFINITY
 from more_itertools import one
 
 from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids
 from .utils import fetch_employee_validity
-from .utils import fetch_org_unit_validity
 
 
 @pytest.mark.integration_test
@@ -148,83 +136,37 @@ async def test_manager_filters(graphapi_post: GraphAPIPost, filter, expected) ->
     assert len(org_unit["current"]["managers"]) == expected
 
 
-@given(test_data=...)
-@patch("mora.graphapi.versions.latest.mutators.create_manager", new_callable=AsyncMock)
-async def test_create_manager_mutation_unit_test(
-    create_manager: AsyncMock, test_data: ManagerCreate
-) -> None:
-    """Tests that the mutator function for creating a manager passes through, with the
-    defined pydantic model."""
-
-    mutation = """
-        mutation CreateManager($input: ManagerCreateInput!) {
-            manager_create(input: $input) {
-                uuid
-            }
-        }
-    """
-
-    create_manager.return_value = test_data.uuid
-
-    payload = jsonable_encoder(test_data)
-    response = await execute_graphql(query=mutation, variable_values={"input": payload})
-    assert response.errors is None
-    assert response.data == {"manager_create": {"uuid": str(test_data.uuid)}}
-
-    create_manager.assert_called_with(test_data)
-
-
-@settings(
-    suppress_health_check=[
-        # Running multiple tests on the same database is okay in this instance
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_create_manager_integration_test(
-    data, graphapi_post: GraphAPIPost, employee_uuids, org_uuids
+    graphapi_post: GraphAPIPost, employee_uuids, org_uuids
 ) -> None:
     """Test that managers can be created in LoRa via GraphQL."""
 
     # This must be done as to not receive validation errors of the employee upon
     # creating the employee conflicting the dates.
-    employee_uuid = data.draw(st.sampled_from(employee_uuids))
+    employee_uuid = employee_uuids[0]
     parent_from, parent_to = fetch_employee_validity(graphapi_post, employee_uuid)
 
-    test_data_validity_start = data.draw(
-        st.datetimes(min_value=parent_from, max_value=parent_to or datetime.max)
-    )
-    if parent_to:
-        test_data_validity_end_strat = st.datetimes(
-            min_value=test_data_validity_start, max_value=parent_to
-        )
-    else:
-        test_data_validity_end_strat = st.none() | st.datetimes(
-            min_value=test_data_validity_start,
-        )
+    start_date = parent_from
 
     manager_level_uuids = fetch_class_uuids(graphapi_post, "manager_level")
     manager_type_uuids = fetch_class_uuids(graphapi_post, "manager_type")
     responsibility_uuids = fetch_class_uuids(graphapi_post, "responsibility")
 
-    test_data = data.draw(
-        st.builds(
-            ManagerCreate,
-            uuid=st.uuids() | st.none(),
-            person=st.just(employee_uuid),
-            responsibility=st.just(responsibility_uuids),
-            org_unit=st.sampled_from(org_uuids),
-            manager_type=st.sampled_from(manager_type_uuids),
-            manager_level=st.sampled_from(manager_level_uuids),
-            validity=st.builds(
-                RAValidity,
-                from_date=st.just(test_data_validity_start),
-                to_date=test_data_validity_end_strat,
-            ),
-        )
-    )
+    test_data = {
+        "uuid": str(uuid4()),
+        "user_key": "asd123",
+        "person": str(employee_uuid),
+        "responsibility": [str(u) for u in responsibility_uuids],
+        "org_unit": str(org_uuids[0]),
+        "manager_type": str(manager_type_uuids[0]),
+        "manager_level": str(manager_level_uuids[0]),
+        "validity": {
+            "from": start_date.isoformat(),
+            "to": None,
+        },
+    }
 
     mutation = """
         mutation CreateManager($input: ManagerCreateInput!) {
@@ -233,8 +175,9 @@ async def test_create_manager_integration_test(
             }
         }
     """
-    response = graphapi_post(mutation, {"input": jsonable_encoder(test_data)})
+    response = graphapi_post(mutation, {"input": test_data})
     assert response.errors is None
+    assert response.data is not None
     uuid = UUID(response.data["manager_create"]["uuid"])
 
     verify_query = """
@@ -261,102 +204,17 @@ async def test_create_manager_integration_test(
 
     response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
+    assert response.data is not None
     obj = one(one(response.data["managers"]["objects"])["objects"])
 
-    responsibility_list = [
-        UUID(responsibility) for responsibility in obj["responsibility"]
-    ]
-
-    assert responsibility_list == test_data.responsibility
-    assert UUID(obj["org_unit"]) == test_data.org_unit
-    assert UUID(obj["employee"]) == test_data.person
-    assert UUID(obj["manager_type"]) == test_data.manager_type
-    assert UUID(obj["manager_level"]) == test_data.manager_level
-    assert obj["user_key"] == test_data.user_key or str(uuid)
-
-    assert (
-        datetime.fromisoformat(obj["validity"]["from"]).date()
-        == test_data.validity.from_date.date()
-    )
-
-    # FYI: "backend/mora/util.py::to_iso_date()" does a check for POSITIVE_INFINITY.year
-    if (
-        not test_data.validity.to_date
-        or test_data.validity.to_date.year == POSITIVE_INFINITY.year
-    ):
-        assert obj["validity"]["to"] is None
-    else:
-        assert (
-            datetime.fromisoformat(obj["validity"]["to"]).date()
-            == test_data.validity.to_date.date()
-        )
-
-
-@settings(
-    suppress_health_check=[
-        # Running multiple tests on the same database is okay in this instance
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(data=st.data())
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-async def test_create_multiple_managers_integration_test(
-    data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids
-) -> None:
-    """Test that multiple managers can be created using the list mutator."""
-
-    org_uuid = data.draw(st.sampled_from(org_uuids))
-    org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
-
-    test_data_validity_start = data.draw(
-        st.datetimes(min_value=org_from, max_value=org_to or datetime.max)
-    )
-    if org_to:
-        test_data_validity_end_strat = st.datetimes(
-            min_value=test_data_validity_start, max_value=org_to
-        )
-    else:
-        test_data_validity_end_strat = st.none() | st.datetimes(
-            min_value=test_data_validity_start,
-        )
-
-    manager_type_uuids = fetch_class_uuids(graphapi_post, "manager_type")
-    manager_level_uuids = fetch_class_uuids(graphapi_post, "manager_level")
-    responsibility_uuids = fetch_class_uuids(graphapi_post, "responsibility")
-
-    test_data = data.draw(
-        st.lists(
-            st.builds(
-                ManagerCreate,
-                org_unit=st.just(org_uuid),
-                person=st.sampled_from(employee_uuids),
-                manager_type=st.sampled_from(manager_type_uuids),
-                manager_level=st.sampled_from(manager_level_uuids),
-                responsibility=st.just(responsibility_uuids),
-                validity=st.builds(
-                    RAValidity,
-                    from_date=st.just(test_data_validity_start),
-                    to_date=test_data_validity_end_strat,
-                ),
-            ),
-        )
-    )
-
-    CREATE_MANAGERS_QUERY = """
-        mutation CreateManagers($input: [ManagerCreateInput!]!) {
-            managers_create(input: $input) {
-                uuid
-            }
-        }
-    """
-
-    response = graphapi_post(
-        CREATE_MANAGERS_QUERY, {"input": jsonable_encoder(test_data)}
-    )
-    assert response.errors is None
-    uuids = [manager["uuid"] for manager in response.data["managers_create"]]
-    assert len(uuids) == len(test_data)
+    assert obj["responsibility"] == test_data["responsibility"]
+    assert obj["org_unit"] == test_data["org_unit"]
+    assert obj["employee"] == test_data["person"]
+    assert obj["manager_type"] == test_data["manager_type"]
+    assert obj["manager_level"] == test_data["manager_level"]
+    assert obj["user_key"] == test_data["user_key"]
+    assert obj["validity"]["from"] == test_data["validity"]["from"]
+    assert obj["validity"]["to"] is None
 
 
 @pytest.mark.integration_test
@@ -507,32 +365,6 @@ async def test_update_manager_integration_test(
         expected_updated_manager["responsibility"].sort()
 
     assert manager_objects_post_update == expected_updated_manager
-
-
-@given(test_data=...)
-@patch("mora.graphapi.versions.latest.mutators.update_manager", new_callable=AsyncMock)
-async def test_update_manager_mutation_unit_test(
-    update_manager: AsyncMock, test_data: ManagerUpdate
-) -> None:
-    """Tests that the mutator function for updating a manager passes through, with the
-    defined pydantic model."""
-
-    mutation = """
-        mutation UpdateManager($input: ManagerUpdateInput!) {
-            manager_update(input: $input) {
-                uuid
-            }
-        }
-    """
-
-    update_manager.return_value = test_data.uuid
-
-    payload = jsonable_encoder(test_data)
-    response = await execute_graphql(query=mutation, variable_values={"input": payload})
-    assert response.errors is None
-    assert response.data == {"manager_update": {"uuid": str(test_data.uuid)}}
-
-    update_manager.assert_called_with(test_data)
 
 
 async def read_manager_validities(

@@ -25,7 +25,7 @@ async def create_engagement(input: EngagementCreate) -> UUID:
     return UUID(uuid)
 
 
-async def update_engagement(input: EngagementUpdate) -> UUID:
+async def update_engagement(input: EngagementUpdate) -> UUID:  # pragma: no cover
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     req = {

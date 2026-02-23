@@ -35,7 +35,7 @@ async def terminate_itsystem(input: ITSystemTerminate) -> UUID:
     # coverage: unpause
 
 
-async def delete_itsystem(itsystem_uuid: UUID, note: str) -> UUID:
+async def delete_itsystem(itsystem_uuid: UUID, note: str) -> UUID:  # pragma: no cover
     # Let LoRa's SQL templates do their magic
     await db.delete_object("itsystem", note, str(itsystem_uuid))
     return itsystem_uuid

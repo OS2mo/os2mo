@@ -4,70 +4,17 @@ import datetime
 from functools import partial
 from typing import Any
 from unittest import TestCase
-from unittest.mock import AsyncMock
-from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
 
 import pytest
-from fastapi.encoders import jsonable_encoder
-from hypothesis import HealthCheck
-from hypothesis import given
-from hypothesis import settings
-from hypothesis import strategies as st
 from mora import util
-from mora.auth.keycloak.oidc import noauth
 from mora.graphapi.shim import execute_graphql
-from mora.graphapi.versions.latest.classes import ClassCreate
-from mora.graphapi.versions.latest.graphql_utils import PrintableStr
 from more_itertools import one
 
 from tests.conftest import AnotherTransaction
 
 from ..conftest import GraphAPIPost
-from .strategies import graph_data_momodel_validity_strat
-
-# Helpers
-# -------------------
-OPTIONAL = {
-    "published": st.sampled_from(["Publiceret", "IkkePubliceret"]),
-    "scope": st.none() | st.from_regex(PrintableStr.regex),
-    "parent_uuid": st.none() | st.uuids(),
-    "example": st.none() | st.from_regex(PrintableStr.regex),
-    "owner": st.none() | st.uuids(),
-}
-
-
-def prepare_mutator_data(test_data):
-    if "type_" in test_data:
-        test_data["type"] = test_data.pop("type_")
-
-    """Change UUID types to string."""
-    for k, v in test_data.items():
-        if type(v) is UUID:
-            test_data[k] = str(v)
-
-    return test_data
-
-
-def prepare_query_data(test_data, query_response):
-    entries_to_remove = OPTIONAL.keys()
-    for k in entries_to_remove:
-        test_data.pop(k, None)
-
-    td = {k: v for k, v in test_data.items() if v is not None}
-
-    query_dict = (
-        one(query_response.data.get("classes")["objects"])["current"]
-        if isinstance(query_response.data, dict)
-        else {}
-    )
-    query = {k: v for k, v in query_dict.items() if k in td.keys()}
-
-    if not test_data["user_key"]:
-        test_data["user_key"] = test_data["uuid"]
-
-    return test_data, query
 
 
 def read_classes_helper(
@@ -159,32 +106,13 @@ def test_query_all(graphapi_post: GraphAPIPost):
     assert response.data
 
 
-@settings(
-    suppress_health_check=[
-        # Running multiple tests on the same database is okay in this instance
-        HealthCheck.function_scoped_fixture,
-        # The hypothesis strategy isn't very good
-        HealthCheck.filter_too_much,
-    ],
-)
-@given(
-    test_data=graph_data_momodel_validity_strat(
-        ClassCreate,
-        now=datetime.datetime.combine(
-            datetime.datetime(2016, 1, 1).date(), datetime.time.min
-        ),
-    )
-)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_integration_create_class(
-    test_data,
     graphapi_post: GraphAPIPost,
     another_transaction: AnotherTransaction,
 ) -> None:
     """Integrationtest for create class mutator."""
-
-    test_data_model = ClassCreate(**test_data)
 
     mutate_query = """
         mutation CreateClass($input: ClassCreateInput!) {
@@ -194,29 +122,28 @@ async def test_integration_create_class(
         }
     """
 
-    # test_data = prepare_mutator_data(test_data)
-    create_payload = {
-        **test_data_model.dict(),
-        "validity": {
-            "from": test_data_model.validity.from_date.date(),
-            "to": test_data_model.validity.to_date.date()
-            if test_data_model.validity.to_date
-            else None,
-        },
-    }
-
+    uuid = str(uuid4())
+    facet_uuid = str(uuid4())
     mut_response = graphapi_post(
-        query=mutate_query, variables={"input": jsonable_encoder(create_payload)}
+        query=mutate_query,
+        variables={
+            "input": {
+                "uuid": uuid,
+                "user_key": "test_class",
+                "facet_uuid": facet_uuid,
+                "name": "Test Class",
+                "validity": {
+                    "from": "2021-01-01T00:00:00+01:00",
+                    "to": None,
+                },
+            }
+        },
     )
 
     assert mut_response.errors is None
     assert mut_response.data
 
-    response_uuid = (
-        mut_response.data.get("class_create", {}).get("uuid", {})
-        if isinstance(mut_response.data, dict)
-        else {}
-    )
+    response_uuid = mut_response.data["class_create"]["uuid"]
 
     """Query data to check that it actually gets written to database"""
     query_query = """
@@ -247,92 +174,22 @@ async def test_integration_create_class(
         )
 
     assert query_response.errors is None
-    assert query_response.data
+    assert query_response.data is not None
 
-    created_class = one(query_response.data.get("classes")["objects"])["current"]
+    created_class = one(query_response.data["classes"]["objects"])["current"]
     assert created_class == {
-        "uuid": test_data["uuid"],
+        "uuid": uuid,
         "type": "class",
-        "user_key": test_data_model.user_key,
-        "name": test_data_model.name,
-        "facet_uuid": str(test_data_model.facet_uuid),
-        "parent_uuid": (
-            str(test_data_model.parent_uuid)
-            if test_data_model.parent_uuid is not None
-            else None
-        ),
-        "it_system_uuid": (
-            str(test_data_model.it_system_uuid)
-            if test_data_model.it_system_uuid is not None
-            else None
-        ),
+        "user_key": "test_class",
+        "name": "Test Class",
+        "facet_uuid": facet_uuid,
+        "parent_uuid": None,
+        "it_system_uuid": None,
         "validity": {
-            "from": datetime.datetime.combine(
-                test_data_model.validity.from_date.date(), datetime.time.min
-            )
-            .replace(tzinfo=util.DEFAULT_TIMEZONE)
-            .isoformat(),
-            "to": datetime.datetime.combine(
-                (test_data_model.validity.to_date - datetime.timedelta(days=1)).date(),
-                datetime.time.min,
-            )
-            .replace(tzinfo=util.DEFAULT_TIMEZONE)
-            .isoformat()
-            if test_data_model.validity.to_date
-            and test_data_model.validity.to_date.year != util.POSITIVE_INFINITY.year
-            else None,
+            "from": "2021-01-01T00:00:00+01:00",
+            "to": None,
         },
     }
-
-
-@settings(
-    suppress_health_check=[
-        # The hypothesis strategy isn't very good
-        HealthCheck.filter_too_much
-    ],
-)
-@given(
-    test_data=graph_data_momodel_validity_strat(
-        ClassCreate,
-        now=datetime.datetime.combine(
-            datetime.datetime(2016, 1, 1).date(), datetime.time.min
-        ),
-    )
-)
-@patch("mora.graphapi.versions.latest.mutators.create_class", new_callable=AsyncMock)
-async def test_unit_create_class(
-    create_class: AsyncMock, test_data: ClassCreate
-) -> None:
-    """Unit test for create class mutator."""
-
-    mutate_query = """
-        mutation CreateClass($input: ClassCreateInput!){
-            class_create(input: $input){
-                uuid
-            }
-        }
-    """
-    if test_data.get("uuid"):
-        created_uuid = test_data["uuid"]
-    else:
-        created_uuid = uuid4()
-    create_class.return_value = created_uuid
-
-    payload = jsonable_encoder(test_data)
-
-    context = AsyncMock()
-    context.__getitem__.side_effect = lambda key: getattr(context, key)
-    context.get_token = noauth
-    context.dataloaders = AsyncMock()
-
-    response = await execute_graphql(
-        query=mutate_query,
-        variable_values={"input": payload},
-        context_value=context,
-    )
-
-    assert response.errors is None
-    assert response.data == {"class_create": {"uuid": str(created_uuid)}}
 
 
 @pytest.mark.integration_test

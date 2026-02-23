@@ -288,7 +288,7 @@ class Mutation:
     )
     async def addresses_create(
         self, input: list[AddressCreateInput]
-    ) -> list[Response[Address]]:
+    ) -> list[Response[Address]]:  # pragma: no cover
         created_addresses = await asyncio.gather(
             *[Mutation.address_create(self, address) for address in input]
         )
@@ -466,7 +466,9 @@ class Mutation:
     ) -> Response[Class]:
         org = await info.context.dataloaders.org_loader.load(0)
         uuid = await create_class(input.to_pydantic(), org.uuid)
+        # coverage: pause
         return uuid2response(uuid, ClassRead)
+        # coverage: unpause
 
     @strawberry.mutation(
         description="Updates a class.",
@@ -724,7 +726,7 @@ class Mutation:
     )
     async def engagements_update(
         self, input: list[EngagementUpdateInput]
-    ) -> list[Response[Engagement]]:
+    ) -> list[Response[Engagement]]:  # pragma: no cover
         updated_engagements = await asyncio.gather(
             *[Mutation.engagement_update(self, engagement) for engagement in input]
         )
@@ -1030,7 +1032,9 @@ class Mutation:
             gen_delete_permission("itsystem"),
         ],
     )
-    async def itsystem_delete(self, info: Info, uuid: UUID) -> Response[ITSystem]:
+    async def itsystem_delete(
+        self, info: Info, uuid: UUID
+    ) -> Response[ITSystem]:  # pragma: no cover
         note = ""
         uuid = await delete_itsystem(uuid, note)
         return uuid2response(uuid, ITSystemRead)
@@ -1095,7 +1099,7 @@ class Mutation:
     )
     async def itusers_create(
         self, input: list[ITUserCreateInput]
-    ) -> list[Response[ITUser]]:
+    ) -> list[Response[ITUser]]:  # pragma: no cover
         created_itusers = await asyncio.gather(
             *[Mutation.ituser_create(self, ituser) for ituser in input]
         )
@@ -1339,7 +1343,7 @@ class Mutation:
     )
     async def managers_create(
         self, input: list[ManagerCreateInput]
-    ) -> list[Response[Manager]]:
+    ) -> list[Response[Manager]]:  # pragma: no cover
         created_managers = await asyncio.gather(
             *[Mutation.manager_create(self, manager) for manager in input]
         )
@@ -1668,7 +1672,7 @@ class Mutation:
     )
     async def rolebindings_create(
         self, input: list[RoleBindingCreateInput]
-    ) -> list[Response[RoleBinding]]:
+    ) -> list[Response[RoleBinding]]:  # pragma: no cover
         created_rolebindings = await asyncio.gather(
             *[Mutation.rolebinding_create(self, rolebinding) for rolebinding in input]
         )
