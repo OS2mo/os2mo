@@ -15,7 +15,7 @@ OS2mo currently supports two roles, each of which require membership of a group.
 
 * `admin` - which gives read/write permissions to everything within OS2mo.
 * `reader` - which gives read permissions to everything within OS2mo.
-* `owner` - which gives read/write permissions to everything for which your user is the owner.
+* `owner` - which gives read/write permissions to everything for which your user is the owner. It is necessary to give reader rights to owners as well, otherwise the owner role will not work properly.
 
 Each of these roles should correspond to membership of a group in AD.
 
@@ -94,7 +94,7 @@ You should now have added two claim policies, one for each of the admin and owne
 
 ## Sending user object GUID
 
-Users in OS2mo contain information about their AD GUID. In order for the 'owner' role to function properly, we need to send the AD GUID of the logged in user as an attribute.
+Users in OS2mo contain information about their AD GUID. In order for _all three_ roles ('admin', 'owner', 'reader') to function properly, it is important to send the AD GUID of the logged in user as an attribute.
 
 Click "Add Rule..." in the "Edit Claim Issuance Policy" dialogue.
 
