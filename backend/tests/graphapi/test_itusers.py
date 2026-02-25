@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
+from typing import Any
 from unittest.mock import AsyncMock
 from uuid import UUID
 from uuid import uuid4
@@ -430,3 +432,94 @@ async def test_it_user_external_id(graphapi_post: GraphAPIPost) -> None:
             "validity": {"from": "2022-02-02T00:00:00+01:00", "to": None},
         },
     ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_terminate_ituser_blocked_by_active_rolebinding(
+    role_facet: UUID,
+    create_class: Callable[[dict[str, Any]], UUID],
+    create_itsystem: Callable[[dict[str, Any]], UUID],
+    create_ituser: Callable[[dict[str, Any]], UUID],
+    create_person: Callable[[dict[str, Any]], UUID],
+    create_rolebinding: Callable[[dict[str, Any]], UUID],
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Test that terminating an IT user is blocked while an active rolebinding exists."""
+    itsystem_uuid = create_itsystem(
+        {
+            "user_key": "some-system",
+            "name": "Some System",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+    admin_class_uuid = create_class(
+        {
+            "user_key": "admin",
+            "name": "Administrator",
+            "facet_uuid": str(role_facet),
+            "it_system_uuid": str(itsystem_uuid),
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+    person_uuid = create_person(
+        {
+            "given_name": "Test",
+            "surname": "User",
+        }
+    )
+    ituser_uuid = create_ituser(
+        {
+            "user_key": "testuser",
+            "itsystem": str(itsystem_uuid),
+            "person": str(person_uuid),
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+    rolebinding_uuid = create_rolebinding(
+        {
+            "ituser": str(ituser_uuid),
+            "role": str(admin_class_uuid),
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+    # Attempting to terminate the IT user while the rolebinding is active should fail
+    terminate_mutation = """
+        mutation ITUserTerminate($input: ITUserTerminateInput!) {
+            ituser_terminate(input: $input) {
+                uuid
+            }
+        }
+    """
+    response = graphapi_post(
+        terminate_mutation,
+        {"input": {"uuid": str(ituser_uuid), "to": "2000-01-01"}},
+    )
+    assert response.errors is not None
+    assert (
+        response.errors[0]["extensions"]["error_context"]["error_key"]
+        == "V_TERMINATE_ITUSER_WITH_ROLEBINDINGS"
+    )
+
+    # Terminate the rolebinding first
+    terminate_rolebinding_mutation = """
+        mutation RoleBindingTerminate($input: RoleBindingTerminateInput!) {
+            rolebinding_terminate(input: $input) {
+                uuid
+            }
+        }
+    """
+    response = graphapi_post(
+        terminate_rolebinding_mutation,
+        {"input": {"uuid": str(rolebinding_uuid), "to": "1980-01-01"}},
+    )
+    assert response.errors is None
+
+    # Now terminating the IT user should succeed (after the rolebinding has ended)
+    response = graphapi_post(
+        terminate_mutation,
+        {"input": {"uuid": str(ituser_uuid), "to": "2000-01-01"}},
+    )
+    assert response.errors is None
+    assert response.data["ituser_terminate"]["uuid"] == str(ituser_uuid)

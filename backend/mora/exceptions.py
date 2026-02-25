@@ -55,6 +55,10 @@ class ErrorCodes(Enum):
         400,
         "Org unit cannot be moved to one of its own child units",
     )
+    V_TERMINATE_ITUSER_WITH_ROLEBINDINGS = (
+        400,
+        "Cannot terminate IT user with active rolebindings.",
+    )
     V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES = (
         400,
         "Cannot terminate unit with active children and roles.",
