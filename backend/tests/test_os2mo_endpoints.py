@@ -127,6 +127,7 @@ testing_endpoints = {
     "/testing/amqp/emit",
     "/testing/database/restore",
     "/testing/database/snapshot",
+    "/testing/database/purge",
     "/testing/events/reset-last-tried",
 }
 graphql_endpoints = {
