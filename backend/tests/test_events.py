@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import concurrent.futures
+import random
 from collections.abc import Callable
 from typing import Any
 from unittest.mock import ANY
@@ -1381,3 +1382,92 @@ def test_metrics_silenced_goes_to_zero(
     assert f"{silenced_metric_name} 0.0" in metrics, (
         "silenced_metric value wrong (should be 0.0)"
     )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_refresh_priority(graphapi_post: GraphAPIPost) -> None:
+    # Create root org...
+    assert (
+        graphapi_post(
+            """
+        mutation CreateOrg {
+            org_create(input: { municipality_code: null }) {
+                uuid
+            }
+        }
+        """
+        ).errors
+        is None
+    )
+
+    listener_query = declare_listener_raw(
+        graphapi_post, "mo", "test_refresh_priority", "person"
+    )
+    assert listener_query.data is not None
+    listener = listener_query.data["event_listener_declare"]["uuid"]
+    owner = listener_query.data["event_listener_declare"]["owner"]
+
+    def create_person():
+        person_query = graphapi_post(
+            """
+            mutation CreatePerson {
+                employee_create(input: { given_name: "Anders", surname: "And" }) {
+                    uuid
+                }
+            }
+            """,
+        )
+        assert person_query.data is not None
+        person_uuid = person_query.data["employee_create"]["uuid"]
+        return person_uuid
+
+    def refresh(uuid, priority):
+        refresh_query = graphapi_post(
+            """
+            mutation RefreshPerson($owner: UUID!, $priority: Int!, $uuid: UUID!) {
+                employee_refresh(owner: $owner, priority: $priority, filter: {uuids: [$uuid]}) {
+                    objects
+                }
+            }
+            """,
+            variables={
+                "owner": owner,
+                "priority": priority,
+                "uuid": uuid,
+            },
+        )
+        assert refresh_query.data is not None
+        return refresh_query.data["employee_refresh"]["objects"]
+
+    def fetch_event2():
+        event = fetch_event(graphapi_post, listener)
+        return event
+
+    person1 = create_person()
+    person2 = create_person()
+
+    assert fetch_event2() is None
+
+    for _ in range(10):
+        person1_prio = random.randint(1, 15000)
+        person2_prio = random.randint(1, 15000)
+
+        assert refresh(person1, person1_prio) == [person1]
+        assert refresh(person2, person2_prio) == [person2]
+
+        first_event = fetch_event2()
+        assert first_event is not None
+        second_event = fetch_event2()
+        assert second_event is not None
+
+        if person1_prio < person2_prio:
+            assert first_event["subject"] == person1
+            assert second_event["subject"] == person2
+
+        if person2_prio < person1_prio:
+            assert first_event["subject"] == person2
+            assert second_event["subject"] == person1
+
+        ack_event(graphapi_post, first_event["token"])
+        ack_event(graphapi_post, second_event["token"])
