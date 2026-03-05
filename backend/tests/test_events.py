@@ -269,6 +269,24 @@ def unsilence_event(graphapi_post: GraphAPIPost, input: dict[str, Any]) -> None:
     assert response.errors is None
 
 
+def rerun_event(
+    graphapi_post: GraphAPIPost, input: dict[str, Any]
+) -> list[dict[str, Any]]:
+    query = """
+      mutation Rerun($input: EventRerunInput!) {
+        event_rerun(input: $input) {
+          priority
+          silenced
+          subject
+        }
+      }
+    """
+    response = graphapi_post(query, variables={"input": input})
+    assert response.errors is None
+    assert response.data
+    return response.data["event_rerun"]
+
+
 @pytest.fixture
 def namespace(graphapi_post: GraphAPIPost) -> str:
     response = declare_namespace(graphapi_post, DEFAULT_TEST_NS)
@@ -655,6 +673,10 @@ def test_event_unsilence_resends_immediately(
     assert event is not None
     assert event["subject"] == "alice"
 
+    # Silence the event first, then unsilence to verify resend
+    silence_event(
+        graphapi_post, {"subjects": ["alice"], "listeners": {"uuids": [str(listener)]}}
+    )
     unsilence_event(
         graphapi_post, {"subjects": ["alice"], "listeners": {"uuids": [str(listener)]}}
     )
@@ -1471,3 +1493,114 @@ def test_refresh_priority(graphapi_post: GraphAPIPost) -> None:
 
         ack_event(graphapi_post, first_event["token"])
         ack_event(graphapi_post, second_event["token"])
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_event_rerun_mutator(
+    namespace: str,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Ensure that the event_rerun mutator works correctly."""
+    routing_key = "rk"
+    listener = declare_listener(graphapi_post, namespace, "uk", routing_key)
+
+    # Emit an event and check that we can read it back
+    send_event(graphapi_post, namespace, routing_key, "alice")
+
+    expected_alice_event = {
+        "subject": "alice",
+        "priority": 10000,
+        "silenced": False,
+    }
+    alice_event = one(get_events(graphapi_post))
+    assert alice_event == expected_alice_event
+
+    # Fetch the event twice, first suceeds, second fails due to last_tried
+    assert fetch_event(graphapi_post, listener) is not None
+    assert fetch_event(graphapi_post, listener) is None
+
+    # Rerun all events, check that the alice event was rerun
+    alice_event = one(rerun_event(graphapi_post, {}))
+    assert alice_event == expected_alice_event
+
+    # Fetch the event again, first suceed due to rerun, second still fail
+    assert fetch_event(graphapi_post, listener) is not None
+    assert fetch_event(graphapi_post, listener) is None
+
+    # Ensure alice event is still on the queue
+    alice_event = one(get_events(graphapi_post))
+    assert alice_event == expected_alice_event
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_event_rerun_priorities_filter(
+    namespace: str,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Ensure that the event_rerun mutator respects the priorities filter."""
+    routing_key = "rk"
+    listener = declare_listener(graphapi_post, namespace, "uk", routing_key)
+
+    # Emit two events with different priorities
+    send_event(graphapi_post, namespace, routing_key, "alice", priority=1)
+    send_event(graphapi_post, namespace, routing_key, "bob", priority=2)
+
+    # Fetch both events to exhaust last_tried
+    assert fetch_event(graphapi_post, listener) is not None
+    assert fetch_event(graphapi_post, listener) is not None
+    assert fetch_event(graphapi_post, listener) is None
+
+    # Rerun only priority 1 events
+    event = one(rerun_event(graphapi_post, {"priorities": [1]}))
+    assert event["subject"] == "alice"
+    assert event["priority"] == 1
+
+    # Only alice should be fetchable again (bob was not rerun)
+    event = fetch_event(graphapi_post, listener)
+    assert event is not None
+    assert event["subject"] == "alice"
+    assert fetch_event(graphapi_post, listener) is None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_event_rerun_silenced_filter(
+    namespace: str,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Ensure that the event_rerun mutator respects the silenced filter."""
+    routing_key = "rk"
+    listener = declare_listener(graphapi_post, namespace, "uk", routing_key)
+
+    # Emit two events, silence one
+    send_event(graphapi_post, namespace, routing_key, "alice")
+    send_event(graphapi_post, namespace, routing_key, "bob")
+    silence_event(
+        graphapi_post, {"subjects": ["alice"], "listeners": {"uuids": [str(listener)]}}
+    )
+
+    # Fetch bob to exhaust last_tried (alice is silenced so won't be fetched)
+    event = fetch_event(graphapi_post, listener)
+    assert event is not None
+    assert event["subject"] == "bob"
+    assert fetch_event(graphapi_post, listener) is None
+
+    # Rerun only silenced events — should only affect alice, not bob
+    event = one(rerun_event(graphapi_post, {"silenced": True}))
+    assert event["subject"] == "alice"
+    assert event["silenced"] is True
+
+    # Verify bob was NOT rerun (still not fetchable)
+    assert fetch_event(graphapi_post, listener) is None
+
+    # Rerun only unsilenced events — should only affect bob
+    event = one(rerun_event(graphapi_post, {"silenced": False}))
+    assert event["subject"] == "bob"
+    assert event["silenced"] is False
+
+    # Verify bob IS now fetchable
+    event = fetch_event(graphapi_post, listener)
+    assert event is not None
+    assert event["subject"] == "bob"
