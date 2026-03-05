@@ -842,3 +842,10 @@ class EventUnsilenceInput:
     listeners: ListenerFilter | None = None
     subjects: list[str] | None = None
     priorities: list[int] | None = None
+
+
+@strawberry.input(description="Rerun all matching events.")
+class EventRerunInput:
+    listeners: ListenerFilter | None = None
+    subjects: list[str] | None = None
+    priorities: list[int] | None = None

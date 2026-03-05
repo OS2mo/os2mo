@@ -269,6 +269,24 @@ def unsilence_event(graphapi_post: GraphAPIPost, input: dict[str, Any]) -> None:
     assert response.errors is None
 
 
+def rerun_event(
+    graphapi_post: GraphAPIPost, input: dict[str, Any]
+) -> list[dict[str, Any]]:
+    query = """
+      mutation Rerun($input: EventRerunInput!) {
+        event_rerun(input: $input) {
+          priority
+          silenced
+          subject
+        }
+      }
+    """
+    response = graphapi_post(query, variables={"input": input})
+    assert response.errors is None
+    assert response.data
+    return response.data["event_rerun"]
+
+
 @pytest.fixture
 def namespace(graphapi_post: GraphAPIPost) -> str:
     response = declare_namespace(graphapi_post, DEFAULT_TEST_NS)
@@ -1471,3 +1489,41 @@ def test_refresh_priority(graphapi_post: GraphAPIPost) -> None:
 
         ack_event(graphapi_post, first_event["token"])
         ack_event(graphapi_post, second_event["token"])
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_event_rerun_mutator(
+    namespace: str,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Ensure that the event_rerun mutator works correctly."""
+    routing_key = "rk"
+    listener = declare_listener(graphapi_post, namespace, "uk", routing_key)
+
+    # Emit an event and check that we can read it back
+    send_event(graphapi_post, namespace, routing_key, "alice")
+
+    expected_alice_event = {
+        "subject": "alice",
+        "priority": 10000,
+        "silenced": False,
+    }
+    alice_event = one(get_events(graphapi_post))
+    assert alice_event == expected_alice_event
+
+    # Fetch the event twice, first suceeds, second fails due to last_tried
+    assert fetch_event(graphapi_post, listener) is not None
+    assert fetch_event(graphapi_post, listener) is None
+
+    # Rerun all events, check that the alice event was rerun
+    alice_event = one(rerun_event(graphapi_post, {}))
+    assert alice_event == expected_alice_event
+
+    # Fetch the event again, first suceed due to rerun, second still fail
+    assert fetch_event(graphapi_post, listener) is not None
+    assert fetch_event(graphapi_post, listener) is None
+
+    # Ensure alice event is still on the queue
+    alice_event = one(get_events(graphapi_post))
+    assert alice_event == expected_alice_event
