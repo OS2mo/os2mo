@@ -59,6 +59,7 @@ from .employee import update_employee
 from .engagements import create_engagement
 from .engagements import terminate_engagement
 from .engagements import update_engagement
+from .events import FullEvent
 from .events import Listener
 from .events import Namespace
 from .facets import create_facet
@@ -97,6 +98,7 @@ from .inputs import EngagementCreateInput
 from .inputs import EngagementTerminateInput
 from .inputs import EngagementUpdateInput
 from .inputs import EventAcknowledgeInput
+from .inputs import EventRerunInput
 from .inputs import EventSendInput
 from .inputs import EventSilenceInput
 from .inputs import EventUnsilenceInput
@@ -2119,6 +2121,7 @@ class Mutation:
     ) -> bool:
         clauses = [
             db.Event.listener_fk == db.Listener.pk,
+            db.Event.silenced == sqlalchemy.true(),
         ]
 
         if input.listeners is not None:
@@ -2144,6 +2147,55 @@ class Mutation:
         )
         return True
         # coverage: unpause
+
+    @strawberry.mutation(
+        description="Rerun all matching events",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_role_permission("rerun_event"),
+        ],
+    )
+    async def event_rerun(
+        self,
+        info: MOInfo,
+        input: EventRerunInput,
+    ) -> list[FullEvent]:
+        clauses = [
+            db.Event.listener_fk == db.Listener.pk,
+        ]
+
+        if input.listeners is not None:  # pragma: no cover
+            clauses.extend(input.listeners.where_clauses())
+
+        if input.subjects is not None:  # pragma: no cover
+            clauses.append(db.Event.subject.in_(input.subjects))
+
+        if input.priorities is not None:
+            clauses.append(db.Event.priority.in_(input.priorities))
+
+        if input.silenced is not None:
+            clauses.append(db.Event.silenced == input.silenced)
+
+        session: AsyncSession = info.context.session
+        results = await session.scalars(
+            update(db.Event)
+            .where(*clauses)
+            .values(
+                # Update last_tried to override back-off and retry event
+                # immediately.
+                last_tried=datetime(1970, 1, 1),
+            )
+            .returning(db.Event)
+        )
+        return [
+            FullEvent(
+                subject=result.subject,
+                priority=result.priority,
+                silenced=result.silenced,
+                listener_uuid=result.listener_fk,
+            )
+            for result in results
+        ]
 
     # Files
     # -----
