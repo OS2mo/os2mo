@@ -97,7 +97,7 @@ default:
   interruptible: true
 
 
-# Temporary: verify reuse-tool versions
+# Temporary: verify reuse-tool versions (to be reverted)
 Check reuse-tool versions:
   stage: lint
   image: python:3.11
@@ -105,7 +105,7 @@ Check reuse-tool versions:
   rules:
     - if: '$CI_MERGE_REQUEST_IID'
   script:
-    - pip install reuse==5.1.1 && echo '✅ v5.1.1 EXISTS' || echo '❌ v5.1.1 DOES NOT EXIST'
+    - pip install reuse==5.1.1 && echo 'v5.1.1 EXISTS' || echo 'v5.1.1 DOES NOT EXIST'
     - pip index versions reuse 2>/dev/null | head -5 || true
     - git ls-remote --tags https://github.com/fsfe/reuse-tool | grep -oP 'refs/tags/\Kv[56][^{}]*' | sort -V
 
