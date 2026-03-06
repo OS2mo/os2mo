@@ -1,6 +1,0 @@
-check-reuse-versions:
-  image: python:3.11
-  script:
-    - pip install reuse==5.1.1 && echo 'v5.1.1 EXISTS' || echo 'v5.1.1 DOES NOT EXIST'
-    - pip install --dry-run reuse && pip index versions reuse || true
-    - git ls-remote --tags https://github.com/fsfe/reuse-tool | grep 'v5\|v6' | sort -V
