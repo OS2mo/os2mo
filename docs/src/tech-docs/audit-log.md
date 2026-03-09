@@ -2,15 +2,56 @@
 title: Audit log
 ---
 
-OS2mo includes a write audit-log exposed via the bitemporality of the
-underlying datamodel, which is exposed via the registrations type in
-GraphQL.
+MO har nu en bitemporal auditlog, som er et værktøj, der viser data på to tidslinjer samtidigt: **Registreringstid** (hvornår en ændring blev registreret) og **Gyldighedstid** (i hvilken tidsperioden ændringen var/er gældende).
 
-The audit-log serves the purpose of keeping track of which user or
-integration has made which registration / modification to the data in
-OS2mo. Each entry has a reference to the user-uuid that made the change
-(as provided by the Keycloak UUID claim). For integrations a hard-coded
-list of UUIDs exist:
+### Formål
+
+Formålet med en bitemporal auditlog er at give et komplet og fejlfrit billede af både historikken (hvad hed en enhed hvornår) og registreringshistorikken (hvornår blev enhedens navn ændret).
+
+Her er de primære formål:
+
+- **Sikkerhed og overvågning:** Gør det muligt at opdage mistænkelig aktivitet, uautoriserede adgangsforsøg eller potentielle hackerangreb.
+- **Ansvar:** Sikrer, at handlinger kan spores direkte tilbage til en specifik bruger eller systemproces.
+- **Fejlfinding og systemgendannelse:** Hjælper med at analysere, hvad der gik galt ved systemnedbrud eller fejl, så man hurtigt kan rette fejlen, genoprette normal drift, og sikre at fejlen ikke gentager sig.
+- **Overholdelse af lovgivning (Compliance):** Dokumenterer, at organisationen overholder juridiske krav og standarder, såsom GDPR og it-sikkerhed (adgange).
+- **Dataintegritet:** Gør det muligt at verificere, at data ikke er blevet ændret uretmæssigt, og giver overblik over ændringshistorik.
+- **Bevisførelse:** Fungerer som vigtig dokumentation i forbindelse med interne undersøgelser eller juridiske efterspil efter et sikkerhedsbrud.
+
+### Eksempel
+
+Adgang til auditloggen foregår via klik på 'uret' til højre for enhver registrering:
+
+![Klik på uret](../graphics/audit-log/1.png)
+
+Bemærk, at samtlige rækker i MO kan inspiceres på denne måde - om det drejer sig om en enhed, et engagement, en tilknytning, en adresse, etc.
+
+Når man klikker på uret, kommer man til et nyt billede, som viser historikken på det objekt, man har valgt (her en enhed).
+
+Auditloggen er opdelt i to hovedområder:
+
+![Auditlog hovedområder](../graphics/audit-log/2.png)
+
+- **Venstre (Systemtid/Registrering):** Viser navnet på den person, der har foretaget ændringen, samt det præcise tidspunkt for, hvornår ændringen blev gemt i databasen (f.eks. `alvida (10-04-2024 16:14)`).
+- **Højre (Tidslinje/Gyldighedstid):** Viser en vandret tidslinje (2022, 2023, 2024 osv.). De blå bjælker indikerer, i hvilken periode de pågældende data er gyldige.
+
+Når man skal finde ud af, hvilke ændringer, der er foretaget, skal man blot finde de mørkeblå markeringer: Ovenfor kan man se, at der er sket en ændring på Overenhed i registreringen `alvida (10-04-2024 16:14)`. Man sammenligner så den række med den tilsvarende række i den foregående registrering (nedenfor) `Legacy (01-02-2022 19:11)` og kan se, at overenhedens navn er ændret til Selvstyret. Kigger man på den nyeste registrering `alvida (12-04-2024 11:17)`, kan man se, at overenheden er ændret igen - denne gang til Skole.
+
+### Funktionalitet
+
+- **Scroll vandret.** Ved `shift+musescroll` kan man scrolle til siderne, så man kommer frem eller tilbage ad tidslinjen.
+- **Zoom.** Ved `ctrl+musescroll` kan man zoome ind og ud ift., hvor granuleret et tidsbillede, man ønsker:
+
+  ![Zoom eksempel](../graphics/audit-log/3.png)
+
+  Det er muligt at komme ned på tusindedele af sekunder:
+
+  ![Tusindedele af sekunder](../graphics/audit-log/4.png)
+- **Overblik over gældende ændringer:** Gældende ændringer er farvelagt, så man kan skelne dem nemt.
+- **Kopiering af ændring.** UUID'et på hver række kan kopieres ved ét klik på ændringen, fx Navn i ovenstående eksempel.
+- **Link til ændringer.** Såfremt en ændring er foretaget på et andet objekt (fx enhedens Overenhed) eller en anden klasse (fx enhedens Enhedsniveau), end man er i færd med at inspicere, kan man klikke på pilen i rækken, hvorpå man bliver sendt hen til det andet objekts / den anden klasses auditlog og kan forfølge sine undersøgelser der. Er der tale om en attribut på objektet, er der ikke noget link (fx Navn).
+
+  ![Link til ændringer](../graphics/audit-log/5.png)
+
 
 | Integration                 | UUID                                 |
 |-----------------------------|--------------------------------------|
