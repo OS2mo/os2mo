@@ -50,11 +50,11 @@ from mora.mapping import ADMIN
 from mora.service.org import ConfiguredOrganisation
 from mora.testing import copy_database
 from mora.testing import drop_database
+from mora.testing import ensure_empty_db_template
 from mora.testing import superuser_connection
 from more_itertools import one
 from oio_rest.config import Settings as LoraSettings
 from oio_rest.config import get_settings as lora_get_settings
-from oio_rest.db.alembic_helpers import run_async_upgrade
 from oio_rest.organisation import Organisation
 from pytest_asyncio import is_async_test
 from ramodels.mo import Validity
@@ -459,12 +459,7 @@ async def another_transaction(
 async def empty_database_template(
     superuser: AsyncConnection, lora_settings: LoraSettings
 ) -> AsyncYieldFixture[str]:
-    async with _database_copy(superuser, "template1") as database_name:
-        # Apply alembic migrations
-        async with _use_session(lora_settings, database_name) as (_, session):
-            connection = await session.connection()
-            await run_async_upgrade(connection.engine)
-        yield database_name
+    yield await ensure_empty_db_template(superuser, lora_settings)
 
 
 @pytest.fixture(scope="session")

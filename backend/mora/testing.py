@@ -8,6 +8,8 @@ from datetime import datetime
 from fastapi import APIRouter
 from oio_rest.config import Settings as LoraSettings
 from oio_rest.config import get_settings as lora_get_settings
+from oio_rest.db.alembic_helpers import run_async_upgrade
+from psycopg.errors import DuplicateDatabase
 from psycopg.errors import UndefinedTable
 from sqlalchemy import text
 from sqlalchemy import update
@@ -159,6 +161,79 @@ async def copy_database(
     await _set_database_connectable(superuser, destination, True)
 
 
+async def ensure_database(superuser: AsyncConnection, database: str) -> None:
+    """Create a database if it does not already exist.
+
+    Args:
+        superuser:
+            A superuser connection with AUTOCOMMIT isolation level.
+        database:
+            The name of the database to create.
+            Must be a trusted value as it is interpolated into SQL.
+
+    Raises:
+        ProgrammingError:
+            If the database creation fails for any reason other than the database
+            already existing.
+    """
+    try:
+        await superuser.execute(text(f"create database {database}"))
+    except ProgrammingError as e:  # pragma: no cover
+        if not isinstance(e.orig, DuplicateDatabase):
+            raise
+
+
+async def migrate_database(lora_settings: LoraSettings, database: str) -> None:
+    """Run alembic migrations on the given database.
+
+    This function is idempotent; running it multiple times on the same database simply
+    ensures that the database is fully migrated, making any changes necessary.
+
+    The first call on an empty database is expensive, since many changes must be made
+    while calling on a fully migrated database essentially is a fast no-op.
+
+    Args:
+        lora_settings:
+            Lora settings used to connect to the database.
+        database:
+            The name of the database to migrate.
+    """
+    engine = db.create_engine(
+        user=lora_settings.db_user,
+        password=lora_settings.db_password,
+        host=lora_settings.db_host,
+        name=database,
+    )
+    try:
+        await run_async_upgrade(engine)
+    finally:
+        await engine.dispose()
+
+
+# Name of our fully migrated, but empty database used for templating
+EMPTY_DB_TEMPLATE = "empty_db_template"
+
+
+async def ensure_empty_db_template(
+    superuser: AsyncConnection,
+    lora_settings: LoraSettings,
+) -> str:
+    """Ensure that a migrated empty database exists for templating.
+
+    Args:
+        superuser:
+            A superuser connection with AUTOCOMMIT isolation level.
+        lora_settings:
+            Lora settings used to connect to the database.
+
+    Returns:
+        The name of the migrated empty database template.
+    """
+    await ensure_database(superuser, EMPTY_DB_TEMPLATE)
+    await migrate_database(lora_settings, EMPTY_DB_TEMPLATE)
+    return EMPTY_DB_TEMPLATE
+
+
 def _get_current_database(session: db.AsyncSession) -> str:
     return session.get_bind().engine.url.database
 
@@ -196,6 +271,26 @@ async def restore(session: depends.Session) -> None:
         await copy_database(
             superuser,
             source=_get_snapshot_database(session),
+            destination=_get_current_database(session),
+        )
+    ConfiguredOrganisation.clear()
+
+
+@router.post("/database/purge", status_code=HTTP_204_NO_CONTENT)
+async def purge(session: depends.Session) -> None:
+    """
+    Reset database to a clean, migrated state with all tables empty.
+    """
+    logger.warning("Purging database to clean state")
+    lora_settings = lora_get_settings()
+
+    async with superuser_connection(lora_settings) as superuser:  # pragma: no cover
+        # Ensure the migrated empty database template exists
+        template = await ensure_empty_db_template(superuser, lora_settings)
+        # Discard our current database in favor of an empty one
+        await copy_database(
+            superuser,
+            source=template,
             destination=_get_current_database(session),
         )
     ConfiguredOrganisation.clear()
