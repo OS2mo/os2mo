@@ -46,12 +46,15 @@ Når man skal finde ud af, hvilke ændringer, der er foretaget, skal man blot fi
   Det er muligt at komme ned på tusindedele af sekunder:
 
   ![Tusindedele af sekunder](../graphics/audit-log/4.png)
+
 - **Overblik over gældende ændringer:** Gældende ændringer er farvelagt, så man kan skelne dem nemt.
 - **Kopiering af ændring.** UUID'et på hver række kan kopieres ved ét klik på ændringen, fx Navn i ovenstående eksempel.
 - **Link til ændringer.** Såfremt en ændring er foretaget på et andet objekt (fx enhedens Overenhed) eller en anden klasse (fx enhedens Enhedsniveau), end man er i færd med at inspicere, kan man klikke på pilen i rækken, hvorpå man bliver sendt hen til det andet objekts / den anden klasses auditlog og kan forfølge sine undersøgelser der. Er der tale om en attribut på objektet, er der ikke noget link (fx Navn).
 
   ![Link til ændringer](../graphics/audit-log/5.png)
 
+
+### Identifikation af integrationer
 
 | Integration                 | UUID                                 |
 |-----------------------------|--------------------------------------|
