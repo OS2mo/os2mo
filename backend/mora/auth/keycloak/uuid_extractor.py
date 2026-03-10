@@ -336,11 +336,11 @@ async def get_entities_graphql(
             return
 
         if collection == "related_unit":
-            # Related units have a single `origin` field and a list of `destination`s
+            # Related units have a single `origin` field and a list of
+            # `destination`s. Originally we required ownership of both the
+            # origin and destinations, but that's not compatible with the old
+            # service-api owner calculation
             yield EntityType.ORG_UNIT, getattr(input, "origin", None)
-            if destinations := getattr(input, "destination", None):
-                for destination in destinations:
-                    yield EntityType.ORG_UNIT, destination
             return
 
         # Even though most of the remaining object types (addresses,

@@ -636,7 +636,7 @@ def test_owner_of_unit(
         # owner of origin and owner of all destinations
         (HUM_UNIT, [FILOSOFISK_INSTITUT], True),
         # owner of origin but not owner of all destinations
-        (HUM_UNIT, [FILOSOFISK_INSTITUT, ROOT_UNIT], False),
+        (HUM_UNIT, [FILOSOFISK_INSTITUT, ROOT_UNIT], True),
         # not owner of origin but owner of all destinations
         (ROOT_UNIT, [FILOSOFISK_INSTITUT], False),
         # not owner of origin and not owner of all destinations
