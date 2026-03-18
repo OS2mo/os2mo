@@ -149,7 +149,7 @@ async def registration_resolver(
         "org_unit": OrganisationEnhedRegistrering,
         "role": OrganisationFunktionRegistrering,
         "owner": OrganisationFunktionRegistrering,
-        # TODO: RelatedUnit
+        "related": OrganisationFunktionRegistrering,
     }
 
     tables = set(model2table.values())
@@ -184,6 +184,7 @@ async def registration_resolver(
                         "Rolle": "role",
                         "Tilknytning": "association",
                         "owner": "owner",
+                        "Relateret Enhed": "related",
                     },
                     value=OrganisationFunktionAttrEgenskaber.funktionsnavn.cast(Text),
                     else_="unknown",
