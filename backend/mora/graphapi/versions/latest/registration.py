@@ -148,7 +148,7 @@ async def registration_resolver(
         "manager": OrganisationFunktionRegistrering,
         "org_unit": OrganisationEnhedRegistrering,
         "role": OrganisationFunktionRegistrering,
-        # TODO: Owner
+        "owner": OrganisationFunktionRegistrering,
         # TODO: RelatedUnit
     }
 
@@ -183,6 +183,7 @@ async def registration_resolver(
                         "Orlov": "leave",
                         "Rolle": "role",
                         "Tilknytning": "association",
+                        "owner": "owner",
                     },
                     value=OrganisationFunktionAttrEgenskaber.funktionsnavn.cast(Text),
                     else_="unknown",

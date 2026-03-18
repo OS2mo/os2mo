@@ -23,6 +23,7 @@ from mora.graphapi.gmodels.mo.details import ITUserRead
 from mora.graphapi.gmodels.mo.details import KLERead
 from mora.graphapi.gmodels.mo.details import LeaveRead
 from mora.graphapi.gmodels.mo.details import ManagerRead
+from mora.graphapi.gmodels.mo.details import OwnerRead
 from mora.util import NEGATIVE_INFINITY
 from mora.util import POSITIVE_INFINITY
 from mora.util import now
@@ -59,6 +60,7 @@ def model2name(model: Any) -> Any:
         LeaveRead: "leave",
         RoleBindingRead: "rolebinding",
         ManagerRead: "manager",
+        OwnerRead: "owner",
     }
     return mapping[model]
 
@@ -78,6 +80,7 @@ def name2model(name: str) -> Any:
         "leave": LeaveRead,
         "rolebinding": RoleBindingRead,
         "manager": ManagerRead,
+        "owner": OwnerRead,
     }
     return mapping[name]
 
