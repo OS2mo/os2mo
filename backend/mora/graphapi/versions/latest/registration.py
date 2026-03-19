@@ -181,7 +181,7 @@ async def registration_resolver(
                         "IT-system": "ituser",
                         "Leder": "manager",
                         "Orlov": "leave",
-                        "Rolle": "role",
+                        "Rollebinding": "role",
                         "Tilknytning": "association",
                         "KLE": "kle",
                         "owner": "owner",

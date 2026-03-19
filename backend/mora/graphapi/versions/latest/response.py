@@ -80,6 +80,7 @@ def name2model(name: str) -> Any:
         "ituser": ITUserRead,
         "kle": KLERead,
         "leave": LeaveRead,
+        "role": RoleBindingRead,
         "rolebinding": RoleBindingRead,
         "manager": ManagerRead,
         "owner": OwnerRead,
