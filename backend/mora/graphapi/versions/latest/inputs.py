@@ -60,7 +60,10 @@ from .models import OrganisationUnitTerminate
 from .models import OwnerCreate
 from .models import OwnerTerminate
 from .models import OwnerUpdate
+from .models import RelatedUnitCreate
 from .models import RelatedUnitsUpdate
+from .models import RelatedUnitTerminate
+from .models import RelatedUnitUpdate
 from .models import RoleBindingCreate
 from .models import RoleBindingTerminate
 from .models import RoleBindingUpdate
@@ -724,6 +727,30 @@ class OwnerTerminateInput:
 
 # Related Units
 # -------------
+
+
+@strawberry.experimental.pydantic.input(
+    model=RelatedUnitCreate,
+    all_fields=True,
+)
+class RelatedUnitCreateInput:
+    """Input model for creating a related unit."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=RelatedUnitUpdate,
+    all_fields=True,
+)
+class RelatedUnitUpdateInput:
+    """Input model for updating a related unit."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=RelatedUnitTerminate,
+    all_fields=True,
+)
+class RelatedUnitTerminateInput:
+    """Input model for terminating a related unit."""
 
 
 @strawberry.experimental.pydantic.input(

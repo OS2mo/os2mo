@@ -133,7 +133,10 @@ from .inputs import OrganisationUnitUpdateInput
 from .inputs import OwnerCreateInput
 from .inputs import OwnerTerminateInput
 from .inputs import OwnerUpdateInput
+from .inputs import RelatedUnitCreateInput
 from .inputs import RelatedUnitsUpdateInput
+from .inputs import RelatedUnitTerminateInput
+from .inputs import RelatedUnitUpdateInput
 from .inputs import RoleBindingCreateInput
 from .inputs import RoleBindingTerminateInput
 from .inputs import RoleBindingUpdateInput
@@ -179,6 +182,9 @@ from .permissions import gen_refresh_permission
 from .permissions import gen_role_permission
 from .permissions import gen_terminate_permission
 from .permissions import gen_update_permission
+from .related_units import create_related_unit
+from .related_units import terminate_related_unit
+from .related_units import update_related_unit
 from .related_units import update_related_units
 from .resolvers import address_resolver
 from .resolvers import association_resolver
@@ -1628,11 +1634,54 @@ class Mutation:
     # -------------
 
     @strawberry.mutation(
-        description="Updates relations for an org_unit.",
+        description="Creates a related unit relation.",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_create_permission("related_unit"),
         ],
+    )
+    async def related_unit_create(
+        self, input: RelatedUnitCreateInput
+    ) -> Response[RelatedUnit]:
+        return uuid2response(
+            await create_related_unit(input.to_pydantic()), RelatedUnitRead
+        )
+
+    @strawberry.mutation(
+        description="Updates a related unit relation.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_update_permission("related_unit"),
+        ],
+    )
+    async def related_unit_update(
+        self, input: RelatedUnitUpdateInput
+    ) -> Response[RelatedUnit]:
+        return uuid2response(
+            await update_related_unit(input.to_pydantic()), RelatedUnitRead
+        )
+
+    @strawberry.mutation(
+        description="Terminates a related unit relation.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("related_unit"),
+        ],
+    )
+    async def related_unit_terminate(
+        self, input: RelatedUnitTerminateInput
+    ) -> Response[RelatedUnit]:
+        return uuid2response(
+            await terminate_related_unit(input.to_pydantic()), RelatedUnitRead
+        )
+
+    @strawberry.mutation(
+        description="Updates relations for an org_unit. Deprecated: Use related_unit_create/related_unit_update/related_unit_terminate instead.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("related_unit"),
+        ],
+        deprecation_reason="Use 'related_unit_create', 'related_unit_update', and 'related_unit_terminate' instead.",
     )
     async def related_units_update(
         self, input: RelatedUnitsUpdateInput
