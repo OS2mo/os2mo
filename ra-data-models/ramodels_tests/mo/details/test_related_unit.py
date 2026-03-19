@@ -24,8 +24,12 @@ def base_strat(draw):
 @st.composite
 def read_strat(draw):
     base_dict = draw(base_strat())
+    org_unit_uuid = draw(st.uuids())
+    related_org_unit_uuid = draw(st.uuids())
     required = {
-        "org_unit_uuids": st.lists(st.uuids()),
+        "org_unit_uuid": st.just(org_unit_uuid),
+        "related_org_unit_uuid": st.just(related_org_unit_uuid),
+        "org_unit_uuids": st.just([org_unit_uuid, related_org_unit_uuid]),
     }
 
     st_dict = draw(st.fixed_dictionaries(required))  # type: ignore

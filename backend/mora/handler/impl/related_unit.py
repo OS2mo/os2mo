@@ -28,12 +28,16 @@ class RoleReader(reading.OrgFunkReadingHandler):
     async def _get_mo_object_from_effect(
         cls, effect, start, end, funcid, flat: bool = False
     ) -> dict[str, Awaitable | Any]:
-        org_units_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuids(effect)
+        org_units_uuid = list(mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuids(effect))
 
         base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
         if is_graphql():
             return {
                 **base_obj,
+                "org_unit_uuid": org_units_uuid[0] if len(org_units_uuid) > 0 else None,
+                "related_org_unit_uuid": org_units_uuid[1]
+                if len(org_units_uuid) > 1
+                else None,
                 "org_unit_uuids": org_units_uuid,
             }
 
