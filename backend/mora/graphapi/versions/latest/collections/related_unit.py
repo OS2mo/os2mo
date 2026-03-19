@@ -68,6 +68,38 @@ class RelatedUnit:
         """Implemented for backwards compatability."""
         return root.type_
 
+    # New individual org unit fields
+    org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response(
+            model=OrganisationUnitRead, uuid=root.org_unit_uuid
+        ),
+        description="The first/origin organisation unit in the relation.",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
+
+    related_org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response(
+            model=OrganisationUnitRead, uuid=root.related_org_unit_uuid
+        ),
+        description="The second/destination organisation unit in the relation.",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
+
+    @strawberry.field(
+        description="UUID of the first/origin organisation unit.",
+        deprecation_reason=gen_uuid_field_deprecation("org_unit"),
+    )
+    async def org_unit_uuid(self, root: RelatedUnitRead) -> UUID:
+        return root.org_unit_uuid
+
+    @strawberry.field(
+        description="UUID of the second/destination organisation unit.",
+        deprecation_reason=gen_uuid_field_deprecation("related_org_unit"),
+    )
+    async def related_org_unit_uuid(self, root: RelatedUnitRead) -> UUID:
+        return root.related_org_unit_uuid
+
+    # Deprecated list-based fields (backwards compat)
     org_units_response: Paged[Response[LazyOrganisationUnit]] = strawberry.field(
         resolver=to_paged_response(OrganisationUnitRead)(
             seed_resolver(
@@ -89,6 +121,7 @@ class RelatedUnit:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        deprecation_reason="Use 'org_unit_response' and 'related_org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     org_units: list[LazyOrganisationUnit] = strawberry.field(
@@ -112,7 +145,7 @@ class RelatedUnit:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
-        deprecation_reason="Use 'org_units_response' instead. Will be removed in a future version of OS2mo.",
+        deprecation_reason="Use 'org_unit_response' and 'related_org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
     @strawberry.field(
