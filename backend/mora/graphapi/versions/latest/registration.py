@@ -143,13 +143,13 @@ async def registration_resolver(
         "facet": FacetRegistrering,
         "itsystem": ITSystemRegistrering,
         "ituser": OrganisationFunktionRegistrering,
-        "kle": KlasseRegistrering,
+        "kle": OrganisationFunktionRegistrering,
         "leave": OrganisationFunktionRegistrering,
         "manager": OrganisationFunktionRegistrering,
         "org_unit": OrganisationEnhedRegistrering,
         "role": OrganisationFunktionRegistrering,
-        # TODO: Owner
-        # TODO: RelatedUnit
+        "owner": OrganisationFunktionRegistrering,
+        "related": OrganisationFunktionRegistrering,
     }
 
     tables = set(model2table.values())
@@ -181,8 +181,11 @@ async def registration_resolver(
                         "IT-system": "ituser",
                         "Leder": "manager",
                         "Orlov": "leave",
-                        "Rolle": "role",
+                        "Rollebinding": "role",
                         "Tilknytning": "association",
+                        "KLE": "kle",
+                        "owner": "owner",
+                        "Relateret Enhed": "related",
                     },
                     value=OrganisationFunktionAttrEgenskaber.funktionsnavn.cast(Text),
                     else_="unknown",
@@ -201,8 +204,6 @@ async def registration_resolver(
                     "ITSystemRegistrering": "itsystem",
                     "KlasseRegistrering": "class",
                     "OrganisationEnhedRegistrering": "org_unit",
-                    # TODO: Handle KLE
-                    # "kle": KlasseRegistrering,
                 },
                 value=literal(table.__name__),
                 else_="unknown",
