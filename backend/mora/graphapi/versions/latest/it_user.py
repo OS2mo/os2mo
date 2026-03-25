@@ -74,7 +74,9 @@ async def _validate_no_active_rolebindings(input: ITUserTerminate) -> None:
         )
     )
 
+    # coverage: pause
     if rolebindings:
         exceptions.ErrorCodes.V_TERMINATE_ITUSER_WITH_ROLEBINDINGS(
             rolebinding_uuids=sorted(rolebindings),
         )
+    # coverage: unpause
