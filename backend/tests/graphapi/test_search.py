@@ -170,3 +170,44 @@ async def test_employee_query_must_be_used_alone(graphapi_post: GraphAPIPost) ->
             "path": ["employees"],
         }
     ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_org_unit_search_uuid(
+    graphapi_post: GraphAPIPost, create_org_unit: Callable[..., UUID]
+) -> None:
+    ou = str(create_org_unit("random org unit"))
+
+    def search(q: str) -> dict:
+        query = """
+          query Search($query: String) {
+            org_units(filter: {query: $query}) {
+              objects {
+                current {
+                  uuid
+                }
+              }
+            }
+          }
+        """
+        response = graphapi_post(query, {"query": q})
+        assert response.errors is None
+        assert response.data is not None
+        return response.data["org_units"]
+
+    response = search(ou)
+    assert response["objects"] == [{"current": {"uuid": ou}}]
+
+    response = search(ou.upper())
+    assert response["objects"] == [{"current": {"uuid": ou}}]
+
+    response = search(ou[:10])
+    assert response["objects"] == [{"current": {"uuid": ou}}]
+
+    response = search(ou[-10:])
+    assert response["objects"] == [{"current": {"uuid": ou}}]
+
+    # Too short to search for UUIDs.
+    response = search(ou[:7])
+    assert response["objects"] == []
