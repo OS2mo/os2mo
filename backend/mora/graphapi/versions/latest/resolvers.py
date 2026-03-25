@@ -1045,27 +1045,26 @@ async def organisation_unit_resolver_query(
     # Query search
     if filter.query:
         search_phrase = util.query_to_search_phrase(filter.query)
-        query = query.where(
-            or_(
-                cast(OrganisationEnhedRegistrering.organisationenhed_id, Text)
-                == filter.query,
-                OrganisationEnhedRegistrering.id.in_(
-                    select(
-                        OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
-                    ).where(
-                        or_(
-                            OrganisationEnhedAttrEgenskaber.brugervendtnoegle.ilike(
-                                search_phrase
-                            ),
-                            OrganisationEnhedAttrEgenskaber.enhedsnavn.ilike(
-                                search_phrase
-                            ),
+
+        clauses = [
+            cast(OrganisationEnhedRegistrering.organisationenhed_id, Text)
+            == filter.query,
+            OrganisationEnhedRegistrering.id.in_(
+                select(
+                    OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
+                ).where(
+                    or_(
+                        OrganisationEnhedAttrEgenskaber.brugervendtnoegle.ilike(
+                            search_phrase
                         ),
-                        _virkning(OrganisationEnhedAttrEgenskaber),
-                    )
-                ),
+                        OrganisationEnhedAttrEgenskaber.enhedsnavn.ilike(search_phrase),
+                    ),
+                    _virkning(OrganisationEnhedAttrEgenskaber),
+                )
             ),
-        )
+        ]
+
+        query = query.where(or_(*clauses))
 
     # Pagination. Must be done here since the generic_resolver (lora) does not support
     # filtering on UUIDs and limit/cursor at the same time.
