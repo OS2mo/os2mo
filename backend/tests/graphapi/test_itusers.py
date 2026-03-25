@@ -502,6 +502,23 @@ def test_terminate_ituser_blocked_by_active_rolebinding(
         == "V_TERMINATE_ITUSER_WITH_ROLEBINDINGS"
     )
 
+    # Terminating with both "from" and "to" should also be blocked
+    response = graphapi_post(
+        terminate_mutation,
+        {
+            "input": {
+                "uuid": str(ituser_uuid),
+                "from": "1990-01-01",
+                "to": "2000-01-01",
+            }
+        },
+    )
+    assert response.errors is not None
+    assert (
+        response.errors[0]["extensions"]["error_context"]["error_key"]
+        == "V_TERMINATE_ITUSER_WITH_ROLEBINDINGS"
+    )
+
     # Terminate the rolebinding first
     terminate_rolebinding_mutation = """
         mutation RoleBindingTerminate($input: RoleBindingTerminateInput!) {
