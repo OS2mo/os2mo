@@ -49,7 +49,7 @@ Det er muligt at afslutte en leder fra fanen ved brug af **'Afslut'**-knappen (d
 
 ![Fjern leder](../graphics/afslutleder.png)
 
-Når lederen er fjernet, sendes email-notifikationen til rette vedkommende (typisk en fælles postkasse, så man ikke er personafhængig). Hvis slutdatoen bliver sat til en dato i fremtiden, sendes email-notifikationen på den valgte dato.
+Når lederen er fjernet, sendes email-notifikationen til rette vedkommende (typisk en fælles postkasse, så man ikke er personafhængig). Hvis slutdatoen bliver sat til en dato i fremtiden, sendes email-notifikationen på den valgte dato; hvis den er sat i fortiden, sendes notifikationen med det samme.
 
 Emailen kan se således ud:
 
