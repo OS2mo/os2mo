@@ -21,6 +21,7 @@ En bruger oprettes i MO og bliver synkroniseret til Active Directory (AD). MOs i
 
 - Når en leder fratræder, bliver der automatisk sendt en notifikation.
 - Når en lederrolle bliver vakant, bliver der ligeledes automatisk sendt en notifikation.
+Davs
 
 Disse beskeder hjælper med at sikre, at alle enheder til enhver tid har en aktiv leder tilknyttet.
 
