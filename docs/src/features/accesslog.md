@@ -17,6 +17,7 @@ Det er muligt på struktureret vis at:
 
 Skrivningsloggen tager udgangspunkt i OS2mo's bitemporalitet.
 
+
 Når et objekt oprettes, ændres eller nedlægges i OS2mo, sker det på databaselaget ved at der tilføjes nye rækker, der beskriver den indkomne ændring.
 Disse nye rækker indeholder tidspunktet for hvornår ændringen er foretaget, hvem der har foretaget ændringen, samt en reference til hvordan de nye data ser ud.
 

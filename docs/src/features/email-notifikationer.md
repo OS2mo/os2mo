@@ -41,15 +41,15 @@ Ved ændringer til brugeren eller brugerens roller, sender MO også en email, s�
 
 ## 🔔 Konkret eksempel: En leder stopper
 
-Der kan automatisk blive sendt email-notifikationer, når en leders engagement afsluttes i organisationen. Personens lederrolle bliver fjernet fra lederfanen i OS2mo og flyttet ned under **”Fortid”**. Lederfanen i OS2mo ser således ud:
+Der kan automatisk blive sendt email-notifikationer, når en leders engagement afsluttes i organisationen. Når en leders engagement afsluttes vil personens lederrolle enten blive fjernet fra lederfanen i MO og flyttet ned under **”Fortid”**, eller også vil lederrollen blive stående i **"Nutid"** som *Vakant*. Lederfanen i MO ser således ud:
 
 ![Lederfanen](../graphics/ledere.png)
 
-Det er muligt at afslutte en leder fra fanen ved brug af **'fjern'**-knappen (det røde stopskilt, der findes ud for lederen på skærmbilledet ovenfor):
+Det er muligt at afslutte en leder fra fanen ved brug af **'Afslut'**-knappen (det blå kryds, der findes ud for de to lederroller på skærmbilledet ovenfor):
 
 ![Fjern leder](../graphics/afslutleder.png)
 
-Når lederen er fjernet, sendes email-notifikationen til rette vedkommende. Hvis slutdatoen bliver sat til en dato i fremtiden, sendes email-notifikationen på den valgte dato.
+Når lederen er fjernet, sendes email-notifikationen til rette vedkommende (typisk en fælles postkasse, så man ikke er personafhængig). Hvis slutdatoen bliver sat til en dato i fremtiden, sendes email-notifikationen på den valgte dato; hvis den er sat i fortiden, sendes notifikationen med det samme.
 
 Emailen kan se således ud:
 
