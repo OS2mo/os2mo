@@ -49,6 +49,7 @@ from mora.db import OrganisationEnhedTilsGyldighed
 from mora.graphapi.gmodels.base import tz_isodate
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.service.autocomplete.employees import search_employees
+from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 
 from ...context import MOInfo
 from ...custom_schema import get_version
@@ -1047,8 +1048,6 @@ async def organisation_unit_resolver_query(
         search_phrase = util.query_to_search_phrase(filter.query)
 
         clauses = [
-            cast(OrganisationEnhedRegistrering.organisationenhed_id, Text)
-            == filter.query,
             OrganisationEnhedRegistrering.id.in_(
                 select(
                     OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
@@ -1063,6 +1062,13 @@ async def organisation_unit_resolver_query(
                 )
             ),
         ]
+
+        if len(filter.query) > UUID_SEARCH_MIN_PHRASE_LENGTH:
+            clauses.append(
+                cast(OrganisationEnhedRegistrering.organisationenhed_id, Text).ilike(
+                    search_phrase
+                )
+            )
 
         query = query.where(or_(*clauses))
 
