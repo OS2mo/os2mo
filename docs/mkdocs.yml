@@ -24,6 +24,7 @@ nav:
       - features/lederhaandtering.md
       - features/med-organisation.md
       - features/onboarding.md
+      - features/multipleitkonti.md
       - features/org-chart.md
       - features/org-sammenkobling.md
       - features/reports.md
