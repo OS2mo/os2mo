@@ -73,7 +73,7 @@ description:
       - Bitemporal history
     genericName: Organisational Management
     screenshots:
-      - https://rammearkitektur.docs.magenta.dk/os2mo/graphics/MOforside.png
+      - https://rammearkitektur.docs.magenta.dk/os2mo/graphics/momanual/mosforside.png
       - https://rammearkitektur.docs.magenta.dk/os2mo/graphics/momanual/engagementerenhed.png
       - https://rammearkitektur.docs.magenta.dk/os2mo/graphics/momanual/sammenkobling.png
     # videos and awards omitted
@@ -109,7 +109,7 @@ description:
       - Bitemporal historik
     genericName: Organisational Management
     screenshots:
-      - https://rammearkitektur.docs.magenta.dk/os2mo/graphics/MOforside.png
+      - https://rammearkitektur.docs.magenta.dk/os2mo/graphics/momanual/mosforside.png
       - https://rammearkitektur.docs.magenta.dk/os2mo/graphics/momanual/engagementerenhed.png
       - https://rammearkitektur.docs.magenta.dk/os2mo/graphics/momanual/sammenkobling.png
     # videos and awards omitted
