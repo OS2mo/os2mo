@@ -76,7 +76,7 @@ Det er muligt fx at afslutte en ansættelse, sådan at en medarbejders engagemen
 
 ## MOs brugergrænseflade
 
-MO består en eller flere organisationer, organisationshierarkierne, deres metadata, de indplacerede medarbejdere samt deres metadata. Hertil kommer en række moduler og arbejdsgange, der understøtter forvaltning af organisationen:
+MO består af en eller flere organisationer, organisationshierarkierne, deres metadata, de indplacerede medarbejdere samt deres metadata. Hertil kommer en række moduler og arbejdsgange, der understøtter forvaltning af organisationen:
 
 ![image](../graphics/momanual/mosforside.png)
 
