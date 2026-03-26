@@ -14,6 +14,7 @@ nav:
       - home/landscape.md
   - Funktionalitet:
       - features/accesslog.md
+      - features/audit-log.md
       - features/email-notifikationer.md
       - features/stillingsbetegnelser.md
       - features/indplacering-af-it-brugere.md
@@ -54,7 +55,6 @@ nav:
   - Teknisk dokumentation:
       # - Understanding bitemporality: TODO
       - tech-docs/architecture.md
-      - tech-docs/audit-log.md
       - tech-docs/development.md
       - tech-docs/events.md
       - tech-docs/facets.md
