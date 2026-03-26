@@ -82,9 +82,9 @@ MO består af en eller flere organisationer, organisationshierarkierne, deres me
 
 ## MOduler
 
-* [**Onboarding**](https://rammearkitektur.docs.magenta.dk/os2mo/features/insights.html), som lader dig straksoprette en bruger i MO.
+* [**Onboarding**](https://rammearkitektur.docs.magenta.dk/os2mo/features/onboarding.html), som lader dig straksoprette en bruger i MO.
 
-* [**Administration**](https://rammearkitektur.docs.magenta.dk/os2mo/features/klassifikationer.html), som tillader dig at administrere IT-systemer og -roller samt MOs metadata, fx nye stillingsbetegnelser eller lederroller.
+* [**Administration**](https://rammearkitektur.docs.magenta.dk/os2mo/features/administration.html), som tillader dig at administrere IT-systemer og -roller samt MOs metadata, fx nye stillingsbetegnelser eller lederroller.
 
 * [**Indsigt**](https://rammearkitektur.docs.magenta.dk/os2mo/features/insights.html), som giver muligheden for at man selv kan sammenstille MOs data og gemme dem i en csv-fil.
 
