@@ -49,6 +49,7 @@ from mora.db import OrganisationEnhedTilsGyldighed
 from mora.graphapi.gmodels.base import tz_isodate
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.service.autocomplete.employees import search_employees
+from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 
 from ...context import MOInfo
 from ...custom_schema import get_version
@@ -1045,27 +1046,31 @@ async def organisation_unit_resolver_query(
     # Query search
     if filter.query:
         search_phrase = util.query_to_search_phrase(filter.query)
-        query = query.where(
-            or_(
-                cast(OrganisationEnhedRegistrering.organisationenhed_id, Text)
-                == filter.query,
-                OrganisationEnhedRegistrering.id.in_(
-                    select(
-                        OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
-                    ).where(
-                        or_(
-                            OrganisationEnhedAttrEgenskaber.brugervendtnoegle.ilike(
-                                search_phrase
-                            ),
-                            OrganisationEnhedAttrEgenskaber.enhedsnavn.ilike(
-                                search_phrase
-                            ),
+
+        clauses = [
+            OrganisationEnhedRegistrering.id.in_(
+                select(
+                    OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
+                ).where(
+                    or_(
+                        OrganisationEnhedAttrEgenskaber.brugervendtnoegle.ilike(
+                            search_phrase
                         ),
-                        _virkning(OrganisationEnhedAttrEgenskaber),
-                    )
-                ),
+                        OrganisationEnhedAttrEgenskaber.enhedsnavn.ilike(search_phrase),
+                    ),
+                    _virkning(OrganisationEnhedAttrEgenskaber),
+                )
             ),
-        )
+        ]
+
+        if len(filter.query) > UUID_SEARCH_MIN_PHRASE_LENGTH:
+            clauses.append(
+                cast(OrganisationEnhedRegistrering.organisationenhed_id, Text).ilike(
+                    search_phrase
+                )
+            )
+
+        query = query.where(or_(*clauses))
 
     # Pagination. Must be done here since the generic_resolver (lora) does not support
     # filtering on UUIDs and limit/cursor at the same time.
