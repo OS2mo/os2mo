@@ -48,3 +48,18 @@ def test_employee_address_search_enabled(
     assert response.errors is None
     uuids = {obj["uuid"] for obj in response.data["employees"]["objects"]}
     assert "53181ed2-f1de-4c4a-a8fd-ab358c2c454a" in uuids
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_employee_address_search_phone(
+    graphapi_post: GraphAPIPost,
+    set_settings: Callable[..., None],
+) -> None:
+    """Address search should also find employees by phone number."""
+    set_settings(person_address_search_enabled="True")
+
+    response = graphapi_post(EMPLOYEE_SEARCH_QUERY, variables={"query": "20304060"})
+    assert response.errors is None
+    uuids = {obj["uuid"] for obj in response.data["employees"]["objects"]}
+    assert "53181ed2-f1de-4c4a-a8fd-ab358c2c454a" in uuids

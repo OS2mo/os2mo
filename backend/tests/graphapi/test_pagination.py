@@ -15,7 +15,7 @@ serialize_cursor = Cursor._scalar_definition.serialize
     "resolver,limit,offset,expected_length",
     [
         # Addresses
-        ("addresses", None, None, 10),
+        ("addresses", None, None, 11),
         ("addresses", 0, 0, 0),
         ("addresses", 8, 0, 8),
         ("addresses", 4, 0, 4),
@@ -128,7 +128,7 @@ async def test_pagination(
     "resolver,limit,offset",
     [
         # Addresses
-        ("addresses", 10, 10),
+        ("addresses", 11, 11),
         # Associations
         ("associations", 10, 2),
         # Classes
@@ -198,7 +198,7 @@ async def test_pagination_out_of_range(
 @pytest.mark.parametrize(
     "resolver,expected",
     [
-        ("addresses", 10),
+        ("addresses", 11),
         ("associations", 2),
         ("classes", 39),
         ("employees", 5),
