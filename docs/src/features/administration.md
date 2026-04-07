@@ -1,62 +1,139 @@
 ---
-title: Klassifikationer
+title: Administrationsmodulet
 ---
 
-## Formål
+# Administrationsmodulet
 
-Formålet med dette modul er at tillade brugerne selv at oprette klasser ([se og ændre eksisterende klasser](#definition)). Bemærk, at det er ikke muligt at *slette* klasser, fordi det kan have meget negative konsekvenser for allerede opmærkede data i MO (fx kan man fjerne stillingsbetegnelser fra ansatte).
+Det er muligt at holde styr på MOs bagvedliggende data i MO.
 
-## Definition
+Adminstrationsmodulet er delt i to:
 
-**Klasser**
+- **IT-systemer og -roller**. Man kan oprette, ændre og nedlægge *IT-systemer og -roller* i MO, hvilket gør, at man også kan oprette *IT-brugere* i MO: "Som administrator ønsker jeg at oprette en medarbejder som bruger i system X og tildele hende specifikke roller".
+- **Klassifikationer**. Man kan oprette, ændre og nedlægge *klasser* i MO, hvilket betyder, at man fx kan oprette *Stillingsbetegnelser* i MO: "Som administrator ønsker jeg at oprette stillingsbetegnelsen 'Ekstern konsulent', så jeg kan opmærke medarbejdere med den".
 
-Det, der normalt kaldes *metadata*, kaldes *klasser* i [OIO-standarden](https://arkitektur.digst.dk/specifikationer/organisation/oio-specifikation-af-model-organisation), og derfor benyttes denne term også her.
+De to moduler gennemgås nedenfor og kan tilgås i MO via venstremenuens punkt, **Administration**:
 
-Et eksempel på klasser er forskellige Orlovstyper: Der findes fx Barselsorlov, Forældreorlov, Sygeorlov. Disse forskellige orlover er klasser og beskriver, hvilken type orlov der er tale om.
+![image](../graphics/administrationsmodulet/adminmenu.png)
 
-Et andet eksempel er Ledertyper: Man kan være fx Beredskabschef, Institutionsleder, Direktør, Områdeleder, Centerchef, Sekretariatschef. Disse forskellige ledertyper er klasser og beskriver, hvilken type leder der er tale om.
+## IT-systemer og -roller
 
-**Facetter**
+Formålet med dette modul er at tillade administrator at vedligeholde *IT-systemer og -roller*.
 
-En facet kan have flere klasser i sig. I ovenstående eksempler er Orlovstype og Ledertyper facetter.
+### Brugergrænsefladen
 
-**Klassifikationer**
+Når man er inde i IT-systemer i MO, præsenteres man for dette billede:
 
-Facetter er bundet op på en klassifikation.
+![image](../graphics/administrationsmodulet/itsystemerforside.png)
 
-Hierarkiet er altså: Klassifikation--\>Facet--\>Klasse. Læs mere om det [her](https://arkitektur.digst.dk/klassifikation).
+#### Oprettelse af IT-systemer & -roller
 
-## Brugergrænsefladen
+Oprettelsen af IT-systemer og -roller foretages i to skridt:
 
-Når man er inde i Klassifikations-modulet i MO, bliver man præsenteret for dette billede:
+- først IT-systemet
+- derpå de tilknyttede IT-roller
 
-![image](../graphics/klassifikationerforside.png)
+Der vælges "Opret IT-system" til højre i ovenstående billede, hvorpå denne formular kommer frem:
 
-### Oprettelse af klasser
+![image](../graphics/administrationsmodulet/opretitsystem.png)
 
-1. Der vælges "Opret klasse" til højre i ovenstående billede, hvorpå denne dialogboks kommer frem:
+Her angives datoer, navn og brugervendt nøgle, og oprettelsen sker ved tryk på knappen "Opret IT-system".
 
-    ![image](../graphics/klassifikationeropretklasse.png)
+Når det er gjort, klikkes "Administrér roller":
 
-2. Der tages først stilling til i hvilket tidsrum, klassen skal bestå. Herefter vælges, hvilken facet
+![image](../graphics/administrationsmodulet/administrerroller.png)
 
-### Ændring af klasser
+Hvorpå man kan oprette og tilknytte it-roller til det IT-system, man lige har lavet:
 
-1. Den facet, man ønsker at ændre klasser til, vælges:
+![image](../graphics/administrationsmodulet/opretitrolle.png)
 
-    ![image](../graphics/klassifikationervalgaffacet.png)
+Nu er IT-systemer og dets IT-roller klar til at blive anvendt i MO, så man kan oprette IT-brugere:
 
-2. hvorefter klassen navngives. Denne navngivning skal duplikeres i feltet "Brugervendt nøgle (bvn) *", og der kan trykkes på knappen "Opret klasse":
+![image](../graphics/administrationsmodulet/opretitbrugermedrolle.png)
 
-    ![image](../graphics/klassifikationerudfyldogopret.png)
+#### Ændring og sletning af IT-system og -rolle
 
-3. Klassen er nu oprettet og kan findes under facetten "Stillingsbetegnelser":
+Ved bruge af hhv. blyant- og slette-ikonet til højre for et IT-system, kan man ændre og afslutte det:
 
-    ![image](../graphics/klassifikationerresultat.png)
+![image](../graphics/administrationsmodulet/changedeleteitsystem.png)
 
-4. Endvidere kan klassen "Mekaniker" nu selvfølgelig bruges til at angive en ny stillingsbetegnelse for en medarbejder, se her:
+### Datostyring af IT-systemer og -roller
 
-    ![image](../graphics/klassifikationeropretengagement.png)
+Som det fremgår af ovenstående, er det muligt at datostyre sine IT-systemer og -roller, så man fx kan oprette dem med fremtidig virkning.
+
+## Klassifikationsmodulet
+
+Formålet med dette modul er at tillade administrator at vedligeholde *Klasser*.
+
+### Definition
+
+**Facetter & Klasser**
+
+Det, der normalt går under navnet *metadata*, kaldes *klasser* i [OIO-standarden](https://arkitektur.digst.dk/specifikationer/organisation/oio-specifikation-af-model-organisation), og derfor benyttes den samme term i MO.
+
+En *klasse* beskriver et objekt i MO (en person, en ansættelse, en organisationsenhed, en ledertype, en orlovstype, etc.) og hører altid hierarkisk under en såkaldt *facet*.
+
+Eksempel 1:
+
+- **Orlovstype** (facet)
+    - Barselsorlov (klasse)
+    - Forældreorlov (klasse)
+    - Sygeorlov (klasse)
+
+Eksempel 2:
+
+- **Ledertype** (facet)
+    - Beredskabschef (klasse)
+    - Centerchef (klasse)
+    - Direktør (klasse)
+    - Institutionsleder (klasse)
+    - Områdeleder (klasse)
+    - Sekretariatschef (klasse)
+
+### Brugergrænsefladen
+
+Når man er inde i Klassifikationsmodulet i MO, præsenteres man for dette billede:
+
+![image](../graphics/administrationsmodulet/klassifikationerforside.png)
+
+#### Oprettelse af klasser
+
+Der vælges "Opret klasse" til højre i ovenstående billede, hvorpå denne formular kommer frem:
+
+![image](../graphics/administrationsmodulet/klassifikationeropretklasse.png)
+
+Herefter vælges, hvilken facet klassen skal høre under, et datointerval angives, og klassen navngives. Denne navngivning skal duplikeres i feltet "Brugervendt nøgle (bvn) *", og der kan trykkes på knappen "Opret klasse":
+
+![image](../graphics/administrationsmodulet/klassifikationerudfyldogopret.png)
+
+Når det er gjort, dukker den nye klasse, 'Mekaniker', op to steder:
+
+I listen af klasser i Klassifikationsmodulet, så en administrator kan vedligeholde den:
+
+![image](../graphics/administrationsmodulet/oprettetklasse.png)
+
+Og i dropdowns inde i MO, så en MO-forvalter kan benytte den til at hæfte en stillingsbetegnelse på en ansat:
+
+![image](../graphics/administrationsmodulet/oprettetklasseidropdown.png)
+
+#### Ændring af klasser
+
+Den facet, man ønsker at ændre klasser til, vælges:
+
+![image](../graphics/administrationsmodulet/klassifikationervalgaffacet.png)
+
+Man klikker på blyant-ikonet til højre for den klasse, man ønsker at ændre, og foretager den ønskede ændring:
+
+![image](../graphics/administrationsmodulet/klassifikationerresultat.png)
+
+#### Sletning af klasser
+
+Den korrekte facet vælges, og man trykker på krydset ud for den klasse, der skal slettes:
+
+![image](../graphics/administrationsmodulet/sletklasse.png)
+
+Herefter angives klassens slutdato:
+
+![image](../graphics/administrationsmodulet/afslutklasse.png)
 
 ### Datostyring af klasser
 
