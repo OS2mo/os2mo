@@ -13,18 +13,18 @@ nav:
       - home/manual.md
       - home/landscape.md
   - Funktionalitet:
+      - features/administration.md
       - features/accesslog.md
       - features/audit-log.md
       - features/email-notifikationer.md
       - features/stillingsbetegnelser.md
-      - features/indplacering-af-it-brugere.md
       - features/insights.md
-      - features/administration.md
+      - features/indplacering-af-it-brugere.md
       - features/kle.md
       - features/lederhaandtering.md
       - features/med-organisation.md
-      - features/onboarding.md
       - features/multipleitkonti.md
+      - features/onboarding.md
       - features/org-chart.md
       - features/org-sammenkobling.md
       - features/reports.md
