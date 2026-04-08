@@ -8,13 +8,13 @@ title: Organisationsdiagram
 
 Formålet med organisationsdiagrammet er gøre MOs data tilgængelige for alle i organisationen.
 
-Organisationsdiagrammet kan bruges såvel som opslagsværk som overblik over linjeorganisationen og MED-organisationen.
+Organisationsdiagrammet kan bruges såvel som opslagsværk som overblik over linjeorganisationen og MED/TR-organisationen.
 
 ### Præsentation af data
 #### Visning af organisationer
-Det er muligt at udstille flere organisationer via forskellige adresser (URLer). Således kan man fx vælge at udstille sin administrative organisation med ansatte og ledere i ét organisationsdiagram og sin MED-organisation med tillidsrepræsentantskabet i et andet.
+Det er muligt at udstille flere organisationer via forskellige adresser (URLer). Således kan man fx vælge at udstille sin administrative organisation med ansatte og ledere i ét organisationsdiagram og sin MED/TR-organisation med tillidsrepræsentantskabet i et andet.
 
-Organisationsdiagrammet bliver opdateret ‘on-the-fly’, når der sker ændringer i OS2mo.
+Organisationsdiagrammet bliver opdateret ‘on-the-fly’, når der sker ændringer i MO.
 
 #### Visning af enheder i en træstruktur
 Enheder vises i en træstruktur, så man tydeligt kan se enhedernes hierarkiske tilhørsforhold.
@@ -119,4 +119,4 @@ Organisationsdiagrammet kan printes (ctrl-p). Antal ark afhænger af organisatio
 Når der vises persondetaljer, kan email vises i et mailto-link, så det er muligt at sende mails direkte (såfremt man har en mailklient installeret på sit system). Man skal være opmærksom på spamfare ved at oplyse om email på offentligt tilgængelige websites.
 ​
 ### CORS-settings på servere
-Løsningen skal køre på en server, hvor CORS-setup tillader, at der hentes data via OS2mo APIet.
+Løsningen skal køre på en server, hvor CORS-setup tillader, at der hentes data via MO API'et.

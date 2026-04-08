@@ -2,7 +2,7 @@
 title: Email-notifikationer
 ---
 
-# 📬 Notifikationer i MO
+# 📬 Få tilsendt en email automatisk, når du skal være opmærksom på noget
 
 MO kan automatisk sende notifikationer, når nedenstående hændelser indtræffer. Det sikrer, at relevante personer bliver informeret rettidigt og kan handle hurtigt.
 

@@ -2,7 +2,7 @@
 title: Onboarding / Brugeroprettelsesflow
 ---
 
-## 📬 Formål
+# Formål
 
 Det er muligt at oprette brugere i MO via **Brugeroprettelsesmodulet**.
 
@@ -18,7 +18,7 @@ Bemærk, at Brugeroprettelsesflowet både kan benyttes til straksoprettelser, hv
 
 ![Onboardingmenupunkt](../graphics/onboarding/menuonb.png)
 
-### Opret medarbejder
+## Opret medarbejder
 Dernæst dukker oprettelsesflowet frem og det første skridt er at indtaste persondata:
 
 ![opretmedarbejder](../graphics/onboarding/opretmedarbejder.png)

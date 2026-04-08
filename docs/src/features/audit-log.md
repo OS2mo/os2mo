@@ -2,9 +2,12 @@
 title: Audit log
 ---
 
-MO har nu en bitemporal auditlog, som er et værktøj, der viser data på to tidslinjer samtidigt: **Registreringstid** (hvornår en ændring blev registreret) og **Gyldighedstid** (i hvilken tidsperioden ændringen var/er gældende).
+# Audit log i MO
 
-### Formål
+MO har en bitemporal auditlog, som er et værktøj, der viser data på to tidslinjer samtidigt:
+
+* **Registreringstid:** Hvornår en ændring blev registreret.
+* **Gyldighedstid:** I hvilken tidsperioden ændringen var/er gældende.
 
 Formålet med en bitemporal auditlog er at give et komplet og fejlfrit billede af både historikken (hvad hed en enhed hvornår) og registreringshistorikken (hvornår blev enhedens navn ændret).
 
@@ -17,7 +20,7 @@ Her er de primære formål:
 - **Dataintegritet:** Gør det muligt at verificere, at data ikke er blevet ændret uretmæssigt, og giver overblik over ændringshistorik.
 - **Bevisførelse:** Fungerer som vigtig dokumentation i forbindelse med interne undersøgelser eller juridiske efterspil efter et sikkerhedsbrud.
 
-### Eksempel
+## Eksempel
 
 Adgang til auditloggen foregår via klik på 'uret' til højre for enhver registrering:
 
@@ -36,7 +39,7 @@ Auditloggen er opdelt i to hovedområder:
 
 Når man skal finde ud af, hvilke ændringer, der er foretaget, skal man blot finde de mørkeblå markeringer: Ovenfor kan man se, at der er sket en ændring på Overenhed i registreringen `alvida (10-04-2024 16:14)`. Man sammenligner så den række med den tilsvarende række i den foregående registrering (nedenfor) `Legacy (01-02-2022 19:11)` og kan se, at overenhedens navn er ændret til Selvstyret. Kigger man på den nyeste registrering `alvida (12-04-2024 11:17)`, kan man se, at overenheden er ændret igen - denne gang til Skole.
 
-### Funktionalitet
+## Funktionalitet
 
 - **Scroll vandret.** Ved `shift+musescroll` kan man scrolle til siderne, så man kommer frem eller tilbage ad tidslinjen.
 - **Zoom.** Ved `ctrl+musescroll` kan man zoome ind og ud ift., hvor granuleret et tidsbillede, man ønsker:
@@ -54,7 +57,7 @@ Når man skal finde ud af, hvilke ændringer, der er foretaget, skal man blot fi
   ![Link til ændringer](../graphics/audit-log/5.png)
 
 
-### Identifikation af integrationer
+## Identifikation af integrationer
 
 | Integration                 | UUID                                 |
 |-----------------------------|--------------------------------------|

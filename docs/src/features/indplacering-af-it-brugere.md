@@ -1,8 +1,8 @@
 ---
-title: Indplacering af it-brugere
+title: IT-brugere
 ---
 
-# Indplacering af it-brugere
+# Organisatorisk indplacering af IT-brugere
 
 ## Motivation
 
@@ -26,6 +26,6 @@ For disse personer er det derfor også nødvendigt at kunne markere den primære
 
 ![image](../graphics/01tilknytningeroprettelse.png)
 
-# Udstilling af den nyoprettede it-tilknytning
+## Udstilling af den nyoprettede it-tilknytning
 
 ![image](../graphics/1ittilknytningerfaneblad.png)

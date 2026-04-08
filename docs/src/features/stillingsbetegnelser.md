@@ -1,5 +1,5 @@
 ---
-title: Håndtering af følsomme stillingsbetegnelser i MO og aftagersystemer
+title: Følsomme stillingsbetegnelser
 ---
 
 # Håndtering af følsomme stillingsbetegnelser i MO og aftagersystemer
@@ -29,7 +29,7 @@ Her er en liste over de systemer, der overholder reglen for stillingsbetegnelser
 - [plan2learn](https://rammearkitektur.docs.magenta.dk/os2mo/integrations/plan2learn.html)
 - [organisationsdiagrammet](https://rammearkitektur.docs.magenta.dk/os2mo/features/org-chart.html)
 - [FK Organisation](https://rammearkitektur.docs.magenta.dk/os2mo/integrations/os2sync.html)
-- [SQL-databaser](https://rammearkitektur.docs.magenta.dk/os2mo/integrations/sql_export.html).
+- [SQL-databaser](https://rammearkitektur.docs.magenta.dk/os2mo/integrations/sql_export.html)
 
 ## Automatisk (eventbaseret) vedligeholdelse af stillingsbetegnelser
 
