@@ -241,6 +241,7 @@ async def load_sample_structures():
             "adresse_fedtmule": "cd6008bc-1ad2-4272-bc1c-d349ef733f52",
             "adresse_root": "414044e0-fe5f-4f82-be20-1e107ad50e80",
             "adresse_hum": "e1a9cede-8c9b-4367-b628-113834361871",
+            "tlf_andersand": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
             "tlf_hum": "55848eca-4e9e-4f30-954b-78d55eec0473",
             "ean_hum": "a0fe7d43-1e0d-4232-a220-87098024b34d",
             "adresse_orgunit_only_addrs": "55848eca-4e9e-4f30-954b-78d55eec0444",

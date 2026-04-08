@@ -190,7 +190,7 @@ async def test_create_integration(graphapi_post: GraphAPIPost):
 @pytest.mark.parametrize(
     "filter,expected",
     [
-        ({}, 10),
+        ({}, 11),
         # Address Type filters
         ({"address_type_user_keys": "BrugerPostadresse"}, 3),
         ({"address_types": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"}, 3),
@@ -207,7 +207,7 @@ async def test_create_integration(graphapi_post: GraphAPIPost):
             5,
         ),
         # Employee filters
-        ({"employees": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"}, 1),
+        ({"employees": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"}, 2),
         ({"employees": "6ee24785-ee9a-4502-81c2-7697009c9053"}, 2),
         (
             {
@@ -216,7 +216,7 @@ async def test_create_integration(graphapi_post: GraphAPIPost):
                     "6ee24785-ee9a-4502-81c2-7697009c9053",
                 ]
             },
-            3,
+            4,
         ),
         # Engagement filters
         ({"engagements": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab"}, 0),
@@ -519,6 +519,16 @@ def test_address_resolver(graphapi_post: GraphAPIPost) -> None:
                         },
                         "uuid": "a0fe7d43-1e0d-4232-a220-87098024b34d",
                         "value": "5798000420526",
+                    }
+                },
+                {
+                    "current": {
+                        "resolve": {
+                            "__typename": "DefaultAddress",
+                            "value": "+4520304060",
+                        },
+                        "uuid": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+                        "value": "+4520304060",
                     }
                 },
                 {

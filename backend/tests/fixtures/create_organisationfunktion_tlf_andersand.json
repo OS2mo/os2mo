@@ -1,0 +1,69 @@
+{
+  "attributter": {
+    "organisationfunktionegenskaber": [
+      {
+        "brugervendtnoegle": "20304060",
+        "funktionsnavn": "Adresse",
+        "virkning": {
+          "from": "1934-06-09 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "note": "Automatisk indl\u00e6sning",
+  "relationer": {
+    "tilknyttedebrugere": [
+      {
+        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+        "virkning": {
+          "from": "1934-06-09 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "organisatoriskfunktionstype": [
+      {
+        "uuid": "cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d",
+        "virkning": {
+          "from": "1934-06-09T00:00:00+01:00",
+          "from_included": true,
+          "to": "infinity",
+          "to_included": false
+        }
+      }
+    ],
+    "adresser": [
+      {
+        "objekttype": "PHONE",
+        "urn": "urn:magenta.dk:telefon:+4520304060",
+        "virkning": {
+          "from": "1934-06-09T00:00:00+01:00",
+          "from_included": true,
+          "to": "infinity",
+          "to_included": false
+        }
+      }
+    ],
+    "tilknyttedeorganisationer": [
+      {
+        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        "virkning": {
+          "from": "1934-06-09 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "organisationfunktiongyldighed": [
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "from": "1934-06-09 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  }
+}
