@@ -2,11 +2,11 @@
 title: Eventbaseret integration
 ---
 
-# Integration til eventbaseret AD import og eksport
+# Eventbaseret integration mellem MO og Active Directory import og eksport
 
-### Overordnet beskrivelse
+## Overordnet beskrivelse
 
-Integrationen importerer og eksporterer oplysninger mellem OS2mo (MO) og Active Directory (AD), når ændringerne
+Integrationen importerer og eksporterer oplysninger mellem MO og Active Directory (AD) via LDAP(S), når ændringerne
 indtræffer på udvalgte objekter (engagementer, adresser, mv., se nedenfor).
 
 Nye brugere vil blive oprettet automatisk i det ene eller det andet system. Typisk er OS2mo autoritativ for AD’et.
@@ -14,14 +14,7 @@ Nye brugere vil blive oprettet automatisk i det ene eller det andet system. Typi
 Herudover lyttes der til ændringer på eksisterende objekter i både MO og AD, og systemerne opdateres med det samme, når
 ændringer indtræffer.
 
-Følgende objekter kan synkroniseres den ene eller den anden vej, men det er også muligt at tilføje flere objekter til
-synkroniseringen:
-
-- Ansatte
-- Ansattes adresser
-- IT-konti
-- Ansattes ansættelser (engagementer)
-- Organisationsenheders adresser
+I princippet kan alle objekter synkroniseres begge veje.
 
 Hvert objekt har en række attributter, der også vil blive opdateret, såfremt det er specificeret. Et engagement kan
 således fx få opdateret sin start- og slutdato, ansættelsestypen og stillingsbetegnelsen.
@@ -30,24 +23,40 @@ Man specificerer ligeledes selv, hvilket system der skal være autoritativt for 
 interesseret i, at Active Directory er autoritativ for stillingsbetegnelser, mens MO er autoritativ for oprettelse af
 brugere samt ansættelsestypen, se mapningstabellen nedenfor.
 
-### Mapning mellem MO og AD
+## Overordnet arkitektur
 
-En mapning mellem felter i MO og AD kan se ud som følger. Eksemplet giver også et billede af, hvilke attributter der
-typisk synkroniseres:
+Integrationen fungerer som en **eventdrevet agent** (via FastRAMQPI), der lytter til hændelser fra begge systemer og sikrer, at data holdes konsistente på tværs.
 
-| MO object class | MO attribute | MO-to-AD | AD-to-MO | AD attribute(s)              |
-|-----------------|--------------|----------|----------|------------------------------|
-| Employee        | givenname    | ✓        | %        | givenName                    |
-| Employye        | surname      | ✓        | %        | sn                           |
-| Employee        | cpr_no       | ✓        | %        | employeeID                   |
-| ITUser          | user_key     | %        | ✓        | objectGUID                   |
-| Address         | value        | ✓        | ✓        | mail                         |
-| Address         | value        | ✓        | %        | streetAddress, l, postalCode |
-| Address         | value        | ✓        | %        | postalAddress                |
-| Engagement      | job_function | %        | ✓        | title                        |
-| Engagement      | user_key     | ✓        | %        | countryCode                  |
-| Address         | value        | ✓        | %        | telephoneNumber              |
-| ITUser          | user_key     | ✓        | %        | sAMAccountName               |
+```
+┌──────┐  GraphQL / HTTP  ┌─────────────────────────┐  LDAP(S)  ┌─────────────────────────┐
+│  MO  │ ◄──────────────► │  mo_ldap_import_export  │ ◄───────► │ Active Directory / LDAP │
+└──────┘                  └─────────────────────────┘           └─────────────────────────┘
+```
+
+Applikationen afvikles som en Docker-container og eksponerer et HTTP-API.
+
+---
+
+## Dataflow
+
+### MO → LDAP
+
+1. En ændring sker i OS2mo (f.eks. ny medarbejder, opdateret adresse).
+2. OS2mo udsender en hændelse via sit event-system.
+3. Integrationen modtager hændelsen, beregner den ønskede tilstand i LDAP ud fra den konfigurerede felttilknytning og opdaterer LDAP-objektet.
+
+### LDAP → MO
+
+1. En ændring sker i LDAP/Active Directory.
+2. Integrationen detekterer ændringen via LDAP-polling.
+3. Integrationen beregner den ønskede tilstand i OS2mo ud fra den konfigurerede felttilknytning og opdaterer de relevante objekter i OS2mo.
+
+---
+
+## Links
+
+- Repository: https://github.com/OS2mo/os2mo-ldap-import-export
+- Magenta ApS: https://magenta.dk/
 
 ### Generering af AD-brugernavne
 
@@ -60,7 +69,6 @@ Brugernavnsgenereringen følger nogle regler, som er konfigureret i en json-fil,
 ```json
 {
   "username_generator": {
-    "objectClass": "UserNameGenerator",
     "combinations_to_try": [
       "F123L",
       "F12LL",
