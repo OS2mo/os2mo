@@ -3,7 +3,7 @@
 Dette program eksporterer JSON som kan indlæses i Telefonbogen, der udstilles på kundens intranet.
 Progammet understøtter også at sende JSON dataen til telefonbogen selv.
 
-# Konfiguration
+## Konfiguration
 
 For at anvende eksporten er det nødvendigt at oprette et antal nøgler i
 *settings.json*:
@@ -18,7 +18,7 @@ For at anvende eksporten er det nødvendigt at oprette et antal nøgler i
 Derudover er det nødvendigt at konfigurere *sql_export* og
 dennes konfiguration.
 
-# Programkomponenter
+## Programkomponenter
 
 Programmet er opdelt i tre komponenter, hhv.
 
@@ -26,7 +26,7 @@ Programmet er opdelt i tre komponenter, hhv.
 - Opslag i Actual State SQLite, og oprettelse processeret JSON.
 - Afsendelse af genereret JSON til telefon bogen.
 
-# Indhold af udtrækket
+## Indhold af udtrækket
 
 Udtrækket indeholder:
 

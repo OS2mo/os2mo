@@ -1,11 +1,11 @@
 ---
-title: MED-organisationen
+title: MED/TR-organisationen
 ---
 
-# MED-organisationen i MO
+# MED/TR-organisationen i MO
 Nedenfor findes en guide til opbygning og vedligehold af MED-organisationen i OS2mo.
 
-# Formål
+## Formål
 
 Det er lovpligtigt at vedligeholde et overblik over sin MED-organisation.
 
@@ -15,7 +15,7 @@ MED-organisationen kan desuden udstilles på intranettet i et organisationsdiagr
 
 MED-organisationen kan også udskrives til fx Excel-format så administrative medarbejdere kan arbejde videre med MED-organisationen i dette format. Det forudsætter bestilling af en sådan rapport.
 
-# Forudsætninger
+## Forudsætninger
 
 Der er behov for indlæsning af tre datasæt i OS2mo, så MED-organisationen og de tilknyttede medarbejdere kan oprettes med de korrekte metadata:
 
@@ -36,7 +36,7 @@ Når det er gjort, kan man tildele Ejer-rollen til rette vedkommende i OS2mo og 
 
 ![image](../graphics/EjereiMO.png)
 
-# ​Arbejdsgange
+## ​Arbejdsgange
 
 *Disclaimer: Følgende screenshots er taget fra et test-miljø og varierer fra kommunens OS2mo. Bemærk også at alle cpr-numre er fiktive.*
 

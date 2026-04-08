@@ -2,7 +2,7 @@
 title: Organisationssammenkobling
 ---
 
-## Formål
+# Formål
 
 Formålet med at relatere enheder til hinanden er multipelt:
 

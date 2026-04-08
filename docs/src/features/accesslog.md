@@ -2,7 +2,7 @@
 title: Access Log
 ---
 
-# Access Log
+# Access Log i MO
 
 Access-loggen kan konsulteres via GraphQL, men på sigt er det planen, at den også skal kunne tilgås i brugergrænsefladen.
 

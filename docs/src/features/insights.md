@@ -2,9 +2,9 @@
 title: Indsigt
 ---
 
-## Formål
+# Få indsigt i de data, der findes i MOs mave
 
-Insights er et BI-modul, der giver muligheden for selv at sammensætte data fra MO og udskrive dem i en csv-fil, der kan åbnes i et regnearksformat (Calc LibreOffice; Excel; Google Sheets).
+Insights er et modul, der giver muligheden for selv at sammensætte data fra MO og udskrive dem i en csv-fil, der kan åbnes i et regnearksformat (Calc LibreOffice; Excel; Google Sheets).
 
 Formålene med modulet er mange og afhænger af, hvilke data der sammenstilles.
 
