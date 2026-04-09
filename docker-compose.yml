@@ -9,7 +9,7 @@ services:
   proxy:
     image: docker.io/library/caddy:2
     volumes:
-      - ./dev-environment/proxy:/etc/caddy/:ro
+      - ./dev-environment/proxy:/etc/caddy/:ro,z
     ports:
       - "127.0.0.1:5001:80"
       - "127.0.0.1:5000:80"
@@ -52,12 +52,12 @@ services:
       # the setting FILE_STORAGE=filesystem
       # - /tmp:/queries
       # For reload
-      - ./poetry.lock:/app/poetry.lock
-      - ./pyproject.toml:/app/pyproject.toml
-      - ./backend:/app/backend
-      - ./.pytest_cache:/app/.pytest_cache
-      - ./.cov-report:/tmp/.cov-report:rw
-      - ./dev-environment/wait-for-rabbitmq.sh:/wait-for-rabbitmq.sh
+      - ./poetry.lock:/app/poetry.lock:z
+      - ./pyproject.toml:/app/pyproject.toml:z
+      - ./backend:/app/backend:z
+      - ./.pytest_cache:/app/.pytest_cache:z
+      - ./.cov-report:/tmp/.cov-report:rw,z
+      - ./dev-environment/wait-for-rabbitmq.sh:/wait-for-rabbitmq.sh:z
     entrypoint: ["/wait-for-rabbitmq.sh"]
     command: ["./docker/start.sh"]
     env_file: dev-environment/os2mo.env
@@ -72,8 +72,8 @@ services:
         uid: 52020
         gid: 52020
     volumes:
-      - ./backend:/app/backend
-      - ./dev-environment/wait-for-rabbitmq.sh:/wait-for-rabbitmq.sh
+      - ./backend:/app/backend:z
+      - ./dev-environment/wait-for-rabbitmq.sh:/wait-for-rabbitmq.sh:z
     entrypoint: ["/wait-for-rabbitmq.sh"]
     command: ["python", "-m", "mora.cli", "amqp", "start"]
     env_file: dev-environment/os2mo.env
@@ -82,7 +82,7 @@ services:
   mox:
     image: docker.io/library/caddy:2
     volumes:
-      - ./dev-environment/mox:/etc/caddy/:ro
+      - ./dev-environment/mox:/etc/caddy/:ro,z
     ports:
       - "127.0.0.1:8080:80"
     restart: unless-stopped
@@ -125,7 +125,7 @@ services:
       POSTGRES_PASSWORD: mox
       POSTGRES_USER: mox
     volumes:
-      - ./dev-environment/moxdb-install-pgtap.sh:/docker-entrypoint-initdb.d/10-install-pgtap.sh:ro
+      - ./dev-environment/moxdb-install-pgtap.sh:/docker-entrypoint-initdb.d/10-install-pgtap.sh:ro,z
     # The following will mount the database data directory to RAM. It
     # significantly speeds up the database at the cost of dataloss on shutdown.
     # This is useful for running tests, but should never be used if you want to
@@ -165,7 +165,7 @@ services:
       KC_DB_PASSWORD: keycloak
     restart: unless-stopped
     volumes:
-      - keycloak-volume:/srv/:ro
+      - keycloak-volume:/srv/:ro,z
 
   keycloak-realm-builder:
     image: magentaaps/os2mo-keycloak-realm-builder:7 # please also update gitlab-ci-templates
@@ -243,7 +243,7 @@ services:
         ]
     restart: on-failure
     volumes:
-      - keycloak-volume:/srv/
+      - keycloak-volume:/srv/:z
 
   keycloak-dipex-builder:
     image: magentaaps/os2mo-keycloak-integration-builder:6
