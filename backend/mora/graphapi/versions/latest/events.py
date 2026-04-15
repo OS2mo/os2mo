@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 from base64 import b64decode
 from base64 import b64encode
 from textwrap import dedent
@@ -449,10 +448,6 @@ async def event_resolver(
     session: AsyncSession = info.context.session
     result = await session.scalar(query)
     if result is None:
-        # We sleep a bit when there are no event to reduce the load on the
-        # database from integrations spamming for events. Subject to change for
-        # sure.
-        await asyncio.sleep(0.2)
         return None
     return Event(
         subject=result.subject,
