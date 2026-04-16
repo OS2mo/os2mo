@@ -24,7 +24,7 @@ Der er behov for tre servere så leverandør og kunde har hver deres testmiljø 
 Bestykning og opsætning skal se sådan ud:
 
 - 8 cores, 16GB Ram og 250 GB SSD harddisk.
-- Ubuntu 20.04 eller 22.04.
+- Ubuntu 24.04.
 - Tillad indgående trafik på TCP portene 22, 80, 443.
 - Tillad udgående trafik på TCP portene 443, 4505 og 4506.
 - Send den anvendte eksterne IP-adresse til Magenta, så der kan åbnes for adgang.
