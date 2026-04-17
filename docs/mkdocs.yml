@@ -35,9 +35,7 @@ nav:
       - integrations/sql_export.md
       - integrations/fkk.md
       - integrations/os2sync.md
-      - LOS / OPUS:
-        - integrations/aarhus-los.md
-        - integrations/opusloen.md
+      - integrations/opusloen.md
       - integrations/omada.md
       - integrations/os2rollekatalog.md
       - integrations/plan2learn.md
