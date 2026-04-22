@@ -2,70 +2,140 @@
 
 ## Indledning
 
-Dette program udfylder OS2Rollekataloget med organisation og
-medarbejdere fra OS2MO. Kræver opsætning af AD i settings, og der
-skrives kun brugere til OS2Rollekataloget der findes både i OS2MO og i
-AD.
+Denne integration synkroniserer organisationsdata fra OS2mo til
+[OS2Rollekatalog](https://www.os2.eu/os2rollekatalog). Integrationen er
+eventdrevet og reagerer på ændringer i OS2mo (medarbejdere, IT-konti,
+adresser, engagementer, organisationsenheder, ledere og KLE). Ændringer
+opsamles i en lokal cache og sendes samlet til Rollekatalog med et
+konfigurerbart interval.
 
-Eksporten sender alle informationerne i ét payload som overskriver det
-der ligger i rollekataloget i forvejen.
+## Datamodel i MO
 
-## Konfiguration
+For at en medarbejder kan synkroniseres, skal personen have mindst ét
+gyldigt engagement under den konfigurerede rodenhed, samt to IT-konti
+i OS2mo:
 
-For at anvende eksporten er det nødvendigt at oprette et antal nøgler i
-*settings.json*:
+- **AD**: Indeholder SAMAccountName (brugernavnet) i `user_key` og
+  ObjectGUID i `external_id`.
+- **FK Organisation**: Indeholder AD-kontoens ObjectGUID i `user_key`
+  (som kobler de to konti sammen) og FK-UUID'et i `external_id`. Det er
+  FK-UUID'et der sendes som `extUuid` til Rollekatalog.
 
-- `exporters.os2rollekatalog.rollekatalog.url`: URL adressen til
-  rollekatalogets organisations api, fx.
-  <https://os2mo.rollekatalog.dk/api/organisation/v3
+Desuden anvendes specifikke adressetyper til e-mail (standard
+`EmailEmployee`) og MitID (standard `MitIDEmployee`).
 
-- `exporters.os2rollekatalog.rollekatalog.api_token`: API token til
-  autentificering med rollekataloget
+## Medarbejdere
 
-- `exporters.os2rollekatalog.main_root_org_unit`: UUID på
-  rod-enheden i OS2MO. Bliver også rod i rollekatalog medmindre
-  andet er sat i *rollekatalog_root_uuid*
+Følgende data sendes til Rollekatalog for hver medarbejder:
 
-- `exporters.os2rollekatalog.ou_filter`: *true* eller *false*.
-  Filtrer enheder og engagementer der ikke hører under
-  main_root_org_unit fra. Default er *false*.
+| Felt           | Beskrivelse                                                           |
+|----------------|-----------------------------------------------------------------------|
+| `extUuid`      | Ekstern UUID fra FK Organisation IT-kontoen                           |
+| `nemloginUuid` | MitID-UUID (valgfrit)                                                 |
+| `userId`       | SAMAccountName fra AD IT-kontoen                                      |
+| `name`         | Navn eller kaldenavn (afhængigt af konfiguration)                     |
+| `email`        | E-mailadresse fra den konfigurerede adressetype                       |
+| `positions`    | Engagementer med stillingsbetegnelse, enheds-UUID og evt. titel-UUID  |
 
-- `exporters.os2rollekatalog.rollekatalog_root_uuid`: Optionelt. Hvis rod-uuid'en i rollekataloget allerede eksisterer kan den sættes ind her. Rod-enheden fra OS2MO vil så få overskrevet sit UUID med denne.
+En medarbejder synkroniseres ikke, hvis personen mangler en AD-konto,
+mangler en tilsvarende FK Organisation-konto, eller ikke har gyldige
+engagementer under rodenheden. Hvis en tidligere synkroniseret
+medarbejder falder ud af scope, fjernes brugeren fra Rollekatalog.
 
-- `exporters.os2rollekatalog.sync_titles`: *true* eller *false*.
-Synkroniserer stillingsbetegnelser til rollekatalogets `titles` api. Kræver specifik adgang til et separat endepunkt i rollekatalogets API. Vedligeholder oversigten over samtlige stillingsbetegnelser samt sender engagementers stillingsbeteglelses uuid med så de kan knyttes sammen. Er denne slået fra sendes stillingsbetegnelser kun som tekst-felt. Default er *false*.
+## Organisationsenheder
 
-- `exporters.os2rollekatalog.use_nickname`: *true* eller *false*.
-Anvender brugeres kaldenavn i stedet for navn hvis det er udfyldt i OS2MO. Default er *false*.
+Følgende data sendes til Rollekatalog for hver organisationsenhed:
 
-## Eksporteret data
+| Felt                | Beskrivelse                                        |
+|---------------------|----------------------------------------------------|
+| `uuid`              | Enhedens UUID                                      |
+| `name`              | Enhedens navn                                      |
+| `parentOrgUnitUuid` | UUID på overenheden                                |
+| `manager`           | Leder (UUID og SAMAccountName) — maks. én pr. enhed |
+| `klePerforming`     | KLE-opmærkninger, udførende                        |
+| `kleInterest`       | KLE-opmærkninger, indsigt                          |
 
-Payloaded til OS2Rollekatalog er opdelt i Enheder og Medarbejdere og
-indeholder følgende data:
+Enheder uden for det konfigurerede organisationstræ synkroniseres ikke.
+Et enhedsniveau kan konfigureres som ekskluderet, hvilket frafiltrerer
+enheder på det niveau samt alle deres underenheder. Enheder der fjernes
+i OS2mo eller falder ud af scope, fjernes også fra Rollekatalog.
 
-### Medarbejdere
+## Stillingsbetegnelser
 
-- UUID
-- Navn
-- Kaldenavn (optionelt). Hvis Kaldenavn er sat i MO, vil det stå i stedet for navn i rollekataloget.
-- Email
-- AD brugernavn
-- Engagementer (Stillingsbetegnelse og Enheds uuid. Optionelt: uuid for stillingsbetegnelse-klassen.)
+Når `SYNC_TITLES` er slået til, synkroniseres alle klasser fra facetten
+`engagement_job_function` til Rollekatalog som særskilte
+stillingsbetegnelses-objekter. Engagementer får da også et titel-UUID
+med, så de kobles til den rigtige stillingsbetegnelse. Er synkroniseringen
+slået fra, sendes stillingsbetegnelser kun som tekstfelt på engagementet.
 
-***Desuden er der mulighed for synkronisering mellem fremtidige og nutidige brugere***
+## Opsætning og konfiguration
 
-Der gives en advarsel i loggen ved mere end én email adresse på en
-bruger.
+Integrationen køres i Docker. Se `docker-compose.yml` i repositoriet for
+et eksempel på udviklingsopsætning.
 
-### Organisatoriske enheder
+Påkrævede miljøvariable:
 
-- UUID
-- Navn
-- Email
-- Overenhed
-- Leder
-- KLE - Kommunernes Landsforenings Emnesystematik
-    - Indsigt
-    - Udførende
+- `ROLLEKATALOG_URL`: Base URL til Rollekatalogets API
+- `API_KEY`: API-nøgle til autentificering med Rollekatalog
+- `ROOT_ORG_UNIT`: UUID på rodenheden i OS2mo. Kun denne enhed og dens
+  underenheder synkroniseres.
+- `AD_ITSYSTEM_USER_KEY`: Brugervendt nøgle på AD IT-systemet i OS2mo
+- `FK_ITSYSTEM_USER_KEY`: Brugervendt nøgle på FK Organisation
+  IT-systemet i OS2mo
+- `FASTRAMQPI__DATABASE__*`: Forbindelsesoplysninger til den lokale
+  PostgreSQL-database (host, user, password, name)
 
-Der tillades kun én leder pr. Organisatorisk enhed.
+Valgfrie miljøvariable:
+
+- `SYNC_ENABLED`: Aktiverer skrivning til Rollekatalog. Default `false`,
+  så integrationen kan opbygge sin cache inden første skrivning.
+- `INTERVAL`: Interval i sekunder mellem batchskrivninger til
+  Rollekatalog. Default `900` (15 minutter).
+- `EXTERNAL_ROOTS`: Liste af UUID'er på eksterne pseudorødder. Disse
+  placeres under rodenheden i Rollekatalog.
+- `EXCLUDE_ORG_UNIT_LEVEL`: UUID på et enhedsniveau der skal udelukkes
+  fra synkroniseringen.
+- `PREFER_NICKNAME`: Brug kaldenavn i stedet for navn, hvis det er
+  udfyldt. Default `false`.
+- `SYNC_TITLES`: Synkroniser stillingsbetegnelser som særskilte objekter.
+  Default `false`.
+- `EMPLOYEE_EMAIL_USER_KEY`: Brugervendt nøgle på adressetypen for
+  medarbejder-e-mail. Default `EmailEmployee`.
+- `MIT_ID_USER_KEY`: Brugervendt nøgle på adressetypen for MitID.
+  Default `MitIDEmployee`.
+- `HTTPX_TIMEOUT`: Timeout i sekunder ved API-kald til Rollekatalog.
+  Default `30`.
+
+## Fejlfinding
+
+Integrationen udstiller en række HTTP-endepunkter til inspektion og
+manuel styring af synkroniseringen:
+
+| Metode | Endepunkt                           | Beskrivelse                                                     |
+|--------|-------------------------------------|-----------------------------------------------------------------|
+| GET    | `/titles`                           | Viser stillingsbetegnelser der ville blive synkroniseret        |
+| GET    | `/cache/stikprøve/person?count=N`   | Tilfældig stikprøve af medarbejdere fra cachen                  |
+| GET    | `/cache/stikprøve/org_unit?count=N` | Tilfældig stikprøve af organisationsenheder fra cachen          |
+| GET    | `/cache/person/{uuid}`              | Viser en medarbejder som den ligger i cachen                    |
+| GET    | `/cache/org_unit/{uuid}`            | Viser en organisationsenhed som den ligger i cachen             |
+| GET    | `/debug/person/{uuid}`              | Simulerer synkronisering af en medarbejder (viser evt. fejl)    |
+| GET    | `/debug/org_unit/{uuid}`            | Simulerer synkronisering af en enhed (viser evt. fejl)          |
+| POST   | `/sync/person/{uuid}`               | Udløser synkronisering af en specifik medarbejder               |
+| POST   | `/sync/org_unit/{uuid}`             | Udløser synkronisering af en specifik organisationsenhed        |
+| POST   | `/trigger/all`                      | Udløser fuld genindlæsning af alle objekter fra OS2mo           |
+
+`/debug/*`-endepunkterne er særligt nyttige til at undersøge hvorfor en
+medarbejder eller enhed ikke bliver synkroniseret — hvis objektet ikke
+kan synkroniseres, returneres en fejlbesked med årsagen.
+
+## Idriftsættelse
+
+Ved førstegangsopsætning anbefales følgende fremgangsmåde:
+
+1. Start integrationen med `SYNC_ENABLED=false`, så den lokale cache
+   opbygges uden at skrive til Rollekatalog.
+2. Udløs en fuld genindlæsning fra OS2mo ved at kalde `POST /trigger/all`
+   på integrationen.
+3. Verificer data i cachen via fejlfindings-endepunkterne beskrevet
+   ovenfor.
+4. Sæt `SYNC_ENABLED=true`, og genstart integrationen.
