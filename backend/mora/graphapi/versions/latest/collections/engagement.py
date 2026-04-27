@@ -22,16 +22,19 @@ from ..filters import EmployeeFilter
 from ..filters import EngagementFilter
 from ..filters import ManagerFilter
 from ..filters import OrganisationUnitFilter
+from ..lazy import LazyAddress
 from ..lazy import LazyClass
 from ..lazy import LazyEmployee
 from ..lazy import LazyITUser
 from ..lazy import LazyLeave
 from ..lazy import LazyManager
 from ..lazy import LazyOrganisationUnit
+from ..models import AddressRead
 from ..models import ClassRead
 from ..paged import Paged
 from ..permissions import IsAuthenticatedPermission
 from ..permissions import gen_read_permission
+from ..resolvers import address_resolver
 from ..resolvers import class_resolver
 from ..resolvers import employee_resolver
 from ..resolvers import it_user_resolver
@@ -76,6 +79,17 @@ class Engagement:
     )
     async def user_key(self, root: EngagementRead) -> str:
         return root.user_key
+
+    addresses_response: Paged[Response[LazyAddress]] = strawberry.field(
+        resolver=to_paged_response(AddressRead)(
+            seed_resolver(
+                address_resolver,
+                {"engagement": lambda root: EngagementFilter(uuids=[root.uuid])},
+            )
+        ),
+        description="Addresses connected to the engagement.",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
+    )
 
     engagement_type_response: Response[LazyClass] = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.engagement_type_uuid),
