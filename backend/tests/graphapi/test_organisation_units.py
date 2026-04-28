@@ -9,7 +9,9 @@ from more_itertools import one
 from strawberry import UNSET
 from strawberry.types.unset import UnsetType
 
+from mora.mapping import ADMIN
 from ..conftest import GraphAPIPost
+from ..conftest import SetAuth
 from .utils import fetch_class_uuids
 from .utils import fetch_org_unit_validity
 from .utils import gen_read_parent
@@ -1216,3 +1218,151 @@ async def test_org_tree_filters(
         if x["current"] is not None
     }
     assert results == expected
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_roots_response_multiple_roots(graphapi_post: GraphAPIPost, set_auth: SetAuth):
+    set_auth(ADMIN)
+
+    unit_type = "ca76a441-6226-404f-88a9-31e02e420e52"
+    unit_level = "0f015b67-f250-43bb-9160-043ec19fad48"
+
+    root1_uuid = str(uuid4())
+    root2_uuid = str(uuid4())
+    unit_a_uuid = str(uuid4())
+    child_uuid = str(uuid4())
+
+    org_uuid = "456362c4-0ee4-4e5e-a72c-751239745e62"
+
+    # Create Root 1
+    graphapi_post(
+        """
+        mutation Create($input: OrganisationUnitCreateInput!) {
+            org_unit_create(input: $input) { uuid }
+        }
+        """,
+        variables={
+            "input": {
+                "uuid": root1_uuid,
+                "name": "Root 1",
+                "parent": org_uuid,
+                "org_unit_type": unit_type,
+                "org_unit_level": unit_level,
+                "validity": {"from": "2020-01-01"},
+            }
+        },
+    )
+
+    # Create Root 2
+    graphapi_post(
+        """
+        mutation Create($input: OrganisationUnitCreateInput!) {
+            org_unit_create(input: $input) { uuid }
+        }
+        """,
+        variables={
+            "input": {
+                "uuid": root2_uuid,
+                "name": "Root 2",
+                "parent": org_uuid,
+                "org_unit_type": unit_type,
+                "org_unit_level": unit_level,
+                "validity": {"from": "2020-01-01"},
+            }
+        },
+    )
+
+    # Create Unit A under Root 1
+    graphapi_post(
+        """
+        mutation Create($input: OrganisationUnitCreateInput!) {
+            org_unit_create(input: $input) { uuid }
+        }
+        """,
+        variables={
+            "input": {
+                "uuid": unit_a_uuid,
+                "name": "Unit A",
+                "parent": root1_uuid,
+                "org_unit_type": unit_type,
+                "org_unit_level": unit_level,
+                "validity": {"from": "2020-01-01", "to": "2020-06-01"},
+            }
+        },
+    )
+
+    # Update Unit A to be under Root 2 from 2020-06-01
+    graphapi_post(
+        """
+        mutation Update($input: OrganisationUnitUpdateInput!) {
+            org_unit_update(input: $input) { uuid }
+        }
+        """,
+        variables={
+            "input": {
+                "uuid": unit_a_uuid,
+                "parent": root2_uuid,
+                "validity": {"from": "2020-06-01"},
+            }
+        },
+    )
+
+    # Create Child under Unit A for the whole period
+    graphapi_post(
+        """
+        mutation Create($input: OrganisationUnitCreateInput!) {
+            org_unit_create(input: $input) { uuid }
+        }
+        """,
+        variables={
+            "input": {
+                "uuid": child_uuid,
+                "name": "Child",
+                "parent": unit_a_uuid,
+                "org_unit_type": unit_type,
+                "org_unit_level": unit_level,
+                "validity": {"from": "2020-01-01"},
+            }
+        },
+    )
+
+    # Query Child's roots with a filter that covers both periods
+    query = """
+    query GetChild($uuid: UUID!) {
+        org_units(filter: {uuids: [$uuid], from_date: "2020-01-01"}) {
+            objects {
+                validities {
+                    roots_response { uuid }
+                }
+            }
+        }
+    }
+    """
+
+    r = graphapi_post(query, variables={"uuid": child_uuid})
+    assert r.errors is None
+
+    validities = r.data["org_units"]["objects"][0]["validities"]
+    assert len(validities) == 1
+
+    roots = validities[0]["roots_response"]
+    root_uuids = {root["uuid"] for root in roots}
+    assert root_uuids == {root1_uuid, root2_uuid}
+
+    # root_response should fail because there are 2 roots
+    query_root_fail = """
+    query GetChild($uuid: UUID!) {
+        org_units(filter: {uuids: [$uuid], from_date: "2020-01-01"}) {
+            objects {
+                validities {
+                    root_response { uuid }
+                }
+            }
+        }
+    }
+    """
+    r_fail = graphapi_post(query_root_fail, variables={"uuid": child_uuid})
+    assert r_fail.errors is not None
+    assert any(
+        "Expected exactly one item in iterable" in e["message"] for e in r_fail.errors
+    )
