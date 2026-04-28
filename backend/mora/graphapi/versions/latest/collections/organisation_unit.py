@@ -66,6 +66,7 @@ from .utils import to_list
 from .utils import to_only
 from .utils import to_paged_response
 from .utils import to_response
+from .utils import to_response_list
 
 if TYPE_CHECKING:
     pass
@@ -135,6 +136,44 @@ class OrganisationUnit:
         description=dedent(
             """
             The top-unit (root) of the organisation unit, in the hierarchy.
+
+            Note that this fails when the organisation unit has multiple roots
+            across its validity period. Use `roots_response` instead to handle
+            that case.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
+
+    roots_response: list[Response[LazyOrganisationUnit]] = strawberry.field(
+        resolver=to_response_list(OrganisationUnitRead)(
+            strip_args(
+                seed_resolver(
+                    organisation_unit_resolver,
+                    {
+                        "descendant": lambda root: OrganisationUnitFilter(
+                            uuids=[root.uuid]
+                        ),
+                        "parent": lambda root: None,
+                    },
+                ),
+                # We filter out:
+                # * 'cursor' and 'limit' as the result set is bounded by the
+                #   number of distinct roots over the parent's validity
+                # * 'filter' as you cannot filter on uuids and something else at once
+                # Once the resolver supports mixed uuid and non-uuid filtering we may
+                # remove 'filter' from the list here.
+                {"cursor", "limit", "filter"},
+            )
+        ),
+        description=dedent(
+            """
+            The top-units (roots) of the organisation unit, in the hierarchy.
+
+            Because OS2mo is temporal, traversing more than one layer up the
+            tree may yield several distinct roots over time, as ancestors can
+            be reorganised. This field returns all such roots, whereas
+            `root_response` errors out in this scenario.
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],

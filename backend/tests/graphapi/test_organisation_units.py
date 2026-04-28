@@ -304,6 +304,40 @@ async def test_org_unit_root_field(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
+async def test_org_unit_roots_response_field(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """`roots_response` returns the roots of an organisation unit as a list.
+
+    Like `root_response`, but as a list to handle scenarios where there is
+    not exactly one root reachable from the unit (because OS2mo is temporal,
+    traversing more than one layer up the tree may yield several distinct
+    roots over time, or none if the chain is broken).
+    """
+    # org_unit in 3rd level. Root is parent's-parent.
+    filosofisk_institut = "85715fc7-925d-401b-822d-467eb4b163b6"
+    root = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+    org_unit_query = """
+        query OrgUnit($uuids: [UUID!]) {
+            org_units(filter: {uuids: $uuids}) {
+                objects {
+                    current {
+                        roots_response {
+                            uuid
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(org_unit_query, variables=dict(uuids=filosofisk_institut))
+    assert response.errors is None
+    roots = one(response.data["org_units"]["objects"])["current"]["roots_response"]
+    assert [r["uuid"] for r in roots] == [root]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "filter,expected",
     [
