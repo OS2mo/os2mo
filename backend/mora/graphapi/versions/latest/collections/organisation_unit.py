@@ -66,6 +66,7 @@ from .utils import to_list
 from .utils import to_only
 from .utils import to_paged_response
 from .utils import to_response
+from .utils import to_response_list
 
 if TYPE_CHECKING:
     pass
@@ -135,6 +136,28 @@ class OrganisationUnit:
         description=dedent(
             """
             The top-unit (root) of the organisation unit, in the hierarchy.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
+
+    roots_response: list[Response[LazyOrganisationUnit]] = strawberry.field(
+        resolver=to_response_list(OrganisationUnitRead)(
+            seed_resolver(
+                organisation_unit_resolver,
+                {
+                    "descendant": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid]
+                    ),
+                    "parent": lambda root: None,
+                },
+            )
+        ),
+        description=dedent(
+            """
+            The top-unit (root) organisation units of the organisation unit, in the hierarchy.
+
+            As OS2mo is temporal, an organisation unit may have multiple roots over time.
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],

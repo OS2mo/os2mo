@@ -304,6 +304,64 @@ async def test_org_unit_root_field(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
+async def test_org_unit_roots_response_current(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Test roots_response field returns a list of roots via current."""
+    org_unit_uuid = "85715fc7-925d-401b-822d-467eb4b163b6"
+    expected_root = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+    org_unit_query = """
+        query OrgUnit($uuids: [UUID!]) {
+            org_units(filter: {uuids: $uuids}) {
+                objects {
+                    current {
+                        roots_response {
+                            uuid
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(org_unit_query, variables=dict(uuids=org_unit_uuid))
+    assert response.errors is None
+    roots = one(response.data["org_units"]["objects"])["current"]["roots_response"]
+    assert [root["uuid"] for root in roots] == [expected_root]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_org_unit_roots_response_validities(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Test roots_response field returns a list of roots via validities."""
+    org_unit_uuid = "85715fc7-925d-401b-822d-467eb4b163b6"
+    expected_root = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+    org_unit_query = """
+        query OrgUnit($uuids: [UUID!]) {
+            org_units(filter: {uuids: $uuids}) {
+                objects {
+                    validities {
+                        roots_response {
+                            uuid
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(org_unit_query, variables=dict(uuids=org_unit_uuid))
+    assert response.errors is None
+    validities = one(response.data["org_units"]["objects"])["validities"]
+    all_roots = []
+    for validity in validities:
+        for root in validity["roots_response"]:
+            all_roots.append(root["uuid"])
+    assert expected_root in all_roots
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "filter,expected",
     [
