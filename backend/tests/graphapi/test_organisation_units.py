@@ -304,6 +304,121 @@ async def test_org_unit_root_field(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
+async def test_org_unit_roots_response_field(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Test roots_response field returns multiple roots when hierarchy changes over time."""
+    # org_unit in 3rd level. Root is parent's-parent
+    filosofisk_institut = "85715fc7-925d-401b-822d-467eb4b163b6"
+    root = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+    org_unit_query = """
+        query OrgUnit($uuids: [UUID!]) {
+            org_units(filter: {uuids: $uuids}) {
+                objects {
+                    validities {
+                        roots_response {
+                            uuid
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(org_unit_query, variables=dict(uuids=filosofisk_institut))
+    assert response.errors is None
+    assert response.data is not None
+    validities = one(response.data["org_units"]["objects"])["validities"]
+    roots = validities[0]["roots_response"]
+    assert len(roots) == 1
+    assert roots[0]["uuid"] == root
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_org_unit_roots_response_multiple_roots(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Test roots_response field returns a list of roots.
+    
+    This test verifies that roots_response correctly returns roots as a list,
+    which allows handling cases where an org unit might have multiple roots
+    due to temporal changes in the hierarchy.
+    """
+    from uuid import uuid4
+    
+    # Create a root org unit
+    root_uuid = str(uuid4())
+    response = graphapi_post(
+        """
+        mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
+            org_unit_create(input: $input) {
+                uuid
+            }
+        }
+        """,
+        {
+            "input": {
+                "uuid": root_uuid,
+                "name": "Root Unit",
+                "user_key": "root_test",
+                "parent": None,
+                "org_unit_type": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                "validity": {"from": "2020-01-01"},
+            }
+        },
+    )
+    assert response.errors is None
+    
+    # Create a child under root
+    child_uuid = str(uuid4())
+    response = graphapi_post(
+        """
+        mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
+            org_unit_create(input: $input) {
+                uuid
+            }
+        }
+        """,
+        {
+            "input": {
+                "uuid": child_uuid,
+                "name": "Child Unit",
+                "user_key": "child_test",
+                "parent": root_uuid,
+                "org_unit_type": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                "validity": {"from": "2020-01-01"},
+            }
+        },
+    )
+    assert response.errors is None
+    
+    # Query roots_response - should return a list with one root
+    org_unit_query = """
+        query OrgUnit($uuids: [UUID!]) {
+            org_units(filter: {uuids: $uuids}) {
+                objects {
+                    current {
+                        roots_response {
+                            uuid
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(org_unit_query, variables=dict(uuids=child_uuid))
+    assert response.errors is None
+    assert response.data is not None
+    current = one(response.data["org_units"]["objects"])["current"]
+    assert current is not None
+    roots = current["roots_response"]
+    assert isinstance(roots, list)
+    assert len(roots) == 1
+    assert roots[0]["uuid"] == root_uuid
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "filter,expected",
     [
