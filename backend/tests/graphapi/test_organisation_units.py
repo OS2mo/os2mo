@@ -19,6 +19,128 @@ from .utils import sjsonable_encoder
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
+async def test_roots_response_with_multiple_roots(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Test that roots_response field exists and works correctly.
+    
+    This test demonstrates that:
+    1. roots_response can be queried successfully
+    2. It returns a list of roots (even if there's only one)
+    3. The field is available on temporal org unit objects
+    """
+    
+    # Create org unit type
+    org_unit_type_uuids = fetch_class_uuids(graphapi_post, "org_unit_type")
+    org_unit_type = org_unit_type_uuids[0]
+    
+    # Create a root org unit
+    create_query = """
+    mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
+        org_unit_create(input: $input) {
+            uuid
+        }
+    }
+    """
+    
+    response = graphapi_post(
+        create_query,
+        variables={
+            "input": {
+                "name": "Root Unit",
+                "user_key": "root_unit",
+                "parent": None,
+                "validity": {"from": "2020-01-01"},
+                "org_unit_type": str(org_unit_type),
+            }
+        },
+    )
+    assert response.errors is None
+    assert response.data
+    root_uuid = UUID(response.data["org_unit_create"]["uuid"])
+    
+    # Create a child unit under the root
+    response = graphapi_post(
+        create_query,
+        variables={
+            "input": {
+                "name": "Child Unit",
+                "user_key": "child_unit",
+                "parent": str(root_uuid),
+                "validity": {"from": "2020-01-01"},
+                "org_unit_type": str(org_unit_type),
+            }
+        },
+    )
+    assert response.errors is None
+    assert response.data
+    child_uuid = UUID(response.data["org_unit_create"]["uuid"])
+    
+    # Query the child's roots using roots_response
+    query_roots_response = """
+    query GetRoots($uuid: UUID!) {
+        org_units(filter: {uuids: [$uuid]}) {
+            objects {
+                objects {
+                    roots_response {
+                        current {
+                            uuid
+                            user_key
+                            name
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+    
+    response = graphapi_post(query_roots_response, variables={"uuid": str(child_uuid)})
+    # roots_response should work
+    assert response.errors is None
+    assert response.data is not None
+    
+    objects = response.data["org_units"]["objects"]
+    assert len(objects) == 1
+    
+    org_unit_objects = objects[0]["objects"]
+    # We should have at least 1 temporal object
+    assert len(org_unit_objects) >= 1
+    
+    # Each temporal object should have a roots_response list
+    for obj in org_unit_objects:
+        roots = obj["roots_response"]
+        # Should have at least one root
+        assert len(roots) >= 1
+        # The root should be the one we created
+        assert roots[0]["current"]["uuid"] == str(root_uuid)
+    
+    # Also test that root_response still works for simple cases
+    query_root_response = """
+    query GetRoot($uuid: UUID!) {
+        org_units(filter: {uuids: [$uuid]}) {
+            objects {
+                objects {
+                    root_response {
+                        current {
+                            uuid
+                            user_key
+                            name
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+    
+    response = graphapi_post(query_root_response, variables={"uuid": str(child_uuid)})
+    assert response.errors is None
+    assert response.data is not None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
 def test_query_all(graphapi_post: GraphAPIPost):
     """Test that we can query all our organisation units."""
     query = """

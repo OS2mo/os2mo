@@ -66,6 +66,7 @@ from .utils import to_list
 from .utils import to_only
 from .utils import to_paged_response
 from .utils import to_response
+from .utils import to_response_list
 
 if TYPE_CHECKING:
     pass
@@ -135,6 +136,36 @@ class OrganisationUnit:
         description=dedent(
             """
             The top-unit (root) of the organisation unit, in the hierarchy.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
+
+    roots_response: list[Response[LazyOrganisationUnit]] = strawberry.field(
+        resolver=to_response_list(OrganisationUnitRead)(
+            strip_args(
+                seed_resolver(
+                    organisation_unit_resolver,
+                    {
+                        "descendant": lambda root: OrganisationUnitFilter(
+                            uuids=[root.uuid]
+                        ),
+                        "parent": lambda root: None,
+                    },
+                ),
+                # We filter out:
+                # * 'cursor' and 'limit' as there is at most one object returned
+                # * 'filter' as you cannot filter on uuids and something else at once
+                # Once the resolver supports mixed uuid and non-uuid filtering we may
+                # remove 'filter' from the list here.
+                {"cursor", "limit", "filter"},
+            )
+        ),
+        description=dedent(
+            """
+            The top-units (roots) of the organisation unit, in the hierarchy.
+            
+            Returns multiple roots when the parent hierarchy changes over time.
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
