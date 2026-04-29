@@ -303,6 +303,117 @@ async def test_org_unit_root_field(
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_org_unit_roots_response_field(
+    graphapi_post: GraphAPIPost,
+    create_org_unit,
+) -> None:
+    """`roots_response` returns multiple roots when ancestors change over time.
+
+    Because OS2mo is temporal, an organisation unit's chain of ancestors can
+    resolve to more than one root unit: the parent of the unit itself is
+    constant for the duration of any given validity period, but a more distant
+    ancestor's parent may change during that interval. The old `root_response`
+    field assumes a single root and errors otherwise; the new `roots_response`
+    field returns all reachable roots.
+    """
+    # Set up two top-level units that will both be roots over time.
+    root_a = create_org_unit("root_a")
+    root_b = create_org_unit("root_b")
+    middle = create_org_unit("middle", root_a)
+    leaf = create_org_unit("leaf", middle)
+
+    # Re-parent `middle` to `root_b` in 2000. `middle`'s validity is split into
+    # [1970, 2000) with parent=root_a and [2000, ...) with parent=root_b.
+    update_query = """
+        mutation UpdateOrgUnit($input: OrganisationUnitUpdateInput!) {
+            org_unit_update(input: $input) {
+                uuid
+            }
+        }
+    """
+    response = graphapi_post(
+        update_query,
+        variables={
+            "input": {
+                "uuid": str(middle),
+                "parent": str(root_b),
+                "validity": {"from": "2000-01-01", "to": None},
+            }
+        },
+    )
+    assert response.errors is None
+
+    # Terminate `leaf` in the past so it has no current validity. Reading
+    # `leaf` historically still surfaces its past validity period, but
+    # resolvers that operate at the current assertion time see no data.
+    terminate_query = """
+        mutation TerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
+            org_unit_terminate(input: $input) {
+                uuid
+            }
+        }
+    """
+    response = graphapi_post(
+        terminate_query,
+        variables={"input": {"uuid": str(leaf), "to": "2010-01-01"}},
+    )
+    assert response.errors is None
+
+    # The old `root_response` field uses `more_itertools.one`, so it errors
+    # when the resolved set of roots is anything other than a single unit.
+    # Reading the past validity of the (now-terminated) leaf yields zero
+    # roots at the current assertion time.
+    root_query = """
+        query OrgUnit($leaf: [UUID!]) {
+            org_units(filter: {uuids: $leaf, from_date: "1900-01-01", to_date: "9999-01-01"}) {
+                objects {
+                    validities {
+                        root_response {
+                            uuid
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(root_query, variables={"leaf": [str(leaf)]})
+    assert response.errors is not None
+    assert any(
+        "too few items in iterable" in error["message"]
+        or "Expected exactly one item" in error["message"]
+        for error in response.errors
+    )
+
+    # The new `roots_response` field returns all roots reachable from `leaf`
+    # across history when called with an unbounded filter, with no error.
+    roots_query = """
+        query OrgUnit($leaf: [UUID!]) {
+            org_units(filter: {uuids: $leaf, from_date: "1900-01-01", to_date: "9999-01-01"}) {
+                objects {
+                    validities {
+                        roots_response(filter: {from_date: null, to_date: null}) {
+                            objects {
+                                uuid
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(roots_query, variables={"leaf": [str(leaf)]})
+    assert response.errors is None
+    validities = one(response.data["org_units"]["objects"])["validities"]
+    roots = {
+        obj["uuid"]
+        for validity in validities
+        for obj in validity["roots_response"]["objects"]
+    }
+    assert roots == {str(root_a), str(root_b)}
+
+
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "filter,expected",

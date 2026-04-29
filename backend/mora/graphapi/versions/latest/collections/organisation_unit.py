@@ -135,6 +135,42 @@ class OrganisationUnit:
         description=dedent(
             """
             The top-unit (root) of the organisation unit, in the hierarchy.
+
+            Note that because OS2mo is temporal, an organisation unit may have
+            different parents over time, and so the chain of ancestors may
+            resolve to more than one root. In that case this field errors -
+            use `roots_response` instead.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
+
+    roots_response: Paged[Response[LazyOrganisationUnit]] = strawberry.field(
+        resolver=to_paged_response(OrganisationUnitRead)(
+            seed_resolver(
+                organisation_unit_resolver,
+                {
+                    "descendant": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    ),
+                    "parent": lambda root: None,
+                },
+            )
+        ),
+        description=dedent(
+            """
+            The top-units (roots) of the organisation unit, in the hierarchy.
+
+            Because OS2mo is temporal, an organisation unit may have different
+            parents over time, and so the chain of ancestors may resolve to
+            more than one root. This field returns all of them, unlike
+            `root_response` which errors in that case.
+
+            The set of returned roots is restricted by the `from_date` and
+            `to_date` of the filter; pass `null` for both to consider the
+            entire history.
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
