@@ -39,6 +39,23 @@ def gen_filter_table(key: str) -> str:
     )
 
 
+@strawberry.input(
+    description=dedent(
+        """\
+        Inverted predicate filter.
+
+        Entries matching any of the contained predicates are excluded from the
+        result of the enclosing filter.
+        """
+    )
+)
+class NotFilter:
+    user_keys: list[str] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Excluded user-key", "user_keys"),
+    )
+
+
 @strawberry.input
 class BaseFilter:
     uuids: list[UUID] | None = strawberry.field(
@@ -59,6 +76,20 @@ class BaseFilter:
     registration_time: datetime | None = strawberry.field(
         default=None,
         description="Show elements as they were at the provided registration time",
+    )
+
+    not_: NotFilter | None = strawberry.field(
+        default=None,
+        name="not",
+        description=dedent(
+            """\
+            Negated filter limiting which entries are returned.
+
+            Entries matching the contained predicates are excluded from the
+            result of the enclosing filter, evaluated within the same temporal
+            scope (`from_date`, `to_date`, `registration_time`).
+            """
+        ),
     )
 
 

@@ -169,6 +169,15 @@ def to_similar(keys: list[str]) -> str:
     return use_is_similar_sentinel + "|".join(escaped_keys)
 
 
+def to_not_similar(keys: list[str]) -> str:
+    # Counterpart to ``to_similar`` producing a 'NOT SIMILAR TO' match. LoRa AND's
+    # multiple ``brugervendtnoegle`` parameters, so this can be combined with
+    # ``to_similar`` to express ``user_key in (...) AND user_key not in (...)``.
+    use_is_not_similar_sentinel = "|LORA-PLEASE-USE-NOT-IS-SIMILAR|"
+    escaped_keys = (re.escape(k) for k in keys)
+    return use_is_not_similar_sentinel + "|".join(escaped_keys)
+
+
 async def registration_filter(info: MOInfo, filter: Any) -> None:
     if filter.registration is None:
         return
@@ -862,6 +871,21 @@ async def organisation_unit_resolver_query(
             )
         )
 
+    # Negated user keys
+    if filter.not_ is not None and filter.not_.user_keys:
+        query = query.where(
+            OrganisationEnhedRegistrering.id.notin_(
+                select(
+                    OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
+                ).where(
+                    OrganisationEnhedAttrEgenskaber.brugervendtnoegle.in_(
+                        filter.not_.user_keys
+                    ),
+                    _virkning(OrganisationEnhedAttrEgenskaber),
+                )
+            )
+        )
+
     # Name
     if filter.names is not UNSET and filter.names is not None:
         query = query.where(
@@ -1338,6 +1362,7 @@ async def generic_resolver(
 
     # Dates
     dates = get_date_interval(filter.from_date, filter.to_date)
+
     # UUIDs
     if filter.uuids is not None:
         if limit is not None or cursor is not None:  # pragma: no cover
@@ -1345,6 +1370,14 @@ async def generic_resolver(
         # Early return on empty UUID list
         if not filter.uuids:
             return dict()
+        # The dataloader path bypasses ``getter`` (and thus ``bvn``), so when
+        # ``not_`` is set we have to route through ``getter`` to apply the
+        # exclusion in LoRa.
+        if filter.not_ is not None and filter.not_.user_keys:
+            kwargs["uuid"] = [str(u) for u in filter.uuids]
+            kwargs["bvn"] = [to_not_similar(filter.not_.user_keys)]
+            with with_graphql_dates(dates):
+                return await getter(**kwargs)
         return await get_by_uuid(
             dataloader=loader,
             keys=[
@@ -1353,12 +1386,18 @@ async def generic_resolver(
             ],
         )
 
-    # User keys
+    # User keys (positive + negative). Both translate to ``bvn`` parameters;
+    # LoRa AND's multiple ``brugervendtnoegle`` constraints in the same query.
+    bvn_values: list[str] = []
     if filter.user_keys is not None:
         # Early return on empty user-key list
         if not filter.user_keys:
             return dict()
-        kwargs["bvn"] = to_similar(filter.user_keys)
+        bvn_values.append(to_similar(filter.user_keys))
+    if filter.not_ is not None and filter.not_.user_keys:
+        bvn_values.append(to_not_similar(filter.not_.user_keys))
+    if bvn_values:
+        kwargs["bvn"] = bvn_values
 
     # Registration time lookup
     if (

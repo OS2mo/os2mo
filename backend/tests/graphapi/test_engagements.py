@@ -289,6 +289,30 @@ def test_query_is_primary_multiple_on_same_person(graphapi_post: GraphAPIPost) -
             },
             1,
         ),
+        # Inverted user_keys filter (`not`) - all fixture engagements use bvn="bvn"
+        ({"not": None}, 3),
+        ({"not": {"user_keys": None}}, 3),
+        ({"not": {"user_keys": []}}, 3),
+        ({"not": {"user_keys": ["nonexistent"]}}, 3),
+        ({"not": {"user_keys": ["bvn"]}}, 0),
+        ({"not": {"user_keys": ["bvn", "nonexistent"]}}, 0),
+        # `not` combined with positive predicates
+        ({"user_keys": ["bvn"], "not": {"user_keys": ["bvn"]}}, 0),
+        ({"user_keys": ["bvn"], "not": {"user_keys": ["nonexistent"]}}, 3),
+        (
+            {
+                "employee": {"uuids": "236e0a78-11a0-4ed9-8545-6286bb8611c7"},
+                "not": {"user_keys": ["bvn"]},
+            },
+            0,
+        ),
+        (
+            {
+                "employee": {"uuids": "236e0a78-11a0-4ed9-8545-6286bb8611c7"},
+                "not": {"user_keys": ["nonexistent"]},
+            },
+            2,
+        ),
     ],
 )
 async def test_engagement_filters(

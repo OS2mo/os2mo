@@ -259,9 +259,13 @@ class SearchQueryBuilder:
         # different places throughout the code. For this reason, it is easier to
         # extract the sentinel from the VALUE at this point in time.
         use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
+        use_is_not_similar_sentinel = "|LORA-PLEASE-USE-NOT-IS-SIMILAR|"
         if value.startswith(use_is_similar_sentinel):
             value = value[len(use_is_similar_sentinel) :]
             return f"similar to '{cls.improper_sql_escape(value)}'"
+        if value.startswith(use_is_not_similar_sentinel):
+            value = value[len(use_is_not_similar_sentinel) :]
+            return f"not similar to '{cls.improper_sql_escape(value)}'"
         if type_ is ValueType.TEXT:
             # always uses case insensitive matching
             return f"ilike '{cls.improper_sql_escape(value)}'"
