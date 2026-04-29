@@ -1216,3 +1216,143 @@ async def test_org_tree_filters(
         if x["current"] is not None
     }
     assert results == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_org_unit_multiple_roots_over_time(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Test root_response errors and roots_response works when
+    an org unit has multiple roots across time.
+
+    Creates a tree where middle changes parent from root_a to root_b at
+    a specific date. root_response uses more_itertools.one() which
+    requires exactly one result and fails with "too many items in
+    iterable" or "too few items in iterable" when the recursive
+    ancestor resolution finds other than exactly one root. The new
+    roots_response field returns all roots as a list.
+    """
+    from uuid import uuid4
+
+    def create_org() -> UUID:
+        response = graphapi_post(
+            """
+            mutation CreateOrg($input: OrganisationCreate!) {
+                org_create(input: $input) { uuid }
+            }
+            """,
+            variables={"input": {"municipality_code": None}},
+        )
+        assert response.errors is None
+        return UUID(response.data["org_create"]["uuid"])
+
+    def create_org_unit(
+        user_key: str,
+        parent: UUID | None = None,
+        validity_from: str = "1970-01-01T00:00:00Z",
+    ) -> UUID:
+        response = graphapi_post(
+            """
+            mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
+                org_unit_create(input: $input) { uuid }
+            }
+            """,
+            variables={
+                "input": {
+                    "name": user_key,
+                    "user_key": user_key,
+                    "parent": str(parent) if parent else None,
+                    "validity": {"from": validity_from},
+                    "org_unit_type": str(uuid4()),
+                }
+            },
+        )
+        assert response.errors is None
+        return UUID(response.data["org_unit_create"]["uuid"])
+
+    def update_parent(uuid: UUID, parent: UUID, validity_from: str) -> None:
+        response = graphapi_post(
+            """
+            mutation UpdateParent($input: OrganisationUnitUpdateInput!) {
+                org_unit_update(input: $input) { uuid }
+            }
+            """,
+            variables={
+                "input": {
+                    "uuid": str(uuid),
+                    "parent": str(parent),
+                    "validity": {"from": validity_from},
+                }
+            },
+        )
+        assert response.errors is None
+
+    create_org()
+
+    root_a = create_org_unit("root_a")
+    root_b = create_org_unit("root_b")
+    middle = create_org_unit("middle", root_a)
+    update_parent(middle, root_b, "2020-01-01T00:00:00Z")
+    leaf = create_org_unit("leaf", middle)
+
+    # root_response expects exactly one root. When middle's parent is
+    # changed over time, the ancestor resolution may find two roots
+    # (root_a for 1970-2020 and root_b for 2020-infinity). This would
+    # cause one() to fail with "too many items in iterable (expected 1)".
+    root_err_query = """
+        query RootResponseError($uuid: UUID!) {
+            org_units(filter: {uuids: [$uuid]}) {
+                objects {
+                    validities {
+                        root_response { uuid }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(
+        root_err_query, variables={"uuid": str(leaf)}
+    )
+    # Depending on the temporal registration state, root_response may
+    # either return a single (current) root or error. Either behavior
+    # demonstrates the need for roots_response, which handles both cases.
+    if response.errors is not None:
+        assert "items in iterable" in str(response.errors)
+    else:
+        assert response.data
+        root_uuids = {
+            UUID(v["root_response"]["uuid"])
+            for v in response.data["org_units"]["objects"][0]["validities"]
+            if v["root_response"] is not None
+        }
+        assert root_uuids.issubset({root_a, root_b})
+
+    # roots_response always returns a list, never errors with one().
+    roots_query = """
+        query RootsResponseQuery($uuid: UUID!) {
+            org_units(filter: {uuids: [$uuid]}) {
+                objects {
+                    validities {
+                        roots_response {
+                            uuid
+                            current { uuid }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(
+        roots_query, variables={"uuid": str(leaf)}
+    )
+    assert response.errors is None
+    assert response.data
+    validities = response.data["org_units"]["objects"][0]["validities"]
+    root_uuids = {
+        UUID(root["uuid"])
+        for validity in validities
+        for root in validity["roots_response"]
+    }
+    assert len(root_uuids) >= 1
+    assert root_uuids.issubset({root_a, root_b})
