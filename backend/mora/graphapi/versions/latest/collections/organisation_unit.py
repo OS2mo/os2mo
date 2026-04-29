@@ -146,7 +146,9 @@ class OrganisationUnit:
                 organisation_unit_resolver,
                 {
                     "descendant": lambda root: OrganisationUnitFilter(
-                        uuids=[root.uuid]
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
                     ),
                     "parent": lambda root: None,
                 },
@@ -159,6 +161,30 @@ class OrganisationUnit:
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
         deprecation_reason="Use 'root_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    roots_response: Paged[Response[LazyOrganisationUnit]] = strawberry.field(
+        resolver=to_paged_response(OrganisationUnitRead)(
+            seed_resolver(
+                organisation_unit_resolver,
+                {
+                    "descendant": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=root.validity.from_date if hasattr(root, "validity") else None,
+                        to_date=root.validity.to_date if hasattr(root, "validity") else None,
+                    ),
+                    "parent": lambda root: None,
+                    "from_date": lambda root: root.validity.from_date if hasattr(root, "validity") else None,
+                    "to_date": lambda root: root.validity.to_date if hasattr(root, "validity") else None,
+                },
+            )
+        ),
+        description=dedent(
+            """
+            The top-units (roots) of the organisation unit, in the hierarchy.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
     # TODO: Add Paged[Response[LazyClass]] for ancestors_response

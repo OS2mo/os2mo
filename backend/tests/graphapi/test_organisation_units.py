@@ -1216,3 +1216,121 @@ async def test_org_tree_filters(
         if x["current"] is not None
     }
     assert results == expected
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_roots_response_multiple_roots(graphapi_post):
+    async def create_org() -> UUID:
+        mutate_query = """
+            mutation CreateOrg($input: OrganisationCreate!) {
+                org_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(
+            query=mutate_query, variables={"input": {"municipality_code": None}}
+        )
+        return UUID(response.data["org_create"]["uuid"])
+
+    async def create_org_unit(user_key: str, parent: UUID | None = None, from_time: str = "1970-01-01T00:00:00Z", to_time: str | None = None) -> UUID:
+        mutate_query = """
+            mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
+                org_unit_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(
+            query=mutate_query,
+            variables={
+                "input": {
+                    "name": user_key,
+                    "user_key": user_key,
+                    "parent": str(parent) if parent else None,
+                    "validity": {"from": from_time, "to": to_time},
+                    "org_unit_type": str(uuid4()),
+                }
+            },
+        )
+        return UUID(response.data["org_unit_create"]["uuid"])
+    
+    async def update_org_unit(uuid: UUID, parent: UUID | None, from_time: str, to_time: str | None = None):
+        mutate_query = """
+            mutation UpdateOrgUnit($input: OrganisationUnitUpdateInput!) {
+                org_unit_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(
+            query=mutate_query,
+            variables={
+                "input": {
+                    "uuid": str(uuid),
+                    "parent": str(parent) if parent else None,
+                    "validity": {"from": from_time, "to": to_time},
+                }
+            },
+        )
+
+    await create_org()
+    
+    root_a = await create_org_unit("rootA")
+    root_b = await create_org_unit("rootB")
+    
+    # C is child of A from 1980 to 1990
+    c_uuid = await create_org_unit("C", root_a, from_time="1980-01-01T00:00:00Z", to_time="1990-01-01T00:00:00Z")
+    # C becomes child of B from 1990 onwards
+    await update_org_unit(c_uuid, root_b, from_time="1990-01-01T00:00:00Z")
+    
+    # D is child of C from 1980 to 2000 (meaning it's purely historical)
+    d_uuid = await create_org_unit("D", c_uuid, from_time="1980-01-01T00:00:00Z", to_time="2000-01-01T00:00:00Z")
+
+    # Testing the new field
+    query = """
+        query FetchRoots($uuid: UUID!) {
+            org_units(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
+                objects {
+                    validities {
+                        roots_response {
+                            objects {
+                                objects {
+                                    user_key
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(query, {"uuid": str(d_uuid)})
+    assert response.errors is None
+    
+    validities = response.data["org_units"]["objects"][0]["validities"]
+    assert len(validities) == 1
+    
+    roots = validities[0]["roots_response"]["objects"]
+    assert len(roots) == 2
+    user_keys = {root["objects"][0]["user_key"] for root in roots}
+    assert user_keys == {"rootA", "rootB"}
+    
+    # Testing the old field to ensure it errors
+    query_old = """
+        query FetchRoot($uuid: UUID!) {
+            org_units(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
+                objects {
+                    validities {
+                        root_response {
+                            objects {
+                                user_key
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response_old = graphapi_post(query_old, {"uuid": str(d_uuid)})
+    assert response_old.errors is not None
+    assert "too few items in iterable (expected 1)" in response_old.errors[0]["message"]
