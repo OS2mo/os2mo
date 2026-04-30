@@ -158,6 +158,8 @@ module = [
     "mora.request_scoped.bulking",
     "mora.service.detail_writing",
     "mora.service.validation.models",
+    "mora.triggers.internal.http_trigger",
+    "oio_rest.validate",
 ]
 ignore_errors = false
 

@@ -408,7 +408,7 @@ def generate_json_schema(obj, do_create):
     return schema
 
 
-SCHEMAS = {}
+SCHEMAS: dict = {}
 
 
 def get_schema(obj_type, do_create=True):
