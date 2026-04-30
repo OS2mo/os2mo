@@ -87,6 +87,7 @@ async def get_employee(
         variable_values=jsonable_encoder(variables),
     )
     handle_gql_error(response)
+    assert response.data is not None
     if not flatten_data(response.data["employees"]["objects"]):
         exceptions.ErrorCodes.E_USER_NOT_FOUND()
     # Transform graphql data into the original format
@@ -152,6 +153,7 @@ async def terminate_employee(uuid: UUID, request: dict = Body(...)):
     )
     # coverage: pause
     handle_gql_error(response)
+    assert response.data is not None
     uuid = response.data["employee_terminate"]["uuid"]
     return uuid
     # coverage: unpause

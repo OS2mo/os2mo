@@ -60,7 +60,7 @@ async def get_orgunit(
     }
     if at is not None:
         variables["from_date"] = at
-    unitid = str(unitid)
+    unitid_str = str(unitid)
     if only_primary_uuid:  # pragma: no cover
         query = """
         query OrganisationUnitQuery($uuid: UUID!)
@@ -139,6 +139,7 @@ async def get_orgunit(
         """
     response = await execute_graphql(query, variable_values=jsonable_encoder(variables))
     handle_gql_error(response)
+    assert response.data is not None
 
     # Handle org unit data
     org_unit_list = flatten_data(response.data["org_units"]["objects"])
@@ -257,6 +258,7 @@ async def get_org_unit_children(
 
     response = await execute_graphql(query, variable_values=jsonable_encoder(variables))
     handle_gql_error(response)
+    assert response.data is not None
 
     org_unit_list = flatten_data(response.data["org_units"]["objects"])
     if not org_unit_list:
@@ -314,6 +316,7 @@ async def terminate_org_unit(
     )
     # coverage: pause
     handle_gql_error(response)
+    assert response.data is not None
 
     # result = response.data[mutation_func]
     result_uuid = response.data.get("org_unit_terminate", {}).get("uuid", None)

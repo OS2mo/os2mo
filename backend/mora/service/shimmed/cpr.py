@@ -21,6 +21,7 @@ logger = get_logger()
 
 def get_citizen(cpr: str) -> dict[str, Any]:
     settings = config.get_settings()
+    assert settings.sp_settings is not None
 
     sp_uuids = {
         "service_agreement": str(settings.sp_settings.sp_agreement_uuid),
@@ -50,7 +51,7 @@ def get_citizen(cpr: str) -> dict[str, Any]:
         exceptions.ErrorCodes.E_SP_SSL_ERROR()
 
 
-def _handle_erstatningspersonnummer(cpr: str) -> dict:
+def _handle_erstatningspersonnummer(cpr: str) -> dict | None:
     """Handle "erstatningspersonnummer" CPR numbers - that is, CPR numbers where the
     'day' part of the birthdate is in the range 61-91.
 
@@ -82,6 +83,7 @@ def _handle_erstatningspersonnummer(cpr: str) -> dict:
             logger.debug(event="detected normal CPR")
     else:
         logger.warning(event="could not parse CPR", value=cpr)
+    return None
 
 
 class SearchCPRReturn(BaseModel):
@@ -131,7 +133,7 @@ def search_cpr(
         return {}
 
     # Check for "erstatningspersonnummer"
-    response: dict = _handle_erstatningspersonnummer(cpr)
+    response = _handle_erstatningspersonnummer(cpr)
     if response:
         return response
     # coverage: pause

@@ -47,6 +47,7 @@ async def list_organisations() -> list[OrganisationRead]:
         if error.original_error:
             raise error.original_error
         raise ValueError(error)
+    assert r.data is not None
     return [r.data["org"]]
 
 
@@ -90,13 +91,14 @@ async def get_organisation(
     # Execute GraphQL query to fetch required data
     response = await execute_graphql(query)
     handle_gql_error(response)
+    assert response.data is not None
 
     if response.data["org"]["uuid"] != str(orgid):  # pragma: no cover
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
     org_units = flatten_data(response.data["org_units"]["objects"])
     child_count = sum(u["parent_uuid"] is None for u in org_units)
-    return {
+    return {  # type: ignore[return-value]
         "uuid": response.data["org"]["uuid"],
         "user_key": response.data["org"]["user_key"],
         "name": response.data["org"]["name"],
@@ -147,6 +149,7 @@ async def get_org_children(
     """
     response = await execute_graphql(query)
     handle_gql_error(response)
+    assert response.data is not None
 
     if response.data["org"]["uuid"] != str(parentid):
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
@@ -200,6 +203,7 @@ async def get_org_children(
         variable_values=jsonable_encoder(variables),
     )
     handle_gql_error(response)
+    assert response.data is not None
 
     org_units = flatten_data(response.data["org_units"]["objects"])
     for unit in org_units:

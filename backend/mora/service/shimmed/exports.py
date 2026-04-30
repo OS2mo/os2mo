@@ -86,6 +86,7 @@ async def list_export_files(
     query = "query FilesQuery { files(filter: {file_store: EXPORTS}) { objects { file_name } } }"
     gql_response = await execute_graphql(query)
     handle_gql_error(gql_response)
+    assert gql_response.data is not None
     files = gql_response.data["files"]["objects"]
     return list(map(itemgetter("file_name"), files))
     # coverage: unpause
@@ -124,6 +125,7 @@ async def upload_export_file(
     response = await execute_graphql(query, variable_values=variables)
     # coverage: pause
     handle_gql_error(response)
+    assert response.data is not None
     status = response.data["upload_file"]
     return status
     # coverage: unpause
@@ -189,6 +191,7 @@ async def download_export_file(
     """
     response = await execute_graphql(query, variable_values=variables)
     handle_gql_error(response)
+    assert response.data is not None
     files = response.data["files"]["objects"]
     if not files:
         exceptions.ErrorCodes.E_NOT_FOUND(filename=file_name)

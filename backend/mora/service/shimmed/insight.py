@@ -34,6 +34,7 @@ async def get_insight_filenames() -> list[str]:  # pragma: no cover
     query = "query FilesQuery { files(filter: {file_store: INSIGHT}) { objects { file_name } } }"
     gql_response = await execute_graphql(query)
     handle_gql_error(gql_response)
+    assert gql_response.data is not None
     files = gql_response.data["files"]["objects"]
     return list(map(itemgetter("file_name"), files))
 
@@ -91,6 +92,7 @@ async def get_insight_data(
 
     response = await execute_graphql(query, variable_values=variables)
     handle_gql_error(response)
+    assert response.data is not None
     contents = response.data["files"]["objects"]
     jsons = map(json.loads, map(itemgetter("text_contents"), contents))
     return list(jsons)
@@ -131,6 +133,7 @@ async def download_csv() -> StreamingResponse:  # pragma: no cover
     """
     response = await execute_graphql(query)
     handle_gql_error(response)
+    assert response.data is not None
     contents = response.data["files"]["objects"]
     iter_of_files = map(Path, map(itemgetter("file_name"), contents))
     iter_of_json = map(json.loads, map(itemgetter("text_contents"), contents))
