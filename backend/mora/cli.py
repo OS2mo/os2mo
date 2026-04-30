@@ -11,6 +11,7 @@ which describes its arguments and options.
 import asyncio
 import sys
 import time
+from typing import get_args
 
 import click
 from fastramqpi.ra_utils.async_to_sync import async_to_sync
@@ -111,7 +112,7 @@ async def _set_last_run(date):
 
 
 @amqp.command()
-@click.argument("object-type", type=click.Choice(amqp_subsystem.MO_TYPE.__args__))
+@click.argument("object-type", type=click.Choice(get_args(amqp_subsystem.MO_TYPE)))
 @click.argument("uuid", type=click.UUID)
 def send_event(object_type, uuid) -> None:
     """Send AMQP event with routing_key=object_type and uuid as body."""
