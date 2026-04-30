@@ -16,6 +16,7 @@ import datetime
 import functools
 import uuid
 from collections.abc import AsyncIterator
+from typing import Any
 
 from starlette.requests import Request
 from starlette_context import context
@@ -47,6 +48,8 @@ async def lora_connector_context(request: Request) -> AsyncIterator[None]:
         return _create_connector(**kwargs)
 
     graphql_version = get_version_from_url()
+    lora_connector: Any
+    create_connector: Any
     if graphql_version is not None and graphql_version <= Version.VERSION_20:
         lora_connector = lora.Connector
         create_connector = cached_create_connector
@@ -91,6 +94,8 @@ def _create_service_connector(**loraparams) -> lora.Connector:
 def _create_graphql_connector(**loraparams) -> lora.Connector:
     dates = get_graphql_dates()
 
+    from_date: datetime.datetime | str
+    to_date: datetime.datetime | str
     if dates is None:
         # default to present
         from_date = util.now()
@@ -150,14 +155,14 @@ def ensure_bounds(
     payload: dict,
 ):
     for field in props:
-        props = util.get_obj_value(obj, field.path, field.filter_fn)
-        if not props:
+        field_props = util.get_obj_value(obj, field.path, field.filter_fn)
+        if not field_props:
             continue
 
-        updated_props = []  # type: list[mapping.FieldTuple]
+        updated_props: list[dict] = []
         if field.type == mapping.FieldTypes.ADAPTED_ZERO_TO_MANY:
             # If adapted zero-to-many, move first and last, and merge
-            sorted_props = sorted(props, key=util.get_effect_from)
+            sorted_props = sorted(field_props, key=util.get_effect_from)
             first = sorted_props[0]
             last = sorted_props[-1]
 
@@ -171,10 +176,10 @@ def ensure_bounds(
 
         elif field.type == mapping.FieldTypes.ZERO_TO_MANY:
             # Don't touch virkninger on zero-to-many
-            updated_props = props
+            updated_props = field_props
         else:
             # Zero-to-one. Move first and last. LoRa does the merging.
-            sorted_props = sorted(props, key=util.get_effect_from)
+            sorted_props = sorted(field_props, key=util.get_effect_from)
             first = sorted_props[0]
             last = sorted_props[-1]
 
@@ -213,6 +218,7 @@ def update_payload(
 
         if field_tuple.type == mapping.FieldTypes.ADAPTED_ZERO_TO_MANY:
             # 'Fake' zero-to-one relation. Merge into existing list.
+            assert props is not None
             updated_props = _merge_obj_effects(props, vals)
         elif field_tuple.type == mapping.FieldTypes.ZERO_TO_MANY:
             # Actual zero-to-many relation. Just append.
@@ -416,7 +422,7 @@ def create_organisationsfunktion_payload(
     if note is None:
         note = "Oprettet i MO"
 
-    org_funk = {
+    org_funk: dict = {
         "note": note,
         "attributter": {
             "organisationfunktionegenskaber": [
@@ -513,13 +519,13 @@ def create_organisationsenhed_payload(
     tilhoerer: str,
     enhedstype: str,
     overordnet: str,
-    niveau: str = None,
-    opmærkning: str = None,
-    opgaver: list[dict] = None,
+    niveau: str | None = None,
+    opmærkning: str | None = None,
+    opgaver: list[dict] | None = None,
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
-    org_unit = {
+    org_unit: dict = {
         "note": "Oprettet i MO",
         "attributter": {
             "organisationenhedegenskaber": [
@@ -571,7 +577,7 @@ def create_bruger_payload(
 ):
     virkning = _create_virkning(valid_from, valid_to)
 
-    user = {
+    user: dict = {
         "note": "Oprettet i MO",
         "attributter": {
             "brugeregenskaber": [
