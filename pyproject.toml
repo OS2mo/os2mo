@@ -81,12 +81,27 @@ ignore_errors = true
 plugins = ["pydantic.mypy", "strawberry.ext.mypy_plugin"]
 
 [[tool.mypy.overrides]]
+module = [
+    "jsonschema",
+    "os2mo_http_trigger_protocol",
+    "parameterized",
+    "requests",
+    "service_person_stamdata_udvidet",
+    "tap.parser",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
 module = "mora.graphapi.*"
 disallow_untyped_defs = true
 ignore_errors = false
 
 [[tool.mypy.overrides]]
 module = "mora.health"
+ignore_errors = false
+
+[[tool.mypy.overrides]]
+module = "mora.mapping"
 ignore_errors = false
 
 [tool.ruff.lint]
