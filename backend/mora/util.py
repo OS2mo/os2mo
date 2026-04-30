@@ -67,7 +67,7 @@ def parsedatetime(
         dt = s
 
         if dt in (POSITIVE_INFINITY, NEGATIVE_INFINITY):
-            return dt
+            return dt  # type: ignore[return-value]
 
         if not isinstance(dt, datetime.datetime):
             dt = datetime.datetime.combine(
@@ -95,7 +95,9 @@ def parsedatetime(
 
     try:
         dt = dateutil.parser.parse(
-            to_parsable_timestamp(s), dayfirst=True, tzinfos=_tzinfos
+            to_parsable_timestamp(s),
+            dayfirst=True,
+            tzinfos=_tzinfos,  # type: ignore[arg-type]
         )
     except ValueError:
         if default is not _sentinel:
@@ -332,7 +334,7 @@ def checked_get(
     mapping: D,
     key: K,
     default: V,
-    fallback: D = None,
+    fallback: D | None = None,
     required: bool = False,
     can_be_empty: bool = True,
 ) -> V:
@@ -398,7 +400,7 @@ def checked_get(
             obj=mapping,
         )
 
-    if not can_be_empty and type(v) in {list, dict, str} and len(v) == 0:
+    if not can_be_empty and type(v) in {list, dict, str} and len(v) == 0:  # type: ignore[arg-type]
         exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
             message=f"'{key}' cannot be empty",
             key=key,
@@ -410,7 +412,7 @@ def checked_get(
 
 def get_uuid(
     mapping: D,
-    fallback: D = None,
+    fallback: D | None = None,
     *,
     required: bool = True,
     key: typing.Hashable = mapping.UUID,
@@ -472,21 +474,21 @@ T = typing.TypeVar("T")
 def get_obj_value(
     obj,
     path: tuple[str, str],
-    filter_fn: typing.Callable[[dict], bool] = None,
-    default: T = None,
+    filter_fn: typing.Callable[[dict], bool] | None = None,
+    default: T | None = None,
 ) -> T | None:
     try:
         props = reduce(operator.getitem, path, obj)
     except (LookupError, TypeError):
         return default
 
-    if filter_fn:
-        return list(filter(filter_fn, props))
+    if filter_fn is not None:
+        return list(filter(filter_fn, props))  # type: ignore[return-value]
     return props
 
 
 def get_obj_uuid(obj, path: tuple):
-    (obj,) = get_obj_value(obj, path, default={})
+    (obj,) = get_obj_value(obj, path, default={})  # type: ignore[misc]
     return get_uuid(obj)
 
 
@@ -679,7 +681,7 @@ def get_args_flag(name: str):
     values '0', 'false', 'no' or 'n'. Anything else is true.
 
     """
-    query_args = context.get("query_args", {})
+    query_args: dict = context.get("query_args", {})
     v = query_args.get(name, "")
 
     if v.lower() in ("", "0", "no", "n", "false"):
