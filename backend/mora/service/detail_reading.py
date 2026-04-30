@@ -369,7 +369,7 @@ async def list_addresses_employee(
               }
             }
         """
-    args = {"uuid": eid}
+    args: dict = {"uuid": eid}
     if at is not None:  # pragma: no cover
         args["from_date"] = at
     if validity is not None:
@@ -382,6 +382,7 @@ async def list_addresses_employee(
     )
     if r.errors:  # pragma: no cover
         raise ValueError(r.errors)
+    assert r.data is not None
 
     flat = flatten_data(r.data["employees"]["objects"])
     if len(flat) == 0:  # pragma: no cover
@@ -400,7 +401,8 @@ async def list_addresses_employee(
         else:  # pragma: no cover
             element["person"] = first(element.pop("employee"))
 
-    return list(filter(partial(filter_by_validity, validity), data))
+    assert validity is not None
+    return list(filter(partial(filter_by_validity, validity), data))  # type: ignore[arg-type]
 
 
 @router.get(
@@ -699,7 +701,7 @@ async def list_addresses_ou(
               }
             }
         """
-    args = {"uuid": orgid}
+    args: dict = {"uuid": orgid}
     if at is not None:
         args["from_date"] = at
     if validity is not None:
@@ -713,6 +715,7 @@ async def list_addresses_ou(
     )
     if r.errors:  # pragma: no cover
         raise ValueError(r.errors)
+    assert r.data is not None
 
     flat = flatten_data(r.data["org_units"]["objects"])
     if len(flat) == 0:
@@ -730,7 +733,8 @@ async def list_addresses_ou(
         else:
             element["org_unit"] = first(element["org_unit"])
 
-    return list(filter(partial(filter_by_validity, validity), data))
+    assert validity is not None
+    return list(filter(partial(filter_by_validity, validity), data))  # type: ignore[arg-type]
 
 
 async def get_detail(type, id: UUID, function):
@@ -769,13 +773,13 @@ async def get_detail(type, id: UUID, function):
                            lookup containing the relevant names etc.
                            This can lead to increased performance in some cases.
     """
-    id = str(id)
+    id_str = str(id)
     c = common.get_connector()
 
     from ..handler import reading
 
     cls = reading.get_handler_for_type(function)
-    return await cls.get_from_type(c, type, id)
+    return await cls.get_from_type(c, type, id_str)
 
 
 @router.get("/e/{id}/details/association")
