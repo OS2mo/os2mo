@@ -184,6 +184,9 @@ class HTTPException(fastapiHTTPException):
             frame = inspect.currentframe()  # CPython only
             # the stacked f_backs are just to leave out our crazy __call__
             # from ErrorCodes of the traceback.
+            assert frame is not None
+            assert frame.f_back is not None
+            assert frame.f_back.f_back is not None
             self.stack = "".join(
                 traceback.format_stack(f=frame.f_back.f_back.f_back, limit=15)
             )
