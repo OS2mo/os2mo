@@ -148,7 +148,7 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
             gyldighed="Aktiv",
         )
         for unitid in mapping.ASSOCIATED_ORG_UNITS_FIELD.get_uuids(func)
-        if unitid != origin
+        if unitid != origin_str
     }
 
     edits = {

@@ -60,7 +60,6 @@ async def get_orgunit(
     }
     if at is not None:
         variables["from_date"] = at
-    unitid_str = str(unitid)
     if only_primary_uuid:  # pragma: no cover
         query = """
         query OrganisationUnitQuery($uuid: UUID!)

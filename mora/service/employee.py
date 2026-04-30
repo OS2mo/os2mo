@@ -441,7 +441,6 @@ async def list_employees(
      }
 
     """
-    orgid_str = str(orgid)
     del orgid
 
     # TODO: share code with list_orgunits?
