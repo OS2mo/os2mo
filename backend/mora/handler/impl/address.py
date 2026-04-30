@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from typing import Any
+
 from structlog import get_logger
 
 from mora import util
@@ -81,7 +83,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
             )
 
         if engagement_uuid is not None:
-            engagement = {mapping.UUID: engagement_uuid}
+            engagement: dict[str, Any] | None = {mapping.UUID: engagement_uuid}
             if not only_primary_uuid:
                 engagement = await get_engagement(get_connector(), uuid=engagement_uuid)
             r[mapping.ENGAGEMENT] = engagement

@@ -74,7 +74,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
     @staticmethod
     def __owner_priority(
         obj: dict[str, Any], primary_priorities: dict[str, int]
-    ) -> tuple[int, float, str]:
+    ) -> tuple[float, float, str | None]:
         """
         strict ordering between objects with scope-based priority
         :param obj: An appropriate MO-obj

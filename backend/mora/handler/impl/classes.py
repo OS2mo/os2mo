@@ -69,7 +69,7 @@ class ClassReader(reading.ReadingHandler):
             ),
             "tilstande": ("klassepubliceret",),
         }
-        also = {}
+        also: dict = {}
         return await c.klasse.get_effects(obj, relevant, also, **params)
 
     @classmethod

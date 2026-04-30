@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from typing import Any
+
 from structlog import get_logger
 
 from mora import lora
@@ -48,6 +50,7 @@ class LeaveReader(reading.OrgFunkReadingHandler):
             leave_type, only_primary_uuid=only_primary_uuid
         )
 
+        engagement: dict[str, Any] | None
         if only_primary_uuid:
             engagement = {mapping.UUID: engagement_uuid}
         else:  # pragma: no cover

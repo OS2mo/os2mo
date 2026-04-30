@@ -217,7 +217,8 @@ class AssociationReader(reading.OrgFunkReadingHandler):
 
         if is_graphql() and classes:  # pragma: no cover
             r[mapping.CLASSES] = await facet.request_bulked_get_one_class_full(
-                classes, only_primary_uuid=only_primary_uuid
+                classes,  # type: ignore[arg-type]
+                only_primary_uuid=only_primary_uuid,
             )
 
         if person:

@@ -158,6 +158,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         for class_id, _ in sorted_classes:
             if class_id in engagement_primary_uuids:
                 return class_id == primary
+        return None
 
 
 async def get_engagement(c: lora.Connector, uuid: UUID) -> dict[str, Any] | None:

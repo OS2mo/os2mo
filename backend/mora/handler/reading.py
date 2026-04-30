@@ -151,7 +151,7 @@ class ReadingHandler:
 
 
 class OrgFunkReadingHandler(ReadingHandler):
-    function_key = None
+    function_key: str | None = None
 
     SEARCH_FIELDS = {"e": "tilknyttedebrugere", "ou": "tilknyttedeenheder"}
 
