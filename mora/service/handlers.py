@@ -79,8 +79,8 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         super().__init__()
         self.request_type = request_type
         self.request = request
-        self.payload = None
-        self.uuid = None
+        self.payload: dict | None = None
+        self.uuid: str | None = None
         self.trigger_results_before = None
         self.trigger_results_after = None
 
@@ -192,7 +192,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         )
         self.trigger_results_after = await Trigger.run(self.trigger_dict)
 
-        return getattr(self, Trigger.RESULT, None)
+        return getattr(self, Trigger.RESULT, None)  # type: ignore[return-value]
 
     async def validate_detail_requests_as_groups(
         self, requests: typing.Iterable[dict]
@@ -218,14 +218,12 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         # Group detail requests by role type
         key: typing.Callable = itemgetter("type")
-        groups: groupby[typing.Iterable[dict]] = groupby(
-            sorted(requests, key=key), key=key
-        )
+        groups: groupby[str, dict] = groupby(sorted(requests, key=key), key=key)
         # Validate each request group
-        for role_type, requests in groups:
+        for role_type, group in groups:
             # Convert iterable to list, as we reuse the same group of request across
             # multiple calls to `GroupValidation.from_requests`.
-            requests: list[dict] = list(requests)
+            requests = list(group)
             # Get the appropriate handler class for this role
             handler_class: "RequestHandler" = get_handler_for_role_type(role_type)
             # Each request handler class can define zero or more group validation
@@ -280,6 +278,7 @@ class OrgFunkRequestHandler(RequestHandler):
 
     async def prepare_terminate(self, request: dict):
         self.uuid = util.get_uuid(request)
+        assert self.uuid is not None
         virkning = RequestHandler.get_virkning_for_terminate(request)
         from_date = virkning["from"]
         to_date = virkning["to"]
@@ -325,11 +324,10 @@ class OrgFunkRequestHandler(RequestHandler):
     async def submit(self) -> str:
         c = lora.Connector()
 
-        method = None
         if self.request_type == RequestType.CREATE:
             method = c.organisationfunktion.create
         else:
-            method = c.organisationfunktion.update
+            method = c.organisationfunktion.update  # type: ignore[assignment]
         self.result = await method(self.payload, self.uuid)
         return await super().submit()
 
