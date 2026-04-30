@@ -26,9 +26,11 @@ from sqlalchemy import and_
 from sqlalchemy import cast
 from sqlalchemy import distinct
 from sqlalchemy import exists
+from sqlalchemy import false
 from sqlalchemy import func
 from sqlalchemy import or_
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.sql.functions import now as SQLNOW
 from sqlalchemy.types import Text
 from starlette_context import context
@@ -46,6 +48,11 @@ from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationEnhedRelation
 from mora.db import OrganisationEnhedRelationKode
 from mora.db import OrganisationEnhedTilsGyldighed
+from mora.db import OrganisationFunktionAttrEgenskaber
+from mora.db import OrganisationFunktionAttrUdvidelser
+from mora.db import OrganisationFunktionRegistrering
+from mora.db import OrganisationFunktionRelation
+from mora.db import OrganisationFunktionTilsGyldighed
 from mora.graphapi.gmodels.base import tz_isodate
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.service.autocomplete.employees import search_employees
@@ -345,13 +352,19 @@ async def address_resolver(
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = lora_filter(
-            await get_employee_uuids(info, filter)
-        )
+        kwargs[
+            cast(
+                "tilknyttedebrugere",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = lora_filter(await get_employee_uuids(info, filter))
     if filter.org_units is not None or filter.org_unit is not None:
-        kwargs["tilknyttedeenheder"] = lora_filter(
-            await get_org_unit_uuids(info, filter)
-        )
+        kwargs[
+            cast(
+                "tilknyttedeenheder",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = lora_filter(await get_org_unit_uuids(info, filter))
     if (
         filter.address_types is not None
         or filter.address_type_user_keys is not None
@@ -378,7 +391,12 @@ async def address_resolver(
             lora_filter(await filter2uuids_func(it_user_resolver, info, filter.ituser))
         )
     if tilknyttedefunktioner:
-        kwargs["tilknyttedefunktioner"] = tilknyttedefunktioner
+        kwargs[
+            cast(
+                "tilknyttedefunktioner",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = tilknyttedefunktioner
 
     return await generic_resolver(
         info.context.dataloaders.address_getter,
@@ -417,13 +435,19 @@ async def association_resolver(
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = lora_filter(
-            await get_employee_uuids(info, filter)
-        )
+        kwargs[
+            cast(
+                "tilknyttedebrugere",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = lora_filter(await get_employee_uuids(info, filter))
     if filter.org_units is not None or filter.org_unit is not None:
-        kwargs["tilknyttedeenheder"] = lora_filter(
-            await get_org_unit_uuids(info, filter)
-        )
+        kwargs[
+            cast(
+                "tilknyttedeenheder",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = lora_filter(await get_org_unit_uuids(info, filter))
     if (
         filter.association_types is not None
         or filter.association_type_user_keys is not None
@@ -540,13 +564,19 @@ async def engagement_resolver(
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = lora_filter(
-            await get_employee_uuids(info, filter)
-        )
+        kwargs[
+            cast(
+                "tilknyttedebrugere",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = lora_filter(await get_employee_uuids(info, filter))
     if filter.org_units is not None or filter.org_unit is not None:
-        kwargs["tilknyttedeenheder"] = lora_filter(
-            await get_org_unit_uuids(info, filter)
-        )
+        kwargs[
+            cast(
+                "tilknyttedeenheder",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = lora_filter(await get_org_unit_uuids(info, filter))
     if filter.job_function is not None:
         class_filter = filter.job_function or ClassFilter()
         kwargs["opgaver"] = lora_filter(
@@ -601,22 +631,38 @@ async def manager_resolver(
     kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
     if get_version(info.schema) >= Version.VERSION_25:
         if filter.employee is None:
-            kwargs["tilknyttedebrugere"] = "urn:LORA-PLEASE-FIND-NULL-UUID-AND-URN"
+            kwargs[
+                cast(
+                    "tilknyttedebrugere",
+                    ENUM(name="organisationfunktionrelationkode", create_type=False),
+                )
+            ] = "urn:LORA-PLEASE-FIND-NULL-UUID-AND-URN"
         elif filter.employee is not UNSET or filter.employees is not None:
-            kwargs["tilknyttedebrugere"] = lora_filter(
-                await get_employee_uuids(info, filter)
-            )
+            kwargs[
+                cast(
+                    "tilknyttedebrugere",
+                    ENUM(name="organisationfunktionrelationkode", create_type=False),
+                )
+            ] = lora_filter(await get_employee_uuids(info, filter))
     elif (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = lora_filter(
-            await get_employee_uuids(info, filter)
-        )
+        kwargs[
+            cast(
+                "tilknyttedebrugere",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = lora_filter(await get_employee_uuids(info, filter))
 
     org_unit_uuids = None
     if filter.org_units is not None or filter.org_unit is not None:
         org_unit_uuids = await get_org_unit_uuids(info, filter)
-        kwargs["tilknyttedeenheder"] = lora_filter(org_unit_uuids)
+        kwargs[
+            cast(
+                "tilknyttedeenheder",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = lora_filter(org_unit_uuids)
     if filter.responsibility is not None:
         class_filter = filter.responsibility or ClassFilter()
         kwargs["opgaver"] = lora_filter(
@@ -628,7 +674,12 @@ async def manager_resolver(
             await filter2uuids_func(class_resolver, info, class_filter)
         )
     if filter.engagement is not None:
-        kwargs["tilknyttedefunktioner"] = lora_filter(
+        kwargs[
+            cast(
+                "tilknyttedefunktioner",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = lora_filter(
             await filter2uuids_func(engagement_resolver, info, filter.engagement)
         )
 
@@ -690,13 +741,19 @@ async def owner_resolver(
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = lora_filter(
-            await get_employee_uuids(info, filter)
-        )
+        kwargs[
+            cast(
+                "tilknyttedebrugere",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = lora_filter(await get_employee_uuids(info, filter))
     if filter.org_units is not None or filter.org_unit is not None:
-        kwargs["tilknyttedeenheder"] = lora_filter(
-            await get_org_unit_uuids(info, filter)
-        )
+        kwargs[
+            cast(
+                "tilknyttedeenheder",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = lora_filter(await get_org_unit_uuids(info, filter))
     if filter.owner is not None:
         kwargs["tilknyttedepersoner"] = lora_filter(
             await filter2uuids_func(employee_resolver, info, filter.owner)
@@ -1181,6 +1238,196 @@ async def it_system_resolver(
     )
 
 
+async def it_user_resolver_query(
+    info: MOInfo,
+    filter: ITUserFilter,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Select:
+    await registration_filter(info, filter)
+
+    async def _get_itsystem_uuids() -> list[UUID]:
+        itsystem_filter = filter.itsystem or ITSystemFilter()
+        extend_uuids(itsystem_filter, filter.itsystem_uuids)
+        return lora_filter(
+            await filter2uuids_func(it_system_resolver, info, itsystem_filter)
+        )
+
+    def _get_registration_time() -> datetime | SQLNOW:
+        if (
+            cursor is not None
+            and filter.registration_time
+            and filter.registration_time != cursor.registration_time
+        ):
+            raise ValueError("Cannot change registration_time during pagination")
+
+        if cursor is not None:
+            return tz_isodate(cursor.registration_time)
+        if filter.registration_time:
+            return tz_isodate(filter.registration_time)
+        return func.now()
+
+    def _registrering() -> ColumnElement:
+        return and_(
+            OrganisationFunktionRegistrering.lifecycle
+            != cast("Slettet", LivscyklusKode),
+            OrganisationFunktionRegistrering.registrering_period.contains(
+                _get_registration_time()
+            ),
+        )
+
+    def _gyldighed() -> ColumnElement:
+        return OrganisationFunktionRegistrering.id.in_(
+            select(
+                OrganisationFunktionTilsGyldighed.organisationfunktion_registrering_id
+            ).where(
+                OrganisationFunktionTilsGyldighed.gyldighed == "Aktiv",
+                _virkning(OrganisationFunktionTilsGyldighed),
+            )
+        )
+
+    def _egenskaber() -> ColumnElement:
+        return OrganisationFunktionRegistrering.id.in_(
+            select(
+                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            ).where(
+                OrganisationFunktionAttrEgenskaber.funktionsnavn == "IT-system",
+                _virkning(OrganisationFunktionAttrEgenskaber),
+            )
+        )
+
+    def _virkning(cls: type[HasValidity]) -> ColumnElement:
+        start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
+        return cls.virkning_period.overlaps(TimestamptzRange(start, end))
+
+    query = (
+        select(
+            distinct(OrganisationFunktionRegistrering.organisationfunktion_id),
+        )
+        .where(
+            _registrering(),
+            _gyldighed(),
+            _egenskaber(),
+        )
+        .order_by(
+            OrganisationFunktionRegistrering.organisationfunktion_id,
+        )
+    )
+
+    if filter.uuids is not None:
+        query = query.where(
+            OrganisationFunktionRegistrering.organisationfunktion_id.in_(filter.uuids)
+        )
+
+    if (
+        filter.employee is not None and filter.employee is not UNSET
+    ) or filter.employees is not None:
+        employee_uuids = lora_filter(await get_employee_uuids(info, filter))
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionRelation.rel_type
+                    == cast(
+                        "tilknyttedebrugere",
+                        ENUM(
+                            name="organisationfunktionrelationkode", create_type=False
+                        ),
+                    ),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
+                    _virkning(OrganisationFunktionRelation),
+                )
+            )
+        )
+
+    if filter.org_units is not None or filter.org_unit is not None:
+        org_unit_uuids = lora_filter(await get_org_unit_uuids(info, filter))
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionRelation.rel_type
+                    == cast(
+                        "tilknyttedeenheder",
+                        ENUM(
+                            name="organisationfunktionrelationkode", create_type=False
+                        ),
+                    ),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
+                    _virkning(OrganisationFunktionRelation),
+                )
+            )
+        )
+
+    if filter.itsystem_uuids is not None or filter.itsystem is not None:
+        itsystem_uuids = await _get_itsystem_uuids()
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionRelation.rel_type
+                    == cast(
+                        "tilknyttedeitsystemer",
+                        ENUM(
+                            name="organisationfunktionrelationkode", create_type=False
+                        ),
+                    ),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(itsystem_uuids),
+                    _virkning(OrganisationFunktionRelation),
+                )
+            )
+        )
+
+    if filter.engagement is not None:  # pragma: no cover
+        engagement_uuids = lora_filter(
+            await filter2uuids_func(engagement_resolver, info, filter.engagement)
+        )
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionRelation.rel_type
+                    == cast(
+                        "tilknyttedefunktioner",
+                        ENUM(
+                            name="organisationfunktionrelationkode", create_type=False
+                        ),
+                    ),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(engagement_uuids),
+                    _virkning(OrganisationFunktionRelation),
+                )
+            )
+        )
+
+    if filter.external_ids is not None:
+        if not filter.external_ids:  # pragma: no cover
+            return query.where(false())
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionAttrUdvidelser.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionAttrUdvidelser.udvidelse_1.in_(
+                        filter.external_ids
+                    ),
+                    _virkning(OrganisationFunktionAttrUdvidelser),
+                )
+            )
+        )
+
+    if limit is not None and limit != 0:
+        query = query.limit(limit)
+
+    if cursor is not None:
+        query = query.offset(cursor.offset)
+
+    return query
+
+
 async def it_user_resolver(
     info: MOInfo,
     filter: ITUserFilter | None = None,
@@ -1188,51 +1435,50 @@ async def it_user_resolver(
     cursor: CursorType = None,
 ) -> Any:
     """Resolve it-users."""
-
-    async def _get_itsystem_uuids(info: MOInfo, filter: ITUserFilter) -> list[UUID]:
-        itsystem_filter = filter.itsystem or ITSystemFilter()
-        # Handle deprecated filter
-        extend_uuids(itsystem_filter, filter.itsystem_uuids)
-        return lora_filter(
-            await filter2uuids_func(it_system_resolver, info, itsystem_filter)
-        )
-
     if filter is None:
         filter = ITUserFilter()
 
-    await registration_filter(info, filter)
+    query = await it_user_resolver_query(
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+    )
 
-    kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
-    if (
-        filter.employee is not None and filter.employee is not UNSET
-    ) or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = lora_filter(
-            await get_employee_uuids(info, filter)
-        )
-    if filter.org_units is not None or filter.org_unit is not None:
-        kwargs["tilknyttedeenheder"] = lora_filter(
-            await get_org_unit_uuids(info, filter)
-        )
-    if filter.itsystem_uuids is not None or filter.itsystem is not None:
-        kwargs["tilknyttedeitsystemer"] = await _get_itsystem_uuids(info, filter)
-    if filter.engagement is not None:  # pragma: no cover
-        kwargs["tilknyttedefunktioner"] = lora_filter(
-            await filter2uuids_func(engagement_resolver, info, filter.engagement)
-        )
-    if filter.external_ids is not None:
-        # Early return on empty external_id list
-        if not filter.external_ids:  # pragma: no cover
-            return dict()
-        kwargs["udvidelse_1"] = to_similar(filter.external_ids)
+    # Execute
+    session: AsyncSession = info.context.session
+    result = await session.execute(query)
+    uuids = [row[0] for row in result]
+
+    # See lora.py:fetch()'s is_paged
+    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    if not uuids and is_paged:
+        # There may be multiple LoRa fetches in one GraphQL request, so this
+        # cannot be refactored into always overwriting the value.
+        context["lora_page_out_of_range"] = True
+
+    access_log(
+        session,
+        "filter_itusers",
+        "OrganisationFunktion",
+        {
+            "filter": filter,
+            "limit": limit,
+            "cursor": cursor,
+        },
+        uuids,
+    )
 
     return await generic_resolver(
         info.context.dataloaders.ituser_getter,
         info.context.dataloaders.ituser_loader,
         info=info,
-        filter=filter,
-        limit=limit,
-        cursor=cursor,
-        **kwargs,
+        filter=BaseFilter(
+            uuids=uuids,
+            from_date=filter.from_date,
+            to_date=filter.to_date,
+            registration_time=filter.registration_time,
+        ),
     )
 
 
@@ -1250,9 +1496,12 @@ async def kle_resolver(
 
     kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
     if filter.org_units is not None or filter.org_unit is not None:
-        kwargs["tilknyttedeenheder"] = lora_filter(
-            await get_org_unit_uuids(info, filter)
-        )
+        kwargs[
+            cast(
+                "tilknyttedeenheder",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = lora_filter(await get_org_unit_uuids(info, filter))
 
     return await generic_resolver(
         info.context.dataloaders.kle_getter,
@@ -1281,13 +1530,19 @@ async def leave_resolver(
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = lora_filter(
-            await get_employee_uuids(info, filter)
-        )
+        kwargs[
+            cast(
+                "tilknyttedebrugere",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = lora_filter(await get_employee_uuids(info, filter))
     if filter.org_units is not None or filter.org_unit is not None:
-        kwargs["tilknyttedeenheder"] = lora_filter(
-            await get_org_unit_uuids(info, filter)
-        )
+        kwargs[
+            cast(
+                "tilknyttedeenheder",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = lora_filter(await get_org_unit_uuids(info, filter))
 
     return await generic_resolver(
         info.context.dataloaders.leave_getter,
@@ -1397,9 +1652,12 @@ async def related_unit_resolver(
 
     kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
     if filter.org_units is not None or filter.org_unit is not None:
-        kwargs["tilknyttedeenheder"] = lora_filter(
-            await get_org_unit_uuids(info, filter)
-        )
+        kwargs[
+            cast(
+                "tilknyttedeenheder",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = lora_filter(await get_org_unit_uuids(info, filter))
 
     return await generic_resolver(
         info.context.dataloaders.rel_unit_getter,
@@ -1426,13 +1684,19 @@ async def rolebinding_resolver(
 
     kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
     if filter.org_units is not None or filter.org_unit is not None:  # pragma: no cover
-        kwargs["tilknyttedeenheder"] = lora_filter(
-            await get_org_unit_uuids(info, filter)
-        )
+        kwargs[
+            cast(
+                "tilknyttedeenheder",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = lora_filter(await get_org_unit_uuids(info, filter))
     if filter.ituser is not None:  # pragma: no cover
-        kwargs["tilknyttedefunktioner"] = lora_filter(
-            await filter2uuids_func(it_user_resolver, info, filter.ituser)
-        )
+        kwargs[
+            cast(
+                "tilknyttedefunktioner",
+                ENUM(name="organisationfunktionrelationkode", create_type=False),
+            )
+        ] = lora_filter(await filter2uuids_func(it_user_resolver, info, filter.ituser))
     if filter.role is not None:
         kwargs["organisatoriskfunktionstype"] = lora_filter(
             await filter2uuids_func(class_resolver, info, filter.role)
