@@ -230,6 +230,16 @@ ignore_errors = false
 module = "mora.db.*"
 ignore_errors = false
 
+[[tool.mypy.overrides]]
+module = [
+    "mora.app",
+    "mora.auth.keycloak.oidc",
+    "mora.auth.keycloak.rbac",
+    "mora.auth.middleware",
+    "mora.testing",
+]
+ignore_errors = false
+
 [tool.ruff.lint]
 extend-select = ["I"]
 

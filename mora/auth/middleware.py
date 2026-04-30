@@ -69,7 +69,7 @@ def _should_save_actor(
         and (uuid, name) not in _actor_cache
     )
     if conditions:
-        _actor_cache.add((uuid, name))
+        _actor_cache.add((uuid, name))  # type: ignore[arg-type]
     return conditions
 
 
@@ -80,6 +80,8 @@ async def set_authenticated_user(
 ) -> AsyncIterator[None]:
     # TODO: refactor this auth method
     # https://redmine.magenta.dk/issues/67592
+    uuid: UUID | None
+    name: str | None
     try:
         token = await get_token()
     except Exception:

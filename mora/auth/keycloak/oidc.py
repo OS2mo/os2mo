@@ -175,6 +175,7 @@ async def validate_token(token: str) -> Token:
 
 async def fetch_keycloak_token(request: Request) -> Token:
     oauth2_scheme = await OAuth2PasswordBearer(tokenUrl=token_url_path)(request)
+    assert oauth2_scheme is not None
     return await validate_token(oauth2_scheme)
 
 
@@ -199,6 +200,7 @@ async def legacy_auth_adapter(request: Request) -> Token:  # pragma: no cover
 # TODO: Remove this, once a proper auth solution is in place,
 #  that works for local DIPEX development.
 #  https://redmine.magenta-aps.dk/issues/44020
+auth: Callable
 if not config.get_settings().os2mo_auth:  # pragma: no cover
     auth = noauth
 elif config.get_settings().os2mo_legacy_sessions:  # pragma: no cover
