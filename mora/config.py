@@ -157,7 +157,7 @@ class Settings(BaseSettings):
     amqp_password: str = "guest"  # DEPRECATED (used in salt)
     # `amqp` can never be None, but must be set to it to force validation. See:
     # https://github.com/pydantic/pydantic/issues/3955#issuecomment-1219106307.
-    amqp: AMQPConnectionSettings = None
+    amqp: AMQPConnectionSettings = None  # type: ignore[assignment]
 
     @validator("amqp", always=True)
     def validate_amqp(
@@ -199,7 +199,9 @@ class Settings(BaseSettings):
     keycloak_mo_client: str = "mo-frontend"
     keycloak_signing_alg: str = "RS256"
     keycloak_verify_audience: bool = True
-    keycloak_auth_server_url: AnyHttpUrl = "http://localhost:8081/auth/"
+    keycloak_auth_server_url: AnyHttpUrl = parse_obj_as(
+        AnyHttpUrl, "http://localhost:8081/auth/"
+    )
     keycloak_ssl_required: str = "external"
     keycloak_rbac_enabled: bool = False
     # Normally, when checking owners, the MO employee UUID will be passed to MO
@@ -220,7 +222,7 @@ class Settings(BaseSettings):
     lora_client_id: str = "mo"
     lora_client_secret: str | None
     lora_auth_realm: str = "lora"
-    lora_auth_server: AnyHttpUrl = "http://keycloak:8080/auth"
+    lora_auth_server: AnyHttpUrl = parse_obj_as(AnyHttpUrl, "http://keycloak:8080/auth")
 
     confdb_substitute_roles: list[UUID] = Field(default_factory=list)
 
