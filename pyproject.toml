@@ -136,6 +136,10 @@ ignore_errors = false
 module = "mora.amqp"
 ignore_errors = false
 
+[[tool.mypy.overrides]]
+module = "mora.util"
+ignore_errors = false
+
 [tool.ruff.lint]
 extend-select = ["I"]
 
