@@ -4,7 +4,6 @@ import enum
 from uuid import UUID
 
 from sqlalchemy import BigInteger
-from sqlalchemy import Column
 from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 from sqlalchemy import Text
@@ -37,7 +36,9 @@ class BrugerAttrEgenskaber(_AttrEgenskaberMixin, Base):
     brugernavn: Mapped[str | None] = mapped_column(Text, index=True)
     brugertype: Mapped[str | None] = mapped_column(Text, index=True)
 
-    bruger_registrering_id = Column(ForeignKey("bruger_registrering.id"), index=True)
+    bruger_registrering_id: Mapped[int] = mapped_column(
+        ForeignKey("bruger_registrering.id"), index=True
+    )
 
 
 class BrugerAttrUdvidelser(_VirkningMixin, Base):
@@ -50,7 +51,9 @@ class BrugerAttrUdvidelser(_VirkningMixin, Base):
     kaldenavn_efternavn: Mapped[str | None] = mapped_column(Text, index=True)
     seniority: Mapped[str | None] = mapped_column(Text, index=True)
 
-    bruger_registrering_id = Column(ForeignKey("bruger_registrering.id"), index=True)
+    bruger_registrering_id: Mapped[int] = mapped_column(
+        ForeignKey("bruger_registrering.id"), index=True
+    )
 
 
 class BrugerRelationKode(enum.StrEnum):
@@ -69,14 +72,18 @@ class BrugerRelationKode(enum.StrEnum):
 class BrugerRelation(_RelationMixin, Base):
     __tablename__ = "bruger_relation"
 
-    rel_type: Mapped[BrugerRelationKode] = mapped_column(
+    rel_type: Mapped[BrugerRelationKode] = mapped_column(  # type: ignore[assignment]
         Enum(BrugerRelationKode, name="brugerrelationkode")
     )
 
-    bruger_registrering_id = Column(ForeignKey("bruger_registrering.id"), index=True)
+    bruger_registrering_id: Mapped[int] = mapped_column(
+        ForeignKey("bruger_registrering.id"), index=True
+    )
 
 
-class BrugerTilsGyldighed(_TilsGyldighedMixin("bruger"), Base):
+class BrugerTilsGyldighed(_TilsGyldighedMixin("bruger"), Base):  # type: ignore[misc]
     __tablename__ = "bruger_tils_gyldighed"
 
-    bruger_registrering_id = Column(ForeignKey("bruger_registrering.id"), index=True)
+    bruger_registrering_id: Mapped[int] = mapped_column(
+        ForeignKey("bruger_registrering.id"), index=True
+    )

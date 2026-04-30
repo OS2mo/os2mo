@@ -3,7 +3,6 @@
 import enum
 from uuid import UUID
 
-from sqlalchemy import Column
 from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 from sqlalchemy import Text
@@ -36,7 +35,7 @@ class OrganisationEnhedAttrEgenskaber(_AttrEgenskaberMixin, Base):
 
     enhedsnavn: Mapped[str | None] = mapped_column(Text, index=True)
 
-    organisationenhed_registrering_id = Column(
+    organisationenhed_registrering_id: Mapped[int] = mapped_column(
         ForeignKey("organisationenhed_registrering.id"), index=True
     )
 
@@ -53,18 +52,18 @@ class OrganisationEnhedRelationKode(enum.StrEnum):
 class OrganisationEnhedRelation(_RelationMixin, Base):
     __tablename__ = "organisationenhed_relation"
 
-    rel_type: Mapped[OrganisationEnhedRelationKode] = mapped_column(
+    rel_type: Mapped[OrganisationEnhedRelationKode] = mapped_column(  # type: ignore[assignment]
         Enum(OrganisationEnhedRelationKode, name="organisationenhedrelationkode")
     )
 
-    organisationenhed_registrering_id = Column(
+    organisationenhed_registrering_id: Mapped[int] = mapped_column(
         ForeignKey("organisationenhed_registrering.id"), index=True
     )
 
 
-class OrganisationEnhedTilsGyldighed(_TilsGyldighedMixin("organisationenhed"), Base):
+class OrganisationEnhedTilsGyldighed(_TilsGyldighedMixin("organisationenhed"), Base):  # type: ignore[misc]
     __tablename__ = "organisationenhed_tils_gyldighed"
 
-    organisationenhed_registrering_id = Column(
+    organisationenhed_registrering_id: Mapped[int] = mapped_column(
         ForeignKey("organisationenhed_registrering.id"), index=True
     )

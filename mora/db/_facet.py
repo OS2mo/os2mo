@@ -4,7 +4,6 @@ import enum
 from uuid import UUID
 
 from sqlalchemy import BigInteger
-from sqlalchemy import Column
 from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 from sqlalchemy import Text
@@ -41,7 +40,9 @@ class FacetAttrEgenskaber(_AttrEgenskaberMixin, Base):
     supplement: Mapped[str | None] = mapped_column(Text, index=True)
     retskilde: Mapped[str | None] = mapped_column(Text, index=True)
 
-    facet_registrering_id = Column(ForeignKey("facet_registrering.id"), index=True)
+    facet_registrering_id: Mapped[int] = mapped_column(
+        ForeignKey("facet_registrering.id"), index=True
+    )
 
 
 class FacetRelationKode(enum.StrEnum):
@@ -54,11 +55,13 @@ class FacetRelationKode(enum.StrEnum):
 class FacetRelation(_RelationMixin, Base):
     __tablename__ = "facet_relation"
 
-    rel_type: Mapped[FacetRelationKode] = mapped_column(
+    rel_type: Mapped[FacetRelationKode] = mapped_column(  # type: ignore[assignment]
         Enum(FacetRelationKode, name="facetrelationkode")
     )
 
-    facet_registrering_id = Column(ForeignKey("facet_registrering.id"), index=True)
+    facet_registrering_id: Mapped[int] = mapped_column(
+        ForeignKey("facet_registrering.id"), index=True
+    )
 
 
 class FacetTilsPubliceret(_VirkningMixin, Base):
@@ -67,8 +70,10 @@ class FacetTilsPubliceret(_VirkningMixin, Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
 
     publiceret: Mapped[PubliceretStatus] = mapped_column(
-        Enum(*PubliceretStatus.__args__, name="facetpublicerettils"),
+        Enum(*PubliceretStatus.__args__, name="facetpublicerettils"),  # type: ignore[attr-defined]
         index=True,
     )
 
-    facet_registrering_id = Column(ForeignKey("facet_registrering.id"), index=True)
+    facet_registrering_id: Mapped[int] = mapped_column(
+        ForeignKey("facet_registrering.id"), index=True
+    )

@@ -6,7 +6,6 @@ from uuid import UUID
 
 from sqlalchemy import BigInteger
 from sqlalchemy import Boolean
-from sqlalchemy import Column
 from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
@@ -55,7 +54,7 @@ class OrganisationFunktionAttrEgenskaber(_AttrEgenskaberMixin, Base):
 
     funktionsnavn: Mapped[FunktionsNavn]
 
-    organisationfunktion_registrering_id = Column(
+    organisationfunktion_registrering_id: Mapped[int] = mapped_column(
         ForeignKey("organisationfunktion_registrering.id"), index=True
     )
 
@@ -78,21 +77,22 @@ class OrganisationFunktionRelationKode(enum.StrEnum):
 class OrganisationFunktionRelation(_RelationMixin, Base):
     __tablename__ = "organisationfunktion_relation"
 
-    rel_type: Mapped[OrganisationFunktionRelationKode] = mapped_column(
+    rel_type: Mapped[OrganisationFunktionRelationKode] = mapped_column(  # type: ignore[assignment]
         Enum(OrganisationFunktionRelationKode, name="organisationfunktionrelationkode")
     )
 
-    organisationfunktion_registrering_id = Column(
+    organisationfunktion_registrering_id: Mapped[int] = mapped_column(
         ForeignKey("organisationfunktion_registrering.id"), index=True
     )
 
 
 class OrganisationFunktionTilsGyldighed(
-    _TilsGyldighedMixin("organisationfunktion"), Base
+    _TilsGyldighedMixin("organisationfunktion"),  # type: ignore[misc]
+    Base,
 ):
     __tablename__ = "organisationfunktion_tils_gyldighed"
 
-    organisationfunktion_registrering_id = Column(
+    organisationfunktion_registrering_id: Mapped[int] = mapped_column(
         ForeignKey("organisationfunktion_registrering.id"), index=True
     )
 
@@ -116,6 +116,6 @@ class OrganisationFunktionAttrUdvidelser(_VirkningMixin, Base):
     udvidelse_9: Mapped[str | None] = mapped_column(Text, index=True)
     udvidelse_10: Mapped[str | None] = mapped_column(Text, index=True)
 
-    organisationfunktion_registrering_id = Column(
+    organisationfunktion_registrering_id: Mapped[int] = mapped_column(
         ForeignKey("organisationfunktion_registrering.id"), nullable=False, index=True
     )

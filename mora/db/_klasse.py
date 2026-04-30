@@ -4,7 +4,6 @@ import enum
 from uuid import UUID
 
 from sqlalchemy import BigInteger
-from sqlalchemy import Column
 from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 from sqlalchemy import Text
@@ -42,7 +41,9 @@ class KlasseAttrEgenskaber(_AttrEgenskaberMixin, Base):
     retskilde: Mapped[str | None] = mapped_column(Text, index=True)
     aendringsnotat: Mapped[str | None] = mapped_column(Text, index=True)
 
-    klasse_registrering_id = Column(ForeignKey("klasse_registrering.id"), index=True)
+    klasse_registrering_id: Mapped[int] = mapped_column(
+        ForeignKey("klasse_registrering.id"), index=True
+    )
 
 
 class KlasseAttrEgenskaberSoegeord(Base):
@@ -54,7 +55,7 @@ class KlasseAttrEgenskaberSoegeord(Base):
     beskrivelse: Mapped[str | None] = mapped_column(Text, index=True)
     soegeordskategori: Mapped[str | None] = mapped_column(Text, index=True)
 
-    klasse_attr_egenskaber_id = Column(
+    klasse_attr_egenskaber_id: Mapped[int] = mapped_column(
         ForeignKey("klasse_attr_egenskaber.id"), index=True
     )
 
@@ -75,11 +76,13 @@ class KlasseRelationKode(enum.StrEnum):
 class KlasseRelation(_RelationMixin, Base):
     __tablename__ = "klasse_relation"
 
-    rel_type: Mapped[KlasseRelationKode] = mapped_column(
+    rel_type: Mapped[KlasseRelationKode] = mapped_column(  # type: ignore[assignment]
         Enum(KlasseRelationKode, name="klasserelationkode")
     )
 
-    klasse_registrering_id = Column(ForeignKey("klasse_registrering.id"), index=True)
+    klasse_registrering_id: Mapped[int] = mapped_column(
+        ForeignKey("klasse_registrering.id"), index=True
+    )
 
 
 class KlasseTilsPubliceret(_VirkningMixin, Base):
@@ -88,8 +91,10 @@ class KlasseTilsPubliceret(_VirkningMixin, Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
 
     publiceret: Mapped[PubliceretStatus] = mapped_column(
-        Enum(*PubliceretStatus.__args__, name="klassepublicerettils"),
+        Enum(*PubliceretStatus.__args__, name="klassepublicerettils"),  # type: ignore[attr-defined]
         index=True,
     )
 
-    klasse_registrering_id = Column(ForeignKey("klasse_registrering.id"), index=True)
+    klasse_registrering_id: Mapped[int] = mapped_column(
+        ForeignKey("klasse_registrering.id"), index=True
+    )

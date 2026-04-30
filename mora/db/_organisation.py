@@ -3,7 +3,6 @@
 from typing import Literal
 from uuid import UUID
 
-from sqlalchemy import Column
 from sqlalchemy import ForeignKey
 from sqlalchemy import Text
 from sqlalchemy.orm import Mapped
@@ -39,7 +38,7 @@ class OrganisationAttrEgenskaber(_AttrEgenskaberMixin, Base):
 
     organisationsnavn: Mapped[str | None] = mapped_column(Text, index=True)
 
-    organisation_registrering_id = Column(
+    organisation_registrering_id: Mapped[int] = mapped_column(
         ForeignKey("organisation_registrering.id"), index=True
     )
 
@@ -50,16 +49,16 @@ OrganisationRelationKode = Literal["myndighed"]
 class OrganisationRelation(_RelationMixin, Base):
     __tablename__ = "organisation_relation"
 
-    rel_type: Mapped[OrganisationRelationKode]
+    rel_type: Mapped[OrganisationRelationKode]  # type: ignore[assignment]
 
-    organisation_registrering_id = Column(
+    organisation_registrering_id: Mapped[int] = mapped_column(
         ForeignKey("organisation_registrering.id"), index=True
     )
 
 
-class OrganisationTilsGyldighed(_TilsGyldighedMixin("organisation"), Base):
+class OrganisationTilsGyldighed(_TilsGyldighedMixin("organisation"), Base):  # type: ignore[misc]
     __tablename__ = "organisation_tils_gyldighed"
 
-    organisation_registrering_id = Column(
+    organisation_registrering_id: Mapped[int] = mapped_column(
         ForeignKey("organisation_registrering.id"), index=True
     )
