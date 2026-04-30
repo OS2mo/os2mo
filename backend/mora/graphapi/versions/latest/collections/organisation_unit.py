@@ -119,9 +119,13 @@ class OrganisationUnit:
                     organisation_unit_resolver,
                     {
                         "descendant": lambda root: OrganisationUnitFilter(
-                            uuids=[root.uuid]
+                            uuids=[root.uuid],
+                            from_date=None,
+                            to_date=None,
                         ),
                         "parent": lambda root: None,
+                        "from_date": lambda root: None,
+                        "to_date": lambda root: None,
                     },
                 ),
                 # We filter out:
@@ -135,6 +139,9 @@ class OrganisationUnit:
         description=dedent(
             """
             The top-unit (root) of the organisation unit, in the hierarchy.
+
+            Note that this assumes that the unit had a unique root over all
+            time. If this is not the case, an error will be thrown.
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
