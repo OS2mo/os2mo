@@ -65,11 +65,11 @@ class Owner:
     user_key: str = strawberry.auto
 
     org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(
-            model=OrganisationUnitRead, uuid=root.org_unit_uuid
-        )
-        if root.org_unit_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=OrganisationUnitRead, uuid=root.org_unit_uuid)
+            if root.org_unit_uuid
+            else None
+        ),
         description=dedent(
             """
             The owned organisation unit.
@@ -117,9 +117,11 @@ class Owner:
         return root.org_unit_uuid
 
     person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
-        if root.employee_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=EmployeeRead, uuid=root.employee_uuid)
+            if root.employee_uuid
+            else None
+        ),
         description=dedent(
             """
             The owned person.
@@ -167,9 +169,11 @@ class Owner:
         return root.employee_uuid
 
     owner_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EmployeeRead, uuid=root.owner_uuid)
-        if root.owner_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=EmployeeRead, uuid=root.owner_uuid)
+            if root.owner_uuid
+            else None
+        ),
         description=dedent(
             """
         Owner of the connected person or organisation unit.

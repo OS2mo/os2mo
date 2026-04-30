@@ -303,8 +303,9 @@ async def test_access_log_filters(
         )
     if "models" in filter_object:
         expected = filter(
-            lambda x: AccessLogModel(x["class_name"]).name
-            in set(filter_object["models"]),
+            lambda x: (
+                AccessLogModel(x["class_name"]).name in set(filter_object["models"])
+            ),
             expected,
         )
     expected = list(expected)

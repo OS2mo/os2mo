@@ -69,6 +69,7 @@ from ._organisationsenhed import OrganisationEnhedRelationKode
 from ._organisationsenhed import OrganisationEnhedTilsGyldighed
 from ._organisationsfunktion import OrganisationFunktion
 from ._organisationsfunktion import OrganisationFunktionAttrEgenskaber
+from ._organisationsfunktion import OrganisationFunktionAttrUdvidelser
 from ._organisationsfunktion import OrganisationFunktionRegistrering
 from ._organisationsfunktion import OrganisationFunktionRelation
 from ._organisationsfunktion import OrganisationFunktionRelationKode

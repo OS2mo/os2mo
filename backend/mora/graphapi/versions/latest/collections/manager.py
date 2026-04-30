@@ -47,9 +47,11 @@ from .utils import to_paged_response
 )
 class Manager:
     manager_type_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.manager_type_uuid)
-        if root.manager_type_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ClassRead, uuid=root.manager_type_uuid)
+            if root.manager_type_uuid
+            else None
+        ),
         description=dedent(
             """
             Title of the manager.
@@ -85,9 +87,11 @@ class Manager:
     )
 
     manager_level_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.manager_level_uuid)
-        if root.manager_level_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ClassRead, uuid=root.manager_level_uuid)
+            if root.manager_level_uuid
+            else None
+        ),
         # TODO: Check production system values
         description=dedent(
             """
@@ -192,9 +196,11 @@ class Manager:
     )
 
     person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
-        if root.employee_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=EmployeeRead, uuid=root.employee_uuid)
+            if root.employee_uuid
+            else None
+        ),
         description=dedent(
             """
             Person fulfilling the managerial position.
@@ -263,9 +269,11 @@ class Manager:
     )
 
     engagement_response: Response[LazyEngagement] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EngagementRead, uuid=root.engagement_uuid)
-        if root.engagement_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=EngagementRead, uuid=root.engagement_uuid)
+            if root.engagement_uuid
+            else None
+        ),
         description=dedent(
             """
             Engagement that this manager role is associated with.

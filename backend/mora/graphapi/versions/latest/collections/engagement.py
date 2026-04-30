@@ -164,9 +164,11 @@ class Engagement:
     )
 
     primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.primary_uuid)
-        if root.primary_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ClassRead, uuid=root.primary_uuid)
+            if root.primary_uuid
+            else None
+        ),
         description=dedent(
             """
             Marks which engagement is primary.
@@ -237,9 +239,9 @@ class Engagement:
         return await is_class_uuid_primary(str(root.primary_uuid))
 
     leave_response: Response[LazyLeave] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=LeaveRead, uuid=root.leave_uuid)
-        if root.leave_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=LeaveRead, uuid=root.leave_uuid) if root.leave_uuid else None
+        ),
         description="Related leave",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )

@@ -269,9 +269,11 @@ class OrganisationUnit:
 
     # TODO: Should this be a list?
     unit_hierarchy_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.org_unit_hierarchy)
-        if root.org_unit_hierarchy
-        else None,
+        resolver=lambda root: (
+            Response(model=ClassRead, uuid=root.org_unit_hierarchy)
+            if root.org_unit_hierarchy
+            else None
+        ),
         description=dedent(
             """
             Organisation unit hierarchy.
@@ -322,9 +324,11 @@ class OrganisationUnit:
     )
 
     unit_type_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.unit_type_uuid)
-        if root.unit_type_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ClassRead, uuid=root.unit_type_uuid)
+            if root.unit_type_uuid
+            else None
+        ),
         description=dedent(
             """
             Organisation unit type.
@@ -379,9 +383,11 @@ class OrganisationUnit:
     )
 
     unit_level_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.org_unit_level_uuid)
-        if root.org_unit_level_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ClassRead, uuid=root.org_unit_level_uuid)
+            if root.org_unit_level_uuid
+            else None
+        ),
         # TODO: Document this
         description=dedent(
             """
@@ -420,9 +426,11 @@ class OrganisationUnit:
     )
 
     time_planning_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.time_planning_uuid)
-        if root.time_planning_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ClassRead, uuid=root.time_planning_uuid)
+            if root.time_planning_uuid
+            else None
+        ),
         # TODO: Document this
         description=dedent(
             """

@@ -49,9 +49,11 @@ class Facet:
     )
 
     parent_response: Response[LazyFacet] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=FacetRead, uuid=root.parent_uuid)
-        if root.parent_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=FacetRead, uuid=root.parent_uuid)
+            if root.parent_uuid
+            else None
+        ),
         description=dedent(
             """
             Parent facet.

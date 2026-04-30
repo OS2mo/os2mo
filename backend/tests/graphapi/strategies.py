@@ -72,8 +72,10 @@ def _strat_data_momodel_validity(
             )
             .filter(
                 # only generate validities that are valid NOW / have currents - if NOW is specified
-                lambda dts: (dts[0] <= now if now else True)
-                and (dts[1] >= now if dts[1] and now else True)
+                lambda dts: (
+                    (dts[0] <= now if now else True)
+                    and (dts[1] >= now if dts[1] and now else True)
+                )
             )
             .filter(
                 # Only generate validities where from_date <= to_date

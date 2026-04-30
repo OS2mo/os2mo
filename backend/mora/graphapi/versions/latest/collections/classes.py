@@ -44,9 +44,11 @@ from .utils import to_paged_response
 )
 class Class:
     parent_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.parent_uuid)
-        if root.parent_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ClassRead, uuid=root.parent_uuid)
+            if root.parent_uuid
+            else None
+        ),
         description=dedent(
             """
             Parent class.
@@ -183,9 +185,11 @@ class Class:
         # coverage: unpause
 
     it_system_response: Response[LazyITSystem] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ITSystemRead, uuid=root.it_system_uuid)
-        if root.it_system_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ITSystemRead, uuid=root.it_system_uuid)
+            if root.it_system_uuid
+            else None
+        ),
         description=dedent(
             """
             The IT-System associated with the class.
