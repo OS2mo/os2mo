@@ -28,7 +28,9 @@ class OrganisationFunktion(_OIOEntityMixin, Base):
 
 class OrganisationFunktionRegistrering(_RegistreringMixin, Base):
     __tablename__ = "organisationfunktion_registrering"
-    organisationfunktion_id = Column(ForeignKey("organisationfunktion.id"), index=True)
+    organisationfunktion_id: Mapped[int] = mapped_column(
+        ForeignKey("organisationfunktion.id"), index=True
+    )
     uuid = synonym("organisationfunktion_id")
 
 
@@ -51,7 +53,7 @@ class OrganisationFunktionAttrEgenskaber(_AttrEgenskaberMixin, Base):
 
     funktionsnavn: Mapped[FunktionsNavn]
 
-    organisationfunktion_registrering_id = Column(
+    organisationfunktion_registrering_id: Mapped[int] = mapped_column(
         ForeignKey("organisationfunktion_registrering.id"), index=True
     )
 
@@ -74,19 +76,20 @@ class OrganisationFunktionRelationKode(Enum):
 class OrganisationFunktionRelation(_RelationMixin, Base):
     __tablename__ = "organisationfunktion_relation"
 
-    rel_type: Mapped[OrganisationFunktionRelationKode]
+    rel_type: Mapped[OrganisationFunktionRelationKode]  # type: ignore[assignment]
 
-    organisationfunktion_registrering_id = Column(
+    organisationfunktion_registrering_id: Mapped[int] = mapped_column(
         ForeignKey("organisationfunktion_registrering.id"), index=True
     )
 
 
 class OrganisationFunktionTilsGyldighed(
-    _TilsGyldighedMixin("organisationfunktion"), Base
+    _TilsGyldighedMixin("organisationfunktion"),  # type: ignore[misc]
+    Base,
 ):
     __tablename__ = "organisationfunktion_tils_gyldighed"
 
-    organisationfunktion_registrering_id = Column(
+    organisationfunktion_registrering_id: Mapped[int] = mapped_column(
         ForeignKey("organisationfunktion_registrering.id"), index=True
     )
 
@@ -110,6 +113,6 @@ class OrganisationFunktionAttrUdvidelser(_VirkningMixin, Base):
     udvidelse_9: Mapped[str | None] = mapped_column(Text, index=True)
     udvidelse_10: Mapped[str | None] = mapped_column(Text, index=True)
 
-    organisationfunktion_registrering_id = Column(
+    organisationfunktion_registrering_id: Mapped[int] = mapped_column(
         ForeignKey("organisationfunktion_registrering.id"), nullable=False, index=True
     )

@@ -80,7 +80,7 @@ class _RegistreringMixin:
     @registrering_period.inplace.expression
     @classmethod
     def _registrering_period(cls) -> ColumnElement[TimestamptzRange]:
-        return type_coerce(text("(registrering).timeperiod"), TSTZRANGE)
+        return type_coerce(text("(registrering).timeperiod"), TSTZRANGE)  # type: ignore[arg-type]
 
     # TODO: hybrid_property
     @declared_attr
@@ -131,7 +131,7 @@ class _VirkningMixin:
     @virkning_period.inplace.expression
     @classmethod
     def _virkning_period(cls) -> ColumnElement[TimestamptzRange]:
-        return type_coerce(text("(virkning).timeperiod"), TSTZRANGE)
+        return type_coerce(text("(virkning).timeperiod"), TSTZRANGE)  # type: ignore[arg-type]
 
 
 HasValidity = NewType("HasValidity", _VirkningMixin)

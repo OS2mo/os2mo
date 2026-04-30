@@ -36,7 +36,9 @@ class BrugerAttrEgenskaber(_AttrEgenskaberMixin, Base):
     brugernavn: Mapped[str | None] = mapped_column(Text, index=True)
     brugertype: Mapped[str | None] = mapped_column(Text, index=True)
 
-    bruger_registrering_id = Column(ForeignKey("bruger_registrering.id"), index=True)
+    bruger_registrering_id: Mapped[int] = mapped_column(
+        ForeignKey("bruger_registrering.id"), index=True
+    )
 
 
 class BrugerAttrUdvidelser(_VirkningMixin, Base):
@@ -49,7 +51,9 @@ class BrugerAttrUdvidelser(_VirkningMixin, Base):
     kaldenavn_efternavn: Mapped[str | None] = mapped_column(Text, index=True)
     seniority: Mapped[str | None] = mapped_column(Text, index=True)
 
-    bruger_registrering_id = Column(ForeignKey("bruger_registrering.id"), index=True)
+    bruger_registrering_id: Mapped[int] = mapped_column(
+        ForeignKey("bruger_registrering.id"), index=True
+    )
 
 
 BrugerRelationKode = Literal[
@@ -61,12 +65,16 @@ BrugerRelationKode = Literal[
 class BrugerRelation(_RelationMixin, Base):
     __tablename__ = "bruger_relation"
 
-    rel_type: Mapped[BrugerRelationKode]
+    rel_type: Mapped[BrugerRelationKode]  # type: ignore[assignment]
 
-    bruger_registrering_id = Column(ForeignKey("bruger_registrering.id"), index=True)
+    bruger_registrering_id: Mapped[int] = mapped_column(
+        ForeignKey("bruger_registrering.id"), index=True
+    )
 
 
-class BrugerTilsGyldighed(_TilsGyldighedMixin("bruger"), Base):
+class BrugerTilsGyldighed(_TilsGyldighedMixin("bruger"), Base):  # type: ignore[misc]
     __tablename__ = "bruger_tils_gyldighed"
 
-    bruger_registrering_id = Column(ForeignKey("bruger_registrering.id"), index=True)
+    bruger_registrering_id: Mapped[int] = mapped_column(
+        ForeignKey("bruger_registrering.id"), index=True
+    )

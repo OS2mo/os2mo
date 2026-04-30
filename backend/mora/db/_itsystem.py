@@ -3,7 +3,6 @@
 from typing import Literal
 
 from sqlalchemy import ARRAY
-from sqlalchemy import Column
 from sqlalchemy import ForeignKey
 from sqlalchemy import Text
 from sqlalchemy.orm import Mapped
@@ -24,7 +23,7 @@ class ITSystem(_OIOEntityMixin, Base):
 
 class ITSystemRegistrering(_RegistreringMixin, Base):
     __tablename__ = "itsystem_registrering"
-    itsystem_id = Column(ForeignKey("itsystem.id"), index=True)
+    itsystem_id: Mapped[int] = mapped_column(ForeignKey("itsystem.id"), index=True)
     uuid = synonym("itsystem_id")
 
 
@@ -33,9 +32,9 @@ class ITSystemAttrEgenskaber(_AttrEgenskaberMixin, Base):
 
     itsystemnavn: Mapped[str | None] = mapped_column(Text, index=True)
     itsystemtype: Mapped[str | None] = mapped_column(Text, index=True)
-    konfigurationreference = Column(ARRAY(Text()))
+    konfigurationreference: Mapped[list[str] | None] = mapped_column(ARRAY(Text()))
 
-    itsystem_registrering_id = Column(
+    itsystem_registrering_id: Mapped[int] = mapped_column(
         ForeignKey("itsystem_registrering.id"), index=True
     )
 
@@ -49,16 +48,16 @@ ITSystemRelationKode = Literal[
 class ITSystemRelation(_RelationMixin, Base):
     __tablename__ = "itsystem_relation"
 
-    rel_type: Mapped[ITSystemRelationKode]
+    rel_type: Mapped[ITSystemRelationKode]  # type: ignore[assignment]
 
-    itsystem_registrering_id = Column(
+    itsystem_registrering_id: Mapped[int] = mapped_column(
         ForeignKey("itsystem_registrering.id"), index=True
     )
 
 
-class ITSystemTilsGyldighed(_TilsGyldighedMixin("itsystem"), Base):
+class ITSystemTilsGyldighed(_TilsGyldighedMixin("itsystem"), Base):  # type: ignore[misc]
     __tablename__ = "itsystem_tils_gyldighed"
 
-    itsystem_registrering_id = Column(
+    itsystem_registrering_id: Mapped[int] = mapped_column(
         ForeignKey("itsystem_registrering.id"), index=True
     )

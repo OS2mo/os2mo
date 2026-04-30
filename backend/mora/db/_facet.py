@@ -26,7 +26,7 @@ class Facet(_OIOEntityMixin, Base):
 
 class FacetRegistrering(_RegistreringMixin, Base):
     __tablename__ = "facet_registrering"
-    facet_id = Column(ForeignKey("facet.id"), index=True)
+    facet_id: Mapped[int] = mapped_column(ForeignKey("facet.id"), index=True)
     uuid = synonym("facet_id")
 
 
@@ -40,7 +40,9 @@ class FacetAttrEgenskaber(_AttrEgenskaberMixin, Base):
     supplement: Mapped[str | None] = mapped_column(Text, index=True)
     retskilde: Mapped[str | None] = mapped_column(Text, index=True)
 
-    facet_registrering_id = Column(ForeignKey("facet_registrering.id"), index=True)
+    facet_registrering_id: Mapped[int] = mapped_column(
+        ForeignKey("facet_registrering.id"), index=True
+    )
 
 
 FacetRelationKode = Literal[
@@ -52,9 +54,11 @@ FacetRelationKode = Literal[
 class FacetRelation(_RelationMixin, Base):
     __tablename__ = "facet_relation"
 
-    rel_type: Mapped[FacetRelationKode]
+    rel_type: Mapped[FacetRelationKode]  # type: ignore[assignment]
 
-    facet_registrering_id = Column(ForeignKey("facet_registrering.id"), index=True)
+    facet_registrering_id: Mapped[int] = mapped_column(
+        ForeignKey("facet_registrering.id"), index=True
+    )
 
 
 class FacetTilsPubliceret(_VirkningMixin, Base):
@@ -63,8 +67,10 @@ class FacetTilsPubliceret(_VirkningMixin, Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
 
     publiceret: Mapped[PubliceretStatus] = mapped_column(
-        Enum(*PubliceretStatus.__args__, name="facetpublicerettils"),
+        Enum(*PubliceretStatus.__args__, name="facetpublicerettils"),  # type: ignore[attr-defined]
         index=True,
     )
 
-    facet_registrering_id = Column(ForeignKey("facet_registrering.id"), index=True)
+    facet_registrering_id: Mapped[int] = mapped_column(
+        ForeignKey("facet_registrering.id"), index=True
+    )
