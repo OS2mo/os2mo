@@ -123,6 +123,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
     async def prepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)
+        assert function_uuid is not None
 
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -138,9 +139,10 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         employee_uuid = mapping.USER_FIELD.get_uuid(original)
 
         data = req.get("data")
+        assert data is not None
         new_from, new_to = util.get_validities(data)
 
-        payload = {
+        payload: dict = {
             "note": "Rediger Adresse",
         }
 
