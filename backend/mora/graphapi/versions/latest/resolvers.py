@@ -46,6 +46,12 @@ from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationEnhedRelation
 from mora.db import OrganisationEnhedRelationKode
 from mora.db import OrganisationEnhedTilsGyldighed
+from mora.db import OrganisationFunktionAttrEgenskaber
+from mora.db import OrganisationFunktionAttrUdvidelser
+from mora.db import OrganisationFunktionRegistrering
+from mora.db import OrganisationFunktionRelation
+from mora.db import OrganisationFunktionRelationKode
+from mora.db import OrganisationFunktionTilsGyldighed
 from mora.graphapi.gmodels.base import tz_isodate
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.service.autocomplete.employees import search_employees
@@ -1181,6 +1187,198 @@ async def it_system_resolver(
     )
 
 
+async def it_user_resolver_query(
+    info: MOInfo,
+    filter: ITUserFilter,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Select:
+    await registration_filter(info, filter)
+
+    async def _get_itsystem_uuids(info: MOInfo, filter: ITUserFilter) -> list[UUID]:
+        itsystem_filter = filter.itsystem or ITSystemFilter()
+        extend_uuids(itsystem_filter, filter.itsystem_uuids)
+        return lora_filter(
+            await filter2uuids_func(it_system_resolver, info, itsystem_filter)
+        )
+
+    def _get_registration_time() -> datetime | SQLNOW:
+        if (
+            cursor is not None
+            and filter.registration_time
+            and filter.registration_time != cursor.registration_time
+        ):
+            raise ValueError("Cannot change registration_time during pagination")
+
+        if cursor is not None:
+            return tz_isodate(cursor.registration_time)
+        if filter.registration_time:
+            return tz_isodate(filter.registration_time)
+        return func.now()
+
+    def _registrering() -> ColumnElement:
+        return and_(
+            OrganisationFunktionRegistrering.lifecycle
+            != cast("Slettet", LivscyklusKode),
+            OrganisationFunktionRegistrering.registrering_period.contains(
+                _get_registration_time()
+            ),
+        )
+
+    def _gyldighed() -> ColumnElement:
+        return OrganisationFunktionRegistrering.id.in_(
+            select(
+                OrganisationFunktionTilsGyldighed.organisationfunktion_registrering_id
+            ).where(
+                OrganisationFunktionTilsGyldighed.gyldighed == "Aktiv",
+                _virkning(OrganisationFunktionTilsGyldighed),
+            )
+        )
+
+    def _virkning(cls: type[HasValidity]) -> ColumnElement:
+        start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
+        return cls.virkning_period.overlaps(TimestamptzRange(start, end))
+
+    def _it_system_funktionsnavn() -> ColumnElement:
+        return OrganisationFunktionAttrEgenskaber.funktionsnavn == "IT-system"
+
+    query = (
+        select(
+            distinct(OrganisationFunktionRegistrering.organisationfunktion_id),
+        )
+        .join(
+            OrganisationFunktionAttrEgenskaber,
+            OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            == OrganisationFunktionRegistrering.id,
+        )
+        .where(
+            _registrering(),
+            _gyldighed(),
+            _it_system_funktionsnavn(),
+        )
+        .order_by(
+            OrganisationFunktionRegistrering.organisationfunktion_id,
+        )
+    )
+
+    if filter.engagement is not None:
+        from .response import Response
+        from .response import validity_resolver
+
+        engagement_uuids = await engagement_resolver(info, filter.engagement)
+        engagement_responses = [
+            Response(model=EngagementRead, uuid=uuid) for uuid in engagement_uuids
+        ]
+        start = unset2date(filter.engagement.from_date)
+        end = filter.engagement.to_date
+
+        engagement_validities = await asyncio.gather(
+            *[
+                validity_resolver(root=response, info=info, start=start, end=end)
+                for response in engagement_responses
+            ]
+        )
+        org_unit_uuids = {
+            engagement_validity.org_unit_uuid
+            for engagement_validity in flatten(engagement_validities)
+        }
+        extend_uuids(filter, list(org_unit_uuids))
+
+    if filter.uuids is not None:
+        query = query.where(
+            OrganisationFunktionRegistrering.organisationfunktion_id.in_(filter.uuids)
+        )
+
+    if filter.user_keys is not None:
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
+                        filter.user_keys
+                    ),
+                    _virkning(OrganisationFunktionAttrEgenskaber),
+                )
+            )
+        )
+
+    if filter.employee is not None or filter.employees is not None:
+        employee_filter = filter.employee or EmployeeFilter()
+        extend_uuids(employee_filter, filter.employees)
+        employee_uuids = lora_filter(
+            await filter2uuids_func(employee_resolver, info, employee_filter)
+        )
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    cast(OrganisationFunktionRelation.rel_type, Text)
+                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
+                    _virkning(OrganisationFunktionRelation),
+                )
+            )
+        )
+
+    if filter.org_unit is not None or filter.org_units is not None:
+        org_unit_filter = filter.org_unit or OrganisationUnitFilter()
+        extend_uuids(org_unit_filter, filter.org_units)
+        org_unit_uuids = lora_filter(
+            await filter2uuids_func(organisation_unit_resolver, info, org_unit_filter)
+        )
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    cast(OrganisationFunktionRelation.rel_type, Text)
+                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
+                    _virkning(OrganisationFunktionRelation),
+                )
+            )
+        )
+
+    if filter.itsystem_uuids is not None or filter.itsystem is not None:
+        itsystem_uuids = await _get_itsystem_uuids(info, filter)
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    cast(OrganisationFunktionRelation.rel_type, Text)
+                    == OrganisationFunktionRelationKode.tilknyttedeitsystemer,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(itsystem_uuids),
+                    _virkning(OrganisationFunktionRelation),
+                )
+            )
+        )
+
+    if filter.external_ids is not None:
+        if not filter.external_ids:
+            return select().where(False)
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionAttrUdvidelser.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionAttrUdvidelser.udvidelse_1.in_(
+                        filter.external_ids
+                    ),
+                )
+            )
+        )
+
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
+
+    return query
+
+
 async def it_user_resolver(
     info: MOInfo,
     filter: ITUserFilter | None = None,
@@ -1188,51 +1386,46 @@ async def it_user_resolver(
     cursor: CursorType = None,
 ) -> Any:
     """Resolve it-users."""
-
-    async def _get_itsystem_uuids(info: MOInfo, filter: ITUserFilter) -> list[UUID]:
-        itsystem_filter = filter.itsystem or ITSystemFilter()
-        # Handle deprecated filter
-        extend_uuids(itsystem_filter, filter.itsystem_uuids)
-        return lora_filter(
-            await filter2uuids_func(it_system_resolver, info, itsystem_filter)
-        )
-
     if filter is None:
         filter = ITUserFilter()
 
-    await registration_filter(info, filter)
+    query = await it_user_resolver_query(
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+    )
 
-    kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
-    if (
-        filter.employee is not None and filter.employee is not UNSET
-    ) or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = lora_filter(
-            await get_employee_uuids(info, filter)
-        )
-    if filter.org_units is not None or filter.org_unit is not None:
-        kwargs["tilknyttedeenheder"] = lora_filter(
-            await get_org_unit_uuids(info, filter)
-        )
-    if filter.itsystem_uuids is not None or filter.itsystem is not None:
-        kwargs["tilknyttedeitsystemer"] = await _get_itsystem_uuids(info, filter)
-    if filter.engagement is not None:  # pragma: no cover
-        kwargs["tilknyttedefunktioner"] = lora_filter(
-            await filter2uuids_func(engagement_resolver, info, filter.engagement)
-        )
-    if filter.external_ids is not None:
-        # Early return on empty external_id list
-        if not filter.external_ids:  # pragma: no cover
-            return dict()
-        kwargs["udvidelse_1"] = to_similar(filter.external_ids)
+    session: AsyncSession = info.context.session
+    result = await session.execute(query)
+    uuids = [row[0] for row in result]
+
+    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    if not uuids and is_paged:
+        context["lora_page_out_of_range"] = True
+
+    access_log(
+        session,
+        "filter_itusers",
+        "OrganisationFunktion",
+        {
+            "filter": filter,
+            "limit": limit,
+            "cursor": cursor,
+        },
+        uuids,
+    )
 
     return await generic_resolver(
         info.context.dataloaders.ituser_getter,
         info.context.dataloaders.ituser_loader,
         info=info,
-        filter=filter,
-        limit=limit,
-        cursor=cursor,
-        **kwargs,
+        filter=BaseFilter(
+            uuids=uuids,
+            from_date=filter.from_date,
+            to_date=filter.to_date,
+            registration_time=filter.registration_time,
+        ),
     )
 
 
