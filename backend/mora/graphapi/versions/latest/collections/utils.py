@@ -125,9 +125,9 @@ def result2response_list(
 
 def to_response(
     model: type[MOObject],
-) -> Callable[[ResolverFunction], Callable[..., Awaitable[Response[MOObject]]]]:
+) -> Callable[[ResolverFunction], Callable[..., Awaitable[Response[MOObject] | None]]]:
     return result_translation(
-        lambda result, info: one(result2response_list(model, result, info))
+        lambda result, info: only(result2response_list(model, result, info))
     )
 
 

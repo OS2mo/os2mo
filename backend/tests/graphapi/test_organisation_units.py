@@ -303,6 +303,70 @@ async def test_org_unit_root_field(
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_root_response_past_only(
+    graphapi_post: GraphAPIPost, afdeling: UUID
+) -> None:
+    """`root_response` resolves the root even when the unit only exists in the past."""
+    create_query = """
+        mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
+            org_unit_create(input: $input) { uuid }
+        }
+    """
+    response = graphapi_post(
+        create_query,
+        variables={
+            "input": {
+                "name": "root",
+                "user_key": "root",
+                "validity": {"from": "1990-01-01", "to": "1999-12-31"},
+                "org_unit_type": str(afdeling),
+            }
+        },
+    )
+    assert response.data is not None
+    assert response.errors is None
+    root_uuid = UUID(response.data["org_unit_create"]["uuid"])
+
+    response = graphapi_post(
+        create_query,
+        variables={
+            "input": {
+                "name": "child",
+                "user_key": "child",
+                "parent": str(root_uuid),
+                "validity": {"from": "1990-01-01", "to": "1999-12-31"},
+                "org_unit_type": str(afdeling),
+            }
+        },
+    )
+    assert response.data is not None
+    assert response.errors is None
+    child_uuid = UUID(response.data["org_unit_create"]["uuid"])
+
+    response = graphapi_post(
+        """
+        query GetRoot($uuid: UUID!) {
+            org_units(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
+                objects {
+                    validities {
+                        root_response { uuid }
+                    }
+                }
+            }
+        }
+        """,
+        variables={
+            "uuid": str(child_uuid),
+        },
+    )
+    assert response.data is not None
+    assert response.errors is None
+    obj = one(response.data["org_units"]["objects"])
+    assert one(obj["validities"])["root_response"] == {"uuid": str(root_uuid)}
+
+
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "filter,expected",
