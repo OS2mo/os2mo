@@ -142,8 +142,9 @@ def lora_to_mo_exception() -> Iterator[None]:
     except ValueError as e:  # pragma: no cover
         exceptions.ErrorCodes.E_INVALID_INPUT(message=e.args[0], cause=None)
     except DataError as e:
-        message = e.orig.diag.message_primary
-        cause = e.orig.diag.context
+        assert e.orig is not None
+        message = e.orig.diag.message_primary  # type: ignore[attr-defined]
+        cause = e.orig.diag.context  # type: ignore[attr-defined]
         exceptions.ErrorCodes.E_INVALID_INPUT(message=message, cause=cause)
     except Exception as e:
         try:
@@ -305,8 +306,8 @@ class Connector:
 
 
 def group_params(
-    param_keys: tuple[T],
-    params_list: list[tuple[frozenset[V]]],
+    param_keys: tuple[T, ...],
+    params_list: list[tuple[frozenset[V], ...]],
 ) -> dict[T, set[V]]:
     """
     Transform parameters from
@@ -324,7 +325,7 @@ def group_params(
         }
     with duplicates removed.
     """
-    grouped_params = defaultdict(set)
+    grouped_params: defaultdict[T, set[V]] = defaultdict(set)
     for params in params_list:
         for key, values in zip(param_keys, params):
             grouped_params[key].update(values)
@@ -335,7 +336,7 @@ class ParameterValuesExtractor:
     @classmethod
     def get_key_value_items(
         cls, d: dict[str, Any], search_keys: Container[str]
-    ) -> Iterable[tuple[str, Any]]:
+    ) -> Iterable[tuple[str | int, Any]]:
         """
         Given a LoRa result (nested dict), extract the value(s) for each key in
         search_keys as (key,value)-pairs.
@@ -347,7 +348,7 @@ class ParameterValuesExtractor:
     @classmethod
     def traverse(
         cls,
-        items: Iterable[tuple[str, Any]] | ItemsView[str, Any],
+        items: Iterable[tuple[str | int, Any]] | ItemsView[str, Any],
         path: tuple = (),
     ):
         """
@@ -409,7 +410,7 @@ class BaseScope:
 class Scope(BaseScope):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.loaders: dict[tuple[str], DataLoader] = {}
+        self.loaders: dict[tuple[str, ...], DataLoader] = {}
 
     def load(self, **params: Any) -> Awaitable[list[dict]]:
         """
@@ -499,8 +500,8 @@ class Scope(BaseScope):
 
     async def _load_loads(
         self,
-        param_keys: tuple[str],
-        params_list: list[tuple[frozenset]],
+        param_keys: tuple[str, ...],
+        params_list: list[tuple[frozenset, ...]],
     ) -> list[list[dict]]:
         """
         Called by the DataLoader once all the load() calls have been collected.
@@ -534,7 +535,9 @@ class Scope(BaseScope):
         #   a: {1: {X}, 2: {Y}, 3: {Z}},
         #   b: {5: {X}, 6: {X,Y,Z}, 7: {Y}}
         # }
-        calls_for_params = defaultdict(lambda: defaultdict(set))
+        calls_for_params: defaultdict[str | int, defaultdict[Any, set[int]]] = (
+            defaultdict(lambda: defaultdict(set))
+        )
         for i, params in enumerate(params_list):
             for key, values in zip(param_keys, params):
                 for value in values:
@@ -557,16 +560,16 @@ class Scope(BaseScope):
             # since none of them are filtering and we know the parameter keys are equal.
             return [results for _ in params_list]
 
-        results_for_calls = list([] for _ in params_list)
+        results_for_calls: list[list[dict]] = list([] for _ in params_list)
         for result in results:
             # Find values in result for all parameter keys => [(a,1), (b,6), (a,3)]
             result_param_items = ParameterValuesExtractor.get_key_value_items(
                 result, param_keys
             )
             # Collect calls matching ANY value from parameters => {a: {X,Z}, b: {X,Y,Z}}
-            result_param_calls = defaultdict(set)
-            for key, value in result_param_items:
-                result_param_calls[key].update(calls_for_params[key][value])
+            result_param_calls: defaultdict[str | int, set[int]] = defaultdict(set)
+            for r_key, r_value in result_param_items:
+                result_param_calls[r_key].update(calls_for_params[r_key][r_value])
             # Collapse into calls matching on ALL key,value parameters => {X,Z}
             result_calls = set.intersection(*result_param_calls.values())
             # Add this result to the matching calls => {X: [result], Y: [], Z: [result]}
@@ -643,7 +646,7 @@ class Scope(BaseScope):
         if registration_time is not None:
             kwargs["registreringstid"] = registration_time.isoformat()
         ret = await self.load(uuid=uuids, **kwargs)
-        return filter_registrations(response=ret, wantregs=False)
+        return filter_registrations(response=ret, wantregs=False)  # type: ignore[return-value]
 
     async def paged_get(
         self,
@@ -689,7 +692,7 @@ class Scope(BaseScope):
         if asyncio.iscoroutinefunction(func):
             obj_iter = [await func(self.connector, *tup) for tup in obj_iter]
         else:
-            obj_iter = starmap(partial(func, self.connector), obj_iter)
+            obj_iter = starmap(partial(func, self.connector), obj_iter)  # type: ignore[arg-type]
 
         return {"total": total, "offset": start, "items": list(obj_iter)}
         # coverage: unpause
@@ -707,7 +710,7 @@ class Scope(BaseScope):
     @overload
     async def get(self, uuid: str | UUID, **params: dict[str, Any]) -> dict | None: ...
 
-    async def get(
+    async def get(  # type: ignore[misc]
         self, uuid: str | UUID, **params: dict[str, Any]
     ) -> list[dict] | dict | None:
         """Fetch registration(s) for a single object from LoRa.
@@ -784,7 +787,7 @@ class Scope(BaseScope):
         )
 
 
-def get_effects(obj: dict, relevant: dict, additional: dict = None):
+def get_effects(obj: dict, relevant: dict, additional: dict | None = None):
     """
     Splits a LoRa object up into several objects, based on changes in
     specified attributes
@@ -805,13 +808,14 @@ def get_effects(obj: dict, relevant: dict, additional: dict = None):
     :param additional: Additional attributes to include in the result
     :return:
     """
-    chunks = set()
+    chunks: set = set()
 
-    everything = collections.defaultdict(tuple)
+    everything: defaultdict[str, tuple] = collections.defaultdict(tuple)
 
     for group in relevant:
         everything[group] += relevant[group]
     for group in additional or {}:
+        assert additional is not None
         everything[group] += additional[group]
 
     # extract all beginning and end timestamps for all effects
@@ -834,7 +838,7 @@ def get_effects(obj: dict, relevant: dict, additional: dict = None):
                 )
 
     # sort them, and apply the filter, if given
-    chunks = itertools.pairwise(sorted(chunks))
+    chunks_iter = itertools.pairwise(sorted(chunks))
 
     def filter_list(entries, start, end):
         for entry in entries:
@@ -845,7 +849,7 @@ def get_effects(obj: dict, relevant: dict, additional: dict = None):
                 yield entry
 
     # finally, extract chunks corresponding to each cut-off
-    for start, end in chunks:
+    for start, end in chunks_iter:
         effect = {
             group: {
                 key: list(filter_list(obj[group][key], start, end))
