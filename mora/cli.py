@@ -10,6 +10,7 @@ which describes its arguments and options.
 import asyncio  # pragma: no cover
 import sys  # pragma: no cover
 import time  # pragma: no cover
+from typing import get_args  # pragma: no cover
 
 import click  # pragma: no cover
 from fastramqpi.ra_utils.async_to_sync import async_to_sync  # pragma: no cover
@@ -110,7 +111,7 @@ async def _set_last_run(date):  # pragma: no cover
 
 
 @amqp.command()
-@click.argument("object-type", type=click.Choice(amqp_subsystem.MO_TYPE.__args__))
+@click.argument("object-type", type=click.Choice(get_args(amqp_subsystem.MO_TYPE)))
 @click.argument("uuid", type=click.UUID)
 def send_event(object_type, uuid) -> None:  # pragma: no cover
     """Send AMQP event with routing_key=object_type and uuid as body."""
