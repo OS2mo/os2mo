@@ -89,7 +89,7 @@ class ITUserPrimaryGroupValidation(_ITUserGroupValidation):
 class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.IT
     function_key = mapping.ITSYSTEM_KEY
-    group_validations: list[GroupValidation] = [
+    group_validations: list[type[GroupValidation]] = [
         ITUserUniqueGroupValidation,
         ITUserPrimaryGroupValidation,
     ]
@@ -212,6 +212,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
     async def prepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)
+        assert function_uuid is not None
 
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -219,11 +220,13 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         if not original:
             exceptions.ErrorCodes.E_NOT_FOUND()
+        assert original is not None
 
         data = req.get("data")
+        assert data is not None
         new_from, new_to = util.get_validities(data)
 
-        payload = {
+        payload: dict = {
             "note": data.get(mapping.NOTE, "Rediger IT-system"),
         }
 
