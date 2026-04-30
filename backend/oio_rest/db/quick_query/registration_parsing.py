@@ -29,7 +29,7 @@ class ValueType(Enum):
         elif string == BOOL_STR:  # pragma: no cover
             return ValueType.BOOL
         # coverage: pause
-        raise ValueType(f"unexpected value {string}")
+        raise ValueError(f"unexpected value {string}")
         # coverage: unpause
 
 
@@ -53,7 +53,7 @@ class Attribute:
         :return:
         """
 
-        return db_structure.REAL_DB_STRUCTURE[class_name][ATTRIBUTTER]
+        return db_structure.REAL_DB_STRUCTURE[class_name][ATTRIBUTTER]  # type: ignore[index,return-value]
 
     @classmethod
     def from_attr_egenskaber(
@@ -88,6 +88,7 @@ class Attribute:
                     f"expected str, got type={type(tmp)} of obj={tmp}, from {attr}"
                 )
 
+        assert val is not None
         for attr_type, valid_attr_names in valid_attr.items():
             if key in valid_attr_names:
                 return cls(
@@ -133,7 +134,7 @@ class State:
     def get_valid_states(class_name: str) -> dict[str, list[str]]:
         # "tilstande": {
         #     "gyldighed": ["Aktiv", "Inaktiv"]
-        return dict(db_structure.REAL_DB_STRUCTURE[class_name]["tilstande"])
+        return dict(db_structure.REAL_DB_STRUCTURE[class_name]["tilstande"])  # type: ignore[call-overload,index]
 
     @classmethod
     def parse_registration_states(
@@ -208,9 +209,9 @@ class Relation:  # OVERLY defensive, on purpose
 
     @staticmethod
     def get_valid_relations(class_name: str) -> list[str]:
-        return db_structure.REAL_DB_STRUCTURE[class_name].get(
+        return db_structure.REAL_DB_STRUCTURE[class_name].get(  # type: ignore[index,operator]
             "relationer_nul_til_en", []
-        ) + db_structure.REAL_DB_STRUCTURE[class_name].get(
+        ) + db_structure.REAL_DB_STRUCTURE[class_name].get(  # type: ignore[index]
             "relationer_nul_til_mange", []
         )
 

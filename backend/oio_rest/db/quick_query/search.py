@@ -157,23 +157,26 @@ class SearchQueryBuilder:
                     f"expected {datetime} or str, got type={type(tmp)} of value={tmp}"
                 )
 
+        start_inf: InfiniteDatetime
+        end_inf: InfiniteDatetime
         if isinstance(start, str):
-            start = InfiniteDatetime.from_date_string(start)
+            start_inf = InfiniteDatetime.from_date_string(start)
         else:
-            start = InfiniteDatetime.from_datetime(start)
+            start_inf = InfiniteDatetime.from_datetime(start)
 
         if isinstance(end, str):
-            end = InfiniteDatetime.from_date_string(end)
+            end_inf = InfiniteDatetime.from_date_string(end)
         else:
-            end = InfiniteDatetime.from_datetime(end)
+            end_inf = InfiniteDatetime.from_datetime(end)
 
         # NOTE: STRICT in-equality is important
-        if not start < end:  # pragma: no cover
+        if not start_inf < end_inf:  # pragma: no cover
             raise ValueError(
-                f"start must be smaller than end, got:  start={start}, end={end}"
+                f"start must be smaller than end, "
+                f"got:  start={start_inf}, end={end_inf}"
             )
 
-        return start, end
+        return start_inf, end_inf
 
     @staticmethod
     def __overlap_condition_from_range(
@@ -224,12 +227,13 @@ class SearchQueryBuilder:
             self.__conditions.append(f"upper({col_and_var})='infinity'::timestamptz")
             return  # stop early
 
-        reg_start, reg_end = self.__validate_ts_range(reg_start, reg_end)
+        assert reg_start is not None and reg_end is not None
+        start, end = self.__validate_ts_range(reg_start, reg_end)
 
         # we've got both start and end as datetime
         self.__conditions.append(
             self.__overlap_condition_from_range(
-                fully_qualifying_var_name=col_and_var, start=reg_start, end=reg_end
+                fully_qualifying_var_name=col_and_var, start=start, end=end
             )
         )
 
@@ -544,12 +548,12 @@ async def quick_search(
         registreret_til=registreret_til,
     )
 
-    for x in attributes:
-        qb.add_attribute(x)
-    for x in states:
-        qb.add_state(x)
-    for x in relations:
-        qb.add_relation(x)
+    for attribute in attributes:
+        qb.add_attribute(attribute)
+    for state in states:
+        qb.add_state(state)
+    for relation in relations:
+        qb.add_relation(relation)
 
     sql = text(qb.get_query())
     access_log_arguments = {

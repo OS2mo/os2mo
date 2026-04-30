@@ -568,8 +568,8 @@ DATABASE_STRUCTURE = {
 }
 
 REAL_DB_STRUCTURE = deepcopy(DATABASE_STRUCTURE)
-REAL_DB_STRUCTURE["klasse"]["attributter"]["egenskaber"].append("soegeord")
-REAL_DB_STRUCTURE["klasse"]["attributter_metadata"]["egenskaber"]["soegeord"] = {
+REAL_DB_STRUCTURE["klasse"]["attributter"]["egenskaber"].append("soegeord")  # type: ignore[index]
+REAL_DB_STRUCTURE["klasse"]["attributter_metadata"]["egenskaber"]["soegeord"] = {  # type: ignore[index]
     "type": "soegeord"
 }
 

@@ -70,7 +70,7 @@ CONSOLIDATE_PARAM = frozenset(
 )
 
 """Some operations take no arguments; this makes it explicit."""
-NO_PARAMS = frozenset()
+NO_PARAMS: frozenset = frozenset()
 
 
 class Searcher(metaclass=ABCMeta):
@@ -283,7 +283,7 @@ class OIOStandardHierarchy:
     """Implement API for entire hierarchy."""
 
     _name = ""
-    _classes = []
+    _classes: list = []
 
     @classmethod
     def setup_api(cls):
@@ -333,7 +333,7 @@ async def _get_json_from_request(request: Request):
         data = formset.get("json", None)
         if data is not None:
             try:
-                return json.loads(data)
+                return json.loads(data)  # type: ignore[arg-type]
             except ValueError:  # pragma: no cover
                 raise HTTPException(
                     status_code=400, detail={"message": "unparsable json"}
@@ -530,7 +530,7 @@ class OIORestObject:
         return await cls.get_objects_direct(raw_args)
 
     @classmethod
-    async def get_object_direct(cls, uuid: UUID, args):  # pragma: no cover
+    async def get_object_direct(cls, uuid: UUID | str, args):  # pragma: no cover
         """A :ref:`ReadOperation`. Return a single whole object as a JSON object.
 
         .. :quickref: :ref:`ReadOperation`
@@ -599,7 +599,7 @@ class OIORestObject:
         }
 
     @classmethod
-    async def put_object_direct(cls, uuid: UUID, input, args):
+    async def put_object_direct(cls, uuid: UUID | str, input, args):
         """A :ref:`ImportOperation` that creates or overwrites an object from
         the JSON payload.  It returns the UUID for the object.
 
@@ -670,7 +670,7 @@ class OIORestObject:
         return await cls.put_object_direct(uuid, input, args)
 
     @classmethod
-    async def patch_object_direct(cls, uuid: UUID, input):
+    async def patch_object_direct(cls, uuid: UUID | str, input):
         """An :ref:`UpdateOperation` or :ref:`PassivateOperation`. Apply the
         JSON payload as a change to the object. Return the UUID of the object.
 
@@ -717,12 +717,12 @@ class OIORestObject:
     @classmethod
     async def patch_object(cls, uuid: UUID, request: Request):
         # TODO: Why no cls.verify_args here
-        uuid = str(uuid)
+        uuid_str = str(uuid)
         input = await _get_json_from_request(request)
-        return await cls.patch_object_direct(uuid, input)
+        return await cls.patch_object_direct(uuid_str, input)
 
     @classmethod
-    async def delete_object_direct(cls, uuid: UUID, input):
+    async def delete_object_direct(cls, uuid: UUID | str, input):
         """A :ref:`DeleteOperation`. Delete the object and return the UUID.
 
         .. :quickref: :ref:`DeleteOperation`

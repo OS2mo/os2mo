@@ -12,7 +12,7 @@ from psycopg.types.range import TimestamptzRange
 
 from oio_rest.db import db_structure
 
-_attribute_fields = {}
+_attribute_fields: dict = {}
 
 
 def get_attribute_fields(attribute_name):
@@ -37,7 +37,7 @@ def get_field_type(attribute_name, field_name):
     return "text"
 
 
-_attribute_names = {}
+_attribute_names: dict = {}
 
 
 def get_relation_field_type(class_name, field_name):
@@ -74,7 +74,7 @@ def get_state_names(class_name):
     return list(states)
 
 
-_relation_names = {}
+_relation_names: dict = {}
 
 
 def get_relation_names(class_name):
@@ -93,17 +93,17 @@ def get_document_part_relation_names():  # pragma: no cover
 
 
 # Helper classers for adapting special types
-Soegeord = namedtuple("KlasseSoegeordType", "identifier description category")
-OffentlighedUndtaget = namedtuple("OffentlighedUndtagetType", "alternativtitel hjemmel")
-JournalNotat = namedtuple("JournalNotatType", "titel notat format")
-JournalDokument = namedtuple(
+Soegeord = namedtuple("KlasseSoegeordType", "identifier description category")  # type: ignore[name-match]
+OffentlighedUndtaget = namedtuple("OffentlighedUndtagetType", "alternativtitel hjemmel")  # type: ignore[name-match]
+JournalNotat = namedtuple("JournalNotatType", "titel notat format")  # type: ignore[name-match]
+JournalDokument = namedtuple(  # type: ignore[name-match]
     "JournalPostDokumentAttrType", "dokumenttitel offentlighedundtaget"
 )
-AktoerAttr = namedtuple(
+AktoerAttr = namedtuple(  # type: ignore[name-match]
     "AktivitetAktoerAttr",
     "accepteret obligatorisk repraesentation_uuid repraesentation_urn",
 )
-VaerdiRelationAttr = namedtuple(
+VaerdiRelationAttr = namedtuple(  # type: ignore[name-match]
     "TilstandVaerdiRelationAttrType", "forventet nominelvaerdi"
 )
 
