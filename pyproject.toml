@@ -163,6 +163,10 @@ module = [
 ]
 ignore_errors = false
 
+[[tool.mypy.overrides]]
+module = "mora.common"
+ignore_errors = false
+
 [tool.ruff.lint]
 extend-select = ["I"]
 

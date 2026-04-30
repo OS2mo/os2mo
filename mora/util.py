@@ -449,7 +449,7 @@ def get_mapping_uuid(mapping, key, *, fallback=None, required=False):
     return None
 
 
-def set_obj_value(obj: dict, path: tuple, val: list[dict]):
+def set_obj_value(obj: dict, path: tuple, val: typing.Any):
     path_list = list(path)
     obj_copy = copy.deepcopy(obj)
 
