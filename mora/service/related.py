@@ -103,18 +103,21 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
     and they must not be terminated.
 
     """
-    origin = str(origin)
+    origin_str = str(origin)
+    del origin
 
     date = util.get_valid_from(req)
     c = lora.Connector(effective_date=date)
-    destinations = set(util.checked_get(req, "destination", [], required=True))
-    if origin in destinations:  # pragma: no cover
+    destinations: set[str] = set(
+        util.checked_get(req, "destination", [], required=True)
+    )
+    if origin_str in destinations:  # pragma: no cover
         exceptions.ErrorCodes.E_RELATED_TO_SELF(
-            origin=origin,
+            origin=origin_str,
             destinations=sorted(destinations),
         )
 
-    wanted_units = {origin} | destinations
+    wanted_units = {origin_str} | destinations
     units = dict(await c.organisationenhed.get_all_by_uuid(uuids=sorted(wanted_units)))
 
     if len(units) != len(wanted_units):
@@ -135,13 +138,13 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
             org_unit_uuid=sorted(wanted_units - good),
         )
 
-    (orgid,) = mapping.BELONGS_TO_FIELD.get_uuids(units[origin])
+    (orgid,) = mapping.BELONGS_TO_FIELD.get_uuids(units[origin_str])
 
     preexisting = {
         unitid: funcid
         for funcid, func in await c.organisationfunktion.get_all(
             funktionsnavn=mapping.RELATED_UNIT_KEY,
-            tilknyttedeenheder=origin,
+            tilknyttedeenheder=origin_str,
             gyldighed="Aktiv",
         )
         for unitid in mapping.ASSOCIATED_ORG_UNITS_FIELD.get_uuids(func)
@@ -160,10 +163,10 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
     creations = [
         common.create_organisationsfunktion_payload(
             mapping.RELATED_UNIT_KEY,
-            date,
-            util.POSITIVE_INFINITY,
+            date,  # type: ignore[arg-type]
+            util.POSITIVE_INFINITY,  # type: ignore[arg-type]
             "{} <-> {}".format(
-                mapping.ORG_UNIT_EGENSKABER_FIELD(units[origin])[0][
+                mapping.ORG_UNIT_EGENSKABER_FIELD(units[origin_str])[0][
                     "brugervendtnoegle"
                 ],
                 mapping.ORG_UNIT_EGENSKABER_FIELD(units[destid])[0][
@@ -172,7 +175,7 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
             ),
             tilknyttedebrugere=[],
             tilknyttedeorganisationer=[orgid],
-            tilknyttedeenheder=[origin, destid],
+            tilknyttedeenheder=[origin_str, destid],
         )
         for destid in destinations
         if destid not in preexisting

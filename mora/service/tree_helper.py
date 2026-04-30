@@ -54,7 +54,7 @@ async def prepare_ancestor_tree(
 
     # UUID --> Object cache
     # Not really used here, but returned to callers to avoid multiple calls
-    cache = {}
+    cache: dict = {}
 
     async def get(uuid):
         # Return cached entry if already fetched
@@ -92,7 +92,7 @@ async def prepare_ancestor_tree(
     await get_bulk(uuids)
 
     # Initialize our queue
-    task_queue = Queue()
+    task_queue: Queue = Queue()
 
     async def process_parent(uuid: UUID):
         # Fetch parent, if no parent is found, we must be a root node

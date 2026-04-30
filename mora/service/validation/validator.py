@@ -250,6 +250,7 @@ async def is_date_range_in_obj_range(
         )
     else:
         uuid = obj.get(mapping.UUID)
+        assert uuid is not None
         existing_obj = await scope.get(uuid)
 
         if not existing_obj:
@@ -297,7 +298,9 @@ async def is_candidate_parent_valid(
     # Do not allow moving of the root org unit
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
-    org_unit_relations = (await c.organisationenhed.get(uuid=unitid))["relationer"]
+    org_unit = await c.organisationenhed.get(uuid=unitid)
+    assert org_unit is not None
+    org_unit_relations = org_unit["relationer"]
     orgid = org_unit_relations["tilhoerer"][0]["uuid"]
 
     # Use for checking that the candidate parent is not the units own subtree
