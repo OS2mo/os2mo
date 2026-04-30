@@ -104,6 +104,10 @@ ignore_errors = false
 module = "mora.mapping"
 ignore_errors = false
 
+[[tool.mypy.overrides]]
+module = "mora.exceptions"
+ignore_errors = false
+
 [tool.ruff.lint]
 extend-select = ["I"]
 
