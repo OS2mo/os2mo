@@ -136,8 +136,8 @@ async def fetch_endpoint_triggers(
         trigger_configs = await asyncio.gather(*tasks)
         trigger_tuples = zip(endpoints, trigger_configs)
         # Filter out Nones
-        trigger_tuples = filter(lambda tup: tup[1] is not None, trigger_tuples)
-        return dict(trigger_tuples)
+        trigger_tuples_filtered = filter(lambda tup: tup[1] is not None, trigger_tuples)
+        return dict(trigger_tuples_filtered)
 
 
 async def register(app) -> bool:
