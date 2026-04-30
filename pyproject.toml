@@ -85,6 +85,10 @@ module = "mora.graphapi.*"
 disallow_untyped_defs = true
 ignore_errors = false
 
+[[tool.mypy.overrides]]
+module = "mora.health"
+ignore_errors = false
+
 [tool.ruff.lint]
 extend-select = ["I"]
 
