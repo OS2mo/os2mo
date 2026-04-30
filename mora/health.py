@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from more_itertools import one
 from starlette.status import HTTP_204_NO_CONTENT
 
-from mora.graphapi.shim import execute_graphql  # type: ignore[attr-defined]
+from mora.graphapi.shim import execute_graphql
 
 router = APIRouter()
 
@@ -39,6 +39,7 @@ async def root() -> dict[str, bool]:
     r = await execute_graphql(query)
     if r.errors:  # pragma: no cover
         raise ValueError(r.errors)
+    assert r.data is not None
 
     return {
         health["identifier"]: health["status"]
@@ -61,6 +62,7 @@ async def healthcheck(identifier: str) -> bool | None:
     r = await execute_graphql(query, variable_values={"identifier": identifier})
     if r.errors:  # pragma: no cover
         raise ValueError(r.errors)
+    assert r.data is not None
     if not r.data["healths"]["objects"]:  # pragma: no cover
         raise HTTPException(status_code=404, detail="Healthcheck not found")
     return one(r.data["healths"]["objects"])["status"]

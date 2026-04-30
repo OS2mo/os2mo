@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# type: ignore
 """GraphQL executer with the necessary context variables.
 
 Used for shimming the service API.
 """
 
+from collections.abc import AsyncIterator
 from datetime import date
 from typing import Any
 from typing import Optional
@@ -36,7 +36,7 @@ class MOEmployee(EmployeeRead):
     name: str
     nickname: str
     org: OrganisationRead | None
-    validity: Any | None  # not part of the "old" MO response
+    validity: Any | None  # type: ignore[assignment]  # not part of the "old" MO response
 
     @root_validator(pre=True)
     def handle_deprecated_keys(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -65,31 +65,31 @@ class ValidityDates(BaseModel):
 
 
 class MOAddressType(ClassRead):
-    org_uuid: Any | None
-    facet_uuid: Any | None
+    org_uuid: Any | None  # type: ignore[assignment]
+    facet_uuid: Any | None  # type: ignore[assignment]
     facet: Any | None
     top_level_facet: Any | None
 
 
 class MOFacetRead(FacetRead):
-    org_uuid: UUID | None
-    user_key: str | None
+    org_uuid: UUID | None  # type: ignore[assignment]
+    user_key: str | None  # type: ignore[assignment]
 
 
 class MOClassRead(ClassRead):
-    org_uuid: UUID | None
-    facet_uuid: UUID | None
+    org_uuid: UUID | None  # type: ignore[assignment]
+    facet_uuid: UUID | None  # type: ignore[assignment]
     facet: MOFacetRead
     top_level_facet: MOFacetRead
     full_name: str | None
 
 
 class OrgUnitType(OrganisationUnitRead):
-    validity: ValidityDates
+    validity: ValidityDates  # type: ignore[assignment]
 
 
 class OrgUnitRead(OrganisationUnitRead):
-    validity: ValidityDates
+    validity: ValidityDates  # type: ignore[assignment]
 
 
 class OrganisationUnitCount(OrgUnitRead):
@@ -170,25 +170,25 @@ class OrganisationLevelRead(OrganisationRead):
 
 
 class VisibilityRead(ClassRead):
-    org_uuid: UUID | None
-    facet_uuid: UUID | None
+    org_uuid: UUID | None  # type: ignore[assignment]
+    facet_uuid: UUID | None  # type: ignore[assignment]
 
 
 class MOAddress(AddressRead):
-    address_type_uuid: UUID | None
+    address_type_uuid: UUID | None  # type: ignore[assignment]
     address_type: None | MOAddressType | UUIDObject
     person: None | list[MOEmployee] | UUIDObject
     engagement_uuid: UUID | None
     org_unit: None | OrgUnitType | UUIDObject
     visibility: VisibilityRead | None
-    validity: ValidityDates
+    validity: ValidityDates  # type: ignore[assignment]
     href: str | None
     name: str | None
 
 
 async def set_graphql_context_dependencies(
     amqp_system: depends.AMQPSystem, session: depends.Session
-):
+) -> AsyncIterator[None]:
     """Fetch FastAPI dependencies into starlette context.
 
     Strawberry allows FastAPI dependency injection on the router's context_getter, i.e.
@@ -217,8 +217,8 @@ async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
         #  service API shims get RBAC equivalent to the GraphQL API for free.
         kwargs["context_value"] = await get_context(
             get_token=noauth,
-            amqp_system=context.get("amqp_system"),
-            session=context.get("session"),
+            amqp_system=context.get("amqp_system"),  # type: ignore[arg-type]
+            session=context.get("session"),  # type: ignore[arg-type]
         )
 
     schema = get_schema(LATEST_VERSION)
