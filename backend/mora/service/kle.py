@@ -69,6 +69,7 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
 
     async def prepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)
+        assert function_uuid is not None
 
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -76,14 +77,16 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
 
         if not original:  # pragma: no cover
             exceptions.ErrorCodes.E_NOT_FOUND()
+        assert original is not None
 
         # Get org unit uuid for validation purposes
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
 
         data = req.get("data")
+        assert data is not None
         new_from, new_to = util.get_validities(data)
 
-        payload = {
+        payload: dict = {
             "note": "Rediger KLE",
         }
 
@@ -117,14 +120,15 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        for aspect in util.checked_get(
+        aspects: list = util.checked_get(
             data, mapping.KLE_ASPECT, [], can_be_empty=False
-        ):
+        )
+        for aspect in aspects:
             update_fields.append(
                 (
                     mapping.KLE_ASPECT_FIELD,
                     {
-                        "uuid": util.get_uuid(aspect),
+                        "uuid": util.get_uuid(aspect),  # type: ignore[dict-item]
                     },
                 )
             )

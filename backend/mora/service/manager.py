@@ -90,17 +90,20 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
 
     async def prepare_edit(self, req: dict):
         manager_uuid = req.get("uuid")
+        assert manager_uuid is not None
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = await c.organisationfunktion.get(uuid=manager_uuid)
+        assert original is not None
 
         data = req.get("data")
+        assert data is not None
         new_from, new_to = util.get_validities(data)
 
         # Get org unit uuid for validation purposes
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD(original)[0]
 
-        payload = {"note": "Rediger leder"}
+        payload: dict = {"note": "Rediger leder"}
 
         original_data = req.get("original")
         if original_data:
@@ -173,7 +176,9 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
         else:
-            employee = util.get_obj_value(original, mapping.USER_FIELD.path)[-1]
+            employee_value = util.get_obj_value(original, mapping.USER_FIELD.path)
+            assert employee_value is not None
+            employee = employee_value[-1]
 
         # Manager responsibility and manager level are stored in the same list in the
         # relationer>opgaver field in LoRa. MO separates the objects based on their
@@ -192,7 +197,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                     mapping.RESPONSIBILITY_FIELD,
                     {
                         "objekttype": "lederansvar",
-                        "uuid": util.get_uuid(responsibility),
+                        "uuid": util.get_uuid(responsibility),  # type: ignore[dict-item]
                     },
                 )
             )

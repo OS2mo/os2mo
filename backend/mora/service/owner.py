@@ -58,13 +58,15 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         :param req: Specification of an owner
         :return: Tuple of essential values, parsed from req
         """
-        org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=False)
+        org_unit: dict = util.checked_get(req, mapping.ORG_UNIT, {}, required=False)
         org_unit_uuid = util.get_uuid(org_unit, required=False)
 
-        owned_person = util.checked_get(req, mapping.PERSON, {}, required=False)
+        owned_person: dict = util.checked_get(
+            req, mapping.PERSON, {}, required=False
+        )
         owned_person_uuid = util.get_uuid(owned_person, required=False)
 
-        owner = util.checked_get(req, mapping.OWNER, {}, required=False)
+        owner: dict = util.checked_get(req, mapping.OWNER, {}, required=False)
         owner_uuid = util.get_uuid(owner, required=False)
 
         if not (bool(owned_person_uuid) ^ bool(org_unit_uuid)):  # xor
@@ -118,7 +120,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         if owned_person_uuid:
             return {Trigger.EMPLOYEE_UUID: owned_person_uuid}
         if org_unit_uuid:
-            return {Trigger.ORG_UNIT_UUID: owned_person_uuid}
+            return {Trigger.ORG_UNIT_UUID: owned_person_uuid}  # type: ignore[dict-item]
         # coverage: pause
         OwnerRequestHandler.raise_unexpected_input(req)
         # coverage: unpause
@@ -190,13 +192,13 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         )
         owner = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.OWNER,
-            valid_from=valid_from,
-            valid_to=valid_to,
+            valid_from=valid_from,  # type: ignore[arg-type]
+            valid_to=valid_to,  # type: ignore[arg-type]
             brugervendtnoegle=bvn,
             tilknyttedebrugere=[owned_person_uuid] if owned_person_uuid else [],
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
-            tilknyttedepersoner=[owner_uuid],
+            tilknyttedepersoner=[owner_uuid],  # type: ignore[list-item]
             udvidelse_attributter={mapping.EXTENSION_1: inference_priority.value}
             if inference_priority is not None
             else None,
@@ -215,12 +217,15 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
 
     async def prepare_edit(self, req: dict):
         func_uuid = req.get("uuid")
+        assert func_uuid is not None
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = await c.organisationfunktion.get(uuid=func_uuid)
+        assert original is not None
 
         # coverage: pause
         data = req.get("data")
+        assert data is not None
         (
             org_unit,
             owned_person,
@@ -233,7 +238,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
 
         new_from, new_to = util.get_validities(data)
 
-        payload = {"note": f"Rediger {self.role_type}"}
+        payload: dict = {"note": f"Rediger {self.role_type}"}
 
         original_data = req.get("original")
         if original_data:
