@@ -197,6 +197,15 @@ module = [
 ]
 ignore_errors = false
 
+[[tool.mypy.overrides]]
+module = [
+    "mora.service.kle",
+    "mora.service.leave",
+    "mora.service.manager",
+    "mora.service.owner",
+]
+ignore_errors = false
+
 [tool.ruff.lint]
 extend-select = ["I"]
 

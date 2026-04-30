@@ -65,14 +65,17 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
 
     async def prepare_edit(self, req: dict):
         leave_uuid = req.get("uuid")
+        assert leave_uuid is not None
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = await c.organisationfunktion.get(uuid=leave_uuid)
+        assert original is not None
 
         data = req.get("data")
+        assert data is not None
         new_from, new_to = util.get_validities(data)
 
-        payload = {"note": "Rediger orlov"}
+        payload: dict = {"note": "Rediger orlov"}
 
         original_data = req.get("original")
         if original_data:  # pragma: no cover
@@ -138,7 +141,9 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
         else:
-            employee = util.get_obj_value(original, mapping.USER_FIELD.path)[-1]
+            employee_value = util.get_obj_value(original, mapping.USER_FIELD.path)
+            assert employee_value is not None
+            employee = employee_value[-1]
             employee_uuid = util.get_obj_uuid(original, mapping.USER_FIELD.path)
 
         payload = common.update_payload(
