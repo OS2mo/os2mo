@@ -8,6 +8,7 @@ from collections.abc import Iterable
 from itertools import chain
 from operator import itemgetter
 from typing import TYPE_CHECKING
+from typing import Any
 
 from more_itertools import flatten
 
@@ -28,7 +29,7 @@ class GroupValidation:
         return cls(await cls._get_filtered_validation_items(requests))
 
     @classmethod
-    async def from_mo_objects(cls, search_fields: dict[str]) -> "GroupValidation":
+    async def from_mo_objects(cls, search_fields: dict[str, Any]) -> "GroupValidation":
         """Create a `GroupValidation` instance based on the given `search_fields` and
         a `ReadingHandler` instance returned by `get_mo_object_reading_handler`. This
         can be used to validate a new item being added to an existing group of MO

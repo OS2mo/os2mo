@@ -43,7 +43,7 @@ async def handle_requests(
 
     uuids = await handlers.submit_requests(requests)
     if is_single_request:
-        uuids = uuids[0]
+        return uuids[0]
     return uuids
 
 
