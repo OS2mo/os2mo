@@ -43,7 +43,7 @@ async def list_it_systems(orgid: UUID):
       ]
 
     """
-    orgid = str(orgid)
+    orgid_str = str(orgid)
 
     query = """
     query ITSystemQuery {
@@ -61,6 +61,7 @@ async def list_it_systems(orgid: UUID):
     """
     response = await execute_graphql(query)
     handle_gql_error(response)
-    if response.data["org"]["uuid"] != orgid:  # pragma: no cover
+    assert response.data is not None
+    if response.data["org"]["uuid"] != orgid_str:  # pragma: no cover
         return []
     return [x["current"] for x in response.data["itsystems"]["objects"]]

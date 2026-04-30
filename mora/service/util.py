@@ -24,7 +24,7 @@ def handle_gql_error(response: ExecutionResult) -> None:
         return error
 
     if response.errors:
-        exceptions = list(map(to_exception, response.errors))
+        exceptions = list(map(to_exception, response.errors))  # type: ignore[arg-type]
         if len(exceptions) == 1:
             raise one(exceptions)
         raise ExceptionGroup("GraphQL Errors", exceptions)  # noqa: F821

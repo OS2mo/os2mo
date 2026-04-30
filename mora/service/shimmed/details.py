@@ -18,7 +18,7 @@ from ramodels.mo.detail import DetailTermination
 from .errors import handle_gql_error
 
 # Handlers of ramodels.mo.detail.Detail-types we have GraphQL mutators for
-GRAPHQL_COMPATIBLE_TYPES = {
+GRAPHQL_COMPATIBLE_TYPES: dict = {
     # mapping.RequestType.TERMINATE: {
     #     mapping.ADDRESS: lambda dt: _address_terminate_graphql_handler(dt),
     # }
@@ -148,6 +148,7 @@ async def list_employee_details(id: UUID) -> dict[str, bool]:
         variable_values=jsonable_encoder(variables),
     )
     handle_gql_error(response)
+    assert response.data is not None
     validities = one(response.data["employees"]["objects"])["objects"]
     return {
         **{
@@ -247,6 +248,7 @@ async def list_org_unit_details(id: UUID) -> dict[str, bool]:
         variable_values=jsonable_encoder(variables),
     )
     handle_gql_error(response)
+    assert response.data is not None
     validities = one(response.data["org_units"]["objects"])["objects"]
     return {
         **{

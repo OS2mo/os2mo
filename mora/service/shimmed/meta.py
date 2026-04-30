@@ -27,6 +27,7 @@ def meta_router():
         # Execute GraphQL query to fetch required data
         response = await execute_graphql(query)
         handle_gql_error(response)
+        assert response.data is not None
 
         return response.data["version"]
 
