@@ -52,7 +52,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
     """
 
-    role_type = None
+    role_type: str | None = None
     """
     The `role_type` for corresponding details to this attribute.
     """
@@ -242,7 +242,7 @@ class OrgFunkRequestHandler(RequestHandler):
     """Abstract base class for automatically registering
     `organisationsfunktion`-based handlers."""
 
-    function_key = None
+    function_key: str | None = None
     """
     When set, automatically register this class as a writing handler
     for `organisationsfunktion` objects with the corresponding

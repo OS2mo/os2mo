@@ -124,7 +124,12 @@ def get_connector(**loraparams) -> lora.Connector:
 
 
 def inactivate_old_interval(
-    old_from: str, old_to: str, new_from: str, new_to: str, payload: dict, path: tuple
+    old_from: str | datetime.datetime,
+    old_to: str | datetime.datetime,
+    new_from: str | datetime.datetime,
+    new_to: str | datetime.datetime,
+    payload: dict,
+    path: tuple,
 ) -> dict:
     """
     Create 'inactivation' updates based on two sets of from/to dates
@@ -138,10 +143,10 @@ def inactivate_old_interval(
 
     :return: The payload with the inactivation updates added, if relevant
     """
-    if old_from < new_from:
+    if old_from < new_from:  # type: ignore[operator]
         val = {"gyldighed": "Inaktiv", "virkning": _create_virkning(old_from, new_from)}
         payload = util.set_obj_value(payload, path, [val])
-    if new_to < old_to:
+    if new_to < old_to:  # type: ignore[operator]
         val = {"gyldighed": "Inaktiv", "virkning": _create_virkning(new_to, old_to)}
         payload = util.set_obj_value(payload, path, [val])
     return payload
