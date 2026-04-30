@@ -183,6 +183,10 @@ ignore_errors = false
 module = "mora.service.employee"
 ignore_errors = false
 
+[[tool.mypy.overrides]]
+module = "mora.service.engagement"
+ignore_errors = false
+
 [tool.ruff.lint]
 extend-select = ["I"]
 
