@@ -3,7 +3,7 @@
 
 
 class OIOException(Exception):
-    status_code = None  # Please supply in subclass!
+    status_code: int | None = None  # Please supply in subclass!
 
     def __init__(self, *args, payload=None):
         Exception.__init__(self, *args)
