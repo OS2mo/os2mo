@@ -57,7 +57,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
     The `role_type` for corresponding details to this attribute.
     """
 
-    group_validations: list[GroupValidation] = []
+    group_validations: list[type[GroupValidation]] = []
     """Zero or more `GroupValidation` subclasses, which will be used to validate groups
     of this type of request.
     """

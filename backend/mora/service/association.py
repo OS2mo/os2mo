@@ -83,7 +83,7 @@ class ITAssociationPrimaryGroupValidation(_ITAssociationGroupValidation):
 class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.ASSOCIATION
     function_key = mapping.ASSOCIATION_KEY
-    group_validations: list[GroupValidation] = [
+    group_validations: list[type[GroupValidation]] = [
         ITAssociationUniqueGroupValidation,
         ITAssociationPrimaryGroupValidation,
     ]
@@ -95,17 +95,17 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         :param req: request as received by flask
         :return:
         """
-        org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=True)
+        org_unit: dict = util.checked_get(req, mapping.ORG_UNIT, {}, required=True)
         org_unit_uuid = util.get_uuid(org_unit, required=True)
 
-        dynamic_classes = util.checked_get(req, mapping.CLASSES, [])
-        dynamic_classes = list(map(util.get_uuid, dynamic_classes))
+        raw_dynamic_classes: list = util.checked_get(req, mapping.CLASSES, [])
+        dynamic_classes = [util.get_uuid(c) for c in raw_dynamic_classes]
 
         if is_graphql():
-            dynamic_classes = util.checked_get(req, mapping.TRADE_UNION, [])
-            dynamic_classes = list(map(util.get_uuid, dynamic_classes))
+            raw_dynamic_classes = util.checked_get(req, mapping.TRADE_UNION, [])
+            dynamic_classes = [util.get_uuid(c) for c in raw_dynamic_classes]
 
-        employee = util.checked_get(req, mapping.PERSON, {})
+        employee: dict = util.checked_get(req, mapping.PERSON, {})
         employee_uuid = util.get_uuid(employee, required=False)
 
         org_ = await org.get_configured_organisation(
@@ -196,14 +196,16 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         :return:
         """
         association_uuid = req.get("uuid")
+        assert association_uuid is not None
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = await c.organisationfunktion.get(uuid=association_uuid)
+        assert original is not None
 
         data = req.get("data", {})
         new_from, new_to = util.get_validities(data)
 
-        payload = {"note": "Rediger tilknytning"}
+        payload: dict = {"note": "Rediger tilknytning"}
 
         original_data = req.get("original")
         if original_data:  # pragma: no cover
@@ -299,7 +301,9 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 update_payload = {"uuid": "", "urn": ""}
             update_fields.append((mapping.USER_FIELD, update_payload))
         else:
-            employee = util.get_obj_value(original, mapping.USER_FIELD.path)[-1]
+            employee_value = util.get_obj_value(original, mapping.USER_FIELD.path)
+            assert employee_value is not None
+            employee = employee_value[-1]
             employee_uuid = util.get_uuid(employee)
 
         # Update "substitute"
@@ -331,18 +335,18 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             primary = None
 
         # Update "dynamic_classes"
+        clazz_list: list
         if is_graphql():  # pragma: no cover
-            for clazz in util.checked_get(data, mapping.TRADE_UNION, []):
-                update_fields.append(
-                    (mapping.ORG_FUNK_CLASSES_FIELD, {"uuid": util.get_uuid(clazz)})
-                )
+            clazz_list = util.checked_get(data, mapping.TRADE_UNION, [])
         else:
-            for clazz in util.checked_get(
-                data, mapping.CLASSES, []
-            ):  # pragma: no cover
-                update_fields.append(
-                    (mapping.ORG_FUNK_CLASSES_FIELD, {"uuid": util.get_uuid(clazz)})
+            clazz_list = util.checked_get(data, mapping.CLASSES, [])  # pragma: no cover
+        for clazz in clazz_list:
+            update_fields.append(
+                (
+                    mapping.ORG_FUNK_CLASSES_FIELD,
+                    {"uuid": util.get_uuid(clazz)},  # type: ignore[dict-item]
                 )
+            )
 
         # Validation
         if employee:
