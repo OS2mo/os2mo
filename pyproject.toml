@@ -120,6 +120,10 @@ ignore_errors = false
 module = "mora.log"
 ignore_errors = false
 
+[[tool.mypy.overrides]]
+module = "mora.handler.*"
+ignore_errors = false
+
 [tool.ruff.lint]
 extend-select = ["I"]
 
