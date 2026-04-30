@@ -135,7 +135,7 @@ async def _emit_events(session: AsyncSession, amqp_system: AMQPSystem) -> None:
             cls.registrering_period.contains(func.now()),
         )
 
-    def validity_condition(v: _VirkningMixin):
+    def validity_condition(v: type[_VirkningMixin]):
         return or_(
             func.lower(v.virkning_period).between(last_run, now),
             func.upper(v.virkning_period).between(last_run, now),

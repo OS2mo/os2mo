@@ -132,6 +132,10 @@ ignore_errors = false
 module = "ramodels.*"
 ignore_errors = false
 
+[[tool.mypy.overrides]]
+module = "mora.amqp"
+ignore_errors = false
+
 [tool.ruff.lint]
 extend-select = ["I"]
 
