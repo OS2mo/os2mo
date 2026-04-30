@@ -313,9 +313,10 @@ async def object_exists(class_name: str, uuid: str) -> bool:
         access_log(session, "object_exists", class_name, arguments, [UUID(uuid)])
         result = await session.scalar(sql, arguments)
     except StatementError as e:  # pragma: no cover
-        if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
-            status_code = int(e.orig.sqlstate[2:])
-            raise DBException(status_code, e.orig.diag.message_primary)
+        assert e.orig is not None
+        if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":  # type: ignore[attr-defined]
+            status_code = int(e.orig.sqlstate[2:])  # type: ignore[attr-defined]
+            raise DBException(status_code, e.orig.diag.message_primary)  # type: ignore[attr-defined]
         else:
             raise
     assert isinstance(result, bool)
@@ -518,12 +519,15 @@ async def list_objects(
     try:
         result = await session.execute(text(sql))
     except StatementError as e:  # pragma: no cover
-        if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
-            status_code = int(e.orig.sqlstate[2:])
-            raise DBException(status_code, e.orig.diag.message_primary)
+        assert e.orig is not None
+        if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":  # type: ignore[attr-defined]
+            status_code = int(e.orig.sqlstate[2:])  # type: ignore[attr-defined]
+            raise DBException(status_code, e.orig.diag.message_primary)  # type: ignore[attr-defined]
         else:
             raise
-    output = one(result.fetchone())
+    row = result.fetchone()
+    assert row is not None
+    output = one(row)
     uuids = []
     if output is not None:
         uuids = [entry["id"] for entry in output]

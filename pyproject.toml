@@ -240,6 +240,10 @@ module = [
 ]
 ignore_errors = false
 
+[[tool.mypy.overrides]]
+module = "oio_rest.*"
+ignore_errors = false
+
 [tool.ruff.lint]
 extend-select = ["I"]
 
