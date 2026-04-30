@@ -159,11 +159,12 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         return nickname_givenname, nickname_surname
 
     async def prepare_edit(self, req: dict):
-        original_data = util.checked_get(req, "original", {}, required=False)
-        data = util.checked_get(req, "data", {}, required=True)
+        original_data: dict = util.checked_get(req, "original", {}, required=False)
+        data: dict = util.checked_get(req, "data", {}, required=True)
         userid = util.get_uuid(req, required=False)
         if not userid:
             userid = util.get_uuid(data, fallback=original_data)
+        assert userid is not None
 
         # Get the current org-unit which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -261,6 +262,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
                 attrs["urn"] = f"urn:dk:cpr:person:{data[mapping.CPR_NO]}"
                 update_fields.append((mapping.EMPLOYEE_PERSON_FIELD, attrs))
 
+        assert original is not None
         payload = common.update_payload(
             new_from, new_to, update_fields, original, payload
         )
@@ -441,7 +443,8 @@ async def list_employees(
      }
 
     """
-    orgid = str(orgid)
+    orgid_str = str(orgid)
+    del orgid
 
     # TODO: share code with list_orgunits?
 
@@ -459,11 +462,10 @@ async def list_employees(
                 tilknyttedepersoner="urn:dk:cpr:person:" + query,
             )
         else:
-            query = query
-            query = query.split(" ")
-            for i in range(0, len(query)):
-                query[i] = "%" + query[i] + "%"
-            kwargs["vilkaarligattr"] = query
+            query_parts = query.split(" ")
+            for i in range(0, len(query_parts)):
+                query_parts[i] = "%" + query_parts[i] + "%"
+            kwargs["vilkaarligattr"] = query_parts  # type: ignore[assignment]
 
     uuid_filters = []
     # Filter search_result to only show employees with associations

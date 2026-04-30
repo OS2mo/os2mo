@@ -179,6 +179,10 @@ ignore_errors = false
 module = "mora.service.address"
 ignore_errors = false
 
+[[tool.mypy.overrides]]
+module = "mora.service.employee"
+ignore_errors = false
+
 [tool.ruff.lint]
 extend-select = ["I"]
 
