@@ -21,7 +21,7 @@ def get_at_date_sql(at: date | None = None):
     return "now()", {}
 
 
-def read_sqlalchemy_result(result: Result) -> [Row]:
+def read_sqlalchemy_result(result: Result) -> list[Row]:
     rows = []
     while True:
         chunk = result.fetchmany(1000)

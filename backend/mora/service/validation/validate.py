@@ -49,7 +49,7 @@ async def org_unit_validity(req: dict = Body(...)):
     * ``V_INVALID_ADDRESS_WWW``
 
     """
-    org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=True)
+    org_unit: dict = util.checked_get(req, mapping.ORG_UNIT, {}, required=True)
     valid_from, valid_to = util.get_validities(req)
 
     await validator.is_date_range_in_org_unit_range(org_unit, valid_from, valid_to)
@@ -87,7 +87,7 @@ async def employee_validity(req: dict = Body(...)):
     * ``V_DATE_OUTSIDE_EMPL_RANGE``
 
     """
-    employee = util.checked_get(req, mapping.PERSON, {}, required=True)
+    employee: dict = util.checked_get(req, mapping.PERSON, {}, required=True)
     valid_from, valid_to = util.get_validities(req)
 
     await validator.is_date_range_in_employee_range(employee, valid_from, valid_to)
@@ -308,7 +308,7 @@ async def address_value(req: dict = Body(...), only_primary_uuid: bool | None = 
     c = lora.Connector()
 
     type_obj = await facet.get_one_class(
-        c, address_type_uuid, only_primary_uuid=only_primary_uuid
+        c, address_type_uuid, only_primary_uuid=bool(only_primary_uuid)
     )
 
     scope = util.checked_get(type_obj, "scope", "", required=True)

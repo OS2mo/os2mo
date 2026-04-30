@@ -187,6 +187,16 @@ ignore_errors = false
 module = "mora.service.engagement"
 ignore_errors = false
 
+[[tool.mypy.overrides]]
+module = [
+    "mora.service.autocomplete.shared",
+    "mora.service.related",
+    "mora.service.tree_helper",
+    "mora.service.validation.validate",
+    "mora.service.validation.validator",
+]
+ignore_errors = false
+
 [tool.ruff.lint]
 extend-select = ["I"]
 
