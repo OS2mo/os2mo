@@ -40,7 +40,7 @@ class LoraBase(RABase):
             raise TypeError("LoraBase may not be instantiated")
         return super().__new__(cls)
 
-    uuid: UUID = Field(None)
+    uuid: UUID = Field(None)  # type: ignore[assignment]
 
     # Autogenerate UUID if necessary
     # TODO: in pydantic v2, this can be replaced with Field(default_factory=uuid4)

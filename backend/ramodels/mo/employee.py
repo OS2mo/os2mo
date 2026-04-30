@@ -101,8 +101,8 @@ class Employee(MOBase):
     type_: Literal["employee"] = Field(
         "employee", alias="type", description="The object type"
     )
-    givenname: str = Field(None, description="Given name of the employee.")
-    surname: str = Field(None, description="Surname of the employee.")
+    givenname: str = Field(None, description="Given name of the employee.")  # type: ignore[assignment]
+    surname: str = Field(None, description="Surname of the employee.")  # type: ignore[assignment]
     name: str | None = Field(
         description=(
             "The full name of the employee. "
