@@ -223,7 +223,6 @@ def update_payload(
 
         if field_tuple.type == mapping.FieldTypes.ADAPTED_ZERO_TO_MANY:
             # 'Fake' zero-to-one relation. Merge into existing list.
-            assert props is not None
             updated_props = _merge_obj_effects(props, vals)
         elif field_tuple.type == mapping.FieldTypes.ZERO_TO_MANY:
             # Actual zero-to-many relation. Just append.
@@ -246,7 +245,7 @@ def update_payload(
 
 
 def _merge_obj_effects(
-    orig_objs: list[dict],
+    orig_objs: list[dict] | None,
     new_objs: list[dict],
 ) -> list[dict]:
     """
