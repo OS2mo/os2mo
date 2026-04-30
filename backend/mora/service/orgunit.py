@@ -154,10 +154,11 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
     async def prepare_edit(self, req: dict):
-        original_data = util.checked_get(req, "original", {}, required=False)
-        data = util.checked_get(req, "data", {}, required=True)
+        original_data: dict = util.checked_get(req, "original", {}, required=False)
+        data: dict = util.checked_get(req, "data", {}, required=True)
 
         unitid = util.get_uuid(data, fallback=original_data)
+        assert unitid is not None
 
         # Get the current org-unit which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -352,9 +353,13 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 
         submit = await super().submit()
         if self.request_type == mapping.RequestType.REFRESH:
-            return {
+            return {  # type: ignore[return-value]
                 "message": "\n".join(
-                    map(str, self.trigger_results_before + self.trigger_results_after)
+                    map(
+                        str,
+                        (self.trigger_results_before or [])
+                        + (self.trigger_results_after or []),
+                    )
                 )
             }
         # coverage: pause
@@ -390,7 +395,7 @@ async def get_one_orgunit(
     details=UnitDetails.NCHILDREN,
     validity=None,
     only_primary_uuid: bool = False,
-    count_related: dict = None,
+    count_related: dict | None = None,
 ) -> dict[Any, Any] | None:
     """
     Internal API for returning one organisation unit.
@@ -646,7 +651,7 @@ async def get_unit_tree(
     unitids: list[str],
     with_siblings: bool = False,
     only_primary_uuid: bool = False,
-    org_unit_hierarchy: str = None,
+    org_unit_hierarchy: str | None = None,
     count_related: dict | None = None,
 ):
     """Return a tree, bounded by the given unitid.
@@ -695,7 +700,7 @@ async def get_unit_tree(
     root_uuids, children, cache = await prepare_ancestor_tree(
         c.organisationenhed,
         mapping.PARENT_FIELD,
-        unitids,
+        unitids,  # type: ignore[arg-type]
         get_children_args,
         with_siblings=with_siblings,
     )
@@ -711,18 +716,18 @@ async def trigger_external_integration(unitid: UUID, only_primary_uuid: bool = F
     Trigger external integration for a given org unit UUID
     :param unitid: The UUID of the org unit to trigger for
     """
-    unitid = str(unitid)
+    unitid_str = str(unitid)
 
     c = common.get_connector()
 
     org_unit = await get_one_orgunit(
-        c, unitid, details=UnitDetails.FULL, only_primary_uuid=only_primary_uuid
+        c, unitid_str, details=UnitDetails.FULL, only_primary_uuid=only_primary_uuid
     )
     if not org_unit:
-        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
+        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid_str)
 
-    request = {}
-    request[mapping.UUID] = unitid
+    request: dict = {}
+    request[mapping.UUID] = unitid_str
     handler = await OrgUnitRequestHandler.construct(
         request, mapping.RequestType.REFRESH
     )
@@ -825,13 +830,13 @@ async def list_orgunits(
      }
 
     """
-    orgid = str(orgid)
+    orgid_str = str(orgid)
     c = common.get_connector()
 
-    kwargs = dict(
+    kwargs: dict = dict(
         limit=limit,
         start=start,
-        tilhoerer=orgid,
+        tilhoerer=orgid_str,
         gyldighed="Aktiv",
     )
 
@@ -950,11 +955,11 @@ async def list_orgunit_tree(
      ]
 
     """
-    orgid = str(orgid)
+    orgid_str = str(orgid)
     c = common.get_connector()
 
     kwargs = dict(
-        tilhoerer=orgid,
+        tilhoerer=orgid_str,
         gyldighed="Aktiv",
     )
 

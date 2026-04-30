@@ -210,6 +210,10 @@ ignore_errors = false
 module = "mora.service.association"
 ignore_errors = false
 
+[[tool.mypy.overrides]]
+module = "mora.service.orgunit"
+ignore_errors = false
+
 [tool.ruff.lint]
 extend-select = ["I"]
 
