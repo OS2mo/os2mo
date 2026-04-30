@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from more_itertools import one
 from starlette.status import HTTP_204_NO_CONTENT
 
-from mora.graphapi.shim import execute_graphql
+from mora.graphapi.shim import execute_graphql  # type: ignore[attr-defined]
 
 router = APIRouter()
 
