@@ -310,6 +310,7 @@ async def address_value(req: dict = Body(...), only_primary_uuid: bool | None = 
     type_obj = await facet.get_one_class(
         c, address_type_uuid, only_primary_uuid=bool(only_primary_uuid)
     )
+    assert type_obj is not None
 
     scope = util.checked_get(type_obj, "scope", "", required=True)
 

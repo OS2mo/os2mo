@@ -186,7 +186,7 @@ async def request_bulked_get_one_class(
     details: set[ClassDetails] | None = None,
     only_primary_uuid: bool = False,
     connector: lora.Connector | None = None,
-) -> MO_OBJ_TYPE:
+) -> MO_OBJ_TYPE | None:
     if connector is None:
         connector = common.get_connector()
     return await get_one_class(
@@ -215,7 +215,7 @@ async def get_one_class(
     only_primary_uuid: bool = False,
     extended: bool = False,
     validity=None,
-) -> MO_OBJ_TYPE:
+) -> MO_OBJ_TYPE | None:
     if not details:
         details = set()
 
@@ -338,7 +338,7 @@ async def get_one_class(
         )
         response["it_system_uuid"] = last(
             clazz["relationer"].get("mapninger", []), default={}
-        ).get("uuid")
+        ).get("uuid")  # type: ignore[call-overload]
 
     return response
 
@@ -361,7 +361,9 @@ async def get_sorted_primary_class_list(c: lora.Connector) -> list[tuple[str, in
 
     # We always expect the scope value to be an int, for sorting
     try:
-        parsed_classes = [(clazz["uuid"], int(clazz["scope"])) for clazz in classes]
+        parsed_classes = [
+            (clazz["uuid"], int(clazz["scope"])) for clazz in classes if clazz
+        ]
     except ValueError:  # pragma: no cover
         raise ErrorCodes.E_INTERNAL_ERROR(
             message="Unable to parse scope value as integer"
@@ -383,7 +385,9 @@ class ClassRequestHandler(handlers.RequestHandler):
             uuid, bvn = (facet, None) if util.is_uuid(facet) else (None, facet)
 
             facetids = await c.facet.load_uuids(
-                uuid=uuid, bvn=bvn, publiceret="Publiceret"
+                uuid=uuid,  # type: ignore[arg-type]
+                bvn=bvn,  # type: ignore[arg-type]
+                publiceret="Publiceret",
             )
 
             if not facetids:  # pragma: no cover
@@ -406,8 +410,8 @@ class ClassRequestHandler(handlers.RequestHandler):
         mo_class = request["class_model"]
 
         clazz = common.create_klasse_payload(
-            valid_from=valid_from,
-            valid_to=valid_to,
+            valid_from=valid_from,  # type: ignore[arg-type]
+            valid_to=valid_to,  # type: ignore[arg-type]
             facet_uuid=facet_uuid,
             org_uuid=mo_class.org_uuid,
             owner=mo_class.owner,
