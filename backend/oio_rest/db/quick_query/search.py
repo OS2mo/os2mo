@@ -124,8 +124,6 @@ class SearchQueryBuilder:
 
         # core-containers
         self.__conditions: list[str] = []
-        self.__relation_conditions: dict[str, list[str]] = defaultdict(list)
-        self.__inner_join_tables: list[JoinTable] = []
 
         # eagerly create statement-parts
         self.__reg_table = f"{self.__class_name}_{REG}"
@@ -278,38 +276,57 @@ class SearchQueryBuilder:
     def add_attribute(self, attr: Attribute):
         """
         adds a filter to the query (in WHERE-clause, solely 'AND'-filtering)
-        internally inner-joins tables as needed
+
         :param attr: the attribute object specifying a filter
         :return:
         """
         table_name = "_".join([self.__class_name, "attr", attr.type])
         join_table = JoinTable(name=table_name)
-        if join_table not in self.__inner_join_tables:
-            self.__inner_join_tables.append(join_table)
-
         comparison = self.__postgres_comparison_from_typed_value(
             value=attr.value, type_=attr.value_type
         )
-        self.__conditions.append(f"{join_table.ref}.{attr.key} {comparison}")
+        validity_range_cond = self.__overlap_condition_from_range(
+            fully_qualifying_var_name=f"({join_table.ref}.{VIRKNING}).timeperiod",
+            start=self.__virkning_fra,
+            end=self.__virkning_til,
+        )
+
+        self.__conditions.append(f"""
+          EXISTS (
+            SELECT 1 FROM {join_table.name} {join_table.ref}
+             WHERE {join_table.ref}.{self.__class_name}_{REG}_id = {self.__reg_table}.id
+               AND {join_table.ref}.{attr.key} {comparison}
+               AND {validity_range_cond}
+          )
+        """)
 
     def add_state(self, state: State):
         """
         adds a filter to the query (in WHERE-clause, solely 'AND'-filtering)
-        internally inner-joins tables as needed
 
         :param state: the state object specifying a filter
         :return:
         """
         table_name = "_".join([self.__class_name, "tils", state.key])
         join_table = JoinTable(name=table_name)
-        if join_table not in self.__inner_join_tables:
-            self.__inner_join_tables.append(join_table)
-        self.__conditions.append(f"{join_table.ref}.{state.key} = '{state.value}'")
+        validity_range_cond = self.__overlap_condition_from_range(
+            fully_qualifying_var_name=f"({join_table.ref}.{VIRKNING}).timeperiod",
+            start=self.__virkning_fra,
+            end=self.__virkning_til,
+        )
+
+        self.__conditions.append(f"""
+          EXISTS (
+            SELECT 1 FROM {join_table.name} {join_table.ref}
+             WHERE {join_table.ref}.{self.__class_name}_{REG}_id = {self.__reg_table}.id
+               AND {join_table.ref}.{state.key} = '{state.value}'
+               AND {validity_range_cond}
+          )
+        """)
 
     def add_relation(self, relation: Relation):
         """
         adds a filter to the query (in WHERE-clause, solely 'AND'-filtering)
-        internally inner-joins tables as needed
 
         :param relation: the relation object specifying a filter
         :return:
@@ -317,8 +334,12 @@ class SearchQueryBuilder:
         table_name = f"{self.__class_name}_{RELATION}"
         table_alias = f"{table_name}_{relation.type}"
         join_table = JoinTable(name=table_name, alias=table_alias)
-        if join_table not in self.__inner_join_tables:
-            self.__inner_join_tables.append(join_table)
+        validity_range_cond = self.__overlap_condition_from_range(
+            fully_qualifying_var_name=f"({join_table.ref}.{VIRKNING}).timeperiod",
+            start=self.__virkning_fra,
+            end=self.__virkning_til,
+        )
+
         # HACK: This is a hack implemented to support checking for vacant managers.
         #       Vacant managers are encoded in two ways, either:
         #       * As a tilknyttedebrugere row with nulls in both UUID and URN, or
@@ -372,7 +393,14 @@ class SearchQueryBuilder:
         else:
             condition = base_condition
 
-        self.__relation_conditions[relation.type].append("(" + condition + ")")
+        self.__conditions.append(f"""
+          EXISTS (
+            SELECT 1 FROM {join_table.name} {join_table.ref}
+             WHERE {join_table.ref}.{self.__class_name}_{REG}_id = {self.__reg_table}.id
+               AND {condition}
+               AND {validity_range_cond}
+          )
+        """)
 
     def __build_subquery(self):
         """
@@ -382,48 +410,20 @@ class SearchQueryBuilder:
         """
 
         select_from_stmt = f"""
-        SELECT {self.__main_col} as {self.__id_col_name}
+        SELECT DISTINCT {self.__main_col} as {self.__id_col_name}
         FROM {self.__reg_table}"""
-
-        additional_conditions = []  # just to avoid altering state
-        inner_join_stmt = ""
-        if self.__inner_join_tables:  # add the tables needed
-            joins = (
-                f"INNER JOIN {join_table.name} {join_table.ref} ON {join_table.ref}.{self.__class_name}_{REG}_id = {self.__reg_table}.id"
-                for join_table in self.__inner_join_tables
-            )
-            inner_join_stmt = " ".join(joins)
-
-            # add time-related conditions to EVERY table
-            for join_table in self.__inner_join_tables:
-                additional_conditions.append(
-                    self.__overlap_condition_from_range(
-                        fully_qualifying_var_name=f"({join_table.ref}.{VIRKNING})."
-                        f"timeperiod",
-                        start=self.__virkning_fra,
-                        end=self.__virkning_til,
-                    )
-                )
 
         # build the WHERE statement, as it will be non-empty
         deleted_cycle_code = f"'{Livscyklus.SLETTET.value}'::livscykluskode"
-        used_conditions = [  # don't include deleted in search
-            f"({self.__reg_table}.{REG}).livscykluskode != {deleted_cycle_code}"
+
+        conditions = [  # don't include deleted in search
+            f"({self.__reg_table}.{REG}).livscykluskode != {deleted_cycle_code}",
+            *self.__conditions,
         ]
 
-        if self.__conditions:
-            used_conditions += self.__conditions
+        where_stmt = "\nWHERE " + "\n  AND ".join(conditions)
 
-        if additional_conditions:
-            used_conditions += additional_conditions
-
-        if self.__relation_conditions:
-            for conditions in self.__relation_conditions.values():
-                used_conditions.append(" (" + " OR ".join(conditions) + ")")
-
-        where_stmt = "WHERE " + " AND ".join(used_conditions)
-
-        return f"{select_from_stmt} {inner_join_stmt} {where_stmt}"
+        return f"{select_from_stmt} {where_stmt}"
 
     def get_query(self) -> str:
         """
