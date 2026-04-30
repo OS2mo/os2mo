@@ -4,6 +4,7 @@ import logging
 from collections.abc import Awaitable
 from collections.abc import Callable
 from typing import Any
+from typing import cast
 from uuid import uuid4
 
 import structlog
@@ -14,6 +15,7 @@ from starlette_context import request_cycle_context
 from structlog.contextvars import bound_contextvars
 from structlog.types import EventDict
 from structlog.types import Processor
+from uvicorn._types import WWWScope
 from uvicorn.protocols.utils import get_path_with_query_string
 
 from mora.config import get_settings
@@ -40,7 +42,8 @@ def gen_accesslog_middleware() -> Callable[[Request, Any], Awaitable[Response]]:
             response = await call_next(request)
 
         status_code = response.status_code
-        path = get_path_with_query_string(request.scope)
+        path = get_path_with_query_string(cast(WWWScope, request.scope))
+        assert request.client is not None
         client_host = request.client.host
         client_port = request.client.port
         http_method = request.method
