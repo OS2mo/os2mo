@@ -218,6 +218,10 @@ ignore_errors = false
 module = "mora.service.itsystem"
 ignore_errors = false
 
+[[tool.mypy.overrides]]
+module = "mora.service.facet"
+ignore_errors = false
+
 [tool.ruff.lint]
 extend-select = ["I"]
 

@@ -255,6 +255,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             type_obj = await facet.get_one_class(
                 c, address_type_uuid, only_primary_uuid=only_primary_uuid
             )
+            assert type_obj is not None
             scope = util.checked_get(type_obj, "scope", "", required=True)
 
             handler = await base.get_handler_for_scope(scope).from_request(data)
