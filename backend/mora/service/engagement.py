@@ -107,10 +107,12 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
 
     async def prepare_edit(self, req: dict):
         engagement_uuid = util.get_uuid(req)
+        assert engagement_uuid is not None
 
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = await c.organisationfunktion.get(uuid=engagement_uuid)
+        assert original is not None
 
         # Get org unit uuid for validation purposes
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
@@ -118,7 +120,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         # Get employee uuid for validation purposes
         employee_uuid = mapping.USER_FIELD.get_uuid(original)
 
-        data = util.checked_get(req, "data", {}, required=True)
+        data: dict = util.checked_get(req, "data", {}, required=True)
         new_from, new_to = util.get_validities(data)
 
         try:
@@ -172,7 +174,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             update_fields.append(
                 (
                     mapping.JOB_FUNCTION_FIELD,
-                    {"uuid": data.get(mapping.JOB_FUNCTION).get("uuid")},
+                    {"uuid": data[mapping.JOB_FUNCTION].get("uuid")},
                 )
             )
 
@@ -180,7 +182,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             update_fields.append(
                 (
                     mapping.ORG_FUNK_TYPE_FIELD,
-                    {"uuid": data.get(mapping.ENGAGEMENT_TYPE).get("uuid")},
+                    {"uuid": data[mapping.ENGAGEMENT_TYPE].get("uuid")},
                 )
             )
 
@@ -210,7 +212,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             update_fields.append(
                 (
                     mapping.ORG_FUNK_UDVIDELSER_FIELD,
-                    {**exts, **new_extensions},
+                    {**exts, **new_extensions},  # type: ignore[dict-item]
                 )
             )
 
@@ -253,7 +255,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             )
             return addr_uuid, addr_handler
 
-        addresses = util.checked_get(data, mapping.ADDRESS, [])
+        addresses: list = util.checked_get(data, mapping.ADDRESS, [])
         create_addresses, edit_addresses = partition(
             lambda address_obj: mapping.UUID in address_obj, addresses
         )
