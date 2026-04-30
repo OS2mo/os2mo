@@ -25,10 +25,10 @@ class _AddressHandlerMeta(abc.ABCMeta):
 
 
 class AddressHandler(metaclass=_AddressHandlerMeta):
-    scope = None
-    prefix = None
-    _value = None
-    _value2 = None
+    scope: str | None = None
+    prefix: str | None = None
+    _value: str | None = None
+    _value2: str | None = None
 
     @classmethod
     def _register(cls):
@@ -75,12 +75,12 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
     @property
     def value(self) -> str:
         """The editable value"""
-        return self._value
+        return self._value  # type: ignore[return-value]
 
     @property
     def value2(self) -> str:
         """The editable value"""
-        return self._value2
+        return self._value2  # type: ignore[return-value]
 
     @property
     def name(self):
@@ -123,7 +123,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
           }
         """
         return {
-            "objekttype": self.scope,
+            "objekttype": self.scope,  # type: ignore[dict-item]
             "urn": self.urn,
         }
 

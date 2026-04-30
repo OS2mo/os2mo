@@ -29,10 +29,10 @@ class MultifieldTextAddressHandler(base.AddressHandler):
             quoted_value = urn[len(prefix) :]
             return util.urnunquote(quoted_value)
 
-        urns = [x.get("urn") for x in mapping.ADDRESSES_FIELD(effect)]
-        urns = filter(lambda urn: prefix in urn, urns)
-        urns = map(unquote_value, urns)
-        return first(urns, None)
+        urns: list = [x.get("urn") for x in mapping.ADDRESSES_FIELD(effect)]
+        filtered = filter(lambda urn: prefix in urn, urns)
+        unquoted = map(unquote_value, filtered)
+        return first(unquoted, None)
 
     @classmethod
     async def from_effect(cls, effect):
