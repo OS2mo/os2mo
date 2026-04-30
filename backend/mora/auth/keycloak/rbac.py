@@ -61,6 +61,7 @@ async def _get_employee_uuid_via_it_system(
 
 
 def _get_employee_uuid_via_token(token: Token) -> UUID:
+    assert token.uuid is not None
     return token.uuid
 
 
@@ -73,6 +74,8 @@ async def _get_employee_uuid(token: Token) -> UUID:
     lookup_via_it_system = it_system is not None
 
     if lookup_via_it_system:
+        assert it_system is not None
+        assert token.uuid is not None
         return await _get_employee_uuid_via_it_system(it_system, token.uuid)
     return _get_employee_uuid_via_token(token)
 

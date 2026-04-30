@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-from contextlib import AbstractAsyncContextManager
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import datetime
 
@@ -81,7 +81,7 @@ async def reset_last_tried(session: depends.Session) -> None:
 @asynccontextmanager
 async def superuser_connection(
     lora_settings: LoraSettings,
-) -> AbstractAsyncContextManager[AsyncConnection]:
+) -> AsyncIterator[AsyncConnection]:
     """Managing databases requires a superuser connection."""
     engine = db.create_engine(
         user=lora_settings.db_user,
@@ -235,7 +235,9 @@ async def ensure_empty_db_template(
 
 
 def _get_current_database(session: db.AsyncSession) -> str:
-    return session.get_bind().engine.url.database
+    database = session.get_bind().engine.url.database
+    assert database is not None
+    return database
 
 
 def _get_snapshot_database(session: db.AsyncSession) -> str:

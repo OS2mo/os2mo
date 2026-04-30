@@ -324,21 +324,23 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
     # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)
     app.add_exception_handler(FastAPIHTTPException, fallback_handler)
-    app.add_exception_handler(RequestValidationError, request_validation_handler)
-    app.add_exception_handler(HTTPException, http_exception_handler)
+    app.add_exception_handler(RequestValidationError, request_validation_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore[arg-type]
     app.add_exception_handler(AuthenticationError, get_auth_exception_handler(logger))
-    app.add_exception_handler(AuthorizationError, authorization_exception_handler)
+    app.add_exception_handler(AuthorizationError, authorization_exception_handler)  # type: ignore[arg-type]
 
     # These two exception handlers are for LoRas API:
     @app.exception_handler(OIOException)
     def handle_not_allowed(request: Request, exc: OIOException):
         dct = exc.to_dict()
+        assert exc.status_code is not None
         return JSONResponse(status_code=exc.status_code, content=dct)
 
     @app.exception_handler(DataError)
     def handle_db_error(request: Request, exc: DataError):
-        message = exc.orig.diag.message_primary
-        context = exc.orig.diag.context
+        assert exc.orig is not None
+        message = exc.orig.diag.message_primary  # type: ignore[attr-defined]
+        context = exc.orig.diag.context  # type: ignore[attr-defined]
         return JSONResponse(
             status_code=400, content={"message": message, "context": context}
         )
