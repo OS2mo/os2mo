@@ -20,4 +20,4 @@ async def get_lora_object(
     if not results:
         return None
     _, registration = one(filter_registrations(results, wantregs=False))
-    return registration
+    return registration  # type: ignore[return-value]

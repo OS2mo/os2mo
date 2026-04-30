@@ -243,7 +243,7 @@ async def json_extract_strategy(request: Request) -> set[UUID]:
     uuids = set(await asyncio.gather(*(obj_to_uuid(obj) for obj in payload)))
     uuids.discard(None)
     if uuids:
-        return uuids
+        return uuids  # type: ignore[return-value]
 
     # Renaming, moving or editing the details of the unit itself (i.e.
     # not address details and similar)
