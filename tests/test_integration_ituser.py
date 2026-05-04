@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from typing import Any
+from uuid import UUID
 from uuid import uuid4
 
 import freezegun
@@ -973,6 +975,213 @@ def test_update_ituser_engagements(graphapi_post: GraphAPIPost) -> None:
         "engagement": None,
         "engagements": [],
     }
+
+
+@pytest.fixture
+def update_ituser(
+    graphapi_post: GraphAPIPost,
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation UpdateITUser($input: ITUserUpdateInput!) {
+                ituser_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["ituser_update"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
+def read_ituser_engagement_uuids(
+    graphapi_post: GraphAPIPost,
+) -> Callable[[UUID], list[UUID]]:
+    def inner(ituser_uuid: UUID) -> list[UUID]:
+        query = """
+        query ReadITUser($uuid: UUID!) {
+          itusers(filter: {uuids: [$uuid]}) {
+            objects {
+              current {
+                engagements_responses {
+                  objects { uuid }
+                }
+              }
+            }
+          }
+        }
+        """
+        response = graphapi_post(query, variables={"uuid": str(ituser_uuid)})
+        assert response.errors is None
+        assert response.data
+        objects = one(response.data["itusers"]["objects"])["current"][
+            "engagements_responses"
+        ]["objects"]
+        return sorted(UUID(o["uuid"]) for o in objects)
+
+    return inner
+
+
+@pytest.fixture
+def ituser_engagements_structure(
+    create_org_unit: Callable[[str, UUID | None], UUID],
+    create_person: Callable[[dict[str, Any] | None], UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+    create_itsystem: Callable[[dict[str, Any]], UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    create_ituser: Callable[[dict[str, Any]], UUID],
+) -> dict[str, Any]:
+    org_unit_uuid = create_org_unit("unit", None)
+    person_uuid = create_person(None)
+
+    engagement_type_facet = create_facet(
+        {"user_key": "engagement_type", "validity": {"from": "1900-01-01"}}
+    )
+    engagement_type = create_class(
+        {
+            "facet_uuid": str(engagement_type_facet),
+            "user_key": "engagement_type_1",
+            "name": "Engagement Type 1",
+            "validity": {"from": "1900-01-01"},
+        }
+    )
+
+    job_function_facet = create_facet(
+        {"user_key": "job_function", "validity": {"from": "1900-01-01"}}
+    )
+    job_function = create_class(
+        {
+            "facet_uuid": str(job_function_facet),
+            "user_key": "job_function_1",
+            "name": "Job Function 1",
+            "validity": {"from": "1900-01-01"},
+        }
+    )
+
+    itsystem_uuid = create_itsystem(
+        {"user_key": "AD", "name": "AD", "validity": {"from": "1900-01-01"}}
+    )
+
+    def make_engagement() -> UUID:
+        return create_engagement(
+            {
+                "org_unit": str(org_unit_uuid),
+                "person": str(person_uuid),
+                "engagement_type": str(engagement_type),
+                "job_function": str(job_function),
+                "validity": {"from": "2020-01-01"},
+            }
+        )
+
+    engagement_uuids = sorted([make_engagement(), make_engagement()])
+
+    ituser_uuid = create_ituser(
+        {
+            "user_key": "user@ad",
+            "person": str(person_uuid),
+            "itsystem": str(itsystem_uuid),
+            "validity": {"from": "2020-01-01"},
+        }
+    )
+
+    return {
+        "engagement_uuids": engagement_uuids,
+        "ituser_uuid": ituser_uuid,
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_update_ituser_empty_list_clears_engagements(
+    update_ituser: Callable[[dict[str, Any]], UUID],
+    read_ituser_engagement_uuids: Callable[[UUID], list[UUID]],
+    ituser_engagements_structure: dict[str, Any],
+) -> None:
+    """Sending `engagements: []` on ituser_update must clear all linked engagements."""
+    ituser_uuid = ituser_engagements_structure["ituser_uuid"]
+    engagement_uuids = ituser_engagements_structure["engagement_uuids"]
+
+    update_ituser(
+        {
+            "uuid": str(ituser_uuid),
+            "validity": {"from": "2020-08-01"},
+            "engagements": [str(uuid) for uuid in engagement_uuids],
+        }
+    )
+    assert read_ituser_engagement_uuids(ituser_uuid) == engagement_uuids
+
+    update_ituser(
+        {
+            "uuid": str(ituser_uuid),
+            "validity": {"from": "2020-08-01"},
+            "engagements": [],
+        }
+    )
+    assert read_ituser_engagement_uuids(ituser_uuid) == []
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_update_ituser_subset_drops_unselected_engagements(
+    update_ituser: Callable[[dict[str, Any]], UUID],
+    read_ituser_engagement_uuids: Callable[[UUID], list[UUID]],
+    ituser_engagements_structure: dict[str, Any],
+) -> None:
+    """Sending a subset must drop the engagements not present in the new list."""
+    ituser_uuid = ituser_engagements_structure["ituser_uuid"]
+    keep, drop = ituser_engagements_structure["engagement_uuids"]
+
+    update_ituser(
+        {
+            "uuid": str(ituser_uuid),
+            "validity": {"from": "2020-08-01"},
+            "engagements": [str(keep), str(drop)],
+        }
+    )
+    assert read_ituser_engagement_uuids(ituser_uuid) == sorted([keep, drop])
+
+    update_ituser(
+        {
+            "uuid": str(ituser_uuid),
+            "validity": {"from": "2020-08-01"},
+            "engagements": [str(keep)],
+        }
+    )
+    assert read_ituser_engagement_uuids(ituser_uuid) == [keep]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_update_ituser_partial_update_preserves_engagements(
+    update_ituser: Callable[[dict[str, Any]], UUID],
+    read_ituser_engagement_uuids: Callable[[UUID], list[UUID]],
+    ituser_engagements_structure: dict[str, Any],
+) -> None:
+    """Omitting `engagements` from ituser_update must leave linked engagements alone."""
+    ituser_uuid = ituser_engagements_structure["ituser_uuid"]
+    engagement_uuids = ituser_engagements_structure["engagement_uuids"]
+
+    update_ituser(
+        {
+            "uuid": str(ituser_uuid),
+            "validity": {"from": "2020-08-01"},
+            "engagements": [str(uuid) for uuid in engagement_uuids],
+        }
+    )
+
+    # Update without sending `engagements` at all — the links must remain.
+    update_ituser(
+        {
+            "uuid": str(ituser_uuid),
+            "validity": {"from": "2020-08-01"},
+        }
+    )
+    assert read_ituser_engagement_uuids(ituser_uuid) == engagement_uuids
 
 
 @pytest.mark.integration_test
