@@ -63,7 +63,6 @@ from .filters import EmployeeFilter
 from .filters import EngagementFilter
 from .filters import FacetFilter
 from .filters import ITSystemFilter
-from .filters import ITUserFilter
 from .filters import KLEFilter
 from .filters import LeaveFilter
 from .filters import ManagerFilter
@@ -1179,58 +1178,426 @@ async def it_system_resolver(
     )
 
 
-async def it_user_resolver(
+async def it_user_resolver_query(
     info: MOInfo,
-    filter: ITUserFilter | None = None,
+    filter: OrganisationUnitFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Any:
-    """Resolve it-users."""
-
-    async def _get_itsystem_uuids(info: MOInfo, filter: ITUserFilter) -> list[UUID]:
-        itsystem_filter = filter.itsystem or ITSystemFilter()
-        # Handle deprecated filter
-        extend_uuids(itsystem_filter, filter.itsystem_uuids)
-        return lora_filter(
-            await filter2uuids_func(it_system_resolver, info, itsystem_filter)
-        )
-
-    if filter is None:
-        filter = ITUserFilter()
+) -> Select:
+    # TODO: this function should not be an awaitable
 
     await registration_filter(info, filter)
 
-    kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
-    if (
-        filter.employee is not None and filter.employee is not UNSET
-    ) or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = lora_filter(
-            await get_employee_uuids(info, filter)
-        )
-    if filter.org_units is not None or filter.org_unit is not None:
-        kwargs["tilknyttedeenheder"] = lora_filter(
-            await get_org_unit_uuids(info, filter)
-        )
-    if filter.itsystem_uuids is not None or filter.itsystem is not None:
-        kwargs["tilknyttedeitsystemer"] = await _get_itsystem_uuids(info, filter)
-    if filter.engagement is not None:
-        kwargs["tilknyttedefunktioner"] = lora_filter(
-            await filter2uuids_func(engagement_resolver, info, filter.engagement)
-        )
-    if filter.external_ids is not None:
-        # Early return on empty external_id list
-        if not filter.external_ids:
-            return dict()  # pragma: no cover
-        kwargs["udvidelse_1"] = to_similar(filter.external_ids)
+    async def _get_parent_uuids() -> list[UUID] | Select:
+        org_unit_filter = filter.parent or OrganisationUnitFilter()
+        # Handle deprecated filter
+        # parents vs parent values
+        #       | UNSET | None    | xs
+        # UNSET | noop  | root    | xs
+        # None  | root  | root    | root+xs
+        # ys    | ys    | root+ys | xs+ys
+        #
+        # The above assignment handles all parent=ys cases
+        # Thus we only need to check for parents=xs and Nones
 
-    return await generic_resolver(
-        info.context.dataloaders.ituser_getter,
-        info.context.dataloaders.ituser_loader,
+        # The root unit isn't really an org unit in the database, so we can't
+        # craft a query which will fetch it. We assume the user didn't supply
+        # any other filters if they're looking for the root unit and return its
+        # UUID directly.
+        root_org: UUID = (await info.context.dataloaders.org_loader.load(0)).uuid
+        if filter.parents is None or filter.parent is None:
+            return [root_org]
+        if filter.parents is not UNSET and root_org in filter.parents:
+            if filter.parents != [root_org]:  # pragma: no cover
+                raise ValueError("Cannot filter root org unit with other org units")
+            return [root_org]
+        if (
+            org_unit_filter.uuids is not None and root_org in org_unit_filter.uuids
+        ):  # pragma: no cover
+            if org_unit_filter.uuids != [root_org]:
+                raise ValueError("Cannot filter root org unit with other org units")
+            return [root_org]
+        if filter.parents is not UNSET:
+            extend_uuids(org_unit_filter, filter.parents)
+        return await organisation_unit_resolver_query(
+            info=info,
+            filter=org_unit_filter,
+        )
+
+    async def _get_hierarchy_uuids() -> list[UUID]:
+        class_filter = filter.hierarchy or ClassFilter()
+        # Handle deprecated filter
+        extend_uuids(class_filter, filter.hierarchies)
+        return lora_filter(await filter2uuids_func(class_resolver, info, class_filter))
+
+    def _get_registration_time() -> datetime | SQLNOW:
+        if (
+            cursor is not None
+            and filter.registration_time
+            and filter.registration_time != cursor.registration_time
+        ):
+            raise ValueError("Cannot change registration_time during pagination")
+
+        if cursor is not None:
+            return tz_isodate(cursor.registration_time)
+        if filter.registration_time:
+            return tz_isodate(filter.registration_time)
+        return func.now()
+
+    def _registrering() -> ColumnElement:
+        return and_(
+            OrganisationEnhedRegistrering.lifecycle != cast("Slettet", LivscyklusKode),
+            OrganisationEnhedRegistrering.registrering_period.contains(
+                _get_registration_time()
+            ),
+        )
+
+    def _gyldighed() -> ColumnElement:
+        return OrganisationEnhedRegistrering.id.in_(
+            select(
+                OrganisationEnhedTilsGyldighed.organisationenhed_registrering_id
+            ).where(
+                OrganisationEnhedTilsGyldighed.gyldighed == "Aktiv",
+                _virkning(OrganisationEnhedTilsGyldighed),
+            )
+        )
+
+    def _virkning(cls: type[HasValidity]) -> ColumnElement:
+        start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
+        return cls.virkning_period.overlaps(TimestamptzRange(start, end))
+
+    query = (
+        select(
+            distinct(OrganisationEnhedRegistrering.organisationenhed_id),
+        )
+        .where(
+            _registrering(),
+            _gyldighed(),
+        )
+        .order_by(
+            OrganisationEnhedRegistrering.organisationenhed_id,
+        )
+    )
+
+    if filter.engagement is not None:
+        # TODO: This should be reimplemented in SQL; #60285
+        # NOTE: Local import to avoid cyclic references
+        from .response import Response
+        from .response import validity_resolver
+
+        engagement_uuids = await engagement_resolver(info, filter.engagement)
+        engagement_responses = [
+            Response(model=EngagementRead, uuid=uuid) for uuid in engagement_uuids
+        ]
+        # NOTE: We have to set start != UNSET to invoke the new temporality behavior
+        # TODO: Remove this code when the new temporality behavior is the default
+        start = unset2date(filter.engagement.from_date)
+        end = filter.engagement.to_date
+
+        engagement_validities = await asyncio.gather(
+            *[
+                validity_resolver(root=response, info=info, start=start, end=end)
+                for response in engagement_responses
+            ]
+        )
+        org_unit_uuids = {
+            engagement_validity.org_unit_uuid
+            for engagement_validity in flatten(engagement_validities)
+        }
+        extend_uuids(filter, list(org_unit_uuids))
+
+    # UUIDs
+    if filter.uuids is not None:
+        query = query.where(
+            OrganisationEnhedRegistrering.organisationenhed_id.in_(filter.uuids)
+        )
+
+    # User keys
+    if filter.user_keys is not None:
+        query = query.where(
+            OrganisationEnhedRegistrering.id.in_(
+                select(
+                    OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
+                ).where(
+                    OrganisationEnhedAttrEgenskaber.brugervendtnoegle.in_(
+                        filter.user_keys
+                    ),
+                    _virkning(OrganisationEnhedAttrEgenskaber),
+                )
+            )
+        )
+
+    # Name
+    if filter.names is not UNSET and filter.names is not None:
+        query = query.where(
+            OrganisationEnhedRegistrering.id.in_(
+                select(
+                    OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
+                ).where(
+                    OrganisationEnhedAttrEgenskaber.enhedsnavn.in_(filter.names),
+                    _virkning(OrganisationEnhedAttrEgenskaber),
+                )
+            )
+        )
+
+    # Parents
+    if filter.parent is not UNSET or filter.parents is not UNSET:
+        parent_uuids = await _get_parent_uuids()
+        query = query.where(
+            OrganisationEnhedRegistrering.id.in_(
+                select(
+                    OrganisationEnhedRelation.organisationenhed_registrering_id
+                ).where(
+                    OrganisationEnhedRelation.rel_type
+                    == cast("overordnet", OrganisationEnhedRelationKode),
+                    OrganisationEnhedRelation.rel_maal_uuid.in_(parent_uuids),
+                    _virkning(OrganisationEnhedRelation),
+                )
+            )
+        )
+
+    # Hierarchies
+    if filter.hierarchy is not None or filter.hierarchies is not None:
+        # TODO: _get_hierarchy_uuids should not be an awaitable
+        hierarchy_uuids = await _get_hierarchy_uuids()
+        query = query.where(
+            OrganisationEnhedRegistrering.id.in_(
+                select(
+                    OrganisationEnhedRelation.organisationenhed_registrering_id
+                ).where(
+                    OrganisationEnhedRelation.rel_type
+                    == cast("opmærkning", OrganisationEnhedRelationKode),
+                    OrganisationEnhedRelation.rel_maal_uuid.in_(hierarchy_uuids),
+                    _virkning(OrganisationEnhedRelation),
+                )
+            )
+        )
+
+    # Descendant
+    if filter.descendant is not UNSET or filter.subtree is not UNSET:
+        # Find all matching children and then recursively find their parents.
+        if (
+            filter.descendant is not UNSET and filter.subtree is not UNSET
+        ):  # pragma: no cover
+            raise ValueError("Cannot use both `descendant` and `subtree` filter")
+        org_unit_filter = (
+            filter.descendant or filter.subtree or OrganisationUnitFilter()
+        )
+        base_leafs = await organisation_unit_resolver_query(
+            info=info,
+            filter=org_unit_filter,
+        )
+        leafs = (
+            select(
+                OrganisationEnhedRegistrering.organisationenhed_id,
+            )
+            .where(OrganisationEnhedRegistrering.organisationenhed_id.in_(base_leafs))
+            .cte(recursive=True)
+        )
+        parents = (
+            select(
+                OrganisationEnhedRelation.rel_maal_uuid,
+            )
+            .join(
+                OrganisationEnhedRegistrering,
+            )
+            .where(
+                _registrering(),
+            )
+            .join(
+                leafs,
+                and_(
+                    OrganisationEnhedRelation.rel_type
+                    == cast("overordnet", OrganisationEnhedRelationKode),
+                    OrganisationEnhedRegistrering.organisationenhed_id
+                    == leafs.c.organisationenhed_id,
+                    _virkning(OrganisationEnhedRelation),
+                ),
+            )
+        )
+        ancestors = leafs.union(parents)
+        query = query.where(
+            OrganisationEnhedRegistrering.organisationenhed_id.in_(
+                select(ancestors.c.organisationenhed_id)
+            )
+        )
+
+    # Child
+    if filter.child is None:
+        # Find parents having no children whatsoever
+        query = query.where(
+            ~exists(
+                # An org-unit has children iff it is referred to by `rel_maal_uuid`
+                # in an `overordnet` type relation within OrganisationEnhedRelation
+                # This selects all active parent relations
+                select(OrganisationEnhedRelation.rel_maal_uuid)
+                .where(
+                    _registrering(),
+                    _virkning(OrganisationEnhedRelation),
+                    OrganisationEnhedRelation.rel_type
+                    == cast("overordnet", OrganisationEnhedRelationKode),
+                    OrganisationEnhedRelation.rel_maal_uuid
+                    == OrganisationEnhedRegistrering.organisationenhed_id,
+                )
+                .correlate(OrganisationEnhedRegistrering)
+            )
+        )
+    elif filter.child is not UNSET:
+        # Find parents having one of the provided children as a direct child
+        base_query = await organisation_unit_resolver_query(
+            info=info, filter=filter.child
+        )
+        query = query.where(
+            # An org-unit is a parent to one of our provided children iff its
+            # UUID is pointed to by `rel_maal_uuid` in an `overordnet` type
+            # relation within OrganisationEnhedRelation
+            OrganisationEnhedRegistrering.organisationenhed_id.in_(
+                # This selects all active parent relations for our children
+                select(OrganisationEnhedRelation.rel_maal_uuid)
+                .join(OrganisationEnhedRegistrering)
+                .where(
+                    _registrering(),
+                    _virkning(OrganisationEnhedRelation),
+                    OrganisationEnhedRelation.rel_type
+                    == cast("overordnet", OrganisationEnhedRelationKode),
+                    OrganisationEnhedRegistrering.organisationenhed_id.in_(base_query),
+                )
+            )
+        )
+
+    # Ancestor
+    if filter.ancestor is not UNSET:
+        # Find all matching parents and then recursively find their children.
+        org_unit_filter = filter.ancestor or OrganisationUnitFilter()
+        base_query = await organisation_unit_resolver_query(
+            info=info,
+            filter=org_unit_filter,
+        )
+        base = (
+            select(
+                OrganisationEnhedRegistrering.organisationenhed_id,
+            )
+            .where(OrganisationEnhedRegistrering.organisationenhed_id.in_(base_query))
+            .cte(recursive=True)
+        )
+        children = (
+            select(
+                OrganisationEnhedRegistrering.organisationenhed_id,
+            )
+            .join(
+                OrganisationEnhedRelation,
+            )
+            .where(
+                _registrering(),
+                _virkning(OrganisationEnhedRelation),
+            )
+            .join(
+                base,
+                and_(
+                    OrganisationEnhedRelation.rel_type
+                    == cast("overordnet", OrganisationEnhedRelationKode),
+                    OrganisationEnhedRelation.rel_maal_uuid
+                    == base.c.organisationenhed_id,
+                ),
+            )
+        )
+        descendants = base.union(children)
+        query = query.where(
+            OrganisationEnhedRegistrering.organisationenhed_id.in_(
+                select(descendants.c.organisationenhed_id)
+            )
+        )
+
+    # Query search
+    if filter.query:
+        search_phrase = util.query_to_search_phrase(filter.query)
+
+        clauses = [
+            OrganisationEnhedRegistrering.id.in_(
+                select(
+                    OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
+                ).where(
+                    or_(
+                        OrganisationEnhedAttrEgenskaber.brugervendtnoegle.ilike(
+                            search_phrase
+                        ),
+                        OrganisationEnhedAttrEgenskaber.enhedsnavn.ilike(search_phrase),
+                    ),
+                    _virkning(OrganisationEnhedAttrEgenskaber),
+                )
+            ),
+        ]
+
+        if len(filter.query) > UUID_SEARCH_MIN_PHRASE_LENGTH:
+            clauses.append(
+                cast(OrganisationEnhedRegistrering.organisationenhed_id, Text).ilike(
+                    search_phrase
+                )
+            )
+
+        query = query.where(or_(*clauses))
+
+    # Pagination. Must be done here since the generic_resolver (lora) does not support
+    # filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
+
+    return query
+
+
+async def it_user_resolver(
+    info: MOInfo,
+    filter: OrganisationUnitFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve organisation units."""
+    if filter is None:
+        filter = OrganisationUnitFilter()
+
+    query = await organisation_unit_resolver_query(
         info=info,
         filter=filter,
         limit=limit,
         cursor=cursor,
-        **kwargs,
+    )
+
+    # Execute
+    session: AsyncSession = info.context.session
+    result = await session.execute(query)
+    uuids = [row[0] for row in result]
+
+    # See lora.py:fetch()'s is_paged
+    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    if not uuids and is_paged:
+        # There may be multiple LoRa fetches in one GraphQL request, so this
+        # cannot be refactored into always overwriting the value.
+        context["lora_page_out_of_range"] = True
+
+    access_log(
+        session,
+        "filter_orgunits",
+        "OrganisationEnhed",
+        {
+            "filter": filter,
+            "limit": limit,
+            "cursor": cursor,
+        },
+        uuids,
+    )
+
+    return await generic_resolver(
+        info.context.dataloaders.org_unit_getter,
+        info.context.dataloaders.org_unit_loader,
+        info=info,
+        filter=BaseFilter(
+            uuids=uuids,
+            from_date=filter.from_date,
+            to_date=filter.to_date,
+            registration_time=filter.registration_time,
+        ),
     )
 
 
