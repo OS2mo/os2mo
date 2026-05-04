@@ -1381,6 +1381,26 @@ def create_ituser(
 
 
 @pytest.fixture
+def update_ituser(
+    graphapi_post: GraphAPIPost,
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation UpdateITUser($input: ITUserUpdateInput!) {
+                ituser_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["ituser_update"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
 def create_kle(
     graphapi_post: GraphAPIPost, root_org: UUID
 ) -> Callable[[dict[str, Any]], UUID]:
