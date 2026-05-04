@@ -168,7 +168,7 @@ def _get_sessionmaker(request: Request) -> async_sessionmaker:  # pragma: no cov
     return request.app.state.sessionmaker
 
 
-_DB_SESSION_CONTEXT_KEY = "db_session"
+_DB_SESSION_CONTEXT_KEY = "session"
 
 
 async def transaction_per_request(request: Request):
