@@ -1,6 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import re
+from collections.abc import Callable
+from typing import Any
+from uuid import UUID
 
 import freezegun
 import pytest
@@ -1667,6 +1670,149 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
         "ituser_uuid": ituser2_uuid,
         "ituser": [ituser2],
     }
+
+
+@pytest.fixture
+def read_address_ituser_uuid(
+    graphapi_post: GraphAPIPost,
+) -> Callable[[UUID], UUID | None]:
+    def inner(address_uuid: UUID) -> UUID | None:
+        query = """
+        query ReadAddress($uuid: [UUID!]) {
+          addresses(filter: { uuids: $uuid }) {
+            objects {
+              current {
+                ituser_response {
+                  uuid
+                }
+              }
+            }
+          }
+        }
+        """
+        response = graphapi_post(query, variables={"uuid": [str(address_uuid)]})
+        assert response.errors is None
+        assert response.data
+        ituser_response = response.data["addresses"]["objects"][0]["current"][
+            "ituser_response"
+        ]
+        return UUID(ituser_response["uuid"]) if ituser_response else None
+
+    return inner
+
+
+@pytest.fixture
+def address_ituser_structure(
+    create_person: Callable[[dict[str, Any] | None], UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+    create_itsystem: Callable[[dict[str, Any]], UUID],
+    create_ituser: Callable[[dict[str, Any]], UUID],
+) -> dict[str, UUID]:
+    person_uuid = create_person(None)
+
+    address_type_facet = create_facet(
+        {"user_key": "employee_address_type", "validity": {"from": "1900-01-01"}}
+    )
+    address_type = create_class(
+        {
+            "facet_uuid": str(address_type_facet),
+            "user_key": "Email",
+            "name": "Email",
+            "scope": "EMAIL",
+            "validity": {"from": "1900-01-01"},
+        }
+    )
+
+    itsystem_uuid = create_itsystem(
+        {"user_key": "AD", "name": "AD", "validity": {"from": "1900-01-01"}}
+    )
+    ituser_uuid = create_ituser(
+        {
+            "user_key": "AD123",
+            "person": str(person_uuid),
+            "itsystem": str(itsystem_uuid),
+            "validity": {"from": "2020-01-01"},
+        }
+    )
+
+    return {
+        "person_uuid": person_uuid,
+        "address_type": address_type,
+        "ituser_uuid": ituser_uuid,
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_update_address_explicit_none_clears_ituser(
+    create_address: Callable[[dict[str, Any]], UUID],
+    update_address: Callable[[dict[str, Any]], UUID],
+    read_address_ituser_uuid: Callable[[UUID], UUID | None],
+    address_ituser_structure: dict[str, UUID],
+) -> None:
+    """Sending `ituser: null` on address_update must clear the relation."""
+
+    ituser_uuid = address_ituser_structure["ituser_uuid"]
+    address_type = address_ituser_structure["address_type"]
+
+    address_uuid = create_address(
+        {
+            "value": "user@example.com",
+            "address_type": str(address_type),
+            "person": str(address_ituser_structure["person_uuid"]),
+            "ituser": str(ituser_uuid),
+            "validity": {"from": "2020-01-01"},
+        }
+    )
+    assert read_address_ituser_uuid(address_uuid) == ituser_uuid
+
+    update_address(
+        {
+            "uuid": str(address_uuid),
+            "value": "new@example.com",
+            "address_type": str(address_type),
+            "ituser": None,
+            "validity": {"from": "2021-01-01"},
+        }
+    )
+    assert read_address_ituser_uuid(address_uuid) is None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_update_address_partial_update_preserves_ituser(
+    create_address: Callable[[dict[str, Any]], UUID],
+    update_address: Callable[[dict[str, Any]], UUID],
+    read_address_ituser_uuid: Callable[[UUID], UUID | None],
+    address_ituser_structure: dict[str, UUID],
+) -> None:
+    """Omitting `ituser` from address_update must leave the relation alone."""
+
+    ituser_uuid = address_ituser_structure["ituser_uuid"]
+    address_type = address_ituser_structure["address_type"]
+
+    address_uuid = create_address(
+        {
+            "value": "user@example.com",
+            "address_type": str(address_type),
+            "person": str(address_ituser_structure["person_uuid"]),
+            "ituser": str(ituser_uuid),
+            "validity": {"from": "2020-01-01"},
+        }
+    )
+    assert read_address_ituser_uuid(address_uuid) == ituser_uuid
+
+    # Update without sending `ituser` at all — the link must remain.
+    update_address(
+        {
+            "uuid": str(address_uuid),
+            "value": "new@example.com",
+            "address_type": str(address_type),
+            "validity": {"from": "2021-01-01"},
+        }
+    )
+    assert read_address_ituser_uuid(address_uuid) == ituser_uuid
 
 
 @pytest.mark.integration_test
