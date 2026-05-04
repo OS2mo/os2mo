@@ -231,7 +231,13 @@ class AddressUpdate(AddressUpsert):
         data_dict = super().to_handler_dict()
         data_dict["value"] = self.value
         data_dict["address_type"] = gen_uuid(self.address_type)
-        return {k: v for k, v in data_dict.items() if v is not None}
+        # PATCH semantics for ituser: only touch the relation if it was
+        # explicitly set on the input. Omit-and-leave-alone is signalled by
+        # the input layer not passing `ituser` to this model, so it doesn't
+        # appear in __fields_set__.
+        if "ituser" not in self.__fields_set__:
+            data_dict.pop("it", None)
+        return {k: v for k, v in data_dict.items() if (v is not None) or k == "it"}
 
 
 class AddressTerminate(ValidityTerminate):

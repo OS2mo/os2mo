@@ -158,15 +158,44 @@ class AddressTerminateInput:
     """input model for terminating addresses."""
 
 
-@strawberry.experimental.pydantic.input(
-    model=AddressUpdate, fields=list(all_fields(AddressUpdate) - {"employee"})
-)
+@strawberry.input
 class AddressUpdateInput:
     """input model for updating addresses."""
 
+    uuid: UUID
+    validity: RAValidityInput
+
+    user_key: str | None = None
+    value: str | None = None
+    address_type: UUID | None = None
+    visibility: UUID | None = None
+
+    org_unit: UUID | None = None
+    person: UUID | None = None
     employee: UUID | None = strawberry.field(
-        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
+        default=None,
+        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
+    engagement: UUID | None = None
+    ituser: UUID | None = UNSET
+
+    def to_pydantic(self) -> AddressUpdate:
+        kwargs = {
+            "uuid": self.uuid,
+            "validity": self.validity.to_pydantic(),
+            "user_key": self.user_key,
+            "value": self.value,
+            "address_type": self.address_type,
+            "visibility": self.visibility,
+            "org_unit": self.org_unit,
+            "person": self.person,
+            "employee": self.employee,
+            "engagement": self.engagement,
+        }
+        # ONLY ituser is passed conditionally to support PATCH semantics
+        if self.ituser is not UNSET:
+            kwargs["ituser"] = self.ituser
+        return AddressUpdate(**kwargs)
 
 
 # Associations
