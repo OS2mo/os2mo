@@ -9,6 +9,7 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from ..graphapi.middleware import is_graphql
 from ..triggers import Trigger
 from ..util import ensure_list
 from . import facet
@@ -215,15 +216,23 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             )
 
         if mapping.IT in data:
-            update_fields.append(
-                (
-                    mapping.ASSOCIATED_FUNCTION_FIELD,
-                    {
-                        "uuid": util.get_mapping_uuid(data, mapping.IT),
-                        mapping.OBJECTTYPE: mapping.IT,
-                    },
+            if is_graphql() and util.get_mapping_uuid(data, mapping.IT) is None:
+                # GraphQL-only: empty uuid + urn is the LoRa idiom for
+                # clearing a relation (same shape as service/manager.py for
+                # engagement clearing).
+                update_fields.append(
+                    (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": "", "urn": ""})
                 )
-            )
+            else:
+                update_fields.append(
+                    (
+                        mapping.ASSOCIATED_FUNCTION_FIELD,
+                        {
+                            "uuid": util.get_mapping_uuid(data, mapping.IT),
+                            mapping.OBJECTTYPE: mapping.IT,
+                        },
+                    )
+                )
 
         try:
             attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()

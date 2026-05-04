@@ -162,23 +162,60 @@ class AddressTerminateInput:
     """input model for terminating addresses."""
 
 
-@strawberry.experimental.pydantic.input(model=AddressUpdate)
+@strawberry.input
 class AddressUpdateInput:
     """input model for updating addresses."""
 
-    uuid: strawberry.auto
-    org_unit: strawberry.auto
-    person: strawberry.auto
-    engagement: strawberry.auto
-    ituser: strawberry.auto
-    visibility: strawberry.auto
-    validity: strawberry.auto
-    user_key: strawberry.auto
-    value: strawberry.auto
-    address_type: strawberry.auto
-    employee: UUID | None = strawberry.field(
-        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
+    uuid: UUID = strawberry.field(description="UUID of the address we want to update.")
+    org_unit: UUID | None = strawberry.field(
+        default=None, description="UUID for the related org unit."
     )
+    person: UUID | None = strawberry.field(
+        default=None, description="UUID for the related person."
+    )
+    employee: UUID | None = strawberry.field(
+        default=None,
+        description="UUID for the related person.",
+        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
+    )
+    engagement: UUID | None = strawberry.field(
+        default=None, description="UUID for the related engagement."
+    )
+    ituser: UUID | None = strawberry.field(
+        default=UNSET, description="UUID for the related ituser."
+    )
+    visibility: UUID | None = strawberry.field(
+        default=None, description="Visibility for the address."
+    )
+    validity: RAValidityInput = strawberry.field(
+        description="Validity range for the org-unit."
+    )
+    user_key: str | None = strawberry.field(
+        default=None, description="User key of the address. If None, defaults to value"
+    )
+    value: str | None = strawberry.field(
+        default=None, description="The actual address value."
+    )
+    address_type: UUID | None = strawberry.field(
+        default=None, description="Type of the address."
+    )
+
+    def to_pydantic(self) -> AddressUpdate:
+        kwargs = {
+            "uuid": self.uuid,
+            "validity": self.validity.to_pydantic(),
+            "user_key": self.user_key,
+            "value": self.value,
+            "address_type": self.address_type,
+            "visibility": self.visibility,
+            "org_unit": self.org_unit,
+            "person": self.person,
+            "employee": self.employee,
+            "engagement": self.engagement,
+        }
+        if self.ituser is not UNSET:
+            kwargs["ituser"] = self.ituser
+        return AddressUpdate(**kwargs)
 
 
 # Associations
