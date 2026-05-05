@@ -286,23 +286,6 @@ Release Keycloak version:
     - <<: *if-merge-request
     - !reference [".docs:rules:deploy-master-docs", rules]
 
-Export GQL Schema:
-  stage: docs
-  extends:
-    - .docs:rules:build-docs
-    - .variables:mo
-  needs:
-    - Build OS2mo
-  image: $IMAGE_SHA
-  variables:
-    OUT: $CI_PROJECT_DIR/docs/src/tech-docs/graphql/voyager.html
-    QUERY_EXPORT_DIR: "/tmp"
-  script:
-    - python docs/schema_to_voyager.py
-  artifacts:
-    paths:
-      - $OUT
-
 
 Export Changelog:
   extends:
@@ -318,7 +301,6 @@ Export Changelog:
   extends:
     - .docs:rules:build-docs
   needs:
-    - Export GQL Schema
     - Export Changelog
   image: python:3.10
   variables:
