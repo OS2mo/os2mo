@@ -17,7 +17,7 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     POETRY_VERSION="1.3.2" \
     POETRY_HOME=/opt/poetry \
-    ALEMBIC_CONFIG=/app/alembic/alembic.ini
+    ALEMBIC_CONFIG=/app/alembic.ini
 
 # https://www.redhat.com/en/blog/user-flag-rootless-containers:
 #
@@ -62,6 +62,7 @@ RUN python3 -m venv $VIRTUAL_ENV \
 # Copy and install code
 COPY LICENSE .
 COPY README.md .
+COPY alembic.ini ./alembic.ini
 COPY docker ./docker
 COPY alembic ./alembic
 COPY alembic_helpers ./alembic_helpers
