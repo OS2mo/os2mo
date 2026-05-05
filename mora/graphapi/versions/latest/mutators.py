@@ -52,6 +52,22 @@ from .classes import create_class
 from .classes import delete_class
 from .classes import terminate_class
 from .classes import update_class
+from .collections import KLE
+from .collections import Address
+from .collections import Association
+from .collections import Class
+from .collections import Employee
+from .collections import Engagement
+from .collections import Facet
+from .collections import ITSystem
+from .collections import ITUser
+from .collections import Leave
+from .collections import Manager
+from .collections import Organisation
+from .collections import OrganisationUnit
+from .collections import Owner
+from .collections import RelatedUnit
+from .collections import RoleBinding
 from .collections.utils import to_paged_uuids
 from .employee import create_employee
 from .employee import terminate_employee
@@ -199,22 +215,6 @@ from .response import Response
 from .role import create_rolebinding
 from .role import terminate_rolebinding
 from .role import update_rolebinding
-from .schema import KLE
-from .schema import Address
-from .schema import Association
-from .schema import Class
-from .schema import Employee
-from .schema import Engagement
-from .schema import Facet
-from .schema import ITSystem
-from .schema import ITUser
-from .schema import Leave
-from .schema import Manager
-from .schema import Organisation
-from .schema import OrganisationUnit
-from .schema import Owner
-from .schema import RelatedUnit
-from .schema import RoleBinding
 
 logger = logging.getLogger(__name__)
 

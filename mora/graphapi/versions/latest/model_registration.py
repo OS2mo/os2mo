@@ -12,27 +12,27 @@ from typing import TypeVar
 
 import strawberry
 
+from .collections import KLE
+from .collections import Address
+from .collections import Association
+from .collections import Class
+from .collections import Employee
+from .collections import Engagement
+from .collections import Facet
+from .collections import ITSystem
+from .collections import ITUser
+from .collections import Leave
+from .collections import Manager
+from .collections import OrganisationUnit
+from .collections import Owner
+from .collections import RelatedUnit
+from .collections import RoleBinding
 from .moobject import MOObject
 from .permissions import IsAuthenticatedPermission
 from .registrationbase import RegistrationBase
 from .response import HasUUIDModel
 from .response import current_resolver
 from .response import validity_resolver
-from .schema import KLE
-from .schema import Address
-from .schema import Association
-from .schema import Class
-from .schema import Employee
-from .schema import Engagement
-from .schema import Facet
-from .schema import ITSystem
-from .schema import ITUser
-from .schema import Leave
-from .schema import Manager
-from .schema import OrganisationUnit
-from .schema import Owner
-from .schema import RelatedUnit
-from .schema import RoleBinding
 
 P = ParamSpec("P")
 R = TypeVar("R", covariant=True)

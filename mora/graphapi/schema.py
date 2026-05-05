@@ -25,6 +25,9 @@ from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.version import Version
 from mora.graphapi.versions.latest.actor import SpecialActor
 from mora.graphapi.versions.latest.actor import UnknownActor
+from mora.graphapi.versions.latest.collections import DARAddress
+from mora.graphapi.versions.latest.collections import DefaultAddress
+from mora.graphapi.versions.latest.collections import MultifieldAddress
 from mora.graphapi.versions.latest.model_registration import AddressRegistration
 from mora.graphapi.versions.latest.model_registration import AssociationRegistration
 from mora.graphapi.versions.latest.model_registration import ClassRegistration
@@ -44,9 +47,6 @@ from mora.graphapi.versions.latest.model_registration import RelatedUnitRegistra
 from mora.graphapi.versions.latest.model_registration import RoleBindingRegistration
 from mora.graphapi.versions.latest.mutators import Mutation
 from mora.graphapi.versions.latest.query import Query
-from mora.graphapi.versions.latest.schema import DARAddress
-from mora.graphapi.versions.latest.schema import DefaultAddress
-from mora.graphapi.versions.latest.schema import MultifieldAddress
 from mora.graphapi.versions.latest.types import CPRType
 from mora.log import canonical_gql_context
 from mora.util import CPR
