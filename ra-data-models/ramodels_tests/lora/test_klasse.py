@@ -59,6 +59,8 @@ class TestKlasse:
         assert Klasse.from_simplified_fields(**simp_fields_dict)
 
     def test_fixture(self):
-        content = Path("ramodels_tests/fixture/lora/klasse.json").read_text()
+        content = (
+            Path(__file__).parent.parent / "fixture/lora/klasse.json"
+        ).read_text()
         payload = json.loads(content)
         assert KlasseRead(**payload)

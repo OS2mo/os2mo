@@ -56,6 +56,8 @@ class TestOrganisation:
         assert Organisation.from_simplified_fields(**simp_fields_dict)
 
     def test_fixture(self):
-        content = Path("ramodels_tests/fixture/lora/organisation.json").read_text()
+        content = (
+            Path(__file__).parent.parent / "fixture/lora/organisation.json"
+        ).read_text()
         payload = json.loads(content)
         assert OrganisationRead(**payload)
