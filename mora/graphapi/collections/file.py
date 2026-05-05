@@ -9,8 +9,8 @@ import strawberry
 
 from mora import db
 from mora.db import AsyncSession
+from mora.graphapi.context import MOInfo
 
-from ....context import MOInfo
 from ..models import FileStore
 
 

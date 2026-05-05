@@ -30,9 +30,9 @@ from mora.graphapi.gmodels.mo.details import LeaveRead
 from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.graphapi.gmodels.mo.details import OwnerRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
+from mora.graphapi.middleware import with_graphql_dates
 from mora.service import org
 
-from ...middleware import with_graphql_dates
 from .graphql_utils import LoadKey
 from .models import AddressRead
 from .models import ClassRead

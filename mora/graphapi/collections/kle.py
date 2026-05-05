@@ -11,8 +11,8 @@ import strawberry
 from mora.graphapi.fields import Metadata
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import KLERead
+from mora.graphapi.version import Version as GraphQLVersion
 
-from ....version import Version as GraphQLVersion
 from ..lazy import LazyClass
 from ..lazy import LazyOrganisationUnit
 from ..models import ClassRead

@@ -22,8 +22,8 @@ from mora.db import BrugerRelation
 from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
-from mora.graphapi.versions.latest.paged import CursorType
-from mora.graphapi.versions.latest.paged import LimitType
+from mora.graphapi.paged import CursorType
+from mora.graphapi.paged import LimitType
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 from mora.service.autocomplete.shared import get_at_date_sql
 from mora.service.autocomplete.shared import read_sqlalchemy_result

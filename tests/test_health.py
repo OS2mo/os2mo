@@ -5,7 +5,7 @@ from aiohttp import ClientError
 from fastapi.testclient import TestClient
 from starlette.status import HTTP_204_NO_CONTENT
 
-from mora.graphapi.versions.latest import health
+from mora.graphapi import health
 
 
 @pytest.mark.integration_test

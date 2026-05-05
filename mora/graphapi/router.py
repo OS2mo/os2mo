@@ -15,13 +15,13 @@ from mora import db
 from mora import depends
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import token_getter
+from mora.graphapi.access_log import get_access_log_loaders
+from mora.graphapi.actor import get_actor_loaders
 from mora.graphapi.custom_router import CustomGraphQLRouter
+from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import LATEST_VERSION
 from mora.graphapi.version import Version
-from mora.graphapi.versions.latest.access_log import get_access_log_loaders
-from mora.graphapi.versions.latest.actor import get_actor_loaders
-from mora.graphapi.versions.latest.dataloaders import get_loaders
 
 from .context import MOContext
 from .context import MOLoaders

@@ -21,13 +21,13 @@ from strawberry.dataloader import DataLoader
 
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
+from mora.graphapi.events import EventToken
 from mora.graphapi.gmodels.mo import OrganisationRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
+from mora.graphapi.models import AddressRead
 from mora.graphapi.schema import get_schema
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.version import LATEST_VERSION
-from mora.graphapi.versions.latest.events import EventToken
-from mora.graphapi.versions.latest.models import AddressRead
 
 ORG_QUERY = "query { org { uuid } }"
 ORG_UNIT_QUERY = "query { org_units { objects { uuid } } }"

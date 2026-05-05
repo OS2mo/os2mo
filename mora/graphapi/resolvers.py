@@ -46,15 +46,15 @@ from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationEnhedRelation
 from mora.db import OrganisationEnhedRelationKode
 from mora.db import OrganisationEnhedTilsGyldighed
+from mora.graphapi.context import MOInfo
+from mora.graphapi.custom_schema import get_version
 from mora.graphapi.gmodels.base import tz_isodate
 from mora.graphapi.gmodels.mo.details import EngagementRead
+from mora.graphapi.middleware import with_graphql_dates
+from mora.graphapi.version import Version
 from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 
-from ...context import MOInfo
-from ...custom_schema import get_version
-from ...middleware import with_graphql_dates
-from ...version import Version
 from .filters import AddressFilter
 from .filters import AssociationFilter
 from .filters import BaseFilter

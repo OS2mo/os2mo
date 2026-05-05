@@ -12,6 +12,7 @@ from mora import db
 from mora.access_log import access_log
 from mora.db import AsyncSession
 from mora.graphapi.context import MOInfo
+from mora.graphapi.fields import Metadata
 from mora.graphapi.gmodels.mo.details.association import AssociationRead
 from mora.graphapi.gmodels.mo.details.engagement import EngagementRead
 from mora.graphapi.gmodels.mo.details.it_system import ITSystemRead
@@ -23,9 +24,8 @@ from mora.graphapi.gmodels.mo.details.owner import OwnerRead
 from mora.graphapi.gmodels.mo.details.related_unit import RelatedUnitRead
 from mora.graphapi.gmodels.mo.employee import EmployeeRead
 from mora.graphapi.gmodels.mo.organisation_unit import OrganisationUnitRead
+from mora.graphapi.version import Version as GraphQLVersion
 
-from ...fields import Metadata
-from ...version import Version as GraphQLVersion
 from .access_log import AccessLog
 from .access_log import access_log_resolver
 from .actor import Myself

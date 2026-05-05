@@ -15,8 +15,8 @@ from strawberry.types.unset import UnsetType
 from mora.db import events
 from mora.graphapi.gmodels.mo import OpenValidity as RAOpenValidity
 from mora.graphapi.gmodels.mo import Validity as RAValidity
+from mora.graphapi.gmodels.mo._shared import UUIDBase
 
-from ...gmodels.mo._shared import UUIDBase
 from .events import EventTokenType
 from .events import ListenerFilter
 from .models import AddressCreate

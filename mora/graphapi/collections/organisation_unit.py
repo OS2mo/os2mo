@@ -3,7 +3,6 @@
 """Strawberry types describing the MO graph - Organisation Unit."""
 
 from textwrap import dedent
-from typing import TYPE_CHECKING
 from typing import Annotated
 from uuid import UUID
 
@@ -20,9 +19,9 @@ from mora.graphapi.gmodels.mo.details import KLERead
 from mora.graphapi.gmodels.mo.details import LeaveRead
 from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
+from mora.graphapi.version import Version as GraphQLVersion
 from mora.service import org
 
-from ....version import Version as GraphQLVersion
 from ..filters import ManagerFilter
 from ..filters import OrganisationUnitFilter
 from ..filters import OwnerFilter
@@ -66,9 +65,6 @@ from .utils import to_list
 from .utils import to_only
 from .utils import to_paged_response
 from .utils import to_response
-
-if TYPE_CHECKING:
-    pass
 
 
 @strawberry.experimental.pydantic.type(

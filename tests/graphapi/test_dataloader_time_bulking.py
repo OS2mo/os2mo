@@ -10,10 +10,10 @@ from uuid import UUID
 import pytest
 from more_itertools import one
 
+from mora.graphapi.dataloaders import load_mo
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
-from mora.graphapi.versions.latest.dataloaders import load_mo
-from mora.graphapi.versions.latest.graphql_utils import LoadKey
-from mora.graphapi.versions.latest.models import ClassRead
+from mora.graphapi.graphql_utils import LoadKey
+from mora.graphapi.models import ClassRead
 from tests.conftest import GraphAPIPost
 
 
@@ -137,9 +137,7 @@ def test_dataloader_time_bulking(
     # The spy mocks behave exactly like underlying function (i.e. the load_mo function),
     # only it allows us to assert which calls have been made through the mock.
     load_mo_spy = MagicMock(wraps=load_mo)
-    monkeypatch.setattr(
-        "mora.graphapi.versions.latest.dataloaders.load_mo", load_mo_spy
-    )
+    monkeypatch.setattr("mora.graphapi.dataloaders.load_mo", load_mo_spy)
 
     # Verify that our mocks did not change the functionality of the code
     org_unit_type_map_mocked = read_org_unit_types()

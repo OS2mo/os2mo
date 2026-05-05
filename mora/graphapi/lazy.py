@@ -7,7 +7,7 @@ from typing import Annotated
 
 import strawberry
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .actor import Actor
     from .collections.address import Address
     from .collections.association import Association

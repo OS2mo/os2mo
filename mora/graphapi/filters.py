@@ -10,7 +10,7 @@ from uuid import UUID
 import strawberry
 from strawberry import UNSET
 
-from mora.graphapi.versions.latest.models import FileStore
+from mora.graphapi.models import FileStore
 from mora.util import CPR
 
 

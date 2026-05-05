@@ -11,10 +11,10 @@ from mora import exceptions
 from mora import lora
 from mora import mapping
 from mora import util
+from mora.graphapi.version import Version
 from mora.service.orgunit import OrgUnitRequestHandler
 from mora.service.validation import validator
 
-from ...version import Version
 from .inputs import OrganisationUnitCreateInput
 from .inputs import OrganisationUnitUpdateInput
 from .inputs import strip_none

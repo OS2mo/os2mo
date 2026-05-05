@@ -9,10 +9,10 @@ from uuid import UUID
 import pytest
 from strawberry.types import Info
 
-from mora.graphapi.versions.latest.filters import BaseFilter
-from mora.graphapi.versions.latest.resolvers import CursorType
-from mora.graphapi.versions.latest.resolvers import LimitType
-from mora.graphapi.versions.latest.seed_resolver import strip_args
+from mora.graphapi.filters import BaseFilter
+from mora.graphapi.resolvers import CursorType
+from mora.graphapi.resolvers import LimitType
+from mora.graphapi.seed_resolver import strip_args
 
 
 async def dummy_resolver(

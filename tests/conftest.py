@@ -50,8 +50,8 @@ from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import token_getter
 from mora.config import get_settings
 from mora.graphapi.gmodels.mo import Validity as GValidity
+from mora.graphapi.permissions import ALL_PERMISSIONS
 from mora.graphapi.version import LATEST_VERSION
-from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
 from mora.mapping import ADMIN
 from mora.service.org import ConfiguredOrganisation
 from mora.testing import copy_database

@@ -16,7 +16,7 @@ from mora import exceptions
 from mora import mapping
 from mora import triggers
 from mora import util
-from mora.graphapi.versions.latest.health import register_health_endpoint
+from mora.graphapi.health import register_health_endpoint
 
 logger = get_logger()
 

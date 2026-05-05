@@ -14,6 +14,7 @@ from more_itertools import only
 from strawberry import UNSET
 
 from mora.graphapi.context import MOInfo
+from mora.graphapi.fields import Metadata
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import AssociationRead
@@ -25,12 +26,11 @@ from mora.graphapi.gmodels.mo.details import LeaveRead
 from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.graphapi.gmodels.mo.details import OwnerRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
+from mora.graphapi.version import Version as GraphQLVersion
 from mora.util import NEGATIVE_INFINITY
 from mora.util import POSITIVE_INFINITY
 from mora.util import now
 
-from ...fields import Metadata
-from ...version import Version as GraphQLVersion
 from .graphql_utils import LoadKey
 from .models import AddressRead
 from .models import ClassRead

@@ -19,8 +19,8 @@ from mora.auth.middleware import MISSING_UUID_ON_TOKEN_UUID
 from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from mora.auth.middleware import UNABLE_TO_PARSE_TOKEN_UUID
 from mora.db import Actor as ActorTable
+from mora.graphapi.context import MOInfo
 
-from ...context import MOInfo
 from .events import Listener
 from .events import Namespace
 from .events import listener_resolver

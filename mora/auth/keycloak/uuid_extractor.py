@@ -14,8 +14,8 @@ from structlog import get_logger
 from mora import common
 from mora.exceptions import ErrorCodes
 from mora.exceptions import HTTPException
-from mora.graphapi.versions.latest.permissions import CollectionPermissionType
-from mora.graphapi.versions.latest.permissions import Collections
+from mora.graphapi.permissions import CollectionPermissionType
+from mora.graphapi.permissions import Collections
 from mora.mapping import ASSOCIATED_ORG_UNITS_FIELD
 from mora.mapping import ASSOCIATION
 from mora.mapping import CHILDREN

@@ -7,7 +7,7 @@ from uuid import UUID
 
 import pytest
 
-from mora.graphapi.versions.latest.actor import HardcodedActor
+from mora.graphapi.actor import HardcodedActor
 
 from ..conftest import GraphAPIPost
 from ..conftest import SetAuth

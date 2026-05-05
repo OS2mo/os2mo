@@ -5,9 +5,9 @@ from uuid import UUID
 from fastapi.encoders import jsonable_encoder
 
 from mora import mapping
+from mora.mapping import RequestType
 from mora.service.address import AddressRequestHandler
 
-from ....mapping import RequestType
 from .models import AddressCreate
 from .models import AddressTerminate
 from .models import AddressUpdate

@@ -7,7 +7,7 @@ import pytest
 from fastapi.encoders import jsonable_encoder
 from strawberry import UNSET
 
-from mora.graphapi.versions.latest.resolvers import get_date_interval
+from mora.graphapi.resolvers import get_date_interval
 from tests.conftest import GraphAPIPost
 
 

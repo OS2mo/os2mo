@@ -27,7 +27,7 @@ from mora.auth.middleware import set_authenticated_user
 from mora.db import AccessLogOperation
 from mora.db import AccessLogRead
 from mora.db import AsyncSession
-from mora.graphapi.versions.latest.access_log import AccessLogModel
+from mora.graphapi.access_log import AccessLogModel
 from mora.mapping import ADMIN
 from mora.util import DEFAULT_TIMEZONE
 from tests.conftest import BRUCE_UUID

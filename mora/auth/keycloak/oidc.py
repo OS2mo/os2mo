@@ -20,7 +20,7 @@ from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.legacy import validate_session
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
-from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
+from mora.graphapi.permissions import ALL_PERMISSIONS
 
 logger = get_logger()
 

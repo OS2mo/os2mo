@@ -8,11 +8,11 @@ from mora import common
 from mora import lora
 from mora import mapping
 from mora import util
+from mora.mapping import RequestType
 from mora.service import handlers
 from mora.service.employee import EmployeeRequestHandler
 from mora.triggers import Trigger
 
-from ....mapping import RequestType
 from .models import EmployeeCreate
 from .models import EmployeeTerminate
 from .models import EmployeeUpdate

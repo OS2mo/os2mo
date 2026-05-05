@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import pytest
 
-from mora.graphapi.versions.latest.types import Cursor
+from mora.graphapi.types import Cursor
 from mora.util import now
 from tests.conftest import GraphAPIPost
 

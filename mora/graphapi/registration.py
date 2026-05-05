@@ -27,9 +27,9 @@ from mora.db import KlasseRegistrering
 from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRegistrering
+from mora.graphapi.context import MOInfo
 from mora.util import parsedatetime
 
-from ...context import MOInfo
 from .filters import RegistrationFilter
 from .paged import CursorType
 from .paged import LimitType

@@ -13,7 +13,7 @@ from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 
 from mora import mapping
-from mora.graphapi.versions.latest.models import EmployeeUpdate
+from mora.graphapi.models import EmployeeUpdate
 
 from ..conftest import GraphAPIPost
 

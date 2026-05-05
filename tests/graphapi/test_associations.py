@@ -11,7 +11,7 @@ from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 from pydantic import parse_obj_as
 
-from mora.graphapi.versions.latest.models import AssociationCreate
+from mora.graphapi.models import AssociationCreate
 from tests.conftest import GQLResponse
 
 from ..conftest import GraphAPIPost

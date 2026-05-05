@@ -27,6 +27,8 @@ from mora.db import events
 from mora.db.events import METRIC_ACKNOWLEDGED_EVENTS
 from mora.db.events import add_event
 from mora.graphapi.context import MOInfo
+from mora.graphapi.custom_schema import get_version
+from mora.graphapi.fields import Metadata
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import AssociationRead
@@ -38,10 +40,8 @@ from mora.graphapi.gmodels.mo.details import LeaveRead
 from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.graphapi.gmodels.mo.details import OwnerRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
+from mora.graphapi.version import Version
 
-from ...custom_schema import get_version
-from ...fields import Metadata
-from ...version import Version
 from .address import create_address
 from .address import terminate_address
 from .address import update_address
