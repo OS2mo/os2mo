@@ -56,7 +56,6 @@ services:
       - ./pyproject.toml:/app/pyproject.toml:z
       - ./backend:/app/backend:z
       - ./.pytest_cache:/app/.pytest_cache:z
-      - ./.cov-report:/tmp/.cov-report:rw,z
       - ./dev-environment/wait-for-rabbitmq.sh:/wait-for-rabbitmq.sh:z
     entrypoint: ["/wait-for-rabbitmq.sh"]
     command: ["./docker/start.sh"]
