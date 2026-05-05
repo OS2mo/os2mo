@@ -26,7 +26,6 @@ from zoneinfo import ZoneInfo
 
 import dateutil.parser
 import dateutil.tz
-from ramodels.base import to_parsable_timestamp
 from starlette_context import context
 from starlette_context import request_cycle_context
 from starlette_context.errors import ContextDoesNotExistError
@@ -34,6 +33,7 @@ from structlog import get_logger
 
 from mora.graphapi.middleware import get_version_from_url
 from mora.graphapi.version import Version
+from ramodels.base import to_parsable_timestamp
 
 from . import config
 from . import exceptions

@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 import pytest
 from fastapi.testclient import TestClient
+
 from mora import lora
 from mora.auth.middleware import LORA_USER_UUID
-
 from tests.conftest import BRUCE_UUID
 
 

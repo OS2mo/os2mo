@@ -6,10 +6,10 @@ from uuid import UUID
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
-from mora import lora
-from mora.config import Settings
 from more_itertools import one
 
+from mora import lora
+from mora.config import Settings
 from tests.cases import assert_registrations_equal
 
 from . import util

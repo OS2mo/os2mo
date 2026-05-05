@@ -6,9 +6,10 @@ from typing import Any
 from uuid import UUID
 
 import pytest
-from mora.db import AsyncSession
 from more_itertools import one
 from sqlalchemy import event
+
+from mora.db import AsyncSession
 
 from .conftest import GraphAPIPost
 

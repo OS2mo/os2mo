@@ -4,13 +4,14 @@ from unittest import mock
 from uuid import uuid4
 
 import pytest
+from parameterized import parameterized
+
 from mora import mapping
 from mora.exceptions import HTTPException
 from mora.handler.impl.association import AssociationReader
 from mora.service.association import ITAssociationPrimaryGroupValidation
 from mora.service.association import ITAssociationUniqueGroupValidation
 from mora.service.association import _ITAssociationGroupValidation
-from parameterized import parameterized
 
 
 class TestITAssociationGroupValidationBase:

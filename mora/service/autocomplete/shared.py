@@ -2,12 +2,13 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import date
 
+from sqlalchemy.engine.result import Result
+from sqlalchemy.engine.row import Row
+
 from mora import util
 from mora.exceptions import ErrorCodes
 from mora.exceptions import HTTPException
 from mora.service.address_handler.email import EmailAddressHandler
-from sqlalchemy.engine.result import Result
-from sqlalchemy.engine.row import Row
 
 UUID_SEARCH_MIN_PHRASE_LENGTH = 7
 

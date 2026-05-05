@@ -5,9 +5,9 @@ from typing import Any
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
-from mora import lora
 from more_itertools import one
 
+from mora import lora
 from tests.cases import assert_registrations_equal
 
 userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"

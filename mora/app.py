@@ -14,9 +14,6 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastramqpi.ramqp import AMQPSystem
 from more_itertools import only
-from oio_rest.config import get_settings as lora_get_settings
-from oio_rest.custom_exceptions import OIOException
-from oio_rest.views import create_lora_router
 from prometheus_client import Gauge
 from prometheus_client import Info
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -46,6 +43,9 @@ from mora.request_scoped.query_args_context_plugin import query_args_context
 from mora.service.address_handler.dar import dar_loader_context
 from mora.service.shimmed.meta import meta_router
 from mora.util import now_per_request
+from oio_rest.config import get_settings as lora_get_settings
+from oio_rest.custom_exceptions import OIOException
+from oio_rest.views import create_lora_router
 
 from . import service
 from . import testing

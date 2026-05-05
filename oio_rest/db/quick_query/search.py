@@ -5,9 +5,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
+from more_itertools import flatten
+from sqlalchemy import text
+
 from mora.access_log import access_log
 from mora.db import get_session
-from more_itertools import flatten
 from oio_rest.db import Livscyklus
 from oio_rest.db import to_bool
 from oio_rest.db.quick_query.registration_parsing import VIRKNING
@@ -15,7 +17,6 @@ from oio_rest.db.quick_query.registration_parsing import Attribute
 from oio_rest.db.quick_query.registration_parsing import Relation
 from oio_rest.db.quick_query.registration_parsing import State
 from oio_rest.db.quick_query.registration_parsing import ValueType
-from sqlalchemy import text
 
 RELATION = "relation"
 REG = "registrering"

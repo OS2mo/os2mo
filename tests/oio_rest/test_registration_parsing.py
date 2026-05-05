@@ -3,6 +3,7 @@
 from datetime import datetime
 
 import pytest
+
 from oio_rest.db.db_structure import REAL_DB_STRUCTURE
 from oio_rest.db.quick_query.registration_parsing import Attribute
 from oio_rest.db.quick_query.registration_parsing import Relation

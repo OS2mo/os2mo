@@ -8,12 +8,12 @@ from uuid import UUID
 import pytest
 from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.mo import PayloadUUID
-from mora.config import get_settings
-from mora.testing import EMPTY_DB_TEMPLATE
-from mora.testing import drop_database
 from sqlalchemy.ext.asyncio import AsyncConnection
 from starlette.testclient import TestClient
 
+from mora.config import get_settings
+from mora.testing import EMPTY_DB_TEMPLATE
+from mora.testing import drop_database
 from tests.conftest import GraphAPIPost
 
 

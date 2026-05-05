@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import pytest
+
 from mora.handler.reading import OrgFunkReadingHandler
 from mora.lora import Connector
 

@@ -10,10 +10,10 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from mora.db.events import DEFAULT_PRIORITY
-from mora.mapping import ADMIN
 from more_itertools import one
 
+from mora.db.events import DEFAULT_PRIORITY
+from mora.mapping import ADMIN
 from tests.conftest import BRUCE_UUID
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost

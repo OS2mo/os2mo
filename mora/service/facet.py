@@ -26,9 +26,9 @@ from uuid import uuid4
 from fastapi import APIRouter
 from more_itertools import last
 from more_itertools import one
-from ramodels.mo.class_ import ClassWrite
 
 from mora.request_scoped.bulking import get_lora_object
+from ramodels.mo.class_ import ClassWrite
 
 from .. import common
 from .. import exceptions

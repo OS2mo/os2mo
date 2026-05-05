@@ -9,10 +9,10 @@ from uuid import uuid4
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
-from mora import lora
-from mora import mapping
 from more_itertools import one
 
+from mora import lora
+from mora import mapping
 from tests.cases import assert_registrations_equal
 from tests.util import set_settings_contextmanager
 

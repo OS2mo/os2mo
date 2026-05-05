@@ -7,11 +7,12 @@ from typing import Any
 from uuid import UUID
 
 import pytest
+from strawberry.types import Info
+
 from mora.graphapi.versions.latest.filters import BaseFilter
 from mora.graphapi.versions.latest.resolvers import CursorType
 from mora.graphapi.versions.latest.resolvers import LimitType
 from mora.graphapi.versions.latest.seed_resolver import strip_args
-from strawberry.types import Info
 
 
 async def dummy_resolver(

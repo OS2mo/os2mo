@@ -1,9 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import pytest
+from starlette.testclient import TestClient
+
 from mora.graphapi.version import LATEST_VERSION
 from mora.graphapi.version import Version
-from starlette.testclient import TestClient
 
 
 def test_version_enum_incomparable_to_int() -> None:

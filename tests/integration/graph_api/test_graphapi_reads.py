@@ -7,10 +7,11 @@ from hypothesis import note
 from hypothesis import settings
 from hypothesis import strategies as st
 from hypothesis_graphql import strategies as gql_st
+from more_itertools import all_equal
+
 from mora.graphapi.schema import get_schema
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.version import LATEST_VERSION
-from more_itertools import all_equal
 from tests.conftest import GraphAPIPost
 
 

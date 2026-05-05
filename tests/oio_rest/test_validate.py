@@ -6,6 +6,7 @@ import os.path
 
 import jsonschema
 import pytest
+
 from oio_rest import db
 from oio_rest import klassifikation
 from oio_rest import organisation

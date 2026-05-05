@@ -6,6 +6,7 @@ from unittest.mock import ANY
 from uuid import UUID
 
 import pytest
+
 from mora.graphapi.versions.latest.actor import HardcodedActor
 
 from ..conftest import GraphAPIPost

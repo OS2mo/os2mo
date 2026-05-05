@@ -10,9 +10,9 @@ import pytest
 from fastapi.testclient import TestClient
 from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.mo import PayloadUUID
-from mora.config import get_settings
 from more_itertools import one
 
+from mora.config import get_settings
 from tests.conftest import GraphAPIPost
 
 from .test_events import declare_listener

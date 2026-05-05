@@ -10,12 +10,13 @@ from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
+from psycopg.sql import Literal
+from pytest import MonkeyPatch
+
 from oio_rest import db
 from oio_rest.custom_exceptions import BadRequestException
 from oio_rest.custom_exceptions import DBException
 from oio_rest.custom_exceptions import NotFoundException
-from psycopg.sql import Literal
-from pytest import MonkeyPatch
 
 
 def mock_sql_session(monkeypatch: MonkeyPatch) -> AsyncMock:

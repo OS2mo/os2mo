@@ -8,12 +8,12 @@ from unittest.mock import call
 from uuid import UUID
 
 import pytest
+from more_itertools import one
+
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.versions.latest.dataloaders import load_mo
 from mora.graphapi.versions.latest.graphql_utils import LoadKey
 from mora.graphapi.versions.latest.models import ClassRead
-from more_itertools import one
-
 from tests.conftest import GraphAPIPost
 
 

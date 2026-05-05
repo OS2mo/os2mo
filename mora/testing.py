@@ -6,9 +6,6 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 
 from fastapi import APIRouter
-from oio_rest.config import Settings as LoraSettings
-from oio_rest.config import get_settings as lora_get_settings
-from oio_rest.db.alembic_helpers import run_async_upgrade
 from psycopg.errors import DuplicateDatabase
 from psycopg.errors import UndefinedTable
 from sqlalchemy import text
@@ -24,6 +21,9 @@ from mora import amqp
 from mora import db
 from mora import depends
 from mora.service.org import ConfiguredOrganisation
+from oio_rest.config import Settings as LoraSettings
+from oio_rest.config import get_settings as lora_get_settings
+from oio_rest.db.alembic_helpers import run_async_upgrade
 
 logger = get_logger()
 

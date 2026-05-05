@@ -3,9 +3,9 @@
 from unittest.mock import patch
 
 import pytest
+
 from mora import exceptions
 from mora.service.address_handler.www import WWWAddressHandler
-
 from tests import util
 
 URL_VALUE = "http://www.test.org/"

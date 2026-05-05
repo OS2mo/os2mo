@@ -4,6 +4,14 @@ import asyncio
 from datetime import date
 from uuid import UUID
 
+from sqlalchemy import String
+from sqlalchemy import Text
+from sqlalchemy import cast
+from sqlalchemy.orm import aliased
+from sqlalchemy.sql import func
+from sqlalchemy.sql import select
+from sqlalchemy.sql import union
+
 from mora import config
 from mora import util
 from mora.access_log import access_log
@@ -20,13 +28,6 @@ from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 from mora.service.autocomplete.shared import get_at_date_sql
 from mora.service.autocomplete.shared import read_sqlalchemy_result
 from mora.service.autocomplete.shared import string_to_urn
-from sqlalchemy import String
-from sqlalchemy import Text
-from sqlalchemy import cast
-from sqlalchemy.orm import aliased
-from sqlalchemy.sql import func
-from sqlalchemy.sql import select
-from sqlalchemy.sql import union
 
 
 async def search_employees(

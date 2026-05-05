@@ -10,10 +10,10 @@ from uuid import uuid4
 
 import pytest
 from fastapi.encoders import jsonable_encoder
-from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
-from mora.mapping import ADMIN
 from more_itertools import one
 
+from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
+from mora.mapping import ADMIN
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 

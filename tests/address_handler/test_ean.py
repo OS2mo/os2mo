@@ -3,9 +3,9 @@
 from unittest.mock import patch
 
 import pytest
+
 from mora import exceptions
 from mora.service.address_handler.ean import EANAddressHandler
-
 from tests import util
 
 VALUE_FIXED = "1234567890123"

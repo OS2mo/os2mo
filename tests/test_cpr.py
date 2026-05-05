@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
+
 from mora import mapping
 from mora.config import Settings
 from mora.service.shimmed import cpr as cpr_shim

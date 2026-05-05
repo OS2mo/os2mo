@@ -7,10 +7,10 @@ from uuid import UUID
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
-from mora import lora
-from mora import util as mora_util
 from more_itertools import one
 
+from mora import lora
+from mora import util as mora_util
 from tests.cases import assert_registrations_equal
 from tests.conftest import GraphAPIPost
 

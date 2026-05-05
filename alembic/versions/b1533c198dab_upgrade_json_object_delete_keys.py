@@ -8,8 +8,9 @@ Changed from "json" to "jsonblob". Without this, MO could not run on PostgreSQL
 
 from collections.abc import Sequence
 
-from alembic import op
 from sqlalchemy import text
+
+from alembic import op
 
 revision: str = "b1533c198dab"
 down_revision: str | Sequence[str] | None = "2fa1af1af332"

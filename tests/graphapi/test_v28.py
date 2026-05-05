@@ -4,14 +4,14 @@ from datetime import datetime
 from uuid import UUID
 
 import pytest
+from more_itertools import one
+from sqlalchemy import select
+
 from mora.db import AsyncSession
 from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationEnhedTilsGyldighed
 from mora.graphapi.version import Version
 from mora.util import DEFAULT_TIMEZONE
-from more_itertools import one
-from sqlalchemy import select
-
 from tests.conftest import GraphAPIPost
 
 

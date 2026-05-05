@@ -6,6 +6,7 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
+
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.owner import _get_entity_owners
@@ -17,7 +18,6 @@ from mora.config import Settings
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
 from mora.mapping import EntityType
-
 from tests.test_integration_rbac import ANDERS_AND
 from tests.test_integration_rbac import FEDTMULE
 from tests.test_integration_rbac import mock_auth

@@ -7,13 +7,13 @@ from fastapi import Depends
 from fastapi.encoders import jsonable_encoder
 from more_itertools import first
 from more_itertools import one
-from ramodels.mo.detail import DetailTermination
 
 from mora import mapping
 from mora.auth.keycloak import oidc
 from mora.graphapi.shim import execute_graphql
 from mora.service import handlers
 from mora.service.detail_writing import router as details_router
+from ramodels.mo.detail import DetailTermination
 
 from .errors import handle_gql_error
 

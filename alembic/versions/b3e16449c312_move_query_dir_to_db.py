@@ -6,8 +6,9 @@ import os
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.sql import func
+
+from alembic import op
 
 revision: str = "b3e16449c312"
 down_revision: str | Sequence[str] | None = "f710f6d29a74"

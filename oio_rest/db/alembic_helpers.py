@@ -2,12 +2,13 @@
 # SPDX-License-Identifier: MPL-2.0
 import os
 
-from alembic import command
-from alembic import op
-from alembic.config import Config
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.orm import sessionmaker
+
+from alembic import command
+from alembic import op
+from alembic.config import Config
 
 
 async def run_async_upgrade(async_engine: AsyncEngine) -> None:

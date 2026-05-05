@@ -5,9 +5,9 @@ from typing import Protocol
 from uuid import UUID
 
 import pytest
+
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
-
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 

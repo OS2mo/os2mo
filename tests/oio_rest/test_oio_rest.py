@@ -14,6 +14,7 @@ import pytest
 from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi import Request
+
 from oio_rest import db
 from oio_rest import oio_base
 from oio_rest import organisation
@@ -27,7 +28,6 @@ from oio_rest.oio_base import OIOStandardHierarchy
 from oio_rest.oio_base import _get_args_from_request
 from oio_rest.oio_base import _get_json_from_request
 from oio_rest.oio_base import _process_args
-
 from tests.oio_rest.util import ExtTestCase
 
 CallableReturnType = TypeVar("CallableReturnType")

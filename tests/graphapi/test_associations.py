@@ -8,10 +8,10 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
-from mora.graphapi.versions.latest.models import AssociationCreate
 from more_itertools import one
 from pydantic import parse_obj_as
 
+from mora.graphapi.versions.latest.models import AssociationCreate
 from tests.conftest import GQLResponse
 
 from ..conftest import GraphAPIPost

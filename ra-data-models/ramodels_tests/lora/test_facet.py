@@ -5,9 +5,9 @@ from pathlib import Path
 
 from hypothesis import given
 from hypothesis import strategies as st
+
 from ramodels.lora import Facet
 from ramodels.lora import FacetRead
-
 from ramodels_tests.conftest import from_date_strat
 from ramodels_tests.conftest import to_date_strat
 

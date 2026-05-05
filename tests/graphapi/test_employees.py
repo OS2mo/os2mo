@@ -10,9 +10,10 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from fastapi.encoders import jsonable_encoder
+from more_itertools import one
+
 from mora import mapping
 from mora.graphapi.versions.latest.models import EmployeeUpdate
-from more_itertools import one
 
 from ..conftest import GraphAPIPost
 

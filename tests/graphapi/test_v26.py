@@ -6,9 +6,10 @@ from typing import Any
 import pytest
 from graphql import build_schema
 from graphql import introspection_from_schema
+from more_itertools import one
+
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import Version
-from more_itertools import one
 
 
 @pytest.mark.parametrize(

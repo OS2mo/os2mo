@@ -8,10 +8,10 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
-from mora import util
-from mora.graphapi.shim import execute_graphql
 from more_itertools import one
 
+from mora import util
+from mora.graphapi.shim import execute_graphql
 from tests.conftest import AnotherTransaction
 
 from ..conftest import GraphAPIPost

@@ -10,11 +10,12 @@ from unittest.mock import ANY
 from uuid import UUID
 
 import pytest
-from mora.util import now
 from more_itertools import first
 from more_itertools import last
 from more_itertools import one
 from more_itertools import only
+
+from mora.util import now
 
 from ...conftest import BRUCE_UUID
 from ...conftest import GraphAPIPost

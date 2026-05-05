@@ -11,6 +11,9 @@ from uuid import UUID
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
+from os2mo_http_trigger_protocol import MOTriggerRegister
+from starlette.datastructures import ImmutableMultiDict
+
 from mora import lora
 from mora import mapping
 from mora.config import Settings
@@ -22,9 +25,6 @@ from mora.triggers import Trigger
 from mora.triggers.internal.http_trigger import HTTPTriggerException
 from mora.triggers.internal.http_trigger import register
 from oio_rest.organisation import OrganisationEnhed
-from os2mo_http_trigger_protocol import MOTriggerRegister
-from starlette.datastructures import ImmutableMultiDict
-
 from tests import util
 
 

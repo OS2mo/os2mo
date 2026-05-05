@@ -9,8 +9,9 @@ from typing import Any
 from uuid import UUID
 
 import pytest
-from mora.util import now
 from more_itertools import only
+
+from mora.util import now
 
 from ...conftest import GraphAPIPost
 

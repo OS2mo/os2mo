@@ -13,15 +13,16 @@ from urllib.parse import parse_qsl
 import aioresponses
 import jinja2
 import requests_mock
+from starlette_context import context
+from starlette_context import request_cycle_context
+from strawberry.dataloader import DataLoader
+from yarl import URL
+
 from mora import config
 from mora import lora
 from mora.config import Settings
 from mora.config import get_settings
 from mora.service.address_handler.dar import load_addresses
-from starlette_context import context
-from starlette_context import request_cycle_context
-from strawberry.dataloader import DataLoader
-from yarl import URL
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)

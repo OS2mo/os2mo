@@ -33,15 +33,16 @@ from fastapi import Request
 from fastapi import Response
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
-from oio_rest import custom_exceptions as loraexc
-from oio_rest import klassifikation
-from oio_rest import organisation
-from oio_rest.db import _parse_timestamp
 from sqlalchemy.exc import DataError
 from starlette_context import context
 from starlette_context import request_cycle_context
 from strawberry.dataloader import DataLoader
 from structlog import get_logger
+
+from oio_rest import custom_exceptions as loraexc
+from oio_rest import klassifikation
+from oio_rest import organisation
+from oio_rest.db import _parse_timestamp
 
 from . import config
 from . import exceptions

@@ -6,8 +6,9 @@ from datetime import timezone
 from unittest.mock import AsyncMock
 
 import freezegun
-import oio_rest.custom_exceptions as loraexc
 import pytest
+
+import oio_rest.custom_exceptions as loraexc
 from mora import exceptions
 from mora import lora
 from mora import util as mora_util

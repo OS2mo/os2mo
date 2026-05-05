@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import pytest
+
 from mora import exceptions
 from mora.service.address_handler.uuidaddr import UUIDAddressHandler
 

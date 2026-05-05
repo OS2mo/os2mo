@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from parameterized import parameterized
+
 from mora.lora import ParameterValuesExtractor
 from mora.lora import group_params
-from parameterized import parameterized
 
 
 class TestLoraGroupParams:

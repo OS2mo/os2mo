@@ -7,10 +7,10 @@ from typing import Any
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
-from mora import lora
-from mora.service import orgunit as service_orgunit
 from more_itertools import one
 
+from mora import lora
+from mora.service import orgunit as service_orgunit
 from tests.cases import assert_registrations_equal
 
 from . import util

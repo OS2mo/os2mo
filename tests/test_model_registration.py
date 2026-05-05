@@ -23,10 +23,10 @@ from uuid import UUID
 import pytest
 from graphql import build_schema
 from graphql import introspection_from_schema
-from mora.graphapi.schema import get_schema
-from mora.graphapi.version import LATEST_VERSION
 from more_itertools import one
 
+from mora.graphapi.schema import get_schema
+from mora.graphapi.version import LATEST_VERSION
 from tests.conftest import GraphAPIPost
 
 

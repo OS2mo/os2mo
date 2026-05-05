@@ -2,9 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 from uuid import UUID
 
-from oio_rest import db
-
 from mora import lora
+from oio_rest import db
 
 from .models import ITSystemCreate
 from .models import ITSystemTerminate

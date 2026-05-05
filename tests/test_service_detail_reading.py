@@ -7,9 +7,10 @@ from unittest.mock import patch
 
 import pytest
 from fastapi.encoders import jsonable_encoder
+from strawberry.types import ExecutionResult
+
 from mora.lora import ValidityLiteral
 from mora.service.detail_reading import list_addresses_ou
-from strawberry.types import ExecutionResult
 
 
 @pytest.fixture

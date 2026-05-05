@@ -8,9 +8,9 @@ from uuid import UUID
 from zoneinfo import ZoneInfo
 
 import pytest
-from mora import mapping
 from more_itertools import one
 
+from mora import mapping
 from tests import util
 from tests.conftest import GQLResponse
 from tests.util import dar_loader

@@ -16,7 +16,6 @@ import click
 from fastramqpi.ra_utils.async_to_sync import async_to_sync
 from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.mo import MOAMQPSystem
-from oio_rest.config import get_settings as oio_rest_get_settings
 from sqlalchemy import select
 from sqlalchemy import update
 from structlog import get_logger
@@ -24,6 +23,7 @@ from structlog import get_logger
 from mora.amqp import start_event_generator
 from mora.db import AMQPSubsystem
 from mora.db import create_sessionmaker
+from oio_rest.config import get_settings as oio_rest_get_settings
 
 from . import amqp as amqp_subsystem
 from . import config

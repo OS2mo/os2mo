@@ -6,9 +6,10 @@ from uuid import uuid4
 import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
-from mora.graphapi.gmodels.mo.details import AssociationRead
 from more_itertools import one
 from pydantic import Field
+
+from mora.graphapi.gmodels.mo.details import AssociationRead
 
 from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids

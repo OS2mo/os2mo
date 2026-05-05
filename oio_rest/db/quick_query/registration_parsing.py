@@ -6,6 +6,7 @@ from enum import auto
 from enum import unique
 
 from more_itertools import flatten
+
 from oio_rest.db import db_structure
 from oio_rest.db import get_field_type
 

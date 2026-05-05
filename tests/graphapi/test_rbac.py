@@ -17,6 +17,8 @@ from hypothesis import settings
 from hypothesis import strategies as st
 from hypothesis_graphql import nodes
 from hypothesis_graphql import strategies as gql_st
+from strawberry.dataloader import DataLoader
+
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.graphapi.gmodels.mo import OrganisationRead
@@ -26,7 +28,6 @@ from mora.graphapi.shim import execute_graphql
 from mora.graphapi.version import LATEST_VERSION
 from mora.graphapi.versions.latest.events import EventToken
 from mora.graphapi.versions.latest.models import AddressRead
-from strawberry.dataloader import DataLoader
 
 ORG_QUERY = "query { org { uuid } }"
 ORG_UNIT_QUERY = "query { org_units { objects { uuid } } }"

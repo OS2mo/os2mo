@@ -5,6 +5,8 @@ from uuid import UUID
 
 import pytest
 from fastapi import FastAPI
+from sqlalchemy import select
+
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import token_getter
 from mora.auth.middleware import MISSING_UUID_ON_TOKEN_UUID
@@ -14,8 +16,6 @@ from mora.common import get_connector
 from mora.db import AsyncSession
 from mora.db import FacetRegistrering
 from mora.mapping import ADMIN
-from sqlalchemy import select
-
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth

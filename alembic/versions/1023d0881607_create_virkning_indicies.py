@@ -4,8 +4,9 @@
 
 from collections.abc import Sequence
 
-from alembic import op
 from sqlalchemy import text
+
+from alembic import op
 
 revision: str = "1023d0881607"
 down_revision: str | Sequence[str] | None = "4f4da50669ad"

@@ -6,10 +6,10 @@ from uuid import uuid4
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
-from mora import lora
 from more_itertools import first
 from more_itertools import one
 
+from mora import lora
 from tests.cases import assert_registrations_equal
 from tests.conftest import GraphAPIPost
 

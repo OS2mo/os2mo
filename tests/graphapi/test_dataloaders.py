@@ -4,6 +4,8 @@
 
 import pytest
 from hypothesis import given
+from pytest import MonkeyPatch
+
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import AssociationRead
@@ -18,7 +20,6 @@ from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.graphql_utils import LoadKey
 from mora.graphapi.versions.latest.models import AddressRead
 from mora.graphapi.versions.latest.models import RoleBindingRead
-from pytest import MonkeyPatch
 
 from .strategies import data_with_uuids_strat
 

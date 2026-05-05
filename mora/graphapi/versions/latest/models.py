@@ -9,7 +9,6 @@ from typing import Literal
 from uuid import UUID
 
 import strawberry
-from oio_rest import validate
 from pydantic import Extra
 from pydantic import Field
 from pydantic import root_validator
@@ -34,6 +33,7 @@ from mora.util import NEGATIVE_INFINITY
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from mora.util import to_lora_time
+from oio_rest import validate
 
 logger = logging.getLogger(__name__)
 
