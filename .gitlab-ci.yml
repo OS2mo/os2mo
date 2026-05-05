@@ -74,7 +74,7 @@ include:
       - gitlab-ci-templates/common/no-interrupt-meta.v1.yml
       - gitlab-ci-templates/common/conventional-commits.v1.yml
       - gitlab-ci-templates/common/conventional-commits-changelog-meta.v1.yml
-      - gitlab-ci-templates/python/pytest-meta.v1.yml
+      - gitlab-ci-templates/python/pytest-meta.v2.yml
       - gitlab-ci-templates/common/docker-build-meta.v2.yml
       - gitlab-ci-templates/common/docker-release-meta.v1.yml
       - gitlab-ci-templates/common/config-updater-salt.v1.yml
@@ -169,7 +169,7 @@ Fetch OS2mo Source Date:
       when: never
     - when: on_success
 
-Build OS2mo:
+Build:
   needs:
     - Fetch OS2mo Source Date
   extends:
@@ -218,10 +218,7 @@ Integration-test:
     - .test-base
     - .pytest
     - .variables:mo
-  needs:
-    - Build OS2mo
   parallel: 8
-  image: $IMAGE_SHA
   variables:
     PYTEST_ADDOPTS: "-m 'integration_test' -p no:randomly --cov=oio_rest"  # TODO: enable randomness
   services:
