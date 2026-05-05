@@ -58,7 +58,7 @@ def add_exception_extension(error: GraphQLError) -> StrawberryGraphQLError:
     extensions = {}
     if isinstance(error.original_error, HTTPException):
         extensions["error_context"] = jsonable_encoder(error.original_error.detail)
-        # Log errors like http_exception_handler in backend/mora/app.py
+        # Log errors like http_exception_handler in mora/app.py
         settings = config.get_settings()
         if not settings.is_production():
             logger.info(

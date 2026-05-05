@@ -65,7 +65,6 @@ instance/
 
 # documentation
 /docs/out/
-/docs/backend/
 
 # PyBuilder
 target/
@@ -83,10 +82,8 @@ celerybeat-schedule
 .env
 
 # virtualenv
-/venv/
-/backend/venv-*/
-/backend/venv/
-/docs/venv/
+.venv/
+venv/
 
 # Spyder project settings
 .spyderproject

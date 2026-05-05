@@ -13,7 +13,7 @@ filter as that behavior is already extensively tested within the
 This file only tests equivalence for `Facet` as the code path is identical for all
 registration types, as they all utilize the same generic 'ResponseRegistration' class.
 
-A very similar test-suite is found in backend/tests/test_model_registration.py
+A very similar test-suite is found in tests/test_model_registration.py
 """
 
 from collections.abc import Callable

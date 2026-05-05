@@ -76,7 +76,7 @@ def test_queries(data, field, graphapi_post: GraphAPIPost):
         gql_st.query(str(get_schema(LATEST_VERSION)), fields=[field]).filter(
             lambda query: (
                 "from_date: null" not in query
-                # For details, see: backend/tests/graphapi/test_registration.py
+                # For details, see: tests/graphapi/test_registration.py
                 and "registrations" not in query
                 and "query" not in query
                 and "registration" not in query

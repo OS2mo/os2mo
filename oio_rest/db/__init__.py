@@ -564,7 +564,7 @@ def repair_relation_nul_til_mange(objects: list[dict[str, Any]]) -> None:
             ]
 
 
-    According to the schema validation in backend/oio_rest/validate.py
+    According to the schema validation in oio_rest/validate.py
     :_generate_relationer(), a 'nul_til_mange' relation should have exactly one of
       - uuid (UUID)
       - urn (URN)

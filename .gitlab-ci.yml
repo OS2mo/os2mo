@@ -52,7 +52,12 @@ variables:
 # Backend patterns #
 ####################
 .backend-patterns: &backend-patterns
-  - backend/**/*
+  - alembic/**/*
+  - alembic_helpers/**/*
+  - mora/**/*
+  - oio_rest/**/*
+  - ramodels/**/*
+  - tests/**/*
   - docker/**/*
   - Dockerfile
   - gitlab-ci-templates/**/*
@@ -196,7 +201,6 @@ Build OS2mo Keycloak:
 .test-base:
   stage: test
   variables:
-    PYPROJECT_PREFIX: "backend/"
     HYPOTHESIS_PROFILE: "ci"
   rules:
     - <<: *if-merge-request

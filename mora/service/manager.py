@@ -214,7 +214,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
         # TODO: Coverage is broken, we are not entirely sure why, but unfortunately we
         #       do not have time to fix it, so instead we are just marking this branch
         #       as no cover, even though it is tested and hit by the tests within:
-        #       * backend/tests/test_integration_manager_engagement.py
+        #       * tests/test_integration_manager_engagement.py
         # Greppable reference: 9dc6fe95-ac75-470d-b990-cd0a872d9b89
         if mapping.ENGAGEMENT in data:  # pragma: no cover
             engagement_uuid = util.get_mapping_uuid(data, mapping.ENGAGEMENT)

@@ -483,7 +483,7 @@ class EmployeeUpsert(UUIDBase):
     )
 
     seniority: datetime.date | None = Field(
-        # OBS: backend/mora/service/employee.py:96 for why type is datetime.date
+        # OBS: mora/service/employee.py:96 for why type is datetime.date
         None,
         description="New seniority value of the employee.",
     )

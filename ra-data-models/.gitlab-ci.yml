@@ -16,7 +16,7 @@
 ####################
 .backend-patterns-ra-data-models: &backend-patterns-ra-data-models
   - ra-data-models/**/*
-  - backend/ramodels/**/*
+  - ramodels/**/*
   - .gitlab-ci.yml
   - gitlab-ci-templates/*
 
@@ -31,7 +31,7 @@ variables:
   needs: []
   before_script:
     - cd ra-data-models
-    - cp -r ../backend/ramodels ramodels
+    - cp -r ../ramodels ramodels
     - pip install --no-cache-dir poetry==${POETRY_VERSION}
     - poetry install
   artifacts:
@@ -45,7 +45,7 @@ variables:
   needs: [Install ramodels]
   before_script:
     - cd ra-data-models
-    - cp -r ../backend/ramodels ramodels
+    - cp -r ../ramodels ramodels
     - source .venv/bin/activate
 
 # Jobs
@@ -89,7 +89,7 @@ Check coverage ramodels:
   needs: [Test ramodels]
   before_script:
     - cd ra-data-models
-    - cp -r ../backend/ramodels ramodels
+    - cp -r ../ramodels ramodels
     - pip install coverage
     - cd ..
     - coverage combine

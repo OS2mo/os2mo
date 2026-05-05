@@ -15,11 +15,9 @@ LABEL org.opencontainers.image.source="https://github.com/OS2mo/os2mo"
 # https://docs.python.org/3/using/cmdline.html#cmdoption-u
 ENV PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
-    # We don't install the backend as a package, so we add it to PYTHONPATH.
-    PYTHONPATH=/app:/app/backend \
     POETRY_VERSION="1.3.2" \
     POETRY_HOME=/opt/poetry \
-    ALEMBIC_CONFIG=/app/backend/alembic.ini
+    ALEMBIC_CONFIG=/app/alembic/alembic.ini
 
 # https://www.redhat.com/en/blog/user-flag-rootless-containers:
 #
@@ -55,18 +53,22 @@ VOLUME /queries
 # Install project dependencies in an isolated environment
 ENV VIRTUAL_ENV=/poetry-env \
     PATH="/poetry-env/bin:$POETRY_HOME/bin:$PATH"
-WORKDIR /app/backend/
-COPY poetry.lock pyproject.toml /app/backend/
+WORKDIR /app
+COPY poetry.lock pyproject.toml ./
 RUN python3 -m venv $VIRTUAL_ENV \
     && poetry install --no-interaction \
     && rm -rf /root/.cache
-WORKDIR /app/
 
-# Copy and install backend code.
+# Copy and install code
 COPY LICENSE .
 COPY README.md .
 COPY docker ./docker
-COPY backend ./backend
+COPY alembic ./alembic
+COPY alembic_helpers ./alembic_helpers
+COPY mora ./mora
+COPY oio_rest ./oio_rest
+COPY ramodels ./ramodels
+COPY tests ./tests
 
 # Run the server as the mora user on port 5000
 USER mora:mora

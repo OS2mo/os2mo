@@ -31,8 +31,8 @@ with the password `alvida`. The GraphQL API explorer (GraphiQL) is available at
 The `-d` flag for `docker compose up` runs the services in the background. To
 see the output of a container, run `docker compose logs <name>`, where `<name>`
 is the name of the service from `docker-compose.yml`. Furthermore, the
-`backend/` directory on the host machine is mounted into the OS2mo backend
-container, which enables automatic reloading when the code is changed.
+code directories on the host machine is mounted into the OS2mo container,
+which enables automatic reloading when the code is changed.
 
 To bring down the stack, run `docker compose down`, which stops the services
 but persists the data. Add the `-v` flag to remove all
