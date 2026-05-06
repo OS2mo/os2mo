@@ -59,6 +59,8 @@ async def ls(session, filter) -> set[str]:
     query = select(_File.name).where(_File.store == filter.file_store.name)
     if filter.file_names:
         query = query.where(_File.name.in_(filter.file_names))
+    if filter.file_name_contains:
+        query = query.where(_File.name.ilike(f"%{filter.file_name_contains}%"))
     return set(await session.scalars(query))
 
 
