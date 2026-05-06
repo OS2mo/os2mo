@@ -106,29 +106,14 @@ any API documentation, rather such API documentation can retrieved over the
 GraphQL protocol by using introspection queries, or by using a development tool,
 which runs these queries on behalf of the user.
 
-OS2mo ships with two such tools, namely the GraphQL Voyager model and GraphiQL
-interactive development environment.
-
-
-### GraphQL Voyager
-
-The GraphQL Voyager is a tool used to interactively explore the OS2mo graph
-model, visually seeing the entities that are available and their relations.
-
-It is integrated with this documentation can be found here:
-[OS2mo | GraphQL Voyager](voyager.html).
-
-It is always updated to show the latest version of the GraphQL interface.
+OS2mo ships with such tool, namely the GraphiQL interactive development
+environment.
 
 ## GraphiQL
 
-The GraphiQL interactive in-browser GraphQL IDE serves a different purpose than
-the GraphQL Voyager, whereas the Voyager is useful in getting an overall feel
-for the interface, the GraphiQL IDE is much more development focused, easing
-integration developers in finding the right queries for their integrations.
-
-It is automatically deployed on all OS2mo instances and can be found by going
-to `https://{{mo_url_here}}/graphql`. When accessing this URL the browser will
+The GraphiQL interactive in-browser GraphQL IDE is automatically deployed on
+all OS2mo instances and can be found by going to
+`https://{{mo_url_here}}/graphql`. When accessing this URL the browser will
 redirect the user to login in Keycloak, to get the appropriate credentials for
 which the developed queries will be run under.
 

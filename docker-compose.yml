@@ -54,9 +54,13 @@ services:
       # For reload
       - ./poetry.lock:/app/poetry.lock:z
       - ./pyproject.toml:/app/pyproject.toml:z
-      - ./backend:/app/backend:z
+      - ./alembic:/app/alembic:z
+      - ./alembic_helpers:/app/alembic_helpers:z
+      - ./mora:/app/mora:z
+      - ./oio_rest:/app/oio_rest:z
+      - ./ramodels:/app/ramodels:z
+      - ./tests:/app/tests:z
       - ./.pytest_cache:/app/.pytest_cache:z
-      - ./.cov-report:/tmp/.cov-report:rw,z
       - ./dev-environment/wait-for-rabbitmq.sh:/wait-for-rabbitmq.sh:z
     entrypoint: ["/wait-for-rabbitmq.sh"]
     command: ["./docker/start.sh"]
@@ -72,7 +76,12 @@ services:
         uid: 52020
         gid: 52020
     volumes:
-      - ./backend:/app/backend:z
+      - ./alembic:/app/alembic:z
+      - ./alembic_helpers:/app/alembic_helpers:z
+      - ./mora:/app/mora:z
+      - ./oio_rest:/app/oio_rest:z
+      - ./ramodels:/app/ramodels:z
+      - ./tests:/app/tests:z
       - ./dev-environment/wait-for-rabbitmq.sh:/wait-for-rabbitmq.sh:z
     entrypoint: ["/wait-for-rabbitmq.sh"]
     command: ["python", "-m", "mora.cli", "amqp", "start"]

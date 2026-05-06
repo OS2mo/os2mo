@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from hypothesis import given
 from hypothesis import strategies as st
+
 from ramodels.mo._shared import EmployeeRef
 from ramodels.mo._shared import EngagementRef
 from ramodels.mo._shared import LeaveType
@@ -11,7 +12,6 @@ from ramodels.mo.details import Leave
 from ramodels.mo.details import LeaveBase
 from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import LeaveWrite
-
 from ramodels_tests.conftest import not_from_regex
 from ramodels_tests.conftest import unexpected_value_error
 

@@ -12,10 +12,10 @@
 ## Testing Instructions
 
 - Write integration tests instead of unit tests, and avoid using mocks.
-- Use fixtures from `backend/tests/conftest.py` when writing tests.
+- Use fixtures from `tests/conftest.py` when writing tests.
 - Use the `empty_db` fixture, rather than the `fixture_db`.
 - Never run `pytest` directly on the host.
-- Always use `docker compose exec mo pytest backend/tests/...` to run tests.
+- Always use `docker compose exec mo pytest tests/...` to run tests.
   This requires starting the development environment first.
 - Never run all tests; it takes too long. Only run relevant tests.
 

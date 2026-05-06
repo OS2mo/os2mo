@@ -51,7 +51,7 @@ the development environment using [pytest](https://docs.pytest.org):
 docker compose exec mo pytest
 
 # Iterate on a single test
-docker compose exec mo pytest backend/tests/graphapi/test_classes.py::test_integration_names_filter
+docker compose exec mo pytest tests/graphapi/test_classes.py::test_integration_names_filter
 ```
 
 ## Integration Development

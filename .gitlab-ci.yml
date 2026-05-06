@@ -52,7 +52,12 @@ variables:
 # Backend patterns #
 ####################
 .backend-patterns: &backend-patterns
-  - backend/**/*
+  - alembic/**/*
+  - alembic_helpers/**/*
+  - mora/**/*
+  - oio_rest/**/*
+  - ramodels/**/*
+  - tests/**/*
   - docker/**/*
   - Dockerfile
   - gitlab-ci-templates/**/*
@@ -69,7 +74,7 @@ include:
       - gitlab-ci-templates/common/no-interrupt-meta.v1.yml
       - gitlab-ci-templates/common/conventional-commits.v1.yml
       - gitlab-ci-templates/common/conventional-commits-changelog-meta.v1.yml
-      - gitlab-ci-templates/python/pytest-meta.v1.yml
+      - gitlab-ci-templates/python/pytest-meta.v2.yml
       - gitlab-ci-templates/common/docker-build-meta.v2.yml
       - gitlab-ci-templates/common/docker-release-meta.v1.yml
       - gitlab-ci-templates/common/config-updater-salt.v1.yml
@@ -164,7 +169,7 @@ Fetch OS2mo Source Date:
       when: never
     - when: on_success
 
-Build OS2mo:
+Build:
   needs:
     - Fetch OS2mo Source Date
   extends:
@@ -196,7 +201,6 @@ Build OS2mo Keycloak:
 .test-base:
   stage: test
   variables:
-    PYPROJECT_PREFIX: "backend/"
     HYPOTHESIS_PROFILE: "ci"
   rules:
     - <<: *if-merge-request
@@ -214,10 +218,7 @@ Integration-test:
     - .test-base
     - .pytest
     - .variables:mo
-  needs:
-    - Build OS2mo
   parallel: 8
-  image: $IMAGE_SHA
   variables:
     PYTEST_ADDOPTS: "-m 'integration_test' -p no:randomly --cov=oio_rest"  # TODO: enable randomness
   services:
@@ -282,23 +283,6 @@ Release Keycloak version:
     - <<: *if-merge-request
     - !reference [".docs:rules:deploy-master-docs", rules]
 
-Export GQL Schema:
-  stage: docs
-  extends:
-    - .docs:rules:build-docs
-    - .variables:mo
-  needs:
-    - Build OS2mo
-  image: $IMAGE_SHA
-  variables:
-    OUT: $CI_PROJECT_DIR/docs/src/tech-docs/graphql/voyager.html
-    QUERY_EXPORT_DIR: "/tmp"
-  script:
-    - python docs/schema_to_voyager.py
-  artifacts:
-    paths:
-      - $OUT
-
 
 Export Changelog:
   extends:
@@ -314,7 +298,6 @@ Export Changelog:
   extends:
     - .docs:rules:build-docs
   needs:
-    - Export GQL Schema
     - Export Changelog
   image: python:3.10
   variables:

@@ -65,7 +65,6 @@ instance/
 
 # documentation
 /docs/out/
-/docs/backend/
 
 # PyBuilder
 target/
@@ -83,10 +82,8 @@ celerybeat-schedule
 .env
 
 # virtualenv
-/venv/
-/backend/venv-*/
-/backend/venv/
-/docs/venv/
+.venv/
+venv/
 
 # Spyder project settings
 .spyderproject
@@ -117,8 +114,6 @@ setup/mora.json
 testcafe-artifacts
 .pytest_cache
 frontend/coverage/
-.cov-report/*
-!.cov-report/.gitkeep
 
 # Local overrides
 docker-compose.override.yml
@@ -129,5 +124,4 @@ frontend/public/keycloak.json
 
 # Docs
 schema.sdl
-voyager.html
 /docs/site/

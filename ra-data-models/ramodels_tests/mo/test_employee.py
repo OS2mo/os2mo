@@ -3,6 +3,7 @@
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
+
 from ramodels.mo._shared import OpenValidity
 from ramodels.mo._shared import OrganisationRef
 from ramodels.mo.details import AddressDetail
