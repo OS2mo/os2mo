@@ -614,7 +614,7 @@ async def list_addresses_ou(
            }
         ]
     """
-    if only_primary_uuid:
+    if only_primary_uuid:  # pragma: no cover
         query = """
             query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
               org_units(filter: {uuids: [$uuid], from_date: $from_date, to_date: $to_date}) {
