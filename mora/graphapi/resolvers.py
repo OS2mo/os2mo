@@ -723,6 +723,60 @@ async def owner_resolver(
     )
 
 
+def _get_registration_time(
+    filter: BaseFilter,
+    cursor: CursorType,
+) -> datetime | SQLNOW:
+    if (
+        cursor is not None
+        and filter.registration_time
+        and filter.registration_time != cursor.registration_time
+    ):
+        raise ValueError("Cannot change registration_time during pagination")
+
+    if cursor is not None:
+        return tz_isodate(cursor.registration_time)
+    if filter.registration_time:
+        return tz_isodate(filter.registration_time)
+    return func.now()
+
+
+def _get_registrering_clause(
+    cls: type[OrganisationEnhedRegistrering | OrganisationFunktionRegistrering],
+    time: datetime | SQLNOW,
+) -> ColumnElement:
+    return and_(
+        cls.lifecycle != cast("Slettet", LivscyklusKode),
+        cls.registrering_period.contains(time),
+    )
+
+
+def _get_virkning_clause(
+    cls: type[HasValidity],
+    filter: BaseFilter,
+) -> ColumnElement:
+    start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
+    return cls.virkning_period.overlaps(TimestamptzRange(start, end))
+
+
+def _get_gyldighed_clause(
+    registrering_cls: type[
+        OrganisationEnhedRegistrering | OrganisationFunktionRegistrering
+    ],
+    gyldighed_cls: type[
+        OrganisationEnhedTilsGyldighed | OrganisationFunktionTilsGyldighed
+    ],
+    filter: BaseFilter,
+) -> ColumnElement:
+    fk_column = getattr(gyldighed_cls, f"{registrering_cls.__tablename__}_id")
+    return registrering_cls.id.in_(
+        select(fk_column).where(
+            gyldighed_cls.gyldighed == "Aktiv",
+            _get_virkning_clause(gyldighed_cls, filter),
+        )
+    )
+
+
 async def organisation_unit_resolver_query(
     info: MOInfo,
     filter: OrganisationUnitFilter,
@@ -777,49 +831,20 @@ async def organisation_unit_resolver_query(
         extend_uuids(class_filter, filter.hierarchies)
         return lora_filter(await filter2uuids_func(class_resolver, info, class_filter))
 
-    def _get_registration_time() -> datetime | SQLNOW:
-        if (
-            cursor is not None
-            and filter.registration_time
-            and filter.registration_time != cursor.registration_time
-        ):
-            raise ValueError("Cannot change registration_time during pagination")
-
-        if cursor is not None:
-            return tz_isodate(cursor.registration_time)
-        if filter.registration_time:
-            return tz_isodate(filter.registration_time)
-        return func.now()
-
-    def _registrering() -> ColumnElement:
-        return and_(
-            OrganisationEnhedRegistrering.lifecycle != cast("Slettet", LivscyklusKode),
-            OrganisationEnhedRegistrering.registrering_period.contains(
-                _get_registration_time()
-            ),
-        )
-
-    def _gyldighed() -> ColumnElement:
-        return OrganisationEnhedRegistrering.id.in_(
-            select(
-                OrganisationEnhedTilsGyldighed.organisationenhed_registrering_id
-            ).where(
-                OrganisationEnhedTilsGyldighed.gyldighed == "Aktiv",
-                _virkning(OrganisationEnhedTilsGyldighed),
-            )
-        )
-
-    def _virkning(cls: type[HasValidity]) -> ColumnElement:
-        start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
-        return cls.virkning_period.overlaps(TimestamptzRange(start, end))
-
     query = (
         select(
             distinct(OrganisationEnhedRegistrering.organisationenhed_id),
         )
         .where(
-            _registrering(),
-            _gyldighed(),
+            _get_registrering_clause(
+                OrganisationEnhedRegistrering,
+                _get_registration_time(filter, cursor),
+            ),
+            _get_gyldighed_clause(
+                OrganisationEnhedRegistrering,
+                OrganisationEnhedTilsGyldighed,
+                filter,
+            ),
         )
         .order_by(
             OrganisationEnhedRegistrering.organisationenhed_id,
@@ -869,7 +894,7 @@ async def organisation_unit_resolver_query(
                     OrganisationEnhedAttrEgenskaber.brugervendtnoegle.in_(
                         filter.user_keys
                     ),
-                    _virkning(OrganisationEnhedAttrEgenskaber),
+                    _get_virkning_clause(OrganisationEnhedAttrEgenskaber, filter),
                 )
             )
         )
@@ -882,7 +907,7 @@ async def organisation_unit_resolver_query(
                     OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
                 ).where(
                     OrganisationEnhedAttrEgenskaber.enhedsnavn.in_(filter.names),
-                    _virkning(OrganisationEnhedAttrEgenskaber),
+                    _get_virkning_clause(OrganisationEnhedAttrEgenskaber, filter),
                 )
             )
         )
@@ -898,7 +923,7 @@ async def organisation_unit_resolver_query(
                     OrganisationEnhedRelation.rel_type
                     == cast("overordnet", OrganisationEnhedRelationKode),
                     OrganisationEnhedRelation.rel_maal_uuid.in_(parent_uuids),
-                    _virkning(OrganisationEnhedRelation),
+                    _get_virkning_clause(OrganisationEnhedRelation, filter),
                 )
             )
         )
@@ -915,7 +940,7 @@ async def organisation_unit_resolver_query(
                     OrganisationEnhedRelation.rel_type
                     == cast("opmærkning", OrganisationEnhedRelationKode),
                     OrganisationEnhedRelation.rel_maal_uuid.in_(hierarchy_uuids),
-                    _virkning(OrganisationEnhedRelation),
+                    _get_virkning_clause(OrganisationEnhedRelation, filter),
                 )
             )
         )
@@ -949,7 +974,10 @@ async def organisation_unit_resolver_query(
                 OrganisationEnhedRegistrering,
             )
             .where(
-                _registrering(),
+                _get_registrering_clause(
+                    OrganisationEnhedRegistrering,
+                    _get_registration_time(filter, cursor),
+                ),
             )
             .join(
                 leafs,
@@ -958,7 +986,7 @@ async def organisation_unit_resolver_query(
                     == cast("overordnet", OrganisationEnhedRelationKode),
                     OrganisationEnhedRegistrering.organisationenhed_id
                     == leafs.c.organisationenhed_id,
-                    _virkning(OrganisationEnhedRelation),
+                    _get_virkning_clause(OrganisationEnhedRelation, filter),
                 ),
             )
         )
@@ -979,8 +1007,11 @@ async def organisation_unit_resolver_query(
                 # This selects all active parent relations
                 select(OrganisationEnhedRelation.rel_maal_uuid)
                 .where(
-                    _registrering(),
-                    _virkning(OrganisationEnhedRelation),
+                    _get_registrering_clause(
+                        OrganisationEnhedRegistrering,
+                        _get_registration_time(filter, cursor),
+                    ),
+                    _get_virkning_clause(OrganisationEnhedRelation, filter),
                     OrganisationEnhedRelation.rel_type
                     == cast("overordnet", OrganisationEnhedRelationKode),
                     OrganisationEnhedRelation.rel_maal_uuid
@@ -1003,8 +1034,11 @@ async def organisation_unit_resolver_query(
                 select(OrganisationEnhedRelation.rel_maal_uuid)
                 .join(OrganisationEnhedRegistrering)
                 .where(
-                    _registrering(),
-                    _virkning(OrganisationEnhedRelation),
+                    _get_registrering_clause(
+                        OrganisationEnhedRegistrering,
+                        _get_registration_time(filter, cursor),
+                    ),
+                    _get_virkning_clause(OrganisationEnhedRelation, filter),
                     OrganisationEnhedRelation.rel_type
                     == cast("overordnet", OrganisationEnhedRelationKode),
                     OrganisationEnhedRegistrering.organisationenhed_id.in_(base_query),
@@ -1035,8 +1069,11 @@ async def organisation_unit_resolver_query(
                 OrganisationEnhedRelation,
             )
             .where(
-                _registrering(),
-                _virkning(OrganisationEnhedRelation),
+                _get_registrering_clause(
+                    OrganisationEnhedRegistrering,
+                    _get_registration_time(filter, cursor),
+                ),
+                _get_virkning_clause(OrganisationEnhedRelation, filter),
             )
             .join(
                 base,
@@ -1070,7 +1107,7 @@ async def organisation_unit_resolver_query(
                         ),
                         OrganisationEnhedAttrEgenskaber.enhedsnavn.ilike(search_phrase),
                     ),
-                    _virkning(OrganisationEnhedAttrEgenskaber),
+                    _get_virkning_clause(OrganisationEnhedAttrEgenskaber, filter),
                 )
             ),
         ]
@@ -1203,50 +1240,13 @@ async def it_user_resolver_query(
 
     await registration_filter(info, filter)
 
-    def _get_registration_time() -> datetime | SQLNOW:
-        if (
-            cursor is not None
-            and filter.registration_time
-            and filter.registration_time != cursor.registration_time
-        ):
-            raise ValueError("Cannot change registration_time during pagination")
-
-        if cursor is not None:
-            return tz_isodate(cursor.registration_time)
-        if filter.registration_time:
-            return tz_isodate(filter.registration_time)
-        return func.now()
-
-    def _registrering() -> ColumnElement:
-        return and_(
-            OrganisationFunktionRegistrering.lifecycle
-            != cast("Slettet", LivscyklusKode),
-            OrganisationFunktionRegistrering.registrering_period.contains(
-                _get_registration_time()
-            ),
-        )
-
-    def _gyldighed() -> ColumnElement:
-        return OrganisationFunktionRegistrering.id.in_(
-            select(
-                OrganisationFunktionTilsGyldighed.organisationfunktion_registrering_id
-            ).where(
-                OrganisationFunktionTilsGyldighed.gyldighed == "Aktiv",
-                _virkning(OrganisationFunktionTilsGyldighed),
-            )
-        )
-
-    def _virkning(cls: type[HasValidity]) -> ColumnElement:
-        start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
-        return cls.virkning_period.overlaps(TimestamptzRange(start, end))
-
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
             select(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
                 OrganisationFunktionAttrEgenskaber.funktionsnavn == "IT-system",
-                _virkning(OrganisationFunktionAttrEgenskaber),
+                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
@@ -1255,8 +1255,15 @@ async def it_user_resolver_query(
             distinct(OrganisationFunktionRegistrering.organisationfunktion_id),
         )
         .where(
-            _registrering(),
-            _gyldighed(),
+            _get_registrering_clause(
+                OrganisationFunktionRegistrering,
+                _get_registration_time(filter, cursor),
+            ),
+            _get_gyldighed_clause(
+                OrganisationFunktionRegistrering,
+                OrganisationFunktionTilsGyldighed,
+                filter,
+            ),
             _funktionsnavn(),
         )
         .order_by(
@@ -1280,7 +1287,7 @@ async def it_user_resolver_query(
                     OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
                         filter.user_keys
                     ),
-                    _virkning(OrganisationFunktionAttrEgenskaber),
+                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
                 )
             )
         )
@@ -1298,7 +1305,7 @@ async def it_user_resolver_query(
                     cast(OrganisationFunktionRelation.rel_type, String)
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
-                    _virkning(OrganisationFunktionRelation),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -1314,7 +1321,7 @@ async def it_user_resolver_query(
                     cast(OrganisationFunktionRelation.rel_type, String)
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
-                    _virkning(OrganisationFunktionRelation),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -1330,7 +1337,7 @@ async def it_user_resolver_query(
                     cast(OrganisationFunktionRelation.rel_type, String)
                     == OrganisationFunktionRelationKode.tilknyttedeitsystemer,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(itsystem_uuids),
-                    _virkning(OrganisationFunktionRelation),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -1348,7 +1355,7 @@ async def it_user_resolver_query(
                     cast(OrganisationFunktionRelation.rel_type, String)
                     == OrganisationFunktionRelationKode.tilknyttedefunktioner,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(engagement_uuids),
-                    _virkning(OrganisationFunktionRelation),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -1363,7 +1370,7 @@ async def it_user_resolver_query(
                     OrganisationFunktionAttrUdvidelser.udvidelse_1.in_(
                         filter.external_ids
                     ),
-                    _virkning(OrganisationFunktionAttrUdvidelser),
+                    _get_virkning_clause(OrganisationFunktionAttrUdvidelser, filter),
                 )
             )
         )
