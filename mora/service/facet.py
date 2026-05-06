@@ -69,7 +69,7 @@ FULL_DETAILS = {
 # @util.restrictargs('at', 'uuid')
 async def get_class_ancestor_tree(
     uuid: list[UUID] | None = None, only_primary_uuid: bool | None = None
-):  # pragma: no cover
+):
     """Obtain the tree of ancestors for the given classes.
 
     The tree includes siblings of ancestors:
@@ -159,7 +159,7 @@ async def get_one_facet(c, facetid, facet=None, extended: bool = False, validity
 
     # Use given facet or fetch one, if none is given
     facet = facet or (await c.facet.get(facetid))
-    if facet is None:  # pragma: no cover
+    if facet is None:
         return None
 
     properties = facet["attributter"]["facetegenskaber"][0]
@@ -239,7 +239,7 @@ async def get_one_class(
 
     def get_parent(clazz):
         """Find the parent UUID of the provided class object."""
-        for parentid in mapping.PARENT_CLASS_FIELD.get_uuids(clazz):  # pragma: no cover
+        for parentid in mapping.PARENT_CLASS_FIELD.get_uuids(clazz):
             return parentid
 
     def get_facet_uuid(clazz):
@@ -259,12 +259,10 @@ async def get_one_class(
         potential_parent = get_parent(clazz)
         if potential_parent is None:
             return [clazz]
-        # coverage: pause
         new_class = await get_lora_object(
             type_=LoraObjectType.class_, uuid=potential_parent
         )
         return [clazz] + await get_parents(new_class)
-        # coverage: unpause
 
     async def getfacet(facetid) -> Any:
         """
@@ -286,7 +284,7 @@ async def get_one_class(
         facetid = get_facet_uuid(clazz)
         return await getfacet(facetid=facetid)
 
-    async def count_class_children(c, parent_uuid):  # pragma: no cover
+    async def count_class_children(c, parent_uuid):
         """Find the number of children under the class given by uuid."""
         return len(
             list(
@@ -322,7 +320,7 @@ async def get_one_class(
     if ClassDetails.FACET in details:
         response["facet"] = await get_facet(clazz)
 
-    if ClassDetails.NCHILDREN in details:  # pragma: no cover
+    if ClassDetails.NCHILDREN in details:
         response["child_count"] = await count_class_children(c, classid)
 
     if extended:
@@ -362,7 +360,7 @@ async def get_sorted_primary_class_list(c: lora.Connector) -> list[tuple[str, in
     # We always expect the scope value to be an int, for sorting
     try:
         parsed_classes = [(clazz["uuid"], int(clazz["scope"])) for clazz in classes]
-    except ValueError:  # pragma: no cover
+    except ValueError:
         raise ErrorCodes.E_INTERNAL_ERROR(
             message="Unable to parse scope value as integer"
         )
@@ -386,7 +384,7 @@ class ClassRequestHandler(handlers.RequestHandler):
                 uuid=uuid, bvn=bvn, publiceret="Publiceret"
             )
 
-            if not facetids:  # pragma: no cover
+            if not facetids:
                 raise exceptions.HTTPException(
                     exceptions.ErrorCodes.E_NOT_FOUND,
                     message=f"Facet {facet} not found.",
@@ -424,11 +422,9 @@ class ClassRequestHandler(handlers.RequestHandler):
 
         if self.request_type == mapping.RequestType.CREATE:
             self.result = await c.klasse.create(self.payload, self.uuid)
-        else:  # pragma: no cover
+        else:
             self.result = await c.klasse.update(self.payload, self.uuid)
-        # coverage: pause
         return await super().submit()
-        # coverage: unpause
 
 
 @router.post("/f/{facet}/")

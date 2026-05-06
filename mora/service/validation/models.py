@@ -15,7 +15,7 @@ from mora.exceptions import ErrorCodes
 
 from ... import lora
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from ...handler.reading import ReadingHandler
 
 
@@ -68,7 +68,7 @@ class GroupValidation:
     def __init__(self, validation_items: list[dict]):
         self.validation_items = validation_items
 
-    def validate(self) -> None:  # pragma: no cover
+    def validate(self) -> None:
         """Validate this `GroupValidation` instance.
 
         `validate` should return None if there are no validation errors, or raise an

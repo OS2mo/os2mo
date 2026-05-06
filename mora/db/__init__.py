@@ -100,7 +100,7 @@ class InfTimestamptzLoader(TimestamptzLoader):
     def load(self, data: Buffer) -> datetime:
         if data == b"infinity":
             return POSITIVE_INFINITY
-        elif data == b"-infinity":  # pragma: no cover
+        elif data == b"-infinity":
             return NEGATIVE_INFINITY
         else:
             return super().load(data)
@@ -163,7 +163,7 @@ def create_sessionmaker(user, password, host, name) -> async_sessionmaker:
     return async_sessionmaker(engine, class_=AsyncSessionWithLock)
 
 
-def _get_sessionmaker(request: Request) -> async_sessionmaker:  # pragma: no cover
+def _get_sessionmaker(request: Request) -> async_sessionmaker:
     return request.app.state.sessionmaker
 
 

@@ -43,7 +43,7 @@ async def emit(request: Request, amqp_system: depends.AMQPSystem) -> None:
     # TODO: replace the `while True` loop with:
     # await amqp._emit_events(session, amqp_system)
     # once everyone has had a chance to upgrade to FastRAMQPI v12.0.4+
-    while True:  # pragma: no cover
+    while True:
         try:
             # The request-wide database session, which is used in almost every other
             # endpoint, cannot be used here, as the database snapshot/rollback
@@ -54,7 +54,7 @@ async def emit(request: Request, amqp_system: depends.AMQPSystem) -> None:
         except (OperationalError, ProgrammingError) as e:
             if isinstance(e, ProgrammingError) and not isinstance(
                 e.orig, UndefinedTable
-            ):  # pragma: no cover
+            ):
                 raise
             # The database is unavailable while being snapshot or restored. Retry until
             # we succeed.
@@ -178,7 +178,7 @@ async def ensure_database(superuser: AsyncConnection, database: str) -> None:
     """
     try:
         await superuser.execute(text(f"create database {database}"))
-    except ProgrammingError as e:  # pragma: no cover
+    except ProgrammingError as e:
         if not isinstance(e.orig, DuplicateDatabase):
             raise
 
@@ -249,9 +249,7 @@ async def snapshot(session: depends.Session) -> None:
     Snapshot the database.
     """
     logger.warning("Snapshotting database")
-    async with superuser_connection(
-        lora_get_settings()
-    ) as superuser:  # pragma: no cover
+    async with superuser_connection(lora_get_settings()) as superuser:
         await copy_database(
             superuser,
             source=_get_current_database(session),
@@ -265,9 +263,7 @@ async def restore(session: depends.Session) -> None:
     Restore database snapshot.
     """
     logger.warning("Restoring database")
-    async with superuser_connection(
-        lora_get_settings()
-    ) as superuser:  # pragma: no cover
+    async with superuser_connection(lora_get_settings()) as superuser:
         await copy_database(
             superuser,
             source=_get_snapshot_database(session),
@@ -284,7 +280,7 @@ async def purge(session: depends.Session) -> None:
     logger.warning("Purging database to clean state")
     lora_settings = lora_get_settings()
 
-    async with superuser_connection(lora_settings) as superuser:  # pragma: no cover
+    async with superuser_connection(lora_settings) as superuser:
         # Ensure the migrated empty database template exists
         template = await ensure_empty_db_template(superuser, lora_settings)
         # Discard our current database in favor of an empty one

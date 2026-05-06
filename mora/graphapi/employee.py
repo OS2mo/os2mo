@@ -25,9 +25,7 @@ async def create_employee(input: EmployeeCreate) -> UUID:
         input_dict, mapping.RequestType.CREATE
     )
     uuid = await request.submit()
-    # coverage: pause
     return UUID(uuid)
-    # coverage: unpause
 
 
 async def update_employee(input: EmployeeUpdate) -> UUID:
@@ -40,17 +38,15 @@ async def update_employee(input: EmployeeUpdate) -> UUID:
     }
 
     request = await EmployeeRequestHandler.construct(req, RequestType.EDIT)
-    # coverage: pause
     uuid = await request.submit()
 
     return UUID(uuid)
-    # coverage: unpause
 
 
 async def terminate_employee(termination: EmployeeTerminate) -> UUID:
     # Create request dict, legacy, from data model
     request = {mapping.VALIDITY: {mapping.TO: termination.to_date.date().isoformat()}}
-    if termination.from_date:  # pragma: no cover
+    if termination.from_date:
         request[mapping.VALIDITY][mapping.FROM] = (
             termination.from_date.date().isoformat()
         )
@@ -80,7 +76,6 @@ async def terminate_employee(termination: EmployeeTerminate) -> UUID:
             gyldighed="Aktiv",
         )
     ]
-    # coverage: pause
     trigger_dict = {
         Trigger.ROLE_TYPE: mapping.EMPLOYEE,
         Trigger.EVENT_TYPE: mapping.EventType.ON_BEFORE,
@@ -106,4 +101,3 @@ async def terminate_employee(termination: EmployeeTerminate) -> UUID:
     await common.add_history_entry(c.bruger, uuid, "Afslut medarbejder")
 
     return UUID(result)
-    # coverage: unpause

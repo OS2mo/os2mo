@@ -91,13 +91,13 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         bvn = util.checked_get(req, mapping.USER_KEY, userid)
         seniority = req.get(mapping.SENIORITY, None)
         # parse seniority
-        if seniority is not None:  # pragma: no cover
+        if seniority is not None:
             seniority = tz_isodate(seniority).strftime("%Y-%m-%d")
 
         if cpr:
             try:
                 valid_from = util.get_cpr_birthdate(cpr)
-            except ValueError as exc:  # pragma: no cover
+            except ValueError as exc:
                 settings = config.get_settings()
                 if settings.cpr_validate_birthdate:
                     exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr, cause=exc)
@@ -148,11 +148,11 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         nickname_surname = obj.get(mapping.NICKNAME_SURNAME)
         nickname = obj.get(mapping.NICKNAME)
 
-        if nickname and (nickname_surname or nickname_givenname):  # pragma: no cover
+        if nickname and (nickname_surname or nickname_givenname):
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
                 name="Supply either nickname or given nickname/surname"
             )
-        if nickname:  # pragma: no cover
+        if nickname:
             nickname_givenname = nickname.rsplit(" ", maxsplit=1)[0]
             nickname_surname = nickname[len(nickname_givenname) :].strip()
 
@@ -186,7 +186,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
             original_uuid = util.get_mapping_uuid(original_data, mapping.EMPLOYEE)
 
-            if original_uuid and original_uuid != userid:  # pragma: no cover
+            if original_uuid and original_uuid != userid:
                 exceptions.ErrorCodes.E_INVALID_INPUT(
                     "cannot change employee uuid!",
                 )
@@ -206,11 +206,11 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         surname = data.get(mapping.SURNAME, "")
         name = data.get(mapping.NAME, "")
 
-        if name and (surname or givenname):  # pragma: no cover
+        if name and (surname or givenname):
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
                 name="Supply either name or given name/surame"
             )
-        if name:  # pragma: no cover
+        if name:
             givenname = name.rsplit(" ", maxsplit=1)[0]
             surname = name[len(givenname) :].strip()
 
@@ -285,9 +285,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         # process subrequests, if any
         [await r.submit() for r in getattr(self, "details_requests", [])]
-        # coverage: pause
         return await super().submit()
-        # coverage: unpause
 
 
 async def request_bulked_get_one_employee(
@@ -319,7 +317,7 @@ async def get_one_employee(
     if not user:
         user = await c.bruger.get(userid)
 
-        if not user or not util.is_reg_valid(user):  # pragma: no cover
+        if not user or not util.is_reg_valid(user):
             return None
 
     if only_primary_uuid:

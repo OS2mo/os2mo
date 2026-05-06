@@ -17,11 +17,9 @@ async def create_address(input: AddressCreate) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await AddressRequestHandler.construct(input_dict, RequestType.CREATE)
-    # coverage: pause
     uuid = await request.submit()
 
     return UUID(uuid)
-    # coverage: unpause
 
 
 async def update_address(input: AddressUpdate) -> UUID:
@@ -35,19 +33,15 @@ async def update_address(input: AddressUpdate) -> UUID:
     }
 
     request = await AddressRequestHandler.construct(req, mapping.RequestType.EDIT)
-    # coverage: pause
     uuid = await request.submit()
 
     return UUID(uuid)
-    # coverage: unpause
 
 
 async def terminate_address(input: AddressTerminate) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await AddressRequestHandler.construct(input_dict, RequestType.TERMINATE)
-    # coverage: pause
     await request.submit()
 
     return input.uuid
-    # coverage: unpause

@@ -44,7 +44,7 @@ class make_interval(GenericFunction):
 class _OIOEntityMixin:
     id: Mapped[UUID] = mapped_column(primary_key=True)
 
-    def __repr__(self):  # pragma: no cover
+    def __repr__(self):
         return f"{self.__class__.__name__}(id={self.id})"
 
 
@@ -75,7 +75,7 @@ class _RegistreringMixin:
 
     @hybrid_property
     def registrering_period(self) -> TimestamptzRange:
-        return self._registrering_period_attr  # pragma: no cover
+        return self._registrering_period_attr
 
     @registrering_period.inplace.expression
     @classmethod
@@ -101,14 +101,14 @@ class _RegistreringMixin:
 
     @hybrid_property
     def lifecycle(self) -> ENUM:
-        return self._lifecycle_attr  # pragma: no cover
+        return self._lifecycle_attr
 
     @lifecycle.inplace.expression
     @classmethod
     def _lifecycle(cls) -> ColumnElement[ENUM]:
         return type_coerce(text("(registrering).livscykluskode"), LivscyklusKode)
 
-    def __repr__(self):  # pragma: no cover
+    def __repr__(self):
         return f"{self.__class__.__name__}(id={self.id}, registrering_period={self.registrering_period!r})"
 
 
@@ -125,7 +125,7 @@ class _VirkningMixin:
         return column_property(cls._virkning_period)
 
     @hybrid_property
-    def virkning_period(self) -> TimestamptzRange:  # pragma: no cover
+    def virkning_period(self) -> TimestamptzRange:
         return self._virkning_period_attr
 
     @virkning_period.inplace.expression
@@ -159,7 +159,7 @@ class _RelationMixin(_VirkningMixin):
     objekt_type: Mapped[str | None]
     rel_type: Mapped[str]
 
-    def __repr__(self):  # pragma: no cover
+    def __repr__(self):
         return f"{self.__class__.__name__}(id={self.id}, rel_maal_uuid={self.rel_maal_uuid!r}, rel_maal_urn={self.rel_maal_urn!r}, objekt_type={self.objekt_type!r}, rel_type={self.rel_type!r})"
 
 
@@ -177,7 +177,7 @@ def _TilsGyldighedMixin(oio_type):
             index=True,
         )
 
-        def __repr__(self):  # pragma: no cover
+        def __repr__(self):
             return (
                 f"{self.__class__.__name__}(id={self.id}, gyldighed={self.gyldighed!r})"
             )

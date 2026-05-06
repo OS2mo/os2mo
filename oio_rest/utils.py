@@ -28,7 +28,7 @@ def is_uuid(s):
 
 def escape_underscores(s):
     """Return the string with underscores escaped by backslashes."""
-    if s is None:  # pragma: no cover
+    if s is None:
         return None
     return s.replace("_", r"\_")
 
@@ -55,9 +55,7 @@ def split_param(value):
     """
     try:
         a, b = value.split(":")
-        # coverage: pause
         return a, b
-        # coverage: unpause
     except ValueError:
         return value, None
 
@@ -67,9 +65,7 @@ def to_lower_param(s: str) -> str:
     item in lowercase. The second item is left untouched."""
     try:
         a, b = s.split(":")
-        # coverage: pause
         return f"{a.lower()}:{b}"
-        # coverage: unpause
     except ValueError:
         return s.lower()
 
@@ -85,7 +81,7 @@ journaldokument.offentlighedundtaget.hjemmel""".split()
 )
 
 
-def dict_from_dot_notation(notation, value):  # pragma: no cover
+def dict_from_dot_notation(notation, value):
     """Return a nested dict where each key is an element of the
     dot-separated string, and the value of the innermost dict's key is
     equal to the value.
@@ -103,7 +99,7 @@ def dict_from_dot_notation(notation, value):  # pragma: no cover
 
 def add_journal_post_relation_fields(param, values, relation):
     """Add journalpost-specific parameters to the relations list."""
-    if param in ACCEPTED_JOURNAL_POST_PARAMS:  # pragma: no cover
+    if param in ACCEPTED_JOURNAL_POST_PARAMS:
         relation.setdefault("journalpost", [])
         # Build a separate relation dict for each sub-field value
         for value in values:
@@ -143,7 +139,7 @@ def build_registration(class_name, list_args):
 
         add_journal_post_relation_fields(f, list_args[f], relation)
 
-    if class_name == "Dokument":  # pragma: no cover
+    if class_name == "Dokument":
         variants = registration.setdefault("variants", [])
         variant = {
             # Search on only one varianttekst is supported through REST API

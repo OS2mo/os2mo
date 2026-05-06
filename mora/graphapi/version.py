@@ -32,7 +32,7 @@ class Version(enum.Enum):
     # https://docs.python.org/3/howto/enum.html#orderedenum
 
     def __ge__(self, other: Any) -> bool:
-        if self.__class__ is not other.__class__:  # pragma: no cover
+        if self.__class__ is not other.__class__:
             return NotImplemented
         return self.value >= other.value
 
@@ -42,11 +42,11 @@ class Version(enum.Enum):
         return self.value > other.value
 
     def __le__(self, other: Any) -> bool:
-        if self.__class__ is not other.__class__:  # pragma: no cover
+        if self.__class__ is not other.__class__:
             return NotImplemented
         return self.value <= other.value
 
-    def __lt__(self, other: Any) -> bool:  # pragma: no cover
+    def __lt__(self, other: Any) -> bool:
         if self.__class__ is not other.__class__:
             return NotImplemented
         return self.value < other.value

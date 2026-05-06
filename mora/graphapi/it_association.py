@@ -20,11 +20,9 @@ async def create_itassociation(input: ITAssociationCreate) -> UUID:
     request = await AssociationRequestHandler.construct(
         input_dict, mapping.RequestType.CREATE
     )
-    # coverage: pause
     uuid = await request.submit()
 
     return UUID(uuid)
-    # coverage: unpause
 
 
 async def update_itassociation(input: ITAssociationUpdate) -> UUID:
@@ -39,9 +37,7 @@ async def update_itassociation(input: ITAssociationUpdate) -> UUID:
 
     request = await AssociationRequestHandler.construct(req, mapping.RequestType.EDIT)
     uuid = await request.submit()
-    # coverage: pause
     return UUID(uuid)
-    # coverage: unpause
 
 
 async def terminate_itassociation(input: ITAssociationTerminate) -> UUID:
@@ -50,8 +46,6 @@ async def terminate_itassociation(input: ITAssociationTerminate) -> UUID:
     request = await AssociationRequestHandler.construct(
         input_dict, mapping.RequestType.TERMINATE
     )
-    # coverage: pause
     await request.submit()
 
     return input.uuid
-    # coverage: unpause

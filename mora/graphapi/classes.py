@@ -21,21 +21,15 @@ async def update_class(input: ClassUpdate, organisation_uuid: UUID) -> UUID:
     await c.klasse.update(
         input.to_registration(organisation_uuid=organisation_uuid), input.uuid
     )
-    # coverage: pause
     return input.uuid
-    # coverage: unpause
 
 
 async def terminate_class(input: ClassTerminate) -> UUID:
     await lora.Connector().klasse.update(input.to_registration(), input.uuid)
-    # coverage: pause
     return input.uuid
-    # coverage: unpause
 
 
 async def delete_class(class_uuid: UUID) -> UUID:
     # Let LoRa's SQL templates do their magic
     await db.delete_object("klasse", "", str(class_uuid))
-    # coverage: pause
     return class_uuid
-    # coverage: unpause

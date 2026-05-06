@@ -47,17 +47,17 @@ class InfiniteDatetime:
         return cls(value=datetime.fromisoformat(value).isoformat())
 
     def __lt__(self, other) -> bool:
-        if not isinstance(other, InfiniteDatetime):  # pragma: no cover
+        if not isinstance(other, InfiniteDatetime):
             raise TypeError(f"unexpected type {type(other)}")
         if other.value == INFINITY:
             if self.value != INFINITY:
                 return True
-            else:  # pragma: no cover
+            else:
                 raise ValueError(
                     f"unable to compare 2 infinities: self={self}, other={other}"
                 )
 
-        if other.value == NINFINITY:  # pragma: no cover
+        if other.value == NINFINITY:
             if self.value != NINFINITY:
                 return False
             else:
@@ -66,7 +66,7 @@ class InfiniteDatetime:
                 )
 
         # other is not infinity or -infinity
-        if self.value == INFINITY:  # pragma: no cover
+        if self.value == INFINITY:
             return False
         if self.value == NINFINITY:
             return True
@@ -108,9 +108,9 @@ class SearchQueryBuilder:
         :param registreret_til: optional, applies to the registrations themselves
         """
 
-        if not isinstance(class_name, str):  # pragma: no cover
+        if not isinstance(class_name, str):
             raise TypeError(f"unexpected type={type(class_name)}, value={uuid}")
-        if not (uuid is None or isinstance(uuid, str)):  # pragma: no cover
+        if not (uuid is None or isinstance(uuid, str)):
             raise TypeError(f"unexpected type={type(uuid)}, value={uuid}")
 
         self.__class_name = class_name
@@ -152,7 +152,7 @@ class SearchQueryBuilder:
         :return:
         """
         for tmp in (start, end):
-            if not isinstance(tmp, (datetime, str)):  # pragma: no cover
+            if not isinstance(tmp, (datetime, str)):
                 raise TypeError(
                     f"expected {datetime} or str, got type={type(tmp)} of value={tmp}"
                 )
@@ -168,7 +168,7 @@ class SearchQueryBuilder:
             end = InfiniteDatetime.from_datetime(end)
 
         # NOTE: STRICT in-equality is important
-        if not start < end:  # pragma: no cover
+        if not start < end:
             raise ValueError(
                 f"start must be smaller than end, got:  start={start}, end={end}"
             )
@@ -207,7 +207,7 @@ class SearchQueryBuilder:
         """
         no_start = reg_start is None
         no_end = reg_end is None
-        if no_start ^ no_end:  # XOR  # pragma: no cover
+        if no_start ^ no_end:  # XOR
             # TODO: Determine old behaviour and replicate it, maybe just:
             # if reg_start is None:
             #     reg_start = NINFINITY
@@ -265,7 +265,6 @@ class SearchQueryBuilder:
         if type_ is ValueType.TEXT:
             # always uses case insensitive matching
             return f"ilike '{cls.improper_sql_escape(value)}'"
-        # coverage: pause
         if type_ is ValueType.BOOL:
             parsed_bool = to_bool(value)
             if parsed_bool is None:
@@ -273,7 +272,6 @@ class SearchQueryBuilder:
             return "= " + ("TRUE" if parsed_bool else "FALSE")
 
         raise Exception(f"unexpected type_: {type_}, with associated value {value}")
-        # coverage: unpause
 
     def add_attribute(self, attr: Attribute):
         """
@@ -389,7 +387,7 @@ class SearchQueryBuilder:
             base_condition = f"""{join_table.ref}.rel_type = '{relation.type}'
              AND {join_table.ref}.{id_var_name} = '{relation.id}'"""
 
-        if relation.object_type is not None:  # pragma: no cover
+        if relation.object_type is not None:
             obj_condition = f"{join_table.ref}.objekt_type = '{relation.object_type}'"
             condition = f"{base_condition} AND {obj_condition}"
         else:
@@ -449,9 +447,7 @@ class SearchQueryBuilder:
 def ensure_uuid(uuid: UUID | str) -> UUID:
     if isinstance(uuid, UUID):
         return uuid
-    # coverage: pause
     return UUID(uuid)
-    # coverage: unpause
 
 
 async def quick_search(
@@ -505,21 +501,21 @@ async def quick_search(
         raise NotImplementedError(f"not implemented for {class_name}")
 
     # Non-implemented search parameters
-    if life_cycle_code is not None:  # pragma: no cover
+    if life_cycle_code is not None:
         raise NotImplementedError(
             f"life_cycle_code not implemented. Received value={life_cycle_code}"
         )
-    if user_ref is not None:  # pragma: no cover
+    if user_ref is not None:
         raise NotImplementedError(
             f"user_ref not implemented. Received value={user_ref}"
         )
-    if note is not None:  # pragma: no cover
+    if note is not None:
         raise NotImplementedError(f"note not implemented. Received value={note}")
     if any_attr_value_arr is not None:
         raise NotImplementedError(
             f"any_attr_value_arr not implemented. Received value={any_attr_value_arr}"
         )
-    if any_rel_uuid_arr is not None:  # pragma: no cover
+    if any_rel_uuid_arr is not None:
         raise NotImplementedError(
             f"any_rel_uuid_arr not implemented. Received value={any_rel_uuid_arr}"
         )

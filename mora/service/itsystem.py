@@ -29,7 +29,7 @@ from . import org
 from .validation import validator
 from .validation.models import GroupValidation
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from ..handler.reading import ReadingHandler
 
 
@@ -115,7 +115,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         # Ensure backwards compatibility with the deprecated single engagement
         # uuid.
-        if engagement and engagements:  # pragma: no cover
+        if engagement and engagements:
             exceptions.ErrorCodes.E_INVALID_INPUT(
                 "Attempted use of both 'engagement' and 'engagements'"
             )
@@ -137,7 +137,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         primary = util.get_mapping_uuid(req, mapping.PRIMARY, required=False)
 
         # Validation
-        if org_unit:  # pragma: no cover
+        if org_unit:
             await validator.is_date_range_in_org_unit_range(
                 org_unit, valid_from, valid_to
             )
@@ -163,9 +163,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             ).validate()
 
-        if (
-            employee_uuid and systemid and (await is_class_uuid_primary(primary))
-        ):  # pragma: no cover
+        if employee_uuid and systemid and (await is_class_uuid_primary(primary)):
             validation = await ITUserPrimaryGroupValidation.from_mo_objects(
                 dict(tilknyttedebrugere=employee_uuid),
             )
@@ -228,7 +226,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         }
 
         original_data = req.get("original")
-        if original_data:  # pragma: no cover
+        if original_data:
             # We are performing an update
             old_from, old_to = util.get_validities(original_data)
             payload = common.inactivate_old_interval(
@@ -253,7 +251,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if data.get(mapping.PERSON):  # pragma: no cover
+        if data.get(mapping.PERSON):
             update_fields.append(
                 (
                     mapping.USER_FIELD,
@@ -263,9 +261,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if (
-            mapping.ENGAGEMENT in data and mapping.ENGAGEMENTS in data
-        ):  # pragma: no cover
+        if mapping.ENGAGEMENT in data and mapping.ENGAGEMENTS in data:
             exceptions.ErrorCodes.E_INVALID_INPUT(
                 "Attempted use of both 'engagement' and 'engagements'"
             )
@@ -274,7 +270,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         ):
             if engagements is None:
                 engagements = [data.get(mapping.ENGAGEMENT)]
-            if not engagements:  # pragma: no cover
+            if not engagements:
                 # If an empty list is returned it is registered as a relation to a function with no uuid
                 # This is how we "delete" a list of engagements
                 update_fields.append(
@@ -302,7 +298,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if data.get(mapping.PRIMARY):  # pragma: no cover
+        if data.get(mapping.PRIMARY):
             update_fields.append(
                 (
                     mapping.PRIMARY_FIELD,
@@ -312,7 +308,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if mapping.EXTERNAL_ID in data:  # pragma: no cover
+        if mapping.EXTERNAL_ID in data:
             update_fields.append(
                 (
                     mapping.ORG_FUNK_UDVIDELSER_FIELD,
@@ -322,16 +318,16 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         try:
             attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
-        except (TypeError, LookupError):  # pragma: no cover
+        except (TypeError, LookupError):
             attributes = {}
         new_attributes = {}
 
-        if mapping.USER_KEY in data:  # pragma: no cover
+        if mapping.USER_KEY in data:
             new_attributes["brugervendtnoegle"] = util.checked_get(
                 data, mapping.USER_KEY, ""
             )
 
-        if new_attributes:  # pragma: no cover
+        if new_attributes:
             update_fields.append(
                 (
                     mapping.ORG_FUNK_EGENSKABER_FIELD,
@@ -350,9 +346,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         bvn = util.checked_get(data, mapping.USER_KEY, default="", required=False)
 
         # Validation
-        if (
-            employee_uuid and systemid and (await is_class_uuid_primary(primary))
-        ):  # pragma: no cover
+        if employee_uuid and systemid and (await is_class_uuid_primary(primary)):
             validation = await ITUserPrimaryGroupValidation.from_mo_objects(
                 dict(tilknyttedebrugere=employee_uuid),
             )
@@ -365,7 +359,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 ),
             ).validate()
 
-        if employee_uuid and systemid and bvn:  # pragma: no cover
+        if employee_uuid and systemid and bvn:
             validation = await ITUserUniqueGroupValidation.from_mo_objects(
                 dict(
                     tilknyttedebrugere=employee_uuid,

@@ -119,9 +119,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
             return {Trigger.EMPLOYEE_UUID: owned_person_uuid}
         if org_unit_uuid:
             return {Trigger.ORG_UNIT_UUID: owned_person_uuid}
-        # coverage: pause
         OwnerRequestHandler.raise_unexpected_input(req)
-        # coverage: unpause
 
     @staticmethod
     async def validate(
@@ -219,7 +217,6 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = await c.organisationfunktion.get(uuid=func_uuid)
 
-        # coverage: pause
         data = req.get("data")
         (
             org_unit,
@@ -345,4 +342,3 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
                 req=req,
             )
         )
-        # coverage: unpause

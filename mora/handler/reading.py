@@ -30,7 +30,7 @@ def register(object_type):
 def get_handler_for_type(object_type) -> "ReadingHandler":
     try:
         return READING_HANDLERS[object_type]
-    except LookupError:  # pragma: no cover
+    except LookupError:
         exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(type=object_type)
 
 
@@ -44,7 +44,7 @@ class ReadingHandler:
         c,
         search_fields,
         flat: bool = False,
-    ) -> list[dict]:  # pragma: no cover
+    ) -> list[dict]:
         """
         Read a list of objects based on the given search parameters
 
@@ -55,7 +55,7 @@ class ReadingHandler:
 
     @classmethod
     @abc.abstractmethod
-    async def get_from_type(cls, c, type, obj_uuid):  # pragma: no cover
+    async def get_from_type(cls, c, type, obj_uuid):
         """
         Read a list of objects related to a certain object
 
@@ -69,7 +69,7 @@ class ReadingHandler:
 
     @classmethod
     @abc.abstractmethod
-    async def _get_effects(cls, c, obj, **params):  # pragma: no cover
+    async def _get_effects(cls, c, obj, **params):
         """
         Chunk a LoRa object up into effects
 
@@ -84,7 +84,7 @@ class ReadingHandler:
     @abc.abstractmethod
     async def _get_mo_object_from_effect(
         cls, effect, start, end, obj_id, flat: bool = False
-    ):  # pragma: no cover
+    ):
         """
         Convert an effect to a MO object
 
@@ -166,13 +166,13 @@ class OrgFunkReadingHandler(ReadingHandler):
         mo_objects = await cls._get_obj_effects(c, object_tuples, flat)
 
         # Return MO objects early if they are flat
-        if flat:  # pragma: no cover
+        if flat:
             return mo_objects
 
         # Mutate objects by awaiting as needed. This delayed evaluation allows bulking.
         for mo_object in mo_objects:
             for key, val in mo_object.items():
-                if isawaitable(val):  # pragma: no cover
+                if isawaitable(val):
                     mo_object[key] = await val
         return mo_objects
 

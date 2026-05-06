@@ -484,7 +484,7 @@ class Engagement:
             ),
         }
         if exclude_self:
-            if filter.exclude:  # pragma: no cover
+            if filter.exclude:
                 raise ValueError("Cannot provide both filter.exclude and exclude_self")
             seeds["exclude"] = lambda root: EmployeeFilter(
                 uuids=uuid2list(root.employee_uuid)

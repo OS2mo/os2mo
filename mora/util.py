@@ -100,7 +100,7 @@ def parsedatetime(
     except ValueError:
         if default is not _sentinel:
             return default
-        else:  # pragma: no cover
+        else:
             exceptions.ErrorCodes.E_INVALID_INPUT(f"cannot parse {s!r}")
 
     if dt.date() == POSITIVE_INFINITY.date():
@@ -262,7 +262,7 @@ class CPR(str):
 
         return v
 
-    def __repr__(self):  # pragma: no cover
+    def __repr__(self):
         return f"CPR({super().__repr__()})"
 
 
@@ -308,7 +308,7 @@ def urnquote(s):
 
     """
 
-    if not s:  # pragma: no cover
+    if not s:
         return ""
 
     with io.StringIO("w") as buf:
@@ -543,7 +543,7 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
         elif valid_from is not sentinel:
             dt = from_iso_time(valid_from)
 
-            if dt.time() != datetime.time.min:  # pragma: no cover
+            if dt.time() != datetime.time.min:
                 exceptions.ErrorCodes.E_INVALID_INPUT(
                     f"{dt.isoformat()!r} is not at midnight!",
                 )
@@ -599,7 +599,7 @@ def get_valid_to(obj, fallback=None, required=False) -> datetime.datetime:
         elif valid_to is not sentinel:
             dt = from_iso_time(valid_to)
 
-            if dt.time() != datetime.time.min:  # pragma: no cover
+            if dt.time() != datetime.time.min:
                 exceptions.ErrorCodes.E_INVALID_INPUT(
                     f"{dt.isoformat()!r} is not at midnight!",
                 )
@@ -618,7 +618,7 @@ def get_valid_to(obj, fallback=None, required=False) -> datetime.datetime:
         return get_valid_to(fallback, required=required)
     elif not required:
         return POSITIVE_INFINITY
-    else:  # pragma: no cover
+    else:
         exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
             message=f"Missing {mapping.VALIDITY}",
             key=mapping.VALIDITY,
@@ -700,7 +700,7 @@ def query_to_search_phrase(query: str):
     # If query consists of only digits, spaces and separators, try to
     # treat it as purely numeric, to support whole and partial matches on
     # CPR numbers, etc.
-    if re.match(r"^[\d|\s|\-]+$", query):  # pragma: no cover
+    if re.match(r"^[\d|\s|\-]+$", query):
         # Strip non-digits from query
         query = re.sub(r"[^\d]", "", query)
     # Substring match

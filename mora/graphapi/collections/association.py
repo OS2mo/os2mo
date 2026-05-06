@@ -420,9 +420,7 @@ class Association:
         description="UUID of the dynamically attached class.",
         deprecation_reason=gen_uuid_field_deprecation("dynamic_class"),
     )
-    async def dynamic_class_uuid(
-        self, root: AssociationRead
-    ) -> UUID | None:  # pragma: no cover
+    async def dynamic_class_uuid(self, root: AssociationRead) -> UUID | None:
         return root.dynamic_class_uuid
 
     @strawberry.field(

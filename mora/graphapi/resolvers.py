@@ -172,7 +172,6 @@ def to_similar(keys: list[str]) -> str:
 async def registration_filter(info: MOInfo, filter: Any) -> None:
     if filter.registration is None:
         return
-    # coverage: pause
     from .registration import registration_resolver
 
     uuids = lora_filter(
@@ -184,7 +183,6 @@ async def registration_filter(info: MOInfo, filter: Any) -> None:
         )
     )
     extend_uuids(filter, uuids)
-    # coverage: unpause
 
 
 async def facet_resolver(
@@ -195,9 +193,7 @@ async def facet_resolver(
 ) -> Any:
     """Resolve facets."""
 
-    async def _get_parent_uuids(
-        info: MOInfo, filter: FacetFilter
-    ) -> list[UUID]:  # pragma: no cover
+    async def _get_parent_uuids(info: MOInfo, filter: FacetFilter) -> list[UUID]:
         facet_filter = filter.parent or FacetFilter()
         # Handle deprecated filter
         extend_uuids(facet_filter, filter.parents)
@@ -214,7 +210,7 @@ async def facet_resolver(
         filter.parents is not None
         or filter.parent_user_keys is not None
         or filter.parent is not None
-    ):  # pragma: no cover
+    ):
         kwargs["facettilhoerer"] = await _get_parent_uuids(info, filter)
 
     if get_version(info.schema) <= Version.VERSION_19:
@@ -479,7 +475,7 @@ async def employee_resolver(
     # are passsed to generic_resolver's `uuid` filter. Supplying UUIDs to
     # generic_resolver ignores all other filter arguments, so we short-circuit
     # here to make that fact obvious.
-    if filter.query:  # pragma: no cover
+    if filter.query:
         other_fields = (filter.uuids, filter.user_keys, filter.cpr_numbers)
         if any(other_fields):
             raise ValueError("filter.query must be used alone")
@@ -743,12 +739,10 @@ async def organisation_unit_resolver_query(
         if filter.parents is None or filter.parent is None:
             return [root_org]
         if filter.parents is not UNSET and root_org in filter.parents:
-            if filter.parents != [root_org]:  # pragma: no cover
+            if filter.parents != [root_org]:
                 raise ValueError("Cannot filter root org unit with other org units")
             return [root_org]
-        if (
-            org_unit_filter.uuids is not None and root_org in org_unit_filter.uuids
-        ):  # pragma: no cover
+        if org_unit_filter.uuids is not None and root_org in org_unit_filter.uuids:
             if org_unit_filter.uuids != [root_org]:
                 raise ValueError("Cannot filter root org unit with other org units")
             return [root_org]
@@ -911,9 +905,7 @@ async def organisation_unit_resolver_query(
     # Descendant
     if filter.descendant is not UNSET or filter.subtree is not UNSET:
         # Find all matching children and then recursively find their parents.
-        if (
-            filter.descendant is not UNSET and filter.subtree is not UNSET
-        ):  # pragma: no cover
+        if filter.descendant is not UNSET and filter.subtree is not UNSET:
             raise ValueError("Cannot use both `descendant` and `subtree` filter")
         org_unit_filter = (
             filter.descendant or filter.subtree or OrganisationUnitFilter()
@@ -1215,13 +1207,13 @@ async def it_user_resolver(
         )
     if filter.itsystem_uuids is not None or filter.itsystem is not None:
         kwargs["tilknyttedeitsystemer"] = await _get_itsystem_uuids(info, filter)
-    if filter.engagement is not None:  # pragma: no cover
+    if filter.engagement is not None:
         kwargs["tilknyttedefunktioner"] = lora_filter(
             await filter2uuids_func(engagement_resolver, info, filter.engagement)
         )
     if filter.external_ids is not None:
         # Early return on empty external_id list
-        if not filter.external_ids:  # pragma: no cover
+        if not filter.external_ids:
             return dict()
         kwargs["udvidelse_1"] = to_similar(filter.external_ids)
 
@@ -1333,14 +1325,14 @@ async def generic_resolver(
         return {}
 
     # Filter
-    if filter is None:  # pragma: no cover
+    if filter is None:
         filter = BaseFilter()
 
     # Dates
     dates = get_date_interval(filter.from_date, filter.to_date)
     # UUIDs
     if filter.uuids is not None:
-        if limit is not None or cursor is not None:  # pragma: no cover
+        if limit is not None or cursor is not None:
             raise ValueError("Cannot filter 'uuid' with 'limit' or 'cursor'")
         # Early return on empty UUID list
         if not filter.uuids:
@@ -1425,11 +1417,11 @@ async def rolebinding_resolver(
     await registration_filter(info, filter)
 
     kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
-    if filter.org_units is not None or filter.org_unit is not None:  # pragma: no cover
+    if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = lora_filter(
             await get_org_unit_uuids(info, filter)
         )
-    if filter.ituser is not None:  # pragma: no cover
+    if filter.ituser is not None:
         kwargs["tilknyttedefunktioner"] = lora_filter(
             await filter2uuids_func(it_user_resolver, info, filter.ituser)
         )

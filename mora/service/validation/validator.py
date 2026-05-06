@@ -215,7 +215,7 @@ async def is_date_range_in_employee_range(
 @forceable
 async def is_date_range_in_engagement_range(
     obj: dict, valid_from: datetime.datetime, valid_to: datetime.datetime
-):  # pragma: no cover
+):
     return await is_date_range_in_obj_range(
         obj=obj,
         valid_from=valid_from,
@@ -256,9 +256,7 @@ async def is_date_range_in_obj_range(
             # special case for backwards compatibility
             if obj_type is LoraObjectType.user:
                 exceptions.ErrorCodes.E_USER_NOT_FOUND(employee_uuid=uuid)
-            # coverage: pause
             exceptions.ErrorCodes.E_NOT_FOUND(scope=str(obj_type), uuid=uuid)
-            # coverage: unpause
 
         if not await _is_date_range_valid(
             existing_obj, valid_from, valid_to, scope, gyldighed_key
@@ -318,7 +316,7 @@ async def is_candidate_parent_valid(
             break
         parentobj = await c.organisationenhed.get(uuid=parent)
 
-        if not parentobj:  # pragma: no cover
+        if not parentobj:
             exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
                 org_unit_uuid=parent,
             )
@@ -351,7 +349,7 @@ async def is_candidate_parent_valid(
 @forceable
 async def does_employee_have_existing_association(
     employee_uuid, org_unit_uuid, valid_from, association_uuid=None
-):  # pragma: no cover
+):
     """
     Check if an employee already has an active association for a given org
     unit on a given date
@@ -381,7 +379,7 @@ async def does_uuid_have_existing_association(
     valid_from: str,
     association_function_key: str,
     association_uuid=None,
-):  # pragma: no cover
+):
     """
     Check if an employee already has an active association for a given org
     unit on a given date
@@ -473,7 +471,7 @@ async def does_employee_with_cpr_already_exist(
     cpr, valid_from, valid_to, org_uuid, allowed_user_id=None
 ) -> bool:
     """Check whether there exists an employee with the given CPR."""
-    if not util.is_cpr_number(cpr):  # pragma: no cover
+    if not util.is_cpr_number(cpr):
         return False
 
     c = lora.Connector(
@@ -491,5 +489,5 @@ async def does_employee_with_cpr_already_exist(
 @forceable
 async def is_mutually_exclusive(*values):
     """Raise validation error if more than one of `values` is not None."""
-    if len([val for val in values if val is not None]) > 1:  # pragma: no cover
+    if len([val for val in values if val is not None]) > 1:
         exceptions.ErrorCodes.E_INVALID_INPUT(values)

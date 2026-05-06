@@ -30,7 +30,7 @@ class ConfiguredOrganisation:
     @classmethod
     async def validate(cls):
         async def get_lora_organisation(c, orgid, org=None):
-            if not org:  # pragma: no cover
+            if not org:
                 org = await c.organisation.get(orgid)
 
                 if not org or not util.is_reg_valid(org):
@@ -71,7 +71,7 @@ async def get_configured_organisation(uuid=None):
         await ConfiguredOrganisation.validate()
     org = ConfiguredOrganisation.organisation
 
-    if uuid and uuid != org["uuid"]:  # pragma: no cover
+    if uuid and uuid != org["uuid"]:
         exceptions.ErrorCodes.E_ORG_NOT_ALLOWED(uuid=uuid)
 
     return org

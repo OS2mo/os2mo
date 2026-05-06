@@ -14,7 +14,7 @@ UUID_SEARCH_MIN_PHRASE_LENGTH = 7
 
 
 def get_at_date_sql(at: date | None = None):
-    if at is not None:  # pragma: no cover
+    if at is not None:
         return "to_timestamp(:at_datetime, 'YYYY-MM-DD HH24:MI:SS')", {
             "at_datetime": at.isoformat()
         }
@@ -36,17 +36,15 @@ def read_sqlalchemy_result(result: Result) -> [Row]:
 
 
 async def string_to_urn(urn_string: str) -> str:
-    if util.is_uuid(urn_string):  # pragma: no cover
+    if util.is_uuid(urn_string):
         return urn_string
 
     # EMAIL urn handling
     try:
         await EmailAddressHandler.validate_value(urn_string)
-        return EmailAddressHandler(
-            value=urn_string, visibility=None
-        ).urn  # pragma: no cover
+        return EmailAddressHandler(value=urn_string, visibility=None).urn
     except HTTPException as e:
-        if e.key != ErrorCodes.V_INVALID_ADDRESS_EMAIL:  # pragma: no cover
+        if e.key != ErrorCodes.V_INVALID_ADDRESS_EMAIL:
             raise e
         else:
             pass

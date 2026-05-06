@@ -64,7 +64,7 @@ class StarletteContextExtension(SchemaExtension):
     async def on_execute(self) -> AsyncIterator[None]:
         iter = super().on_execute()
         if isasyncgen(iter):
-            async for x in iter:  # pragma: no cover
+            async for x in iter:
                 yield x
         else:
             # mypy is majorly confused by this horrible code
@@ -74,7 +74,7 @@ class StarletteContextExtension(SchemaExtension):
     async def get_results(self) -> dict[str, Any]:
         # TODO: calling super() because of get_context_from_ext()
         results = super().get_results()
-        if isinstance(results, Awaitable):  # pragma: no cover
+        if isinstance(results, Awaitable):
             results = await results
 
         if context.get("lora_page_out_of_range"):

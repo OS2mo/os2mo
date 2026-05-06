@@ -100,7 +100,7 @@ async def lora_noop_change_context(request: Request, call_next) -> Response:
     with request_cycle_context(data):
         response = await call_next(request)
 
-        if context.get(_MIDDLEWARE_KEY):  # pragma: no cover
+        if context.get(_MIDDLEWARE_KEY):
             response.headers["X-DEPRECATED-LORA-NOOP-CHANGE-DO-NOT-USE"] = "1"
         return response
 
@@ -114,7 +114,7 @@ def get_msg_and_cause(e: loraexc.OIOException) -> dict[str, Any]:
 def lora_to_mo_exception() -> Iterator[None]:
     try:
         yield
-    except loraexc.NotFoundException as e:  # pragma: no cover
+    except loraexc.NotFoundException as e:
         exceptions.ErrorCodes.E_NOT_FOUND(**get_msg_and_cause(e))
     except loraexc.UnauthorizedException as e:
         exceptions.ErrorCodes.E_UNAUTHORIZED(**get_msg_and_cause(e))
@@ -140,7 +140,7 @@ def lora_to_mo_exception() -> Iterator[None]:
             context[_MIDDLEWARE_KEY] = True
         else:
             exceptions.ErrorCodes.E_INVALID_INPUT(message=msg, cause=cause)
-    except ValueError as e:  # pragma: no cover
+    except ValueError as e:
         exceptions.ErrorCodes.E_INVALID_INPUT(message=e.args[0], cause=None)
     except DataError as e:
         message = e.orig.diag.message_primary
@@ -149,7 +149,7 @@ def lora_to_mo_exception() -> Iterator[None]:
     except Exception as e:
         try:
             exceptions.ErrorCodes.E_UNKNOWN(message=e.args[0], cause=None)
-        except IndexError:  # pragma: no cover
+        except IndexError:
             exceptions.ErrorCodes.E_UNKNOWN()
 
 
@@ -161,7 +161,7 @@ def uuid_to_str(value):
         return {k: uuid_to_str(v) for k, v in value.items()}
     elif isinstance(value, list):
         return list(map(uuid_to_str, value))
-    elif isinstance(value, set):  # pragma: no cover
+    elif isinstance(value, set):
         return set(map(uuid_to_str, value))
     return value
 
@@ -178,9 +178,7 @@ def exotics_to_str(value):
         return list(map(exotics_to_str, value))
     elif isinstance(value, (int, str)):
         return value
-    # coverage: pause
     raise TypeError("Unknown type in exotics_to_str", type(value))
-    # coverage: unpause
 
 
 def param_exotics_to_strings(
@@ -219,11 +217,9 @@ def validity_tuple(
 
     if validity == "future":
         return now, util.POSITIVE_INFINITY
-    # coverage: pause
     raise TypeError(
         f"Expected validity to be 'past', 'present' or 'future', but was {validity}"
     )
-    # coverage: unpause
 
 
 class Connector:
@@ -243,7 +239,7 @@ class Connector:
 
         try:
             self.start, self.end = validity_tuple(self.__validity, now=self.now)
-        except TypeError:  # pragma: no cover
+        except TypeError:
             exceptions.ErrorCodes.V_INVALID_VALIDITY(validity=self.__validity)
 
         if self.__validity == "present" and "virkningtil" in defaults:
@@ -603,7 +599,7 @@ class Scope(BaseScope):
         limit = params.get("maximalantalresultater")
         offset = params.get("foersteresultat", 0)
         is_paged = is_graphql() and limit != 0 and offset > 0
-        if is_paged:  # pragma: no cover
+        if is_paged:
             # There may be multiple LoRa fetches in one GraphQL request, so this cannot
             # be refactored into always overwriting the value.
             context["lora_page_out_of_range"] = True
@@ -674,7 +670,6 @@ class Scope(BaseScope):
         uuid_filters = uuid_filters or []
         # Fetch all uuids matching search params and filter with uuid_filters
         uuids = await self.fetch(**params)
-        # coverage: pause
         for uuid_filter in uuid_filters:
             uuids = filter(uuid_filter, uuids)
         # Sort to ensure consistent order, as LoRa does not seem to do that
@@ -693,7 +688,6 @@ class Scope(BaseScope):
             obj_iter = starmap(partial(func, self.connector), obj_iter)
 
         return {"total": total, "offset": start, "items": list(obj_iter)}
-        # coverage: unpause
 
     @overload
     async def get(
@@ -730,13 +724,13 @@ class Scope(BaseScope):
         # We expect exactly one object as UUIDs are unique
         obj = one(d)
         # If the object does not have registrations => return None
-        if not obj:  # pragma: no cover
+        if not obj:
             return None
         # Extract registrations
         registrations = obj["registreringer"]
         # If our parameters included a registration time interval
         # We expect a list of registrations
-        if params.keys() & {"registreretfra", "registrerettil"}:  # pragma: no cover
+        if params.keys() & {"registreretfra", "registrerettil"}:
             return registrations
         # If we did not include an interval, we expect only one registration
         return one(registrations)
@@ -755,9 +749,7 @@ class Scope(BaseScope):
     async def delete(self, uuid: uuid.UUID) -> uuid.UUID:
         with lora_to_mo_exception():
             result = await self.lora_class.delete_object_direct(uuid, {})
-        # coverage: pause
         return result.get("uuid", uuid)
-        # coverage: unpause
 
     async def update(self, obj, uuid):
         result = {}
@@ -774,7 +766,7 @@ class Scope(BaseScope):
             await self.get(obj, **params) if isinstance(obj, (str, uuid.UUID)) else obj
         )
 
-        if not reg:  # pragma: no cover
+        if not reg:
             return
 
         effects = list(get_effects(reg, relevant, also))

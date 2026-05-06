@@ -296,7 +296,7 @@ class Mutation:
     )
     async def addresses_create(
         self, input: list[AddressCreateInput]
-    ) -> list[Response[Address]]:  # pragma: no cover
+    ) -> list[Response[Address]]:
         created_addresses = await asyncio.gather(
             *[Mutation.address_create(self, address) for address in input]
         )
@@ -478,9 +478,7 @@ class Mutation:
     ) -> Response[Class]:
         org = await info.context.dataloaders.org_loader.load(0)
         uuid = await create_class(input.to_pydantic(), org.uuid)
-        # coverage: pause
         return uuid2response(uuid, ClassRead)
-        # coverage: unpause
 
     @strawberry.mutation(
         description="Updates a class.",
@@ -494,9 +492,7 @@ class Mutation:
     ) -> Response[Class]:
         org = await info.context.dataloaders.org_loader.load(0)
         uuid = await update_class(input.to_pydantic(), org.uuid)
-        # coverage: pause
         return uuid2response(uuid, ClassRead)
-        # coverage: unpause
 
     @strawberry.mutation(
         name="class_terminate",
@@ -539,9 +535,7 @@ class Mutation:
     )
     async def class_delete(self, uuid: UUID) -> Response[Class]:
         uuid = await delete_class(uuid)
-        # coverage: pause
         return uuid2response(uuid, ClassRead)
-        # coverage: unpause
 
     @strawberry.mutation(
         description="Refresh classes.",
@@ -663,7 +657,6 @@ class Mutation:
             cursor=cursor,
         )
         # NOTE: "employee" is called "person" in the new AMQP system
-        # coverage: pause
         return await refresh(
             info=info,
             page=page,
@@ -673,7 +666,6 @@ class Mutation:
             owner=owner,
             priority=priority,
         )
-        # coverage: unpause
 
     # Engagements
     # -----------
@@ -742,7 +734,7 @@ class Mutation:
     )
     async def engagements_update(
         self, input: list[EngagementUpdateInput]
-    ) -> list[Response[Engagement]]:  # pragma: no cover
+    ) -> list[Response[Engagement]]:
         updated_engagements = await asyncio.gather(
             *[Mutation.engagement_update(self, engagement) for engagement in input]
         )
@@ -827,9 +819,7 @@ class Mutation:
     ) -> Response[Facet]:
         org = await info.context.dataloaders.org_loader.load(0)
         uuid = await create_facet(input.to_pydantic(), org.uuid)
-        # coverage: pause
         return uuid2response(uuid, FacetRead)
-        # coverage: unpause
 
     @strawberry.mutation(
         description="Updates a facet.",
@@ -843,9 +833,7 @@ class Mutation:
     ) -> Response[Facet]:
         org = await info.context.dataloaders.org_loader.load(0)
         uuid = await update_facet(input.to_pydantic(), org.uuid)
-        # coverage: pause
         return uuid2response(uuid, FacetRead)
-        # coverage: unpause
 
     @strawberry.mutation(
         name="facet_terminate",
@@ -888,9 +876,7 @@ class Mutation:
     )
     async def facet_delete(self, uuid: UUID) -> Response[Facet]:
         uuid = await delete_facet(uuid)
-        # coverage: pause
         return uuid2response(uuid, FacetRead)
-        # coverage: unpause
 
     @strawberry.mutation(
         description="Refresh facets.",
@@ -991,9 +977,7 @@ class Mutation:
     ) -> Response[ITSystem]:
         org = await info.context.dataloaders.org_loader.load(0)
         uuid = await create_itsystem(input.to_pydantic(), org.uuid)
-        # coverage: pause
         return uuid2response(uuid, ITSystemRead)
-        # coverage: unpause
 
     @strawberry.mutation(
         description="Updates an ITSystem.",
@@ -1007,9 +991,7 @@ class Mutation:
     ) -> Response[ITSystem]:
         org = await info.context.dataloaders.org_loader.load(0)
         uuid = await update_itsystem(input.to_pydantic(), org.uuid)  # type: ignore
-        # coverage: pause
         return uuid2response(uuid, ITSystemRead)
-        # coverage: unpause
 
     @strawberry.mutation(
         name="itsystem_terminate",
@@ -1052,9 +1034,7 @@ class Mutation:
             gen_delete_permission("itsystem"),
         ],
     )
-    async def itsystem_delete(
-        self, info: Info, uuid: UUID
-    ) -> Response[ITSystem]:  # pragma: no cover
+    async def itsystem_delete(self, info: Info, uuid: UUID) -> Response[ITSystem]:
         note = ""
         uuid = await delete_itsystem(uuid, note)
         return uuid2response(uuid, ITSystemRead)
@@ -1121,7 +1101,7 @@ class Mutation:
     )
     async def itusers_create(
         self, input: list[ITUserCreateInput]
-    ) -> list[Response[ITUser]]:  # pragma: no cover
+    ) -> list[Response[ITUser]]:
         created_itusers = await asyncio.gather(
             *[Mutation.ituser_create(self, ituser) for ituser in input]
         )
@@ -1144,9 +1124,7 @@ class Mutation:
             gen_terminate_permission("ituser"),
         ],
     )
-    async def ituser_terminate(
-        self, input: ITUserTerminateInput
-    ) -> Response[ITUser]:  # pragma: no cover
+    async def ituser_terminate(self, input: ITUserTerminateInput) -> Response[ITUser]:
         return uuid2response(await terminate_ituser(input.to_pydantic()), ITUserRead)
 
     @strawberry.mutation(
@@ -1371,7 +1349,7 @@ class Mutation:
     )
     async def managers_create(
         self, input: list[ManagerCreateInput]
-    ) -> list[Response[Manager]]:  # pragma: no cover
+    ) -> list[Response[Manager]]:
         created_managers = await asyncio.gather(
             *[Mutation.manager_create(self, manager) for manager in input]
         )
@@ -1455,9 +1433,7 @@ class Mutation:
     async def org_create(self, info: MOInfo, input: OrganisationCreate) -> Organisation:
         # Called for side-effect
         await create_org(input)
-        # coverage: pause
         return cast(Organisation, await info.context.dataloaders.org_loader.load(0))
-        # coverage: unpause
 
     # TODO: org_update
     # TODO: org_terminate
@@ -1708,7 +1684,7 @@ class Mutation:
     )
     async def rolebindings_create(
         self, input: list[RoleBindingCreateInput]
-    ) -> list[Response[RoleBinding]]:  # pragma: no cover
+    ) -> list[Response[RoleBinding]]:
         created_rolebindings = await asyncio.gather(
             *[Mutation.rolebinding_create(self, rolebinding) for rolebinding in input]
         )
@@ -1828,7 +1804,6 @@ class Mutation:
 
         await session.execute(stmt)
 
-        # coverage: pause
         namespace = await session.scalar(
             select(db.Namespace).where(db.Namespace.name == input.name)
         )
@@ -1848,7 +1823,6 @@ class Mutation:
             owner=namespace.owner,
             public=namespace.public,
         )
-        # coverage: unpause
 
     @strawberry.mutation(
         description=dedent(
@@ -1870,17 +1844,15 @@ class Mutation:
     ) -> bool:
         session: AsyncSession = info.context.session
 
-        # coverage: pause
         try:
             await session.execute(
                 delete(db.Namespace).where(db.Namespace.name == input.name)
             )
-        except sqlalchemy.exc.IntegrityError:  # pragma: no cover
+        except sqlalchemy.exc.IntegrityError:
             raise ValueError(
                 "There are still listeners for this namespace. Use the `event_listener_delete` mutator."
             )
         return True
-        # coverage: unpause
 
     @strawberry.mutation(
         description=dedent(
@@ -1907,7 +1879,6 @@ class Mutation:
             select(db.Namespace).where(db.Namespace.name == input.namespace)
         )
 
-        # coverage: pause
         if namespace is None:
             raise ValueError("Namespace does not exist")
 
@@ -1950,7 +1921,6 @@ class Mutation:
             routing_key=listener.routing_key,
             namespace_fk=listener.namespace_fk,
         )
-        # coverage: unpause
 
     @strawberry.mutation(
         description="Delete a listener.",
@@ -1966,7 +1936,6 @@ class Mutation:
     ) -> bool:
         session: AsyncSession = info.context.session
 
-        # coverage: pause
         if input.delete_pending_events:
             await session.execute(
                 delete(db.Event).where(db.Event.listener_fk == input.uuid)
@@ -1976,12 +1945,11 @@ class Mutation:
             await session.execute(
                 delete(db.Listener).where(db.Listener.pk == input.uuid)
             )
-        except sqlalchemy.exc.IntegrityError:  # pragma: no cover
+        except sqlalchemy.exc.IntegrityError:
             raise ValueError(
                 "There are pending events for this listener. Consider carefully if these need to be handled first. You can delete the listener anyway with `delete_pending_events`."
             )
         return True
-        # coverage: unpause
 
     @strawberry.mutation(
         description="Acknowledge an event.",
@@ -2008,7 +1976,6 @@ class Mutation:
             )
         )
 
-        # coverage: pause
         if not listener:
             return True
 
@@ -2029,7 +1996,6 @@ class Mutation:
                 routing_key=listener.routing_key,
             ).inc()
         return True
-        # coverage: unpause
 
     @strawberry.mutation(
         description="Send an event.",
@@ -2053,7 +2019,6 @@ class Mutation:
                 "Too large subject. Only send identifiers as the subject, not data"
             )
 
-        # coverage: pause
         session: AsyncSession = info.context.session
         namespace = await session.scalar(
             select(db.Namespace).where(db.Namespace.name == input.namespace)
@@ -2071,7 +2036,6 @@ class Mutation:
             priority=input.priority,
         )
         return True
-        # coverage: unpause
 
     @strawberry.mutation(
         description=dedent(
@@ -2091,7 +2055,6 @@ class Mutation:
         info: MOInfo,
         input: EventSilenceInput,
     ) -> bool:
-        # coverage: pause
         session: AsyncSession = info.context.session
         await session.execute(
             update(db.Event)
@@ -2103,7 +2066,6 @@ class Mutation:
             .values(silenced=True)
         )
         return True
-        # coverage: unpause
 
     @strawberry.mutation(
         description="Unsilence all matching events",
@@ -2127,10 +2089,9 @@ class Mutation:
         if input.subjects is not None:
             clauses.append(db.Event.subject.in_(input.subjects))
 
-        if input.priorities is not None:  # pragma: no cover
+        if input.priorities is not None:
             clauses.append(db.Event.priority.in_(input.priorities))
 
-        # coverage: pause
         session: AsyncSession = info.context.session
         await session.execute(
             update(db.Event)
@@ -2143,7 +2104,6 @@ class Mutation:
             )
         )
         return True
-        # coverage: unpause
 
     # Files
     # -----
@@ -2221,27 +2181,21 @@ class Mutation:
             info.context.session, actor, file_store, file_name, file_bytes, force
         )
 
-        # coverage: pause
         return "OK"
-        # coverage: unpause
 
 
 async def delete_bruger(uuid: UUID) -> UUID:
     """Delete a user by creating a "Slettet" (deleted) registration."""
     c = get_connector()
     uuid = await c.bruger.delete(uuid)
-    # coverage: pause
     return uuid
-    # coverage: unpause
 
 
 async def delete_organisationfunktion(uuid: UUID) -> UUID:
     """Delete an organisationfunktion by creating a "Slettet" (deleted) registration."""
     c = get_connector()
     uuid = await c.organisationfunktion.delete(uuid)
-    # coverage: pause
     return uuid
-    # coverage: unpause
 
 
 async def refresh(
@@ -2256,7 +2210,6 @@ async def refresh(
     """Publish events for the given UUIDs to AMQP and/or GraphQL."""
     uuids = page.objects
 
-    # coverage: pause
     if exchange and (listener or owner):
         raise ValueError(
             "listener/owner and exchange are mutually exclusive. Exchanges are part of the legacy event system. If you are using GraphQL Events, do NOT use exchange."
@@ -2292,4 +2245,3 @@ async def refresh(
 
     # Return the page to reduce duplicated boilerplate in the callers
     return page
-    # coverage: unpause

@@ -88,7 +88,7 @@ async def write(
     else:
         try:
             await session.execute(query)
-        except IntegrityError:  # pragma: no cover
+        except IntegrityError:
             exceptions.ErrorCodes.E_ALREADY_EXISTS(filename=file_name)
 
 

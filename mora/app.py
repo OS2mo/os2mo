@@ -93,12 +93,10 @@ async def fallback_handler(*args, **kwargs) -> JSONResponse:
     if exc:
         err = ErrorCodes.E_UNKNOWN.to_http_exception(message=str(exc))
         return http_exception_to_json_response(exc=err)
-    # coverage: pause
     err = ErrorCodes.E_UNKNOWN.to_http_exception(
         message=f"Error details:\nargs: {args}\nkwargs: {kwargs}"
     )
     return http_exception_to_json_response(exc=err)
-    # coverage: unpause
 
 
 async def request_validation_handler(request: Request, exc: RequestValidationError):
@@ -110,7 +108,7 @@ async def request_validation_handler(request: Request, exc: RequestValidationErr
     :return:
     """
     settings = config.get_settings()
-    if not settings.is_production():  # pragma: no cover
+    if not settings.is_production():
         logger.info(
             "os2mo_err_details", exc=exc, url=request.url, params=request.query_params
         )
@@ -343,7 +341,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             status_code=400, content={"message": message, "context": context}
         )
 
-    if settings.sentry_dsn:  # pragma: no cover
+    if settings.sentry_dsn:
         # https://docs.sentry.io/platforms/python/integrations/strawberry/
         sentry_sdk.init(
             dsn=settings.sentry_dsn,

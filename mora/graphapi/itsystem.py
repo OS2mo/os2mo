@@ -21,20 +21,16 @@ async def update_itsystem(input: ITSystemUpdate, organisation_uuid: UUID) -> UUI
     await c.itsystem.update(
         input.to_registration(organisation_uuid=organisation_uuid), str(input.uuid)
     )
-    # coverage: pause
     return input.uuid
-    # coverage: unpause
 
 
 async def terminate_itsystem(input: ITSystemTerminate) -> UUID:
     c = lora.Connector()
     await c.itsystem.update(input.to_registration(), input.uuid)
-    # coverage: pause
     return input.uuid
-    # coverage: unpause
 
 
-async def delete_itsystem(itsystem_uuid: UUID, note: str) -> UUID:  # pragma: no cover
+async def delete_itsystem(itsystem_uuid: UUID, note: str) -> UUID:
     # Let LoRa's SQL templates do their magic
     await db.delete_object("itsystem", note, str(itsystem_uuid))
     return itsystem_uuid

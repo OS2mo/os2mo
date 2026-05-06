@@ -42,7 +42,7 @@ _attribute_names = {}
 
 def get_relation_field_type(class_name, field_name):
     class_info = db_structure.REAL_DB_STRUCTURE[class_name.lower()]
-    if "relationer_metadata" in class_info:  # pragma: no cover
+    if "relationer_metadata" in class_info:
         metadata = class_info["relationer_metadata"]
         for relation in metadata:
             for key in metadata[relation]:
@@ -69,7 +69,7 @@ def get_state_names(class_name):
     "Return the list of all recognized states for this class."
     states = db_structure.REAL_DB_STRUCTURE[class_name.lower()]["tilstande"]
 
-    if isinstance(states, list):  # pragma: no cover
+    if isinstance(states, list):
         return [state[0] for state in states]
     return list(states)
 
@@ -87,7 +87,7 @@ def get_relation_names(class_name):
     return _relation_names[class_name.lower()]
 
 
-def get_document_part_relation_names():  # pragma: no cover
+def get_document_part_relation_names():
     """Return the list of all recognized relations for DokumentDel"""
     return ["underredigeringaf"]
 
@@ -108,7 +108,7 @@ VaerdiRelationAttr = namedtuple(
 )
 
 
-def input_list(_type, input, key):  # pragma: no cover
+def input_list(_type, input, key):
     """Take a value with key from the input and return a list.
 
     _type.input is called for each value in the list. If the key is not
@@ -119,7 +119,7 @@ def input_list(_type, input, key):  # pragma: no cover
     return [_type.input(v) for v in values]
 
 
-def input_dict_list(_type, input):  # pragma: no cover
+def input_dict_list(_type, input):
     """Take a dict input and return a generator.
 
     Input is assumed to be a dict with list values.
@@ -131,7 +131,7 @@ def input_dict_list(_type, input):  # pragma: no cover
     return [_type.input(k, v) for k in input for v in input[k]]
 
 
-def to_bool(s):  # pragma: no cover
+def to_bool(s):
     """Convert string to boolean. Passes through bool and None values."""
     if isinstance(s, bool):
         return s
@@ -150,7 +150,7 @@ class Searchable:
     non_searchable_fields = ("virkning",)
 
     @classmethod
-    def get_fields(cls):  # pragma: no cover
+    def get_fields(cls):
         """Return tuple of searchable fields."""
         if "virkning" in cls._fields:
             return tuple(set(cls._fields) - set(cls.non_searchable_fields))
@@ -161,7 +161,7 @@ class DokumentVariantType(
     namedtuple("DokumentVariantType", "varianttekst egenskaber dele")
 ):
     @classmethod
-    def input(cls, i):  # pragma: no cover
+    def input(cls, i):
         if i is None:
             return None
         return cls(
@@ -179,7 +179,7 @@ class DokumentVariantEgenskaberType(
     ),
 ):
     @classmethod
-    def input(cls, i):  # pragma: no cover
+    def input(cls, i):
         if i is None:
             return None
         return cls(
@@ -193,7 +193,7 @@ class DokumentVariantEgenskaberType(
 
 class DokumentDelType(namedtuple("DokumentDelType", "deltekst egenskaber relationer")):
     @classmethod
-    def input(cls, i):  # pragma: no cover
+    def input(cls, i):
         if i is None:
             return None
         return cls(
@@ -205,7 +205,7 @@ class DokumentDelType(namedtuple("DokumentDelType", "deltekst egenskaber relatio
 
 class Virkning(namedtuple("Virkning", "timeperiod aktoerref aktoertypekode notetekst")):
     @classmethod
-    def input(cls, i):  # pragma: no cover
+    def input(cls, i):
         if i is None:
             return None
         return cls(
@@ -223,7 +223,7 @@ class DokumentDelEgenskaberType(
     ),
 ):
     @classmethod
-    def _get_file_storage_for_content_url(cls, url):  # pragma: no cover
+    def _get_file_storage_for_content_url(cls, url):
         """
         Return a FileStorage object for the form field specified by the URL.
 
@@ -237,7 +237,7 @@ class DokumentDelEgenskaberType(
             raise NotImplementedError("Document support dropped!")
 
     @classmethod
-    def input(cls, i):  # pragma: no cover
+    def input(cls, i):
         if i is None:
             return None
         indhold = i.get("indhold", None)
@@ -263,7 +263,7 @@ class DokumentDelRelationType(
     )
 ):
     @classmethod
-    def input(cls, key, i):  # pragma: no cover
+    def input(cls, key, i):
         if i is None:
             return None
         return cls(
@@ -278,7 +278,7 @@ class DokumentDelRelationType(
 class NamedTupleDumper(RecursiveDumper):
     format = Format.BINARY
 
-    def dump(self, obj) -> bytes:  # pragma: no cover
+    def dump(self, obj) -> bytes:
         values = list(map(self._tx.as_literal, obj))
         return (
             b"ROW("
@@ -291,7 +291,7 @@ class NamedTupleDumper(RecursiveDumper):
 class AktoerAttrDumper(RecursiveDumper):
     format = Format.BINARY
 
-    def dump(self, obj) -> bytes:  # pragma: no cover
+    def dump(self, obj) -> bytes:
         values = list(map(self._tx.as_literal, obj))
         qaa = AktoerAttr(*values)  # quoted_aktoer_attr
         values = [

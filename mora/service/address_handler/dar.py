@@ -23,7 +23,7 @@ logger = get_logger()
 
 
 def open_street_map_href_from_dar_object(address_object) -> str | None:
-    if not ("x" in address_object and "y" in address_object):  # pragma: no cover
+    if not ("x" in address_object and "y" in address_object):
         return None
     x, y = address_object["x"], address_object["y"]
     return f"https://www.openstreetmap.org/?mlon={x}&mlat={y}&zoom=16"
@@ -75,7 +75,7 @@ class DARAddressHandler(base.AddressHandler):
             handler._href = None
             return handler
 
-        if not config.get_settings().enable_dar:  # pragma: no cover
+        if not config.get_settings().enable_dar:
             handler._name = None
             handler._href = None
             return handler
@@ -132,13 +132,13 @@ class DARAddressHandler(base.AddressHandler):
             yield addr["etage"]
             yield "."
 
-        if addr.get("dør") is not None:  # pragma: no cover
+        if addr.get("dør") is not None:
             yield " "
             yield addr["dør"]
 
         yield ", "
 
-        if addr.get("supplerendebynavn") is not None:  # pragma: no cover
+        if addr.get("supplerendebynavn") is not None:
             yield addr["supplerendebynavn"]
             yield ", "
 

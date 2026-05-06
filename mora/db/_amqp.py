@@ -15,5 +15,5 @@ class AMQPSubsystem(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     last_run: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
-    def __repr__(self) -> str:  # pragma: no cover
+    def __repr__(self) -> str:
         return f"AMQPSubsystem(id={self.id!r}, last_run={self.last_run!r})"

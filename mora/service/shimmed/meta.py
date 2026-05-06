@@ -13,7 +13,7 @@ def meta_router():
     router = APIRouter()
 
     @router.get("/version/")
-    async def version():  # pragma: no cover
+    async def version():
         query = """
         query VersionQuery {
           version {
@@ -36,7 +36,7 @@ def meta_router():
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
     @router.get("/saml/sso/")
-    async def old_auth():  # pragma: no cover
+    async def old_auth():
         return RedirectResponse(url="/")
 
     return router

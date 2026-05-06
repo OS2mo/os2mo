@@ -146,7 +146,7 @@ async def full_event_resolver(
         )
     )
 
-    if limit is not None:  # pragma: no cover
+    if limit is not None:
         query = query.limit(limit)
     # This doesn't actually work correctly. It is hard to do pagination
     # correctly, so for now we just do this super naively. This resolver is
@@ -172,13 +172,13 @@ async def listener_resolver(
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> list["Listener"]:
-    if filter is None:  # pragma: no cover
+    if filter is None:
         filter = ListenerFilter()
 
     query = select(db.Listener).where(*filter.where_clauses())
 
     if limit is not None:
-        query = query.limit(limit)  # pragma: no cover
+        query = query.limit(limit)
     # This doesn't actually work correctly. It is hard to do pagination
     # correctly, so for now we just do this super naively. This resolver is
     # only used by humans, not by integrations.
@@ -205,13 +205,13 @@ async def namespace_resolver(
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> list["Namespace"]:
-    if filter is None:  # pragma: no cover
+    if filter is None:
         filter = NamespaceFilter()
 
     query = select(db.Namespace).where(*filter.where_clauses())
 
     if limit is not None:
-        query = query.limit(limit)  # pragma: no cover
+        query = query.limit(limit)
     # This doesn't actually work correctly. It is hard to do pagination
     # correctly, so for now we just do this super naively. This resolver is
     # only used by humans, not by integrations.
@@ -284,11 +284,9 @@ class Listener:
         ],
     )
     async def namespace(root: "Listener", info: strawberry.Info) -> Namespace:
-        # coverage: pause
         filter = NamespaceFilter(names=[root.namespace_fk])
         result = await namespace_resolver(info, filter)
         return one(result)
-        # coverage: unpause
 
     events: list["FullEvent"] = strawberry.field(
         resolver=seed_resolver(
@@ -326,11 +324,9 @@ class FullEvent:
         ],
     )
     async def listener(root: "FullEvent", info: strawberry.Info) -> Listener:
-        # coverage: pause
         filter = ListenerFilter(uuids=[root.listener_uuid])
         result = await listener_resolver(info, filter)
         return one(result)
-        # coverage: unpause
 
 
 class EventToken(BaseModel):

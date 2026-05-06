@@ -100,7 +100,7 @@ class Settings(BaseSettings):
 
         dependencies = {"os2mo_auth", "keycloak_rbac_enabled"}
         for dependency in dependencies:
-            if not values[dependency]:  # pragma: no cover
+            if not values[dependency]:
                 raise ValueError(
                     f"'{dependency}' must be true when graphql_rbac is enabled"
                 )

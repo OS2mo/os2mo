@@ -74,7 +74,7 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = await c.organisationfunktion.get(uuid=function_uuid)
 
-        if not original:  # pragma: no cover
+        if not original:
             exceptions.ErrorCodes.E_NOT_FOUND()
 
         # Get org unit uuid for validation purposes
@@ -88,7 +88,7 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
         }
 
         original_data = req.get("original")
-        if original_data:  # pragma: no cover
+        if original_data:
             # We are performing an update
             old_from, old_to = util.get_validities(original_data)
             payload = common.inactivate_old_interval(
@@ -141,7 +141,7 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
 
         try:
             attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
-        except (TypeError, LookupError):  # pragma: no cover
+        except (TypeError, LookupError):
             attributes = {}
         new_attributes = {}
 

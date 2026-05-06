@@ -65,7 +65,7 @@ class MultifieldAddress(ResolvedAddress):
     value2: str
 
     @strawberry.field
-    async def name(self, root: "MultifieldAddress") -> str:  # pragma: no cover
+    async def name(self, root: "MultifieldAddress") -> str:
         return multifield_text.name(root.value, root.value2)
 
 
@@ -508,7 +508,7 @@ class Address:
     async def resolve(self, root: AddressRead, info: MOInfo) -> ResolvedAddress:
         obj = await _get_handler_object(root, info)
 
-        if obj.scope == "MULTIFIELD_TEXT":  # pragma: no cover
+        if obj.scope == "MULTIFIELD_TEXT":
             return MultifieldAddress(value=root.value, value2=root.value2)  # type: ignore
 
         if obj.scope == "DAR":

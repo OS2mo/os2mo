@@ -33,8 +33,6 @@ class RoleBindingReader(reading.OrgFunkReadingHandler):
                 "role": role_uuid,
                 "it_user_uuid": it_user_uuid,
             }
-        # coverage: pause
         raise HTTPException(
             status_code=404, detail="Role/bindings are only available through GraphQL."
         )
-        # coverage: unpause

@@ -112,7 +112,7 @@ async def current_resolver(
         Returns:
             True if the object is active right now, False otherwise.
         """
-        if not hasattr(obj, "validity"):  # pragma: no cover
+        if not hasattr(obj, "validity"):
             return True
 
         from_date = obj.validity.from_date or NEGATIVE_INFINITY
@@ -124,7 +124,7 @@ async def current_resolver(
         return from_date.date() <= now().date() <= to_date.date()
 
     def activity_tuple(obj: Any) -> datetime:
-        if not hasattr(obj, "validity"):  # pragma: no cover
+        if not hasattr(obj, "validity"):
             return NEGATIVE_INFINITY
         if obj.validity.to_date is None:
             return POSITIVE_INFINITY
@@ -232,7 +232,7 @@ class ResponseRegistration(RegistrationBase, Generic[MOObject]):
         info: MOInfo,
         start: datetime | None = UNSET,
         end: datetime | None = UNSET,
-    ) -> list[MOObject]:  # pragma: no cover
+    ) -> list[MOObject]:
         return await validity_resolver(root, info, start, end, root.start)
 
 

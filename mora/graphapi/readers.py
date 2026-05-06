@@ -14,7 +14,7 @@ ORGFUNK_VALUES = tuple(map(lambda x: x.value, MoOrgFunk))
 
 
 def to_lora_args(key: Any, value: Any) -> tuple[Any, Any]:
-    if key in ORGFUNK_VALUES:  # pragma: no cover
+    if key in ORGFUNK_VALUES:
         return f"tilknyttedefunktioner:{key}", value
     return key, value
 

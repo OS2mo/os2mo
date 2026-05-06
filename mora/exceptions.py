@@ -148,7 +148,7 @@ class HTTPException(fastapiHTTPException):
     key = ErrorCodes.E_UNKNOWN
 
     @property
-    def code(self):  # pragma: no cover
+    def code(self):
         return self.key.code
 
     # Added to have pre 0.29.0 Starlette HTTPException behavior

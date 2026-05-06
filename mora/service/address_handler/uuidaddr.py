@@ -31,5 +31,5 @@ class UUIDAddressHandler(base.AddressHandler):
 
         try:
             uuid.UUID(value)
-        except ValueError:  # pragma: no cover
+        except ValueError:
             exceptions.ErrorCodes.V_INVALID_ADDRESS_UUID(value=value)

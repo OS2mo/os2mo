@@ -187,7 +187,7 @@ def actor_uuid_to_actor(actor_uuid: UUID | None) -> Actor:
     """
     # Special case for missing actors, should ideally never happen
     if actor_uuid is None:
-        return UnknownActor(  # pragma: no cover
+        return UnknownActor(
             uuid=UUID("ffffffff-ffff-ffff-ffff-ffffffffffff"),
             error="No token provided.",
         )

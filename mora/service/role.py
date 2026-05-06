@@ -70,7 +70,6 @@ class RoleBindingRequestHandler(handlers.OrgFunkRequestHandler):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = await c.organisationfunktion.get(uuid=role_uuid)
 
-        # coverage: pause
         if not original:
             exceptions.ErrorCodes.E_NOT_FOUND(uuid=role_uuid)
 
@@ -153,4 +152,3 @@ class RoleBindingRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = payload
         self.uuid = role_uuid
-        # coverage: unpause

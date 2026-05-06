@@ -205,7 +205,6 @@ def setup_event_metrics(instrumentator: Instrumentator) -> None:
             )
 
             result = await session.execute(query)
-            # coverage: pause
             for listener, active, silenced in result.all():
                 if active is not None:
                     METRIC_OLD_EVENTS.labels(
@@ -223,7 +222,6 @@ def setup_event_metrics(instrumentator: Instrumentator) -> None:
                         routing_key=listener.routing_key,
                         silenced="true",
                     ).set(int(silenced.timestamp()))
-            # coverage: unpause
 
     async def count_events(info) -> None:
         url_path = info.request.url.path

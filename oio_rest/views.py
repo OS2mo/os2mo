@@ -25,11 +25,11 @@ def create_lora_router():
     router = APIRouter()
 
     @router.get("/", tags=["Meta"])
-    async def root():  # pragma: no cover
+    async def root():
         return RedirectResponse(router.url_path_for("sitemap"))
 
     @router.get("/site-map", tags=["Meta"])
-    async def sitemap():  # pragma: no cover
+    async def sitemap():
         """Returns a site map over all valid urls.
 
         .. :quickref: :http:get:`/site-map`
