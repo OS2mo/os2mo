@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import contextvars
+import json
 import os
 import secrets
 import traceback
@@ -1017,6 +1018,32 @@ def create_person(
         assert response.errors is None
         assert response.data
         return UUID(response.data["employee_create"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
+def upload_file(
+    admin_client: TestClient, latest_graphql_url: str
+) -> Callable[[str, bytes], None]:
+    def inner(filename: str, content: bytes) -> None:
+        operations = json.dumps(
+            {
+                "query": (
+                    "mutation($file: Upload!) {"
+                    "  upload_file(file_store: EXPORTS, file: $file)"
+                    "}"
+                ),
+                "variables": {"file": None},
+            }
+        )
+        file_map = json.dumps({"file": ["variables.file"]})
+        response = admin_client.post(
+            latest_graphql_url,
+            data={"operations": operations, "map": file_map},
+            files={"file": (filename, content)},
+        )
+        assert response.json().get("errors") is None
 
     return inner
 
