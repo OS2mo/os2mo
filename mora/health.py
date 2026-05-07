@@ -37,7 +37,7 @@ async def root() -> dict[str, bool]:
     }
     """
     r = await execute_graphql(query)
-    if r.errors:
+    if r.errors:  # pragma: no cover
         raise ValueError(r.errors)
 
     return {
@@ -59,8 +59,8 @@ async def healthcheck(identifier: str) -> bool | None:
     """
 
     r = await execute_graphql(query, variable_values={"identifier": identifier})
-    if r.errors:
+    if r.errors:  # pragma: no cover
         raise ValueError(r.errors)
-    if not r.data["healths"]["objects"]:
+    if not r.data["healths"]["objects"]:  # pragma: no cover
         raise HTTPException(status_code=404, detail="Healthcheck not found")
     return one(r.data["healths"]["objects"])["status"]

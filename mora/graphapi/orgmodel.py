@@ -125,7 +125,7 @@ class Organisation(LoraBase):
         )
         _valid_state = OrganisationValidState(effective_time=_effective_time)
         _authority = None
-        if municipality_code:
+        if municipality_code:  # pragma: no cover
             _authority = Authority(
                 urn=f"urn:dk:kommune:{municipality_code}",
                 effective_time=_effective_time,

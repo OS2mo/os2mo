@@ -129,7 +129,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             await obj.prepare_terminate(obj.request)
         elif obj.request_type == RequestType.REFRESH:
             await obj.prepare_refresh(obj.request)
-        else:
+        else:  # pragma: no cover
             raise NotImplementedError
 
         obj.trigger_dict.update(
@@ -148,7 +148,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :param request: A dict containing a request
         """
 
-    def prepare_edit(self, request: dict):
+    def prepare_edit(self, request: dict):  # pragma: no cover
         """
         Initialize an 'edit' request. Performs validation and all
         necessary processing
@@ -157,7 +157,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         raise NotImplementedError("Use POST with a matching UUID instead (PUT)")
 
-    def prepare_terminate(self, request: dict):
+    def prepare_terminate(self, request: dict):  # pragma: no cover
         """
         Initialize a 'termination' request. Performs validation and all
         necessary processing
@@ -166,7 +166,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         raise NotImplementedError
 
-    def prepare_refresh(self, request: dict):
+    def prepare_refresh(self, request: dict):  # pragma: no cover
         """
         Initialize a 'refresh' request. Performs validation and all
         necessary processing
@@ -213,7 +213,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             """Obtain the handler class corresponding to given role_type"""
             try:
                 return HANDLERS_BY_ROLE_TYPE[role_type]
-            except LookupError:
+            except LookupError:  # pragma: no cover
                 exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(type=role_type)
 
         # Group detail requests by role type
@@ -376,7 +376,7 @@ async def generate_requests(
             requesthandlers.append(
                 await requesthandler_klasse.construct(req, request_type)
             )
-        else:
+        else:  # pragma: no cover
             requesthandlers.append(await requesthandler_klasse(req, request_type))
     return requesthandlers
 

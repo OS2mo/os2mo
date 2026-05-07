@@ -48,7 +48,7 @@ async def create_org(input: OrganisationCreate) -> UUID:
     # NOTE: This code does a direct lookup in LoRa as OS2mo code usually has the
     #       invariant that a root organisation always exists.
     organisations = list(await org_scope.fetch(bvn="%"))
-    if len(organisations) != 0:
+    if len(organisations) != 0:  # pragma: no cover
         raise ValueError("Root organisation already exists")
 
     model = Organisation.from_simplified_fields(

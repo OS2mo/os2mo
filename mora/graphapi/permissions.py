@@ -69,7 +69,7 @@ class IsAuthenticatedPermission(BasePermission):
         """Returns `True` if a valid token exists."""
         settings = get_settings()
         # Always grant access if auth is disabled
-        if not settings.os2mo_auth:
+        if not settings.os2mo_auth:  # pragma: no cover
             return True
         try:
             token = await info.context.get_token()

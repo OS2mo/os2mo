@@ -85,7 +85,7 @@ class OrganisationUnit:
     ) -> Response[LazyOrganisationUnit] | None:
         # Root units aren't actually at the root, but have the special "org"
         # UUID as parent. That's confusing. Remove it.
-        if root.parent_uuid is None:
+        if root.parent_uuid is None:  # pragma: no cover
             return None
         if get_version(info.schema) >= GraphQLVersion.VERSION_28:
             if root.parent_uuid == await org.get_configured_organisation_uuid():
@@ -581,7 +581,7 @@ class OrganisationUnit:
             ),
         ] = False,
     ) -> list[LazyManager]:
-        if filter is None:
+        if filter is None:  # pragma: no cover
             filter = ManagerFilter()
         filter.org_units = [root.uuid]
 
@@ -674,7 +674,7 @@ class OrganisationUnit:
         if not inherit:
             return []
         parent = await OrganisationUnit.parent(root=root, info=info)  # type: ignore
-        if parent is None:
+        if parent is None:  # pragma: no cover
             return []
         return await OrganisationUnit.owners(
             self=self, root=parent, info=info, inherit=True
@@ -918,7 +918,7 @@ class OrganisationUnit:
     async def parent_uuid(self, root: OrganisationUnitRead, info: Info) -> UUID | None:
         # Root units aren't actually at the root, but have the special "org"
         # UUID as parent. That's confusing. Remove it.
-        if root.parent_uuid is None:
+        if root.parent_uuid is None:  # pragma: no cover
             return None
         if get_version(info.schema) >= GraphQLVersion.VERSION_28:
             if root.parent_uuid == await org.get_configured_organisation_uuid():

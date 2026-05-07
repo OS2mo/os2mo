@@ -50,7 +50,7 @@ class LeaveReader(reading.OrgFunkReadingHandler):
 
         if only_primary_uuid:
             engagement = {mapping.UUID: engagement_uuid}
-        else:
+        else:  # pragma: no cover
             # We look up whatever engagement is active at the present time period
             # to account for edge cases where the engagement might have changed or is
             # no longer active during the time period

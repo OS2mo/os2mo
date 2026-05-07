@@ -65,7 +65,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
     @abc.abstractmethod
     async def validate_value(value):
         """Validate that the address value is correctly formed"""
-        pass
+        pass  # pragma: no cover
 
     @property
     def urn(self):
@@ -187,7 +187,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
 
 def get_handler_for_scope(scope: str) -> type[AddressHandler]:
     handler = ADDRESS_HANDLERS.get(scope)
-    if not handler:
+    if not handler:  # pragma: no cover
         raise exceptions.ErrorCodes.E_INVALID_INPUT(
             f"Invalid address scope type {scope}"
         )

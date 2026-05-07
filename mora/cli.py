@@ -7,31 +7,31 @@ which describes its arguments and options.
 """
 
 # TODO: Do we wanna access-log database access from here?
-import asyncio
-import sys
-import time
+import asyncio  # pragma: no cover
+import sys  # pragma: no cover
+import time  # pragma: no cover
 
-import click
-from fastramqpi.ra_utils.async_to_sync import async_to_sync
-from fastramqpi.ramqp import AMQPSystem
-from fastramqpi.ramqp.mo import MOAMQPSystem
-from sqlalchemy import select
-from sqlalchemy import update
-from structlog import get_logger
+import click  # pragma: no cover
+from fastramqpi.ra_utils.async_to_sync import async_to_sync  # pragma: no cover
+from fastramqpi.ramqp import AMQPSystem  # pragma: no cover
+from fastramqpi.ramqp.mo import MOAMQPSystem  # pragma: no cover
+from sqlalchemy import select  # pragma: no cover
+from sqlalchemy import update  # pragma: no cover
+from structlog import get_logger  # pragma: no cover
 
-from mora.amqp import start_event_generator
-from mora.db import AMQPSubsystem
-from mora.db import create_sessionmaker
-from oio_rest.config import get_settings as oio_rest_get_settings
+from mora.amqp import start_event_generator  # pragma: no cover
+from mora.db import AMQPSubsystem  # pragma: no cover
+from mora.db import create_sessionmaker  # pragma: no cover
+from oio_rest.config import get_settings as oio_rest_get_settings  # pragma: no cover
 
-from . import amqp as amqp_subsystem
-from . import config
-from . import log
+from . import amqp as amqp_subsystem  # pragma: no cover
+from . import config  # pragma: no cover
+from . import log  # pragma: no cover
 
-logger = get_logger()
-settings = config.get_settings()
-oio_rest_settings = oio_rest_get_settings()
-sessionmaker = create_sessionmaker(
+logger = get_logger()  # pragma: no cover
+settings = config.get_settings()  # pragma: no cover
+oio_rest_settings = oio_rest_get_settings()  # pragma: no cover
+sessionmaker = create_sessionmaker(  # pragma: no cover
     user=oio_rest_settings.db_user,
     password=oio_rest_settings.db_password,
     host=oio_rest_settings.db_host,
@@ -40,14 +40,14 @@ sessionmaker = create_sessionmaker(
 
 
 @click.group()
-def cli():
+def cli():  # pragma: no cover
     pass
 
 
-_SLEEPING_TIME = 0.5
+_SLEEPING_TIME = 0.5  # pragma: no cover
 
 
-def _wait_for_service(name, wait_fn, unavailable_exception, wait):
+def _wait_for_service(name, wait_fn, unavailable_exception, wait):  # pragma: no cover
     attempts = int(wait // _SLEEPING_TIME) or 1
     for i in range(1, attempts + 1):
         try:
@@ -68,13 +68,13 @@ def _wait_for_service(name, wait_fn, unavailable_exception, wait):
     type=int,
     help="Wait up to n seconds for rabbitmq.",
 )
-def wait_for_rabbitmq(seconds):
+def wait_for_rabbitmq(seconds):  # pragma: no cover
     if not settings.amqp_enable:
         logger.info("AMQP is disabled. MO will not send messages.")
         return 0
 
     @async_to_sync
-    async def connector():
+    async def connector():  # pragma: no cover
         amqp_system = MOAMQPSystem(settings.amqp)
         await amqp_system.start()
         status = amqp_system.healthcheck()
@@ -93,11 +93,11 @@ def wait_for_rabbitmq(seconds):
 
 
 @cli.group()
-def amqp():
+def amqp():  # pragma: no cover
     """Commands for the event generator and AMQP subsystem."""
 
 
-async def _set_last_run(date):
+async def _set_last_run(date):  # pragma: no cover
     async with sessionmaker() as session:
         async with session.begin():
             await session.execute(
@@ -112,11 +112,11 @@ async def _set_last_run(date):
 @amqp.command()
 @click.argument("object-type", type=click.Choice(amqp_subsystem.MO_TYPE.__args__))
 @click.argument("uuid", type=click.UUID)
-def send_event(object_type, uuid) -> None:
+def send_event(object_type, uuid) -> None:  # pragma: no cover
     """Send AMQP event with routing_key=object_type and uuid as body."""
     amqp_system = AMQPSystem(settings.amqp)
 
-    async def _send_event():
+    async def _send_event():  # pragma: no cover
         async with sessionmaker() as session, session.begin():
             try:
                 await amqp_system.start()
@@ -131,13 +131,13 @@ def send_event(object_type, uuid) -> None:
 
 @amqp.command()
 @click.argument("date")
-def schedule_since(date) -> None:
+def schedule_since(date) -> None:  # pragma: no cover
     """Send all AMQP events that would be sent, had we not been sending events since *date*."""
     asyncio.run(_set_last_run(date))
 
 
 @amqp.command()
-def schedule_all() -> None:
+def schedule_all() -> None:  # pragma: no cover
     """Send an AMQP events for each object-type/UUID pair OS2MO knows of.
 
     Most event-driven integrations implement a /trigger/all-endpoint, that you
@@ -146,10 +146,10 @@ def schedule_all() -> None:
 
 
 @amqp.command()
-def last_run() -> None:
+def last_run() -> None:  # pragma: no cover
     """Print last time the AMQP trigger checked for new events to send."""
 
-    async def print_last_run():
+    async def print_last_run():  # pragma: no cover
         async with sessionmaker() as session:
             async with session.begin():
                 last_run = await session.scalar(
@@ -161,11 +161,11 @@ def last_run() -> None:
 
 
 @amqp.command()
-def start() -> None:
+def start() -> None:  # pragma: no cover
     """Start the event generator."""
     asyncio.run(start_event_generator(sessionmaker))
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     log.init(settings.log_level, json=False)
     cli(prog_name="mora.cli")

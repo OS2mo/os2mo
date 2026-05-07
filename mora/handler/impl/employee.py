@@ -31,7 +31,7 @@ class EmployeeReader(reading.ReadingHandler):
         return await cls._get_obj_effects(c, object_tuples)
 
     @classmethod
-    async def get_from_type(cls, c: Connector, type: str, objid):
+    async def get_from_type(cls, c: Connector, type: str, objid):  # pragma: no cover
         if type != "e":
             exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
 

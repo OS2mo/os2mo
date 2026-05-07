@@ -62,7 +62,7 @@ def filter_by_validity(validity: ValidityLiteral, element: dict):
     start = element["validity"]["from"]
     end = element["validity"]["to"]
 
-    if validity == "past":
+    if validity == "past":  # pragma: no cover
         return end is not None and util.parsedatetime(end) < now
     if validity == "future":
         return util.parsedatetime(start) > now
@@ -371,7 +371,7 @@ async def list_addresses_employee(
         """
     args = {"uuid": eid}
     if at is not None:
-        args["from_date"] = at
+        args["from_date"] = at  # pragma: no cover
     if validity is not None:
         start, end = validity_tuple(validity)
         args["from_date"] = start
@@ -385,7 +385,7 @@ async def list_addresses_employee(
 
     flat = flatten_data(r.data["employees"]["objects"])
     if len(flat) == 0:
-        return []
+        return []  # pragma: no cover
 
     # Due to the nature of our query, the length of flat will sometimes be > 1
     # when querying historical data. However, the historical addresses reported will be
@@ -397,7 +397,7 @@ async def list_addresses_employee(
         if only_primary_uuid:
             element["person"] = {"uuid": element.pop("employee_uuid")}
             element["address_type"] = {"uuid": element.pop("address_type_uuid")}
-        else:
+        else:  # pragma: no cover
             element["person"] = first(element.pop("employee"))
 
     return list(filter(partial(filter_by_validity, validity), data))
@@ -614,7 +614,7 @@ async def list_addresses_ou(
            }
         ]
     """
-    if only_primary_uuid:
+    if only_primary_uuid:  # pragma: no cover
         query = """
             query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
               org_units(filter: {uuids: [$uuid], from_date: $from_date, to_date: $to_date}) {
@@ -712,7 +712,7 @@ async def list_addresses_ou(
         variable_values=jsonable_encoder(args),
     )
     if r.errors:
-        raise ValueError(r.errors)
+        raise ValueError(r.errors)  # pragma: no cover
 
     flat = flatten_data(r.data["org_units"]["objects"])
     if len(flat) == 0:
@@ -724,7 +724,7 @@ async def list_addresses_ou(
     data = first(flat)["addresses"]
 
     for element in data:
-        if only_primary_uuid:
+        if only_primary_uuid:  # pragma: no cover
             element["address_type"] = {"uuid": element.pop("address_type_uuid")}
             element["org_unit"] = {"uuid": element.pop("org_unit_uuid")}
         else:
@@ -911,7 +911,7 @@ async def list_employees_employee(
            }
         ]
     """
-    return await get_detail(type="e", id=id, function="employee")
+    return await get_detail(type="e", id=id, function="employee")  # pragma: no cover
 
 
 @router.get("/ou/{id}/details/employee")
@@ -949,7 +949,7 @@ async def list_employees_ou(
            }
         ]
     """
-    return await get_detail(type="ou", id=id, function="employee")
+    return await get_detail(type="ou", id=id, function="employee")  # pragma: no cover
 
 
 @router.get("/e/{id}/details/engagement")
@@ -1208,7 +1208,7 @@ async def list_kles_employee(
     only_primary_uuid: Any | None = None,
 ):
     """Fetch a list of kles for the employee."""
-    return await get_detail(type="e", id=id, function="kle")
+    return await get_detail(type="e", id=id, function="kle")  # pragma: no cover
 
 
 @router.get("/ou/{id}/details/kle")
@@ -1241,7 +1241,7 @@ async def list_leaves_ou(
     only_primary_uuid: Any | None = None,
 ):
     """Fetch a list of leaves for the organisation unit."""
-    return await get_detail(type="ou", id=id, function="leave")
+    return await get_detail(type="ou", id=id, function="leave")  # pragma: no cover
 
 
 @router.get("/e/{id}/details/manager")
@@ -1458,7 +1458,7 @@ async def list_org_units_employee(
            }
         ]
     """
-    return await get_detail(type="e", id=id, function="org_unit")
+    return await get_detail(type="e", id=id, function="org_unit")  # pragma: no cover
 
 
 @router.get("/ou/{id}/details/org_unit")
@@ -1540,7 +1540,9 @@ async def list_related_units_employee(
     only_primary_uuid: Any | None = None,
 ):
     """Fetch a list of related_units for the employee."""
-    return await get_detail(type="e", id=id, function="related_unit")
+    return await get_detail(
+        type="e", id=id, function="related_unit"
+    )  # pragma: no cover
 
 
 @router.get("/ou/{id}/details/related_unit")

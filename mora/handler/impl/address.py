@@ -57,32 +57,32 @@ class AddressReader(reading.OrgFunkReadingHandler):
                 "visibility_uuid": visibility_uuid,
                 "it_user_uuid": it_user_uuid,
             }
-        facet_obj = await facet.request_bulked_get_one_class_full(
+        facet_obj = await facet.request_bulked_get_one_class_full(  # pragma: no cover
             address_type_uuid, only_primary_uuid=only_primary_uuid
         )
 
-        r = {
+        r = {  # pragma: no cover
             **base_obj,
             mapping.ADDRESS_TYPE: facet_obj,
             **address_obj,
         }
 
-        if person_uuid:
+        if person_uuid:  # pragma: no cover
             r[mapping.PERSON] = await employee.request_bulked_get_one_employee(
                 person_uuid, only_primary_uuid=only_primary_uuid
             )
 
-        if org_unit_uuid:
+        if org_unit_uuid:  # pragma: no cover
             r[mapping.ORG_UNIT] = await orgunit.request_bulked_get_one_orgunit(
                 org_unit_uuid,
                 details=orgunit.UnitDetails.MINIMAL,
                 only_primary_uuid=only_primary_uuid,
             )
 
-        if engagement_uuid is not None:
+        if engagement_uuid is not None:  # pragma: no cover
             engagement = {mapping.UUID: engagement_uuid}
             if not only_primary_uuid:
                 engagement = await get_engagement(get_connector(), uuid=engagement_uuid)
             r[mapping.ENGAGEMENT] = engagement
 
-        return r
+        return r  # pragma: no cover

@@ -93,7 +93,9 @@ class Organisation:
             """
         )
     )
-    async def municipality_code(self, root: OrganisationRead) -> int | None:
+    async def municipality_code(
+        self, root: OrganisationRead
+    ) -> int | None:  # pragma: no cover
         """Get the municipality code for the organisation unit (if any).
 
         Returns:

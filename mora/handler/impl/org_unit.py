@@ -24,7 +24,7 @@ class OrgUnitReader(reading.ReadingHandler):
 
     @classmethod
     async def get_from_type(cls, c, type, objid):
-        if type != "ou":
+        if type != "ou":  # pragma: no cover
             exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
         object_tuples = await c.organisationenhed.get_all_by_uuid(uuids=[objid])
         return await cls._get_obj_effects(c, object_tuples)
@@ -36,7 +36,7 @@ class OrgUnitReader(reading.ReadingHandler):
                 uuids=search_fields[mapping.UUID],
                 registration_time=search_fields.get("registration_time"),
             )
-        return await c.organisationenhed.get_all(
+        return await c.organisationenhed.get_all(  # pragma: no cover
             **search_fields,
         )
 

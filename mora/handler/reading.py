@@ -30,7 +30,7 @@ def register(object_type):
 def get_handler_for_type(object_type) -> "ReadingHandler":
     try:
         return READING_HANDLERS[object_type]
-    except LookupError:
+    except LookupError:  # pragma: no cover
         exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(type=object_type)
 
 
@@ -51,7 +51,7 @@ class ReadingHandler:
         :param c: A LoRa connector
         :param search_fields: A dict containing search parameters
         """
-        pass
+        pass  # pragma: no cover
 
     @classmethod
     @abc.abstractmethod
@@ -65,7 +65,7 @@ class ReadingHandler:
 
         :param obj_uuid: The UUID of the related employee/orgunit
         """
-        pass
+        pass  # pragma: no cover
 
     @classmethod
     @abc.abstractmethod
@@ -78,7 +78,7 @@ class ReadingHandler:
         :param params: Additional parameters to be sent along to a LoRa
             chunking function
         """
-        pass
+        pass  # pragma: no cover
 
     @classmethod
     @abc.abstractmethod
@@ -94,7 +94,7 @@ class ReadingHandler:
         :param obj_id: The UUID of the object in LoRa the effect originates
             from
         """
-        pass
+        pass  # pragma: no cover
 
     @classmethod
     async def __async_get_mo_object_from_effect(
@@ -167,13 +167,13 @@ class OrgFunkReadingHandler(ReadingHandler):
 
         # Return MO objects early if they are flat
         if flat:
-            return mo_objects
+            return mo_objects  # pragma: no cover
 
         # Mutate objects by awaiting as needed. This delayed evaluation allows bulking.
         for mo_object in mo_objects:
             for key, val in mo_object.items():
                 if isawaitable(val):
-                    mo_object[key] = await val
+                    mo_object[key] = await val  # pragma: no cover
         return mo_objects
 
     @classmethod

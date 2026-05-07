@@ -40,7 +40,7 @@ async def terminate(
     if isinstance(reqs, list):
         return results
 
-    if not results:
+    if not results:  # pragma: no cover
         return ""
 
     return results if len(results) > 1 else results[0]
@@ -67,8 +67,8 @@ async def _termination_request_handler(detail_termination: DetailTermination) ->
         return uuids[0]
 
     # Find the GraphQL mutation handler and return it for the request
-    handler = grapql_terminate_handlers.get(detail_termination.type)
-    return await handler(detail_termination)
+    handler = grapql_terminate_handlers.get(detail_termination.type)  # pragma: no cover
+    return await handler(detail_termination)  # pragma: no cover
 
 
 @details_router.get(

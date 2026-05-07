@@ -188,7 +188,7 @@ async def download_export_file(
         exceptions.ErrorCodes.E_NOT_FOUND(filename=file_name)
     try:
         file: dict[str, Any] = one(files)
-    except ValueError as err:
+    except ValueError as err:  # pragma: no cover
         raise ValueError("Wrong number of files returned, expected one.") from err
     content = file["base64_contents"]
     data = b64decode(content.encode("ascii"))

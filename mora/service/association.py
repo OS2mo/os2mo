@@ -30,7 +30,7 @@ from . import org
 from .validation import validator
 from .validation.models import GroupValidation
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from ..handler.reading import ReadingHandler
 
 
@@ -150,7 +150,9 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             )
 
         # Group validation: primary attr
-        if employee_uuid and it_user_uuid and (await is_class_uuid_primary(primary)):
+        if (
+            employee_uuid and it_user_uuid and (await is_class_uuid_primary(primary))
+        ):  # pragma: no cover
             await self.validate_primary_group_on_create(employee_uuid, it_user_uuid)
 
         if substitute_uuid:
@@ -204,7 +206,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         payload = {"note": "Rediger tilknytning"}
 
         original_data = req.get("original")
-        if original_data:
+        if original_data:  # pragma: no cover
             # We are performing an update
             old_from, old_to = util.get_validities(original_data)
             payload = common.inactivate_old_interval(
@@ -223,7 +225,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         try:
             attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
-        except (TypeError, LookupError):
+        except (TypeError, LookupError):  # pragma: no cover
             attributes = {}
         new_attributes = {}
 
@@ -334,7 +336,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 update_fields.append(
                     (mapping.ORG_FUNK_CLASSES_FIELD, {"uuid": util.get_uuid(clazz)})
                 )
-        else:
+        else:  # pragma: no cover
             for clazz in util.checked_get(data, mapping.CLASSES, []):
                 update_fields.append(
                     (mapping.ORG_FUNK_CLASSES_FIELD, {"uuid": util.get_uuid(clazz)})

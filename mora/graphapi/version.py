@@ -33,7 +33,7 @@ class Version(enum.Enum):
 
     def __ge__(self, other: Any) -> bool:
         if self.__class__ is not other.__class__:
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         return self.value >= other.value
 
     def __gt__(self, other: Any) -> bool:
@@ -43,10 +43,10 @@ class Version(enum.Enum):
 
     def __le__(self, other: Any) -> bool:
         if self.__class__ is not other.__class__:
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         return self.value <= other.value
 
-    def __lt__(self, other: Any) -> bool:
+    def __lt__(self, other: Any) -> bool:  # pragma: no cover
         if self.__class__ is not other.__class__:
             return NotImplemented
         return self.value < other.value

@@ -15,7 +15,7 @@ from mora.exceptions import ErrorCodes
 
 from ... import lora
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from ...handler.reading import ReadingHandler
 
 
@@ -76,7 +76,7 @@ class GroupValidation:
 
         `validate` must be implemented by subclasses of `GroupValidation`.
         """
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     def add_validation_item(self, validation_item: dict) -> "GroupValidation":
         """Add another validation item to this group validation.

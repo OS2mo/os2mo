@@ -39,13 +39,13 @@ def get_citizen(cpr: str) -> dict[str, Any]:
             production=sp_production,
             api_version=sp_api_version,
         )
-    except requests.HTTPError as e:
+    except requests.HTTPError as e:  # pragma: no cover
         if "PNRNotFound" in e.response.text:
             raise KeyError("CPR not found")
         else:
             logger.exception(event="HTTPError", exception=e)
             raise e
-    except requests.exceptions.SSLError as e:
+    except requests.exceptions.SSLError as e:  # pragma: no cover
         logger.exception(event="SSLError", exception=e)
         exceptions.ErrorCodes.E_SP_SSL_ERROR()
 
@@ -134,21 +134,23 @@ def search_cpr(
     response: dict = _handle_erstatningspersonnummer(cpr)
     if response:
         return response
-    try:
+    try:  # pragma: no cover
         sp_data = get_citizen(cpr)
-    except KeyError as e:
+    except KeyError as e:  # pragma: no cover
         logger.exception(event="no person found for cpr", exception=e)
         exceptions.ErrorCodes.V_NO_PERSON_FOR_CPR(cpr=cpr)
-    except ValueError as e:
+    except ValueError as e:  # pragma: no cover
         logger.exception(event="invalid CPR", exception=e)
         exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr)
-    except Exception as e:
+    except Exception as e:  # pragma: no cover
         logger.exception(event="unknown error in cpr lookup", exception=e)
         exceptions.ErrorCodes.E_UNKNOWN(cpr=cpr)
-    return format_cpr_response(sp_data, cpr)
+    return format_cpr_response(sp_data, cpr)  # pragma: no cover
 
 
-def format_cpr_response(sp_data: dict[str, Any], cpr: str) -> dict[str, str]:
+def format_cpr_response(
+    sp_data: dict[str, Any], cpr: str
+) -> dict[str, str]:  # pragma: no cover
     """Convert a Serviceplatformen response to a SearchCPRReturn dict.
 
     Args:

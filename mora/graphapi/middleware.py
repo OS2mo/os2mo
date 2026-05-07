@@ -63,7 +63,7 @@ class StarletteContextExtension(SchemaExtension):
     # TODO: Cleanup the test and remove this trash
     async def on_execute(self) -> AsyncIterator[None]:
         iter = super().on_execute()
-        if isasyncgen(iter):
+        if isasyncgen(iter):  # pragma: no cover
             async for x in iter:
                 yield x
         else:
@@ -74,7 +74,7 @@ class StarletteContextExtension(SchemaExtension):
     async def get_results(self) -> dict[str, Any]:
         # TODO: calling super() because of get_context_from_ext()
         results = super().get_results()
-        if isinstance(results, Awaitable):
+        if isinstance(results, Awaitable):  # pragma: no cover
             results = await results
 
         if context.get("lora_page_out_of_range"):

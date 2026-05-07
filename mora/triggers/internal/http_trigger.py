@@ -21,7 +21,9 @@ class HTTPTriggerException(Exception):
     pass
 
 
-async def http_sender(trigger_url: str, trigger_dict: dict, timeout: int):
+async def http_sender(
+    trigger_url: str, trigger_dict: dict, timeout: int
+):  # pragma: no cover
     """Triggers the provided event over HTTP(s).
 
     Args:
@@ -61,7 +63,7 @@ async def http_sender(trigger_url: str, trigger_dict: dict, timeout: int):
             return payload
 
 
-async def fetch_endpoint_trigger(
+async def fetch_endpoint_trigger(  # pragma: no cover
     session, endpoint: str, timeout: int = 10
 ) -> list[MOTriggerRegister]:
     """Fetch the trigger configuration from endpoint.

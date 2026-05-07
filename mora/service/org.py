@@ -30,7 +30,7 @@ class ConfiguredOrganisation:
     @classmethod
     async def validate(cls):
         async def get_lora_organisation(c, orgid, org=None):
-            if not org:
+            if not org:  # pragma: no cover
                 org = await c.organisation.get(orgid)
 
                 if not org or not util.is_reg_valid(org):

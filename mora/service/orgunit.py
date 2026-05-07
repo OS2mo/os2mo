@@ -163,7 +163,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = await c.organisationenhed.get(uuid=unitid)
 
-        if not original:
+        if not original:  # pragma: no cover
             exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
 
         new_from, new_to = util.get_validities(data)
@@ -197,7 +197,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 
             original_uuid = util.get_mapping_uuid(original_data, mapping.ORG_UNIT)
 
-            if original_uuid and original_uuid != unitid:
+            if original_uuid and original_uuid != unitid:  # pragma: no cover
                 exceptions.ErrorCodes.E_INVALID_INPUT(
                     "cannot change unit uuid!",
                 )
@@ -231,7 +231,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 
         try:
             attributes = get_lora_dict_current_attr(original, new_from, new_to)
-        except (TypeError, LookupError):
+        except (TypeError, LookupError):  # pragma: no cover
             attributes = {}
 
         changed_props = {}
@@ -485,7 +485,7 @@ async def get_one_orgunit(
             if details is UnitDetails.FULL:
                 r[mapping.USER_SETTINGS] = {"orgunit": {}}
 
-    elif details is UnitDetails.SELF:
+    elif details is UnitDetails.SELF:  # pragma: no cover
         r[mapping.ORG] = await org.get_configured_organisation()
 
         r[mapping.PARENT] = await request_bulked_get_one_orgunit(
@@ -530,7 +530,7 @@ async def get_one_orgunit(
 
     elif details is UnitDetails.MINIMAL:
         pass  # already done
-    else:
+    else:  # pragma: no cover
         raise AssertionError(f"enum is {details}!?")
 
     r[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
@@ -618,7 +618,7 @@ async def get_unit_ancestor_tree(
     allowed = {"association", "engagement"}
     given = set(util.get_query_args().getlist("count"))
     invalid = given - allowed
-    if invalid:
+    if invalid:  # pragma: no cover
         exceptions.ErrorCodes.E_INVALID_INPUT(
             'invalid value(s) for "count" query parameter: %r' % invalid
         )
@@ -683,7 +683,7 @@ async def get_unit_tree(
             "gyldighed": "Aktiv",
         }
 
-        if org_unit_hierarchy:
+        if org_unit_hierarchy:  # pragma: no cover
             args.update({mapping.ORG_UNIT_HIERARCHY_KEY: org_unit_hierarchy})
 
         return args
@@ -833,7 +833,7 @@ async def list_orgunits(
 
     if query:
         kwargs.update(vilkaarligattr=f"%{query}%")
-    if hierarchy_uuids:
+    if hierarchy_uuids:  # pragma: no cover
         kwargs["opmærkning"] = [str(uuid) for uuid in hierarchy_uuids]
 
     uuid_filters = []

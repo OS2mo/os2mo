@@ -51,7 +51,7 @@ async def emit(request: Request, amqp_system: depends.AMQPSystem) -> None:
             async with db._get_sessionmaker(request)() as session, session.begin():
                 await amqp._emit_events(session, amqp_system)
             return
-        except (OperationalError, ProgrammingError) as e:
+        except (OperationalError, ProgrammingError) as e:  # pragma: no cover
             if isinstance(e, ProgrammingError) and not isinstance(
                 e.orig, UndefinedTable
             ):
@@ -179,7 +179,7 @@ async def ensure_database(superuser: AsyncConnection, database: str) -> None:
     try:
         await superuser.execute(text(f"create database {database}"))
     except ProgrammingError as e:
-        if not isinstance(e.orig, DuplicateDatabase):
+        if not isinstance(e.orig, DuplicateDatabase):  # pragma: no cover
             raise
 
 

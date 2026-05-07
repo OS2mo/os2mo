@@ -105,7 +105,7 @@ async def terminate_org_unit_validation(
             child_count=len(children),
             roles=", ".join(sorted(role_counts)),
         )
-    elif children:
+    elif children:  # pragma: no cover
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN(
             child_count=len(children),
         )

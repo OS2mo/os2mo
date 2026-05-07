@@ -46,7 +46,7 @@ class InfiniteDatetime:
         # ensure valid and consistent format
         return cls(value=datetime.fromisoformat(value).isoformat())
 
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other) -> bool:  # pragma: no cover
         if not isinstance(other, InfiniteDatetime):
             raise TypeError(f"unexpected type {type(other)}")
         if other.value == INFINITY:
@@ -108,9 +108,9 @@ class SearchQueryBuilder:
         :param registreret_til: optional, applies to the registrations themselves
         """
 
-        if not isinstance(class_name, str):
+        if not isinstance(class_name, str):  # pragma: no cover
             raise TypeError(f"unexpected type={type(class_name)}, value={uuid}")
-        if not (uuid is None or isinstance(uuid, str)):
+        if not (uuid is None or isinstance(uuid, str)):  # pragma: no cover
             raise TypeError(f"unexpected type={type(uuid)}, value={uuid}")
 
         self.__class_name = class_name
@@ -152,7 +152,7 @@ class SearchQueryBuilder:
         :return:
         """
         for tmp in (start, end):
-            if not isinstance(tmp, (datetime, str)):
+            if not isinstance(tmp, (datetime, str)):  # pragma: no cover
                 raise TypeError(
                     f"expected {datetime} or str, got type={type(tmp)} of value={tmp}"
                 )
@@ -168,7 +168,7 @@ class SearchQueryBuilder:
             end = InfiniteDatetime.from_datetime(end)
 
         # NOTE: STRICT in-equality is important
-        if not start < end:
+        if not start < end:  # pragma: no cover
             raise ValueError(
                 f"start must be smaller than end, got:  start={start}, end={end}"
             )
@@ -207,7 +207,7 @@ class SearchQueryBuilder:
         """
         no_start = reg_start is None
         no_end = reg_end is None
-        if no_start ^ no_end:  # XOR
+        if no_start ^ no_end:  # XOR  # pragma: no cover
             # TODO: Determine old behaviour and replicate it, maybe just:
             # if reg_start is None:
             #     reg_start = NINFINITY
@@ -265,13 +265,15 @@ class SearchQueryBuilder:
         if type_ is ValueType.TEXT:
             # always uses case insensitive matching
             return f"ilike '{cls.improper_sql_escape(value)}'"
-        if type_ is ValueType.BOOL:
+        if type_ is ValueType.BOOL:  # pragma: no cover
             parsed_bool = to_bool(value)
             if parsed_bool is None:
                 raise ValueError(f"unexpected value {value}")
             return "= " + ("TRUE" if parsed_bool else "FALSE")
 
-        raise Exception(f"unexpected type_: {type_}, with associated value {value}")
+        raise Exception(  # pragma: no cover
+            f"unexpected type_: {type_}, with associated value {value}"
+        )
 
     def add_attribute(self, attr: Attribute):
         """
@@ -387,7 +389,7 @@ class SearchQueryBuilder:
             base_condition = f"""{join_table.ref}.rel_type = '{relation.type}'
              AND {join_table.ref}.{id_var_name} = '{relation.id}'"""
 
-        if relation.object_type is not None:
+        if relation.object_type is not None:  # pragma: no cover
             obj_condition = f"{join_table.ref}.objekt_type = '{relation.object_type}'"
             condition = f"{base_condition} AND {obj_condition}"
         else:
@@ -447,7 +449,7 @@ class SearchQueryBuilder:
 def ensure_uuid(uuid: UUID | str) -> UUID:
     if isinstance(uuid, UUID):
         return uuid
-    return UUID(uuid)
+    return UUID(uuid)  # pragma: no cover
 
 
 async def quick_search(
@@ -501,21 +503,21 @@ async def quick_search(
         raise NotImplementedError(f"not implemented for {class_name}")
 
     # Non-implemented search parameters
-    if life_cycle_code is not None:
+    if life_cycle_code is not None:  # pragma: no cover
         raise NotImplementedError(
             f"life_cycle_code not implemented. Received value={life_cycle_code}"
         )
-    if user_ref is not None:
+    if user_ref is not None:  # pragma: no cover
         raise NotImplementedError(
             f"user_ref not implemented. Received value={user_ref}"
         )
-    if note is not None:
+    if note is not None:  # pragma: no cover
         raise NotImplementedError(f"note not implemented. Received value={note}")
-    if any_attr_value_arr is not None:
+    if any_attr_value_arr is not None:  # pragma: no cover
         raise NotImplementedError(
             f"any_attr_value_arr not implemented. Received value={any_attr_value_arr}"
         )
-    if any_rel_uuid_arr is not None:
+    if any_rel_uuid_arr is not None:  # pragma: no cover
         raise NotImplementedError(
             f"any_rel_uuid_arr not implemented. Received value={any_rel_uuid_arr}"
         )

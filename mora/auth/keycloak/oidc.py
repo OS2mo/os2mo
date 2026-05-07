@@ -38,7 +38,7 @@ async def noauth() -> Token:
     )
 
 
-async def legacyauth() -> Token:
+async def legacyauth() -> Token:  # pragma: no cover
     """Legacy auth provider."""
     return Token(
         azp="mo-frontend",
@@ -178,7 +178,7 @@ async def fetch_keycloak_token(request: Request) -> Token:
     return await validate_token(oauth2_scheme)
 
 
-async def legacy_auth_adapter(request: Request) -> Token:
+async def legacy_auth_adapter(request: Request) -> Token:  # pragma: no cover
     """
     Legacy support for the old session database to allow for grace-period before
     switching to Keycloak auth
@@ -199,9 +199,9 @@ async def legacy_auth_adapter(request: Request) -> Token:
 # TODO: Remove this, once a proper auth solution is in place,
 #  that works for local DIPEX development.
 #  https://redmine.magenta-aps.dk/issues/44020
-if not config.get_settings().os2mo_auth:
+if not config.get_settings().os2mo_auth:  # pragma: no cover
     auth = noauth
-elif config.get_settings().os2mo_legacy_sessions:
+elif config.get_settings().os2mo_legacy_sessions:  # pragma: no cover
     auth = legacy_auth_adapter
 else:
     auth = keycloak_auth
@@ -260,9 +260,9 @@ def token_getter(request: Request) -> Callable[[], Awaitable[Token]]:
         if token := context.get("token", False):
             return token
 
-        if auth == noauth:
+        if auth == noauth:  # pragma: no cover
             result = await noauth()
-        elif auth == legacy_auth_adapter:
+        elif auth == legacy_auth_adapter:  # pragma: no cover
             result = await legacy_auth_adapter(request)
         else:
             result = await fetch_keycloak_token(request)

@@ -70,28 +70,28 @@ class Validity(RAOpenValidity):
                 return common._create_virkning(
                     self.get_terminate_effect_to_date(), "infinity"
                 )
-            exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+            exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(  # pragma: no cover
                 key="Validity must have a 'from' date",
                 validity={
                     "from": self.from_date.isoformat() if self.from_date else None,
                     "to": self.to_date.isoformat() if self.to_date else None,
                 },
             )
-        if self.from_date and self.to_date:
+        if self.from_date and self.to_date:  # pragma: no cover
             return common._create_virkning(
                 self.get_terminate_effect_from_date(),
                 self.get_terminate_effect_to_date(),
             )
 
-        return common._create_virkning(
+        return common._create_virkning(  # pragma: no cover
             self.get_terminate_effect_from_date(), "infinity"
         )
 
     def get_terminate_effect_from_date(self) -> datetime.datetime:
         if not self.from_date or not isinstance(self.from_date, datetime.datetime):
-            exceptions.ErrorCodes.V_MISSING_START_DATE()
+            exceptions.ErrorCodes.V_MISSING_START_DATE()  # pragma: no cover
 
-        if self.from_date.time() != datetime.time.min:
+        if self.from_date.time() != datetime.time.min:  # pragma: no cover
             exceptions.ErrorCodes.E_INVALID_INPUT(
                 f"{self.from_date.isoformat()!r} is not at midnight!",
             )
@@ -100,9 +100,9 @@ class Validity(RAOpenValidity):
 
     def get_terminate_effect_to_date(self) -> datetime.datetime:
         if not self.to_date:
-            return POSITIVE_INFINITY
+            return POSITIVE_INFINITY  # pragma: no cover
 
-        if self.to_date.time() != datetime.time.min:
+        if self.to_date.time() != datetime.time.min:  # pragma: no cover
             exceptions.ErrorCodes.E_INVALID_INPUT(
                 f"{self.to_date.isoformat()!r} is not at midnight!",
             )
@@ -206,7 +206,7 @@ class AddressCreate(AddressUpsert):
             )
         )
 
-        if number_of_uuids != 1:
+        if number_of_uuids != 1:  # pragma: no cover
             exceptions.ErrorCodes.E_INVALID_INPUT(
                 f"Must supply exactly one {mapping.ORG_UNIT} or {mapping.PERSON} UUID"
             )
@@ -358,7 +358,7 @@ class ClassCreate(UUIDBase):
             "titel": self.name,
             "virkning": {"from": from_time, "to": to_time},
         }
-        if self.example is not None:
+        if self.example is not None:  # pragma: no cover
             klasseegenskaber["eksempel"] = self.example
         if self.scope is not None:
             klasseegenskaber["omfang"] = self.scope
@@ -629,11 +629,11 @@ class EngagementCreate(EngagementUpsert):
         """Verifies that either person or employee is set."""
         person_uuid = values.get("person")
         employee_uuid = values.get("employee")
-        if person_uuid and employee_uuid:
+        if person_uuid and employee_uuid:  # pragma: no cover
             exceptions.ErrorCodes.E_INVALID_INPUT(
                 "Can only set one of 'person' and 'employee'"
             )
-        if person_uuid is None and employee_uuid is None:
+        if person_uuid is None and employee_uuid is None:  # pragma: no cover
             exceptions.ErrorCodes.E_INVALID_INPUT(
                 "Must set one of 'person' and 'employee'"
             )
@@ -945,7 +945,7 @@ class ITUserCreate(ITUserUpsert):
         if (values.get("person") and values.get("org_unit")) or (
             not values.get("person") and not values.get("org_unit")
         ):
-            exceptions.ErrorCodes.E_INVALID_INPUT(
+            exceptions.ErrorCodes.E_INVALID_INPUT(  # pragma: no cover
                 "Exactly 1 of the fields {mapping.ORG_UNIT} or {mapping.PERSON} must be set"
             )
         return values

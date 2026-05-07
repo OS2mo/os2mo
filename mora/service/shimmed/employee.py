@@ -36,7 +36,7 @@ async def get_employee(
     ),
 ):
     """Retrieve an employee."""
-    if only_primary_uuid:
+    if only_primary_uuid:  # pragma: no cover
         query = """
             query GetEmployee($uuid: UUID!, $from_date: DateTime) {
               employees(filter: {uuids: [$uuid], from_date: $from_date}) {

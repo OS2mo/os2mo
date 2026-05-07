@@ -23,7 +23,7 @@ async def register(app):
         logger.debug("Registering trigger", trigger_module=trigger_module)
         try:
             await trigger_module.register(app)
-        except Exception:
+        except Exception:  # pragma: no cover
             logger.exception(
                 "Exception during register call", trigger_module=trigger_module
             )

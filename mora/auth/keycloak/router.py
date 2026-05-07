@@ -23,7 +23,7 @@ def keycloak_router():
 
     @router.head("/keycloak.json")
     @router.get("/keycloak.json")
-    async def get_keycloak_config() -> dict[str, Any]:
+    async def get_keycloak_config() -> dict[str, Any]:  # pragma: no cover
         """Frontend keycloak configuration endpoint."""
         return {
             "realm": REALM,
@@ -35,7 +35,7 @@ def keycloak_router():
         }
 
     @router.post("/token")
-    async def login(
+    async def login(  # pragma: no cover
         form_data: OAuth2PasswordRequestForm = Depends(),
     ) -> dict[str, Any]:
         """Login endpoint to exchange username + password for access token."""

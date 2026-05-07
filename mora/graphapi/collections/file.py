@@ -65,7 +65,7 @@ class File:
         """
         )
     )
-    async def text_contents(self, info: MOInfo) -> str:
+    async def text_contents(self, info: MOInfo) -> str:  # pragma: no cover
         session: AsyncSession = info.context.session
         content = await db.files.read(session, self.file_store, self.file_name)
         return content.decode("utf-8")

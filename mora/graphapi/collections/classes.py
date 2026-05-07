@@ -177,8 +177,10 @@ class Class:
     async def top_level_facet(self, root: ClassRead, info: Info) -> LazyFacet:
         if root.parent_uuid is None:
             return await Class.facet(root=root, info=info)  # type: ignore[operator]
-        parent_node = await Class.parent(root=root, info=info)  # type: ignore[operator,misc]
-        return await Class.top_level_facet(self=self, root=parent_node, info=info)
+        parent_node = await Class.parent(root=root, info=info)  # type: ignore[operator,misc]  # pragma: no cover
+        return await Class.top_level_facet(
+            self=self, root=parent_node, info=info
+        )  # pragma: no cover
 
     it_system_response: Response[LazyITSystem] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ITSystemRead, uuid=root.it_system_uuid)

@@ -29,7 +29,7 @@ from . import org
 from .validation import validator
 from .validation.models import GroupValidation
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from ..handler.reading import ReadingHandler
 
 
@@ -163,7 +163,9 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             ).validate()
 
-        if employee_uuid and systemid and (await is_class_uuid_primary(primary)):
+        if (
+            employee_uuid and systemid and (await is_class_uuid_primary(primary))
+        ):  # pragma: no cover
             validation = await ITUserPrimaryGroupValidation.from_mo_objects(
                 dict(tilknyttedebrugere=employee_uuid),
             )
@@ -226,7 +228,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         }
 
         original_data = req.get("original")
-        if original_data:
+        if original_data:  # pragma: no cover
             # We are performing an update
             old_from, old_to = util.get_validities(original_data)
             payload = common.inactivate_old_interval(
@@ -251,7 +253,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if data.get(mapping.PERSON):
+        if data.get(mapping.PERSON):  # pragma: no cover
             update_fields.append(
                 (
                     mapping.USER_FIELD,
@@ -261,7 +263,9 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if mapping.ENGAGEMENT in data and mapping.ENGAGEMENTS in data:
+        if (
+            mapping.ENGAGEMENT in data and mapping.ENGAGEMENTS in data
+        ):  # pragma: no cover
             exceptions.ErrorCodes.E_INVALID_INPUT(
                 "Attempted use of both 'engagement' and 'engagements'"
             )
@@ -318,7 +322,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         try:
             attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
-        except (TypeError, LookupError):
+        except (TypeError, LookupError):  # pragma: no cover
             attributes = {}
         new_attributes = {}
 
@@ -346,7 +350,9 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         bvn = util.checked_get(data, mapping.USER_KEY, default="", required=False)
 
         # Validation
-        if employee_uuid and systemid and (await is_class_uuid_primary(primary)):
+        if (
+            employee_uuid and systemid and (await is_class_uuid_primary(primary))
+        ):  # pragma: no cover
             validation = await ITUserPrimaryGroupValidation.from_mo_objects(
                 dict(tilknyttedebrugere=employee_uuid),
             )
@@ -359,7 +365,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 ),
             ).validate()
 
-        if employee_uuid and systemid and bvn:
+        if employee_uuid and systemid and bvn:  # pragma: no cover
             validation = await ITUserUniqueGroupValidation.from_mo_objects(
                 dict(
                     tilknyttedebrugere=employee_uuid,

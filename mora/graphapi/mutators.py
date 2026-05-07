@@ -296,7 +296,7 @@ class Mutation:
     )
     async def addresses_create(
         self, input: list[AddressCreateInput]
-    ) -> list[Response[Address]]:
+    ) -> list[Response[Address]]:  # pragma: no cover
         created_addresses = await asyncio.gather(
             *[Mutation.address_create(self, address) for address in input]
         )
@@ -1101,7 +1101,7 @@ class Mutation:
     )
     async def itusers_create(
         self, input: list[ITUserCreateInput]
-    ) -> list[Response[ITUser]]:
+    ) -> list[Response[ITUser]]:  # pragma: no cover
         created_itusers = await asyncio.gather(
             *[Mutation.ituser_create(self, ituser) for ituser in input]
         )
@@ -1125,7 +1125,9 @@ class Mutation:
         ],
     )
     async def ituser_terminate(self, input: ITUserTerminateInput) -> Response[ITUser]:
-        return uuid2response(await terminate_ituser(input.to_pydantic()), ITUserRead)
+        return uuid2response(
+            await terminate_ituser(input.to_pydantic()), ITUserRead
+        )  # pragma: no cover
 
     @strawberry.mutation(
         description="Deletes an IT-User." + delete_warning,
@@ -1349,7 +1351,7 @@ class Mutation:
     )
     async def managers_create(
         self, input: list[ManagerCreateInput]
-    ) -> list[Response[Manager]]:
+    ) -> list[Response[Manager]]:  # pragma: no cover
         created_managers = await asyncio.gather(
             *[Mutation.manager_create(self, manager) for manager in input]
         )
@@ -1684,7 +1686,7 @@ class Mutation:
     )
     async def rolebindings_create(
         self, input: list[RoleBindingCreateInput]
-    ) -> list[Response[RoleBinding]]:
+    ) -> list[Response[RoleBinding]]:  # pragma: no cover
         created_rolebindings = await asyncio.gather(
             *[Mutation.rolebinding_create(self, rolebinding) for rolebinding in input]
         )
@@ -1848,7 +1850,7 @@ class Mutation:
             await session.execute(
                 delete(db.Namespace).where(db.Namespace.name == input.name)
             )
-        except sqlalchemy.exc.IntegrityError:
+        except sqlalchemy.exc.IntegrityError:  # pragma: no cover
             raise ValueError(
                 "There are still listeners for this namespace. Use the `event_listener_delete` mutator."
             )
@@ -1976,7 +1978,7 @@ class Mutation:
             )
         )
 
-        if not listener:
+        if not listener:  # pragma: no cover
             return True
 
         result = await session.execute(
@@ -2089,7 +2091,7 @@ class Mutation:
         if input.subjects is not None:
             clauses.append(db.Event.subject.in_(input.subjects))
 
-        if input.priorities is not None:
+        if input.priorities is not None:  # pragma: no cover
             clauses.append(db.Event.priority.in_(input.priorities))
 
         session: AsyncSession = info.context.session

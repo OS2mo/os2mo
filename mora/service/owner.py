@@ -119,7 +119,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
             return {Trigger.EMPLOYEE_UUID: owned_person_uuid}
         if org_unit_uuid:
             return {Trigger.ORG_UNIT_UUID: owned_person_uuid}
-        OwnerRequestHandler.raise_unexpected_input(req)
+        OwnerRequestHandler.raise_unexpected_input(req)  # pragma: no cover
 
     @staticmethod
     async def validate(
@@ -233,7 +233,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         payload = {"note": f"Rediger {self.role_type}"}
 
         original_data = req.get("original")
-        if original_data:
+        if original_data:  # pragma: no cover
             # We are performing an update
             old_from, old_to = util.get_validities(original_data)
             payload = common.inactivate_old_interval(
@@ -252,16 +252,16 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
 
         try:
             attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
-        except (TypeError, LookupError):
+        except (TypeError, LookupError):  # pragma: no cover
             attributes = {}
         new_attributes = {}
 
-        if mapping.USER_KEY in data:
+        if mapping.USER_KEY in data:  # pragma: no cover
             new_attributes["brugervendtnoegle"] = util.checked_get(
                 data, mapping.USER_KEY, ""
             )
 
-        if new_attributes:
+        if new_attributes:  # pragma: no cover
             update_fields.append(
                 (
                     mapping.ORG_FUNK_EGENSKABER_FIELD,

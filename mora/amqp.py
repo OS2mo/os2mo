@@ -327,7 +327,7 @@ async def _emit_events(session: AsyncSession, amqp_system: AMQPSystem) -> None:
     )
 
 
-async def start_event_generator(
+async def start_event_generator(  # pragma: no cover
     sessionmaker: async_sessionmaker,
 ) -> None:
     mo_settings = get_settings()

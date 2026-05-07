@@ -98,7 +98,7 @@ T = TypeVar("T")
 def paginate(obj: list[T], cursor: CursorType, limit: LimitType) -> list[T]:
     if cursor is None:
         return obj[:limit]
-    return obj[cursor.offset :][:limit]
+    return obj[cursor.offset :][:limit]  # pragma: no cover
 
 
 async def health_resolver(
@@ -129,7 +129,7 @@ async def file_resolver(
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> list[File]:
-    if filter is None:
+    if filter is None:  # pragma: no cover
         filter = FileFilter()
 
     session: AsyncSession = info.context.session

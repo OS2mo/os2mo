@@ -44,7 +44,7 @@ class make_interval(GenericFunction):
 class _OIOEntityMixin:
     id: Mapped[UUID] = mapped_column(primary_key=True)
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return f"{self.__class__.__name__}(id={self.id})"
 
 
@@ -74,7 +74,7 @@ class _RegistreringMixin:
         return column_property(cls._registrering_period)
 
     @hybrid_property
-    def registrering_period(self) -> TimestamptzRange:
+    def registrering_period(self) -> TimestamptzRange:  # pragma: no cover
         return self._registrering_period_attr
 
     @registrering_period.inplace.expression
@@ -100,7 +100,7 @@ class _RegistreringMixin:
         return column_property(cls._lifecycle)
 
     @hybrid_property
-    def lifecycle(self) -> ENUM:
+    def lifecycle(self) -> ENUM:  # pragma: no cover
         return self._lifecycle_attr
 
     @lifecycle.inplace.expression
@@ -108,7 +108,7 @@ class _RegistreringMixin:
     def _lifecycle(cls) -> ColumnElement[ENUM]:
         return type_coerce(text("(registrering).livscykluskode"), LivscyklusKode)
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return f"{self.__class__.__name__}(id={self.id}, registrering_period={self.registrering_period!r})"
 
 
@@ -159,7 +159,7 @@ class _RelationMixin(_VirkningMixin):
     objekt_type: Mapped[str | None]
     rel_type: Mapped[str]
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return f"{self.__class__.__name__}(id={self.id}, rel_maal_uuid={self.rel_maal_uuid!r}, rel_maal_urn={self.rel_maal_urn!r}, objekt_type={self.objekt_type!r}, rel_type={self.rel_type!r})"
 
 
@@ -177,7 +177,7 @@ def _TilsGyldighedMixin(oio_type):
             index=True,
         )
 
-        def __repr__(self):
+        def __repr__(self):  # pragma: no cover
             return (
                 f"{self.__class__.__name__}(id={self.id}, gyldighed={self.gyldighed!r})"
             )

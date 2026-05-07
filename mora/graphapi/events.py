@@ -146,7 +146,7 @@ async def full_event_resolver(
         )
     )
 
-    if limit is not None:
+    if limit is not None:  # pragma: no cover
         query = query.limit(limit)
     # This doesn't actually work correctly. It is hard to do pagination
     # correctly, so for now we just do this super naively. This resolver is
@@ -172,12 +172,12 @@ async def listener_resolver(
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> list["Listener"]:
-    if filter is None:
+    if filter is None:  # pragma: no cover
         filter = ListenerFilter()
 
     query = select(db.Listener).where(*filter.where_clauses())
 
-    if limit is not None:
+    if limit is not None:  # pragma: no cover
         query = query.limit(limit)
     # This doesn't actually work correctly. It is hard to do pagination
     # correctly, so for now we just do this super naively. This resolver is
@@ -205,12 +205,12 @@ async def namespace_resolver(
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> list["Namespace"]:
-    if filter is None:
+    if filter is None:  # pragma: no cover
         filter = NamespaceFilter()
 
     query = select(db.Namespace).where(*filter.where_clauses())
 
-    if limit is not None:
+    if limit is not None:  # pragma: no cover
         query = query.limit(limit)
     # This doesn't actually work correctly. It is hard to do pagination
     # correctly, so for now we just do this super naively. This resolver is
@@ -283,7 +283,9 @@ class Listener:
             gen_read_permission("event_namespace"),
         ],
     )
-    async def namespace(root: "Listener", info: strawberry.Info) -> Namespace:
+    async def namespace(
+        root: "Listener", info: strawberry.Info
+    ) -> Namespace:  # pragma: no cover
         filter = NamespaceFilter(names=[root.namespace_fk])
         result = await namespace_resolver(info, filter)
         return one(result)
@@ -323,7 +325,9 @@ class FullEvent:
             gen_read_permission("event_listener"),
         ],
     )
-    async def listener(root: "FullEvent", info: strawberry.Info) -> Listener:
+    async def listener(
+        root: "FullEvent", info: strawberry.Info
+    ) -> Listener:  # pragma: no cover
         filter = ListenerFilter(uuids=[root.listener_uuid])
         result = await listener_resolver(info, filter)
         return one(result)

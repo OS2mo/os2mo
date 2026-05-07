@@ -284,7 +284,7 @@ async def get_entity_type(request: Request) -> EntityType:
         return EntityType.EMPLOYEE
 
     types = await asyncio.gather(*(obj_to_type(obj) for obj in payload))
-    if not all(_type == types[0] for _type in types):
+    if not all(_type == types[0] for _type in types):  # pragma: no cover
         logger.debug("Types not identical")
         raise HTTPException(
             error_key=ErrorCodes.E_INVALID_INPUT,

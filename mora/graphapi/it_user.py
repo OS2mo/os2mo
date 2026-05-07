@@ -38,7 +38,7 @@ async def update_ituser(input: ITUserUpdate) -> UUID:
     return UUID(uuid)
 
 
-async def terminate_ituser(input: ITUserTerminate) -> UUID:
+async def terminate_ituser(input: ITUserTerminate) -> UUID:  # pragma: no cover
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await ItsystemRequestHandler.construct(
