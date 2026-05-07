@@ -91,11 +91,12 @@ class Settings(BaseSettings):
     # When graphql_rbac is disabled, it is in fact still enabled for graphql mutators.
     # This is due to a hotfix for a security security vulnerability in the orgviewer.
     # This hotfix will be removed again later, once the security issues has been fixed.
-    graphql_rbac: bool = False
+    # TODO(#61411) delete this flag
+    graphql_rbac: bool = True
 
     @root_validator
     def graphql_rbac_dependencies(cls, values: dict[str, Any]) -> dict[str, Any]:
-        if not values["graphql_rbac"]:
+        if not values["graphql_rbac"]:  # pragma: no cover
             return values
 
         dependencies = {"os2mo_auth", "keycloak_rbac_enabled"}

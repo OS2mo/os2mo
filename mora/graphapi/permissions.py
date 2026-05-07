@@ -119,7 +119,7 @@ def gen_role_permission(
             # Do not check permissions (always allow) if GraphQL RBAC is disabled,
             # unless forced.
             if (not settings.graphql_rbac) and (not force_permission_check):
-                return True
+                return True  # pragma: no cover
 
             token = await info.context.get_token()
             token_roles = token.realm_access.roles
