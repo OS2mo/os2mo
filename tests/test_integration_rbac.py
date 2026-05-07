@@ -147,7 +147,6 @@ def create_org_unit_payload() -> dict[str, Any]:
         (ADMIN, ANDERS_AND, HTTP_201_CREATED),
     ],
 )
-@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_org_unit(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -175,7 +174,6 @@ def test_create_org_unit(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_201_when_creating_unit_as_owner_of_parent_unit(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -200,7 +198,6 @@ def test_201_when_creating_unit_as_owner_of_parent_unit(
         (ADMIN, ANDERS_AND, HTTP_201_CREATED),
     ],
 )
-@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_top_level_unit(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -239,7 +236,6 @@ def test_create_top_level_unit(
         (ADMIN, FEDTMULE, HTTP_200_OK),
     ],
 )
-@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_rename_org_unit(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -305,7 +301,6 @@ def org_unit_no_details_uuid(
         (ADMIN, FEDTMULE, HTTP_200_OK),
     ],
 )
-@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_terminate_org_unit(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -347,7 +342,6 @@ def test_terminate_org_unit(
         (ADMIN, FEDTMULE, HTTP_201_CREATED),
     ],
 )
-@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_detail(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -376,7 +370,6 @@ def test_create_detail(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_201_when_creating_multiple_details_as_owner_of_unit(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -392,7 +385,6 @@ def test_201_when_creating_multiple_details_as_owner_of_unit(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_400_when_creating_multiple_details_with_different_types(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -456,7 +448,6 @@ def address_create_payload() -> dict[str, Any]:
         (ADMIN, FEDTMULE, HTTP_200_OK),
     ],
 )
-@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_edit_detail(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -534,7 +525,6 @@ def test_edit_detail(
         (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
     ],
 )
-@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_rename_subunit(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -647,7 +637,6 @@ def org_unit_uuid_2(
         (ANDERS_AND, FILOSOFISK_INSTITUT, False, 200),
     ],
 )
-@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_owner_of_unit(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -704,7 +693,6 @@ def test_owner_of_unit(
         },
     ],
 )
-@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_terminate_x_as_owner_of_unit(
     fastapi_test_app: FastAPI, service_client: TestClient, payload: dict[str, Any]
 ) -> None:
@@ -729,7 +717,6 @@ def test_terminate_x_as_owner_of_unit(
 )
 @util.override_config(
     Settings(
-        keycloak_rbac_enabled=True,
         keycloak_rbac_authoritative_it_system_for_owners=ACTIVE_DIRECTORY,
     )
 )

@@ -16,8 +16,6 @@ from mora.auth.exceptions import AuthenticationError
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
-from mora.config import Settings
-from tests import util
 
 from .conftest import fake_auth
 from .conftest import serviceapiless_auth
@@ -266,20 +264,17 @@ async def test_auth_graphql(
     }
 
 
-@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_uuid_parsed_correctly_uuid():
     token = Token(azp="mo-frontend", uuid="30c89ad2-e0bb-42ae-82a8-1ae36943cb9e")
     assert token.uuid == UUID("30c89ad2-e0bb-42ae-82a8-1ae36943cb9e")
 
 
-@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_uuid_parsed_correctly_base64():
     token = Token(azp="mo-frontend", uuid="0prIMLvgrkKCqBrjaUPLng==")
 
     assert token.uuid == UUID("30c89ad2-e0bb-42ae-82a8-1ae36943cb9e")
 
 
-@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_uuid_parse_fails_on_garbage():
     with pytest.raises(ValidationError) as err:
         Token(
