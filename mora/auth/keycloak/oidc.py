@@ -228,7 +228,7 @@ async def rbac(request: Request, admin_only: bool, token: Token = Depends(auth))
     :param token: selected JSON values from the Keycloak token
     """
 
-    if not config.get_settings().keycloak_rbac_enabled:
+    if not config.get_settings().keycloak_rbac_enabled:  # pragma: no cover
         return
 
     # This special import structure is currently required to avoid circular

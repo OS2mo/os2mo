@@ -22,7 +22,6 @@ def enable_rbac(set_settings: Callable[..., None]) -> None:
     set_settings(
         **{
             "os2mo_auth": "True",
-            "keycloak_rbac_enabled": "True",
             "graphql_rbac": "True",
         }
     )
