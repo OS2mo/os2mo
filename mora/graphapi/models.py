@@ -70,32 +70,26 @@ class Validity(RAOpenValidity):
                 return common._create_virkning(
                     self.get_terminate_effect_to_date(), "infinity"
                 )
-            # coverage: pause
-            exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+            exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(  # pragma: no cover
                 key="Validity must have a 'from' date",
                 validity={
                     "from": self.from_date.isoformat() if self.from_date else None,
                     "to": self.to_date.isoformat() if self.to_date else None,
                 },
             )
-            # coverage: unpause
-        # coverage: pause
-        if self.from_date and self.to_date:
+        if self.from_date and self.to_date:  # pragma: no cover
             return common._create_virkning(
                 self.get_terminate_effect_from_date(),
                 self.get_terminate_effect_to_date(),
             )
 
-        return common._create_virkning(
+        return common._create_virkning(  # pragma: no cover
             self.get_terminate_effect_from_date(), "infinity"
         )
-        # coverage: unpause
 
     def get_terminate_effect_from_date(self) -> datetime.datetime:
-        if not self.from_date or not isinstance(
-            self.from_date, datetime.datetime
-        ):  # pragma: no cover
-            exceptions.ErrorCodes.V_MISSING_START_DATE()
+        if not self.from_date or not isinstance(self.from_date, datetime.datetime):
+            exceptions.ErrorCodes.V_MISSING_START_DATE()  # pragma: no cover
 
         if self.from_date.time() != datetime.time.min:  # pragma: no cover
             exceptions.ErrorCodes.E_INVALID_INPUT(
@@ -105,8 +99,8 @@ class Validity(RAOpenValidity):
         return self.from_date
 
     def get_terminate_effect_to_date(self) -> datetime.datetime:
-        if not self.to_date:  # pragma: no cover
-            return POSITIVE_INFINITY
+        if not self.to_date:
+            return POSITIVE_INFINITY  # pragma: no cover
 
         if self.to_date.time() != datetime.time.min:  # pragma: no cover
             exceptions.ErrorCodes.E_INVALID_INPUT(
@@ -950,8 +944,8 @@ class ITUserCreate(ITUserUpsert):
         """Verifies that at only one of org_unit and employee field has been set."""
         if (values.get("person") and values.get("org_unit")) or (
             not values.get("person") and not values.get("org_unit")
-        ):  # pragma: no cover
-            exceptions.ErrorCodes.E_INVALID_INPUT(
+        ):
+            exceptions.ErrorCodes.E_INVALID_INPUT(  # pragma: no cover
                 "Exactly 1 of the fields {mapping.ORG_UNIT} or {mapping.PERSON} must be set"
             )
         return values

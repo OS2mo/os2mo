@@ -74,8 +74,8 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = await c.organisationfunktion.get(uuid=function_uuid)
 
-        if not original:  # pragma: no cover
-            exceptions.ErrorCodes.E_NOT_FOUND()
+        if not original:
+            exceptions.ErrorCodes.E_NOT_FOUND()  # pragma: no cover
 
         # Get org unit uuid for validation purposes
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)

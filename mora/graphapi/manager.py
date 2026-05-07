@@ -12,7 +12,7 @@ from .models import ManagerTerminate
 from .models import ManagerUpdate
 
 
-async def create_manager(input: ManagerCreate) -> UUID:  # pragma: no cover
+async def create_manager(input: ManagerCreate) -> UUID:
     """Creating a manager."""
     input_dict = jsonable_encoder(input.to_handler_dict())
 
@@ -35,11 +35,9 @@ async def update_manager(input: ManagerUpdate) -> UUID:
     }
 
     request = await ManagerRequestHandler.construct(req, mapping.RequestType.EDIT)
-    # coverage: pause
     uuid = await request.submit()
 
     return UUID(uuid)
-    # coverage: unpause
 
 
 async def terminate_manager(input: ManagerTerminate) -> UUID:
@@ -48,8 +46,6 @@ async def terminate_manager(input: ManagerTerminate) -> UUID:
     request = await ManagerRequestHandler.construct(
         input_dict, mapping.RequestType.TERMINATE
     )
-    # coverage: pause
     await request.submit()
 
     return input.uuid
-    # coverage: unpause

@@ -28,8 +28,8 @@ def is_uuid(s):
 
 def escape_underscores(s):
     """Return the string with underscores escaped by backslashes."""
-    if s is None:  # pragma: no cover
-        return None
+    if s is None:
+        return None  # pragma: no cover
     return s.replace("_", r"\_")
 
 
@@ -55,9 +55,7 @@ def split_param(value):
     """
     try:
         a, b = value.split(":")
-        # coverage: pause
-        return a, b
-        # coverage: unpause
+        return a, b  # pragma: no cover
     except ValueError:
         return value, None
 
@@ -67,9 +65,7 @@ def to_lower_param(s: str) -> str:
     item in lowercase. The second item is left untouched."""
     try:
         a, b = s.split(":")
-        # coverage: pause
-        return f"{a.lower()}:{b}"
-        # coverage: unpause
+        return f"{a.lower()}:{b}"  # pragma: no cover
     except ValueError:
         return s.lower()
 

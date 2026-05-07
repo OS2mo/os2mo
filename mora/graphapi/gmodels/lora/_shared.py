@@ -101,10 +101,8 @@ class InfiniteDatetime(str):
         if value in {POS_INF, NEG_INF}:
             return cls(value)
 
-        # coverage: pause
-        dt = tz_isodate(value)
-        return cls(dt.isoformat())
-        # coverage: unpause
+        dt = tz_isodate(value)  # pragma: no cover
+        return cls(dt.isoformat())  # pragma: no cover
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"InfiniteDatetime({super().__repr__()})"
@@ -131,9 +129,7 @@ class InfiniteDatetime(str):
                 return datetime.max.replace(tzinfo=UTC)
             if inf_dt == NEG_INF:
                 return datetime.min.replace(tzinfo=UTC)
-            # coverage: pause
-            return datetime.fromisoformat(inf_dt)
-            # coverage: unpause
+            return datetime.fromisoformat(inf_dt)  # pragma: no cover
 
         return _cast_dt(self) < _cast_dt(other)
 

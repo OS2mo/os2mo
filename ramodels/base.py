@@ -13,7 +13,7 @@ from ramodels.exceptions import ISOParseError
 
 try:
     import zoneinfo
-except ImportError:  # pragma: no cover
+except ImportError:
     from backports import zoneinfo  # type: ignore
 
 

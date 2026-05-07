@@ -29,9 +29,7 @@ class ValueType(Enum):
             return ValueType.TEXT
         elif string == BOOL_STR:  # pragma: no cover
             return ValueType.BOOL
-        # coverage: pause
-        raise ValueType(f"unexpected value {string}")
-        # coverage: unpause
+        raise ValueType(f"unexpected value {string}")  # pragma: no cover
 
 
 @dataclass(frozen=True)

@@ -177,8 +177,8 @@ async def listener_resolver(
 
     query = select(db.Listener).where(*filter.where_clauses())
 
-    if limit is not None:
-        query = query.limit(limit)  # pragma: no cover
+    if limit is not None:  # pragma: no cover
+        query = query.limit(limit)
     # This doesn't actually work correctly. It is hard to do pagination
     # correctly, so for now we just do this super naively. This resolver is
     # only used by humans, not by integrations.
@@ -210,8 +210,8 @@ async def namespace_resolver(
 
     query = select(db.Namespace).where(*filter.where_clauses())
 
-    if limit is not None:
-        query = query.limit(limit)  # pragma: no cover
+    if limit is not None:  # pragma: no cover
+        query = query.limit(limit)
     # This doesn't actually work correctly. It is hard to do pagination
     # correctly, so for now we just do this super naively. This resolver is
     # only used by humans, not by integrations.
@@ -283,12 +283,12 @@ class Listener:
             gen_read_permission("event_namespace"),
         ],
     )
-    async def namespace(root: "Listener", info: strawberry.Info) -> Namespace:
-        # coverage: pause
+    async def namespace(
+        root: "Listener", info: strawberry.Info
+    ) -> Namespace:  # pragma: no cover
         filter = NamespaceFilter(names=[root.namespace_fk])
         result = await namespace_resolver(info, filter)
         return one(result)
-        # coverage: unpause
 
     events: list["FullEvent"] = strawberry.field(
         resolver=seed_resolver(
@@ -325,12 +325,12 @@ class FullEvent:
             gen_read_permission("event_listener"),
         ],
     )
-    async def listener(root: "FullEvent", info: strawberry.Info) -> Listener:
-        # coverage: pause
+    async def listener(
+        root: "FullEvent", info: strawberry.Info
+    ) -> Listener:  # pragma: no cover
         filter = ListenerFilter(uuids=[root.listener_uuid])
         result = await listener_resolver(info, filter)
         return one(result)
-        # coverage: unpause
 
 
 class EventToken(BaseModel):

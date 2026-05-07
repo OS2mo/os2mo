@@ -233,8 +233,10 @@ def sql_convert_registration(registration, class_name):
     """Convert input JSON to the SQL arrays we need."""
     registration["attributes"] = convert_attributes(registration["attributes"])
     registration["relations"] = convert_relations(registration["relations"], class_name)
-    if "variants" in registration:  # pragma: no cover
-        registration["variants"] = adapt(convert_variants(registration["variants"]))
+    if "variants" in registration:
+        registration["variants"] = adapt(
+            convert_variants(registration["variants"])
+        )  # pragma: no cover
     states = registration["states"]
     sql_states = []
     for sn in get_state_names(class_name):
@@ -356,7 +358,7 @@ async def create_or_import_object(class_name, note, registration, uuid=None):
     session = get_session()
     try:
         result = await session.execute(sql)
-    except StatementError as e:  # pragma: no cover
+    except StatementError as e:
         if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
             status_code = int(e.orig.sqlstate[2:])
             raise DBException(status_code, e.orig.diag.message_primary)
@@ -365,7 +367,7 @@ async def create_or_import_object(class_name, note, registration, uuid=None):
     return result.fetchone()[0]
 
 
-async def delete_object(class_name, note, uuid):  # pragma: no cover
+async def delete_object(class_name, note, uuid):
     """Delete object by using the stored procedure.
 
     Deleting is the same as updating with the life cycle code "Slettet".
@@ -419,9 +421,7 @@ async def passivate_object(class_name, note, registration, uuid):
             raise DBException(status_code, e.orig.diag.message_primary)
         else:
             raise
-    # coverage: pause
     return result.fetchone()[0]
-    # coverage: unpause
 
 
 async def update_object(
@@ -450,19 +450,21 @@ async def update_object(
     session = get_session()
     try:
         await session.execute(sql)
-    except StatementError as e:  # pragma: no cover
+    except StatementError as e:
         noop_msg = (
             "Aborted updating {} with id [{}] as the given data, "
             "does not give raise to a new registration.".format(
                 class_name.lower(), uuid
             )
         )
-        if e.orig.diag.message_primary.startswith(noop_msg):
+        if e.orig.diag.message_primary.startswith(noop_msg):  # pragma: no cover
             return uuid
-        elif e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
+        elif (
+            e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO"
+        ):  # pragma: no cover
             status_code = int(e.orig.sqlstate[2:])
             raise DBException(status_code, e.orig.diag.message_primary)
-        else:
+        else:  # pragma: no cover
             raise
 
     return uuid
@@ -515,10 +517,8 @@ async def list_objects(
     session = get_session()
     try:
         result = await session.execute(text(sql))
-    except StatementError as e:
-        if (
-            e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO"
-        ):  # pragma: no cover
+    except StatementError as e:  # pragma: no cover
+        if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
             status_code = int(e.orig.sqlstate[2:])
             raise DBException(status_code, e.orig.diag.message_primary)
         else:
@@ -705,8 +705,8 @@ def _consolidate_virkninger(virkninger_list):
     :return: A list of consolidated virkninger
     """
 
-    if not virkninger_list:  # pragma: no cover
-        return virkninger_list
+    if not virkninger_list:
+        return virkninger_list  # pragma: no cover
 
     # Collect virkninger with the same values
     virkning_map = collections.defaultdict(list)
@@ -750,7 +750,7 @@ def _parse_timestamp(timestamp: datetime.datetime | str) -> datetime.datetime:
     else:  # pragma: no cover
         raise TypeError(f"Invalid parameter {timestamp}")
 
-    if not dt.tzinfo:  # pragma: no cover:
+    if not dt.tzinfo:  # pragma: no cover
         dt = dt.replace(tzinfo=datetime.UTC)
 
     return dt
@@ -767,8 +767,8 @@ def _trim_virkninger(virkninger_list, valid_from, valid_to):
     def filter_fn(virkning):
         virkning_to = _parse_timestamp(virkning["virkning"]["to"])
         to_included = virkning["virkning"]["to_included"]
-        if to_included and virkning_to < valid_from:  # pragma: no cover
-            return False
+        if to_included and virkning_to < valid_from:
+            return False  # pragma: no cover
         elif not to_included and virkning_to <= valid_from:
             return False
 
@@ -776,8 +776,8 @@ def _trim_virkninger(virkninger_list, valid_from, valid_to):
         from_included = virkning["virkning"]["from_included"]
         if from_included and valid_to < virkning_from:
             return False
-        elif not from_included and valid_to <= virkning_from:  # pragma: no cover
-            return False
+        elif not from_included and valid_to <= virkning_from:
+            return False  # pragma: no cover
 
         return True
 
@@ -808,8 +808,10 @@ async def search_objects(
         uuid = str(uuid)
 
     time_period = None
-    if registreret_fra is not None or registreret_til is not None:  # pragma: no cover
-        time_period = TimestamptzRange(registreret_fra, registreret_til)
+    if registreret_fra is not None or registreret_til is not None:
+        time_period = TimestamptzRange(
+            registreret_fra, registreret_til
+        )  # pragma: no cover
 
     registration = sql_convert_registration(registration, class_name)
     sql_registration = sql_get_registration(

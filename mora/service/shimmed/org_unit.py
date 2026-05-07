@@ -312,13 +312,11 @@ async def terminate_org_unit(
             else None,
         },
     )
-    # coverage: pause
     handle_gql_error(response)
 
     # result = response.data[mutation_func]
     result_uuid = response.data.get("org_unit_terminate", {}).get("uuid", None)
-    if not result_uuid:
+    if not result_uuid:  # pragma: no cover
         raise Exception("Did not get a valid UUID from GraphQL response")
 
     return UUID(result_uuid)
-    # coverage: unpause

@@ -46,18 +46,18 @@ class InfiniteDatetime:
         # ensure valid and consistent format
         return cls(value=datetime.fromisoformat(value).isoformat())
 
-    def __lt__(self, other) -> bool:
-        if not isinstance(other, InfiniteDatetime):  # pragma: no cover
+    def __lt__(self, other) -> bool:  # pragma: no cover
+        if not isinstance(other, InfiniteDatetime):
             raise TypeError(f"unexpected type {type(other)}")
         if other.value == INFINITY:
             if self.value != INFINITY:
                 return True
-            else:  # pragma: no cover
+            else:
                 raise ValueError(
                     f"unable to compare 2 infinities: self={self}, other={other}"
                 )
 
-        if other.value == NINFINITY:  # pragma: no cover
+        if other.value == NINFINITY:
             if self.value != NINFINITY:
                 return False
             else:
@@ -66,7 +66,7 @@ class InfiniteDatetime:
                 )
 
         # other is not infinity or -infinity
-        if self.value == INFINITY:  # pragma: no cover
+        if self.value == INFINITY:
             return False
         if self.value == NINFINITY:
             return True
@@ -265,15 +265,15 @@ class SearchQueryBuilder:
         if type_ is ValueType.TEXT:
             # always uses case insensitive matching
             return f"ilike '{cls.improper_sql_escape(value)}'"
-        # coverage: pause
-        if type_ is ValueType.BOOL:
+        if type_ is ValueType.BOOL:  # pragma: no cover
             parsed_bool = to_bool(value)
             if parsed_bool is None:
                 raise ValueError(f"unexpected value {value}")
             return "= " + ("TRUE" if parsed_bool else "FALSE")
 
-        raise Exception(f"unexpected type_: {type_}, with associated value {value}")
-        # coverage: unpause
+        raise Exception(  # pragma: no cover
+            f"unexpected type_: {type_}, with associated value {value}"
+        )
 
     def add_attribute(self, attr: Attribute):
         """
@@ -449,9 +449,7 @@ class SearchQueryBuilder:
 def ensure_uuid(uuid: UUID | str) -> UUID:
     if isinstance(uuid, UUID):
         return uuid
-    # coverage: pause
-    return UUID(uuid)
-    # coverage: unpause
+    return UUID(uuid)  # pragma: no cover
 
 
 async def quick_search(
@@ -515,7 +513,7 @@ async def quick_search(
         )
     if note is not None:  # pragma: no cover
         raise NotImplementedError(f"note not implemented. Received value={note}")
-    if any_attr_value_arr is not None:
+    if any_attr_value_arr is not None:  # pragma: no cover
         raise NotImplementedError(
             f"any_attr_value_arr not implemented. Received value={any_attr_value_arr}"
         )

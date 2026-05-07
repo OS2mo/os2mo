@@ -178,9 +178,7 @@ def exotics_to_str(value):
         return list(map(exotics_to_str, value))
     elif isinstance(value, (int, str)):
         return value
-    # coverage: pause
-    raise TypeError("Unknown type in exotics_to_str", type(value))
-    # coverage: unpause
+    raise TypeError("Unknown type in exotics_to_str", type(value))  # pragma: no cover
 
 
 def param_exotics_to_strings(
@@ -219,11 +217,9 @@ def validity_tuple(
 
     if validity == "future":
         return now, util.POSITIVE_INFINITY
-    # coverage: pause
-    raise TypeError(
+    raise TypeError(  # pragma: no cover
         f"Expected validity to be 'past', 'present' or 'future', but was {validity}"
     )
-    # coverage: unpause
 
 
 class Connector:
@@ -603,7 +599,7 @@ class Scope(BaseScope):
         limit = params.get("maximalantalresultater")
         offset = params.get("foersteresultat", 0)
         is_paged = is_graphql() and limit != 0 and offset > 0
-        if is_paged:  # pragma: no cover
+        if is_paged:
             # There may be multiple LoRa fetches in one GraphQL request, so this cannot
             # be refactored into always overwriting the value.
             context["lora_page_out_of_range"] = True
@@ -674,7 +670,6 @@ class Scope(BaseScope):
         uuid_filters = uuid_filters or []
         # Fetch all uuids matching search params and filter with uuid_filters
         uuids = await self.fetch(**params)
-        # coverage: pause
         for uuid_filter in uuid_filters:
             uuids = filter(uuid_filter, uuids)
         # Sort to ensure consistent order, as LoRa does not seem to do that
@@ -689,11 +684,10 @@ class Scope(BaseScope):
         obj_iter = await self.get_all_by_uuid(uuids)
         if asyncio.iscoroutinefunction(func):
             obj_iter = [await func(self.connector, *tup) for tup in obj_iter]
-        else:
+        else:  # pragma: no cover
             obj_iter = starmap(partial(func, self.connector), obj_iter)
 
         return {"total": total, "offset": start, "items": list(obj_iter)}
-        # coverage: unpause
 
     @overload
     async def get(
@@ -755,9 +749,7 @@ class Scope(BaseScope):
     async def delete(self, uuid: uuid.UUID) -> uuid.UUID:
         with lora_to_mo_exception():
             result = await self.lora_class.delete_object_direct(uuid, {})
-        # coverage: pause
         return result.get("uuid", uuid)
-        # coverage: unpause
 
     async def update(self, obj, uuid):
         result = {}

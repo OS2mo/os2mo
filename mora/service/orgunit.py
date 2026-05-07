@@ -267,7 +267,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                 (mapping.ORG_UNIT_LEVEL_FIELD, {"uuid": org_unit_level})
             )
 
-        if data.get(mapping.ORG_UNIT_HIERARCHY):  # pragma: no cover
+        if data.get(mapping.ORG_UNIT_HIERARCHY):
             org_unit_hierarchy = util.get_mapping_uuid(data, mapping.ORG_UNIT_HIERARCHY)
             update_fields.append(
                 (mapping.ORG_UNIT_HIERARCHY_FIELD, {"uuid": org_unit_hierarchy})
@@ -339,11 +339,9 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 
         if self.request_type == mapping.RequestType.CREATE:
             self.result = await c.organisationenhed.create(self.payload, self.uuid)
-            # coverage: pause
             if self.details_requests:
                 for r in self.details_requests:
                     await r.submit()
-            # coverage: unpause
 
         elif self.request_type == mapping.RequestType.REFRESH:
             pass
@@ -357,9 +355,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                     map(str, self.trigger_results_before + self.trigger_results_after)
                 )
             }
-        # coverage: pause
         return submit
-        # coverage: unpause
 
 
 async def request_bulked_get_one_orgunit(

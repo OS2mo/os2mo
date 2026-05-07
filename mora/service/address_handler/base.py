@@ -63,9 +63,9 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
 
     @staticmethod
     @abc.abstractmethod
-    async def validate_value(value):  # pragma: no cover
+    async def validate_value(value):
         """Validate that the address value is correctly formed"""
-        pass
+        pass  # pragma: no cover
 
     @property
     def urn(self):

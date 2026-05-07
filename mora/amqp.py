@@ -116,9 +116,7 @@ async def _send_amqp_message(
     await add_event(session, namespace="mo", routing_key=object_type, subject=str(uuid))
 
 
-async def _emit_events(
-    session: AsyncSession, amqp_system: AMQPSystem
-) -> None:  # pragma: no cover
+async def _emit_events(session: AsyncSession, amqp_system: AMQPSystem) -> None:
     """Send an event for every new registration or validity we've passed since last run."""
     logger.info("emitting amqp events")
     # We need to fetch "now" before our queries, or we expose ourself to
@@ -329,9 +327,9 @@ async def _emit_events(
     )
 
 
-async def start_event_generator(
+async def start_event_generator(  # pragma: no cover
     sessionmaker: async_sessionmaker,
-) -> None:  # pragma: no cover
+) -> None:
     mo_settings = get_settings()
 
     logger.info("starting amqp subsystem")

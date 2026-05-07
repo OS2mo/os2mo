@@ -98,9 +98,7 @@ T = TypeVar("T")
 def paginate(obj: list[T], cursor: CursorType, limit: LimitType) -> list[T]:
     if cursor is None:
         return obj[:limit]
-    # coverage: pause
-    return obj[cursor.offset :][:limit]
-    # coverage: unpause
+    return obj[cursor.offset :][:limit]  # pragma: no cover
 
 
 async def health_resolver(

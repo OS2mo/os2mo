@@ -226,13 +226,13 @@ class ResponseRegistration(RegistrationBase, Generic[MOObject]):
         ),
         permission_classes=[IsAuthenticatedPermission],
     )
-    async def validities(
+    async def validities(  # pragma: no cover
         self,
         root: "ResponseRegistration",
         info: MOInfo,
         start: datetime | None = UNSET,
         end: datetime | None = UNSET,
-    ) -> list[MOObject]:  # pragma: no cover
+    ) -> list[MOObject]:
         return await validity_resolver(root, info, start, end, root.start)
 
 

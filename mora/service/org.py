@@ -71,7 +71,7 @@ async def get_configured_organisation(uuid=None):
         await ConfiguredOrganisation.validate()
     org = ConfiguredOrganisation.organisation
 
-    if uuid and uuid != org["uuid"]:  # pragma: no cover
+    if uuid and uuid != org["uuid"]:
         exceptions.ErrorCodes.E_ORG_NOT_ALLOWED(uuid=uuid)
 
     return org

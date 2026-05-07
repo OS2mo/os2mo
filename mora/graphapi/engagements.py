@@ -25,7 +25,7 @@ async def create_engagement(input: EngagementCreate) -> UUID:
     return UUID(uuid)
 
 
-async def update_engagement(input: EngagementUpdate) -> UUID:  # pragma: no cover
+async def update_engagement(input: EngagementUpdate) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     req = {
@@ -46,8 +46,6 @@ async def terminate_engagement(input: EngagementTerminate) -> UUID:
     request = await EngagementRequestHandler.construct(
         input_dict, mapping.RequestType.TERMINATE
     )
-    # coverage: pause
     await request.submit()
 
     return input.uuid
-    # coverage: unpause

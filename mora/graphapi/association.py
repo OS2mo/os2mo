@@ -20,11 +20,9 @@ async def create_association(input: AssociationCreate) -> UUID:
     request = await AssociationRequestHandler.construct(
         input_dict, mapping.RequestType.CREATE
     )
-    # coverage: pause
     uuid = await request.submit()
 
     return UUID(uuid)
-    # coverage: unpause
 
 
 async def update_association(input: AssociationUpdate) -> UUID:
@@ -38,11 +36,9 @@ async def update_association(input: AssociationUpdate) -> UUID:
     }
 
     request = await AssociationRequestHandler.construct(req, mapping.RequestType.EDIT)
-    # coverage: pause
     uuid = await request.submit()
 
     return UUID(uuid)
-    # coverage: unpause
 
 
 async def terminate_association(input: AssociationTerminate) -> UUID:
@@ -52,8 +48,6 @@ async def terminate_association(input: AssociationTerminate) -> UUID:
     request = await AssociationRequestHandler.construct(
         input_dict, mapping.RequestType.TERMINATE
     )
-    # coverage: pause
     await request.submit()
 
     return input.uuid
-    # coverage: unpause

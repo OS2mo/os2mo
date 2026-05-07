@@ -68,7 +68,7 @@ class GroupValidation:
     def __init__(self, validation_items: list[dict]):
         self.validation_items = validation_items
 
-    def validate(self) -> None:  # pragma: no cover
+    def validate(self) -> None:
         """Validate this `GroupValidation` instance.
 
         `validate` should return None if there are no validation errors, or raise an
@@ -76,7 +76,7 @@ class GroupValidation:
 
         `validate` must be implemented by subclasses of `GroupValidation`.
         """
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     def add_validation_item(self, validation_item: dict) -> "GroupValidation":
         """Add another validation item to this group validation.

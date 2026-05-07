@@ -42,11 +42,9 @@ async def handle_requests(
     requests = await handlers.generate_requests(reqs, request_type)
 
     uuids = await handlers.submit_requests(requests)
-    # coverage: pause
     if is_single_request:
         uuids = uuids[0]
     return uuids
-    # coverage: unpause
 
 
 @router.post(

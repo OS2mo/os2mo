@@ -49,6 +49,4 @@ async def dar() -> bool:
     adarclient = AsyncDARClient(timeout=5)
     async with adarclient:
         return await adarclient.healthcheck()
-    # coverage: pause
-    return False
-    # coverage: unpause
+    return False  # pragma: no cover

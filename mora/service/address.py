@@ -203,7 +203,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if mapping.ENGAGEMENT in data:  # pragma: no cover
+        if mapping.ENGAGEMENT in data:
             update_fields.append(
                 (
                     mapping.ASSOCIATED_FUNCTION_FIELD,
@@ -214,7 +214,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if mapping.IT in data:  # pragma: no cover
+        if mapping.IT in data:
             update_fields.append(
                 (
                     mapping.ASSOCIATED_FUNCTION_FIELD,

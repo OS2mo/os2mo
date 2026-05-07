@@ -134,20 +134,18 @@ def search_cpr(
     response: dict = _handle_erstatningspersonnummer(cpr)
     if response:
         return response
-    # coverage: pause
-    try:
+    try:  # pragma: no cover
         sp_data = get_citizen(cpr)
-    except KeyError as e:
+    except KeyError as e:  # pragma: no cover
         logger.exception(event="no person found for cpr", exception=e)
         exceptions.ErrorCodes.V_NO_PERSON_FOR_CPR(cpr=cpr)
-    except ValueError as e:
+    except ValueError as e:  # pragma: no cover
         logger.exception(event="invalid CPR", exception=e)
         exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr)
-    except Exception as e:
+    except Exception as e:  # pragma: no cover
         logger.exception(event="unknown error in cpr lookup", exception=e)
         exceptions.ErrorCodes.E_UNKNOWN(cpr=cpr)
-    return format_cpr_response(sp_data, cpr)
-    # coverage: unpause
+    return format_cpr_response(sp_data, cpr)  # pragma: no cover
 
 
 def format_cpr_response(

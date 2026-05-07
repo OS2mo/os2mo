@@ -20,7 +20,7 @@ from ramodels.base import tz_isodate
 
 try:
     import zoneinfo
-except ImportError:  # pragma: no cover
+except ImportError:
     from backports import zoneinfo  # type: ignore
 
 UTC = zoneinfo.ZoneInfo("UTC")

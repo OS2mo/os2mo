@@ -74,8 +74,8 @@ class _RegistreringMixin:
         return column_property(cls._registrering_period)
 
     @hybrid_property
-    def registrering_period(self) -> TimestamptzRange:
-        return self._registrering_period_attr  # pragma: no cover
+    def registrering_period(self) -> TimestamptzRange:  # pragma: no cover
+        return self._registrering_period_attr
 
     @registrering_period.inplace.expression
     @classmethod
@@ -100,8 +100,8 @@ class _RegistreringMixin:
         return column_property(cls._lifecycle)
 
     @hybrid_property
-    def lifecycle(self) -> ENUM:
-        return self._lifecycle_attr  # pragma: no cover
+    def lifecycle(self) -> ENUM:  # pragma: no cover
+        return self._lifecycle_attr
 
     @lifecycle.inplace.expression
     @classmethod
@@ -125,7 +125,7 @@ class _VirkningMixin:
         return column_property(cls._virkning_period)
 
     @hybrid_property
-    def virkning_period(self) -> TimestamptzRange:  # pragma: no cover
+    def virkning_period(self) -> TimestamptzRange:
         return self._virkning_period_attr
 
     @virkning_period.inplace.expression

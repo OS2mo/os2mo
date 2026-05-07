@@ -20,9 +20,7 @@ async def create_leave(input: LeaveCreate) -> UUID:
         input_dict, mapping.RequestType.CREATE
     )
     uuid = await request.submit()
-    # coverage: pause
     return UUID(uuid)
-    # coverage: unpause
 
 
 async def update_leave(input: LeaveUpdate) -> UUID:
@@ -37,9 +35,7 @@ async def update_leave(input: LeaveUpdate) -> UUID:
 
     request = await LeaveRequestHandler.construct(req, mapping.RequestType.EDIT)
     uuid = await request.submit()
-    # coverage: pause
     return UUID(uuid)
-    # coverage: unpause
 
 
 async def terminate_leave(input: LeaveTerminate) -> UUID:
@@ -48,8 +44,6 @@ async def terminate_leave(input: LeaveTerminate) -> UUID:
     request = await LeaveRequestHandler.construct(
         input_dict, mapping.RequestType.TERMINATE
     )
-    # coverage: pause
     await request.submit()
 
     return input.uuid
-    # coverage: unpause

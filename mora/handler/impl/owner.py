@@ -111,11 +111,9 @@ class OwnerReader(reading.OrgFunkReadingHandler):
                 c=get_connector(),
                 search_fields={"tilknyttedebrugere": owned_person_uuid},
             )
-        # coverage: pause
-        raise NotImplementedError(
+        raise NotImplementedError(  # pragma: no cover
             f"Mapping for inference_priority missing: {inference_priority}"
         )
-        # coverage: unpause
 
     @classmethod
     async def infer_owner(

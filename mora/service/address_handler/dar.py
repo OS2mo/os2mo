@@ -138,7 +138,7 @@ class DARAddressHandler(base.AddressHandler):
 
         yield ", "
 
-        if addr.get("supplerendebynavn") is not None:  # pragma: no cover
+        if addr.get("supplerendebynavn") is not None:
             yield addr["supplerendebynavn"]
             yield ", "
 

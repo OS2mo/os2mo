@@ -91,13 +91,13 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         bvn = util.checked_get(req, mapping.USER_KEY, userid)
         seniority = req.get(mapping.SENIORITY, None)
         # parse seniority
-        if seniority is not None:  # pragma: no cover
+        if seniority is not None:
             seniority = tz_isodate(seniority).strftime("%Y-%m-%d")
 
         if cpr:
             try:
                 valid_from = util.get_cpr_birthdate(cpr)
-            except ValueError as exc:  # pragma: no cover
+            except ValueError as exc:
                 settings = config.get_settings()
                 if settings.cpr_validate_birthdate:
                     exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr, cause=exc)
@@ -285,9 +285,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         # process subrequests, if any
         [await r.submit() for r in getattr(self, "details_requests", [])]
-        # coverage: pause
         return await super().submit()
-        # coverage: unpause
 
 
 async def request_bulked_get_one_employee(

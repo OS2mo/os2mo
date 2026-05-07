@@ -17,11 +17,9 @@ async def create_kle(input: KLECreate) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await KLERequestHandler.construct(input_dict, mapping.RequestType.CREATE)
-    # coverage: pause
     uuid = await request.submit()
 
     return UUID(uuid)
-    # coverage: unpause
 
 
 async def update_kle(input: KLEUpdate) -> UUID:
@@ -35,11 +33,9 @@ async def update_kle(input: KLEUpdate) -> UUID:
     }
 
     request = await KLERequestHandler.construct(req, mapping.RequestType.EDIT)
-    # coverage: pause
     uuid = await request.submit()
 
     return UUID(uuid)
-    # coverage: unpause
 
 
 async def terminate_kle(input: KLETerminate) -> UUID:
@@ -48,8 +44,6 @@ async def terminate_kle(input: KLETerminate) -> UUID:
     request = await KLERequestHandler.construct(
         input_dict, mapping.RequestType.TERMINATE
     )
-    # coverage: pause
     await request.submit()
 
     return input.uuid
-    # coverage: unpause

@@ -55,9 +55,9 @@ class Insight(BaseModel):
 
 
 @insight_router.get("/insight")
-async def get_insight_data(
+async def get_insight_data(  # pragma: no cover
     q: list[str] | None = Query(["all"]),
-) -> list[Insight]:  # pragma: no cover
+) -> list[Insight]:
     """Loads data from a directory of JSONs and returns it as a list.
 
     Args:

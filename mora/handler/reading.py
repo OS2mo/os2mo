@@ -44,18 +44,18 @@ class ReadingHandler:
         c,
         search_fields,
         flat: bool = False,
-    ) -> list[dict]:  # pragma: no cover
+    ) -> list[dict]:
         """
         Read a list of objects based on the given search parameters
 
         :param c: A LoRa connector
         :param search_fields: A dict containing search parameters
         """
-        pass
+        pass  # pragma: no cover
 
     @classmethod
     @abc.abstractmethod
-    async def get_from_type(cls, c, type, obj_uuid):  # pragma: no cover
+    async def get_from_type(cls, c, type, obj_uuid):
         """
         Read a list of objects related to a certain object
 
@@ -65,11 +65,11 @@ class ReadingHandler:
 
         :param obj_uuid: The UUID of the related employee/orgunit
         """
-        pass
+        pass  # pragma: no cover
 
     @classmethod
     @abc.abstractmethod
-    async def _get_effects(cls, c, obj, **params):  # pragma: no cover
+    async def _get_effects(cls, c, obj, **params):
         """
         Chunk a LoRa object up into effects
 
@@ -78,13 +78,13 @@ class ReadingHandler:
         :param params: Additional parameters to be sent along to a LoRa
             chunking function
         """
-        pass
+        pass  # pragma: no cover
 
     @classmethod
     @abc.abstractmethod
     async def _get_mo_object_from_effect(
         cls, effect, start, end, obj_id, flat: bool = False
-    ):  # pragma: no cover
+    ):
         """
         Convert an effect to a MO object
 
@@ -94,7 +94,7 @@ class ReadingHandler:
         :param obj_id: The UUID of the object in LoRa the effect originates
             from
         """
-        pass
+        pass  # pragma: no cover
 
     @classmethod
     async def __async_get_mo_object_from_effect(
@@ -166,14 +166,14 @@ class OrgFunkReadingHandler(ReadingHandler):
         mo_objects = await cls._get_obj_effects(c, object_tuples, flat)
 
         # Return MO objects early if they are flat
-        if flat:  # pragma: no cover
-            return mo_objects
+        if flat:
+            return mo_objects  # pragma: no cover
 
         # Mutate objects by awaiting as needed. This delayed evaluation allows bulking.
         for mo_object in mo_objects:
             for key, val in mo_object.items():
-                if isawaitable(val):  # pragma: no cover
-                    mo_object[key] = await val
+                if isawaitable(val):
+                    mo_object[key] = await val  # pragma: no cover
         return mo_objects
 
     @classmethod

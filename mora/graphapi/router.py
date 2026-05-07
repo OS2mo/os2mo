@@ -58,7 +58,7 @@ def get_router(version: Version) -> APIRouter:
     )
 
     @router.get("/schema.graphql", response_class=PlainTextResponse)
-    async def sdl() -> str:  # pragma: no cover
+    async def sdl() -> str:
         """Return the GraphQL version's schema definition in SDL format."""
         header = dedent(
             f"""\

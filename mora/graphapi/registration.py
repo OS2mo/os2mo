@@ -131,7 +131,7 @@ async def registration_resolver(
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> list[Any]:
-    if filter is None:  # pragma: no cover
+    if filter is None:
         filter = RegistrationFilter()
 
     model2table = {
@@ -238,9 +238,9 @@ async def registration_resolver(
         query = query.where(column("start") <= cursor.registration_time)
     # Order by time, then by UUID so the order of pagination is well-defined
     query = query.order_by(column("start"), column("uuid"))
-    if limit is not None:  # pragma: no cover
+    if limit is not None:
         # Fetch one extra element to see if there is another page
-        query = query.limit(limit + 1)
+        query = query.limit(limit + 1)  # pragma: no cover
     query = query.offset(cursor.offset if cursor else 0)
 
     session: AsyncSession = info.context.session
@@ -261,12 +261,12 @@ async def registration_resolver(
         [uuid for _, _, uuid, _, _, _, _ in result],
     )
 
-    if limit is not None:  # pragma: no cover
+    if limit is not None:
         # Not enough results == no more pages
-        if len(result) <= limit:
+        if len(result) <= limit:  # pragma: no cover
             context["lora_page_out_of_range"] = True
         # Strip the extra element that was only used for page-checking
-        elif len(result) == limit + 1:
+        elif len(result) == limit + 1:  # pragma: no cover
             result = result[:-1]
 
     return list(starmap(row2registration, result))

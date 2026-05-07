@@ -93,18 +93,20 @@ class Organisation:
             """
         )
     )
-    async def municipality_code(self, root: OrganisationRead) -> int | None:
+    async def municipality_code(
+        self, root: OrganisationRead
+    ) -> int | None:  # pragma: no cover
         """Get the municipality code for the organisation unit (if any).
 
         Returns:
             The municipality code, if any is found.
         """
         org = await common.get_connector().organisation.get(root.uuid)
-        if org is None:  # pragma: no cover
+        if org is None:
             return None
         authorities = org.get("relationer", {}).get("myndighed", [])
         for authority in authorities:
             m = MUNICIPALITY_CODE_PATTERN.fullmatch(authority.get("urn"))
             if m:
                 return int(m.group(1))
-        return None  # pragma: no cover
+        return None

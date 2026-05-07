@@ -256,9 +256,9 @@ async def is_date_range_in_obj_range(
             # special case for backwards compatibility
             if obj_type is LoraObjectType.user:
                 exceptions.ErrorCodes.E_USER_NOT_FOUND(employee_uuid=uuid)
-            # coverage: pause
-            exceptions.ErrorCodes.E_NOT_FOUND(scope=str(obj_type), uuid=uuid)
-            # coverage: unpause
+            exceptions.ErrorCodes.E_NOT_FOUND(  # pragma: no cover
+                scope=str(obj_type), uuid=uuid
+            )
 
         if not await _is_date_range_valid(
             existing_obj, valid_from, valid_to, scope, gyldighed_key
@@ -473,8 +473,8 @@ async def does_employee_with_cpr_already_exist(
     cpr, valid_from, valid_to, org_uuid, allowed_user_id=None
 ) -> bool:
     """Check whether there exists an employee with the given CPR."""
-    if not util.is_cpr_number(cpr):  # pragma: no cover
-        return False
+    if not util.is_cpr_number(cpr):
+        return False  # pragma: no cover
 
     c = lora.Connector(
         virkningfra=util.to_lora_time(valid_from),
@@ -491,5 +491,5 @@ async def does_employee_with_cpr_already_exist(
 @forceable
 async def is_mutually_exclusive(*values):
     """Raise validation error if more than one of `values` is not None."""
-    if len([val for val in values if val is not None]) > 1:  # pragma: no cover
-        exceptions.ErrorCodes.E_INVALID_INPUT(values)
+    if len([val for val in values if val is not None]) > 1:
+        exceptions.ErrorCodes.E_INVALID_INPUT(values)  # pragma: no cover

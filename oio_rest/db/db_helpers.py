@@ -40,9 +40,9 @@ def get_field_type(attribute_name, field_name):
 _attribute_names = {}
 
 
-def get_relation_field_type(class_name, field_name):
+def get_relation_field_type(class_name, field_name):  # pragma: no cover
     class_info = db_structure.REAL_DB_STRUCTURE[class_name.lower()]
-    if "relationer_metadata" in class_info:  # pragma: no cover
+    if "relationer_metadata" in class_info:
         metadata = class_info["relationer_metadata"]
         for relation in metadata:
             for key in metadata[relation]:
@@ -69,8 +69,8 @@ def get_state_names(class_name):
     "Return the list of all recognized states for this class."
     states = db_structure.REAL_DB_STRUCTURE[class_name.lower()]["tilstande"]
 
-    if isinstance(states, list):  # pragma: no cover
-        return [state[0] for state in states]
+    if isinstance(states, list):
+        return [state[0] for state in states]  # pragma: no cover
     return list(states)
 
 

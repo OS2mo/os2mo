@@ -487,12 +487,12 @@ async def get_all_classes_children(
     response_model_exclude_unset=True,
     responses={404: {"description": "Class not found."}},
 )
-async def get_all_class_children(
+async def get_all_class_children(  # pragma: no cover
     classid: UUID = Path(..., description="UUID of a class."),
     only_primary_uuid: bool | None = Query(
         None, description="Only retrieve the UUID of the class unit."
     ),
-):  # pragma: no cover
+):
     """Get class children by UUID."""
     query = """
     query ClassChildrenQuery(

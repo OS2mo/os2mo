@@ -372,11 +372,9 @@ def to_lora_obj(value: dict[str, str] | str) -> dict[str, str]:
     elif isinstance(value, dict):  # if dict, do nothing
         if value.keys() <= {mapping.UUID, mapping.OBJECTTYPE}:
             return value
-        else:  # pragma: no cover
-            raise ValueError(f"unexpected_lora_keys={value.keys()}")
-    # coverage: pause
-    raise TypeError(f"unexpected type: {type(value)}")
-    # coverage: unpause
+        else:
+            raise ValueError(f"unexpected_lora_keys={value.keys()}")  # pragma: no cover
+    raise TypeError(f"unexpected type: {type(value)}")  # pragma: no cover
 
 
 def associated_orgfunc(uuid: str, orgfunc_type: mapping.MoOrgFunk) -> dict[str, str]:
@@ -706,7 +704,6 @@ async def add_history_entry(scope: lora.Scope, id: str, note: str):
     if not obj:
         exceptions.ErrorCodes.E_NOT_FOUND(path=scope.path, uuid=id)
 
-    # coverage: pause
     unique_string = str(uuid.uuid4())
 
     payload = {
@@ -721,7 +718,6 @@ async def add_history_entry(scope: lora.Scope, id: str, note: str):
     }
 
     await scope.update(payload, id)
-    # coverage: unpause
 
 
 def parse_owner_inference_priority_str(

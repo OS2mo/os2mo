@@ -204,8 +204,8 @@ def _handle_relation_metadata_all(obj, relation):
     :return: Dictionary representing the updated relation.
     """
     metadata_all = _get_metadata(obj, "relationer", "*")
-    for key in metadata_all:  # pragma: no cover
-        if "type" in metadata_all[key]:
+    for key in metadata_all:
+        if "type" in metadata_all[key]:  # pragma: no cover
             relation["items"]["oneOf"][0]["properties"][key] = TYPE_MAP[
                 metadata_all[key]["type"]
             ]

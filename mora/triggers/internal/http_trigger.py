@@ -63,9 +63,9 @@ async def http_sender(
             return payload
 
 
-async def fetch_endpoint_trigger(
+async def fetch_endpoint_trigger(  # pragma: no cover
     session, endpoint: str, timeout: int = 10
-) -> list[MOTriggerRegister]:  # pragma: no cover
+) -> list[MOTriggerRegister]:
     """Fetch the trigger configuration from endpoint.
 
     Note: Expects the /triggers endpoint to return a JSON list with this format:

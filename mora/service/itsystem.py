@@ -115,7 +115,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         # Ensure backwards compatibility with the deprecated single engagement
         # uuid.
-        if engagement and engagements:  # pragma: no cover
+        if engagement and engagements:
             exceptions.ErrorCodes.E_INVALID_INPUT(
                 "Attempted use of both 'engagement' and 'engagements'"
             )
@@ -137,7 +137,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         primary = util.get_mapping_uuid(req, mapping.PRIMARY, required=False)
 
         # Validation
-        if org_unit:  # pragma: no cover
+        if org_unit:
             await validator.is_date_range_in_org_unit_range(
                 org_unit, valid_from, valid_to
             )
@@ -274,7 +274,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         ):
             if engagements is None:
                 engagements = [data.get(mapping.ENGAGEMENT)]
-            if not engagements:  # pragma: no cover
+            if not engagements:
                 # If an empty list is returned it is registered as a relation to a function with no uuid
                 # This is how we "delete" a list of engagements
                 update_fields.append(
@@ -302,7 +302,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if data.get(mapping.PRIMARY):  # pragma: no cover
+        if data.get(mapping.PRIMARY):
             update_fields.append(
                 (
                     mapping.PRIMARY_FIELD,
@@ -312,7 +312,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if mapping.EXTERNAL_ID in data:  # pragma: no cover
+        if mapping.EXTERNAL_ID in data:
             update_fields.append(
                 (
                     mapping.ORG_FUNK_UDVIDELSER_FIELD,
@@ -326,12 +326,12 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             attributes = {}
         new_attributes = {}
 
-        if mapping.USER_KEY in data:  # pragma: no cover
+        if mapping.USER_KEY in data:
             new_attributes["brugervendtnoegle"] = util.checked_get(
                 data, mapping.USER_KEY, ""
             )
 
-        if new_attributes:  # pragma: no cover
+        if new_attributes:
             update_fields.append(
                 (
                     mapping.ORG_FUNK_EGENSKABER_FIELD,

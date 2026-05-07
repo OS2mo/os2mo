@@ -77,8 +77,8 @@ async def get_one_itsystem(
     def _get_attrs(itsystem):
         return itsystem["attributter"]["itsystemegenskaber"][0]
 
-    if only_primary_uuid:  # pragma: no cover
-        return {mapping.UUID: itsystem_uuid}
+    if only_primary_uuid:
+        return {mapping.UUID: itsystem_uuid}  # pragma: no cover
 
     if not itsystem:  # pragma: no cover
         # optionally exit early

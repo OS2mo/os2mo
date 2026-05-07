@@ -35,9 +35,9 @@ def keycloak_router():
         }
 
     @router.post("/token")
-    async def login(
+    async def login(  # pragma: no cover
         form_data: OAuth2PasswordRequestForm = Depends(),
-    ) -> dict[str, Any]:  # pragma: no cover
+    ) -> dict[str, Any]:
         """Login endpoint to exchange username + password for access token."""
         token_url = (
             f"{SCHEMA}://{HOST}:{PORT}"

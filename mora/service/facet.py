@@ -67,9 +67,9 @@ FULL_DETAILS = {
 
 @router.get("/c/ancestor-tree")
 # @util.restrictargs('at', 'uuid')
-async def get_class_ancestor_tree(
+async def get_class_ancestor_tree(  # pragma: no cover
     uuid: list[UUID] | None = None, only_primary_uuid: bool | None = None
-):  # pragma: no cover
+):
     """Obtain the tree of ancestors for the given classes.
 
     The tree includes siblings of ancestors:
@@ -239,8 +239,8 @@ async def get_one_class(
 
     def get_parent(clazz):
         """Find the parent UUID of the provided class object."""
-        for parentid in mapping.PARENT_CLASS_FIELD.get_uuids(clazz):  # pragma: no cover
-            return parentid
+        for parentid in mapping.PARENT_CLASS_FIELD.get_uuids(clazz):
+            return parentid  # pragma: no cover
 
     def get_facet_uuid(clazz):
         return clazz["relationer"]["facet"][0]["uuid"]
@@ -259,12 +259,10 @@ async def get_one_class(
         potential_parent = get_parent(clazz)
         if potential_parent is None:
             return [clazz]
-        # coverage: pause
-        new_class = await get_lora_object(
+        new_class = await get_lora_object(  # pragma: no cover
             type_=LoraObjectType.class_, uuid=potential_parent
         )
-        return [clazz] + await get_parents(new_class)
-        # coverage: unpause
+        return [clazz] + await get_parents(new_class)  # pragma: no cover
 
     async def getfacet(facetid) -> Any:
         """
@@ -426,9 +424,7 @@ class ClassRequestHandler(handlers.RequestHandler):
             self.result = await c.klasse.create(self.payload, self.uuid)
         else:  # pragma: no cover
             self.result = await c.klasse.update(self.payload, self.uuid)
-        # coverage: pause
         return await super().submit()
-        # coverage: unpause
 
 
 @router.post("/f/{facet}/")

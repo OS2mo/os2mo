@@ -31,7 +31,7 @@ GRAPHQL_COMPATIBLE_TYPES = {
 async def terminate(
     reqs: list[DetailTermination] | DetailTermination = Body(...),
     permissions=Depends(oidc.rbac_owner),
-):  # pragma: no cover
+):
     results: list[str] = []
     for req in [reqs] if not isinstance(reqs, list) else reqs:
         results.append(await _termination_request_handler(req))
@@ -40,7 +40,7 @@ async def terminate(
     if isinstance(reqs, list):
         return results
 
-    if not results:
+    if not results:  # pragma: no cover
         return ""
 
     return results if len(results) > 1 else results[0]
@@ -64,15 +64,11 @@ async def _termination_request_handler(detail_termination: DetailTermination) ->
         )
 
         uuids = await handlers.submit_requests(legacy_requests)
-        # coverage: pause
         return uuids[0]
-        # coverage: unpause
 
     # Find the GraphQL mutation handler and return it for the request
-    # coverage: pause
-    handler = grapql_terminate_handlers.get(detail_termination.type)
-    return await handler(detail_termination)
-    # coverage: unpause
+    handler = grapql_terminate_handlers.get(detail_termination.type)  # pragma: no cover
+    return await handler(detail_termination)  # pragma: no cover
 
 
 @details_router.get(

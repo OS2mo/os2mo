@@ -93,12 +93,10 @@ async def fallback_handler(*args, **kwargs) -> JSONResponse:
     if exc:
         err = ErrorCodes.E_UNKNOWN.to_http_exception(message=str(exc))
         return http_exception_to_json_response(exc=err)
-    # coverage: pause
-    err = ErrorCodes.E_UNKNOWN.to_http_exception(
+    err = ErrorCodes.E_UNKNOWN.to_http_exception(  # pragma: no cover
         message=f"Error details:\nargs: {args}\nkwargs: {kwargs}"
     )
-    return http_exception_to_json_response(exc=err)
-    # coverage: unpause
+    return http_exception_to_json_response(exc=err)  # pragma: no cover
 
 
 async def request_validation_handler(request: Request, exc: RequestValidationError):

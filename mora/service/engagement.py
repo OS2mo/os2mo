@@ -79,13 +79,13 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         addresses = util.checked_get(req, mapping.ADDRESS, [])
         addr_ids = take(len(addresses), map(str, repeatfunc(uuid.uuid4)))
 
-        for address_obj, addr_id in zip(addresses, addr_ids):  # pragma: no cover
+        for address_obj, addr_id in zip(addresses, addr_ids):
             address_obj[mapping.ENGAGEMENT] = {
                 mapping.UUID: func_id,
                 mapping.OBJECTTYPE: mapping.ENGAGEMENT,
             }
             address_obj["uuid"] = addr_id
-            if not address_obj.get("validity"):
+            if not address_obj.get("validity"):  # pragma: no cover
                 address_obj["validity"] = util.checked_get(req, mapping.VALIDITY, {})
 
         address_tasks = (

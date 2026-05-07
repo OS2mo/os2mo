@@ -150,8 +150,6 @@ async def terminate_employee(uuid: UUID, request: dict = Body(...)):
         mutation,
         variable_values=jsonable_encoder(variables),
     )
-    # coverage: pause
     handle_gql_error(response)
     uuid = response.data["employee_terminate"]["uuid"]
     return uuid
-    # coverage: unpause

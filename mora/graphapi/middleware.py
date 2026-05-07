@@ -63,8 +63,8 @@ class StarletteContextExtension(SchemaExtension):
     # TODO: Cleanup the test and remove this trash
     async def on_execute(self) -> AsyncIterator[None]:
         iter = super().on_execute()
-        if isasyncgen(iter):
-            async for x in iter:  # pragma: no cover
+        if isasyncgen(iter):  # pragma: no cover
+            async for x in iter:
                 yield x
         else:
             # mypy is majorly confused by this horrible code

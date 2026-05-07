@@ -1,25 +1,26 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# pragma: no cover file
 """This module contains routines for generating the database from
 Jinja2 templates.
 
 """
 
-import copy
-from collections import OrderedDict
-from pathlib import Path
+import copy  # pragma: no cover
+from collections import OrderedDict  # pragma: no cover
+from pathlib import Path  # pragma: no cover
 
-from jinja2 import Environment
-from jinja2 import FileSystemLoader
+from jinja2 import Environment  # pragma: no cover
+from jinja2 import FileSystemLoader  # pragma: no cover
 
-from oio_rest.db import db_structure
+from oio_rest.db import db_structure  # pragma: no cover
 
-DB_DIR = Path(__file__).parent / "sql" / "declarations"
+DB_DIR = Path(__file__).parent / "sql" / "declarations"  # pragma: no cover
 
-template_env = Environment(loader=FileSystemLoader(str(DB_DIR / "templates")))
+template_env = Environment(  # pragma: no cover
+    loader=FileSystemLoader(str(DB_DIR / "templates"))
+)
 
-TEMPLATES = (
+TEMPLATES = (  # pragma: no cover
     "dbtyper-specific",
     "tbls-specific",
     "_remove_nulls_in_array",
@@ -36,7 +37,7 @@ TEMPLATES = (
 )
 
 
-def _render_templates():
+def _render_templates():  # pragma: no cover
     for oio_type in sorted(db_structure.DATABASE_STRUCTURE):
         for template_name in TEMPLATES:
             template_file = "%s.jinja.sql" % template_name
@@ -78,7 +79,7 @@ def _render_templates():
             yield template.render(context)
 
 
-def get_sql():
+def get_sql():  # pragma: no cover
     for dirp in (
         DB_DIR / "basis",
         DB_DIR / "pre-funcs",
@@ -92,5 +93,5 @@ def get_sql():
                 yield p.read_text()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     print("\n".join(get_sql()))
