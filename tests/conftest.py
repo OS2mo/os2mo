@@ -159,6 +159,7 @@ def set_session_settings(
 
 
 BRUCE_UUID = UUID("99e7b256-7dfa-4ee8-95c6-e3abe82e236a")
+ALVIDA_UUID = UUID("0fb62199-cb9e-4083-ba45-2a63bfd142d7")
 
 
 async def fake_auth() -> Token:
@@ -186,14 +187,6 @@ async def admin_auth() -> Token:
 async def admin_auth_uuid() -> UUID:
     token = await admin_auth()
     return token.uuid
-
-
-def fake_token_getter() -> Callable[[], Awaitable[Token]]:
-    async def get_fake_token():
-        token = await fake_auth()
-        return token
-
-    return get_fake_token
 
 
 def admin_token_getter() -> Callable[[], Awaitable[Token]]:
@@ -325,8 +318,8 @@ async def mocked_context() -> YieldFixture[None]:
 def fastapi_test_app(monkeypatch, sessionmakermaker) -> FastAPI:
     app = create_app()
     monkeypatch.setattr(db, "_get_sessionmaker", sessionmakermaker.get_sessionmaker)
-    app.dependency_overrides[auth] = fake_auth
-    app.dependency_overrides[token_getter] = fake_token_getter
+    app.dependency_overrides[auth] = admin_auth
+    app.dependency_overrides[token_getter] = admin_token_getter
     return app
 
 
@@ -862,8 +855,8 @@ def get_keycloak_token() -> str:
         data={
             "grant_type": "password",
             "client_id": "mo-frontend",
-            "username": "bruce",
-            "password": "bruce",
+            "username": "alvida",
+            "password": "alvida",
         },
     )
     return r.json()["access_token"]

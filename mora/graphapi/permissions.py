@@ -50,13 +50,20 @@ FilePermissions = Literal[
     "download_files",
     "upload_files",
 ]
+EventPermissions = Literal[
+    "fetch_event",
+    "acknowledge_event",
+    "send_event",
+    "silence_event",
+    "unsilence_event",
+]
 
 
 ALL_PERMISSIONS = {
     f"{permission_type}_{collection}"
     for permission_type in get_args(CollectionPermissionType)
     for collection in get_args(Collections)
-}.union(get_args(FilePermissions))
+}.union(get_args(FilePermissions)).union(get_args(EventPermissions))
 
 
 class IsAuthenticatedPermission(BasePermission):
