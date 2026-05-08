@@ -133,8 +133,6 @@ testing_endpoints = {
 graphql_endpoints = {
     "/graphql",
     "/graphql/",
-    "/graphql/v18",
-    "/graphql/v18/schema.graphql",
     "/graphql/v19",
     "/graphql/v19/schema.graphql",
     "/graphql/v20",

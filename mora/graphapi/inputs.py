@@ -7,7 +7,6 @@ from typing import Any
 from uuid import UUID
 from uuid import uuid4
 
-import pydantic
 import strawberry
 from strawberry import UNSET
 from strawberry.types.unset import UnsetType
@@ -15,7 +14,6 @@ from strawberry.types.unset import UnsetType
 from mora.db import events
 from mora.graphapi.gmodels.mo import OpenValidity as RAOpenValidity
 from mora.graphapi.gmodels.mo import Validity as RAValidity
-from mora.graphapi.gmodels.mo._shared import UUIDBase
 
 from .events import EventTokenType
 from .events import ListenerFilter
@@ -65,7 +63,6 @@ from .models import RoleBindingCreate
 from .models import RoleBindingTerminate
 from .models import RoleBindingUpdate
 from .models import Validity
-from .models import ValidityTerminate
 
 
 def gen_uuid_unset(uuid: UUID | UnsetType | None) -> dict[str, str] | UnsetType | None:
@@ -230,22 +227,6 @@ class ClassTerminateInput:
     """Input model for terminating a class."""
 
 
-class ClassTerminateV18(UUIDBase):
-    uuid: UUID = pydantic.Field(description="UUID for the class we want to terminate.")
-    validity: ValidityTerminate = pydantic.Field(
-        description="When to terminate the class"
-    )
-
-
-@strawberry.experimental.pydantic.input(
-    name="ClassTerminateInput",
-    model=ClassTerminateV18,
-    all_fields=True,
-)
-class ClassTerminateInputV18:
-    """Input model for terminating a class in version 18 or below."""
-
-
 # Employees
 # ---------
 @strawberry.experimental.pydantic.input(
@@ -360,22 +341,6 @@ class FacetTerminateInput:
     """Input model for terminating a facet."""
 
 
-class FacetTerminateV18(UUIDBase):
-    uuid: UUID = pydantic.Field(description="UUID for the facet we want to terminate.")
-    validity: ValidityTerminate = pydantic.Field(
-        description="When to terminate the facet"
-    )
-
-
-@strawberry.experimental.pydantic.input(
-    name="FacetTerminateInput",
-    model=FacetTerminateV18,
-    all_fields=True,
-)
-class FacetTerminateInputV18:
-    """Input model for terminating a facet in version 18 or below."""
-
-
 # ITSystems
 # ---------
 @strawberry.experimental.pydantic.input(
@@ -400,24 +365,6 @@ class ITSystemUpdateInput:
 )
 class ITSystemTerminateInput:
     """Input model for terminating an ITSystem."""
-
-
-class ITSystemTerminateV18(UUIDBase):
-    uuid: UUID = pydantic.Field(
-        description="UUID for the it-system we want to terminate."
-    )
-    validity: ValidityTerminate = pydantic.Field(
-        description="When to terminate the ITSystem"
-    )
-
-
-@strawberry.experimental.pydantic.input(
-    name="ITSystemTerminateInput",
-    model=ITSystemTerminateV18,
-    all_fields=True,
-)
-class ITSystemTerminateInputV18:
-    """Input model for terminating an it system in version 18 or below."""
 
 
 # ITUsers
