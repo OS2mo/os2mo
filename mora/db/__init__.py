@@ -69,6 +69,7 @@ from ._organisationsenhed import OrganisationEnhedRelationKode
 from ._organisationsenhed import OrganisationEnhedTilsGyldighed
 from ._organisationsfunktion import OrganisationFunktion
 from ._organisationsfunktion import OrganisationFunktionAttrEgenskaber
+from ._organisationsfunktion import OrganisationFunktionAttrUdvidelser
 from ._organisationsfunktion import OrganisationFunktionRegistrering
 from ._organisationsfunktion import OrganisationFunktionRelation
 from ._organisationsfunktion import OrganisationFunktionRelationKode
@@ -167,7 +168,7 @@ def _get_sessionmaker(request: Request) -> async_sessionmaker:  # pragma: no cov
     return request.app.state.sessionmaker
 
 
-_DB_SESSION_CONTEXT_KEY = "db_session"
+_DB_SESSION_CONTEXT_KEY = "session"
 
 
 async def transaction_per_request(request: Request):

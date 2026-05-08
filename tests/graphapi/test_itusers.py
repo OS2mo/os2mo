@@ -430,3 +430,68 @@ async def test_it_user_external_id(graphapi_post: GraphAPIPost) -> None:
             "validity": {"from": "2022-02-02T00:00:00+01:00", "to": None},
         },
     ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_it_user_user_key_filter(
+    graphapi_post: GraphAPIPost,
+    create_itsystem,
+    create_person,
+    create_ituser,
+) -> None:
+    """Test that itusers can be filtered by user_key."""
+    itsystem_uuid = create_itsystem(
+        {
+            "user_key": "suila",
+            "name": "Suila-tapit",
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+    person_uuid = create_person({"given_name": "Xylia", "surname": "Shadowthorn"})
+    alpha_uuid = create_ituser(
+        {
+            "user_key": "alpha",
+            "itsystem": str(itsystem_uuid),
+            "person": str(person_uuid),
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+    beta_uuid = create_ituser(
+        {
+            "user_key": "beta",
+            "itsystem": str(itsystem_uuid),
+            "person": str(person_uuid),
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+    gamma_uuid = create_ituser(
+        {
+            "user_key": "gamma",
+            "itsystem": str(itsystem_uuid),
+            "person": str(person_uuid),
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+
+    query = """
+        query ReadITUsers($filter: ITUserFilter) {
+            itusers(filter: $filter) {
+                objects {
+                    uuid
+                }
+            }
+        }
+    """
+
+    def read(filter: dict) -> set[UUID]:
+        response = graphapi_post(query, {"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {UUID(o["uuid"]) for o in response.data["itusers"]["objects"]}
+
+    assert read({}) == {alpha_uuid, beta_uuid, gamma_uuid}
+    assert read({"user_keys": ["alpha"]}) == {alpha_uuid}
+    assert read({"user_keys": ["beta"]}) == {beta_uuid}
+    assert read({"user_keys": ["alpha", "gamma"]}) == {alpha_uuid, gamma_uuid}
+    assert read({"user_keys": ["nonexistent"]}) == set()
