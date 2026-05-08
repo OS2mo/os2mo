@@ -528,7 +528,7 @@ async def employee_resolver(
 
 async def engagement_resolver_query(
     info: MOInfo,
-    filter: ITUserFilter,
+    filter: EngagementFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Select:
@@ -541,7 +541,7 @@ async def engagement_resolver_query(
             select(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "IT-system",
+                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Engagement",
                 _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
@@ -622,26 +622,10 @@ async def engagement_resolver_query(
             )
         )
 
-    # IT systems
-    if filter.itsystem_uuids is not None or filter.itsystem is not None:
-        itsystem_uuids = await get_itsystem_uuids(info, filter)
-        query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    cast(OrganisationFunktionRelation.rel_type, String)
-                    == OrganisationFunktionRelationKode.tilknyttedeitsystemer,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(itsystem_uuids),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
-
-    # Engagement
-    if filter.engagement is not None:  # pragma: no cover
-        engagement_uuids = await filter2uuids_func(
-            engagement_resolver, info, filter.engagement
+    # Job function
+    if filter.job_function is not None:
+        job_function_uuids = await filter2uuids_func(
+            class_resolver, info, filter.job_function
         )
         query = query.where(
             OrganisationFunktionRegistrering.id.in_(
@@ -649,24 +633,29 @@ async def engagement_resolver_query(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
                 ).where(
                     cast(OrganisationFunktionRelation.rel_type, String)
-                    == OrganisationFunktionRelationKode.tilknyttedefunktioner,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(engagement_uuids),
+                    == OrganisationFunktionRelationKode.opgaver,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(job_function_uuids),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
 
-    # External IDs
-    if filter.external_ids is not None:
+    # Engagement type
+    if filter.engagement_type is not None:
+        engagement_type_uuids = await filter2uuids_func(
+            class_resolver, info, filter.engagement_type
+        )
         query = query.where(
             OrganisationFunktionRegistrering.id.in_(
                 select(
-                    OrganisationFunktionAttrUdvidelser.organisationfunktion_registrering_id
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
                 ).where(
-                    OrganisationFunktionAttrUdvidelser.udvidelse_1.in_(
-                        filter.external_ids
+                    cast(OrganisationFunktionRelation.rel_type, String)
+                    == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        engagement_type_uuids
                     ),
-                    _get_virkning_clause(OrganisationFunktionAttrUdvidelser, filter),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -683,15 +672,15 @@ async def engagement_resolver_query(
 
 async def engagement_resolver(
     info: MOInfo,
-    filter: ITUserFilter | None = None,
+    filter: EngagementFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Any:
-    """Resolve it-users."""
+    """Resolve engagements."""
     if filter is None:
-        filter = ITUserFilter()
+        filter = EngagementFilter()
 
-    query = await it_user_resolver_query(
+    query = await engagement_resolver_query(
         info=info,
         filter=filter,
         limit=limit,
@@ -712,7 +701,7 @@ async def engagement_resolver(
 
     access_log(
         session,
-        "filter_itusers",
+        "filter_engagements",
         "OrganisationFunktion",
         {
             "filter": filter,
@@ -723,8 +712,8 @@ async def engagement_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.ituser_getter,
-        info.context.dataloaders.ituser_loader,
+        info.context.dataloaders.engagement_getter,
+        info.context.dataloaders.engagement_loader,
         info=info,
         filter=BaseFilter(
             uuids=uuids,
