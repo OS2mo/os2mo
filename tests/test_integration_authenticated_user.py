@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 from mora import lora
 from mora.auth.middleware import LORA_USER_UUID
-from tests.conftest import BRUCE_UUID
+from tests.conftest import ALVIDA_UUID
 
 
 @pytest.mark.integration_test
@@ -33,5 +33,5 @@ async def test_register_brugerref(
 
     # We expect the userref to be set to the uuid from the JWT token
     userref = actual["brugerref"]
-    assert userref == str(BRUCE_UUID)
+    assert userref == str(ALVIDA_UUID)
     assert userref != str(LORA_USER_UUID)
