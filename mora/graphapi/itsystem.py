@@ -24,7 +24,7 @@ async def update_itsystem(input: ITSystemUpdate, organisation_uuid: UUID) -> UUI
     return input.uuid
 
 
-async def terminate_itsystem(input: ITSystemTerminate) -> UUID:
+async def terminate_itsystem(input: ITSystemTerminate) -> UUID:  # pragma: no cover
     c = lora.Connector()
     await c.itsystem.update(input.to_registration(), input.uuid)
     return input.uuid

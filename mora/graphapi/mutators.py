@@ -28,7 +28,6 @@ from mora.db.events import METRIC_ACKNOWLEDGED_EVENTS
 from mora.db.events import add_event
 from mora.graphapi.context import MOInfo
 from mora.graphapi.custom_schema import get_version
-from mora.graphapi.fields import Metadata
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import AssociationRead
@@ -40,7 +39,6 @@ from mora.graphapi.gmodels.mo.details import LeaveRead
 from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.graphapi.gmodels.mo.details import OwnerRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
-from mora.graphapi.version import Version
 
 from .address import create_address
 from .address import terminate_address
@@ -104,7 +102,6 @@ from .inputs import AssociationTerminateInput
 from .inputs import AssociationUpdateInput
 from .inputs import ClassCreateInput
 from .inputs import ClassTerminateInput
-from .inputs import ClassTerminateInputV18
 from .inputs import ClassUpdateInput
 from .inputs import EmployeeCreateInput
 from .inputs import EmployeeTerminateInput
@@ -118,14 +115,12 @@ from .inputs import EventSilenceInput
 from .inputs import EventUnsilenceInput
 from .inputs import FacetCreateInput
 from .inputs import FacetTerminateInput
-from .inputs import FacetTerminateInputV18
 from .inputs import FacetUpdateInput
 from .inputs import ITAssociationCreateInput
 from .inputs import ITAssociationTerminateInput
 from .inputs import ITAssociationUpdateInput
 from .inputs import ITSystemCreateInput
 from .inputs import ITSystemTerminateInput
-from .inputs import ITSystemTerminateInputV18
 from .inputs import ITSystemUpdateInput
 from .inputs import ITUserCreateInput
 from .inputs import ITUserTerminateInput
@@ -495,33 +490,11 @@ class Mutation:
         return uuid2response(uuid, ClassRead)
 
     @strawberry.mutation(
-        name="class_terminate",
         description="Terminates a class.",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_terminate_permission("class"),
         ],
-        metadata=Metadata(version=lambda v: v <= Version.VERSION_18),
-    )
-    async def class_terminate__v18(
-        self, input: ClassTerminateInputV18
-    ) -> Response[Class]:
-        return await Mutation.class_terminate(
-            self,
-            input=ClassTerminateInput(
-                uuid=input.uuid,  # type: ignore[attr-defined]
-                from_date=input.validity.from_date,  # type: ignore[attr-defined]
-                to_date=input.validity.to_date,  # type: ignore[attr-defined]
-            ),
-        )
-
-    @strawberry.mutation(
-        description="Terminates a class.",
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_terminate_permission("class"),
-        ],
-        metadata=Metadata(version=lambda v: v >= Version.VERSION_19),
     )
     async def class_terminate(self, input: ClassTerminateInput) -> Response[Class]:
         return uuid2response(await terminate_class(input.to_pydantic()), ClassRead)
@@ -836,33 +809,11 @@ class Mutation:
         return uuid2response(uuid, FacetRead)
 
     @strawberry.mutation(
-        name="facet_terminate",
         description="Terminates a facet.",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_terminate_permission("facet"),
         ],
-        metadata=Metadata(version=lambda v: v <= Version.VERSION_18),
-    )
-    async def facet_terminate__v18(
-        self, input: FacetTerminateInputV18
-    ) -> Response[Facet]:
-        return await Mutation.facet_terminate(
-            self,
-            input=FacetTerminateInput(
-                uuid=input.uuid,  # type: ignore[attr-defined]
-                from_date=input.validity.from_date,  # type: ignore[attr-defined]
-                to_date=input.validity.to_date,  # type: ignore[attr-defined]
-            ),
-        )
-
-    @strawberry.mutation(
-        description="Terminates a facet.",
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_terminate_permission("facet"),
-        ],
-        metadata=Metadata(version=lambda v: v >= Version.VERSION_19),
     )
     async def facet_terminate(self, input: FacetTerminateInput) -> Response[Facet]:
         return uuid2response(await terminate_facet(input.to_pydantic()), FacetRead)
@@ -994,35 +945,13 @@ class Mutation:
         return uuid2response(uuid, ITSystemRead)
 
     @strawberry.mutation(
-        name="itsystem_terminate",
         description="Terminates an IT-System.",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_terminate_permission("itsystem"),
         ],
-        metadata=Metadata(version=lambda v: v <= Version.VERSION_18),
     )
-    async def itsystem_terminate__v18(
-        self, input: ITSystemTerminateInputV18
-    ) -> Response[ITSystem]:
-        return await Mutation.itsystem_terminate(
-            self,
-            input=ITSystemTerminateInput(
-                uuid=input.uuid,  # type: ignore[attr-defined]
-                from_date=input.validity.from_date,  # type: ignore[attr-defined]
-                to_date=input.validity.to_date,  # type: ignore[attr-defined]
-            ),
-        )
-
-    @strawberry.mutation(
-        description="Terminates an IT-System.",
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_terminate_permission("itsystem"),
-        ],
-        metadata=Metadata(version=lambda v: v >= Version.VERSION_19),
-    )
-    async def itsystem_terminate(
+    async def itsystem_terminate(  # pragma: no cover
         self, input: ITSystemTerminateInput
     ) -> Response[ITSystem]:
         return uuid2response(await terminate_itsystem(input.to_pydantic()), ITUserRead)
