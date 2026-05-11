@@ -14,7 +14,6 @@ class Version(enum.Enum):
     go-to-definition/references.
     """
 
-    VERSION_19 = 19
     VERSION_20 = 20
     VERSION_21 = 21
     VERSION_22 = 22
