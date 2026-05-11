@@ -17,12 +17,10 @@ import functools
 import uuid
 from collections.abc import AsyncIterator
 
-from starlette.requests import Request
 from starlette_context import context
 from starlette_context import request_cycle_context
 
 from mora.graphapi.middleware import get_graphql_dates
-from mora.graphapi.middleware import get_version_from_url
 from mora.graphapi.middleware import is_graphql
 
 from . import exceptions
@@ -30,34 +28,21 @@ from . import lora
 from . import mapping
 from . import util
 from .exceptions import ErrorCodes
-from .graphapi.version import Version
 from .mapping import OwnerInferencePriority
 
 _LORA_CONNECTOR_MIDDLEWARE_KEY = "lora_connector"
 _CREATE_CONNECTOR_MIDDLEWARE_KEY = "create_connector"
 
 
-async def lora_connector_context(request: Request) -> AsyncIterator[None]:
+async def lora_connector_context() -> AsyncIterator[None]:
     @functools.lru_cache
     def cached_lora_connector(**kwargs):
         return lora.Connector(**kwargs)
 
-    @functools.lru_cache
-    def cached_create_connector(**kwargs):
-        return _create_connector(**kwargs)
-
-    graphql_version = get_version_from_url()
-    if graphql_version is not None and graphql_version <= Version.VERSION_20:
-        lora_connector = lora.Connector
-        create_connector = cached_create_connector
-    else:
-        lora_connector = cached_lora_connector
-        create_connector = _create_connector
-
     data = {
         **context,
-        _LORA_CONNECTOR_MIDDLEWARE_KEY: lora_connector,
-        _CREATE_CONNECTOR_MIDDLEWARE_KEY: create_connector,
+        _LORA_CONNECTOR_MIDDLEWARE_KEY: cached_lora_connector,
+        _CREATE_CONNECTOR_MIDDLEWARE_KEY: _create_connector,
     }
     with request_cycle_context(data):
         yield
