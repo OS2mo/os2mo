@@ -227,14 +227,6 @@ async def facet_resolver(
     ):
         kwargs["facettilhoerer"] = await _get_parent_uuids(info, filter)
 
-    if get_version(info.schema) <= Version.VERSION_19:
-        filter = BaseFilter(  # type: ignore[assignment]
-            uuids=filter.uuids,
-            user_keys=filter.user_keys,
-            from_date=None,  # from -inf
-            to_date=None,  # to inf
-        )
-
     return await generic_resolver(
         info.context.dataloaders.facet_getter,
         info.context.dataloaders.facet_loader,

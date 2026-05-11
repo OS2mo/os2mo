@@ -1219,7 +1219,7 @@ async def test_mutator_edit_extension_attr_58263(
             "extension_3": "extension_3",
         }
     )
-    response: GQLResponse = graphapi_post(query, variables, url="/graphql/v19")
+    response: GQLResponse = graphapi_post(query, variables)
 
     assert response.status_code == 200
     assert response.errors is None
@@ -1284,7 +1284,7 @@ async def test_mutator_edit_user_key_58263(
             "extension_3": "extension_3",
         }
     )
-    response: GQLResponse = graphapi_post(query, variables, url="/graphql/v19")
+    response: GQLResponse = graphapi_post(query, variables)
 
     assert response.status_code == 200
     assert response.errors is None
