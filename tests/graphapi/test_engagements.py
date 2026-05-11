@@ -615,10 +615,13 @@ async def test_update_multiple_engagements_integration_test(
         },
     )
 
-    assert [
-        engagement["current"]
-        for engagement in verify_response.data["engagements"]["objects"]
-    ] == update_input
+    assert sorted(
+        (
+            engagement["current"]
+            for engagement in verify_response.data["engagements"]["objects"]
+        ),
+        key=lambda e: e["uuid"],
+    ) == sorted(update_input, key=lambda e: e["uuid"])
 
 
 @pytest.mark.integration_test
