@@ -65,11 +65,8 @@ variables:
     - name: rabbitmq:3-management
       alias: msg-broker
     # Keycloak
-    # `:latest` here is actually latest and not a cached version because we run
-    # our GitLab runners in Kubernetes, which defaults the imagePullPolicy to
-    # `Always` when the tag is `latest`.
-    # https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting
     - name: magentaaps/os2mo-keycloak:latest
+      pull_policy: always
       alias: keycloak
       variables:
         KC_HOSTNAME_URL: http://keycloak:8080/auth
@@ -85,6 +82,7 @@ variables:
       # properly: https://github.com/keycloak/keycloak/issues/13252.
       command: ["start", "-Dkeycloak.saml.deprecated.encryption=true", "--db=dev-file"]
     - name: magentaaps/os2mo-keycloak-realm-builder:7  # please also update docker-compose
+      pull_policy: always
       variables:
         # Since GitLab CI doesn't support multiple services on the same port,
         # we cannot (easily) run a separate postgres for the realm builder's
@@ -152,6 +150,7 @@ variables:
             sleep 1
           done
     - name: magentaaps/os2mo-keycloak-integration-builder:5
+      pull_policy: always
       variables:
         POSTGRES_CONNECTION_STRING: "postgres://mox:mox@mox-db/mox?sslmode=disable"
         POSTGRES_SCHEMA_NAME: terraform_remote_state_dipex_client
@@ -242,6 +241,7 @@ variables:
             sleep 1
           done
     - name: magentaaps/os2mo-init:5
+      pull_policy: always
       variables:
         CONFIG_FILE: $OS2MO_INIT_CONFIG
         MO_URL: "http://mo:5000"
