@@ -187,9 +187,6 @@ async def test_pagination_out_of_range(
     assert response.errors is None
     assert response.data[resolver]["objects"] == []
     assert response.data[resolver]["page_info"]["next_cursor"] is None
-    assert response.extensions == {
-        "__page_out_of_range": True,
-    }
 
 
 @pytest.mark.integration_test
@@ -247,9 +244,6 @@ async def test_cursor_based_pagination(
             break
 
     assert len(elements) == expected
-    assert response.extensions == {
-        "__page_out_of_range": True,
-    }
 
 
 @pytest.mark.integration_test

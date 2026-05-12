@@ -4,12 +4,10 @@
 
 import re
 from collections.abc import AsyncIterator
-from collections.abc import Awaitable
 from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
 from inspect import isasyncgen
-from typing import Any
 
 from fastapi import Request
 from starlette_context import context
@@ -70,17 +68,6 @@ class StarletteContextExtension(SchemaExtension):
             # mypy is majorly confused by this horrible code
             for x in iter:  # type: ignore[union-attr]
                 yield x
-
-    async def get_results(self) -> dict[str, Any]:
-        # TODO: calling super() because of get_context_from_ext()
-        results = super().get_results()
-        if isinstance(results, Awaitable):  # pragma: no cover
-            results = await results
-
-        if context.get("lora_page_out_of_range"):
-            results["__page_out_of_range"] = True
-
-        return results
 
 
 def is_graphql() -> bool:
