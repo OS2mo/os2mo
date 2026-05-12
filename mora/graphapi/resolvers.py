@@ -72,6 +72,7 @@ from .filters import FacetFilter
 from .filters import ITSystemFilter
 from .filters import ITUserFilter
 from .filters import KLEFilter
+from .filters import LeaveFilter
 from .filters import ManagerFilter
 from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
@@ -1614,7 +1615,7 @@ async def kle_resolver(
 
 async def leave_resolver_query(
     info: MOInfo,
-    filter: ITUserFilter,
+    filter: LeaveFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Select:
@@ -1627,7 +1628,7 @@ async def leave_resolver_query(
             select(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "IT-system",
+                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Orlov",
                 _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
@@ -1708,55 +1709,6 @@ async def leave_resolver_query(
             )
         )
 
-    # IT systems
-    if filter.itsystem_uuids is not None or filter.itsystem is not None:
-        itsystem_uuids = await get_itsystem_uuids(info, filter)
-        query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    cast(OrganisationFunktionRelation.rel_type, String)
-                    == OrganisationFunktionRelationKode.tilknyttedeitsystemer,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(itsystem_uuids),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
-
-    # Engagement
-    if filter.engagement is not None:  # pragma: no cover
-        engagement_uuids = await filter2uuids_func(
-            engagement_resolver, info, filter.engagement
-        )
-        query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    cast(OrganisationFunktionRelation.rel_type, String)
-                    == OrganisationFunktionRelationKode.tilknyttedefunktioner,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(engagement_uuids),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
-
-    # External IDs
-    if filter.external_ids is not None:
-        query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionAttrUdvidelser.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionAttrUdvidelser.udvidelse_1.in_(
-                        filter.external_ids
-                    ),
-                    _get_virkning_clause(OrganisationFunktionAttrUdvidelser, filter),
-                )
-            )
-        )
-
     # Pagination. Must be done here since the generic_resolver (lora) does not support
     # filtering on UUIDs and limit/cursor at the same time.
     if limit is not None:
@@ -1769,15 +1721,15 @@ async def leave_resolver_query(
 
 async def leave_resolver(
     info: MOInfo,
-    filter: ITUserFilter | None = None,
+    filter: LeaveFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Any:
-    """Resolve it-users."""
+    """Resolve leaves."""
     if filter is None:
-        filter = ITUserFilter()
+        filter = LeaveFilter()
 
-    query = await it_user_resolver_query(
+    query = await leave_resolver_query(
         info=info,
         filter=filter,
         limit=limit,
@@ -1798,7 +1750,7 @@ async def leave_resolver(
 
     access_log(
         session,
-        "filter_itusers",
+        "filter_leaves",
         "OrganisationFunktion",
         {
             "filter": filter,
@@ -1809,8 +1761,8 @@ async def leave_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.ituser_getter,
-        info.context.dataloaders.ituser_loader,
+        info.context.dataloaders.leave_getter,
+        info.context.dataloaders.leave_loader,
         info=info,
         filter=BaseFilter(
             uuids=uuids,
