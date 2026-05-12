@@ -72,7 +72,6 @@ from .filters import FacetFilter
 from .filters import ITSystemFilter
 from .filters import ITUserFilter
 from .filters import KLEFilter
-from .filters import LeaveFilter
 from .filters import ManagerFilter
 from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
@@ -1613,38 +1612,212 @@ async def kle_resolver(
     )
 
 
-async def leave_resolver(
+async def leave_resolver_query(
     info: MOInfo,
-    filter: LeaveFilter | None = None,
+    filter: ITUserFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Any:
-    """Resolve leaves."""
-    if filter is None:
-        filter = LeaveFilter()
+) -> Select:
+    # TODO: this function should not be an awaitable
 
     await registration_filter(info, filter)
 
-    kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
+    def _funktionsnavn() -> ColumnElement:
+        return OrganisationFunktionRegistrering.id.in_(
+            select(
+                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            ).where(
+                OrganisationFunktionAttrEgenskaber.funktionsnavn == "IT-system",
+                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+            )
+        )
+
+    query = (
+        select(
+            distinct(OrganisationFunktionRegistrering.organisationfunktion_id),
+        )
+        .where(
+            _get_registrering_clause(
+                OrganisationFunktionRegistrering,
+                _get_registration_time(filter, cursor),
+            ),
+            _get_gyldighed_clause(
+                OrganisationFunktionRegistrering,
+                OrganisationFunktionTilsGyldighed,
+                filter,
+            ),
+            _funktionsnavn(),
+        )
+        .order_by(
+            OrganisationFunktionRegistrering.organisationfunktion_id,
+        )
+    )
+
+    # UUIDs
+    if filter.uuids is not None:
+        query = query.where(
+            OrganisationFunktionRegistrering.organisationfunktion_id.in_(filter.uuids)
+        )
+
+    # User keys
+    if filter.user_keys is not None:
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
+                        filter.user_keys
+                    ),
+                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                )
+            )
+        )
+
+    # Employees
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = lora_filter(
-            await get_employee_uuids(info, filter)
-        )
-    if filter.org_units is not None or filter.org_unit is not None:
-        kwargs["tilknyttedeenheder"] = lora_filter(
-            await get_org_unit_uuids(info, filter)
+        employee_uuids = await get_employee_uuids(info, filter)
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    cast(OrganisationFunktionRelation.rel_type, String)
+                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                )
+            )
         )
 
-    return await generic_resolver(
-        info.context.dataloaders.leave_getter,
-        info.context.dataloaders.leave_loader,
+    # Org units
+    if filter.org_units is not None or filter.org_unit is not None:
+        org_unit_uuids = await get_org_unit_uuids(info, filter)
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    cast(OrganisationFunktionRelation.rel_type, String)
+                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                )
+            )
+        )
+
+    # IT systems
+    if filter.itsystem_uuids is not None or filter.itsystem is not None:
+        itsystem_uuids = await get_itsystem_uuids(info, filter)
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    cast(OrganisationFunktionRelation.rel_type, String)
+                    == OrganisationFunktionRelationKode.tilknyttedeitsystemer,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(itsystem_uuids),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                )
+            )
+        )
+
+    # Engagement
+    if filter.engagement is not None:  # pragma: no cover
+        engagement_uuids = await filter2uuids_func(
+            engagement_resolver, info, filter.engagement
+        )
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    cast(OrganisationFunktionRelation.rel_type, String)
+                    == OrganisationFunktionRelationKode.tilknyttedefunktioner,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(engagement_uuids),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                )
+            )
+        )
+
+    # External IDs
+    if filter.external_ids is not None:
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionAttrUdvidelser.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionAttrUdvidelser.udvidelse_1.in_(
+                        filter.external_ids
+                    ),
+                    _get_virkning_clause(OrganisationFunktionAttrUdvidelser, filter),
+                )
+            )
+        )
+
+    # Pagination. Must be done here since the generic_resolver (lora) does not support
+    # filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
+
+    return query
+
+
+async def leave_resolver(
+    info: MOInfo,
+    filter: ITUserFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve it-users."""
+    if filter is None:
+        filter = ITUserFilter()
+
+    query = await it_user_resolver_query(
         info=info,
         filter=filter,
         limit=limit,
         cursor=cursor,
-        **kwargs,
+    )
+
+    # Execute
+    session: AsyncSession = info.context.session
+    result = await session.execute(query)
+    uuids = [row[0] for row in result]
+
+    # See lora.py:fetch()'s is_paged
+    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    if not uuids and is_paged:
+        # There may be multiple LoRa fetches in one GraphQL request, so this
+        # cannot be refactored into always overwriting the value.
+        context["lora_page_out_of_range"] = True
+
+    access_log(
+        session,
+        "filter_itusers",
+        "OrganisationFunktion",
+        {
+            "filter": filter,
+            "limit": limit,
+            "cursor": cursor,
+        },
+        uuids,
+    )
+
+    return await generic_resolver(
+        info.context.dataloaders.ituser_getter,
+        info.context.dataloaders.ituser_loader,
+        info=info,
+        filter=BaseFilter(
+            uuids=uuids,
+            from_date=filter.from_date,
+            to_date=filter.to_date,
+            registration_time=filter.registration_time,
+        ),
     )
 
 
