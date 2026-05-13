@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Literal
+import enum
 
 from sqlalchemy import BigInteger
 from sqlalchemy import Column
@@ -43,16 +43,23 @@ class FacetAttrEgenskaber(_AttrEgenskaberMixin, Base):
     facet_registrering_id = Column(ForeignKey("facet_registrering.id"), index=True)
 
 
-FacetRelationKode = Literal[
-    "ansvarlig",
-    "facettilhoerer",
-]
+class FacetRelationKode(enum.StrEnum):
+    ansvarlig = enum.auto()
+    ejer = enum.auto()
+    facettilhoerer = enum.auto()
+    redaktoerer = enum.auto()
 
 
 class FacetRelation(_RelationMixin, Base):
     __tablename__ = "facet_relation"
 
-    rel_type: Mapped[FacetRelationKode]
+    rel_type: Mapped[FacetRelationKode] = mapped_column(
+        Enum(
+            FacetRelationKode,
+            name="facetrelationkode",
+            create_type=False,
+        )
+    )
 
     facet_registrering_id = Column(ForeignKey("facet_registrering.id"), index=True)
 
