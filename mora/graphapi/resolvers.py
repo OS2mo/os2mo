@@ -57,7 +57,6 @@ from mora.graphapi.gmodels.base import tz_isodate
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.middleware import with_graphql_dates
 from mora.graphapi.version import Version
-from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 
 from .filters import AddressFilter
@@ -768,62 +767,201 @@ async def association_resolver(
     return associations
 
 
-async def employee_resolver(
+async def employee_resolver_query(
     info: MOInfo,
-    filter: EmployeeFilter | None = None,
+    filter: EngagementFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Any:
-    """Resolve employees."""
-    if filter is None:
-        filter = EmployeeFilter()
-
-    # Searching is implemented by an sqlalchemy query, returning UUIDs which
-    # are passsed to generic_resolver's `uuid` filter. Supplying UUIDs to
-    # generic_resolver ignores all other filter arguments, so we short-circuit
-    # here to make that fact obvious.
-    if filter.query:
-        other_fields = (filter.uuids, filter.user_keys, filter.cpr_numbers)
-        if any(other_fields):
-            raise ValueError("filter.query must be used alone")
-        r = await generic_resolver(
-            info.context.dataloaders.employee_getter,
-            info.context.dataloaders.employee_loader,
-            info=info,
-            filter=BaseFilter(
-                uuids=await search_employees(
-                    session=info.context.session,
-                    query=filter.query,
-                    limit=limit,
-                    cursor=cursor,
-                ),
-                from_date=filter.from_date,
-                to_date=filter.to_date,
-                registration_time=filter.registration_time,
-            ),
-        )
-        # We don't pass limit/cursor to generic_resolver, since that isn't
-        # supported together with `uuid`, so we have to mange pagination.
-        if not r:
-            context["lora_page_out_of_range"] = True
-        return r
+) -> Select:
+    # TODO: this function should not be an awaitable
 
     await registration_filter(info, filter)
 
-    kwargs = {}
-    if filter.cpr_numbers is not None:
-        kwargs["tilknyttedepersoner"] = [
-            f"urn:dk:cpr:person:{c}" for c in filter.cpr_numbers
-        ]
+    def _funktionsnavn() -> ColumnElement:
+        return OrganisationFunktionRegistrering.id.in_(
+            select(
+                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            ).where(
+                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Engagement",
+                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+            )
+        )
 
-    return await generic_resolver(
-        info.context.dataloaders.employee_getter,
-        info.context.dataloaders.employee_loader,
+    query = (
+        select(
+            distinct(OrganisationFunktionRegistrering.organisationfunktion_id),
+        )
+        .where(
+            _get_registrering_clause(
+                OrganisationFunktionRegistrering,
+                _get_registration_time(filter, cursor),
+            ),
+            _get_gyldighed_clause(
+                OrganisationFunktionRegistrering,
+                OrganisationFunktionTilsGyldighed,
+                filter,
+            ),
+            _funktionsnavn(),
+        )
+        .order_by(
+            OrganisationFunktionRegistrering.organisationfunktion_id,
+        )
+    )
+
+    # UUIDs
+    if filter.uuids is not None:
+        query = query.where(
+            OrganisationFunktionRegistrering.organisationfunktion_id.in_(filter.uuids)
+        )
+
+    # User keys
+    if filter.user_keys is not None:
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
+                        filter.user_keys
+                    ),
+                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                )
+            )
+        )
+
+    # Employees
+    if (
+        filter.employee is not None and filter.employee is not UNSET
+    ) or filter.employees is not None:
+        employee_uuids = await get_employee_uuids(info, filter)
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionRelation.rel_type
+                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                )
+            )
+        )
+
+    # Org units
+    if filter.org_units is not None or filter.org_unit is not None:
+        org_unit_uuids = await get_org_unit_uuids(info, filter)
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionRelation.rel_type
+                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                )
+            )
+        )
+
+    # Job function
+    if filter.job_function is not None:
+        job_function_uuids = await filter2uuids_func(
+            class_resolver, info, filter.job_function
+        )
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionRelation.rel_type
+                    == OrganisationFunktionRelationKode.opgaver,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(job_function_uuids),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                )
+            )
+        )
+
+    # Engagement type
+    if filter.engagement_type is not None:
+        engagement_type_uuids = await filter2uuids_func(
+            class_resolver, info, filter.engagement_type
+        )
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionRelation.rel_type
+                    == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        engagement_type_uuids
+                    ),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                )
+            )
+        )
+
+    # Pagination. Must be done here since the generic_resolver (lora) does not support
+    # filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
+
+    return query
+
+
+async def employee_resolver(
+    info: MOInfo,
+    filter: EngagementFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve engagements."""
+    if filter is None:
+        filter = EngagementFilter()
+
+    query = await employee_resolver_query(
         info=info,
         filter=filter,
         limit=limit,
         cursor=cursor,
-        **kwargs,
+    )
+
+    # Execute
+    session: AsyncSession = info.context.session
+    result = await session.execute(query)
+    uuids = [row[0] for row in result]
+
+    # See lora.py:fetch()'s is_paged
+    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    if not uuids and is_paged:
+        # There may be multiple LoRa fetches in one GraphQL request, so this
+        # cannot be refactored into always overwriting the value.
+        context["lora_page_out_of_range"] = True
+
+    access_log(
+        session,
+        "filter_engagements",
+        "OrganisationFunktion",
+        {
+            "filter": filter,
+            "limit": limit,
+            "cursor": cursor,
+        },
+        uuids,
+    )
+
+    return await generic_resolver(
+        info.context.dataloaders.engagement_getter,
+        info.context.dataloaders.engagement_loader,
+        info=info,
+        filter=BaseFilter(
+            uuids=uuids,
+            from_date=filter.from_date,
+            to_date=filter.to_date,
+            registration_time=filter.registration_time,
+        ),
     )
 
 
