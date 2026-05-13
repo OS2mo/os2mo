@@ -109,8 +109,12 @@ async def test_terminates_when_unknown(
     # Arbitrary hardcoded UUID used for greppability
     unknown_uuid = UUID("8f7be3e7-b695-49e6-b9da-86a4266417bd")
 
-    # Immediate termination expected
+    # First page is empty but returns a cursor for the next page
     cursor = read_managers(unknown_uuid, None)
+    assert cursor is not None
+
+    # Second page is empty and correctly terminates
+    cursor = read_managers(unknown_uuid, cursor)
     assert cursor is None
 
 
@@ -134,6 +138,10 @@ async def test_terminates_with_validity(
     """Test that pagination terminates regardless of ancestor org-unit validity."""
     invalid_ou_uuid = create_org_unit_with_validity(start, end)
 
-    # Immediate termination expected
+    # First page is empty but returns a cursor for the next page
     cursor = read_managers(invalid_ou_uuid, None)
+    assert cursor is not None
+
+    # Second page is empty and correctly terminates
+    cursor = read_managers(invalid_ou_uuid, cursor)
     assert cursor is None
