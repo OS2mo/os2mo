@@ -74,6 +74,7 @@ from .filters import LeaveFilter
 from .filters import ManagerFilter
 from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
+from .filters import RelatedUnitFilter
 from .filters import RoleBindingFilter
 from .graphql_utils import LoadKey
 from .momodel import MOModel
@@ -2243,20 +2244,18 @@ async def generic_resolver(
 
 async def related_unit_resolver_query(
     info: MOInfo,
-    filter: EngagementFilter,
+    filter: RelatedUnitFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Select:
     # TODO: this function should not be an awaitable
-
-    await registration_filter(info, filter)
 
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
             select(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Engagement",
+                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Relateret Enhed",
                 _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
@@ -2303,24 +2302,6 @@ async def related_unit_resolver_query(
             )
         )
 
-    # Employees
-    if (
-        filter.employee is not None and filter.employee is not UNSET
-    ) or filter.employees is not None:
-        employee_uuids = await get_employee_uuids(info, filter)
-        query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
-
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         org_unit_uuids = await get_org_unit_uuids(info, filter)
@@ -2332,44 +2313,6 @@ async def related_unit_resolver_query(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
-
-    # Job function
-    if filter.job_function is not None:
-        job_function_uuids = await filter2uuids_func(
-            class_resolver, info, filter.job_function
-        )
-        query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.opgaver,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(job_function_uuids),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
-
-    # Engagement type
-    if filter.engagement_type is not None:
-        engagement_type_uuids = await filter2uuids_func(
-            class_resolver, info, filter.engagement_type
-        )
-        query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        engagement_type_uuids
-                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -2387,15 +2330,15 @@ async def related_unit_resolver_query(
 
 async def related_unit_resolver(
     info: MOInfo,
-    filter: EngagementFilter | None = None,
+    filter: RelatedUnitFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Any:
-    """Resolve engagements."""
+    """Resolve related units."""
     if filter is None:
-        filter = EngagementFilter()
+        filter = RelatedUnitFilter()
 
-    query = await engagement_resolver_query(
+    query = await related_unit_resolver_query(
         info=info,
         filter=filter,
         limit=limit,
@@ -2416,7 +2359,7 @@ async def related_unit_resolver(
 
     access_log(
         session,
-        "filter_engagements",
+        "filter_related_units",
         "OrganisationFunktion",
         {
             "filter": filter,
@@ -2427,8 +2370,8 @@ async def related_unit_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.engagement_getter,
-        info.context.dataloaders.engagement_loader,
+        info.context.dataloaders.rel_unit_getter,
+        info.context.dataloaders.rel_unit_loader,
         info=info,
         filter=BaseFilter(
             uuids=uuids,
