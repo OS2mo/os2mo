@@ -73,6 +73,7 @@ from .filters import KLEFilter
 from .filters import LeaveFilter
 from .filters import ManagerFilter
 from .filters import OrganisationUnitFilter
+from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
 from .filters import RoleBindingFilter
 from .graphql_utils import LoadKey
@@ -828,20 +829,18 @@ async def manager_resolver(
 
 async def owner_resolver_query(
     info: MOInfo,
-    filter: EngagementFilter,
+    filter: OwnerFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Select:
     # TODO: this function should not be an awaitable
-
-    await registration_filter(info, filter)
 
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
             select(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Engagement",
+                OrganisationFunktionAttrEgenskaber.funktionsnavn == "owner",
                 _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
@@ -922,39 +921,17 @@ async def owner_resolver_query(
             )
         )
 
-    # Job function
-    if filter.job_function is not None:
-        job_function_uuids = await filter2uuids_func(
-            class_resolver, info, filter.job_function
-        )
+    # Owner
+    if filter.owner is not None:
+        owner_uuids = await filter2uuids_func(employee_resolver, info, filter.owner)
         query = query.where(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
                 ).where(
                     OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.opgaver,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(job_function_uuids),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
-
-    # Engagement type
-    if filter.engagement_type is not None:
-        engagement_type_uuids = await filter2uuids_func(
-            class_resolver, info, filter.engagement_type
-        )
-        query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        engagement_type_uuids
-                    ),
+                    == OrganisationFunktionRelationKode.tilknyttedepersoner,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(owner_uuids),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -972,13 +949,13 @@ async def owner_resolver_query(
 
 async def owner_resolver(
     info: MOInfo,
-    filter: EngagementFilter | None = None,
+    filter: OwnerFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Any:
-    """Resolve engagements."""
+    """Resolve owners."""
     if filter is None:
-        filter = EngagementFilter()
+        filter = OwnerFilter()
 
     query = await owner_resolver_query(
         info=info,
@@ -1001,7 +978,7 @@ async def owner_resolver(
 
     access_log(
         session,
-        "filter_engagements",
+        "filter_owners",
         "OrganisationFunktion",
         {
             "filter": filter,
@@ -1012,8 +989,8 @@ async def owner_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.engagement_getter,
-        info.context.dataloaders.engagement_loader,
+        info.context.dataloaders.owner_getter,
+        info.context.dataloaders.owner_loader,
         info=info,
         filter=BaseFilter(
             uuids=uuids,
