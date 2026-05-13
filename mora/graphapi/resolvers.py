@@ -60,6 +60,7 @@ from mora.graphapi.version import Version
 from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 
+from .filters import AddressFilter
 from .filters import AssociationFilter
 from .filters import BaseFilter
 from .filters import ClassFilter
@@ -320,11 +321,20 @@ async def class_resolver(
 
 async def address_resolver_query(
     info: MOInfo,
-    filter: EngagementFilter,
+    filter: AddressFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Select:
     # TODO: this function should not be an awaitable
+
+    async def _get_address_type_uuids(
+        info: MOInfo, filter: AddressFilter
+    ) -> list[UUID]:
+        class_filter = filter.address_type or ClassFilter()
+        # Handle deprecated filter
+        extend_uuids(class_filter, filter.address_types)
+        extend_user_keys(class_filter, filter.address_type_user_keys)
+        return await filter2uuids_func(class_resolver, info, class_filter)
 
     await registration_filter(info, filter)
 
@@ -333,7 +343,7 @@ async def address_resolver_query(
             select(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Engagement",
+                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Adresse",
                 _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
@@ -414,10 +424,32 @@ async def address_resolver_query(
             )
         )
 
-    # Job function
-    if filter.job_function is not None:
-        job_function_uuids = await filter2uuids_func(
-            class_resolver, info, filter.job_function
+    # Address type
+    if (
+        filter.address_types is not None
+        or filter.address_type_user_keys is not None
+        or filter.address_type is not None
+    ):
+        address_type_uuids = await _get_address_type_uuids(info, filter)
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionRelation.rel_type
+                    == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(address_type_uuids),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                )
+            )
+        )
+
+    # Visibility
+    # rel_type "opgaver" with objekt_type "synlighed" in mox
+    # TODO: Support finding entries with visibility=None
+    if filter.visibility is not None:
+        visibility_uuids = await filter2uuids_func(
+            class_resolver, info, filter.visibility
         )
         query = query.where(
             OrganisationFunktionRegistrering.id.in_(
@@ -426,26 +458,34 @@ async def address_resolver_query(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.opgaver,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(job_function_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(visibility_uuids),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
 
-    # Engagement type
-    if filter.engagement_type is not None:
-        engagement_type_uuids = await filter2uuids_func(
-            class_resolver, info, filter.engagement_type
-        )
+    # Engagement / IT user (both filter on `tilknyttedefunktioner`, OR-combined)
+    if (
+        filter.engagement is not None
+        or filter.engagements is not None
+        or filter.ituser is not None
+    ):
+        tilknyttedefunktioner: list[UUID] = []
+        if filter.engagement is not None or filter.engagements is not None:
+            tilknyttedefunktioner.extend(await get_engagement_uuids(info, filter))
+        if filter.ituser is not None:
+            tilknyttedefunktioner.extend(
+                await filter2uuids_func(it_user_resolver, info, filter.ituser)
+            )
         query = query.where(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
                 ).where(
                     OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
+                    == OrganisationFunktionRelationKode.tilknyttedefunktioner,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        engagement_type_uuids
+                        tilknyttedefunktioner
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
@@ -464,15 +504,15 @@ async def address_resolver_query(
 
 async def address_resolver(
     info: MOInfo,
-    filter: EngagementFilter | None = None,
+    filter: AddressFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Any:
-    """Resolve engagements."""
+    """Resolve addresses."""
     if filter is None:
-        filter = EngagementFilter()
+        filter = AddressFilter()
 
-    query = await engagement_resolver_query(
+    query = await address_resolver_query(
         info=info,
         filter=filter,
         limit=limit,
@@ -493,7 +533,7 @@ async def address_resolver(
 
     access_log(
         session,
-        "filter_engagements",
+        "filter_addresses",
         "OrganisationFunktion",
         {
             "filter": filter,
@@ -504,8 +544,8 @@ async def address_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.engagement_getter,
-        info.context.dataloaders.engagement_loader,
+        info.context.dataloaders.address_getter,
+        info.context.dataloaders.address_loader,
         info=info,
         filter=BaseFilter(
             uuids=uuids,
