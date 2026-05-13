@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import enum
+
 from sqlalchemy import Column
+from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 from sqlalchemy import Text
-from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import synonym
@@ -36,21 +38,25 @@ class OrganisationEnhedAttrEgenskaber(_AttrEgenskaberMixin, Base):
     )
 
 
-OrganisationEnhedRelationKode = ENUM(
-    "enhedstype",
-    "niveau",
-    "opgaver",
-    "opmærkning",
-    "overordnet",
-    "tilhoerer",
-    name="organisationenhedrelationkode",
-)
+class OrganisationEnhedRelationKode(enum.StrEnum):
+    enhedstype = enum.auto()
+    niveau = enum.auto()
+    opgaver = enum.auto()
+    opmærkning = enum.auto()
+    overordnet = enum.auto()
+    tilhoerer = enum.auto()
 
 
 class OrganisationEnhedRelation(_RelationMixin, Base):
     __tablename__ = "organisationenhed_relation"
 
-    rel_type: Mapped[OrganisationEnhedRelationKode]
+    rel_type: Mapped[OrganisationEnhedRelationKode] = mapped_column(
+        Enum(
+            OrganisationEnhedRelationKode,
+            name="organisationenhedrelationkode",
+            create_type=False,
+        )
+    )
 
     organisationenhed_registrering_id = Column(
         ForeignKey("organisationenhed_registrering.id"), index=True

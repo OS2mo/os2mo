@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import enum
 from typing import Literal
 
 from sqlalchemy import BigInteger
@@ -56,25 +57,31 @@ class OrganisationFunktionAttrEgenskaber(_AttrEgenskaberMixin, Base):
     )
 
 
-class OrganisationFunktionRelationKode(Enum):
-    adresser = "adresser"
-    opgaver = "opgaver"
-    organisatoriskfunktionstype = "organisatoriskfunktionstype"
-    primaer = "primær"
-    tilknyttedebrugere = "tilknyttedebrugere"
-    tilknyttedeenheder = "tilknyttedeenheder"
-    tilknyttedefunktioner = "tilknyttedefunktioner"
-    tilknyttedeinteressefaellesskaber = "tilknyttedeinteressefaellesskaber"
-    tilknyttedeitsystemer = "tilknyttedeitsystemer"
-    tilknyttedeklasser = "tilknyttedeklasser"
-    tilknyttedeorganisationer = "tilknyttedeorganisationer"
-    tilknyttedepersoner = "tilknyttedepersoner"
+class OrganisationFunktionRelationKode(enum.StrEnum):
+    adresser = enum.auto()
+    opgaver = enum.auto()
+    organisatoriskfunktionstype = enum.auto()
+    primær = enum.auto()
+    tilknyttedebrugere = enum.auto()
+    tilknyttedeenheder = enum.auto()
+    tilknyttedefunktioner = enum.auto()
+    tilknyttedeinteressefaellesskaber = enum.auto()
+    tilknyttedeitsystemer = enum.auto()
+    tilknyttedeklasser = enum.auto()
+    tilknyttedeorganisationer = enum.auto()
+    tilknyttedepersoner = enum.auto()
 
 
 class OrganisationFunktionRelation(_RelationMixin, Base):
     __tablename__ = "organisationfunktion_relation"
 
-    rel_type: Mapped[OrganisationFunktionRelationKode]
+    rel_type: Mapped[OrganisationFunktionRelationKode] = mapped_column(
+        Enum(
+            OrganisationFunktionRelationKode,
+            name="organisationfunktionrelationkode",
+            create_type=False,
+        )
+    )
 
     organisationfunktion_registrering_id = Column(
         ForeignKey("organisationfunktion_registrering.id"), index=True

@@ -30,7 +30,6 @@ from sqlalchemy import func
 from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy.sql.functions import now as SQLNOW
-from sqlalchemy.types import String
 from sqlalchemy.types import Text
 from starlette_context import context
 from strawberry import UNSET
@@ -41,7 +40,6 @@ from mora import util
 from mora.access_log import access_log
 from mora.db import AsyncSession
 from mora.db import HasValidity
-from mora.db import LivscyklusKode
 from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationEnhedRelation
@@ -598,7 +596,7 @@ async def engagement_resolver_query(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
                 ).where(
-                    cast(OrganisationFunktionRelation.rel_type, String)
+                    OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -614,7 +612,7 @@ async def engagement_resolver_query(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
                 ).where(
-                    cast(OrganisationFunktionRelation.rel_type, String)
+                    OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -632,7 +630,7 @@ async def engagement_resolver_query(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
                 ).where(
-                    cast(OrganisationFunktionRelation.rel_type, String)
+                    OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.opgaver,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(job_function_uuids),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -650,7 +648,7 @@ async def engagement_resolver_query(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
                 ).where(
-                    cast(OrganisationFunktionRelation.rel_type, String)
+                    OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
                         engagement_type_uuids
@@ -891,7 +889,7 @@ def _get_registrering_clause(
     time: datetime | SQLNOW,
 ) -> ColumnElement:
     return and_(
-        cls.lifecycle != cast("Slettet", LivscyklusKode),
+        cls.lifecycle != "Slettet",
         cls.registrering_period.contains(time),
     )
 
@@ -1066,7 +1064,7 @@ async def organisation_unit_resolver_query(
                     OrganisationEnhedRelation.organisationenhed_registrering_id
                 ).where(
                     OrganisationEnhedRelation.rel_type
-                    == cast("overordnet", OrganisationEnhedRelationKode),
+                    == OrganisationEnhedRelationKode.overordnet,
                     OrganisationEnhedRelation.rel_maal_uuid.in_(parent_uuids),
                     _get_virkning_clause(OrganisationEnhedRelation, filter),
                 )
@@ -1083,7 +1081,7 @@ async def organisation_unit_resolver_query(
                     OrganisationEnhedRelation.organisationenhed_registrering_id
                 ).where(
                     OrganisationEnhedRelation.rel_type
-                    == cast("opmærkning", OrganisationEnhedRelationKode),
+                    == OrganisationEnhedRelationKode.opmærkning,
                     OrganisationEnhedRelation.rel_maal_uuid.in_(hierarchy_uuids),
                     _get_virkning_clause(OrganisationEnhedRelation, filter),
                 )
@@ -1128,7 +1126,7 @@ async def organisation_unit_resolver_query(
                 leafs,
                 and_(
                     OrganisationEnhedRelation.rel_type
-                    == cast("overordnet", OrganisationEnhedRelationKode),
+                    == OrganisationEnhedRelationKode.overordnet,
                     OrganisationEnhedRegistrering.organisationenhed_id
                     == leafs.c.organisationenhed_id,
                     _get_virkning_clause(OrganisationEnhedRelation, filter),
@@ -1158,7 +1156,7 @@ async def organisation_unit_resolver_query(
                     ),
                     _get_virkning_clause(OrganisationEnhedRelation, filter),
                     OrganisationEnhedRelation.rel_type
-                    == cast("overordnet", OrganisationEnhedRelationKode),
+                    == OrganisationEnhedRelationKode.overordnet,
                     OrganisationEnhedRelation.rel_maal_uuid
                     == OrganisationEnhedRegistrering.organisationenhed_id,
                 )
@@ -1185,7 +1183,7 @@ async def organisation_unit_resolver_query(
                     ),
                     _get_virkning_clause(OrganisationEnhedRelation, filter),
                     OrganisationEnhedRelation.rel_type
-                    == cast("overordnet", OrganisationEnhedRelationKode),
+                    == OrganisationEnhedRelationKode.overordnet,
                     OrganisationEnhedRegistrering.organisationenhed_id.in_(base_query),
                 )
             )
@@ -1224,7 +1222,7 @@ async def organisation_unit_resolver_query(
                 base,
                 and_(
                     OrganisationEnhedRelation.rel_type
-                    == cast("overordnet", OrganisationEnhedRelationKode),
+                    == OrganisationEnhedRelationKode.overordnet,
                     OrganisationEnhedRelation.rel_maal_uuid
                     == base.c.organisationenhed_id,
                 ),
@@ -1447,7 +1445,7 @@ async def it_user_resolver_query(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
                 ).where(
-                    cast(OrganisationFunktionRelation.rel_type, String)
+                    OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1463,7 +1461,7 @@ async def it_user_resolver_query(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
                 ).where(
-                    cast(OrganisationFunktionRelation.rel_type, String)
+                    OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1479,7 +1477,7 @@ async def it_user_resolver_query(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
                 ).where(
-                    cast(OrganisationFunktionRelation.rel_type, String)
+                    OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeitsystemer,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(itsystem_uuids),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1497,7 +1495,7 @@ async def it_user_resolver_query(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
                 ).where(
-                    cast(OrganisationFunktionRelation.rel_type, String)
+                    OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedefunktioner,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(engagement_uuids),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
