@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -732,3 +733,62 @@ def test_engagement_inherit_current_but_filtered(graphapi_post: GraphAPIPost) ->
 def test_engagement_inherit_non_existent(graphapi_post: GraphAPIPost) -> None:
     managers = read_engagement_managers(graphapi_post, {"uuids": [str(uuid4())]})
     assert managers == []
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_manager_user_key_filter(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[[str, UUID | None], UUID],
+    create_person: Callable[[dict[str, Any] | None], UUID],
+) -> None:
+    """Test that managers can be filtered by user_key."""
+    org_unit_uuid = create_org_unit("root")
+    person_uuid = create_person({"given_name": "Xylia", "surname": "Shadowthorn"})
+
+    def create_manager(user_key: str) -> UUID:
+        response = graphapi_post(
+            """
+            mutation CreateManager($input: ManagerCreateInput!) {
+                manager_create(input: $input) { uuid }
+            }
+            """,
+            {
+                "input": {
+                    "user_key": user_key,
+                    "manager_level": str(uuid4()),
+                    "manager_type": str(uuid4()),
+                    "responsibility": [],
+                    "org_unit": str(org_unit_uuid),
+                    "person": str(person_uuid),
+                    "validity": {"from": "2024-01-01"},
+                }
+            },
+        )
+        assert response.errors is None
+        assert response.data is not None
+        return UUID(response.data["manager_create"]["uuid"])
+
+    alpha_uuid = create_manager("alpha")
+    beta_uuid = create_manager("beta")
+    gamma_uuid = create_manager("gamma")
+
+    query = """
+        query ReadManagers($filter: ManagerFilter) {
+            managers(filter: $filter) {
+                objects { uuid }
+            }
+        }
+    """
+
+    def read(filter: dict) -> set[UUID]:
+        response = graphapi_post(query, {"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {UUID(o["uuid"]) for o in response.data["managers"]["objects"]}
+
+    assert read({}) == {alpha_uuid, beta_uuid, gamma_uuid}
+    assert read({"user_keys": ["alpha"]}) == {alpha_uuid}
+    assert read({"user_keys": ["beta"]}) == {beta_uuid}
+    assert read({"user_keys": ["alpha", "gamma"]}) == {alpha_uuid, gamma_uuid}
+    assert read({"user_keys": ["nonexistent"]}) == set()
