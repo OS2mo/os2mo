@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from uuid import UUID
+
 import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
@@ -488,3 +490,57 @@ async def test_owner_terminate_integration_test(
     )
     assert test_data["uuid"] == owner_objects_post_terminate["uuid"]
     assert test_data["to"] == owner_objects_post_terminate["validity"]["to"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_owner_user_key_filter(
+    graphapi_post: GraphAPIPost,
+    create_person,
+    create_owner,
+) -> None:
+    """Test that owners can be filtered by user_key."""
+    person_uuid = create_person({"given_name": "Xylia", "surname": "Shadowthorn"})
+    alpha_uuid = create_owner(
+        {
+            "user_key": "alpha",
+            "person": str(person_uuid),
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+    beta_uuid = create_owner(
+        {
+            "user_key": "beta",
+            "person": str(person_uuid),
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+    gamma_uuid = create_owner(
+        {
+            "user_key": "gamma",
+            "person": str(person_uuid),
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+
+    query = """
+        query ReadOwners($filter: OwnerFilter) {
+            owners(filter: $filter) {
+                objects {
+                    uuid
+                }
+            }
+        }
+    """
+
+    def read(filter: dict) -> set[UUID]:
+        response = graphapi_post(query, {"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {UUID(o["uuid"]) for o in response.data["owners"]["objects"]}
+
+    assert read({}) == {alpha_uuid, beta_uuid, gamma_uuid}
+    assert read({"user_keys": ["alpha"]}) == {alpha_uuid}
+    assert read({"user_keys": ["beta"]}) == {beta_uuid}
+    assert read({"user_keys": ["alpha", "gamma"]}) == {alpha_uuid, gamma_uuid}
+    assert read({"user_keys": ["nonexistent"]}) == set()
