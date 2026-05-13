@@ -39,6 +39,11 @@ from strawberry.types.unset import UnsetType
 from mora import util
 from mora.access_log import access_log
 from mora.db import AsyncSession
+from mora.db import BrugerAttrEgenskaber
+from mora.db import BrugerRegistrering
+from mora.db import BrugerRelation
+from mora.db import BrugerRelationKode
+from mora.db import BrugerTilsGyldighed
 from mora.db import HasValidity
 from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
@@ -57,6 +62,7 @@ from mora.graphapi.gmodels.base import tz_isodate
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.middleware import with_graphql_dates
 from mora.graphapi.version import Version
+from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 
 from .filters import AddressFilter
@@ -769,7 +775,7 @@ async def association_resolver(
 
 async def employee_resolver_query(
     info: MOInfo,
-    filter: EngagementFilter,
+    filter: EmployeeFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Select:
@@ -777,126 +783,51 @@ async def employee_resolver_query(
 
     await registration_filter(info, filter)
 
-    def _funktionsnavn() -> ColumnElement:
-        return OrganisationFunktionRegistrering.id.in_(
-            select(
-                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-            ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Engagement",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-            )
-        )
-
     query = (
         select(
-            distinct(OrganisationFunktionRegistrering.organisationfunktion_id),
+            distinct(BrugerRegistrering.bruger_id),
         )
         .where(
             _get_registrering_clause(
-                OrganisationFunktionRegistrering,
+                BrugerRegistrering,
                 _get_registration_time(filter, cursor),
             ),
             _get_gyldighed_clause(
-                OrganisationFunktionRegistrering,
-                OrganisationFunktionTilsGyldighed,
+                BrugerRegistrering,
+                BrugerTilsGyldighed,
                 filter,
             ),
-            _funktionsnavn(),
         )
         .order_by(
-            OrganisationFunktionRegistrering.organisationfunktion_id,
+            BrugerRegistrering.bruger_id,
         )
     )
 
     # UUIDs
     if filter.uuids is not None:
-        query = query.where(
-            OrganisationFunktionRegistrering.organisationfunktion_id.in_(filter.uuids)
-        )
+        query = query.where(BrugerRegistrering.bruger_id.in_(filter.uuids))
 
     # User keys
     if filter.user_keys is not None:
         query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
-                        filter.user_keys
+            BrugerRegistrering.id.in_(
+                select(BrugerAttrEgenskaber.bruger_registrering_id).where(
+                    BrugerAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
+                    _get_virkning_clause(BrugerAttrEgenskaber, filter),
+                )
+            )
+        )
+
+    # CPR numbers
+    if filter.cpr_numbers is not None:
+        query = query.where(
+            BrugerRegistrering.id.in_(
+                select(BrugerRelation.bruger_registrering_id).where(
+                    BrugerRelation.rel_type == BrugerRelationKode.tilknyttedepersoner,
+                    BrugerRelation.rel_maal_urn.in_(
+                        f"urn:dk:cpr:person:{c}" for c in filter.cpr_numbers
                     ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-                )
-            )
-        )
-
-    # Employees
-    if (
-        filter.employee is not None and filter.employee is not UNSET
-    ) or filter.employees is not None:
-        employee_uuids = await get_employee_uuids(info, filter)
-        query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
-
-    # Org units
-    if filter.org_units is not None or filter.org_unit is not None:
-        org_unit_uuids = await get_org_unit_uuids(info, filter)
-        query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
-
-    # Job function
-    if filter.job_function is not None:
-        job_function_uuids = await filter2uuids_func(
-            class_resolver, info, filter.job_function
-        )
-        query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.opgaver,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(job_function_uuids),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
-
-    # Engagement type
-    if filter.engagement_type is not None:
-        engagement_type_uuids = await filter2uuids_func(
-            class_resolver, info, filter.engagement_type
-        )
-        query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        engagement_type_uuids
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_virkning_clause(BrugerRelation, filter),
                 )
             )
         )
@@ -913,13 +844,43 @@ async def employee_resolver_query(
 
 async def employee_resolver(
     info: MOInfo,
-    filter: EngagementFilter | None = None,
+    filter: EmployeeFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Any:
-    """Resolve engagements."""
+    """Resolve employees."""
     if filter is None:
-        filter = EngagementFilter()
+        filter = EmployeeFilter()
+
+    # Searching is implemented by an sqlalchemy query, returning UUIDs which
+    # are passsed to generic_resolver's `uuid` filter. Supplying UUIDs to
+    # generic_resolver ignores all other filter arguments, so we short-circuit
+    # here to make that fact obvious.
+    if filter.query:
+        other_fields = (filter.uuids, filter.user_keys, filter.cpr_numbers)
+        if any(other_fields):
+            raise ValueError("filter.query must be used alone")
+        r = await generic_resolver(
+            info.context.dataloaders.employee_getter,
+            info.context.dataloaders.employee_loader,
+            info=info,
+            filter=BaseFilter(
+                uuids=await search_employees(
+                    session=info.context.session,
+                    query=filter.query,
+                    limit=limit,
+                    cursor=cursor,
+                ),
+                from_date=filter.from_date,
+                to_date=filter.to_date,
+                registration_time=filter.registration_time,
+            ),
+        )
+        # We don't pass limit/cursor to generic_resolver, since that isn't
+        # supported together with `uuid`, so we have to mange pagination.
+        if not r:
+            context["lora_page_out_of_range"] = True
+        return r
 
     query = await employee_resolver_query(
         info=info,
@@ -942,8 +903,8 @@ async def employee_resolver(
 
     access_log(
         session,
-        "filter_engagements",
-        "OrganisationFunktion",
+        "filter_employees",
+        "Bruger",
         {
             "filter": filter,
             "limit": limit,
@@ -953,8 +914,8 @@ async def employee_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.engagement_getter,
-        info.context.dataloaders.engagement_loader,
+        info.context.dataloaders.employee_getter,
+        info.context.dataloaders.employee_loader,
         info=info,
         filter=BaseFilter(
             uuids=uuids,
@@ -1461,7 +1422,11 @@ def _get_registration_time(
 
 
 def _get_registrering_clause(
-    cls: type[OrganisationEnhedRegistrering | OrganisationFunktionRegistrering],
+    cls: type[
+        BrugerRegistrering
+        | OrganisationEnhedRegistrering
+        | OrganisationFunktionRegistrering
+    ],
     time: datetime | SQLNOW,
 ) -> ColumnElement:
     return and_(
@@ -1480,10 +1445,14 @@ def _get_virkning_clause(
 
 def _get_gyldighed_clause(
     registrering_cls: type[
-        OrganisationEnhedRegistrering | OrganisationFunktionRegistrering
+        BrugerRegistrering
+        | OrganisationEnhedRegistrering
+        | OrganisationFunktionRegistrering
     ],
     gyldighed_cls: type[
-        OrganisationEnhedTilsGyldighed | OrganisationFunktionTilsGyldighed
+        BrugerTilsGyldighed
+        | OrganisationEnhedTilsGyldighed
+        | OrganisationFunktionTilsGyldighed
     ],
     filter: BaseFilter,
 ) -> ColumnElement:

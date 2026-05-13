@@ -45,7 +45,7 @@ class EmployeeReader(reading.ReadingHandler):
                 uuids=search_fields[mapping.UUID],
                 registration_time=search_fields.get("registration_time"),
             )
-        return await c.bruger.get_all(**search_fields)
+        return await c.bruger.get_all(**search_fields)  # pragma: no cover
 
     @classmethod
     async def _get_effects(cls, c, obj, **params):
