@@ -61,6 +61,7 @@ from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 
 from .filters import AddressFilter
+from .filters import AssociationFilter
 from .filters import BaseFilter
 from .filters import ClassFilter
 from .filters import EmployeeFilter
@@ -392,11 +393,20 @@ async def address_resolver(
 
 async def association_resolver_query(
     info: MOInfo,
-    filter: EngagementFilter,
+    filter: AssociationFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Select:
     # TODO: this function should not be an awaitable
+
+    async def _get_association_type_uuids(
+        info: MOInfo, filter: AssociationFilter
+    ) -> list[UUID]:
+        class_filter = filter.association_type or ClassFilter()
+        # Handle deprecated filter
+        extend_uuids(class_filter, filter.association_types)
+        extend_user_keys(class_filter, filter.association_type_user_keys)
+        return await filter2uuids_func(class_resolver, info, class_filter)
 
     await registration_filter(info, filter)
 
@@ -405,7 +415,7 @@ async def association_resolver_query(
             select(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Engagement",
+                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Tilknytning",
                 _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
@@ -486,29 +496,13 @@ async def association_resolver_query(
             )
         )
 
-    # Job function
-    if filter.job_function is not None:
-        job_function_uuids = await filter2uuids_func(
-            class_resolver, info, filter.job_function
-        )
-        query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.opgaver,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(job_function_uuids),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
-
-    # Engagement type
-    if filter.engagement_type is not None:
-        engagement_type_uuids = await filter2uuids_func(
-            class_resolver, info, filter.engagement_type
-        )
+    # Association type
+    if (
+        filter.association_types is not None
+        or filter.association_type_user_keys is not None
+        or filter.association_type is not None
+    ):
+        association_type_uuids = await _get_association_type_uuids(info, filter)
         query = query.where(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -517,7 +511,7 @@ async def association_resolver_query(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        engagement_type_uuids
+                        association_type_uuids
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
@@ -536,13 +530,13 @@ async def association_resolver_query(
 
 async def association_resolver(
     info: MOInfo,
-    filter: EngagementFilter | None = None,
+    filter: AssociationFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Any:
-    """Resolve engagements."""
+    """Resolve associations."""
     if filter is None:
-        filter = EngagementFilter()
+        filter = AssociationFilter()
 
     query = await association_resolver_query(
         info=info,
@@ -565,7 +559,7 @@ async def association_resolver(
 
     access_log(
         session,
-        "filter_engagements",
+        "filter_associations",
         "OrganisationFunktion",
         {
             "filter": filter,
@@ -575,9 +569,9 @@ async def association_resolver(
         uuids,
     )
 
-    return await generic_resolver(
-        info.context.dataloaders.engagement_getter,
-        info.context.dataloaders.engagement_loader,
+    associations = await generic_resolver(
+        info.context.dataloaders.association_getter,
+        info.context.dataloaders.association_loader,
         info=info,
         filter=BaseFilter(
             uuids=uuids,
@@ -586,6 +580,27 @@ async def association_resolver(
             registration_time=filter.registration_time,
         ),
     )
+
+    if filter.it_association is not None:
+        filtered_data = {}
+        for uuid, association_fields in associations.items():
+            if filter.it_association:
+                filtered_associations = [
+                    association
+                    for association in association_fields
+                    if association.it_user_uuid is not None
+                ]
+            else:
+                filtered_associations = [
+                    association
+                    for association in association_fields
+                    if association.it_user_uuid is None
+                ]
+            if filtered_associations:
+                filtered_data[uuid] = filtered_associations
+        associations = filtered_data
+
+    return associations
 
 
 async def employee_resolver(
