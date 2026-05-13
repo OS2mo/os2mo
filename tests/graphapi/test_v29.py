@@ -58,7 +58,7 @@ def test_it_user_external_ids_null_filter_is_noop(
             }
         }
     """
-    response = graphapi_post(query)
+    response = graphapi_post(query, url="/graphql/v29")
     assert response.errors is None
     assert response.data is not None
     returned = {UUID(o["uuid"]) for o in response.data["itusers"]["objects"]}
