@@ -1,22 +1,17 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-import dataclasses
 import re
 from collections.abc import Awaitable
 from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
 from functools import lru_cache
-from textwrap import dedent
-from typing import Annotated
 from typing import Any
 from typing import cast as tcast
 from uuid import UUID
 
-import strawberry
 from more_itertools import flatten
-from more_itertools import only
 from more_itertools import unique_everseen
 from psycopg.types.range import TimestamptzRange
 from pydantic import ValidationError
@@ -57,11 +52,9 @@ from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
 from mora.db import OrganisationFunktionTilsGyldighed
 from mora.graphapi.context import MOInfo
-from mora.graphapi.custom_schema import get_version
 from mora.graphapi.gmodels.base import tz_isodate
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.middleware import with_graphql_dates
-from mora.graphapi.version import Version
 from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 
@@ -76,7 +69,6 @@ from .filters import ITSystemFilter
 from .filters import ITUserFilter
 from .filters import KLEFilter
 from .filters import LeaveFilter
-from .filters import ManagerFilter
 from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
@@ -1124,109 +1116,202 @@ async def engagement_resolver(
     )
 
 
-async def manager_resolver(
+async def manager_resolver_query(
     info: MOInfo,
-    filter: ManagerFilter | None = None,
+    filter: EngagementFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-    inherit: Annotated[
-        bool,
-        strawberry.argument(
-            description=dedent(
-                """\
-                Whether to inherit managerial roles or not.
-
-                If managerial roles exist directly on this organisation unit, the flag does nothing and these managerial roles are returned.
-                However if no managerial roles exist directly, and this flag is:
-                * False: An empty list is returned.
-                * True: The result from calling `managers` with `inherit=True` on the parent of this organistion unit is returned.
-
-                Calling with `inherit=True` can help ensure that a manager is always found.
-                """
-            )
-        ),
-    ] = False,
-) -> Any:
-    """Resolve managers."""
-    if filter is None:
-        filter = ManagerFilter()
+) -> Select:
+    # TODO: this function should not be an awaitable
 
     await registration_filter(info, filter)
 
-    kwargs: dict[str, Any] = {"gyldighed": "Aktiv"}
-    if get_version(info.schema) >= Version.VERSION_25:
-        if filter.employee is None:
-            kwargs["tilknyttedebrugere"] = "urn:LORA-PLEASE-FIND-NULL-UUID-AND-URN"
-        elif filter.employee is not UNSET or filter.employees is not None:
-            kwargs["tilknyttedebrugere"] = lora_filter(
-                await get_employee_uuids(info, filter)
+    def _funktionsnavn() -> ColumnElement:
+        return OrganisationFunktionRegistrering.id.in_(
+            select(
+                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            ).where(
+                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Engagement",
+                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
-    elif (
+        )
+
+    query = (
+        select(
+            distinct(OrganisationFunktionRegistrering.organisationfunktion_id),
+        )
+        .where(
+            _get_registrering_clause(
+                OrganisationFunktionRegistrering,
+                _get_registration_time(filter, cursor),
+            ),
+            _get_gyldighed_clause(
+                OrganisationFunktionRegistrering,
+                OrganisationFunktionTilsGyldighed,
+                filter,
+            ),
+            _funktionsnavn(),
+        )
+        .order_by(
+            OrganisationFunktionRegistrering.organisationfunktion_id,
+        )
+    )
+
+    # UUIDs
+    if filter.uuids is not None:
+        query = query.where(
+            OrganisationFunktionRegistrering.organisationfunktion_id.in_(filter.uuids)
+        )
+
+    # User keys
+    if filter.user_keys is not None:
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
+                        filter.user_keys
+                    ),
+                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                )
+            )
+        )
+
+    # Employees
+    if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = lora_filter(
-            await get_employee_uuids(info, filter)
+        employee_uuids = await get_employee_uuids(info, filter)
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionRelation.rel_type
+                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                )
+            )
         )
 
-    org_unit_uuids = None
+    # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         org_unit_uuids = await get_org_unit_uuids(info, filter)
-        kwargs["tilknyttedeenheder"] = lora_filter(org_unit_uuids)
-    if filter.responsibility is not None:
-        class_filter = filter.responsibility or ClassFilter()
-        kwargs["opgaver"] = lora_filter(
-            await filter2uuids_func(class_resolver, info, class_filter)
-        )
-    if filter.manager_type is not None:
-        class_filter = filter.manager_type or ClassFilter()
-        kwargs["organisatoriskfunktionstype"] = lora_filter(
-            await filter2uuids_func(class_resolver, info, class_filter)
-        )
-    if filter.engagement is not None:
-        kwargs["tilknyttedefunktioner"] = lora_filter(
-            await filter2uuids_func(engagement_resolver, info, filter.engagement)
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionRelation.rel_type
+                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                )
+            )
         )
 
-    result = await generic_resolver(
-        info.context.dataloaders.manager_getter,
-        info.context.dataloaders.manager_loader,
+    # Job function
+    if filter.job_function is not None:
+        job_function_uuids = await filter2uuids_func(
+            class_resolver, info, filter.job_function
+        )
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionRelation.rel_type
+                    == OrganisationFunktionRelationKode.opgaver,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(job_function_uuids),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                )
+            )
+        )
+
+    # Engagement type
+    if filter.engagement_type is not None:
+        engagement_type_uuids = await filter2uuids_func(
+            class_resolver, info, filter.engagement_type
+        )
+        query = query.where(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionRelation.rel_type
+                    == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        engagement_type_uuids
+                    ),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                )
+            )
+        )
+
+    # Pagination. Must be done here since the generic_resolver (lora) does not support
+    # filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
+
+    return query
+
+
+async def manager_resolver(
+    info: MOInfo,
+    filter: EngagementFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve engagements."""
+    if filter is None:
+        filter = EngagementFilter()
+
+    query = await engagement_resolver_query(
         info=info,
         filter=filter,
         limit=limit,
         cursor=cursor,
-        **kwargs,
     )
-    if filter.exclude is not None:
-        exclude_uuids = set(
-            await filter2uuids_func(employee_resolver, info, filter.exclude)
-        )
-        result = {
-            key: value
-            for key, value in result.items()
-            if all(validity.employee_uuid not in exclude_uuids for validity in value)
-        }
 
-    if result or not inherit:
-        return result
+    # Execute
+    session: AsyncSession = info.context.session
+    result = await session.execute(query)
+    uuids = [row[0] for row in result]
 
-    if org_unit_uuids is None:
-        raise ValueError("The inherit flag requires an organizational unit filter")
+    # See lora.py:fetch()'s is_paged
+    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    if not uuids and is_paged:
+        # There may be multiple LoRa fetches in one GraphQL request, so this
+        # cannot be refactored into always overwriting the value.
+        context["lora_page_out_of_range"] = True
 
-    org_unit = only(
-        org_unit_uuids,
-        too_long=ValueError(
-            "The inherit flag only works with at most one organisational unit"
+    access_log(
+        session,
+        "filter_engagements",
+        "OrganisationFunktion",
+        {
+            "filter": filter,
+            "limit": limit,
+            "cursor": cursor,
+        },
+        uuids,
+    )
+
+    return await generic_resolver(
+        info.context.dataloaders.engagement_getter,
+        info.context.dataloaders.engagement_loader,
+        info=info,
+        filter=BaseFilter(
+            uuids=uuids,
+            from_date=filter.from_date,
+            to_date=filter.to_date,
+            registration_time=filter.registration_time,
         ),
     )
-    if org_unit is None:
-        return {}
-    # Recurse up the tree using the parent org-unit
-    child_filter = dataclasses.replace(
-        filter,
-        org_units=None,
-        org_unit=OrganisationUnitFilter(child=OrganisationUnitFilter(uuids=[org_unit])),
-    )
-    return await manager_resolver(info, filter=child_filter, inherit=True)
 
 
 async def owner_resolver_query(
