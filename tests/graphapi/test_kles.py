@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
+from typing import Any
 from uuid import UUID
 from uuid import uuid4
 
@@ -292,3 +294,53 @@ async def test_kle_terminate_integration(
     )
     assert test_data["uuid"] == kle_objects_post_terminate["uuid"]
     assert test_data["to"] == kle_objects_post_terminate["validity"]["to"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_kle_user_key_filter(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_kle: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """Test that kles can be filtered by user_key."""
+    org_unit_uuid = create_org_unit("root")
+    kle_number_uuid = uuid4()
+    kle_aspect_uuid = uuid4()
+
+    def make_kle(user_key: str) -> UUID:
+        return create_kle(
+            {
+                "user_key": user_key,
+                "org_unit": str(org_unit_uuid),
+                "kle_number": str(kle_number_uuid),
+                "kle_aspects": [str(kle_aspect_uuid)],
+                "validity": {"from": "2024-01-01"},
+            }
+        )
+
+    alpha_uuid = make_kle("alpha")
+    beta_uuid = make_kle("beta")
+    gamma_uuid = make_kle("gamma")
+
+    query = """
+        query ReadKLEs($filter: KLEFilter) {
+            kles(filter: $filter) {
+                objects {
+                    uuid
+                }
+            }
+        }
+    """
+
+    def read(filter: dict) -> set[UUID]:
+        response = graphapi_post(query, {"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {UUID(o["uuid"]) for o in response.data["kles"]["objects"]}
+
+    assert read({}) == {alpha_uuid, beta_uuid, gamma_uuid}
+    assert read({"user_keys": ["alpha"]}) == {alpha_uuid}
+    assert read({"user_keys": ["beta"]}) == {beta_uuid}
+    assert read({"user_keys": ["alpha", "gamma"]}) == {alpha_uuid, gamma_uuid}
+    assert read({"user_keys": ["nonexistent"]}) == set()

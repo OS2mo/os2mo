@@ -1312,6 +1312,26 @@ def create_ituser(
 
 
 @pytest.fixture
+def create_kle(
+    graphapi_post: GraphAPIPost, root_org: UUID
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        kle_create_mutation = """
+            mutation CreateKLE($input: KLECreateInput!) {
+                kle_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(kle_create_mutation, {"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["kle_create"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
 def create_rolebinding(
     graphapi_post: GraphAPIPost, root_org: UUID
 ) -> Callable[[dict[str, Any]], UUID]:
