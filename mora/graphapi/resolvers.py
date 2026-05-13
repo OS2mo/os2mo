@@ -69,6 +69,7 @@ from .filters import EngagementFilter
 from .filters import FacetFilter
 from .filters import ITSystemFilter
 from .filters import ITUserFilter
+from .filters import KLEFilter
 from .filters import LeaveFilter
 from .filters import ManagerFilter
 from .filters import OrganisationUnitFilter
@@ -1718,7 +1719,7 @@ async def it_user_resolver(
 
 async def kle_resolver_query(
     info: MOInfo,
-    filter: EngagementFilter,
+    filter: KLEFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Select:
@@ -1731,7 +1732,7 @@ async def kle_resolver_query(
             select(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Engagement",
+                OrganisationFunktionAttrEgenskaber.funktionsnavn == "KLE",
                 _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
@@ -1778,24 +1779,6 @@ async def kle_resolver_query(
             )
         )
 
-    # Employees
-    if (
-        filter.employee is not None and filter.employee is not UNSET
-    ) or filter.employees is not None:
-        employee_uuids = await get_employee_uuids(info, filter)
-        query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
-
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         org_unit_uuids = await get_org_unit_uuids(info, filter)
@@ -1807,44 +1790,6 @@ async def kle_resolver_query(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
-
-    # Job function
-    if filter.job_function is not None:
-        job_function_uuids = await filter2uuids_func(
-            class_resolver, info, filter.job_function
-        )
-        query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.opgaver,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(job_function_uuids),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
-
-    # Engagement type
-    if filter.engagement_type is not None:
-        engagement_type_uuids = await filter2uuids_func(
-            class_resolver, info, filter.engagement_type
-        )
-        query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        engagement_type_uuids
-                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -1862,13 +1807,13 @@ async def kle_resolver_query(
 
 async def kle_resolver(
     info: MOInfo,
-    filter: EngagementFilter | None = None,
+    filter: KLEFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Any:
-    """Resolve engagements."""
+    """Resolve kle."""
     if filter is None:
-        filter = EngagementFilter()
+        filter = KLEFilter()
 
     query = await kle_resolver_query(
         info=info,
@@ -1891,7 +1836,7 @@ async def kle_resolver(
 
     access_log(
         session,
-        "filter_engagements",
+        "filter_kles",
         "OrganisationFunktion",
         {
             "filter": filter,
@@ -1902,8 +1847,8 @@ async def kle_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.engagement_getter,
-        info.context.dataloaders.engagement_loader,
+        info.context.dataloaders.kle_getter,
+        info.context.dataloaders.kle_loader,
         info=info,
         filter=BaseFilter(
             uuids=uuids,
