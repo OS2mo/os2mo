@@ -75,6 +75,7 @@ from .filters import ManagerFilter
 from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
+from .filters import RoleBindingFilter
 from .graphql_utils import LoadKey
 from .momodel import MOModel
 from .paged import CursorType
@@ -2383,7 +2384,7 @@ async def related_unit_resolver(
 
 async def rolebinding_resolver_query(
     info: MOInfo,
-    filter: EngagementFilter,
+    filter: RoleBindingFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Select:
@@ -2396,7 +2397,7 @@ async def rolebinding_resolver_query(
             select(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Engagement",
+                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Rollebinding",
                 _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
@@ -2443,24 +2444,6 @@ async def rolebinding_resolver_query(
             )
         )
 
-    # Employees
-    if (
-        filter.employee is not None and filter.employee is not UNSET
-    ) or filter.employees is not None:
-        employee_uuids = await get_employee_uuids(info, filter)
-        query = query.where(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
-
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         org_unit_uuids = await get_org_unit_uuids(info, filter)
@@ -2477,29 +2460,25 @@ async def rolebinding_resolver_query(
             )
         )
 
-    # Job function
-    if filter.job_function is not None:
-        job_function_uuids = await filter2uuids_func(
-            class_resolver, info, filter.job_function
-        )
+    # IT-user
+    if filter.ituser is not None:
+        ituser_uuids = await filter2uuids_func(it_user_resolver, info, filter.ituser)
         query = query.where(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
                 ).where(
                     OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.opgaver,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(job_function_uuids),
+                    == OrganisationFunktionRelationKode.tilknyttedefunktioner,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(ituser_uuids),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
 
-    # Engagement type
-    if filter.engagement_type is not None:
-        engagement_type_uuids = await filter2uuids_func(
-            class_resolver, info, filter.engagement_type
-        )
+    # Role
+    if filter.role is not None:
+        role_uuids = await filter2uuids_func(class_resolver, info, filter.role)
         query = query.where(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -2507,9 +2486,7 @@ async def rolebinding_resolver_query(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        engagement_type_uuids
-                    ),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(role_uuids),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -2527,13 +2504,13 @@ async def rolebinding_resolver_query(
 
 async def rolebinding_resolver(
     info: MOInfo,
-    filter: EngagementFilter | None = None,
+    filter: RoleBindingFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Any:
-    """Resolve engagements."""
+    """Resolve rolebindings."""
     if filter is None:
-        filter = EngagementFilter()
+        filter = RoleBindingFilter()
 
     query = await rolebinding_resolver_query(
         info=info,
@@ -2556,7 +2533,7 @@ async def rolebinding_resolver(
 
     access_log(
         session,
-        "filter_engagements",
+        "filter_rolebindings",
         "OrganisationFunktion",
         {
             "filter": filter,
@@ -2567,8 +2544,8 @@ async def rolebinding_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.engagement_getter,
-        info.context.dataloaders.engagement_loader,
+        info.context.dataloaders.rolebinding_getter,
+        info.context.dataloaders.rolebinding_loader,
         info=info,
         filter=BaseFilter(
             uuids=uuids,
