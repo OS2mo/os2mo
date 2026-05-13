@@ -9,10 +9,6 @@ import pytest
 from tests.conftest import GraphAPIPost
 
 
-@pytest.mark.xfail(
-    reason="`external_ids: null` is currently no-op and filters nothing.",
-    strict=True,
-)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 def test_it_user_external_ids_null_filter(
