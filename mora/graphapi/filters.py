@@ -384,6 +384,13 @@ class FileFilter:
         default=None,
         description=gen_filter_string("Filename", "file_names"),
     )
+    file_name_contains: str | None = strawberry.field(
+        default=None,
+        description=gen_filter_string(
+            "Case-insensitive substring of the filename",
+            "file_name_contains",
+        ),
+    )
 
 
 @strawberry.input(description="Health filter.")
