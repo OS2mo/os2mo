@@ -533,3 +533,66 @@ async def test_update_substitute_vacant(
         one(response.data["associations"]["objects"])["current"]["substitute_uuid"]
         is None
     )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_association_user_key_filter(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[..., UUID],
+) -> None:
+    """Test that associations can be filtered by user_key."""
+    org_unit = create_org_unit("root")
+    person = create_person()
+    association_type = uuid4()
+
+    def create_association(user_key: str) -> UUID:
+        mutate_query = """
+            mutation CreateAssociation($input: AssociationCreateInput!) {
+                association_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(
+            query=mutate_query,
+            variables={
+                "input": {
+                    "user_key": user_key,
+                    "association_type": str(association_type),
+                    "org_unit": str(org_unit),
+                    "person": str(person),
+                    "validity": {"from": "1970-01-01T00:00:00Z"},
+                }
+            },
+        )
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["association_create"]["uuid"])
+
+    alpha_uuid = create_association("alpha")
+    beta_uuid = create_association("beta")
+    gamma_uuid = create_association("gamma")
+
+    query = """
+        query ReadAssociations($filter: AssociationFilter) {
+            associations(filter: $filter) {
+                objects {
+                    uuid
+                }
+            }
+        }
+    """
+
+    def read(filter: dict) -> set[UUID]:
+        response = graphapi_post(query, {"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {UUID(o["uuid"]) for o in response.data["associations"]["objects"]}
+
+    assert read({}) == {alpha_uuid, beta_uuid, gamma_uuid}
+    assert read({"user_keys": ["alpha"]}) == {alpha_uuid}
+    assert read({"user_keys": ["beta"]}) == {beta_uuid}
+    assert read({"user_keys": ["alpha", "gamma"]}) == {alpha_uuid, gamma_uuid}
+    assert read({"user_keys": ["nonexistent"]}) == set()
