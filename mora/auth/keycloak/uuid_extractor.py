@@ -363,11 +363,15 @@ async def get_entities_graphql(
         yield EntityType.EMPLOYEE, getattr(input, "employee", None)
         yield EntityType.EMPLOYEE, getattr(input, "person", None)
 
-    async for entity_type, uuid in extract(input=raw_input):
-        # Make sure we don't yield None as UUID! Doing so makes the later code behave
-        # wrongly and may grant too wide access.
-        if uuid:
-            yield entity_type, uuid
+    if not isinstance(raw_input, list):
+        raw_input = [raw_input]
+
+    for input in raw_input:
+        async for entity_type, uuid in extract(input=input):
+            # Make sure we don't yield None as UUID! Doing so makes the later code behave
+            # wrongly and may grant too wide access.
+            if uuid:
+                yield entity_type, uuid
 
 
 async def _get_org_unit(uuid: UUID) -> dict | None:
