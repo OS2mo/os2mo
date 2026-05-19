@@ -23,7 +23,6 @@ from .. import mapping
 from .. import util
 from ..graphapi.middleware import is_graphql
 from ..handler.impl.association import AssociationReader
-from ..service.facet import get_mo_object_primary_value
 from ..service.facet import is_class_uuid_primary
 from . import handlers
 from . import org
@@ -40,22 +39,25 @@ logger = get_logger()
 class _ITAssociationGroupValidation(GroupValidation):
     @classmethod
     async def get_validation_items_from_mo_object(cls, mo_object: dict) -> list[dict]:
-        async def get_validation_item(mo_object: dict, it_user: dict):
-            return {
-                "uuid": util.get_uuid(mo_object),
-                "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
-                "org_unit_uuid": util.get_mapping_uuid(mo_object, mapping.ORG_UNIT),
-                "it_user_uuid": it_user[mapping.UUID],
-                "is_primary": await get_mo_object_primary_value(mo_object),
-            }
-
+        # `AssociationReader` returns the flat GraphQL shape — see
+        # `mora/handler/impl/association.py`.
         if mo_object is None:
             return []
-
+        association_uuid = mo_object.get("uuid")
+        it_user_uuid = mo_object.get("it_user_uuid")
+        if not (association_uuid and it_user_uuid):
+            return []
+        primary_uuid = mo_object.get("primary_uuid")
         return [
-            await get_validation_item(mo_object, it_user)
-            for it_user in (mo_object.get(mapping.IT) or [])
-            if (mo_object.get(mapping.UUID) and it_user.get(mapping.UUID))
+            {
+                "uuid": association_uuid,
+                "employee_uuid": mo_object.get("employee_uuid"),
+                "org_unit_uuid": mo_object.get("org_unit_uuid"),
+                "it_user_uuid": it_user_uuid,
+                "is_primary": (
+                    await is_class_uuid_primary(primary_uuid) if primary_uuid else False
+                ),
+            }
         ]
 
     @classmethod

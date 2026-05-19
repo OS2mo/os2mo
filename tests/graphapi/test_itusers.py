@@ -495,3 +495,91 @@ def test_it_user_user_key_filter(
     assert read({"user_keys": ["beta"]}) == {beta_uuid}
     assert read({"user_keys": ["alpha", "gamma"]}) == {alpha_uuid, gamma_uuid}
     assert read({"user_keys": ["nonexistent"]}) == set()
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_ituser_unique_validation_graphql(
+    graphapi_post: GraphAPIPost,
+    create_org_unit,
+    create_itsystem,
+    create_person,
+    create_engagement,
+    create_ituser,
+) -> None:
+    """The duplicate-IT-user check must not fire for an IT user that is
+    distinct on the (person, itsystem, user_key, engagements) key, even when
+    other IT users on the same person+itsystem happen to share a user_key
+    with each other (legal, as long as their engagements differ).
+    """
+    org_unit_uuid = create_org_unit("test_org_unit", None)
+    person_uuid = create_person(None)
+    itsystem_uuid = create_itsystem(
+        {
+            "user_key": "test_system",
+            "name": "Test System",
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+    engagement_a = create_engagement(
+        {
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
+            "org_unit": str(org_unit_uuid),
+            "person": str(person_uuid),
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+    engagement_b = create_engagement(
+        {
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
+            "org_unit": str(org_unit_uuid),
+            "person": str(person_uuid),
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+
+    # Two IT users with the same (person, itsystem, user_key), distinguished
+    # only by their engagement. These are legal — engagement is part of the
+    # uniqueness key.
+    create_ituser(
+        {
+            "user_key": "svris",
+            "itsystem": str(itsystem_uuid),
+            "person": str(person_uuid),
+            "engagements": [str(engagement_a)],
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+    create_ituser(
+        {
+            "user_key": "svris",
+            "itsystem": str(itsystem_uuid),
+            "person": str(person_uuid),
+            "engagements": [str(engagement_b)],
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+
+    # Add a third, distinct IT user (different user_key). This must succeed —
+    # it shares nothing on the uniqueness key with the existing two.
+    mutation = """
+        mutation CreateITUser($input: ITUserCreateInput!) {
+            ituser_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    response = graphapi_post(
+        mutation,
+        {
+            "input": {
+                "user_key": "different_key",
+                "itsystem": str(itsystem_uuid),
+                "person": str(person_uuid),
+                "validity": {"from": "2024-01-01"},
+            }
+        },
+    )
+    assert response.errors is None, response.errors

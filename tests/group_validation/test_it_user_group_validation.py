@@ -7,7 +7,6 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from mora import mapping
 from mora.exceptions import HTTPException
 from mora.handler.impl.it import ItSystemBindingReader
 from mora.service.itsystem import ITUserPrimaryGroupValidation
@@ -17,18 +16,18 @@ from mora.service.itsystem import _ITUserGroupValidation
 
 class TestITUserGroupValidationBase:
     _it_user_uuid = str(uuid4())
-    _mo_uuid = st.fixed_dictionaries({mapping.UUID: st.uuids().map(str)})
+    _uuid = st.uuids().map(str)
 
     @given(
         st.fixed_dictionaries(
             {
-                mapping.PERSON: _mo_uuid,
-                mapping.ITSYSTEM: _mo_uuid,
-                mapping.ENGAGEMENTS: st.lists(_mo_uuid),
-                mapping.PRIMARY: _mo_uuid,
-                mapping.USER_KEY: st.text(),
+                "employee_uuid": _uuid,
+                "itsystem_uuid": _uuid,
+                "engagement_uuids": st.lists(_uuid),
+                "primary_uuid": _uuid,
+                "user_key": st.text(),
             },
-            optional={mapping.UUID: st.none() | st.uuids().map(str)},
+            optional={"uuid": st.none() | st.uuids().map(str)},
         )
     )
     async def test_get_validation_item_from_mo_object(self, mo_object: dict):

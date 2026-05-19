@@ -21,7 +21,6 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from ..service.facet import get_mo_object_primary_value
 from ..service.facet import is_class_uuid_primary
 from ..triggers import Trigger
 from . import handlers
@@ -43,16 +42,19 @@ MO_OBJ_TYPE = dict[str, Any]
 class _ITUserGroupValidation(GroupValidation):
     @classmethod
     async def get_validation_items_from_mo_object(cls, mo_object: dict) -> list[dict]:
+        # `ItSystemBindingReader` returns the flat GraphQL shape — see
+        # `mora/handler/impl/it.py`.
+        primary_uuid = mo_object.get("primary_uuid")
         return [
             {
-                "uuid": util.get_uuid(mo_object, required=False),
-                "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
-                "it_system_uuid": util.get_mapping_uuid(mo_object, mapping.ITSYSTEM),
-                "engagement_uuids": tuple(
-                    util.checked_get(mo_object, mapping.ENGAGEMENTS, [], required=False)
+                "uuid": mo_object.get("uuid"),
+                "employee_uuid": mo_object.get("employee_uuid"),
+                "it_system_uuid": mo_object.get("itsystem_uuid"),
+                "engagement_uuids": tuple(mo_object.get("engagement_uuids") or ()),
+                "it_user_username": mo_object.get("user_key"),
+                "is_primary": (
+                    await is_class_uuid_primary(primary_uuid) if primary_uuid else False
                 ),
-                "it_user_username": mo_object.get(mapping.USER_KEY),
-                "is_primary": await get_mo_object_primary_value(mo_object),
             }
         ]
 

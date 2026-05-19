@@ -6,7 +6,6 @@ from uuid import uuid4
 import pytest
 from parameterized import parameterized
 
-from mora import mapping
 from mora.exceptions import HTTPException
 from mora.handler.impl.association import AssociationReader
 from mora.service.association import ITAssociationPrimaryGroupValidation
@@ -16,6 +15,7 @@ from mora.service.association import _ITAssociationGroupValidation
 
 class TestITAssociationGroupValidationBase:
     _association_uuid = str(uuid4())
+    _primary_uuid = str(uuid4())
 
     @parameterized.expand(
         [
@@ -23,20 +23,15 @@ class TestITAssociationGroupValidationBase:
             # empty list.
             (None, []),
             ({}, []),
-            ({mapping.IT: None}, []),
-            ({mapping.IT: []}, []),
-            ({mapping.IT: [{}]}, []),
-            ({mapping.IT: [{mapping.UUID: "it-user-uuid"}]}, []),
-            (
-                {mapping.IT: [{mapping.UUID: "it-user-uuid", mapping.ITSYSTEM: {}}]},
-                [],
-            ),
+            ({"it_user_uuid": None}, []),
+            ({"uuid": _association_uuid, "it_user_uuid": None}, []),
+            ({"it_user_uuid": "it-user-uuid"}, []),
             # Minimal valid payload
             (
                 {
-                    mapping.UUID: _association_uuid,
-                    mapping.IT: [{mapping.UUID: "it-user-uuid"}],
-                    mapping.PRIMARY: {mapping.UUID: str(uuid4())},
+                    "uuid": _association_uuid,
+                    "it_user_uuid": "it-user-uuid",
+                    "primary_uuid": _primary_uuid,
                 },
                 [
                     {
@@ -54,15 +49,11 @@ class TestITAssociationGroupValidationBase:
     async def test_get_validation_item_from_mo_object(
         self,
         mo_object: dict,
-        expected_result: dict | None,
+        expected_result: list,
     ):
         with mock.patch(
-            "mora.service.association.get_mo_object_primary_value",
-            return_value=(
-                expected_result[0].get("is_primary", False)
-                if expected_result != []
-                else False
-            ),
+            "mora.service.association.is_class_uuid_primary",
+            mock.AsyncMock(return_value=True),
         ):
             actual_result = (
                 await _ITAssociationGroupValidation.get_validation_items_from_mo_object(

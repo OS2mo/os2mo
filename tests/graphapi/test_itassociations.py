@@ -331,3 +331,59 @@ async def test_itassociation_terminate_integration(
     )
     assert test_data["uuid"] == it_association_objects_post_terminate["uuid"]
     assert test_data["to"] == it_association_objects_post_terminate["validity"]["to"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_itassociation_unique_validation_graphql(
+    graphapi_post: GraphAPIPost,
+    create_org_unit,
+    create_itsystem,
+    create_person,
+    create_ituser,
+) -> None:
+    """The duplicate-IT-association check must fire when a second IT
+    association with the same (person, org_unit, it_user) is created.
+    """
+    org_unit_uuid = create_org_unit("test_org_unit", None)
+    person_uuid = create_person(None)
+    itsystem_uuid = create_itsystem(
+        {
+            "user_key": "test_system",
+            "name": "Test System",
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+    ituser_uuid = create_ituser(
+        {
+            "user_key": "test_user",
+            "itsystem": str(itsystem_uuid),
+            "person": str(person_uuid),
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+
+    mutation = """
+        mutation CreateITAssociation($input: ITAssociationCreateInput!) {
+            itassociation_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    input_ = {
+        "org_unit": str(org_unit_uuid),
+        "person": str(person_uuid),
+        "it_user": str(ituser_uuid),
+        "job_function": str(uuid4()),
+        "validity": {"from": "2024-01-01"},
+    }
+
+    # First creation succeeds.
+    first = graphapi_post(mutation, {"input": input_})
+    assert first.errors is None, first.errors
+
+    # Second creation with the same (person, org_unit, it_user) must be
+    # rejected.
+    second = graphapi_post(mutation, {"input": input_})
+    assert second.errors is not None
+    assert "V_MORE_THAN_ONE_ASSOCIATION" in str(second.errors)
