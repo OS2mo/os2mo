@@ -346,3 +346,43 @@ def _get_employee_verify_query():
           }
         }
     """
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_employee_user_key_filter(
+    graphapi_post: GraphAPIPost,
+    create_person,
+) -> None:
+    """Test that employees can be filtered by user_key."""
+    alpha_uuid = create_person(
+        {"user_key": "alpha", "given_name": "Alpha", "surname": "Alphason"}
+    )
+    beta_uuid = create_person(
+        {"user_key": "beta", "given_name": "Beta", "surname": "Betason"}
+    )
+    gamma_uuid = create_person(
+        {"user_key": "gamma", "given_name": "Gamma", "surname": "Gammason"}
+    )
+
+    query = """
+        query ReadEmployees($filter: EmployeeFilter) {
+            employees(filter: $filter) {
+                objects {
+                    uuid
+                }
+            }
+        }
+    """
+
+    def read(filter: dict) -> set[UUID]:
+        response = graphapi_post(query, {"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {UUID(o["uuid"]) for o in response.data["employees"]["objects"]}
+
+    assert read({}) == {alpha_uuid, beta_uuid, gamma_uuid}
+    assert read({"user_keys": ["alpha"]}) == {alpha_uuid}
+    assert read({"user_keys": ["beta"]}) == {beta_uuid}
+    assert read({"user_keys": ["alpha", "gamma"]}) == {alpha_uuid, gamma_uuid}
+    assert read({"user_keys": ["nonexistent"]}) == set()

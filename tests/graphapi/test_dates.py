@@ -52,7 +52,7 @@ def test_timestamp_parsing(graphapi_post: GraphAPIPost):
     validity_lookup = graphapi_post(
         """
         query ValidityQuery {
-          employees(filter: {from_date: null, to_date: "1885-05-01"}) {
+          employees(filter: {from_date: null, to_date: "1885-05-02"}) {
             objects {
               validities(start: null, end: null) {
                 uuid

@@ -1,10 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Literal
+import enum
 from uuid import UUID
 
 from sqlalchemy import BigInteger
 from sqlalchemy import Column
+from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 from sqlalchemy import Text
 from sqlalchemy.orm import Mapped
@@ -52,16 +53,29 @@ class BrugerAttrUdvidelser(_VirkningMixin, Base):
     bruger_registrering_id = Column(ForeignKey("bruger_registrering.id"), index=True)
 
 
-BrugerRelationKode = Literal[
-    "tilhoerer",
-    "tilknyttedepersoner",
-]
+class BrugerRelationKode(enum.StrEnum):
+    adresser = enum.auto()
+    brugertyper = enum.auto()
+    opgaver = enum.auto()
+    tilhoerer = enum.auto()
+    tilknyttedeenheder = enum.auto()
+    tilknyttedefunktioner = enum.auto()
+    tilknyttedeinteressefaellesskaber = enum.auto()
+    tilknyttedeitsystemer = enum.auto()
+    tilknyttedeorganisationer = enum.auto()
+    tilknyttedepersoner = enum.auto()
 
 
 class BrugerRelation(_RelationMixin, Base):
     __tablename__ = "bruger_relation"
 
-    rel_type: Mapped[BrugerRelationKode]
+    rel_type: Mapped[BrugerRelationKode] = mapped_column(
+        Enum(
+            BrugerRelationKode,
+            name="brugerrelationkode",
+            create_type=False,
+        )
+    )
 
     bruger_registrering_id = Column(ForeignKey("bruger_registrering.id"), index=True)
 

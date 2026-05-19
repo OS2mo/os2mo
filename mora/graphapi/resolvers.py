@@ -39,6 +39,11 @@ from strawberry.types.unset import UnsetType
 from mora import util
 from mora.access_log import access_log
 from mora.db import AsyncSession
+from mora.db import BrugerAttrEgenskaber
+from mora.db import BrugerRegistrering
+from mora.db import BrugerRelation
+from mora.db import BrugerRelationKode
+from mora.db import BrugerTilsGyldighed
 from mora.db import HasValidity
 from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
@@ -768,6 +773,75 @@ async def association_resolver(
     return associations
 
 
+async def employee_resolver_query(
+    info: MOInfo,
+    filter: EmployeeFilter,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Select:
+    # TODO: this function should not be an awaitable
+
+    await registration_filter(info, filter)
+
+    query = (
+        select(
+            distinct(BrugerRegistrering.bruger_id),
+        )
+        .where(
+            _get_registrering_clause(
+                BrugerRegistrering,
+                _get_registration_time(filter, cursor),
+            ),
+            _get_gyldighed_clause(
+                BrugerRegistrering,
+                BrugerTilsGyldighed,
+                filter,
+            ),
+        )
+        .order_by(
+            BrugerRegistrering.bruger_id,
+        )
+    )
+
+    # UUIDs
+    if filter.uuids is not None:
+        query = query.where(BrugerRegistrering.bruger_id.in_(filter.uuids))
+
+    # User keys
+    if filter.user_keys is not None:
+        query = query.where(
+            BrugerRegistrering.id.in_(
+                select(BrugerAttrEgenskaber.bruger_registrering_id).where(
+                    BrugerAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
+                    _get_virkning_clause(BrugerAttrEgenskaber, filter),
+                )
+            )
+        )
+
+    # CPR numbers
+    if filter.cpr_numbers is not None:
+        query = query.where(
+            BrugerRegistrering.id.in_(
+                select(BrugerRelation.bruger_registrering_id).where(
+                    BrugerRelation.rel_type == BrugerRelationKode.tilknyttedepersoner,
+                    BrugerRelation.rel_maal_urn.in_(
+                        f"urn:dk:cpr:person:{c}" for c in filter.cpr_numbers
+                    ),
+                    _get_virkning_clause(BrugerRelation, filter),
+                )
+            )
+        )
+
+    # Pagination. Must be done here since the generic_resolver (lora) does not support
+    # filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
+
+    return query
+
+
 async def employee_resolver(
     info: MOInfo,
     filter: EmployeeFilter | None = None,
@@ -808,22 +882,47 @@ async def employee_resolver(
             context["lora_page_out_of_range"] = True
         return r
 
-    await registration_filter(info, filter)
+    query = await employee_resolver_query(
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+    )
 
-    kwargs = {}
-    if filter.cpr_numbers is not None:
-        kwargs["tilknyttedepersoner"] = [
-            f"urn:dk:cpr:person:{c}" for c in filter.cpr_numbers
-        ]
+    # Execute
+    session: AsyncSession = info.context.session
+    result = await session.execute(query)
+    uuids = [row[0] for row in result]
+
+    # See lora.py:fetch()'s is_paged
+    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    if not uuids and is_paged:
+        # There may be multiple LoRa fetches in one GraphQL request, so this
+        # cannot be refactored into always overwriting the value.
+        context["lora_page_out_of_range"] = True
+
+    access_log(
+        session,
+        "filter_employees",
+        "Bruger",
+        {
+            "filter": filter,
+            "limit": limit,
+            "cursor": cursor,
+        },
+        uuids,
+    )
 
     return await generic_resolver(
         info.context.dataloaders.employee_getter,
         info.context.dataloaders.employee_loader,
         info=info,
-        filter=filter,
-        limit=limit,
-        cursor=cursor,
-        **kwargs,
+        filter=BaseFilter(
+            uuids=uuids,
+            from_date=filter.from_date,
+            to_date=filter.to_date,
+            registration_time=filter.registration_time,
+        ),
     )
 
 
@@ -1323,7 +1422,11 @@ def _get_registration_time(
 
 
 def _get_registrering_clause(
-    cls: type[OrganisationEnhedRegistrering | OrganisationFunktionRegistrering],
+    cls: type[
+        BrugerRegistrering
+        | OrganisationEnhedRegistrering
+        | OrganisationFunktionRegistrering
+    ],
     time: datetime | SQLNOW,
 ) -> ColumnElement:
     return and_(
@@ -1342,10 +1445,14 @@ def _get_virkning_clause(
 
 def _get_gyldighed_clause(
     registrering_cls: type[
-        OrganisationEnhedRegistrering | OrganisationFunktionRegistrering
+        BrugerRegistrering
+        | OrganisationEnhedRegistrering
+        | OrganisationFunktionRegistrering
     ],
     gyldighed_cls: type[
-        OrganisationEnhedTilsGyldighed | OrganisationFunktionTilsGyldighed
+        BrugerTilsGyldighed
+        | OrganisationEnhedTilsGyldighed
+        | OrganisationFunktionTilsGyldighed
     ],
     filter: BaseFilter,
 ) -> ColumnElement:
