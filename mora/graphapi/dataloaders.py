@@ -104,9 +104,14 @@ async def load_org(keys: list[int]) -> list[OrganisationRead]:
 async def get_loaders() -> dict[str, DataLoader | Callable]:
     """Get all available dataloaders as a dictionary."""
     return {
-        "org_loader": DataLoader[int, OrganisationRead](load_fn=load_org),
-        "org_unit_loader": DataLoader[LoadKey, list[OrganisationUnitRead]](
-            load_fn=partial(load_mo, model=OrganisationUnitRead)
+        "address_loader": DataLoader[LoadKey, list[AddressRead]](
+            load_fn=partial(load_mo, model=AddressRead)
+        ),
+        "association_loader": DataLoader[LoadKey, list[AssociationRead]](
+            load_fn=partial(load_mo, model=AssociationRead)
+        ),
+        "class_loader": DataLoader[LoadKey, list[ClassRead]](
+            load_fn=partial(load_mo, model=ClassRead)
         ),
         "employee_loader": DataLoader[LoadKey, list[EmployeeRead]](
             load_fn=partial(load_mo, model=EmployeeRead)
@@ -114,40 +119,35 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
         "engagement_loader": DataLoader[LoadKey, list[EngagementRead]](
             load_fn=partial(load_mo, model=EngagementRead)
         ),
-        "kle_loader": DataLoader[LoadKey, list[KLERead]](
-            load_fn=partial(load_mo, model=KLERead)
-        ),
-        "address_loader": DataLoader[LoadKey, list[AddressRead]](
-            load_fn=partial(load_mo, model=AddressRead)
-        ),
-        "leave_loader": DataLoader[LoadKey, list[LeaveRead]](
-            load_fn=partial(load_mo, model=LeaveRead)
-        ),
-        "association_loader": DataLoader[LoadKey, list[AssociationRead]](
-            load_fn=partial(load_mo, model=AssociationRead)
-        ),
-        "rolebinding_loader": DataLoader[LoadKey, list[RoleBindingRead]](
-            load_fn=partial(load_mo, model=RoleBindingRead)
-        ),
-        "ituser_loader": DataLoader[LoadKey, list[ITUserRead]](
-            load_fn=partial(load_mo, model=ITUserRead)
-        ),
-        "manager_loader": DataLoader[LoadKey, list[ManagerRead]](
-            load_fn=partial(load_mo, model=ManagerRead)
-        ),
-        "owner_loader": DataLoader[LoadKey, list[OwnerRead]](
-            load_fn=partial(load_mo, model=OwnerRead)
-        ),
-        "class_loader": DataLoader[LoadKey, list[ClassRead]](
-            load_fn=partial(load_mo, model=ClassRead)
-        ),
-        "rel_unit_loader": DataLoader[LoadKey, list[RelatedUnitRead]](
-            load_fn=partial(load_mo, model=RelatedUnitRead)
-        ),
         "facet_loader": DataLoader[LoadKey, list[FacetRead]](
             load_fn=partial(load_mo, model=FacetRead)
         ),
         "itsystem_loader": DataLoader[LoadKey, list[ITSystemRead]](
             load_fn=partial(load_mo, model=ITSystemRead)
+        ),
+        "ituser_loader": DataLoader[LoadKey, list[ITUserRead]](
+            load_fn=partial(load_mo, model=ITUserRead)
+        ),
+        "kle_loader": DataLoader[LoadKey, list[KLERead]](
+            load_fn=partial(load_mo, model=KLERead)
+        ),
+        "leave_loader": DataLoader[LoadKey, list[LeaveRead]](
+            load_fn=partial(load_mo, model=LeaveRead)
+        ),
+        "manager_loader": DataLoader[LoadKey, list[ManagerRead]](
+            load_fn=partial(load_mo, model=ManagerRead)
+        ),
+        "org_loader": DataLoader[int, OrganisationRead](load_fn=load_org),
+        "org_unit_loader": DataLoader[LoadKey, list[OrganisationUnitRead]](
+            load_fn=partial(load_mo, model=OrganisationUnitRead)
+        ),
+        "owner_loader": DataLoader[LoadKey, list[OwnerRead]](
+            load_fn=partial(load_mo, model=OwnerRead)
+        ),
+        "rel_unit_loader": DataLoader[LoadKey, list[RelatedUnitRead]](
+            load_fn=partial(load_mo, model=RelatedUnitRead)
+        ),
+        "rolebinding_loader": DataLoader[LoadKey, list[RoleBindingRead]](
+            load_fn=partial(load_mo, model=RoleBindingRead)
         ),
     }
