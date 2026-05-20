@@ -2980,15 +2980,9 @@ async def generic_resolver(
     filter: BaseFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-    **kwargs: Any,
 ) -> Any:
-    """The internal resolve interface, allowing for kwargs."""
-    # The HOPEFULLY_NOT_IN_LORA_UUID is used to force an empty response from
-    # LoRa, so why even bother asking the database?
-    if any(v == [HOPEFULLY_NOT_IN_LORA_UUID] for v in kwargs.values()):
-        # Since we are always returning an empty response, no reason to paginate
-        context["lora_page_out_of_range"] = True
-        return {}
+    """The internal resolve interface."""
+    kwargs: dict[str, Any] = {}
 
     # Dates
     dates = get_date_interval(filter.from_date, filter.to_date)
