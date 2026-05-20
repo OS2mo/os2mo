@@ -295,7 +295,7 @@ async def get_entity_type(request: Request) -> EntityType:
 
 
 async def get_entities_graphql(
-    input: Any, collection: Collections, permission_type: CollectionPermissionType
+    raw_input: Any, collection: Collections, permission_type: CollectionPermissionType
 ) -> AsyncIterable[tuple[EntityType, UUID]]:
     """Extract the types and UUID(s) for the relevant entities (org unit or employee).
 
@@ -311,7 +311,7 @@ async def get_entities_graphql(
         An iterable of (entity_type, uuid) tuples for check_owner().
     """
 
-    async def extract() -> AsyncIterable[tuple[EntityType, UUID | None]]:
+    async def extract(input) -> AsyncIterable[tuple[EntityType, UUID | None]]:
         # Allow both employee and person to avoid bugs in the future
         if collection in {"employee", "person"}:
             yield EntityType.EMPLOYEE, getattr(input, "uuid")
@@ -363,11 +363,15 @@ async def get_entities_graphql(
         yield EntityType.EMPLOYEE, getattr(input, "employee", None)
         yield EntityType.EMPLOYEE, getattr(input, "person", None)
 
-    async for entity_type, uuid in extract():
-        # Make sure we don't yield None as UUID! Doing so makes the later code behave
-        # wrongly and may grant too wide access.
-        if uuid:
-            yield entity_type, uuid
+    if not isinstance(raw_input, list):
+        raw_input = [raw_input]
+
+    for input in raw_input:
+        async for entity_type, uuid in extract(input=input):
+            # Make sure we don't yield None as UUID! Doing so makes the later code behave
+            # wrongly and may grant too wide access.
+            if uuid:
+                yield entity_type, uuid
 
 
 async def _get_org_unit(uuid: UUID) -> dict | None:

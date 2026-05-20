@@ -328,3 +328,68 @@ async def test_update_engagement(
     create_owner(owner=owner, org_unit=new_org_unit)
     set_auth(OWNER, owner)
     update_engagement(uuid=engagement, person=person, org_unit=new_org_unit)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_owner_with_input_list(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    create_person: CreatePerson,
+    create_org_unit: CreateOrgUnit,
+    create_owner: CreateOwner,
+    create_engagement: CreateEngagement,
+) -> None:
+    set_auth(ADMIN, None)
+    owner = create_person()
+
+    person1 = create_person()
+    person2 = create_person()
+
+    old_org_unit = create_org_unit(parent=None)
+    new_org_unit = create_org_unit(parent=None)
+
+    engagement1 = str(create_engagement(person=person1, org_unit=old_org_unit))
+    engagement2 = str(create_engagement(person=person2, org_unit=old_org_unit))
+
+    create_owner(owner=owner, org_unit=old_org_unit)
+    create_owner(owner=owner, org_unit=new_org_unit)
+    set_auth(OWNER, owner)
+
+    query = """
+      mutation MoveEngagements($input: [EngagementUpdateInput!]!, $date: DateTime!) {
+        engagements_update(input: $input) {
+          current(at: $date) {
+            uuid
+            org_unit_response {
+              uuid
+              current(at: $date) {
+                name
+              }
+            }
+          }
+        }
+      }
+    """
+
+    r = graphapi_post(
+        query,
+        variables={
+            "date": "2026-05-19",
+            "input": [
+                {
+                    "org_unit": str(new_org_unit),
+                    "uuid": engagement1,
+                    "validity": {"from": "2026-05-19"},
+                },
+                {
+                    "org_unit": str(new_org_unit),
+                    "uuid": engagement2,
+                    "validity": {"from": "2026-05-19"},
+                },
+            ],
+        },
+    )
+
+    assert r.errors is not None
+    assert r.data is not None
