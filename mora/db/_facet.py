@@ -54,11 +54,7 @@ class FacetRelation(_RelationMixin, Base):
     __tablename__ = "facet_relation"
 
     rel_type: Mapped[FacetRelationKode] = mapped_column(
-        Enum(
-            FacetRelationKode,
-            name="facetrelationkode",
-            create_type=False,
-        )
+        Enum(FacetRelationKode, name="facetrelationkode")
     )
 
     facet_registrering_id = Column(ForeignKey("facet_registrering.id"), index=True)

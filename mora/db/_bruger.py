@@ -70,11 +70,7 @@ class BrugerRelation(_RelationMixin, Base):
     __tablename__ = "bruger_relation"
 
     rel_type: Mapped[BrugerRelationKode] = mapped_column(
-        Enum(
-            BrugerRelationKode,
-            name="brugerrelationkode",
-            create_type=False,
-        )
+        Enum(BrugerRelationKode, name="brugerrelationkode")
     )
 
     bruger_registrering_id = Column(ForeignKey("bruger_registrering.id"), index=True)

@@ -75,11 +75,7 @@ class KlasseRelation(_RelationMixin, Base):
     __tablename__ = "klasse_relation"
 
     rel_type: Mapped[KlasseRelationKode] = mapped_column(
-        Enum(
-            KlasseRelationKode,
-            name="klasserelationkode",
-            create_type=False,
-        )
+        Enum(KlasseRelationKode, name="klasserelationkode")
     )
 
     klasse_registrering_id = Column(ForeignKey("klasse_registrering.id"), index=True)
