@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Literal
+import enum
 
 from sqlalchemy import BigInteger
 from sqlalchemy import Column
@@ -58,18 +58,29 @@ class KlasseAttrEgenskaberSoegeord(Base):
     )
 
 
-KlasseRelationKode = Literal[
-    "ansvarlig",
-    "ejer",
-    "facet",
-    "overordnetklasse",
-]
+class KlasseRelationKode(enum.StrEnum):
+    ansvarlig = enum.auto()
+    ejer = enum.auto()
+    erstatter = enum.auto()
+    facet = enum.auto()
+    lovligekombinationer = enum.auto()
+    mapninger = enum.auto()
+    overordnetklasse = enum.auto()
+    redaktoerer = enum.auto()
+    sideordnede = enum.auto()
+    tilfoejelser = enum.auto()
 
 
 class KlasseRelation(_RelationMixin, Base):
     __tablename__ = "klasse_relation"
 
-    rel_type: Mapped[KlasseRelationKode]
+    rel_type: Mapped[KlasseRelationKode] = mapped_column(
+        Enum(
+            KlasseRelationKode,
+            name="klasserelationkode",
+            create_type=False,
+        )
+    )
 
     klasse_registrering_id = Column(ForeignKey("klasse_registrering.id"), index=True)
 
