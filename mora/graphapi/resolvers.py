@@ -50,6 +50,10 @@ from mora.db import FacetRelation
 from mora.db import FacetRelationKode
 from mora.db import FacetTilsPubliceret
 from mora.db import HasValidity
+from mora.db import ITSystemAttrEgenskaber
+from mora.db import ITSystemRegistrering
+from mora.db import ITSystemTilsGyldighed
+from mora.db import KlasseRegistrering
 from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationEnhedRelation
@@ -1733,6 +1737,8 @@ def _get_registrering_clause(
     cls: type[
         BrugerRegistrering
         | FacetRegistrering
+        | ITSystemRegistrering
+        | KlasseRegistrering
         | OrganisationEnhedRegistrering
         | OrganisationFunktionRegistrering
     ],
@@ -1755,11 +1761,13 @@ def _get_virkning_clause(
 def _get_gyldighed_clause(
     registrering_cls: type[
         BrugerRegistrering
+        | ITSystemRegistrering
         | OrganisationEnhedRegistrering
         | OrganisationFunktionRegistrering
     ],
     gyldighed_cls: type[
         BrugerTilsGyldighed
+        | ITSystemTilsGyldighed
         | OrganisationEnhedTilsGyldighed
         | OrganisationFunktionTilsGyldighed
     ],
@@ -2206,24 +2214,112 @@ async def organisation_unit_child_count(
     ).one()
 
 
+async def it_system_resolver_query(
+    info: MOInfo,
+    filter: ITSystemFilter,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Select:
+    # TODO: this function should not be an awaitable
+
+    await registration_filter(info, filter)
+
+    query = (
+        select(
+            distinct(ITSystemRegistrering.itsystem_id),
+        )
+        .where(
+            _get_registrering_clause(
+                ITSystemRegistrering,
+                _get_registration_time(filter, cursor),
+            ),
+            _get_gyldighed_clause(
+                ITSystemRegistrering,
+                ITSystemTilsGyldighed,
+                filter,
+            ),
+        )
+        .order_by(
+            ITSystemRegistrering.itsystem_id,
+        )
+    )
+
+    # UUIDs
+    if filter.uuids is not None:
+        query = query.where(ITSystemRegistrering.itsystem_id.in_(filter.uuids))
+
+    # User keys
+    if filter.user_keys is not None:
+        query = query.where(
+            ITSystemRegistrering.id.in_(
+                select(ITSystemAttrEgenskaber.itsystem_registrering_id).where(
+                    ITSystemAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
+                    _get_virkning_clause(ITSystemAttrEgenskaber, filter),
+                )
+            )
+        )
+
+    # Pagination. Must be done here since the generic_resolver (lora) does not support
+    # filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
+
+    return query
+
+
 async def it_system_resolver(
     info: MOInfo,
     filter: ITSystemFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Any:
+    """Resolve IT systems."""
     if filter is None:
         filter = ITSystemFilter()
 
-    await registration_filter(info, filter)
+    query = await it_system_resolver_query(
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+    )
+
+    # Execute
+    session: AsyncSession = info.context.session
+    result = await session.execute(query)
+    uuids = [row[0] for row in result]
+
+    # See lora.py:fetch()'s is_paged
+    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    if not uuids and is_paged:
+        # There may be multiple LoRa fetches in one GraphQL request, so this
+        # cannot be refactored into always overwriting the value.
+        context["lora_page_out_of_range"] = True
+
+    access_log(
+        session,
+        "filter_itsystems",
+        "ITSystem",
+        {
+            "filter": filter,
+            "limit": limit,
+            "cursor": cursor,
+        },
+        uuids,
+    )
 
     return await generic_resolver(
         info.context.dataloaders.itsystem_getter,
         info.context.dataloaders.itsystem_loader,
         info=info,
-        filter=filter,
-        limit=limit,
-        cursor=cursor,
+        filter=BaseFilter(
+            uuids=uuids,
+            from_date=filter.from_date,
+            to_date=filter.to_date,
+            registration_time=filter.registration_time,
+        ),
     )
 
 
@@ -2796,7 +2892,7 @@ async def generic_resolver(
     # User keys
     if filter.user_keys is not None:
         # Early return on empty user-key list
-        if not filter.user_keys:
+        if not filter.user_keys:  # pragma: no cover
             return dict()
         kwargs["bvn"] = to_similar(filter.user_keys)
 
@@ -2805,9 +2901,9 @@ async def generic_resolver(
         cursor is not None
         and filter.registration_time
         and filter.registration_time != cursor.registration_time
-    ):
+    ):  # pragma: no cover
         raise ValueError("Cannot change registration_time during pagination")
-    if filter.registration_time:
+    if filter.registration_time:  # pragma: no cover
         kwargs["registreringstid"] = str(filter.registration_time)
 
     # Pagination
@@ -2816,7 +2912,7 @@ async def generic_resolver(
     if cursor is not None:
         kwargs["foersteresultat"] = cursor.offset
         kwargs["registreringstid"] = str(cursor.registration_time)
-    if filter.registration_time:
+    if filter.registration_time:  # pragma: no cover
         kwargs["registreringstid"] = str(filter.registration_time)
 
     with with_graphql_dates(dates):

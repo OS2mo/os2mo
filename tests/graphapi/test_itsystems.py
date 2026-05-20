@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
+from typing import Any
 from uuid import UUID
 
 import pytest
@@ -273,3 +275,47 @@ def test_itsystem_delete(graphapi_post) -> None:
         UUID(x["current"]["uuid"]): x for x in response.data["itsystems"]["objects"]
     }
     assert itsystem_map.keys() == existing_itsystem_uuids - {deleted_uuid}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_itsystem_user_key_filter(
+    graphapi_post: GraphAPIPost,
+    create_itsystem: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """Test that itsystems can be filtered by user_key."""
+
+    def make_itsystem(user_key: str) -> UUID:
+        return create_itsystem(
+            {
+                "user_key": user_key,
+                "name": user_key,
+                "validity": {"from": "2024-01-01"},
+            }
+        )
+
+    alpha_uuid = make_itsystem("alpha")
+    beta_uuid = make_itsystem("beta")
+    gamma_uuid = make_itsystem("gamma")
+
+    query = """
+        query ReadITSystems($filter: ITSystemFilter) {
+            itsystems(filter: $filter) {
+                objects {
+                    uuid
+                }
+            }
+        }
+    """
+
+    def read(filter: dict) -> set[UUID]:
+        response = graphapi_post(query, {"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {UUID(o["uuid"]) for o in response.data["itsystems"]["objects"]}
+
+    assert read({}) == {alpha_uuid, beta_uuid, gamma_uuid}
+    assert read({"user_keys": ["alpha"]}) == {alpha_uuid}
+    assert read({"user_keys": ["beta"]}) == {beta_uuid}
+    assert read({"user_keys": ["alpha", "gamma"]}) == {alpha_uuid, gamma_uuid}
+    assert read({"user_keys": ["nonexistent"]}) == set()
