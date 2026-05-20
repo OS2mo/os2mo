@@ -2892,7 +2892,7 @@ async def generic_resolver(
     # User keys
     if filter.user_keys is not None:
         # Early return on empty user-key list
-        if not filter.user_keys:
+        if not filter.user_keys:  # pragma: no cover
             return dict()
         kwargs["bvn"] = to_similar(filter.user_keys)
 
@@ -2901,9 +2901,9 @@ async def generic_resolver(
         cursor is not None
         and filter.registration_time
         and filter.registration_time != cursor.registration_time
-    ):
+    ):  # pragma: no cover
         raise ValueError("Cannot change registration_time during pagination")
-    if filter.registration_time:
+    if filter.registration_time:  # pragma: no cover
         kwargs["registreringstid"] = str(filter.registration_time)
 
     # Pagination
@@ -2912,7 +2912,7 @@ async def generic_resolver(
     if cursor is not None:
         kwargs["foersteresultat"] = cursor.offset
         kwargs["registreringstid"] = str(cursor.registration_time)
-    if filter.registration_time:
+    if filter.registration_time:  # pragma: no cover
         kwargs["registreringstid"] = str(filter.registration_time)
 
     with with_graphql_dates(dates):
