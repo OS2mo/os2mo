@@ -285,11 +285,9 @@ async def facet_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -500,11 +498,9 @@ async def class_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -733,11 +729,9 @@ async def address_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -920,11 +914,9 @@ async def association_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -1086,11 +1078,9 @@ async def employee_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -1280,11 +1270,9 @@ async def engagement_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -1557,11 +1545,9 @@ async def manager_resolver(
     db_result = await session.execute(query)
     uuids = [row[0] for row in db_result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -1759,11 +1745,9 @@ async def owner_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -2230,11 +2214,9 @@ async def organisation_unit_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -2359,11 +2341,9 @@ async def it_system_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -2564,11 +2544,9 @@ async def it_user_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -2702,11 +2680,9 @@ async def kle_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -2858,11 +2834,9 @@ async def leave_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -3032,11 +3006,9 @@ async def related_unit_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -3202,11 +3174,9 @@ async def rolebinding_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(

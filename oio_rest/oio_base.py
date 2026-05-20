@@ -458,10 +458,10 @@ class OIORestObject:
                 )
             uuid_param = args.get("uuid")
             first_result = args.get("foersteresultat")
-            if first_result is not None:
+            if first_result is not None:  # pragma: no cover
                 first_result = int(first_result)
             max_results = args.get("maximalantalresultater")
-            if max_results is not None:
+            if max_results is not None:  # pragma: no cover
                 max_results = int(max_results)
 
             any_attr_value_arr = list_args.get("vilkaarligattr")
