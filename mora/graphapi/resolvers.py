@@ -2965,8 +2965,6 @@ async def generic_resolver(
     getter: Callable[..., Awaitable[dict[UUID, list[MOModel]]]],
     loader: DataLoader,
     filter: BaseFilter,
-    limit: LimitType = None,
-    cursor: CursorType = None,
 ) -> Any:
     """The internal resolve interface."""
     kwargs: dict[str, Any] = {}
@@ -2975,10 +2973,6 @@ async def generic_resolver(
     dates = get_date_interval(filter.from_date, filter.to_date)
     # UUIDs
     if filter.uuids is not None:
-        if limit is not None or cursor is not None:
-            raise ValueError(
-                "Cannot filter 'uuid' with 'limit' or 'cursor'"
-            )  # pragma: no cover
         # Early return on empty UUID list
         if not filter.uuids:
             return dict()
@@ -2998,22 +2992,7 @@ async def generic_resolver(
         kwargs["bvn"] = to_similar(filter.user_keys)
 
     # Registration time lookup
-    if (
-        cursor is not None
-        and filter.registration_time
-        and filter.registration_time != cursor.registration_time
-    ):  # pragma: no cover
-        raise ValueError("Cannot change registration_time during pagination")
-    if filter.registration_time:  # pragma: no cover
-        kwargs["registreringstid"] = str(filter.registration_time)
-
-    # Pagination
-    if limit is not None:
-        kwargs["maximalantalresultater"] = limit
-    if cursor is not None:
-        kwargs["foersteresultat"] = cursor.offset
-        kwargs["registreringstid"] = str(cursor.registration_time)
-    if filter.registration_time:  # pragma: no cover
+    if filter.registration_time:
         kwargs["registreringstid"] = str(filter.registration_time)
 
     with with_graphql_dates(dates):
