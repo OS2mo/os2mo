@@ -2977,7 +2977,7 @@ async def get_by_uuid(
 async def generic_resolver(
     getter: Callable[..., Awaitable[dict[UUID, list[MOModel]]]],
     loader: DataLoader,
-    filter: BaseFilter | None = None,
+    filter: BaseFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
     **kwargs: Any,
@@ -2989,10 +2989,6 @@ async def generic_resolver(
         # Since we are always returning an empty response, no reason to paginate
         context["lora_page_out_of_range"] = True
         return {}
-
-    # Filter
-    if filter is None:
-        filter = BaseFilter()  # pragma: no cover
 
     # Dates
     dates = get_date_interval(filter.from_date, filter.to_date)
