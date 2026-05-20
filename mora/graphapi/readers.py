@@ -39,21 +39,6 @@ def _extract_search_params(query_args: dict[Any | MoOrgFunk, Any]) -> dict[Any, 
     return args
 
 
-async def search_role_type(role_type: str, **kwargs: Any) -> list[dict[str, Any]]:
-    connector = get_connector()
-    handler = get_handler_for_type(role_type)
-    return await handler.get(
-        c=connector,
-        search_fields=_extract_search_params(
-            query_args={
-                "at": None,
-                "validity": None,
-                **kwargs,  # type: ignore
-            }
-        ),
-    )
-
-
 async def get_role_type_by_uuid(
     role_type: str, uuid: list[UUID], registration_time: datetime | None
 ) -> list[dict[str, Any]]:

@@ -5,15 +5,12 @@
 import asyncio
 from collections import defaultdict
 from collections.abc import Callable
-from collections.abc import Iterable
 from datetime import datetime
 from functools import partial
-from typing import Any
 from typing import TypeVar
 from uuid import UUID
 
 from more_itertools import bucket
-from more_itertools import unique_everseen
 from pydantic import parse_obj_as
 from strawberry.dataloader import DataLoader
 from strawberry.types.unset import UnsetType
@@ -40,47 +37,9 @@ from .models import FacetRead
 from .models import RoleBindingRead
 from .momodel import MOModel
 from .readers import get_role_type_by_uuid
-from .readers import search_role_type
 from .resolvers import get_date_interval
 
 RoleType = TypeVar("RoleType")
-
-
-def group_by_uuid(
-    models: Iterable[MOModel], uuids: list[UUID] | None = None
-) -> dict[UUID, list[MOModel]]:
-    """Auxiliary function to group MOModels by their UUID.
-
-    Args:
-        models: List of MOModels to group.
-        uuids: List of UUIDs that have been looked up. Defaults to None.
-
-    Returns:
-        A mapping of uuids and lists of corresponding MOModels.
-    """
-    uuids = uuids if uuids is not None else []
-    buckets = bucket(models, lambda model: model.uuid)
-    # unique keys in order by incoming uuid.
-    # mypy doesn't like bucket for some reason
-    keys = unique_everseen([*uuids, *list(buckets)])  # type: ignore
-    return {key: list(buckets[key]) for key in keys}
-
-
-async def get_mo(model: type[MOModel], **kwargs: Any) -> dict[UUID, list[MOModel]]:
-    """Get data from LoRa and parse into a list of MO models.
-
-    Args:
-        model: The MO model to parse into.
-        kwargs: Additional query arguments passed to LoRa.
-
-    Returns:
-        Mapping from UUID to list of parsed MO models.
-    """
-    mo_type = model.__fields__["type_"].default
-    results = await search_role_type(mo_type, **kwargs)
-    parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore
-    uuid_map = group_by_uuid(parsed_results)
-    return uuid_map
 
 
 async def load_mo(keys: list[LoadKey], model: type[MOModel]) -> list[list[MOModel]]:
