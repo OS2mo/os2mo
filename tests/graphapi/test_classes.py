@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import datetime
+from collections.abc import Callable
 from functools import partial
 from typing import Any
 from unittest import TestCase
@@ -1070,3 +1071,55 @@ async def test_empty_name(graphapi_post: GraphAPIPost):
     assert response.errors is None
     assert response.data is not None
     assert response.data["class_create"]["current"]["name"] == ""
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_class_user_key_filter(
+    graphapi_post: GraphAPIPost,
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """Test that classes can be filtered by user_key."""
+    facet_uuid = create_facet(
+        {
+            "user_key": "test_facet",
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+
+    def make_class(user_key: str) -> UUID:
+        return create_class(
+            {
+                "user_key": user_key,
+                "name": user_key,
+                "facet_uuid": str(facet_uuid),
+                "validity": {"from": "2024-01-01"},
+            }
+        )
+
+    alpha_uuid = make_class("alpha")
+    beta_uuid = make_class("beta")
+    gamma_uuid = make_class("gamma")
+
+    query = """
+        query ReadClasses($filter: ClassFilter) {
+            classes(filter: $filter) {
+                objects {
+                    uuid
+                }
+            }
+        }
+    """
+
+    def read(filter: dict) -> set[UUID]:
+        response = graphapi_post(query, {"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {UUID(o["uuid"]) for o in response.data["classes"]["objects"]}
+
+    assert read({}) == {alpha_uuid, beta_uuid, gamma_uuid}
+    assert read({"user_keys": ["alpha"]}) == {alpha_uuid}
+    assert read({"user_keys": ["beta"]}) == {beta_uuid}
+    assert read({"user_keys": ["alpha", "gamma"]}) == {alpha_uuid, gamma_uuid}
+    assert read({"user_keys": ["nonexistent"]}) == set()
