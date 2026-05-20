@@ -2971,18 +2971,20 @@ async def generic_resolver(
 
     # Dates
     dates = get_date_interval(filter.from_date, filter.to_date)
+
     # UUIDs
-    if filter.uuids is not None:
-        # Early return on empty UUID list
-        if not filter.uuids:
-            return dict()
-        return await get_by_uuid(
-            dataloader=loader,
-            keys=[
-                LoadKey(uuid, dates.from_date, dates.to_date, filter.registration_time)
-                for uuid in filter.uuids
-            ],
-        )
+    assert filter.uuids is not None
+
+    # Early return on empty UUID list
+    if not filter.uuids:
+        return dict()
+    return await get_by_uuid(
+        dataloader=loader,
+        keys=[
+            LoadKey(uuid, dates.from_date, dates.to_date, filter.registration_time)
+            for uuid in filter.uuids
+        ],
+    )
 
     # User keys
     if filter.user_keys is not None:
