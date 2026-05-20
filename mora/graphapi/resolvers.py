@@ -53,7 +53,11 @@ from mora.db import HasValidity
 from mora.db import ITSystemAttrEgenskaber
 from mora.db import ITSystemRegistrering
 from mora.db import ITSystemTilsGyldighed
+from mora.db import KlasseAttrEgenskaber
 from mora.db import KlasseRegistrering
+from mora.db import KlasseRelation
+from mora.db import KlasseRelationKode
+from mora.db import KlasseTilsPubliceret
 from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationEnhedRelation
@@ -347,7 +351,7 @@ async def facet_resolver(
 
 async def class_resolver_query(
     info: MOInfo,
-    filter: FacetFilter,
+    filter: ClassFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Select:
@@ -355,45 +359,91 @@ async def class_resolver_query(
 
     await registration_filter(info, filter)
 
-    async def _get_parent_uuids() -> list[UUID]:
-        parent_filter = filter.parent or FacetFilter()
+    async def _get_facet_uuids() -> list[UUID]:
+        facet_filter = filter.facet or FacetFilter()
         # Handle deprecated filter
-        extend_uuids(parent_filter, filter.parents)
-        extend_user_keys(parent_filter, filter.parent_user_keys)
-        return await filter2uuids_func(facet_resolver, info, parent_filter)
+        extend_uuids(facet_filter, filter.facets)
+        extend_user_keys(facet_filter, filter.facet_user_keys)
+        return await filter2uuids_func(facet_resolver, info, facet_filter)
+
+    async def _get_parent_uuids() -> list[UUID]:
+        class_filter = filter.parent or ClassFilter()
+        # Handle deprecated filter
+        extend_uuids(class_filter, filter.parents)
+        extend_user_keys(class_filter, filter.parent_user_keys)
+        return await filter2uuids_func(class_resolver, info, class_filter)
 
     query = (
         select(
-            distinct(FacetRegistrering.facet_id),
+            distinct(KlasseRegistrering.klasse_id),
         )
         .where(
             _get_registrering_clause(
-                FacetRegistrering,
+                KlasseRegistrering,
                 _get_registration_time(filter, cursor),
             ),
-            FacetRegistrering.id.in_(
-                select(FacetTilsPubliceret.facet_registrering_id).where(
-                    FacetTilsPubliceret.publiceret == "Publiceret",
-                    _get_virkning_clause(FacetTilsPubliceret, filter),
+            KlasseRegistrering.id.in_(
+                select(KlasseTilsPubliceret.klasse_registrering_id).where(
+                    KlasseTilsPubliceret.publiceret == "Publiceret",
+                    _get_virkning_clause(KlasseTilsPubliceret, filter),
                 )
             ),
         )
         .order_by(
-            FacetRegistrering.facet_id,
+            KlasseRegistrering.klasse_id,
         )
     )
 
     # UUIDs
     if filter.uuids is not None:
-        query = query.where(FacetRegistrering.facet_id.in_(filter.uuids))
+        query = query.where(KlasseRegistrering.klasse_id.in_(filter.uuids))
 
     # User keys
     if filter.user_keys is not None:
         query = query.where(
-            FacetRegistrering.id.in_(
-                select(FacetAttrEgenskaber.facet_registrering_id).where(
-                    FacetAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
-                    _get_virkning_clause(FacetAttrEgenskaber, filter),
+            KlasseRegistrering.id.in_(
+                select(KlasseAttrEgenskaber.klasse_registrering_id).where(
+                    KlasseAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
+                    _get_virkning_clause(KlasseAttrEgenskaber, filter),
+                )
+            )
+        )
+
+    # Name
+    if filter.name is not None:
+        query = query.where(
+            KlasseRegistrering.id.in_(
+                select(KlasseAttrEgenskaber.klasse_registrering_id).where(
+                    KlasseAttrEgenskaber.titel.in_(filter.name),
+                    _get_virkning_clause(KlasseAttrEgenskaber, filter),
+                )
+            )
+        )
+
+    # Scope
+    if filter.scope is not None:
+        query = query.where(
+            KlasseRegistrering.id.in_(
+                select(KlasseAttrEgenskaber.klasse_registrering_id).where(
+                    KlasseAttrEgenskaber.omfang.in_(filter.scope),
+                    _get_virkning_clause(KlasseAttrEgenskaber, filter),
+                )
+            )
+        )
+
+    # Facets
+    if (
+        filter.facets is not None
+        or filter.facet_user_keys is not None
+        or filter.facet is not None
+    ):
+        facet_uuids = await _get_facet_uuids()
+        query = query.where(
+            KlasseRegistrering.id.in_(
+                select(KlasseRelation.klasse_registrering_id).where(
+                    KlasseRelation.rel_type == KlasseRelationKode.facet,
+                    KlasseRelation.rel_maal_uuid.in_(facet_uuids),
+                    _get_virkning_clause(KlasseRelation, filter),
                 )
             )
         )
@@ -406,14 +456,53 @@ async def class_resolver_query(
     ):
         parent_uuids = await _get_parent_uuids()
         query = query.where(
-            FacetRegistrering.id.in_(
-                select(FacetRelation.facet_registrering_id).where(
-                    FacetRelation.rel_type == FacetRelationKode.facettilhoerer,
-                    FacetRelation.rel_maal_uuid.in_(parent_uuids),
-                    _get_virkning_clause(FacetRelation, filter),
+            KlasseRegistrering.id.in_(
+                select(KlasseRelation.klasse_registrering_id).where(
+                    KlasseRelation.rel_type == KlasseRelationKode.overordnetklasse,
+                    KlasseRelation.rel_maal_uuid.in_(parent_uuids),
+                    _get_virkning_clause(KlasseRelation, filter),
                 )
             )
         )
+
+    # IT system
+    if filter.it_system is not None:
+        it_system_uuids = await filter2uuids_func(
+            it_system_resolver, info, filter.it_system
+        )
+        query = query.where(
+            KlasseRegistrering.id.in_(
+                select(KlasseRelation.klasse_registrering_id).where(
+                    KlasseRelation.rel_type == KlasseRelationKode.mapninger,
+                    KlasseRelation.rel_maal_uuid.in_(it_system_uuids),
+                    _get_virkning_clause(KlasseRelation, filter),
+                )
+            )
+        )
+
+    # Owner
+    if filter.owner is not None:
+        owner_uuids = await filter2uuids_func(
+            organisation_unit_resolver, info, filter.owner
+        )
+        matched_owner = KlasseRegistrering.id.in_(
+            select(KlasseRelation.klasse_registrering_id).where(
+                KlasseRelation.rel_type == KlasseRelationKode.ejer,
+                KlasseRelation.rel_maal_uuid.in_(owner_uuids),
+                _get_virkning_clause(KlasseRelation, filter),
+            )
+        )
+        if filter.owner.include_none:
+            no_owner = ~KlasseRegistrering.id.in_(
+                select(KlasseRelation.klasse_registrering_id).where(
+                    KlasseRelation.rel_type == KlasseRelationKode.ejer,
+                    KlasseRelation.rel_maal_uuid.is_not(None),
+                    _get_virkning_clause(KlasseRelation, filter),
+                )
+            )
+            query = query.where(or_(matched_owner, no_owner))
+        else:
+            query = query.where(matched_owner)
 
     # Pagination. Must be done here since the generic_resolver (lora) does not support
     # filtering on UUIDs and limit/cursor at the same time.
@@ -427,15 +516,15 @@ async def class_resolver_query(
 
 async def class_resolver(
     info: MOInfo,
-    filter: FacetFilter | None = None,
+    filter: ClassFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Any:
-    """Resolve facets."""
+    """Resolve classes."""
     if filter is None:
-        filter = FacetFilter()
+        filter = ClassFilter()
 
-    query = await facet_resolver_query(
+    query = await class_resolver_query(
         info=info,
         filter=filter,
         limit=limit,
@@ -456,8 +545,8 @@ async def class_resolver(
 
     access_log(
         session,
-        "filter_facets",
-        "Facet",
+        "filter_classes",
+        "Klasse",
         {
             "filter": filter,
             "limit": limit,
@@ -467,8 +556,8 @@ async def class_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.facet_getter,
-        info.context.dataloaders.facet_loader,
+        info.context.dataloaders.class_getter,
+        info.context.dataloaders.class_loader,
         info=info,
         filter=BaseFilter(
             uuids=uuids,
