@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import dataclasses
-import re
 from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
@@ -167,21 +166,6 @@ async def get_org_unit_uuids(info: MOInfo, filter: Any) -> list[UUID]:
     # Handle deprecated filter
     extend_uuids(org_unit_filter, filter.org_units)
     return await filter2uuids_func(organisation_unit_resolver, info, org_unit_filter)
-
-
-def to_similar(keys: list[str]) -> str:
-    # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
-    # to 'AND' filters of the same name, e.g. 'http://lora?bvn=x&bvn=y' means
-    # "bvn is x AND Y", which is never true. Ideally, we'd use a different query
-    # parameter key for these queries - such as '&bvn~=foo' - but unfortunately
-    # such keys are hard-coded in a LOT of different places throughout LoRa.
-    # For this reason, it is easier to pass the sentinel in the VALUE at this
-    # point in time.
-    # Additionally, the values are regex-escaped since the joined string will be
-    # interpreted as one big regular expression in LoRa's SQL.
-    use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
-    escaped_keys = (re.escape(k) for k in keys)
-    return use_is_similar_sentinel + "|".join(escaped_keys)
 
 
 async def registration_filter(info: MOInfo, filter: Any) -> None:
