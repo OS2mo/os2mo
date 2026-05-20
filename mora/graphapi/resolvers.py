@@ -44,6 +44,11 @@ from mora.db import BrugerRegistrering
 from mora.db import BrugerRelation
 from mora.db import BrugerRelationKode
 from mora.db import BrugerTilsGyldighed
+from mora.db import FacetAttrEgenskaber
+from mora.db import FacetRegistrering
+from mora.db import FacetRelation
+from mora.db import FacetRelationKode
+from mora.db import FacetTilsPubliceret
 from mora.db import HasValidity
 from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
@@ -202,6 +207,86 @@ async def registration_filter(info: MOInfo, filter: Any) -> None:
     extend_uuids(filter, uuids)  # pragma: no cover
 
 
+async def facet_resolver_query(
+    info: MOInfo,
+    filter: FacetFilter,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Select:
+    # TODO: this function should not be an awaitable
+
+    await registration_filter(info, filter)
+
+    async def _get_parent_uuids() -> list[UUID]:
+        parent_filter = filter.parent or FacetFilter()
+        # Handle deprecated filter
+        extend_uuids(parent_filter, filter.parents)
+        extend_user_keys(parent_filter, filter.parent_user_keys)
+        return await filter2uuids_func(facet_resolver, info, parent_filter)
+
+    query = (
+        select(
+            distinct(FacetRegistrering.facet_id),
+        )
+        .where(
+            _get_registrering_clause(
+                FacetRegistrering,
+                _get_registration_time(filter, cursor),
+            ),
+            FacetRegistrering.id.in_(
+                select(FacetTilsPubliceret.facet_registrering_id).where(
+                    FacetTilsPubliceret.publiceret == "Publiceret",
+                    _get_virkning_clause(FacetTilsPubliceret, filter),
+                )
+            ),
+        )
+        .order_by(
+            FacetRegistrering.facet_id,
+        )
+    )
+
+    # UUIDs
+    if filter.uuids is not None:
+        query = query.where(FacetRegistrering.facet_id.in_(filter.uuids))
+
+    # User keys
+    if filter.user_keys is not None:
+        query = query.where(
+            FacetRegistrering.id.in_(
+                select(FacetAttrEgenskaber.facet_registrering_id).where(
+                    FacetAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
+                    _get_virkning_clause(FacetAttrEgenskaber, filter),
+                )
+            )
+        )
+
+    # Parents
+    if (
+        filter.parents is not None
+        or filter.parent_user_keys is not None
+        or filter.parent is not None
+    ):
+        parent_uuids = await _get_parent_uuids()
+        query = query.where(
+            FacetRegistrering.id.in_(
+                select(FacetRelation.facet_registrering_id).where(
+                    FacetRelation.rel_type == FacetRelationKode.facettilhoerer,
+                    FacetRelation.rel_maal_uuid.in_(parent_uuids),
+                    _get_virkning_clause(FacetRelation, filter),
+                )
+            )
+        )
+
+    # Pagination. Must be done here since the generic_resolver (lora) does not support
+    # filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
+
+    return query
+
+
 async def facet_resolver(
     info: MOInfo,
     filter: FacetFilter | None = None,
@@ -209,35 +294,50 @@ async def facet_resolver(
     cursor: CursorType = None,
 ) -> Any:
     """Resolve facets."""
-
-    async def _get_parent_uuids(info: MOInfo, filter: FacetFilter) -> list[UUID]:
-        facet_filter = filter.parent or FacetFilter()
-        # Handle deprecated filter
-        extend_uuids(facet_filter, filter.parents)
-        extend_user_keys(facet_filter, filter.parent_user_keys)
-        return lora_filter(await filter2uuids_func(facet_resolver, info, facet_filter))
-
     if filter is None:
         filter = FacetFilter()
 
-    await registration_filter(info, filter)
+    query = await facet_resolver_query(
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+    )
 
-    kwargs = {}
-    if (
-        filter.parents is not None
-        or filter.parent_user_keys is not None
-        or filter.parent is not None
-    ):
-        kwargs["facettilhoerer"] = await _get_parent_uuids(info, filter)
+    # Execute
+    session: AsyncSession = info.context.session
+    result = await session.execute(query)
+    uuids = [row[0] for row in result]
+
+    # See lora.py:fetch()'s is_paged
+    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    if not uuids and is_paged:
+        # There may be multiple LoRa fetches in one GraphQL request, so this
+        # cannot be refactored into always overwriting the value.
+        context["lora_page_out_of_range"] = True
+
+    access_log(
+        session,
+        "filter_facets",
+        "Facet",
+        {
+            "filter": filter,
+            "limit": limit,
+            "cursor": cursor,
+        },
+        uuids,
+    )
 
     return await generic_resolver(
         info.context.dataloaders.facet_getter,
         info.context.dataloaders.facet_loader,
         info=info,
-        filter=filter,
-        limit=limit,
-        cursor=cursor,
-        **kwargs,
+        filter=BaseFilter(
+            uuids=uuids,
+            from_date=filter.from_date,
+            to_date=filter.to_date,
+            registration_time=filter.registration_time,
+        ),
     )
 
 
@@ -1632,6 +1732,7 @@ def _get_registration_time(
 def _get_registrering_clause(
     cls: type[
         BrugerRegistrering
+        | FacetRegistrering
         | OrganisationEnhedRegistrering
         | OrganisationFunktionRegistrering
     ],
