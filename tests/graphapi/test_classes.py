@@ -552,14 +552,14 @@ async def test_terminate_class(graphapi_post) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-async def test_integration_it_system() -> None:
+def test_integration_it_system(graphapi_post: GraphAPIPost) -> None:
     role_type_facet_uuid = "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7"
     sap_it_system_uuid = "14466fb0-f9de-439c-a6c2-b3262c367da7"
     ad_it_system_uuid = "59c135c9-2b15-41cc-97c8-b5dff7180beb"
 
     # Create
-    create_response = await execute_graphql(
-        query="""
+    create_response = graphapi_post(
+        """
             mutation Create($facet_uuid: UUID!, $it_system_uuid: UUID!) {
               class_create(
                 input: {
@@ -574,7 +574,7 @@ async def test_integration_it_system() -> None:
               }
             }
         """,
-        variable_values={
+        variables={
             "facet_uuid": role_type_facet_uuid,
             "it_system_uuid": sap_it_system_uuid,
         },
@@ -596,10 +596,7 @@ async def test_integration_it_system() -> None:
           }
         }
     """
-    response = await execute_graphql(
-        query=read_query,
-        variable_values={"uuid": class_uuid},
-    )
+    response = graphapi_post(read_query, variables={"uuid": class_uuid})
     assert response.errors is None
     assert response.data == {
         "classes": {
@@ -608,8 +605,8 @@ async def test_integration_it_system() -> None:
     }
 
     # Update
-    update_response = await execute_graphql(
-        query="""
+    update_response = graphapi_post(
+        """
             mutation Update(
                 $class_uuid: UUID!,
                 $facet_uuid: UUID!,
@@ -629,7 +626,7 @@ async def test_integration_it_system() -> None:
               }
             }
         """,
-        variable_values={
+        variables={
             "class_uuid": class_uuid,
             "facet_uuid": role_type_facet_uuid,
             "it_system_uuid": ad_it_system_uuid,
@@ -638,10 +635,7 @@ async def test_integration_it_system() -> None:
     assert update_response.errors is None
 
     # Verify
-    response = await execute_graphql(
-        query=read_query,
-        variable_values={"uuid": class_uuid},
-    )
+    response = graphapi_post(read_query, variables={"uuid": class_uuid})
     assert response.errors is None
     assert response.data == {
         "classes": {
@@ -652,7 +646,7 @@ async def test_integration_it_system() -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-async def test_integration_it_system_filter() -> None:
+def test_integration_it_system_filter(graphapi_post: GraphAPIPost) -> None:
     role_type_facet_uuid = "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7"
     sap_it_system_uuid = "14466fb0-f9de-439c-a6c2-b3262c367da7"
     ad_it_system_uuid = "59c135c9-2b15-41cc-97c8-b5dff7180beb"
@@ -677,17 +671,17 @@ async def test_integration_it_system_filter() -> None:
           }
         }
     """
-    await execute_graphql(
-        query=create_mutation,
-        variable_values={
+    graphapi_post(
+        create_mutation,
+        variables={
             "facet_uuid": role_type_facet_uuid,
             "it_system_uuid": sap_it_system_uuid,
             "user_key": "sap",
         },
     )
-    await execute_graphql(
-        query=create_mutation,
-        variable_values={
+    graphapi_post(
+        create_mutation,
+        variables={
             "facet_uuid": role_type_facet_uuid,
             "it_system_uuid": ad_it_system_uuid,
             "user_key": "ad",
@@ -706,17 +700,15 @@ async def test_integration_it_system_filter() -> None:
           }
         }
     """
-    response = await execute_graphql(
-        query=read_query,
-        variable_values={"it_system_uuid": sap_it_system_uuid},
+    response = graphapi_post(
+        read_query, variables={"it_system_uuid": sap_it_system_uuid}
     )
     assert response.errors is None
     assert response.data == {"classes": {"objects": [{"current": {"user_key": "sap"}}]}}
 
     # Filter AD
-    response = await execute_graphql(
-        query=read_query,
-        variable_values={"it_system_uuid": ad_it_system_uuid},
+    response = graphapi_post(
+        read_query, variables={"it_system_uuid": ad_it_system_uuid}
     )
     assert response.errors is None
     assert response.data == {"classes": {"objects": [{"current": {"user_key": "ad"}}]}}
