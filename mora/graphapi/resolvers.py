@@ -73,7 +73,6 @@ from mora.graphapi.context import MOInfo
 from mora.graphapi.custom_schema import get_version
 from mora.graphapi.gmodels.base import tz_isodate
 from mora.graphapi.gmodels.mo.details import EngagementRead
-from mora.graphapi.middleware import with_graphql_dates
 from mora.graphapi.version import Version
 from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
@@ -2967,8 +2966,6 @@ async def generic_resolver(
     filter: BaseFilter,
 ) -> Any:
     """The internal resolve interface."""
-    kwargs: dict[str, Any] = {}
-
     # Dates
     dates = get_date_interval(filter.from_date, filter.to_date)
 
@@ -2978,6 +2975,7 @@ async def generic_resolver(
     # Early return on empty UUID list
     if not filter.uuids:
         return dict()
+
     return await get_by_uuid(
         dataloader=loader,
         keys=[
@@ -2985,20 +2983,6 @@ async def generic_resolver(
             for uuid in filter.uuids
         ],
     )
-
-    # User keys
-    if filter.user_keys is not None:
-        # Early return on empty user-key list
-        if not filter.user_keys:  # pragma: no cover
-            return dict()
-        kwargs["bvn"] = to_similar(filter.user_keys)
-
-    # Registration time lookup
-    if filter.registration_time:
-        kwargs["registreringstid"] = str(filter.registration_time)
-
-    with with_graphql_dates(dates):
-        return await getter(**kwargs)
 
 
 async def related_unit_resolver_query(
