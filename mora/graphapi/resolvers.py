@@ -306,12 +306,10 @@ async def facet_resolver(
 
     return await generic_resolver(
         info.context.dataloaders.facet_loader,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -523,12 +521,10 @@ async def class_resolver(
 
     return await generic_resolver(
         info.context.dataloaders.class_loader,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -758,12 +754,10 @@ async def address_resolver(
 
     return await generic_resolver(
         info.context.dataloaders.address_loader,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -947,12 +941,10 @@ async def association_resolver(
 
     associations = await generic_resolver(
         info.context.dataloaders.association_loader,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
     if filter.it_association is not None:
@@ -1066,17 +1058,15 @@ async def employee_resolver(
             raise ValueError("filter.query must be used alone")
         r = await generic_resolver(
             info.context.dataloaders.employee_loader,
-            filter=BaseFilter(
-                uuids=await search_employees(
-                    session=info.context.session,
-                    query=filter.query,
-                    limit=limit,
-                    cursor=cursor,
-                ),
-                from_date=filter.from_date,
-                to_date=filter.to_date,
-                registration_time=filter.registration_time,
+            uuids=await search_employees(
+                session=info.context.session,
+                query=filter.query,
+                limit=limit,
+                cursor=cursor,
             ),
+            from_date=filter.from_date,
+            to_date=filter.to_date,
+            registration_time=filter.registration_time,
         )
         # We don't pass limit/cursor to generic_resolver, since that isn't
         # supported together with `uuid`, so we have to mange pagination.
@@ -1117,12 +1107,10 @@ async def employee_resolver(
 
     return await generic_resolver(
         info.context.dataloaders.employee_loader,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -1313,12 +1301,10 @@ async def engagement_resolver(
 
     return await generic_resolver(
         info.context.dataloaders.engagement_loader,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -1592,12 +1578,10 @@ async def manager_resolver(
 
     result = await generic_resolver(
         info.context.dataloaders.manager_loader,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
     if filter.exclude is not None:
         exclude_uuids = set(
@@ -1796,12 +1780,10 @@ async def owner_resolver(
 
     return await generic_resolver(
         info.context.dataloaders.owner_loader,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -2269,12 +2251,10 @@ async def organisation_unit_resolver(
 
     return await generic_resolver(
         info.context.dataloaders.org_unit_loader,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -2400,12 +2380,10 @@ async def it_system_resolver(
 
     return await generic_resolver(
         info.context.dataloaders.itsystem_loader,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -2607,12 +2585,10 @@ async def it_user_resolver(
 
     return await generic_resolver(
         info.context.dataloaders.ituser_loader,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -2747,12 +2723,10 @@ async def kle_resolver(
 
     return await generic_resolver(
         info.context.dataloaders.kle_loader,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -2905,12 +2879,10 @@ async def leave_resolver(
 
     return await generic_resolver(
         info.context.dataloaders.leave_loader,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -2928,23 +2900,26 @@ async def get_by_uuid(
     }
 
 
-async def generic_resolver(loader: DataLoader, filter: BaseFilter) -> Any:
+async def generic_resolver(
+    loader: DataLoader,
+    uuids: list[UUID],
+    from_date: datetime | UnsetType | None = UNSET,
+    to_date: datetime | UnsetType | None = UNSET,
+    registration_time: datetime | None = None,
+) -> Any:
     """The internal resolve interface."""
     # Dates
-    dates = get_date_interval(filter.from_date, filter.to_date)
-
-    # UUIDs
-    assert filter.uuids is not None
+    dates = get_date_interval(from_date, to_date)
 
     # Early return on empty UUID list
-    if not filter.uuids:
+    if not uuids:
         return dict()
 
     return await get_by_uuid(
         dataloader=loader,
         keys=[
-            LoadKey(uuid, dates.from_date, dates.to_date, filter.registration_time)
-            for uuid in filter.uuids
+            LoadKey(uuid, dates.from_date, dates.to_date, registration_time)
+            for uuid in uuids
         ],
     )
 
@@ -3078,12 +3053,10 @@ async def related_unit_resolver(
 
     return await generic_resolver(
         info.context.dataloaders.rel_unit_loader,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -3250,12 +3223,10 @@ async def rolebinding_resolver(
 
     return await generic_resolver(
         info.context.dataloaders.rolebinding_loader,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
