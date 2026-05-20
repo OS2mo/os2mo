@@ -129,7 +129,6 @@ class SearchQueryBuilder:
         self.__relation_conditions: dict[tuple[str, str | None, bool], list[str]] = (
             defaultdict(list)
         )
-        self.__vacant_managers_hack: set[str] = set()
 
         # eagerly create statement-parts
         self.__reg_table = f"{self.__class_name}_{REG}"
@@ -337,24 +336,9 @@ class SearchQueryBuilder:
         :param relation: the relation object specifying a filter
         :return:
         """
-        # HACK: This is a hack implemented to support checking for vacant managers.
-        #       Vacant managers are encoded in two ways, either:
-        #       * As a tilknyttedebrugere row with nulls in both UUID and URN, or
-        #       * A missing tilknyttedebrugere row
-        #       Depending on whether other validities exist within the same registration.
-        #
-        #       The logic here however should be useful for other emptiness checks.
-        #
-        #       In the future this should be implemented without hacks, but so far
-        #       this is unfortunately the easiest way to expand LoRa.
-        #
-        #       There is similar implementation to this for: LORA-PLEASE-USE-IS-SIMILAR
-        if relation.id == "urn:LORA-PLEASE-FIND-NULL-UUID-AND-URN":
-            self.__vacant_managers_hack.add(relation.type)
-        else:
-            self.__relation_conditions[
-                relation.type, relation.object_type, relation.id_is_uuid
-            ].append(relation.id)
+        self.__relation_conditions[
+            relation.type, relation.object_type, relation.id_is_uuid
+        ].append(relation.id)
 
     def __build_subquery(self):
         """
@@ -404,47 +388,6 @@ class SearchQueryBuilder:
             )
             """
             conditions.append(query)
-
-        for type_ in self.__vacant_managers_hack:
-            table_name = f"{self.__class_name}_{RELATION}"
-            table_alias = f"{table_name}_{type_}"
-            join_table = JoinTable(name=table_name, alias=table_alias)
-
-            # This handles the case where no row exists
-            # This situation occurs when a vacant manager is created as the sole validity
-            # This constructs a validity filter for our subquery, ensuring that the rows
-            # we search for have the same validity as the rest of the query.
-            validity_range_cond = self.__overlap_condition_from_range(
-                fully_qualifying_var_name=f"({join_table.ref}.{VIRKNING}).timeperiod",
-                start=self.__virkning_fra,
-                end=self.__virkning_til,
-            )
-
-            conditions.append(f"""
-            (
-                -- Subquery checking for relation rows of the given type in the
-                -- given interval within our current registration.
-                NOT EXISTS (
-                    SELECT 1
-                      FROM {join_table.name} {join_table.ref}
-                     WHERE {join_table.ref}.{self.__class_name}_{REG}_id = {self.__reg_table}.id
-                       AND {join_table.ref}.rel_type = '{type_}'
-                       AND {validity_range_cond}
-                )
-            ) OR (
-                EXISTS (
-                    SELECT 1
-                      FROM {join_table.name} {join_table.ref}
-                     WHERE {join_table.ref}.{self.__class_name}_{REG}_id = {self.__reg_table}.id
-                       AND {join_table.ref}.rel_type = '{type_}'
-                           -- This handles the case where a row exists, but has double nulls
-                           -- This situation occurs multiple validities exist, where one is vacant
-                       AND {join_table.ref}.rel_maal_uuid is null
-                       AND {join_table.ref}.rel_maal_urn is null
-                       AND {validity_range_cond}
-                )
-            )
-            """)
 
         where_stmt = "\nWHERE " + "\n  AND ".join(conditions)
 
