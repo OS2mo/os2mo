@@ -3,7 +3,6 @@
 import asyncio
 import dataclasses
 import re
-from collections.abc import Awaitable
 from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
@@ -94,7 +93,6 @@ from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
 from .filters import RoleBindingFilter
 from .graphql_utils import LoadKey
-from .momodel import MOModel
 from .paged import CursorType
 from .paged import LimitType
 from .validity import OpenValidityModel
@@ -323,7 +321,6 @@ async def facet_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.facet_getter,
         info.context.dataloaders.facet_loader,
         filter=BaseFilter(
             uuids=uuids,
@@ -541,7 +538,6 @@ async def class_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.class_getter,
         info.context.dataloaders.class_loader,
         filter=BaseFilter(
             uuids=uuids,
@@ -777,7 +773,6 @@ async def address_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.address_getter,
         info.context.dataloaders.address_loader,
         filter=BaseFilter(
             uuids=uuids,
@@ -967,7 +962,6 @@ async def association_resolver(
     )
 
     associations = await generic_resolver(
-        info.context.dataloaders.association_getter,
         info.context.dataloaders.association_loader,
         filter=BaseFilter(
             uuids=uuids,
@@ -1087,7 +1081,6 @@ async def employee_resolver(
         if any(other_fields):
             raise ValueError("filter.query must be used alone")
         r = await generic_resolver(
-            info.context.dataloaders.employee_getter,
             info.context.dataloaders.employee_loader,
             filter=BaseFilter(
                 uuids=await search_employees(
@@ -1139,7 +1132,6 @@ async def employee_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.employee_getter,
         info.context.dataloaders.employee_loader,
         filter=BaseFilter(
             uuids=uuids,
@@ -1336,7 +1328,6 @@ async def engagement_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.engagement_getter,
         info.context.dataloaders.engagement_loader,
         filter=BaseFilter(
             uuids=uuids,
@@ -1616,7 +1607,6 @@ async def manager_resolver(
     )
 
     result = await generic_resolver(
-        info.context.dataloaders.manager_getter,
         info.context.dataloaders.manager_loader,
         filter=BaseFilter(
             uuids=uuids,
@@ -1821,7 +1811,6 @@ async def owner_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.owner_getter,
         info.context.dataloaders.owner_loader,
         filter=BaseFilter(
             uuids=uuids,
@@ -2295,7 +2284,6 @@ async def organisation_unit_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.org_unit_getter,
         info.context.dataloaders.org_unit_loader,
         filter=BaseFilter(
             uuids=uuids,
@@ -2427,7 +2415,6 @@ async def it_system_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.itsystem_getter,
         info.context.dataloaders.itsystem_loader,
         filter=BaseFilter(
             uuids=uuids,
@@ -2635,7 +2622,6 @@ async def it_user_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.ituser_getter,
         info.context.dataloaders.ituser_loader,
         filter=BaseFilter(
             uuids=uuids,
@@ -2776,7 +2762,6 @@ async def kle_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.kle_getter,
         info.context.dataloaders.kle_loader,
         filter=BaseFilter(
             uuids=uuids,
@@ -2935,7 +2920,6 @@ async def leave_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.leave_getter,
         info.context.dataloaders.leave_loader,
         filter=BaseFilter(
             uuids=uuids,
@@ -2960,11 +2944,7 @@ async def get_by_uuid(
     }
 
 
-async def generic_resolver(
-    getter: Callable[..., Awaitable[dict[UUID, list[MOModel]]]],
-    loader: DataLoader,
-    filter: BaseFilter,
-) -> Any:
+async def generic_resolver(loader: DataLoader, filter: BaseFilter) -> Any:
     """The internal resolve interface."""
     # Dates
     dates = get_date_interval(filter.from_date, filter.to_date)
@@ -3113,7 +3093,6 @@ async def related_unit_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.rel_unit_getter,
         info.context.dataloaders.rel_unit_loader,
         filter=BaseFilter(
             uuids=uuids,
@@ -3286,7 +3265,6 @@ async def rolebinding_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.rolebinding_getter,
         info.context.dataloaders.rolebinding_loader,
         filter=BaseFilter(
             uuids=uuids,
