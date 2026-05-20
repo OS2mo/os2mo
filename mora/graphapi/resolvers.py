@@ -345,87 +345,138 @@ async def facet_resolver(
     )
 
 
-async def class_resolver(
+async def class_resolver_query(
     info: MOInfo,
-    filter: ClassFilter | None = None,
+    filter: FacetFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Any:
-    """Resolve classes."""
-
-    async def _get_facet_uuids(info: MOInfo, filter: ClassFilter) -> list[UUID]:
-        facet_filter = filter.facet or FacetFilter()
-        # Handle deprecated filter
-        extend_uuids(facet_filter, filter.facets)
-        extend_user_keys(facet_filter, filter.facet_user_keys)
-        return lora_filter(await filter2uuids_func(facet_resolver, info, facet_filter))
-
-    async def _get_parent_uuids(info: MOInfo, filter: ClassFilter) -> list[UUID]:
-        class_filter = filter.parent or ClassFilter()
-        # Handle deprecated filter
-        extend_uuids(class_filter, filter.parents)
-        extend_user_keys(class_filter, filter.parent_user_keys)
-        return lora_filter(await filter2uuids_func(class_resolver, info, class_filter))
-
-    async def _resolve_org_unit_filter(
-        info: MOInfo, filter: OrganisationUnitFilter
-    ) -> list[UUID]:
-        query = await organisation_unit_resolver_query(info, filter)
-        session: AsyncSession = info.context.session
-        result = await session.scalars(query)
-        return list(result.all())
-
-    if filter is None:
-        filter = ClassFilter()
+) -> Select:
+    # TODO: this function should not be an awaitable
 
     await registration_filter(info, filter)
 
-    kwargs: dict[str, Any] = {}
-    if filter.name is not None:
-        kwargs["titel"] = to_similar(filter.name)
+    async def _get_parent_uuids() -> list[UUID]:
+        parent_filter = filter.parent or FacetFilter()
+        # Handle deprecated filter
+        extend_uuids(parent_filter, filter.parents)
+        extend_user_keys(parent_filter, filter.parent_user_keys)
+        return await filter2uuids_func(facet_resolver, info, parent_filter)
 
-    if (
-        filter.facets is not None
-        or filter.facet_user_keys is not None
-        or filter.facet is not None
-    ):
-        kwargs["facet"] = await _get_facet_uuids(info, filter)
+    query = (
+        select(
+            distinct(FacetRegistrering.facet_id),
+        )
+        .where(
+            _get_registrering_clause(
+                FacetRegistrering,
+                _get_registration_time(filter, cursor),
+            ),
+            FacetRegistrering.id.in_(
+                select(FacetTilsPubliceret.facet_registrering_id).where(
+                    FacetTilsPubliceret.publiceret == "Publiceret",
+                    _get_virkning_clause(FacetTilsPubliceret, filter),
+                )
+            ),
+        )
+        .order_by(
+            FacetRegistrering.facet_id,
+        )
+    )
+
+    # UUIDs
+    if filter.uuids is not None:
+        query = query.where(FacetRegistrering.facet_id.in_(filter.uuids))
+
+    # User keys
+    if filter.user_keys is not None:
+        query = query.where(
+            FacetRegistrering.id.in_(
+                select(FacetAttrEgenskaber.facet_registrering_id).where(
+                    FacetAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
+                    _get_virkning_clause(FacetAttrEgenskaber, filter),
+                )
+            )
+        )
+
+    # Parents
     if (
         filter.parents is not None
         or filter.parent_user_keys is not None
         or filter.parent is not None
     ):
-        kwargs["overordnetklasse"] = await _get_parent_uuids(info, filter)
-    if filter.it_system is not None:
-        kwargs["mapninger"] = lora_filter(
-            await filter2uuids_func(it_system_resolver, info, filter.it_system)
+        parent_uuids = await _get_parent_uuids()
+        query = query.where(
+            FacetRegistrering.id.in_(
+                select(FacetRelation.facet_registrering_id).where(
+                    FacetRelation.rel_type == FacetRelationKode.facettilhoerer,
+                    FacetRelation.rel_maal_uuid.in_(parent_uuids),
+                    _get_virkning_clause(FacetRelation, filter),
+                )
+            )
         )
-    if filter.scope is not None:
-        kwargs["omfang"] = to_similar(filter.scope)
 
-    classes = await generic_resolver(
-        info.context.dataloaders.class_getter,
-        info.context.dataloaders.class_loader,
+    # Pagination. Must be done here since the generic_resolver (lora) does not support
+    # filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
+
+    return query
+
+
+async def class_resolver(
+    info: MOInfo,
+    filter: FacetFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve facets."""
+    if filter is None:
+        filter = FacetFilter()
+
+    query = await facet_resolver_query(
         info=info,
         filter=filter,
         limit=limit,
         cursor=cursor,
-        **kwargs,
     )
 
-    if filter.owner is not None:
-        # This functionality exists, because it's impossible to filter `None` in LoRa.
-        org_units = await _resolve_org_unit_filter(info, filter.owner)
-        classes = {
-            uuid: class_list
-            for uuid, class_list in classes.items()
-            if any(
-                cls.owner in org_units
-                or (filter.owner.include_none and cls.owner is None)
-                for cls in class_list
-            )
-        }
-    return classes
+    # Execute
+    session: AsyncSession = info.context.session
+    result = await session.execute(query)
+    uuids = [row[0] for row in result]
+
+    # See lora.py:fetch()'s is_paged
+    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    if not uuids and is_paged:
+        # There may be multiple LoRa fetches in one GraphQL request, so this
+        # cannot be refactored into always overwriting the value.
+        context["lora_page_out_of_range"] = True
+
+    access_log(
+        session,
+        "filter_facets",
+        "Facet",
+        {
+            "filter": filter,
+            "limit": limit,
+            "cursor": cursor,
+        },
+        uuids,
+    )
+
+    return await generic_resolver(
+        info.context.dataloaders.facet_getter,
+        info.context.dataloaders.facet_loader,
+        info=info,
+        filter=BaseFilter(
+            uuids=uuids,
+            from_date=filter.from_date,
+            to_date=filter.to_date,
+            registration_time=filter.registration_time,
+        ),
+    )
 
 
 async def address_resolver_query(
