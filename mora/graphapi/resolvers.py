@@ -2491,6 +2491,21 @@ async def it_user_predicate(
             )
         )
 
+    # Binding types
+    if filter.binding_types is not None:
+        predicates.append(
+            OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionAttrUdvidelser.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionAttrUdvidelser.udvidelse_2.in_(
+                        filter.binding_types
+                    ),
+                    _get_virkning_clause(OrganisationFunktionAttrUdvidelser, filter),
+                )
+            )
+        )
+
     return and_(*predicates)
 
 

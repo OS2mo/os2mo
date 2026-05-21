@@ -893,6 +893,9 @@ class ITUserUpsert(UUIDBase):
     external_id: str | None = Field(
         description="ID of the user account in the external system."
     )
+    binding_type: str | None = Field(
+        description="Free-form classification of how the IT user is bound to the rest of MO."
+    )
     primary: UUID | None = Field(description="Primary field of the IT user object")
     person: UUID | None = Field(
         description="Reference to the employee for the IT user (if any)."
@@ -912,6 +915,7 @@ class ITUserUpsert(UUIDBase):
         return {
             "uuid": self.uuid,
             "external_id": self.external_id,
+            "binding_type": self.binding_type,
             "primary": gen_uuid(self.primary),
             "person": gen_uuid(self.person),
             "org_unit": gen_uuid(self.org_unit),
