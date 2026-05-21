@@ -3,6 +3,7 @@
 import asyncio
 import dataclasses
 from collections.abc import Callable
+from collections.abc import Sequence
 from datetime import datetime
 from datetime import timedelta
 from functools import lru_cache
@@ -188,7 +189,7 @@ async def facet_resolver_query(
     filter: FacetFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Select:
+) -> Select[tuple[UUID]]:
     # TODO: this function should not be an awaitable
 
     await registration_filter(info, filter)
@@ -282,8 +283,7 @@ async def facet_resolver(
 
     # Execute
     session: AsyncSession = info.context.session
-    result = await session.execute(query)
-    uuids = [row[0] for row in result]
+    uuids = (await session.scalars(query)).all()
 
     # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
@@ -316,7 +316,7 @@ async def class_resolver_query(
     filter: ClassFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Select:
+) -> Select[tuple[UUID]]:
     # TODO: this function should not be an awaitable
 
     await registration_filter(info, filter)
@@ -495,8 +495,7 @@ async def class_resolver(
 
     # Execute
     session: AsyncSession = info.context.session
-    result = await session.execute(query)
-    uuids = [row[0] for row in result]
+    uuids = (await session.scalars(query)).all()
 
     # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
@@ -529,7 +528,7 @@ async def address_resolver_query(
     filter: AddressFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Select:
+) -> Select[tuple[UUID]]:
     # TODO: this function should not be an awaitable
 
     async def _get_address_type_uuids(
@@ -726,8 +725,7 @@ async def address_resolver(
 
     # Execute
     session: AsyncSession = info.context.session
-    result = await session.execute(query)
-    uuids = [row[0] for row in result]
+    uuids = (await session.scalars(query)).all()
 
     # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
@@ -760,7 +758,7 @@ async def association_resolver_query(
     filter: AssociationFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Select:
+) -> Select[tuple[UUID]]:
     # TODO: this function should not be an awaitable
 
     async def _get_association_type_uuids(
@@ -911,8 +909,7 @@ async def association_resolver(
 
     # Execute
     session: AsyncSession = info.context.session
-    result = await session.execute(query)
-    uuids = [row[0] for row in result]
+    uuids = (await session.scalars(query)).all()
 
     # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
@@ -966,7 +963,7 @@ async def employee_resolver_query(
     filter: EmployeeFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Select:
+) -> Select[tuple[UUID]]:
     # TODO: this function should not be an awaitable
 
     await registration_filter(info, filter)
@@ -1075,8 +1072,7 @@ async def employee_resolver(
 
     # Execute
     session: AsyncSession = info.context.session
-    result = await session.execute(query)
-    uuids = [row[0] for row in result]
+    uuids = (await session.scalars(query)).all()
 
     # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
@@ -1109,7 +1105,7 @@ async def engagement_resolver_query(
     filter: EngagementFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Select:
+) -> Select[tuple[UUID]]:
     # TODO: this function should not be an awaitable
 
     await registration_filter(info, filter)
@@ -1267,8 +1263,7 @@ async def engagement_resolver(
 
     # Execute
     session: AsyncSession = info.context.session
-    result = await session.execute(query)
-    uuids = [row[0] for row in result]
+    uuids = (await session.scalars(query)).all()
 
     # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
@@ -1301,7 +1296,7 @@ async def manager_resolver_query(
     filter: ManagerFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Select:
+) -> Select[tuple[UUID]]:
     # TODO: this function should not be an awaitable
 
     await registration_filter(info, filter)
@@ -1542,8 +1537,7 @@ async def manager_resolver(
 
     # Execute
     session: AsyncSession = info.context.session
-    db_result = await session.execute(query)
-    uuids = [row[0] for row in db_result]
+    uuids = (await session.scalars(query)).all()
 
     # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
@@ -1608,7 +1602,7 @@ async def owner_resolver_query(
     filter: OwnerFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Select:
+) -> Select[tuple[UUID]]:
     # TODO: this function should not be an awaitable
 
     def _funktionsnavn() -> ColumnElement:
@@ -1742,8 +1736,7 @@ async def owner_resolver(
 
     # Execute
     session: AsyncSession = info.context.session
-    result = await session.execute(query)
-    uuids = [row[0] for row in result]
+    uuids = (await session.scalars(query)).all()
 
     # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
@@ -1843,7 +1836,7 @@ async def organisation_unit_resolver_query(
     filter: OrganisationUnitFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Select:
+) -> Select[tuple[UUID]]:
     # TODO: this function should not be an awaitable
 
     await registration_filter(info, filter)
@@ -2211,8 +2204,7 @@ async def organisation_unit_resolver(
 
     # Execute
     session: AsyncSession = info.context.session
-    result = await session.execute(query)
-    uuids = [row[0] for row in result]
+    uuids = (await session.scalars(query)).all()
 
     # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
@@ -2269,7 +2261,7 @@ async def it_system_resolver_query(
     filter: ITSystemFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Select:
+) -> Select[tuple[UUID]]:
     # TODO: this function should not be an awaitable
 
     await registration_filter(info, filter)
@@ -2338,8 +2330,7 @@ async def it_system_resolver(
 
     # Execute
     session: AsyncSession = info.context.session
-    result = await session.execute(query)
-    uuids = [row[0] for row in result]
+    uuids = (await session.scalars(query)).all()
 
     # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
@@ -2372,7 +2363,7 @@ async def it_user_resolver_query(
     filter: ITUserFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Select:
+) -> Select[tuple[UUID]]:
     # TODO: this function should not be an awaitable
 
     await registration_filter(info, filter)
@@ -2541,8 +2532,7 @@ async def it_user_resolver(
 
     # Execute
     session: AsyncSession = info.context.session
-    result = await session.execute(query)
-    uuids = [row[0] for row in result]
+    uuids = (await session.scalars(query)).all()
 
     # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
@@ -2575,7 +2565,7 @@ async def kle_resolver_query(
     filter: KLEFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Select:
+) -> Select[tuple[UUID]]:
     # TODO: this function should not be an awaitable
 
     await registration_filter(info, filter)
@@ -2677,8 +2667,7 @@ async def kle_resolver(
 
     # Execute
     session: AsyncSession = info.context.session
-    result = await session.execute(query)
-    uuids = [row[0] for row in result]
+    uuids = (await session.scalars(query)).all()
 
     # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
@@ -2711,7 +2700,7 @@ async def leave_resolver_query(
     filter: LeaveFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Select:
+) -> Select[tuple[UUID]]:
     # TODO: this function should not be an awaitable
 
     await registration_filter(info, filter)
@@ -2831,8 +2820,7 @@ async def leave_resolver(
 
     # Execute
     session: AsyncSession = info.context.session
-    result = await session.execute(query)
-    uuids = [row[0] for row in result]
+    uuids = (await session.scalars(query)).all()
 
     # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
@@ -2876,7 +2864,7 @@ async def get_by_uuid(
 
 async def generic_resolver(
     loader: DataLoader,
-    uuids: list[UUID],
+    uuids: Sequence[UUID],
     from_date: datetime | UnsetType | None = UNSET,
     to_date: datetime | UnsetType | None = UNSET,
     registration_time: datetime | None = None,
@@ -2903,7 +2891,7 @@ async def related_unit_resolver_query(
     filter: RelatedUnitFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Select:
+) -> Select[tuple[UUID]]:
     # TODO: this function should not be an awaitable
 
     def _funktionsnavn() -> ColumnElement:
@@ -3003,8 +2991,7 @@ async def related_unit_resolver(
 
     # Execute
     session: AsyncSession = info.context.session
-    result = await session.execute(query)
-    uuids = [row[0] for row in result]
+    uuids = (await session.scalars(query)).all()
 
     # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
@@ -3037,7 +3024,7 @@ async def rolebinding_resolver_query(
     filter: RoleBindingFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Select:
+) -> Select[tuple[UUID]]:
     # TODO: this function should not be an awaitable
 
     await registration_filter(info, filter)
@@ -3171,8 +3158,7 @@ async def rolebinding_resolver(
 
     # Execute
     session: AsyncSession = info.context.session
-    result = await session.execute(query)
-    uuids = [row[0] for row in result]
+    uuids = (await session.scalars(query)).all()
 
     # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0

@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Sequence
 from typing import Any
 from uuid import UUID
 
@@ -17,7 +18,7 @@ def access_log(
     operation: str,
     class_name: str,
     arguments: dict[str, Any],
-    uuids: list[UUID],
+    uuids: Sequence[UUID],
 ) -> None:
     """Insert an entry into the access log.
 

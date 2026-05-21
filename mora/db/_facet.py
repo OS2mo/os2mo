@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import enum
+from uuid import UUID
 
 from sqlalchemy import BigInteger
 from sqlalchemy import Column
@@ -26,7 +27,7 @@ class Facet(_OIOEntityMixin, Base):
 
 class FacetRegistrering(_RegistreringMixin, Base):
     __tablename__ = "facet_registrering"
-    facet_id = Column(ForeignKey("facet.id"), index=True)
+    facet_id: Mapped[UUID] = mapped_column(ForeignKey("facet.id"), index=True)
     uuid = synonym("facet_id")
 
 
