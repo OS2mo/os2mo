@@ -792,3 +792,78 @@ def test_manager_user_key_filter(
     assert read({"user_keys": ["beta"]}) == {beta_uuid}
     assert read({"user_keys": ["alpha", "gamma"]}) == {alpha_uuid, gamma_uuid}
     assert read({"user_keys": ["nonexistent"]}) == set()
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_manager_engagement_filter(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[[str, UUID | None], UUID],
+    create_person: Callable[[dict[str, Any] | None], UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """Test that managers can be filtered by engagement."""
+    org_unit_uuid = create_org_unit("root")
+    person_uuid = create_person({"given_name": "Xylia", "surname": "Shadowthorn"})
+
+    def make_engagement() -> UUID:
+        return create_engagement(
+            {
+                "engagement_type": str(uuid4()),
+                "job_function": str(uuid4()),
+                "org_unit": str(org_unit_uuid),
+                "person": str(person_uuid),
+                "validity": {"from": "2024-01-01"},
+            }
+        )
+
+    def create_manager(engagement: UUID | None) -> UUID:
+        response = graphapi_post(
+            """
+            mutation CreateManager($input: ManagerCreateInput!) {
+                manager_create(input: $input) { uuid }
+            }
+            """,
+            {
+                "input": {
+                    "manager_level": str(uuid4()),
+                    "manager_type": str(uuid4()),
+                    "responsibility": [],
+                    "org_unit": str(org_unit_uuid),
+                    "person": str(person_uuid),
+                    "engagement": str(engagement) if engagement else None,
+                    "validity": {"from": "2024-01-01"},
+                }
+            },
+        )
+        assert response.errors is None
+        assert response.data is not None
+        return UUID(response.data["manager_create"]["uuid"])
+
+    engagement_alpha = make_engagement()
+    engagement_beta = make_engagement()
+    manager_alpha = create_manager(engagement_alpha)
+    manager_beta = create_manager(engagement_beta)
+    manager_none = create_manager(None)
+
+    query = """
+        query ReadManagers($filter: ManagerFilter) {
+            managers(filter: $filter) {
+                objects { uuid }
+            }
+        }
+    """
+
+    def read(filter: dict) -> set[UUID]:
+        response = graphapi_post(query, {"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {UUID(o["uuid"]) for o in response.data["managers"]["objects"]}
+
+    assert read({}) == {manager_alpha, manager_beta, manager_none}
+    assert read({"engagement": {"uuids": [str(engagement_alpha)]}}) == {manager_alpha}
+    assert read({"engagement": {"uuids": [str(engagement_beta)]}}) == {manager_beta}
+    assert read(
+        {"engagement": {"uuids": [str(engagement_alpha), str(engagement_beta)]}}
+    ) == {manager_alpha, manager_beta}
+    assert read({"engagement": {"uuids": [str(uuid4())]}}) == set()
