@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import dataclasses
-import re
-from collections.abc import Awaitable
 from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
@@ -53,7 +51,11 @@ from mora.db import HasValidity
 from mora.db import ITSystemAttrEgenskaber
 from mora.db import ITSystemRegistrering
 from mora.db import ITSystemTilsGyldighed
+from mora.db import KlasseAttrEgenskaber
 from mora.db import KlasseRegistrering
+from mora.db import KlasseRelation
+from mora.db import KlasseRelationKode
+from mora.db import KlasseTilsPubliceret
 from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationEnhedRelation
@@ -69,7 +71,6 @@ from mora.graphapi.context import MOInfo
 from mora.graphapi.custom_schema import get_version
 from mora.graphapi.gmodels.base import tz_isodate
 from mora.graphapi.gmodels.mo.details import EngagementRead
-from mora.graphapi.middleware import with_graphql_dates
 from mora.graphapi.version import Version
 from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
@@ -91,7 +92,6 @@ from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
 from .filters import RoleBindingFilter
 from .graphql_utils import LoadKey
-from .momodel import MOModel
 from .paged import CursorType
 from .paged import LimitType
 from .validity import OpenValidityModel
@@ -124,18 +124,6 @@ async def filter2uuids_func(
         return filter.uuids
 
     return mapper(await resolver_func(info, filter=filter))
-
-
-HOPEFULLY_NOT_IN_LORA_UUID = UUID("00000000-baad-1dea-ca11-fa11fa11c0de")
-
-
-def lora_filter(uuids: list[UUID]) -> list[UUID]:
-    # If the filter lookup had no results in LoRa, we would return an empty list here.
-    # Unfortunately, filtering a key on an empty list in LoRa is equivalent to _not
-    # filtering on that key at all_. This is obviously very confusing to anyone who has
-    # ever used SQL, but we are too scared to change the behaviour. Instead, to
-    # circumvent this issue, we send a UUID which we know (hope) is never present.
-    return uuids or [HOPEFULLY_NOT_IN_LORA_UUID]
 
 
 def extend_uuids(output_filter: BaseFilter, input: list[UUID] | None) -> None:
@@ -180,34 +168,18 @@ async def get_org_unit_uuids(info: MOInfo, filter: Any) -> list[UUID]:
     return await filter2uuids_func(organisation_unit_resolver, info, org_unit_filter)
 
 
-def to_similar(keys: list[str]) -> str:
-    # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
-    # to 'AND' filters of the same name, e.g. 'http://lora?bvn=x&bvn=y' means
-    # "bvn is x AND Y", which is never true. Ideally, we'd use a different query
-    # parameter key for these queries - such as '&bvn~=foo' - but unfortunately
-    # such keys are hard-coded in a LOT of different places throughout LoRa.
-    # For this reason, it is easier to pass the sentinel in the VALUE at this
-    # point in time.
-    # Additionally, the values are regex-escaped since the joined string will be
-    # interpreted as one big regular expression in LoRa's SQL.
-    use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
-    escaped_keys = (re.escape(k) for k in keys)
-    return use_is_similar_sentinel + "|".join(escaped_keys)
-
-
 async def registration_filter(info: MOInfo, filter: Any) -> None:
     if filter.registration is None:
         return
     from .registration import registration_resolver  # pragma: no cover
 
-    uuids = lora_filter(  # pragma: no cover
-        await filter2uuids_func(
-            registration_resolver,
-            info,
-            filter.registration,
-            lambda objects: [x.uuid for x in objects],
-        )
+    uuids = await filter2uuids_func(  # pragma: no cover
+        registration_resolver,
+        info,
+        filter.registration,
+        lambda objects: [x.uuid for x in objects],
     )
+
     extend_uuids(filter, uuids)  # pragma: no cover
 
 
@@ -313,11 +285,9 @@ async def facet_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -333,16 +303,177 @@ async def facet_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.facet_getter,
         info.context.dataloaders.facet_loader,
-        info=info,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
+
+
+async def class_resolver_query(
+    info: MOInfo,
+    filter: ClassFilter,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Select:
+    # TODO: this function should not be an awaitable
+
+    await registration_filter(info, filter)
+
+    async def _get_facet_uuids() -> list[UUID]:
+        facet_filter = filter.facet or FacetFilter()
+        # Handle deprecated filter
+        extend_uuids(facet_filter, filter.facets)
+        extend_user_keys(facet_filter, filter.facet_user_keys)
+        return await filter2uuids_func(facet_resolver, info, facet_filter)
+
+    async def _get_parent_uuids() -> list[UUID]:
+        class_filter = filter.parent or ClassFilter()
+        # Handle deprecated filter
+        extend_uuids(class_filter, filter.parents)
+        extend_user_keys(class_filter, filter.parent_user_keys)
+        return await filter2uuids_func(class_resolver, info, class_filter)
+
+    query = (
+        select(
+            distinct(KlasseRegistrering.klasse_id),
+        )
+        .where(
+            _get_registrering_clause(
+                KlasseRegistrering,
+                _get_registration_time(filter, cursor),
+            ),
+            KlasseRegistrering.id.in_(
+                select(KlasseTilsPubliceret.klasse_registrering_id).where(
+                    KlasseTilsPubliceret.publiceret == "Publiceret",
+                    _get_virkning_clause(KlasseTilsPubliceret, filter),
+                )
+            ),
+        )
+        .order_by(
+            KlasseRegistrering.klasse_id,
+        )
+    )
+
+    # UUIDs
+    if filter.uuids is not None:
+        query = query.where(KlasseRegistrering.klasse_id.in_(filter.uuids))
+
+    # User keys
+    if filter.user_keys is not None:
+        query = query.where(
+            KlasseRegistrering.id.in_(
+                select(KlasseAttrEgenskaber.klasse_registrering_id).where(
+                    KlasseAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
+                    _get_virkning_clause(KlasseAttrEgenskaber, filter),
+                )
+            )
+        )
+
+    # Name
+    if filter.name is not None:
+        query = query.where(
+            KlasseRegistrering.id.in_(
+                select(KlasseAttrEgenskaber.klasse_registrering_id).where(
+                    KlasseAttrEgenskaber.titel.in_(filter.name),
+                    _get_virkning_clause(KlasseAttrEgenskaber, filter),
+                )
+            )
+        )
+
+    # Scope
+    if filter.scope is not None:
+        query = query.where(
+            KlasseRegistrering.id.in_(
+                select(KlasseAttrEgenskaber.klasse_registrering_id).where(
+                    KlasseAttrEgenskaber.omfang.in_(filter.scope),
+                    _get_virkning_clause(KlasseAttrEgenskaber, filter),
+                )
+            )
+        )
+
+    # Facets
+    if (
+        filter.facets is not None
+        or filter.facet_user_keys is not None
+        or filter.facet is not None
+    ):
+        facet_uuids = await _get_facet_uuids()
+        query = query.where(
+            KlasseRegistrering.id.in_(
+                select(KlasseRelation.klasse_registrering_id).where(
+                    KlasseRelation.rel_type == KlasseRelationKode.facet,
+                    KlasseRelation.rel_maal_uuid.in_(facet_uuids),
+                    _get_virkning_clause(KlasseRelation, filter),
+                )
+            )
+        )
+
+    # Parents
+    if (
+        filter.parents is not None
+        or filter.parent_user_keys is not None
+        or filter.parent is not None
+    ):
+        parent_uuids = await _get_parent_uuids()
+        query = query.where(
+            KlasseRegistrering.id.in_(
+                select(KlasseRelation.klasse_registrering_id).where(
+                    KlasseRelation.rel_type == KlasseRelationKode.overordnetklasse,
+                    KlasseRelation.rel_maal_uuid.in_(parent_uuids),
+                    _get_virkning_clause(KlasseRelation, filter),
+                )
+            )
+        )
+
+    # IT system
+    if filter.it_system is not None:
+        it_system_uuids = await filter2uuids_func(
+            it_system_resolver, info, filter.it_system
+        )
+        query = query.where(
+            KlasseRegistrering.id.in_(
+                select(KlasseRelation.klasse_registrering_id).where(
+                    KlasseRelation.rel_type == KlasseRelationKode.mapninger,
+                    KlasseRelation.rel_maal_uuid.in_(it_system_uuids),
+                    _get_virkning_clause(KlasseRelation, filter),
+                )
+            )
+        )
+
+    # Owner
+    if filter.owner is not None:
+        owner_uuids = await filter2uuids_func(
+            organisation_unit_resolver, info, filter.owner
+        )
+        matched_owner = KlasseRegistrering.id.in_(
+            select(KlasseRelation.klasse_registrering_id).where(
+                KlasseRelation.rel_type == KlasseRelationKode.ejer,
+                KlasseRelation.rel_maal_uuid.in_(owner_uuids),
+                _get_virkning_clause(KlasseRelation, filter),
+            )
+        )
+        if filter.owner.include_none:
+            no_owner = ~KlasseRegistrering.id.in_(
+                select(KlasseRelation.klasse_registrering_id).where(
+                    KlasseRelation.rel_type == KlasseRelationKode.ejer,
+                    KlasseRelation.rel_maal_uuid.is_not(None),
+                    _get_virkning_clause(KlasseRelation, filter),
+                )
+            )
+            query = query.where(or_(matched_owner, no_owner))
+        else:
+            query = query.where(matched_owner)
+
+    # Pagination. Must be done here since the generic_resolver (lora) does not support
+    # filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
+
+    return query
 
 
 async def class_resolver(
@@ -352,80 +483,45 @@ async def class_resolver(
     cursor: CursorType = None,
 ) -> Any:
     """Resolve classes."""
-
-    async def _get_facet_uuids(info: MOInfo, filter: ClassFilter) -> list[UUID]:
-        facet_filter = filter.facet or FacetFilter()
-        # Handle deprecated filter
-        extend_uuids(facet_filter, filter.facets)
-        extend_user_keys(facet_filter, filter.facet_user_keys)
-        return lora_filter(await filter2uuids_func(facet_resolver, info, facet_filter))
-
-    async def _get_parent_uuids(info: MOInfo, filter: ClassFilter) -> list[UUID]:
-        class_filter = filter.parent or ClassFilter()
-        # Handle deprecated filter
-        extend_uuids(class_filter, filter.parents)
-        extend_user_keys(class_filter, filter.parent_user_keys)
-        return lora_filter(await filter2uuids_func(class_resolver, info, class_filter))
-
-    async def _resolve_org_unit_filter(
-        info: MOInfo, filter: OrganisationUnitFilter
-    ) -> list[UUID]:
-        query = await organisation_unit_resolver_query(info, filter)
-        session: AsyncSession = info.context.session
-        result = await session.scalars(query)
-        return list(result.all())
-
     if filter is None:
         filter = ClassFilter()
 
-    await registration_filter(info, filter)
-
-    kwargs: dict[str, Any] = {}
-    if filter.name is not None:
-        kwargs["titel"] = to_similar(filter.name)
-
-    if (
-        filter.facets is not None
-        or filter.facet_user_keys is not None
-        or filter.facet is not None
-    ):
-        kwargs["facet"] = await _get_facet_uuids(info, filter)
-    if (
-        filter.parents is not None
-        or filter.parent_user_keys is not None
-        or filter.parent is not None
-    ):
-        kwargs["overordnetklasse"] = await _get_parent_uuids(info, filter)
-    if filter.it_system is not None:
-        kwargs["mapninger"] = lora_filter(
-            await filter2uuids_func(it_system_resolver, info, filter.it_system)
-        )
-    if filter.scope is not None:
-        kwargs["omfang"] = to_similar(filter.scope)
-
-    classes = await generic_resolver(
-        info.context.dataloaders.class_getter,
-        info.context.dataloaders.class_loader,
+    query = await class_resolver_query(
         info=info,
         filter=filter,
         limit=limit,
         cursor=cursor,
-        **kwargs,
     )
 
-    if filter.owner is not None:
-        # This functionality exists, because it's impossible to filter `None` in LoRa.
-        org_units = await _resolve_org_unit_filter(info, filter.owner)
-        classes = {
-            uuid: class_list
-            for uuid, class_list in classes.items()
-            if any(
-                cls.owner in org_units
-                or (filter.owner.include_none and cls.owner is None)
-                for cls in class_list
-            )
-        }
-    return classes
+    # Execute
+    session: AsyncSession = info.context.session
+    result = await session.execute(query)
+    uuids = [row[0] for row in result]
+
+    # Pagination
+    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    if not uuids and is_paged:
+        context["lora_page_out_of_range"] = True
+
+    access_log(
+        session,
+        "filter_classes",
+        "Klasse",
+        {
+            "filter": filter,
+            "limit": limit,
+            "cursor": cursor,
+        },
+        uuids,
+    )
+
+    return await generic_resolver(
+        info.context.dataloaders.class_loader,
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
+    )
 
 
 async def address_resolver_query(
@@ -633,11 +729,9 @@ async def address_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -653,15 +747,11 @@ async def address_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.address_getter,
         info.context.dataloaders.address_loader,
-        info=info,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -824,11 +914,9 @@ async def association_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -844,15 +932,11 @@ async def association_resolver(
     )
 
     associations = await generic_resolver(
-        info.context.dataloaders.association_getter,
         info.context.dataloaders.association_loader,
-        info=info,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
     if filter.it_association is not None:
@@ -965,20 +1049,16 @@ async def employee_resolver(
         if any(other_fields):
             raise ValueError("filter.query must be used alone")
         r = await generic_resolver(
-            info.context.dataloaders.employee_getter,
             info.context.dataloaders.employee_loader,
-            info=info,
-            filter=BaseFilter(
-                uuids=await search_employees(
-                    session=info.context.session,
-                    query=filter.query,
-                    limit=limit,
-                    cursor=cursor,
-                ),
-                from_date=filter.from_date,
-                to_date=filter.to_date,
-                registration_time=filter.registration_time,
+            uuids=await search_employees(
+                session=info.context.session,
+                query=filter.query,
+                limit=limit,
+                cursor=cursor,
             ),
+            from_date=filter.from_date,
+            to_date=filter.to_date,
+            registration_time=filter.registration_time,
         )
         # We don't pass limit/cursor to generic_resolver, since that isn't
         # supported together with `uuid`, so we have to mange pagination.
@@ -998,11 +1078,9 @@ async def employee_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -1018,15 +1096,11 @@ async def employee_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.employee_getter,
         info.context.dataloaders.employee_loader,
-        info=info,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -1196,11 +1270,9 @@ async def engagement_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -1216,15 +1288,11 @@ async def engagement_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.engagement_getter,
         info.context.dataloaders.engagement_loader,
-        info=info,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -1477,11 +1545,9 @@ async def manager_resolver(
     db_result = await session.execute(query)
     uuids = [row[0] for row in db_result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -1497,15 +1563,11 @@ async def manager_resolver(
     )
 
     result = await generic_resolver(
-        info.context.dataloaders.manager_getter,
         info.context.dataloaders.manager_loader,
-        info=info,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
     if filter.exclude is not None:
         exclude_uuids = set(
@@ -1683,11 +1745,9 @@ async def owner_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -1703,15 +1763,11 @@ async def owner_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.owner_getter,
         info.context.dataloaders.owner_loader,
-        info=info,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -1834,7 +1890,7 @@ async def organisation_unit_resolver_query(
         class_filter = filter.hierarchy or ClassFilter()
         # Handle deprecated filter
         extend_uuids(class_filter, filter.hierarchies)
-        return lora_filter(await filter2uuids_func(class_resolver, info, class_filter))
+        return await filter2uuids_func(class_resolver, info, class_filter)
 
     query = (
         select(
@@ -2158,11 +2214,9 @@ async def organisation_unit_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -2178,15 +2232,11 @@ async def organisation_unit_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.org_unit_getter,
         info.context.dataloaders.org_unit_loader,
-        info=info,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -2291,11 +2341,9 @@ async def it_system_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -2311,15 +2359,11 @@ async def it_system_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.itsystem_getter,
         info.context.dataloaders.itsystem_loader,
-        info=info,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -2500,11 +2544,9 @@ async def it_user_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -2520,15 +2562,11 @@ async def it_user_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.ituser_getter,
         info.context.dataloaders.ituser_loader,
-        info=info,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -2642,11 +2680,9 @@ async def kle_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -2662,15 +2698,11 @@ async def kle_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.kle_getter,
         info.context.dataloaders.kle_loader,
-        info=info,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -2802,11 +2834,9 @@ async def leave_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -2822,15 +2852,11 @@ async def leave_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.leave_getter,
         info.context.dataloaders.leave_loader,
-        info=info,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -2849,74 +2875,27 @@ async def get_by_uuid(
 
 
 async def generic_resolver(
-    getter: Callable[..., Awaitable[dict[UUID, list[MOModel]]]],
     loader: DataLoader,
-    # Ordinary
-    info: MOInfo,
-    filter: BaseFilter | None = None,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-    **kwargs: Any,
+    uuids: list[UUID],
+    from_date: datetime | UnsetType | None = UNSET,
+    to_date: datetime | UnsetType | None = UNSET,
+    registration_time: datetime | None = None,
 ) -> Any:
-    """The internal resolve interface, allowing for kwargs."""
-    # The HOPEFULLY_NOT_IN_LORA_UUID is used to force an empty response from
-    # LoRa, so why even bother asking the database?
-    if any(v == [HOPEFULLY_NOT_IN_LORA_UUID] for v in kwargs.values()):
-        # Since we are always returning an empty response, no reason to paginate
-        context["lora_page_out_of_range"] = True
-        return {}
-
-    # Filter
-    if filter is None:
-        filter = BaseFilter()  # pragma: no cover
-
+    """The internal resolve interface."""
     # Dates
-    dates = get_date_interval(filter.from_date, filter.to_date)
-    # UUIDs
-    if filter.uuids is not None:
-        if limit is not None or cursor is not None:
-            raise ValueError(
-                "Cannot filter 'uuid' with 'limit' or 'cursor'"
-            )  # pragma: no cover
-        # Early return on empty UUID list
-        if not filter.uuids:
-            return dict()
-        return await get_by_uuid(
-            dataloader=loader,
-            keys=[
-                LoadKey(uuid, dates.from_date, dates.to_date, filter.registration_time)
-                for uuid in filter.uuids
-            ],
-        )
+    dates = get_date_interval(from_date, to_date)
 
-    # User keys
-    if filter.user_keys is not None:
-        # Early return on empty user-key list
-        if not filter.user_keys:  # pragma: no cover
-            return dict()
-        kwargs["bvn"] = to_similar(filter.user_keys)
+    # Early return on empty UUID list
+    if not uuids:
+        return dict()
 
-    # Registration time lookup
-    if (
-        cursor is not None
-        and filter.registration_time
-        and filter.registration_time != cursor.registration_time
-    ):  # pragma: no cover
-        raise ValueError("Cannot change registration_time during pagination")
-    if filter.registration_time:  # pragma: no cover
-        kwargs["registreringstid"] = str(filter.registration_time)
-
-    # Pagination
-    if limit is not None:
-        kwargs["maximalantalresultater"] = limit
-    if cursor is not None:
-        kwargs["foersteresultat"] = cursor.offset
-        kwargs["registreringstid"] = str(cursor.registration_time)
-    if filter.registration_time:  # pragma: no cover
-        kwargs["registreringstid"] = str(filter.registration_time)
-
-    with with_graphql_dates(dates):
-        return await getter(**kwargs)
+    return await get_by_uuid(
+        dataloader=loader,
+        keys=[
+            LoadKey(uuid, dates.from_date, dates.to_date, registration_time)
+            for uuid in uuids
+        ],
+    )
 
 
 async def related_unit_resolver_query(
@@ -3027,11 +3006,9 @@ async def related_unit_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -3047,15 +3024,11 @@ async def related_unit_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.rel_unit_getter,
         info.context.dataloaders.rel_unit_loader,
-        info=info,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 
@@ -3201,11 +3174,9 @@ async def rolebinding_resolver(
     result = await session.execute(query)
     uuids = [row[0] for row in result]
 
-    # See lora.py:fetch()'s is_paged
+    # Pagination
     is_paged = limit != 0 and cursor is not None and cursor.offset > 0
     if not uuids and is_paged:
-        # There may be multiple LoRa fetches in one GraphQL request, so this
-        # cannot be refactored into always overwriting the value.
         context["lora_page_out_of_range"] = True
 
     access_log(
@@ -3221,15 +3192,11 @@ async def rolebinding_resolver(
     )
 
     return await generic_resolver(
-        info.context.dataloaders.rolebinding_getter,
         info.context.dataloaders.rolebinding_loader,
-        info=info,
-        filter=BaseFilter(
-            uuids=uuids,
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        ),
+        uuids=uuids,
+        from_date=filter.from_date,
+        to_date=filter.to_date,
+        registration_time=filter.registration_time,
     )
 
 

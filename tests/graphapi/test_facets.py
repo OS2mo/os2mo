@@ -1,8 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from functools import partial
 from typing import Any
 from uuid import UUID
+from uuid import uuid4
 
 import pytest
 from more_itertools import first
@@ -271,3 +273,40 @@ async def test_terminate_facet(graphapi_post) -> None:
             },
         }
     ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_facet_parent_filter(
+    graphapi_post: GraphAPIPost,
+    create_facet: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """Test that facets can be filtered by parent.
+
+    Facet parents cannot be set through the GraphQL mutation, so the parent
+    filter always returns an empty set. The test exercises the SQL filter
+    branch regardless.
+    """
+    alpha_uuid = create_facet({"user_key": "alpha", "validity": {"from": "2024-01-01"}})
+    beta_uuid = create_facet({"user_key": "beta", "validity": {"from": "2024-01-01"}})
+
+    query = """
+        query ReadFacets($filter: FacetFilter) {
+            facets(filter: $filter) {
+                objects { uuid }
+            }
+        }
+    """
+
+    def read(filter: dict) -> set[UUID]:
+        response = graphapi_post(query, {"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {UUID(o["uuid"]) for o in response.data["facets"]["objects"]}
+
+    assert read({}) == {UUID(alpha_uuid), UUID(beta_uuid)}
+    assert read({"parent": {"uuids": [str(alpha_uuid)]}}) == set()
+    assert read({"parents": [str(alpha_uuid)]}) == set()
+    assert read({"parent_user_keys": ["alpha"]}) == set()
+    assert read({"parent": {"user_keys": ["nonexistent"]}}) == set()
+    assert read({"parent": {"uuids": [str(uuid4())]}}) == set()

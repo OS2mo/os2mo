@@ -34,56 +34,24 @@ from mora.graphapi.models import RoleBindingRead
 
 @dataclass
 class MOLoaders:
-    org_loader: DataLoader[int, OrganisationRead]
-    # Organisation Unit
-    org_unit_loader: DataLoader[LoadKey, list[OrganisationUnitRead]]
-    org_unit_getter: Callable[..., Awaitable[dict[UUID, list]]]
-    # Person
-    employee_loader: DataLoader[LoadKey, list[EmployeeRead]]
-    employee_getter: Callable[..., Awaitable[dict[UUID, list]]]
-    # Engagement
-    engagement_loader: DataLoader[LoadKey, list[EngagementRead]]
-    engagement_getter: Callable[..., Awaitable[dict[UUID, list]]]
-    # KLE
-    kle_loader: DataLoader[LoadKey, list[KLERead]]
-    kle_getter: Callable[..., Awaitable[dict[UUID, list]]]
-    # Address
-    address_loader: DataLoader[LoadKey, list[AddressRead]]
-    address_getter: Callable[..., Awaitable[dict[UUID, list]]]
-    # Leave
-    leave_loader: DataLoader[LoadKey, list[LeaveRead]]
-    leave_getter: Callable[..., Awaitable[dict[UUID, list]]]
-    # Association
-    association_loader: DataLoader[LoadKey, list[AssociationRead]]
-    association_getter: Callable[..., Awaitable[dict[UUID, list]]]
-    # Rolebinding
-    rolebinding_loader: DataLoader[LoadKey, list[RoleBindingRead]]
-    rolebinding_getter: Callable[..., Awaitable[dict[UUID, list]]]
-    # ITUser
-    ituser_loader: DataLoader[LoadKey, list[ITUserRead]]
-    ituser_getter: Callable[..., Awaitable[dict[UUID, list]]]
-    # Manager
-    manager_loader: DataLoader[LoadKey, list[ManagerRead]]
-    manager_getter: Callable[..., Awaitable[dict[UUID, list]]]
-    # Owner
-    owner_loader: DataLoader[LoadKey, list[OwnerRead]]
-    owner_getter: Callable[..., Awaitable[dict[UUID, list]]]
-    # Class
-    class_loader: DataLoader[LoadKey, list[ClassRead]]
-    class_getter: Callable[..., Awaitable[dict[UUID, list]]]
-    # Related Organisation Unit
-    rel_unit_loader: DataLoader[LoadKey, list[RelatedUnitRead]]
-    rel_unit_getter: Callable[..., Awaitable[dict[UUID, list]]]
-    # Facet
-    facet_loader: DataLoader[LoadKey, list[FacetRead]]
-    facet_getter: Callable[..., Awaitable[dict[UUID, list]]]
-    # ITSysterm
-    itsystem_loader: DataLoader[LoadKey, list[ITSystemRead]]
-    itsystem_getter: Callable[..., Awaitable[dict[UUID, list]]]
-    # AccessLog Loaders
     access_log_read_loader: DataLoader[UUID, list[UUID]]
-    # Actor Loaders
     actor_name_loader: DataLoader[UUID, str | None]
+    address_loader: DataLoader[LoadKey, list[AddressRead]]
+    association_loader: DataLoader[LoadKey, list[AssociationRead]]
+    class_loader: DataLoader[LoadKey, list[ClassRead]]
+    employee_loader: DataLoader[LoadKey, list[EmployeeRead]]
+    engagement_loader: DataLoader[LoadKey, list[EngagementRead]]
+    facet_loader: DataLoader[LoadKey, list[FacetRead]]
+    itsystem_loader: DataLoader[LoadKey, list[ITSystemRead]]
+    ituser_loader: DataLoader[LoadKey, list[ITUserRead]]
+    kle_loader: DataLoader[LoadKey, list[KLERead]]
+    leave_loader: DataLoader[LoadKey, list[LeaveRead]]
+    manager_loader: DataLoader[LoadKey, list[ManagerRead]]
+    org_loader: DataLoader[int, OrganisationRead]
+    org_unit_loader: DataLoader[LoadKey, list[OrganisationUnitRead]]
+    owner_loader: DataLoader[LoadKey, list[OwnerRead]]
+    rel_unit_loader: DataLoader[LoadKey, list[RelatedUnitRead]]
+    rolebinding_loader: DataLoader[LoadKey, list[RoleBindingRead]]
 
 
 @dataclass

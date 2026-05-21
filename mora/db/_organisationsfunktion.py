@@ -76,11 +76,7 @@ class OrganisationFunktionRelation(_RelationMixin, Base):
     __tablename__ = "organisationfunktion_relation"
 
     rel_type: Mapped[OrganisationFunktionRelationKode] = mapped_column(
-        Enum(
-            OrganisationFunktionRelationKode,
-            name="organisationfunktionrelationkode",
-            create_type=False,
-        )
+        Enum(OrganisationFunktionRelationKode, name="organisationfunktionrelationkode")
     )
 
     organisationfunktion_registrering_id = Column(

@@ -590,19 +590,8 @@ class Scope(BaseScope):
         with suppress(IndexError):
             return jsonable_encoder(result["results"][0])
 
-        # The requested GraphQL pagination is out of range if LoRa returned no results
-        # _because_ of the provided pagination parameters. This check cannot easily be
-        # done at a higher level because the MO reading handlers filter (potentially
-        # all of) the results on top of the SQL filtering in LoRa.
-        # We don't do anything special here, but set a contextvar which can be read by
-        # the GraphQL middleware to return the error to the user.
-        limit = params.get("maximalantalresultater")
-        offset = params.get("foersteresultat", 0)
-        is_paged = is_graphql() and limit != 0 and offset > 0
-        if is_paged:
-            # There may be multiple LoRa fetches in one GraphQL request, so this cannot
-            # be refactored into always overwriting the value.
-            context["lora_page_out_of_range"] = True
+        assert "maximalantalresultater" not in params
+        assert "foersteresultat" not in params
 
         return []
 

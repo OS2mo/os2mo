@@ -257,14 +257,6 @@ class SearchQueryBuilder:
         :param type_: The postgres type
         :return: valid postgres of the form '[comparison-operator] [value]'
         """
-        # Ideally, we'd use a different query parameter key for these queries - such as
-        # '&bvn~=foo' - but unfortunately such keys are hard-coded in a LOT of
-        # different places throughout the code. For this reason, it is easier to
-        # extract the sentinel from the VALUE at this point in time.
-        use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
-        if value.startswith(use_is_similar_sentinel):
-            value = value[len(use_is_similar_sentinel) :]
-            return f"similar to '{cls.improper_sql_escape(value)}'"
         if type_ is ValueType.TEXT:
             # always uses case insensitive matching
             return f"ilike '{cls.improper_sql_escape(value)}'"
