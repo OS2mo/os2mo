@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import enum
+from uuid import UUID
 
 from sqlalchemy import Column
 from sqlalchemy import Enum
@@ -24,7 +25,9 @@ class OrganisationEnhed(_OIOEntityMixin, Base):
 
 class OrganisationEnhedRegistrering(_RegistreringMixin, Base):
     __tablename__ = "organisationenhed_registrering"
-    organisationenhed_id = Column(ForeignKey("organisationenhed.id"), index=True)
+    organisationenhed_id: Mapped[UUID] = mapped_column(
+        ForeignKey("organisationenhed.id"), index=True
+    )
     uuid = synonym("organisationenhed_id")
 
 

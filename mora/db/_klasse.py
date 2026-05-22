@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import enum
+from uuid import UUID
 
 from sqlalchemy import BigInteger
 from sqlalchemy import Column
@@ -26,7 +27,7 @@ class Klasse(_OIOEntityMixin, Base):
 
 class KlasseRegistrering(_RegistreringMixin, Base):
     __tablename__ = "klasse_registrering"
-    klasse_id = Column(ForeignKey("klasse.id"), index=True)
+    klasse_id: Mapped[UUID] = mapped_column(ForeignKey("klasse.id"), index=True)
     uuid = synonym("klasse_id")
 
 

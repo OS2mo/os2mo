@@ -130,7 +130,7 @@ async def test_graphql_rbac(
         )
 
     session = AsyncMock()
-    session.execute.return_value = [[uuid4()]]
+    session.scalars.return_value.all = lambda: [uuid4()]
 
     # Configure context to allow both attribute and dictionary access
     context = AsyncMock()

@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Literal
+from uuid import UUID
 
 from sqlalchemy import Column
 from sqlalchemy import ForeignKey
@@ -27,7 +28,9 @@ class Organisation(_OIOEntityMixin, Base):
 
 class OrganisationRegistrering(_RegistreringMixin, Base):
     __tablename__ = "organisation_registrering"
-    organisation_id = Column(ForeignKey("organisation.id"), index=True)
+    organisation_id: Mapped[UUID] = mapped_column(
+        ForeignKey("organisation.id"), index=True
+    )
     uuid = synonym("organisation_id")
 
 

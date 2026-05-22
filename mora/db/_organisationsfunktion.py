@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import enum
 from typing import Literal
+from uuid import UUID
 
 from sqlalchemy import BigInteger
 from sqlalchemy import Boolean
@@ -29,7 +30,9 @@ class OrganisationFunktion(_OIOEntityMixin, Base):
 
 class OrganisationFunktionRegistrering(_RegistreringMixin, Base):
     __tablename__ = "organisationfunktion_registrering"
-    organisationfunktion_id = Column(ForeignKey("organisationfunktion.id"), index=True)
+    organisationfunktion_id: Mapped[UUID] = mapped_column(
+        ForeignKey("organisationfunktion.id"), index=True
+    )
     uuid = synonym("organisationfunktion_id")
 
 

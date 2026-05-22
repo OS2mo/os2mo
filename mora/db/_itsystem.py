@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Literal
+from uuid import UUID
 
 from sqlalchemy import ARRAY
 from sqlalchemy import Column
@@ -24,7 +25,7 @@ class ITSystem(_OIOEntityMixin, Base):
 
 class ITSystemRegistrering(_RegistreringMixin, Base):
     __tablename__ = "itsystem_registrering"
-    itsystem_id = Column(ForeignKey("itsystem.id"), index=True)
+    itsystem_id: Mapped[UUID] = mapped_column(ForeignKey("itsystem.id"), index=True)
     uuid = synonym("itsystem_id")
 
 
