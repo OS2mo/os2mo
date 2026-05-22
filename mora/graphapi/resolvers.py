@@ -184,14 +184,12 @@ async def registration_filter(info: MOInfo, filter: Any) -> None:
     extend_uuids(filter, uuids)  # pragma: no cover
 
 
-async def facet_resolver_query(
+async def facet_predicate(
     info: MOInfo,
     filter: FacetFilter,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-) -> Select[tuple[UUID]]:
+    registration_time: datetime | SQLNOW,
+) -> ColumnElement:
     # TODO: this function should not be an awaitable
-
     await registration_filter(info, filter)
 
     async def _get_parent_uuids() -> list[UUID]:
@@ -201,34 +199,26 @@ async def facet_resolver_query(
         extend_user_keys(parent_filter, filter.parent_user_keys)
         return await filter2uuids_func(facet_resolver, info, parent_filter)
 
-    query = (
-        select(
-            distinct(FacetRegistrering.facet_id),
-        )
-        .where(
-            _get_registrering_clause(
-                FacetRegistrering,
-                _get_registration_time(filter, cursor),
-            ),
-            FacetRegistrering.id.in_(
-                select(FacetTilsPubliceret.facet_registrering_id).where(
-                    FacetTilsPubliceret.publiceret == "Publiceret",
-                    _get_virkning_clause(FacetTilsPubliceret, filter),
-                )
-            ),
-        )
-        .order_by(
-            FacetRegistrering.facet_id,
-        )
-    )
+    predicates = [
+        _get_registrering_clause(
+            FacetRegistrering,
+            registration_time,
+        ),
+        FacetRegistrering.id.in_(
+            select(FacetTilsPubliceret.facet_registrering_id).where(
+                FacetTilsPubliceret.publiceret == "Publiceret",
+                _get_virkning_clause(FacetTilsPubliceret, filter),
+            )
+        ),
+    ]
 
     # UUIDs
     if filter.uuids is not None:
-        query = query.where(FacetRegistrering.facet_id.in_(filter.uuids))
+        predicates.append(FacetRegistrering.facet_id.in_(filter.uuids))
 
     # User keys
     if filter.user_keys is not None:
-        query = query.where(
+        predicates.append(
             FacetRegistrering.id.in_(
                 select(FacetAttrEgenskaber.facet_registrering_id).where(
                     FacetAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
@@ -244,7 +234,7 @@ async def facet_resolver_query(
         or filter.parent is not None
     ):
         parent_uuids = await _get_parent_uuids()
-        query = query.where(
+        predicates.append(
             FacetRegistrering.id.in_(
                 select(FacetRelation.facet_registrering_id).where(
                     FacetRelation.rel_type == FacetRelationKode.facettilhoerer,
@@ -254,14 +244,7 @@ async def facet_resolver_query(
             )
         )
 
-    # Pagination. Must be done here since the generic_resolver (lora) does not support
-    # filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(cursor.offset)
-
-    return query
+    return and_(*predicates)
 
 
 async def facet_resolver(
@@ -274,12 +257,22 @@ async def facet_resolver(
     if filter is None:
         filter = FacetFilter()
 
-    query = await facet_resolver_query(
+    predicate = await facet_predicate(
         info=info,
         filter=filter,
-        limit=limit,
-        cursor=cursor,
+        registration_time=_get_registration_time(filter, cursor),
     )
+    query = (
+        select(distinct(FacetRegistrering.facet_id))
+        .where(predicate)
+        .order_by(FacetRegistrering.facet_id)
+    )
+    # Pagination must be done here since the generic_resolver (lora) does not
+    # support filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
 
     # Execute
     session: AsyncSession = info.context.session
@@ -311,14 +304,12 @@ async def facet_resolver(
     )
 
 
-async def class_resolver_query(
+async def class_predicate(
     info: MOInfo,
     filter: ClassFilter,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-) -> Select[tuple[UUID]]:
+    registration_time: datetime | SQLNOW,
+) -> ColumnElement:
     # TODO: this function should not be an awaitable
-
     await registration_filter(info, filter)
 
     async def _get_facet_uuids() -> list[UUID]:
@@ -335,34 +326,26 @@ async def class_resolver_query(
         extend_user_keys(class_filter, filter.parent_user_keys)
         return await filter2uuids_func(class_resolver, info, class_filter)
 
-    query = (
-        select(
-            distinct(KlasseRegistrering.klasse_id),
-        )
-        .where(
-            _get_registrering_clause(
-                KlasseRegistrering,
-                _get_registration_time(filter, cursor),
-            ),
-            KlasseRegistrering.id.in_(
-                select(KlasseTilsPubliceret.klasse_registrering_id).where(
-                    KlasseTilsPubliceret.publiceret == "Publiceret",
-                    _get_virkning_clause(KlasseTilsPubliceret, filter),
-                )
-            ),
-        )
-        .order_by(
-            KlasseRegistrering.klasse_id,
-        )
-    )
+    predicates = [
+        _get_registrering_clause(
+            KlasseRegistrering,
+            registration_time,
+        ),
+        KlasseRegistrering.id.in_(
+            select(KlasseTilsPubliceret.klasse_registrering_id).where(
+                KlasseTilsPubliceret.publiceret == "Publiceret",
+                _get_virkning_clause(KlasseTilsPubliceret, filter),
+            )
+        ),
+    ]
 
     # UUIDs
     if filter.uuids is not None:
-        query = query.where(KlasseRegistrering.klasse_id.in_(filter.uuids))
+        predicates.append(KlasseRegistrering.klasse_id.in_(filter.uuids))
 
     # User keys
     if filter.user_keys is not None:
-        query = query.where(
+        predicates.append(
             KlasseRegistrering.id.in_(
                 select(KlasseAttrEgenskaber.klasse_registrering_id).where(
                     KlasseAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
@@ -373,7 +356,7 @@ async def class_resolver_query(
 
     # Name
     if filter.name is not None:
-        query = query.where(
+        predicates.append(
             KlasseRegistrering.id.in_(
                 select(KlasseAttrEgenskaber.klasse_registrering_id).where(
                     KlasseAttrEgenskaber.titel.in_(filter.name),
@@ -384,7 +367,7 @@ async def class_resolver_query(
 
     # Scope
     if filter.scope is not None:
-        query = query.where(
+        predicates.append(
             KlasseRegistrering.id.in_(
                 select(KlasseAttrEgenskaber.klasse_registrering_id).where(
                     KlasseAttrEgenskaber.omfang.in_(filter.scope),
@@ -400,7 +383,7 @@ async def class_resolver_query(
         or filter.facet is not None
     ):
         facet_uuids = await _get_facet_uuids()
-        query = query.where(
+        predicates.append(
             KlasseRegistrering.id.in_(
                 select(KlasseRelation.klasse_registrering_id).where(
                     KlasseRelation.rel_type == KlasseRelationKode.facet,
@@ -417,7 +400,7 @@ async def class_resolver_query(
         or filter.parent is not None
     ):
         parent_uuids = await _get_parent_uuids()
-        query = query.where(
+        predicates.append(
             KlasseRegistrering.id.in_(
                 select(KlasseRelation.klasse_registrering_id).where(
                     KlasseRelation.rel_type == KlasseRelationKode.overordnetklasse,
@@ -432,7 +415,7 @@ async def class_resolver_query(
         it_system_uuids = await filter2uuids_func(
             it_system_resolver, info, filter.it_system
         )
-        query = query.where(
+        predicates.append(
             KlasseRegistrering.id.in_(
                 select(KlasseRelation.klasse_registrering_id).where(
                     KlasseRelation.rel_type == KlasseRelationKode.mapninger,
@@ -462,18 +445,11 @@ async def class_resolver_query(
                     _get_virkning_clause(KlasseRelation, filter),
                 )
             )
-            query = query.where(or_(matched_owner, no_owner))
+            predicates.append(or_(matched_owner, no_owner))
         else:
-            query = query.where(matched_owner)
+            predicates.append(matched_owner)
 
-    # Pagination. Must be done here since the generic_resolver (lora) does not support
-    # filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(cursor.offset)
-
-    return query
+    return and_(*predicates)
 
 
 async def class_resolver(
@@ -486,12 +462,22 @@ async def class_resolver(
     if filter is None:
         filter = ClassFilter()
 
-    query = await class_resolver_query(
+    predicate = await class_predicate(
         info=info,
         filter=filter,
-        limit=limit,
-        cursor=cursor,
+        registration_time=_get_registration_time(filter, cursor),
     )
+    query = (
+        select(distinct(KlasseRegistrering.klasse_id))
+        .where(predicate)
+        .order_by(KlasseRegistrering.klasse_id)
+    )
+    # Pagination must be done here since the generic_resolver (lora) does not
+    # support filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
 
     # Execute
     session: AsyncSession = info.context.session
@@ -523,12 +509,11 @@ async def class_resolver(
     )
 
 
-async def address_resolver_query(
+async def address_predicate(
     info: MOInfo,
     filter: AddressFilter,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-) -> Select[tuple[UUID]]:
+    registration_time: datetime | SQLNOW,
+) -> ColumnElement:
     # TODO: this function should not be an awaitable
 
     async def _get_address_type_uuids(
@@ -552,36 +537,28 @@ async def address_resolver_query(
             )
         )
 
-    query = (
-        select(
-            distinct(OrganisationFunktionRegistrering.organisationfunktion_id),
-        )
-        .where(
-            _get_registrering_clause(
-                OrganisationFunktionRegistrering,
-                _get_registration_time(filter, cursor),
-            ),
-            _get_gyldighed_clause(
-                OrganisationFunktionRegistrering,
-                OrganisationFunktionTilsGyldighed,
-                filter,
-            ),
-            _funktionsnavn(),
-        )
-        .order_by(
-            OrganisationFunktionRegistrering.organisationfunktion_id,
-        )
-    )
+    predicates = [
+        _get_registrering_clause(
+            OrganisationFunktionRegistrering,
+            registration_time,
+        ),
+        _get_gyldighed_clause(
+            OrganisationFunktionRegistrering,
+            OrganisationFunktionTilsGyldighed,
+            filter,
+        ),
+        _funktionsnavn(),
+    ]
 
     # UUIDs
     if filter.uuids is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.organisationfunktion_id.in_(filter.uuids)
         )
 
     # User keys
     if filter.user_keys is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
@@ -599,7 +576,7 @@ async def address_resolver_query(
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
         employee_uuids = await get_employee_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -615,7 +592,7 @@ async def address_resolver_query(
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         org_unit_uuids = await get_org_unit_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -635,7 +612,7 @@ async def address_resolver_query(
         or filter.address_type is not None
     ):
         address_type_uuids = await _get_address_type_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -655,7 +632,7 @@ async def address_resolver_query(
         visibility_uuids = await filter2uuids_func(
             class_resolver, info, filter.visibility
         )
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -681,7 +658,7 @@ async def address_resolver_query(
             tilknyttedefunktioner.extend(
                 await filter2uuids_func(it_user_resolver, info, filter.ituser)
             )
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -696,14 +673,7 @@ async def address_resolver_query(
             )
         )
 
-    # Pagination. Must be done here since the generic_resolver (lora) does not support
-    # filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(cursor.offset)
-
-    return query
+    return and_(*predicates)
 
 
 async def address_resolver(
@@ -716,12 +686,22 @@ async def address_resolver(
     if filter is None:
         filter = AddressFilter()
 
-    query = await address_resolver_query(
+    predicate = await address_predicate(
         info=info,
         filter=filter,
-        limit=limit,
-        cursor=cursor,
+        registration_time=_get_registration_time(filter, cursor),
     )
+    query = (
+        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
+        .where(predicate)
+        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
+    )
+    # Pagination must be done here since the generic_resolver (lora) does not
+    # support filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
 
     # Execute
     session: AsyncSession = info.context.session
@@ -753,12 +733,11 @@ async def address_resolver(
     )
 
 
-async def association_resolver_query(
+async def association_predicate(
     info: MOInfo,
     filter: AssociationFilter,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-) -> Select[tuple[UUID]]:
+    registration_time: datetime | SQLNOW,
+) -> ColumnElement:
     # TODO: this function should not be an awaitable
 
     async def _get_association_type_uuids(
@@ -782,36 +761,28 @@ async def association_resolver_query(
             )
         )
 
-    query = (
-        select(
-            distinct(OrganisationFunktionRegistrering.organisationfunktion_id),
-        )
-        .where(
-            _get_registrering_clause(
-                OrganisationFunktionRegistrering,
-                _get_registration_time(filter, cursor),
-            ),
-            _get_gyldighed_clause(
-                OrganisationFunktionRegistrering,
-                OrganisationFunktionTilsGyldighed,
-                filter,
-            ),
-            _funktionsnavn(),
-        )
-        .order_by(
-            OrganisationFunktionRegistrering.organisationfunktion_id,
-        )
-    )
+    predicates = [
+        _get_registrering_clause(
+            OrganisationFunktionRegistrering,
+            registration_time,
+        ),
+        _get_gyldighed_clause(
+            OrganisationFunktionRegistrering,
+            OrganisationFunktionTilsGyldighed,
+            filter,
+        ),
+        _funktionsnavn(),
+    ]
 
     # UUIDs
     if filter.uuids is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.organisationfunktion_id.in_(filter.uuids)
         )
 
     # User keys
     if filter.user_keys is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
@@ -829,7 +800,7 @@ async def association_resolver_query(
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
         employee_uuids = await get_employee_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -845,7 +816,7 @@ async def association_resolver_query(
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         org_unit_uuids = await get_org_unit_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -865,7 +836,7 @@ async def association_resolver_query(
         or filter.association_type is not None
     ):
         association_type_uuids = await _get_association_type_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -880,14 +851,7 @@ async def association_resolver_query(
             )
         )
 
-    # Pagination. Must be done here since the generic_resolver (lora) does not support
-    # filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(cursor.offset)
-
-    return query
+    return and_(*predicates)
 
 
 async def association_resolver(
@@ -900,12 +864,22 @@ async def association_resolver(
     if filter is None:
         filter = AssociationFilter()
 
-    query = await association_resolver_query(
+    predicate = await association_predicate(
         info=info,
         filter=filter,
-        limit=limit,
-        cursor=cursor,
+        registration_time=_get_registration_time(filter, cursor),
     )
+    query = (
+        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
+        .where(predicate)
+        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
+    )
+    # Pagination must be done here since the generic_resolver (lora) does not
+    # support filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
 
     # Execute
     session: AsyncSession = info.context.session
@@ -958,43 +932,33 @@ async def association_resolver(
     return associations
 
 
-async def employee_resolver_query(
+async def employee_predicate(
     info: MOInfo,
     filter: EmployeeFilter,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-) -> Select[tuple[UUID]]:
+    registration_time: datetime | SQLNOW,
+) -> ColumnElement:
     # TODO: this function should not be an awaitable
-
     await registration_filter(info, filter)
 
-    query = (
-        select(
-            distinct(BrugerRegistrering.bruger_id),
-        )
-        .where(
-            _get_registrering_clause(
-                BrugerRegistrering,
-                _get_registration_time(filter, cursor),
-            ),
-            _get_gyldighed_clause(
-                BrugerRegistrering,
-                BrugerTilsGyldighed,
-                filter,
-            ),
-        )
-        .order_by(
-            BrugerRegistrering.bruger_id,
-        )
-    )
+    predicates = [
+        _get_registrering_clause(
+            BrugerRegistrering,
+            registration_time,
+        ),
+        _get_gyldighed_clause(
+            BrugerRegistrering,
+            BrugerTilsGyldighed,
+            filter,
+        ),
+    ]
 
     # UUIDs
     if filter.uuids is not None:
-        query = query.where(BrugerRegistrering.bruger_id.in_(filter.uuids))
+        predicates.append(BrugerRegistrering.bruger_id.in_(filter.uuids))
 
     # User keys
     if filter.user_keys is not None:
-        query = query.where(
+        predicates.append(
             BrugerRegistrering.id.in_(
                 select(BrugerAttrEgenskaber.bruger_registrering_id).where(
                     BrugerAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
@@ -1005,7 +969,7 @@ async def employee_resolver_query(
 
     # CPR numbers
     if filter.cpr_numbers is not None:
-        query = query.where(
+        predicates.append(
             BrugerRegistrering.id.in_(
                 select(BrugerRelation.bruger_registrering_id).where(
                     BrugerRelation.rel_type == BrugerRelationKode.tilknyttedepersoner,
@@ -1017,14 +981,7 @@ async def employee_resolver_query(
             )
         )
 
-    # Pagination. Must be done here since the generic_resolver (lora) does not support
-    # filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(cursor.offset)
-
-    return query
+    return and_(*predicates)
 
 
 async def employee_resolver(
@@ -1063,12 +1020,22 @@ async def employee_resolver(
             context["lora_page_out_of_range"] = True
         return r
 
-    query = await employee_resolver_query(
+    predicate = await employee_predicate(
         info=info,
         filter=filter,
-        limit=limit,
-        cursor=cursor,
+        registration_time=_get_registration_time(filter, cursor),
     )
+    query = (
+        select(distinct(BrugerRegistrering.bruger_id))
+        .where(predicate)
+        .order_by(BrugerRegistrering.bruger_id)
+    )
+    # Pagination must be done here since the generic_resolver (lora) does not
+    # support filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
 
     # Execute
     session: AsyncSession = info.context.session
@@ -1100,14 +1067,12 @@ async def employee_resolver(
     )
 
 
-async def engagement_resolver_query(
+async def engagement_predicate(
     info: MOInfo,
     filter: EngagementFilter,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-) -> Select[tuple[UUID]]:
+    registration_time: datetime | SQLNOW,
+) -> ColumnElement:
     # TODO: this function should not be an awaitable
-
     await registration_filter(info, filter)
 
     def _funktionsnavn() -> ColumnElement:
@@ -1120,36 +1085,28 @@ async def engagement_resolver_query(
             )
         )
 
-    query = (
-        select(
-            distinct(OrganisationFunktionRegistrering.organisationfunktion_id),
-        )
-        .where(
-            _get_registrering_clause(
-                OrganisationFunktionRegistrering,
-                _get_registration_time(filter, cursor),
-            ),
-            _get_gyldighed_clause(
-                OrganisationFunktionRegistrering,
-                OrganisationFunktionTilsGyldighed,
-                filter,
-            ),
-            _funktionsnavn(),
-        )
-        .order_by(
-            OrganisationFunktionRegistrering.organisationfunktion_id,
-        )
-    )
+    predicates = [
+        _get_registrering_clause(
+            OrganisationFunktionRegistrering,
+            registration_time,
+        ),
+        _get_gyldighed_clause(
+            OrganisationFunktionRegistrering,
+            OrganisationFunktionTilsGyldighed,
+            filter,
+        ),
+        _funktionsnavn(),
+    ]
 
     # UUIDs
     if filter.uuids is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.organisationfunktion_id.in_(filter.uuids)
         )
 
     # User keys
     if filter.user_keys is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
@@ -1167,7 +1124,7 @@ async def engagement_resolver_query(
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
         employee_uuids = await get_employee_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -1183,7 +1140,7 @@ async def engagement_resolver_query(
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         org_unit_uuids = await get_org_unit_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -1201,7 +1158,7 @@ async def engagement_resolver_query(
         job_function_uuids = await filter2uuids_func(
             class_resolver, info, filter.job_function
         )
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -1219,7 +1176,7 @@ async def engagement_resolver_query(
         engagement_type_uuids = await filter2uuids_func(
             class_resolver, info, filter.engagement_type
         )
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -1234,14 +1191,7 @@ async def engagement_resolver_query(
             )
         )
 
-    # Pagination. Must be done here since the generic_resolver (lora) does not support
-    # filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(cursor.offset)
-
-    return query
+    return and_(*predicates)
 
 
 async def engagement_resolver(
@@ -1254,12 +1204,22 @@ async def engagement_resolver(
     if filter is None:
         filter = EngagementFilter()
 
-    query = await engagement_resolver_query(
+    predicate = await engagement_predicate(
         info=info,
         filter=filter,
-        limit=limit,
-        cursor=cursor,
+        registration_time=_get_registration_time(filter, cursor),
     )
+    query = (
+        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
+        .where(predicate)
+        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
+    )
+    # Pagination must be done here since the generic_resolver (lora) does not
+    # support filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
 
     # Execute
     session: AsyncSession = info.context.session
@@ -1291,14 +1251,12 @@ async def engagement_resolver(
     )
 
 
-async def manager_resolver_query(
+async def manager_predicate(
     info: MOInfo,
     filter: ManagerFilter,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-) -> Select[tuple[UUID]]:
+    registration_time: datetime | SQLNOW,
+) -> ColumnElement:
     # TODO: this function should not be an awaitable
-
     await registration_filter(info, filter)
 
     def _funktionsnavn() -> ColumnElement:
@@ -1311,36 +1269,28 @@ async def manager_resolver_query(
             )
         )
 
-    query = (
-        select(
-            distinct(OrganisationFunktionRegistrering.organisationfunktion_id),
-        )
-        .where(
-            _get_registrering_clause(
-                OrganisationFunktionRegistrering,
-                _get_registration_time(filter, cursor),
-            ),
-            _get_gyldighed_clause(
-                OrganisationFunktionRegistrering,
-                OrganisationFunktionTilsGyldighed,
-                filter,
-            ),
-            _funktionsnavn(),
-        )
-        .order_by(
-            OrganisationFunktionRegistrering.organisationfunktion_id,
-        )
-    )
+    predicates = [
+        _get_registrering_clause(
+            OrganisationFunktionRegistrering,
+            registration_time,
+        ),
+        _get_gyldighed_clause(
+            OrganisationFunktionRegistrering,
+            OrganisationFunktionTilsGyldighed,
+            filter,
+        ),
+        _funktionsnavn(),
+    ]
 
     # UUIDs
     if filter.uuids is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.organisationfunktion_id.in_(filter.uuids)
         )
 
     # User keys
     if filter.user_keys is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
@@ -1380,7 +1330,7 @@ async def manager_resolver_query(
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
-            query = query.where(
+            predicates.append(
                 or_(
                     # This handles the case where no row exists
                     # This situation occurs when a vacant manager is created as the sole validity
@@ -1390,7 +1340,7 @@ async def manager_resolver_query(
             )
         elif filter.employee is not UNSET or filter.employees is not None:
             employee_uuids = await get_employee_uuids(info, filter)
-            query = query.where(
+            predicates.append(
                 OrganisationFunktionRegistrering.id.in_(
                     select(
                         OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -1406,7 +1356,7 @@ async def manager_resolver_query(
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
         employee_uuids = await get_employee_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -1422,7 +1372,7 @@ async def manager_resolver_query(
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         org_unit_uuids = await get_org_unit_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -1440,7 +1390,7 @@ async def manager_resolver_query(
         responsibility_uuids = await filter2uuids_func(
             class_resolver, info, filter.responsibility
         )
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -1460,7 +1410,7 @@ async def manager_resolver_query(
         manager_type_uuids = await filter2uuids_func(
             class_resolver, info, filter.manager_type
         )
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -1478,7 +1428,7 @@ async def manager_resolver_query(
         engagement_uuids = await filter2uuids_func(
             engagement_resolver, info, filter.engagement
         )
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -1491,14 +1441,7 @@ async def manager_resolver_query(
             )
         )
 
-    # Pagination. Must be done here since the generic_resolver (lora) does not support
-    # filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(cursor.offset)
-
-    return query
+    return and_(*predicates)
 
 
 async def manager_resolver(
@@ -1528,12 +1471,22 @@ async def manager_resolver(
     if filter is None:
         filter = ManagerFilter()
 
-    query = await manager_resolver_query(
+    predicate = await manager_predicate(
         info=info,
         filter=filter,
-        limit=limit,
-        cursor=cursor,
+        registration_time=_get_registration_time(filter, cursor),
     )
+    query = (
+        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
+        .where(predicate)
+        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
+    )
+    # Pagination must be done here since the generic_resolver (lora) does not
+    # support filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
 
     # Execute
     session: AsyncSession = info.context.session
@@ -1597,12 +1550,11 @@ async def manager_resolver(
     return await manager_resolver(info, filter=child_filter, inherit=True)
 
 
-async def owner_resolver_query(
+async def owner_predicate(
     info: MOInfo,
     filter: OwnerFilter,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-) -> Select[tuple[UUID]]:
+    registration_time: datetime | SQLNOW,
+) -> ColumnElement:
     # TODO: this function should not be an awaitable
 
     def _funktionsnavn() -> ColumnElement:
@@ -1615,36 +1567,28 @@ async def owner_resolver_query(
             )
         )
 
-    query = (
-        select(
-            distinct(OrganisationFunktionRegistrering.organisationfunktion_id),
-        )
-        .where(
-            _get_registrering_clause(
-                OrganisationFunktionRegistrering,
-                _get_registration_time(filter, cursor),
-            ),
-            _get_gyldighed_clause(
-                OrganisationFunktionRegistrering,
-                OrganisationFunktionTilsGyldighed,
-                filter,
-            ),
-            _funktionsnavn(),
-        )
-        .order_by(
-            OrganisationFunktionRegistrering.organisationfunktion_id,
-        )
-    )
+    predicates = [
+        _get_registrering_clause(
+            OrganisationFunktionRegistrering,
+            registration_time,
+        ),
+        _get_gyldighed_clause(
+            OrganisationFunktionRegistrering,
+            OrganisationFunktionTilsGyldighed,
+            filter,
+        ),
+        _funktionsnavn(),
+    ]
 
     # UUIDs
     if filter.uuids is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.organisationfunktion_id.in_(filter.uuids)
         )
 
     # User keys
     if filter.user_keys is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
@@ -1662,7 +1606,7 @@ async def owner_resolver_query(
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
         employee_uuids = await get_employee_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -1678,7 +1622,7 @@ async def owner_resolver_query(
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         org_unit_uuids = await get_org_unit_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -1694,7 +1638,7 @@ async def owner_resolver_query(
     # Owner
     if filter.owner is not None:
         owner_uuids = await filter2uuids_func(employee_resolver, info, filter.owner)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -1707,14 +1651,7 @@ async def owner_resolver_query(
             )
         )
 
-    # Pagination. Must be done here since the generic_resolver (lora) does not support
-    # filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(cursor.offset)
-
-    return query
+    return and_(*predicates)
 
 
 async def owner_resolver(
@@ -1727,12 +1664,22 @@ async def owner_resolver(
     if filter is None:
         filter = OwnerFilter()
 
-    query = await owner_resolver_query(
+    predicate = await owner_predicate(
         info=info,
         filter=filter,
-        limit=limit,
-        cursor=cursor,
+        registration_time=_get_registration_time(filter, cursor),
     )
+    query = (
+        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
+        .where(predicate)
+        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
+    )
+    # Pagination must be done here since the generic_resolver (lora) does not
+    # support filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
 
     # Execute
     session: AsyncSession = info.context.session
@@ -1831,14 +1778,12 @@ def _get_gyldighed_clause(
     )
 
 
-async def organisation_unit_resolver_query(
+async def organisation_unit_predicate(
     info: MOInfo,
     filter: OrganisationUnitFilter,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-) -> Select[tuple[UUID]]:
+    registration_time: datetime | SQLNOW,
+) -> ColumnElement:
     # TODO: this function should not be an awaitable
-
     await registration_filter(info, filter)
 
     async def _get_parent_uuids() -> list[UUID] | Select:
@@ -1874,9 +1819,15 @@ async def organisation_unit_resolver_query(
             return [root_org]
         if filter.parents is not UNSET:
             extend_uuids(org_unit_filter, filter.parents)
-        return await organisation_unit_resolver_query(
+        sub_predicate = await organisation_unit_predicate(
             info=info,
             filter=org_unit_filter,
+            registration_time=registration_time,
+        )
+        return (
+            select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
+            .where(sub_predicate)
+            .order_by(OrganisationEnhedRegistrering.organisationenhed_id)
         )
 
     async def _get_hierarchy_uuids() -> list[UUID]:
@@ -1885,25 +1836,17 @@ async def organisation_unit_resolver_query(
         extend_uuids(class_filter, filter.hierarchies)
         return await filter2uuids_func(class_resolver, info, class_filter)
 
-    query = (
-        select(
-            distinct(OrganisationEnhedRegistrering.organisationenhed_id),
-        )
-        .where(
-            _get_registrering_clause(
-                OrganisationEnhedRegistrering,
-                _get_registration_time(filter, cursor),
-            ),
-            _get_gyldighed_clause(
-                OrganisationEnhedRegistrering,
-                OrganisationEnhedTilsGyldighed,
-                filter,
-            ),
-        )
-        .order_by(
-            OrganisationEnhedRegistrering.organisationenhed_id,
-        )
-    )
+    predicates = [
+        _get_registrering_clause(
+            OrganisationEnhedRegistrering,
+            registration_time,
+        ),
+        _get_gyldighed_clause(
+            OrganisationEnhedRegistrering,
+            OrganisationEnhedTilsGyldighed,
+            filter,
+        ),
+    ]
 
     if filter.engagement is not None:
         # TODO: This should be reimplemented in SQL; #60285
@@ -1934,13 +1877,13 @@ async def organisation_unit_resolver_query(
 
     # UUIDs
     if filter.uuids is not None:
-        query = query.where(
+        predicates.append(
             OrganisationEnhedRegistrering.organisationenhed_id.in_(filter.uuids)
         )
 
     # User keys
     if filter.user_keys is not None:
-        query = query.where(
+        predicates.append(
             OrganisationEnhedRegistrering.id.in_(
                 select(
                     OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
@@ -1955,7 +1898,7 @@ async def organisation_unit_resolver_query(
 
     # Name
     if filter.names is not UNSET and filter.names is not None:
-        query = query.where(
+        predicates.append(
             OrganisationEnhedRegistrering.id.in_(
                 select(
                     OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
@@ -1969,7 +1912,7 @@ async def organisation_unit_resolver_query(
     # Parents
     if filter.parent is not UNSET or filter.parents is not UNSET:
         parent_uuids = await _get_parent_uuids()
-        query = query.where(
+        predicates.append(
             OrganisationEnhedRegistrering.id.in_(
                 select(
                     OrganisationEnhedRelation.organisationenhed_registrering_id
@@ -1986,7 +1929,7 @@ async def organisation_unit_resolver_query(
     if filter.hierarchy is not None or filter.hierarchies is not None:
         # TODO: _get_hierarchy_uuids should not be an awaitable
         hierarchy_uuids = await _get_hierarchy_uuids()
-        query = query.where(
+        predicates.append(
             OrganisationEnhedRegistrering.id.in_(
                 select(
                     OrganisationEnhedRelation.organisationenhed_registrering_id
@@ -2009,9 +1952,15 @@ async def organisation_unit_resolver_query(
         org_unit_filter = (
             filter.descendant or filter.subtree or OrganisationUnitFilter()
         )
-        base_leafs = await organisation_unit_resolver_query(
+        base_leafs_predicate = await organisation_unit_predicate(
             info=info,
             filter=org_unit_filter,
+            registration_time=registration_time,
+        )
+        base_leafs = (
+            select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
+            .where(base_leafs_predicate)
+            .order_by(OrganisationEnhedRegistrering.organisationenhed_id)
         )
         leafs = (
             select(
@@ -2030,7 +1979,7 @@ async def organisation_unit_resolver_query(
             .where(
                 _get_registrering_clause(
                     OrganisationEnhedRegistrering,
-                    _get_registration_time(filter, cursor),
+                    registration_time,
                 ),
             )
             .join(
@@ -2045,7 +1994,7 @@ async def organisation_unit_resolver_query(
             )
         )
         ancestors = leafs.union(parents)
-        query = query.where(
+        predicates.append(
             OrganisationEnhedRegistrering.organisationenhed_id.in_(
                 select(ancestors.c.organisationenhed_id)
             )
@@ -2054,7 +2003,7 @@ async def organisation_unit_resolver_query(
     # Child
     if filter.child is None:
         # Find parents having no children whatsoever
-        query = query.where(
+        predicates.append(
             ~exists(
                 # An org-unit has children iff it is referred to by `rel_maal_uuid`
                 # in an `overordnet` type relation within OrganisationEnhedRelation
@@ -2063,7 +2012,7 @@ async def organisation_unit_resolver_query(
                 .where(
                     _get_registrering_clause(
                         OrganisationEnhedRegistrering,
-                        _get_registration_time(filter, cursor),
+                        registration_time,
                     ),
                     _get_virkning_clause(OrganisationEnhedRelation, filter),
                     OrganisationEnhedRelation.rel_type
@@ -2076,10 +2025,17 @@ async def organisation_unit_resolver_query(
         )
     elif filter.child is not UNSET:
         # Find parents having one of the provided children as a direct child
-        base_query = await organisation_unit_resolver_query(
-            info=info, filter=filter.child
+        child_predicate = await organisation_unit_predicate(
+            info=info,
+            filter=filter.child,
+            registration_time=registration_time,
         )
-        query = query.where(
+        base_query = (
+            select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
+            .where(child_predicate)
+            .order_by(OrganisationEnhedRegistrering.organisationenhed_id)
+        )
+        predicates.append(
             # An org-unit is a parent to one of our provided children iff its
             # UUID is pointed to by `rel_maal_uuid` in an `overordnet` type
             # relation within OrganisationEnhedRelation
@@ -2090,7 +2046,7 @@ async def organisation_unit_resolver_query(
                 .where(
                     _get_registrering_clause(
                         OrganisationEnhedRegistrering,
-                        _get_registration_time(filter, cursor),
+                        registration_time,
                     ),
                     _get_virkning_clause(OrganisationEnhedRelation, filter),
                     OrganisationEnhedRelation.rel_type
@@ -2104,9 +2060,15 @@ async def organisation_unit_resolver_query(
     if filter.ancestor is not UNSET:
         # Find all matching parents and then recursively find their children.
         org_unit_filter = filter.ancestor or OrganisationUnitFilter()
-        base_query = await organisation_unit_resolver_query(
+        ancestor_predicate = await organisation_unit_predicate(
             info=info,
             filter=org_unit_filter,
+            registration_time=registration_time,
+        )
+        base_query = (
+            select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
+            .where(ancestor_predicate)
+            .order_by(OrganisationEnhedRegistrering.organisationenhed_id)
         )
         base = (
             select(
@@ -2125,7 +2087,7 @@ async def organisation_unit_resolver_query(
             .where(
                 _get_registrering_clause(
                     OrganisationEnhedRegistrering,
-                    _get_registration_time(filter, cursor),
+                    registration_time,
                 ),
                 _get_virkning_clause(OrganisationEnhedRelation, filter),
             )
@@ -2140,7 +2102,7 @@ async def organisation_unit_resolver_query(
             )
         )
         descendants = base.union(children)
-        query = query.where(
+        predicates.append(
             OrganisationEnhedRegistrering.organisationenhed_id.in_(
                 select(descendants.c.organisationenhed_id)
             )
@@ -2173,16 +2135,9 @@ async def organisation_unit_resolver_query(
                 )
             )
 
-        query = query.where(or_(*clauses))
+        predicates.append(or_(*clauses))
 
-    # Pagination. Must be done here since the generic_resolver (lora) does not support
-    # filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(cursor.offset)
-
-    return query
+    return and_(*predicates)
 
 
 async def organisation_unit_resolver(
@@ -2195,12 +2150,22 @@ async def organisation_unit_resolver(
     if filter is None:
         filter = OrganisationUnitFilter()
 
-    query = await organisation_unit_resolver_query(
+    predicate = await organisation_unit_predicate(
         info=info,
         filter=filter,
-        limit=limit,
-        cursor=cursor,
+        registration_time=_get_registration_time(filter, cursor),
     )
+    query = (
+        select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
+        .where(predicate)
+        .order_by(OrganisationEnhedRegistrering.organisationenhed_id)
+    )
+    # Pagination must be done here since the generic_resolver (lora) does not
+    # support filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
 
     # Execute
     session: AsyncSession = info.context.session
@@ -2238,7 +2203,16 @@ async def organisation_unit_has_children(
 ) -> bool:
     """Resolve whether an organisation unit has children."""
     assert filter is not None  # cannot be None, but signature required for seeding
-    query = await organisation_unit_resolver_query(info=info, filter=filter)
+    predicate = await organisation_unit_predicate(
+        info=info,
+        filter=filter,
+        registration_time=_get_registration_time(filter, None),
+    )
+    query = (
+        select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
+        .where(predicate)
+        .order_by(OrganisationEnhedRegistrering.organisationenhed_id)
+    )
     session: AsyncSession = info.context.session
     return (await session.scalars(select(exists(query)))).one()
 
@@ -2249,50 +2223,49 @@ async def organisation_unit_child_count(
 ) -> int:
     """Resolve the number of children of an organisation unit."""
     assert filter is not None  # cannot be None, but signature required for seeding
-    query = await organisation_unit_resolver_query(info=info, filter=filter)
+    predicate = await organisation_unit_predicate(
+        info=info,
+        filter=filter,
+        registration_time=_get_registration_time(filter, None),
+    )
+    query = (
+        select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
+        .where(predicate)
+        .order_by(OrganisationEnhedRegistrering.organisationenhed_id)
+    )
     session: AsyncSession = info.context.session
     return (
         await session.scalars(select(func.count()).select_from(query.subquery()))
     ).one()
 
 
-async def it_system_resolver_query(
+async def it_system_predicate(
     info: MOInfo,
     filter: ITSystemFilter,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-) -> Select[tuple[UUID]]:
+    registration_time: datetime | SQLNOW,
+) -> ColumnElement:
     # TODO: this function should not be an awaitable
-
     await registration_filter(info, filter)
 
-    query = (
-        select(
-            distinct(ITSystemRegistrering.itsystem_id),
-        )
-        .where(
-            _get_registrering_clause(
-                ITSystemRegistrering,
-                _get_registration_time(filter, cursor),
-            ),
-            _get_gyldighed_clause(
-                ITSystemRegistrering,
-                ITSystemTilsGyldighed,
-                filter,
-            ),
-        )
-        .order_by(
-            ITSystemRegistrering.itsystem_id,
-        )
-    )
+    predicates = [
+        _get_registrering_clause(
+            ITSystemRegistrering,
+            registration_time,
+        ),
+        _get_gyldighed_clause(
+            ITSystemRegistrering,
+            ITSystemTilsGyldighed,
+            filter,
+        ),
+    ]
 
     # UUIDs
     if filter.uuids is not None:
-        query = query.where(ITSystemRegistrering.itsystem_id.in_(filter.uuids))
+        predicates.append(ITSystemRegistrering.itsystem_id.in_(filter.uuids))
 
     # User keys
     if filter.user_keys is not None:
-        query = query.where(
+        predicates.append(
             ITSystemRegistrering.id.in_(
                 select(ITSystemAttrEgenskaber.itsystem_registrering_id).where(
                     ITSystemAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
@@ -2301,14 +2274,7 @@ async def it_system_resolver_query(
             )
         )
 
-    # Pagination. Must be done here since the generic_resolver (lora) does not support
-    # filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(cursor.offset)
-
-    return query
+    return and_(*predicates)
 
 
 async def it_system_resolver(
@@ -2321,12 +2287,22 @@ async def it_system_resolver(
     if filter is None:
         filter = ITSystemFilter()
 
-    query = await it_system_resolver_query(
+    predicate = await it_system_predicate(
         info=info,
         filter=filter,
-        limit=limit,
-        cursor=cursor,
+        registration_time=_get_registration_time(filter, cursor),
     )
+    query = (
+        select(distinct(ITSystemRegistrering.itsystem_id))
+        .where(predicate)
+        .order_by(ITSystemRegistrering.itsystem_id)
+    )
+    # Pagination must be done here since the generic_resolver (lora) does not
+    # support filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
 
     # Execute
     session: AsyncSession = info.context.session
@@ -2358,14 +2334,12 @@ async def it_system_resolver(
     )
 
 
-async def it_user_resolver_query(
+async def it_user_predicate(
     info: MOInfo,
     filter: ITUserFilter,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-) -> Select[tuple[UUID]]:
+    registration_time: datetime | SQLNOW,
+) -> ColumnElement:
     # TODO: this function should not be an awaitable
-
     await registration_filter(info, filter)
 
     def _funktionsnavn() -> ColumnElement:
@@ -2378,36 +2352,28 @@ async def it_user_resolver_query(
             )
         )
 
-    query = (
-        select(
-            distinct(OrganisationFunktionRegistrering.organisationfunktion_id),
-        )
-        .where(
-            _get_registrering_clause(
-                OrganisationFunktionRegistrering,
-                _get_registration_time(filter, cursor),
-            ),
-            _get_gyldighed_clause(
-                OrganisationFunktionRegistrering,
-                OrganisationFunktionTilsGyldighed,
-                filter,
-            ),
-            _funktionsnavn(),
-        )
-        .order_by(
-            OrganisationFunktionRegistrering.organisationfunktion_id,
-        )
-    )
+    predicates = [
+        _get_registrering_clause(
+            OrganisationFunktionRegistrering,
+            registration_time,
+        ),
+        _get_gyldighed_clause(
+            OrganisationFunktionRegistrering,
+            OrganisationFunktionTilsGyldighed,
+            filter,
+        ),
+        _funktionsnavn(),
+    ]
 
     # UUIDs
     if filter.uuids is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.organisationfunktion_id.in_(filter.uuids)
         )
 
     # User keys
     if filter.user_keys is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
@@ -2425,7 +2391,7 @@ async def it_user_resolver_query(
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
         employee_uuids = await get_employee_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -2441,7 +2407,7 @@ async def it_user_resolver_query(
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         org_unit_uuids = await get_org_unit_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -2457,7 +2423,7 @@ async def it_user_resolver_query(
     # IT systems
     if filter.itsystem_uuids is not None or filter.itsystem is not None:
         itsystem_uuids = await get_itsystem_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -2475,7 +2441,7 @@ async def it_user_resolver_query(
         engagement_uuids = await filter2uuids_func(
             engagement_resolver, info, filter.engagement
         )
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -2490,7 +2456,7 @@ async def it_user_resolver_query(
 
     # External IDs
     if filter.external_ids is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionAttrUdvidelser.organisationfunktion_registrering_id
@@ -2503,14 +2469,7 @@ async def it_user_resolver_query(
             )
         )
 
-    # Pagination. Must be done here since the generic_resolver (lora) does not support
-    # filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(cursor.offset)
-
-    return query
+    return and_(*predicates)
 
 
 async def it_user_resolver(
@@ -2523,12 +2482,22 @@ async def it_user_resolver(
     if filter is None:
         filter = ITUserFilter()
 
-    query = await it_user_resolver_query(
+    predicate = await it_user_predicate(
         info=info,
         filter=filter,
-        limit=limit,
-        cursor=cursor,
+        registration_time=_get_registration_time(filter, cursor),
     )
+    query = (
+        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
+        .where(predicate)
+        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
+    )
+    # Pagination must be done here since the generic_resolver (lora) does not
+    # support filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
 
     # Execute
     session: AsyncSession = info.context.session
@@ -2560,14 +2529,12 @@ async def it_user_resolver(
     )
 
 
-async def kle_resolver_query(
+async def kle_predicate(
     info: MOInfo,
     filter: KLEFilter,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-) -> Select[tuple[UUID]]:
+    registration_time: datetime | SQLNOW,
+) -> ColumnElement:
     # TODO: this function should not be an awaitable
-
     await registration_filter(info, filter)
 
     def _funktionsnavn() -> ColumnElement:
@@ -2580,36 +2547,28 @@ async def kle_resolver_query(
             )
         )
 
-    query = (
-        select(
-            distinct(OrganisationFunktionRegistrering.organisationfunktion_id),
-        )
-        .where(
-            _get_registrering_clause(
-                OrganisationFunktionRegistrering,
-                _get_registration_time(filter, cursor),
-            ),
-            _get_gyldighed_clause(
-                OrganisationFunktionRegistrering,
-                OrganisationFunktionTilsGyldighed,
-                filter,
-            ),
-            _funktionsnavn(),
-        )
-        .order_by(
-            OrganisationFunktionRegistrering.organisationfunktion_id,
-        )
-    )
+    predicates = [
+        _get_registrering_clause(
+            OrganisationFunktionRegistrering,
+            registration_time,
+        ),
+        _get_gyldighed_clause(
+            OrganisationFunktionRegistrering,
+            OrganisationFunktionTilsGyldighed,
+            filter,
+        ),
+        _funktionsnavn(),
+    ]
 
     # UUIDs
     if filter.uuids is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.organisationfunktion_id.in_(filter.uuids)
         )
 
     # User keys
     if filter.user_keys is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
@@ -2625,7 +2584,7 @@ async def kle_resolver_query(
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         org_unit_uuids = await get_org_unit_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -2638,14 +2597,7 @@ async def kle_resolver_query(
             )
         )
 
-    # Pagination. Must be done here since the generic_resolver (lora) does not support
-    # filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(cursor.offset)
-
-    return query
+    return and_(*predicates)
 
 
 async def kle_resolver(
@@ -2658,12 +2610,22 @@ async def kle_resolver(
     if filter is None:
         filter = KLEFilter()
 
-    query = await kle_resolver_query(
+    predicate = await kle_predicate(
         info=info,
         filter=filter,
-        limit=limit,
-        cursor=cursor,
+        registration_time=_get_registration_time(filter, cursor),
     )
+    query = (
+        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
+        .where(predicate)
+        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
+    )
+    # Pagination must be done here since the generic_resolver (lora) does not
+    # support filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
 
     # Execute
     session: AsyncSession = info.context.session
@@ -2695,14 +2657,12 @@ async def kle_resolver(
     )
 
 
-async def leave_resolver_query(
+async def leave_predicate(
     info: MOInfo,
     filter: LeaveFilter,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-) -> Select[tuple[UUID]]:
+    registration_time: datetime | SQLNOW,
+) -> ColumnElement:
     # TODO: this function should not be an awaitable
-
     await registration_filter(info, filter)
 
     def _funktionsnavn() -> ColumnElement:
@@ -2715,36 +2675,28 @@ async def leave_resolver_query(
             )
         )
 
-    query = (
-        select(
-            distinct(OrganisationFunktionRegistrering.organisationfunktion_id),
-        )
-        .where(
-            _get_registrering_clause(
-                OrganisationFunktionRegistrering,
-                _get_registration_time(filter, cursor),
-            ),
-            _get_gyldighed_clause(
-                OrganisationFunktionRegistrering,
-                OrganisationFunktionTilsGyldighed,
-                filter,
-            ),
-            _funktionsnavn(),
-        )
-        .order_by(
-            OrganisationFunktionRegistrering.organisationfunktion_id,
-        )
-    )
+    predicates = [
+        _get_registrering_clause(
+            OrganisationFunktionRegistrering,
+            registration_time,
+        ),
+        _get_gyldighed_clause(
+            OrganisationFunktionRegistrering,
+            OrganisationFunktionTilsGyldighed,
+            filter,
+        ),
+        _funktionsnavn(),
+    ]
 
     # UUIDs
     if filter.uuids is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.organisationfunktion_id.in_(filter.uuids)
         )
 
     # User keys
     if filter.user_keys is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
@@ -2762,7 +2714,7 @@ async def leave_resolver_query(
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
         employee_uuids = await get_employee_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -2778,7 +2730,7 @@ async def leave_resolver_query(
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         org_unit_uuids = await get_org_unit_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -2791,14 +2743,7 @@ async def leave_resolver_query(
             )
         )
 
-    # Pagination. Must be done here since the generic_resolver (lora) does not support
-    # filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(cursor.offset)
-
-    return query
+    return and_(*predicates)
 
 
 async def leave_resolver(
@@ -2811,12 +2756,22 @@ async def leave_resolver(
     if filter is None:
         filter = LeaveFilter()
 
-    query = await leave_resolver_query(
+    predicate = await leave_predicate(
         info=info,
         filter=filter,
-        limit=limit,
-        cursor=cursor,
+        registration_time=_get_registration_time(filter, cursor),
     )
+    query = (
+        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
+        .where(predicate)
+        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
+    )
+    # Pagination must be done here since the generic_resolver (lora) does not
+    # support filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
 
     # Execute
     session: AsyncSession = info.context.session
@@ -2886,12 +2841,11 @@ async def generic_resolver(
     )
 
 
-async def related_unit_resolver_query(
+async def related_unit_predicate(
     info: MOInfo,
     filter: RelatedUnitFilter,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-) -> Select[tuple[UUID]]:
+    registration_time: datetime | SQLNOW,
+) -> ColumnElement:
     # TODO: this function should not be an awaitable
 
     def _funktionsnavn() -> ColumnElement:
@@ -2904,36 +2858,28 @@ async def related_unit_resolver_query(
             )
         )
 
-    query = (
-        select(
-            distinct(OrganisationFunktionRegistrering.organisationfunktion_id),
-        )
-        .where(
-            _get_registrering_clause(
-                OrganisationFunktionRegistrering,
-                _get_registration_time(filter, cursor),
-            ),
-            _get_gyldighed_clause(
-                OrganisationFunktionRegistrering,
-                OrganisationFunktionTilsGyldighed,
-                filter,
-            ),
-            _funktionsnavn(),
-        )
-        .order_by(
-            OrganisationFunktionRegistrering.organisationfunktion_id,
-        )
-    )
+    predicates = [
+        _get_registrering_clause(
+            OrganisationFunktionRegistrering,
+            registration_time,
+        ),
+        _get_gyldighed_clause(
+            OrganisationFunktionRegistrering,
+            OrganisationFunktionTilsGyldighed,
+            filter,
+        ),
+        _funktionsnavn(),
+    ]
 
     # UUIDs
     if filter.uuids is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.organisationfunktion_id.in_(filter.uuids)
         )
 
     # User keys
     if filter.user_keys is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
@@ -2949,7 +2895,7 @@ async def related_unit_resolver_query(
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         org_unit_uuids = await get_org_unit_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -2962,14 +2908,7 @@ async def related_unit_resolver_query(
             )
         )
 
-    # Pagination. Must be done here since the generic_resolver (lora) does not support
-    # filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(cursor.offset)
-
-    return query
+    return and_(*predicates)
 
 
 async def related_unit_resolver(
@@ -2982,12 +2921,22 @@ async def related_unit_resolver(
     if filter is None:
         filter = RelatedUnitFilter()
 
-    query = await related_unit_resolver_query(
+    predicate = await related_unit_predicate(
         info=info,
         filter=filter,
-        limit=limit,
-        cursor=cursor,
+        registration_time=_get_registration_time(filter, cursor),
     )
+    query = (
+        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
+        .where(predicate)
+        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
+    )
+    # Pagination must be done here since the generic_resolver (lora) does not
+    # support filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
 
     # Execute
     session: AsyncSession = info.context.session
@@ -3019,14 +2968,12 @@ async def related_unit_resolver(
     )
 
 
-async def rolebinding_resolver_query(
+async def rolebinding_predicate(
     info: MOInfo,
     filter: RoleBindingFilter,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-) -> Select[tuple[UUID]]:
+    registration_time: datetime | SQLNOW,
+) -> ColumnElement:
     # TODO: this function should not be an awaitable
-
     await registration_filter(info, filter)
 
     def _funktionsnavn() -> ColumnElement:
@@ -3039,36 +2986,28 @@ async def rolebinding_resolver_query(
             )
         )
 
-    query = (
-        select(
-            distinct(OrganisationFunktionRegistrering.organisationfunktion_id),
-        )
-        .where(
-            _get_registrering_clause(
-                OrganisationFunktionRegistrering,
-                _get_registration_time(filter, cursor),
-            ),
-            _get_gyldighed_clause(
-                OrganisationFunktionRegistrering,
-                OrganisationFunktionTilsGyldighed,
-                filter,
-            ),
-            _funktionsnavn(),
-        )
-        .order_by(
-            OrganisationFunktionRegistrering.organisationfunktion_id,
-        )
-    )
+    predicates = [
+        _get_registrering_clause(
+            OrganisationFunktionRegistrering,
+            registration_time,
+        ),
+        _get_gyldighed_clause(
+            OrganisationFunktionRegistrering,
+            OrganisationFunktionTilsGyldighed,
+            filter,
+        ),
+        _funktionsnavn(),
+    ]
 
     # UUIDs
     if filter.uuids is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.organisationfunktion_id.in_(filter.uuids)
         )
 
     # User keys
     if filter.user_keys is not None:
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
@@ -3084,7 +3023,7 @@ async def rolebinding_resolver_query(
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         org_unit_uuids = await get_org_unit_uuids(info, filter)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -3100,7 +3039,7 @@ async def rolebinding_resolver_query(
     # IT-user
     if filter.ituser is not None:
         ituser_uuids = await filter2uuids_func(it_user_resolver, info, filter.ituser)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -3116,7 +3055,7 @@ async def rolebinding_resolver_query(
     # Role
     if filter.role is not None:
         role_uuids = await filter2uuids_func(class_resolver, info, filter.role)
-        query = query.where(
+        predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -3129,14 +3068,7 @@ async def rolebinding_resolver_query(
             )
         )
 
-    # Pagination. Must be done here since the generic_resolver (lora) does not support
-    # filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(cursor.offset)
-
-    return query
+    return and_(*predicates)
 
 
 async def rolebinding_resolver(
@@ -3149,12 +3081,22 @@ async def rolebinding_resolver(
     if filter is None:
         filter = RoleBindingFilter()
 
-    query = await rolebinding_resolver_query(
+    predicate = await rolebinding_predicate(
         info=info,
         filter=filter,
-        limit=limit,
-        cursor=cursor,
+        registration_time=_get_registration_time(filter, cursor),
     )
+    query = (
+        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
+        .where(predicate)
+        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
+    )
+    # Pagination must be done here since the generic_resolver (lora) does not
+    # support filtering on UUIDs and limit/cursor at the same time.
+    if limit is not None:
+        query = query.limit(limit)
+    if cursor is not None:
+        query = query.offset(cursor.offset)
 
     # Execute
     session: AsyncSession = info.context.session
