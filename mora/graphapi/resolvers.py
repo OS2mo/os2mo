@@ -1191,6 +1191,28 @@ async def engagement_predicate(
             )
         )
 
+    # IT user
+    # The `tilknyttedefunktioner` relation lives on the ITUser's registration
+    # pointing at the engagement UUID; resolve via the ituser predicate.
+    if filter.ituser is not None:
+        ituser_pred = await it_user_predicate(
+            info,
+            filter.ituser,
+            registration_time=registration_time,
+        )
+        predicates.append(
+            OrganisationFunktionRegistrering.organisationfunktion_id.in_(
+                select(OrganisationFunktionRelation.rel_maal_uuid).where(
+                    OrganisationFunktionRelation.rel_type
+                    == OrganisationFunktionRelationKode.tilknyttedefunktioner,
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
+                        select(OrganisationFunktionRegistrering.id).where(ituser_pred)
+                    ),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                )
+            )
+        )
+
     return and_(*predicates)
 
 
