@@ -8,12 +8,14 @@ from uuid import UUID
 import strawberry
 from strawberry.types import Info
 
+from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import ITSystemRead
 
 from ..filters import ClassFilter
 from ..lazy import LazyClass
 from ..lazy import LazyFacet
 from ..lazy import LazyITSystem
+from ..lazy import LazyOrganisationUnit
 from ..models import ClassRead
 from ..models import FacetRead
 from ..paged import Paged
@@ -382,6 +384,18 @@ class Class:
 
     # TODO: Document this better
     owner: UUID | None = strawberry.auto
+
+    owner_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response(model=OrganisationUnitRead, uuid=root.owner)
+        if root.owner
+        else None,
+        description=dedent(
+            """
+            The organisation unit that owns this class.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
 
     @strawberry.field(
         description="UUID of the related facet.",
