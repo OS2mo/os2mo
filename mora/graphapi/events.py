@@ -5,7 +5,6 @@ from base64 import b64encode
 from textwrap import dedent
 from uuid import UUID
 
-import sqlalchemy
 import strawberry
 from more_itertools import one
 from pydantic import BaseModel
@@ -314,7 +313,7 @@ class FullEvent:
         description=f"The priority of an event. Lower means higher priority. The default is {db.events.DEFAULT_PRIORITY}."
     )
     silenced: bool = strawberry.field(
-        description="Whether the event is silenced. Silenced event cannot be read by `event_fetch`."
+        description="Whether the event is silenced. Silencing does not affect delivery, it only affects whether alerts are triggered."
     )
     listener_uuid: strawberry.Private[UUID]
 
@@ -411,7 +410,6 @@ async def event_resolver(
         .with_for_update(skip_locked=True)
         .where(
             db.Event.listener_fk == filter.listener,
-            db.Event.silenced == sqlalchemy.false(),
             # Check for owner. You simply won't get anything if you query
             # someone elses listener.
             db.Event.listener_fk == db.Listener.pk,
@@ -435,7 +433,11 @@ async def event_resolver(
                 ),
             ),
         )
-        .order_by(db.Event.priority.asc(), db.Event.fetched_count.asc())
+        .order_by(
+            db.Event.silenced.asc(),
+            db.Event.priority.asc(),
+            db.Event.fetched_count.asc(),
+        )
         .limit(1)
         .cte()
     )
