@@ -247,7 +247,11 @@ async def get_one_class(
 
     def get_owner_uuid(clazz):
         rel = clazz["relationer"]
-        return rel["ejer"][0]["uuid"] if rel.get("ejer") else None
+        if not rel.get("ejer"):
+            return None
+        # LoRa represents cleared relations as {uuid: "", urn: ""}
+        uuid = rel["ejer"][0]["uuid"]
+        return uuid or None
 
     def get_full_name(parents):
         full_name = " - ".join(

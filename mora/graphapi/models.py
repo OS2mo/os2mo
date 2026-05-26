@@ -405,6 +405,14 @@ class ClassCreate(UUIDBase):
                     "objekttype": "organisationenhed",
                 }
             ]
+        else:
+            relations["ejer"] = [
+                {
+                    "uuid": "",
+                    "urn": "",
+                    "virkning": {"from": from_time, "to": to_time},
+                }
+            ]
 
         if self.it_system_uuid is not None:
             relations["mapninger"] = [
