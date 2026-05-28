@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 import dataclasses
 from collections.abc import Callable
 from collections.abc import Sequence
@@ -14,7 +13,6 @@ from typing import cast as tcast
 from uuid import UUID
 
 import strawberry
-from more_itertools import flatten
 from more_itertools import only
 from more_itertools import unique_everseen
 from psycopg.types.range import TimestamptzRange
@@ -71,7 +69,6 @@ from mora.db import OrganisationFunktionTilsGyldighed
 from mora.graphapi.context import MOInfo
 from mora.graphapi.custom_schema import get_version
 from mora.graphapi.gmodels.base import tz_isodate
-from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.version import Version
 from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
@@ -1870,31 +1867,26 @@ async def organisation_unit_predicate(
     ]
 
     if filter.engagement is not None:
-        # TODO: This should be reimplemented in SQL; #60285
-        # NOTE: Local import to avoid cyclic references
-        from .response import Response
-        from .response import validity_resolver
-
-        engagement_uuids = await engagement_resolver(info, filter.engagement)
-        engagement_responses = [
-            Response(model=EngagementRead, uuid=uuid) for uuid in engagement_uuids
-        ]
-        # NOTE: We have to set start != UNSET to invoke the new temporality behavior
-        # TODO: Remove this code when the new temporality behavior is the default
-        start = unset2date(filter.engagement.from_date)
-        end = filter.engagement.to_date
-
-        engagement_validities = await asyncio.gather(
-            *[
-                validity_resolver(root=response, info=info, start=start, end=end)
-                for response in engagement_responses
-            ]
+        predicates.append(
+            OrganisationEnhedRegistrering.organisationenhed_id.in_(
+                select(OrganisationFunktionRelation.rel_maal_uuid).where(
+                    OrganisationFunktionRelation.rel_type
+                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
+                        select(OrganisationFunktionRegistrering.id).where(
+                            await engagement_predicate(
+                                info=info,
+                                filter=filter.engagement,
+                                registration_time=registration_time,
+                            )
+                        )
+                    ),
+                    _get_virkning_clause(
+                        OrganisationFunktionRelation, filter.engagement
+                    ),
+                )
+            )
         )
-        org_unit_uuids = {
-            engagement_validity.org_unit_uuid
-            for engagement_validity in flatten(engagement_validities)
-        }
-        extend_uuids(filter, list(org_unit_uuids))
 
     # UUIDs
     if filter.uuids is not None:
