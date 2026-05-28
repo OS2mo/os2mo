@@ -343,6 +343,11 @@ class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    ituser: ITUserFilter | None = strawberry.field(
+        default=None,
+        description="ITUser filter limiting which entries are returned.",
+    )
+
 
 @strawberry.input(description="Facet filter.")
 class FacetFilter(BaseFilter):
