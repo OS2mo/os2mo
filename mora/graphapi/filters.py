@@ -455,9 +455,21 @@ class ITUserFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
     )
 
     external_ids: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string(
-            "Only return IT users with this `external_id`", "external_id"
+        default=UNSET,
+        description=dedent(
+            """\
+            Only return IT users with this `external_id`.
+
+            | `external_id` | Elements returned                            |
+            |---------------|----------------------------------------------|
+            | not provided  | All                                          |
+            | `null`        | Only entries where `external_id` is not set  |
+            | `[]`          | None                                         |
+            | `"x"`         | `["x"]` or `[]` (`*`)                        |
+            | `["x", "y"]`  | `["x", "y"]`, `["x"]`, `["y"]` or `[]` (`*`) |
+
+            `*`: Elements returned depends on which elements were found.
+            """
         ),
     )
 

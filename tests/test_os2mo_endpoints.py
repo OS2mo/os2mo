@@ -151,6 +151,8 @@ graphql_endpoints = {
     "/graphql/v28/schema.graphql",
     "/graphql/v29",
     "/graphql/v29/schema.graphql",
+    "/graphql/v30",
+    "/graphql/v30/schema.graphql",
 }
 
 all_endpoints = (

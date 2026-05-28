@@ -9,6 +9,25 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 30
+
+GraphQL version 30 introduces a very minor breaking change to the `itusers`
+`external_ids` filter, specifically the behavior when this filter is set to
+`null`.
+
+Prior to GraphQL version 30 setting `external_ids: null` inside `itusers` was
+equivalent to not providing the `external_ids` filter whatsoever, as `null` and
+`UNSET` was treated identically.
+
+However in GraphQL version 30, `null` means where the `external_id` field is
+empty, whereas `UNSET` aka. not supplying the filter does not do any filtering
+whatsoever similar to `null` in prior versions.
+
+We believe very few users should be affected by this change, but if needed,
+the migration path is very simple, simply stop passing `external_ids: null` as a
+filter and instead omit the filter entirely.
+
+
 ## Version 29
 
 Prior to this version, dates in the GraphQL API would often be off-by-one. This

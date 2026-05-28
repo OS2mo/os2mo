@@ -2476,8 +2476,23 @@ async def it_user_predicate(
             )
         )
 
+    # In v29 and prior None and UNSET were handled identically (no filtering),
+    # this branch ensures backwards compatability with this behavior.
+    if get_version(info.schema) <= Version.VERSION_29 and filter.external_ids is None:
+        filter.external_ids = UNSET
+
     # External IDs
-    if filter.external_ids is not None:
+    if filter.external_ids is None:
+        # Filter `null` returns only it-users without `external_id` set
+        predicates.append(
+            ~exists().where(
+                OrganisationFunktionAttrUdvidelser.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionAttrUdvidelser.udvidelse_1.is_not(None),
+                _get_virkning_clause(OrganisationFunktionAttrUdvidelser, filter),
+            )
+        )
+    elif filter.external_ids is not UNSET:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
