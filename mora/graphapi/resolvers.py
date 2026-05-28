@@ -28,6 +28,7 @@ from sqlalchemy import exists
 from sqlalchemy import func
 from sqlalchemy import or_
 from sqlalchemy import select
+from sqlalchemy import true
 from sqlalchemy.sql.functions import now as SQLNOW
 from sqlalchemy.types import Text
 from starlette_context import context
@@ -169,19 +170,77 @@ async def get_org_unit_uuids(info: MOInfo, filter: Any) -> list[UUID]:
     return await filter2uuids_func(organisation_unit_resolver, info, org_unit_filter)
 
 
-async def registration_filter(info: MOInfo, filter: Any) -> None:
-    if filter.registration is None:
-        return
-    from .registration import registration_resolver  # pragma: no cover
+# Inverse of the funktionsnavn → model `case()` mapping in `registration.py`.
+_OF_MODEL_TO_FUNKTIONSNAVN: dict[str, str] = {
+    "address": "Adresse",
+    "association": "Tilknytning",
+    "engagement": "Engagement",
+    "ituser": "IT-system",
+    "kle": "KLE",
+    "leave": "Orlov",
+    "manager": "Leder",
+    "owner": "owner",
+    "related": "Relateret Enhed",
+    "role": "Rollebinding",
+}
 
-    uuids = await filter2uuids_func(  # pragma: no cover
-        registration_resolver,
-        info,
-        filter.registration,
-        lambda objects: [x.uuid for x in objects],
-    )
 
-    extend_uuids(filter, uuids)  # pragma: no cover
+def registration_predicate(
+    filter: Any,
+    registrering_cls: type[
+        BrugerRegistrering
+        | FacetRegistrering
+        | ITSystemRegistrering
+        | KlasseRegistrering
+        | OrganisationEnhedRegistrering
+        | OrganisationFunktionRegistrering
+    ],
+) -> ColumnElement:
+    """SQL predicate selecting registration rows that match a `RegistrationFilter`.
+
+    Unlike `_get_registrering_clause`, this considers registrations across
+    history — it does not pin to a single `registration_time`.
+    """
+    clauses: list[ColumnElement] = []
+
+    if filter.uuids is not None:
+        clauses.append(registrering_cls.uuid.in_(filter.uuids))
+
+    if filter.actors is not None:
+        clauses.append(registrering_cls.actor.in_(filter.actors))
+
+    if filter.start is not None or filter.end is not None:
+        start, end = get_sqlalchemy_date_interval(filter.start, filter.end)
+        clauses.append(
+            registrering_cls.registrering_period.overlaps(TimestamptzRange(start, end))
+        )
+
+    # `models` restricts which entity types match. For non-OF tables the choice
+    # of `registrering_cls` already enforces this; for OF-backed entities we
+    # constrain via `funktionsnavn`.
+    if (
+        filter.models is not None
+        and registrering_cls is OrganisationFunktionRegistrering
+    ):
+        funktionsnavn = [
+            _OF_MODEL_TO_FUNKTIONSNAVN[m]
+            for m in filter.models
+            if m in _OF_MODEL_TO_FUNKTIONSNAVN
+        ]
+        if funktionsnavn:
+            clauses.append(
+                OrganisationFunktionRegistrering.id.in_(
+                    select(
+                        OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+                    ).where(
+                        OrganisationFunktionAttrEgenskaber.funktionsnavn.in_(
+                            funktionsnavn
+                        )
+                    )
+                )
+            )
+
+    return and_(*clauses) if clauses else true()
 
 
 async def facet_predicate(
@@ -190,7 +249,6 @@ async def facet_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
 
     async def _get_parent_uuids() -> list[UUID]:
         parent_filter = filter.parent or FacetFilter()
@@ -211,6 +269,16 @@ async def facet_predicate(
             )
         ),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            FacetRegistrering.facet_id.in_(
+                select(FacetRegistrering.uuid).where(
+                    registration_predicate(filter.registration, FacetRegistrering)
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -310,7 +378,6 @@ async def class_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
 
     async def _get_facet_uuids() -> list[UUID]:
         facet_filter = filter.facet or FacetFilter()
@@ -338,6 +405,16 @@ async def class_predicate(
             )
         ),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            KlasseRegistrering.klasse_id.in_(
+                select(KlasseRegistrering.uuid).where(
+                    registration_predicate(filter.registration, KlasseRegistrering)
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -524,8 +601,6 @@ async def address_predicate(
         extend_user_keys(class_filter, filter.address_type_user_keys)
         return await filter2uuids_func(class_resolver, info, class_filter)
 
-    await registration_filter(info, filter)
-
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
             select(
@@ -548,6 +623,18 @@ async def address_predicate(
         ),
         _funktionsnavn(),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationFunktionRegistrering.organisationfunktion_id.in_(
+                select(OrganisationFunktionRegistrering.uuid).where(
+                    registration_predicate(
+                        filter.registration, OrganisationFunktionRegistrering
+                    )
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -748,8 +835,6 @@ async def association_predicate(
         extend_user_keys(class_filter, filter.association_type_user_keys)
         return await filter2uuids_func(class_resolver, info, class_filter)
 
-    await registration_filter(info, filter)
-
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
             select(
@@ -772,6 +857,18 @@ async def association_predicate(
         ),
         _funktionsnavn(),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationFunktionRegistrering.organisationfunktion_id.in_(
+                select(OrganisationFunktionRegistrering.uuid).where(
+                    registration_predicate(
+                        filter.registration, OrganisationFunktionRegistrering
+                    )
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -937,7 +1034,6 @@ async def employee_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
 
     predicates = [
         _get_registrering_clause(
@@ -950,6 +1046,16 @@ async def employee_predicate(
             filter,
         ),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            BrugerRegistrering.bruger_id.in_(
+                select(BrugerRegistrering.uuid).where(
+                    registration_predicate(filter.registration, BrugerRegistrering)
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -1072,7 +1178,6 @@ async def engagement_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
 
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -1096,6 +1201,18 @@ async def engagement_predicate(
         ),
         _funktionsnavn(),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationFunktionRegistrering.organisationfunktion_id.in_(
+                select(OrganisationFunktionRegistrering.uuid).where(
+                    registration_predicate(
+                        filter.registration, OrganisationFunktionRegistrering
+                    )
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -1278,7 +1395,6 @@ async def manager_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
 
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -1302,6 +1418,18 @@ async def manager_predicate(
         ),
         _funktionsnavn(),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationFunktionRegistrering.organisationfunktion_id.in_(
+                select(OrganisationFunktionRegistrering.uuid).where(
+                    registration_predicate(
+                        filter.registration, OrganisationFunktionRegistrering
+                    )
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -1805,7 +1933,6 @@ async def organisation_unit_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
 
     async def _get_parent_uuids() -> list[UUID] | Select:
         org_unit_filter = filter.parent or OrganisationUnitFilter()
@@ -1868,6 +1995,18 @@ async def organisation_unit_predicate(
             filter,
         ),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationEnhedRegistrering.organisationenhed_id.in_(
+                select(OrganisationEnhedRegistrering.uuid).where(
+                    registration_predicate(
+                        filter.registration, OrganisationEnhedRegistrering
+                    )
+                )
+            )
+        )
 
     if filter.engagement is not None:
         # TODO: This should be reimplemented in SQL; #60285
@@ -2266,7 +2405,6 @@ async def it_system_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
 
     predicates = [
         _get_registrering_clause(
@@ -2279,6 +2417,16 @@ async def it_system_predicate(
             filter,
         ),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            ITSystemRegistrering.itsystem_id.in_(
+                select(ITSystemRegistrering.uuid).where(
+                    registration_predicate(filter.registration, ITSystemRegistrering)
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -2361,7 +2509,6 @@ async def it_user_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
 
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -2385,6 +2532,18 @@ async def it_user_predicate(
         ),
         _funktionsnavn(),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationFunktionRegistrering.organisationfunktion_id.in_(
+                select(OrganisationFunktionRegistrering.uuid).where(
+                    registration_predicate(
+                        filter.registration, OrganisationFunktionRegistrering
+                    )
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -2586,7 +2745,6 @@ async def kle_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
 
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -2610,6 +2768,18 @@ async def kle_predicate(
         ),
         _funktionsnavn(),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationFunktionRegistrering.organisationfunktion_id.in_(
+                select(OrganisationFunktionRegistrering.uuid).where(
+                    registration_predicate(
+                        filter.registration, OrganisationFunktionRegistrering
+                    )
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -2714,7 +2884,6 @@ async def leave_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
 
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -2738,6 +2907,18 @@ async def leave_predicate(
         ),
         _funktionsnavn(),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationFunktionRegistrering.organisationfunktion_id.in_(
+                select(OrganisationFunktionRegistrering.uuid).where(
+                    registration_predicate(
+                        filter.registration, OrganisationFunktionRegistrering
+                    )
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -3025,7 +3206,6 @@ async def rolebinding_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
 
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -3049,6 +3229,18 @@ async def rolebinding_predicate(
         ),
         _funktionsnavn(),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationFunktionRegistrering.organisationfunktion_id.in_(
+                select(OrganisationFunktionRegistrering.uuid).where(
+                    registration_predicate(
+                        filter.registration, OrganisationFunktionRegistrering
+                    )
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
