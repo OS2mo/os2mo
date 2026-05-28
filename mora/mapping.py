@@ -72,6 +72,7 @@ ENGAGEMENTS = "engagements"
 
 # Extensions
 EXTENSION_1 = "udvidelse_1"
+EXTENSION_2 = "udvidelse_2"
 
 EXTENSION_ATTRIBUTE_MAPPING = [
     ("extension_1", EXTENSION_1),
@@ -129,6 +130,7 @@ OWNER_INFERENCE_PRIORITY = "owner_inference_priority"
 
 # IT User
 EXTERNAL_ID = "external_id"
+BINDING_TYPE = "binding_type"
 
 # Auth
 ADMIN = "admin"

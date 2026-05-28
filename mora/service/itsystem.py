@@ -181,6 +181,13 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         # the validity of the IT system!
 
         external_id = req.get(mapping.EXTERNAL_ID)
+        binding_type = req.get(mapping.BINDING_TYPE)
+
+        udvidelse_attributter: dict[str, str] = {}
+        if external_id is not None:
+            udvidelse_attributter[mapping.EXTENSION_1] = external_id
+        if binding_type is not None:
+            udvidelse_attributter[mapping.EXTENSION_2] = binding_type
 
         func = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ITSYSTEM_KEY,
@@ -198,9 +205,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
                 for engagement_uuid in engagement_uuids
             ],
-            udvidelse_attributter={mapping.EXTENSION_1: external_id}
-            if external_id is not None
-            else None,
+            udvidelse_attributter=udvidelse_attributter or None,
             note=note,
         )
 
@@ -312,13 +317,13 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
+        new_extensions: dict[str, str | None] = {}
         if mapping.EXTERNAL_ID in data:
-            update_fields.append(
-                (
-                    mapping.ORG_FUNK_UDVIDELSER_FIELD,
-                    {mapping.EXTENSION_1: data.get(mapping.EXTERNAL_ID)},
-                )
-            )
+            new_extensions[mapping.EXTENSION_1] = data.get(mapping.EXTERNAL_ID)
+        if mapping.BINDING_TYPE in data:
+            new_extensions[mapping.EXTENSION_2] = data.get(mapping.BINDING_TYPE)
+        if new_extensions:
+            update_fields.append((mapping.ORG_FUNK_UDVIDELSER_FIELD, new_extensions))
 
         try:
             attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()

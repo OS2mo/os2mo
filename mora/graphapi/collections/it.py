@@ -227,6 +227,12 @@ class ITUser:
     async def external_id(self, root: ITUserRead) -> str | None:
         return root.external_id
 
+    @strawberry.field(
+        description="Free-form classification of how the IT user is bound to the rest of MO."
+    )
+    async def binding_type(self, root: ITUserRead) -> str | None:
+        return root.binding_type
+
     employee: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(

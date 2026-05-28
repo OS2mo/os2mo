@@ -72,6 +72,7 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
         extensions = mapping.ORG_FUNK_UDVIDELSER_FIELD(effect)
         extensions = extensions[0] if extensions else {}
         external_id = extensions.get(mapping.EXTENSION_1)
+        binding_type = extensions.get(mapping.EXTENSION_2)
 
         base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
 
@@ -85,6 +86,7 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
                 "itsystem_uuid": itsystem_uuid,
                 "primary_uuid": primary_uuid,
                 "external_id": external_id,
+                "binding_type": binding_type,
             }
 
         r = {

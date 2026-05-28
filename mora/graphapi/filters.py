@@ -461,6 +461,13 @@ class ITUserFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    binding_types: list[str] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string(
+            "Only return IT users with this `binding_type`", "binding_type"
+        ),
+    )
+
 
 @strawberry.input(description="KLE filter.")
 class KLEFilter(BaseFilter, OrganisationUnitFiltered):

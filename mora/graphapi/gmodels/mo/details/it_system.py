@@ -45,3 +45,6 @@ class ITUserRead(MOBase):
     external_id: str | None = Field(
         description="ID of the user account in the external system."
     )
+    binding_type: str | None = Field(
+        description="Free-form classification of how the IT user is bound to the rest of MO."
+    )
