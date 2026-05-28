@@ -438,12 +438,11 @@ async def class_predicate(
             )
         )
         if filter.owner.include_none:
-            no_owner = ~KlasseRegistrering.id.in_(
-                select(KlasseRelation.klasse_registrering_id).where(
-                    KlasseRelation.rel_type == KlasseRelationKode.ejer,
-                    KlasseRelation.rel_maal_uuid.is_not(None),
-                    _get_virkning_clause(KlasseRelation, filter),
-                )
+            no_owner = ~exists().where(
+                KlasseRelation.klasse_registrering_id == KlasseRegistrering.id,
+                KlasseRelation.rel_type == KlasseRelationKode.ejer,
+                KlasseRelation.rel_maal_uuid.is_not(None),
+                _get_virkning_clause(KlasseRelation, filter),
             )
             predicates.append(or_(matched_owner, no_owner))
         else:
