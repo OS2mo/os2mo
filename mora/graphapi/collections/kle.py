@@ -166,11 +166,11 @@ class KLE:
     )
 
     org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(
-            model=OrganisationUnitRead, uuid=root.org_unit_uuid
-        )
-        if root.org_unit_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=OrganisationUnitRead, uuid=root.org_unit_uuid)
+            if root.org_unit_uuid
+            else None
+        ),
         description=dedent(
             """
             The organisation unit the responsibility is mapped to.

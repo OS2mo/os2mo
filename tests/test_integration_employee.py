@@ -233,7 +233,7 @@ async def test_edit_remove_seniority(
                 x.get("seniority", None)
                 for x in actual["attributter"]["brugerudvidelser"]
             ],
-            key=(lambda x: ("" if (x is None) else x)),
+            key=(lambda x: "" if (x is None) else x),
         )
         assert actual_seniorities == [None, None, "2017-01-01"]
 

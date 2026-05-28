@@ -279,3 +279,54 @@ async def test_leave_terminate_integration(
     )
     assert test_data["uuid"] == leave_objects_post_terminate["uuid"]
     assert test_data["to"] == leave_objects_post_terminate["validity"]["to"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_leave_user_key_filter(graphapi_post: GraphAPIPost) -> None:
+    """Test that we can filter leaves by user_key."""
+    user_key = "test_user_key_filter_123"
+    leave_uuid = "0895b7f5-86ac-45c5-8fb1-c3047d45b643"
+
+    # 1. Update an existing leave to have a specific user_key
+    update_mutation = """
+        mutation UpdateLeave($input: LeaveUpdateInput!) {
+            leave_update(input: $input) {
+                uuid
+            }
+        }
+    """
+    update_payload = {
+        "uuid": leave_uuid,
+        "user_key": user_key,
+        "validity": {"from": "2023-01-01T00:00:00+01:00", "to": None},
+    }
+
+    res = graphapi_post(update_mutation, {"input": jsonable_encoder(update_payload)})
+    assert res.errors is None
+
+    # 2. Query leaves with this user_key
+    query_filter = """
+        query FilterLeaves($keys: [String!]) {
+            leaves(filter: {user_keys: $keys}) {
+                objects {
+                    objects {
+                        uuid
+                        user_key
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(query_filter, {"keys": [user_key]})
+    assert response.errors is None
+    filtered_leaves = [
+        obj
+        for parent in response.data["leaves"]["objects"]
+        for obj in parent["objects"]
+    ]
+
+    # 3. Assert we found it
+    assert len(filtered_leaves) == 1
+    assert filtered_leaves[0]["uuid"] == leave_uuid
+    assert filtered_leaves[0]["user_key"] == user_key

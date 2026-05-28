@@ -261,9 +261,11 @@ class ITUser:
     )
 
     person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
-        if root.employee_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=EmployeeRead, uuid=root.employee_uuid)
+            if root.employee_uuid
+            else None
+        ),
         description=dedent(
             """
             Person using the IT account.
@@ -304,11 +306,11 @@ class ITUser:
     )
 
     org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(
-            model=OrganisationUnitRead, uuid=root.org_unit_uuid
-        )
-        if root.org_unit_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=OrganisationUnitRead, uuid=root.org_unit_uuid)
+            if root.org_unit_uuid
+            else None
+        ),
         description=dedent(
             """
             Organisation unit using the IT account.
@@ -394,9 +396,11 @@ class ITUser:
     )
 
     engagement_response: Response[LazyEngagement] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EngagementRead, uuid=root.engagement_uuid)
-        if root.engagement_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=EngagementRead, uuid=root.engagement_uuid)
+            if root.engagement_uuid
+            else None
+        ),
         description=dedent(
             """
             Engagement scoping of the account.
@@ -484,9 +488,11 @@ class ITUser:
     )
 
     itsystem_response: Response[LazyITSystem] = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ITSystemRead, uuid=root.itsystem_uuid)
-        if root.itsystem_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ITSystemRead, uuid=root.itsystem_uuid)
+            if root.itsystem_uuid
+            else None
+        ),
         description=dedent(
             """
             ITSystem this account is for.
@@ -540,9 +546,11 @@ class ITUser:
     )
 
     primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.primary_uuid)
-        if root.primary_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ClassRead, uuid=root.primary_uuid)
+            if root.primary_uuid
+            else None
+        ),
         description=dedent(
             """
             Marks which IT account is primary.

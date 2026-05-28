@@ -39,9 +39,11 @@ from .utils import to_only
 )
 class Association:
     association_type_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.association_type_uuid)
-        if root.association_type_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ClassRead, uuid=root.association_type_uuid)
+            if root.association_type_uuid
+            else None
+        ),
         description=dedent(
             """
             The type of connection that the employee has to the organisation unit.
@@ -77,9 +79,11 @@ class Association:
     )
 
     dynamic_class_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.dynamic_class_uuid)
-        if root.dynamic_class_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ClassRead, uuid=root.dynamic_class_uuid)
+            if root.dynamic_class_uuid
+            else None
+        ),
         # TODO: Document this
         # https://git.magenta.dk/rammearkitektur/os2mo/-/merge_requests/1694#note_216859
         description=dedent(
@@ -121,9 +125,11 @@ class Association:
     )
 
     trade_union_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.dynamic_class_uuid)
-        if root.dynamic_class_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ClassRead, uuid=root.dynamic_class_uuid)
+            if root.dynamic_class_uuid
+            else None
+        ),
         description=dedent(
             """
             Marks associations with a trade union
@@ -149,9 +155,11 @@ class Association:
     )
 
     primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.primary_uuid)
-        if root.primary_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ClassRead, uuid=root.primary_uuid)
+            if root.primary_uuid
+            else None
+        ),
         description=dedent(
             """
             Marks which association is primary.
@@ -222,9 +230,11 @@ class Association:
     )
 
     person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
-        if root.employee_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=EmployeeRead, uuid=root.employee_uuid)
+            if root.employee_uuid
+            else None
+        ),
         description=dedent(
             """
             Associated person.
@@ -281,9 +291,11 @@ class Association:
     )
 
     substitute_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EmployeeRead, uuid=root.substitute_uuid)
-        if root.substitute_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=EmployeeRead, uuid=root.substitute_uuid)
+            if root.substitute_uuid
+            else None
+        ),
         description=dedent(
             """
             Optional substitute if `employee` is unavailable.
@@ -311,9 +323,11 @@ class Association:
     )
 
     job_function_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.job_function_uuid)
-        if root.job_function_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ClassRead, uuid=root.job_function_uuid)
+            if root.job_function_uuid
+            else None
+        ),
         description=dedent(
             """
             The position held by the employee in the organisation unit.
@@ -349,9 +363,11 @@ class Association:
     )
 
     it_user_response: Response[LazyITUser] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ITUserRead, uuid=root.it_user_uuid)
-        if root.it_user_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ITUserRead, uuid=root.it_user_uuid)
+            if root.it_user_uuid
+            else None
+        ),
         description=dedent(
             """
             The IT-user utilized by the employee when fulfilling the association responsibilities.

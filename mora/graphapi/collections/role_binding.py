@@ -95,11 +95,11 @@ class RoleBinding:
     )
 
     org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(
-            model=OrganisationUnitRead, uuid=root.org_unit_uuid
-        )
-        if root.org_unit_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=OrganisationUnitRead, uuid=root.org_unit_uuid)
+            if root.org_unit_uuid
+            else None
+        ),
         description=dedent(
             """
             The organisational unit in which the role is being fulfilled.

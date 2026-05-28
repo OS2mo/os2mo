@@ -237,9 +237,11 @@ class Address:
     )
 
     visibility_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ClassRead, uuid=root.visibility_uuid)
-        if root.visibility_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ClassRead, uuid=root.visibility_uuid)
+            if root.visibility_uuid
+            else None
+        ),
         description=dedent(
             """
             Determines who can see the address and how it is exported.
@@ -321,9 +323,11 @@ class Address:
     )
 
     person_response: Response[LazyEmployee] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EmployeeRead, uuid=root.employee_uuid)
-        if root.employee_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=EmployeeRead, uuid=root.employee_uuid)
+            if root.employee_uuid
+            else None
+        ),
         description=dedent(
             """
             Connected person.
@@ -364,11 +368,11 @@ class Address:
     )
 
     org_unit_response: Response[LazyOrganisationUnit] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(
-            model=OrganisationUnitRead, uuid=root.org_unit_uuid
-        )
-        if root.org_unit_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=OrganisationUnitRead, uuid=root.org_unit_uuid)
+            if root.org_unit_uuid
+            else None
+        ),
         description=dedent(
             """
             Connected organisation unit.
@@ -407,9 +411,11 @@ class Address:
     )
 
     engagement_response: Response[LazyEngagement] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=EngagementRead, uuid=root.engagement_uuid)
-        if root.engagement_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=EngagementRead, uuid=root.engagement_uuid)
+            if root.engagement_uuid
+            else None
+        ),
         description=dedent(
             """
             Connected engagement.
@@ -454,9 +460,11 @@ class Address:
     )
 
     ituser_response: Response[LazyITUser] | None = strawberry.field(  # type: ignore
-        resolver=lambda root: Response(model=ITUserRead, uuid=root.it_user_uuid)
-        if root.it_user_uuid
-        else None,
+        resolver=lambda root: (
+            Response(model=ITUserRead, uuid=root.it_user_uuid)
+            if root.it_user_uuid
+            else None
+        ),
         description="Connected IT-user.\n",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
