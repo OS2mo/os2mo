@@ -34,7 +34,7 @@ from .filters import RegistrationFilter
 from .paged import CursorType
 from .paged import LimitType
 from .registrationbase import RegistrationBase
-from .resolvers import get_sqlalchemy_date_interval
+from .resolvers import registration_predicate
 
 
 @strawberry.type(
@@ -172,7 +172,7 @@ async def registration_resolver(
         ]
 
         if table == OrganisationFunktionRegistrering:
-            return select(
+            branch = select(
                 case(
                     # Mapping from LoRa funktionsnavn to GraphQL names
                     {
@@ -195,43 +195,29 @@ async def registration_resolver(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
                 == table.id
             )
-        return select(
-            case(
-                # Mapping from table names to GraphQL names
-                {
-                    "BrugerRegistrering": "employee",
-                    "FacetRegistrering": "facet",
-                    "ITSystemRegistrering": "itsystem",
-                    "KlasseRegistrering": "class",
-                    "OrganisationEnhedRegistrering": "org_unit",
-                },
-                value=literal(table.__name__),
-                else_="unknown",
-            ).label("model"),
-            *common_fields,
-        )
+        else:
+            branch = select(
+                case(
+                    # Mapping from table names to GraphQL names
+                    {
+                        "BrugerRegistrering": "employee",
+                        "FacetRegistrering": "facet",
+                        "ITSystemRegistrering": "itsystem",
+                        "KlasseRegistrering": "class",
+                        "OrganisationEnhedRegistrering": "org_unit",
+                    },
+                    value=literal(table.__name__),
+                    else_="unknown",
+                ).label("model"),
+                *common_fields,
+            )
+        return branch.where(registration_predicate(filter, table))
 
     # Query all requested registation tables using a big union query
     union_query = union(*map(generate_query, tables)).subquery()
-    # Select using a subquery so we can filter and order the unioned result
+    # Select using a subquery so we can order and paginate the unioned result
     # Note: I have no idea why mypy dislikes this.
     query = select("*").select_from(union_query).distinct()  # type: ignore
-
-    if filter.uuids is not None:
-        query = query.where(column("uuid").in_(filter.uuids))
-
-    if filter.actors is not None:  # pragma: no cover
-        query = query.where(column("actor").in_(filter.actors))
-
-    if filter.models is not None:
-        query = query.where(column("model").in_(filter.models))
-
-    if filter.start is not None or filter.end is not None:
-        start, end = get_sqlalchemy_date_interval(filter.start, filter.end)
-        query = query.where(
-            column("start") <= end,
-            column("end") > start,
-        )
 
     # Pagination
     if cursor:  # pragma: no cover
