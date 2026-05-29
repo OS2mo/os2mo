@@ -1413,7 +1413,15 @@ class Mutation:
             await terminate_org_unit(input.to_pydantic()), OrganisationUnitRead
         )
 
-    # TODO: org_unit_delete
+    @strawberry.mutation(
+        description="Deletes an organization unit." + delete_warning,
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_delete_permission("org_unit"),
+        ],
+    )
+    async def org_unit_delete(self, uuid: UUID) -> Response[OrganisationUnit]:
+        return uuid2response(await delete_organisationenhed(uuid), OrganisationUnitRead)
 
     @strawberry.mutation(
         description="Refresh organization units.",
@@ -2126,6 +2134,13 @@ async def delete_organisationfunktion(uuid: UUID) -> UUID:
     """Delete an organisationfunktion by creating a "Slettet" (deleted) registration."""
     c = get_connector()
     uuid = await c.organisationfunktion.delete(uuid)
+    return uuid
+
+
+async def delete_organisationenhed(uuid: UUID) -> UUID:
+    """Delete an organisationenhed by creating a "Slettet" (deleted) registration."""
+    c = get_connector()
+    uuid = await c.organisationenhed.delete(uuid)
     return uuid
 
 
