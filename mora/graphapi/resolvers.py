@@ -31,6 +31,7 @@ from sqlalchemy import func
 from sqlalchemy import literal
 from sqlalchemy import or_
 from sqlalchemy import select
+from sqlalchemy import true
 from sqlalchemy import union
 from sqlalchemy.sql.functions import now as SQLNOW
 from sqlalchemy.types import Text
@@ -3240,6 +3241,24 @@ def get_sqlalchemy_date_interval(
     )
 
 
+def registration_predicate(table: Any, filter: RegistrationFilter) -> ColumnElement:
+    # Seed with true() so an unfiltered (empty) predicate is a valid no-op WHERE.
+    predicates: list[ColumnElement] = [true()]
+
+    if filter.uuids is not None:
+        predicates.append(table.uuid.in_(filter.uuids))
+
+    if filter.actors is not None:  # pragma: no cover
+        predicates.append(table.actor.in_(filter.actors))
+
+    if filter.start is not None or filter.end is not None:
+        start, end = get_sqlalchemy_date_interval(filter.start, filter.end)
+        predicates.append(func.lower(table.registrering_period) <= end)
+        predicates.append(func.upper(table.registrering_period) > start)
+
+    return and_(*predicates)
+
+
 def row2registration(
     model: str, id: int, uuid: UUID, actor: UUID, note: str, start_t: Any, end_t: Any
 ) -> RegistrationBase:
@@ -3376,7 +3395,8 @@ async def registration_resolver(
                 *common_fields,
             ).where(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-                == table.id
+                == table.id,
+                registration_predicate(table, filter),
             )
         return select(
             case(
@@ -3392,7 +3412,7 @@ async def registration_resolver(
                 else_="unknown",
             ).label("model"),
             *common_fields,
-        )
+        ).where(registration_predicate(table, filter))
 
     # Query all requested registation tables using a big union query
     union_query = union(*map(generate_query, tables)).subquery()
@@ -3400,21 +3420,10 @@ async def registration_resolver(
     # Note: I have no idea why mypy dislikes this.
     query = select("*").select_from(union_query).distinct()  # type: ignore
 
-    if filter.uuids is not None:
-        query = query.where(column("uuid").in_(filter.uuids))
-
-    if filter.actors is not None:  # pragma: no cover
-        query = query.where(column("actor").in_(filter.actors))
-
+    # `model` is a synthetic column derived across the union, so it cannot be
+    # filtered on a concrete table in `registration_predicate`.
     if filter.models is not None:
         query = query.where(column("model").in_(filter.models))
-
-    if filter.start is not None or filter.end is not None:
-        start, end = get_sqlalchemy_date_interval(filter.start, filter.end)
-        query = query.where(
-            column("start") <= end,
-            column("end") > start,
-        )
 
     # Pagination
     if cursor:  # pragma: no cover
