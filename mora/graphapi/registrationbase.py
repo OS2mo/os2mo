@@ -102,3 +102,23 @@ class RegistrationBase:
     note: str | None = strawberry.field(
         description="Note associated with the registration."
     )
+
+
+@strawberry.type(
+    description=dedent(
+        """\
+    Bitemporal container.
+
+    Mostly useful for auditing purposes seeing when data-changes were made and by whom.
+
+    Note:
+    Will eventually contain a full temporal axis per bitemporal container.
+
+    **Warning**:
+    This entry should **not** be used to implement event-driven integrations.
+    Such integration should rather utilize the GraphQL-based event-system.
+    """
+    )
+)
+class Registration(RegistrationBase):
+    pass
