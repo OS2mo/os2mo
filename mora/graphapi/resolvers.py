@@ -3342,7 +3342,7 @@ def registration_predicate(table: Any, filter: RegistrationFilter) -> ColumnElem
     if filter.uuids is not None:
         predicates.append(table.uuid.in_(filter.uuids))
 
-    if filter.actors is not None:  # pragma: no cover
+    if filter.actors is not None:
         predicates.append(table.actor.in_(filter.actors))
 
     if filter.start is not None or filter.end is not None:
