@@ -3374,30 +3374,34 @@ async def registration_resolver(
         ]
 
         if table == OrganisationFunktionRegistrering:
-            return select(
-                case(
-                    # Mapping from LoRa funktionsnavn to GraphQL names
-                    {
-                        "Adresse": "address",
-                        "Engagement": "engagement",
-                        "IT-system": "ituser",
-                        "Leder": "manager",
-                        "Orlov": "leave",
-                        "Rollebinding": "role",
-                        "Tilknytning": "association",
-                        "KLE": "kle",
-                        "owner": "owner",
-                        "Relateret Enhed": "related",
-                    },
-                    value=OrganisationFunktionAttrEgenskaber.funktionsnavn.cast(Text),
-                    else_="unknown",
-                ).label("model"),
-                *common_fields,
-            ).where(
+            model = case(
+                # Mapping from LoRa funktionsnavn to GraphQL names
+                {
+                    "Adresse": "address",
+                    "Engagement": "engagement",
+                    "IT-system": "ituser",
+                    "Leder": "manager",
+                    "Orlov": "leave",
+                    "Rollebinding": "role",
+                    "Tilknytning": "association",
+                    "KLE": "kle",
+                    "owner": "owner",
+                    "Relateret Enhed": "related",
+                },
+                value=OrganisationFunktionAttrEgenskaber.funktionsnavn.cast(Text),
+                else_="unknown",
+            )
+            query = select(model.label("model"), *common_fields).where(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
                 == table.id,
                 registration_predicate(table, filter),
             )
+            # This is the only table backing multiple models, so it is the only
+            # one whose rows need filtering by model; the others are pinned by
+            # the table selection above.
+            if filter.models is not None:
+                query = query.where(model.in_(filter.models))
+            return query
         return select(
             case(
                 # Mapping from table names to GraphQL names
@@ -3416,14 +3420,9 @@ async def registration_resolver(
 
     # Query all requested registation tables using a big union query
     union_query = union(*map(generate_query, tables)).subquery()
-    # Select using a subquery so we can filter and order the unioned result
+    # Select using a subquery so we can order the unioned result
     # Note: I have no idea why mypy dislikes this.
     query = select("*").select_from(union_query).distinct()  # type: ignore
-
-    # `model` is a synthetic column derived across the union, so it cannot be
-    # filtered on a concrete table in `registration_predicate`.
-    if filter.models is not None:
-        query = query.where(column("model").in_(filter.models))
 
     # Pagination
     if cursor:  # pragma: no cover
