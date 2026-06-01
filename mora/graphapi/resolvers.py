@@ -110,21 +110,17 @@ async def filter2uuids_func(
     resolver_func: Callable,
     info: MOInfo,
     filter: BaseFilter,
-    mapper: Callable[[Any], list[UUID]] | None = None,
 ) -> list[UUID]:
     """Resolve into a list of UUIDs with the given filter.
 
     Args:
-        resolver: The resolver used to resolve filters to UUIDs.
+        resolver_func: The resolver used to resolve filters to UUIDs.
         info: The strawberry execution context.
         filter: Filter instance passed to the resolver.
-        mapper: Mapping function from resolver return to UUIDs.
 
     Returns:
         A list of UUIDs.
     """
-    mapper = mapper or (lambda objects: list(objects.keys()))
-
     # The current resolver implementation disallows combining UUIDs with other filters.
     # As the UUIDs returned from this function are only used for further filtering,
     # we can simply return them as-is, bypassing another lookup.
@@ -132,7 +128,8 @@ async def filter2uuids_func(
     if filter.uuids is not None:
         return filter.uuids
 
-    return mapper(await resolver_func(info, filter=filter))
+    objects = await resolver_func(info, filter=filter)
+    return list(objects.keys())
 
 
 def extend_uuids(output_filter: BaseFilter, input: list[UUID] | None) -> None:
@@ -149,46 +146,86 @@ def extend_user_keys(output_filter: BaseFilter, input: list[str] | None) -> None
     output_filter.user_keys.extend(input)
 
 
-async def get_employee_uuids(info: MOInfo, filter: Any) -> list[UUID]:
+def employee_subfilter(filter: Any) -> EmployeeFilter:
     employee_filter = filter.employee or EmployeeFilter()
     # Handle deprecated filter
     extend_uuids(employee_filter, filter.employees)
-    return await filter2uuids_func(employee_resolver, info, employee_filter)
+    return employee_filter
 
 
-async def get_engagement_uuids(info: MOInfo, filter: Any) -> list[UUID]:
-    engagement_filter = filter.engagement or EngagementFilter()
-    # Handle deprecated filter
-    extend_uuids(engagement_filter, filter.engagements)
-    return await filter2uuids_func(engagement_resolver, info, engagement_filter)
-
-
-async def get_itsystem_uuids(info: MOInfo, filter: Any) -> list[UUID]:
-    itsystem_filter = filter.itsystem or ITSystemFilter()
-    # Handle deprecated filter
-    extend_uuids(itsystem_filter, filter.itsystem_uuids)
-    return await filter2uuids_func(it_system_resolver, info, itsystem_filter)
-
-
-async def get_org_unit_uuids(info: MOInfo, filter: Any) -> list[UUID]:
+def org_unit_subfilter(filter: Any) -> OrganisationUnitFilter:
     org_unit_filter = filter.org_unit or OrganisationUnitFilter()
     # Handle deprecated filter
     extend_uuids(org_unit_filter, filter.org_units)
-    return await filter2uuids_func(organisation_unit_resolver, info, org_unit_filter)
+    return org_unit_filter
 
 
-async def facet_predicate(
+def engagement_subfilter(filter: Any) -> EngagementFilter:
+    engagement_filter = filter.engagement or EngagementFilter()
+    # Handle deprecated filter
+    extend_uuids(engagement_filter, filter.engagements)
+    return engagement_filter
+
+
+def itsystem_subfilter(filter: Any) -> ITSystemFilter:
+    itsystem_filter = filter.itsystem or ITSystemFilter()
+    # Handle deprecated filter
+    extend_uuids(itsystem_filter, filter.itsystem_uuids)
+    return itsystem_filter
+
+
+def facet_parent_subfilter(filter: Any) -> FacetFilter:
+    parent_filter = filter.parent or FacetFilter()
+    # Handle deprecated filter
+    extend_uuids(parent_filter, filter.parents)
+    extend_user_keys(parent_filter, filter.parent_user_keys)
+    return parent_filter
+
+
+def class_facet_subfilter(filter: Any) -> FacetFilter:
+    facet_filter = filter.facet or FacetFilter()
+    # Handle deprecated filter
+    extend_uuids(facet_filter, filter.facets)
+    extend_user_keys(facet_filter, filter.facet_user_keys)
+    return facet_filter
+
+
+def class_parent_subfilter(filter: Any) -> ClassFilter:
+    parent_filter = filter.parent or ClassFilter()
+    # Handle deprecated filter
+    extend_uuids(parent_filter, filter.parents)
+    extend_user_keys(parent_filter, filter.parent_user_keys)
+    return parent_filter
+
+
+def address_type_subfilter(filter: Any) -> ClassFilter:
+    address_type_filter = filter.address_type or ClassFilter()
+    # Handle deprecated filter
+    extend_uuids(address_type_filter, filter.address_types)
+    extend_user_keys(address_type_filter, filter.address_type_user_keys)
+    return address_type_filter
+
+
+def association_type_subfilter(filter: Any) -> ClassFilter:
+    association_type_filter = filter.association_type or ClassFilter()
+    # Handle deprecated filter
+    extend_uuids(association_type_filter, filter.association_types)
+    extend_user_keys(association_type_filter, filter.association_type_user_keys)
+    return association_type_filter
+
+
+def hierarchy_subfilter(filter: Any) -> ClassFilter:
+    hierarchy_filter = filter.hierarchy or ClassFilter()
+    # Handle deprecated filter
+    extend_uuids(hierarchy_filter, filter.hierarchies)
+    return hierarchy_filter
+
+
+def facet_predicate(
     info: MOInfo,
     filter: FacetFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    async def _get_parent_uuids() -> list[UUID]:
-        parent_filter = filter.parent or FacetFilter()
-        # Handle deprecated filter
-        extend_uuids(parent_filter, filter.parents)
-        extend_user_keys(parent_filter, filter.parent_user_keys)
-        return await filter2uuids_func(facet_resolver, info, parent_filter)
-
     predicates = [
         _get_registrering_clause(
             FacetRegistrering,
@@ -233,12 +270,17 @@ async def facet_predicate(
         or filter.parent_user_keys is not None
         or filter.parent is not None
     ):
-        parent_uuids = await _get_parent_uuids()
         predicates.append(
             FacetRegistrering.id.in_(
                 select(FacetRelation.facet_registrering_id).where(
                     FacetRelation.rel_type == FacetRelationKode.facettilhoerer,
-                    FacetRelation.rel_maal_uuid.in_(parent_uuids),
+                    FacetRelation.rel_maal_uuid.in_(
+                        select(FacetRegistrering.facet_id).where(
+                            facet_predicate(
+                                info, facet_parent_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(FacetRelation, filter),
                 )
             )
@@ -257,7 +299,7 @@ async def facet_resolver(
     if filter is None:
         filter = FacetFilter()
 
-    predicate = await facet_predicate(
+    predicate = facet_predicate(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, cursor),
@@ -304,25 +346,11 @@ async def facet_resolver(
     )
 
 
-async def class_predicate(
+def class_predicate(
     info: MOInfo,
     filter: ClassFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    async def _get_facet_uuids() -> list[UUID]:
-        facet_filter = filter.facet or FacetFilter()
-        # Handle deprecated filter
-        extend_uuids(facet_filter, filter.facets)
-        extend_user_keys(facet_filter, filter.facet_user_keys)
-        return await filter2uuids_func(facet_resolver, info, facet_filter)
-
-    async def _get_parent_uuids() -> list[UUID]:
-        class_filter = filter.parent or ClassFilter()
-        # Handle deprecated filter
-        extend_uuids(class_filter, filter.parents)
-        extend_user_keys(class_filter, filter.parent_user_keys)
-        return await filter2uuids_func(class_resolver, info, class_filter)
-
     predicates = [
         _get_registrering_clause(
             KlasseRegistrering,
@@ -389,12 +417,17 @@ async def class_predicate(
         or filter.facet_user_keys is not None
         or filter.facet is not None
     ):
-        facet_uuids = await _get_facet_uuids()
         predicates.append(
             KlasseRegistrering.id.in_(
                 select(KlasseRelation.klasse_registrering_id).where(
                     KlasseRelation.rel_type == KlasseRelationKode.facet,
-                    KlasseRelation.rel_maal_uuid.in_(facet_uuids),
+                    KlasseRelation.rel_maal_uuid.in_(
+                        select(FacetRegistrering.facet_id).where(
+                            facet_predicate(
+                                info, class_facet_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(KlasseRelation, filter),
                 )
             )
@@ -406,12 +439,17 @@ async def class_predicate(
         or filter.parent_user_keys is not None
         or filter.parent is not None
     ):
-        parent_uuids = await _get_parent_uuids()
         predicates.append(
             KlasseRegistrering.id.in_(
                 select(KlasseRelation.klasse_registrering_id).where(
                     KlasseRelation.rel_type == KlasseRelationKode.overordnetklasse,
-                    KlasseRelation.rel_maal_uuid.in_(parent_uuids),
+                    KlasseRelation.rel_maal_uuid.in_(
+                        select(KlasseRegistrering.klasse_id).where(
+                            class_predicate(
+                                info, class_parent_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(KlasseRelation, filter),
                 )
             )
@@ -419,14 +457,17 @@ async def class_predicate(
 
     # IT system
     if filter.it_system is not None:
-        it_system_uuids = await filter2uuids_func(
-            it_system_resolver, info, filter.it_system
-        )
         predicates.append(
             KlasseRegistrering.id.in_(
                 select(KlasseRelation.klasse_registrering_id).where(
                     KlasseRelation.rel_type == KlasseRelationKode.mapninger,
-                    KlasseRelation.rel_maal_uuid.in_(it_system_uuids),
+                    KlasseRelation.rel_maal_uuid.in_(
+                        select(ITSystemRegistrering.itsystem_id).where(
+                            it_system_predicate(
+                                info, filter.it_system, registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(KlasseRelation, filter),
                 )
             )
@@ -434,13 +475,16 @@ async def class_predicate(
 
     # Owner
     if filter.owner is not None:
-        owner_uuids = await filter2uuids_func(
-            organisation_unit_resolver, info, filter.owner
-        )
         matched_owner = KlasseRegistrering.id.in_(
             select(KlasseRelation.klasse_registrering_id).where(
                 KlasseRelation.rel_type == KlasseRelationKode.ejer,
-                KlasseRelation.rel_maal_uuid.in_(owner_uuids),
+                KlasseRelation.rel_maal_uuid.in_(
+                    select(OrganisationEnhedRegistrering.organisationenhed_id).where(
+                        organisation_unit_predicate(
+                            info, filter.owner, registration_time
+                        )
+                    )
+                ),
                 _get_virkning_clause(KlasseRelation, filter),
             )
         )
@@ -468,7 +512,7 @@ async def class_resolver(
     if filter is None:
         filter = ClassFilter()
 
-    predicate = await class_predicate(
+    predicate = class_predicate(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, cursor),
@@ -515,20 +559,11 @@ async def class_resolver(
     )
 
 
-async def address_predicate(
+def address_predicate(
     info: MOInfo,
     filter: AddressFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    async def _get_address_type_uuids(
-        info: MOInfo, filter: AddressFilter
-    ) -> list[UUID]:
-        class_filter = filter.address_type or ClassFilter()
-        # Handle deprecated filter
-        extend_uuids(class_filter, filter.address_types)
-        extend_user_keys(class_filter, filter.address_type_user_keys)
-        return await filter2uuids_func(class_resolver, info, class_filter)
-
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
             select(
@@ -589,7 +624,6 @@ async def address_predicate(
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
-        employee_uuids = await get_employee_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -597,7 +631,13 @@ async def address_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(BrugerRegistrering.bruger_id).where(
+                            employee_predicate(
+                                info, employee_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -605,7 +645,6 @@ async def address_predicate(
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
-        org_unit_uuids = await get_org_unit_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -613,7 +652,15 @@ async def address_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(
+                            OrganisationEnhedRegistrering.organisationenhed_id
+                        ).where(
+                            organisation_unit_predicate(
+                                info, org_unit_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -625,7 +672,6 @@ async def address_predicate(
         or filter.address_type_user_keys is not None
         or filter.address_type is not None
     ):
-        address_type_uuids = await _get_address_type_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -633,7 +679,13 @@ async def address_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(address_type_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(KlasseRegistrering.klasse_id).where(
+                            class_predicate(
+                                info, address_type_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -643,9 +695,6 @@ async def address_predicate(
     # rel_type "opgaver" with objekt_type "synlighed" in mox
     # TODO: Support finding entries with visibility=None
     if filter.visibility is not None:
-        visibility_uuids = await filter2uuids_func(
-            class_resolver, info, filter.visibility
-        )
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -653,7 +702,11 @@ async def address_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.opgaver,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(visibility_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(KlasseRegistrering.klasse_id).where(
+                            class_predicate(info, filter.visibility, registration_time)
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -665,12 +718,20 @@ async def address_predicate(
         or filter.engagements is not None
         or filter.ituser is not None
     ):
-        tilknyttedefunktioner: list[UUID] = []
+        tilknyttedefunktioner: list[Select] = []
         if filter.engagement is not None or filter.engagements is not None:
-            tilknyttedefunktioner.extend(await get_engagement_uuids(info, filter))
+            tilknyttedefunktioner.append(
+                select(OrganisationFunktionRegistrering.organisationfunktion_id).where(
+                    engagement_predicate(
+                        info, engagement_subfilter(filter), registration_time
+                    )
+                )
+            )
         if filter.ituser is not None:
-            tilknyttedefunktioner.extend(
-                await filter2uuids_func(it_user_resolver, info, filter.ituser)
+            tilknyttedefunktioner.append(
+                select(OrganisationFunktionRegistrering.organisationfunktion_id).where(
+                    it_user_predicate(info, filter.ituser, registration_time)
+                )
             )
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
@@ -680,7 +741,7 @@ async def address_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedefunktioner,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        tilknyttedefunktioner
+                        union(*tilknyttedefunktioner)
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
@@ -700,7 +761,7 @@ async def address_resolver(
     if filter is None:
         filter = AddressFilter()
 
-    predicate = await address_predicate(
+    predicate = address_predicate(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, cursor),
@@ -747,20 +808,11 @@ async def address_resolver(
     )
 
 
-async def association_predicate(
+def association_predicate(
     info: MOInfo,
     filter: AssociationFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    async def _get_association_type_uuids(
-        info: MOInfo, filter: AssociationFilter
-    ) -> list[UUID]:
-        class_filter = filter.association_type or ClassFilter()
-        # Handle deprecated filter
-        extend_uuids(class_filter, filter.association_types)
-        extend_user_keys(class_filter, filter.association_type_user_keys)
-        return await filter2uuids_func(class_resolver, info, class_filter)
-
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
             select(
@@ -821,7 +873,6 @@ async def association_predicate(
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
-        employee_uuids = await get_employee_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -829,7 +880,13 @@ async def association_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(BrugerRegistrering.bruger_id).where(
+                            employee_predicate(
+                                info, employee_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -837,7 +894,6 @@ async def association_predicate(
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
-        org_unit_uuids = await get_org_unit_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -845,7 +901,15 @@ async def association_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(
+                            OrganisationEnhedRegistrering.organisationenhed_id
+                        ).where(
+                            organisation_unit_predicate(
+                                info, org_unit_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -857,7 +921,6 @@ async def association_predicate(
         or filter.association_type_user_keys is not None
         or filter.association_type is not None
     ):
-        association_type_uuids = await _get_association_type_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -866,7 +929,13 @@ async def association_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        association_type_uuids
+                        select(KlasseRegistrering.klasse_id).where(
+                            class_predicate(
+                                info,
+                                association_type_subfilter(filter),
+                                registration_time,
+                            )
+                        )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
@@ -886,7 +955,7 @@ async def association_resolver(
     if filter is None:
         filter = AssociationFilter()
 
-    predicate = await association_predicate(
+    predicate = association_predicate(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, cursor),
@@ -954,7 +1023,7 @@ async def association_resolver(
     return associations
 
 
-async def employee_predicate(
+def employee_predicate(
     info: MOInfo,
     filter: EmployeeFilter,
     registration_time: datetime | SQLNOW,
@@ -1029,7 +1098,7 @@ async def employee_resolver(
     if filter is None:
         filter = EmployeeFilter()
 
-    predicate = await employee_predicate(
+    predicate = employee_predicate(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, cursor),
@@ -1076,7 +1145,7 @@ async def employee_resolver(
     )
 
 
-async def engagement_predicate(
+def engagement_predicate(
     info: MOInfo,
     filter: EngagementFilter,
     registration_time: datetime | SQLNOW,
@@ -1141,7 +1210,6 @@ async def engagement_predicate(
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
-        employee_uuids = await get_employee_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1149,7 +1217,13 @@ async def engagement_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(BrugerRegistrering.bruger_id).where(
+                            employee_predicate(
+                                info, employee_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -1157,7 +1231,6 @@ async def engagement_predicate(
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
-        org_unit_uuids = await get_org_unit_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1165,7 +1238,15 @@ async def engagement_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(
+                            OrganisationEnhedRegistrering.organisationenhed_id
+                        ).where(
+                            organisation_unit_predicate(
+                                info, org_unit_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -1173,9 +1254,6 @@ async def engagement_predicate(
 
     # Job function
     if filter.job_function is not None:
-        job_function_uuids = await filter2uuids_func(
-            class_resolver, info, filter.job_function
-        )
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1183,7 +1261,13 @@ async def engagement_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.opgaver,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(job_function_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(KlasseRegistrering.klasse_id).where(
+                            class_predicate(
+                                info, filter.job_function, registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -1191,9 +1275,6 @@ async def engagement_predicate(
 
     # Engagement type
     if filter.engagement_type is not None:
-        engagement_type_uuids = await filter2uuids_func(
-            class_resolver, info, filter.engagement_type
-        )
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1202,7 +1283,11 @@ async def engagement_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        engagement_type_uuids
+                        select(KlasseRegistrering.klasse_id).where(
+                            class_predicate(
+                                info, filter.engagement_type, registration_time
+                            )
+                        )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
@@ -1213,7 +1298,7 @@ async def engagement_predicate(
     # The `tilknyttedefunktioner` relation lives on the ITUser's registration
     # pointing at the engagement UUID; resolve via the ituser predicate.
     if filter.ituser is not None:
-        ituser_pred = await it_user_predicate(
+        ituser_pred = it_user_predicate(
             info,
             filter.ituser,
             registration_time=registration_time,
@@ -1244,7 +1329,7 @@ async def engagement_resolver(
     if filter is None:
         filter = EngagementFilter()
 
-    predicate = await engagement_predicate(
+    predicate = engagement_predicate(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, cursor),
@@ -1291,7 +1376,7 @@ async def engagement_resolver(
     )
 
 
-async def manager_predicate(
+def manager_predicate(
     info: MOInfo,
     filter: ManagerFilter,
     registration_time: datetime | SQLNOW,
@@ -1388,7 +1473,6 @@ async def manager_predicate(
                 )
             )
         elif filter.employee is not UNSET or filter.employees is not None:
-            employee_uuids = await get_employee_uuids(info, filter)
             predicates.append(
                 OrganisationFunktionRegistrering.id.in_(
                     select(
@@ -1396,7 +1480,13 @@ async def manager_predicate(
                     ).where(
                         OrganisationFunktionRelation.rel_type
                         == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                        OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
+                        OrganisationFunktionRelation.rel_maal_uuid.in_(
+                            select(BrugerRegistrering.bruger_id).where(
+                                employee_predicate(
+                                    info, employee_subfilter(filter), registration_time
+                                )
+                            )
+                        ),
                         _get_virkning_clause(OrganisationFunktionRelation, filter),
                     )
                 )
@@ -1404,7 +1494,6 @@ async def manager_predicate(
     elif (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
-        employee_uuids = await get_employee_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1412,7 +1501,13 @@ async def manager_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(BrugerRegistrering.bruger_id).where(
+                            employee_predicate(
+                                info, employee_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -1420,7 +1515,6 @@ async def manager_predicate(
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
-        org_unit_uuids = await get_org_unit_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1428,7 +1522,15 @@ async def manager_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(
+                            OrganisationEnhedRegistrering.organisationenhed_id
+                        ).where(
+                            organisation_unit_predicate(
+                                info, org_unit_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -1436,9 +1538,6 @@ async def manager_predicate(
 
     # Responsibility
     if filter.responsibility is not None:
-        responsibility_uuids = await filter2uuids_func(
-            class_resolver, info, filter.responsibility
-        )
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1447,7 +1546,11 @@ async def manager_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.opgaver,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        responsibility_uuids
+                        select(KlasseRegistrering.klasse_id).where(
+                            class_predicate(
+                                info, filter.responsibility, registration_time
+                            )
+                        )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
@@ -1456,9 +1559,6 @@ async def manager_predicate(
 
     # Manager type
     if filter.manager_type is not None:
-        manager_type_uuids = await filter2uuids_func(
-            class_resolver, info, filter.manager_type
-        )
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1466,7 +1566,13 @@ async def manager_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(manager_type_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(KlasseRegistrering.klasse_id).where(
+                            class_predicate(
+                                info, filter.manager_type, registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -1474,9 +1580,6 @@ async def manager_predicate(
 
     # Engagement
     if filter.engagement is not None:
-        engagement_uuids = await filter2uuids_func(
-            engagement_resolver, info, filter.engagement
-        )
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1484,7 +1587,15 @@ async def manager_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedefunktioner,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(engagement_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(
+                            OrganisationFunktionRegistrering.organisationfunktion_id
+                        ).where(
+                            engagement_predicate(
+                                info, filter.engagement, registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -1520,7 +1631,7 @@ async def manager_resolver(
     if filter is None:
         filter = ManagerFilter()
 
-    predicate = await manager_predicate(
+    predicate = manager_predicate(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, cursor),
@@ -1580,7 +1691,9 @@ async def manager_resolver(
 
     if filter.org_units is None and filter.org_unit is None:
         raise ValueError("The inherit flag requires an organizational unit filter")
-    org_unit_uuids = await get_org_unit_uuids(info, filter)
+    org_unit_uuids = await filter2uuids_func(
+        organisation_unit_resolver, info, org_unit_subfilter(filter)
+    )
 
     org_unit = only(
         org_unit_uuids,
@@ -1599,13 +1712,11 @@ async def manager_resolver(
     return await manager_resolver(info, filter=child_filter, inherit=True)
 
 
-async def owner_predicate(
+def owner_predicate(
     info: MOInfo,
     filter: OwnerFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    # TODO: this function should not be an awaitable
-
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
             select(
@@ -1654,7 +1765,6 @@ async def owner_predicate(
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
-        employee_uuids = await get_employee_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1662,7 +1772,13 @@ async def owner_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(BrugerRegistrering.bruger_id).where(
+                            employee_predicate(
+                                info, employee_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -1670,7 +1786,6 @@ async def owner_predicate(
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
-        org_unit_uuids = await get_org_unit_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1678,7 +1793,15 @@ async def owner_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(
+                            OrganisationEnhedRegistrering.organisationenhed_id
+                        ).where(
+                            organisation_unit_predicate(
+                                info, org_unit_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -1686,7 +1809,6 @@ async def owner_predicate(
 
     # Owner
     if filter.owner is not None:
-        owner_uuids = await filter2uuids_func(employee_resolver, info, filter.owner)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1694,7 +1816,11 @@ async def owner_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedepersoner,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(owner_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(BrugerRegistrering.bruger_id).where(
+                            employee_predicate(info, filter.owner, registration_time)
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -1713,7 +1839,7 @@ async def owner_resolver(
     if filter is None:
         filter = OwnerFilter()
 
-    predicate = await owner_predicate(
+    predicate = owner_predicate(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, cursor),
@@ -1827,12 +1953,12 @@ def _get_gyldighed_clause(
     )
 
 
-async def organisation_unit_predicate(
+def organisation_unit_predicate(
     info: MOInfo,
     filter: OrganisationUnitFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    async def _get_parent_uuids() -> Select | CompoundSelect:
+    def _parents_subquery() -> Select | CompoundSelect:
         org_unit_filter = filter.parent or OrganisationUnitFilter()
         # parents vs parent values
         #       | UNSET | None    | xs
@@ -1849,14 +1975,9 @@ async def organisation_unit_predicate(
             return select(OrganisationRegistrering.organisation_id)
         if filter.parents is not UNSET:
             extend_uuids(org_unit_filter, filter.parents)
-        sub_predicate = await organisation_unit_predicate(
-            info=info,
-            filter=org_unit_filter,
-            registration_time=registration_time,
-        )
         return union(
-            select(distinct(OrganisationEnhedRegistrering.organisationenhed_id)).where(
-                sub_predicate
+            select(OrganisationEnhedRegistrering.organisationenhed_id).where(
+                organisation_unit_predicate(info, org_unit_filter, registration_time)
             ),
             # Because the root unit isn't an org unit in the database, the
             # organisation_unit_predicate can't fetch it. Instead, we include
@@ -1868,12 +1989,6 @@ async def organisation_unit_predicate(
                 )
             ),
         )
-
-    async def _get_hierarchy_uuids() -> list[UUID]:
-        class_filter = filter.hierarchy or ClassFilter()
-        # Handle deprecated filter
-        extend_uuids(class_filter, filter.hierarchies)
-        return await filter2uuids_func(class_resolver, info, class_filter)
 
     predicates = [
         _get_registrering_clause(
@@ -1895,7 +2010,7 @@ async def organisation_unit_predicate(
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
                         select(OrganisationFunktionRegistrering.id).where(
-                            await engagement_predicate(
+                            engagement_predicate(
                                 info=info,
                                 filter=filter.engagement,
                                 registration_time=registration_time,
@@ -1957,7 +2072,6 @@ async def organisation_unit_predicate(
 
     # Parents
     if filter.parent is not UNSET or filter.parents is not UNSET:
-        parent_uuids = await _get_parent_uuids()
         predicates.append(
             OrganisationEnhedRegistrering.id.in_(
                 select(
@@ -1965,7 +2079,7 @@ async def organisation_unit_predicate(
                 ).where(
                     OrganisationEnhedRelation.rel_type
                     == OrganisationEnhedRelationKode.overordnet,
-                    OrganisationEnhedRelation.rel_maal_uuid.in_(parent_uuids),
+                    OrganisationEnhedRelation.rel_maal_uuid.in_(_parents_subquery()),
                     _get_virkning_clause(OrganisationEnhedRelation, filter),
                 )
             )
@@ -1973,8 +2087,6 @@ async def organisation_unit_predicate(
 
     # Hierarchies
     if filter.hierarchy is not None or filter.hierarchies is not None:
-        # TODO: _get_hierarchy_uuids should not be an awaitable
-        hierarchy_uuids = await _get_hierarchy_uuids()
         predicates.append(
             OrganisationEnhedRegistrering.id.in_(
                 select(
@@ -1982,7 +2094,13 @@ async def organisation_unit_predicate(
                 ).where(
                     OrganisationEnhedRelation.rel_type
                     == OrganisationEnhedRelationKode.opmærkning,
-                    OrganisationEnhedRelation.rel_maal_uuid.in_(hierarchy_uuids),
+                    OrganisationEnhedRelation.rel_maal_uuid.in_(
+                        select(KlasseRegistrering.klasse_id).where(
+                            class_predicate(
+                                info, hierarchy_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationEnhedRelation, filter),
                 )
             )
@@ -1998,7 +2116,7 @@ async def organisation_unit_predicate(
         org_unit_filter = (
             filter.descendant or filter.subtree or OrganisationUnitFilter()
         )
-        base_leafs_predicate = await organisation_unit_predicate(
+        base_leafs_predicate = organisation_unit_predicate(
             info=info,
             filter=org_unit_filter,
             registration_time=registration_time,
@@ -2071,7 +2189,7 @@ async def organisation_unit_predicate(
         )
     elif filter.child is not UNSET:
         # Find parents having one of the provided children as a direct child
-        child_predicate = await organisation_unit_predicate(
+        child_predicate = organisation_unit_predicate(
             info=info,
             filter=filter.child,
             registration_time=registration_time,
@@ -2106,7 +2224,7 @@ async def organisation_unit_predicate(
     if filter.ancestor is not UNSET:
         # Find all matching parents and then recursively find their children.
         org_unit_filter = filter.ancestor or OrganisationUnitFilter()
-        ancestor_predicate = await organisation_unit_predicate(
+        ancestor_predicate = organisation_unit_predicate(
             info=info,
             filter=org_unit_filter,
             registration_time=registration_time,
@@ -2196,7 +2314,7 @@ async def organisation_unit_resolver(
     if filter is None:
         filter = OrganisationUnitFilter()
 
-    predicate = await organisation_unit_predicate(
+    predicate = organisation_unit_predicate(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, cursor),
@@ -2249,7 +2367,7 @@ async def organisation_unit_has_children(
 ) -> bool:
     """Resolve whether an organisation unit has children."""
     assert filter is not None  # cannot be None, but signature required for seeding
-    predicate = await organisation_unit_predicate(
+    predicate = organisation_unit_predicate(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, None),
@@ -2269,7 +2387,7 @@ async def organisation_unit_child_count(
 ) -> int:
     """Resolve the number of children of an organisation unit."""
     assert filter is not None  # cannot be None, but signature required for seeding
-    predicate = await organisation_unit_predicate(
+    predicate = organisation_unit_predicate(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, None),
@@ -2285,7 +2403,7 @@ async def organisation_unit_child_count(
     ).one()
 
 
-async def it_system_predicate(
+def it_system_predicate(
     info: MOInfo,
     filter: ITSystemFilter,
     registration_time: datetime | SQLNOW,
@@ -2340,7 +2458,7 @@ async def it_system_resolver(
     if filter is None:
         filter = ITSystemFilter()
 
-    predicate = await it_system_predicate(
+    predicate = it_system_predicate(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, cursor),
@@ -2387,7 +2505,7 @@ async def it_system_resolver(
     )
 
 
-async def it_user_predicate(
+def it_user_predicate(
     info: MOInfo,
     filter: ITUserFilter,
     registration_time: datetime | SQLNOW,
@@ -2452,7 +2570,6 @@ async def it_user_predicate(
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
-        employee_uuids = await get_employee_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -2460,7 +2577,13 @@ async def it_user_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(BrugerRegistrering.bruger_id).where(
+                            employee_predicate(
+                                info, employee_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -2468,7 +2591,6 @@ async def it_user_predicate(
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
-        org_unit_uuids = await get_org_unit_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -2476,7 +2598,15 @@ async def it_user_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(
+                            OrganisationEnhedRegistrering.organisationenhed_id
+                        ).where(
+                            organisation_unit_predicate(
+                                info, org_unit_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -2484,7 +2614,6 @@ async def it_user_predicate(
 
     # IT systems
     if filter.itsystem_uuids is not None or filter.itsystem is not None:
-        itsystem_uuids = await get_itsystem_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -2492,7 +2621,13 @@ async def it_user_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeitsystemer,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(itsystem_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(ITSystemRegistrering.itsystem_id).where(
+                            it_system_predicate(
+                                info, itsystem_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -2500,9 +2635,6 @@ async def it_user_predicate(
 
     # Engagement
     if filter.engagement is not None:  # pragma: no cover
-        engagement_uuids = await filter2uuids_func(
-            engagement_resolver, info, filter.engagement
-        )
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -2510,7 +2642,15 @@ async def it_user_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedefunktioner,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(engagement_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(
+                            OrganisationFunktionRegistrering.organisationfunktion_id
+                        ).where(
+                            engagement_predicate(
+                                info, filter.engagement, registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -2574,7 +2714,7 @@ async def it_user_resolver(
     if filter is None:
         filter = ITUserFilter()
 
-    predicate = await it_user_predicate(
+    predicate = it_user_predicate(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, cursor),
@@ -2621,7 +2761,7 @@ async def it_user_resolver(
     )
 
 
-async def kle_predicate(
+def kle_predicate(
     info: MOInfo,
     filter: KLEFilter,
     registration_time: datetime | SQLNOW,
@@ -2684,7 +2824,6 @@ async def kle_predicate(
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
-        org_unit_uuids = await get_org_unit_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -2692,7 +2831,15 @@ async def kle_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(
+                            OrganisationEnhedRegistrering.organisationenhed_id
+                        ).where(
+                            organisation_unit_predicate(
+                                info, org_unit_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -2711,7 +2858,7 @@ async def kle_resolver(
     if filter is None:
         filter = KLEFilter()
 
-    predicate = await kle_predicate(
+    predicate = kle_predicate(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, cursor),
@@ -2758,7 +2905,7 @@ async def kle_resolver(
     )
 
 
-async def leave_predicate(
+def leave_predicate(
     info: MOInfo,
     filter: LeaveFilter,
     registration_time: datetime | SQLNOW,
@@ -2823,7 +2970,6 @@ async def leave_predicate(
     if (
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
-        employee_uuids = await get_employee_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -2831,7 +2977,13 @@ async def leave_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(employee_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(BrugerRegistrering.bruger_id).where(
+                            employee_predicate(
+                                info, employee_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -2839,7 +2991,6 @@ async def leave_predicate(
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
-        org_unit_uuids = await get_org_unit_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -2847,7 +2998,15 @@ async def leave_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(
+                            OrganisationEnhedRegistrering.organisationenhed_id
+                        ).where(
+                            organisation_unit_predicate(
+                                info, org_unit_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -2866,7 +3025,7 @@ async def leave_resolver(
     if filter is None:
         filter = LeaveFilter()
 
-    predicate = await leave_predicate(
+    predicate = leave_predicate(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, cursor),
@@ -2951,13 +3110,11 @@ async def generic_resolver(
     )
 
 
-async def related_unit_predicate(
+def related_unit_predicate(
     info: MOInfo,
     filter: RelatedUnitFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    # TODO: this function should not be an awaitable
-
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
             select(
@@ -3004,7 +3161,6 @@ async def related_unit_predicate(
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
-        org_unit_uuids = await get_org_unit_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -3012,7 +3168,15 @@ async def related_unit_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(
+                            OrganisationEnhedRegistrering.organisationenhed_id
+                        ).where(
+                            organisation_unit_predicate(
+                                info, org_unit_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -3031,7 +3195,7 @@ async def related_unit_resolver(
     if filter is None:
         filter = RelatedUnitFilter()
 
-    predicate = await related_unit_predicate(
+    predicate = related_unit_predicate(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, cursor),
@@ -3078,7 +3242,7 @@ async def related_unit_resolver(
     )
 
 
-async def rolebinding_predicate(
+def rolebinding_predicate(
     info: MOInfo,
     filter: RoleBindingFilter,
     registration_time: datetime | SQLNOW,
@@ -3141,7 +3305,6 @@ async def rolebinding_predicate(
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
-        org_unit_uuids = await get_org_unit_uuids(info, filter)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -3149,7 +3312,15 @@ async def rolebinding_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(org_unit_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(
+                            OrganisationEnhedRegistrering.organisationenhed_id
+                        ).where(
+                            organisation_unit_predicate(
+                                info, org_unit_subfilter(filter), registration_time
+                            )
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -3157,7 +3328,6 @@ async def rolebinding_predicate(
 
     # IT-user
     if filter.ituser is not None:
-        ituser_uuids = await filter2uuids_func(it_user_resolver, info, filter.ituser)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -3165,7 +3335,13 @@ async def rolebinding_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedefunktioner,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(ituser_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(
+                            OrganisationFunktionRegistrering.organisationfunktion_id
+                        ).where(
+                            it_user_predicate(info, filter.ituser, registration_time)
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -3173,7 +3349,6 @@ async def rolebinding_predicate(
 
     # Role
     if filter.role is not None:
-        role_uuids = await filter2uuids_func(class_resolver, info, filter.role)
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -3181,7 +3356,11 @@ async def rolebinding_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(role_uuids),
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(KlasseRegistrering.klasse_id).where(
+                            class_predicate(info, filter.role, registration_time)
+                        )
+                    ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -3200,7 +3379,7 @@ async def rolebinding_resolver(
     if filter is None:
         filter = RoleBindingFilter()
 
-    predicate = await rolebinding_predicate(
+    predicate = rolebinding_predicate(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, cursor),
