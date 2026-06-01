@@ -3,9 +3,11 @@
 import dataclasses
 from collections.abc import Callable
 from collections.abc import Sequence
+from datetime import date
 from datetime import datetime
 from datetime import timedelta
 from functools import lru_cache
+from itertools import starmap
 from textwrap import dedent
 from typing import Annotated
 from typing import Any
@@ -20,12 +22,17 @@ from pydantic import ValidationError
 from sqlalchemy import ColumnElement
 from sqlalchemy import Select
 from sqlalchemy import and_
+from sqlalchemy import case
 from sqlalchemy import cast
+from sqlalchemy import column
 from sqlalchemy import distinct
 from sqlalchemy import exists
 from sqlalchemy import func
+from sqlalchemy import literal
 from sqlalchemy import or_
 from sqlalchemy import select
+from sqlalchemy import true
+from sqlalchemy import union
 from sqlalchemy.sql.functions import now as SQLNOW
 from sqlalchemy.types import Text
 from starlette_context import context
@@ -87,11 +94,13 @@ from .filters import LeaveFilter
 from .filters import ManagerFilter
 from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
+from .filters import RegistrationFilter
 from .filters import RelatedUnitFilter
 from .filters import RoleBindingFilter
 from .graphql_utils import LoadKey
 from .paged import CursorType
 from .paged import LimitType
+from .registrationbase import RegistrationBase
 from .validity import OpenValidityModel
 
 
@@ -166,29 +175,11 @@ async def get_org_unit_uuids(info: MOInfo, filter: Any) -> list[UUID]:
     return await filter2uuids_func(organisation_unit_resolver, info, org_unit_filter)
 
 
-async def registration_filter(info: MOInfo, filter: Any) -> None:
-    if filter.registration is None:
-        return
-    from .registration import registration_resolver  # pragma: no cover
-
-    uuids = await filter2uuids_func(  # pragma: no cover
-        registration_resolver,
-        info,
-        filter.registration,
-        lambda objects: [x.uuid for x in objects],
-    )
-
-    extend_uuids(filter, uuids)  # pragma: no cover
-
-
 async def facet_predicate(
     info: MOInfo,
     filter: FacetFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
-
     async def _get_parent_uuids() -> list[UUID]:
         parent_filter = filter.parent or FacetFilter()
         # Handle deprecated filter
@@ -208,6 +199,16 @@ async def facet_predicate(
             )
         ),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            FacetRegistrering.uuid.in_(
+                select(FacetRegistrering.uuid).where(
+                    registration_predicate(FacetRegistrering, filter.registration)
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -306,9 +307,6 @@ async def class_predicate(
     filter: ClassFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
-
     async def _get_facet_uuids() -> list[UUID]:
         facet_filter = filter.facet or FacetFilter()
         # Handle deprecated filter
@@ -335,6 +333,16 @@ async def class_predicate(
             )
         ),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            KlasseRegistrering.uuid.in_(
+                select(KlasseRegistrering.uuid).where(
+                    registration_predicate(KlasseRegistrering, filter.registration)
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -510,8 +518,6 @@ async def address_predicate(
     filter: AddressFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    # TODO: this function should not be an awaitable
-
     async def _get_address_type_uuids(
         info: MOInfo, filter: AddressFilter
     ) -> list[UUID]:
@@ -520,8 +526,6 @@ async def address_predicate(
         extend_uuids(class_filter, filter.address_types)
         extend_user_keys(class_filter, filter.address_type_user_keys)
         return await filter2uuids_func(class_resolver, info, class_filter)
-
-    await registration_filter(info, filter)
 
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -545,6 +549,18 @@ async def address_predicate(
         ),
         _funktionsnavn(),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationFunktionRegistrering.uuid.in_(
+                select(OrganisationFunktionRegistrering.uuid).where(
+                    registration_predicate(
+                        OrganisationFunktionRegistrering, filter.registration
+                    )
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -734,8 +750,6 @@ async def association_predicate(
     filter: AssociationFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    # TODO: this function should not be an awaitable
-
     async def _get_association_type_uuids(
         info: MOInfo, filter: AssociationFilter
     ) -> list[UUID]:
@@ -744,8 +758,6 @@ async def association_predicate(
         extend_uuids(class_filter, filter.association_types)
         extend_user_keys(class_filter, filter.association_type_user_keys)
         return await filter2uuids_func(class_resolver, info, class_filter)
-
-    await registration_filter(info, filter)
 
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -769,6 +781,18 @@ async def association_predicate(
         ),
         _funktionsnavn(),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationFunktionRegistrering.uuid.in_(
+                select(OrganisationFunktionRegistrering.uuid).where(
+                    registration_predicate(
+                        OrganisationFunktionRegistrering, filter.registration
+                    )
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -933,9 +957,6 @@ async def employee_predicate(
     filter: EmployeeFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
-
     predicates = [
         _get_registrering_clause(
             BrugerRegistrering,
@@ -947,6 +968,16 @@ async def employee_predicate(
             filter,
         ),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            BrugerRegistrering.uuid.in_(
+                select(BrugerRegistrering.uuid).where(
+                    registration_predicate(BrugerRegistrering, filter.registration)
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -1068,9 +1099,6 @@ async def engagement_predicate(
     filter: EngagementFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
-
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
             select(
@@ -1093,6 +1121,18 @@ async def engagement_predicate(
         ),
         _funktionsnavn(),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationFunktionRegistrering.uuid.in_(
+                select(OrganisationFunktionRegistrering.uuid).where(
+                    registration_predicate(
+                        OrganisationFunktionRegistrering, filter.registration
+                    )
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -1274,9 +1314,6 @@ async def manager_predicate(
     filter: ManagerFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
-
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
             select(
@@ -1299,6 +1336,18 @@ async def manager_predicate(
         ),
         _funktionsnavn(),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationFunktionRegistrering.uuid.in_(
+                select(OrganisationFunktionRegistrering.uuid).where(
+                    registration_predicate(
+                        OrganisationFunktionRegistrering, filter.registration
+                    )
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -1801,9 +1850,6 @@ async def organisation_unit_predicate(
     filter: OrganisationUnitFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
-
     async def _get_parent_uuids() -> list[UUID] | Select:
         org_unit_filter = filter.parent or OrganisationUnitFilter()
         # Handle deprecated filter
@@ -1884,6 +1930,18 @@ async def organisation_unit_predicate(
                     _get_virkning_clause(
                         OrganisationFunktionRelation, filter.engagement
                     ),
+                )
+            )
+        )
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationEnhedRegistrering.uuid.in_(
+                select(OrganisationEnhedRegistrering.uuid).where(
+                    registration_predicate(
+                        OrganisationEnhedRegistrering, filter.registration
+                    )
                 )
             )
         )
@@ -2257,9 +2315,6 @@ async def it_system_predicate(
     filter: ITSystemFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
-
     predicates = [
         _get_registrering_clause(
             ITSystemRegistrering,
@@ -2271,6 +2326,16 @@ async def it_system_predicate(
             filter,
         ),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            ITSystemRegistrering.uuid.in_(
+                select(ITSystemRegistrering.uuid).where(
+                    registration_predicate(ITSystemRegistrering, filter.registration)
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -2352,9 +2417,6 @@ async def it_user_predicate(
     filter: ITUserFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
-
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
             select(
@@ -2377,6 +2439,18 @@ async def it_user_predicate(
         ),
         _funktionsnavn(),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationFunktionRegistrering.uuid.in_(
+                select(OrganisationFunktionRegistrering.uuid).where(
+                    registration_predicate(
+                        OrganisationFunktionRegistrering, filter.registration
+                    )
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -2577,9 +2651,6 @@ async def kle_predicate(
     filter: KLEFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
-
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
             select(
@@ -2602,6 +2673,18 @@ async def kle_predicate(
         ),
         _funktionsnavn(),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationFunktionRegistrering.uuid.in_(
+                select(OrganisationFunktionRegistrering.uuid).where(
+                    registration_predicate(
+                        OrganisationFunktionRegistrering, filter.registration
+                    )
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -2705,9 +2788,6 @@ async def leave_predicate(
     filter: LeaveFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
-
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
             select(
@@ -2730,6 +2810,18 @@ async def leave_predicate(
         ),
         _funktionsnavn(),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationFunktionRegistrering.uuid.in_(
+                select(OrganisationFunktionRegistrering.uuid).where(
+                    registration_predicate(
+                        OrganisationFunktionRegistrering, filter.registration
+                    )
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -3016,9 +3108,6 @@ async def rolebinding_predicate(
     filter: RoleBindingFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    # TODO: this function should not be an awaitable
-    await registration_filter(info, filter)
-
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
             select(
@@ -3041,6 +3130,18 @@ async def rolebinding_predicate(
         ),
         _funktionsnavn(),
     ]
+
+    # Registration
+    if filter.registration is not None:
+        predicates.append(
+            OrganisationFunktionRegistrering.uuid.in_(
+                select(OrganisationFunktionRegistrering.uuid).where(
+                    registration_predicate(
+                        OrganisationFunktionRegistrering, filter.registration
+                    )
+                )
+            )
+        )
 
     # UUIDs
     if filter.uuids is not None:
@@ -3232,3 +3333,225 @@ def get_sqlalchemy_date_interval(
         dates.from_date or util.NEGATIVE_INFINITY,
         dates.to_date or util.POSITIVE_INFINITY,
     )
+
+
+def registration_predicate(table: Any, filter: RegistrationFilter) -> ColumnElement:
+    # Seed with true() so an unfiltered (empty) predicate is a valid no-op WHERE.
+    predicates: list[ColumnElement] = [true()]
+
+    if filter.uuids is not None:
+        predicates.append(table.uuid.in_(filter.uuids))
+
+    if filter.actors is not None:
+        predicates.append(table.actor.in_(filter.actors))
+
+    if filter.start is not None or filter.end is not None:
+        start, end = get_sqlalchemy_date_interval(filter.start, filter.end)
+        predicates.append(func.lower(table.registrering_period) <= end)
+        predicates.append(func.upper(table.registrering_period) > start)
+
+    return and_(*predicates)
+
+
+def row2registration(
+    model: str, id: int, uuid: UUID, actor: UUID, note: str, start_t: Any, end_t: Any
+) -> RegistrationBase:
+    """Construct a registration model.
+
+    Args:
+        model: The name of the entity model.
+        id: Internal ID for the registrationself.
+        uuid: UUID of the modified entryself.
+        actor: UUID of the actor whom made the change.
+        start_t: Start of the active interval.
+        start_t: End of the active interval.
+
+    Returns:
+        The constructed registration model.
+    """
+    start: datetime = util.parsedatetime(start_t)
+    end: datetime | None = util.parsedatetime(end_t)
+    assert end is not None
+    if end.date() == date(9999, 12, 31):
+        end = None
+
+    from .model_registration import AddressRegistration
+    from .model_registration import AssociationRegistration
+    from .model_registration import ClassRegistration
+    from .model_registration import EngagementRegistration
+    from .model_registration import FacetRegistration
+    from .model_registration import ITSystemRegistration
+    from .model_registration import ITUserRegistration
+    from .model_registration import KLERegistration
+    from .model_registration import LeaveRegistration
+    from .model_registration import ManagerRegistration
+    from .model_registration import OrganisationUnitRegistration
+    from .model_registration import OwnerRegistration
+    from .model_registration import PersonRegistration
+    from .model_registration import RelatedUnitRegistration
+    from .model_registration import RoleBindingRegistration
+
+    lookup = {
+        "address": AddressRegistration,
+        "association": AssociationRegistration,
+        "class": ClassRegistration,
+        "employee": PersonRegistration,
+        "engagement": EngagementRegistration,
+        "facet": FacetRegistration,
+        "itsystem": ITSystemRegistration,
+        "ituser": ITUserRegistration,
+        "kle": KLERegistration,
+        "leave": LeaveRegistration,
+        "manager": ManagerRegistration,
+        "owner": OwnerRegistration,
+        "org_unit": OrganisationUnitRegistration,
+        "related": RelatedUnitRegistration,
+        "role": RoleBindingRegistration,
+    }
+    cls = lookup.get(model)
+
+    return cls(  # type: ignore
+        model=model,
+        uuid=uuid,
+        registration_id=id,
+        start=start,
+        end=end,
+        actor=actor,
+        note=note,
+    )
+
+
+async def registration_resolver(
+    info: MOInfo,
+    filter: RegistrationFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> list[Any]:
+    if filter is None:
+        filter = RegistrationFilter()
+
+    model2table = {
+        "address": OrganisationFunktionRegistrering,
+        "association": OrganisationFunktionRegistrering,
+        "class": KlasseRegistrering,
+        "employee": BrugerRegistrering,
+        "engagement": OrganisationFunktionRegistrering,
+        "facet": FacetRegistrering,
+        "itsystem": ITSystemRegistrering,
+        "ituser": OrganisationFunktionRegistrering,
+        "kle": OrganisationFunktionRegistrering,
+        "leave": OrganisationFunktionRegistrering,
+        "manager": OrganisationFunktionRegistrering,
+        "org_unit": OrganisationEnhedRegistrering,
+        "role": OrganisationFunktionRegistrering,
+        "owner": OrganisationFunktionRegistrering,
+        "related": OrganisationFunktionRegistrering,
+    }
+
+    tables = set(model2table.values())
+    # If given a model filter, only query relevant tables
+    if filter.models is not None:
+        valid_keys = set(filter.models) & model2table.keys()
+        tables = {model2table[key] for key in valid_keys}
+        # If only invalid model names were given, we can early return
+        if not tables:  # pragma: no cover
+            return []
+
+    def generate_query(table: Any) -> Select:
+        common_fields = [
+            table.id.label("id"),
+            table.uuid.label("uuid"),
+            table.actor.label("actor"),
+            table.note.label("note"),
+            func.lower(table.registrering_period).label("start"),
+            func.upper(table.registrering_period).label("end"),
+        ]
+
+        if table == OrganisationFunktionRegistrering:
+            model = case(
+                # Mapping from LoRa funktionsnavn to GraphQL names
+                {
+                    "Adresse": "address",
+                    "Engagement": "engagement",
+                    "IT-system": "ituser",
+                    "Leder": "manager",
+                    "Orlov": "leave",
+                    "Rollebinding": "role",
+                    "Tilknytning": "association",
+                    "KLE": "kle",
+                    "owner": "owner",
+                    "Relateret Enhed": "related",
+                },
+                value=OrganisationFunktionAttrEgenskaber.funktionsnavn.cast(Text),
+                else_="unknown",
+            )
+            query = select(model.label("model"), *common_fields).where(
+                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+                == table.id,
+                registration_predicate(table, filter),
+            )
+            # This is the only table backing multiple models, so it is the only
+            # one whose rows need filtering by model; the others are pinned by
+            # the table selection above.
+            if filter.models is not None:
+                query = query.where(model.in_(filter.models))
+            return query
+        return select(
+            case(
+                # Mapping from table names to GraphQL names
+                {
+                    "BrugerRegistrering": "employee",
+                    "FacetRegistrering": "facet",
+                    "ITSystemRegistrering": "itsystem",
+                    "KlasseRegistrering": "class",
+                    "OrganisationEnhedRegistrering": "org_unit",
+                },
+                value=literal(table.__name__),
+                else_="unknown",
+            ).label("model"),
+            *common_fields,
+        ).where(registration_predicate(table, filter))
+
+    # Query all requested registation tables using a big union query
+    union_query = union(*map(generate_query, tables)).subquery()
+    # Select using a subquery so we can order the unioned result
+    # Note: I have no idea why mypy dislikes this.
+    query = select("*").select_from(union_query).distinct()  # type: ignore
+
+    # Pagination
+    if cursor:  # pragma: no cover
+        query = query.where(column("start") <= cursor.registration_time)
+    # Order by time, then by UUID so the order of pagination is well-defined
+    query = query.order_by(column("start"), column("uuid"))
+    if limit is not None:
+        # Fetch one extra element to see if there is another page
+        query = query.limit(limit + 1)  # pragma: no cover
+    query = query.offset(cursor.offset if cursor else 0)
+
+    session: AsyncSession = info.context.session
+    result = list(await session.execute(query))
+    access_log(
+        session,
+        "resolve_registrations",
+        "Registration",
+        {
+            "limit": limit,
+            "cursor": cursor,
+            "uuids": filter.uuids,
+            "actors": filter.actors,
+            "models": filter.models,
+            "start": filter.start,
+            "end": filter.end,
+        },
+        [uuid for _, _, uuid, _, _, _, _ in result],
+    )
+
+    if limit is not None:
+        # Not enough results == no more pages
+        if len(result) <= limit:  # pragma: no cover
+            context["lora_page_out_of_range"] = True
+        # Strip the extra element that was only used for page-checking
+        elif len(result) == limit + 1:  # pragma: no cover
+            result = result[:-1]
+
+    return list(starmap(row2registration, result))

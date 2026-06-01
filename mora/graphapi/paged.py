@@ -19,6 +19,7 @@ from strawberry.types import Info
 from mora.util import now
 
 from .filters import BaseFilter
+from .filters import RegistrationFilter
 from .types import Cursor
 
 LimitType = Annotated[
@@ -131,12 +132,13 @@ def to_paged(
         info: Info,
         limit: LimitType,
         cursor: CursorType,
-        filter: BaseFilter | None = None,
+        filter: BaseFilter | RegistrationFilter | None = None,
         **kwargs: Any,
     ) -> Paged:
         if limit and cursor is None:
             registration_time = now()
-            if filter is not None and filter.registration_time:
+            # RegistrationFilter doesn't have a `registration_time`
+            if isinstance(filter, BaseFilter) and filter.registration_time:
                 registration_time = filter.registration_time
             cursor = Cursor(offset=0, registration_time=registration_time)
 

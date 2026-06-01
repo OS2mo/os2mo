@@ -38,10 +38,10 @@ from .models import FacetRead
 from .models import RoleBindingRead
 from .moobject import MOObject
 from .permissions import IsAuthenticatedPermission
-from .registration import Registration
-from .registration import registration_resolver
+from .registrationbase import Registration
 from .registrationbase import RegistrationBase
 from .resolver_map import get_dataloader
+from .resolvers import registration_resolver
 from .seed_resolver import seed_resolver
 from .utils import uuid2list
 

@@ -1359,6 +1359,46 @@ def create_kle(
 
 
 @pytest.fixture
+def create_association(
+    graphapi_post: GraphAPIPost, root_org: UUID
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation CreateAssociation($input: AssociationCreateInput!) {
+                association_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["association_create"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
+def create_leave(
+    graphapi_post: GraphAPIPost, root_org: UUID
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation CreateLeave($input: LeaveCreateInput!) {
+                leave_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["leave_create"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
 def create_rolebinding(
     graphapi_post: GraphAPIPost, root_org: UUID
 ) -> Callable[[dict[str, Any]], UUID]:

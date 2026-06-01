@@ -303,3 +303,41 @@ async def test_registration_actor_object(
     registration = one(response.data["registrations"]["objects"])
     assert registration["actor_object"]["display_name"] == "brucerino"
     assert registration["actor_object"]["uuid"] == actor_uuid
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_registration_models_filter_paginated(
+    graphapi_post: GraphAPIPost,
+    create_facet: Callable[..., UUID],
+    create_person: Callable[..., UUID],
+) -> None:
+    facet_uuid = create_facet(
+        {"user_key": "test_facet", "validity": {"from": "1970-01-01"}}
+    )
+    person_uuid = create_person()
+
+    query = """
+        query Registrations($filter: RegistrationFilter) {
+          registrations(limit: 5, filter: $filter) {
+            objects {
+              model
+              uuid
+            }
+          }
+        }
+    """
+
+    response = graphapi_post(query, {"filter": {"models": ["facet"]}})
+    assert response.errors is None
+    assert response.data
+    objects = response.data["registrations"]["objects"]
+    assert {obj["model"] for obj in objects} == {"facet"}
+    assert str(facet_uuid) in {obj["uuid"] for obj in objects}
+
+    response = graphapi_post(query, {"filter": {"models": ["employee"]}})
+    assert response.errors is None
+    assert response.data
+    objects = response.data["registrations"]["objects"]
+    assert {obj["model"] for obj in objects} == {"employee"}
+    assert str(person_uuid) in {obj["uuid"] for obj in objects}

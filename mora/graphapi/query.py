@@ -73,8 +73,7 @@ from .paged import to_paged
 from .permissions import IsAuthenticatedPermission
 from .permissions import gen_read_permission
 from .permissions import gen_role_permission
-from .registration import Registration
-from .registration import registration_resolver
+from .registrationbase import Registration
 from .resolvers import address_resolver
 from .resolvers import association_resolver
 from .resolvers import class_resolver
@@ -88,6 +87,7 @@ from .resolvers import leave_resolver
 from .resolvers import manager_resolver
 from .resolvers import organisation_unit_resolver
 from .resolvers import owner_resolver
+from .resolvers import registration_resolver
 from .resolvers import related_unit_resolver
 from .resolvers import rolebinding_resolver
 from .response import Response
