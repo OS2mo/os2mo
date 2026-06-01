@@ -59,7 +59,7 @@ class Registration(RegistrationBase):
 
 def row2registration(
     model: str, id: int, uuid: UUID, actor: UUID, note: str, start_t: Any, end_t: Any
-) -> Registration:
+) -> RegistrationBase:
     """Construct a registration model.
 
     Args:
