@@ -152,24 +152,32 @@ async def test_org_unit_pagination(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-async def test_employee_query_must_be_used_alone(graphapi_post: GraphAPIPost) -> None:
+async def test_employee_query_composes_with_other_filters(
+    graphapi_post: GraphAPIPost, create_person: Callable[..., UUID]
+) -> None:
+    # Both persons share a surname, so `query: "Shared"` matches both.
+    persons = [
+        create_person({"given_name": "Alice", "surname": "Shared"}),
+        create_person({"given_name": "Bob", "surname": "Shared"}),
+    ]
+
     query = """
-      query Search {
-        employees(filter: {query: "foo", user_keys: "bar"}) {
+      query Search($filter: EmployeeFilter) {
+        employees(filter: $filter) {
           objects {
             uuid
           }
         }
       }
     """
-    response = graphapi_post(query)
-    assert response.errors == [
-        {
-            "locations": [{"column": 9, "line": 3}],
-            "message": "filter.query must be used alone",
-            "path": ["employees"],
-        }
-    ]
+    # The query filter is AND'ed with the other filters, so restricting by uuid
+    # narrows the matches down to a single person.
+    response = graphapi_post(
+        query, {"filter": {"query": "Shared", "uuids": [str(persons[0])]}}
+    )
+    assert response.errors is None
+    assert response.data is not None
+    assert response.data["employees"]["objects"] == [{"uuid": str(persons[0])}]
 
 
 @pytest.mark.integration_test

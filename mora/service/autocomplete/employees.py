@@ -1,9 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
-from datetime import date
-from uuid import UUID
-
+from sqlalchemy import Select
 from sqlalchemy import String
 from sqlalchemy import Text
 from sqlalchemy import cast
@@ -14,33 +11,20 @@ from sqlalchemy.sql import union
 
 from mora import config
 from mora import util
-from mora.access_log import access_log
-from mora.db import AsyncSession
 from mora.db import BrugerAttrUdvidelser
 from mora.db import BrugerRegistrering
 from mora.db import BrugerRelation
 from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
-from mora.graphapi.paged import CursorType
-from mora.graphapi.paged import LimitType
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
-from mora.service.autocomplete.shared import get_at_date_sql
-from mora.service.autocomplete.shared import read_sqlalchemy_result
 from mora.service.autocomplete.shared import string_to_urn
 
 
-async def search_employees(
-    session: AsyncSession,
-    query: str,
-    at: date | None = None,
-    limit: LimitType = None,
-    cursor: CursorType = None,
-) -> list[UUID]:
-    at_sql, at_sql_bind_params = get_at_date_sql(at)
+def search_employees_query(query: str) -> Select:
     settings = config.get_settings()
 
-    coroutines = [
+    ctes = [
         _get_cte_uuid_hits(query),
         _get_cte_user_key_hits(query),
         _get_cte_name_hits(query),
@@ -48,33 +32,18 @@ async def search_employees(
         _get_cte_itsystem_hits(query),
     ]
     if settings.person_address_search_enabled:
-        coroutines.append(_get_cte_addr_hits(query))
-    ctes = await asyncio.gather(*coroutines)
+        ctes.append(_get_cte_addr_hits(query))
 
     selects = [select(cte.c.uuid) for cte in ctes]
     all_hits = union(*selects).cte()
 
     employee_id = BrugerRegistrering.bruger_id.label("uuid")
-    query_final = (
+    return (
         select(employee_id).where(employee_id == all_hits.c.uuid).group_by(employee_id)
     )
 
-    # Pagination
-    if limit is not None:
-        query_final = query_final.limit(limit)
-    if cursor is not None:
-        query_final = query_final.offset(cursor.offset)
 
-    # Execute & parse results
-    result = read_sqlalchemy_result(
-        await session.execute(query_final, {**at_sql_bind_params})
-    )
-    uuids = [employee.uuid for employee in result]
-    access_log(session, "search_employees", "Bruger", {"query": query, "at": at}, uuids)
-    return uuids
-
-
-async def _get_cte_uuid_hits(query: str):
+def _get_cte_uuid_hits(query: str):
     search_phrase = util.query_to_search_phrase(query)
 
     return (
@@ -95,7 +64,7 @@ async def _get_cte_uuid_hits(query: str):
     )
 
 
-async def _get_cte_name_hits(query: str):
+def _get_cte_name_hits(query: str):
     search_phrase = util.query_to_search_phrase(query)
 
     name_concated = func.concat(
@@ -122,9 +91,9 @@ async def _get_cte_name_hits(query: str):
     )
 
 
-async def _get_cte_cpr_hits(query: str):
+def _get_cte_cpr_hits(query: str):
     # NOTE: CPR is persisted as a URN in the relation tabel
-    query = await string_to_urn(query)
+    query = string_to_urn(query)
     search_phrase = util.query_to_search_phrase(query)
 
     return (
@@ -141,7 +110,7 @@ async def _get_cte_cpr_hits(query: str):
     )
 
 
-async def _get_cte_itsystem_hits(query: str):
+def _get_cte_itsystem_hits(query: str):
     search_phrase = util.query_to_search_phrase(query)
     return (
         select(OrganisationFunktionRelation.rel_maal_uuid.label("uuid"))
@@ -161,7 +130,7 @@ async def _get_cte_itsystem_hits(query: str):
     )
 
 
-async def _get_cte_user_key_hits(query: str):
+def _get_cte_user_key_hits(query: str):
     search_phrase = util.query_to_search_phrase(query)
     return (
         select(OrganisationFunktionRelation.rel_maal_uuid.label("uuid"))
@@ -181,14 +150,14 @@ async def _get_cte_user_key_hits(query: str):
     )
 
 
-async def _get_cte_addr_hits(query: str):
+def _get_cte_addr_hits(query: str):
     # Addresses are stored as URNs in the relation table, not in the attributes table,
     # so we self-join the relation table to find the person (tilknyttedebrugere) and
     # the address value (adresser) on the same registration.
     orgfunc_tbl_rels_1 = aliased(OrganisationFunktionRelation)
     orgfunc_tbl_rels_2 = aliased(OrganisationFunktionRelation)
 
-    query = await string_to_urn(query)
+    query = string_to_urn(query)
     search_phrase = util.query_to_search_phrase(query)
 
     return (

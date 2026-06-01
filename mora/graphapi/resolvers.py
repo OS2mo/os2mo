@@ -79,7 +79,7 @@ from mora.graphapi.context import MOInfo
 from mora.graphapi.custom_schema import get_version
 from mora.graphapi.gmodels.base import tz_isodate
 from mora.graphapi.version import Version
-from mora.service.autocomplete.employees import search_employees
+from mora.service.autocomplete.employees import search_employees_query
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 
 from .filters import AddressFilter
@@ -1010,6 +1010,12 @@ async def employee_predicate(
             )
         )
 
+    # Query search
+    if filter.query:
+        predicates.append(
+            BrugerRegistrering.bruger_id.in_(search_employees_query(filter.query))
+        )
+
     return and_(*predicates)
 
 
@@ -1022,32 +1028,6 @@ async def employee_resolver(
     """Resolve employees."""
     if filter is None:
         filter = EmployeeFilter()
-
-    # Searching is implemented by an sqlalchemy query, returning UUIDs which
-    # are passsed to generic_resolver's `uuid` filter. Supplying UUIDs to
-    # generic_resolver ignores all other filter arguments, so we short-circuit
-    # here to make that fact obvious.
-    if filter.query:
-        other_fields = (filter.uuids, filter.user_keys, filter.cpr_numbers)
-        if any(other_fields):
-            raise ValueError("filter.query must be used alone")
-        r = await generic_resolver(
-            info.context.dataloaders.employee_loader,
-            uuids=await search_employees(
-                session=info.context.session,
-                query=filter.query,
-                limit=limit,
-                cursor=cursor,
-            ),
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        )
-        # We don't pass limit/cursor to generic_resolver, since that isn't
-        # supported together with `uuid`, so we have to mange pagination.
-        if not r:
-            context["lora_page_out_of_range"] = True
-        return r
 
     predicate = await employee_predicate(
         info=info,
