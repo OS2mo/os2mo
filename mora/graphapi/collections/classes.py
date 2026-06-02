@@ -10,6 +10,7 @@ from strawberry.types import Info
 
 from mora.graphapi.gmodels.mo.details import ITSystemRead
 
+from ..filters import ClassFilter
 from ..lazy import LazyClass
 from ..lazy import LazyFacet
 from ..lazy import LazyITSystem
@@ -84,7 +85,7 @@ class Class:
         resolver=to_paged_response(ClassRead)(
             seed_resolver(
                 class_resolver,
-                {"parents": lambda root: [root.uuid]},
+                {"parent": lambda root: ClassFilter(uuids=[root.uuid])},
             ),
         ),
         description=dedent(
@@ -104,7 +105,7 @@ class Class:
         resolver=to_list(
             seed_resolver(
                 class_resolver,
-                {"parents": lambda root: [root.uuid]},
+                {"parent": lambda root: ClassFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(

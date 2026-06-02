@@ -449,7 +449,7 @@ class OrganisationUnit:
         resolver=to_paged_response(EngagementRead)(
             seed_resolver(
                 engagement_resolver,
-                {"org_units": lambda root: [root.uuid]},
+                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -470,7 +470,7 @@ class OrganisationUnit:
         resolver=to_list(
             seed_resolver(
                 engagement_resolver,
-                {"org_units": lambda root: [root.uuid]},
+                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -592,7 +592,7 @@ class OrganisationUnit:
         resolver=to_paged_response(ManagerRead)(
             seed_resolver(
                 manager_resolver,
-                {"org_units": lambda root: [root.uuid]},
+                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -611,7 +611,7 @@ class OrganisationUnit:
         resolver=to_list(
             seed_resolver(
                 manager_resolver,
-                {"org_units": lambda root: [root.uuid]},
+                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -684,7 +684,7 @@ class OrganisationUnit:
         resolver=to_paged_response(AddressRead)(
             seed_resolver(
                 address_resolver,
-                {"org_units": lambda root: [root.uuid]},
+                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -704,7 +704,7 @@ class OrganisationUnit:
         resolver=to_list(
             seed_resolver(
                 address_resolver,
-                {"org_units": lambda root: [root.uuid]},
+                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -725,7 +725,7 @@ class OrganisationUnit:
         resolver=to_paged_response(LeaveRead)(
             seed_resolver(
                 leave_resolver,
-                {"org_units": lambda root: [root.uuid]},
+                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -740,7 +740,7 @@ class OrganisationUnit:
         resolver=to_list(
             seed_resolver(
                 leave_resolver,
-                {"org_units": lambda root: [root.uuid]},
+                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -756,7 +756,7 @@ class OrganisationUnit:
         resolver=to_paged_response(AssociationRead)(
             seed_resolver(
                 association_resolver,
-                {"org_units": lambda root: [root.uuid]},
+                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -777,7 +777,7 @@ class OrganisationUnit:
         resolver=to_list(
             seed_resolver(
                 association_resolver,
-                {"org_units": lambda root: [root.uuid]},
+                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -799,7 +799,7 @@ class OrganisationUnit:
         resolver=to_paged_response(ITUserRead)(
             seed_resolver(
                 it_user_resolver,
-                {"org_units": lambda root: [root.uuid]},
+                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -817,7 +817,7 @@ class OrganisationUnit:
         resolver=to_list(
             seed_resolver(
                 it_user_resolver,
-                {"org_units": lambda root: [root.uuid]},
+                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -836,7 +836,7 @@ class OrganisationUnit:
         resolver=to_paged_response(KLERead)(
             seed_resolver(
                 kle_resolver,
-                {"org_units": lambda root: [root.uuid]},
+                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -853,7 +853,7 @@ class OrganisationUnit:
         resolver=to_list(
             seed_resolver(
                 kle_resolver,
-                {"org_units": lambda root: [root.uuid]},
+                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -871,7 +871,7 @@ class OrganisationUnit:
         resolver=to_paged_response(RelatedUnitRead)(
             seed_resolver(
                 related_unit_resolver,
-                {"org_units": lambda root: [root.uuid]},
+                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -889,7 +889,7 @@ class OrganisationUnit:
         resolver=to_list(
             seed_resolver(
                 related_unit_resolver,
-                {"org_units": lambda root: [root.uuid]},
+                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(

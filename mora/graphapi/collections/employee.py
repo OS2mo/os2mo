@@ -16,6 +16,7 @@ from mora.graphapi.gmodels.mo.details import ITUserRead
 from mora.graphapi.gmodels.mo.details import LeaveRead
 from mora.graphapi.gmodels.mo.details import ManagerRead
 
+from ..filters import EmployeeFilter
 from ..lazy import LazyAddress
 from ..lazy import LazyAssociation
 from ..lazy import LazyEngagement
@@ -71,7 +72,7 @@ class Employee:
         resolver=to_paged_response(EngagementRead)(
             seed_resolver(
                 engagement_resolver,
-                {"employees": lambda root: [root.uuid]},
+                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
             ),
         ),
         description=dedent(
@@ -91,7 +92,7 @@ class Employee:
         resolver=to_list(
             seed_resolver(
                 engagement_resolver,
-                {"employees": lambda root: [root.uuid]},
+                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -112,7 +113,7 @@ class Employee:
         resolver=to_paged_response(ManagerRead)(
             seed_resolver(
                 manager_resolver,
-                {"employees": lambda root: [root.uuid]},
+                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -129,7 +130,7 @@ class Employee:
         resolver=to_list(
             seed_resolver(
                 manager_resolver,
-                {"employees": lambda root: [root.uuid]},
+                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -147,7 +148,7 @@ class Employee:
         resolver=to_paged_response(AddressRead)(
             seed_resolver(
                 address_resolver,
-                {"employees": lambda root: [root.uuid]},
+                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -170,7 +171,7 @@ class Employee:
         resolver=to_list(
             seed_resolver(
                 address_resolver,
-                {"employees": lambda root: [root.uuid]},
+                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -194,7 +195,7 @@ class Employee:
         resolver=to_paged_response(LeaveRead)(
             seed_resolver(
                 leave_resolver,
-                {"employees": lambda root: [root.uuid]},
+                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -211,7 +212,7 @@ class Employee:
         resolver=to_list(
             seed_resolver(
                 leave_resolver,
-                {"employees": lambda root: [root.uuid]},
+                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -229,7 +230,7 @@ class Employee:
         resolver=to_paged_response(AssociationRead)(
             seed_resolver(
                 association_resolver,
-                {"employees": lambda root: [root.uuid]},
+                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -249,7 +250,7 @@ class Employee:
         resolver=to_list(
             seed_resolver(
                 association_resolver,
-                {"employees": lambda root: [root.uuid]},
+                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -270,7 +271,7 @@ class Employee:
         resolver=to_paged_response(ITUserRead)(
             seed_resolver(
                 it_user_resolver,
-                {"employees": lambda root: [root.uuid]},
+                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(
@@ -287,7 +288,7 @@ class Employee:
         resolver=to_list(
             seed_resolver(
                 it_user_resolver,
-                {"employees": lambda root: [root.uuid]},
+                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
             )
         ),
         description=dedent(

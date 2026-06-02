@@ -478,7 +478,6 @@ class Engagement:
         # Recurse up the tree using the parent org-unit
         filter = filter or ManagerFilter()
         seeds: dict[str, Callable[[EngagementRead], Any]] = {
-            "org_units": lambda root: None,
             "org_unit": lambda root: OrganisationUnitFilter(
                 uuids=uuid2list(root.org_unit_uuid)
             ),
