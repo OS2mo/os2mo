@@ -85,7 +85,13 @@ class Class:
         resolver=to_paged_response(ClassRead)(
             seed_resolver(
                 class_resolver,
-                {"parent": lambda root: ClassFilter(uuids=[root.uuid])},
+                {
+                    "parent": lambda root: ClassFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"parents", "parent_user_keys"},
             ),
         ),
@@ -106,7 +112,13 @@ class Class:
         resolver=to_list(
             seed_resolver(
                 class_resolver,
-                {"parent": lambda root: ClassFilter(uuids=[root.uuid])},
+                {
+                    "parent": lambda root: ClassFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"parents", "parent_user_keys"},
             )
         ),

@@ -150,7 +150,9 @@ class OrganisationUnit:
                 organisation_unit_resolver,
                 {
                     "descendant": lambda root: OrganisationUnitFilter(
-                        uuids=[root.uuid]
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
                     ),
                     "parent": lambda root: None,
                 },
@@ -455,7 +457,13 @@ class OrganisationUnit:
         resolver=to_paged_response(EngagementRead)(
             seed_resolver(
                 engagement_resolver,
-                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                {
+                    "org_unit": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"org_units"},
             )
         ),
@@ -477,7 +485,13 @@ class OrganisationUnit:
         resolver=to_list(
             seed_resolver(
                 engagement_resolver,
-                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                {
+                    "org_unit": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"org_units"},
             )
         ),
@@ -600,7 +614,13 @@ class OrganisationUnit:
         resolver=to_paged_response(ManagerRead)(
             seed_resolver(
                 manager_resolver,
-                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                {
+                    "org_unit": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"org_units"},
             )
         ),
@@ -620,7 +640,13 @@ class OrganisationUnit:
         resolver=to_list(
             seed_resolver(
                 manager_resolver,
-                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                {
+                    "org_unit": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"org_units"},
             )
         ),
@@ -707,7 +733,13 @@ class OrganisationUnit:
         resolver=to_paged_response(AddressRead)(
             seed_resolver(
                 address_resolver,
-                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                {
+                    "org_unit": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"org_units"},
             )
         ),
@@ -728,7 +760,13 @@ class OrganisationUnit:
         resolver=to_list(
             seed_resolver(
                 address_resolver,
-                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                {
+                    "org_unit": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"org_units"},
             )
         ),
@@ -750,7 +788,13 @@ class OrganisationUnit:
         resolver=to_paged_response(LeaveRead)(
             seed_resolver(
                 leave_resolver,
-                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                {
+                    "org_unit": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"org_units"},
             )
         ),
@@ -766,7 +810,13 @@ class OrganisationUnit:
         resolver=to_list(
             seed_resolver(
                 leave_resolver,
-                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                {
+                    "org_unit": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"org_units"},
             )
         ),
@@ -783,7 +833,13 @@ class OrganisationUnit:
         resolver=to_paged_response(AssociationRead)(
             seed_resolver(
                 association_resolver,
-                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                {
+                    "org_unit": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"org_units"},
             )
         ),
@@ -805,7 +861,13 @@ class OrganisationUnit:
         resolver=to_list(
             seed_resolver(
                 association_resolver,
-                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                {
+                    "org_unit": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"org_units"},
             )
         ),
@@ -828,7 +890,13 @@ class OrganisationUnit:
         resolver=to_paged_response(ITUserRead)(
             seed_resolver(
                 it_user_resolver,
-                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                {
+                    "org_unit": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"org_units"},
             )
         ),
@@ -847,7 +915,13 @@ class OrganisationUnit:
         resolver=to_list(
             seed_resolver(
                 it_user_resolver,
-                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                {
+                    "org_unit": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"org_units"},
             )
         ),
@@ -867,7 +941,13 @@ class OrganisationUnit:
         resolver=to_paged_response(KLERead)(
             seed_resolver(
                 kle_resolver,
-                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                {
+                    "org_unit": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"org_units"},
             )
         ),
@@ -885,7 +965,13 @@ class OrganisationUnit:
         resolver=to_list(
             seed_resolver(
                 kle_resolver,
-                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                {
+                    "org_unit": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"org_units"},
             )
         ),
@@ -904,7 +990,13 @@ class OrganisationUnit:
         resolver=to_paged_response(RelatedUnitRead)(
             seed_resolver(
                 related_unit_resolver,
-                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                {
+                    "org_unit": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"org_units"},
             )
         ),
@@ -923,7 +1015,13 @@ class OrganisationUnit:
         resolver=to_list(
             seed_resolver(
                 related_unit_resolver,
-                {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                {
+                    "org_unit": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"org_units"},
             )
         ),

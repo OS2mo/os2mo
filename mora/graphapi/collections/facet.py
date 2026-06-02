@@ -36,7 +36,13 @@ class Facet:
         resolver=to_paged_response(ClassRead)(
             seed_resolver(
                 class_resolver,
-                {"facet": lambda root: FacetFilter(uuids=[root.uuid])},
+                {
+                    "facet": lambda root: FacetFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"facets", "facet_user_keys"},
             )
         ),
@@ -48,7 +54,13 @@ class Facet:
         resolver=to_list(
             seed_resolver(
                 class_resolver,
-                {"facet": lambda root: FacetFilter(uuids=[root.uuid])},
+                {
+                    "facet": lambda root: FacetFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"facets", "facet_user_keys"},
             )
         ),
@@ -98,7 +110,13 @@ class Facet:
         resolver=to_paged_response(FacetRead)(
             seed_resolver(
                 facet_resolver,
-                {"parent": lambda root: FacetFilter(uuids=[root.uuid])},
+                {
+                    "parent": lambda root: FacetFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"parents", "parent_user_keys"},
             )
         ),
@@ -119,7 +137,13 @@ class Facet:
         resolver=to_list(
             seed_resolver(
                 facet_resolver,
-                {"parent": lambda root: FacetFilter(uuids=[root.uuid])},
+                {
+                    "parent": lambda root: FacetFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"parents", "parent_user_keys"},
             )
         ),

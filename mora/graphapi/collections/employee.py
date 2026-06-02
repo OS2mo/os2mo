@@ -72,7 +72,13 @@ class Employee:
         resolver=to_paged_response(EngagementRead)(
             seed_resolver(
                 engagement_resolver,
-                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                {
+                    "employee": lambda root: EmployeeFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"employees"},
             ),
         ),
@@ -93,7 +99,13 @@ class Employee:
         resolver=to_list(
             seed_resolver(
                 engagement_resolver,
-                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                {
+                    "employee": lambda root: EmployeeFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"employees"},
             )
         ),
@@ -115,7 +127,13 @@ class Employee:
         resolver=to_paged_response(ManagerRead)(
             seed_resolver(
                 manager_resolver,
-                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                {
+                    "employee": lambda root: EmployeeFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"employees"},
             )
         ),
@@ -133,7 +151,13 @@ class Employee:
         resolver=to_list(
             seed_resolver(
                 manager_resolver,
-                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                {
+                    "employee": lambda root: EmployeeFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"employees"},
             )
         ),
@@ -152,7 +176,13 @@ class Employee:
         resolver=to_paged_response(AddressRead)(
             seed_resolver(
                 address_resolver,
-                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                {
+                    "employee": lambda root: EmployeeFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"employees"},
             )
         ),
@@ -176,7 +206,13 @@ class Employee:
         resolver=to_list(
             seed_resolver(
                 address_resolver,
-                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                {
+                    "employee": lambda root: EmployeeFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"employees"},
             )
         ),
@@ -201,7 +237,13 @@ class Employee:
         resolver=to_paged_response(LeaveRead)(
             seed_resolver(
                 leave_resolver,
-                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                {
+                    "employee": lambda root: EmployeeFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"employees"},
             )
         ),
@@ -219,7 +261,13 @@ class Employee:
         resolver=to_list(
             seed_resolver(
                 leave_resolver,
-                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                {
+                    "employee": lambda root: EmployeeFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"employees"},
             )
         ),
@@ -238,7 +286,13 @@ class Employee:
         resolver=to_paged_response(AssociationRead)(
             seed_resolver(
                 association_resolver,
-                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                {
+                    "employee": lambda root: EmployeeFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"employees"},
             )
         ),
@@ -259,7 +313,13 @@ class Employee:
         resolver=to_list(
             seed_resolver(
                 association_resolver,
-                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                {
+                    "employee": lambda root: EmployeeFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"employees"},
             )
         ),
@@ -281,7 +341,13 @@ class Employee:
         resolver=to_paged_response(ITUserRead)(
             seed_resolver(
                 it_user_resolver,
-                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                {
+                    "employee": lambda root: EmployeeFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"employees"},
             )
         ),
@@ -299,7 +365,13 @@ class Employee:
         resolver=to_list(
             seed_resolver(
                 it_user_resolver,
-                {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                {
+                    "employee": lambda root: EmployeeFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"employees"},
             )
         ),

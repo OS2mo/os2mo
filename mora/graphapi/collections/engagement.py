@@ -84,7 +84,13 @@ class Engagement:
         resolver=to_paged_response(AddressRead)(
             seed_resolver(
                 address_resolver,
-                {"engagement": lambda root: EngagementFilter(uuids=[root.uuid])},
+                {
+                    "engagement": lambda root: EngagementFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
                 strip={"engagements"},
             )
         ),
@@ -483,14 +489,18 @@ class Engagement:
         filter = filter or ManagerFilter()
         seeds: dict[str, Callable[[EngagementRead], Any]] = {
             "org_unit": lambda root: OrganisationUnitFilter(
-                uuids=uuid2list(root.org_unit_uuid)
+                uuids=uuid2list(root.org_unit_uuid),
+                from_date=None,
+                to_date=None,
             ),
         }
         if exclude_self:
             if filter.exclude:  # pragma: no cover
                 raise ValueError("Cannot provide both filter.exclude and exclude_self")
             seeds["exclude"] = lambda root: EmployeeFilter(
-                uuids=uuid2list(root.employee_uuid)
+                uuids=uuid2list(root.employee_uuid),
+                from_date=None,
+                to_date=None,
             )
 
         resolver = to_list(seed_resolver(manager_resolver, seeds))
