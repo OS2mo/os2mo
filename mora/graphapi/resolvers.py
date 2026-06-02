@@ -20,6 +20,7 @@ from more_itertools import unique_everseen
 from psycopg.types.range import TimestamptzRange
 from pydantic import ValidationError
 from sqlalchemy import ColumnElement
+from sqlalchemy import CompoundSelect
 from sqlalchemy import Select
 from sqlalchemy import and_
 from sqlalchemy import case
@@ -73,11 +74,12 @@ from mora.db import OrganisationFunktionRegistrering
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
 from mora.db import OrganisationFunktionTilsGyldighed
+from mora.db import OrganisationRegistrering
 from mora.graphapi.context import MOInfo
 from mora.graphapi.custom_schema import get_version
 from mora.graphapi.gmodels.base import tz_isodate
 from mora.graphapi.version import Version
-from mora.service.autocomplete.employees import search_employees
+from mora.service.autocomplete.employees import search_employees_query
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 
 from .filters import AddressFilter
@@ -1008,6 +1010,12 @@ async def employee_predicate(
             )
         )
 
+    # Query search
+    if filter.query:
+        predicates.append(
+            BrugerRegistrering.bruger_id.in_(search_employees_query(filter.query))
+        )
+
     return and_(*predicates)
 
 
@@ -1020,32 +1028,6 @@ async def employee_resolver(
     """Resolve employees."""
     if filter is None:
         filter = EmployeeFilter()
-
-    # Searching is implemented by an sqlalchemy query, returning UUIDs which
-    # are passsed to generic_resolver's `uuid` filter. Supplying UUIDs to
-    # generic_resolver ignores all other filter arguments, so we short-circuit
-    # here to make that fact obvious.
-    if filter.query:
-        other_fields = (filter.uuids, filter.user_keys, filter.cpr_numbers)
-        if any(other_fields):
-            raise ValueError("filter.query must be used alone")
-        r = await generic_resolver(
-            info.context.dataloaders.employee_loader,
-            uuids=await search_employees(
-                session=info.context.session,
-                query=filter.query,
-                limit=limit,
-                cursor=cursor,
-            ),
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        )
-        # We don't pass limit/cursor to generic_resolver, since that isn't
-        # supported together with `uuid`, so we have to mange pagination.
-        if not r:
-            context["lora_page_out_of_range"] = True
-        return r
 
     predicate = await employee_predicate(
         info=info,
@@ -1850,9 +1832,8 @@ async def organisation_unit_predicate(
     filter: OrganisationUnitFilter,
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
-    async def _get_parent_uuids() -> list[UUID] | Select:
+    async def _get_parent_uuids() -> Select | CompoundSelect:
         org_unit_filter = filter.parent or OrganisationUnitFilter()
-        # Handle deprecated filter
         # parents vs parent values
         #       | UNSET | None    | xs
         # UNSET | noop  | root    | xs
@@ -1862,25 +1843,10 @@ async def organisation_unit_predicate(
         # The above assignment handles all parent=ys cases
         # Thus we only need to check for parents=xs and Nones
 
-        # The root unit isn't really an org unit in the database, so we can't
-        # craft a query which will fetch it. We assume the user didn't supply
-        # any other filters if they're looking for the root unit and return its
-        # UUID directly.
-        root_org: UUID = (await info.context.dataloaders.org_loader.load(0)).uuid
+        # Top-level units don't have parent=null, they have
+        # parent=root-org-uuid, which isn't even an org unit in the database.
         if filter.parents is None or filter.parent is None:
-            return [root_org]
-        if filter.parents is not UNSET and root_org in filter.parents:
-            if filter.parents != [root_org]:
-                raise ValueError(
-                    "Cannot filter root org unit with other org units"
-                )  # pragma: no cover
-            return [root_org]
-        if (
-            org_unit_filter.uuids is not None and root_org in org_unit_filter.uuids
-        ):  # pragma: no cover
-            if org_unit_filter.uuids != [root_org]:
-                raise ValueError("Cannot filter root org unit with other org units")
-            return [root_org]
+            return select(OrganisationRegistrering.organisation_id)
         if filter.parents is not UNSET:
             extend_uuids(org_unit_filter, filter.parents)
         sub_predicate = await organisation_unit_predicate(
@@ -1888,10 +1854,19 @@ async def organisation_unit_predicate(
             filter=org_unit_filter,
             registration_time=registration_time,
         )
-        return (
-            select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
-            .where(sub_predicate)
-            .order_by(OrganisationEnhedRegistrering.organisationenhed_id)
+        return union(
+            select(distinct(OrganisationEnhedRegistrering.organisationenhed_id)).where(
+                sub_predicate
+            ),
+            # Because the root unit isn't an org unit in the database, the
+            # organisation_unit_predicate can't fetch it. Instead, we include
+            # the root organisation's UUID directly whenever it's among the
+            # requested parent UUIDs.
+            select(OrganisationRegistrering.organisation_id).where(
+                OrganisationRegistrering.organisation_id.in_(
+                    org_unit_filter.uuids or []
+                )
+            ),
         )
 
     async def _get_hierarchy_uuids() -> list[UUID]:
