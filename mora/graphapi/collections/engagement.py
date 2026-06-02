@@ -84,7 +84,14 @@ class Engagement:
         resolver=to_paged_response(AddressRead)(
             seed_resolver(
                 address_resolver,
-                {"engagement": lambda root: EngagementFilter(uuids=[root.uuid])},
+                {
+                    "engagement": lambda root: EngagementFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
+                strip={"engagements"},
             )
         ),
         description="Addresses connected to the engagement.",
@@ -441,7 +448,10 @@ class Engagement:
         info: Info,
         root: EngagementRead,
         # NOTE: Using get_bound_filter to ensure the filter type is the same as for org_unit.managers
-        filter: get_bound_filter(ManagerFilter, frozenset({"org_units"})) | None = None,  # type: ignore
+        filter: get_bound_filter(  # type: ignore[valid-type]
+            ManagerFilter, seeds=frozenset({"org_unit"}), strip=frozenset({"org_units"})
+        )
+        | None = None,
         # NOTE: Description copied from manager_resolver
         inherit: Annotated[
             bool,
@@ -478,16 +488,19 @@ class Engagement:
         # Recurse up the tree using the parent org-unit
         filter = filter or ManagerFilter()
         seeds: dict[str, Callable[[EngagementRead], Any]] = {
-            "org_units": lambda root: None,
             "org_unit": lambda root: OrganisationUnitFilter(
-                uuids=uuid2list(root.org_unit_uuid)
+                uuids=uuid2list(root.org_unit_uuid),
+                from_date=None,
+                to_date=None,
             ),
         }
         if exclude_self:
             if filter.exclude:  # pragma: no cover
                 raise ValueError("Cannot provide both filter.exclude and exclude_self")
             seeds["exclude"] = lambda root: EmployeeFilter(
-                uuids=uuid2list(root.employee_uuid)
+                uuids=uuid2list(root.employee_uuid),
+                from_date=None,
+                to_date=None,
             )
 
         resolver = to_list(seed_resolver(manager_resolver, seeds))

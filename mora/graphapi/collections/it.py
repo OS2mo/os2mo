@@ -446,7 +446,13 @@ class ITUser:
         resolver=to_paged_response(AddressRead)(
             seed_resolver(
                 address_resolver,
-                {"ituser": lambda root: ITUserFilter(uuids=[root.uuid])},
+                {
+                    "ituser": lambda root: ITUserFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
             )
         ),
         description=dedent(
@@ -466,7 +472,13 @@ class ITUser:
         resolver=to_list(
             seed_resolver(
                 address_resolver,
-                {"ituser": lambda root: ITUserFilter(uuids=[root.uuid])},
+                {
+                    "ituser": lambda root: ITUserFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
             )
         ),
         description=dedent(
@@ -514,7 +526,13 @@ class ITUser:
         resolver=to_paged_response(RoleBindingRead)(
             seed_resolver(
                 rolebinding_resolver,
-                {"ituser": lambda root: ITUserFilter(uuids=[root.uuid])},
+                {
+                    "ituser": lambda root: ITUserFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
             )
         ),
         description="Rolebindings this IT User has in the connected IT system.",
@@ -528,7 +546,13 @@ class ITUser:
         resolver=to_list(
             seed_resolver(
                 rolebinding_resolver,
-                {"ituser": lambda root: ITUserFilter(uuids=[root.uuid])},
+                {
+                    "ituser": lambda root: ITUserFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
             )
         ),
         description="Rolebindings this IT User has in the connected IT system.",

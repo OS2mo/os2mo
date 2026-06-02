@@ -24,25 +24,28 @@ R = TypeVar("R")
 def get_bound_filter(
     filter_class: type,
     seeds: frozenset[str],
+    strip: frozenset[str] = frozenset(),
 ) -> type:
-    """Construct a bound Filter Strawberry input type with the seeded fields removed.
+    """Construct a bound Filter Strawberry input type with the given fields removed.
 
     The function's return is @cached since Strawberry exposes the type in the GraphQL
-    schema, so each unique original filter and seeds combination has to refer to the
-    same python object.
+    schema, so each unique original filter and seeds/strip combination has to refer to
+    the same python object.
 
     Args:
         filter_class: The class of the original, unseeded filter.
-        seeds: Seed keys. Passed as a frozenset to be hashable.
+        seeds: Seed keys. Removed from the filter and reflected in the type name.
+        strip: Extra keys to remove from the filter, not reflected in the name.
 
     Returns:
-        A copy of the given filter class with the seeded fields removed.
+        A copy of the given filter class with the seeded and stripped fields removed.
     """
     # Examples: UuidBoundEmployeeFilter, FacetsBoundClassFilter
     cls_name = "{seeds}Bound{original_filter}".format(
         seeds="".join(s.title() for s in sorted(seeds)),
         original_filter=filter_class.__name__,
     )
+    removed = seeds | strip
     # Strawberry.input is incredibly badly typed; runtime check is better than nothing
     assert dataclasses.is_dataclass(filter_class)
     bound_filter_class = dataclasses.make_dataclass(
@@ -50,7 +53,7 @@ def get_bound_filter(
         fields=[
             (f.name, f.type, f)
             for f in dataclasses.fields(filter_class)
-            if f.name not in seeds
+            if f.name not in removed
         ],
     )
     return strawberry.input(bound_filter_class)
@@ -59,6 +62,7 @@ def get_bound_filter(
 def seed_resolver(
     resolver_func: Callable[..., Awaitable[R]],
     seeds: dict[str, Callable[[Any], Any]] | None = None,
+    strip: set[str] | None = None,
 ) -> Callable[..., Awaitable[R]]:
     """Seed the provided resolver function to be used in a field-level context.
 
@@ -67,8 +71,8 @@ def seed_resolver(
 
     Example:
         A resolver exists to load organisation units, namely `organisation_unit_resolver`.
-        This resolver accepts a `filter` parameter with a `parents` field, which, given
-        a UUID of an existing organisation unit, loads all of its children.
+        This resolver accepts a `filter` parameter with a `parent` field, which, given
+        a filter selecting an existing organisation unit, loads all of its children.
 
         From our top-level `Query` object context, the caller can set this field
         explicitly, however on the OrganisationUnit field-level, we would like this
@@ -76,16 +80,23 @@ def seed_resolver(
         organisation unit, we expect the `parent` field on the filter to be set
         to the object we call `children` on.
 
-        This can be achieved by setting `seeds` to a dictionary that sets `parents` to
-        a callable that extracts the root object's `uuid` from the object itself:
+        This can be achieved by setting `seeds` to a dictionary that sets `parent` to
+        a callable that builds a filter selecting the root object by its `uuid`. The
+        deprecated `parents` counterpart is removed via `strip` so a caller cannot use
+        it to bypass the seed:
         ```
         child_count: int = strawberry.field(
             description="Children count of the organisation unit.",
             resolver=seed_resolver(
                 organisation_unit_resolver,
-                {"parents": lambda root: [root.uuid]},
+                {
+                    "parent": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid], from_date=None, to_date=None
+                    )
+                },
+                strip={"parents"},
             ),
-            ...
+            # ...
         )
         ```
 
@@ -94,14 +105,20 @@ def seed_resolver(
         seeds:
             A dictionary mapping from parameter name to callables resolving the argument
             values from the root object.
+        strip:
+            Additional filter field names to remove from the bound filter without
+            seeding a value. Used to hide the deprecated counterpart of a seeded field
+            (e.g. strip `org_units` when seeding `org_unit`), so a caller cannot bypass
+            the seed through the deprecated field.
 
     Returns:
         A seeded resolver function that accepts the same parameters as `resolver_func`,
-        except with a new `filter` object type with the `seeds` keys removed as fields,
-        and a `root` parameter with the 'any' type added.
+        except with a new `filter` object type with the `seeds` and `strip` keys removed
+        as fields, and a `root` parameter with the 'any' type added.
     """
     # If no seeds was provided, default to the empty dict
     seeds = seeds or {}
+    strip = strip or set()
 
     # Extract the original `filter` class from the provided resolver
     sig = signature(resolver_func)
@@ -114,11 +131,12 @@ def seed_resolver(
     # Assert that this is indeed what was passed.
     assert none is NoneType
 
-    # Create a new filter class with the seeded fields removed. Strawberry exposes the
-    # type in the GraphQL schema, so each one has to be named uniquely and refer to the
-    # same python object instance. We use a function with @cache to achieve this.
+    # Create a new filter class with the seeded and stripped fields removed. Strawberry
+    # exposes the type in the GraphQL schema, so each one has to be named uniquely and
+    # refer to the same python object instance. We use a function with @cache to achieve
+    # this.
     bound_filter_class = get_bound_filter(
-        original_filter_class, frozenset(seeds.keys())
+        original_filter_class, seeds=frozenset(seeds.keys()), strip=frozenset(strip)
     )
     bound_filter_type = bound_filter_class | None
 
