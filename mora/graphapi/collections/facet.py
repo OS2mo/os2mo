@@ -35,7 +35,9 @@ class Facet:
     classes_responses: Paged[Response[LazyClass]] = strawberry.field(
         resolver=to_paged_response(ClassRead)(
             seed_resolver(
-                class_resolver, {"facet": lambda root: FacetFilter(uuids=[root.uuid])}
+                class_resolver,
+                {"facet": lambda root: FacetFilter(uuids=[root.uuid])},
+                strip={"facets", "facet_user_keys"},
             )
         ),
         description="Associated classes",
@@ -45,7 +47,9 @@ class Facet:
     classes: list[LazyClass] = strawberry.field(
         resolver=to_list(
             seed_resolver(
-                class_resolver, {"facet": lambda root: FacetFilter(uuids=[root.uuid])}
+                class_resolver,
+                {"facet": lambda root: FacetFilter(uuids=[root.uuid])},
+                strip={"facets", "facet_user_keys"},
             )
         ),
         description="Associated classes",
@@ -95,6 +99,7 @@ class Facet:
             seed_resolver(
                 facet_resolver,
                 {"parent": lambda root: FacetFilter(uuids=[root.uuid])},
+                strip={"parents", "parent_user_keys"},
             )
         ),
         description=dedent(
@@ -115,6 +120,7 @@ class Facet:
             seed_resolver(
                 facet_resolver,
                 {"parent": lambda root: FacetFilter(uuids=[root.uuid])},
+                strip={"parents", "parent_user_keys"},
             )
         ),
         description=dedent(

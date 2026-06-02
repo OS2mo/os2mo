@@ -55,6 +55,7 @@ from ..resolvers import organisation_unit_resolver
 from ..resolvers import owner_resolver
 from ..resolvers import related_unit_resolver
 from ..response import Response
+from ..seed_resolver import get_bound_filter
 from ..seed_resolver import seed_resolver
 from ..seed_resolver import strip_args
 from ..utils import uuid2list
@@ -153,6 +154,7 @@ class OrganisationUnit:
                     ),
                     "parent": lambda root: None,
                 },
+                strip={"parents", "subtree"},
             )
         ),
         description=dedent(
@@ -201,6 +203,7 @@ class OrganisationUnit:
                         to_date=None,
                     )
                 },
+                strip={"parents"},
             )
         ),
         description=dedent(
@@ -222,6 +225,7 @@ class OrganisationUnit:
                         to_date=None,
                     )
                 },
+                strip={"parents"},
             )
         ),
         description=dedent(
@@ -243,6 +247,7 @@ class OrganisationUnit:
                     to_date=None,
                 )
             },
+            strip={"parents"},
         ),
         description="Children count of the organisation unit. For performance, consider if `has_children` can answer your query instead.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
@@ -258,6 +263,7 @@ class OrganisationUnit:
                     to_date=None,
                 )
             },
+            strip={"parents"},
         ),
         description="Returns whether the organisation unit has children.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
@@ -450,6 +456,7 @@ class OrganisationUnit:
             seed_resolver(
                 engagement_resolver,
                 {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                strip={"org_units"},
             )
         ),
         description=dedent(
@@ -471,6 +478,7 @@ class OrganisationUnit:
             seed_resolver(
                 engagement_resolver,
                 {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                strip={"org_units"},
             )
         ),
         description=dedent(
@@ -593,6 +601,7 @@ class OrganisationUnit:
             seed_resolver(
                 manager_resolver,
                 {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                strip={"org_units"},
             )
         ),
         description=dedent(
@@ -612,6 +621,7 @@ class OrganisationUnit:
             seed_resolver(
                 manager_resolver,
                 {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                strip={"org_units"},
             )
         ),
         description=dedent(
@@ -643,7 +653,10 @@ class OrganisationUnit:
         self,
         root: OrganisationUnitRead,
         info: Info,
-        filter: OwnerFilter | None = None,
+        filter: get_bound_filter(  # type: ignore[valid-type]
+            OwnerFilter, seeds=frozenset({"org_unit"}), strip=frozenset({"org_units"})
+        )
+        | None = None,
         inherit: Annotated[
             bool,
             strawberry.argument(
@@ -665,9 +678,19 @@ class OrganisationUnit:
         # TODO: Move inherit to resolver, like `manager_resolver`
         if filter is None:
             filter = OwnerFilter()
-        filter.org_units = [root.uuid]
 
-        resolver = to_list(seed_resolver(owner_resolver))
+        resolver = to_list(
+            seed_resolver(
+                owner_resolver,
+                {
+                    "org_unit": lambda root: OrganisationUnitFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    )
+                },
+            )
+        )
         result = await resolver(root=root, info=info, filter=filter)
         if result:
             return result  # type: ignore
@@ -685,6 +708,7 @@ class OrganisationUnit:
             seed_resolver(
                 address_resolver,
                 {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                strip={"org_units"},
             )
         ),
         description=dedent(
@@ -705,6 +729,7 @@ class OrganisationUnit:
             seed_resolver(
                 address_resolver,
                 {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                strip={"org_units"},
             )
         ),
         description=dedent(
@@ -726,6 +751,7 @@ class OrganisationUnit:
             seed_resolver(
                 leave_resolver,
                 {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                strip={"org_units"},
             )
         ),
         description=dedent(
@@ -741,6 +767,7 @@ class OrganisationUnit:
             seed_resolver(
                 leave_resolver,
                 {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                strip={"org_units"},
             )
         ),
         description=dedent(
@@ -757,6 +784,7 @@ class OrganisationUnit:
             seed_resolver(
                 association_resolver,
                 {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                strip={"org_units"},
             )
         ),
         description=dedent(
@@ -778,6 +806,7 @@ class OrganisationUnit:
             seed_resolver(
                 association_resolver,
                 {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                strip={"org_units"},
             )
         ),
         description=dedent(
@@ -800,6 +829,7 @@ class OrganisationUnit:
             seed_resolver(
                 it_user_resolver,
                 {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                strip={"org_units"},
             )
         ),
         description=dedent(
@@ -818,6 +848,7 @@ class OrganisationUnit:
             seed_resolver(
                 it_user_resolver,
                 {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                strip={"org_units"},
             )
         ),
         description=dedent(
@@ -837,6 +868,7 @@ class OrganisationUnit:
             seed_resolver(
                 kle_resolver,
                 {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                strip={"org_units"},
             )
         ),
         description=dedent(
@@ -854,6 +886,7 @@ class OrganisationUnit:
             seed_resolver(
                 kle_resolver,
                 {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                strip={"org_units"},
             )
         ),
         description=dedent(
@@ -872,6 +905,7 @@ class OrganisationUnit:
             seed_resolver(
                 related_unit_resolver,
                 {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                strip={"org_units"},
             )
         ),
         description=dedent(
@@ -890,6 +924,7 @@ class OrganisationUnit:
             seed_resolver(
                 related_unit_resolver,
                 {"org_unit": lambda root: OrganisationUnitFilter(uuids=[root.uuid])},
+                strip={"org_units"},
             )
         ),
         description=dedent(

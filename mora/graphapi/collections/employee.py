@@ -73,6 +73,7 @@ class Employee:
             seed_resolver(
                 engagement_resolver,
                 {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                strip={"employees"},
             ),
         ),
         description=dedent(
@@ -93,6 +94,7 @@ class Employee:
             seed_resolver(
                 engagement_resolver,
                 {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                strip={"employees"},
             )
         ),
         description=dedent(
@@ -114,6 +116,7 @@ class Employee:
             seed_resolver(
                 manager_resolver,
                 {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                strip={"employees"},
             )
         ),
         description=dedent(
@@ -131,6 +134,7 @@ class Employee:
             seed_resolver(
                 manager_resolver,
                 {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                strip={"employees"},
             )
         ),
         description=dedent(
@@ -149,6 +153,7 @@ class Employee:
             seed_resolver(
                 address_resolver,
                 {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                strip={"employees"},
             )
         ),
         description=dedent(
@@ -172,6 +177,7 @@ class Employee:
             seed_resolver(
                 address_resolver,
                 {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                strip={"employees"},
             )
         ),
         description=dedent(
@@ -196,6 +202,7 @@ class Employee:
             seed_resolver(
                 leave_resolver,
                 {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                strip={"employees"},
             )
         ),
         description=dedent(
@@ -213,6 +220,7 @@ class Employee:
             seed_resolver(
                 leave_resolver,
                 {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                strip={"employees"},
             )
         ),
         description=dedent(
@@ -231,6 +239,7 @@ class Employee:
             seed_resolver(
                 association_resolver,
                 {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                strip={"employees"},
             )
         ),
         description=dedent(
@@ -251,6 +260,7 @@ class Employee:
             seed_resolver(
                 association_resolver,
                 {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                strip={"employees"},
             )
         ),
         description=dedent(
@@ -272,6 +282,7 @@ class Employee:
             seed_resolver(
                 it_user_resolver,
                 {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                strip={"employees"},
             )
         ),
         description=dedent(
@@ -289,6 +300,7 @@ class Employee:
             seed_resolver(
                 it_user_resolver,
                 {"employee": lambda root: EmployeeFilter(uuids=[root.uuid])},
+                strip={"employees"},
             )
         ),
         description=dedent(

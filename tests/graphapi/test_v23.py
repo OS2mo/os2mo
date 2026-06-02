@@ -3,7 +3,7 @@
 # NOTE: This test inside this file is almost identical to `test_manager_filters`
 #       inside `test_managers.py`, the only difference being that this test uses
 #       ManagerFilter inside of the OrgUnitManagers query, while the latest version
-#       uses OrgUnitsboundmanagerfilter.
+#       uses OrgUnitboundmanagerfilter.
 
 import pytest
 from more_itertools import one

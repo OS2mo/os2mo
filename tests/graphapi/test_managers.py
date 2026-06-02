@@ -119,7 +119,7 @@ async def test_manager_filters(graphapi_post: GraphAPIPost, filter, expected) ->
         return
 
     manager_query = """
-        query OrgUnitManagers($filter: OrgUnitsboundmanagerfilter!) {
+        query OrgUnitManagers($filter: OrgUnitboundmanagerfilter!) {
             org_units(filter: {uuids: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"}) {
                 objects {
                     current {
@@ -586,7 +586,7 @@ def read_org_units_managers(
     response = """
         query ReadOrgUnitsManager(
             $org_unit_filter: OrganisationUnitFilter!,
-            $manager_filter: OrgUnitsboundmanagerfilter,
+            $manager_filter: OrgUnitboundmanagerfilter,
             $inherit: Boolean!
         ) {
             org_units(filter: $org_unit_filter) {
@@ -675,7 +675,7 @@ def read_engagement_managers(
     response = """
         query ReadOrgUnitsManager(
             $engagement_filter: EngagementFilter,
-            $manager_filter: OrgUnitsboundmanagerfilter,
+            $manager_filter: OrgUnitboundmanagerfilter,
             $inherit: Boolean!
         ) {
             engagements(filter: $engagement_filter) {

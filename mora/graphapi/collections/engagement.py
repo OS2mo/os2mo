@@ -85,6 +85,7 @@ class Engagement:
             seed_resolver(
                 address_resolver,
                 {"engagement": lambda root: EngagementFilter(uuids=[root.uuid])},
+                strip={"engagements"},
             )
         ),
         description="Addresses connected to the engagement.",
@@ -441,7 +442,10 @@ class Engagement:
         info: Info,
         root: EngagementRead,
         # NOTE: Using get_bound_filter to ensure the filter type is the same as for org_unit.managers
-        filter: get_bound_filter(ManagerFilter, frozenset({"org_units"})) | None = None,  # type: ignore
+        filter: get_bound_filter(  # type: ignore[valid-type]
+            ManagerFilter, seeds=frozenset({"org_unit"}), strip=frozenset({"org_units"})
+        )
+        | None = None,
         # NOTE: Description copied from manager_resolver
         inherit: Annotated[
             bool,

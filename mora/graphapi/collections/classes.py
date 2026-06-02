@@ -86,6 +86,7 @@ class Class:
             seed_resolver(
                 class_resolver,
                 {"parent": lambda root: ClassFilter(uuids=[root.uuid])},
+                strip={"parents", "parent_user_keys"},
             ),
         ),
         description=dedent(
@@ -106,6 +107,7 @@ class Class:
             seed_resolver(
                 class_resolver,
                 {"parent": lambda root: ClassFilter(uuids=[root.uuid])},
+                strip={"parents", "parent_user_keys"},
             )
         ),
         description=dedent(
