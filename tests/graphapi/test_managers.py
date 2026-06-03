@@ -553,21 +553,6 @@ def test_inherit_non_existent_org_units_filter(graphapi_post: GraphAPIPost) -> N
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "manager")
-def test_inherit_works_with_only_one_org_unit(graphapi_post: GraphAPIPost) -> None:
-    """Test that we can only use inherit with atmost one org-unit."""
-    child_units = (
-        "b688513d-11f7-4efc-b679-ab082a2055d0",  # Samfundsvidenskabelige fakultet
-        "68c5d78e-ae26-441f-a143-0103eca8b62a",  # Social og sundhed
-    )
-    with pytest.raises(ValueError) as exc_info:
-        read_managers(graphapi_post, {"org_unit": {"uuids": child_units}})
-    assert "The inherit flag only works with at most one organisational unit" in str(
-        exc_info.value
-    )
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "manager")
 def test_inherit_requires_org_unit_filter(graphapi_post: GraphAPIPost) -> None:
     """Test that inherit requires an org-unit filter."""
     with pytest.raises(ValueError) as exc_info:

@@ -15,7 +15,6 @@ from typing import cast as tcast
 from uuid import UUID
 
 import strawberry
-from more_itertools import only
 from more_itertools import unique_everseen
 from psycopg.types.range import TimestamptzRange
 from pydantic import ValidationError
@@ -34,6 +33,7 @@ from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy import true
 from sqlalchemy import union
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql.functions import now as SQLNOW
 from sqlalchemy.types import Text
 from starlette_context import context
@@ -1599,7 +1599,117 @@ def manager_predicate(
             )
         )
 
+    # Exclude: drop managers having a manager (employee) matching `filter.exclude`.
+    if filter.exclude is not None:
+        predicates.append(
+            ~OrganisationFunktionRegistrering.id.in_(
+                select(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                ).where(
+                    OrganisationFunktionRelation.rel_type
+                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        select(BrugerRegistrering.bruger_id).where(
+                            employee_predicate(info, filter.exclude, registration_time)
+                        )
+                    ),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                )
+            )
+        )
+
     return and_(*predicates)
+
+
+def _inherited_managers_query(
+    info: MOInfo,
+    filter: ManagerFilter,
+    registration_time: datetime | SQLNOW,
+) -> Select:
+    """Manager UUIDs of the nearest ancestor (incl. itself) of the filtered units.
+
+    `managers(inherit: true)` returns the managers of an organisation unit, or -- if
+    it has none -- those of its nearest ancestor that does. This walks the org tree
+    upwards in a single recursive CTE and returns the manager org-function UUIDs at
+    the smallest depth that has matching managers, rather than issuing one query per
+    tree level as the previous Python recursion did.
+    """
+    # Ancestor chain. Mirrors the recursive CTE used by the `descendant`/`ancestor`
+    # org-unit filters -- start at the units matching the org-unit filter, then
+    # repeatedly add the `overordnet` parent -- but also tracks `depth` so we can
+    # pick the nearest ancestor below.
+    ancestors = (
+        select(
+            OrganisationEnhedRegistrering.organisationenhed_id,
+            literal(0).label("depth"),
+        )
+        .where(
+            organisation_unit_predicate(
+                info, org_unit_subfilter(filter), registration_time
+            )
+        )
+        .cte("ancestors", recursive=True)
+    )
+    parents = (
+        select(
+            OrganisationEnhedRelation.rel_maal_uuid,
+            ancestors.c.depth + 1,
+        )
+        .join(OrganisationEnhedRegistrering)
+        .where(
+            _get_registrering_clause(OrganisationEnhedRegistrering, registration_time),
+        )
+        .join(
+            ancestors,
+            and_(
+                OrganisationEnhedRelation.rel_type
+                == OrganisationEnhedRelationKode.overordnet,
+                OrganisationEnhedRegistrering.organisationenhed_id
+                == ancestors.c.organisationenhed_id,
+                _get_virkning_clause(OrganisationEnhedRelation, filter),
+            ),
+        )
+    )
+    ancestors = ancestors.union(parents)
+
+    # All manager constraints except the org unit, which is supplied via the
+    # ancestor join below. `exclude` lives in `manager_predicate`, so a level whose
+    # managers are all excluded is naturally skipped (the old recursion moved on
+    # when a level came back empty).
+    base_filter = dataclasses.replace(filter, org_units=None, org_unit=None)
+    base_predicate = manager_predicate(info, base_filter, registration_time)
+
+    # Managers attached to any ancestor, tagged with that ancestor's depth. A
+    # separate alias for the org-unit relation keeps it distinct from the relation
+    # used inside `manager_predicate`'s own subqueries.
+    org_unit_relation = aliased(OrganisationFunktionRelation)
+    attached = (
+        select(
+            OrganisationFunktionRegistrering.organisationfunktion_id.label("uuid"),
+            ancestors.c.depth.label("depth"),
+        )
+        .select_from(ancestors)
+        .join(
+            org_unit_relation,
+            and_(
+                org_unit_relation.rel_maal_uuid == ancestors.c.organisationenhed_id,
+                org_unit_relation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedeenheder,
+                _get_virkning_clause(org_unit_relation, filter),
+            ),
+        )
+        .join(
+            OrganisationFunktionRegistrering,
+            OrganisationFunktionRegistrering.id
+            == org_unit_relation.organisationfunktion_registrering_id,
+        )
+        .where(base_predicate)
+    ).cte("attached_managers")
+
+    # Keep only the managers at the smallest depth that has any -- i.e. those of the
+    # nearest ancestor with managers. `min` ignores ancestors without managers.
+    nearest_depth = select(func.min(attached.c.depth)).scalar_subquery()
+    return select(distinct(attached.c.uuid)).where(attached.c.depth == nearest_depth)
 
 
 async def manager_resolver(
@@ -1628,12 +1738,19 @@ async def manager_resolver(
     """Resolve managers."""
     if filter is None:
         filter = ManagerFilter()
+    registration_time = _get_registration_time(filter, cursor)
 
-    predicate = manager_predicate(
-        info=info,
-        filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
-    )
+    if inherit:
+        # `inherit` matches the managers of the nearest ancestor that has any
+        # (including the unit itself), resolved in a single recursive query.
+        if filter.org_units is None and filter.org_unit is None:
+            raise ValueError("The inherit flag requires an organizational unit filter")
+        predicate = OrganisationFunktionRegistrering.organisationfunktion_id.in_(
+            _inherited_managers_query(info, filter, registration_time)
+        )
+    else:
+        predicate = manager_predicate(info, filter, registration_time)
+
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
@@ -1667,47 +1784,13 @@ async def manager_resolver(
         uuids,
     )
 
-    result = await generic_resolver(
+    return await generic_resolver(
         info.context.dataloaders.manager_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
-    if filter.exclude is not None:
-        exclude_uuids = set(
-            await filter2uuids_func(employee_resolver, info, filter.exclude)
-        )
-        result = {
-            key: value
-            for key, value in result.items()
-            if all(validity.employee_uuid not in exclude_uuids for validity in value)
-        }
-
-    if result or not inherit:
-        return result
-
-    if filter.org_units is None and filter.org_unit is None:
-        raise ValueError("The inherit flag requires an organizational unit filter")
-    org_unit_uuids = await filter2uuids_func(
-        organisation_unit_resolver, info, org_unit_subfilter(filter)
-    )
-
-    org_unit = only(
-        org_unit_uuids,
-        too_long=ValueError(
-            "The inherit flag only works with at most one organisational unit"
-        ),
-    )
-    if org_unit is None:
-        return {}
-    # Recurse up the tree using the parent org-unit
-    child_filter = dataclasses.replace(
-        filter,
-        org_units=None,
-        org_unit=OrganisationUnitFilter(child=OrganisationUnitFilter(uuids=[org_unit])),
-    )
-    return await manager_resolver(info, filter=child_filter, inherit=True)
 
 
 def owner_predicate(
