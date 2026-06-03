@@ -1,9 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from sqlalchemy import Select
+from sqlalchemy import ColumnElement
 from sqlalchemy import String
 from sqlalchemy import Text
 from sqlalchemy import cast
+from sqlalchemy import exists
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
 from sqlalchemy.sql import select
@@ -21,7 +22,7 @@ from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 from mora.service.autocomplete.shared import string_to_urn
 
 
-def search_employees_query(query: str) -> Select:
+def search_employees_predicate(query: str) -> ColumnElement:
     settings = config.get_settings()
 
     ctes = [
@@ -37,9 +38,10 @@ def search_employees_query(query: str) -> Select:
     selects = [select(cte.c.uuid) for cte in ctes]
     all_hits = union(*selects).cte()
 
-    employee_id = BrugerRegistrering.bruger_id.label("uuid")
-    return (
-        select(employee_id).where(employee_id == all_hits.c.uuid).group_by(employee_id)
+    return exists(
+        select(1)
+        .select_from(all_hits)
+        .where(all_hits.c.uuid == BrugerRegistrering.bruger_id)
     )
 
 

@@ -79,7 +79,7 @@ from mora.graphapi.context import MOInfo
 from mora.graphapi.custom_schema import get_version
 from mora.graphapi.gmodels.base import tz_isodate
 from mora.graphapi.version import Version
-from mora.service.autocomplete.employees import search_employees_query
+from mora.service.autocomplete.employees import search_employees_predicate
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 
 from .filters import AddressFilter
@@ -1081,9 +1081,7 @@ def employee_predicate(
 
     # Query search
     if filter.query:
-        predicates.append(
-            BrugerRegistrering.bruger_id.in_(search_employees_query(filter.query))
-        )
+        predicates.append(search_employees_predicate(filter.query))
 
     return and_(*predicates)
 
