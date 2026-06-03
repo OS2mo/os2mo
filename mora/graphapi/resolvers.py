@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import dataclasses
-from collections.abc import Callable
 from collections.abc import Sequence
 from datetime import date
 from datetime import datetime
@@ -21,6 +20,7 @@ from pydantic import ValidationError
 from sqlalchemy import ColumnElement
 from sqlalchemy import CompoundSelect
 from sqlalchemy import Select
+from sqlalchemy import all_
 from sqlalchemy import and_
 from sqlalchemy import case
 from sqlalchemy import cast
@@ -33,6 +33,7 @@ from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy import true
 from sqlalchemy import union
+from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.functions import now as SQLNOW
 from sqlalchemy.types import Text
@@ -104,32 +105,6 @@ from .paged import CursorType
 from .paged import LimitType
 from .registrationbase import RegistrationBase
 from .validity import OpenValidityModel
-
-
-async def filter2uuids_func(
-    resolver_func: Callable,
-    info: MOInfo,
-    filter: BaseFilter,
-) -> list[UUID]:
-    """Resolve into a list of UUIDs with the given filter.
-
-    Args:
-        resolver_func: The resolver used to resolve filters to UUIDs.
-        info: The strawberry execution context.
-        filter: Filter instance passed to the resolver.
-
-    Returns:
-        A list of UUIDs.
-    """
-    # The current resolver implementation disallows combining UUIDs with other filters.
-    # As the UUIDs returned from this function are only used for further filtering,
-    # we can simply return them as-is, bypassing another lookup.
-    # This is purely a performance optimization
-    if filter.uuids is not None:
-        return filter.uuids
-
-    objects = await resolver_func(info, filter=filter)
-    return list(objects.keys())
 
 
 def extend_uuids(output_filter: BaseFilter, input: list[UUID] | None) -> None:
@@ -1374,6 +1349,30 @@ async def engagement_resolver(
     )
 
 
+def _managers_for_employee(
+    info: MOInfo,
+    employee_filter: EmployeeFilter,
+    filter: BaseFilter,
+    registration_time: datetime | SQLNOW,
+) -> Select:
+    """Registrering ids of managers whose person matches `employee_filter`.
+
+    The manager's person is the `tilknyttedebrugere` relation target.
+    """
+    return select(
+        OrganisationFunktionRelation.organisationfunktion_registrering_id
+    ).where(
+        OrganisationFunktionRelation.rel_type
+        == OrganisationFunktionRelationKode.tilknyttedebrugere,
+        OrganisationFunktionRelation.rel_maal_uuid.in_(
+            select(BrugerRegistrering.bruger_id).where(
+                employee_predicate(info, employee_filter, registration_time)
+            )
+        ),
+        _get_virkning_clause(OrganisationFunktionRelation, filter),
+    )
+
+
 def manager_predicate(
     info: MOInfo,
     filter: ManagerFilter,
@@ -1473,19 +1472,8 @@ def manager_predicate(
         elif filter.employee is not UNSET or filter.employees is not None:
             predicates.append(
                 OrganisationFunktionRegistrering.id.in_(
-                    select(
-                        OrganisationFunktionRelation.organisationfunktion_registrering_id
-                    ).where(
-                        OrganisationFunktionRelation.rel_type
-                        == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                        OrganisationFunktionRelation.rel_maal_uuid.in_(
-                            select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info, employee_subfilter(filter), registration_time
-                                )
-                            )
-                        ),
-                        _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _managers_for_employee(
+                        info, employee_subfilter(filter), filter, registration_time
                     )
                 )
             )
@@ -1494,19 +1482,8 @@ def manager_predicate(
     ) or filter.employees is not None:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(BrugerRegistrering.bruger_id).where(
-                            employee_predicate(
-                                info, employee_subfilter(filter), registration_time
-                            )
-                        )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                _managers_for_employee(
+                    info, employee_subfilter(filter), filter, registration_time
                 )
             )
         )
@@ -1599,22 +1576,11 @@ def manager_predicate(
             )
         )
 
-    # Exclude: drop managers having a manager (employee) matching `filter.exclude`.
+    # Exclude: drop managers whose person matches `filter.exclude`.
     if filter.exclude is not None:
         predicates.append(
             ~OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(BrugerRegistrering.bruger_id).where(
-                            employee_predicate(info, filter.exclude, registration_time)
-                        )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                _managers_for_employee(info, filter.exclude, filter, registration_time)
             )
         )
 
@@ -1634,43 +1600,69 @@ def _inherited_managers_query(
     the smallest depth that has matching managers, rather than issuing one query per
     tree level as the previous Python recursion did.
     """
-    # Ancestor chain. Mirrors the recursive CTE used by the `descendant`/`ancestor`
-    # org-unit filters -- start at the units matching the org-unit filter, then
-    # repeatedly add the `overordnet` parent -- but also tracks `depth` so we can
-    # pick the nearest ancestor below.
-    ancestors = (
-        select(
-            OrganisationEnhedRegistrering.organisationenhed_id,
-            literal(0).label("depth"),
-        )
+    # Ancestor chain, one per starting unit. Like the `descendant`/`ancestor`
+    # org-unit filters this walks `overordnet` parents in a recursive CTE, but it
+    # also carries:
+    # * `origin` -- the starting unit, so the nearest ancestor is chosen per unit
+    #   rather than globally (different units inherit independently);
+    # * `depth`  -- distance from `origin`, to rank ancestors;
+    # * `path`   -- the units visited so far, to terminate on cyclic data (the
+    #   plain `uuid`-deduplicating CTEs can't, once `depth` makes rows distinct).
+    # Only active (`Aktiv`) units are traversed, matching the starting set and the
+    # old recursion which routed every ancestor through `organisation_unit_predicate`.
+    anchor = select(
+        OrganisationEnhedRegistrering.organisationenhed_id.label("origin"),
+        OrganisationEnhedRegistrering.organisationenhed_id.label("uuid"),
+        literal(0).label("depth"),
+        array([OrganisationEnhedRegistrering.organisationenhed_id]).label("path"),
+    ).where(
+        organisation_unit_predicate(info, org_unit_subfilter(filter), registration_time)
+    )
+    ancestors = anchor.cte("ancestors", recursive=True)
+    # Independent subquery of all active units. Used to gate parents to active units
+    # without a second `organisationenhed_registrering` in the recursive FROM (its
+    # `(registrering)` composite would be ambiguous with the child's). `correlate`
+    # keeps it from being folded into the outer query.
+    active_units = (
+        select(OrganisationEnhedRegistrering.organisationenhed_id)
         .where(
             organisation_unit_predicate(
-                info, org_unit_subfilter(filter), registration_time
+                info, OrganisationUnitFilter(), registration_time
             )
         )
-        .cte("ancestors", recursive=True)
+        .correlate(None)
     )
     parents = (
         select(
+            ancestors.c.origin,
             OrganisationEnhedRelation.rel_maal_uuid,
             ancestors.c.depth + 1,
+            func.array_append(
+                ancestors.c.path, OrganisationEnhedRelation.rel_maal_uuid
+            ),
         )
-        .join(OrganisationEnhedRegistrering)
-        .where(
-            _get_registrering_clause(OrganisationEnhedRegistrering, registration_time),
+        .select_from(ancestors)
+        .join(
+            OrganisationEnhedRegistrering,
+            OrganisationEnhedRegistrering.organisationenhed_id == ancestors.c.uuid,
         )
         .join(
-            ancestors,
+            OrganisationEnhedRelation,
             and_(
+                OrganisationEnhedRelation.organisationenhed_registrering_id
+                == OrganisationEnhedRegistrering.id,
                 OrganisationEnhedRelation.rel_type
                 == OrganisationEnhedRelationKode.overordnet,
-                OrganisationEnhedRegistrering.organisationenhed_id
-                == ancestors.c.organisationenhed_id,
                 _get_virkning_clause(OrganisationEnhedRelation, filter),
             ),
         )
+        .where(
+            _get_registrering_clause(OrganisationEnhedRegistrering, registration_time),
+            OrganisationEnhedRelation.rel_maal_uuid != all_(ancestors.c.path),
+            OrganisationEnhedRelation.rel_maal_uuid.in_(active_units),
+        )
     )
-    ancestors = ancestors.union(parents)
+    ancestors = ancestors.union_all(parents)
 
     # All manager constraints except the org unit, which is supplied via the
     # ancestor join below. `exclude` lives in `manager_predicate`, so a level whose
@@ -1679,20 +1671,21 @@ def _inherited_managers_query(
     base_filter = dataclasses.replace(filter, org_units=None, org_unit=None)
     base_predicate = manager_predicate(info, base_filter, registration_time)
 
-    # Managers attached to any ancestor, tagged with that ancestor's depth. A
+    # Managers attached to any ancestor, tagged with the starting unit and depth. A
     # separate alias for the org-unit relation keeps it distinct from the relation
     # used inside `manager_predicate`'s own subqueries.
     org_unit_relation = aliased(OrganisationFunktionRelation)
     attached = (
         select(
             OrganisationFunktionRegistrering.organisationfunktion_id.label("uuid"),
+            ancestors.c.origin.label("origin"),
             ancestors.c.depth.label("depth"),
         )
         .select_from(ancestors)
         .join(
             org_unit_relation,
             and_(
-                org_unit_relation.rel_maal_uuid == ancestors.c.organisationenhed_id,
+                org_unit_relation.rel_maal_uuid == ancestors.c.uuid,
                 org_unit_relation.rel_type
                 == OrganisationFunktionRelationKode.tilknyttedeenheder,
                 _get_virkning_clause(org_unit_relation, filter),
@@ -1706,9 +1699,14 @@ def _inherited_managers_query(
         .where(base_predicate)
     ).cte("attached_managers")
 
-    # Keep only the managers at the smallest depth that has any -- i.e. those of the
-    # nearest ancestor with managers. `min` ignores ancestors without managers.
-    nearest_depth = select(func.min(attached.c.depth)).scalar_subquery()
+    # For each starting unit keep the managers at its smallest depth that has any --
+    # i.e. those of that unit's nearest ancestor (incl. itself) with managers.
+    same_origin = attached.alias("same_origin")
+    nearest_depth = (
+        select(func.min(same_origin.c.depth))
+        .where(same_origin.c.origin == attached.c.origin)
+        .scalar_subquery()
+    )
     return select(distinct(attached.c.uuid)).where(attached.c.depth == nearest_depth)
 
 
