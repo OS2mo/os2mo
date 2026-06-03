@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
+from typing import Any
 from uuid import UUID
 from uuid import uuid4
 
@@ -279,3 +281,70 @@ async def test_leave_terminate_integration(
     )
     assert test_data["uuid"] == leave_objects_post_terminate["uuid"]
     assert test_data["to"] == leave_objects_post_terminate["validity"]["to"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_leave_user_key_filter(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[[str, UUID | None], UUID],
+    create_person: Callable[[dict[str, Any] | None], UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """Test that leaves can be filtered by user_key."""
+    org_unit_uuid = create_org_unit("root")
+    person_uuid = create_person({"given_name": "Xylia", "surname": "Shadowthorn"})
+    engagement_uuid = create_engagement(
+        {
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
+            "org_unit": str(org_unit_uuid),
+            "person": str(person_uuid),
+            "validity": {"from": "1970-01-01T00:00:00Z"},
+        }
+    )
+
+    def create_leave(user_key: str) -> UUID:
+        response = graphapi_post(
+            """
+            mutation CreateLeave($input: LeaveCreateInput!) {
+                leave_create(input: $input) { uuid }
+            }
+            """,
+            {
+                "input": {
+                    "user_key": user_key,
+                    "person": str(person_uuid),
+                    "engagement": str(engagement_uuid),
+                    "leave_type": str(uuid4()),
+                    "validity": {"from": "2024-01-01"},
+                }
+            },
+        )
+        assert response.errors is None
+        assert response.data is not None
+        return UUID(response.data["leave_create"]["uuid"])
+
+    alpha_uuid = create_leave("alpha")
+    beta_uuid = create_leave("beta")
+    gamma_uuid = create_leave("gamma")
+
+    query = """
+        query ReadLeaves($filter: LeaveFilter) {
+            leaves(filter: $filter) {
+                objects { uuid }
+            }
+        }
+    """
+
+    def read(filter: dict) -> set[UUID]:
+        response = graphapi_post(query, {"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {UUID(o["uuid"]) for o in response.data["leaves"]["objects"]}
+
+    assert read({}) == {alpha_uuid, beta_uuid, gamma_uuid}
+    assert read({"user_keys": ["alpha"]}) == {alpha_uuid}
+    assert read({"user_keys": ["beta"]}) == {beta_uuid}
+    assert read({"user_keys": ["alpha", "gamma"]}) == {alpha_uuid, gamma_uuid}
+    assert read({"user_keys": ["nonexistent"]}) == set()
