@@ -231,11 +231,10 @@ def facet_predicate(
             FacetRegistrering,
             registration_time,
         ),
-        FacetRegistrering.id.in_(
-            select(FacetTilsPubliceret.facet_registrering_id).where(
-                FacetTilsPubliceret.publiceret == "Publiceret",
-                _get_virkning_clause(FacetTilsPubliceret, filter),
-            )
+        exists().where(
+            FacetTilsPubliceret.facet_registrering_id == FacetRegistrering.id,
+            FacetTilsPubliceret.publiceret == "Publiceret",
+            _get_virkning_clause(FacetTilsPubliceret, filter),
         ),
     ]
 
@@ -256,11 +255,10 @@ def facet_predicate(
     # User keys
     if filter.user_keys is not None:
         predicates.append(
-            FacetRegistrering.id.in_(
-                select(FacetAttrEgenskaber.facet_registrering_id).where(
-                    FacetAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
-                    _get_virkning_clause(FacetAttrEgenskaber, filter),
-                )
+            exists().where(
+                FacetAttrEgenskaber.facet_registrering_id == FacetRegistrering.id,
+                FacetAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
+                _get_virkning_clause(FacetAttrEgenskaber, filter),
             )
         )
 
@@ -271,18 +269,17 @@ def facet_predicate(
         or filter.parent is not None
     ):
         predicates.append(
-            FacetRegistrering.id.in_(
-                select(FacetRelation.facet_registrering_id).where(
-                    FacetRelation.rel_type == FacetRelationKode.facettilhoerer,
-                    FacetRelation.rel_maal_uuid.in_(
-                        select(FacetRegistrering.facet_id).where(
-                            facet_predicate(
-                                info, facet_parent_subfilter(filter), registration_time
-                            )
+            exists().where(
+                FacetRelation.facet_registrering_id == FacetRegistrering.id,
+                FacetRelation.rel_type == FacetRelationKode.facettilhoerer,
+                FacetRelation.rel_maal_uuid.in_(
+                    select(FacetRegistrering.facet_id).where(
+                        facet_predicate(
+                            info, facet_parent_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(FacetRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(FacetRelation, filter),
             )
         )
 
@@ -356,11 +353,10 @@ def class_predicate(
             KlasseRegistrering,
             registration_time,
         ),
-        KlasseRegistrering.id.in_(
-            select(KlasseTilsPubliceret.klasse_registrering_id).where(
-                KlasseTilsPubliceret.publiceret == "Publiceret",
-                _get_virkning_clause(KlasseTilsPubliceret, filter),
-            )
+        exists().where(
+            KlasseTilsPubliceret.klasse_registrering_id == KlasseRegistrering.id,
+            KlasseTilsPubliceret.publiceret == "Publiceret",
+            _get_virkning_clause(KlasseTilsPubliceret, filter),
         ),
     ]
 
@@ -381,33 +377,30 @@ def class_predicate(
     # User keys
     if filter.user_keys is not None:
         predicates.append(
-            KlasseRegistrering.id.in_(
-                select(KlasseAttrEgenskaber.klasse_registrering_id).where(
-                    KlasseAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
-                    _get_virkning_clause(KlasseAttrEgenskaber, filter),
-                )
+            exists().where(
+                KlasseAttrEgenskaber.klasse_registrering_id == KlasseRegistrering.id,
+                KlasseAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
+                _get_virkning_clause(KlasseAttrEgenskaber, filter),
             )
         )
 
     # Name
     if filter.name is not None:
         predicates.append(
-            KlasseRegistrering.id.in_(
-                select(KlasseAttrEgenskaber.klasse_registrering_id).where(
-                    KlasseAttrEgenskaber.titel.in_(filter.name),
-                    _get_virkning_clause(KlasseAttrEgenskaber, filter),
-                )
+            exists().where(
+                KlasseAttrEgenskaber.klasse_registrering_id == KlasseRegistrering.id,
+                KlasseAttrEgenskaber.titel.in_(filter.name),
+                _get_virkning_clause(KlasseAttrEgenskaber, filter),
             )
         )
 
     # Scope
     if filter.scope is not None:
         predicates.append(
-            KlasseRegistrering.id.in_(
-                select(KlasseAttrEgenskaber.klasse_registrering_id).where(
-                    KlasseAttrEgenskaber.omfang.in_(filter.scope),
-                    _get_virkning_clause(KlasseAttrEgenskaber, filter),
-                )
+            exists().where(
+                KlasseAttrEgenskaber.klasse_registrering_id == KlasseRegistrering.id,
+                KlasseAttrEgenskaber.omfang.in_(filter.scope),
+                _get_virkning_clause(KlasseAttrEgenskaber, filter),
             )
         )
 
@@ -418,18 +411,17 @@ def class_predicate(
         or filter.facet is not None
     ):
         predicates.append(
-            KlasseRegistrering.id.in_(
-                select(KlasseRelation.klasse_registrering_id).where(
-                    KlasseRelation.rel_type == KlasseRelationKode.facet,
-                    KlasseRelation.rel_maal_uuid.in_(
-                        select(FacetRegistrering.facet_id).where(
-                            facet_predicate(
-                                info, class_facet_subfilter(filter), registration_time
-                            )
+            exists().where(
+                KlasseRelation.klasse_registrering_id == KlasseRegistrering.id,
+                KlasseRelation.rel_type == KlasseRelationKode.facet,
+                KlasseRelation.rel_maal_uuid.in_(
+                    select(FacetRegistrering.facet_id).where(
+                        facet_predicate(
+                            info, class_facet_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(KlasseRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(KlasseRelation, filter),
             )
         )
 
@@ -440,53 +432,46 @@ def class_predicate(
         or filter.parent is not None
     ):
         predicates.append(
-            KlasseRegistrering.id.in_(
-                select(KlasseRelation.klasse_registrering_id).where(
-                    KlasseRelation.rel_type == KlasseRelationKode.overordnetklasse,
-                    KlasseRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(
-                                info, class_parent_subfilter(filter), registration_time
-                            )
+            exists().where(
+                KlasseRelation.klasse_registrering_id == KlasseRegistrering.id,
+                KlasseRelation.rel_type == KlasseRelationKode.overordnetklasse,
+                KlasseRelation.rel_maal_uuid.in_(
+                    select(KlasseRegistrering.klasse_id).where(
+                        class_predicate(
+                            info, class_parent_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(KlasseRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(KlasseRelation, filter),
             )
         )
 
     # IT system
     if filter.it_system is not None:
         predicates.append(
-            KlasseRegistrering.id.in_(
-                select(KlasseRelation.klasse_registrering_id).where(
-                    KlasseRelation.rel_type == KlasseRelationKode.mapninger,
-                    KlasseRelation.rel_maal_uuid.in_(
-                        select(ITSystemRegistrering.itsystem_id).where(
-                            it_system_predicate(
-                                info, filter.it_system, registration_time
-                            )
-                        )
-                    ),
-                    _get_virkning_clause(KlasseRelation, filter),
-                )
+            exists().where(
+                KlasseRelation.klasse_registrering_id == KlasseRegistrering.id,
+                KlasseRelation.rel_type == KlasseRelationKode.mapninger,
+                KlasseRelation.rel_maal_uuid.in_(
+                    select(ITSystemRegistrering.itsystem_id).where(
+                        it_system_predicate(info, filter.it_system, registration_time)
+                    )
+                ),
+                _get_virkning_clause(KlasseRelation, filter),
             )
         )
 
     # Owner
     if filter.owner is not None:
-        matched_owner = KlasseRegistrering.id.in_(
-            select(KlasseRelation.klasse_registrering_id).where(
-                KlasseRelation.rel_type == KlasseRelationKode.ejer,
-                KlasseRelation.rel_maal_uuid.in_(
-                    select(OrganisationEnhedRegistrering.organisationenhed_id).where(
-                        organisation_unit_predicate(
-                            info, filter.owner, registration_time
-                        )
-                    )
-                ),
-                _get_virkning_clause(KlasseRelation, filter),
-            )
+        matched_owner = exists().where(
+            KlasseRelation.klasse_registrering_id == KlasseRegistrering.id,
+            KlasseRelation.rel_type == KlasseRelationKode.ejer,
+            KlasseRelation.rel_maal_uuid.in_(
+                select(OrganisationEnhedRegistrering.organisationenhed_id).where(
+                    organisation_unit_predicate(info, filter.owner, registration_time)
+                )
+            ),
+            _get_virkning_clause(KlasseRelation, filter),
         )
         if filter.owner.include_none:
             no_owner = ~exists().where(
@@ -565,13 +550,11 @@ def address_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
-        return OrganisationFunktionRegistrering.id.in_(
-            select(
-                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-            ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Adresse",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-            )
+        return exists().where(
+            OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            == OrganisationFunktionRegistrering.id,
+            OrganisationFunktionAttrEgenskaber.funktionsnavn == "Adresse",
+            _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
         )
 
     predicates = [
@@ -608,15 +591,13 @@ def address_predicate(
     # User keys
     if filter.user_keys is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
-                        filter.user_keys
-                    ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-                )
+            exists().where(
+                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
+                    filter.user_keys
+                ),
+                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
@@ -625,44 +606,38 @@ def address_predicate(
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(BrugerRegistrering.bruger_id).where(
-                            employee_predicate(
-                                info, employee_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedebrugere,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(BrugerRegistrering.bruger_id).where(
+                        employee_predicate(
+                            info, employee_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedeenheder,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(OrganisationEnhedRegistrering.organisationenhed_id).where(
+                        organisation_unit_predicate(
+                            info, org_unit_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
@@ -673,21 +648,19 @@ def address_predicate(
         or filter.address_type is not None
     ):
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(
-                                info, address_type_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(KlasseRegistrering.klasse_id).where(
+                        class_predicate(
+                            info, address_type_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
@@ -696,19 +669,17 @@ def address_predicate(
     # TODO: Support finding entries with visibility=None
     if filter.visibility is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.opgaver,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(info, filter.visibility, registration_time)
-                        )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.opgaver,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(KlasseRegistrering.klasse_id).where(
+                        class_predicate(info, filter.visibility, registration_time)
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
@@ -734,17 +705,15 @@ def address_predicate(
                 )
             )
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedefunktioner,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        union(*tilknyttedefunktioner)
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedefunktioner,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    union(*tilknyttedefunktioner)
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
@@ -814,13 +783,11 @@ def association_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
-        return OrganisationFunktionRegistrering.id.in_(
-            select(
-                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-            ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Tilknytning",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-            )
+        return exists().where(
+            OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            == OrganisationFunktionRegistrering.id,
+            OrganisationFunktionAttrEgenskaber.funktionsnavn == "Tilknytning",
+            _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
         )
 
     predicates = [
@@ -857,15 +824,13 @@ def association_predicate(
     # User keys
     if filter.user_keys is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
-                        filter.user_keys
-                    ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-                )
+            exists().where(
+                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
+                    filter.user_keys
+                ),
+                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
@@ -874,44 +839,38 @@ def association_predicate(
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(BrugerRegistrering.bruger_id).where(
-                            employee_predicate(
-                                info, employee_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedebrugere,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(BrugerRegistrering.bruger_id).where(
+                        employee_predicate(
+                            info, employee_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedeenheder,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(OrganisationEnhedRegistrering.organisationenhed_id).where(
+                        organisation_unit_predicate(
+                            info, org_unit_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
@@ -922,23 +881,19 @@ def association_predicate(
         or filter.association_type is not None
     ):
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(
-                                info,
-                                association_type_subfilter(filter),
-                                registration_time,
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(KlasseRegistrering.klasse_id).where(
+                        class_predicate(
+                            info, association_type_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
@@ -1057,25 +1012,23 @@ def employee_predicate(
     # User keys
     if filter.user_keys is not None:
         predicates.append(
-            BrugerRegistrering.id.in_(
-                select(BrugerAttrEgenskaber.bruger_registrering_id).where(
-                    BrugerAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
-                    _get_virkning_clause(BrugerAttrEgenskaber, filter),
-                )
+            exists().where(
+                BrugerAttrEgenskaber.bruger_registrering_id == BrugerRegistrering.id,
+                BrugerAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
+                _get_virkning_clause(BrugerAttrEgenskaber, filter),
             )
         )
 
     # CPR numbers
     if filter.cpr_numbers is not None:
         predicates.append(
-            BrugerRegistrering.id.in_(
-                select(BrugerRelation.bruger_registrering_id).where(
-                    BrugerRelation.rel_type == BrugerRelationKode.tilknyttedepersoner,
-                    BrugerRelation.rel_maal_urn.in_(
-                        f"urn:dk:cpr:person:{c}" for c in filter.cpr_numbers
-                    ),
-                    _get_virkning_clause(BrugerRelation, filter),
-                )
+            exists().where(
+                BrugerRelation.bruger_registrering_id == BrugerRegistrering.id,
+                BrugerRelation.rel_type == BrugerRelationKode.tilknyttedepersoner,
+                BrugerRelation.rel_maal_urn.in_(
+                    (f"urn:dk:cpr:person:{c}" for c in filter.cpr_numbers)
+                ),
+                _get_virkning_clause(BrugerRelation, filter),
             )
         )
 
@@ -1149,13 +1102,11 @@ def engagement_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
-        return OrganisationFunktionRegistrering.id.in_(
-            select(
-                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-            ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Engagement",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-            )
+        return exists().where(
+            OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            == OrganisationFunktionRegistrering.id,
+            OrganisationFunktionAttrEgenskaber.funktionsnavn == "Engagement",
+            _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
         )
 
     predicates = [
@@ -1192,15 +1143,13 @@ def engagement_predicate(
     # User keys
     if filter.user_keys is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
-                        filter.user_keys
-                    ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-                )
+            exists().where(
+                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
+                    filter.user_keys
+                ),
+                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
@@ -1209,86 +1158,72 @@ def engagement_predicate(
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(BrugerRegistrering.bruger_id).where(
-                            employee_predicate(
-                                info, employee_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedebrugere,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(BrugerRegistrering.bruger_id).where(
+                        employee_predicate(
+                            info, employee_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedeenheder,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(OrganisationEnhedRegistrering.organisationenhed_id).where(
+                        organisation_unit_predicate(
+                            info, org_unit_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
     # Job function
     if filter.job_function is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.opgaver,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(
-                                info, filter.job_function, registration_time
-                            )
-                        )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.opgaver,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(KlasseRegistrering.klasse_id).where(
+                        class_predicate(info, filter.job_function, registration_time)
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
     # Engagement type
     if filter.engagement_type is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(
-                                info, filter.engagement_type, registration_time
-                            )
-                        )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(KlasseRegistrering.klasse_id).where(
+                        class_predicate(info, filter.engagement_type, registration_time)
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
@@ -1380,13 +1315,11 @@ def manager_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
-        return OrganisationFunktionRegistrering.id.in_(
-            select(
-                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-            ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Leder",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-            )
+        return exists().where(
+            OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            == OrganisationFunktionRegistrering.id,
+            OrganisationFunktionAttrEgenskaber.funktionsnavn == "Leder",
+            _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
         )
 
     predicates = [
@@ -1423,15 +1356,13 @@ def manager_predicate(
     # User keys
     if filter.user_keys is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
-                        filter.user_keys
-                    ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-                )
+            exists().where(
+                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
+                    filter.user_keys
+                ),
+                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
@@ -1472,31 +1403,9 @@ def manager_predicate(
             )
         elif filter.employee is not UNSET or filter.employees is not None:
             predicates.append(
-                OrganisationFunktionRegistrering.id.in_(
-                    select(
-                        OrganisationFunktionRelation.organisationfunktion_registrering_id
-                    ).where(
-                        OrganisationFunktionRelation.rel_type
-                        == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                        OrganisationFunktionRelation.rel_maal_uuid.in_(
-                            select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info, employee_subfilter(filter), registration_time
-                                )
-                            )
-                        ),
-                        _get_virkning_clause(OrganisationFunktionRelation, filter),
-                    )
-                )
-            )
-    elif (
-        filter.employee is not None and filter.employee is not UNSET
-    ) or filter.employees is not None:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
+                exists().where(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
+                    == OrganisationFunktionRegistrering.id,
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
@@ -1509,93 +1418,95 @@ def manager_predicate(
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
+    elif (
+        filter.employee is not None and filter.employee is not UNSET
+    ) or filter.employees is not None:
+        predicates.append(
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedebrugere,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(BrugerRegistrering.bruger_id).where(
+                        employee_predicate(
+                            info, employee_subfilter(filter), registration_time
+                        )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
+            )
         )
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedeenheder,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(OrganisationEnhedRegistrering.organisationenhed_id).where(
+                        organisation_unit_predicate(
+                            info, org_unit_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
     # Responsibility
     if filter.responsibility is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.opgaver,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(
-                                info, filter.responsibility, registration_time
-                            )
-                        )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.opgaver,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(KlasseRegistrering.klasse_id).where(
+                        class_predicate(info, filter.responsibility, registration_time)
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
     # Manager type
     if filter.manager_type is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(
-                                info, filter.manager_type, registration_time
-                            )
-                        )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(KlasseRegistrering.klasse_id).where(
+                        class_predicate(info, filter.manager_type, registration_time)
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
     # Engagement
     if filter.engagement is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedefunktioner,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationFunktionRegistrering.organisationfunktion_id
-                        ).where(
-                            engagement_predicate(
-                                info, filter.engagement, registration_time
-                            )
-                        )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedefunktioner,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(
+                        OrganisationFunktionRegistrering.organisationfunktion_id
+                    ).where(
+                        engagement_predicate(info, filter.engagement, registration_time)
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
@@ -1716,13 +1627,11 @@ def owner_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
-        return OrganisationFunktionRegistrering.id.in_(
-            select(
-                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-            ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "owner",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-            )
+        return exists().where(
+            OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            == OrganisationFunktionRegistrering.id,
+            OrganisationFunktionAttrEgenskaber.funktionsnavn == "owner",
+            _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
         )
 
     predicates = [
@@ -1747,15 +1656,13 @@ def owner_predicate(
     # User keys
     if filter.user_keys is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
-                        filter.user_keys
-                    ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-                )
+            exists().where(
+                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
+                    filter.user_keys
+                ),
+                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
@@ -1764,63 +1671,55 @@ def owner_predicate(
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(BrugerRegistrering.bruger_id).where(
-                            employee_predicate(
-                                info, employee_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedebrugere,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(BrugerRegistrering.bruger_id).where(
+                        employee_predicate(
+                            info, employee_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedeenheder,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(OrganisationEnhedRegistrering.organisationenhed_id).where(
+                        organisation_unit_predicate(
+                            info, org_unit_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
     # Owner
     if filter.owner is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedepersoner,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(BrugerRegistrering.bruger_id).where(
-                            employee_predicate(info, filter.owner, registration_time)
-                        )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedepersoner,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(BrugerRegistrering.bruger_id).where(
+                        employee_predicate(info, filter.owner, registration_time)
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
@@ -1943,11 +1842,10 @@ def _get_gyldighed_clause(
     filter: BaseFilter,
 ) -> ColumnElement:
     fk_column = getattr(gyldighed_cls, f"{registrering_cls.__tablename__}_id")
-    return registrering_cls.id.in_(
-        select(fk_column).where(
-            gyldighed_cls.gyldighed == "Aktiv",
-            _get_virkning_clause(gyldighed_cls, filter),
-        )
+    return exists().where(
+        fk_column == registrering_cls.id,
+        gyldighed_cls.gyldighed == "Aktiv",
+        _get_virkning_clause(gyldighed_cls, filter),
     )
 
 
@@ -2043,64 +1941,54 @@ def organisation_unit_predicate(
     # User keys
     if filter.user_keys is not None:
         predicates.append(
-            OrganisationEnhedRegistrering.id.in_(
-                select(
-                    OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
-                ).where(
-                    OrganisationEnhedAttrEgenskaber.brugervendtnoegle.in_(
-                        filter.user_keys
-                    ),
-                    _get_virkning_clause(OrganisationEnhedAttrEgenskaber, filter),
-                )
+            exists().where(
+                OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
+                == OrganisationEnhedRegistrering.id,
+                OrganisationEnhedAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
+                _get_virkning_clause(OrganisationEnhedAttrEgenskaber, filter),
             )
         )
 
     # Name
     if filter.names is not UNSET and filter.names is not None:
         predicates.append(
-            OrganisationEnhedRegistrering.id.in_(
-                select(
-                    OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
-                ).where(
-                    OrganisationEnhedAttrEgenskaber.enhedsnavn.in_(filter.names),
-                    _get_virkning_clause(OrganisationEnhedAttrEgenskaber, filter),
-                )
+            exists().where(
+                OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
+                == OrganisationEnhedRegistrering.id,
+                OrganisationEnhedAttrEgenskaber.enhedsnavn.in_(filter.names),
+                _get_virkning_clause(OrganisationEnhedAttrEgenskaber, filter),
             )
         )
 
     # Parents
     if filter.parent is not UNSET or filter.parents is not UNSET:
         predicates.append(
-            OrganisationEnhedRegistrering.id.in_(
-                select(
-                    OrganisationEnhedRelation.organisationenhed_registrering_id
-                ).where(
-                    OrganisationEnhedRelation.rel_type
-                    == OrganisationEnhedRelationKode.overordnet,
-                    OrganisationEnhedRelation.rel_maal_uuid.in_(_parents_subquery()),
-                    _get_virkning_clause(OrganisationEnhedRelation, filter),
-                )
+            exists().where(
+                OrganisationEnhedRelation.organisationenhed_registrering_id
+                == OrganisationEnhedRegistrering.id,
+                OrganisationEnhedRelation.rel_type
+                == OrganisationEnhedRelationKode.overordnet,
+                OrganisationEnhedRelation.rel_maal_uuid.in_(_parents_subquery()),
+                _get_virkning_clause(OrganisationEnhedRelation, filter),
             )
         )
 
     # Hierarchies
     if filter.hierarchy is not None or filter.hierarchies is not None:
         predicates.append(
-            OrganisationEnhedRegistrering.id.in_(
-                select(
-                    OrganisationEnhedRelation.organisationenhed_registrering_id
-                ).where(
-                    OrganisationEnhedRelation.rel_type
-                    == OrganisationEnhedRelationKode.opmærkning,
-                    OrganisationEnhedRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(
-                                info, hierarchy_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationEnhedRelation.organisationenhed_registrering_id
+                == OrganisationEnhedRegistrering.id,
+                OrganisationEnhedRelation.rel_type
+                == OrganisationEnhedRelationKode.opmærkning,
+                OrganisationEnhedRelation.rel_maal_uuid.in_(
+                    select(KlasseRegistrering.klasse_id).where(
+                        class_predicate(
+                            info, hierarchy_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationEnhedRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationEnhedRelation, filter),
             )
         )
 
@@ -2274,19 +2162,17 @@ def organisation_unit_predicate(
     if filter.query:
         search_phrase = util.query_to_search_phrase(filter.query)
 
-        clauses = [
-            OrganisationEnhedRegistrering.id.in_(
-                select(
-                    OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
-                ).where(
-                    or_(
-                        OrganisationEnhedAttrEgenskaber.brugervendtnoegle.ilike(
-                            search_phrase
-                        ),
-                        OrganisationEnhedAttrEgenskaber.enhedsnavn.ilike(search_phrase),
+        clauses: list[ColumnElement] = [
+            exists().where(
+                OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
+                == OrganisationEnhedRegistrering.id,
+                or_(
+                    OrganisationEnhedAttrEgenskaber.brugervendtnoegle.ilike(
+                        search_phrase
                     ),
-                    _get_virkning_clause(OrganisationEnhedAttrEgenskaber, filter),
-                )
+                    OrganisationEnhedAttrEgenskaber.enhedsnavn.ilike(search_phrase),
+                ),
+                _get_virkning_clause(OrganisationEnhedAttrEgenskaber, filter),
             ),
         ]
 
@@ -2435,11 +2321,11 @@ def it_system_predicate(
     # User keys
     if filter.user_keys is not None:
         predicates.append(
-            ITSystemRegistrering.id.in_(
-                select(ITSystemAttrEgenskaber.itsystem_registrering_id).where(
-                    ITSystemAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
-                    _get_virkning_clause(ITSystemAttrEgenskaber, filter),
-                )
+            exists().where(
+                ITSystemAttrEgenskaber.itsystem_registrering_id
+                == ITSystemRegistrering.id,
+                ITSystemAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
+                _get_virkning_clause(ITSystemAttrEgenskaber, filter),
             )
         )
 
@@ -2509,13 +2395,11 @@ def it_user_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
-        return OrganisationFunktionRegistrering.id.in_(
-            select(
-                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-            ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "IT-system",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-            )
+        return exists().where(
+            OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            == OrganisationFunktionRegistrering.id,
+            OrganisationFunktionAttrEgenskaber.funktionsnavn == "IT-system",
+            _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
         )
 
     predicates = [
@@ -2552,15 +2436,13 @@ def it_user_predicate(
     # User keys
     if filter.user_keys is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
-                        filter.user_keys
-                    ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-                )
+            exists().where(
+                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
+                    filter.user_keys
+                ),
+                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
@@ -2569,88 +2451,76 @@ def it_user_predicate(
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(BrugerRegistrering.bruger_id).where(
-                            employee_predicate(
-                                info, employee_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedebrugere,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(BrugerRegistrering.bruger_id).where(
+                        employee_predicate(
+                            info, employee_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedeenheder,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(OrganisationEnhedRegistrering.organisationenhed_id).where(
+                        organisation_unit_predicate(
+                            info, org_unit_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
     # IT systems
     if filter.itsystem_uuids is not None or filter.itsystem is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeitsystemer,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(ITSystemRegistrering.itsystem_id).where(
-                            it_system_predicate(
-                                info, itsystem_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedeitsystemer,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(ITSystemRegistrering.itsystem_id).where(
+                        it_system_predicate(
+                            info, itsystem_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
     # Engagement
     if filter.engagement is not None:  # pragma: no cover
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedefunktioner,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationFunktionRegistrering.organisationfunktion_id
-                        ).where(
-                            engagement_predicate(
-                                info, filter.engagement, registration_time
-                            )
-                        )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedefunktioner,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(
+                        OrganisationFunktionRegistrering.organisationfunktion_id
+                    ).where(
+                        engagement_predicate(info, filter.engagement, registration_time)
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
@@ -2672,30 +2542,24 @@ def it_user_predicate(
         )
     elif filter.external_ids is not UNSET:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionAttrUdvidelser.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionAttrUdvidelser.udvidelse_1.in_(
-                        filter.external_ids
-                    ),
-                    _get_virkning_clause(OrganisationFunktionAttrUdvidelser, filter),
-                )
+            exists().where(
+                OrganisationFunktionAttrUdvidelser.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionAttrUdvidelser.udvidelse_1.in_(filter.external_ids),
+                _get_virkning_clause(OrganisationFunktionAttrUdvidelser, filter),
             )
         )
 
     # Binding types
     if filter.binding_types is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionAttrUdvidelser.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionAttrUdvidelser.udvidelse_2.in_(
-                        filter.binding_types
-                    ),
-                    _get_virkning_clause(OrganisationFunktionAttrUdvidelser, filter),
-                )
+            exists().where(
+                OrganisationFunktionAttrUdvidelser.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionAttrUdvidelser.udvidelse_2.in_(
+                    filter.binding_types
+                ),
+                _get_virkning_clause(OrganisationFunktionAttrUdvidelser, filter),
             )
         )
 
@@ -2765,13 +2629,11 @@ def kle_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
-        return OrganisationFunktionRegistrering.id.in_(
-            select(
-                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-            ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "KLE",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-            )
+        return exists().where(
+            OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            == OrganisationFunktionRegistrering.id,
+            OrganisationFunktionAttrEgenskaber.funktionsnavn == "KLE",
+            _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
         )
 
     predicates = [
@@ -2808,38 +2670,32 @@ def kle_predicate(
     # User keys
     if filter.user_keys is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
-                        filter.user_keys
-                    ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-                )
+            exists().where(
+                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
+                    filter.user_keys
+                ),
+                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedeenheder,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(OrganisationEnhedRegistrering.organisationenhed_id).where(
+                        organisation_unit_predicate(
+                            info, org_unit_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
@@ -2909,13 +2765,11 @@ def leave_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
-        return OrganisationFunktionRegistrering.id.in_(
-            select(
-                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-            ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Orlov",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-            )
+        return exists().where(
+            OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            == OrganisationFunktionRegistrering.id,
+            OrganisationFunktionAttrEgenskaber.funktionsnavn == "Orlov",
+            _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
         )
 
     predicates = [
@@ -2952,15 +2806,13 @@ def leave_predicate(
     # User keys
     if filter.user_keys is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
-                        filter.user_keys
-                    ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-                )
+            exists().where(
+                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
+                    filter.user_keys
+                ),
+                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
@@ -2969,44 +2821,38 @@ def leave_predicate(
         filter.employee is not None and filter.employee is not UNSET
     ) or filter.employees is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(BrugerRegistrering.bruger_id).where(
-                            employee_predicate(
-                                info, employee_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedebrugere,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(BrugerRegistrering.bruger_id).where(
+                        employee_predicate(
+                            info, employee_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedeenheder,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(OrganisationEnhedRegistrering.organisationenhed_id).where(
+                        organisation_unit_predicate(
+                            info, org_unit_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
@@ -3114,13 +2960,11 @@ def related_unit_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
-        return OrganisationFunktionRegistrering.id.in_(
-            select(
-                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-            ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Relateret Enhed",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-            )
+        return exists().where(
+            OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            == OrganisationFunktionRegistrering.id,
+            OrganisationFunktionAttrEgenskaber.funktionsnavn == "Relateret Enhed",
+            _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
         )
 
     predicates = [
@@ -3145,38 +2989,32 @@ def related_unit_predicate(
     # User keys
     if filter.user_keys is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
-                        filter.user_keys
-                    ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-                )
+            exists().where(
+                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
+                    filter.user_keys
+                ),
+                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedeenheder,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(OrganisationEnhedRegistrering.organisationenhed_id).where(
+                        organisation_unit_predicate(
+                            info, org_unit_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
@@ -3246,13 +3084,11 @@ def rolebinding_predicate(
     registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
-        return OrganisationFunktionRegistrering.id.in_(
-            select(
-                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-            ).where(
-                OrganisationFunktionAttrEgenskaber.funktionsnavn == "Rollebinding",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-            )
+        return exists().where(
+            OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            == OrganisationFunktionRegistrering.id,
+            OrganisationFunktionAttrEgenskaber.funktionsnavn == "Rollebinding",
+            _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
         )
 
     predicates = [
@@ -3289,78 +3125,66 @@ def rolebinding_predicate(
     # User keys
     if filter.user_keys is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
-                        filter.user_keys
-                    ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
-                )
+            exists().where(
+                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
+                    filter.user_keys
+                ),
+                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
     # Org units
     if filter.org_units is not None or filter.org_unit is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedeenheder,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(OrganisationEnhedRegistrering.organisationenhed_id).where(
+                        organisation_unit_predicate(
+                            info, org_unit_subfilter(filter), registration_time
                         )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
     # IT-user
     if filter.ituser is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedefunktioner,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationFunktionRegistrering.organisationfunktion_id
-                        ).where(
-                            it_user_predicate(info, filter.ituser, registration_time)
-                        )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedefunktioner,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(
+                        OrganisationFunktionRegistrering.organisationfunktion_id
+                    ).where(it_user_predicate(info, filter.ituser, registration_time))
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
     # Role
     if filter.role is not None:
         predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(info, filter.role, registration_time)
-                        )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
+            exists().where(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+                == OrganisationFunktionRegistrering.id,
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    select(KlasseRegistrering.klasse_id).where(
+                        class_predicate(info, filter.role, registration_time)
+                    )
+                ),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
             )
         )
 
