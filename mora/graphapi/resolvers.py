@@ -87,6 +87,7 @@ from .filters import AssociationFilter
 from .filters import BaseFilter
 from .filters import ClassFilter
 from .filters import EmployeeFilter
+from .filters import EmployeeFiltered
 from .filters import EngagementFilter
 from .filters import FacetFilter
 from .filters import ITSystemFilter
@@ -95,6 +96,7 @@ from .filters import KLEFilter
 from .filters import LeaveFilter
 from .filters import ManagerFilter
 from .filters import OrganisationUnitFilter
+from .filters import OrganisationUnitFiltered
 from .filters import OwnerFilter
 from .filters import RegistrationFilter
 from .filters import RelatedUnitFilter
@@ -132,6 +134,20 @@ async def filter2uuids_func(
     return list(objects.keys())
 
 
+def uuid_shortcircuit(
+    filter: BaseFilter,
+    subquery: Select,
+) -> list[UUID] | Select:
+    # Reimplements the historical short-circuit: when a nested relation filter
+    # pins an explicit `uuids` list, those UUIDs are used verbatim as a pure
+    # structural link, bypassing the related entity's own validity gating.
+    # TODO: Introduce GraphQL version that doesn't do this. Probably default
+    # from/to=inf rather than now at the same time.
+    if filter.uuids is not None:
+        return filter.uuids
+    return subquery
+
+
 def extend_uuids(output_filter: BaseFilter, input: list[UUID] | None) -> None:
     if input is None:
         return
@@ -146,79 +162,94 @@ def extend_user_keys(output_filter: BaseFilter, input: list[str] | None) -> None
     output_filter.user_keys.extend(input)
 
 
-def employee_subfilter(filter: Any) -> EmployeeFilter:
-    employee_filter = filter.employee or EmployeeFilter()
-    # Handle deprecated filter
-    extend_uuids(employee_filter, filter.employees)
-    return employee_filter
+def handle_deprecated_employee_filters(filter: EmployeeFiltered) -> None:
+    if filter.employees is None:
+        return
+    filter.employee = filter.employee or EmployeeFilter()
+    extend_uuids(filter.employee, filter.employees)
+    filter.employees = None
 
 
-def org_unit_subfilter(filter: Any) -> OrganisationUnitFilter:
-    org_unit_filter = filter.org_unit or OrganisationUnitFilter()
-    # Handle deprecated filter
-    extend_uuids(org_unit_filter, filter.org_units)
-    return org_unit_filter
+def handle_deprecated_org_unit_filters(filter: OrganisationUnitFiltered) -> None:
+    if filter.org_units is None:
+        return
+    filter.org_unit = filter.org_unit or OrganisationUnitFilter()
+    extend_uuids(filter.org_unit, filter.org_units)
+    filter.org_units = None
 
 
-def engagement_subfilter(filter: Any) -> EngagementFilter:
-    engagement_filter = filter.engagement or EngagementFilter()
-    # Handle deprecated filter
-    extend_uuids(engagement_filter, filter.engagements)
-    return engagement_filter
+def handle_deprecated_engagement_filters(filter: AddressFilter) -> None:
+    if filter.engagements is None:
+        return
+    filter.engagement = filter.engagement or EngagementFilter()
+    extend_uuids(filter.engagement, filter.engagements)
+    filter.engagements = None
 
 
-def itsystem_subfilter(filter: Any) -> ITSystemFilter:
-    itsystem_filter = filter.itsystem or ITSystemFilter()
-    # Handle deprecated filter
-    extend_uuids(itsystem_filter, filter.itsystem_uuids)
-    return itsystem_filter
+def handle_deprecated_itsystem_filters(filter: ITUserFilter) -> None:
+    if filter.itsystem_uuids is None:
+        return
+    filter.itsystem = filter.itsystem or ITSystemFilter()
+    extend_uuids(filter.itsystem, filter.itsystem_uuids)
+    filter.itsystem_uuids = None
 
 
-def facet_parent_subfilter(filter: Any) -> FacetFilter:
-    parent_filter = filter.parent or FacetFilter()
-    # Handle deprecated filter
-    extend_uuids(parent_filter, filter.parents)
-    extend_user_keys(parent_filter, filter.parent_user_keys)
-    return parent_filter
+def handle_deprecated_facet_parent_filters(filter: FacetFilter) -> None:
+    if filter.parents is None and filter.parent_user_keys is None:
+        return
+    filter.parent = filter.parent or FacetFilter()
+    extend_uuids(filter.parent, filter.parents)
+    extend_user_keys(filter.parent, filter.parent_user_keys)
+    filter.parents = None
+    filter.parent_user_keys = None
 
 
-def class_facet_subfilter(filter: Any) -> FacetFilter:
-    facet_filter = filter.facet or FacetFilter()
-    # Handle deprecated filter
-    extend_uuids(facet_filter, filter.facets)
-    extend_user_keys(facet_filter, filter.facet_user_keys)
-    return facet_filter
+def handle_deprecated_class_facet_filters(filter: ClassFilter) -> None:
+    if filter.facets is None and filter.facet_user_keys is None:
+        return
+    filter.facet = filter.facet or FacetFilter()
+    extend_uuids(filter.facet, filter.facets)
+    extend_user_keys(filter.facet, filter.facet_user_keys)
+    filter.facets = None
+    filter.facet_user_keys = None
 
 
-def class_parent_subfilter(filter: Any) -> ClassFilter:
-    parent_filter = filter.parent or ClassFilter()
-    # Handle deprecated filter
-    extend_uuids(parent_filter, filter.parents)
-    extend_user_keys(parent_filter, filter.parent_user_keys)
-    return parent_filter
+def handle_deprecated_class_parent_filters(filter: ClassFilter) -> None:
+    if filter.parents is None and filter.parent_user_keys is None:
+        return
+    filter.parent = filter.parent or ClassFilter()  # pragma: no cover
+    extend_uuids(filter.parent, filter.parents)  # pragma: no cover
+    extend_user_keys(filter.parent, filter.parent_user_keys)  # pragma: no cover
+    filter.parents = None  # pragma: no cover
+    filter.parent_user_keys = None  # pragma: no cover
 
 
-def address_type_subfilter(filter: Any) -> ClassFilter:
-    address_type_filter = filter.address_type or ClassFilter()
-    # Handle deprecated filter
-    extend_uuids(address_type_filter, filter.address_types)
-    extend_user_keys(address_type_filter, filter.address_type_user_keys)
-    return address_type_filter
+def handle_deprecated_address_type_filters(filter: AddressFilter) -> None:
+    if filter.address_types is None and filter.address_type_user_keys is None:
+        return
+    filter.address_type = filter.address_type or ClassFilter()
+    extend_uuids(filter.address_type, filter.address_types)
+    extend_user_keys(filter.address_type, filter.address_type_user_keys)
+    filter.address_types = None
+    filter.address_type_user_keys = None
 
 
-def association_type_subfilter(filter: Any) -> ClassFilter:
-    association_type_filter = filter.association_type or ClassFilter()
-    # Handle deprecated filter
-    extend_uuids(association_type_filter, filter.association_types)
-    extend_user_keys(association_type_filter, filter.association_type_user_keys)
-    return association_type_filter
+def handle_deprecated_association_type_filters(filter: AssociationFilter) -> None:
+    if filter.association_types is None and filter.association_type_user_keys is None:
+        return
+    filter.association_type = filter.association_type or ClassFilter()
+    extend_uuids(filter.association_type, filter.association_types)
+    extend_user_keys(filter.association_type, filter.association_type_user_keys)
+    filter.association_types = None
+    filter.association_type_user_keys = None
 
 
-def hierarchy_subfilter(filter: Any) -> ClassFilter:
-    hierarchy_filter = filter.hierarchy or ClassFilter()
-    # Handle deprecated filter
-    extend_uuids(hierarchy_filter, filter.hierarchies)
-    return hierarchy_filter
+def handle_deprecated_hierarchy_filters(filter: OrganisationUnitFilter) -> None:
+    if filter.hierarchies is None:
+        return
+    filter.hierarchy = filter.hierarchy or ClassFilter()
+    extend_uuids(filter.hierarchy, filter.hierarchies)
+    filter.hierarchies = None
 
 
 def facet_predicate(
@@ -265,20 +296,18 @@ def facet_predicate(
         )
 
     # Parents
-    if (
-        filter.parents is not None
-        or filter.parent_user_keys is not None
-        or filter.parent is not None
-    ):
+    handle_deprecated_facet_parent_filters(filter)
+    if filter.parent:
         predicates.append(
             FacetRegistrering.id.in_(
                 select(FacetRelation.facet_registrering_id).where(
                     FacetRelation.rel_type == FacetRelationKode.facettilhoerer,
                     FacetRelation.rel_maal_uuid.in_(
-                        select(FacetRegistrering.facet_id).where(
-                            facet_predicate(
-                                info, facet_parent_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.parent,
+                            select(FacetRegistrering.facet_id).where(
+                                facet_predicate(info, filter.parent, registration_time)
+                            ),
                         )
                     ),
                     _get_virkning_clause(FacetRelation, filter),
@@ -412,20 +441,18 @@ def class_predicate(
         )
 
     # Facets
-    if (
-        filter.facets is not None
-        or filter.facet_user_keys is not None
-        or filter.facet is not None
-    ):
+    handle_deprecated_class_facet_filters(filter)
+    if filter.facet:
         predicates.append(
             KlasseRegistrering.id.in_(
                 select(KlasseRelation.klasse_registrering_id).where(
                     KlasseRelation.rel_type == KlasseRelationKode.facet,
                     KlasseRelation.rel_maal_uuid.in_(
-                        select(FacetRegistrering.facet_id).where(
-                            facet_predicate(
-                                info, class_facet_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.facet,
+                            select(FacetRegistrering.facet_id).where(
+                                facet_predicate(info, filter.facet, registration_time)
+                            ),
                         )
                     ),
                     _get_virkning_clause(KlasseRelation, filter),
@@ -434,20 +461,18 @@ def class_predicate(
         )
 
     # Parents
-    if (
-        filter.parents is not None
-        or filter.parent_user_keys is not None
-        or filter.parent is not None
-    ):
+    handle_deprecated_class_parent_filters(filter)
+    if filter.parent:
         predicates.append(
             KlasseRegistrering.id.in_(
                 select(KlasseRelation.klasse_registrering_id).where(
                     KlasseRelation.rel_type == KlasseRelationKode.overordnetklasse,
                     KlasseRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(
-                                info, class_parent_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.parent,
+                            select(KlasseRegistrering.klasse_id).where(
+                                class_predicate(info, filter.parent, registration_time)
+                            ),
                         )
                     ),
                     _get_virkning_clause(KlasseRelation, filter),
@@ -462,10 +487,13 @@ def class_predicate(
                 select(KlasseRelation.klasse_registrering_id).where(
                     KlasseRelation.rel_type == KlasseRelationKode.mapninger,
                     KlasseRelation.rel_maal_uuid.in_(
-                        select(ITSystemRegistrering.itsystem_id).where(
-                            it_system_predicate(
-                                info, filter.it_system, registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.it_system,
+                            select(ITSystemRegistrering.itsystem_id).where(
+                                it_system_predicate(
+                                    info, filter.it_system, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(KlasseRelation, filter),
@@ -479,10 +507,15 @@ def class_predicate(
             select(KlasseRelation.klasse_registrering_id).where(
                 KlasseRelation.rel_type == KlasseRelationKode.ejer,
                 KlasseRelation.rel_maal_uuid.in_(
-                    select(OrganisationEnhedRegistrering.organisationenhed_id).where(
-                        organisation_unit_predicate(
-                            info, filter.owner, registration_time
-                        )
+                    uuid_shortcircuit(
+                        filter.owner,
+                        select(
+                            OrganisationEnhedRegistrering.organisationenhed_id
+                        ).where(
+                            organisation_unit_predicate(
+                                info, filter.owner, registration_time
+                            )
+                        ),
                     )
                 ),
                 _get_virkning_clause(KlasseRelation, filter),
@@ -621,9 +654,8 @@ def address_predicate(
         )
 
     # Employees
-    if (
-        filter.employee is not None and filter.employee is not UNSET
-    ) or filter.employees is not None:
+    handle_deprecated_employee_filters(filter)
+    if filter.employee:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -632,10 +664,13 @@ def address_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(BrugerRegistrering.bruger_id).where(
-                            employee_predicate(
-                                info, employee_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.employee,
+                            select(BrugerRegistrering.bruger_id).where(
+                                employee_predicate(
+                                    info, filter.employee, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -644,7 +679,8 @@ def address_predicate(
         )
 
     # Org units
-    if filter.org_units is not None or filter.org_unit is not None:
+    handle_deprecated_org_unit_filters(filter)
+    if filter.org_unit:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -653,12 +689,15 @@ def address_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.org_unit,
+                            select(
+                                OrganisationEnhedRegistrering.organisationenhed_id
+                            ).where(
+                                organisation_unit_predicate(
+                                    info, filter.org_unit, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -667,11 +706,8 @@ def address_predicate(
         )
 
     # Address type
-    if (
-        filter.address_types is not None
-        or filter.address_type_user_keys is not None
-        or filter.address_type is not None
-    ):
+    handle_deprecated_address_type_filters(filter)
+    if filter.address_type:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -680,10 +716,13 @@ def address_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(
-                                info, address_type_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.address_type,
+                            select(KlasseRegistrering.klasse_id).where(
+                                class_predicate(
+                                    info, filter.address_type, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -703,8 +742,13 @@ def address_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.opgaver,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(info, filter.visibility, registration_time)
+                        uuid_shortcircuit(
+                            filter.visibility,
+                            select(KlasseRegistrering.klasse_id).where(
+                                class_predicate(
+                                    info, filter.visibility, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -713,24 +757,35 @@ def address_predicate(
         )
 
     # Engagement / IT user (both filter on `tilknyttedefunktioner`, OR-combined)
-    if (
-        filter.engagement is not None
-        or filter.engagements is not None
-        or filter.ituser is not None
-    ):
-        tilknyttedefunktioner: list[Select] = []
-        if filter.engagement is not None or filter.engagements is not None:
+    handle_deprecated_engagement_filters(filter)
+    if filter.engagement is not None or filter.ituser is not None:
+        tilknyttedefunktioner: list[ColumnElement] = []
+        if filter.engagement is not None:
             tilknyttedefunktioner.append(
-                select(OrganisationFunktionRegistrering.organisationfunktion_id).where(
-                    engagement_predicate(
-                        info, engagement_subfilter(filter), registration_time
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    uuid_shortcircuit(
+                        filter.engagement,
+                        select(
+                            OrganisationFunktionRegistrering.organisationfunktion_id
+                        ).where(
+                            engagement_predicate(
+                                info, filter.engagement, registration_time
+                            )
+                        ),
                     )
                 )
             )
         if filter.ituser is not None:
             tilknyttedefunktioner.append(
-                select(OrganisationFunktionRegistrering.organisationfunktion_id).where(
-                    it_user_predicate(info, filter.ituser, registration_time)
+                OrganisationFunktionRelation.rel_maal_uuid.in_(
+                    uuid_shortcircuit(
+                        filter.ituser,
+                        select(
+                            OrganisationFunktionRegistrering.organisationfunktion_id
+                        ).where(
+                            it_user_predicate(info, filter.ituser, registration_time)
+                        ),
+                    )
                 )
             )
         predicates.append(
@@ -740,9 +795,7 @@ def address_predicate(
                 ).where(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedefunktioner,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        union(*tilknyttedefunktioner)
-                    ),
+                    or_(*tilknyttedefunktioner),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
                 )
             )
@@ -870,9 +923,8 @@ def association_predicate(
         )
 
     # Employees
-    if (
-        filter.employee is not None and filter.employee is not UNSET
-    ) or filter.employees is not None:
+    handle_deprecated_employee_filters(filter)
+    if filter.employee:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -881,10 +933,13 @@ def association_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(BrugerRegistrering.bruger_id).where(
-                            employee_predicate(
-                                info, employee_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.employee,
+                            select(BrugerRegistrering.bruger_id).where(
+                                employee_predicate(
+                                    info, filter.employee, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -893,7 +948,8 @@ def association_predicate(
         )
 
     # Org units
-    if filter.org_units is not None or filter.org_unit is not None:
+    handle_deprecated_org_unit_filters(filter)
+    if filter.org_unit:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -902,12 +958,15 @@ def association_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.org_unit,
+                            select(
+                                OrganisationEnhedRegistrering.organisationenhed_id
+                            ).where(
+                                organisation_unit_predicate(
+                                    info, filter.org_unit, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -916,11 +975,8 @@ def association_predicate(
         )
 
     # Association type
-    if (
-        filter.association_types is not None
-        or filter.association_type_user_keys is not None
-        or filter.association_type is not None
-    ):
+    handle_deprecated_association_type_filters(filter)
+    if filter.association_type:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -929,12 +985,13 @@ def association_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(
-                                info,
-                                association_type_subfilter(filter),
-                                registration_time,
-                            )
+                        uuid_shortcircuit(
+                            filter.association_type,
+                            select(KlasseRegistrering.klasse_id).where(
+                                class_predicate(
+                                    info, filter.association_type, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1205,9 +1262,8 @@ def engagement_predicate(
         )
 
     # Employees
-    if (
-        filter.employee is not None and filter.employee is not UNSET
-    ) or filter.employees is not None:
+    handle_deprecated_employee_filters(filter)
+    if filter.employee:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1216,10 +1272,13 @@ def engagement_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(BrugerRegistrering.bruger_id).where(
-                            employee_predicate(
-                                info, employee_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.employee,
+                            select(BrugerRegistrering.bruger_id).where(
+                                employee_predicate(
+                                    info, filter.employee, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1228,7 +1287,8 @@ def engagement_predicate(
         )
 
     # Org units
-    if filter.org_units is not None or filter.org_unit is not None:
+    handle_deprecated_org_unit_filters(filter)
+    if filter.org_unit:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1237,12 +1297,15 @@ def engagement_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.org_unit,
+                            select(
+                                OrganisationEnhedRegistrering.organisationenhed_id
+                            ).where(
+                                organisation_unit_predicate(
+                                    info, filter.org_unit, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1260,10 +1323,13 @@ def engagement_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.opgaver,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(
-                                info, filter.job_function, registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.job_function,
+                            select(KlasseRegistrering.klasse_id).where(
+                                class_predicate(
+                                    info, filter.job_function, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1281,10 +1347,13 @@ def engagement_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(
-                                info, filter.engagement_type, registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.engagement_type,
+                            select(KlasseRegistrering.klasse_id).where(
+                                class_predicate(
+                                    info, filter.engagement_type, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1470,7 +1539,33 @@ def manager_predicate(
                     vacant_row_exists,
                 )
             )
-        elif filter.employee is not UNSET or filter.employees is not None:
+        else:
+            handle_deprecated_employee_filters(filter)
+            if filter.employee:
+                predicates.append(
+                    OrganisationFunktionRegistrering.id.in_(
+                        select(
+                            OrganisationFunktionRelation.organisationfunktion_registrering_id
+                        ).where(
+                            OrganisationFunktionRelation.rel_type
+                            == OrganisationFunktionRelationKode.tilknyttedebrugere,
+                            OrganisationFunktionRelation.rel_maal_uuid.in_(
+                                uuid_shortcircuit(
+                                    filter.employee,
+                                    select(BrugerRegistrering.bruger_id).where(
+                                        employee_predicate(
+                                            info, filter.employee, registration_time
+                                        )
+                                    ),
+                                )
+                            ),
+                            _get_virkning_clause(OrganisationFunktionRelation, filter),
+                        )
+                    )
+                )
+    else:
+        handle_deprecated_employee_filters(filter)
+        if filter.employee:
             predicates.append(
                 OrganisationFunktionRegistrering.id.in_(
                     select(
@@ -1479,40 +1574,23 @@ def manager_predicate(
                         OrganisationFunktionRelation.rel_type
                         == OrganisationFunktionRelationKode.tilknyttedebrugere,
                         OrganisationFunktionRelation.rel_maal_uuid.in_(
-                            select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info, employee_subfilter(filter), registration_time
-                                )
+                            uuid_shortcircuit(
+                                filter.employee,
+                                select(BrugerRegistrering.bruger_id).where(
+                                    employee_predicate(
+                                        info, filter.employee, registration_time
+                                    )
+                                ),
                             )
                         ),
                         _get_virkning_clause(OrganisationFunktionRelation, filter),
                     )
                 )
             )
-    elif (
-        filter.employee is not None and filter.employee is not UNSET
-    ) or filter.employees is not None:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(BrugerRegistrering.bruger_id).where(
-                            employee_predicate(
-                                info, employee_subfilter(filter), registration_time
-                            )
-                        )
-                    ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
 
     # Org units
-    if filter.org_units is not None or filter.org_unit is not None:
+    handle_deprecated_org_unit_filters(filter)
+    if filter.org_unit:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1521,12 +1599,15 @@ def manager_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.org_unit,
+                            select(
+                                OrganisationEnhedRegistrering.organisationenhed_id
+                            ).where(
+                                organisation_unit_predicate(
+                                    info, filter.org_unit, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1544,10 +1625,13 @@ def manager_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.opgaver,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(
-                                info, filter.responsibility, registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.responsibility,
+                            select(KlasseRegistrering.klasse_id).where(
+                                class_predicate(
+                                    info, filter.responsibility, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1565,10 +1649,13 @@ def manager_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(
-                                info, filter.manager_type, registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.manager_type,
+                            select(KlasseRegistrering.klasse_id).where(
+                                class_predicate(
+                                    info, filter.manager_type, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1586,12 +1673,15 @@ def manager_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedefunktioner,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationFunktionRegistrering.organisationfunktion_id
-                        ).where(
-                            engagement_predicate(
-                                info, filter.engagement, registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.engagement,
+                            select(
+                                OrganisationFunktionRegistrering.organisationfunktion_id
+                            ).where(
+                                engagement_predicate(
+                                    info, filter.engagement, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1687,10 +1777,10 @@ async def manager_resolver(
     if result or not inherit:
         return result
 
-    if filter.org_units is None and filter.org_unit is None:
+    if filter.org_unit is None:
         raise ValueError("The inherit flag requires an organizational unit filter")
     org_unit_uuids = await filter2uuids_func(
-        organisation_unit_resolver, info, org_unit_subfilter(filter)
+        organisation_unit_resolver, info, filter.org_unit
     )
 
     org_unit = only(
@@ -1760,9 +1850,8 @@ def owner_predicate(
         )
 
     # Employees
-    if (
-        filter.employee is not None and filter.employee is not UNSET
-    ) or filter.employees is not None:
+    handle_deprecated_employee_filters(filter)
+    if filter.employee:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1771,10 +1860,13 @@ def owner_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(BrugerRegistrering.bruger_id).where(
-                            employee_predicate(
-                                info, employee_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.employee,
+                            select(BrugerRegistrering.bruger_id).where(
+                                employee_predicate(
+                                    info, filter.employee, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1783,7 +1875,8 @@ def owner_predicate(
         )
 
     # Org units
-    if filter.org_units is not None or filter.org_unit is not None:
+    handle_deprecated_org_unit_filters(filter)
+    if filter.org_unit:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1792,12 +1885,15 @@ def owner_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.org_unit,
+                            select(
+                                OrganisationEnhedRegistrering.organisationenhed_id
+                            ).where(
+                                organisation_unit_predicate(
+                                    info, filter.org_unit, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1815,8 +1911,13 @@ def owner_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedepersoner,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(BrugerRegistrering.bruger_id).where(
-                            employee_predicate(info, filter.owner, registration_time)
+                        uuid_shortcircuit(
+                            filter.owner,
+                            select(BrugerRegistrering.bruger_id).where(
+                                employee_predicate(
+                                    info, filter.owner, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -2084,7 +2185,8 @@ def organisation_unit_predicate(
         )
 
     # Hierarchies
-    if filter.hierarchy is not None or filter.hierarchies is not None:
+    handle_deprecated_hierarchy_filters(filter)
+    if filter.hierarchy:
         predicates.append(
             OrganisationEnhedRegistrering.id.in_(
                 select(
@@ -2093,10 +2195,13 @@ def organisation_unit_predicate(
                     OrganisationEnhedRelation.rel_type
                     == OrganisationEnhedRelationKode.opmærkning,
                     OrganisationEnhedRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(
-                                info, hierarchy_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.hierarchy,
+                            select(KlasseRegistrering.klasse_id).where(
+                                class_predicate(
+                                    info, filter.hierarchy, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationEnhedRelation, filter),
@@ -2565,9 +2670,8 @@ def it_user_predicate(
         )
 
     # Employees
-    if (
-        filter.employee is not None and filter.employee is not UNSET
-    ) or filter.employees is not None:
+    handle_deprecated_employee_filters(filter)
+    if filter.employee:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -2576,10 +2680,13 @@ def it_user_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(BrugerRegistrering.bruger_id).where(
-                            employee_predicate(
-                                info, employee_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.employee,
+                            select(BrugerRegistrering.bruger_id).where(
+                                employee_predicate(
+                                    info, filter.employee, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -2588,7 +2695,8 @@ def it_user_predicate(
         )
 
     # Org units
-    if filter.org_units is not None or filter.org_unit is not None:
+    handle_deprecated_org_unit_filters(filter)
+    if filter.org_unit:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -2597,12 +2705,15 @@ def it_user_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.org_unit,
+                            select(
+                                OrganisationEnhedRegistrering.organisationenhed_id
+                            ).where(
+                                organisation_unit_predicate(
+                                    info, filter.org_unit, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -2611,7 +2722,8 @@ def it_user_predicate(
         )
 
     # IT systems
-    if filter.itsystem_uuids is not None or filter.itsystem is not None:
+    handle_deprecated_itsystem_filters(filter)
+    if filter.itsystem:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -2620,10 +2732,13 @@ def it_user_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeitsystemer,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(ITSystemRegistrering.itsystem_id).where(
-                            it_system_predicate(
-                                info, itsystem_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.itsystem,
+                            select(ITSystemRegistrering.itsystem_id).where(
+                                it_system_predicate(
+                                    info, filter.itsystem, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -2641,12 +2756,15 @@ def it_user_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedefunktioner,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationFunktionRegistrering.organisationfunktion_id
-                        ).where(
-                            engagement_predicate(
-                                info, filter.engagement, registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.engagement,
+                            select(
+                                OrganisationFunktionRegistrering.organisationfunktion_id
+                            ).where(
+                                engagement_predicate(
+                                    info, filter.engagement, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -2821,7 +2939,8 @@ def kle_predicate(
         )
 
     # Org units
-    if filter.org_units is not None or filter.org_unit is not None:
+    handle_deprecated_org_unit_filters(filter)
+    if filter.org_unit:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -2830,12 +2949,15 @@ def kle_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.org_unit,
+                            select(
+                                OrganisationEnhedRegistrering.organisationenhed_id
+                            ).where(
+                                organisation_unit_predicate(
+                                    info, filter.org_unit, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -2965,9 +3087,8 @@ def leave_predicate(
         )
 
     # Employees
-    if (
-        filter.employee is not None and filter.employee is not UNSET
-    ) or filter.employees is not None:
+    handle_deprecated_employee_filters(filter)
+    if filter.employee:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -2976,10 +3097,13 @@ def leave_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(BrugerRegistrering.bruger_id).where(
-                            employee_predicate(
-                                info, employee_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.employee,
+                            select(BrugerRegistrering.bruger_id).where(
+                                employee_predicate(
+                                    info, filter.employee, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -2988,7 +3112,8 @@ def leave_predicate(
         )
 
     # Org units
-    if filter.org_units is not None or filter.org_unit is not None:
+    handle_deprecated_org_unit_filters(filter)
+    if filter.org_unit:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -2997,12 +3122,15 @@ def leave_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.org_unit,
+                            select(
+                                OrganisationEnhedRegistrering.organisationenhed_id
+                            ).where(
+                                organisation_unit_predicate(
+                                    info, filter.org_unit, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -3158,7 +3286,8 @@ def related_unit_predicate(
         )
 
     # Org units
-    if filter.org_units is not None or filter.org_unit is not None:
+    handle_deprecated_org_unit_filters(filter)
+    if filter.org_unit:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -3167,12 +3296,15 @@ def related_unit_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.org_unit,
+                            select(
+                                OrganisationEnhedRegistrering.organisationenhed_id
+                            ).where(
+                                organisation_unit_predicate(
+                                    info, filter.org_unit, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -3302,7 +3434,8 @@ def rolebinding_predicate(
         )
 
     # Org units
-    if filter.org_units is not None or filter.org_unit is not None:
+    handle_deprecated_org_unit_filters(filter)
+    if filter.org_unit:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -3311,12 +3444,15 @@ def rolebinding_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, org_unit_subfilter(filter), registration_time
-                            )
+                        uuid_shortcircuit(
+                            filter.org_unit,
+                            select(
+                                OrganisationEnhedRegistrering.organisationenhed_id
+                            ).where(
+                                organisation_unit_predicate(
+                                    info, filter.org_unit, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -3334,10 +3470,15 @@ def rolebinding_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedefunktioner,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(
-                            OrganisationFunktionRegistrering.organisationfunktion_id
-                        ).where(
-                            it_user_predicate(info, filter.ituser, registration_time)
+                        uuid_shortcircuit(
+                            filter.ituser,
+                            select(
+                                OrganisationFunktionRegistrering.organisationfunktion_id
+                            ).where(
+                                it_user_predicate(
+                                    info, filter.ituser, registration_time
+                                )
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -3355,8 +3496,11 @@ def rolebinding_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.organisatoriskfunktionstype,
                     OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        select(KlasseRegistrering.klasse_id).where(
-                            class_predicate(info, filter.role, registration_time)
+                        uuid_shortcircuit(
+                            filter.role,
+                            select(KlasseRegistrering.klasse_id).where(
+                                class_predicate(info, filter.role, registration_time)
+                            ),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
