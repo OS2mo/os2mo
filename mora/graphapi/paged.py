@@ -10,6 +10,7 @@ from typing import Annotated
 from typing import Any
 from typing import Generic
 from typing import TypeVar
+from uuid import UUID
 
 import strawberry
 from pydantic import PositiveInt
@@ -140,7 +141,7 @@ def to_paged(
             # RegistrationFilter doesn't have a `registration_time`
             if isinstance(filter, BaseFilter) and filter.registration_time:
                 registration_time = filter.registration_time
-            cursor = Cursor(offset=0, registration_time=registration_time)
+            cursor = Cursor(last=UUID(int=0), registration_time=registration_time)
 
         result = await resolver_func(
             *args, info=info, filter=filter, limit=limit, cursor=cursor, **kwargs
@@ -149,7 +150,7 @@ def to_paged(
         end_cursor: CursorType = None
         if limit and cursor is not None:
             end_cursor = Cursor(
-                offset=cursor.offset + limit,
+                last=UUID(int=int(cursor.last) + limit),
                 registration_time=cursor.registration_time,
             )
         if context.get("lora_page_out_of_range"):

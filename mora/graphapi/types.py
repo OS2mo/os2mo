@@ -6,6 +6,7 @@ from base64 import b64decode
 from base64 import b64encode
 from hashlib import shake_128
 from textwrap import dedent
+from uuid import UUID
 
 import strawberry
 from pydantic import BaseModel
@@ -47,7 +48,7 @@ _CURSOR_DELIMITER = ":"
 
 
 class _Cursor(BaseModel):
-    offset: int
+    last: UUID
     registration_time: datetime.datetime
 
 

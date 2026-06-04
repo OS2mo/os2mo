@@ -250,7 +250,7 @@ async def access_log_resolver(
     if limit is not None:
         # Fetch one extra element to see if there is another page
         query = query.limit(limit + 1)
-    query = query.offset(cursor.offset if cursor else 0)
+    query = query.offset(int(cursor.last) if cursor else 0)
 
     session: AsyncSession = info.context.session
     result = list(await session.scalars(query))

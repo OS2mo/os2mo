@@ -151,7 +151,7 @@ async def full_event_resolver(
     # This doesn't actually work correctly. It is hard to do pagination
     # correctly, so for now we just do this super naively. This resolver is
     # only used by humans, not by integrations.
-    query = query.offset(cursor.offset if cursor else 0)
+    query = query.offset(int(cursor.last) if cursor else 0)
 
     session: AsyncSession = info.context.session
     result = await session.scalars(query)
@@ -182,7 +182,7 @@ async def listener_resolver(
     # This doesn't actually work correctly. It is hard to do pagination
     # correctly, so for now we just do this super naively. This resolver is
     # only used by humans, not by integrations.
-    query = query.offset(cursor.offset if cursor else 0)
+    query = query.offset(int(cursor.last) if cursor else 0)
 
     session: AsyncSession = info.context.session
     result = list(await session.scalars(query))
@@ -215,7 +215,7 @@ async def namespace_resolver(
     # This doesn't actually work correctly. It is hard to do pagination
     # correctly, so for now we just do this super naively. This resolver is
     # only used by humans, not by integrations.
-    query = query.offset(cursor.offset if cursor else 0)
+    query = query.offset(int(cursor.last) if cursor else 0)
 
     session: AsyncSession = info.context.session
     result = list(await session.scalars(query))
