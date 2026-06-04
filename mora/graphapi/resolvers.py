@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import dataclasses
-from collections.abc import Callable
 from collections.abc import Sequence
 from datetime import date
 from datetime import datetime
@@ -15,11 +14,11 @@ from typing import cast as tcast
 from uuid import UUID
 
 import strawberry
-from more_itertools import only
 from more_itertools import unique_everseen
 from psycopg.types.range import TimestamptzRange
 from pydantic import ValidationError
 from sqlalchemy import ColumnElement
+from sqlalchemy import ColumnExpressionArgument
 from sqlalchemy import CompoundSelect
 from sqlalchemy import Select
 from sqlalchemy import and_
@@ -106,32 +105,6 @@ from .paged import CursorType
 from .paged import LimitType
 from .registrationbase import RegistrationBase
 from .validity import OpenValidityModel
-
-
-async def filter2uuids_func(
-    resolver_func: Callable,
-    info: MOInfo,
-    filter: BaseFilter,
-) -> list[UUID]:
-    """Resolve into a list of UUIDs with the given filter.
-
-    Args:
-        resolver_func: The resolver used to resolve filters to UUIDs.
-        info: The strawberry execution context.
-        filter: Filter instance passed to the resolver.
-
-    Returns:
-        A list of UUIDs.
-    """
-    # The current resolver implementation disallows combining UUIDs with other filters.
-    # As the UUIDs returned from this function are only used for further filtering,
-    # we can simply return them as-is, bypassing another lookup.
-    # This is purely a performance optimization
-    if filter.uuids is not None:
-        return filter.uuids
-
-    objects = await resolver_func(info, filter=filter)
-    return list(objects.keys())
 
 
 def uuid_shortcircuit(
@@ -1447,6 +1420,7 @@ def manager_predicate(
     info: MOInfo,
     filter: ManagerFilter,
     registration_time: datetime | SQLNOW,
+    inherit: bool = False,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -1590,7 +1564,13 @@ def manager_predicate(
 
     # Org units
     handle_deprecated_org_unit_filters(filter)
-    if filter.org_unit:
+    if inherit:
+        if filter.org_unit is None:
+            raise ValueError("The inherit flag requires an organizational unit filter")
+        predicates.append(
+            _manager_inherit_org_unit_predicate(info, filter, registration_time)
+        )
+    elif filter.org_unit:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
@@ -1718,6 +1698,69 @@ def manager_predicate(
     return and_(*predicates)
 
 
+def _manager_inherit_org_unit_predicate(
+    info: MOInfo,
+    filter: ManagerFilter,
+    registration_time: datetime | SQLNOW,
+) -> ColumnElement:
+    """Walk each starting unit up the org tree, returning managers from the
+    nearest ancestor that has any matching the rest of the filter."""
+
+    def has_manager(organisationenhed_id: ColumnExpressionArgument) -> ColumnElement:
+        """Whether `organisationenhed_id` has any manager matching the rest of
+        the filter."""
+        # Morally equivalent to `manager_predicate` with
+        # `filter.org_unit = organisationenhed_id`.
+        return exists().where(
+            manager_predicate(
+                info, dataclasses.replace(filter, org_unit=None), registration_time
+            ),
+            # Manager is attached to organisationenhed_id:
+            OrganisationFunktionRelation.organisationfunktion_registrering_id
+            == OrganisationFunktionRegistrering.id,
+            OrganisationFunktionRelation.rel_type
+            == OrganisationFunktionRelationKode.tilknyttedeenheder,
+            OrganisationFunktionRelation.rel_maal_uuid == organisationenhed_id,
+            _get_virkning_clause(OrganisationFunktionRelation, filter),
+        )
+
+    def get_parent(child_uuid: ColumnExpressionArgument) -> Select:
+        """Active parent unit of `child_uuid` via an `overordnet` relation."""
+        # Morally equivalent to `organisation_unit_predicate` with
+        # `filter.child = child_uuid`.
+        return select(OrganisationEnhedRelation.rel_maal_uuid).where(
+            OrganisationEnhedRelation.organisationenhed_registrering_id
+            == OrganisationEnhedRegistrering.id,
+            OrganisationEnhedRegistrering.organisationenhed_id == child_uuid,
+            OrganisationEnhedRelation.rel_type
+            == OrganisationEnhedRelationKode.overordnet,
+            _get_registrering_clause(OrganisationEnhedRegistrering, registration_time),
+            _get_virkning_clause(OrganisationEnhedRelation, filter),
+        )
+
+    assert filter.org_unit is not None
+    walk = (
+        select(
+            OrganisationEnhedRegistrering.organisationenhed_id.label("unit"),
+        )
+        .where(organisation_unit_predicate(info, filter.org_unit, registration_time))
+        .cte(recursive=True)
+    )
+    # Stop the walk at the nearest ancestor with a matching manager.
+    walk = walk.union(get_parent(walk.c.unit).where(~has_manager(walk.c.unit)))
+
+    # Intermediate units in the walk have no matching managers by construction,
+    # so including them in the IN-clause is harmless.
+    return exists().where(
+        OrganisationFunktionRelation.organisationfunktion_registrering_id
+        == OrganisationFunktionRegistrering.id,
+        OrganisationFunktionRelation.rel_type
+        == OrganisationFunktionRelationKode.tilknyttedeenheder,
+        OrganisationFunktionRelation.rel_maal_uuid.in_(select(walk.c.unit)),
+        _get_virkning_clause(OrganisationFunktionRelation, filter),
+    )
+
+
 async def manager_resolver(
     info: MOInfo,
     filter: ManagerFilter | None = None,
@@ -1749,6 +1792,7 @@ async def manager_resolver(
         info=info,
         filter=filter,
         registration_time=_get_registration_time(filter, cursor),
+        inherit=inherit,
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -1783,37 +1827,13 @@ async def manager_resolver(
         uuids,
     )
 
-    result = await generic_resolver(
+    return await generic_resolver(
         info.context.dataloaders.manager_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
-    if result or not inherit:
-        return result
-
-    if filter.org_unit is None:
-        raise ValueError("The inherit flag requires an organizational unit filter")
-    org_unit_uuids = await filter2uuids_func(
-        organisation_unit_resolver, info, filter.org_unit
-    )
-
-    org_unit = only(
-        org_unit_uuids,
-        too_long=ValueError(
-            "The inherit flag only works with at most one organisational unit"
-        ),
-    )
-    if org_unit is None:
-        return {}
-    # Recurse up the tree using the parent org-unit
-    child_filter = dataclasses.replace(
-        filter,
-        org_units=None,
-        org_unit=OrganisationUnitFilter(child=OrganisationUnitFilter(uuids=[org_unit])),
-    )
-    return await manager_resolver(info, filter=child_filter, inherit=True)
 
 
 def owner_predicate(

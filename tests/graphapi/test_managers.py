@@ -8,6 +8,11 @@ from uuid import uuid4
 
 import pytest
 from fastapi.encoders import jsonable_encoder
+from hypothesis import HealthCheck
+from hypothesis import given
+from hypothesis import settings
+from hypothesis import strategies as st
+from more_itertools import collapse
 from more_itertools import one
 
 from ..conftest import GraphAPIPost
@@ -552,18 +557,115 @@ def test_inherit_non_existent_org_units_filter(graphapi_post: GraphAPIPost) -> N
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "manager")
-def test_inherit_works_with_only_one_org_unit(graphapi_post: GraphAPIPost) -> None:
-    """Test that we can only use inherit with atmost one org-unit."""
-    child_units = (
-        "b688513d-11f7-4efc-b679-ab082a2055d0",  # Samfundsvidenskabelige fakultet
-        "68c5d78e-ae26-441f-a143-0103eca8b62a",  # Social og sundhed
+@pytest.mark.usefixtures("empty_db")
+@pytest.mark.parametrize(
+    "starts,expected",
+    [
+        (["root"], ["root"]),
+        (["l"], ["l"]),
+        (["r"], ["r"]),
+        (["ll"], ["ll"]),
+        (["lr"], ["l"]),
+        (["rl"], ["r"]),
+        (["rr"], ["r"]),
+        (["l", "r"], ["l", "r"]),
+        (["ll", "lr"], ["ll", "l"]),
+        (["lr", "rl"], ["l", "r"]),
+        (["ll", "lr", "rl"], ["ll", "l", "r"]),
+        (["lr", "rl", "rr"], ["l", "r"]),
+        (["root", "rr"], ["root", "r"]),
+    ],
+)
+def test_inherit_multiple_org_units(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[[str, UUID | None], UUID],
+    create_manager: Callable[[UUID, UUID | None], UUID],
+    starts: list[str],
+    expected: list[str],
+) -> None:
+    r"""For each starting unit, the nearest ancestor (or self) with a manager
+    must be returned.
+
+            root (mgr_root)
+           /              \
+         l (mgr_l)         r (mgr_r)
+        /  \              /  \
+      ll    lr          rl    rr
+     (mgr_ll)
+    """
+    units = {}
+    units["root"] = create_org_unit("root")
+    units["l"] = create_org_unit("l", units["root"])
+    units["r"] = create_org_unit("r", units["root"])
+    units["ll"] = create_org_unit("ll", units["l"])
+    units["lr"] = create_org_unit("lr", units["l"])
+    units["rl"] = create_org_unit("rl", units["r"])
+    units["rr"] = create_org_unit("rr", units["r"])
+
+    managers = {key: create_manager(units[key]) for key in ("root", "l", "ll", "r")}
+
+    actual = set(
+        read_managers(
+            graphapi_post,
+            {"org_unit": {"uuids": [str(units[s]) for s in starts]}},
+        )
     )
-    with pytest.raises(ValueError) as exc_info:
-        read_managers(graphapi_post, {"org_unit": {"uuids": child_units}})
-    assert "The inherit flag only works with at most one organisational unit" in str(
-        exc_info.value
+    assert actual == {managers[e] for e in expected}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+@settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
+@given(
+    # Each node is `(is_manager, is_start, children)`; leaves have no children.
+    tree=st.recursive(
+        st.tuples(st.booleans(), st.booleans(), st.just(())),
+        lambda subtrees: st.tuples(
+            st.booleans(),
+            st.booleans(),
+            st.lists(subtrees, min_size=1, max_size=3).map(tuple),
+        ),
+        max_leaves=8,
     )
+)
+def test_inherit_multi_equals_union_of_singles(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[[str, UUID | None], UUID],
+    create_manager: Callable[[UUID, UUID | None], UUID],
+    tree: tuple[bool, bool, tuple],
+) -> None:
+    """Querying the inherited managers for multiple starting units must
+    equal the union of querying each starting unit individually, regardless
+    of tree shape or which nodes carry managers."""
+
+    def visit(
+        is_manager: bool,
+        is_start: bool,
+        children: tuple,
+        parent: UUID | None,
+    ) -> list:
+        unit = create_org_unit(uuid4().hex, parent)
+        if is_manager:
+            create_manager(unit)
+        return ([unit] if is_start else []) + [
+            visit(*child, parent=unit) for child in children
+        ]
+
+    starts = list(collapse(visit(*tree, parent=None)))
+
+    multi = set(
+        read_managers(
+            graphapi_post,
+            {"org_unit": {"uuids": [str(u) for u in starts]}},
+        )
+    )
+    singles = set(
+        collapse(
+            read_managers(graphapi_post, {"org_unit": {"uuids": [str(u)]}})
+            for u in starts
+        )
+    )
+    assert multi == singles
 
 
 @pytest.mark.integration_test
