@@ -1689,6 +1689,32 @@ def manager_predicate(
             )
         )
 
+    # Exclude
+    if filter.exclude is not None:
+        predicates.append(
+            ~exists(
+                select(OrganisationFunktionRelation.id)
+                .where(
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id
+                    == OrganisationFunktionRegistrering.id,
+                    OrganisationFunktionRelation.rel_type
+                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        uuid_shortcircuit(
+                            filter.exclude,
+                            select(BrugerRegistrering.bruger_id).where(
+                                employee_predicate(
+                                    info, filter.exclude, registration_time
+                                )
+                            ),
+                        )
+                    ),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                )
+                .correlate(OrganisationFunktionRegistrering)
+            )
+        )
+
     return and_(*predicates)
 
 
@@ -1764,16 +1790,6 @@ async def manager_resolver(
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
-    if filter.exclude is not None:
-        exclude_uuids = set(
-            await filter2uuids_func(employee_resolver, info, filter.exclude)
-        )
-        result = {
-            key: value
-            for key, value in result.items()
-            if all(validity.employee_uuid not in exclude_uuids for validity in value)
-        }
-
     if result or not inherit:
         return result
 
