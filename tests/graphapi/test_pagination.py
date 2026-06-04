@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from uuid import UUID
+
 import pytest
 
 from mora.graphapi.types import Cursor
@@ -115,7 +117,9 @@ async def test_pagination(
     """
     cursor = None
     if offset is not None:
-        cursor = serialize_cursor(Cursor(offset=offset, registration_time=now()))
+        cursor = serialize_cursor(
+            Cursor(last=UUID(int=offset), registration_time=now())
+        )
     variables = dict(limit=limit, cursor=cursor)
     response = graphapi_post(query, variables)
     assert response.errors is None
@@ -181,7 +185,9 @@ async def test_pagination_out_of_range(
     """
     cursor = None
     if offset is not None:
-        cursor = serialize_cursor(Cursor(offset=offset, registration_time=now()))
+        cursor = serialize_cursor(
+            Cursor(last=UUID(int=offset), registration_time=now())
+        )
     variables = dict(limit=limit, cursor=cursor)
     response = graphapi_post(query, variables)
     assert response.errors is None

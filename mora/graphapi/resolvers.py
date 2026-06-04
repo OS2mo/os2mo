@@ -343,14 +343,14 @@ async def facet_resolver(
     if limit is not None:
         query = query.limit(limit)
     if cursor is not None:
-        query = query.offset(cursor.offset)
+        query = query.offset(int(cursor.last))
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
     # Pagination
-    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
     if not uuids and is_paged:
         context["lora_page_out_of_range"] = True
 
@@ -560,14 +560,14 @@ async def class_resolver(
     if limit is not None:
         query = query.limit(limit)
     if cursor is not None:
-        query = query.offset(cursor.offset)
+        query = query.offset(int(cursor.last))
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
     # Pagination
-    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
     if not uuids and is_paged:
         context["lora_page_out_of_range"] = True
 
@@ -829,14 +829,14 @@ async def address_resolver(
     if limit is not None:
         query = query.limit(limit)
     if cursor is not None:
-        query = query.offset(cursor.offset)
+        query = query.offset(int(cursor.last))
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
     # Pagination
-    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
     if not uuids and is_paged:
         context["lora_page_out_of_range"] = True
 
@@ -1027,14 +1027,14 @@ async def association_resolver(
     if limit is not None:
         query = query.limit(limit)
     if cursor is not None:
-        query = query.offset(cursor.offset)
+        query = query.offset(int(cursor.last))
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
     # Pagination
-    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
     if not uuids and is_paged:
         context["lora_page_out_of_range"] = True
 
@@ -1168,14 +1168,14 @@ async def employee_resolver(
     if limit is not None:
         query = query.limit(limit)
     if cursor is not None:
-        query = query.offset(cursor.offset)
+        query = query.offset(int(cursor.last))
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
     # Pagination
-    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
     if not uuids and is_paged:
         context["lora_page_out_of_range"] = True
 
@@ -1411,14 +1411,14 @@ async def engagement_resolver(
     if limit is not None:
         query = query.limit(limit)
     if cursor is not None:
-        query = query.offset(cursor.offset)
+        query = query.offset(int(cursor.last))
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
     # Pagination
-    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
     if not uuids and is_paged:
         context["lora_page_out_of_range"] = True
 
@@ -1734,14 +1734,14 @@ async def manager_resolver(
     if limit is not None:
         query = query.limit(limit)
     if cursor is not None:
-        query = query.offset(cursor.offset)
+        query = query.offset(int(cursor.last))
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
     # Pagination
-    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
     if not uuids and is_paged:
         context["lora_page_out_of_range"] = True
 
@@ -1953,14 +1953,14 @@ async def owner_resolver(
     if limit is not None:
         query = query.limit(limit)
     if cursor is not None:
-        query = query.offset(cursor.offset)
+        query = query.offset(int(cursor.last))
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
     # Pagination
-    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
     if not uuids and is_paged:
         context["lora_page_out_of_range"] = True
 
@@ -2432,14 +2432,14 @@ async def organisation_unit_resolver(
     if limit is not None:
         query = query.limit(limit)
     if cursor is not None:
-        query = query.offset(cursor.offset)
+        query = query.offset(int(cursor.last))
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
     # Pagination
-    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
     if not uuids and is_paged:
         context["lora_page_out_of_range"] = True
 
@@ -2576,14 +2576,14 @@ async def it_system_resolver(
     if limit is not None:
         query = query.limit(limit)
     if cursor is not None:
-        query = query.offset(cursor.offset)
+        query = query.offset(int(cursor.last))
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
     # Pagination
-    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
     if not uuids and is_paged:
         context["lora_page_out_of_range"] = True
 
@@ -2845,14 +2845,14 @@ async def it_user_resolver(
     if limit is not None:
         query = query.limit(limit)
     if cursor is not None:
-        query = query.offset(cursor.offset)
+        query = query.offset(int(cursor.last))
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
     # Pagination
-    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
     if not uuids and is_paged:
         context["lora_page_out_of_range"] = True
 
@@ -2993,14 +2993,14 @@ async def kle_resolver(
     if limit is not None:
         query = query.limit(limit)
     if cursor is not None:
-        query = query.offset(cursor.offset)
+        query = query.offset(int(cursor.last))
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
     # Pagination
-    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
     if not uuids and is_paged:
         context["lora_page_out_of_range"] = True
 
@@ -3166,14 +3166,14 @@ async def leave_resolver(
     if limit is not None:
         query = query.limit(limit)
     if cursor is not None:
-        query = query.offset(cursor.offset)
+        query = query.offset(int(cursor.last))
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
     # Pagination
-    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
     if not uuids and is_paged:
         context["lora_page_out_of_range"] = True
 
@@ -3340,14 +3340,14 @@ async def related_unit_resolver(
     if limit is not None:
         query = query.limit(limit)
     if cursor is not None:
-        query = query.offset(cursor.offset)
+        query = query.offset(int(cursor.last))
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
     # Pagination
-    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
     if not uuids and is_paged:
         context["lora_page_out_of_range"] = True
 
@@ -3536,14 +3536,14 @@ async def rolebinding_resolver(
     if limit is not None:
         query = query.limit(limit)
     if cursor is not None:
-        query = query.offset(cursor.offset)
+        query = query.offset(int(cursor.last))
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
     # Pagination
-    is_paged = limit != 0 and cursor is not None and cursor.offset > 0
+    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
     if not uuids and is_paged:
         context["lora_page_out_of_range"] = True
 
@@ -3822,7 +3822,7 @@ async def registration_resolver(
     if limit is not None:
         # Fetch one extra element to see if there is another page
         query = query.limit(limit + 1)  # pragma: no cover
-    query = query.offset(cursor.offset if cursor else 0)
+    query = query.offset(int(cursor.last) if cursor else 0)
 
     session: AsyncSession = info.context.session
     result = list(await session.execute(query))
