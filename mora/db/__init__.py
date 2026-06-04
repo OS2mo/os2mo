@@ -88,6 +88,11 @@ def create_engine(user, password, host, name) -> AsyncEngine:
         # TODO(#60719): Enable SERIALIZABLE. Breaks the Service-API
         # isolation_level="SERIALIZABLE",
         echo=False,
+        connect_args={
+            # Cancel queries that run for more than 5 minutes, so a bad
+            # query doesn't run forever.
+            "options": "-c statement_timeout=300000",
+        },
     )
 
 
