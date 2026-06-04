@@ -552,18 +552,62 @@ def test_inherit_non_existent_org_units_filter(graphapi_post: GraphAPIPost) -> N
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "manager")
-def test_inherit_works_with_only_one_org_unit(graphapi_post: GraphAPIPost) -> None:
-    """Test that we can only use inherit with atmost one org-unit."""
-    child_units = (
-        "b688513d-11f7-4efc-b679-ab082a2055d0",  # Samfundsvidenskabelige fakultet
-        "68c5d78e-ae26-441f-a143-0103eca8b62a",  # Social og sundhed
-    )
-    with pytest.raises(ValueError) as exc_info:
-        read_managers(graphapi_post, {"org_unit": {"uuids": child_units}})
-    assert "The inherit flag only works with at most one organisational unit" in str(
-        exc_info.value
-    )
+@pytest.mark.usefixtures("empty_db")
+def test_inherit_multiple_org_units(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[[str, UUID | None], UUID],
+    create_person: Callable[[dict[str, Any] | None], UUID],
+) -> None:
+    """Test that inherit works with multiple starting org units.
+
+    Each sub-unit has its own direct manager. With `inherit=True`, each unit
+    must return its own manager (not the root's), and a multi-unit query must
+    return the union.
+    """
+    root_uuid = create_org_unit("root")
+    unit_a = create_org_unit("unit_a", root_uuid)
+    unit_b = create_org_unit("unit_b", root_uuid)
+    person_uuid = create_person({"given_name": "Xylia", "surname": "Shadowthorn"})
+
+    def create_manager(org_unit: UUID) -> UUID:
+        response = graphapi_post(
+            """
+            mutation CreateManager($input: ManagerCreateInput!) {
+                manager_create(input: $input) { uuid }
+            }
+            """,
+            {
+                "input": {
+                    "manager_level": str(uuid4()),
+                    "manager_type": str(uuid4()),
+                    "responsibility": [],
+                    "org_unit": str(org_unit),
+                    "person": str(person_uuid),
+                    "validity": {"from": "2024-01-01"},
+                }
+            },
+        )
+        assert response.errors is None
+        assert response.data is not None
+        return UUID(response.data["manager_create"]["uuid"])
+
+    # Root has its own manager so the short-circuit (direct wins over inherited)
+    # is meaningfully tested for each sub-unit.
+    create_manager(root_uuid)
+    a_manager = create_manager(unit_a)
+    b_manager = create_manager(unit_b)
+
+    assert set(
+        read_managers(graphapi_post, {"org_unit": {"uuids": [str(unit_a)]}})
+    ) == {a_manager}
+    assert set(
+        read_managers(graphapi_post, {"org_unit": {"uuids": [str(unit_b)]}})
+    ) == {b_manager}
+    assert set(
+        read_managers(
+            graphapi_post, {"org_unit": {"uuids": [str(unit_a), str(unit_b)]}}
+        )
+    ) == {a_manager, b_manager}
 
 
 @pytest.mark.integration_test
