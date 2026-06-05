@@ -1,11 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from textwrap import dedent
-from typing import TypeVar
 from typing import cast
 
 import strawberry
-from starlette_context import context
 from strawberry.types import Info
 
 from mora import db
@@ -92,13 +90,7 @@ from .resolvers import related_unit_resolver
 from .resolvers import rolebinding_resolver
 from .response import Response
 
-T = TypeVar("T")
-
-
-def paginate(obj: list[T], cursor: CursorType, limit: LimitType) -> list[T]:
-    if cursor is None:
-        return obj[:limit]
-    return obj[int(cursor.last) :][:limit]  # pragma: no cover
+from mora.graphapi.pagination import Page, paginate as paginate_helper
 
 
 async def health_resolver(
@@ -106,7 +98,7 @@ async def health_resolver(
     filter: HealthFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[Health]:
+) -> Page[Health]:
     if filter is None:
         filter = HealthFilter()
 
@@ -114,13 +106,9 @@ async def health_resolver(
     if filter.identifiers is not None:
         healthchecks = healthchecks.intersection(set(filter.identifiers))
 
-    healths = paginate(list(healthchecks), cursor, limit)
-    if not healths:
-        context["lora_page_out_of_range"] = True
-    return [
-        Health(identifier=identifier)  # type: ignore[call-arg]
-        for identifier in healths
-    ]
+    healths_list = list(healthchecks)
+    page = paginate_helper(healths_list, limit, cursor, filter, fetch_extra=False)
+    return Page(items=[Health(identifier=identifier) for identifier in page.items], next_cursor=page.next_cursor)  # type: ignore[call-arg]
 
 
 async def file_resolver(
@@ -128,7 +116,7 @@ async def file_resolver(
     filter: FileFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[File]:
+) -> Page[File]:
     if filter is None:  # pragma: no cover
         filter = FileFilter()
 
@@ -148,15 +136,10 @@ async def file_resolver(
     )
 
     found_files = await db.files.ls(session, filter)
+    files_list = list(found_files)
+    page = paginate_helper(files_list, limit, cursor, filter, fetch_extra=False)
 
-    files = paginate(list(found_files), cursor, limit)
-    if not files:
-        context["lora_page_out_of_range"] = True
-
-    return [
-        File(file_store=filter.file_store, file_name=file_name)  # type: ignore[call-arg]
-        for file_name in files
-    ]
+    return Page(items=[File(file_store=filter.file_store, file_name=file_name) for file_name in page.items], next_cursor=page.next_cursor)  # type: ignore[call-arg]
 
 
 @strawberry.type(description="Entrypoint for all read-operations")

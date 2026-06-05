@@ -14,7 +14,6 @@ from uuid import UUID
 
 import strawberry
 from pydantic import PositiveInt
-from starlette_context import context
 from strawberry.types import Info
 
 from mora.util import now
@@ -143,23 +142,16 @@ def to_paged(
                 registration_time = filter.registration_time
             cursor = Cursor(last=UUID(int=0), registration_time=registration_time)
 
-        result = await resolver_func(
+        # Call resolver which now returns Page[T]
+        page = await resolver_func(
             *args, info=info, filter=filter, limit=limit, cursor=cursor, **kwargs
         )
 
-        end_cursor: CursorType = None
-        if limit and cursor is not None:
-            end_cursor = Cursor(
-                last=UUID(int=int(cursor.last) + limit),
-                registration_time=cursor.registration_time,
-            )
-        if context.get("lora_page_out_of_range"):
-            end_cursor = None
-
+        # Page already has next_cursor calculated, just transform the items
         assert result_transformer is not None
         return Paged(  # type: ignore[call-arg]
-            objects=result_transformer(model, result, info),
-            page_info=PageInfo(next_cursor=end_cursor),  # type: ignore[call-arg]
+            objects=result_transformer(model, page.items, info),
+            page_info=PageInfo(next_cursor=page.next_cursor),  # type: ignore[call-arg]
         )
 
     return resolve_response

@@ -10,7 +10,7 @@ import strawberry
 from fastramqpi.ra_utils.apply import apply
 from more_itertools import bucket
 from sqlalchemy import select
-from starlette_context import context
+from mora.graphapi.pagination import Page, paginate
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
@@ -216,7 +216,7 @@ async def access_log_resolver(
     filter: AccessLogFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[AccessLog]:
+) -> Page[AccessLog]:
     if filter is None:
         filter = AccessLogFilter()
 
@@ -270,15 +270,7 @@ async def access_log_resolver(
         [accesslog.id for accesslog in result],
     )
 
-    if limit is not None:
-        # Not enough results == no more pages
-        if len(result) <= limit:
-            context["lora_page_out_of_range"] = True
-        # Strip the extra element that was only used for page-checking
-        elif len(result) == limit + 1:
-            result = result[:-1]
-
-    return [
+    items = [
         AccessLog(
             id=accesslog.id,
             time=accesslog.time,
@@ -287,3 +279,6 @@ async def access_log_resolver(
         )
         for accesslog in result
     ]
+    
+    page = paginate(items, limit, cursor, filter, fetch_extra=True)
+    return Page(items=page.items, next_cursor=page.next_cursor)
