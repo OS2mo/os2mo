@@ -972,6 +972,23 @@ def association_predicate(
             )
         )
 
+    # IT association
+    if filter.it_association is not None:
+        has_it_relation = OrganisationFunktionRegistrering.id.in_(
+            select(
+                OrganisationFunktionRelation.organisationfunktion_registrering_id
+            ).where(
+                OrganisationFunktionRelation.rel_type
+                == OrganisationFunktionRelationKode.tilknyttedeitsystemer,
+                OrganisationFunktionRelation.rel_maal_uuid.is_not(None),
+                _get_virkning_clause(OrganisationFunktionRelation, filter),
+            )
+        )
+        if filter.it_association:
+            predicates.append(has_it_relation)
+        else:
+            predicates.append(~has_it_relation)
+
     return and_(*predicates)
 
 
@@ -1030,25 +1047,6 @@ async def association_resolver(
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
-
-    if filter.it_association is not None:
-        filtered_data = {}
-        for uuid, association_fields in associations.items():
-            if filter.it_association:
-                filtered_associations = [
-                    association
-                    for association in association_fields
-                    if association.it_user_uuid is not None
-                ]
-            else:
-                filtered_associations = [
-                    association
-                    for association in association_fields
-                    if association.it_user_uuid is None
-                ]
-            if filtered_associations:
-                filtered_data[uuid] = filtered_associations
-        associations = filtered_data
 
     return associations
 
