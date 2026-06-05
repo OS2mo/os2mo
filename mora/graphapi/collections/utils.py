@@ -21,6 +21,7 @@ from mora.graphapi.context import MOInfo
 
 from ..graphql_utils import LoadKey
 from ..moobject import MOObject
+from ..paged import Page
 from ..paged import to_paged
 from ..resolver_map import get_dataloader
 from ..response import Response
@@ -81,7 +82,7 @@ def force_none_return_wrapper(func: Callable) -> Callable:
 
 
 ResolverResult = dict[UUID, list[MOObject]]
-ResolverFunction = Callable[..., Awaitable[ResolverResult]]
+ResolverFunction = Callable[..., Awaitable[Page[ResolverResult]]]
 
 
 def result_translation(
@@ -92,8 +93,10 @@ def result_translation(
     ) -> Callable[..., Awaitable[R]]:
         @wraps(resolver_func)
         async def mapped_resolver(info: MOInfo, *args: Any, **kwargs: Any) -> Any:
-            result = await resolver_func(*args, info=info, **kwargs)
-            return mapper(result, info)
+            # Resolvers return their result wrapped in a Page (carrying the
+            # next-page cursor); the non-paginated wrappers only need the objects.
+            page = await resolver_func(*args, info=info, **kwargs)
+            return mapper(page.objects, info)
 
         return mapped_resolver
 

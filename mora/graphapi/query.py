@@ -5,7 +5,6 @@ from typing import TypeVar
 from typing import cast
 
 import strawberry
-from starlette_context import context
 from strawberry.types import Info
 
 from mora import db
@@ -68,7 +67,10 @@ from .models import FacetRead
 from .models import RoleBindingRead
 from .paged import CursorType
 from .paged import LimitType
+from .paged import Page
 from .paged import Paged
+from .paged import next_page
+from .paged import seed_cursor
 from .paged import to_paged
 from .permissions import IsAuthenticatedPermission
 from .permissions import gen_read_permission
@@ -106,21 +108,24 @@ async def health_resolver(
     filter: HealthFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[Health]:
+) -> Page:
     if filter is None:
         filter = HealthFilter()
+
+    cursor = seed_cursor(cursor, limit)
 
     healthchecks = set(health_map.keys())
     if filter.identifiers is not None:
         healthchecks = healthchecks.intersection(set(filter.identifiers))
 
     healths = paginate(list(healthchecks), cursor, limit)
-    if not healths:
-        context["lora_page_out_of_range"] = True
-    return [
-        Health(identifier=identifier)  # type: ignore[call-arg]
-        for identifier in healths
-    ]
+    return Page(
+        objects=[
+            Health(identifier=identifier)  # type: ignore[call-arg]
+            for identifier in healths
+        ],
+        next_cursor=next_page(cursor, limit, has_more=bool(healths)),
+    )
 
 
 async def file_resolver(
@@ -128,9 +133,11 @@ async def file_resolver(
     filter: FileFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[File]:
+) -> Page:
     if filter is None:  # pragma: no cover
         filter = FileFilter()
+
+    cursor = seed_cursor(cursor, limit)
 
     session: AsyncSession = info.context.session
     # We do not need the access log elsewhere for files, because this is the
@@ -150,13 +157,14 @@ async def file_resolver(
     found_files = await db.files.ls(session, filter)
 
     files = paginate(list(found_files), cursor, limit)
-    if not files:
-        context["lora_page_out_of_range"] = True
 
-    return [
-        File(file_store=filter.file_store, file_name=file_name)  # type: ignore[call-arg]
-        for file_name in files
-    ]
+    return Page(
+        objects=[
+            File(file_store=filter.file_store, file_name=file_name)  # type: ignore[call-arg]
+            for file_name in files
+        ],
+        next_cursor=next_page(cursor, limit, has_more=bool(files)),
+    )
 
 
 @strawberry.type(description="Entrypoint for all read-operations")

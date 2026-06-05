@@ -10,7 +10,6 @@ import strawberry
 from fastramqpi.ra_utils.apply import apply
 from more_itertools import bucket
 from sqlalchemy import select
-from starlette_context import context
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
@@ -26,6 +25,9 @@ from .actor import Actor
 from .actor import actor_uuid_to_actor
 from .paged import CursorType
 from .paged import LimitType
+from .paged import Page
+from .paged import next_page
+from .paged import seed_cursor
 from .resolvers import get_sqlalchemy_date_interval
 
 
@@ -216,9 +218,12 @@ async def access_log_resolver(
     filter: AccessLogFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[AccessLog]:
+) -> Page:
     if filter is None:
         filter = AccessLogFilter()
+
+    # Seed the first-page cursor so the snapshot clamp below applies from page 1.
+    cursor = seed_cursor(cursor, limit)
 
     query = select(AccessLogOperation)
     if filter.ids is not None:  # pragma: no cover
@@ -270,20 +275,21 @@ async def access_log_resolver(
         [accesslog.id for accesslog in result],
     )
 
-    if limit is not None:
-        # Not enough results == no more pages
-        if len(result) <= limit:
-            context["lora_page_out_of_range"] = True
+    # Fetch-one-extra: a full extra element means there is another page.
+    has_more = limit is not None and len(result) == limit + 1
+    if has_more:
         # Strip the extra element that was only used for page-checking
-        elif len(result) == limit + 1:
-            result = result[:-1]
+        result = result[:-1]
 
-    return [
-        AccessLog(
-            id=accesslog.id,
-            time=accesslog.time,
-            actor=accesslog.actor,
-            model=AccessLogModel(accesslog.model),
-        )
-        for accesslog in result
-    ]
+    return Page(
+        objects=[
+            AccessLog(
+                id=accesslog.id,
+                time=accesslog.time,
+                actor=accesslog.actor,
+                model=AccessLogModel(accesslog.model),
+            )
+            for accesslog in result
+        ],
+        next_cursor=next_page(cursor, limit, has_more),
+    )
