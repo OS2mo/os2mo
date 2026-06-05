@@ -106,7 +106,7 @@ async def health_resolver(
     filter: HealthFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[Health]:
+) -> Paged[Health]:
     if filter is None:
         filter = HealthFilter()
 
@@ -114,13 +114,16 @@ async def health_resolver(
     if filter.identifiers is not None:
         healthchecks = healthchecks.intersection(set(filter.identifiers))
 
-    healths = paginate(list(healthchecks), cursor, limit)
-    if not healths:
-        context["lora_page_out_of_range"] = True
-    return [
+    healths = [
         Health(identifier=identifier)  # type: ignore[call-arg]
-        for identifier in healths
+        for identifier in healthchecks
     ]
+    return paginate(
+        items=healths,
+        limit=limit,
+        cursor=cursor,
+        filter=filter,
+    )
 
 
 async def file_resolver(
@@ -128,7 +131,7 @@ async def file_resolver(
     filter: FileFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[File]:
+) -> Paged[File]:
     if filter is None:  # pragma: no cover
         filter = FileFilter()
 
@@ -148,15 +151,16 @@ async def file_resolver(
     )
 
     found_files = await db.files.ls(session, filter)
-
-    files = paginate(list(found_files), cursor, limit)
-    if not files:
-        context["lora_page_out_of_range"] = True
-
-    return [
+    files = [
         File(file_store=filter.file_store, file_name=file_name)  # type: ignore[call-arg]
-        for file_name in files
+        for file_name in found_files
     ]
+    return paginate(
+        items=files,
+        limit=limit,
+        cursor=cursor,
+        filter=filter,
+    )
 
 
 @strawberry.type(description="Entrypoint for all read-operations")

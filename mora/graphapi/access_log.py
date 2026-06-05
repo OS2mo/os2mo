@@ -254,6 +254,17 @@ async def access_log_resolver(
 
     session: AsyncSession = info.context.session
     result = list(await session.scalars(query))
+    
+    # Extract all access log IDs first
+    all_accesslog_ids = [accesslog.id for accesslog in result]
+    
+    # Paginate access log IDs before creating AccessLog objects
+    from mora.graphapi.paged import paginate_uuids
+    paginated_ids, next_cursor = paginate_uuids(all_accesslog_ids, limit, cursor, filter)
+    
+    # Filter result to only include paginated IDs
+    paginated_result = [accesslog for accesslog in result if accesslog.id in paginated_ids]
+    
     access_log(
         session,
         "resolve_accesslog",
@@ -267,23 +278,20 @@ async def access_log_resolver(
             "start": filter.start,
             "end": filter.end,
         },
-        [accesslog.id for accesslog in result],
+        paginated_ids,
     )
 
-    if limit is not None:
-        # Not enough results == no more pages
-        if len(result) <= limit:
-            context["lora_page_out_of_range"] = True
-        # Strip the extra element that was only used for page-checking
-        elif len(result) == limit + 1:
-            result = result[:-1]
-
-    return [
+    access_logs = [
         AccessLog(
             id=accesslog.id,
             time=accesslog.time,
             actor=accesslog.actor,
             model=AccessLogModel(accesslog.model),
         )
-        for accesslog in result
+        for accesslog in paginated_result
     ]
+    from mora.graphapi.paged import Paged, PageInfo
+    return Paged(
+        objects=access_logs,
+        page_info=PageInfo(next_cursor=next_cursor)
+    )

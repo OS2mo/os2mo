@@ -311,21 +311,14 @@ async def facet_resolver(
         .where(predicate)
         .order_by(FacetRegistrering.facet_id)
     )
-    # Pagination must be done here since the generic_resolver (lora) does not
-    # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
 
-    # Execute
+    # Execute query to get all UUIDs first
     session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
+    all_uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # Paginate UUIDs before calling generic_resolver
+    from mora.graphapi.paged import paginate_uuids
+    paginated_uuids, next_cursor = paginate_uuids(all_uuids, limit, cursor, filter)
 
     access_log(
         session,
@@ -336,15 +329,21 @@ async def facet_resolver(
             "limit": limit,
             "cursor": cursor,
         },
-        uuids,
+        paginated_uuids,
     )
 
-    return await generic_resolver(
+    facets = await generic_resolver(
         info.context.dataloaders.facet_loader,
-        uuids=uuids,
+        uuids=paginated_uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
+    )
+    
+    from mora.graphapi.paged import Paged, PageInfo
+    return Paged(
+        objects=list(facets.values()),
+        page_info=PageInfo(next_cursor=next_cursor)
     )
 
 
@@ -535,14 +534,13 @@ async def class_resolver(
     if cursor is not None:
         query = query.offset(int(cursor.last))
 
-    # Execute
+    # Execute query to get all UUIDs first
     session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
+    all_uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # Paginate UUIDs before calling generic_resolver
+    from mora.graphapi.paged import paginate_uuids
+    paginated_uuids, next_cursor = paginate_uuids(all_uuids, limit, cursor, filter)
 
     access_log(
         session,
@@ -553,15 +551,20 @@ async def class_resolver(
             "limit": limit,
             "cursor": cursor,
         },
-        uuids,
+        paginated_uuids,
     )
 
-    return await generic_resolver(
+    classes = await generic_resolver(
         info.context.dataloaders.class_loader,
-        uuids=uuids,
+        uuids=paginated_uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
+    )
+    from mora.graphapi.paged import Paged, PageInfo
+    return Paged(
+        objects=list(classes.values()),
+        page_info=PageInfo(next_cursor=next_cursor)
     )
 
 
@@ -804,14 +807,13 @@ async def address_resolver(
     if cursor is not None:
         query = query.offset(int(cursor.last))
 
-    # Execute
+    # Execute query to get all UUIDs first
     session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
+    all_uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # Paginate UUIDs before calling generic_resolver
+    from mora.graphapi.paged import paginate_uuids
+    paginated_uuids, next_cursor = paginate_uuids(all_uuids, limit, cursor, filter)
 
     access_log(
         session,
@@ -822,15 +824,20 @@ async def address_resolver(
             "limit": limit,
             "cursor": cursor,
         },
-        uuids,
+        paginated_uuids,
     )
 
-    return await generic_resolver(
+    addresses = await generic_resolver(
         info.context.dataloaders.address_loader,
-        uuids=uuids,
+        uuids=paginated_uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
+    )
+    from mora.graphapi.paged import Paged, PageInfo
+    return Paged(
+        objects=list(addresses.values()),
+        page_info=PageInfo(next_cursor=next_cursor)
     )
 
 
@@ -1019,14 +1026,13 @@ async def association_resolver(
     if cursor is not None:
         query = query.offset(int(cursor.last))
 
-    # Execute
+    # Execute query to get all UUIDs first
     session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
+    all_uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # Paginate UUIDs before calling generic_resolver
+    from mora.graphapi.paged import paginate_uuids
+    paginated_uuids, next_cursor = paginate_uuids(all_uuids, limit, cursor, filter)
 
     access_log(
         session,
@@ -1037,18 +1043,21 @@ async def association_resolver(
             "limit": limit,
             "cursor": cursor,
         },
-        uuids,
+        paginated_uuids,
     )
 
     associations = await generic_resolver(
         info.context.dataloaders.association_loader,
-        uuids=uuids,
+        uuids=paginated_uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
-
-    return associations
+    from mora.graphapi.paged import Paged, PageInfo
+    return Paged(
+        objects=list(associations.values()),
+        page_info=PageInfo(next_cursor=next_cursor)
+    )
 
 
 def employee_predicate(
@@ -1141,14 +1150,13 @@ async def employee_resolver(
     if cursor is not None:
         query = query.offset(int(cursor.last))
 
-    # Execute
+    # Execute query to get all UUIDs first
     session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
+    all_uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # Paginate UUIDs before calling generic_resolver
+    from mora.graphapi.paged import paginate_uuids
+    paginated_uuids, next_cursor = paginate_uuids(all_uuids, limit, cursor, filter)
 
     access_log(
         session,
@@ -1159,15 +1167,20 @@ async def employee_resolver(
             "limit": limit,
             "cursor": cursor,
         },
-        uuids,
+        paginated_uuids,
     )
 
-    return await generic_resolver(
+    employees = await generic_resolver(
         info.context.dataloaders.employee_loader,
-        uuids=uuids,
+        uuids=paginated_uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
+    )
+    from mora.graphapi.paged import Paged, PageInfo
+    return Paged(
+        objects=list(employees.values()),
+        page_info=PageInfo(next_cursor=next_cursor)
     )
 
 
@@ -1384,14 +1397,13 @@ async def engagement_resolver(
     if cursor is not None:
         query = query.offset(int(cursor.last))
 
-    # Execute
+    # Execute query to get all UUIDs first
     session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
+    all_uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # Paginate UUIDs before calling generic_resolver
+    from mora.graphapi.paged import paginate_uuids
+    paginated_uuids, next_cursor = paginate_uuids(all_uuids, limit, cursor, filter)
 
     access_log(
         session,
@@ -1402,15 +1414,20 @@ async def engagement_resolver(
             "limit": limit,
             "cursor": cursor,
         },
-        uuids,
+        paginated_uuids,
     )
 
-    return await generic_resolver(
+    engagements = await generic_resolver(
         info.context.dataloaders.engagement_loader,
-        uuids=uuids,
+        uuids=paginated_uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
+    )
+    from mora.graphapi.paged import Paged, PageInfo
+    return Paged(
+        objects=list(engagements.values()),
+        page_info=PageInfo(next_cursor=next_cursor)
     )
 
 
@@ -1804,14 +1821,13 @@ async def manager_resolver(
     if cursor is not None:
         query = query.offset(int(cursor.last))
 
-    # Execute
+    # Execute query to get all UUIDs first
     session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
+    all_uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # Paginate UUIDs before calling generic_resolver
+    from mora.graphapi.paged import paginate_uuids
+    paginated_uuids, next_cursor = paginate_uuids(all_uuids, limit, cursor, filter)
 
     access_log(
         session,
@@ -1822,15 +1838,20 @@ async def manager_resolver(
             "limit": limit,
             "cursor": cursor,
         },
-        uuids,
+        paginated_uuids,
     )
 
-    return await generic_resolver(
+    managers = await generic_resolver(
         info.context.dataloaders.manager_loader,
-        uuids=uuids,
+        uuids=paginated_uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
+    )
+    from mora.graphapi.paged import Paged, PageInfo
+    return Paged(
+        objects=list(managers.values()),
+        page_info=PageInfo(next_cursor=next_cursor)
     )
 
 
@@ -1989,14 +2010,13 @@ async def owner_resolver(
     if cursor is not None:
         query = query.offset(int(cursor.last))
 
-    # Execute
+    # Execute query to get all UUIDs first
     session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
+    all_uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # Paginate UUIDs before calling generic_resolver
+    from mora.graphapi.paged import paginate_uuids
+    paginated_uuids, next_cursor = paginate_uuids(all_uuids, limit, cursor, filter)
 
     access_log(
         session,
@@ -2007,34 +2027,24 @@ async def owner_resolver(
             "limit": limit,
             "cursor": cursor,
         },
-        uuids,
+        paginated_uuids,
     )
 
-    return await generic_resolver(
+    owners = await generic_resolver(
         info.context.dataloaders.owner_loader,
-        uuids=uuids,
+        uuids=paginated_uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    from mora.graphapi.paged import Paged, PageInfo
+    return Paged(
+        objects=list(owners.values()),
+        page_info=PageInfo(next_cursor=next_cursor)
+    )
 
 
-def _get_registration_time(
-    filter: BaseFilter,
-    cursor: CursorType,
-) -> datetime | SQLNOW:
-    if (
-        cursor is not None
-        and filter.registration_time
-        and filter.registration_time != cursor.registration_time
-    ):
-        raise ValueError("Cannot change registration_time during pagination")
 
-    if cursor is not None:
-        return tz_isodate(cursor.registration_time)
-    if filter.registration_time:
-        return tz_isodate(filter.registration_time)
-    return func.now()
 
 
 def _get_registrering_clause(
@@ -2468,14 +2478,13 @@ async def organisation_unit_resolver(
     if cursor is not None:
         query = query.offset(int(cursor.last))
 
-    # Execute
+    # Execute query to get all UUIDs first
     session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
+    all_uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # Paginate UUIDs before calling generic_resolver
+    from mora.graphapi.paged import paginate_uuids
+    paginated_uuids, next_cursor = paginate_uuids(all_uuids, limit, cursor, filter)
 
     access_log(
         session,
@@ -2486,15 +2495,20 @@ async def organisation_unit_resolver(
             "limit": limit,
             "cursor": cursor,
         },
-        uuids,
+        paginated_uuids,
     )
 
-    return await generic_resolver(
+    org_units = await generic_resolver(
         info.context.dataloaders.org_unit_loader,
-        uuids=uuids,
+        uuids=paginated_uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
+    )
+    from mora.graphapi.paged import Paged, PageInfo
+    return Paged(
+        objects=list(org_units.values()),
+        page_info=PageInfo(next_cursor=next_cursor)
     )
 
 
@@ -2612,14 +2626,13 @@ async def it_system_resolver(
     if cursor is not None:
         query = query.offset(int(cursor.last))
 
-    # Execute
+    # Execute query to get all UUIDs first
     session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
+    all_uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # Paginate UUIDs before calling generic_resolver
+    from mora.graphapi.paged import paginate_uuids
+    paginated_uuids, next_cursor = paginate_uuids(all_uuids, limit, cursor, filter)
 
     access_log(
         session,
@@ -2630,15 +2643,20 @@ async def it_system_resolver(
             "limit": limit,
             "cursor": cursor,
         },
-        uuids,
+        paginated_uuids,
     )
 
-    return await generic_resolver(
+    it_systems = await generic_resolver(
         info.context.dataloaders.itsystem_loader,
-        uuids=uuids,
+        uuids=paginated_uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
+    )
+    from mora.graphapi.paged import Paged, PageInfo
+    return Paged(
+        objects=list(it_systems.values()),
+        page_info=PageInfo(next_cursor=next_cursor)
     )
 
 
@@ -2881,14 +2899,13 @@ async def it_user_resolver(
     if cursor is not None:
         query = query.offset(int(cursor.last))
 
-    # Execute
+    # Execute query to get all UUIDs first
     session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
+    all_uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # Paginate UUIDs before calling generic_resolver
+    from mora.graphapi.paged import paginate_uuids
+    paginated_uuids, next_cursor = paginate_uuids(all_uuids, limit, cursor, filter)
 
     access_log(
         session,
@@ -2899,15 +2916,20 @@ async def it_user_resolver(
             "limit": limit,
             "cursor": cursor,
         },
-        uuids,
+        paginated_uuids,
     )
 
-    return await generic_resolver(
+    it_users = await generic_resolver(
         info.context.dataloaders.ituser_loader,
-        uuids=uuids,
+        uuids=paginated_uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
+    )
+    from mora.graphapi.paged import Paged, PageInfo
+    return Paged(
+        objects=list(it_users.values()),
+        page_info=PageInfo(next_cursor=next_cursor)
     )
 
 
@@ -3029,14 +3051,13 @@ async def kle_resolver(
     if cursor is not None:
         query = query.offset(int(cursor.last))
 
-    # Execute
+    # Execute query to get all UUIDs first
     session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
+    all_uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # Paginate UUIDs before calling generic_resolver
+    from mora.graphapi.paged import paginate_uuids
+    paginated_uuids, next_cursor = paginate_uuids(all_uuids, limit, cursor, filter)
 
     access_log(
         session,
@@ -3047,15 +3068,20 @@ async def kle_resolver(
             "limit": limit,
             "cursor": cursor,
         },
-        uuids,
+        paginated_uuids,
     )
 
-    return await generic_resolver(
+    kles = await generic_resolver(
         info.context.dataloaders.kle_loader,
-        uuids=uuids,
+        uuids=paginated_uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
+    )
+    from mora.graphapi.paged import Paged, PageInfo
+    return Paged(
+        objects=list(kles.values()),
+        page_info=PageInfo(next_cursor=next_cursor)
     )
 
 
@@ -3202,14 +3228,13 @@ async def leave_resolver(
     if cursor is not None:
         query = query.offset(int(cursor.last))
 
-    # Execute
+    # Execute query to get all UUIDs first
     session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
+    all_uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # Paginate UUIDs before calling generic_resolver
+    from mora.graphapi.paged import paginate_uuids
+    paginated_uuids, next_cursor = paginate_uuids(all_uuids, limit, cursor, filter)
 
     access_log(
         session,
@@ -3220,15 +3245,20 @@ async def leave_resolver(
             "limit": limit,
             "cursor": cursor,
         },
-        uuids,
+        paginated_uuids,
     )
 
-    return await generic_resolver(
+    leaves = await generic_resolver(
         info.context.dataloaders.leave_loader,
-        uuids=uuids,
+        uuids=paginated_uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
+    )
+    from mora.graphapi.paged import Paged, PageInfo
+    return Paged(
+        objects=list(leaves.values()),
+        page_info=PageInfo(next_cursor=next_cursor)
     )
 
 
@@ -3376,14 +3406,13 @@ async def related_unit_resolver(
     if cursor is not None:
         query = query.offset(int(cursor.last))
 
-    # Execute
+    # Execute query to get all UUIDs first
     session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
+    all_uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # Paginate UUIDs before calling generic_resolver
+    from mora.graphapi.paged import paginate_uuids
+    paginated_uuids, next_cursor = paginate_uuids(all_uuids, limit, cursor, filter)
 
     access_log(
         session,
@@ -3394,15 +3423,20 @@ async def related_unit_resolver(
             "limit": limit,
             "cursor": cursor,
         },
-        uuids,
+        paginated_uuids,
     )
 
-    return await generic_resolver(
+    related_units = await generic_resolver(
         info.context.dataloaders.rel_unit_loader,
-        uuids=uuids,
+        uuids=paginated_uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
+    )
+    from mora.graphapi.paged import Paged, PageInfo
+    return Paged(
+        objects=list(related_units.values()),
+        page_info=PageInfo(next_cursor=next_cursor)
     )
 
 
@@ -3572,14 +3606,13 @@ async def rolebinding_resolver(
     if cursor is not None:
         query = query.offset(int(cursor.last))
 
-    # Execute
+    # Execute query to get all UUIDs first
     session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
+    all_uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # Paginate UUIDs before calling generic_resolver
+    from mora.graphapi.paged import paginate_uuids
+    paginated_uuids, next_cursor = paginate_uuids(all_uuids, limit, cursor, filter)
 
     access_log(
         session,
@@ -3590,15 +3623,20 @@ async def rolebinding_resolver(
             "limit": limit,
             "cursor": cursor,
         },
-        uuids,
+        paginated_uuids,
     )
 
-    return await generic_resolver(
+    rolebindings = await generic_resolver(
         info.context.dataloaders.rolebinding_loader,
-        uuids=uuids,
+        uuids=paginated_uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
+    )
+    from mora.graphapi.paged import Paged, PageInfo
+    return Paged(
+        objects=list(rolebindings.values()),
+        page_info=PageInfo(next_cursor=next_cursor)
     )
 
 

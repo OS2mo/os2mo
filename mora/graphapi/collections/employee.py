@@ -69,8 +69,8 @@ class Employee:
         return root.user_key
 
     engagements_response: Paged[Response[LazyEngagement]] = strawberry.field(
-        resolver=to_paged_response(EngagementRead)(
-            seed_resolver(
+        resolver=lambda root, info, limit=None, cursor=None, filter=None: paginate(
+            await seed_resolver(
                 engagement_resolver,
                 {
                     "employee": lambda root: EmployeeFilter(
@@ -80,7 +80,10 @@ class Employee:
                     )
                 },
                 strip={"employees"},
-            ),
+            )(root=root, info=info),
+            limit=limit,
+            cursor=cursor,
+            filter=filter,
         ),
         description=dedent(
             """
@@ -124,8 +127,8 @@ class Employee:
     )
 
     manager_roles_response: Paged[Response[LazyManager]] = strawberry.field(
-        resolver=to_paged_response(ManagerRead)(
-            seed_resolver(
+        resolver=lambda root, info, limit=None, cursor=None, filter=None: paginate(
+            await seed_resolver(
                 manager_resolver,
                 {
                     "employee": lambda root: EmployeeFilter(
@@ -135,7 +138,10 @@ class Employee:
                     )
                 },
                 strip={"employees"},
-            )
+            )(root=root, info=info),
+            limit=limit,
+            cursor=cursor,
+            filter=filter,
         ),
         description=dedent(
             """
@@ -173,8 +179,8 @@ class Employee:
     )
 
     addresses_response: Paged[Response[LazyAddress]] = strawberry.field(
-        resolver=to_paged_response(AddressRead)(
-            seed_resolver(
+        resolver=lambda root, info, limit=None, cursor=None, filter=None: paginate(
+            await seed_resolver(
                 address_resolver,
                 {
                     "employee": lambda root: EmployeeFilter(
@@ -184,7 +190,10 @@ class Employee:
                     )
                 },
                 strip={"employees"},
-            )
+            )(root=root, info=info),
+            limit=limit,
+            cursor=cursor,
+            filter=filter,
         ),
         description=dedent(
             """
@@ -234,8 +243,8 @@ class Employee:
     )
 
     leaves_response: Paged[Response[LazyLeave]] = strawberry.field(
-        resolver=to_paged_response(LeaveRead)(
-            seed_resolver(
+        resolver=lambda root, info, limit=None, cursor=None, filter=None: paginate(
+            await seed_resolver(
                 leave_resolver,
                 {
                     "employee": lambda root: EmployeeFilter(
@@ -245,7 +254,10 @@ class Employee:
                     )
                 },
                 strip={"employees"},
-            )
+            )(root=root, info=info),
+            limit=limit,
+            cursor=cursor,
+            filter=filter,
         ),
         description=dedent(
             """
@@ -283,8 +295,8 @@ class Employee:
     )
 
     associations_response: Paged[Response[LazyAssociation]] = strawberry.field(
-        resolver=to_paged_response(AssociationRead)(
-            seed_resolver(
+        resolver=lambda root, info, limit=None, cursor=None, filter=None: paginate(
+            await seed_resolver(
                 association_resolver,
                 {
                     "employee": lambda root: EmployeeFilter(
@@ -294,7 +306,10 @@ class Employee:
                     )
                 },
                 strip={"employees"},
-            )
+            )(root=root, info=info),
+            limit=limit,
+            cursor=cursor,
+            filter=filter,
         ),
         description=dedent(
             """
@@ -338,8 +353,8 @@ class Employee:
     )
 
     itusers_response: Paged[Response[LazyITUser]] = strawberry.field(
-        resolver=to_paged_response(ITUserRead)(
-            seed_resolver(
+        resolver=lambda root, info, limit=None, cursor=None, filter=None: paginate(
+            await seed_resolver(
                 it_user_resolver,
                 {
                     "employee": lambda root: EmployeeFilter(
@@ -349,7 +364,10 @@ class Employee:
                     )
                 },
                 strip={"employees"},
-            )
+            )(root=root, info=info),
+            limit=limit,
+            cursor=cursor,
+            filter=filter,
         ),
         description=dedent(
             """

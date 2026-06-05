@@ -81,8 +81,8 @@ class Engagement:
         return root.user_key
 
     addresses_response: Paged[Response[LazyAddress]] = strawberry.field(
-        resolver=to_paged_response(AddressRead)(
-            seed_resolver(
+        resolver=lambda root, info, limit=None, cursor=None, filter=None: paginate(
+            await seed_resolver(
                 address_resolver,
                 {
                     "engagement": lambda root: EngagementFilter(
@@ -92,7 +92,10 @@ class Engagement:
                     )
                 },
                 strip={"engagements"},
-            )
+            )(root=root, info=info),
+            limit=limit,
+            cursor=cursor,
+            filter=filter,
         ),
         description="Addresses connected to the engagement.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
@@ -336,8 +339,8 @@ class Engagement:
     )
 
     itusers_response: Paged[Response[LazyITUser]] = strawberry.field(
-        resolver=to_paged_response(ITUserRead)(
-            seed_resolver(
+        resolver=lambda root, info, limit=None, cursor=None, filter=None: paginate(
+            await seed_resolver(
                 it_user_resolver,
                 {
                     "engagement": lambda root: EngagementFilter(
@@ -346,7 +349,10 @@ class Engagement:
                         to_date=None,
                     )
                 },
-            )
+            )(root=root, info=info),
+            limit=limit,
+            cursor=cursor,
+            filter=filter,
         ),
         description="Connected IT-user.\n",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],

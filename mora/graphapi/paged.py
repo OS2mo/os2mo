@@ -120,11 +120,113 @@ class Paged(Generic[T]):
     )
 
 
+def paginate_uuids(
+    uuids: list[UUID],
+    limit: int | None,
+    cursor: CursorType,
+    filter: BaseFilter | RegistrationFilter | None = None,
+) -> tuple[list[UUID], CursorType]:
+    """
+    Apply cursor-based pagination to a list of UUIDs.
+
+    Args:
+        uuids: The full list of UUIDs to paginate
+        limit: Maximum number of items per page
+        cursor: Current pagination cursor
+        filter: Optional filter containing registration time
+
+    Returns:
+        tuple: (paginated_uuids, next_cursor)
+    """
+    # Handle registration time logic
+    if cursor is None:
+        registration_time = now()
+        if isinstance(filter, BaseFilter) and filter.registration_time:
+            registration_time = filter.registration_time
+        cursor = Cursor(last=UUID(int=0), registration_time=registration_time)
+
+    # Calculate page boundaries
+    start_idx = int(cursor.last.int)
+    end_idx = start_idx + (limit or len(uuids))
+
+    # Get page UUIDs
+    page_uuids = uuids[start_idx:end_idx]
+
+    # Calculate next cursor
+    next_cursor = None
+    if limit and end_idx < len(uuids):
+        next_cursor = Cursor(
+            last=UUID(int=end_idx),
+            registration_time=cursor.registration_time,
+        )
+
+    return page_uuids, next_cursor
+
+
+def paginate(
+    items: list[T],
+    limit: int | None,
+    cursor: CursorType,
+    filter: BaseFilter | RegistrationFilter | None = None,
+) -> Paged[T]:
+    """
+    Apply cursor-based pagination to a list of items.
+
+    Args:
+        items: The full list of items to paginate
+        limit: Maximum number of items per page
+        cursor: Current pagination cursor
+        filter: Optional filter containing registration time
+
+    Returns:
+        Paged: A paginated response containing the page of items
+    """
+    # Use the UUID pagination logic and adapt for items
+    if not items:
+        return Paged(objects=[], page_info=PageInfo(next_cursor=None))
+
+    # Handle registration time logic
+    if cursor is None:
+        registration_time = now()
+        if isinstance(filter, BaseFilter) and filter.registration_time:
+            registration_time = filter.registration_time
+        cursor = Cursor(last=UUID(int=0), registration_time=registration_time)
+
+    # Calculate page boundaries
+    start_idx = int(cursor.last.int)
+    end_idx = start_idx + (limit or len(items))
+
+    # Get page items
+    page_items = items[start_idx:end_idx]
+
+    # Calculate next cursor
+    next_cursor = None
+    if limit and end_idx < len(items):
+        next_cursor = Cursor(
+            last=UUID(int=end_idx),
+            registration_time=cursor.registration_time,
+        )
+
+    return Paged(
+        objects=page_items,
+        page_info=PageInfo(next_cursor=next_cursor)
+    )
+
+
 def to_paged(
     resolver_func: Callable[..., Awaitable[Any]],
     model: Any,
     result_transformer: Callable[[Any, Any, Info], Any] | None = None,
 ) -> Callable[..., Awaitable[Paged]]:
+    """
+    Deprecated: Use the paginate() helper directly.
+    """
+    warnings.warn(
+        "to_paged is deprecated and will be removed in a future version. "
+        "Use the paginate() helper directly.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     result_transformer = result_transformer or (lambda _, x, __: x)
 
     @wraps(resolver_func)
@@ -136,30 +238,17 @@ def to_paged(
         filter: BaseFilter | RegistrationFilter | None = None,
         **kwargs: Any,
     ) -> Paged:
-        if limit and cursor is None:
-            registration_time = now()
-            # RegistrationFilter doesn't have a `registration_time`
-            if isinstance(filter, BaseFilter) and filter.registration_time:
-                registration_time = filter.registration_time
-            cursor = Cursor(last=UUID(int=0), registration_time=registration_time)
-
         result = await resolver_func(
             *args, info=info, filter=filter, limit=limit, cursor=cursor, **kwargs
         )
 
-        end_cursor: CursorType = None
-        if limit and cursor is not None:
-            end_cursor = Cursor(
-                last=UUID(int=int(cursor.last) + limit),
-                registration_time=cursor.registration_time,
-            )
-        if context.get("lora_page_out_of_range"):
-            end_cursor = None
-
-        assert result_transformer is not None
-        return Paged(  # type: ignore[call-arg]
-            objects=result_transformer(model, result, info),
-            page_info=PageInfo(next_cursor=end_cursor),  # type: ignore[call-arg]
+        # Use the new paginate helper
+        transformed_items = result_transformer(model, result, info)
+        return paginate(
+            items=transformed_items,
+            limit=limit,
+            cursor=cursor,
+            filter=filter,
         )
 
     return resolve_response
