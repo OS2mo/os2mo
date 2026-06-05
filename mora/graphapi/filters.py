@@ -454,6 +454,17 @@ class ITUserFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    rolebinding: RoleBindingFilter | None = strawberry.field(
+        default=UNSET,
+        description=dedent(
+            """\
+            Rolebinding filter limiting which entries are returned.
+
+            Set to `null` to only return IT users without any rolebindings.
+            """
+        ),
+    )
+
     external_ids: list[str] | None = strawberry.field(
         default=UNSET,
         description=dedent(

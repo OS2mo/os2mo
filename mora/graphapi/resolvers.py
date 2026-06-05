@@ -2806,6 +2806,31 @@ def it_user_predicate(
             )
         )
 
+    # Rolebinding
+    # Rolebindings carry a `tilknyttedefunktioner` relation pointing at the
+    # ITUser they bind to. We filter ITUsers by composing the rolebinding
+    # predicate in SQL and matching ITUser UUIDs against the relation's target.
+    if filter.rolebinding is not UNSET:
+        rolebinding_pred = rolebinding_predicate(
+            info,
+            filter.rolebinding or RoleBindingFilter(),
+            registration_time=registration_time,
+        )
+        ituser_has_rolebinding = exists().where(
+            OrganisationFunktionRelation.rel_type
+            == OrganisationFunktionRelationKode.tilknyttedefunktioner,
+            OrganisationFunktionRelation.rel_maal_uuid
+            == OrganisationFunktionRegistrering.organisationfunktion_id,
+            OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
+                select(OrganisationFunktionRegistrering.id).where(rolebinding_pred)
+            ),
+            _get_virkning_clause(OrganisationFunktionRelation, filter),
+        )
+        if filter.rolebinding is None:
+            predicates.append(~ituser_has_rolebinding)
+        else:
+            predicates.append(ituser_has_rolebinding)
+
     # In v29 and prior None and UNSET were handled identically (no filtering),
     # this branch ensures backwards compatability with this behavior.
     if get_version(info.schema) <= Version.VERSION_29 and filter.external_ids is None:
