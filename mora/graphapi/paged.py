@@ -4,6 +4,7 @@
 
 from collections.abc import Awaitable
 from collections.abc import Callable
+from datetime import datetime as _datetime
 from functools import wraps
 from textwrap import dedent
 from typing import Annotated
@@ -14,6 +15,7 @@ from uuid import UUID
 
 import strawberry
 from pydantic import PositiveInt
+from sqlalchemy import func as _sql_func
 from starlette_context import context
 from strawberry.types import Info
 
@@ -21,6 +23,7 @@ from mora.util import now
 
 from .filters import BaseFilter
 from .filters import RegistrationFilter
+from .gmodels.base import tz_isodate
 from .types import Cursor
 
 LimitType = Annotated[
@@ -118,6 +121,79 @@ class Paged(Generic[T]):
             """
         )
     )
+
+
+class PageHelper:
+    """Pagination helper that computes registration_time, offset, and next_cursor.
+
+    Replaces `_get_registration_time` and the cursor-manipulation logic
+    previously done by `to_paged`.  Each paginated resolver creates an
+    instance, uses `.registration_time` and `.offset` to build its query,
+    and calls `.paged()` to wrap its result list.
+    """
+
+    def __init__(
+        self,
+        filter: BaseFilter | RegistrationFilter | None,
+        cursor: CursorType,
+        limit: LimitType,
+    ) -> None:
+        if (
+            cursor is not None
+            and isinstance(filter, BaseFilter)
+            and filter.registration_time
+            and filter.registration_time != cursor.registration_time
+        ):
+            raise ValueError("Cannot change registration_time during pagination")
+
+        if cursor is not None:
+            self._registration_time: _datetime | None = cursor.registration_time
+            self._offset: int = int(cursor.last)
+        elif isinstance(filter, BaseFilter) and filter.registration_time:
+            self._registration_time = filter.registration_time
+            self._offset = 0
+        else:
+            self._registration_time = None
+            self._offset = 0
+
+        self._limit: int | None = limit
+
+    @property
+    def registration_time(self) -> _datetime | Any:
+        """Registration time for SQL predicates.
+
+        Returns a timezone-aware datetime when a specific time is known,
+        otherwise a SQL ``func.now()`` expression.
+        """
+        if self._registration_time is not None:
+            return tz_isodate(self._registration_time)
+        return _sql_func.now()
+
+    @property
+    def offset(self) -> int:
+        """Row offset for SQL ``OFFSET`` clauses."""
+        return self._offset
+
+    def cursor(self, *, has_more: bool = True) -> CursorType:
+        """Compute the cursor for the **next** page.
+
+        Returns ``None`` when there are no more pages *or* when the
+        original request did not include a ``limit``.
+        """
+        if not has_more or self._limit is None:
+            return None
+        reg_time = self._registration_time or now()
+        return Cursor(
+            last=UUID(int=self._offset + self._limit),
+            registration_time=reg_time,
+        )
+
+    def paged(self, objects: list[T], *, has_more: bool = True) -> Paged[T]:
+        """Wrap *objects* in a :class:`Paged` result."""
+        return Paged(  # type: ignore[call-arg]
+            objects=objects,
+            page_info=PageInfo(next_cursor=self.cursor(has_more=has_more)),
+        )
 
 
 def to_paged(

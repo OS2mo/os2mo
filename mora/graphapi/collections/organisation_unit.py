@@ -64,7 +64,7 @@ from .utils import gen_uuid_field_deprecation
 from .utils import to_arbitrary_only
 from .utils import to_list
 from .utils import to_only
-from .utils import to_paged_response
+from .utils import paged_to_response
 from .utils import to_response
 
 
@@ -195,7 +195,7 @@ class OrganisationUnit:
         return [parent] + ancestors
 
     children_response: Paged[Response[LazyOrganisationUnit]] = strawberry.field(
-        resolver=to_paged_response(OrganisationUnitRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 organisation_unit_resolver,
                 {
@@ -206,7 +206,8 @@ class OrganisationUnit:
                     )
                 },
                 strip={"parents"},
-            )
+            ),
+            OrganisationUnitRead,
         ),
         description=dedent(
             """
@@ -454,7 +455,7 @@ class OrganisationUnit:
     )
 
     engagements_response: Paged[Response[LazyEngagement]] = strawberry.field(
-        resolver=to_paged_response(EngagementRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 engagement_resolver,
                 {
@@ -465,7 +466,8 @@ class OrganisationUnit:
                     )
                 },
                 strip={"org_units"},
-            )
+            ),
+            EngagementRead,
         ),
         description=dedent(
             """
@@ -611,7 +613,7 @@ class OrganisationUnit:
         return await resolver(root=root, info=info, filter=filter, inherit=inherit)
 
     managers_response: Paged[Response[LazyManager]] = strawberry.field(
-        resolver=to_paged_response(ManagerRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 manager_resolver,
                 {
@@ -622,7 +624,8 @@ class OrganisationUnit:
                     )
                 },
                 strip={"org_units"},
-            )
+            ),
+            ManagerRead,
         ),
         description=dedent(
             """
@@ -730,7 +733,7 @@ class OrganisationUnit:
         )
 
     addresses_response: Paged[Response[LazyAddress]] = strawberry.field(
-        resolver=to_paged_response(AddressRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 address_resolver,
                 {
@@ -741,7 +744,8 @@ class OrganisationUnit:
                     )
                 },
                 strip={"org_units"},
-            )
+            ),
+            AddressRead,
         ),
         description=dedent(
             """
@@ -785,7 +789,7 @@ class OrganisationUnit:
     )
 
     leaves_response: Paged[Response[LazyLeave]] = strawberry.field(
-        resolver=to_paged_response(LeaveRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 leave_resolver,
                 {
@@ -796,7 +800,8 @@ class OrganisationUnit:
                     )
                 },
                 strip={"org_units"},
-            )
+            ),
+            LeaveRead,
         ),
         description=dedent(
             """
@@ -830,7 +835,7 @@ class OrganisationUnit:
     )
 
     associations_response: Paged[Response[LazyAssociation]] = strawberry.field(
-        resolver=to_paged_response(AssociationRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 association_resolver,
                 {
@@ -841,7 +846,8 @@ class OrganisationUnit:
                     )
                 },
                 strip={"org_units"},
-            )
+            ),
+            AssociationRead,
         ),
         description=dedent(
             """
@@ -887,7 +893,7 @@ class OrganisationUnit:
     )
 
     itusers_response: Paged[Response[LazyITUser]] = strawberry.field(
-        resolver=to_paged_response(ITUserRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 it_user_resolver,
                 {
@@ -898,7 +904,8 @@ class OrganisationUnit:
                     )
                 },
                 strip={"org_units"},
-            )
+            ),
+            ITUserRead,
         ),
         description=dedent(
             """
@@ -938,7 +945,7 @@ class OrganisationUnit:
     )
 
     kles_response: Paged[Response[LazyKLE]] = strawberry.field(
-        resolver=to_paged_response(KLERead)(
+        resolver=paged_to_response(
             seed_resolver(
                 kle_resolver,
                 {
@@ -949,7 +956,8 @@ class OrganisationUnit:
                     )
                 },
                 strip={"org_units"},
-            )
+            ),
+            KLERead,
         ),
         description=dedent(
             """
@@ -987,7 +995,7 @@ class OrganisationUnit:
     )
 
     related_units_response: Paged[Response[LazyRelatedUnit]] = strawberry.field(
-        resolver=to_paged_response(RelatedUnitRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 related_unit_resolver,
                 {
@@ -998,7 +1006,8 @@ class OrganisationUnit:
                     )
                 },
                 strip={"org_units"},
-            )
+            ),
+            RelatedUnitRead,
         ),
         description=dedent(
             """

@@ -66,7 +66,7 @@ from .collections import OrganisationUnit
 from .collections import Owner
 from .collections import RelatedUnit
 from .collections import RoleBinding
-from .collections.utils import to_paged_uuids
+from .collections.utils import paged_to_uuids
 from .employee import create_employee
 from .employee import terminate_employee
 from .employee import update_employee
@@ -353,7 +353,7 @@ class Mutation:
         owner: UUID | None = None,
         priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(address_resolver, Address)
+        resolve = paged_to_uuids(address_resolver)
         page = await resolve(
             info=info,
             filter=filter,
@@ -442,7 +442,7 @@ class Mutation:
         owner: UUID | None = None,
         priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(association_resolver, Association)
+        resolve = paged_to_uuids(association_resolver)
         page = await resolve(
             info=info,
             filter=filter,
@@ -534,7 +534,7 @@ class Mutation:
         owner: UUID | None = None,
         priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(class_resolver, Class)
+        resolve = paged_to_uuids(class_resolver)
         page = await resolve(
             info=info,
             filter=filter,
@@ -622,7 +622,7 @@ class Mutation:
         owner: UUID | None = None,
         priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(employee_resolver, Employee)
+        resolve = paged_to_uuids(employee_resolver)
         page = await resolve(
             info=info,
             filter=filter,
@@ -761,7 +761,7 @@ class Mutation:
         owner: UUID | None = None,
         priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(engagement_resolver, Engagement)
+        resolve = paged_to_uuids(engagement_resolver)
         page = await resolve(
             info=info,
             filter=filter,
@@ -853,7 +853,7 @@ class Mutation:
         owner: UUID | None = None,
         priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(facet_resolver, Facet)
+        resolve = paged_to_uuids(facet_resolver)
         page = await resolve(
             info=info,
             filter=filter,
@@ -992,7 +992,7 @@ class Mutation:
         owner: UUID | None = None,
         priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(it_system_resolver, ITSystem)
+        resolve = paged_to_uuids(it_system_resolver)
         page = await resolve(
             info=info,
             filter=filter,
@@ -1092,7 +1092,7 @@ class Mutation:
         owner: UUID | None = None,
         priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(it_user_resolver, ITUser)
+        resolve = paged_to_uuids(it_user_resolver)
         page = await resolve(
             info=info,
             filter=filter,
@@ -1167,7 +1167,7 @@ class Mutation:
         owner: UUID | None = None,
         priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(kle_resolver, KLE)
+        resolve = paged_to_uuids(kle_resolver)
         page = await resolve(
             info=info,
             filter=filter,
@@ -1242,7 +1242,7 @@ class Mutation:
         owner: UUID | None = None,
         priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(leave_resolver, Leave)
+        resolve = paged_to_uuids(leave_resolver)
         page = await resolve(
             info=info,
             filter=filter,
@@ -1334,7 +1334,7 @@ class Mutation:
         owner: UUID | None = None,
         priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(manager_resolver, Manager)
+        resolve = paged_to_uuids(manager_resolver)
         page = await resolve(
             info=info,
             filter=filter,
@@ -1447,7 +1447,7 @@ class Mutation:
         owner: UUID | None = None,
         priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(organisation_unit_resolver, OrganisationUnit)
+        resolve = paged_to_uuids(organisation_unit_resolver)
         page = await resolve(
             info=info,
             filter=filter,
@@ -1522,7 +1522,7 @@ class Mutation:
         owner: UUID | None = None,
         priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(owner_resolver, Owner)
+        resolve = paged_to_uuids(owner_resolver)
         page = await resolve(
             info=info,
             filter=filter,
@@ -1580,7 +1580,7 @@ class Mutation:
         owner: UUID | None = None,
         priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(related_unit_resolver, RelatedUnit)
+        resolve = paged_to_uuids(related_unit_resolver)
         page = await resolve(
             info=info,
             filter=filter,
@@ -1691,7 +1691,7 @@ class Mutation:
         owner: UUID | None = None,
         priority: PriorityType = events.DEFAULT_PRIORITY,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(rolebinding_resolver, RoleBindingRead)
+        resolve = paged_to_uuids(rolebinding_resolver)
         page = await resolve(
             info=info,
             filter=filter,

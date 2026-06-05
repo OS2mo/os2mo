@@ -3,6 +3,7 @@
 from base64 import b64decode
 from base64 import b64encode
 from textwrap import dedent
+from typing import Any
 from uuid import UUID
 
 import strawberry
@@ -21,6 +22,7 @@ from mora.graphapi.filters import gen_filter_string
 
 from .paged import CursorType
 from .paged import LimitType
+from .paged import PageHelper
 from .permissions import IsAuthenticatedPermission
 from .permissions import gen_read_permission
 from .seed_resolver import seed_resolver
@@ -109,16 +111,16 @@ async def full_event_resolver(
     filter: FullEventFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list["FullEvent"]:
+) -> Any:
     if filter is None:
         filter = FullEventFilter()
+
+    pag = PageHelper(filter, cursor, limit)
 
     clauses = [
         db.Event.listener_fk == db.Listener.pk,
     ]
 
-    # Only resolve the owners own events _unless_ they have the
-    # "read_event_all" permission.
     token = await info.context.get_token()
     if "read_event_all" not in token.realm_access.roles:
         owner = get_authenticated_user()
@@ -147,22 +149,23 @@ async def full_event_resolver(
 
     if limit is not None:  # pragma: no cover
         query = query.limit(limit)
-    # This doesn't actually work correctly. It is hard to do pagination
-    # correctly, so for now we just do this super naively. This resolver is
-    # only used by humans, not by integrations.
-    query = query.offset(int(cursor.last) if cursor else 0)
+    query = query.offset(pag.offset)
 
     session: AsyncSession = info.context.session
-    result = await session.scalars(query)
-    return [
-        FullEvent(
-            subject=event.subject,
-            priority=event.priority,
-            silenced=event.silenced,
-            listener_uuid=event.listener_fk,
-        )
-        for event in result
-    ]
+    result = list(await session.scalars(query))
+    has_more = not (not result and limit != 0 and pag.offset > 0)
+    return pag.paged(
+        [
+            FullEvent(
+                subject=event.subject,
+                priority=event.priority,
+                silenced=event.silenced,
+                listener_uuid=event.listener_fk,
+            )
+            for event in result
+        ],
+        has_more=has_more,
+    )
 
 
 async def listener_resolver(
@@ -170,32 +173,35 @@ async def listener_resolver(
     filter: ListenerFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list["Listener"]:
+) -> Any:
     if filter is None:  # pragma: no cover
         filter = ListenerFilter()
+
+    pag = PageHelper(filter, cursor, limit)
 
     query = select(db.Listener).where(*filter.where_clauses())
 
     if limit is not None:  # pragma: no cover
         query = query.limit(limit)
-    # This doesn't actually work correctly. It is hard to do pagination
-    # correctly, so for now we just do this super naively. This resolver is
-    # only used by humans, not by integrations.
-    query = query.offset(int(cursor.last) if cursor else 0)
+    query = query.offset(pag.offset)
 
     session: AsyncSession = info.context.session
     result = list(await session.scalars(query))
 
-    return [
-        Listener(
-            uuid=listener.pk,
-            user_key=listener.user_key,
-            owner=listener.owner,
-            routing_key=listener.routing_key,
-            namespace_fk=listener.namespace_fk,
-        )
-        for listener in result
-    ]
+    has_more = not (not result and limit != 0 and pag.offset > 0)
+    return pag.paged(
+        [
+            Listener(
+                uuid=listener.pk,
+                user_key=listener.user_key,
+                owner=listener.owner,
+                routing_key=listener.routing_key,
+                namespace_fk=listener.namespace_fk,
+            )
+            for listener in result
+        ],
+        has_more=has_more,
+    )
 
 
 async def namespace_resolver(
@@ -203,30 +209,33 @@ async def namespace_resolver(
     filter: NamespaceFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list["Namespace"]:
+) -> Any:
     if filter is None:  # pragma: no cover
         filter = NamespaceFilter()
+
+    pag = PageHelper(filter, cursor, limit)
 
     query = select(db.Namespace).where(*filter.where_clauses())
 
     if limit is not None:  # pragma: no cover
         query = query.limit(limit)
-    # This doesn't actually work correctly. It is hard to do pagination
-    # correctly, so for now we just do this super naively. This resolver is
-    # only used by humans, not by integrations.
-    query = query.offset(int(cursor.last) if cursor else 0)
+    query = query.offset(pag.offset)
 
     session: AsyncSession = info.context.session
     result = list(await session.scalars(query))
 
-    return [
-        Namespace(
-            name=namespace.name,
-            owner=namespace.owner,
-            public=namespace.public,
-        )
-        for namespace in result
-    ]
+    has_more = not (not result and limit != 0 and pag.offset > 0)
+    return pag.paged(
+        [
+            Namespace(
+                name=namespace.name,
+                owner=namespace.owner,
+                public=namespace.public,
+            )
+            for namespace in result
+        ],
+        has_more=has_more,
+    )
 
 
 @strawberry.type(

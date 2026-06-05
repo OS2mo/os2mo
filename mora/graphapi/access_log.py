@@ -4,13 +4,13 @@ from datetime import datetime
 from enum import Enum
 from functools import partial
 from textwrap import dedent
+from typing import Any
 from uuid import UUID
 
 import strawberry
 from fastramqpi.ra_utils.apply import apply
 from more_itertools import bucket
 from sqlalchemy import select
-from starlette_context import context
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
@@ -26,6 +26,7 @@ from .actor import Actor
 from .actor import actor_uuid_to_actor
 from .paged import CursorType
 from .paged import LimitType
+from .paged import PageHelper
 from .resolvers import get_sqlalchemy_date_interval
 
 
@@ -216,9 +217,11 @@ async def access_log_resolver(
     filter: AccessLogFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[AccessLog]:
+) -> Any:
     if filter is None:
         filter = AccessLogFilter()
+
+    pag = PageHelper(filter, cursor, limit)
 
     query = select(AccessLogOperation)
     if filter.ids is not None:  # pragma: no cover
@@ -250,7 +253,7 @@ async def access_log_resolver(
     if limit is not None:
         # Fetch one extra element to see if there is another page
         query = query.limit(limit + 1)
-    query = query.offset(int(cursor.last) if cursor else 0)
+    query = query.offset(pag.offset)
 
     session: AsyncSession = info.context.session
     result = list(await session.scalars(query))
@@ -270,20 +273,22 @@ async def access_log_resolver(
         [accesslog.id for accesslog in result],
     )
 
+    has_more = False
     if limit is not None:
-        # Not enough results == no more pages
-        if len(result) <= limit:
-            context["lora_page_out_of_range"] = True
-        # Strip the extra element that was only used for page-checking
-        elif len(result) == limit + 1:
+        if len(result) > limit:
+            has_more = True
+            # Strip the extra element that was only used for page-checking
             result = result[:-1]
 
-    return [
-        AccessLog(
-            id=accesslog.id,
-            time=accesslog.time,
-            actor=accesslog.actor,
-            model=AccessLogModel(accesslog.model),
-        )
-        for accesslog in result
-    ]
+    return pag.paged(
+        [
+            AccessLog(
+                id=accesslog.id,
+                time=accesslog.time,
+                actor=accesslog.actor,
+                model=AccessLogModel(accesslog.model),
+            )
+            for accesslog in result
+        ],
+        has_more=has_more,
+    )

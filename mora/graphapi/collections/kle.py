@@ -29,7 +29,7 @@ from .utils import gen_uuid_field_deprecation
 from .utils import raise_force_none_return_if_uuid_none
 from .utils import to_list
 from .utils import to_one
-from .utils import to_paged_response
+from .utils import paged_to_response
 
 
 @strawberry.experimental.pydantic.type(
@@ -121,11 +121,12 @@ class KLE:
     )
 
     kle_aspects_response: Paged[Response[LazyClass]] = strawberry.field(
-        resolver=to_paged_response(ClassRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 class_resolver,
                 {"uuids": lambda root: root.kle_aspect_uuids or []},
-            )
+            ),
+            ClassRead,
         ),
         description=dedent(
             """

@@ -1,11 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from textwrap import dedent
-from typing import TypeVar
 from typing import cast
 
 import strawberry
-from starlette_context import context
 from strawberry.types import Info
 
 from mora import db
@@ -49,7 +47,7 @@ from .collections import Owner
 from .collections import RelatedUnit
 from .collections import RoleBinding
 from .collections import Version
-from .collections.utils import to_paged_response
+from .collections.utils import paged_to_response
 from .events import Event
 from .events import FullEvent
 from .events import Listener
@@ -68,8 +66,8 @@ from .models import FacetRead
 from .models import RoleBindingRead
 from .paged import CursorType
 from .paged import LimitType
+from .paged import PageHelper
 from .paged import Paged
-from .paged import to_paged
 from .permissions import IsAuthenticatedPermission
 from .permissions import gen_read_permission
 from .permissions import gen_role_permission
@@ -92,21 +90,12 @@ from .resolvers import related_unit_resolver
 from .resolvers import rolebinding_resolver
 from .response import Response
 
-T = TypeVar("T")
-
-
-def paginate(obj: list[T], cursor: CursorType, limit: LimitType) -> list[T]:
-    if cursor is None:
-        return obj[:limit]
-    return obj[int(cursor.last) :][:limit]  # pragma: no cover
-
-
 async def health_resolver(
     info: Info,
     filter: HealthFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[Health]:
+) -> Paged[Health]:
     if filter is None:
         filter = HealthFilter()
 
@@ -114,13 +103,19 @@ async def health_resolver(
     if filter.identifiers is not None:
         healthchecks = healthchecks.intersection(set(filter.identifiers))
 
-    healths = paginate(list(healthchecks), cursor, limit)
-    if not healths:
-        context["lora_page_out_of_range"] = True
-    return [
+    pag = PageHelper(filter, cursor, limit)
+    health_list = sorted(healthchecks)
+    if limit is not None:
+        healths = health_list[pag.offset : pag.offset + limit]
+    else:
+        healths = health_list[pag.offset:]
+
+    health_objects = [
         Health(identifier=identifier)  # type: ignore[call-arg]
         for identifier in healths
     ]
+    has_more = bool(healths) if limit is not None else False
+    return pag.paged(health_objects, has_more=has_more)
 
 
 async def file_resolver(
@@ -128,13 +123,11 @@ async def file_resolver(
     filter: FileFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[File]:
+) -> Paged[File]:
     if filter is None:  # pragma: no cover
         filter = FileFilter()
 
     session: AsyncSession = info.context.session
-    # We do not need the access log elsewhere for files, because this is the
-    # only way to resolve a `File` (which is needed to read the content).
     access_log(
         session,
         "file_resolver",
@@ -148,15 +141,19 @@ async def file_resolver(
     )
 
     found_files = await db.files.ls(session, filter)
+    pag = PageHelper(filter, cursor, limit)
+    file_list = sorted(found_files) if isinstance(found_files, set) else list(found_files)
+    if limit is not None:
+        files = file_list[pag.offset : pag.offset + limit]
+    else:
+        files = file_list[pag.offset:]
 
-    files = paginate(list(found_files), cursor, limit)
-    if not files:
-        context["lora_page_out_of_range"] = True
-
-    return [
+    file_objects = [
         File(file_store=filter.file_store, file_name=file_name)  # type: ignore[call-arg]
         for file_name in files
     ]
+    has_more = bool(files) if limit is not None else False
+    return pag.paged(file_objects, has_more=has_more)
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -171,7 +168,7 @@ class Query:
     # Addresses
     # ---------
     addresses: Paged[Response[Address]] = strawberry.field(
-        resolver=to_paged_response(AddressRead)(address_resolver),
+        resolver=paged_to_response(address_resolver, AddressRead),
         description="Get addresses.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
@@ -179,7 +176,7 @@ class Query:
     # Associations
     # ------------
     associations: Paged[Response[Association]] = strawberry.field(
-        resolver=to_paged_response(AssociationRead)(association_resolver),
+        resolver=paged_to_response(association_resolver, AssociationRead),
         description="Get associations.",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -190,7 +187,7 @@ class Query:
     # Classes
     # -------
     classes: Paged[Response[Class]] = strawberry.field(
-        resolver=to_paged_response(ClassRead)(class_resolver),
+        resolver=paged_to_response(class_resolver, ClassRead),
         description="Get classes.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
@@ -198,13 +195,13 @@ class Query:
     # Employees
     # ---------
     employees: Paged[Response[Employee]] = strawberry.field(
-        resolver=to_paged_response(EmployeeRead)(employee_resolver),
+        resolver=paged_to_response(employee_resolver, EmployeeRead),
         description="Get employees.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
         deprecation_reason="Use 'persons' instead. Will be removed in a future version of OS2mo.",
     )
     persons: Paged[Response[Employee]] = strawberry.field(
-        resolver=to_paged_response(EmployeeRead)(employee_resolver),
+        resolver=paged_to_response(employee_resolver, EmployeeRead),
         description="Get persons.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
@@ -212,7 +209,7 @@ class Query:
     # Engagements
     # -----------
     engagements: Paged[Response[Engagement]] = strawberry.field(
-        resolver=to_paged_response(EngagementRead)(engagement_resolver),
+        resolver=paged_to_response(engagement_resolver, EngagementRead),
         description="Get engagements.",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -223,7 +220,7 @@ class Query:
     # Facets
     # ------
     facets: Paged[Response[Facet]] = strawberry.field(
-        resolver=to_paged_response(FacetRead)(facet_resolver),
+        resolver=paged_to_response(facet_resolver, FacetRead),
         description="Get facets.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
@@ -231,7 +228,7 @@ class Query:
     # ITSystems
     # ---------
     itsystems: Paged[Response[ITSystem]] = strawberry.field(
-        resolver=to_paged_response(ITSystemRead)(it_system_resolver),
+        resolver=paged_to_response(it_system_resolver, ITSystemRead),
         description="Get it-systems.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
     )
@@ -239,7 +236,7 @@ class Query:
     # ITUsers
     # -------
     itusers: Paged[Response[ITUser]] = strawberry.field(
-        resolver=to_paged_response(ITUserRead)(it_user_resolver),
+        resolver=paged_to_response(it_user_resolver, ITUserRead),
         description="Get it-users.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
@@ -247,7 +244,7 @@ class Query:
     # KLEs
     # ----
     kles: Paged[Response[KLE]] = strawberry.field(
-        resolver=to_paged_response(KLERead)(kle_resolver),
+        resolver=paged_to_response(kle_resolver, KLERead),
         description="Get kles.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("kle")],
     )
@@ -255,7 +252,7 @@ class Query:
     # Leave
     # -----
     leaves: Paged[Response[Leave]] = strawberry.field(
-        resolver=to_paged_response(LeaveRead)(leave_resolver),
+        resolver=paged_to_response(leave_resolver, LeaveRead),
         description="Get leaves.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
@@ -263,7 +260,7 @@ class Query:
     # Managers
     # --------
     managers: Paged[Response[Manager]] = strawberry.field(
-        resolver=to_paged_response(ManagerRead)(manager_resolver),
+        resolver=paged_to_response(manager_resolver, ManagerRead),
         description="Get manager roles.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
     )
@@ -271,7 +268,7 @@ class Query:
     # Owners
     # ------
     owners: Paged[Response[Owner]] = strawberry.field(
-        resolver=to_paged_response(OwnerRead)(owner_resolver),
+        resolver=paged_to_response(owner_resolver, OwnerRead),
         description="Get owners.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("owner")],
     )
@@ -279,7 +276,7 @@ class Query:
     # Organisational Units
     # --------------------
     org_units: Paged[Response[OrganisationUnit]] = strawberry.field(
-        resolver=to_paged_response(OrganisationUnitRead)(organisation_unit_resolver),
+        resolver=paged_to_response(organisation_unit_resolver, OrganisationUnitRead),
         description="Get organisation units.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
@@ -287,7 +284,7 @@ class Query:
     # Related Units
     # -------------
     related_units: Paged[Response[RelatedUnit]] = strawberry.field(
-        resolver=to_paged_response(RelatedUnitRead)(related_unit_resolver),
+        resolver=paged_to_response(related_unit_resolver, RelatedUnitRead),
         description="Get related organisation units.",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -298,7 +295,7 @@ class Query:
     # Roles
     # -----
     rolebindings: Paged[Response[RoleBinding]] = strawberry.field(
-        resolver=to_paged_response(RoleBindingRead)(rolebinding_resolver),
+        resolver=paged_to_response(rolebinding_resolver, RoleBindingRead),
         description="Get role-mappings.",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -309,7 +306,7 @@ class Query:
     # Health
     # ------
     healths: Paged[Health] = strawberry.field(
-        resolver=to_paged(health_resolver, Health),
+        resolver=health_resolver,
         description="Query healthcheck status.",
         permission_classes=[],
     )
@@ -317,7 +314,7 @@ class Query:
     # Files
     # -----
     files: Paged[File] = strawberry.field(
-        resolver=to_paged(file_resolver, File),
+        resolver=file_resolver,
         description="Fetch files from the configured file backend (if any).",
         deprecation_reason="The file-store functionality will be removed in a future version of OS2mo.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("file")],
@@ -325,7 +322,7 @@ class Query:
 
     registrations__v25: Paged[Registration] = strawberry.field(
         name="registrations",
-        resolver=to_paged(registration_resolver, Registration),
+        resolver=registration_resolver,
         description=dedent(
             """\
             Get a list of registrations.
@@ -345,7 +342,7 @@ class Query:
     )
     registrations__v26: Paged[IRegistration] = strawberry.field(
         name="registrations",
-        resolver=to_paged(registration_resolver, IRegistration),
+        resolver=registration_resolver,
         description=dedent(
             """\
             Get a list of registrations.
@@ -365,7 +362,7 @@ class Query:
     )
 
     access_log: Paged[AccessLog] = strawberry.field(
-        resolver=to_paged(access_log_resolver, AccessLog),
+        resolver=access_log_resolver,
         description=dedent(
             """\
             Get a list of access events.
@@ -408,7 +405,7 @@ class Query:
     # ------------
 
     events: Paged[FullEvent] = strawberry.field(
-        resolver=to_paged(full_event_resolver, FullEvent),
+        resolver=full_event_resolver,
         description=dedent(
             """\
             Get full events.
@@ -427,7 +424,7 @@ class Query:
     )
 
     event_namespaces: Paged[Namespace] = strawberry.field(
-        resolver=to_paged(namespace_resolver, Namespace),
+        resolver=namespace_resolver,
         description="Get event namespaces.",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -436,7 +433,7 @@ class Query:
     )
 
     event_listeners: Paged[Listener] = strawberry.field(
-        resolver=to_paged(listener_resolver, Listener),
+        resolver=listener_resolver,
         description="Get event listeners.",
         permission_classes=[
             IsAuthenticatedPermission,

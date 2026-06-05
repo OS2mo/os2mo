@@ -38,7 +38,7 @@ from ..seed_resolver import seed_resolver
 from ..types import CPRType
 from ..validity import OpenValidity
 from .utils import to_list
-from .utils import to_paged_response
+from .utils import paged_to_response
 
 
 @strawberry.experimental.pydantic.type(
@@ -69,7 +69,7 @@ class Employee:
         return root.user_key
 
     engagements_response: Paged[Response[LazyEngagement]] = strawberry.field(
-        resolver=to_paged_response(EngagementRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 engagement_resolver,
                 {
@@ -81,6 +81,7 @@ class Employee:
                 },
                 strip={"employees"},
             ),
+            EngagementRead,
         ),
         description=dedent(
             """
@@ -124,7 +125,7 @@ class Employee:
     )
 
     manager_roles_response: Paged[Response[LazyManager]] = strawberry.field(
-        resolver=to_paged_response(ManagerRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 manager_resolver,
                 {
@@ -135,7 +136,8 @@ class Employee:
                     )
                 },
                 strip={"employees"},
-            )
+            ),
+            ManagerRead,
         ),
         description=dedent(
             """
@@ -173,7 +175,7 @@ class Employee:
     )
 
     addresses_response: Paged[Response[LazyAddress]] = strawberry.field(
-        resolver=to_paged_response(AddressRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 address_resolver,
                 {
@@ -184,7 +186,8 @@ class Employee:
                     )
                 },
                 strip={"employees"},
-            )
+            ),
+            AddressRead,
         ),
         description=dedent(
             """
@@ -234,7 +237,7 @@ class Employee:
     )
 
     leaves_response: Paged[Response[LazyLeave]] = strawberry.field(
-        resolver=to_paged_response(LeaveRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 leave_resolver,
                 {
@@ -245,7 +248,8 @@ class Employee:
                     )
                 },
                 strip={"employees"},
-            )
+            ),
+            LeaveRead,
         ),
         description=dedent(
             """
@@ -283,7 +287,7 @@ class Employee:
     )
 
     associations_response: Paged[Response[LazyAssociation]] = strawberry.field(
-        resolver=to_paged_response(AssociationRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 association_resolver,
                 {
@@ -294,7 +298,8 @@ class Employee:
                     )
                 },
                 strip={"employees"},
-            )
+            ),
+            AssociationRead,
         ),
         description=dedent(
             """
@@ -338,7 +343,7 @@ class Employee:
     )
 
     itusers_response: Paged[Response[LazyITUser]] = strawberry.field(
-        resolver=to_paged_response(ITUserRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 it_user_resolver,
                 {
@@ -349,7 +354,8 @@ class Employee:
                     )
                 },
                 strip={"employees"},
-            )
+            ),
+            ITUserRead,
         ),
         description=dedent(
             """

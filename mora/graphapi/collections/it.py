@@ -48,7 +48,7 @@ from .utils import raise_force_none_return_if_uuid_none
 from .utils import to_list
 from .utils import to_one
 from .utils import to_only
-from .utils import to_paged_response
+from .utils import paged_to_response
 from .utils import to_response_list
 
 
@@ -117,7 +117,7 @@ class ITSystem:
         return root.user_key
 
     roles_response: Paged[Response[LazyClass]] = strawberry.field(
-        resolver=to_paged_response(ClassRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 class_resolver,
                 {
@@ -134,7 +134,8 @@ class ITSystem:
                         to_date=None,
                     )
                 },
-            )
+            ),
+            ClassRead,
         ),
         description=dedent(
             """
@@ -353,11 +354,12 @@ class ITUser:
     )
 
     engagements_responses: Paged[Response[LazyEngagement]] = strawberry.field(
-        resolver=to_paged_response(EngagementRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 engagement_resolver,
                 {"uuids": lambda root: root.engagement_uuids},
-            )
+            ),
+            EngagementRead,
         ),
         description=dedent(
             """
@@ -443,7 +445,7 @@ class ITUser:
     )
 
     addresses_response: Paged[Response[LazyAddress]] = strawberry.field(
-        resolver=to_paged_response(AddressRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 address_resolver,
                 {
@@ -453,7 +455,8 @@ class ITUser:
                         to_date=None,
                     )
                 },
-            )
+            ),
+            AddressRead,
         ),
         description=dedent(
             """
@@ -523,7 +526,7 @@ class ITUser:
     )
 
     rolebindings_response: Paged[Response[LazyRoleBinding]] = strawberry.field(
-        resolver=to_paged_response(RoleBindingRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 rolebinding_resolver,
                 {
@@ -533,7 +536,8 @@ class ITUser:
                         to_date=None,
                     )
                 },
-            )
+            ),
+            RoleBindingRead,
         ),
         description="Rolebindings this IT User has in the connected IT system.",
         permission_classes=[

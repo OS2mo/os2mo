@@ -51,7 +51,7 @@ from .utils import list_to_optional_field_warning
 from .utils import to_arbitrary_only
 from .utils import to_list
 from .utils import to_only
-from .utils import to_paged_response
+from .utils import paged_to_response
 from .utils import to_response_list
 
 
@@ -81,7 +81,7 @@ class Engagement:
         return root.user_key
 
     addresses_response: Paged[Response[LazyAddress]] = strawberry.field(
-        resolver=to_paged_response(AddressRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 address_resolver,
                 {
@@ -92,7 +92,8 @@ class Engagement:
                     )
                 },
                 strip={"engagements"},
-            )
+            ),
+            AddressRead,
         ),
         description="Addresses connected to the engagement.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
@@ -336,7 +337,7 @@ class Engagement:
     )
 
     itusers_response: Paged[Response[LazyITUser]] = strawberry.field(
-        resolver=to_paged_response(ITUserRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 it_user_resolver,
                 {
@@ -346,7 +347,8 @@ class Engagement:
                         to_date=None,
                     )
                 },
-            )
+            ),
+            ITUserRead,
         ),
         description="Connected IT-user.\n",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],

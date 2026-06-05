@@ -20,7 +20,7 @@ from ..seed_resolver import seed_resolver
 from ..validity import Validity
 from .utils import gen_uuid_field_deprecation
 from .utils import to_list
-from .utils import to_paged_response
+from .utils import paged_to_response
 
 
 @strawberry.experimental.pydantic.type(
@@ -69,11 +69,12 @@ class RelatedUnit:
         return root.type_
 
     org_units_response: Paged[Response[LazyOrganisationUnit]] = strawberry.field(
-        resolver=to_paged_response(OrganisationUnitRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 organisation_unit_resolver,
                 {"uuids": lambda root: root.org_unit_uuids or []},
-            )
+            ),
+            OrganisationUnitRead,
         ),
         description=dedent(
             """

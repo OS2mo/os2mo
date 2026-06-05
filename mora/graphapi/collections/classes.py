@@ -30,7 +30,7 @@ from .utils import gen_uuid_field_deprecation
 from .utils import to_list
 from .utils import to_one
 from .utils import to_only
-from .utils import to_paged_response
+from .utils import paged_to_response
 
 
 @strawberry.experimental.pydantic.type(
@@ -82,7 +82,7 @@ class Class:
     )
 
     children_response: Paged[Response[LazyClass]] = strawberry.field(
-        resolver=to_paged_response(ClassRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 class_resolver,
                 {
@@ -94,6 +94,7 @@ class Class:
                 },
                 strip={"parents", "parent_user_keys"},
             ),
+            ClassRead,
         ),
         description=dedent(
             """

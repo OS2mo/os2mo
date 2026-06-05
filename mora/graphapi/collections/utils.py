@@ -4,7 +4,6 @@
 
 from collections.abc import Awaitable
 from collections.abc import Callable
-from functools import partial
 from functools import wraps
 from itertools import chain
 from textwrap import dedent
@@ -21,7 +20,7 @@ from mora.graphapi.context import MOInfo
 
 from ..graphql_utils import LoadKey
 from ..moobject import MOObject
-from ..paged import to_paged
+from ..paged import Paged
 from ..resolver_map import get_dataloader
 from ..response import Response
 from ..utils import uuid2list
@@ -153,17 +152,34 @@ to_arbitrary_only = result_translation(
 )
 
 
-def to_paged_response(model: type[MOObject]) -> Callable:
-    return partial(to_paged, model=model, result_transformer=result2response_list)
+def paged_to_response(
+    resolver_func: Callable, model: type[MOObject]
+) -> Callable:
+    """Wrap a resolver returning ``Paged[dict]`` to return ``Paged[Response[model]]``."""
+
+    @wraps(resolver_func)
+    async def wrapper(*args: Any, info: MOInfo, **kwargs: Any) -> Paged[Response[MOObject]]:
+        page = await resolver_func(*args, info=info, **kwargs)
+        return Paged(  # type: ignore[call-arg]
+            objects=result2response_list(model, page.objects, info),
+            page_info=page.page_info,  # type: ignore[call-arg]
+        )
+
+    return wrapper
 
 
-def to_func_uuids(
-    model: Any, result: dict[UUID, list[dict]], info: MOInfo
-) -> list[UUID]:
-    return list(result.keys())
+def paged_to_uuids(resolver_func: Callable) -> Callable:
+    """Wrap a resolver returning ``Paged[dict]`` to return ``Paged[UUID]``."""
 
+    @wraps(resolver_func)
+    async def wrapper(*args: Any, info: MOInfo, **kwargs: Any) -> Paged[UUID]:
+        page = await resolver_func(*args, info=info, **kwargs)
+        return Paged(  # type: ignore[call-arg]
+            objects=list(page.objects.keys()),
+            page_info=page.page_info,  # type: ignore[call-arg]
+        )
 
-to_paged_uuids = partial(to_paged, result_transformer=to_func_uuids)
+    return wrapper
 
 
 def gen_uuid_field_deprecation(field: str) -> str:

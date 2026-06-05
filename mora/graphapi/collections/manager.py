@@ -34,7 +34,7 @@ from .utils import list_to_optional_field_warning
 from .utils import raise_force_none_return_if_uuid_none
 from .utils import to_arbitrary_only
 from .utils import to_list
-from .utils import to_paged_response
+from .utils import paged_to_response
 
 
 @strawberry.experimental.pydantic.type(
@@ -125,11 +125,12 @@ class Manager:
     )
 
     responsibilities_response: Paged[Response[LazyClass]] = strawberry.field(
-        resolver=to_paged_response(ClassRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 class_resolver,
                 {"uuids": lambda root: root.responsibility_uuids or []},
-            )
+            ),
+            ClassRead,
         ),
         description=dedent(
             """

@@ -24,7 +24,7 @@ from ..validity import OpenValidity
 from .utils import gen_uuid_field_deprecation
 from .utils import to_list
 from .utils import to_only
-from .utils import to_paged_response
+from .utils import paged_to_response
 
 
 @strawberry.experimental.pydantic.type(
@@ -33,7 +33,7 @@ from .utils import to_paged_response
 )
 class Facet:
     classes_responses: Paged[Response[LazyClass]] = strawberry.field(
-        resolver=to_paged_response(ClassRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 class_resolver,
                 {
@@ -44,7 +44,8 @@ class Facet:
                     )
                 },
                 strip={"facets", "facet_user_keys"},
-            )
+            ),
+            ClassRead,
         ),
         description="Associated classes",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -107,7 +108,7 @@ class Facet:
     )
 
     children_response: Paged[Response[LazyFacet]] = strawberry.field(
-        resolver=to_paged_response(FacetRead)(
+        resolver=paged_to_response(
             seed_resolver(
                 facet_resolver,
                 {
@@ -118,7 +119,8 @@ class Facet:
                     )
                 },
                 strip={"parents", "parent_user_keys"},
-            )
+            ),
+            FacetRead,
         ),
         description=dedent(
             """
