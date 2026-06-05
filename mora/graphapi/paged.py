@@ -2,9 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 """Pagination primitives."""
 
-from collections.abc import Awaitable
-from collections.abc import Callable
-from functools import wraps
 from textwrap import dedent
 from typing import Annotated
 from typing import Any
@@ -14,8 +11,6 @@ from uuid import UUID
 
 import strawberry
 from pydantic import PositiveInt
-from starlette_context import context
-from strawberry.types import Info
 
 from mora.util import now
 
@@ -120,46 +115,70 @@ class Paged(Generic[T]):
     )
 
 
-def to_paged(
-    resolver_func: Callable[..., Awaitable[Any]],
-    model: Any,
-    result_transformer: Callable[[Any, Any, Info], Any] | None = None,
-) -> Callable[..., Awaitable[Paged]]:
-    result_transformer = result_transformer or (lambda _, x, __: x)
-
-    @wraps(resolver_func)
-    async def resolve_response(
-        *args: Any,
-        info: Info,
+class Pagination(Generic[T]):
+    def __init__(
+        self,
         limit: LimitType,
         cursor: CursorType,
         filter: BaseFilter | RegistrationFilter | None = None,
-        **kwargs: Any,
-    ) -> Paged:
+    ):
+        self.limit = limit
+        self.filter = filter
+
         if limit and cursor is None:
             registration_time = now()
-            # RegistrationFilter doesn't have a `registration_time`
-            if isinstance(filter, BaseFilter) and filter.registration_time:
+            if hasattr(filter, "registration_time") and filter.registration_time:
                 registration_time = filter.registration_time
-            cursor = Cursor(last=UUID(int=0), registration_time=registration_time)
+            self.cursor = Cursor(last=UUID(int=0), registration_time=registration_time)
+        else:
+            self.cursor = cursor
 
-        result = await resolver_func(
-            *args, info=info, filter=filter, limit=limit, cursor=cursor, **kwargs
-        )
+    @property
+    def registration_time(self) -> Any:
+        from sqlalchemy.sql import func
 
+        from mora.graphapi.gmodels.base import tz_isodate
+
+        if (
+            self.cursor is not None
+            and hasattr(self.filter, "registration_time")
+            and getattr(self.filter, "registration_time", None)
+            and getattr(self.filter, "registration_time", None)
+            != self.cursor.registration_time
+        ):
+            raise ValueError("Cannot change registration_time during pagination")
+
+        if self.cursor is not None:
+            return tz_isodate(self.cursor.registration_time)
+        if hasattr(self.filter, "registration_time") and getattr(
+            self.filter, "registration_time", None
+        ):
+            return tz_isodate(getattr(self.filter, "registration_time"))
+        return func.now()
+
+    def apply(self, query: Any) -> Any:
+        if self.limit is not None:
+            query = query.limit(self.limit)
+        if self.cursor is not None:
+            query = query.offset(int(self.cursor.last))
+        return query
+
+    def apply_list(self, obj: list[Any]) -> list[Any]:
+        if self.limit is None:
+            return obj
+        if self.cursor is None:
+            return obj[: self.limit]
+        return obj[int(self.cursor.last) :][: self.limit]  # pragma: no cover
+
+    def create_page(self, objects: Any) -> Paged[T]:
         end_cursor: CursorType = None
-        if limit and cursor is not None:
-            end_cursor = Cursor(
-                last=UUID(int=int(cursor.last) + limit),
-                registration_time=cursor.registration_time,
-            )
-        if context.get("lora_page_out_of_range"):
-            end_cursor = None
-
-        assert result_transformer is not None
-        return Paged(  # type: ignore[call-arg]
-            objects=result_transformer(model, result, info),
-            page_info=PageInfo(next_cursor=end_cursor),  # type: ignore[call-arg]
+        if self.limit and self.cursor is not None:
+            if len(objects) == self.limit:
+                end_cursor = Cursor(
+                    last=UUID(int=int(self.cursor.last) + self.limit),
+                    registration_time=self.cursor.registration_time,
+                )
+        return Paged(
+            objects=objects,
+            page_info=PageInfo(next_cursor=end_cursor),
         )
-
-    return resolve_response

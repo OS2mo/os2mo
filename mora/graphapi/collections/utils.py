@@ -4,7 +4,6 @@
 
 from collections.abc import Awaitable
 from collections.abc import Callable
-from functools import partial
 from functools import wraps
 from itertools import chain
 from textwrap import dedent
@@ -21,7 +20,7 @@ from mora.graphapi.context import MOInfo
 
 from ..graphql_utils import LoadKey
 from ..moobject import MOObject
-from ..paged import to_paged
+from ..paged import Paged
 from ..resolver_map import get_dataloader
 from ..response import Response
 from ..utils import uuid2list
@@ -154,7 +153,18 @@ to_arbitrary_only = result_translation(
 
 
 def to_paged_response(model: type[MOObject]) -> Callable:
-    return partial(to_paged, model=model, result_transformer=result2response_list)
+    def decorator(resolver_func: Callable) -> Callable:
+        @wraps(resolver_func)
+        async def wrapper(*args: Any, info: MOInfo, **kwargs: Any) -> Any:
+            paged_result = await resolver_func(*args, info=info, **kwargs)
+            return Paged(
+                objects=result2response_list(model, paged_result.objects, info),
+                page_info=paged_result.page_info,
+            )
+
+        return wrapper
+
+    return decorator
 
 
 def to_func_uuids(
@@ -163,7 +173,16 @@ def to_func_uuids(
     return list(result.keys())
 
 
-to_paged_uuids = partial(to_paged, result_transformer=to_func_uuids)
+def to_paged_uuids(resolver_func: Callable, model: Any = None) -> Callable:
+    @wraps(resolver_func)
+    async def wrapper(*args: Any, info: MOInfo, **kwargs: Any) -> Any:
+        paged_result = await resolver_func(*args, info=info, **kwargs)
+        return Paged(
+            objects=to_func_uuids(model, paged_result.objects, info),
+            page_info=paged_result.page_info,
+        )
+
+    return wrapper
 
 
 def gen_uuid_field_deprecation(field: str) -> str:
