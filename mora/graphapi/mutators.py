@@ -1979,9 +1979,9 @@ class Mutation:
     @strawberry.mutation(
         description=dedent(
             """\
-            Silence an event.
+            Mark an event as silenced.
 
-            In general, this should only be done by humans while the implementation of a fix is in the works.
+            Silencing does not affect delivery, it only affects whether alerts are triggered.
             """
         ),
         permission_classes=[

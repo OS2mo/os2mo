@@ -773,7 +773,7 @@ class EventSendInput:
         """\
         Silence an event.
 
-        Silenced events are not received with `event_fetch`.
+        Silencing does not affect delivery, it only affects whether alerts are triggered.
         """
     ),
 )

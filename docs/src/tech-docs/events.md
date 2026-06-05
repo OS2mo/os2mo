@@ -179,7 +179,9 @@ that go unacknowledged.
 Events can be silenced and unsilenced with the `event_silence` and
 `event_unsilence` mutators, respectively.
 
-Integrations will never receive silenced events with `event_fetch`.
+Silencing does not affect delivery, it only affects whether alerts are
+triggered. Integrations still receive silenced events through `event_fetch`
+and must handle them like any other event.
 
 You are only expected to silence events temporarily. Integrations MUST be able
 to handle all events - its fine to do nothing based on an event.

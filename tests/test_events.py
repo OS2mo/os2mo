@@ -618,11 +618,44 @@ def test_event_silence(namespace: str, graphapi_post: GraphAPIPost) -> None:
     silence_event(
         graphapi_post, {"subjects": ["alice"], "listeners": {"uuids": [str(listener)]}}
     )
+    # Silencing does not affect delivery
     event = fetch_event(graphapi_post, listener)
-    assert event is None
+    assert event is not None
+    assert event["subject"] == "alice"
 
     listeners = get_listeners(graphapi_post)
     assert one(one(listeners)["events"])["silenced"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_silenced_events_have_lowest_priority(
+    namespace: str, graphapi_post: GraphAPIPost
+) -> None:
+    # Silenced events must always be delivered after any unsilenced event,
+    # regardless of the events' priorities.
+    routing_key = "rk"
+    listener = declare_listener(graphapi_post, namespace, "uk", routing_key)
+
+    # Silenced event with the best possible numerical priority (1).
+    send_event(graphapi_post, namespace, routing_key, "silenced", priority=1)
+    silence_event(
+        graphapi_post,
+        {"subjects": ["silenced"], "listeners": {"uuids": [str(listener)]}},
+    )
+
+    # Unsilenced event with a much worse numerical priority.
+    send_event(graphapi_post, namespace, routing_key, "unsilenced", priority=99999)
+
+    # The unsilenced event must be delivered first even though it has a
+    # numerically worse priority.
+    first = fetch_event(graphapi_post, listener)
+    assert first is not None
+    assert first["subject"] == "unsilenced"
+
+    second = fetch_event(graphapi_post, listener)
+    assert second is not None
+    assert second["subject"] == "silenced"
 
 
 @pytest.mark.integration_test
