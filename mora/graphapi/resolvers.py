@@ -35,7 +35,6 @@ from sqlalchemy import true
 from sqlalchemy import union
 from sqlalchemy.sql.functions import now as SQLNOW
 from sqlalchemy.types import Text
-from starlette_context import context
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.types.unset import UnsetType
@@ -76,7 +75,6 @@ from mora.db import OrganisationFunktionTilsGyldighed
 from mora.db import OrganisationRegistrering
 from mora.graphapi.context import MOInfo
 from mora.graphapi.custom_schema import get_version
-from mora.graphapi.gmodels.base import tz_isodate
 from mora.graphapi.version import Version
 from mora.service.autocomplete.employees import search_employees_predicate
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
@@ -103,6 +101,8 @@ from .filters import RoleBindingFilter
 from .graphql_utils import LoadKey
 from .paged import CursorType
 from .paged import LimitType
+from .paged import Paged
+from .paged import Pagination
 from .registrationbase import RegistrationBase
 from .validity import OpenValidityModel
 
@@ -301,10 +301,11 @@ async def facet_resolver(
     if filter is None:
         filter = FacetFilter()
 
+    pagination = Pagination.from_args(filter, cursor, limit)
     predicate = facet_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
+        registration_time=pagination.registration_time,
     )
     query = (
         select(distinct(FacetRegistrering.facet_id))
@@ -313,19 +314,16 @@ async def facet_resolver(
     )
     # Pagination must be done here since the generic_resolver (lora) does not
     # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
+    if pagination.limit is not None:
+        query = query.limit(pagination.limit)
+    query = query.offset(pagination.offset)
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # A non-first page that comes back empty marks the end of iteration.
+    has_next_page = bool(uuids) or pagination.offset == 0
 
     access_log(
         session,
@@ -339,13 +337,14 @@ async def facet_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    result = await generic_resolver(
         info.context.dataloaders.facet_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return pagination.page(result, has_next_page=has_next_page)
 
 
 def class_predicate(
@@ -518,10 +517,11 @@ async def class_resolver(
     if filter is None:
         filter = ClassFilter()
 
+    pagination = Pagination.from_args(filter, cursor, limit)
     predicate = class_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
+        registration_time=pagination.registration_time,
     )
     query = (
         select(distinct(KlasseRegistrering.klasse_id))
@@ -530,19 +530,16 @@ async def class_resolver(
     )
     # Pagination must be done here since the generic_resolver (lora) does not
     # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
+    if pagination.limit is not None:
+        query = query.limit(pagination.limit)
+    query = query.offset(pagination.offset)
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # A non-first page that comes back empty marks the end of iteration.
+    has_next_page = bool(uuids) or pagination.offset == 0
 
     access_log(
         session,
@@ -556,13 +553,14 @@ async def class_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    result = await generic_resolver(
         info.context.dataloaders.class_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return pagination.page(result, has_next_page=has_next_page)
 
 
 def address_predicate(
@@ -787,10 +785,11 @@ async def address_resolver(
     if filter is None:
         filter = AddressFilter()
 
+    pagination = Pagination.from_args(filter, cursor, limit)
     predicate = address_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
+        registration_time=pagination.registration_time,
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -799,19 +798,16 @@ async def address_resolver(
     )
     # Pagination must be done here since the generic_resolver (lora) does not
     # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
+    if pagination.limit is not None:
+        query = query.limit(pagination.limit)
+    query = query.offset(pagination.offset)
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # A non-first page that comes back empty marks the end of iteration.
+    has_next_page = bool(uuids) or pagination.offset == 0
 
     access_log(
         session,
@@ -825,13 +821,14 @@ async def address_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    result = await generic_resolver(
         info.context.dataloaders.address_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return pagination.page(result, has_next_page=has_next_page)
 
 
 def association_predicate(
@@ -1002,10 +999,11 @@ async def association_resolver(
     if filter is None:
         filter = AssociationFilter()
 
+    pagination = Pagination.from_args(filter, cursor, limit)
     predicate = association_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
+        registration_time=pagination.registration_time,
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -1014,19 +1012,16 @@ async def association_resolver(
     )
     # Pagination must be done here since the generic_resolver (lora) does not
     # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
+    if pagination.limit is not None:
+        query = query.limit(pagination.limit)
+    query = query.offset(pagination.offset)
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # A non-first page that comes back empty marks the end of iteration.
+    has_next_page = bool(uuids) or pagination.offset == 0
 
     access_log(
         session,
@@ -1040,15 +1035,14 @@ async def association_resolver(
         uuids,
     )
 
-    associations = await generic_resolver(
+    result = await generic_resolver(
         info.context.dataloaders.association_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
-
-    return associations
+    return pagination.page(result, has_next_page=has_next_page)
 
 
 def employee_predicate(
@@ -1124,10 +1118,11 @@ async def employee_resolver(
     if filter is None:
         filter = EmployeeFilter()
 
+    pagination = Pagination.from_args(filter, cursor, limit)
     predicate = employee_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
+        registration_time=pagination.registration_time,
     )
     query = (
         select(distinct(BrugerRegistrering.bruger_id))
@@ -1136,19 +1131,16 @@ async def employee_resolver(
     )
     # Pagination must be done here since the generic_resolver (lora) does not
     # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
+    if pagination.limit is not None:
+        query = query.limit(pagination.limit)
+    query = query.offset(pagination.offset)
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # A non-first page that comes back empty marks the end of iteration.
+    has_next_page = bool(uuids) or pagination.offset == 0
 
     access_log(
         session,
@@ -1162,13 +1154,14 @@ async def employee_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    result = await generic_resolver(
         info.context.dataloaders.employee_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return pagination.page(result, has_next_page=has_next_page)
 
 
 def engagement_predicate(
@@ -1367,10 +1360,11 @@ async def engagement_resolver(
     if filter is None:
         filter = EngagementFilter()
 
+    pagination = Pagination.from_args(filter, cursor, limit)
     predicate = engagement_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
+        registration_time=pagination.registration_time,
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -1379,19 +1373,16 @@ async def engagement_resolver(
     )
     # Pagination must be done here since the generic_resolver (lora) does not
     # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
+    if pagination.limit is not None:
+        query = query.limit(pagination.limit)
+    query = query.offset(pagination.offset)
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # A non-first page that comes back empty marks the end of iteration.
+    has_next_page = bool(uuids) or pagination.offset == 0
 
     access_log(
         session,
@@ -1405,13 +1396,14 @@ async def engagement_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    result = await generic_resolver(
         info.context.dataloaders.engagement_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return pagination.page(result, has_next_page=has_next_page)
 
 
 def manager_predicate(
@@ -1786,10 +1778,11 @@ async def manager_resolver(
     if filter is None:
         filter = ManagerFilter()
 
+    pagination = Pagination.from_args(filter, cursor, limit)
     predicate = manager_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
+        registration_time=pagination.registration_time,
         inherit=inherit,
     )
     query = (
@@ -1799,19 +1792,16 @@ async def manager_resolver(
     )
     # Pagination must be done here since the generic_resolver (lora) does not
     # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
+    if pagination.limit is not None:
+        query = query.limit(pagination.limit)
+    query = query.offset(pagination.offset)
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # A non-first page that comes back empty marks the end of iteration.
+    has_next_page = bool(uuids) or pagination.offset == 0
 
     access_log(
         session,
@@ -1825,13 +1815,14 @@ async def manager_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    result = await generic_resolver(
         info.context.dataloaders.manager_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return pagination.page(result, has_next_page=has_next_page)
 
 
 def owner_predicate(
@@ -1972,10 +1963,11 @@ async def owner_resolver(
     if filter is None:
         filter = OwnerFilter()
 
+    pagination = Pagination.from_args(filter, cursor, limit)
     predicate = owner_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
+        registration_time=pagination.registration_time,
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -1984,19 +1976,16 @@ async def owner_resolver(
     )
     # Pagination must be done here since the generic_resolver (lora) does not
     # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
+    if pagination.limit is not None:
+        query = query.limit(pagination.limit)
+    query = query.offset(pagination.offset)
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # A non-first page that comes back empty marks the end of iteration.
+    has_next_page = bool(uuids) or pagination.offset == 0
 
     access_log(
         session,
@@ -2010,31 +1999,14 @@ async def owner_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    result = await generic_resolver(
         info.context.dataloaders.owner_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
-
-
-def _get_registration_time(
-    filter: BaseFilter,
-    cursor: CursorType,
-) -> datetime | SQLNOW:
-    if (
-        cursor is not None
-        and filter.registration_time
-        and filter.registration_time != cursor.registration_time
-    ):
-        raise ValueError("Cannot change registration_time during pagination")
-
-    if cursor is not None:
-        return tz_isodate(cursor.registration_time)
-    if filter.registration_time:
-        return tz_isodate(filter.registration_time)
-    return func.now()
+    return pagination.page(result, has_next_page=has_next_page)
 
 
 def _get_registrering_clause(
@@ -2451,10 +2423,11 @@ async def organisation_unit_resolver(
     if filter is None:
         filter = OrganisationUnitFilter()
 
+    pagination = Pagination.from_args(filter, cursor, limit)
     predicate = organisation_unit_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
+        registration_time=pagination.registration_time,
     )
     query = (
         select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
@@ -2463,19 +2436,16 @@ async def organisation_unit_resolver(
     )
     # Pagination must be done here since the generic_resolver (lora) does not
     # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
+    if pagination.limit is not None:
+        query = query.limit(pagination.limit)
+    query = query.offset(pagination.offset)
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # A non-first page that comes back empty marks the end of iteration.
+    has_next_page = bool(uuids) or pagination.offset == 0
 
     access_log(
         session,
@@ -2489,13 +2459,14 @@ async def organisation_unit_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    result = await generic_resolver(
         info.context.dataloaders.org_unit_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return pagination.page(result, has_next_page=has_next_page)
 
 
 async def organisation_unit_has_children(
@@ -2507,7 +2478,7 @@ async def organisation_unit_has_children(
     predicate = organisation_unit_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, None),
+        registration_time=Pagination.from_args(filter, None, None).registration_time,
     )
     query = (
         select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
@@ -2527,7 +2498,7 @@ async def organisation_unit_child_count(
     predicate = organisation_unit_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, None),
+        registration_time=Pagination.from_args(filter, None, None).registration_time,
     )
     query = (
         select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
@@ -2595,10 +2566,11 @@ async def it_system_resolver(
     if filter is None:
         filter = ITSystemFilter()
 
+    pagination = Pagination.from_args(filter, cursor, limit)
     predicate = it_system_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
+        registration_time=pagination.registration_time,
     )
     query = (
         select(distinct(ITSystemRegistrering.itsystem_id))
@@ -2607,19 +2579,16 @@ async def it_system_resolver(
     )
     # Pagination must be done here since the generic_resolver (lora) does not
     # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
+    if pagination.limit is not None:
+        query = query.limit(pagination.limit)
+    query = query.offset(pagination.offset)
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # A non-first page that comes back empty marks the end of iteration.
+    has_next_page = bool(uuids) or pagination.offset == 0
 
     access_log(
         session,
@@ -2633,13 +2602,14 @@ async def it_system_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    result = await generic_resolver(
         info.context.dataloaders.itsystem_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return pagination.page(result, has_next_page=has_next_page)
 
 
 def it_user_predicate(
@@ -2864,10 +2834,11 @@ async def it_user_resolver(
     if filter is None:
         filter = ITUserFilter()
 
+    pagination = Pagination.from_args(filter, cursor, limit)
     predicate = it_user_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
+        registration_time=pagination.registration_time,
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -2876,19 +2847,16 @@ async def it_user_resolver(
     )
     # Pagination must be done here since the generic_resolver (lora) does not
     # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
+    if pagination.limit is not None:
+        query = query.limit(pagination.limit)
+    query = query.offset(pagination.offset)
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # A non-first page that comes back empty marks the end of iteration.
+    has_next_page = bool(uuids) or pagination.offset == 0
 
     access_log(
         session,
@@ -2902,13 +2870,14 @@ async def it_user_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    result = await generic_resolver(
         info.context.dataloaders.ituser_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return pagination.page(result, has_next_page=has_next_page)
 
 
 def kle_predicate(
@@ -3012,10 +2981,11 @@ async def kle_resolver(
     if filter is None:
         filter = KLEFilter()
 
+    pagination = Pagination.from_args(filter, cursor, limit)
     predicate = kle_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
+        registration_time=pagination.registration_time,
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -3024,19 +2994,16 @@ async def kle_resolver(
     )
     # Pagination must be done here since the generic_resolver (lora) does not
     # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
+    if pagination.limit is not None:
+        query = query.limit(pagination.limit)
+    query = query.offset(pagination.offset)
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # A non-first page that comes back empty marks the end of iteration.
+    has_next_page = bool(uuids) or pagination.offset == 0
 
     access_log(
         session,
@@ -3050,13 +3017,14 @@ async def kle_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    result = await generic_resolver(
         info.context.dataloaders.kle_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return pagination.page(result, has_next_page=has_next_page)
 
 
 def leave_predicate(
@@ -3185,10 +3153,11 @@ async def leave_resolver(
     if filter is None:
         filter = LeaveFilter()
 
+    pagination = Pagination.from_args(filter, cursor, limit)
     predicate = leave_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
+        registration_time=pagination.registration_time,
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -3197,19 +3166,16 @@ async def leave_resolver(
     )
     # Pagination must be done here since the generic_resolver (lora) does not
     # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
+    if pagination.limit is not None:
+        query = query.limit(pagination.limit)
+    query = query.offset(pagination.offset)
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # A non-first page that comes back empty marks the end of iteration.
+    has_next_page = bool(uuids) or pagination.offset == 0
 
     access_log(
         session,
@@ -3223,13 +3189,14 @@ async def leave_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    result = await generic_resolver(
         info.context.dataloaders.leave_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return pagination.page(result, has_next_page=has_next_page)
 
 
 # type: ignore[no-untyped-def,override]
@@ -3359,10 +3326,11 @@ async def related_unit_resolver(
     if filter is None:
         filter = RelatedUnitFilter()
 
+    pagination = Pagination.from_args(filter, cursor, limit)
     predicate = related_unit_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
+        registration_time=pagination.registration_time,
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -3371,19 +3339,16 @@ async def related_unit_resolver(
     )
     # Pagination must be done here since the generic_resolver (lora) does not
     # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
+    if pagination.limit is not None:
+        query = query.limit(pagination.limit)
+    query = query.offset(pagination.offset)
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # A non-first page that comes back empty marks the end of iteration.
+    has_next_page = bool(uuids) or pagination.offset == 0
 
     access_log(
         session,
@@ -3397,13 +3362,14 @@ async def related_unit_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    result = await generic_resolver(
         info.context.dataloaders.rel_unit_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return pagination.page(result, has_next_page=has_next_page)
 
 
 def rolebinding_predicate(
@@ -3555,10 +3521,11 @@ async def rolebinding_resolver(
     if filter is None:
         filter = RoleBindingFilter()
 
+    pagination = Pagination.from_args(filter, cursor, limit)
     predicate = rolebinding_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
+        registration_time=pagination.registration_time,
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -3567,19 +3534,16 @@ async def rolebinding_resolver(
     )
     # Pagination must be done here since the generic_resolver (lora) does not
     # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
+    if pagination.limit is not None:
+        query = query.limit(pagination.limit)
+    query = query.offset(pagination.offset)
 
     # Execute
     session: AsyncSession = info.context.session
     uuids = (await session.scalars(query)).all()
 
-    # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    # A non-first page that comes back empty marks the end of iteration.
+    has_next_page = bool(uuids) or pagination.offset == 0
 
     access_log(
         session,
@@ -3593,13 +3557,14 @@ async def rolebinding_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    result = await generic_resolver(
         info.context.dataloaders.rolebinding_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return pagination.page(result, has_next_page=has_next_page)
 
 
 @lru_cache(maxsize=128)
@@ -3756,9 +3721,11 @@ async def registration_resolver(
     filter: RegistrationFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[Any]:
+) -> Paged:
     if filter is None:
         filter = RegistrationFilter()
+
+    pagination = Pagination.from_args(filter, cursor, limit)
 
     model2table = {
         "address": OrganisationFunktionRegistrering,
@@ -3785,7 +3752,7 @@ async def registration_resolver(
         tables = {model2table[key] for key in valid_keys}
         # If only invalid model names were given, we can early return
         if not tables:  # pragma: no cover
-            return []
+            return pagination.page([], has_next_page=False)
 
     def generate_query(table: Any) -> Select:
         common_fields = [
@@ -3849,14 +3816,15 @@ async def registration_resolver(
     query = select("*").select_from(union_query).distinct()  # type: ignore
 
     # Pagination
-    if cursor:  # pragma: no cover
-        query = query.where(column("start") <= cursor.registration_time)
+    if pagination.limit is not None:  # pragma: no cover
+        # Freeze the snapshot so we only see rows created before pagination started
+        query = query.where(column("start") <= pagination.registration_time)
     # Order by time, then by UUID so the order of pagination is well-defined
     query = query.order_by(column("start"), column("uuid"))
-    if limit is not None:
+    if pagination.limit is not None:
         # Fetch one extra element to see if there is another page
-        query = query.limit(limit + 1)  # pragma: no cover
-    query = query.offset(int(cursor.last) if cursor else 0)
+        query = query.limit(pagination.limit + 1)  # pragma: no cover
+    query = query.offset(pagination.offset)
 
     session: AsyncSession = info.context.session
     result = list(await session.execute(query))
@@ -3876,12 +3844,15 @@ async def registration_resolver(
         [uuid for _, _, uuid, _, _, _, _ in result],
     )
 
+    has_next_page = False
     if limit is not None:
-        # Not enough results == no more pages
-        if len(result) <= limit:  # pragma: no cover
-            context["lora_page_out_of_range"] = True
-        # Strip the extra element that was only used for page-checking
-        elif len(result) == limit + 1:  # pragma: no cover
+        # We fetched one extra element; its presence means there is another page.
+        has_next_page = len(result) > limit  # pragma: no cover
+        if has_next_page:
+            # Strip the extra element that was only used for page-checking
             result = result[:-1]
 
-    return list(starmap(row2registration, result))
+    return pagination.page(
+        list(starmap(row2registration, result)),
+        has_next_page=has_next_page,
+    )

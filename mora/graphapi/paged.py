@@ -4,6 +4,8 @@
 
 from collections.abc import Awaitable
 from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import datetime
 from functools import wraps
 from textwrap import dedent
 from typing import Annotated
@@ -14,13 +16,12 @@ from uuid import UUID
 
 import strawberry
 from pydantic import PositiveInt
-from starlette_context import context
-from strawberry.types import Info
+from sqlalchemy import func
+from sqlalchemy.sql.functions import now as SQLNOW
 
+from mora.graphapi.gmodels.base import tz_isodate
 from mora.util import now
 
-from .filters import BaseFilter
-from .filters import RegistrationFilter
 from .types import Cursor
 
 LimitType = Annotated[
@@ -120,46 +121,84 @@ class Paged(Generic[T]):
     )
 
 
-def to_paged(
-    resolver_func: Callable[..., Awaitable[Any]],
-    model: Any,
-    result_transformer: Callable[[Any, Any, Info], Any] | None = None,
-) -> Callable[..., Awaitable[Paged]]:
-    result_transformer = result_transformer or (lambda _, x, __: x)
+@dataclass
+class Pagination:
+    """Cursor-based pagination state for a single resolver call.
+
+    Constructed once per call via `from_args`, which derives the query `offset` and the
+    bitemporal `registration_time` snapshot from the incoming `filter`/`cursor`/`limit`.
+    Resolvers run their query, decide locally whether another page exists, and call
+    `page` to wrap the results and compute the `next_cursor`.
+    """
+
+    limit: int | None
+    offset: int
+    registration_time: datetime | SQLNOW
+
+    @classmethod
+    def from_args(
+        cls,
+        filter: Any,
+        cursor: CursorType,
+        limit: LimitType,
+    ) -> "Pagination":
+        offset = int(cursor.last) if cursor is not None else 0
+        return cls(
+            limit=limit,
+            offset=offset,
+            registration_time=cls._registration_time(filter, cursor, limit),
+        )
+
+    @staticmethod
+    def _registration_time(
+        filter: Any,
+        cursor: CursorType,
+        limit: LimitType,
+    ) -> datetime | SQLNOW:
+        # `getattr`: RegistrationFilter and AccessLogFilter have no `registration_time`.
+        filter_time = getattr(filter, "registration_time", None)
+        if cursor is not None:
+            if filter_time and filter_time != cursor.registration_time:
+                raise ValueError("Cannot change registration_time during pagination")
+            return tz_isodate(cursor.registration_time)
+        if filter_time:
+            return tz_isodate(filter_time)
+        # The first page of a paginated query freezes a concrete time, so the snapshot
+        # stays stable across pages and can be carried in the next_cursor.
+        if limit:
+            return now()
+        return func.now()
+
+    def page(self, objects: Any, *, has_next_page: bool) -> Paged:
+        """Wrap resolved objects in a `Paged`, computing the next cursor.
+
+        `has_next_page` is decided by the resolver, since the different resolver families
+        detect the end of iteration differently (empty page, `limit + 1` lookahead, etc).
+        """
+        next_cursor: CursorType = None
+        if self.limit and has_next_page:
+            next_cursor = Cursor(
+                last=UUID(int=self.offset + self.limit),
+                registration_time=self.registration_time,
+            )
+        return Paged(  # type: ignore[call-arg]
+            objects=objects,
+            page_info=PageInfo(next_cursor=next_cursor),  # type: ignore[call-arg]
+        )
+
+
+def unpaged(
+    resolver_func: Callable[..., Awaitable[Paged]],
+) -> Callable[..., Awaitable[list[Any]]]:
+    """Adapt a paginated resolver for a plain `list` field by dropping the page info.
+
+    Some fields expose a resolver that returns a `Paged`, but the field itself is a bare
+    `list` (e.g. the nested `registrations` field on responses). This unwraps the objects.
+    """
 
     @wraps(resolver_func)
-    async def resolve_response(
-        *args: Any,
-        info: Info,
-        limit: LimitType,
-        cursor: CursorType,
-        filter: BaseFilter | RegistrationFilter | None = None,
-        **kwargs: Any,
-    ) -> Paged:
-        if limit and cursor is None:
-            registration_time = now()
-            # RegistrationFilter doesn't have a `registration_time`
-            if isinstance(filter, BaseFilter) and filter.registration_time:
-                registration_time = filter.registration_time
-            cursor = Cursor(last=UUID(int=0), registration_time=registration_time)
+    async def resolve(*args: Any, **kwargs: Any) -> list[Any]:
+        page = await resolver_func(*args, **kwargs)
+        return page.objects
 
-        result = await resolver_func(
-            *args, info=info, filter=filter, limit=limit, cursor=cursor, **kwargs
-        )
-
-        end_cursor: CursorType = None
-        if limit and cursor is not None:
-            end_cursor = Cursor(
-                last=UUID(int=int(cursor.last) + limit),
-                registration_time=cursor.registration_time,
-            )
-        if context.get("lora_page_out_of_range"):
-            end_cursor = None
-
-        assert result_transformer is not None
-        return Paged(  # type: ignore[call-arg]
-            objects=result_transformer(model, result, info),
-            page_info=PageInfo(next_cursor=end_cursor),  # type: ignore[call-arg]
-        )
-
-    return resolve_response
+    return resolve

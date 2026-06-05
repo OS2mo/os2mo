@@ -4,7 +4,6 @@
 
 from collections.abc import Awaitable
 from collections.abc import Callable
-from functools import partial
 from functools import wraps
 from itertools import chain
 from textwrap import dedent
@@ -21,7 +20,7 @@ from mora.graphapi.context import MOInfo
 
 from ..graphql_utils import LoadKey
 from ..moobject import MOObject
-from ..paged import to_paged
+from ..paged import Paged
 from ..resolver_map import get_dataloader
 from ..response import Response
 from ..utils import uuid2list
@@ -81,19 +80,22 @@ def force_none_return_wrapper(func: Callable) -> Callable:
 
 
 ResolverResult = dict[UUID, list[MOObject]]
-ResolverFunction = Callable[..., Awaitable[ResolverResult]]
+# Resolvers return a `Paged`; `.objects` carries the `ResolverResult` for these shapers.
+ResolverFunction = Callable[..., Awaitable[Paged]]
 
 
 def result_translation(
-    mapper: Callable[[ResolverResult, MOInfo], R],
+    mapper: Callable[[Any, MOInfo], R],
 ) -> Callable[[ResolverFunction], Callable[..., Awaitable[R]]]:
     def wrapper(
         resolver_func: ResolverFunction,
     ) -> Callable[..., Awaitable[R]]:
         @wraps(resolver_func)
         async def mapped_resolver(info: MOInfo, *args: Any, **kwargs: Any) -> Any:
-            result = await resolver_func(*args, info=info, **kwargs)
-            return mapper(result, info)
+            # Resolvers always return a `Paged`; the non-paged shapers only care about
+            # the objects (the page_info is discarded in these single/list contexts).
+            page = await resolver_func(*args, info=info, **kwargs)
+            return mapper(page.objects, info)
 
         return mapped_resolver
 
@@ -154,16 +156,36 @@ to_arbitrary_only = result_translation(
 
 
 def to_paged_response(model: type[MOObject]) -> Callable:
-    return partial(to_paged, model=model, result_transformer=result2response_list)
+    """Reshape a resolver's `Paged` objects into `Response`s, keeping its page info."""
+
+    def wrap(resolver_func: Callable) -> Callable[..., Awaitable[Paged]]:
+        @wraps(resolver_func)
+        async def paged_resolver(info: MOInfo, *args: Any, **kwargs: Any) -> Paged:
+            page = await resolver_func(*args, info=info, **kwargs)
+            return Paged(  # type: ignore[call-arg]
+                objects=result2response_list(model, page.objects, info),
+                page_info=page.page_info,
+            )
+
+        return paged_resolver
+
+    return wrap
 
 
-def to_func_uuids(
-    model: Any, result: dict[UUID, list[dict]], info: MOInfo
-) -> list[UUID]:
-    return list(result.keys())
+def to_paged_uuids(
+    resolver_func: Callable, model: Any
+) -> Callable[..., Awaitable[Paged]]:
+    """Reshape a resolver's `Paged` objects into bare UUIDs, keeping its page info."""
 
+    @wraps(resolver_func)
+    async def paged_resolver(info: MOInfo, *args: Any, **kwargs: Any) -> Paged:
+        page = await resolver_func(*args, info=info, **kwargs)
+        return Paged(  # type: ignore[call-arg]
+            objects=list(page.objects.keys()),
+            page_info=page.page_info,
+        )
 
-to_paged_uuids = partial(to_paged, result_transformer=to_func_uuids)
+    return paged_resolver
 
 
 def gen_uuid_field_deprecation(field: str) -> str:
