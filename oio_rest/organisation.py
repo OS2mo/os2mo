@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from .oio_base import OIORestObject
-from .oio_base import OIOStandardHierarchy
 
 
 class Bruger(OIORestObject):
@@ -42,16 +41,3 @@ class OrganisationFunktion(OIORestObject):
     """
 
     pass
-
-
-class OrganisationsHierarki(OIOStandardHierarchy):
-    """Implement the Organisation Standard."""
-
-    _name = "Organisation"
-    _classes = [
-        Bruger,
-        ItSystem,
-        Organisation,
-        OrganisationEnhed,
-        OrganisationFunktion,
-    ]

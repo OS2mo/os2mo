@@ -36,10 +36,6 @@ class BadRequestException(OIOException):
     status_code = 400
 
 
-class GoneException(OIOException):
-    status_code = 410
-
-
 class DBException(OIOException):
     def __init__(self, status_code, *args, payload=None):
         OIOException.__init__(self, *args, payload)

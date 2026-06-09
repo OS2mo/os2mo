@@ -150,6 +150,7 @@ class Livscyklus(enum.Enum):
     RETTET = "Rettet"
 
 
+# TODO: this vvv
 """
     GENERAL SQL GENERATION.
 
@@ -574,33 +575,6 @@ def filter_json_output(output):
     elif isinstance(output, tuple):
         return tuple(v2 for v in output if (v2 := filter_json_output(v)))
     return output
-
-
-def transform_relations(o):  # pragma: no cover
-    """Recurse through output to transform relation lists to dicts.
-
-    Currently, this only applies to DokumentDel relations, because the cast
-    to.JSON for other types of relations is currently done in PostgreSQL cast
-    functions.
-    """
-    if isinstance(o, dict):
-        if "relationer" in o and isinstance(o["relationer"], (list, tuple)):
-            relations = o["relationer"]
-            rel_dict = {}
-            for rel in relations:
-                # Remove the reltype from the dict and add to the output dict
-                rel_type = rel.pop("reltype")
-                rel_dict.setdefault(rel_type, []).append(rel)
-            o["relationer"] = rel_dict
-            return o
-        else:
-            return {k: transform_relations(v) for k, v in o.items()}
-    elif isinstance(o, list):
-        return [transform_relations(v) for v in o]
-    elif isinstance(o, tuple):
-        return tuple(transform_relations(v) for v in o)
-    else:
-        return o
 
 
 def _consolidate_and_trim_object_virkninger(

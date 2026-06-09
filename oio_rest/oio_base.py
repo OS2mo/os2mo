@@ -8,24 +8,19 @@ from abc import ABCMeta
 from abc import abstractmethod
 from collections import defaultdict
 from itertools import filterfalse
-from typing import Any
 from uuid import UUID
 
 import dateutil
 import jsonschema
 import more_itertools
-from fastapi import APIRouter
 from fastapi import HTTPException
-from fastapi import Request
 
 from . import config
 from . import db
 from . import validate
 from .custom_exceptions import BadRequestException
-from .custom_exceptions import GoneException
 from .custom_exceptions import NotFoundException
 from .db import db_helpers
-from .db import db_structure
 from .db.quick_query.search import quick_search
 from .utils import build_registration
 from .utils import split_param
@@ -68,9 +63,6 @@ CONSOLIDATE_PARAM = frozenset(
         "konsolider",
     }
 )
-
-"""Some operations take no arguments; this makes it explicit."""
-NO_PARAMS = frozenset()
 
 
 class Searcher(metaclass=ABCMeta):
@@ -271,93 +263,6 @@ def _remove_deleted(objects):
     return list(filterfalse(is_deleted, objects))
 
 
-class Registration:
-    def __init__(self, oio_class, states, attributes, relations):  # pragma: no cover
-        self.oio_class = oio_class
-        self.states = states
-        self.attributes = attributes
-        self.relations = relations
-
-
-class OIOStandardHierarchy:
-    """Implement API for entire hierarchy."""
-
-    _name = ""
-    _classes = []
-
-    @classmethod
-    def setup_api(cls):
-        """Set up API for the classes included in the hierarchy.
-
-        Note that version number etc. may have to be added to the URL."""
-
-        assert cls._name and cls._classes, "hierarchy not configured?"
-
-        oio_router = APIRouter()
-
-        for c in cls._classes:
-            router = c.create_api(cls._name)
-            oio_router.include_router(router)
-
-        hierarchy = cls._name.lower()
-        classes_url = "/{}/{}".format(hierarchy, "classes")
-
-        @oio_router.get(classes_url, name="_".join([hierarchy, "classes"]))
-        async def get_classes():  # pragma: no cover
-            """Return the classes including their fields under this service.
-
-            .. :quickref: :http:get:`/(service)/classes`
-
-            """
-            structure = db_structure.REAL_DB_STRUCTURE
-            clsnms = [c.__name__.lower() for c in cls._classes]
-            hierarchy_dict = {c: structure[c] for c in clsnms}
-            return hierarchy_dict
-
-        return oio_router
-
-
-async def _get_json_from_request(request: Request):
-    """Return the JSON input from the request.
-
-    The JSON input typically comes from the body of the request with
-    Content-Type: application/json. However, for POST/PUT operations
-    involving multipart/form-data, the JSON input is expected to be
-    contained in a form field called 'json'. This method handles this in a
-    consistent way.
-    """
-    try:
-        return await request.json()
-    except json.decoder.JSONDecodeError:
-        formset = await request.form()
-        data = formset.get("json", None)
-        if data is not None:
-            try:
-                return json.loads(data)
-            except ValueError:  # pragma: no cover
-                raise HTTPException(
-                    status_code=400, detail={"message": "unparsable json"}
-                )
-        else:
-            return None
-
-
-async def _get_args_from_request(request: Request):
-    """Get args from request.
-
-    If supplied, arguments will be extracted from the json body of GET requests.
-    """
-    if request.method == "GET" and await request.body():  # pragma: no cover
-        json_body: dict[str, Any] = await request.json()
-        # Flatten into list of two-tuples, as required by ArgumentDict
-        return list(
-            (key, value)
-            for key, values in json_body.items()
-            for value in more_itertools.collapse(values)
-        )
-    return request.query_params.multi_items()
-
-
 def _process_args(args, as_lists: bool = False) -> dict:
     """Convert arguments to lowercase, optionally getting them as lists."""
     args_dict = defaultdict(list)
@@ -408,12 +313,6 @@ class OIORestObject:
         # request.api_operation = "Opret"
         # request.uuid = uuid
         return {"uuid": uuid}
-
-    @classmethod
-    async def create_object(cls, request: Request):
-        args = await _get_args_from_request(request)
-        input = await _get_json_from_request(request)
-        return await cls.create_object_direct(input, args)
 
     @classmethod
     async def get_objects_direct(cls, raw_args):
@@ -524,66 +423,6 @@ class OIORestObject:
         return {"results": results}
 
     @classmethod
-    async def get_objects(cls, request: Request):
-        # Convert arguments to lowercase, getting them as lists
-        raw_args = await _get_args_from_request(request)
-        return await cls.get_objects_direct(raw_args)
-
-    @classmethod
-    async def get_object_direct(cls, uuid: UUID, args):  # pragma: no cover
-        """A :ref:`ReadOperation`. Return a single whole object as a JSON object.
-
-        .. :quickref: :ref:`ReadOperation`
-
-        """
-        args = _process_args(args)
-        await cls.verify_args(args, temporality=True, consolidate=True)
-
-        uuid = str(uuid)
-
-        registreret_fra, registreret_til = get_registreret_dates(args)
-
-        virkning_fra, virkning_til = get_virkning_dates(args)
-
-        consolidate_param = args.get("konsolider") is not None
-        if consolidate_param:
-            list_fn = db.list_and_consolidate_objects
-        else:
-            list_fn = db.list_objects
-
-        # request.api_operation = "Læs"
-        # request.uuid = uuid
-        object_list = await list_fn(
-            cls.__name__,
-            [uuid],
-            virkning_fra,
-            virkning_til,
-            registreret_fra,
-            registreret_til,
-        )
-        try:
-            object = object_list[0]
-        except IndexError:
-            # No object found with that ID.
-            raise NotFoundException(
-                "No {} with ID {} found in service {}".format(
-                    cls.__name__, uuid, cls.service_name
-                )
-            )
-        # Raise 410 Gone if object is deleted.
-        if (
-            object[0]["registreringer"][0]["livscykluskode"]
-            == db.Livscyklus.SLETTET.value
-        ):
-            raise GoneException("This object has been deleted.")
-        return {uuid: object}
-
-    @classmethod
-    async def get_object(cls, uuid: UUID, request: Request):  # pragma: no cover
-        args = await _get_args_from_request(request)
-        return await cls.get_object_direct(uuid, args)
-
-    @classmethod
     def gather_registration(cls, input):
         """Return a registration dict from the input dict."""
         attributes = typed_get(input, "attributter", {})
@@ -666,12 +505,6 @@ class OIORestObject:
         return {"uuid": uuid}
 
     @classmethod
-    async def put_object(cls, uuid: UUID, request: Request):
-        args = await _get_args_from_request(request)
-        input = await _get_json_from_request(request)
-        return await cls.put_object_direct(uuid, input, args)
-
-    @classmethod
     async def patch_object_direct(cls, uuid: UUID, input):
         """An :ref:`UpdateOperation` or :ref:`PassivateOperation`. Apply the
         JSON payload as a change to the object. Return the UUID of the object.
@@ -719,13 +552,6 @@ class OIORestObject:
         return {"uuid": uuid}
 
     @classmethod
-    async def patch_object(cls, uuid: UUID, request: Request):
-        # TODO: Why no cls.verify_args here
-        uuid = str(uuid)
-        input = await _get_json_from_request(request)
-        return await cls.patch_object_direct(uuid, input)
-
-    @classmethod
     async def delete_object_direct(cls, uuid: UUID, input):
         """A :ref:`DeleteOperation`. Delete the object and return the UUID.
 
@@ -740,91 +566,6 @@ class OIORestObject:
         # request.uuid = uuid
         await db.delete_object(class_name, note, uuid)
         return {"uuid": uuid}
-
-    @classmethod
-    async def delete_object(cls, uuid: UUID, request: Request):
-        """A :ref:`DeleteOperation`. Delete the object and return the UUID.
-
-        .. :quickref: :ref:`DeleteOperation`
-
-        """
-        await cls.verify_args(_process_args(await _get_args_from_request(request)))
-        input = (await _get_json_from_request(request)) or {}
-        return await cls.delete_object_direct(uuid, input)
-
-    @classmethod
-    async def get_fields(cls, request: Request):  # pragma: no cover
-        """Return a list of all fields a given object has.
-
-        .. :quickref: :http:get:`/(service)/(object)/fields`
-
-        """
-
-        """Set up API with correct database access functions."""
-        await cls.verify_args(_process_args(await _get_args_from_request(request)))
-        structure = db_structure.REAL_DB_STRUCTURE
-        class_key = cls.__name__.lower()
-        # TODO: Perform some transformations to improve readability.
-        class_dict = structure[class_key]
-        return class_dict
-
-    @classmethod
-    async def get_schema(cls):
-        """Returns the JSON schema of an object.
-
-        .. :quickref: :http:get:`/(service)/(object)/schema`
-
-        """
-        return validate.get_schema(cls.__name__.lower())
-
-    @classmethod
-    def create_api(cls, hierarchy):
-        """Set up API with correct database access functions."""
-        cls.service_name = hierarchy
-        hierarchy = hierarchy.lower()
-        class_name = cls.__name__.lower()
-        class_url = f"/{hierarchy}/{class_name}"
-        cls_fields_url = "{}/{}".format(class_url, "fields")
-        object_url = class_url + "/{uuid}"
-
-        rest_router = APIRouter()
-
-        rest_router.get(class_url, name="_".join([cls.__name__, "get_objects"]))(
-            cls.get_objects
-        )
-        rest_router.post(
-            class_url, name="_".join([cls.__name__, "create_object"]), status_code=201
-        )(cls.create_object)
-
-        # Structure URLs
-        rest_router.get(cls_fields_url, name="_".join([cls.__name__, "fields"]))(
-            cls.get_fields
-        )
-        # JSON schemas
-        rest_router.get(
-            "{}/{}".format(class_url, "schema"),
-            name="_".join([cls.__name__, "schema"]),
-        )(cls.get_schema)
-
-        rest_router.get(object_url, name="_".join([cls.__name__, "get_object"]))(
-            cls.get_object
-        )
-        rest_router.put(object_url, name="_".join([cls.__name__, "put_object"]))(
-            cls.put_object
-        )
-        rest_router.patch(object_url, name="_".join([cls.__name__, "patch_object"]))(
-            cls.patch_object
-        )
-        rest_router.delete(
-            object_url, name="_".join([cls.__name__, "delete_object"]), status_code=202
-        )(cls.delete_object)
-
-        return rest_router
-
-    # Templates which may be overridden on subclass.
-    # Templates may only be overridden on subclass if they are explicitly
-    # listed here.
-    RELATIONS_TEMPLATE = "relations_array.sql"
 
     @classmethod
     def attribute_names(cls):
