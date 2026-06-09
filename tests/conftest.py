@@ -1115,8 +1115,10 @@ def create_owner(
 def create_manager(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
-) -> Callable[[UUID, UUID | None], UUID]:
-    def inner(org_unit: UUID, person: UUID | None = None) -> UUID:
+) -> Callable[..., UUID]:
+    def inner(
+        org_unit: UUID, person: UUID | None = None, user_key: str | None = None
+    ) -> UUID:
         mutate_query = """
             mutation CreateManager($input: ManagerCreateInput!) {
                 manager_create(input: $input) {
@@ -1128,6 +1130,7 @@ def create_manager(
             query=mutate_query,
             variables={
                 "input": {
+                    "user_key": user_key,
                     "manager_level": str(uuid4()),
                     "manager_type": str(uuid4()),
                     "responsibility": [],

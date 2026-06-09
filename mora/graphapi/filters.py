@@ -343,6 +343,20 @@ class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    explicit_manager: ManagerFilter | None = strawberry.field(
+        default=UNSET,
+        description=dedent(
+            """\
+            Explicit manager filter limiting which entries are returned.
+
+            * Omitted (`UNSET`): no filtering on explicit manager.
+            * `null`: only engagements without an explicit manager.
+            * A `ManagerFilter`: only engagements whose explicit manager
+              matches the nested filter.
+            """
+        ),
+    )
+
     ituser: ITUserFilter | None = strawberry.field(
         default=None,
         description="ITUser filter limiting which entries are returned.",

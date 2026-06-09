@@ -589,12 +589,17 @@ class EngagementUpsert(UUIDBase):
     extension_9: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
     extension_10: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
 
+    explicit_manager: UUID | None = Field(
+        default=None,
+        description="UUID of the explicit manager related to the engagement.",
+    )
+
     # TODO: Remove employee in a future version of GraphQL
     employee: UUID | None = Field(description="UUID of the related employee.")
     person: UUID | None = Field(description="UUID of the related employee.")
 
     def to_handler_dict(self) -> dict:
-        return {
+        data_dict = {
             "uuid": self.uuid,
             "user_key": self.user_key,
             "primary": gen_uuid(self.primary),
@@ -617,6 +622,9 @@ class EngagementUpsert(UUIDBase):
             "extension_9": self.extension_9,
             "extension_10": self.extension_10,
         }
+        if "explicit_manager" in self.__fields_set__:
+            data_dict["explicit_manager"] = gen_uuid(self.explicit_manager)
+        return data_dict
 
 
 class EngagementCreate(EngagementUpsert):
@@ -658,7 +666,11 @@ class EngagementUpdate(EngagementUpsert):
         data_dict["org_unit"] = gen_uuid(self.org_unit)
         data_dict["engagement_type"] = gen_uuid(self.engagement_type)
         data_dict["job_function"] = gen_uuid(self.job_function)
-        return {k: v for k, v in data_dict.items() if v is not None}
+        return {
+            k: v
+            for k, v in data_dict.items()
+            if (v is not None) or k in ["explicit_manager"]
+        }
 
 
 # EngagementsAssociations

@@ -34,6 +34,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         job_function = mapping.JOB_FUNCTION_FIELD.get_uuid(effect)
         engagement_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
+        explicit_manager = mapping.EXPLICIT_MANAGER_FIELD.get_uuid(effect)
 
         primary = mapping.PRIMARY_FIELD.get_uuid(effect)
         extensions = mapping.ORG_FUNK_UDVIDELSER_FIELD(effect)
@@ -51,6 +52,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
                 "engagement_type_uuid": engagement_type,
                 "job_function_uuid": job_function,
                 "primary_uuid": primary or None,
+                "explicit_manager_uuid": explicit_manager or None,
                 "fraction": fraction,
                 **cls._get_extension_fields(extensions),
             }

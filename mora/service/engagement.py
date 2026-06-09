@@ -58,6 +58,13 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             req, mapping.ENGAGEMENT_TYPE, required=True
         )
 
+        explicit_manager_uuid = util.get_mapping_uuid(req, mapping.EXPLICIT_MANAGER)
+        tilknyttedefunktioner = []
+        if explicit_manager_uuid:
+            tilknyttedefunktioner.append(
+                {"uuid": explicit_manager_uuid, "objekttype": "manager"}
+            )
+
         extension_attributes = self.get_extension_attribute_fields(req)
 
         payload = common.create_organisationsfunktion_payload(
@@ -72,6 +79,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeenheder=[org_unit_uuid],
             funktionstype=engagement_type_uuid,
             opgaver=[{"uuid": job_function_uuid}] if job_function_uuid else [],
+            tilknyttedefunktioner=tilknyttedefunktioner,
             udvidelse_attributter=extension_attributes,
         )
 
@@ -194,6 +202,21 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             primary = util.get_mapping_uuid(data, mapping.PRIMARY)
 
             update_fields.append((mapping.PRIMARY_FIELD, {"uuid": primary}))
+
+        if mapping.EXPLICIT_MANAGER in data:
+            explicit_manager_uuid = util.get_mapping_uuid(
+                data, mapping.EXPLICIT_MANAGER
+            )
+
+            if explicit_manager_uuid:
+                update_payload = {
+                    "uuid": explicit_manager_uuid,
+                    "objekttype": "manager",
+                }
+            else:
+                update_payload = {"uuid": "", "urn": ""}
+
+            update_fields.append((mapping.EXPLICIT_MANAGER_FIELD, update_payload))
 
         # Attribute extensions
         new_extensions = {}

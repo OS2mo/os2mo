@@ -69,6 +69,7 @@ ENGAGEMENT_TYPE = "engagement_type"
 FRACTION = "fraction"
 ENGAGEMENT = "engagement"
 ENGAGEMENTS = "engagements"
+EXPLICIT_MANAGER = "explicit_manager"
 
 # Extensions
 EXTENSION_1 = "udvidelse_1"
@@ -326,6 +327,13 @@ IT_USER_FIELD = FieldTuple(
     filter_fn=lambda x: x.get("objekttype") == IT,
 )
 
+EXPLICIT_MANAGER_FIELD = FieldTuple(
+    path=("relationer", "tilknyttedefunktioner"),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+    # Not all tilknyttedefunktioner has an objekttype; use .get() to avoid KeyErrors.
+    filter_fn=lambda x: x.get("objekttype") == MANAGER,
+)
+
 ASSOCIATED_MANAGER_ADDRESSES_FIELD = FieldTuple(
     path=("relationer", "tilknyttedefunktioner"),
     type=FieldTypes.ZERO_TO_MANY,
@@ -474,6 +482,7 @@ ENGAGEMENT_FIELDS = {
     ASSOCIATED_ORG_FIELD,
     USER_FIELD,
     PRIMARY_FIELD,
+    EXPLICIT_MANAGER_FIELD,
 }
 
 ASSOCIATION_FIELDS = {

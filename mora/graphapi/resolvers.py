@@ -40,6 +40,7 @@ from strawberry import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.types.unset import UnsetType
 
+from mora import mapping
 from mora import util
 from mora.access_log import access_log
 from mora.db import AsyncSession
@@ -1353,6 +1354,39 @@ def engagement_predicate(
                 )
             )
         )
+
+    # Explicit manager
+    if filter.explicit_manager is not UNSET:
+        relation_clauses = [
+            OrganisationFunktionRelation.organisationfunktion_registrering_id
+            == OrganisationFunktionRegistrering.id,
+            OrganisationFunktionRelation.rel_type
+            == OrganisationFunktionRelationKode.tilknyttedefunktioner,
+            OrganisationFunktionRelation.objekt_type == mapping.MANAGER,
+            _get_virkning_clause(OrganisationFunktionRelation, filter),
+        ]
+        if filter.explicit_manager is None:
+            predicates.append(~exists().where(*relation_clauses))
+        else:
+            predicates.append(
+                exists().where(
+                    *relation_clauses,
+                    OrganisationFunktionRelation.rel_maal_uuid.in_(
+                        uuid_shortcircuit(
+                            filter.explicit_manager,
+                            select(
+                                OrganisationFunktionRegistrering.organisationfunktion_id
+                            ).where(
+                                manager_predicate(
+                                    info,
+                                    filter.explicit_manager,
+                                    registration_time=registration_time,
+                                )
+                            ),
+                        )
+                    ),
+                )
+            )
 
     return and_(*predicates)
 

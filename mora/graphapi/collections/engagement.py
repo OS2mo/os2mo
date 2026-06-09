@@ -431,6 +431,12 @@ class Engagement:
     async def primary_uuid(self, root: EngagementRead) -> UUID | None:
         return root.primary_uuid
 
+    @strawberry.field(
+        description="UUID of the explicit manager of the engagement.",
+    )
+    async def explicit_manager(self, root: EngagementRead) -> UUID | None:
+        return root.explicit_manager_uuid
+
     # TODO: Add Paged[Response[LazyClass]] managers_response
     @strawberry.field(
         description=dedent(

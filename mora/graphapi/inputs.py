@@ -304,6 +304,7 @@ class EngagementUpdateInput:
     org_unit: UUID | None = None
     engagement_type: UUID | None = None
     job_function: UUID | None = None
+    explicit_manager: UUID | None = UNSET
 
     def to_pydantic(self) -> EngagementUpdate:
         kwargs = {
@@ -328,6 +329,10 @@ class EngagementUpdateInput:
             "engagement_type": self.engagement_type,
             "job_function": self.job_function,
         }
+
+        # ONLY explicit_manager is passed conditionally to support PATCH semantics
+        if self.explicit_manager is not UNSET:
+            kwargs["explicit_manager"] = self.explicit_manager
 
         return EngagementUpdate(**kwargs)
 
