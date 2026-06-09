@@ -491,6 +491,17 @@ class ITUserFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    primary: ClassFilter | None = strawberry.field(
+        default=UNSET,
+        description=dedent(
+            """\
+            Primary class filter limiting which entries are returned.
+
+            Set to `null` to only return IT users without a primary class.
+            """
+        ),
+    )
+
 
 @strawberry.input(description="KLE filter.")
 class KLEFilter(BaseFilter, OrganisationUnitFiltered):
