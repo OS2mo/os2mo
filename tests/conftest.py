@@ -945,6 +945,22 @@ def alice(create_person: Callable[[dict[str, Any] | None], UUID]) -> UUID:
 
 
 @pytest.fixture
+def bob(create_person: Callable[[dict[str, Any] | None], UUID]) -> UUID:
+    return create_person(
+        {
+            "given_name": "Bob",
+            "surname": "Jensen",
+            "cpr_number": "1503992345",
+        }
+    )
+
+
+@pytest.fixture
+def person(alice: UUID) -> UUID:
+    return alice
+
+
+@pytest.fixture
 def upload_file(
     admin_client: TestClient, latest_graphql_url: str
 ) -> Callable[[str, bytes], None]:
@@ -1177,6 +1193,48 @@ def role_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
 
 
 @pytest.fixture
+def primary_type_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
+    return create_facet(
+        {
+            "user_key": "primary_type",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def primary_class(
+    primary_type_facet: UUID,
+    create_class: Callable[[dict[str, Any]], UUID],
+) -> UUID:
+    return create_class(
+        {
+            "user_key": "primary",
+            "name": "Primary",
+            "facet_uuid": str(primary_type_facet),
+            "scope": "3000",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def non_primary_class(
+    primary_type_facet: UUID,
+    create_class: Callable[[dict[str, Any]], UUID],
+) -> UUID:
+    return create_class(
+        {
+            "user_key": "non-primary",
+            "name": "Non-primary",
+            "facet_uuid": str(primary_type_facet),
+            "scope": "0",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
 def create_itsystem(
     graphapi_post: GraphAPIPost, root_org: UUID
 ) -> Callable[[dict[str, Any]], UUID]:
@@ -1203,6 +1261,17 @@ def ldap_itsystem(create_itsystem: Callable[[dict[str, Any]], UUID]) -> UUID:
         {
             "user_key": "LDAP",
             "name": "LDAP",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def itsystem(create_itsystem: Callable[[dict[str, Any]], UUID]) -> UUID:
+    return create_itsystem(
+        {
+            "user_key": "itsystem",
+            "name": "ITSystem",
             "validity": {"from": "1970-01-01"},
         }
     )
