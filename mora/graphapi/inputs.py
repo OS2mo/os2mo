@@ -274,15 +274,62 @@ class EngagementCreateInput:
     )
 
 
-@strawberry.experimental.pydantic.input(
-    model=EngagementUpdate, fields=list(all_fields(EngagementUpdate) - {"employee"})
-)
+@strawberry.input
 class EngagementUpdateInput:
     """input model for updating Engagements."""
 
+    uuid: UUID
+    validity: RAValidityInput
+
+    user_key: str | None = None
+    primary: UUID | None = None
+    fraction: int | None = None
+    extension_1: str | None = None
+    extension_2: str | None = None
+    extension_3: str | None = None
+    extension_4: str | None = None
+    extension_5: str | None = None
+    extension_6: str | None = None
+    extension_7: str | None = None
+    extension_8: str | None = None
+    extension_9: str | None = None
+    extension_10: str | None = None
     employee: UUID | None = strawberry.field(
-        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
+        default=None,
+        deprecation_reason=(
+            "Use 'person' instead. Will be removed in a future version of OS2mo."
+        ),
     )
+    person: UUID | None = None
+    org_unit: UUID | None = None
+    engagement_type: UUID | None = None
+    job_function: UUID | None = None
+
+    def to_pydantic(self) -> EngagementUpdate:
+        kwargs = {
+            "uuid": self.uuid,
+            "validity": self.validity.to_pydantic(),
+            "user_key": self.user_key,
+            "primary": self.primary,
+            "fraction": self.fraction,
+            "extension_1": self.extension_1,
+            "extension_2": self.extension_2,
+            "extension_3": self.extension_3,
+            "extension_4": self.extension_4,
+            "extension_5": self.extension_5,
+            "extension_6": self.extension_6,
+            "extension_7": self.extension_7,
+            "extension_8": self.extension_8,
+            "extension_9": self.extension_9,
+            "extension_10": self.extension_10,
+            "employee": self.employee,
+            "person": self.person,
+            "org_unit": self.org_unit,
+            "engagement_type": self.engagement_type,
+            "job_function": self.job_function,
+        }
+
+        return EngagementUpdate(**kwargs)
 
 
 # EngagementsAssociations
