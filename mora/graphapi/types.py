@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import datetime
 import json
 from base64 import b64decode
 from base64 import b64encode
@@ -49,7 +48,6 @@ _CURSOR_DELIMITER = ":"
 
 class _Cursor(BaseModel):
     last: UUID
-    registration_time: datetime.datetime
 
 
 def _serialize(value: _Cursor) -> str:

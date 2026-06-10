@@ -37,6 +37,7 @@ from .models import ClassRead
 from .models import FacetRead
 from .models import RoleBindingRead
 from .moobject import MOObject
+from .paged import to_objects
 from .permissions import IsAuthenticatedPermission
 from .registrationbase import Registration
 from .registrationbase import RegistrationBase
@@ -355,12 +356,14 @@ class Response(Generic[MOObject]):
             """
         ),
         permission_classes=[IsAuthenticatedPermission],
-        resolver=seed_resolver(
-            registration_resolver,
-            {
-                "uuids": lambda root: uuid2list(root.uuid),
-                "models": lambda root: [model2name(root.model)],
-            },
+        resolver=to_objects(
+            seed_resolver(
+                registration_resolver,
+                {
+                    "uuids": lambda root: uuid2list(root.uuid),
+                    "models": lambda root: [model2name(root.model)],
+                },
+            )
         ),
         metadata=Metadata(version=lambda v: v <= GraphQLVersion.VERSION_26),
     )
@@ -386,12 +389,14 @@ class Response(Generic[MOObject]):
             """
         ),
         permission_classes=[IsAuthenticatedPermission],
-        resolver=seed_resolver(
-            registration_resolver,
-            {
-                "uuids": lambda root: uuid2list(root.uuid),
-                "models": lambda root: [model2name(root.model)],
-            },
+        resolver=to_objects(
+            seed_resolver(
+                registration_resolver,
+                {
+                    "uuids": lambda root: uuid2list(root.uuid),
+                    "models": lambda root: [model2name(root.model)],
+                },
+            )
         ),
         metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_27),
     )

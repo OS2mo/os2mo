@@ -21,6 +21,7 @@ from mora.graphapi.context import MOInfo
 
 from ..graphql_utils import LoadKey
 from ..moobject import MOObject
+from ..paged import ObjectsAndCursor
 from ..paged import to_paged
 from ..resolver_map import get_dataloader
 from ..response import Response
@@ -81,7 +82,7 @@ def force_none_return_wrapper(func: Callable) -> Callable:
 
 
 ResolverResult = dict[UUID, list[MOObject]]
-ResolverFunction = Callable[..., Awaitable[ResolverResult]]
+ResolverFunction = Callable[..., Awaitable[ObjectsAndCursor[ResolverResult]]]
 
 
 def result_translation(
@@ -92,8 +93,8 @@ def result_translation(
     ) -> Callable[..., Awaitable[R]]:
         @wraps(resolver_func)
         async def mapped_resolver(info: MOInfo, *args: Any, **kwargs: Any) -> Any:
-            result = await resolver_func(*args, info=info, **kwargs)
-            return mapper(result, info)
+            page = await resolver_func(*args, info=info, **kwargs)
+            return mapper(page.objects, info)
 
         return mapped_resolver
 
@@ -154,12 +155,10 @@ to_arbitrary_only = result_translation(
 
 
 def to_paged_response(model: type[MOObject]) -> Callable:
-    return partial(to_paged, model=model, result_transformer=result2response_list)
+    return partial(to_paged, result_transformer=partial(result2response_list, model))
 
 
-def to_func_uuids(
-    model: Any, result: dict[UUID, list[dict]], info: MOInfo
-) -> list[UUID]:
+def to_func_uuids(result: dict[UUID, list[dict]], info: MOInfo) -> list[UUID]:
     return list(result.keys())
 
 

@@ -87,15 +87,12 @@ async def test_terminates_when_known(
     read_managers: Callable[[UUID, str | None], str | None],
     create_org_unit_with_validity: Callable[[datetime, datetime | None], UUID],
 ) -> None:
-    """Test that pagination terminates correctly after exactly 2 iterations when using a known ancestor UUID."""
+    """Test that pagination terminates immediately when using a known ancestor UUID."""
     root_ou = create_org_unit_with_validity(datetime(1970, 1, 1), None)
 
-    # First page is empty but returns a cursor for the next page
+    # An empty result terminates immediately: under keyset pagination a short
+    # (here empty) page means there are no further pages.
     cursor = read_managers(root_ou, None)
-    assert cursor is not None
-
-    # Second page is empty and correctly terminates
-    cursor = read_managers(root_ou, cursor)
     assert cursor is None
 
 
@@ -109,12 +106,9 @@ async def test_terminates_when_unknown(
     # Arbitrary hardcoded UUID used for greppability
     unknown_uuid = UUID("8f7be3e7-b695-49e6-b9da-86a4266417bd")
 
-    # First page is empty but returns a cursor for the next page
+    # An empty result terminates immediately: under keyset pagination a short
+    # (here empty) page means there are no further pages.
     cursor = read_managers(unknown_uuid, None)
-    assert cursor is not None
-
-    # Second page is empty and correctly terminates
-    cursor = read_managers(unknown_uuid, cursor)
     assert cursor is None
 
 
@@ -138,10 +132,7 @@ async def test_terminates_with_validity(
     """Test that pagination terminates regardless of ancestor org-unit validity."""
     invalid_ou_uuid = create_org_unit_with_validity(start, end)
 
-    # First page is empty but returns a cursor for the next page
+    # An empty result terminates immediately: under keyset pagination a short
+    # (here empty) page means there are no further pages.
     cursor = read_managers(invalid_ou_uuid, None)
-    assert cursor is not None
-
-    # Second page is empty and correctly terminates
-    cursor = read_managers(invalid_ou_uuid, cursor)
     assert cursor is None

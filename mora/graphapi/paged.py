@@ -4,23 +4,24 @@
 
 from collections.abc import Awaitable
 from collections.abc import Callable
+from collections.abc import Sequence
 from functools import wraps
 from textwrap import dedent
 from typing import Annotated
 from typing import Any
 from typing import Generic
+from typing import NamedTuple
 from typing import TypeVar
 from uuid import UUID
 
 import strawberry
 from pydantic import PositiveInt
-from starlette_context import context
+from sqlalchemy import Select
+from sqlalchemy import SQLColumnExpression
 from strawberry.types import Info
 
-from mora.util import now
+from mora.db import AsyncSession
 
-from .filters import BaseFilter
-from .filters import RegistrationFilter
 from .types import Cursor
 
 LimitType = Annotated[
@@ -120,46 +121,53 @@ class Paged(Generic[T]):
     )
 
 
-def to_paged(
-    resolver_func: Callable[..., Awaitable[Any]],
-    model: Any,
-    result_transformer: Callable[[Any, Any, Info], Any] | None = None,
-) -> Callable[..., Awaitable[Paged]]:
-    result_transformer = result_transformer or (lambda _, x, __: x)
+class ObjectsAndCursor(NamedTuple, Generic[T]):
+    objects: T
+    next_cursor: CursorType = None
 
+
+async def paginate(
+    session: AsyncSession,
+    query: Select,
+    column: SQLColumnExpression[UUID],
+    limit: LimitType,
+    cursor: CursorType,
+) -> tuple[Sequence[UUID], CursorType]:
+    if cursor is not None:
+        query = query.where(column > cursor.last)
+    if limit is not None:
+        # Fetch one extra row to see if there is another page
+        query = query.limit(limit + 1)
+    uuids = (await session.scalars(query)).all()
+    # `uuids[:limit]` drops the probe row (and is a no-op when limit is None); a
+    # longer `uuids` than the page itself means another page exists.
+    page = uuids[:limit]
+    if page and len(uuids) > len(page):
+        return page, Cursor(last=page[-1])
+    return page, None
+
+
+def to_objects(
+    resolver_func: Callable[..., Awaitable[ObjectsAndCursor]],
+) -> Callable[..., Awaitable[Any]]:
     @wraps(resolver_func)
-    async def resolve_response(
-        *args: Any,
-        info: Info,
-        limit: LimitType,
-        cursor: CursorType,
-        filter: BaseFilter | RegistrationFilter | None = None,
-        **kwargs: Any,
-    ) -> Paged:
-        if limit and cursor is None:
-            registration_time = now()
-            # RegistrationFilter doesn't have a `registration_time`
-            if isinstance(filter, BaseFilter) and filter.registration_time:
-                registration_time = filter.registration_time
-            cursor = Cursor(last=UUID(int=0), registration_time=registration_time)
+    async def resolve_response(*args: Any, **kwargs: Any) -> Any:
+        page = await resolver_func(*args, **kwargs)
+        return page.objects
 
-        result = await resolver_func(
-            *args, info=info, filter=filter, limit=limit, cursor=cursor, **kwargs
-        )
+    return resolve_response
 
-        end_cursor: CursorType = None
-        if limit and cursor is not None:
-            end_cursor = Cursor(
-                last=UUID(int=int(cursor.last) + limit),
-                registration_time=cursor.registration_time,
-            )
-        if context.get("lora_page_out_of_range"):
-            end_cursor = None
 
-        assert result_transformer is not None
-        return Paged(  # type: ignore[call-arg]
-            objects=result_transformer(model, result, info),
-            page_info=PageInfo(next_cursor=end_cursor),  # type: ignore[call-arg]
+def to_paged(
+    resolver_func: Callable[..., Awaitable[ObjectsAndCursor]],
+    result_transformer: Callable[[Any, Info], Any] = lambda objects, _: objects,
+) -> Callable[..., Awaitable[Paged]]:
+    @wraps(resolver_func)
+    async def resolve_response(*args: Any, info: Info, **kwargs: Any) -> Paged:
+        page = await resolver_func(*args, info=info, **kwargs)
+        return Paged(
+            objects=result_transformer(page.objects, info),
+            page_info=PageInfo(next_cursor=page.next_cursor),
         )
 
     return resolve_response

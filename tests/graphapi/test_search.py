@@ -55,7 +55,8 @@ async def test_employee_pagination(
         {"current": {"uuid": persons[1]}},
     ]
 
-    # Second page
+    # Second page: the short final page terminates immediately under keyset
+    # pagination, without a trailing empty page.
     response = search(
         {
             "filter": {"query": "4"},
@@ -66,16 +67,6 @@ async def test_employee_pagination(
     assert response["objects"] == [
         {"current": {"uuid": persons[2]}},
     ]
-
-    # Third page
-    response = search(
-        {
-            "filter": {"query": "4"},
-            "limit": 2,
-            "cursor": response["page_info"]["next_cursor"],
-        }
-    )
-    assert response["objects"] == []
     assert response["page_info"] == {"next_cursor": None}
 
 
@@ -126,7 +117,8 @@ async def test_org_unit_pagination(
         {"current": {"uuid": units[1]}},
     ]
 
-    # Second page
+    # Second page: the short final page terminates immediately under keyset
+    # pagination, without a trailing empty page.
     response = search(
         {
             "filter": {"query": "foo"},
@@ -137,16 +129,6 @@ async def test_org_unit_pagination(
     assert response["objects"] == [
         {"current": {"uuid": units[2]}},
     ]
-
-    # Third page
-    response = search(
-        {
-            "filter": {"query": "foo"},
-            "limit": 2,
-            "cursor": response["page_info"]["next_cursor"],
-        }
-    )
-    assert response["objects"] == []
     assert response["page_info"] == {"next_cursor": None}
 
 

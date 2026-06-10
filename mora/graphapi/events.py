@@ -21,9 +21,13 @@ from mora.graphapi.filters import gen_filter_string
 
 from .paged import CursorType
 from .paged import LimitType
+from .paged import ObjectsAndCursor
+from .paged import paginate
+from .paged import to_objects
 from .permissions import IsAuthenticatedPermission
 from .permissions import gen_read_permission
 from .seed_resolver import seed_resolver
+from .types import Cursor
 from .utils import uuid2list
 
 
@@ -109,7 +113,7 @@ async def full_event_resolver(
     filter: FullEventFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list["FullEvent"]:
+) -> ObjectsAndCursor:
     if filter is None:
         filter = FullEventFilter()
 
@@ -136,33 +140,26 @@ async def full_event_resolver(
     if filter.silenced is not None:
         clauses.append(db.Event.silenced == filter.silenced)
 
-    query = (
-        select(db.Event)
-        .where(*clauses)
-        .order_by(
-            db.Event.priority.asc(),
-            db.Event.last_tried.asc(),
-        )
-    )
-
-    if limit is not None:  # pragma: no cover
-        query = query.limit(limit)
-    # This doesn't actually work correctly. It is hard to do pagination
-    # correctly, so for now we just do this super naively. This resolver is
-    # only used by humans, not by integrations.
-    query = query.offset(int(cursor.last) if cursor else 0)
-
+    # Pagination
+    query = select(db.Event.pk).where(*clauses).order_by(db.Event.pk)
     session: AsyncSession = info.context.session
-    result = await session.scalars(query)
-    return [
-        FullEvent(
-            subject=event.subject,
-            priority=event.priority,
-            silenced=event.silenced,
-            listener_uuid=event.listener_fk,
-        )
-        for event in result
-    ]
+    uuids, next_cursor = await paginate(session, query, db.Event.pk, limit, cursor)
+
+    result = await session.scalars(
+        select(db.Event).where(db.Event.pk.in_(uuids)).order_by(db.Event.pk)
+    )
+    return ObjectsAndCursor(
+        objects=[
+            FullEvent(
+                subject=event.subject,
+                priority=event.priority,
+                silenced=event.silenced,
+                listener_uuid=event.listener_fk,
+            )
+            for event in result
+        ],
+        next_cursor=next_cursor,
+    )
 
 
 async def listener_resolver(
@@ -170,32 +167,33 @@ async def listener_resolver(
     filter: ListenerFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list["Listener"]:
+) -> ObjectsAndCursor:
     if filter is None:  # pragma: no cover
         filter = ListenerFilter()
 
-    query = select(db.Listener).where(*filter.where_clauses())
-
-    if limit is not None:  # pragma: no cover
-        query = query.limit(limit)
-    # This doesn't actually work correctly. It is hard to do pagination
-    # correctly, so for now we just do this super naively. This resolver is
-    # only used by humans, not by integrations.
-    query = query.offset(int(cursor.last) if cursor else 0)
-
+    # Pagination
+    query = (
+        select(db.Listener.pk).where(*filter.where_clauses()).order_by(db.Listener.pk)
+    )
     session: AsyncSession = info.context.session
-    result = list(await session.scalars(query))
+    uuids, next_cursor = await paginate(session, query, db.Listener.pk, limit, cursor)
 
-    return [
-        Listener(
-            uuid=listener.pk,
-            user_key=listener.user_key,
-            owner=listener.owner,
-            routing_key=listener.routing_key,
-            namespace_fk=listener.namespace_fk,
-        )
-        for listener in result
-    ]
+    result = await session.scalars(
+        select(db.Listener).where(db.Listener.pk.in_(uuids)).order_by(db.Listener.pk)
+    )
+    return ObjectsAndCursor(
+        objects=[
+            Listener(
+                uuid=listener.pk,
+                user_key=listener.user_key,
+                owner=listener.owner,
+                routing_key=listener.routing_key,
+                namespace_fk=listener.namespace_fk,
+            )
+            for listener in result
+        ],
+        next_cursor=next_cursor,
+    )
 
 
 async def namespace_resolver(
@@ -203,7 +201,7 @@ async def namespace_resolver(
     filter: NamespaceFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list["Namespace"]:
+) -> ObjectsAndCursor:
     if filter is None:  # pragma: no cover
         filter = NamespaceFilter()
 
@@ -213,20 +211,27 @@ async def namespace_resolver(
         query = query.limit(limit)
     # This doesn't actually work correctly. It is hard to do pagination
     # correctly, so for now we just do this super naively. This resolver is
-    # only used by humans, not by integrations.
-    query = query.offset(int(cursor.last) if cursor else 0)
+    # only used by humans, not by integrations. We cannot use keyset pagination
+    # since their primary key is a name (string) which doesn't fit the UUID cursor.
+    offset = int(cursor.last) if cursor else 0
+    query = query.offset(offset)
 
     session: AsyncSession = info.context.session
     result = list(await session.scalars(query))
 
-    return [
-        Namespace(
-            name=namespace.name,
-            owner=namespace.owner,
-            public=namespace.public,
-        )
-        for namespace in result
-    ]
+    return ObjectsAndCursor(
+        objects=[
+            Namespace(
+                name=namespace.name,
+                owner=namespace.owner,
+                public=namespace.public,
+            )
+            for namespace in result
+        ],
+        next_cursor=(
+            Cursor(last=UUID(int=offset + limit)) if limit and result else None
+        ),
+    )
 
 
 @strawberry.type(
@@ -250,9 +255,11 @@ class Namespace:
     )
 
     listeners: list["Listener"] = strawberry.field(
-        resolver=seed_resolver(
-            listener_resolver,
-            {"namespaces": lambda root: NamespaceFilter(names=[root.name])},
+        resolver=to_objects(
+            seed_resolver(
+                listener_resolver,
+                {"namespaces": lambda root: NamespaceFilter(names=[root.name])},
+            )
         ),
         description="Listeners for this namespace",
         permission_classes=[
@@ -286,13 +293,15 @@ class Listener:
         root: "Listener", info: strawberry.Info
     ) -> Namespace:  # pragma: no cover
         filter = NamespaceFilter(names=[root.namespace_fk])
-        result = await namespace_resolver(info, filter)
-        return one(result)
+        page = await namespace_resolver(info, filter)
+        return one(page.objects)
 
     events: list["FullEvent"] = strawberry.field(
-        resolver=seed_resolver(
-            full_event_resolver,
-            {"listeners": lambda root: ListenerFilter(uuids=uuid2list(root.uuid))},
+        resolver=to_objects(
+            seed_resolver(
+                full_event_resolver,
+                {"listeners": lambda root: ListenerFilter(uuids=uuid2list(root.uuid))},
+            )
         ),
         description="Pending events for this listener. Use `event_fetch` to consume events.",
         permission_classes=[
@@ -328,8 +337,8 @@ class FullEvent:
         root: "FullEvent", info: strawberry.Info
     ) -> Listener:  # pragma: no cover
         filter = ListenerFilter(uuids=[root.listener_uuid])
-        result = await listener_resolver(info, filter)
-        return one(result)
+        page = await listener_resolver(info, filter)
+        return one(page.objects)
 
 
 class EventToken(BaseModel):
