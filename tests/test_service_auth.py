@@ -96,6 +96,10 @@ def no_auth_endpoints():
         "/service/{rest_of_path:path}",
         "/metrics",
         "/saml/sso/",
+        # The chat page performs Keycloak login in the browser, so the static
+        # HTML itself must be served without auth. The /chat/llm proxy is
+        # auth-protected.
+        "/chat",
         # Testing endpoints are not available in deployments
         "/testing/amqp/emit",
         "/testing/database/snapshot",

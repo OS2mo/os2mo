@@ -130,6 +130,10 @@ testing_endpoints = {
     "/testing/database/purge",
     "/testing/events/reset-last-tried",
 }
+chat_endpoints = {
+    "/chat",
+    "/chat/llm",
+}
 graphql_endpoints = {
     "/graphql",
     "/graphql/",
@@ -165,6 +169,7 @@ all_endpoints = (
     | doc_endpoints
     | health_endpoints
     | service_api_endpoints
+    | chat_endpoints
     | graphql_endpoints
 )
 
