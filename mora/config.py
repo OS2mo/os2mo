@@ -86,6 +86,13 @@ class Settings(BaseSettings):
     # Testing
     insecure_enable_testing_api: bool = False
 
+    # Chatbox prototype. The /chat/llm proxy forwards to Gemini using this key,
+    # so the key stays server-side and never reaches the browser. The model is
+    # fixed here, not chosen by the client.
+    chat_gemini_api_key: str | None = None
+    chat_gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta"
+    chat_gemini_model: str = "gemini-3-flash-preview"
+
     # Enable auth-endpoints and auth
     os2mo_auth: bool = True
     # When graphql_rbac is disabled, it is in fact still enabled for graphql mutators.

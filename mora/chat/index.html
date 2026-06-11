@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<!--
+SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+SPDX-License-Identifier: MPL-2.0
+
+OS2mo chatbox prototype. The user logs in through Keycloak (the same
+Authorization Code + PKCE flow the normal OS2mo frontend uses), and the
+resulting access token is used both to call the GraphQL API and to reach
+the /chat/llm proxy. The agent loop runs in the browser; its only tool,
+execute_graphql, runs against our GraphQL API as the logged-in user, so
+RBAC is enforced exactly as in the rest of OS2mo.
+
+The Gemini model is called server-side through /chat/llm (no CORS, key stays
+on the server) and the model is fixed by configuration, not chosen here.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OS2mo Chat</title>
+  <style>
+    :root {
+      --bg: #f7f8fa; --panel: #ffffff; --border: #e2e5ea; --ink: #1f2733;
+      --muted: #6b7585; --accent: #2d6cdf; --accent-ink: #ffffff;
+      --user-bubble: #2d6cdf; --tool-bg: #f0f2f6; --error: #c0392b;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: var(--bg); color: var(--ink);
+      font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex; flex-direction: column; height: 100vh;
+    }
+    button {
+      font: inherit; font-weight: 500; padding: 0.45rem 1rem; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--panel); color: var(--ink);
+      cursor: pointer;
+    }
+    button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+    button:hover { filter: brightness(0.97); }
+    button[disabled] { opacity: 0.5; cursor: default; }
+
+    /* Login screen */
+    #login {
+      flex: 1; display: none; flex-direction: column; align-items: center;
+      justify-content: center; gap: 1rem; text-align: center; padding: 2rem;
+    }
+    #login h1 { font-size: 1.6rem; margin: 0; }
+    #login p { color: var(--muted); margin: 0; max-width: 24rem; }
+
+    /* App */
+    #app { display: none; flex-direction: column; flex: 1; min-height: 0; }
+    header {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.7rem 1.1rem; background: var(--panel); border-bottom: 1px solid var(--border);
+    }
+    header h1 { font-size: 1.05rem; margin: 0; font-weight: 600; }
+    header .spacer { flex: 1; }
+    header #user { color: var(--muted); font-size: 0.9rem; }
+    #status { color: var(--accent); font-size: 0.9rem; min-width: 7rem; text-align: right; }
+
+    #log { flex: 1; overflow-y: auto; padding: 1.5rem 1rem; }
+    .msg { max-width: 44rem; margin: 0 auto 0.9rem; display: flex; flex-direction: column; align-items: flex-start; }
+    .msg.user { align-items: flex-end; }
+    .bubble { padding: 0.6rem 0.9rem; border-radius: 14px; white-space: pre-wrap; max-width: 85%; }
+    .msg.assistant .bubble { background: var(--panel); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .msg.user .bubble { background: var(--user-bubble); color: #fff; border-bottom-right-radius: 4px; }
+    .msg.error .bubble { background: #fdecea; color: var(--error); border: 1px solid #f5c6c2; }
+    /* Rendered markdown inside assistant bubbles */
+    .bubble p { margin: 0 0 0.5rem; }
+    .bubble p:last-child, .bubble > :last-child { margin-bottom: 0; }
+    .bubble h1, .bubble h2, .bubble h3 { margin: 0.4rem 0 0.3rem; line-height: 1.25; }
+    .bubble h1 { font-size: 1.25rem; } .bubble h2 { font-size: 1.12rem; } .bubble h3 { font-size: 1.02rem; }
+    .bubble ul, .bubble ol { margin: 0.2rem 0 0.5rem; padding-left: 1.3rem; }
+    .bubble li { margin: 0.1rem 0; }
+    .bubble a { color: var(--accent); }
+    .bubble code {
+      font: 0.88em ui-monospace, SFMono-Regular, Menlo, monospace;
+      background: #eef0f4; padding: 0.05rem 0.3rem; border-radius: 4px;
+    }
+    .bubble pre {
+      background: #1f2733; color: #e7eaf0; padding: 0.7rem 0.9rem; border-radius: 8px;
+      overflow-x: auto; margin: 0.4rem 0;
+    }
+    .bubble pre code { background: none; padding: 0; color: inherit; font-size: 0.85em; }
+    .bubble blockquote {
+      margin: 0.4rem 0; padding: 0.1rem 0.8rem; border-left: 3px solid var(--border); color: var(--muted);
+    }
+    /* Model-chosen emoji reaction stamped on the user's message */
+    .reaction { font-size: 0.95rem; margin: 0.15rem 0.25rem 0; opacity: 0.85; }
+    .msg.tool { }
+    .msg.tool details {
+      width: 100%; font: 12.5px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+      border: 1px solid var(--border); background: var(--tool-bg); border-radius: 10px; padding: 0.3rem 0.7rem;
+    }
+    .msg.tool summary { cursor: pointer; color: var(--muted); }
+    .msg.tool pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0.4rem 0; }
+
+    form#composer {
+      display: flex; gap: 0.6rem; padding: 0.8rem 1rem;
+      background: var(--panel); border-top: 1px solid var(--border);
+    }
+    #composer input {
+      flex: 1; font: inherit; padding: 0.6rem 0.9rem; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--bg);
+    }
+    #composer input:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+  </style>
+</head>
+<body>
+  <section id="login">
+    <h1>OS2mo Chat</h1>
+    <p>Ask questions about people, organisation units, engagements and more.
+       Sign in with your OS2mo account to continue.</p>
+    <button id="login-btn" class="primary" type="button">Log in</button>
+  </section>
+
+  <div id="app">
+    <header>
+      <h1>OS2mo Chat</h1>
+      <span class="spacer"></span>
+      <span id="status"></span>
+      <span id="user"></span>
+      <button id="logout-btn" type="button">Log out</button>
+    </header>
+    <div id="log"></div>
+    <form id="composer">
+      <input id="prompt" placeholder="Ask about people, org units, engagements..." autocomplete="off">
+      <button id="send" class="primary">Send</button>
+    </form>
+  </div>
+
+<script>
+"use strict";
+
+// ---- Configuration -------------------------------------------------------
+const REALM = "/auth/realms/mo";
+const CLIENT_ID = "mo-frontend";          // public PKCE client, same as the MO UI
+const REDIRECT_URI = location.origin + "/chat";
+const AUTH_ENDPOINT = `${REALM}/protocol/openid-connect/auth`;
+const TOKEN_ENDPOINT = `${REALM}/protocol/openid-connect/token`;
+const LOGOUT_ENDPOINT = `${REALM}/protocol/openid-connect/logout`;
+
+const LLM_PROXY_URL = "/chat/llm";
+const MAX_AGENT_TURNS = 25;
+const TOOL_RESULT_LIMIT = 100_000;
+
+const SYSTEM_PROMPT = `You are an assistant embedded in OS2mo, a Danish \
+municipal organisation and HR system holding employees, organisation units, \
+engagements, associations, addresses, IT users and leaves, all with temporal \
+validity. You answer questions by querying the OS2mo GraphQL API with the \
+execute_graphql tool.
+
+Guidance:
+- Discover the schema incrementally with targeted introspection, e.g. \
+{ __type(name: "Query") { fields { name } } } or \
+{ __type(name: "EmployeeFilter") { inputFields { name } } }. \
+NEVER query the full __schema; it is far too large.
+- Top-level collections are paginated: results live under "objects", and \
+each object exposes "current" (state now) or "validities" (full history). \
+Always pass a "limit" and request only the fields you need.
+- Pass any GraphQL variables in variables_json as a JSON object encoded as a \
+string, e.g. "{\\"uuid\\": \\"...\\"}".
+- The data contains CPR numbers and other sensitive personal data. Only \
+include such fields when the user explicitly asks for them.
+- Mutations change real data: before executing any mutation, show the user \
+what you intend to run and ask for confirmation.
+- Answer in the user's language.`;
+
+const TOOLS = [{
+  functionDeclarations: [{
+    name: "execute_graphql",
+    description:
+      "Execute a GraphQL document against the OS2mo API (latest version). " +
+      "Supports queries, targeted introspection, and (after user " +
+      "confirmation) mutations. Returns the raw JSON response.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "The GraphQL document." },
+        variables_json: {
+          type: "string",
+          description: "Optional GraphQL variables, as a JSON object string.",
+        },
+      },
+      required: ["query"],
+    },
+  }],
+}];
+
+const $ = (id) => document.getElementById(id);
+const contents = [];
+let graphqlUrl = "/graphql/v30";
+
+// ---- PKCE / OIDC ---------------------------------------------------------
+const session = {
+  accessToken: null, refreshToken: null, expiresAt: 0, username: null,
+};
+
+function randomString(bytes = 32) {
+  const arr = new Uint8Array(bytes);
+  crypto.getRandomValues(arr);
+  return base64url(arr.buffer);
+}
+function base64url(buffer) {
+  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+async function sha256(text) {
+  return crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+}
+function jwtPayload(token) {
+  try {
+    const part = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(part));
+  } catch { return {}; }
+}
+
+async function login() {
+  const verifier = randomString();
+  const state = randomString(16);
+  sessionStorage.setItem("pkce_verifier", verifier);
+  sessionStorage.setItem("pkce_state", state);
+  const challenge = base64url(await sha256(verifier));
+  const params = new URLSearchParams({
+    client_id: CLIENT_ID,
+    response_type: "code",
+    scope: "openid",
+    redirect_uri: REDIRECT_URI,
+    state,
+    code_challenge: challenge,
+    code_challenge_method: "S256",
+  });
+  location.assign(`${AUTH_ENDPOINT}?${params}`);
+}
+
+function storeTokens(data) {
+  session.accessToken = data.access_token;
+  session.refreshToken = data.refresh_token;
+  session.expiresAt = Date.now() + (data.expires_in ?? 60) * 1000;
+  session.username =
+    jwtPayload(data.id_token ?? data.access_token).preferred_username ?? "";
+  sessionStorage.setItem("oidc_session", JSON.stringify(session));
+}
+
+function restoreSession() {
+  const raw = sessionStorage.getItem("oidc_session");
+  if (raw) Object.assign(session, JSON.parse(raw));
+}
+
+async function handleCallback(params) {
+  const error = params.get("error");
+  if (error) throw new Error(`Login failed: ${error}`);
+  if (params.get("state") !== sessionStorage.getItem("pkce_state")) {
+    throw new Error("Login failed: state mismatch");
+  }
+  const body = new URLSearchParams({
+    grant_type: "authorization_code",
+    code: params.get("code"),
+    redirect_uri: REDIRECT_URI,
+    client_id: CLIENT_ID,
+    code_verifier: sessionStorage.getItem("pkce_verifier"),
+  });
+  const resp = await fetch(TOKEN_ENDPOINT, { method: "POST", body });
+  if (!resp.ok) throw new Error(`Token exchange failed (${resp.status})`);
+  storeTokens(await resp.json());
+  sessionStorage.removeItem("pkce_verifier");
+  sessionStorage.removeItem("pkce_state");
+  history.replaceState({}, "", "/chat");  // strip ?code= from the URL
+}
+
+async function refresh() {
+  const body = new URLSearchParams({
+    grant_type: "refresh_token",
+    refresh_token: session.refreshToken,
+    client_id: CLIENT_ID,
+  });
+  const resp = await fetch(TOKEN_ENDPOINT, { method: "POST", body });
+  if (!resp.ok) throw new Error("Session expired, please log in again");
+  storeTokens(await resp.json());
+}
+
+// Always returns a valid access token, refreshing shortly before expiry.
+async function moToken() {
+  if (!session.accessToken) throw new Error("Not logged in");
+  if (Date.now() > session.expiresAt - 30_000) await refresh();
+  return session.accessToken;
+}
+
+function logout() {
+  const idToken = JSON.parse(sessionStorage.getItem("oidc_session") || "{}");
+  sessionStorage.removeItem("oidc_session");
+  const params = new URLSearchParams({
+    client_id: CLIENT_ID,
+    post_logout_redirect_uri: REDIRECT_URI,
+  });
+  location.assign(`${LOGOUT_ENDPOINT}?${params}`);
+}
+
+function showApp() {
+  const authed = Boolean(session.accessToken);
+  $("login").style.display = authed ? "none" : "flex";
+  $("app").style.display = authed ? "flex" : "none";
+  if (authed) $("user").textContent = session.username;
+}
+
+// ---- Markdown ------------------------------------------------------------
+// Minimal, escape-first markdown renderer. We never inject third-party JS
+// into this authenticated page, and all source text is HTML-escaped before
+// any tags are (re-)introduced, so model output cannot inject markup.
+function escapeHtml(text) {
+  return text.replace(/[&<>"]/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+}
+
+function renderInline(text) {
+  return text
+    .replace(/`([^`]+)`/g, (_, c) => `<code>${c}</code>`)
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|\/[^\s)]*)\)/g,
+      (_, t, url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${t}</a>`)
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, "$1<em>$2</em>")
+    .replace(/(^|[^\w])_([^_]+)_/g, "$1<em>$2</em>");
+}
+
+function renderMarkdown(src) {
+  const lines = escapeHtml(src).split("\n");
+  const out = [];
+  let list = null;
+  const closeList = () => { if (list) { out.push(`</${list}>`); list = null; } };
+  for (let i = 0; i < lines.length;) {
+    const line = lines[i];
+    if (/^```/.test(line)) {                       // fenced code block
+      closeList();
+      const buf = [];
+      for (i++; i < lines.length && !/^```\s*$/.test(lines[i]); i++) buf.push(lines[i]);
+      i++;
+      out.push(`<pre><code>${buf.join("\n")}</code></pre>`);
+    } else if (/^(#{1,6})\s+/.test(line)) {        // heading
+      closeList();
+      const [, hashes, body] = line.match(/^(#{1,6})\s+(.*)$/);
+      const n = Math.min(hashes.length, 3);
+      out.push(`<h${n}>${renderInline(body)}</h${n}>`); i++;
+    } else if (/^\s*>\s?/.test(line)) {            // blockquote
+      closeList();
+      out.push(`<blockquote>${renderInline(line.replace(/^\s*>\s?/, ""))}</blockquote>`); i++;
+    } else if (/^\s*[-*]\s+/.test(line)) {         // unordered list
+      if (list !== "ul") { closeList(); out.push("<ul>"); list = "ul"; }
+      out.push(`<li>${renderInline(line.replace(/^\s*[-*]\s+/, ""))}</li>`); i++;
+    } else if (/^\s*\d+\.\s+/.test(line)) {        // ordered list
+      if (list !== "ol") { closeList(); out.push("<ol>"); list = "ol"; }
+      out.push(`<li>${renderInline(line.replace(/^\s*\d+\.\s+/, ""))}</li>`); i++;
+    } else if (/^\s*$/.test(line)) {               // blank line
+      closeList(); i++;
+    } else {                                        // paragraph
+      closeList();
+      const para = [];
+      for (; i < lines.length && !/^(\s*$|```|#{1,6}\s|\s*>\s?|\s*[-*]\s+|\s*\d+\.\s+)/.test(lines[i]); i++) {
+        para.push(lines[i]);
+      }
+      out.push(`<p>${para.map(renderInline).join("<br>")}</p>`);
+    }
+  }
+  closeList();
+  return out.join("\n");
+}
+
+// ---- Chat ----------------------------------------------------------------
+function addMessage(kind, text) {
+  const div = document.createElement("div");
+  div.className = `msg ${kind}`;
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  if (kind === "assistant") bubble.innerHTML = renderMarkdown(text);
+  else bubble.textContent = text;
+  div.appendChild(bubble);
+  $("log").appendChild(div);
+  div.scrollIntoView();
+  return div;
+}
+
+// Attach the model's chosen emoji reaction to a message.
+function addReaction(container, emoji, title) {
+  const span = document.createElement("span");
+  span.className = "reaction";
+  span.textContent = emoji;
+  if (title) span.title = title;
+  container.appendChild(span);
+  return span;
+}
+
+function addToolCall(input, resultText, isError) {
+  const div = document.createElement("div");
+  div.className = "msg tool";
+  const details = document.createElement("details");
+  const summary = document.createElement("summary");
+  summary.textContent = `execute_graphql ${isError ? "✗" : "✓"}`;
+  const query = document.createElement("pre");
+  query.textContent = input.query +
+    (input.variables ? `\nvariables: ${JSON.stringify(input.variables)}` : "");
+  const result = document.createElement("pre");
+  result.textContent = resultText.length > 2000
+    ? resultText.slice(0, 2000) + " …" : resultText;
+  details.append(summary, query, result);
+  div.appendChild(details);
+  $("log").appendChild(div);
+  div.scrollIntoView();
+}
+
+async function executeGraphql(query, variables) {
+  const resp = await fetch(graphqlUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${await moToken()}`,
+    },
+    body: JSON.stringify({ query, variables: variables ?? null }),
+  });
+  let text = await resp.text();
+  if (text.length > TOOL_RESULT_LIMIT) {
+    text = text.slice(0, TOOL_RESULT_LIMIT) +
+      `\n[truncated at ${TOOL_RESULT_LIMIT} characters; repeat the query ` +
+      "with a smaller limit or fewer fields]";
+  }
+  const isError = !resp.ok || JSON.parse(text || "{}").errors !== undefined;
+  return { text, isError };
+}
+
+// Extract the first emoji (incl. ZWJ sequences / variation selectors) from text.
+function firstEmoji(text) {
+  const match = text.match(
+    /\p{Extended_Pictographic}(️|‍\p{Extended_Pictographic})*/u);
+  return match ? match[0] : null;
+}
+
+// Ask the model for a single emoji that reacts to a message. Cheap, separate
+// from the main answer, and best-effort: returns null on any problem.
+async function pickEmoji(text) {
+  try {
+    const resp = await fetch(LLM_PROXY_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${await moToken()}`,
+      },
+      body: JSON.stringify({
+        request: {
+          // No thinking: an emoji needs no reasoning, and this keeps the call
+          // cheap (~1s vs ~7s) so it does not contend with the answer.
+          generationConfig: { thinkingConfig: { thinkingBudget: 0 } },
+          systemInstruction: { parts: [{ text:
+            "Reply with a single emoji that best reacts to the user's " +
+            "message. Output only the emoji, nothing else." }] },
+          contents: [{ role: "user", parts: [{ text }] }],
+        },
+      }),
+    });
+    if (!resp.ok) return null;
+    const body = await resp.json();
+    const out = (body.candidates?.[0]?.content?.parts ?? [])
+      .map((part) => part.text ?? "").join("");
+    return firstEmoji(out);
+  } catch {
+    return null;
+  }
+}
+
+async function callGemini() {
+  const resp = await fetch(LLM_PROXY_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${await moToken()}`,
+    },
+    body: JSON.stringify({
+      request: {
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        tools: TOOLS,
+        contents,
+      },
+    }),
+  });
+  const body = await resp.json();
+  if (!resp.ok) {
+    const err = body.error;
+    throw new Error(err?.message ?? err ?? `LLM proxy returned ${resp.status}`);
+  }
+  return body;
+}
+
+async function agentLoop() {
+  for (let turn = 0; turn < MAX_AGENT_TURNS; turn++) {
+    $("status").textContent = "thinking…";
+    const response = await callGemini();
+
+    const candidate = response.candidates?.[0];
+    if (!candidate) {
+      const blocked = response.promptFeedback?.blockReason;
+      addMessage("error", blocked
+        ? `[request blocked: ${blocked}]` : "[no response from model]");
+      return;
+    }
+
+    const parts = candidate.content?.parts ?? [];
+    contents.push({ role: "model", parts });  // verbatim, preserves continuity
+    for (const part of parts) {
+      if (part.text) addMessage("assistant", part.text);
+    }
+
+    const calls = parts.filter((part) => part.functionCall);
+    if (calls.length === 0) {
+      if (candidate.finishReason === "MAX_TOKENS") {
+        addMessage("error", "[response truncated: MAX_TOKENS]");
+      } else if (candidate.finishReason && candidate.finishReason !== "STOP") {
+        addMessage("error", `[stopped: ${candidate.finishReason}]`);
+      }
+      return;
+    }
+
+    $("status").textContent = "querying OS2mo…";
+    const responseParts = [];
+    for (const part of calls) {
+      const { name, args } = part.functionCall;
+      let variables = null;
+      if (args?.variables_json) {
+        try { variables = JSON.parse(args.variables_json); } catch { /* ignore */ }
+      }
+      const { text, isError } = await executeGraphql(args?.query, variables);
+      addToolCall({ query: args?.query, variables }, text, isError);
+      responseParts.push({
+        functionResponse: {
+          name,
+          response: isError ? { error: text } : { result: text },
+        },
+      });
+    }
+    contents.push({ role: "user", parts: responseParts });
+  }
+  addMessage("error", `[stopped after ${MAX_AGENT_TURNS} agent turns]`);
+}
+
+// ---- Wiring --------------------------------------------------------------
+$("login-btn").addEventListener("click", () => login().catch(showError));
+$("logout-btn").addEventListener("click", logout);
+
+$("composer").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const prompt = $("prompt").value.trim();
+  if (!prompt) return;
+  $("prompt").value = "";
+  const userMsg = addMessage("user", prompt);
+  contents.push({ role: "user", parts: [{ text: prompt }] });
+  $("send").disabled = true;
+  // The reaction emoji is entirely the model's choice; nothing is hardcoded.
+  pickEmoji(prompt).then((emoji) => {
+    if (emoji) addReaction(userMsg, emoji, "Reaction");
+  });
+  try {
+    await agentLoop();
+  } catch (error) {
+    addMessage("error", String(error.message ?? error));
+  } finally {
+    $("send").disabled = false;
+    $("status").textContent = "";
+  }
+});
+
+function showError(error) {
+  $("login").style.display = "flex";
+  addMessage("error", String(error.message ?? error));
+}
+
+async function init() {
+  // Resolve the latest GraphQL version from the unversioned redirect.
+  fetch("/graphql").then((resp) => {
+    const url = new URL(resp.url);
+    if (url.pathname.startsWith("/graphql/v")) graphqlUrl = url.pathname;
+  });
+
+  const params = new URLSearchParams(location.search);
+  try {
+    if (params.has("code") || params.has("error")) {
+      await handleCallback(params);
+    } else {
+      restoreSession();
+    }
+  } catch (error) {
+    alert(error.message ?? error);
+  }
+  showApp();
+}
+
+init();
+</script>
+</body>
+</html>

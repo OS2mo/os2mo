@@ -51,6 +51,7 @@ from . import service
 from . import testing
 from . import triggers
 from .auth.exceptions import get_auth_exception_handler
+from .chat import router as chat_router
 from .config import Environment
 from .db import create_sessionmaker
 from .db import transaction_per_request
@@ -291,6 +292,12 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
     app.include_router(
         graphapi_router,
         tags=["GraphQL"],
+    )
+
+    app.include_router(
+        chat_router,
+        prefix="/chat",
+        tags=["Chat"],
     )
 
     if settings.os2mo_auth:

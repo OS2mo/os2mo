@@ -8,6 +8,7 @@
 	reverse_proxy /docs* mo:5000
 	reverse_proxy /graphql* mo:5000
 	reverse_proxy /health* mo:5000
+	reverse_proxy /chat* mo:5000
 	reverse_proxy /lora* mo:5000
 	reverse_proxy /metrics* mo:5000
 	reverse_proxy /openapi.json mo:5000
