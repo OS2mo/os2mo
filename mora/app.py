@@ -46,7 +46,6 @@ from mora.service.shimmed.meta import meta_router
 from mora.util import now_per_request
 from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.custom_exceptions import OIOException
-from oio_rest.views import create_lora_router
 
 from . import service
 from . import testing
@@ -312,9 +311,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             prefix="/testing",
             tags=["Testing"],
         )
-
-    if settings.expose_lora:
-        app.include_router(create_lora_router(), prefix="/lora")
 
     # Set up lifecycle state for depends.py
     app.state.sessionmaker = sessionmaker

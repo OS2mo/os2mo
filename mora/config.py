@@ -211,11 +211,6 @@ class Settings(BaseSettings):
     # IT User and use the related persons uuid before checking ownership.
     keycloak_rbac_authoritative_it_system_for_owners: UUID | None = None
 
-    # Expose lora
-    expose_lora: bool = Field(
-        True, description="Whether to expose LoRAs REST API on /lora"
-    )
-
     # Lora client
     lora_client_id: str = "mo"
     lora_client_secret: str | None
