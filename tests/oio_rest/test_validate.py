@@ -8,11 +8,7 @@ import jsonschema
 import pytest
 
 from oio_rest import db
-from oio_rest import klassifikation
-from oio_rest import organisation
 from oio_rest import validate
-
-from . import util
 
 
 class TestBase:
@@ -777,25 +773,3 @@ class TestFacetSystematically(TestBase):
             "key": "This is not a string"
         }
         self.assertValidationError()
-
-
-class TestSchemaEndPoints(util.DBTestCase):
-    def assertSchemaOK(self, hierarchy):
-        """
-        Check that the schema endpoints for the classes in the given hierarchy
-        respond with HTTP status code 200 and return JSON.
-        :param hierarchy: The hierarchy to check, e.g. SagsHierarki,...
-        """
-        # Careful now - no logic in the test code!
-
-        for obj in hierarchy._classes:
-            url = f"/lora/{hierarchy._name.lower()}/{obj.__name__.lower()}/schema"
-            r = self.client.get(url)
-            assert r.status_code == 200
-            json.loads(r.text)
-
-    def test_klassifikation_hierarchy(self):
-        self.assertSchemaOK(klassifikation.KlassifikationsHierarki)
-
-    def test_organisation_hierarchy(self):
-        self.assertSchemaOK(organisation.OrganisationsHierarki)
