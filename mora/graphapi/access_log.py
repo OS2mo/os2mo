@@ -10,7 +10,6 @@ import strawberry
 from fastramqpi.ra_utils.apply import apply
 from more_itertools import bucket
 from sqlalchemy import select
-from starlette_context import context
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
@@ -26,6 +25,8 @@ from .actor import Actor
 from .actor import actor_uuid_to_actor
 from .paged import CursorType
 from .paged import LimitType
+from .paged import ObjectsAndCursor
+from .paged import paginate
 from .resolvers import get_sqlalchemy_date_interval
 
 
@@ -216,11 +217,11 @@ async def access_log_resolver(
     filter: AccessLogFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[AccessLog]:
+) -> ObjectsAndCursor:
     if filter is None:
         filter = AccessLogFilter()
 
-    query = select(AccessLogOperation)
+    query = select(AccessLogOperation.id)
     if filter.ids is not None:  # pragma: no cover
         query = query.where(AccessLogOperation.id.in_(filter.ids))
 
@@ -242,18 +243,12 @@ async def access_log_resolver(
         query = query.where(AccessLogOperation.time.between(start, end))
 
     # Pagination
-    if cursor:
-        # Make sure we only see objects created before pagination started
-        query = query.where(AccessLogOperation.time <= cursor.registration_time)
-    # Order by time, then by UUID so the order of pagination is well-defined
-    query = query.order_by(AccessLogOperation.time, AccessLogOperation.id)
-    if limit is not None:
-        # Fetch one extra element to see if there is another page
-        query = query.limit(limit + 1)
-    query = query.offset(int(cursor.last) if cursor else 0)
-
+    query = query.order_by(AccessLogOperation.id)
     session: AsyncSession = info.context.session
-    result = list(await session.scalars(query))
+    uuids, next_cursor = await paginate(
+        session, query, AccessLogOperation.id, limit, cursor
+    )
+
     access_log(
         session,
         "resolve_accesslog",
@@ -267,23 +262,24 @@ async def access_log_resolver(
             "start": filter.start,
             "end": filter.end,
         },
-        [accesslog.id for accesslog in result],
+        uuids,
     )
 
-    if limit is not None:
-        # Not enough results == no more pages
-        if len(result) <= limit:
-            context["lora_page_out_of_range"] = True
-        # Strip the extra element that was only used for page-checking
-        elif len(result) == limit + 1:
-            result = result[:-1]
+    result = await session.scalars(
+        select(AccessLogOperation)
+        .where(AccessLogOperation.id.in_(uuids))
+        .order_by(AccessLogOperation.id)
+    )
 
-    return [
-        AccessLog(
-            id=accesslog.id,
-            time=accesslog.time,
-            actor=accesslog.actor,
-            model=AccessLogModel(accesslog.model),
-        )
-        for accesslog in result
-    ]
+    return ObjectsAndCursor(
+        objects=[
+            AccessLog(
+                id=accesslog.id,
+                time=accesslog.time,
+                actor=accesslog.actor,
+                model=AccessLogModel(accesslog.model),
+            )
+            for accesslog in result
+        ],
+        next_cursor=next_cursor,
+    )

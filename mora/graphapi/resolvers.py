@@ -6,7 +6,6 @@ from datetime import date
 from datetime import datetime
 from datetime import timedelta
 from functools import lru_cache
-from itertools import starmap
 from textwrap import dedent
 from typing import Annotated
 from typing import Any
@@ -24,7 +23,6 @@ from sqlalchemy import Select
 from sqlalchemy import and_
 from sqlalchemy import case
 from sqlalchemy import cast
-from sqlalchemy import column
 from sqlalchemy import distinct
 from sqlalchemy import exists
 from sqlalchemy import func
@@ -33,9 +31,7 @@ from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy import true
 from sqlalchemy import union
-from sqlalchemy.sql.functions import now as SQLNOW
 from sqlalchemy.types import Text
-from starlette_context import context
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.types.unset import UnsetType
@@ -103,6 +99,8 @@ from .filters import RoleBindingFilter
 from .graphql_utils import LoadKey
 from .paged import CursorType
 from .paged import LimitType
+from .paged import ObjectsAndCursor
+from .paged import paginate
 from .registrationbase import RegistrationBase
 from .validity import OpenValidityModel
 
@@ -228,13 +226,9 @@ def handle_deprecated_hierarchy_filters(filter: OrganisationUnitFilter) -> None:
 def facet_predicate(
     info: MOInfo,
     filter: FacetFilter,
-    registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     predicates = [
-        _get_registrering_clause(
-            FacetRegistrering,
-            registration_time,
-        ),
+        _get_registrering_clause(FacetRegistrering, filter),
         FacetRegistrering.id.in_(
             select(FacetTilsPubliceret.facet_registrering_id).where(
                 FacetTilsPubliceret.publiceret == "Publiceret",
@@ -279,7 +273,7 @@ def facet_predicate(
                         uuid_shortcircuit(
                             filter.parent,
                             select(FacetRegistrering.facet_id).where(
-                                facet_predicate(info, filter.parent, registration_time)
+                                facet_predicate(info, filter.parent)
                             ),
                         )
                     ),
@@ -304,28 +298,17 @@ async def facet_resolver(
     predicate = facet_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
     )
     query = (
         select(distinct(FacetRegistrering.facet_id))
         .where(predicate)
         .order_by(FacetRegistrering.facet_id)
     )
-    # Pagination must be done here since the generic_resolver (lora) does not
-    # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
-
-    # Execute
-    session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
-
     # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    session: AsyncSession = info.context.session
+    uuids, next_cursor = await paginate(
+        session, query, FacetRegistrering.facet_id, limit, cursor
+    )
 
     access_log(
         session,
@@ -339,25 +322,22 @@ async def facet_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    objects = await generic_resolver(
         info.context.dataloaders.facet_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return ObjectsAndCursor(objects=objects, next_cursor=next_cursor)
 
 
 def class_predicate(
     info: MOInfo,
     filter: ClassFilter,
-    registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     predicates = [
-        _get_registrering_clause(
-            KlasseRegistrering,
-            registration_time,
-        ),
+        _get_registrering_clause(KlasseRegistrering, filter),
         KlasseRegistrering.id.in_(
             select(KlasseTilsPubliceret.klasse_registrering_id).where(
                 KlasseTilsPubliceret.publiceret == "Publiceret",
@@ -424,7 +404,7 @@ def class_predicate(
                         uuid_shortcircuit(
                             filter.facet,
                             select(FacetRegistrering.facet_id).where(
-                                facet_predicate(info, filter.facet, registration_time)
+                                facet_predicate(info, filter.facet)
                             ),
                         )
                     ),
@@ -444,7 +424,7 @@ def class_predicate(
                         uuid_shortcircuit(
                             filter.parent,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(info, filter.parent, registration_time)
+                                class_predicate(info, filter.parent)
                             ),
                         )
                     ),
@@ -463,9 +443,7 @@ def class_predicate(
                         uuid_shortcircuit(
                             filter.it_system,
                             select(ITSystemRegistrering.itsystem_id).where(
-                                it_system_predicate(
-                                    info, filter.it_system, registration_time
-                                )
+                                it_system_predicate(info, filter.it_system)
                             ),
                         )
                     ),
@@ -484,11 +462,7 @@ def class_predicate(
                         filter.owner,
                         select(
                             OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(
-                            organisation_unit_predicate(
-                                info, filter.owner, registration_time
-                            )
-                        ),
+                        ).where(organisation_unit_predicate(info, filter.owner)),
                     )
                 ),
                 _get_virkning_clause(KlasseRelation, filter),
@@ -521,28 +495,17 @@ async def class_resolver(
     predicate = class_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
     )
     query = (
         select(distinct(KlasseRegistrering.klasse_id))
         .where(predicate)
         .order_by(KlasseRegistrering.klasse_id)
     )
-    # Pagination must be done here since the generic_resolver (lora) does not
-    # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
-
-    # Execute
-    session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
-
     # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    session: AsyncSession = info.context.session
+    uuids, next_cursor = await paginate(
+        session, query, KlasseRegistrering.klasse_id, limit, cursor
+    )
 
     access_log(
         session,
@@ -556,19 +519,19 @@ async def class_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    objects = await generic_resolver(
         info.context.dataloaders.class_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return ObjectsAndCursor(objects=objects, next_cursor=next_cursor)
 
 
 def address_predicate(
     info: MOInfo,
     filter: AddressFilter,
-    registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -581,10 +544,7 @@ def address_predicate(
         )
 
     predicates = [
-        _get_registrering_clause(
-            OrganisationFunktionRegistrering,
-            registration_time,
-        ),
+        _get_registrering_clause(OrganisationFunktionRegistrering, filter),
         _get_gyldighed_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
@@ -640,9 +600,7 @@ def address_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info, filter.employee, registration_time
-                                )
+                                employee_predicate(info, filter.employee)
                             ),
                         )
                     ),
@@ -666,11 +624,7 @@ def address_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(
-                                organisation_unit_predicate(
-                                    info, filter.org_unit, registration_time
-                                )
-                            ),
+                            ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -692,9 +646,7 @@ def address_predicate(
                         uuid_shortcircuit(
                             filter.address_type,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    info, filter.address_type, registration_time
-                                )
+                                class_predicate(info, filter.address_type)
                             ),
                         )
                     ),
@@ -718,9 +670,7 @@ def address_predicate(
                         uuid_shortcircuit(
                             filter.visibility,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    info, filter.visibility, registration_time
-                                )
+                                class_predicate(info, filter.visibility)
                             ),
                         )
                     ),
@@ -740,11 +690,7 @@ def address_predicate(
                         filter.engagement,
                         select(
                             OrganisationFunktionRegistrering.organisationfunktion_id
-                        ).where(
-                            engagement_predicate(
-                                info, filter.engagement, registration_time
-                            )
-                        ),
+                        ).where(engagement_predicate(info, filter.engagement)),
                     )
                 )
             )
@@ -755,9 +701,7 @@ def address_predicate(
                         filter.ituser,
                         select(
                             OrganisationFunktionRegistrering.organisationfunktion_id
-                        ).where(
-                            it_user_predicate(info, filter.ituser, registration_time)
-                        ),
+                        ).where(it_user_predicate(info, filter.ituser)),
                     )
                 )
             )
@@ -790,28 +734,21 @@ async def address_resolver(
     predicate = address_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
         .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     )
-    # Pagination must be done here since the generic_resolver (lora) does not
-    # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
-
-    # Execute
-    session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
-
     # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    session: AsyncSession = info.context.session
+    uuids, next_cursor = await paginate(
+        session,
+        query,
+        OrganisationFunktionRegistrering.organisationfunktion_id,
+        limit,
+        cursor,
+    )
 
     access_log(
         session,
@@ -825,19 +762,19 @@ async def address_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    objects = await generic_resolver(
         info.context.dataloaders.address_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return ObjectsAndCursor(objects=objects, next_cursor=next_cursor)
 
 
 def association_predicate(
     info: MOInfo,
     filter: AssociationFilter,
-    registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -850,10 +787,7 @@ def association_predicate(
         )
 
     predicates = [
-        _get_registrering_clause(
-            OrganisationFunktionRegistrering,
-            registration_time,
-        ),
+        _get_registrering_clause(OrganisationFunktionRegistrering, filter),
         _get_gyldighed_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
@@ -909,9 +843,7 @@ def association_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info, filter.employee, registration_time
-                                )
+                                employee_predicate(info, filter.employee)
                             ),
                         )
                     ),
@@ -935,11 +867,7 @@ def association_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(
-                                organisation_unit_predicate(
-                                    info, filter.org_unit, registration_time
-                                )
-                            ),
+                            ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -961,9 +889,7 @@ def association_predicate(
                         uuid_shortcircuit(
                             filter.association_type,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    info, filter.association_type, registration_time
-                                )
+                                class_predicate(info, filter.association_type)
                             ),
                         )
                     ),
@@ -1005,28 +931,21 @@ async def association_resolver(
     predicate = association_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
         .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     )
-    # Pagination must be done here since the generic_resolver (lora) does not
-    # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
-
-    # Execute
-    session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
-
     # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    session: AsyncSession = info.context.session
+    uuids, next_cursor = await paginate(
+        session,
+        query,
+        OrganisationFunktionRegistrering.organisationfunktion_id,
+        limit,
+        cursor,
+    )
 
     access_log(
         session,
@@ -1040,27 +959,22 @@ async def association_resolver(
         uuids,
     )
 
-    associations = await generic_resolver(
+    objects = await generic_resolver(
         info.context.dataloaders.association_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
-
-    return associations
+    return ObjectsAndCursor(objects=objects, next_cursor=next_cursor)
 
 
 def employee_predicate(
     info: MOInfo,
     filter: EmployeeFilter,
-    registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     predicates = [
-        _get_registrering_clause(
-            BrugerRegistrering,
-            registration_time,
-        ),
+        _get_registrering_clause(BrugerRegistrering, filter),
         _get_gyldighed_clause(
             BrugerRegistrering,
             BrugerTilsGyldighed,
@@ -1127,28 +1041,17 @@ async def employee_resolver(
     predicate = employee_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
     )
     query = (
         select(distinct(BrugerRegistrering.bruger_id))
         .where(predicate)
         .order_by(BrugerRegistrering.bruger_id)
     )
-    # Pagination must be done here since the generic_resolver (lora) does not
-    # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
-
-    # Execute
-    session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
-
     # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    session: AsyncSession = info.context.session
+    uuids, next_cursor = await paginate(
+        session, query, BrugerRegistrering.bruger_id, limit, cursor
+    )
 
     access_log(
         session,
@@ -1162,19 +1065,19 @@ async def employee_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    objects = await generic_resolver(
         info.context.dataloaders.employee_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return ObjectsAndCursor(objects=objects, next_cursor=next_cursor)
 
 
 def engagement_predicate(
     info: MOInfo,
     filter: EngagementFilter,
-    registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -1187,10 +1090,7 @@ def engagement_predicate(
         )
 
     predicates = [
-        _get_registrering_clause(
-            OrganisationFunktionRegistrering,
-            registration_time,
-        ),
+        _get_registrering_clause(OrganisationFunktionRegistrering, filter),
         _get_gyldighed_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
@@ -1246,9 +1146,7 @@ def engagement_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info, filter.employee, registration_time
-                                )
+                                employee_predicate(info, filter.employee)
                             ),
                         )
                     ),
@@ -1272,11 +1170,7 @@ def engagement_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(
-                                organisation_unit_predicate(
-                                    info, filter.org_unit, registration_time
-                                )
-                            ),
+                            ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1297,9 +1191,7 @@ def engagement_predicate(
                         uuid_shortcircuit(
                             filter.job_function,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    info, filter.job_function, registration_time
-                                )
+                                class_predicate(info, filter.job_function)
                             ),
                         )
                     ),
@@ -1321,9 +1213,7 @@ def engagement_predicate(
                         uuid_shortcircuit(
                             filter.engagement_type,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    info, filter.engagement_type, registration_time
-                                )
+                                class_predicate(info, filter.engagement_type)
                             ),
                         )
                     ),
@@ -1339,7 +1229,6 @@ def engagement_predicate(
         ituser_pred = it_user_predicate(
             info,
             filter.ituser,
-            registration_time=registration_time,
         )
         predicates.append(
             OrganisationFunktionRegistrering.organisationfunktion_id.in_(
@@ -1370,28 +1259,21 @@ async def engagement_resolver(
     predicate = engagement_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
         .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     )
-    # Pagination must be done here since the generic_resolver (lora) does not
-    # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
-
-    # Execute
-    session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
-
     # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    session: AsyncSession = info.context.session
+    uuids, next_cursor = await paginate(
+        session,
+        query,
+        OrganisationFunktionRegistrering.organisationfunktion_id,
+        limit,
+        cursor,
+    )
 
     access_log(
         session,
@@ -1405,19 +1287,19 @@ async def engagement_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    objects = await generic_resolver(
         info.context.dataloaders.engagement_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return ObjectsAndCursor(objects=objects, next_cursor=next_cursor)
 
 
 def manager_predicate(
     info: MOInfo,
     filter: ManagerFilter,
-    registration_time: datetime | SQLNOW,
     inherit: bool = False,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
@@ -1431,10 +1313,7 @@ def manager_predicate(
         )
 
     predicates = [
-        _get_registrering_clause(
-            OrganisationFunktionRegistrering,
-            registration_time,
-        ),
+        _get_registrering_clause(OrganisationFunktionRegistrering, filter),
         _get_gyldighed_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
@@ -1525,9 +1404,7 @@ def manager_predicate(
                                 uuid_shortcircuit(
                                     filter.employee,
                                     select(BrugerRegistrering.bruger_id).where(
-                                        employee_predicate(
-                                            info, filter.employee, registration_time
-                                        )
+                                        employee_predicate(info, filter.employee)
                                     ),
                                 )
                             ),
@@ -1549,9 +1426,7 @@ def manager_predicate(
                             uuid_shortcircuit(
                                 filter.employee,
                                 select(BrugerRegistrering.bruger_id).where(
-                                    employee_predicate(
-                                        info, filter.employee, registration_time
-                                    )
+                                    employee_predicate(info, filter.employee)
                                 ),
                             )
                         ),
@@ -1565,9 +1440,7 @@ def manager_predicate(
     if inherit:
         if filter.org_unit is None:
             raise ValueError("The inherit flag requires an organizational unit filter")
-        predicates.append(
-            _manager_inherit_org_unit_predicate(info, filter, registration_time)
-        )
+        predicates.append(_manager_inherit_org_unit_predicate(info, filter))
     elif filter.org_unit:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
@@ -1581,11 +1454,7 @@ def manager_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(
-                                organisation_unit_predicate(
-                                    info, filter.org_unit, registration_time
-                                )
-                            ),
+                            ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1606,9 +1475,7 @@ def manager_predicate(
                         uuid_shortcircuit(
                             filter.responsibility,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    info, filter.responsibility, registration_time
-                                )
+                                class_predicate(info, filter.responsibility)
                             ),
                         )
                     ),
@@ -1630,9 +1497,7 @@ def manager_predicate(
                         uuid_shortcircuit(
                             filter.manager_type,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    info, filter.manager_type, registration_time
-                                )
+                                class_predicate(info, filter.manager_type)
                             ),
                         )
                     ),
@@ -1655,11 +1520,7 @@ def manager_predicate(
                             filter.engagement,
                             select(
                                 OrganisationFunktionRegistrering.organisationfunktion_id
-                            ).where(
-                                engagement_predicate(
-                                    info, filter.engagement, registration_time
-                                )
-                            ),
+                            ).where(engagement_predicate(info, filter.engagement)),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1681,9 +1542,7 @@ def manager_predicate(
                         uuid_shortcircuit(
                             filter.exclude,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info, filter.exclude, registration_time
-                                )
+                                employee_predicate(info, filter.exclude)
                             ),
                         )
                     ),
@@ -1699,7 +1558,6 @@ def manager_predicate(
 def _manager_inherit_org_unit_predicate(
     info: MOInfo,
     filter: ManagerFilter,
-    registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     """Walk each starting unit up the org tree, returning managers from the
     nearest ancestor that has any matching the rest of the filter."""
@@ -1710,9 +1568,7 @@ def _manager_inherit_org_unit_predicate(
         # Morally equivalent to `manager_predicate` with
         # `filter.org_unit = organisationenhed_id`.
         return exists().where(
-            manager_predicate(
-                info, dataclasses.replace(filter, org_unit=None), registration_time
-            ),
+            manager_predicate(info, dataclasses.replace(filter, org_unit=None)),
             # Manager is attached to organisationenhed_id:
             OrganisationFunktionRelation.organisationfunktion_registrering_id
             == OrganisationFunktionRegistrering.id,
@@ -1732,7 +1588,7 @@ def _manager_inherit_org_unit_predicate(
             OrganisationEnhedRegistrering.organisationenhed_id == child_uuid,
             OrganisationEnhedRelation.rel_type
             == OrganisationEnhedRelationKode.overordnet,
-            _get_registrering_clause(OrganisationEnhedRegistrering, registration_time),
+            _get_registrering_clause(OrganisationEnhedRegistrering, filter),
             _get_virkning_clause(OrganisationEnhedRelation, filter),
         )
 
@@ -1741,7 +1597,7 @@ def _manager_inherit_org_unit_predicate(
         select(
             OrganisationEnhedRegistrering.organisationenhed_id.label("unit"),
         )
-        .where(organisation_unit_predicate(info, filter.org_unit, registration_time))
+        .where(organisation_unit_predicate(info, filter.org_unit))
         .cte(recursive=True)
     )
     # Stop the walk at the nearest ancestor with a matching manager.
@@ -1789,7 +1645,6 @@ async def manager_resolver(
     predicate = manager_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
         inherit=inherit,
     )
     query = (
@@ -1797,21 +1652,15 @@ async def manager_resolver(
         .where(predicate)
         .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     )
-    # Pagination must be done here since the generic_resolver (lora) does not
-    # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
-
-    # Execute
-    session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
-
     # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    session: AsyncSession = info.context.session
+    uuids, next_cursor = await paginate(
+        session,
+        query,
+        OrganisationFunktionRegistrering.organisationfunktion_id,
+        limit,
+        cursor,
+    )
 
     access_log(
         session,
@@ -1825,19 +1674,19 @@ async def manager_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    objects = await generic_resolver(
         info.context.dataloaders.manager_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return ObjectsAndCursor(objects=objects, next_cursor=next_cursor)
 
 
 def owner_predicate(
     info: MOInfo,
     filter: OwnerFilter,
-    registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -1850,10 +1699,7 @@ def owner_predicate(
         )
 
     predicates = [
-        _get_registrering_clause(
-            OrganisationFunktionRegistrering,
-            registration_time,
-        ),
+        _get_registrering_clause(OrganisationFunktionRegistrering, filter),
         _get_gyldighed_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
@@ -1897,9 +1743,7 @@ def owner_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info, filter.employee, registration_time
-                                )
+                                employee_predicate(info, filter.employee)
                             ),
                         )
                     ),
@@ -1923,11 +1767,7 @@ def owner_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(
-                                organisation_unit_predicate(
-                                    info, filter.org_unit, registration_time
-                                )
-                            ),
+                            ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -1948,9 +1788,7 @@ def owner_predicate(
                         uuid_shortcircuit(
                             filter.owner,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info, filter.owner, registration_time
-                                )
+                                employee_predicate(info, filter.owner)
                             ),
                         )
                     ),
@@ -1975,28 +1813,21 @@ async def owner_resolver(
     predicate = owner_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
         .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     )
-    # Pagination must be done here since the generic_resolver (lora) does not
-    # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
-
-    # Execute
-    session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
-
     # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    session: AsyncSession = info.context.session
+    uuids, next_cursor = await paginate(
+        session,
+        query,
+        OrganisationFunktionRegistrering.organisationfunktion_id,
+        limit,
+        cursor,
+    )
 
     access_log(
         session,
@@ -2010,31 +1841,14 @@ async def owner_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    objects = await generic_resolver(
         info.context.dataloaders.owner_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
-
-
-def _get_registration_time(
-    filter: BaseFilter,
-    cursor: CursorType,
-) -> datetime | SQLNOW:
-    if (
-        cursor is not None
-        and filter.registration_time
-        and filter.registration_time != cursor.registration_time
-    ):
-        raise ValueError("Cannot change registration_time during pagination")
-
-    if cursor is not None:
-        return tz_isodate(cursor.registration_time)
-    if filter.registration_time:
-        return tz_isodate(filter.registration_time)
-    return func.now()
+    return ObjectsAndCursor(objects=objects, next_cursor=next_cursor)
 
 
 def _get_registrering_clause(
@@ -2046,11 +1860,15 @@ def _get_registrering_clause(
         | OrganisationEnhedRegistrering
         | OrganisationFunktionRegistrering
     ],
-    time: datetime | SQLNOW,
+    filter: BaseFilter,
 ) -> ColumnElement:
     return and_(
         cls.lifecycle != "Slettet",
-        cls.registrering_period.contains(time),
+        cls.registrering_period.contains(
+            tz_isodate(filter.registration_time)
+            if filter.registration_time
+            else func.now()
+        ),
     )
 
 
@@ -2089,7 +1907,6 @@ def _get_gyldighed_clause(
 def organisation_unit_predicate(
     info: MOInfo,
     filter: OrganisationUnitFilter,
-    registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _parents_subquery() -> Select | CompoundSelect:
         org_unit_filter = filter.parent or OrganisationUnitFilter()
@@ -2110,7 +1927,7 @@ def organisation_unit_predicate(
             extend_uuids(org_unit_filter, filter.parents)
         return union(
             select(OrganisationEnhedRegistrering.organisationenhed_id).where(
-                organisation_unit_predicate(info, org_unit_filter, registration_time)
+                organisation_unit_predicate(info, org_unit_filter)
             ),
             # Because the root unit isn't an org unit in the database, the
             # organisation_unit_predicate can't fetch it. Instead, we include
@@ -2124,10 +1941,7 @@ def organisation_unit_predicate(
         )
 
     predicates = [
-        _get_registrering_clause(
-            OrganisationEnhedRegistrering,
-            registration_time,
-        ),
+        _get_registrering_clause(OrganisationEnhedRegistrering, filter),
         _get_gyldighed_clause(
             OrganisationEnhedRegistrering,
             OrganisationEnhedTilsGyldighed,
@@ -2146,7 +1960,6 @@ def organisation_unit_predicate(
                             engagement_predicate(
                                 info=info,
                                 filter=filter.engagement,
-                                registration_time=registration_time,
                             )
                         )
                     ),
@@ -2232,9 +2045,7 @@ def organisation_unit_predicate(
                         uuid_shortcircuit(
                             filter.hierarchy,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    info, filter.hierarchy, registration_time
-                                )
+                                class_predicate(info, filter.hierarchy)
                             ),
                         )
                     ),
@@ -2256,7 +2067,6 @@ def organisation_unit_predicate(
         base_leafs_predicate = organisation_unit_predicate(
             info=info,
             filter=org_unit_filter,
-            registration_time=registration_time,
         )
         base_leafs = (
             select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
@@ -2278,10 +2088,7 @@ def organisation_unit_predicate(
                 OrganisationEnhedRegistrering,
             )
             .where(
-                _get_registrering_clause(
-                    OrganisationEnhedRegistrering,
-                    registration_time,
-                ),
+                _get_registrering_clause(OrganisationEnhedRegistrering, filter),
             )
             .join(
                 leafs,
@@ -2311,10 +2118,7 @@ def organisation_unit_predicate(
                 # This selects all active parent relations
                 select(OrganisationEnhedRelation.rel_maal_uuid)
                 .where(
-                    _get_registrering_clause(
-                        OrganisationEnhedRegistrering,
-                        registration_time,
-                    ),
+                    _get_registrering_clause(OrganisationEnhedRegistrering, filter),
                     _get_virkning_clause(OrganisationEnhedRelation, filter),
                     OrganisationEnhedRelation.rel_type
                     == OrganisationEnhedRelationKode.overordnet,
@@ -2329,7 +2133,6 @@ def organisation_unit_predicate(
         child_predicate = organisation_unit_predicate(
             info=info,
             filter=filter.child,
-            registration_time=registration_time,
         )
         base_query = (
             select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
@@ -2345,10 +2148,7 @@ def organisation_unit_predicate(
                 select(OrganisationEnhedRelation.rel_maal_uuid)
                 .join(OrganisationEnhedRegistrering)
                 .where(
-                    _get_registrering_clause(
-                        OrganisationEnhedRegistrering,
-                        registration_time,
-                    ),
+                    _get_registrering_clause(OrganisationEnhedRegistrering, filter),
                     _get_virkning_clause(OrganisationEnhedRelation, filter),
                     OrganisationEnhedRelation.rel_type
                     == OrganisationEnhedRelationKode.overordnet,
@@ -2364,7 +2164,6 @@ def organisation_unit_predicate(
         ancestor_predicate = organisation_unit_predicate(
             info=info,
             filter=org_unit_filter,
-            registration_time=registration_time,
         )
         base_query = (
             select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
@@ -2386,10 +2185,7 @@ def organisation_unit_predicate(
                 OrganisationEnhedRelation,
             )
             .where(
-                _get_registrering_clause(
-                    OrganisationEnhedRegistrering,
-                    registration_time,
-                ),
+                _get_registrering_clause(OrganisationEnhedRegistrering, filter),
                 _get_virkning_clause(OrganisationEnhedRelation, filter),
             )
             .join(
@@ -2454,28 +2250,21 @@ async def organisation_unit_resolver(
     predicate = organisation_unit_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
     )
     query = (
         select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
         .where(predicate)
         .order_by(OrganisationEnhedRegistrering.organisationenhed_id)
     )
-    # Pagination must be done here since the generic_resolver (lora) does not
-    # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
-
-    # Execute
-    session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
-
     # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    session: AsyncSession = info.context.session
+    uuids, next_cursor = await paginate(
+        session,
+        query,
+        OrganisationEnhedRegistrering.organisationenhed_id,
+        limit,
+        cursor,
+    )
 
     access_log(
         session,
@@ -2489,13 +2278,14 @@ async def organisation_unit_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    objects = await generic_resolver(
         info.context.dataloaders.org_unit_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return ObjectsAndCursor(objects=objects, next_cursor=next_cursor)
 
 
 async def organisation_unit_has_children(
@@ -2507,7 +2297,6 @@ async def organisation_unit_has_children(
     predicate = organisation_unit_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, None),
     )
     query = (
         select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
@@ -2527,7 +2316,6 @@ async def organisation_unit_child_count(
     predicate = organisation_unit_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, None),
     )
     query = (
         select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
@@ -2543,13 +2331,9 @@ async def organisation_unit_child_count(
 def it_system_predicate(
     info: MOInfo,
     filter: ITSystemFilter,
-    registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     predicates = [
-        _get_registrering_clause(
-            ITSystemRegistrering,
-            registration_time,
-        ),
+        _get_registrering_clause(ITSystemRegistrering, filter),
         _get_gyldighed_clause(
             ITSystemRegistrering,
             ITSystemTilsGyldighed,
@@ -2598,28 +2382,17 @@ async def it_system_resolver(
     predicate = it_system_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
     )
     query = (
         select(distinct(ITSystemRegistrering.itsystem_id))
         .where(predicate)
         .order_by(ITSystemRegistrering.itsystem_id)
     )
-    # Pagination must be done here since the generic_resolver (lora) does not
-    # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
-
-    # Execute
-    session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
-
     # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    session: AsyncSession = info.context.session
+    uuids, next_cursor = await paginate(
+        session, query, ITSystemRegistrering.itsystem_id, limit, cursor
+    )
 
     access_log(
         session,
@@ -2633,19 +2406,19 @@ async def it_system_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    objects = await generic_resolver(
         info.context.dataloaders.itsystem_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return ObjectsAndCursor(objects=objects, next_cursor=next_cursor)
 
 
 def it_user_predicate(
     info: MOInfo,
     filter: ITUserFilter,
-    registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -2658,10 +2431,7 @@ def it_user_predicate(
         )
 
     predicates = [
-        _get_registrering_clause(
-            OrganisationFunktionRegistrering,
-            registration_time,
-        ),
+        _get_registrering_clause(OrganisationFunktionRegistrering, filter),
         _get_gyldighed_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
@@ -2717,9 +2487,7 @@ def it_user_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info, filter.employee, registration_time
-                                )
+                                employee_predicate(info, filter.employee)
                             ),
                         )
                     ),
@@ -2743,11 +2511,7 @@ def it_user_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(
-                                organisation_unit_predicate(
-                                    info, filter.org_unit, registration_time
-                                )
-                            ),
+                            ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -2769,9 +2533,7 @@ def it_user_predicate(
                         uuid_shortcircuit(
                             filter.itsystem,
                             select(ITSystemRegistrering.itsystem_id).where(
-                                it_system_predicate(
-                                    info, filter.itsystem, registration_time
-                                )
+                                it_system_predicate(info, filter.itsystem)
                             ),
                         )
                     ),
@@ -2794,11 +2556,7 @@ def it_user_predicate(
                             filter.engagement,
                             select(
                                 OrganisationFunktionRegistrering.organisationfunktion_id
-                            ).where(
-                                engagement_predicate(
-                                    info, filter.engagement, registration_time
-                                )
-                            ),
+                            ).where(engagement_predicate(info, filter.engagement)),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -2814,7 +2572,6 @@ def it_user_predicate(
         rolebinding_pred = rolebinding_predicate(
             info,
             filter.rolebinding or RoleBindingFilter(),
-            registration_time=registration_time,
         )
         ituser_has_rolebinding = exists().where(
             OrganisationFunktionRelation.rel_type
@@ -2892,28 +2649,21 @@ async def it_user_resolver(
     predicate = it_user_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
         .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     )
-    # Pagination must be done here since the generic_resolver (lora) does not
-    # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
-
-    # Execute
-    session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
-
     # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    session: AsyncSession = info.context.session
+    uuids, next_cursor = await paginate(
+        session,
+        query,
+        OrganisationFunktionRegistrering.organisationfunktion_id,
+        limit,
+        cursor,
+    )
 
     access_log(
         session,
@@ -2927,19 +2677,19 @@ async def it_user_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    objects = await generic_resolver(
         info.context.dataloaders.ituser_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return ObjectsAndCursor(objects=objects, next_cursor=next_cursor)
 
 
 def kle_predicate(
     info: MOInfo,
     filter: KLEFilter,
-    registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -2952,10 +2702,7 @@ def kle_predicate(
         )
 
     predicates = [
-        _get_registrering_clause(
-            OrganisationFunktionRegistrering,
-            registration_time,
-        ),
+        _get_registrering_clause(OrganisationFunktionRegistrering, filter),
         _get_gyldighed_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
@@ -3012,11 +2759,7 @@ def kle_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(
-                                organisation_unit_predicate(
-                                    info, filter.org_unit, registration_time
-                                )
-                            ),
+                            ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -3040,28 +2783,21 @@ async def kle_resolver(
     predicate = kle_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
         .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     )
-    # Pagination must be done here since the generic_resolver (lora) does not
-    # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
-
-    # Execute
-    session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
-
     # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    session: AsyncSession = info.context.session
+    uuids, next_cursor = await paginate(
+        session,
+        query,
+        OrganisationFunktionRegistrering.organisationfunktion_id,
+        limit,
+        cursor,
+    )
 
     access_log(
         session,
@@ -3075,19 +2811,19 @@ async def kle_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    objects = await generic_resolver(
         info.context.dataloaders.kle_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return ObjectsAndCursor(objects=objects, next_cursor=next_cursor)
 
 
 def leave_predicate(
     info: MOInfo,
     filter: LeaveFilter,
-    registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -3100,10 +2836,7 @@ def leave_predicate(
         )
 
     predicates = [
-        _get_registrering_clause(
-            OrganisationFunktionRegistrering,
-            registration_time,
-        ),
+        _get_registrering_clause(OrganisationFunktionRegistrering, filter),
         _get_gyldighed_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
@@ -3159,9 +2892,7 @@ def leave_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info, filter.employee, registration_time
-                                )
+                                employee_predicate(info, filter.employee)
                             ),
                         )
                     ),
@@ -3185,11 +2916,7 @@ def leave_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(
-                                organisation_unit_predicate(
-                                    info, filter.org_unit, registration_time
-                                )
-                            ),
+                            ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -3213,28 +2940,21 @@ async def leave_resolver(
     predicate = leave_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
         .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     )
-    # Pagination must be done here since the generic_resolver (lora) does not
-    # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
-
-    # Execute
-    session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
-
     # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    session: AsyncSession = info.context.session
+    uuids, next_cursor = await paginate(
+        session,
+        query,
+        OrganisationFunktionRegistrering.organisationfunktion_id,
+        limit,
+        cursor,
+    )
 
     access_log(
         session,
@@ -3248,13 +2968,14 @@ async def leave_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    objects = await generic_resolver(
         info.context.dataloaders.leave_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return ObjectsAndCursor(objects=objects, next_cursor=next_cursor)
 
 
 # type: ignore[no-untyped-def,override]
@@ -3298,7 +3019,6 @@ async def generic_resolver(
 def related_unit_predicate(
     info: MOInfo,
     filter: RelatedUnitFilter,
-    registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -3311,10 +3031,7 @@ def related_unit_predicate(
         )
 
     predicates = [
-        _get_registrering_clause(
-            OrganisationFunktionRegistrering,
-            registration_time,
-        ),
+        _get_registrering_clause(OrganisationFunktionRegistrering, filter),
         _get_gyldighed_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
@@ -3359,11 +3076,7 @@ def related_unit_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(
-                                organisation_unit_predicate(
-                                    info, filter.org_unit, registration_time
-                                )
-                            ),
+                            ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -3387,28 +3100,21 @@ async def related_unit_resolver(
     predicate = related_unit_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
         .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     )
-    # Pagination must be done here since the generic_resolver (lora) does not
-    # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
-
-    # Execute
-    session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
-
     # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    session: AsyncSession = info.context.session
+    uuids, next_cursor = await paginate(
+        session,
+        query,
+        OrganisationFunktionRegistrering.organisationfunktion_id,
+        limit,
+        cursor,
+    )
 
     access_log(
         session,
@@ -3422,19 +3128,19 @@ async def related_unit_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    objects = await generic_resolver(
         info.context.dataloaders.rel_unit_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return ObjectsAndCursor(objects=objects, next_cursor=next_cursor)
 
 
 def rolebinding_predicate(
     info: MOInfo,
     filter: RoleBindingFilter,
-    registration_time: datetime | SQLNOW,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -3447,10 +3153,7 @@ def rolebinding_predicate(
         )
 
     predicates = [
-        _get_registrering_clause(
-            OrganisationFunktionRegistrering,
-            registration_time,
-        ),
+        _get_registrering_clause(OrganisationFunktionRegistrering, filter),
         _get_gyldighed_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
@@ -3507,11 +3210,7 @@ def rolebinding_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(
-                                organisation_unit_predicate(
-                                    info, filter.org_unit, registration_time
-                                )
-                            ),
+                            ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -3533,11 +3232,7 @@ def rolebinding_predicate(
                             filter.ituser,
                             select(
                                 OrganisationFunktionRegistrering.organisationfunktion_id
-                            ).where(
-                                it_user_predicate(
-                                    info, filter.ituser, registration_time
-                                )
-                            ),
+                            ).where(it_user_predicate(info, filter.ituser)),
                         )
                     ),
                     _get_virkning_clause(OrganisationFunktionRelation, filter),
@@ -3558,7 +3253,7 @@ def rolebinding_predicate(
                         uuid_shortcircuit(
                             filter.role,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(info, filter.role, registration_time)
+                                class_predicate(info, filter.role)
                             ),
                         )
                     ),
@@ -3583,28 +3278,21 @@ async def rolebinding_resolver(
     predicate = rolebinding_predicate(
         info=info,
         filter=filter,
-        registration_time=_get_registration_time(filter, cursor),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
         .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     )
-    # Pagination must be done here since the generic_resolver (lora) does not
-    # support filtering on UUIDs and limit/cursor at the same time.
-    if limit is not None:
-        query = query.limit(limit)
-    if cursor is not None:
-        query = query.offset(int(cursor.last))
-
-    # Execute
-    session: AsyncSession = info.context.session
-    uuids = (await session.scalars(query)).all()
-
     # Pagination
-    is_paged = limit != 0 and cursor is not None and int(cursor.last) > 0
-    if not uuids and is_paged:
-        context["lora_page_out_of_range"] = True
+    session: AsyncSession = info.context.session
+    uuids, next_cursor = await paginate(
+        session,
+        query,
+        OrganisationFunktionRegistrering.organisationfunktion_id,
+        limit,
+        cursor,
+    )
 
     access_log(
         session,
@@ -3618,13 +3306,14 @@ async def rolebinding_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    objects = await generic_resolver(
         info.context.dataloaders.rolebinding_loader,
         uuids=uuids,
         from_date=filter.from_date,
         to_date=filter.to_date,
         registration_time=filter.registration_time,
     )
+    return ObjectsAndCursor(objects=objects, next_cursor=next_cursor)
 
 
 @lru_cache(maxsize=128)
@@ -3781,7 +3470,7 @@ async def registration_resolver(
     filter: RegistrationFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[Any]:
+) -> ObjectsAndCursor:
     if filter is None:
         filter = RegistrationFilter()
 
@@ -3810,7 +3499,7 @@ async def registration_resolver(
         tables = {model2table[key] for key in valid_keys}
         # If only invalid model names were given, we can early return
         if not tables:  # pragma: no cover
-            return []
+            return ObjectsAndCursor(objects=[])
 
     def generate_query(table: Any) -> Select:
         common_fields = [
@@ -3869,22 +3558,16 @@ async def registration_resolver(
 
     # Query all requested registation tables using a big union query
     union_query = union(*map(generate_query, tables)).subquery()
-    # Select using a subquery so we can order the unioned result
-    # Note: I have no idea why mypy dislikes this.
-    query = select("*").select_from(union_query).distinct()  # type: ignore
 
-    # Pagination
-    if cursor:  # pragma: no cover
-        query = query.where(column("start") <= cursor.registration_time)
-    # Order by time, then by UUID so the order of pagination is well-defined
-    query = query.order_by(column("start"), column("uuid"))
-    if limit is not None:
-        # Fetch one extra element to see if there is another page
-        query = query.limit(limit + 1)  # pragma: no cover
-    query = query.offset(int(cursor.last) if cursor else 0)
-
+    # Keyset pagination over the distinct entity UUIDs, like the entity
+    # resolvers: `limit` bounds the number of entities -- not registrations --
+    # per page, so a page may contain more than `limit` objects.
+    uuid_query = select(distinct(union_query.c.uuid)).order_by(union_query.c.uuid)
     session: AsyncSession = info.context.session
-    result = list(await session.execute(query))
+    uuids, next_cursor = await paginate(
+        session, uuid_query, union_query.c.uuid, limit, cursor
+    )
+
     access_log(
         session,
         "resolve_registrations",
@@ -3898,15 +3581,17 @@ async def registration_resolver(
             "start": filter.start,
             "end": filter.end,
         },
-        [uuid for _, _, uuid, _, _, _, _ in result],
+        uuids,
     )
 
-    if limit is not None:
-        # Not enough results == no more pages
-        if len(result) <= limit:  # pragma: no cover
-            context["lora_page_out_of_range"] = True
-        # Strip the extra element that was only used for page-checking
-        elif len(result) == limit + 1:  # pragma: no cover
-            result = result[:-1]
+    query = (
+        select(union_query)
+        .where(union_query.c.uuid.in_(uuids))
+        .order_by(union_query.c.uuid, union_query.c.start)
+    )
+    result = await session.execute(query)
 
-    return list(starmap(row2registration, result))
+    return ObjectsAndCursor(
+        objects=[row2registration(*row) for row in result],
+        next_cursor=next_cursor,
+    )

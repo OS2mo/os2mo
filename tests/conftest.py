@@ -1216,6 +1216,25 @@ def update_facet(
 
 
 @pytest.fixture
+def delete_facet(
+    graphapi_post: GraphAPIPost,
+    root_org: UUID,
+) -> Callable[[UUID], None]:
+    def inner(uuid: UUID) -> None:
+        delete_mutation = """
+            mutation DeleteFacet($uuid: UUID!) {
+                facet_delete(uuid: $uuid) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=delete_mutation, variables={"uuid": str(uuid)})
+        assert response.errors is None
+
+    return inner
+
+
+@pytest.fixture
 def org_unit_type_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
     return create_facet(
         {

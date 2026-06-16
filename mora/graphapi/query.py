@@ -3,9 +3,9 @@
 from textwrap import dedent
 from typing import TypeVar
 from typing import cast
+from uuid import UUID
 
 import strawberry
-from starlette_context import context
 from strawberry.types import Info
 
 from mora import db
@@ -68,6 +68,7 @@ from .models import FacetRead
 from .models import RoleBindingRead
 from .paged import CursorType
 from .paged import LimitType
+from .paged import ObjectsAndCursor
 from .paged import Paged
 from .paged import to_paged
 from .permissions import IsAuthenticatedPermission
@@ -91,14 +92,9 @@ from .resolvers import registration_resolver
 from .resolvers import related_unit_resolver
 from .resolvers import rolebinding_resolver
 from .response import Response
+from .types import Cursor
 
 T = TypeVar("T")
-
-
-def paginate(obj: list[T], cursor: CursorType, limit: LimitType) -> list[T]:
-    if cursor is None:
-        return obj[:limit]
-    return obj[int(cursor.last) :][:limit]  # pragma: no cover
 
 
 async def health_resolver(
@@ -106,7 +102,7 @@ async def health_resolver(
     filter: HealthFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[Health]:
+) -> ObjectsAndCursor:
     if filter is None:
         filter = HealthFilter()
 
@@ -114,13 +110,17 @@ async def health_resolver(
     if filter.identifiers is not None:
         healthchecks = healthchecks.intersection(set(filter.identifiers))
 
-    healths = paginate(list(healthchecks), cursor, limit)
-    if not healths:
-        context["lora_page_out_of_range"] = True
-    return [
-        Health(identifier=identifier)  # type: ignore[call-arg]
-        for identifier in healths
-    ]
+    offset = int(cursor.last) if cursor else 0
+    healths = sorted(healthchecks)[offset:][:limit]
+    return ObjectsAndCursor(
+        objects=[
+            Health(identifier=identifier)  # type: ignore[call-arg]
+            for identifier in healths
+        ],
+        next_cursor=(
+            Cursor(last=UUID(int=offset + limit)) if limit and healths else None
+        ),
+    )
 
 
 async def file_resolver(
@@ -128,7 +128,7 @@ async def file_resolver(
     filter: FileFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> list[File]:
+) -> ObjectsAndCursor:
     if filter is None:  # pragma: no cover
         filter = FileFilter()
 
@@ -149,14 +149,18 @@ async def file_resolver(
 
     found_files = await db.files.ls(session, filter)
 
-    files = paginate(list(found_files), cursor, limit)
-    if not files:
-        context["lora_page_out_of_range"] = True
+    offset = int(cursor.last) if cursor else 0
+    files = sorted(found_files)[offset:][:limit]
 
-    return [
-        File(file_store=filter.file_store, file_name=file_name)  # type: ignore[call-arg]
-        for file_name in files
-    ]
+    return ObjectsAndCursor(
+        objects=[
+            File(file_store=filter.file_store, file_name=file_name)  # type: ignore[call-arg]
+            for file_name in files
+        ],
+        next_cursor=(
+            Cursor(last=UUID(int=offset + limit)) if limit and files else None
+        ),
+    )
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -309,7 +313,7 @@ class Query:
     # Health
     # ------
     healths: Paged[Health] = strawberry.field(
-        resolver=to_paged(health_resolver, Health),
+        resolver=to_paged(health_resolver),
         description="Query healthcheck status.",
         permission_classes=[],
     )
@@ -317,7 +321,7 @@ class Query:
     # Files
     # -----
     files: Paged[File] = strawberry.field(
-        resolver=to_paged(file_resolver, File),
+        resolver=to_paged(file_resolver),
         description="Fetch files from the configured file backend (if any).",
         deprecation_reason="The file-store functionality will be removed in a future version of OS2mo.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("file")],
@@ -325,7 +329,7 @@ class Query:
 
     registrations__v25: Paged[Registration] = strawberry.field(
         name="registrations",
-        resolver=to_paged(registration_resolver, Registration),
+        resolver=to_paged(registration_resolver),
         description=dedent(
             """\
             Get a list of registrations.
@@ -345,7 +349,7 @@ class Query:
     )
     registrations__v26: Paged[IRegistration] = strawberry.field(
         name="registrations",
-        resolver=to_paged(registration_resolver, IRegistration),
+        resolver=to_paged(registration_resolver),
         description=dedent(
             """\
             Get a list of registrations.
@@ -365,7 +369,7 @@ class Query:
     )
 
     access_log: Paged[AccessLog] = strawberry.field(
-        resolver=to_paged(access_log_resolver, AccessLog),
+        resolver=to_paged(access_log_resolver),
         description=dedent(
             """\
             Get a list of access events.
@@ -408,7 +412,7 @@ class Query:
     # ------------
 
     events: Paged[FullEvent] = strawberry.field(
-        resolver=to_paged(full_event_resolver, FullEvent),
+        resolver=to_paged(full_event_resolver),
         description=dedent(
             """\
             Get full events.
@@ -427,7 +431,7 @@ class Query:
     )
 
     event_namespaces: Paged[Namespace] = strawberry.field(
-        resolver=to_paged(namespace_resolver, Namespace),
+        resolver=to_paged(namespace_resolver),
         description="Get event namespaces.",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -436,7 +440,7 @@ class Query:
     )
 
     event_listeners: Paged[Listener] = strawberry.field(
-        resolver=to_paged(listener_resolver, Listener),
+        resolver=to_paged(listener_resolver),
         description="Get event listeners.",
         permission_classes=[
             IsAuthenticatedPermission,

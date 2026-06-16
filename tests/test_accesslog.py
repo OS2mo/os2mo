@@ -137,7 +137,9 @@ async def test_access_log_graphql_self(
     # This call reads both access log events (and makes yet another)
     response = graphapi_post(query)
     assert response.errors is None
-    old_result, new_result = list(response.data["access_log"]["objects"])
+    objects = response.data["access_log"]["objects"]
+    old_result = one(obj for obj in objects if obj["id"] == result["id"])
+    new_result = one(obj for obj in objects if obj["id"] != result["id"])
 
     assert old_result == result
 
@@ -452,12 +454,21 @@ async def test_access_log_graphql_cursor(
     next_cursor = response.data["access_log"]["page_info"]["next_cursor"]
     assert next_cursor is not None
 
-    # Check that iteration is not infinite
-    response = graphapi_post(query, variables={"cursor": next_cursor})
-    assert response.errors is None
-    assert response.data == {
-        "access_log": {"objects": [ANY], "page_info": {"next_cursor": None}}
-    }
+    # Each page read creates a new access log event with a random UUID, which
+    # appears on a later page whenever it sorts after the cursor. Iteration
+    # still terminates because the keyset cursor strictly advances, and seen
+    # events are never returned again.
+    seen: list[str] = []
+    for _ in range(100):
+        response = graphapi_post(query, variables={"cursor": next_cursor})
+        assert response.errors is None
+        seen.extend(obj["id"] for obj in response.data["access_log"]["objects"])
+        next_cursor = response.data["access_log"]["page_info"]["next_cursor"]
+        if next_cursor is None:
+            break
+    else:  # pragma: no cover
+        pytest.fail("access log pagination did not terminate")
+    assert len(seen) == len(set(seen))
 
 
 @pytest.mark.integration_test

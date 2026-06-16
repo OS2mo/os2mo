@@ -25,6 +25,7 @@ from .events import Listener
 from .events import Namespace
 from .events import listener_resolver
 from .events import namespace_resolver
+from .paged import to_objects
 from .permissions import IsAuthenticatedPermission
 from .permissions import gen_read_permission
 from .seed_resolver import seed_resolver
@@ -124,8 +125,8 @@ class Actor:
         return await loader.load(root.uuid)
 
     event_namespaces: list[Namespace] = strawberry.field(
-        resolver=seed_resolver(
-            namespace_resolver, {"owners": lambda root: [root.uuid]}
+        resolver=to_objects(
+            seed_resolver(namespace_resolver, {"owners": lambda root: [root.uuid]})
         ),
         description="Get event namespaces owned by this actor.",
         permission_classes=[
@@ -135,7 +136,9 @@ class Actor:
     )
 
     event_listeners: list[Listener] = strawberry.field(
-        resolver=seed_resolver(listener_resolver, {"owners": lambda root: [root.uuid]}),
+        resolver=to_objects(
+            seed_resolver(listener_resolver, {"owners": lambda root: [root.uuid]})
+        ),
         description="Get event listeners owned by this actor.",
         permission_classes=[
             IsAuthenticatedPermission,
