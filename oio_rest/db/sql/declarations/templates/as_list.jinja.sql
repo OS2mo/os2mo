@@ -36,8 +36,7 @@ ROW(
 			a.{{oio_type|title}}Tils{{tilstand_inner_loop|title}}Arr,{%- endfor %}
 			{%-for attribut_inner_loop , attribut_fields_inner_loop in attributter.items() %}
 			a.{{oio_type|title}}Attr{{attribut_inner_loop|title}}Arr,{%- endfor %}
-			a.{{oio_type|title}}RelationArr{% if oio_type == "dokument" %},
-            b.varianter{% endif %}
+			a.{{oio_type|title}}RelationArr
 		)::{{oio_type|title}}RegistreringType
 		order by upper((a.registrering).TimePeriod) DESC
 	)
@@ -60,31 +59,12 @@ FROM
 				b.virkning,
 				b.rel_maal_uuid,
 				b.rel_maal_urn,
-				b.objekt_type{% if oio_type == "aktivitet" %},
-                b.rel_index,
-                b.aktoer_attr{% elif oio_type == "indsats" %},
-                b.rel_index{% elif oio_type == "sag" %},
-                b.rel_index,
-                b.rel_type_spec,
-                b.journal_notat,
-                b.journal_dokument_attr{% elif oio_type == "tilstand" %},
-                b.rel_index,
-                b.tilstand_vaerdi_attr{% endif %}
+				b.objekt_type
 			):: {{oio_type|title}}RelationType
 		ELSE
 		NULL
 		END
-        {% if oio_type == "aktivitet" %}
-		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.rel_index,b.aktoer_attr,b.virkning
-        {% elif oio_type == "indsats" %}
-		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.rel_index,b.virkning
-        {% elif oio_type == "sag" %}
-        order by b.rel_type,b.rel_index,b.rel_maal_uuid,b.rel_maal_urn,b.objekt_type,b.rel_type_spec,b.journal_notat,b.journal_dokument_attr,b.virkning
-        {% elif oio_type == "tilstand" %}
-		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.rel_index,b.tilstand_vaerdi_attr,b.virkning
-        {% else %}
 		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.virkning
-        {% endif %}
 	)) {{oio_type|title}}RelationArr
 	FROM
 	(
@@ -249,9 +229,6 @@ FROM
 	{%-for tilstand_inner_loop , tilstand_values_inner_loop in tilstande.items() | reverse %}
 	a.{{oio_type|title}}Tils{{tilstand_inner_loop|title}}Arr{%- if (not loop.last)%},{%- endif%}{%- endfor %}
 ) as a
-{% if oio_type == "dokument" %}
-LEFT JOIN _as_list_dokument_varianter(dokument_uuids,registrering_tstzrange,virkning_tstzrange) b on a.dokument_registrering_id=b.dokument_registrering_id
-{% endif %}
 WHERE a.{{oio_type}}_id IS NOT NULL
 GROUP BY
 a.{{oio_type}}_id
