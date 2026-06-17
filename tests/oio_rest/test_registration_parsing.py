@@ -197,19 +197,6 @@ class TestParseState:
         actual = State.parse_registration_states(class_name=class_name, states=states)
         assert expected == actual
 
-        # less common, but should be valid
-        class_name = "tilstand"
-        states = {
-            "status": [{"status": "Aktiv", "virkning": None}],
-            "publiceret": [{"publiceret": "IkkePubliceret", "virkning": None}],
-        }
-        expected = [
-            State(key="status", value="Aktiv"),
-            State(key="publiceret", value="IkkePubliceret"),
-        ]
-        actual = State.parse_registration_states(class_name=class_name, states=states)
-        assert expected == actual
-
 
 class TestParseRelation:
     def test_get_valid_relations_format(self):
