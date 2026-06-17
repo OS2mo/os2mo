@@ -84,8 +84,10 @@ class LogContextExtension(SchemaExtension):
         if self.execution_context.variables:
             canonical_gql_context()["vars"] = self.execution_context.variables
         yield
-        if self.execution_context.errors:
-            canonical_gql_context()["errors"] = self.execution_context.errors
+        if self.execution_context.pre_execution_errors:
+            canonical_gql_context()["errors"] = (
+                self.execution_context.pre_execution_errors
+            )
 
 
 class RuntimeContextExtension(SchemaExtension):
