@@ -31,17 +31,11 @@ from ramodels.base import to_parsable_timestamp
 from ..custom_exceptions import BadRequestException
 from ..custom_exceptions import DBException
 from ..custom_exceptions import NotFoundException
-from .db_helpers import AktoerAttr
-from .db_helpers import DokumentVariantType
-from .db_helpers import JournalDokument
-from .db_helpers import JournalNotat
 from .db_helpers import OffentlighedUndtaget
 from .db_helpers import Soegeord
-from .db_helpers import VaerdiRelationAttr
 from .db_helpers import get_attribute_fields
 from .db_helpers import get_attribute_names
 from .db_helpers import get_field_type
-from .db_helpers import get_relation_field_type
 from .db_helpers import get_state_names
 from .db_helpers import to_bool
 
@@ -115,39 +109,6 @@ def convert_attr_value(attribute_name, attribute_field_name, attribute_field_val
         return attribute_field_value
 
 
-def convert_relation_value(class_name, field_name, value):
-    field_type = get_relation_field_type(class_name, field_name)
-    if field_type == "journalnotat":  # pragma: no cover
-        return JournalNotat(
-            value.get("titel", None),
-            value.get("notat", None),
-            value.get("format", None),
-        )
-    elif field_type == "journaldokument":  # pragma: no cover
-        ou = value.get("offentlighedundtaget", {})
-        return JournalDokument(
-            value.get("dokumenttitel", None),
-            OffentlighedUndtaget(
-                ou.get("alternativtitel", None), ou.get("hjemmel", None)
-            ),
-        )
-    elif field_type == "aktoerattr":  # pragma: no cover
-        if value:
-            return AktoerAttr(
-                value.get("accepteret", None),
-                value.get("obligatorisk", None),
-                value.get("repraesentation_uuid", None),
-                value.get("repraesentation_urn", None),
-            )
-    elif field_type == "vaerdirelationattr":  # pragma: no cover
-        result = VaerdiRelationAttr(
-            value.get("forventet", None), value.get("nominelvaerdi", None)
-        )
-        return result
-    # Default: no conversion.
-    return value
-
-
 def convert_attributes(attributes):
     "Convert attributes from dictionary to list in correct order."
     if attributes:
@@ -168,7 +129,7 @@ def convert_attributes(attributes):
 
 
 def convert_relations(relations, class_name):
-    "Convert relations - i.e., convert each field according to its type"
+    "Validate the structure of the relations."
     if relations:
         for rel_name in relations:
             periods = relations[rel_name]
@@ -178,18 +139,7 @@ def convert_relations(relations, class_name):
                         'mapping expected for "%s" in "%s" - got %r'
                         % (period, rel_name, period)
                     )
-                for field in period:
-                    converted = convert_relation_value(class_name, field, period[field])
-                    period[field] = converted
     return relations
-
-
-def convert_variants(variants):  # pragma: no cover
-    """Convert variants."""
-    # TODO
-    if variants is None:
-        return None
-    return [DokumentVariantType.input(variant) for variant in variants]
 
 
 class Livscyklus(enum.Enum):
@@ -233,10 +183,6 @@ def sql_convert_registration(registration, class_name):
     """Convert input JSON to the SQL arrays we need."""
     registration["attributes"] = convert_attributes(registration["attributes"])
     registration["relations"] = convert_relations(registration["relations"], class_name)
-    if "variants" in registration:
-        registration["variants"] = adapt(
-            convert_variants(registration["variants"])
-        )  # pragma: no cover
     states = registration["states"]
     sql_states = []
     for sn in get_state_names(class_name):
