@@ -91,8 +91,11 @@ async def superuser_connection(
     )
     # AUTOCOMMIT disables transactions to allow for create/drop database operations
     engine.update_execution_options(isolation_level="AUTOCOMMIT")
-    async with engine.connect() as connection:
-        yield connection
+    try:
+        async with engine.connect() as connection:
+            yield connection
+    finally:
+        await engine.dispose()
 
 
 async def _terminate_database_connections(
