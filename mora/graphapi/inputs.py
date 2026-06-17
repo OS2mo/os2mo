@@ -85,10 +85,6 @@ def strip_none_and_unset(d: dict[str, Any]) -> dict[str, Any]:
     return strip_none(strip_unset(d))
 
 
-def all_fields(model: Any) -> set[str]:
-    return set(model.__fields__.keys())
-
-
 # Various
 # -------
 @strawberry.experimental.pydantic.input(
@@ -139,12 +135,20 @@ class OrganisationInput:
 
 # Addresses
 # ---------
-@strawberry.experimental.pydantic.input(
-    model=AddressCreate, fields=list(all_fields(AddressCreate) - {"employee"})
-)
+@strawberry.experimental.pydantic.input(model=AddressCreate)
 class AddressCreateInput:
     """input model for creating addresses."""
 
+    uuid: strawberry.auto
+    org_unit: strawberry.auto
+    person: strawberry.auto
+    engagement: strawberry.auto
+    ituser: strawberry.auto
+    visibility: strawberry.auto
+    validity: strawberry.auto
+    user_key: strawberry.auto
+    value: strawberry.auto
+    address_type: strawberry.auto
     employee: UUID | None = strawberry.field(
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
     )
@@ -158,12 +162,20 @@ class AddressTerminateInput:
     """input model for terminating addresses."""
 
 
-@strawberry.experimental.pydantic.input(
-    model=AddressUpdate, fields=list(all_fields(AddressUpdate) - {"employee"})
-)
+@strawberry.experimental.pydantic.input(model=AddressUpdate)
 class AddressUpdateInput:
     """input model for updating addresses."""
 
+    uuid: strawberry.auto
+    org_unit: strawberry.auto
+    person: strawberry.auto
+    engagement: strawberry.auto
+    ituser: strawberry.auto
+    visibility: strawberry.auto
+    validity: strawberry.auto
+    user_key: strawberry.auto
+    value: strawberry.auto
+    address_type: strawberry.auto
     employee: UUID | None = strawberry.field(
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
     )
@@ -171,23 +183,37 @@ class AddressUpdateInput:
 
 # Associations
 # ------------
-@strawberry.experimental.pydantic.input(
-    model=AssociationCreate, fields=list(all_fields(AssociationCreate) - {"employee"})
-)
+@strawberry.experimental.pydantic.input(model=AssociationCreate)
 class AssociationCreateInput:
     """input model for creating associations."""
 
+    uuid: strawberry.auto
+    user_key: strawberry.auto
+    primary: strawberry.auto
+    validity: strawberry.auto
+    person: strawberry.auto
+    substitute: strawberry.auto
+    trade_union: strawberry.auto
+    org_unit: strawberry.auto
+    association_type: strawberry.auto
     employee: UUID | None = strawberry.field(
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
     )
 
 
-@strawberry.experimental.pydantic.input(
-    model=AssociationUpdate, fields=list(all_fields(AssociationUpdate) - {"employee"})
-)
+@strawberry.experimental.pydantic.input(model=AssociationUpdate)
 class AssociationUpdateInput:
     """input model for updating associations."""
 
+    uuid: strawberry.auto
+    user_key: strawberry.auto
+    primary: strawberry.auto
+    validity: strawberry.auto
+    person: strawberry.auto
+    substitute: strawberry.auto
+    trade_union: strawberry.auto
+    org_unit: strawberry.auto
+    association_type: strawberry.auto
     employee: UUID | None = strawberry.field(
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
     )
@@ -263,23 +289,57 @@ class EngagementTerminateInput:
     """input model for terminating Engagements."""
 
 
-@strawberry.experimental.pydantic.input(
-    model=EngagementCreate, fields=list(all_fields(EngagementCreate) - {"employee"})
-)
+@strawberry.experimental.pydantic.input(model=EngagementCreate)
 class EngagementCreateInput:
     """input model for creating engagements."""
 
+    uuid: strawberry.auto
+    user_key: strawberry.auto
+    primary: strawberry.auto
+    validity: strawberry.auto
+    fraction: strawberry.auto
+    extension_1: strawberry.auto
+    extension_2: strawberry.auto
+    extension_3: strawberry.auto
+    extension_4: strawberry.auto
+    extension_5: strawberry.auto
+    extension_6: strawberry.auto
+    extension_7: strawberry.auto
+    extension_8: strawberry.auto
+    extension_9: strawberry.auto
+    extension_10: strawberry.auto
+    person: strawberry.auto
+    org_unit: strawberry.auto
+    engagement_type: strawberry.auto
+    job_function: strawberry.auto
     employee: UUID | None = strawberry.field(
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
     )
 
 
-@strawberry.experimental.pydantic.input(
-    model=EngagementUpdate, fields=list(all_fields(EngagementUpdate) - {"employee"})
-)
+@strawberry.experimental.pydantic.input(model=EngagementUpdate)
 class EngagementUpdateInput:
     """input model for updating Engagements."""
 
+    uuid: strawberry.auto
+    user_key: strawberry.auto
+    primary: strawberry.auto
+    validity: strawberry.auto
+    fraction: strawberry.auto
+    extension_1: strawberry.auto
+    extension_2: strawberry.auto
+    extension_3: strawberry.auto
+    extension_4: strawberry.auto
+    extension_5: strawberry.auto
+    extension_6: strawberry.auto
+    extension_7: strawberry.auto
+    extension_8: strawberry.auto
+    extension_9: strawberry.auto
+    extension_10: strawberry.auto
+    person: strawberry.auto
+    org_unit: strawberry.auto
+    engagement_type: strawberry.auto
+    job_function: strawberry.auto
     employee: UUID | None = strawberry.field(
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
     )
