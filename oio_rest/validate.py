@@ -323,34 +323,6 @@ def _generate_relationer(obj, do_create):
     }
 
 
-def _generate_varianter():  # pragma: no cover
-    """
-    Function to generate the special 'varianter' section of the JSON schema
-    used for the the 'Dokument' LoRa object type.
-    """
-
-    return _generate_schema_array(
-        _generate_schema_object(
-            {
-                "egenskaber": _generate_schema_array(
-                    _generate_schema_object(
-                        {
-                            "varianttekst": STRING,
-                            "arkivering": BOOLEAN,
-                            "delvisscannet": BOOLEAN,
-                            "offentliggoerelse": BOOLEAN,
-                            "produktion": BOOLEAN,
-                            "virkning": {"$ref": "#/definitions/virkning"},
-                        },
-                        ["varianttekst", "virkning"],
-                    )
-                )
-            },
-            ["egenskaber"],
-        )
-    )
-
-
 def generate_json_schema(obj, do_create):
     """
     Generate the JSON schema corresponding to LoRa object type.
@@ -359,11 +331,6 @@ def generate_json_schema(obj, do_create):
     :return: Dictionary representing the JSON schema.
     """
 
-    if obj == "dokument":  # pragma: no cover
-        # Due to an inconsistency between the way LoRa handles
-        # "DokumentVariantEgenskaber" and the specs' we will have to do
-        #  this for now, i.e. we allow any JSON-object for "Dokument".
-        return {"type": "object"}
     required = ["attributter", "tilstande"] if do_create else []
     schema = _generate_schema_object(
         {

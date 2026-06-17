@@ -2,11 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 import uuid
 
-from oio_rest.db.db_helpers import DokumentDelEgenskaberType
-from oio_rest.db.db_helpers import DokumentVariantEgenskaberType
 from oio_rest.db.db_helpers import get_attribute_fields
 from oio_rest.db.db_helpers import get_attribute_names
-from oio_rest.db.db_helpers import get_document_part_relation_names
 from oio_rest.db.db_helpers import get_relation_names
 from oio_rest.db.db_helpers import get_state_names
 
@@ -70,47 +67,6 @@ def to_lower_param(s: str) -> str:
         return s.lower()
 
 
-ACCEPTED_JOURNAL_POST_PARAMS = set(
-    """journalpostkode
-journalnotat.titel
-journalnotat.notat
-journalnotat.format
-journaldokument.dokumenttitel
-journaldokument.offentlighedundtaget.alternativtitel
-journaldokument.offentlighedundtaget.hjemmel""".split()
-)
-
-
-def dict_from_dot_notation(notation, value):  # pragma: no cover
-    """Return a nested dict where each key is an element of the
-    dot-separated string, and the value of the innermost dict's key is
-    equal to the value.
-
-    Example:
-    >>> dict_from_dot_notation("a.b.c", 1)
-    {'a': {'b': {'c': 1}}}
-    """
-    path = notation.split(".")
-    element = path.pop(0)
-    if len(path) == 0:
-        return {element: value}
-    return {element: dict_from_dot_notation(".".join(path), value)}
-
-
-def add_journal_post_relation_fields(param, values, relation):
-    """Add journalpost-specific parameters to the relations list."""
-    if param in ACCEPTED_JOURNAL_POST_PARAMS:  # pragma: no cover
-        relation.setdefault("journalpost", [])
-        # Build a separate relation dict for each sub-field value
-        for value in values:
-            # All fields support wildcards except journalpostkode
-            if param != "journalpostkode":
-                value = escape_underscores(value)
-            relation_dict = dict_from_dot_notation(param, value)
-            relation_dict["virkning"] = None
-            relation["journalpost"].append(relation_dict)
-
-
 def build_registration(class_name, list_args):
     registration = {}
     for f in list_args:
@@ -136,48 +92,5 @@ def build_registration(class_name, list_args):
             # Support multiple relation references at a time
             for rel in list_args[f]:
                 relation[rel_name].append(build_relation(rel, objekttype))
-
-        add_journal_post_relation_fields(f, list_args[f], relation)
-
-    if class_name == "Dokument":  # pragma: no cover
-        variants = registration.setdefault("variants", [])
-        variant = {
-            # Search on only one varianttekst is supported through REST API
-            "varianttekst": escape_underscores(list_args.get("varianttekst", [None])[0])
-        }
-        variants.append(variant)
-
-        # Look for variant egenskaber
-        props = []
-        variant["egenskaber"] = props
-        for f in list_args:
-            if f in DokumentVariantEgenskaberType.get_fields():
-                for val in list_args[f]:
-                    props.append({f: escape_underscores(val), "virkning": None})
-
-        parts = []
-        variant["dele"] = parts
-        part = {
-            # Search on only one varianttekst is supported through REST API
-            "deltekst": escape_underscores(list_args.get("deltekst", [None])[0])
-        }
-        parts.append(part)
-
-        # Look for del egenskaber
-        part_props = []
-        part["egenskaber"] = part_props
-        for f in list_args:
-            if f in DokumentDelEgenskaberType.get_fields():
-                for val in list_args[f]:
-                    part_props.append({f: escape_underscores(val), "virkning": None})
-
-        # Look for del relationer
-        part_relations = part.setdefault("relationer", {})
-        for f in list_args:
-            rel_name, objekttype = split_param(f)
-            if rel_name in get_document_part_relation_names():
-                part_relations[rel_name] = []
-                for rel in list_args[f]:
-                    part_relations[rel_name].append(build_relation(rel, objekttype))
 
     return registration
