@@ -12,7 +12,6 @@ from inspect import isasyncgen
 from fastapi import Request
 from starlette_context import context
 from starlette_context import request_cycle_context
-from starlette_context.errors import ContextDoesNotExistError
 from strawberry.extensions import SchemaExtension
 
 from mora.graphapi.gmodels.mo import OpenValidity
@@ -117,9 +116,4 @@ async def set_graphql_version_from_url(request: Request) -> AsyncIterator[None]:
 
 def get_version_from_url() -> Version | None:
     """You should probably use get_version() from customs_schema.py instead!"""
-    # We really shouldn't have a fallback here, but if we don't, all unittests,
-    # which run outside the request context, will fail.
-    try:
-        return context.get(_GRAPHQL_VERSION_MIDDLEWARE_KEY)
-    except ContextDoesNotExistError:
-        return None
+    return context.get(_GRAPHQL_VERSION_MIDDLEWARE_KEY)

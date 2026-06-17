@@ -89,7 +89,7 @@ def temporally_spread_classification_data(
     }
 
 
-def test_facet_generator() -> Iterator[tuple[StateKey, StateKey, dict[str, Any]]]:
+def _facet_case_generator() -> Iterator[tuple[StateKey, StateKey, dict[str, Any]]]:
     def calculate_expected(
         facet_state_key: StateKey, class_state_key: StateKey
     ) -> dict[str, Any]:
@@ -151,7 +151,7 @@ def test_facet_generator() -> Iterator[tuple[StateKey, StateKey, dict[str, Any]]
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
-    "facet_state_key, class_state_key, facet_expected", test_facet_generator()
+    "facet_state_key, class_state_key, facet_expected", _facet_case_generator()
 )
 def test_nested_registration_times_toplevel_facet(
     temporally_spread_classification_data: dict[str, datetime],
@@ -209,7 +209,7 @@ def test_nested_registration_times_toplevel_facet(
     assert facet == facet_expected
 
 
-def test_class_generator() -> Iterator[tuple[StateKey, StateKey, dict[str, Any]]]:
+def _class_case_generator() -> Iterator[tuple[StateKey, StateKey, dict[str, Any]]]:
     def calculate_expected(
         facet_state_key: StateKey, class_state_key: StateKey
     ) -> dict[str, Any]:
@@ -267,7 +267,7 @@ def test_class_generator() -> Iterator[tuple[StateKey, StateKey, dict[str, Any]]
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
-    "facet_state_key, class_state_key, class_expected", test_class_generator()
+    "facet_state_key, class_state_key, class_expected", _class_case_generator()
 )
 def test_nested_registration_times_toplevel_class(
     temporally_spread_classification_data: dict[str, datetime],

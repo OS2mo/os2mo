@@ -590,7 +590,7 @@ def temporally_spread_persons_data(
     )
 
 
-def test_generator() -> Iterator[
+def _case_generator() -> Iterator[
     tuple[StateKey, StateKey, dict[str, Any] | None, dict[str, Any] | None]
 ]:
     def calculate_expected(
@@ -622,7 +622,7 @@ def test_generator() -> Iterator[
 @pytest.mark.parametrize("person2_filter_generator", employee_filter_generators)
 @pytest.mark.parametrize(
     "person1_state_key, person2_state_key, person1_expected, person2_expected",
-    test_generator(),
+    _case_generator(),
 )
 def test_different_registration_times_on_toplevel(
     temporally_spread_persons_data: tuple[dict[StateKey, Any], UUID, str, UUID, str],

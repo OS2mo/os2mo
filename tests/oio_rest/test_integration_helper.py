@@ -12,8 +12,12 @@ from oio_rest.oio_base import QuickSearcher
 from tests.oio_rest.util import DBTestCase
 
 
-@freezegun.freeze_time("2018-01-01")
 class TestCreateObject(DBTestCase):
+    @pytest.fixture(autouse=True)
+    def _freeze_time(self):
+        with freezegun.freeze_time("2018-01-01"):
+            yield
+
     @pytest.fixture(autouse=True)
     def setup_objects(self):
         self.standard_virkning1 = {
