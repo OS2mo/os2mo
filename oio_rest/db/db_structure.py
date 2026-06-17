@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import collections
-import itertools
 from copy import deepcopy
 
 # This specifies the database structure
@@ -572,67 +570,6 @@ REAL_DB_STRUCTURE["klasse"]["attributter"]["egenskaber"].append("soegeord")
 REAL_DB_STRUCTURE["klasse"]["attributter_metadata"]["egenskaber"]["soegeord"] = {
     "type": "soegeord"
 }
-
-DB_TEMPLATE_EXTRA_OPTIONS = {
-    "dokument": {
-        "as_search.jinja.sql": {"include_mixin": "as_search_dokument_mixin.jinja.sql"}
-    }
-}
-
-
-def merge_objects(a, b):  # pragma: no cover
-    """
-    Merge two objects of the same type. Supports lists and dicts.
-    Recursively merges internal lists and dictionaries.
-    :param a: The first object
-    :param b: The second object
-    :return: A merged object
-    """
-    assert type(a) is type(b), "type mismatch!: {} != {}".format(
-        type(a),
-        type(b),
-    )
-
-    if isinstance(a, dict) and isinstance(b, dict):
-        return _merge_dicts(a, b)
-
-    elif isinstance(a, list) and isinstance(b, list):
-        return _merge_lists(a, b)
-
-    else:
-        raise AttributeError(f"Unsupported parameter type {type(a)}")
-
-
-def _merge_lists(a: list, b: list):  # pragma: no cover
-    """
-    Merges two lists and removes duplicates
-    :param a: The first list
-    :param b: The second list
-    :return: A merged list with duplicates removed
-    """
-    return list(set(a + b))
-
-
-def _merge_dicts(a: dict, b: dict):  # pragma: no cover
-    """
-    Merges two dicts, retaining ordering.
-    :param a: The first dict
-    :param b: The second dict
-    :return: A merged dict
-    """
-    if a is None:
-        return b
-    elif b is None:
-        return a
-
-    # the database code relies on the ordering of elements, so ensure
-    # that a consistent ordering, even on Python 3.5
-    return collections.OrderedDict(
-        (k, b[k] if k not in a else a[k] if k not in b else merge_objects(a[k], b[k]))
-        for k in itertools.chain(a, b)
-    )
-
-
 if __name__ == "__main__":  # pragma: no cover
     export_structure = "\n".join(sorted(REAL_DB_STRUCTURE))
     print(export_structure)
