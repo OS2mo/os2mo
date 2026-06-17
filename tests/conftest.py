@@ -424,10 +424,14 @@ async def _use_session(
 ) -> AsyncIterator[tuple[async_sessionmaker, db.AsyncSession]]:
     """Patch mora to connect to the provided `database_name`."""
     sessionmaker = _create_sessionmaker(lora_settings, database_name)
-    async with sessionmaker() as session, session.begin():
-        data = {db._DB_SESSION_CONTEXT_KEY: session}
-        with request_cycle_context(data):
-            yield sessionmaker, session
+    engine = sessionmaker.kw["bind"]
+    try:
+        async with sessionmaker() as session, session.begin():
+            data = {db._DB_SESSION_CONTEXT_KEY: session}
+            with request_cycle_context(data):
+                yield sessionmaker, session
+    finally:
+        await engine.dispose()
 
 
 AnotherTransaction = Callable[
