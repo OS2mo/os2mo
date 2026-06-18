@@ -612,7 +612,7 @@ def temporally_spread_itsystems_data(
     )
 
 
-def test_generator() -> Iterator[
+def _case_generator() -> Iterator[
     tuple[StateKey, StateKey, dict[str, Any] | None, dict[str, Any] | None]
 ]:
     def calculate_expected(
@@ -649,7 +649,7 @@ def test_generator() -> Iterator[
 @pytest.mark.parametrize("itsystem2_filter_generator", itsystem_filter_generators)
 @pytest.mark.parametrize(
     "itsystem1_state_key, itsystem2_state_key, itsystem1_expected, itsystem2_expected",
-    test_generator(),
+    _case_generator(),
 )
 def test_different_registration_times_on_toplevel(
     temporally_spread_itsystems_data: tuple[dict[StateKey, Any], UUID, str, UUID, str],
