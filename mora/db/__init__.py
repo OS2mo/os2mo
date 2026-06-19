@@ -89,9 +89,19 @@ def create_engine(user, password, host, name) -> AsyncEngine:
         # isolation_level="SERIALIZABLE",
         echo=False,
         connect_args={
-            # Cancel queries that run for more than 5 minutes, so a bad
-            # query doesn't run forever.
-            "options": "-c statement_timeout=300000",
+            "options": " ".join(
+                (
+                    # Cancel queries that run for more than 5 minutes, so a bad
+                    # query doesn't run forever.
+                    "-c statement_timeout=300000",
+                    # Raise the planner's collapse limits and the genetic
+                    # optimizer threshold so larger joins are planned
+                    # exhaustively instead of falling back to GEQO.
+                    "-c join_collapse_limit=24",
+                    "-c from_collapse_limit=24",
+                    "-c geqo_threshold=25",
+                )
+            ),
         },
     )
 
