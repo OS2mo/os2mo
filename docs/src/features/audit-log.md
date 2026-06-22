@@ -74,6 +74,7 @@ Når man skal finde ud af, hvilke ændringer, der er foretaget, skal man blot fi
 | Legacy                      | 42c432e8-9c4a-11e6-9f62-873cf34a735f |
 | Manager engagement elevator | e1e7a104-baad-c0de-656c-657661746f72 |
 | Manager Sync                | 5d05711c-baad-c0de-7364-206d616e6167 |
+| Manager Terminator          | 3aca9ef1-baad-c0de-6d61-6e6167657274 |
 | Omada                       | 0111ada0-baad-c0de-0000-006f6d616461 |
 | Orggatekeeper               | ca1e4ee9-baad-c0de-6761-74656b656570 |
 | Orgviewer (ADM)             | 04c71e7a-baad-c0de-6f72-677669657761 |
@@ -87,3 +88,4 @@ Når man skal finde ud af, hvilke ændringer, der er foretaget, skal man blot fi
 | SDTool+                     | 5d700141-baad-c0de-0000-7364746f6f6c |
 | SMTP                        | 51111900-baad-c0de-6d6f-20736d747000 |
 | SQLExport                   | 052ec901-baad-c0de-7371-6c6578706f72 |
+| Xflow                       | 8f107777-baad-c0de-7866-6c6f77000000 |
