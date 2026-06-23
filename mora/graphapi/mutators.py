@@ -1843,8 +1843,10 @@ class Mutation:
             select(db.Listener).where(
                 db.Listener.user_key == input.user_key,
                 db.Listener.namespace_fk == input.namespace,
+                db.Listener.owner == owner,
             )
         )
+
         # Listener was either created or it already exists
         assert listener is not None
 

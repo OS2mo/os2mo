@@ -1504,3 +1504,38 @@ def test_refresh_priority(graphapi_post: GraphAPIPost) -> None:
 
         ack_event(graphapi_post, first_event["token"])
         ack_event(graphapi_post, second_event["token"])
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_declare_listener_does_not_return_other_owners_listener(
+    set_auth: SetAuth, graphapi_post: GraphAPIPost
+) -> None:
+    # two owners may declare listeners that share (namespace, user_key).
+    # The declare mutator must look up the listener filtered by owner as well,
+    # or it may return another owner's listener and leak events between owners.
+    namespace = "gneurshk"
+    user_key = "uk"
+    routing_key = "rk"
+
+    # sort the two UUIDs to reliably reproduce the bug, as the listener
+    # that ends up being returned is oredered by this UUID if more than one
+    # listener is selected
+    user1, user2 = sorted([uuid4(), uuid4()])
+
+    set_auth(ADMIN, user1)
+    declare_namespace(graphapi_post, namespace, public=True)
+    response1 = declare_listener_raw(graphapi_post, namespace, user_key, routing_key)
+    assert response1.errors is None
+    assert response1.data
+    listener1_uuid = UUID(response1.data["event_listener_declare"]["uuid"])
+
+    set_auth(ADMIN, user2)
+    response2 = declare_listener_raw(graphapi_post, namespace, user_key, routing_key)
+    assert response2.errors is None
+    assert response2.data
+    listener2_uuid = UUID(response2.data["event_listener_declare"]["uuid"])
+    listener2_owner = UUID(response2.data["event_listener_declare"]["owner"])
+
+    assert listener2_uuid != listener1_uuid
+    assert listener2_owner == user2
