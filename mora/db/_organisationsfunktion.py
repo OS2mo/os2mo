@@ -55,6 +55,7 @@ class OrganisationFunktionAttrEgenskaber(_AttrEgenskaberMixin, Base):
 
     funktionsnavn: Mapped[FunktionsNavn]
 
+    registrering_id = synonym("organisationfunktion_registrering_id")
     organisationfunktion_registrering_id = Column(
         ForeignKey("organisationfunktion_registrering.id"), index=True
     )
@@ -82,6 +83,7 @@ class OrganisationFunktionRelation(_RelationMixin, Base):
         Enum(OrganisationFunktionRelationKode, name="organisationfunktionrelationkode")
     )
 
+    registrering_id = synonym("organisationfunktion_registrering_id")
     organisationfunktion_registrering_id = Column(
         ForeignKey("organisationfunktion_registrering.id"), index=True
     )
@@ -92,6 +94,7 @@ class OrganisationFunktionTilsGyldighed(
 ):
     __tablename__ = "organisationfunktion_tils_gyldighed"
 
+    registrering_id = synonym("organisationfunktion_registrering_id")
     organisationfunktion_registrering_id = Column(
         ForeignKey("organisationfunktion_registrering.id"), index=True
     )
@@ -116,6 +119,7 @@ class OrganisationFunktionAttrUdvidelser(_VirkningMixin, Base):
     udvidelse_9: Mapped[str | None] = mapped_column(Text, index=True)
     udvidelse_10: Mapped[str | None] = mapped_column(Text, index=True)
 
+    registrering_id = synonym("organisationfunktion_registrering_id")
     organisationfunktion_registrering_id = Column(
         ForeignKey("organisationfunktion_registrering.id"), nullable=False, index=True
     )

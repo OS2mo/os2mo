@@ -36,6 +36,7 @@ class ITSystemAttrEgenskaber(_AttrEgenskaberMixin, Base):
     itsystemtype: Mapped[str | None] = mapped_column(Text, index=True)
     konfigurationreference = Column(ARRAY(Text()))
 
+    registrering_id = synonym("itsystem_registrering_id")
     itsystem_registrering_id = Column(
         ForeignKey("itsystem_registrering.id"), index=True
     )
@@ -52,6 +53,7 @@ class ITSystemRelation(_RelationMixin, Base):
 
     rel_type: Mapped[ITSystemRelationKode]
 
+    registrering_id = synonym("itsystem_registrering_id")
     itsystem_registrering_id = Column(
         ForeignKey("itsystem_registrering.id"), index=True
     )
@@ -60,6 +62,7 @@ class ITSystemRelation(_RelationMixin, Base):
 class ITSystemTilsGyldighed(_TilsGyldighedMixin("itsystem"), Base):
     __tablename__ = "itsystem_tils_gyldighed"
 
+    registrering_id = synonym("itsystem_registrering_id")
     itsystem_registrering_id = Column(
         ForeignKey("itsystem_registrering.id"), index=True
     )

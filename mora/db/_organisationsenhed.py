@@ -36,6 +36,7 @@ class OrganisationEnhedAttrEgenskaber(_AttrEgenskaberMixin, Base):
 
     enhedsnavn: Mapped[str | None] = mapped_column(Text, index=True)
 
+    registrering_id = synonym("organisationenhed_registrering_id")
     organisationenhed_registrering_id = Column(
         ForeignKey("organisationenhed_registrering.id"), index=True
     )
@@ -57,6 +58,7 @@ class OrganisationEnhedRelation(_RelationMixin, Base):
         Enum(OrganisationEnhedRelationKode, name="organisationenhedrelationkode")
     )
 
+    registrering_id = synonym("organisationenhed_registrering_id")
     organisationenhed_registrering_id = Column(
         ForeignKey("organisationenhed_registrering.id"), index=True
     )
@@ -65,6 +67,7 @@ class OrganisationEnhedRelation(_RelationMixin, Base):
 class OrganisationEnhedTilsGyldighed(_TilsGyldighedMixin("organisationenhed"), Base):
     __tablename__ = "organisationenhed_tils_gyldighed"
 
+    registrering_id = synonym("organisationenhed_registrering_id")
     organisationenhed_registrering_id = Column(
         ForeignKey("organisationenhed_registrering.id"), index=True
     )

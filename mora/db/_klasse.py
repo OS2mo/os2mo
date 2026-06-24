@@ -5,6 +5,7 @@ from uuid import UUID
 
 from sqlalchemy import BigInteger
 from sqlalchemy import Column
+from sqlalchemy import ColumnElement
 from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 from sqlalchemy import Text
@@ -42,6 +43,7 @@ class KlasseAttrEgenskaber(_AttrEgenskaberMixin, Base):
     retskilde: Mapped[str | None] = mapped_column(Text, index=True)
     aendringsnotat: Mapped[str | None] = mapped_column(Text, index=True)
 
+    registrering_id = synonym("klasse_registrering_id")
     klasse_registrering_id = Column(ForeignKey("klasse_registrering.id"), index=True)
 
 
@@ -79,6 +81,7 @@ class KlasseRelation(_RelationMixin, Base):
         Enum(KlasseRelationKode, name="klasserelationkode")
     )
 
+    registrering_id = synonym("klasse_registrering_id")
     klasse_registrering_id = Column(ForeignKey("klasse_registrering.id"), index=True)
 
 
@@ -92,4 +95,9 @@ class KlasseTilsPubliceret(_VirkningMixin, Base):
         index=True,
     )
 
+    @classmethod
+    def is_active(cls) -> ColumnElement:
+        return cls.publiceret == "Publiceret"
+
+    registrering_id = synonym("klasse_registrering_id")
     klasse_registrering_id = Column(ForeignKey("klasse_registrering.id"), index=True)
