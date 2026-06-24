@@ -177,6 +177,10 @@ def _TilsGyldighedMixin(oio_type):
             index=True,
         )
 
+        @classmethod
+        def is_active(cls) -> ColumnElement:
+            return cls.gyldighed == "Aktiv"
+
         def __repr__(self):  # pragma: no cover
             return (
                 f"{self.__class__.__name__}(id={self.id}, gyldighed={self.gyldighed!r})"

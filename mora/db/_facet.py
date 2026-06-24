@@ -5,6 +5,7 @@ from uuid import UUID
 
 from sqlalchemy import BigInteger
 from sqlalchemy import Column
+from sqlalchemy import ColumnElement
 from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 from sqlalchemy import Text
@@ -41,6 +42,7 @@ class FacetAttrEgenskaber(_AttrEgenskaberMixin, Base):
     supplement: Mapped[str | None] = mapped_column(Text, index=True)
     retskilde: Mapped[str | None] = mapped_column(Text, index=True)
 
+    registrering_id = synonym("facet_registrering_id")
     facet_registrering_id = Column(ForeignKey("facet_registrering.id"), index=True)
 
 
@@ -58,6 +60,7 @@ class FacetRelation(_RelationMixin, Base):
         Enum(FacetRelationKode, name="facetrelationkode")
     )
 
+    registrering_id = synonym("facet_registrering_id")
     facet_registrering_id = Column(ForeignKey("facet_registrering.id"), index=True)
 
 
@@ -71,4 +74,9 @@ class FacetTilsPubliceret(_VirkningMixin, Base):
         index=True,
     )
 
+    @classmethod
+    def is_active(cls) -> ColumnElement:
+        return cls.publiceret == "Publiceret"
+
+    registrering_id = synonym("facet_registrering_id")
     facet_registrering_id = Column(ForeignKey("facet_registrering.id"), index=True)

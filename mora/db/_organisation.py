@@ -39,6 +39,7 @@ class OrganisationAttrEgenskaber(_AttrEgenskaberMixin, Base):
 
     organisationsnavn: Mapped[str | None] = mapped_column(Text, index=True)
 
+    registrering_id = synonym("organisation_registrering_id")
     organisation_registrering_id = Column(
         ForeignKey("organisation_registrering.id"), index=True
     )
@@ -52,6 +53,7 @@ class OrganisationRelation(_RelationMixin, Base):
 
     rel_type: Mapped[OrganisationRelationKode]
 
+    registrering_id = synonym("organisation_registrering_id")
     organisation_registrering_id = Column(
         ForeignKey("organisation_registrering.id"), index=True
     )
@@ -60,6 +62,7 @@ class OrganisationRelation(_RelationMixin, Base):
 class OrganisationTilsGyldighed(_TilsGyldighedMixin("organisation"), Base):
     __tablename__ = "organisation_tils_gyldighed"
 
+    registrering_id = synonym("organisation_registrering_id")
     organisation_registrering_id = Column(
         ForeignKey("organisation_registrering.id"), index=True
     )

@@ -37,6 +37,7 @@ class BrugerAttrEgenskaber(_AttrEgenskaberMixin, Base):
     brugernavn: Mapped[str | None] = mapped_column(Text, index=True)
     brugertype: Mapped[str | None] = mapped_column(Text, index=True)
 
+    registrering_id = synonym("bruger_registrering_id")
     bruger_registrering_id = Column(ForeignKey("bruger_registrering.id"), index=True)
 
 
@@ -50,6 +51,7 @@ class BrugerAttrUdvidelser(_VirkningMixin, Base):
     kaldenavn_efternavn: Mapped[str | None] = mapped_column(Text, index=True)
     seniority: Mapped[str | None] = mapped_column(Text, index=True)
 
+    registrering_id = synonym("bruger_registrering_id")
     bruger_registrering_id = Column(ForeignKey("bruger_registrering.id"), index=True)
 
 
@@ -73,10 +75,12 @@ class BrugerRelation(_RelationMixin, Base):
         Enum(BrugerRelationKode, name="brugerrelationkode")
     )
 
+    registrering_id = synonym("bruger_registrering_id")
     bruger_registrering_id = Column(ForeignKey("bruger_registrering.id"), index=True)
 
 
 class BrugerTilsGyldighed(_TilsGyldighedMixin("bruger"), Base):
     __tablename__ = "bruger_tils_gyldighed"
 
+    registrering_id = synonym("bruger_registrering_id")
     bruger_registrering_id = Column(ForeignKey("bruger_registrering.id"), index=True)
