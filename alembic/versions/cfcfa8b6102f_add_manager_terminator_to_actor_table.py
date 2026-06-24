@@ -18,10 +18,10 @@ def upgrade() -> None:
         INSERT INTO actor (name, actor) VALUES
             ('Manager Terminator', '3aca9ef1-baad-c0de-6d61-6e6167657274'),
             ('Xflow', '8f107777-baad-c0de-7866-6c6f77000000')
+        ON CONFLICT (actor) DO NOTHING
         """
     )
 
 
 def downgrade() -> None:
-    op.execute("DELETE FROM actor WHERE actor = '3aca9ef1-baad-c0de-6d61-6e6167657274'")
-    op.execute("DELETE FROM actor WHERE actor = '8f107777-baad-c0de-7866-6c6f77000000'")
+    pass
