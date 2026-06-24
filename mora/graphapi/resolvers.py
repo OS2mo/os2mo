@@ -223,6 +223,59 @@ def handle_deprecated_hierarchy_filters(filter: OrganisationUnitFilter) -> None:
     filter.hierarchies = None
 
 
+def _get_registrering_clause(
+    cls: type[
+        BrugerRegistrering
+        | FacetRegistrering
+        | ITSystemRegistrering
+        | KlasseRegistrering
+        | OrganisationEnhedRegistrering
+        | OrganisationFunktionRegistrering
+    ],
+    filter: BaseFilter,
+) -> ColumnElement:
+    return and_(
+        cls.lifecycle != "Slettet",
+        cls.registrering_period.contains(
+            tz_isodate(filter.registration_time)
+            if filter.registration_time
+            else func.now()
+        ),
+    )
+
+
+def _get_virkning_clause(
+    cls: type[HasValidity],
+    filter: BaseFilter,
+) -> ColumnElement:
+    start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
+    return cls.virkning_period.overlaps(TimestamptzRange(start, end))
+
+
+def _get_gyldighed_clause(
+    registrering_cls: type[
+        BrugerRegistrering
+        | ITSystemRegistrering
+        | OrganisationEnhedRegistrering
+        | OrganisationFunktionRegistrering
+    ],
+    gyldighed_cls: type[
+        BrugerTilsGyldighed
+        | ITSystemTilsGyldighed
+        | OrganisationEnhedTilsGyldighed
+        | OrganisationFunktionTilsGyldighed
+    ],
+    filter: BaseFilter,
+) -> ColumnElement:
+    fk_column = getattr(gyldighed_cls, f"{registrering_cls.__tablename__}_id")
+    return registrering_cls.id.in_(
+        select(fk_column).where(
+            gyldighed_cls.gyldighed == "Aktiv",
+            _get_virkning_clause(gyldighed_cls, filter),
+        )
+    )
+
+
 def facet_predicate(
     info: MOInfo,
     filter: FacetFilter,
@@ -1849,59 +1902,6 @@ async def owner_resolver(
         registration_time=filter.registration_time,
     )
     return ObjectsAndCursor(objects=objects, next_cursor=next_cursor)
-
-
-def _get_registrering_clause(
-    cls: type[
-        BrugerRegistrering
-        | FacetRegistrering
-        | ITSystemRegistrering
-        | KlasseRegistrering
-        | OrganisationEnhedRegistrering
-        | OrganisationFunktionRegistrering
-    ],
-    filter: BaseFilter,
-) -> ColumnElement:
-    return and_(
-        cls.lifecycle != "Slettet",
-        cls.registrering_period.contains(
-            tz_isodate(filter.registration_time)
-            if filter.registration_time
-            else func.now()
-        ),
-    )
-
-
-def _get_virkning_clause(
-    cls: type[HasValidity],
-    filter: BaseFilter,
-) -> ColumnElement:
-    start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
-    return cls.virkning_period.overlaps(TimestamptzRange(start, end))
-
-
-def _get_gyldighed_clause(
-    registrering_cls: type[
-        BrugerRegistrering
-        | ITSystemRegistrering
-        | OrganisationEnhedRegistrering
-        | OrganisationFunktionRegistrering
-    ],
-    gyldighed_cls: type[
-        BrugerTilsGyldighed
-        | ITSystemTilsGyldighed
-        | OrganisationEnhedTilsGyldighed
-        | OrganisationFunktionTilsGyldighed
-    ],
-    filter: BaseFilter,
-) -> ColumnElement:
-    fk_column = getattr(gyldighed_cls, f"{registrering_cls.__tablename__}_id")
-    return registrering_cls.id.in_(
-        select(fk_column).where(
-            gyldighed_cls.gyldighed == "Aktiv",
-            _get_virkning_clause(gyldighed_cls, filter),
-        )
-    )
 
 
 def organisation_unit_predicate(
