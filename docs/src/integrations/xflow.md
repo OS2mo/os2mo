@@ -43,7 +43,7 @@ starter i medarbejderens egen enhed og bevæger sig opad i organisationen, indti
 en passende leder findes.
 
 En leder regnes kun for relevant, hvis vedkommende er fast tilknyttet (har et
-månedslønnet engagement), har den rigtige ledertype, og har
+månedslønnet engagement), har den rigtige ledertype og har
 det rigtige ansvar (fx personaleansvar). Hvis medarbejderen selv er leder i sin
 egen enhed, springes denne over, og der ledes videre opad efter en leder på et højere
 niveau. Hvis der ikke findes en relevant leder, overføres medarbejderen uden en nærmeste
