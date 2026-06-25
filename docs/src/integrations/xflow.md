@@ -59,7 +59,7 @@ XFlow.
 ## Sammenlægning af flere rodenheder i én rapport
 
 I nogle tilfælde ønsker man, at medarbejderne fra flere rodenheder skal samles i
-den samme rapport. Integrationen kan kanfigureres til at håndtere dette scenarie.
+den samme rapport. Integrationen kan konfigureres til at håndtere dette scenarie.
 
 Det er muligt at angive (via en konfiguration), at en eller flere rodenheder skal lægges
 sammen med en anden rodenheds rapport. Når det er sat op, vil medarbejderne fra de
