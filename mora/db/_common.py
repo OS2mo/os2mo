@@ -16,6 +16,7 @@ from sqlalchemy import select
 from sqlalchemy import text
 from sqlalchemy import type_coerce
 from sqlalchemy.dialects.postgresql import ENUM
+from sqlalchemy.dialects.postgresql import TSTZMULTIRANGE
 from sqlalchemy.dialects.postgresql import TSTZRANGE
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped
@@ -165,12 +166,35 @@ class _VirkningMixin:
 HasValidity = NewType("HasValidity", _VirkningMixin)
 
 
-class _AttrEgenskaberMixin(_VirkningMixin):
+class _AktivVirkningMixin:
+    """Precomputed intersection of a relation/attribute row's own ``virkning``
+    with the union of its registration's active validity periods
+    (gyldighed=Aktiv / publiceret=Publiceret), as a ``tstzmultirange``.
+
+    Lets the GraphQL active-period filter become a single in-row multirange
+    overlap (``aktiv_virkning && window``) on the period table itself, fused
+    with the data filter (``rel_type`` / ``rel_maal_uuid`` / ...) in one index
+    scan, instead of a correlated ``EXISTS`` into the multi-row ``*_tils_*``
+    table that the planner cannot estimate (see #70660).
+
+    Safe to add to ``*_relation`` / ``*_attr_*`` because LoRa inserts those rows
+    with explicit column lists (unlike ``*_registrering``, which uses a
+    positional ``ROW(...)::<table>`` cast). NULL means the row never overlaps an
+    active period. Maintained by a trigger; see the Alembic migration. Deferred
+    so it is never loaded implicitly; only used in filter predicates.
+    """
+
+    aktiv_virkning: Mapped[Any] = mapped_column(
+        TSTZMULTIRANGE, nullable=True, deferred=True
+    )
+
+
+class _AttrEgenskaberMixin(_AktivVirkningMixin, _VirkningMixin):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     brugervendtnoegle: Mapped[str] = mapped_column(Text, index=True)
 
 
-class _RelationMixin(_VirkningMixin):
+class _RelationMixin(_AktivVirkningMixin, _VirkningMixin):
     @declared_attr
     def __table_args__(cls):
         return (
