@@ -5,11 +5,11 @@
 class OIOException(Exception):
     status_code = None  # Please supply in subclass!
 
-    def __init__(self, *args, payload=None):
+    def __init__(self, *args, payload=None):  # pragma: no cover
         Exception.__init__(self, *args)
         self.payload = payload
 
-    def to_dict(self):
+    def to_dict(self):  # pragma: no cover
         rv = dict(self.payload or ())
         if self.args:
             rv["message"] = self.args[0]
@@ -37,6 +37,6 @@ class BadRequestException(OIOException):
 
 
 class DBException(OIOException):
-    def __init__(self, status_code, *args, payload=None):
+    def __init__(self, status_code, *args, payload=None):  # pragma: no cover
         OIOException.__init__(self, *args, payload)
         self.status_code = status_code

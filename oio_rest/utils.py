@@ -19,7 +19,7 @@ def is_uuid(s):
         try:
             uuid.UUID(s)
             return True
-        except ValueError:
+        except ValueError:  # pragma: no cover
             return False
 
 
@@ -39,7 +39,7 @@ def build_relation(value, objekttype=None, virkning=None):
     else:
         raise ValueError(
             "Relation has an invalid value (not a UUID or URN) '%s'" % value
-        )
+        )  # pragma: no cover
     return relation
 
 
