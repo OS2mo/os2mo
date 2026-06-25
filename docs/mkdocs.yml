@@ -46,6 +46,7 @@ nav:
         - integrations/sdtoolplus.md
         - integrations/organisationsopmaerkning.md
       - integrations/os2phonebook.md
+      - integrations/xflow.md
   - "Implementering & Drift":
       - moaas/index.md
       - moaas/cloud.md
