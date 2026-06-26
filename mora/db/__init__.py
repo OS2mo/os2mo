@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # flake8: noqa
 import asyncio
+from collections.abc import Iterable
 from contextlib import asynccontextmanager
 from datetime import date, datetime
 from typing import Any
@@ -78,7 +79,9 @@ from .files import FileToken
 import psycopg
 
 
-def create_engine(user, password, host, name) -> AsyncEngine:
+def create_engine(
+    user: str, password: str | None, host: str, name: str, args: Iterable[str] = ()
+) -> AsyncEngine:
     return create_async_engine(
         f"postgresql+psycopg://{user}:{password}@{host}/{name}",
         # Transparently reconnect on connection errors so the calling application does
@@ -100,6 +103,7 @@ def create_engine(user, password, host, name) -> AsyncEngine:
                     "-c join_collapse_limit=24",
                     "-c from_collapse_limit=24",
                     "-c geqo_threshold=25",
+                    *args,
                 )
             ),
         },
