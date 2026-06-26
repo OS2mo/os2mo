@@ -8,6 +8,7 @@ which describes its arguments and options.
 
 # TODO: Do we wanna access-log database access from here?
 import asyncio  # pragma: no cover
+import contextlib  # pragma: no cover
 import sys  # pragma: no cover
 import time  # pragma: no cover
 
@@ -163,7 +164,8 @@ def last_run() -> None:  # pragma: no cover
 @amqp.command()
 def start() -> None:  # pragma: no cover
     """Start the event generator."""
-    asyncio.run(start_event_generator(sessionmaker))
+    with contextlib.suppress(KeyboardInterrupt):
+        asyncio.run(start_event_generator(sessionmaker))
 
 
 if __name__ == "__main__":  # pragma: no cover
