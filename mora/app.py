@@ -12,6 +12,7 @@ from fastapi import HTTPException as FastAPIHTTPException
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastramqpi.middleware import RequestIdMiddleware
 from fastramqpi.ramqp import AMQPSystem
 from more_itertools import only
 from prometheus_client import Gauge
@@ -201,6 +202,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         lifespan=lifespan,
         middleware=[
             Middleware(RawContextMiddleware),
+            Middleware(RequestIdMiddleware),
             Middleware(BaseHTTPMiddleware, dispatch=lora_noop_change_context),
             Middleware(BaseHTTPMiddleware, dispatch=log.gen_accesslog_middleware()),
             Middleware(
