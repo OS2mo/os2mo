@@ -4,14 +4,12 @@ import logging
 from collections.abc import Awaitable
 from collections.abc import Callable
 from typing import Any
-from uuid import uuid4
 
 import structlog
 from fastapi import Request
 from fastapi import Response
 from starlette_context import context
 from starlette_context import request_cycle_context
-from structlog.contextvars import bound_contextvars
 from structlog.types import EventDict
 from structlog.types import Processor
 from uvicorn.protocols.utils import get_path_with_query_string
@@ -36,8 +34,7 @@ def gen_accesslog_middleware() -> Callable[[Request, Any], Awaitable[Response]]:
     access_logger = structlog.stdlib.get_logger("api.access")
 
     async def accesslog_middleware(request: Request, call_next) -> Response:
-        with bound_contextvars(request_id=str(uuid4())):
-            response = await call_next(request)
+        response = await call_next(request)
 
         status_code = response.status_code
         path = get_path_with_query_string(request.scope)
