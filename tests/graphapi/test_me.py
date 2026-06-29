@@ -9,6 +9,7 @@ import pytest
 
 from mora.graphapi.actor import HardcodedActor
 
+from ..conftest import BRUCE_UUID
 from ..conftest import GraphAPIPost
 from ..conftest import SetAuth
 from ..conftest import admin_auth
@@ -270,6 +271,118 @@ async def test_my_listeners(
     assert deleted is True
     assert read_my_listeners() == set()
     assert read_my_namespaces() == {bpc_ns}
+
+
+DECLARE_POLICY = """
+  mutation DeclarePolicy($input: PolicyDeclareInput!) {
+    policy_declare(input: $input) {
+      uuid
+    }
+  }
+"""
+
+DECLARE_ACTOR = """
+  mutation DeclareActor($input: PolicyActorDeclareInput!) {
+    policy_actor_declare(input: $input) {
+      uuid
+    }
+  }
+"""
+
+MY_POLICIES = """
+    query MyPolicies($filter: ActorBoundPolicyFilter) {
+      me {
+        policies(filter: $filter) {
+          uuid
+          name
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def create_policy(
+    graphapi_post: GraphAPIPost,
+) -> Callable[..., str]:
+    """Create a policy with a single actor binding and return its UUID."""
+
+    def inner(
+        name: str,
+        kind: str,
+        value: str,
+        start: str = "2024-01-01T00:00:00+00:00",
+        end: str | None = None,
+    ) -> str:
+        response = graphapi_post(
+            DECLARE_POLICY,
+            variables={"input": {"name": name, "start": start, "end": end}},
+        )
+        assert response.errors is None
+        assert response.data
+        uuid = response.data["policy_declare"]["uuid"]
+
+        response = graphapi_post(
+            DECLARE_ACTOR,
+            variables={"input": {"policy": uuid, "kind": kind, "value": value}},
+        )
+        assert response.errors is None
+        return uuid
+
+    return inner
+
+
+@pytest.fixture
+def read_my_policies(
+    graphapi_post: GraphAPIPost,
+) -> Callable[..., set[str]]:
+    def inner(filter: dict[str, Any] | None = None) -> set[str]:
+        response = graphapi_post(MY_POLICIES, variables={"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {policy["name"] for policy in response.data["me"]["policies"]}
+
+    return inner
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_my_policies(
+    create_policy: Callable[..., str],
+    read_my_policies: Callable[..., set[str]],
+) -> None:
+    # The admin token (username "bruce", role "admin") sees the bootstrap
+    # "Policy Administrator" policy, which is hard-bound to the "admin" role.
+    assert read_my_policies() == {"Policy Administrator"}
+
+    # A policy bound to our username, uuid or one of our roles becomes visible.
+    by_username = create_policy("by-username", "username", "bruce")
+    create_policy("by-uuid", "uuid", str(BRUCE_UUID))
+    create_policy("by-role", "role", "owner")
+
+    # A policy bound to attributes we don't have stays hidden.
+    create_policy("not-mine", "role", "nobody")
+
+    mine = {"Policy Administrator", "by-username", "by-uuid", "by-role"}
+    assert read_my_policies() == mine
+
+    # The caller can restrict the (already actor-seeded) result by policy UUID.
+    assert read_my_policies(filter={"uuids": [by_username]}) == {"by-username"}
+
+    # ... and by validity window. An expired policy for us is applicable in
+    # general (no window) but excluded by a "now" window.
+    create_policy(
+        "expired",
+        "username",
+        "bruce",
+        start="2020-01-01T00:00:00+00:00",
+        end="2021-01-01T00:00:00+00:00",
+    )
+    assert "expired" in read_my_policies()
+    now = "2026-06-29T00:00:00+00:00"
+    current = read_my_policies(filter={"start": now, "end": now})
+    assert current == mine
+    assert "expired" not in current
 
 
 @pytest.mark.integration_test

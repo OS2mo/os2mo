@@ -9,7 +9,6 @@ from typing import get_args
 
 from fastapi import HTTPException
 from graphql import OperationType
-from sqlalchemy import select
 from strawberry import BasePermission
 from strawberry.types import Info
 from structlog import get_logger
@@ -72,33 +71,17 @@ async def _log_actor_policies(info: Info, token: Token) -> None:
     token (uuid, username, roles) and logs the policies that match.
     """
     # Deferred import to avoid a circular import at module load time.
-    from mora import db
-    from mora.graphapi.policies import PolicyActorFilter
-    from mora.graphapi.policies import PolicyFilter
-    from mora.graphapi.policies import policy_predicate
-    from mora.util import now
+    from mora.graphapi.policies import actor_policies
 
-    actor_filter = PolicyActorFilter(
-        uuids=[token.uuid] if token.uuid is not None else None,
-        usernames=(
-            [token.preferred_username] if token.preferred_username is not None else None
-        ),
-        roles=list(token.realm_access.roles) or None,
-    )
-    # Only currently-valid policies are relevant right now.
-    current = now()
-    predicate = policy_predicate(
-        info, PolicyFilter(start=current, end=current, actor=actor_filter)
-    )
-    policies = (
-        await info.context.session.scalars(select(db.Policy).where(predicate))
-    ).all()
+    policies = await actor_policies(info, token)
     logger.info(
         "Policies for actor",
         actor=str(token.uuid),
         username=token.preferred_username,
         roles=sorted(token.realm_access.roles),
-        policies=[{"uuid": str(policy.id), "name": policy.name} for policy in policies],
+        policies=[
+            {"uuid": str(policy.uuid), "name": policy.name} for policy in policies
+        ],
     )
 
 

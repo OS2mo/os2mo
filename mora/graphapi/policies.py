@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import enum
+from collections.abc import Collection
 from datetime import datetime
 from uuid import UUID
 
@@ -13,9 +14,11 @@ from sqlalchemy import select
 from sqlalchemy import true
 
 from mora import db
+from mora.auth.keycloak.models import Token
 from mora.db import AsyncSession
 from mora.graphapi.context import MOInfo
 from mora.graphapi.filters import gen_filter_string
+from mora.util import now
 
 from .paged import CursorType
 from .paged import LimitType
@@ -143,9 +146,7 @@ class PolicyActor:
 class Policy:
     uuid: UUID = strawberry.field(description="UUID of the policy.")
     name: str = strawberry.field(description="Name of the policy.")
-    description: str | None = strawberry.field(
-        description="Description of the policy."
-    )
+    description: str | None = strawberry.field(description="Description of the policy.")
     start: datetime = strawberry.field(description="Start of the policy's validity.")
     end: datetime | None = strawberry.field(
         description="End of the policy's validity, if applicable."
@@ -198,3 +199,36 @@ async def policy_resolver(
         objects=[_to_policy(policy) for policy in result],
         next_cursor=next_cursor,
     )
+
+
+def actor_filter_for(
+    uuid: UUID | None,
+    username: str | None,
+    roles: Collection[str],
+) -> PolicyActorFilter:
+    """Build the actor filter selecting policies applicable to an actor.
+
+    Shared between the `me` collection (which seeds it from the calling client)
+    and the permission-system instrumentation, so the notion of "which policies
+    apply to whom" lives in one place.
+    """
+    return PolicyActorFilter(
+        uuids=[uuid] if uuid is not None else None,
+        usernames=[username] if username is not None else None,
+        roles=list(roles) or None,
+    )
+
+
+async def actor_policies(info: MOInfo, token: Token) -> list[Policy]:
+    """Return the currently-valid policies applicable to the given token's actor."""
+    actor_filter = actor_filter_for(
+        token.uuid, token.preferred_username, token.realm_access.roles
+    )
+    # Only currently-valid policies are relevant right now.
+    current = now()
+    predicate = policy_predicate(
+        info, PolicyFilter(start=current, end=current, actor=actor_filter)
+    )
+    session: AsyncSession = info.context.session
+    result = await session.scalars(select(db.Policy).where(predicate))
+    return [_to_policy(policy) for policy in result]

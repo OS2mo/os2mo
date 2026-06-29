@@ -28,6 +28,9 @@ from .events import namespace_resolver
 from .paged import to_objects
 from .permissions import IsAuthenticatedPermission
 from .permissions import gen_read_permission
+from .policies import Policy
+from .policies import actor_filter_for
+from .policies import policy_resolver
 from .seed_resolver import seed_resolver
 
 BEFORE_ACTOR_UUID = UUID("42c432e8-9c4a-11e6-9f62-873cf34a735f")
@@ -231,6 +234,34 @@ class Myself:
     )
     roles: list[str] = strawberry.field(
         description="Set of RBAC roles assigned to the client"
+    )
+
+    policies: list[Policy] = strawberry.field(
+        resolver=to_objects(
+            seed_resolver(
+                policy_resolver,
+                {
+                    "actor": lambda root: actor_filter_for(
+                        root.actor.uuid, root.username, root.roles
+                    )
+                },
+            )
+        ),
+        description=dedent(
+            """\
+            Access policies applicable to the API client.
+
+            The actor filter is seeded from the client itself (its actor UUID,
+            username and RBAC roles), so only policies that apply to the caller
+            are returned. The result can be further restricted by policy UUID
+            and validity window (`start`/`end`); when no window is given, all
+            applicable policies are returned regardless of validity.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("policy"),
+        ],
     )
 
 
