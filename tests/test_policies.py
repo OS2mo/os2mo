@@ -204,6 +204,7 @@ async def test_policy_create_and_read(
 async def test_policy_declare_updates_existing(
     graphapi_post: GraphAPIPost, empty_db
 ) -> None:
+    baseline = len(read_policies(graphapi_post))
     created = declare_policy(
         graphapi_post, name="Initial", start="2024-01-01T00:00:00+00:00"
     )
@@ -224,8 +225,8 @@ async def test_policy_declare_updates_existing(
     assert obj["description"] == "now with a description"
     assert obj["end"] is not None
 
-    # Declaring with a uuid updates rather than creates: bootstrap + the one.
-    assert len(read_policies(graphapi_post)) == 2
+    # Declaring with a uuid updates rather than creates: just one new policy.
+    assert len(read_policies(graphapi_post)) == baseline + 1
 
 
 @pytest.mark.integration_test
@@ -281,7 +282,8 @@ async def test_policy_filter_by_uuid(graphapi_post: GraphAPIPost, empty_db) -> N
 
 @pytest.mark.integration_test
 async def test_policy_pagination(graphapi_post: GraphAPIPost, empty_db) -> None:
-    # Create a handful of policies to page through (plus the bootstrap one).
+    # Create a handful of policies to page through (plus the bootstrap ones).
+    baseline = len(read_policies(graphapi_post))
     created: set[str] = set()
     for i in range(5):
         response = declare_policy(
@@ -306,8 +308,8 @@ async def test_policy_pagination(graphapi_post: GraphAPIPost, empty_db) -> None:
     else:  # pragma: no cover
         raise AssertionError("pagination did not terminate")
 
-    # Every created policy plus the bootstrap policy was returned exactly once.
-    assert len(seen) == 6
+    # Every created policy plus the bootstrap ones was returned exactly once.
+    assert len(seen) == baseline + 5
     assert created <= set(seen)
     assert POLICYADMIN in seen
 
@@ -360,7 +362,15 @@ async def test_policy_actor_filter_cases(
     declare_actor(graphapi_post, user_policy, "uuid", ACTOR_UUID)
     create_policy(graphapi_post, "unbound-policy")
 
-    everything = {"role-policy", "user-policy", "unbound-policy", "Policy Administrator"}
+    # "Administrator" and "Reader" are bootstrap policies with no actors.
+    everything = {
+        "role-policy",
+        "user-policy",
+        "unbound-policy",
+        "Policy Administrator",
+        "Administrator",
+        "Reader",
+    }
     has_actor = {"role-policy", "user-policy", "Policy Administrator"}
     admins = {"role-policy", "Policy Administrator"}
 
@@ -787,6 +797,51 @@ async def test_pbac_all_actor_grants_everyone(
 
     granted = graphapi_post(READ_EMPLOYEES)
     assert granted.errors is None
+
+
+@pytest.mark.integration_test
+async def test_administrator_and_reader_bootstrapped(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    by_name = {p["name"]: p["uuid"] for p in read_policies(graphapi_post)}
+    assert "Administrator" in by_name
+    assert "Reader" in by_name
+
+    admin_rules = {
+        (r["type"], r["field"])
+        for r in read_policy_rules(graphapi_post, by_name["Administrator"])
+    }
+    assert admin_rules == {("Query", "*"), ("Mutation", "*")}
+
+    reader_rules = {
+        (r["type"], r["field"])
+        for r in read_policy_rules(graphapi_post, by_name["Reader"])
+    }
+    assert reader_rules == {("Query", "*")}
+
+    # Both start unassigned (no actors).
+    for name in ("Administrator", "Reader"):
+        actors = graphapi_post(
+            READ_POLICY_ACTORS, variables={"uuids": [by_name[name]]}
+        ).data["policies"]["objects"][0]["actors"]
+        assert actors == []
+
+
+@pytest.mark.integration_test
+async def test_administrator_policy_is_removable(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    # Unlike the policyadmin policy, Administrator is a normal, removable policy
+    # (and deleting it also removes its rules).
+    by_name = {p["name"]: p["uuid"] for p in read_policies(graphapi_post)}
+    admin_uuid = by_name["Administrator"]
+
+    deleted = graphapi_post(DELETE_POLICY, variables={"uuid": admin_uuid})
+    assert deleted.errors is None
+    assert deleted.data["policy_delete"] is True
+
+    # Deletion succeeds (its rules are removed too, so no FK violation).
+    assert admin_uuid not in {p["uuid"] for p in read_policies(graphapi_post)}
 
 
 @pytest.mark.integration_test
