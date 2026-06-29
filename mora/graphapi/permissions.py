@@ -9,11 +9,16 @@ from typing import get_args
 
 from fastapi import HTTPException
 from graphql import OperationType
+from sqlalchemy import select
 from strawberry import BasePermission
 from strawberry.types import Info
+from structlog import get_logger
 
 from mora.auth.exceptions import AuthorizationError
+from mora.auth.keycloak.models import Token
 from mora.config import get_settings
+
+logger = get_logger()
 
 Collections = Literal[
     "accesslog",
@@ -60,6 +65,43 @@ ALL_PERMISSIONS = {
 }.union(get_args(FilePermissions))
 
 
+async def _log_actor_policies(info: Info, token: Token) -> None:
+    """Log which policies apply to the calling actor.
+
+    WIP instrumentation for the policy system: builds the actor filter from the
+    token (uuid, username, roles) and logs the policies that match.
+    """
+    # Deferred import to avoid a circular import at module load time.
+    from mora import db
+    from mora.graphapi.policies import PolicyActorFilter
+    from mora.graphapi.policies import PolicyFilter
+    from mora.graphapi.policies import policy_predicate
+    from mora.util import now
+
+    actor_filter = PolicyActorFilter(
+        uuids=[token.uuid] if token.uuid is not None else None,
+        usernames=(
+            [token.preferred_username] if token.preferred_username is not None else None
+        ),
+        roles=list(token.realm_access.roles) or None,
+    )
+    # Only currently-valid policies are relevant right now.
+    current = now()
+    predicate = policy_predicate(
+        info, PolicyFilter(start=current, end=current, actor=actor_filter)
+    )
+    policies = (
+        await info.context.session.scalars(select(db.Policy).where(predicate))
+    ).all()
+    logger.info(
+        "Policies for actor",
+        actor=str(token.uuid),
+        username=token.preferred_username,
+        roles=sorted(token.realm_access.roles),
+        policies=[{"uuid": str(policy.id), "name": policy.name} for policy in policies],
+    )
+
+
 class IsAuthenticatedPermission(BasePermission):
     """Permission class that checks that the request is authenticated."""
 
@@ -76,6 +118,8 @@ class IsAuthenticatedPermission(BasePermission):
             token = await info.context.get_token()
         except HTTPException as e:
             raise PermissionError(e.detail) from e
+        if token is not None:
+            await _log_actor_policies(info, token)
         return token is not None
 
 
