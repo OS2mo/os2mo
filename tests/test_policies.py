@@ -352,6 +352,14 @@ async def test_policy_actor_delete(graphapi_post: GraphAPIPost, empty_db) -> Non
 async def test_policy_actor_filter_cases(
     graphapi_post: GraphAPIPost, empty_db
 ) -> None:
+    # Remove the catch-all "Legacy" bootstrap policy: its "all" actor matches
+    # every actor filter (covered by test_policy_actor_all_matches_any_filter)
+    # and would otherwise appear in every result below.
+    legacy = next(
+        p["uuid"] for p in read_policies(graphapi_post) if p["name"] == "Legacy"
+    )
+    graphapi_post(DELETE_POLICY, variables={"uuid": legacy})
+
     # role-policy is bound to role "admin"; user-policy is bound to username
     # "alice" and a specific actor uuid; unbound-policy has no actors. The
     # bootstrap "Policy Administrator" is hard-bound to role "admin".
@@ -1049,3 +1057,69 @@ async def test_pbac_unconditional_rule_grants_despite_false_condition(
 
     granted = graphapi_post(READ_EMPLOYEES)
     assert granted.errors is None
+
+
+# Legacy policy (RBAC-via-PBAC)
+# ----------------------------
+
+
+@pytest.mark.integration_test
+async def test_legacy_policy_bootstrapped(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    by_name = {p["name"]: p["uuid"] for p in read_policies(graphapi_post)}
+    assert "Legacy" in by_name
+    legacy = by_name["Legacy"]
+
+    # Applies to everyone via an "all" actor.
+    actors = graphapi_post(
+        READ_POLICY_ACTORS, variables={"uuids": [legacy]}
+    ).data["policies"]["objects"][0]["actors"]
+    assert {(a["kind"], a["value"]) for a in actors} == {("all", "")}
+
+    # All queries and mutators, each gated by the field's required role.
+    rules = read_policy_rules(graphapi_post, legacy)
+    assert {(r["type"], r["field"], r["condition"]) for r in rules} == {
+        ("Query", "*", "permission in token.roles"),
+        ("Mutation", "*", "permission in token.roles"),
+    }
+
+
+@pytest.mark.integration_test
+async def test_pbac_legacy_grants_when_role_matches_permission(
+    graphapi_post: GraphAPIPost, set_settings, set_auth, empty_db
+) -> None:
+    # Reading employees requires the "read_employee" role under legacy RBAC.
+    # The Legacy policy grants it to anyone carrying that role.
+    set_auth(role="read_employee")
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+
+    granted = graphapi_post(READ_EMPLOYEES)
+    assert granted.errors is None
+
+
+@pytest.mark.integration_test
+async def test_pbac_legacy_denies_when_role_missing(
+    graphapi_post: GraphAPIPost, set_settings, set_auth, empty_db
+) -> None:
+    # A token without the field's required role gets nothing from Legacy.
+    set_auth(role="some_unrelated_role")
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+
+    denied = graphapi_post(READ_EMPLOYEES)
+    assert denied.errors is not None
+
+
+@pytest.mark.integration_test
+async def test_pbac_legacy_permission_is_field_specific(
+    graphapi_post: GraphAPIPost, set_settings, set_auth, empty_db
+) -> None:
+    # The `permission` exposed to the condition is the *accessed field's*
+    # required role: "read_employee" grants the employees query but not the
+    # policies query (which requires "read_policy"). This proves Legacy keys off
+    # the per-field permission, not some constant.
+    set_auth(role="read_employee")
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+
+    assert graphapi_post(READ_EMPLOYEES).errors is None
+    assert graphapi_post(READ_POLICIES).errors is not None

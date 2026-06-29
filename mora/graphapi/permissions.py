@@ -159,6 +159,7 @@ def gen_role_permission(
                     token,
                     info._raw_info.parent_type.name,
                     info._raw_info.field_name,
+                    permission_role,
                 )
 
             # Do not check permissions (always allow) if GraphQL RBAC is disabled,

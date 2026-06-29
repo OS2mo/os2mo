@@ -6,7 +6,8 @@ A policy rule may carry an optional CEL (Common Expression Language) condition:
 a boolean expression that must additionally hold for the rule to grant access.
 The expression is evaluated against a context of variables exposed below.
 
-Today only the calling actor's ``token`` is exposed. To expose more (e.g. the
+Currently exposed: the calling actor's ``token`` and the ``permission`` (the
+role the accessed field requires under legacy RBAC). To expose more (e.g. the
 mutation input, the target entity, or the current time), declare the variable
 in ``_VARIABLES`` and populate it in :func:`build_activation` -- nothing else
 needs to change.
@@ -23,6 +24,7 @@ from mora.auth.keycloak.models import Token
 # so adding a variable is a one-line change here plus one in build_activation().
 _VARIABLES = {
     "token": cel.Type.DYN,
+    "permission": cel.Type.DYN,
 }
 
 _ENV = cel.NewEnv(variables=_VARIABLES)
@@ -61,14 +63,23 @@ def _token_context(token: Token) -> dict:
     }
 
 
-def build_activation(token: Token):
+def build_activation(token: Token, permission: str | None = None):
     """Build the CEL activation shared by every condition in a single check.
 
-    The activation holds the variable context (currently just ``token``) and is
-    reused across all matching rules' conditions, so it is built once per
-    permission check. Extend the returned mapping as the context grows.
+    The activation holds the variable context and is reused across all matching
+    rules' conditions, so it is built once per permission check. Extend the
+    returned mapping as the context grows.
+
+    ``permission`` is the role the accessed field requires under legacy RBAC
+    (e.g. ``"read_employee"``); a null one is exposed as the empty string so a
+    condition like ``permission in token.roles`` simply evaluates false.
     """
-    return _ENV.Activation({"token": _token_context(token)})
+    return _ENV.Activation(
+        {
+            "token": _token_context(token),
+            "permission": permission or "",
+        }
+    )
 
 
 def evaluate_condition(condition: str, activation) -> bool:

@@ -290,7 +290,11 @@ async def actor_policies(info: MOInfo, token: Token) -> list[Policy]:
 
 
 async def actor_grants_field(
-    info: MOInfo, token: Token, type: str, field: str
+    info: MOInfo,
+    token: Token,
+    type: str,
+    field: str,
+    permission: str | None = None,
 ) -> bool:
     """Whether the calling actor may access the GraphQL ``(type, field)``.
 
@@ -298,6 +302,9 @@ async def actor_grants_field(
     uuid/username/role) and has a rule granting either ``(type, field)`` or
     ``(type, "*")`` whose CEL condition (if any) holds. This is the core of the
     PBAC permission engine.
+
+    ``permission`` is the role the field requires under legacy RBAC; it is
+    exposed to conditions (e.g. ``permission in token.roles``).
 
     SQL narrows the work to the candidate rules' conditions (a tiny set), then
     any conditions are evaluated in Python/CEL: an unconditional rule grants
@@ -328,7 +335,7 @@ async def actor_grants_field(
     # Otherwise the actor is granted access if any condition holds. The
     # activation (the variable context) is built once and reused across every
     # candidate condition.
-    activation = build_activation(token)
+    activation = build_activation(token, permission)
     return any(
         evaluate_condition(condition, activation) for condition in conditions
     )
