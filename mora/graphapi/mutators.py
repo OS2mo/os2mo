@@ -2234,6 +2234,14 @@ class Mutation:
                 "The policyadmin policy is required for bootstrapping and cannot be deleted."
             )
         session: AsyncSession = info.context.session
+        # Remove the policy's actors and rules first (the FK has no DB-level
+        # cascade, and a Core delete doesn't trigger the ORM relationship one).
+        await session.execute(
+            delete(db.PolicyActor).where(db.PolicyActor.policy_fk == input.uuid)
+        )
+        await session.execute(
+            delete(db.PolicyRule).where(db.PolicyRule.policy_fk == input.uuid)
+        )
         await session.execute(delete(db.Policy).where(db.Policy.id == input.uuid))
         return True
 

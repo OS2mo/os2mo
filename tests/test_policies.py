@@ -787,3 +787,17 @@ async def test_pbac_all_actor_grants_everyone(
 
     granted = graphapi_post(READ_EMPLOYEES)
     assert granted.errors is None
+
+
+@pytest.mark.integration_test
+async def test_policy_delete_removes_actors_and_rules(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    policy = create_policy(graphapi_post, "to-delete")
+    declare_actor(graphapi_post, policy, "role", "x")
+    declare_rule(graphapi_post, policy, "Query", "employees")
+
+    deleted = graphapi_post(DELETE_POLICY, variables={"uuid": policy})
+    assert deleted.errors is None
+    assert deleted.data["policy_delete"] is True
+    assert policy not in {p["uuid"] for p in read_policies(graphapi_post)}
