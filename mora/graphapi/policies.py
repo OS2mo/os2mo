@@ -54,6 +54,18 @@ class PolicyFilter:
     uuids: list[UUID] | None = strawberry.field(
         default=None, description=gen_filter_string("UUID", "uuids")
     )
+    start: datetime | None = strawberry.field(
+        default=None,
+        description=(
+            "Only return policies whose validity has not ended before this "
+            "point. Combine with `end` to limit to policies valid in an "
+            "interval (e.g. set both to 'now' for currently-valid policies)."
+        ),
+    )
+    end: datetime | None = strawberry.field(
+        default=None,
+        description="Only return policies that have started by this point.",
+    )
     actor: PolicyActorFilter | None = strawberry.field(
         default=None,
         description=(
@@ -98,6 +110,14 @@ def policy_predicate(info: MOInfo, filter: PolicyFilter) -> ColumnElement:
 
     if filter.uuids is not None:
         predicates.append(db.Policy.id.in_(filter.uuids))
+
+    # Validity overlap: a policy is valid over [start, end) (a null end means
+    # open-ended), so it overlaps the queried [filter.start, filter.end] window
+    # when it started by `end` and has not ended before `start`.
+    if filter.start is not None:
+        predicates.append(or_(db.Policy.end.is_(None), db.Policy.end >= filter.start))
+    if filter.end is not None:
+        predicates.append(db.Policy.start <= filter.end)
 
     if filter.actor is not None:
         predicates.append(_policy_actor_predicate(filter.actor))
