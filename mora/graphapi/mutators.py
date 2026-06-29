@@ -77,6 +77,8 @@ from .events import FullEvent
 from .events import Listener
 from .events import Namespace
 from .policies import Policy
+from .policies import PolicyActor
+from .policies import PolicyActorKind
 from .facets import create_facet
 from .facets import delete_facet
 from .facets import terminate_facet
@@ -147,6 +149,8 @@ from .inputs import OrganisationUnitUpdateInput
 from .inputs import OwnerCreateInput
 from .inputs import OwnerTerminateInput
 from .inputs import OwnerUpdateInput
+from .inputs import PolicyActorAddInput
+from .inputs import PolicyActorDeleteInput
 from .inputs import PolicyDeclareInput
 from .inputs import PolicyDeleteInput
 from .inputs import RelatedUnitsUpdateInput
@@ -2161,6 +2165,46 @@ class Mutation:
             )
         session: AsyncSession = info.context.session
         await session.execute(delete(db.Policy).where(db.Policy.id == input.uuid))
+        return True
+
+    @strawberry.mutation(
+        description="Add an actor to a policy.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("policy"),
+        ],
+    )
+    async def policy_actor_add(
+        self, info: MOInfo, input: PolicyActorAddInput
+    ) -> PolicyActor:
+        session: AsyncSession = info.context.session
+        actor = db.PolicyActor(
+            policy_fk=input.policy,
+            kind=input.kind.value,
+            value=input.value,
+        )
+        session.add(actor)
+        await session.flush()
+        return PolicyActor(
+            uuid=actor.pk,
+            kind=PolicyActorKind(actor.kind),
+            value=actor.value,
+        )
+
+    @strawberry.mutation(
+        description="Delete an actor from a policy.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_delete_permission("policy"),
+        ],
+    )
+    async def policy_actor_delete(
+        self, info: MOInfo, input: PolicyActorDeleteInput
+    ) -> bool:
+        session: AsyncSession = info.context.session
+        await session.execute(
+            delete(db.PolicyActor).where(db.PolicyActor.pk == input.uuid)
+        )
         return True
 
     # Files

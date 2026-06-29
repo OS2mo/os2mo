@@ -17,6 +17,7 @@ from mora.graphapi.gmodels.mo import Validity as RAValidity
 
 from .events import EventTokenType
 from .events import ListenerFilter
+from .policies import PolicyActorKind
 from .models import AddressCreate
 from .models import AddressTerminate
 from .models import AddressUpdate
@@ -894,3 +895,19 @@ class PolicyDeclareInput:
 @strawberry.input(description="Delete a policy.")
 class PolicyDeleteInput:
     uuid: UUID = strawberry.field(description="UUID of the policy to delete.")
+
+
+@strawberry.input(description="Add an actor to a policy.")
+class PolicyActorAddInput:
+    policy: UUID = strawberry.field(
+        description="UUID of the policy to add the actor to."
+    )
+    kind: PolicyActorKind = strawberry.field(
+        description="The kind of attribute to match on."
+    )
+    value: str = strawberry.field(description="The value the attribute must equal.")
+
+
+@strawberry.input(description="Delete an actor from a policy.")
+class PolicyActorDeleteInput:
+    uuid: UUID = strawberry.field(description="UUID of the actor binding to delete.")
