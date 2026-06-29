@@ -20,8 +20,9 @@ READER_UUID = "acce5500-9bac-5eed-0000-726561646572"
 
 
 def upgrade() -> None:
-    # Two convenience policies, valid for all time and starting *unassigned*
-    # (no actors), so they grant nothing until an actor is attached to them.
+    # Two convenience policies, valid for all time. Each is bound to a role
+    # below (see the policy_actor inserts), so it grants access to actors
+    # holding that role.
     op.execute(
         f"""
         INSERT INTO policy (id, name, description, start, "end")
@@ -52,12 +53,25 @@ def upgrade() -> None:
           ('Query', '*', '{READER_UUID}')
         """
     )
+    # Reader is bound to the "reader" role.
+    op.execute(
+        f"""
+        INSERT INTO policy_actor (kind, value, policy_fk)
+        VALUES ('role', 'reader', '{READER_UUID}')
+        """
+    )
 
 
 def downgrade() -> None:
     op.execute(
         f"""
         DELETE FROM policy_rule
+        WHERE policy_fk IN ('{ADMINISTRATOR_UUID}', '{READER_UUID}')
+        """
+    )
+    op.execute(
+        f"""
+        DELETE FROM policy_actor
         WHERE policy_fk IN ('{ADMINISTRATOR_UUID}', '{READER_UUID}')
         """
     )
