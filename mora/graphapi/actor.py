@@ -11,6 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from strawberry.dataloader import DataLoader
 
+from mora.access_log import access_log
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import LEGACY_AUTH_UUID
 from mora.auth.keycloak.oidc import NO_AUTH_UUID
@@ -20,11 +21,16 @@ from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from mora.auth.middleware import UNABLE_TO_PARSE_TOKEN_UUID
 from mora.db import Actor as ActorTable
 from mora.graphapi.context import MOInfo
+from mora.graphapi.filters import gen_filter_string
 
 from .events import Listener
 from .events import Namespace
 from .events import listener_resolver
 from .events import namespace_resolver
+from .paged import CursorType
+from .paged import LimitType
+from .paged import ObjectsAndCursor
+from .paged import paginate
 from .paged import to_objects
 from .permissions import IsAuthenticatedPermission
 from .permissions import gen_read_permission
@@ -219,6 +225,55 @@ def actor_uuid_to_actor(actor_uuid: UUID | None) -> Actor:
             Note: Integration actor translation has not been implemented yet.
             """
         ),
+    )
+
+
+@strawberry.input(description="Actor filter.")
+class ActorFilter:
+    uuids: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("UUID", "uuids")
+    )
+
+
+async def actor_resolver(
+    info: MOInfo,
+    filter: ActorFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> ObjectsAndCursor:
+    """Resolve actors from the actor data-source.
+
+    The actor table is kept ajour as actors (users and integrations) interact
+    with OS2mo, and is the same data-source backing the `actor` / `actor_object`
+    fields exposed on access log entries and registrations.
+    """
+    if filter is None:
+        filter = ActorFilter()
+
+    session: AsyncSession = info.context.session
+
+    query = select(ActorTable.actor)
+    if filter.uuids is not None:
+        query = query.where(ActorTable.actor.in_(filter.uuids))
+    query = query.order_by(ActorTable.actor)
+
+    uuids, next_cursor = await paginate(session, query, ActorTable.actor, limit, cursor)
+
+    access_log(
+        session,
+        "resolve_actors",
+        "Actor",
+        {
+            "limit": limit,
+            "cursor": cursor,
+            "uuids": filter.uuids,
+        },
+        list(uuids),
+    )
+
+    return ObjectsAndCursor(
+        objects=[actor_uuid_to_actor(uuid) for uuid in uuids],
+        next_cursor=next_cursor,
     )
 
 

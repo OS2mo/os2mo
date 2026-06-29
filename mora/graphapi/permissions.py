@@ -17,6 +17,7 @@ from mora.config import get_settings
 
 Collections = Literal[
     "accesslog",
+    "actor",
     "address",
     "association",
     "class",

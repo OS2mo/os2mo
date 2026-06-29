@@ -28,7 +28,9 @@ from mora.graphapi.version import Version as GraphQLVersion
 
 from .access_log import AccessLog
 from .access_log import access_log_resolver
+from .actor import Actor
 from .actor import Myself
+from .actor import actor_resolver
 from .actor import myself_resolver
 from .collections import KLE
 from .collections import Address
@@ -380,6 +382,25 @@ class Query:
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("accesslog"),
+        ],
+    )
+
+    # Actors
+    # ------
+    actors: Paged[Actor] = strawberry.field(
+        resolver=to_paged(actor_resolver),
+        description=dedent(
+            """\
+            Get a list of actors.
+
+            Actors are the users and integrations that read and change data in
+            OS2mo. This is the data-source backing the `actor` / `actor_object`
+            fields exposed on access log entries and registrations.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("actor"),
         ],
     )
 

@@ -70,6 +70,7 @@ async def access_log_read_loader(
 @strawberry.enum
 class AccessLogModel(Enum):
     ACCESS_LOG = "AccessLog"
+    ACTOR = "Actor"
     PERSON = "Bruger"
     FACET = "Facet"
     IT_SYSTEM = "ItSystem"
@@ -190,6 +191,7 @@ class AccessLogFilter:
 
             Can be one of:
             * `"AccessLog"`
+            * `"Actor"`
             * `"Bruger"`
             * `"Facet"`
             * `"ItSystem"`
