@@ -78,6 +78,7 @@ from .files import FileToken
 from .policies import POLICYADMIN_UUID
 from .policies import Policy
 from .policies import PolicyActor
+from .policies import PolicyRule
 import psycopg
 
 

@@ -17,7 +17,6 @@ from mora.graphapi.gmodels.mo import Validity as RAValidity
 
 from .events import EventTokenType
 from .events import ListenerFilter
-from .policies import PolicyActorKind
 from .models import AddressCreate
 from .models import AddressTerminate
 from .models import AddressUpdate
@@ -64,6 +63,7 @@ from .models import RoleBindingCreate
 from .models import RoleBindingTerminate
 from .models import RoleBindingUpdate
 from .models import Validity
+from .policies import PolicyActorKind
 
 
 def gen_uuid_unset(uuid: UUID | UnsetType | None) -> dict[str, str] | UnsetType | None:
@@ -933,3 +933,45 @@ class PolicyActorsDeclareInput:
 @strawberry.input(description="Delete an actor from a policy.")
 class PolicyActorDeleteInput:
     uuid: UUID = strawberry.field(description="UUID of the actor binding to delete.")
+
+
+@strawberry.input(
+    description="Declare (idempotently ensure) a single rule on a policy."
+)
+class PolicyRuleDeclareInput:
+    policy: UUID = strawberry.field(
+        description="UUID of the policy to declare the rule on."
+    )
+    type: str = strawberry.field(
+        description='GraphQL type the rule grants access to (or "Query"/"Mutation").'
+    )
+    field: str = strawberry.field(
+        description='Field/mutator on the type, or "*" for all fields.'
+    )
+
+
+@strawberry.input(description="A single rule entry.")
+class PolicyRuleEntryInput:
+    type: str = strawberry.field(
+        description='GraphQL type the rule grants access to (or "Query"/"Mutation").'
+    )
+    field: str = strawberry.field(
+        description='Field/mutator on the type, or "*" for all fields.'
+    )
+
+
+@strawberry.input(
+    description="Declare (idempotently ensure) a set of rules on a policy."
+)
+class PolicyRulesDeclareInput:
+    policy: UUID = strawberry.field(
+        description="UUID of the policy to declare the rules on."
+    )
+    rules: list[PolicyRuleEntryInput] = strawberry.field(
+        description="The rules to declare on the policy."
+    )
+
+
+@strawberry.input(description="Delete a rule from a policy.")
+class PolicyRuleDeleteInput:
+    uuid: UUID = strawberry.field(description="UUID of the rule to delete.")

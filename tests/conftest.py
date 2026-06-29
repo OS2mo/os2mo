@@ -74,6 +74,11 @@ h_settings.register_profile(
 )
 h_settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "dev"))
 
+# The test suite is a legacy, role-based consumer, so it opts out of the policy
+# permission engine (PBAC) by default. Tests that exercise PBAC opt back in via
+# `set_settings(POLICY_RBAC="true")`.
+os.environ.setdefault("POLICY_RBAC", "false")
+
 
 @pytest.hookimpl(trylast=True)
 def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:

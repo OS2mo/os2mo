@@ -76,9 +76,6 @@ from .engagements import update_engagement
 from .events import FullEvent
 from .events import Listener
 from .events import Namespace
-from .policies import Policy
-from .policies import PolicyActor
-from .policies import PolicyActorKind
 from .facets import create_facet
 from .facets import delete_facet
 from .facets import terminate_facet
@@ -154,6 +151,9 @@ from .inputs import PolicyActorDeleteInput
 from .inputs import PolicyActorsDeclareInput
 from .inputs import PolicyDeclareInput
 from .inputs import PolicyDeleteInput
+from .inputs import PolicyRuleDeclareInput
+from .inputs import PolicyRuleDeleteInput
+from .inputs import PolicyRulesDeclareInput
 from .inputs import RelatedUnitsUpdateInput
 from .inputs import RoleBindingCreateInput
 from .inputs import RoleBindingTerminateInput
@@ -200,6 +200,10 @@ from .permissions import gen_refresh_permission
 from .permissions import gen_role_permission
 from .permissions import gen_terminate_permission
 from .permissions import gen_update_permission
+from .policies import Policy
+from .policies import PolicyActor
+from .policies import PolicyActorKind
+from .policies import PolicyRule
 from .related_units import update_related_units
 from .resolvers import address_resolver
 from .resolvers import association_resolver
@@ -297,6 +301,34 @@ async def _declare_policy_actor(
     return PolicyActor(
         uuid=actor.pk, kind=PolicyActorKind(actor.kind), value=actor.value
     )
+
+
+async def _declare_policy_rule(
+    session: AsyncSession,
+    policy: UUID,
+    type: str,
+    field: str,
+) -> PolicyRule:
+    """Idempotently ensure a policy has a rule for the given (type, field)."""
+    if policy == db.POLICYADMIN_UUID:
+        raise ValueError(
+            "The policyadmin policy is required for bootstrapping and its rules cannot be modified."
+        )
+    stmt = (
+        pg_insert(db.PolicyRule)
+        .values(policy_fk=policy, type=type, field=field)
+        .on_conflict_do_nothing(constraint="uq_policy_rule")
+    )
+    await session.execute(stmt)
+    rule = await session.scalar(
+        select(db.PolicyRule).where(
+            db.PolicyRule.policy_fk == policy,
+            db.PolicyRule.type == type,
+            db.PolicyRule.field == field,
+        )
+    )
+    assert rule is not None
+    return PolicyRule(uuid=rule.pk, type=rule.type, field=rule.field)
 
 
 @strawberry.type(
@@ -2309,6 +2341,109 @@ class Mutation:
             )
         await session.execute(
             delete(db.PolicyActor).where(db.PolicyActor.pk == input.uuid)
+        )
+        return True
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Declare a rule on a policy.
+
+            Idempotently ensures the policy grants access to the given GraphQL
+            (type, field) resource. Declaring the same rule again is a no-op.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("policy"),
+        ],
+    )
+    async def policy_rule_declare(
+        self, info: MOInfo, input: PolicyRuleDeclareInput
+    ) -> PolicyRule:
+        return await _declare_policy_rule(
+            info.context.session, input.policy, input.type, input.field
+        )
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Declare the full set of rules on a policy.
+
+            Replaces the policy's rules with exactly the given set: rules not in
+            the set are removed and missing ones are added. Declaring an empty
+            list clears all rules. Idempotent.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("policy"),
+        ],
+    )
+    async def policy_rules_declare(
+        self, info: MOInfo, input: PolicyRulesDeclareInput
+    ) -> list[PolicyRule]:
+        if input.policy == db.POLICYADMIN_UUID:
+            raise ValueError(
+                "The policyadmin policy is required for bootstrapping and its rules cannot be modified."
+            )
+        session: AsyncSession = info.context.session
+        desired = {(entry.type, entry.field) for entry in input.rules}
+
+        existing = list(
+            await session.scalars(
+                select(db.PolicyRule).where(db.PolicyRule.policy_fk == input.policy)
+            )
+        )
+        existing_set = {(rule.type, rule.field) for rule in existing}
+
+        # Remove rules no longer desired.
+        stale = [
+            rule.pk for rule in existing if (rule.type, rule.field) not in desired
+        ]
+        if stale:
+            await session.execute(
+                delete(db.PolicyRule).where(db.PolicyRule.pk.in_(stale))
+            )
+
+        # Add the missing ones.
+        for type, field in desired:
+            if (type, field) in existing_set:
+                continue
+            await session.execute(
+                pg_insert(db.PolicyRule)
+                .values(policy_fk=input.policy, type=type, field=field)
+                .on_conflict_do_nothing(constraint="uq_policy_rule")
+            )
+
+        result = await session.scalars(
+            select(db.PolicyRule)
+            .where(db.PolicyRule.policy_fk == input.policy)
+            .order_by(db.PolicyRule.pk)
+        )
+        return [
+            PolicyRule(uuid=rule.pk, type=rule.type, field=rule.field)
+            for rule in result
+        ]
+
+    @strawberry.mutation(
+        description="Delete a rule from a policy.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_delete_permission("policy"),
+        ],
+    )
+    async def policy_rule_delete(
+        self, info: MOInfo, input: PolicyRuleDeleteInput
+    ) -> bool:
+        session: AsyncSession = info.context.session
+        rule = await session.get(db.PolicyRule, input.uuid)
+        if rule is not None and rule.policy_fk == db.POLICYADMIN_UUID:
+            raise ValueError(
+                "The policyadmin policy is required for bootstrapping and its rules cannot be modified."
+            )
+        await session.execute(
+            delete(db.PolicyRule).where(db.PolicyRule.pk == input.uuid)
         )
         return True
 

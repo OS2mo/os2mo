@@ -92,6 +92,12 @@ class Settings(BaseSettings):
     # This is due to a hotfix for a security security vulnerability in the orgviewer.
     # This hotfix will be removed again later, once the security issues has been fixed.
     graphql_rbac: bool = False
+    # Use the policy system (PBAC) to authorize GraphQL access instead of the
+    # role-based check. When enabled, a permission-gated field is allowed only
+    # if the calling actor has a currently-valid policy with a rule granting the
+    # field's (type, field). Defaults on (sane-by-default); legacy/role-based
+    # deployments must set this explicitly off.
+    policy_rbac: bool = True
 
     @root_validator
     def graphql_rbac_dependencies(cls, values: dict[str, Any]) -> dict[str, Any]:

@@ -144,6 +144,23 @@ def gen_role_permission(
             """Returns `True` if `role_name` exists in the token's roles."""
             settings = get_settings()
 
+            # PBAC: authorize via the policy system instead of roles. A field is
+            # allowed when the calling actor has a currently-valid policy with a
+            # rule granting this GraphQL (type, field).
+            if settings.policy_rbac:
+                if not settings.os2mo_auth:  # pragma: no cover
+                    return True
+                # Deferred import to avoid a circular import at module load.
+                from mora.graphapi.policies import actor_grants_field
+
+                token = await info.context.get_token()
+                return await actor_grants_field(
+                    info,
+                    token,
+                    info._raw_info.parent_type.name,
+                    info._raw_info.field_name,
+                )
+
             # Do not check permissions (always allow) if GraphQL RBAC is disabled,
             # unless forced.
             if (not settings.graphql_rbac) and (not force_permission_check):

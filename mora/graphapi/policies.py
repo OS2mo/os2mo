@@ -139,6 +139,25 @@ class PolicyActor:
 
 @strawberry.type(
     description=(
+        "A resource a policy grants access to, expressed GraphQL-natively as a "
+        "(type, field) pair."
+    )
+)
+class PolicyRule:
+    uuid: UUID = strawberry.field(description="UUID of the rule.")
+    type: str = strawberry.field(
+        description=(
+            "GraphQL type the rule grants access to: a collection's object "
+            'type, or "Query"/"Mutation".'
+        )
+    )
+    field: str = strawberry.field(
+        description='Field (or mutator) on the type, or "*" for all fields.'
+    )
+
+
+@strawberry.type(
+    description=(
         "An access policy. A policy applies to a collection of actors and "
         "grants them access to a number of resources."
     )
@@ -165,6 +184,19 @@ class Policy:
                 uuid=actor.pk, kind=PolicyActorKind(actor.kind), value=actor.value
             )
             for actor in result
+        ]
+
+    @strawberry.field(description="Resources this policy grants access to.")
+    async def rules(root: "Policy", info: MOInfo) -> list[PolicyRule]:
+        session: AsyncSession = info.context.session
+        result = await session.scalars(
+            select(db.PolicyRule)
+            .where(db.PolicyRule.policy_fk == root.uuid)
+            .order_by(db.PolicyRule.pk)
+        )
+        return [
+            PolicyRule(uuid=rule.pk, type=rule.type, field=rule.field)
+            for rule in result
         ]
 
 
@@ -232,3 +264,33 @@ async def actor_policies(info: MOInfo, token: Token) -> list[Policy]:
     session: AsyncSession = info.context.session
     result = await session.scalars(select(db.Policy).where(predicate))
     return [_to_policy(policy) for policy in result]
+
+
+async def actor_grants_field(
+    info: MOInfo, token: Token, type: str, field: str
+) -> bool:
+    """Whether the calling actor may access the GraphQL ``(type, field)``.
+
+    True if the actor has a currently-valid policy that applies to them (by
+    uuid/username/role) and has a rule granting either ``(type, field)`` or
+    ``(type, "*")``. This is the core of the PBAC permission engine.
+    """
+    actor_filter = actor_filter_for(
+        token.uuid, token.preferred_username, token.realm_access.roles
+    )
+    current = now()
+    rule_exists = (
+        exists()
+        .where(db.PolicyRule.policy_fk == db.Policy.id)
+        .where(db.PolicyRule.type == type)
+        .where(db.PolicyRule.field.in_([field, "*"]))
+    )
+    predicate = and_(
+        policy_predicate(
+            info, PolicyFilter(start=current, end=current, actor=actor_filter)
+        ),
+        rule_exists,
+    )
+    session: AsyncSession = info.context.session
+    granted = await session.scalar(select(db.Policy.id).where(predicate).limit(1))
+    return granted is not None

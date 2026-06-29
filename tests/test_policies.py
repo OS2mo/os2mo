@@ -500,3 +500,252 @@ async def test_policy_actors_declare_replaces_set(
     assert cleared.errors is None
     read = graphapi_post(READ_POLICY_ACTORS, variables={"uuids": [policy]})
     assert read.data["policies"]["objects"][0]["actors"] == []
+
+
+# Rules
+# -----
+
+DECLARE_RULE = """
+  mutation DeclareRule($input: PolicyRuleDeclareInput!) {
+    policy_rule_declare(input: $input) {
+      uuid
+      type
+      field
+    }
+  }
+"""
+
+DECLARE_RULES = """
+  mutation DeclareRules($input: PolicyRulesDeclareInput!) {
+    policy_rules_declare(input: $input) {
+      uuid
+      type
+      field
+    }
+  }
+"""
+
+DELETE_RULE = """
+  mutation DeleteRule($uuid: UUID!) {
+    policy_rule_delete(input: { uuid: $uuid })
+  }
+"""
+
+READ_POLICY_RULES = """
+  query ReadPolicyRules($uuids: [UUID!]) {
+    policies(filter: { uuids: $uuids }) {
+      objects {
+        uuid
+        rules {
+          uuid
+          type
+          field
+        }
+      }
+    }
+  }
+"""
+
+
+def declare_rule(
+    graphapi_post: GraphAPIPost, policy: str, type: str, field: str
+) -> str:
+    response = graphapi_post(
+        DECLARE_RULE,
+        variables={"input": {"policy": policy, "type": type, "field": field}},
+    )
+    assert response.errors is None
+    return response.data["policy_rule_declare"]["uuid"]
+
+
+def read_policy_rules(graphapi_post: GraphAPIPost, uuid: str) -> list[dict]:
+    response = graphapi_post(READ_POLICY_RULES, variables={"uuids": [uuid]})
+    assert response.errors is None
+    return response.data["policies"]["objects"][0]["rules"]
+
+
+@pytest.mark.integration_test
+async def test_policy_rule_declare_and_read(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    policy = create_policy(graphapi_post, "with-rules")
+    declare_rule(graphapi_post, policy, "Query", "policies")
+    declare_rule(graphapi_post, policy, "Policy", "*")
+
+    rules = read_policy_rules(graphapi_post, policy)
+    assert {(r["type"], r["field"]) for r in rules} == {
+        ("Query", "policies"),
+        ("Policy", "*"),
+    }
+
+
+@pytest.mark.integration_test
+async def test_policy_rule_declare_is_idempotent(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    policy = create_policy(graphapi_post, "p")
+    first = declare_rule(graphapi_post, policy, "Query", "policies")
+    second = declare_rule(graphapi_post, policy, "Query", "policies")
+    assert first == second
+    assert len(read_policy_rules(graphapi_post, policy)) == 1
+
+
+@pytest.mark.integration_test
+async def test_policy_rules_declare_replaces_set(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    policy = create_policy(graphapi_post, "p")
+    response = graphapi_post(
+        DECLARE_RULES,
+        variables={
+            "input": {
+                "policy": policy,
+                "rules": [
+                    {"type": "Query", "field": "policies"},
+                    {"type": "Mutation", "field": "policy_declare"},
+                ],
+            }
+        },
+    )
+    assert response.errors is None
+    assert len(response.data["policy_rules_declare"]) == 2
+
+    again = graphapi_post(
+        DECLARE_RULES,
+        variables={
+            "input": {
+                "policy": policy,
+                "rules": [
+                    {"type": "Query", "field": "policies"},
+                    {"type": "Policy", "field": "name"},
+                ],
+            }
+        },
+    )
+    assert again.errors is None
+    rules = read_policy_rules(graphapi_post, policy)
+    assert {(r["type"], r["field"]) for r in rules} == {
+        ("Query", "policies"),
+        ("Policy", "name"),
+    }
+
+    cleared = graphapi_post(
+        DECLARE_RULES, variables={"input": {"policy": policy, "rules": []}}
+    )
+    assert cleared.errors is None
+    assert read_policy_rules(graphapi_post, policy) == []
+
+
+@pytest.mark.integration_test
+async def test_policy_rule_delete(graphapi_post: GraphAPIPost, empty_db) -> None:
+    policy = create_policy(graphapi_post, "p")
+    rule_uuid = declare_rule(graphapi_post, policy, "Query", "policies")
+    deleted = graphapi_post(DELETE_RULE, variables={"uuid": rule_uuid})
+    assert deleted.errors is None
+    assert deleted.data["policy_rule_delete"] is True
+    assert read_policy_rules(graphapi_post, policy) == []
+
+
+@pytest.mark.integration_test
+async def test_policyadmin_rules_bootstrapped(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    pairs = {(r["type"], r["field"]) for r in read_policy_rules(graphapi_post, POLICYADMIN)}
+    assert ("Query", "policies") in pairs
+    assert ("Mutation", "policy_declare") in pairs
+    assert ("Mutation", "policy_rules_declare") in pairs
+
+
+@pytest.mark.integration_test
+async def test_policyadmin_rules_cannot_be_modified(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    add = graphapi_post(
+        DECLARE_RULE,
+        variables={
+            "input": {"policy": POLICYADMIN, "type": "Query", "field": "employees"}
+        },
+    )
+    assert add.errors is not None
+    replace = graphapi_post(
+        DECLARE_RULES, variables={"input": {"policy": POLICYADMIN, "rules": []}}
+    )
+    assert replace.errors is not None
+
+
+# PBAC permission engine
+# ----------------------
+
+READ_EMPLOYEES = """
+  query {
+    employees {
+      objects {
+        uuid
+      }
+    }
+  }
+"""
+
+
+@pytest.mark.integration_test
+async def test_pbac_admin_can_read_policies(
+    graphapi_post: GraphAPIPost, set_settings, empty_db
+) -> None:
+    # The admin token has the "admin" role, which the bootstrap Policy
+    # Administrator is bound to and which grants Query.policies.
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+    response = graphapi_post(READ_POLICIES)
+    assert response.errors is None
+
+
+@pytest.mark.integration_test
+async def test_pbac_denies_without_grant(
+    graphapi_post: GraphAPIPost, set_settings, set_auth, empty_db
+) -> None:
+    set_auth(role="nobody", user_uuid="11111111-1111-1111-1111-111111111111")
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+    response = graphapi_post(READ_POLICIES)
+    assert response.errors is not None
+
+
+@pytest.mark.integration_test
+async def test_pbac_grant_via_policy(
+    graphapi_post: GraphAPIPost, set_settings, set_auth, empty_db
+) -> None:
+    # As admin (RBAC), grant "bruce" read access to the employees collection.
+    policy = create_policy(graphapi_post, "bruce-reader")
+    declare_actor(graphapi_post, policy, "username", "bruce")
+    declare_rule(graphapi_post, policy, "Query", "employees")
+
+    # Become bruce (no admin role) and switch to PBAC.
+    set_auth(preferred_username="bruce")
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+
+    granted = graphapi_post(READ_EMPLOYEES)
+    assert granted.errors is None
+
+    # bruce was not granted the policies collection.
+    denied = graphapi_post(READ_POLICIES)
+    assert denied.errors is not None
+
+
+@pytest.mark.integration_test
+async def test_pbac_grant_respects_validity(
+    graphapi_post: GraphAPIPost, set_settings, set_auth, empty_db
+) -> None:
+    # A policy that has already ended does not grant access.
+    response = declare_policy(
+        graphapi_post,
+        name="expired",
+        start="2000-01-01T00:00:00+00:00",
+        end="2001-01-01T00:00:00+00:00",
+    )
+    policy = response.data["policy_declare"]["uuid"]
+    declare_actor(graphapi_post, policy, "username", "bruce")
+    declare_rule(graphapi_post, policy, "Query", "employees")
+
+    set_auth(preferred_username="bruce")
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+
+    denied = graphapi_post(READ_EMPLOYEES)
+    assert denied.errors is not None

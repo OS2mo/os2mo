@@ -34,6 +34,9 @@ class Policy(Base):
     actors: Mapped[list["PolicyActor"]] = relationship(
         back_populates="policy", cascade="all, delete-orphan"
     )
+    rules: Mapped[list["PolicyRule"]] = relationship(
+        back_populates="policy", cascade="all, delete-orphan"
+    )
 
 
 # TODO: Support applying a policy to all employees matching a dynamic MO
@@ -76,4 +79,27 @@ class PolicyActor(Base):
     # `policy_actor_declare` idempotent.
     __table_args__ = (
         UniqueConstraint("policy_fk", "kind", "value", name="uq_policy_actor"),
+    )
+
+
+class PolicyRule(Base):
+    __tablename__ = "policy_rule"
+
+    pk: Mapped[UUID] = mapped_column(
+        primary_key=True, server_default=text("uuid_generate_v4()")
+    )
+    # The resource a rule grants access to, expressed GraphQL-natively as a
+    # (type, field) pair: `type` is a GraphQL type (a collection's object type,
+    # or "Query"/"Mutation") and `field` is a field/mutator on it, or "*" for
+    # all fields. The entities filter and CEL condition are not modelled yet.
+    type: Mapped[str]
+    field: Mapped[str]
+
+    policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.id"))
+    policy: Mapped[Policy] = relationship(back_populates="rules")
+
+    # A given (type, field) is declared at most once per policy, which makes
+    # `policy_rule_declare` idempotent.
+    __table_args__ = (
+        UniqueConstraint("policy_fk", "type", "field", name="uq_policy_rule"),
     )
