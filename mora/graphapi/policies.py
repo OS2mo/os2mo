@@ -31,6 +31,8 @@ class PolicyActorKind(enum.Enum):
     uuid = "uuid"
     username = "username"
     role = "role"
+    # Matches every actor regardless of attributes; the value is ignored.
+    all = "all"
 
 
 @strawberry.input(
@@ -104,7 +106,15 @@ def _policy_actor_predicate(filter: PolicyActorFilter) -> ColumnElement:
                 db.PolicyActor.value.in_(filter.roles),
             )
         )
-    inner = or_(*criteria) if criteria else true()
+    if criteria:
+        # An "all" actor matches every actor, so a policy with one satisfies any
+        # attribute-based actor filter.
+        criteria.append(db.PolicyActor.kind == PolicyActorKind.all.value)
+        inner = or_(*criteria)
+    else:
+        # No attributes provided (`{}`) means "has any actor" (existence only),
+        # which already includes "all" actors.
+        inner = true()
     return exists().where(db.PolicyActor.policy_fk == db.Policy.id).where(inner)
 
 

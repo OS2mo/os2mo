@@ -749,3 +749,41 @@ async def test_pbac_grant_respects_validity(
 
     denied = graphapi_post(READ_EMPLOYEES)
     assert denied.errors is not None
+
+
+@pytest.mark.integration_test
+async def test_policy_actor_all_matches_any_filter(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    policy = create_policy(graphapi_post, "everyone-policy")
+    # An "all" actor has no value and matches every actor.
+    declare_actor(graphapi_post, policy, "all", "")
+
+    # It is returned regardless of the queried actor attributes.
+    assert "everyone-policy" in policy_names_for_filter(
+        graphapi_post, {"actor": {"roles": ["whatever"]}}
+    )
+    assert "everyone-policy" in policy_names_for_filter(
+        graphapi_post, {"actor": {"usernames": ["nobody"]}}
+    )
+    assert "everyone-policy" in policy_names_for_filter(
+        graphapi_post, {"actor": {"uuids": [ACTOR_UUID]}}
+    )
+    # ... and by the existence filter.
+    assert "everyone-policy" in policy_names_for_filter(graphapi_post, {"actor": {}})
+
+
+@pytest.mark.integration_test
+async def test_pbac_all_actor_grants_everyone(
+    graphapi_post: GraphAPIPost, set_settings, set_auth, empty_db
+) -> None:
+    policy = create_policy(graphapi_post, "everyone-reader")
+    declare_actor(graphapi_post, policy, "all", "")
+    declare_rule(graphapi_post, policy, "Query", "employees")
+
+    # A token with a non-matching role/uuid/username still gets access.
+    set_auth(role="nobody", user_uuid="22222222-2222-2222-2222-222222222222")
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+
+    granted = graphapi_post(READ_EMPLOYEES)
+    assert granted.errors is None
