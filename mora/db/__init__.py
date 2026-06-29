@@ -75,6 +75,8 @@ from ._organisationsfunktion import OrganisationFunktionRelation
 from ._organisationsfunktion import OrganisationFunktionRelationKode
 from ._organisationsfunktion import OrganisationFunktionTilsGyldighed
 from .files import FileToken
+from .policies import POLICYADMIN_UUID
+from .policies import Policy
 import psycopg
 
 

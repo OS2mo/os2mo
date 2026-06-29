@@ -76,6 +76,7 @@ from .engagements import update_engagement
 from .events import FullEvent
 from .events import Listener
 from .events import Namespace
+from .policies import Policy
 from .facets import create_facet
 from .facets import delete_facet
 from .facets import terminate_facet
@@ -146,6 +147,8 @@ from .inputs import OrganisationUnitUpdateInput
 from .inputs import OwnerCreateInput
 from .inputs import OwnerTerminateInput
 from .inputs import OwnerUpdateInput
+from .inputs import PolicyDeclareInput
+from .inputs import PolicyDeleteInput
 from .inputs import RelatedUnitsUpdateInput
 from .inputs import RoleBindingCreateInput
 from .inputs import RoleBindingTerminateInput
@@ -2097,6 +2100,68 @@ class Mutation:
             )
             for result in results
         ]
+
+    # Policies
+    # --------
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Declare a policy.
+
+            Declares that a policy has the given state (`name`, `description`)
+            within the given validity interval (`start`, `end`).
+
+            Creates a new policy when `uuid` is omitted, otherwise updates the
+            existing policy with that ID.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("policy"),
+        ],
+    )
+    async def policy_declare(self, info: MOInfo, input: PolicyDeclareInput) -> Policy:
+        session: AsyncSession = info.context.session
+
+        if input.uuid is None:
+            policy = db.Policy()
+            session.add(policy)
+        else:
+            policy = await session.get(db.Policy, input.uuid)
+            if policy is None:
+                raise ValueError("Policy not found")
+
+        policy.name = input.name
+        policy.description = input.description
+        policy.start = input.start
+        policy.end = input.end
+
+        await session.flush()
+
+        return Policy(
+            uuid=policy.id,
+            name=policy.name,
+            description=policy.description,
+            start=policy.start,
+            end=policy.end,
+        )
+
+    @strawberry.mutation(
+        description="Delete a policy.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_delete_permission("policy"),
+        ],
+    )
+    async def policy_delete(self, info: MOInfo, input: PolicyDeleteInput) -> bool:
+        if input.uuid == db.POLICYADMIN_UUID:
+            raise ValueError(
+                "The policyadmin policy is required for bootstrapping and cannot be deleted."
+            )
+        session: AsyncSession = info.context.session
+        await session.execute(delete(db.Policy).where(db.Policy.id == input.uuid))
+        return True
 
     # Files
     # -----

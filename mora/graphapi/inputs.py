@@ -857,3 +857,40 @@ class EventRerunInput:
     subjects: list[str] | None = None
     priorities: list[int] | None = None
     silenced: bool | None = None
+
+
+# Policies
+# --------
+
+
+@strawberry.input(
+    description=dedent(
+        """\
+        Declare a policy.
+
+        Describes the state a policy should have (`name` and `description`)
+        within a validity interval (`start`, `end`).
+
+        Omit `uuid` to create a new policy. Supply `uuid` to update the existing
+        policy with that ID.
+        """
+    )
+)
+class PolicyDeclareInput:
+    uuid: UUID | None = strawberry.field(
+        default=None,
+        description="UUID of the policy to update. Omit to create a new policy.",
+    )
+    name: str = strawberry.field(description="Name of the policy.")
+    description: str | None = strawberry.field(
+        default=None, description="Description of the policy."
+    )
+    start: datetime = strawberry.field(description="Start of the policy's validity.")
+    end: datetime | None = strawberry.field(
+        default=None, description="End of the policy's validity, if applicable."
+    )
+
+
+@strawberry.input(description="Delete a policy.")
+class PolicyDeleteInput:
+    uuid: UUID = strawberry.field(description="UUID of the policy to delete.")

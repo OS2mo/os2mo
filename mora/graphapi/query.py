@@ -58,6 +58,8 @@ from .events import event_resolver
 from .events import full_event_resolver
 from .events import listener_resolver
 from .events import namespace_resolver
+from .policies import Policy
+from .policies import policy_resolver
 from .filters import FileFilter
 from .filters import HealthFilter
 from .health import health_map
@@ -464,6 +466,18 @@ class Query:
         permission_classes=[
             IsAuthenticatedPermission,
             gen_role_permission("fetch_event"),
+        ],
+    )
+
+    # Policies
+    # --------
+
+    policies: Paged[Policy] = strawberry.field(
+        resolver=to_paged(policy_resolver),
+        description="Get access policies.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("policy"),
         ],
     )
 
