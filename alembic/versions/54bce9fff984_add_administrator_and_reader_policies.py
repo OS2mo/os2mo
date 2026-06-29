@@ -53,11 +53,13 @@ def upgrade() -> None:
           ('Query', '*', '{READER_UUID}')
         """
     )
-    # Reader is bound to the "reader" role.
+    # Administrator is bound to the "admin" role; Reader to the "reader" role.
     op.execute(
         f"""
         INSERT INTO policy_actor (kind, value, policy_fk)
-        VALUES ('role', 'reader', '{READER_UUID}')
+        VALUES
+          ('role', 'admin', '{ADMINISTRATOR_UUID}'),
+          ('role', 'reader', '{READER_UUID}')
         """
     )
 

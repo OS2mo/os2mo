@@ -362,8 +362,8 @@ async def test_policy_actor_filter_cases(
     declare_actor(graphapi_post, user_policy, "uuid", ACTOR_UUID)
     create_policy(graphapi_post, "unbound-policy")
 
-    # The bootstrap "Reader" policy is bound to the "reader" role; the bootstrap
-    # "Administrator" policy is still unassigned.
+    # The bootstrap "Administrator" policy is bound to the "admin" role and
+    # "Reader" to the "reader" role.
     everything = {
         "role-policy",
         "user-policy",
@@ -372,8 +372,14 @@ async def test_policy_actor_filter_cases(
         "Administrator",
         "Reader",
     }
-    has_actor = {"role-policy", "user-policy", "Policy Administrator", "Reader"}
-    admins = {"role-policy", "Policy Administrator"}
+    has_actor = {
+        "role-policy",
+        "user-policy",
+        "Policy Administrator",
+        "Administrator",
+        "Reader",
+    }
+    admins = {"role-policy", "Policy Administrator", "Administrator"}
 
     # No actor constraint -> all policies (including the actor-less one).
     assert {p["name"] for p in read_policies(graphapi_post)} == everything  # omitted
@@ -840,10 +846,9 @@ async def test_administrator_and_reader_bootstrapped(
         ).data["policies"]["objects"][0]["actors"]
         return {(a["kind"], a["value"]) for a in objects}
 
-    # Reader is bound to the "reader" role.
+    # Administrator is bound to the "admin" role; Reader to the "reader" role.
+    assert actors_of("Administrator") == {("role", "admin")}
     assert actors_of("Reader") == {("role", "reader")}
-    # Administrator starts unassigned.
-    assert actors_of("Administrator") == set()
 
 
 @pytest.mark.integration_test
