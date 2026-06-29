@@ -948,6 +948,13 @@ class PolicyRuleDeclareInput:
     field: str = strawberry.field(
         description='Field/mutator on the type, or "*" for all fields.'
     )
+    condition: str | None = strawberry.field(
+        default=None,
+        description=(
+            "Optional CEL condition that must evaluate true for the rule to "
+            "grant access. Omit or leave null for an unconditional rule."
+        ),
+    )
 
 
 @strawberry.input(description="A single rule entry.")
@@ -957,6 +964,13 @@ class PolicyRuleEntryInput:
     )
     field: str = strawberry.field(
         description='Field/mutator on the type, or "*" for all fields.'
+    )
+    condition: str | None = strawberry.field(
+        default=None,
+        description=(
+            "Optional CEL condition that must evaluate true for the rule to "
+            "grant access. Omit or leave null for an unconditional rule."
+        ),
     )
 
 

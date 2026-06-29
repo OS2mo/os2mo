@@ -204,6 +204,7 @@ from .policies import Policy
 from .policies import PolicyActor
 from .policies import PolicyActorKind
 from .policies import PolicyRule
+from .policy_cel import validate_condition
 from .related_units import update_related_units
 from .resolvers import address_resolver
 from .resolvers import association_resolver
@@ -308,15 +309,23 @@ async def _declare_policy_rule(
     policy: UUID,
     type: str,
     field: str,
+    condition: str | None = None,
 ) -> PolicyRule:
-    """Idempotently ensure a policy has a rule for the given (type, field)."""
+    """Idempotently ensure a policy has a rule for the given (type, field).
+
+    An optional CEL ``condition`` gates the grant; an empty one is normalised to
+    an unconditional (null) rule.
+    """
     if policy == db.POLICYADMIN_UUID:
         raise ValueError(
             "The policyadmin policy is required for bootstrapping and its rules cannot be modified."
         )
+    condition = condition or None
+    if condition is not None:
+        validate_condition(condition)
     stmt = (
         pg_insert(db.PolicyRule)
-        .values(policy_fk=policy, type=type, field=field)
+        .values(policy_fk=policy, type=type, field=field, condition=condition)
         .on_conflict_do_nothing(constraint="uq_policy_rule")
     )
     await session.execute(stmt)
@@ -325,10 +334,13 @@ async def _declare_policy_rule(
             db.PolicyRule.policy_fk == policy,
             db.PolicyRule.type == type,
             db.PolicyRule.field == field,
+            db.PolicyRule.condition == condition,
         )
     )
     assert rule is not None
-    return PolicyRule(uuid=rule.pk, type=rule.type, field=rule.field)
+    return PolicyRule(
+        uuid=rule.pk, type=rule.type, field=rule.field, condition=rule.condition
+    )
 
 
 @strawberry.type(
@@ -2370,7 +2382,11 @@ class Mutation:
         self, info: MOInfo, input: PolicyRuleDeclareInput
     ) -> PolicyRule:
         return await _declare_policy_rule(
-            info.context.session, input.policy, input.type, input.field
+            info.context.session,
+            input.policy,
+            input.type,
+            input.field,
+            input.condition,
         )
 
     @strawberry.mutation(
@@ -2396,18 +2412,27 @@ class Mutation:
                 "The policyadmin policy is required for bootstrapping and its rules cannot be modified."
             )
         session: AsyncSession = info.context.session
-        desired = {(entry.type, entry.field) for entry in input.rules}
+        # A rule is keyed by (type, field, condition); an empty condition is
+        # normalised to an unconditional (null) one.
+        desired = {
+            (entry.type, entry.field, entry.condition or None) for entry in input.rules
+        }
+        for *_, condition in desired:
+            if condition is not None:
+                validate_condition(condition)
 
         existing = list(
             await session.scalars(
                 select(db.PolicyRule).where(db.PolicyRule.policy_fk == input.policy)
             )
         )
-        existing_set = {(rule.type, rule.field) for rule in existing}
+        existing_set = {(rule.type, rule.field, rule.condition) for rule in existing}
 
         # Remove rules no longer desired.
         stale = [
-            rule.pk for rule in existing if (rule.type, rule.field) not in desired
+            rule.pk
+            for rule in existing
+            if (rule.type, rule.field, rule.condition) not in desired
         ]
         if stale:
             await session.execute(
@@ -2415,12 +2440,17 @@ class Mutation:
             )
 
         # Add the missing ones.
-        for type, field in desired:
-            if (type, field) in existing_set:
+        for type, field, condition in desired:
+            if (type, field, condition) in existing_set:
                 continue
             await session.execute(
                 pg_insert(db.PolicyRule)
-                .values(policy_fk=input.policy, type=type, field=field)
+                .values(
+                    policy_fk=input.policy,
+                    type=type,
+                    field=field,
+                    condition=condition,
+                )
                 .on_conflict_do_nothing(constraint="uq_policy_rule")
             )
 
@@ -2430,7 +2460,12 @@ class Mutation:
             .order_by(db.PolicyRule.pk)
         )
         return [
-            PolicyRule(uuid=rule.pk, type=rule.type, field=rule.field)
+            PolicyRule(
+                uuid=rule.pk,
+                type=rule.type,
+                field=rule.field,
+                condition=rule.condition,
+            )
             for rule in result
         ]
 

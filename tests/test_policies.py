@@ -521,6 +521,7 @@ DECLARE_RULE = """
       uuid
       type
       field
+      condition
     }
   }
 """
@@ -531,6 +532,7 @@ DECLARE_RULES = """
       uuid
       type
       field
+      condition
     }
   }
 """
@@ -550,6 +552,7 @@ READ_POLICY_RULES = """
           uuid
           type
           field
+          condition
         }
       }
     }
@@ -558,11 +561,22 @@ READ_POLICY_RULES = """
 
 
 def declare_rule(
-    graphapi_post: GraphAPIPost, policy: str, type: str, field: str
+    graphapi_post: GraphAPIPost,
+    policy: str,
+    type: str,
+    field: str,
+    condition: str | None = None,
 ) -> str:
     response = graphapi_post(
         DECLARE_RULE,
-        variables={"input": {"policy": policy, "type": type, "field": field}},
+        variables={
+            "input": {
+                "policy": policy,
+                "type": type,
+                "field": field,
+                "condition": condition,
+            }
+        },
     )
     assert response.errors is None
     return response.data["policy_rule_declare"]["uuid"]
@@ -856,3 +870,172 @@ async def test_policy_delete_removes_actors_and_rules(
     assert deleted.errors is None
     assert deleted.data["policy_delete"] is True
     assert policy not in {p["uuid"] for p in read_policies(graphapi_post)}
+
+
+# Rule conditions (CEL)
+# ---------------------
+
+
+@pytest.mark.integration_test
+async def test_policy_rule_declare_with_condition(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    policy = create_policy(graphapi_post, "conditional")
+    declare_rule(
+        graphapi_post,
+        policy,
+        "Query",
+        "employees",
+        condition='"admin" in token.roles',
+    )
+
+    rules = read_policy_rules(graphapi_post, policy)
+    assert {(r["type"], r["field"], r["condition"]) for r in rules} == {
+        ("Query", "employees", '"admin" in token.roles')
+    }
+
+
+@pytest.mark.integration_test
+async def test_policy_rule_empty_condition_is_unconditional(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    # An empty-string condition is normalised to null (unconditional).
+    policy = create_policy(graphapi_post, "p")
+    declare_rule(graphapi_post, policy, "Query", "employees", condition="")
+    rules = read_policy_rules(graphapi_post, policy)
+    assert rules[0]["condition"] is None
+
+
+@pytest.mark.integration_test
+async def test_policy_rule_condition_distinct_per_condition(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    # The same (type, field) may carry several conditions (each its own rule),
+    # while re-declaring an identical (type, field, condition) is idempotent.
+    policy = create_policy(graphapi_post, "p")
+    declare_rule(graphapi_post, policy, "Query", "employees")  # unconditional
+    declare_rule(graphapi_post, policy, "Query", "employees", condition="true")
+    declare_rule(graphapi_post, policy, "Query", "employees", condition="false")
+    # Idempotent re-declares.
+    declare_rule(graphapi_post, policy, "Query", "employees")
+    declare_rule(graphapi_post, policy, "Query", "employees", condition="true")
+
+    rules = read_policy_rules(graphapi_post, policy)
+    assert {(r["type"], r["field"], r["condition"]) for r in rules} == {
+        ("Query", "employees", None),
+        ("Query", "employees", "true"),
+        ("Query", "employees", "false"),
+    }
+
+
+@pytest.mark.integration_test
+async def test_policy_rule_declare_rejects_invalid_condition(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    policy = create_policy(graphapi_post, "p")
+    response = graphapi_post(
+        DECLARE_RULE,
+        variables={
+            "input": {
+                "policy": policy,
+                "type": "Query",
+                "field": "employees",
+                "condition": "this is (not valid CEL",
+            }
+        },
+    )
+    assert response.errors is not None
+    # Nothing was stored.
+    assert read_policy_rules(graphapi_post, policy) == []
+
+
+@pytest.mark.integration_test
+async def test_policy_rules_declare_keys_on_condition(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    # The full-replace mutator treats (type, field, condition) as the identity.
+    policy = create_policy(graphapi_post, "p")
+    response = graphapi_post(
+        DECLARE_RULES,
+        variables={
+            "input": {
+                "policy": policy,
+                "rules": [
+                    {"type": "Query", "field": "employees"},
+                    {
+                        "type": "Query",
+                        "field": "employees",
+                        "condition": '"admin" in token.roles',
+                    },
+                ],
+            }
+        },
+    )
+    assert response.errors is None
+    rules = read_policy_rules(graphapi_post, policy)
+    assert {(r["type"], r["field"], r["condition"]) for r in rules} == {
+        ("Query", "employees", None),
+        ("Query", "employees", '"admin" in token.roles'),
+    }
+
+
+@pytest.mark.integration_test
+async def test_pbac_condition_grants_when_true(
+    graphapi_post: GraphAPIPost, set_settings, set_auth, empty_db
+) -> None:
+    # bruce's policy only grants employees when the condition holds.
+    policy = create_policy(graphapi_post, "bruce-reader")
+    declare_actor(graphapi_post, policy, "username", "bruce")
+    declare_rule(
+        graphapi_post,
+        policy,
+        "Query",
+        "employees",
+        condition='token.preferred_username == "bruce"',
+    )
+
+    set_auth(preferred_username="bruce")
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+
+    granted = graphapi_post(READ_EMPLOYEES)
+    assert granted.errors is None
+
+
+@pytest.mark.integration_test
+async def test_pbac_condition_denies_when_false(
+    graphapi_post: GraphAPIPost, set_settings, set_auth, empty_db
+) -> None:
+    # The actor matches the policy, but the condition does not hold.
+    policy = create_policy(graphapi_post, "bruce-reader")
+    declare_actor(graphapi_post, policy, "username", "bruce")
+    declare_rule(
+        graphapi_post,
+        policy,
+        "Query",
+        "employees",
+        condition='token.preferred_username == "alice"',
+    )
+
+    set_auth(preferred_username="bruce")
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+
+    denied = graphapi_post(READ_EMPLOYEES)
+    assert denied.errors is not None
+
+
+@pytest.mark.integration_test
+async def test_pbac_unconditional_rule_grants_despite_false_condition(
+    graphapi_post: GraphAPIPost, set_settings, set_auth, empty_db
+) -> None:
+    # Two rules for the same field: one with a false condition, one
+    # unconditional. The unconditional one grants access regardless.
+    policy = create_policy(graphapi_post, "bruce-reader")
+    declare_actor(graphapi_post, policy, "username", "bruce")
+    declare_rule(graphapi_post, policy, "Query", "employees", condition="false")
+    declare_rule(graphapi_post, policy, "Query", "employees")
+
+    set_auth(preferred_username="bruce")
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+
+    granted = graphapi_post(READ_EMPLOYEES)
+    assert granted.errors is None

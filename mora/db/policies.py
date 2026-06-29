@@ -91,15 +91,29 @@ class PolicyRule(Base):
     # The resource a rule grants access to, expressed GraphQL-natively as a
     # (type, field) pair: `type` is a GraphQL type (a collection's object type,
     # or "Query"/"Mutation") and `field` is a field/mutator on it, or "*" for
-    # all fields. The entities filter and CEL condition are not modelled yet.
+    # all fields. The entities filter is not modelled yet.
     type: Mapped[str]
     field: Mapped[str]
+    # Optional CEL (Common Expression Language) condition gating the grant: the
+    # rule only applies when this boolean expression evaluates true against the
+    # request context (see mora/graphapi/policy_cel.py). A null condition is
+    # unconditional. The same (type, field) may carry several conditions, each a
+    # separate rule, granting access if any of them holds.
+    condition: Mapped[str | None]
 
     policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.id"))
     policy: Mapped[Policy] = relationship(back_populates="rules")
 
-    # A given (type, field) is declared at most once per policy, which makes
-    # `policy_rule_declare` idempotent.
+    # A given (type, field, condition) is declared at most once per policy, which
+    # makes `policy_rule_declare` idempotent. NULLs are treated as equal so an
+    # unconditional rule is also deduplicated (requires PostgreSQL >= 15).
     __table_args__ = (
-        UniqueConstraint("policy_fk", "type", "field", name="uq_policy_rule"),
+        UniqueConstraint(
+            "policy_fk",
+            "type",
+            "field",
+            "condition",
+            name="uq_policy_rule",
+            postgresql_nulls_not_distinct=True,
+        ),
     )

@@ -18,6 +18,8 @@ from mora.auth.keycloak.models import Token
 from mora.db import AsyncSession
 from mora.graphapi.context import MOInfo
 from mora.graphapi.filters import gen_filter_string
+from mora.graphapi.policy_cel import build_activation
+from mora.graphapi.policy_cel import evaluate_condition
 from mora.util import now
 
 from .paged import CursorType
@@ -164,6 +166,12 @@ class PolicyRule:
     field: str = strawberry.field(
         description='Field (or mutator) on the type, or "*" for all fields.'
     )
+    condition: str | None = strawberry.field(
+        description=(
+            "Optional CEL condition that must evaluate true for the rule to "
+            "grant access. Null means the rule is unconditional."
+        )
+    )
 
 
 @strawberry.type(
@@ -205,7 +213,12 @@ class Policy:
             .order_by(db.PolicyRule.pk)
         )
         return [
-            PolicyRule(uuid=rule.pk, type=rule.type, field=rule.field)
+            PolicyRule(
+                uuid=rule.pk,
+                type=rule.type,
+                field=rule.field,
+                condition=rule.condition,
+            )
             for rule in result
         ]
 
@@ -283,24 +296,39 @@ async def actor_grants_field(
 
     True if the actor has a currently-valid policy that applies to them (by
     uuid/username/role) and has a rule granting either ``(type, field)`` or
-    ``(type, "*")``. This is the core of the PBAC permission engine.
+    ``(type, "*")`` whose CEL condition (if any) holds. This is the core of the
+    PBAC permission engine.
+
+    SQL narrows the work to the candidate rules' conditions (a tiny set), then
+    any conditions are evaluated in Python/CEL: an unconditional rule grants
+    outright, otherwise access is granted if any condition evaluates true.
     """
     actor_filter = actor_filter_for(
         token.uuid, token.preferred_username, token.realm_access.roles
     )
     current = now()
-    rule_exists = (
-        exists()
+    query = (
+        select(db.PolicyRule.condition)
         .where(db.PolicyRule.policy_fk == db.Policy.id)
+        .where(
+            policy_predicate(
+                info, PolicyFilter(start=current, end=current, actor=actor_filter)
+            )
+        )
         .where(db.PolicyRule.type == type)
         .where(db.PolicyRule.field.in_([field, "*"]))
     )
-    predicate = and_(
-        policy_predicate(
-            info, PolicyFilter(start=current, end=current, actor=actor_filter)
-        ),
-        rule_exists,
-    )
     session: AsyncSession = info.context.session
-    granted = await session.scalar(select(db.Policy.id).where(predicate).limit(1))
-    return granted is not None
+    conditions = (await session.scalars(query)).all()
+    if not conditions:
+        return False
+    # An unconditional matching rule grants access outright.
+    if any(condition is None for condition in conditions):
+        return True
+    # Otherwise the actor is granted access if any condition holds. The
+    # activation (the variable context) is built once and reused across every
+    # candidate condition.
+    activation = build_activation(token)
+    return any(
+        evaluate_condition(condition, activation) for condition in conditions
+    )
