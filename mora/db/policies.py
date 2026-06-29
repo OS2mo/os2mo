@@ -4,6 +4,7 @@ from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import ForeignKey
+from sqlalchemy import UniqueConstraint
 from sqlalchemy import text
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
@@ -35,6 +36,28 @@ class Policy(Base):
     )
 
 
+# TODO: Support applying a policy to all employees matching a dynamic MO
+# filter, not just the static (kind, value) attributes below. For example,
+# assign a policy to all managers under a specific organisation unit, or to all
+# employees with an engagement in a given organisation unit.
+#
+# The idea: add an actor `kind` (e.g. "employee_filter") whose `value` is a
+# (serialized) `EmployeeFilter`. To decide whether such a policy applies to the
+# calling actor we reuse the existing employee resolver predicate and intersect
+# it with the token's UUID, roughly:
+#
+#     predicate = and_(
+#         employee_predicate(info, deserialized_filter),
+#         BrugerRegistrering.bruger_id == token.uuid,
+#     )
+#     applies = await session.scalar(select(exists().where(predicate)))
+#
+# i.e. "is the current user (token.uuid) among the employees matching this
+# filter?". The policies `actor` filter would, for filter-kind actors, run this
+# check per policy against the calling actor at permission-check time.
+#
+# Open questions: how to (de)serialize an EmployeeFilter for storage, and how to
+# evaluate many such policies efficiently (per-policy predicate vs. one query).
 class PolicyActor(Base):
     __tablename__ = "policy_actor"
 
@@ -48,3 +71,9 @@ class PolicyActor(Base):
 
     policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.id"))
     policy: Mapped[Policy] = relationship(back_populates="actors")
+
+    # A given (kind, value) is declared at most once per policy, which makes
+    # `policy_actor_declare` idempotent.
+    __table_args__ = (
+        UniqueConstraint("policy_fk", "kind", "value", name="uq_policy_actor"),
+    )

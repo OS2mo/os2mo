@@ -149,8 +149,9 @@ from .inputs import OrganisationUnitUpdateInput
 from .inputs import OwnerCreateInput
 from .inputs import OwnerTerminateInput
 from .inputs import OwnerUpdateInput
-from .inputs import PolicyActorAddInput
+from .inputs import PolicyActorDeclareInput
 from .inputs import PolicyActorDeleteInput
+from .inputs import PolicyActorsDeclareInput
 from .inputs import PolicyDeclareInput
 from .inputs import PolicyDeleteInput
 from .inputs import RelatedUnitsUpdateInput
@@ -266,6 +267,36 @@ PriorityType = Annotated[
         description="Priority of the event. 1 is the highest priority.",
     ),
 ]
+
+
+async def _declare_policy_actor(
+    session: AsyncSession,
+    policy: UUID,
+    kind: PolicyActorKind,
+    value: str,
+) -> PolicyActor:
+    """Idempotently ensure a policy has an actor matching the given attribute."""
+    if policy == db.POLICYADMIN_UUID:
+        raise ValueError(
+            "The policyadmin policy is hard-bound to the admin role and its actors cannot be modified."
+        )
+    stmt = (
+        pg_insert(db.PolicyActor)
+        .values(policy_fk=policy, kind=kind.value, value=value)
+        .on_conflict_do_nothing(constraint="uq_policy_actor")
+    )
+    await session.execute(stmt)
+    actor = await session.scalar(
+        select(db.PolicyActor).where(
+            db.PolicyActor.policy_fk == policy,
+            db.PolicyActor.kind == kind.value,
+            db.PolicyActor.value == value,
+        )
+    )
+    assert actor is not None
+    return PolicyActor(
+        uuid=actor.pk, kind=PolicyActorKind(actor.kind), value=actor.value
+    )
 
 
 @strawberry.type(
@@ -2126,6 +2157,10 @@ class Mutation:
         ],
     )
     async def policy_declare(self, info: MOInfo, input: PolicyDeclareInput) -> Policy:
+        if input.uuid == db.POLICYADMIN_UUID:
+            raise ValueError(
+                "The policyadmin policy is required for bootstrapping and cannot be modified."
+            )
         session: AsyncSession = info.context.session
 
         if input.uuid is None:
@@ -2168,27 +2203,53 @@ class Mutation:
         return True
 
     @strawberry.mutation(
-        description="Add an actor to a policy.",
+        description=dedent(
+            """\
+            Declare an actor on a policy.
+
+            Idempotently ensures the policy has an actor matching the given
+            attribute. Declaring the same actor again is a no-op.
+            """
+        ),
         permission_classes=[
             IsAuthenticatedPermission,
             gen_create_permission("policy"),
         ],
     )
-    async def policy_actor_add(
-        self, info: MOInfo, input: PolicyActorAddInput
+    async def policy_actor_declare(
+        self, info: MOInfo, input: PolicyActorDeclareInput
     ) -> PolicyActor:
-        session: AsyncSession = info.context.session
-        actor = db.PolicyActor(
-            policy_fk=input.policy,
-            kind=input.kind.value,
-            value=input.value,
+        return await _declare_policy_actor(
+            info.context.session, input.policy, input.kind, input.value
         )
-        session.add(actor)
-        await session.flush()
-        return PolicyActor(
-            uuid=actor.pk,
-            kind=PolicyActorKind(actor.kind),
-            value=actor.value,
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Declare a set of actors on a policy.
+
+            Idempotently ensures the policy has each of the given actors. This
+            is a convenience for declaring multiple actors in one call.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("policy"),
+        ],
+    )
+    async def policy_actors_declare(
+        self, info: MOInfo, input: PolicyActorsDeclareInput
+    ) -> list[PolicyActor]:
+        session: AsyncSession = info.context.session
+        return list(
+            await asyncio.gather(
+                *[
+                    _declare_policy_actor(
+                        session, input.policy, entry.kind, entry.value
+                    )
+                    for entry in input.actors
+                ]
+            )
         )
 
     @strawberry.mutation(
@@ -2202,6 +2263,11 @@ class Mutation:
         self, info: MOInfo, input: PolicyActorDeleteInput
     ) -> bool:
         session: AsyncSession = info.context.session
+        actor = await session.get(db.PolicyActor, input.uuid)
+        if actor is not None and actor.policy_fk == db.POLICYADMIN_UUID:
+            raise ValueError(
+                "The policyadmin policy is hard-bound to the admin role and its actors cannot be modified."
+            )
         await session.execute(
             delete(db.PolicyActor).where(db.PolicyActor.pk == input.uuid)
         )

@@ -897,15 +897,37 @@ class PolicyDeleteInput:
     uuid: UUID = strawberry.field(description="UUID of the policy to delete.")
 
 
-@strawberry.input(description="Add an actor to a policy.")
-class PolicyActorAddInput:
+@strawberry.input(
+    description="Declare (idempotently ensure) a single actor on a policy."
+)
+class PolicyActorDeclareInput:
     policy: UUID = strawberry.field(
-        description="UUID of the policy to add the actor to."
+        description="UUID of the policy to declare the actor on."
     )
     kind: PolicyActorKind = strawberry.field(
         description="The kind of attribute to match on."
     )
     value: str = strawberry.field(description="The value the attribute must equal.")
+
+
+@strawberry.input(description="A single actor entry.")
+class PolicyActorEntryInput:
+    kind: PolicyActorKind = strawberry.field(
+        description="The kind of attribute to match on."
+    )
+    value: str = strawberry.field(description="The value the attribute must equal.")
+
+
+@strawberry.input(
+    description="Declare (idempotently ensure) a set of actors on a policy."
+)
+class PolicyActorsDeclareInput:
+    policy: UUID = strawberry.field(
+        description="UUID of the policy to declare the actors on."
+    )
+    actors: list[PolicyActorEntryInput] = strawberry.field(
+        description="The actors to declare on the policy."
+    )
 
 
 @strawberry.input(description="Delete an actor from a policy.")

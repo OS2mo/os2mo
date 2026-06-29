@@ -65,9 +65,19 @@ DELETE_POLICY = """
   }
 """
 
-ADD_ACTOR = """
-  mutation AddActor($input: PolicyActorAddInput!) {
-    policy_actor_add(input: $input) {
+DECLARE_ACTOR = """
+  mutation DeclareActor($input: PolicyActorDeclareInput!) {
+    policy_actor_declare(input: $input) {
+      uuid
+      kind
+      value
+    }
+  }
+"""
+
+DECLARE_ACTORS = """
+  mutation DeclareActors($input: PolicyActorsDeclareInput!) {
+    policy_actors_declare(input: $input) {
       uuid
       kind
       value
@@ -128,15 +138,15 @@ def create_policy(graphapi_post: GraphAPIPost, name: str) -> str:
     return response.data["policy_declare"]["uuid"]
 
 
-def add_actor(
+def declare_actor(
     graphapi_post: GraphAPIPost, policy: str, kind: str, value: str
 ) -> str:
     response = graphapi_post(
-        ADD_ACTOR,
+        DECLARE_ACTOR,
         variables={"input": {"policy": policy, "kind": kind, "value": value}},
     )
     assert response.errors is None
-    return response.data["policy_actor_add"]["uuid"]
+    return response.data["policy_actor_declare"]["uuid"]
 
 
 def policy_names_for_filter(graphapi_post: GraphAPIPost, filter_value) -> set[str]:
@@ -300,12 +310,12 @@ ACTOR_UUID = "11111111-1111-1111-1111-111111111111"
 
 
 @pytest.mark.integration_test
-async def test_policy_actor_add_and_read(
+async def test_policy_actor_declare_and_read(
     graphapi_post: GraphAPIPost, empty_db
 ) -> None:
     policy = create_policy(graphapi_post, "with-actors")
-    add_actor(graphapi_post, policy, "role", "admin")
-    add_actor(graphapi_post, policy, "username", "alice")
+    declare_actor(graphapi_post, policy, "role", "admin")
+    declare_actor(graphapi_post, policy, "username", "alice")
 
     response = graphapi_post(READ_POLICY_ACTORS, variables={"uuids": [policy]})
     assert response.errors is None
@@ -319,7 +329,7 @@ async def test_policy_actor_add_and_read(
 @pytest.mark.integration_test
 async def test_policy_actor_delete(graphapi_post: GraphAPIPost, empty_db) -> None:
     policy = create_policy(graphapi_post, "with-actor")
-    actor_uuid = add_actor(graphapi_post, policy, "role", "admin")
+    actor_uuid = declare_actor(graphapi_post, policy, "role", "admin")
 
     deleted = graphapi_post(DELETE_ACTOR, variables={"uuid": actor_uuid})
     assert deleted.errors is None
@@ -335,30 +345,33 @@ async def test_policy_actor_filter_cases(
     graphapi_post: GraphAPIPost, empty_db
 ) -> None:
     # role-policy is bound to role "admin"; user-policy is bound to username
-    # "alice" and a specific actor uuid. The bootstrap "Policy Administrator"
-    # has no actors.
+    # "alice" and a specific actor uuid; unbound-policy has no actors. The
+    # bootstrap "Policy Administrator" is hard-bound to role "admin".
     role_policy = create_policy(graphapi_post, "role-policy")
-    add_actor(graphapi_post, role_policy, "role", "admin")
+    declare_actor(graphapi_post, role_policy, "role", "admin")
     user_policy = create_policy(graphapi_post, "user-policy")
-    add_actor(graphapi_post, user_policy, "username", "alice")
-    add_actor(graphapi_post, user_policy, "uuid", ACTOR_UUID)
+    declare_actor(graphapi_post, user_policy, "username", "alice")
+    declare_actor(graphapi_post, user_policy, "uuid", ACTOR_UUID)
+    create_policy(graphapi_post, "unbound-policy")
 
-    everything = {"role-policy", "user-policy", "Policy Administrator"}
-    bound = {"role-policy", "user-policy"}
+    everything = {"role-policy", "user-policy", "unbound-policy", "Policy Administrator"}
+    has_actor = {"role-policy", "user-policy", "Policy Administrator"}
+    admins = {"role-policy", "Policy Administrator"}
 
-    # No actor constraint -> all policies (incl. the actor-less bootstrap one).
+    # No actor constraint -> all policies (including the actor-less one).
     assert {p["name"] for p in read_policies(graphapi_post)} == everything  # omitted
     assert policy_names_for_filter(graphapi_post, None) == everything  # null
     assert policy_names_for_filter(graphapi_post, {}) == everything  # {}
     assert policy_names_for_filter(graphapi_post, {"actor": None}) == everything
 
-    # Empty actor filter -> policies that have *any* actor (excludes bootstrap).
-    assert policy_names_for_filter(graphapi_post, {"actor": {}}) == bound
+    # Empty actor filter -> policies that have *any* actor (excludes unbound).
+    assert policy_names_for_filter(graphapi_post, {"actor": {}}) == has_actor
 
-    # Matching by a single attribute.
+    # Matching by a single attribute. Both role-policy and the bootstrap policy
+    # are bound to "admin".
     assert policy_names_for_filter(
         graphapi_post, {"actor": {"roles": ["admin"]}}
-    ) == {"role-policy"}
+    ) == admins
     assert policy_names_for_filter(
         graphapi_post, {"actor": {"usernames": ["alice"]}}
     ) == {"user-policy"}
@@ -372,9 +385,104 @@ async def test_policy_actor_filter_cases(
     # Multiple attributes are OR'ed together.
     assert policy_names_for_filter(
         graphapi_post, {"actor": {"roles": ["admin"], "usernames": ["alice"]}}
-    ) == bound
+    ) == admins | {"user-policy"}
 
     # No actor matches a non-existent role.
     assert policy_names_for_filter(
         graphapi_post, {"actor": {"roles": ["nobody"]}}
     ) == set()
+
+
+@pytest.mark.integration_test
+async def test_policyadmin_hard_bound_to_admin_role(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    response = graphapi_post(READ_POLICY_ACTORS, variables={"uuids": [POLICYADMIN]})
+    assert response.errors is None
+    actors = response.data["policies"]["objects"][0]["actors"]
+    assert {(a["kind"], a["value"]) for a in actors} == {("role", "admin")}
+
+
+@pytest.mark.integration_test
+async def test_policyadmin_cannot_be_modified(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    # Updating the policy itself is rejected.
+    update = declare_policy(
+        graphapi_post,
+        uuid=POLICYADMIN,
+        name="Hacked",
+        start="2024-01-01T00:00:00+00:00",
+    )
+    assert update.errors is not None
+
+    # Declaring an actor on it is rejected.
+    add = graphapi_post(
+        DECLARE_ACTOR,
+        variables={
+            "input": {"policy": POLICYADMIN, "kind": "username", "value": "mallory"}
+        },
+    )
+    assert add.errors is not None
+
+    # Its hard-bound admin role is unchanged.
+    read = graphapi_post(READ_POLICY_ACTORS, variables={"uuids": [POLICYADMIN]})
+    actors = read.data["policies"]["objects"][0]["actors"]
+    assert {(a["kind"], a["value"]) for a in actors} == {("role", "admin")}
+
+
+@pytest.mark.integration_test
+async def test_policy_actor_declare_is_idempotent(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    policy = create_policy(graphapi_post, "p")
+    first = declare_actor(graphapi_post, policy, "role", "admin")
+    second = declare_actor(graphapi_post, policy, "role", "admin")
+    # Declaring the same actor twice returns the same binding, no duplicate.
+    assert first == second
+    response = graphapi_post(READ_POLICY_ACTORS, variables={"uuids": [policy]})
+    assert len(response.data["policies"]["objects"][0]["actors"]) == 1
+
+
+@pytest.mark.integration_test
+async def test_policy_actors_declare_bulk(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    policy = create_policy(graphapi_post, "p")
+    response = graphapi_post(
+        DECLARE_ACTORS,
+        variables={
+            "input": {
+                "policy": policy,
+                "actors": [
+                    {"kind": "role", "value": "admin"},
+                    {"kind": "username", "value": "alice"},
+                ],
+            }
+        },
+    )
+    assert response.errors is None
+    assert len(response.data["policy_actors_declare"]) == 2
+
+    # Declaring an overlapping set again is idempotent (admin not duplicated).
+    again = graphapi_post(
+        DECLARE_ACTORS,
+        variables={
+            "input": {
+                "policy": policy,
+                "actors": [
+                    {"kind": "role", "value": "admin"},
+                    {"kind": "uuid", "value": ACTOR_UUID},
+                ],
+            }
+        },
+    )
+    assert again.errors is None
+
+    read = graphapi_post(READ_POLICY_ACTORS, variables={"uuids": [policy]})
+    actors = read.data["policies"]["objects"][0]["actors"]
+    assert {(a["kind"], a["value"]) for a in actors} == {
+        ("role", "admin"),
+        ("username", "alice"),
+        ("uuid", ACTOR_UUID),
+    }
