@@ -229,16 +229,22 @@ async def test_policy_declare_updates_existing(
 
 
 @pytest.mark.integration_test
-async def test_policy_declare_unknown_uuid_fails(
+async def test_policy_declare_with_uuid_creates(
     graphapi_post: GraphAPIPost, empty_db
 ) -> None:
+    # Declaring with a client-supplied UUID that does not exist creates it (this
+    # is what lets the create flow generate the UUID up front).
     response = declare_policy(
         graphapi_post,
         uuid=NOT_FOUND_UUID,
-        name="ghost",
+        name="client-uuid",
         start="2024-01-01T00:00:00+00:00",
     )
-    assert response.errors is not None
+    assert response.errors is None
+    assert response.data["policy_declare"]["uuid"] == NOT_FOUND_UUID
+
+    uuids = {p["uuid"] for p in read_policies(graphapi_post)}
+    assert NOT_FOUND_UUID in uuids
 
 
 @pytest.mark.integration_test
@@ -445,7 +451,7 @@ async def test_policy_actor_declare_is_idempotent(
 
 
 @pytest.mark.integration_test
-async def test_policy_actors_declare_bulk(
+async def test_policy_actors_declare_replaces_set(
     graphapi_post: GraphAPIPost, empty_db
 ) -> None:
     policy = create_policy(graphapi_post, "p")
@@ -464,7 +470,8 @@ async def test_policy_actors_declare_bulk(
     assert response.errors is None
     assert len(response.data["policy_actors_declare"]) == 2
 
-    # Declaring an overlapping set again is idempotent (admin not duplicated).
+    # Declaring a new set replaces the old one: "alice" is dropped, the uuid
+    # actor is added, and "admin" is kept (unchanged).
     again = graphapi_post(
         DECLARE_ACTORS,
         variables={
@@ -483,6 +490,13 @@ async def test_policy_actors_declare_bulk(
     actors = read.data["policies"]["objects"][0]["actors"]
     assert {(a["kind"], a["value"]) for a in actors} == {
         ("role", "admin"),
-        ("username", "alice"),
         ("uuid", ACTOR_UUID),
     }
+
+    # Declaring an empty set clears all actors.
+    cleared = graphapi_post(
+        DECLARE_ACTORS, variables={"input": {"policy": policy, "actors": []}}
+    )
+    assert cleared.errors is None
+    read = graphapi_post(READ_POLICY_ACTORS, variables={"uuids": [policy]})
+    assert read.data["policies"]["objects"][0]["actors"] == []

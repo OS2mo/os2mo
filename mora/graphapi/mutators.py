@@ -2167,9 +2167,12 @@ class Mutation:
             policy = db.Policy()
             session.add(policy)
         else:
+            # Upsert: update the existing policy, or create it with the given
+            # UUID (so callers can generate the UUID client-side).
             policy = await session.get(db.Policy, input.uuid)
             if policy is None:
-                raise ValueError("Policy not found")
+                policy = db.Policy(id=input.uuid)
+                session.add(policy)
 
         policy.name = input.name
         policy.description = input.description
@@ -2226,10 +2229,11 @@ class Mutation:
     @strawberry.mutation(
         description=dedent(
             """\
-            Declare a set of actors on a policy.
+            Declare the full set of actors on a policy.
 
-            Idempotently ensures the policy has each of the given actors. This
-            is a convenience for declaring multiple actors in one call.
+            Replaces the policy's actors with exactly the given set: actors not
+            in the set are removed and missing ones are added. Declaring an
+            empty list clears all actors. Idempotent.
             """
         ),
         permission_classes=[
@@ -2240,17 +2244,52 @@ class Mutation:
     async def policy_actors_declare(
         self, info: MOInfo, input: PolicyActorsDeclareInput
     ) -> list[PolicyActor]:
+        if input.policy == db.POLICYADMIN_UUID:
+            raise ValueError(
+                "The policyadmin policy is hard-bound to the admin role and its actors cannot be modified."
+            )
         session: AsyncSession = info.context.session
-        return list(
-            await asyncio.gather(
-                *[
-                    _declare_policy_actor(
-                        session, input.policy, entry.kind, entry.value
-                    )
-                    for entry in input.actors
-                ]
+        desired = {(entry.kind.value, entry.value) for entry in input.actors}
+
+        existing = list(
+            await session.scalars(
+                select(db.PolicyActor).where(
+                    db.PolicyActor.policy_fk == input.policy
+                )
             )
         )
+        existing_set = {(actor.kind, actor.value) for actor in existing}
+
+        # Remove actors no longer desired.
+        stale = [
+            actor.pk for actor in existing if (actor.kind, actor.value) not in desired
+        ]
+        if stale:
+            await session.execute(
+                delete(db.PolicyActor).where(db.PolicyActor.pk.in_(stale))
+            )
+
+        # Add the missing ones.
+        for kind, value in desired:
+            if (kind, value) in existing_set:
+                continue
+            await session.execute(
+                pg_insert(db.PolicyActor)
+                .values(policy_fk=input.policy, kind=kind, value=value)
+                .on_conflict_do_nothing(constraint="uq_policy_actor")
+            )
+
+        result = await session.scalars(
+            select(db.PolicyActor)
+            .where(db.PolicyActor.policy_fk == input.policy)
+            .order_by(db.PolicyActor.pk)
+        )
+        return [
+            PolicyActor(
+                uuid=actor.pk, kind=PolicyActorKind(actor.kind), value=actor.value
+            )
+            for actor in result
+        ]
 
     @strawberry.mutation(
         description="Delete an actor from a policy.",
