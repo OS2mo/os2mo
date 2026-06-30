@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import json
+
 import pytest
 
 from mora.db.policies import POLICYADMIN_UUID
@@ -153,6 +155,27 @@ def policy_names_for_filter(graphapi_post: GraphAPIPost, filter_value) -> set[st
     response = graphapi_post(FILTER_BY_ACTOR, variables={"filter": filter_value})
     assert response.errors is None
     return {obj["name"] for obj in response.data["policies"]["objects"]}
+
+
+CREATE_EMPLOYEE = """
+  mutation CreateEmployee($input: EmployeeCreateInput!) {
+    employee_create(input: $input) {
+      uuid
+    }
+  }
+"""
+
+
+def create_person(graphapi_post: GraphAPIPost, uuid: str) -> str:
+    response = graphapi_post(
+        CREATE_EMPLOYEE,
+        variables={"input": {"uuid": uuid, "given_name": "Bruce", "surname": "Lee"}},
+    )
+    assert response.errors is None
+    return response.data["employee_create"]["uuid"]
+
+
+PERSON_UUID = "33333333-3333-3333-3333-333333333333"
 
 
 @pytest.mark.integration_test
@@ -1123,3 +1146,137 @@ async def test_pbac_legacy_permission_is_field_specific(
 
     assert graphapi_post(READ_EMPLOYEES).errors is None
     assert graphapi_post(READ_POLICIES).errors is not None
+
+
+# person_filter actors
+# ---------------------
+
+
+@pytest.mark.integration_test
+async def test_person_filter_actor_declare_and_read(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    policy = create_policy(graphapi_post, "with-person-filter")
+    value = json.dumps({"uuids": [PERSON_UUID]})
+    declare_actor(graphapi_post, policy, "person_filter", value)
+
+    response = graphapi_post(READ_POLICY_ACTORS, variables={"uuids": [policy]})
+    assert response.errors is None
+    actors = response.data["policies"]["objects"][0]["actors"]
+    assert {(a["kind"], a["value"]) for a in actors} == {("person_filter", value)}
+
+
+@pytest.mark.integration_test
+async def test_person_filter_actor_rejects_malformed_json(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    policy = create_policy(graphapi_post, "with-bad-filter")
+    response = graphapi_post(
+        DECLARE_ACTOR,
+        variables={
+            "input": {
+                "policy": policy,
+                "kind": "person_filter",
+                "value": "not json",
+            }
+        },
+    )
+    assert response.errors is not None
+
+
+@pytest.mark.integration_test
+async def test_pbac_grant_via_person_filter(
+    graphapi_post: GraphAPIPost, set_settings, set_auth, empty_db, root_org
+) -> None:
+    # As admin, create a person and a policy targeting them via a person_filter.
+    create_person(graphapi_post, PERSON_UUID)
+    policy = create_policy(graphapi_post, "person-reader")
+    declare_actor(
+        graphapi_post, policy, "person_filter", json.dumps({"uuids": [PERSON_UUID]})
+    )
+    declare_rule(graphapi_post, policy, "Query", "employees")
+
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+
+    # The person whose uuid the filter matches is granted access.
+    set_auth(user_uuid=PERSON_UUID)
+    assert graphapi_post(READ_EMPLOYEES).errors is None
+
+    # A different actor (not matched by the filter) is denied.
+    set_auth(user_uuid="44444444-4444-4444-4444-444444444444")
+    assert graphapi_post(READ_EMPLOYEES).errors is not None
+
+
+def create_named_person(
+    graphapi_post: GraphAPIPost, uuid: str, given_name: str, surname: str
+) -> None:
+    response = graphapi_post(
+        CREATE_EMPLOYEE,
+        variables={
+            "input": {"uuid": uuid, "given_name": given_name, "surname": surname}
+        },
+    )
+    assert response.errors is None
+
+
+@pytest.mark.integration_test
+async def test_pbac_grant_via_person_filter_free_text(
+    graphapi_post: GraphAPIPost, set_settings, set_auth, empty_db, root_org
+) -> None:
+    # A genuinely dynamic filter matching a *set* of people: target everyone
+    # whose data matches the free-text query "Alice" (their first name). Both
+    # people named Alice get access; the two others do not.
+    alice_one = "a1111111-1111-1111-1111-111111111111"
+    alice_two = "a2222222-2222-2222-2222-222222222222"
+    bob = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+    carol = "cccccccc-cccc-cccc-cccc-cccccccccccc"
+    create_named_person(graphapi_post, alice_one, "Alice", "Andersen")
+    create_named_person(graphapi_post, alice_two, "Alice", "Approved")
+    create_named_person(graphapi_post, bob, "Bob", "Bertelsen")
+    create_named_person(graphapi_post, carol, "Carol", "Carlsen")
+
+    policy = create_policy(graphapi_post, "alices-only")
+    declare_actor(
+        graphapi_post, policy, "person_filter", json.dumps({"query": "Alice"})
+    )
+    declare_rule(graphapi_post, policy, "Query", "employees")
+
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+
+    # Both Alices match the filter -> granted.
+    for alice in (alice_one, alice_two):
+        set_auth(user_uuid=alice)
+        assert graphapi_post(READ_EMPLOYEES).errors is None
+
+    # The others do not match -> denied.
+    for other in (bob, carol):
+        set_auth(user_uuid=other)
+        assert graphapi_post(READ_EMPLOYEES).errors is not None
+
+
+@pytest.mark.integration_test
+async def test_person_filter_actor_query_filter(
+    graphapi_post: GraphAPIPost, empty_db, root_org
+) -> None:
+    # A policy bound only to a person_filter is matched when filtering policies
+    # by the actor uuid the filter resolves to, and not by a different uuid.
+    create_person(graphapi_post, PERSON_UUID)
+    create_policy(graphapi_post, "person-filter-policy")
+    policy = next(
+        p["uuid"]
+        for p in read_policies(graphapi_post)
+        if p["name"] == "person-filter-policy"
+    )
+    declare_actor(
+        graphapi_post, policy, "person_filter", json.dumps({"uuids": [PERSON_UUID]})
+    )
+
+    matched = policy_names_for_filter(
+        graphapi_post, {"actor": {"uuids": [PERSON_UUID]}}
+    )
+    assert "person-filter-policy" in matched
+
+    unmatched = policy_names_for_filter(
+        graphapi_post, {"actor": {"uuids": ["44444444-4444-4444-4444-444444444444"]}}
+    )
+    assert "person-filter-policy" not in unmatched

@@ -1,8 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import enum
+import json
 from collections.abc import Collection
 from datetime import datetime
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 import strawberry
@@ -27,6 +29,9 @@ from .paged import LimitType
 from .paged import ObjectsAndCursor
 from .paged import paginate
 
+if TYPE_CHECKING:  # pragma: no cover
+    from mora.graphapi.filters import EmployeeFilter
+
 
 @strawberry.enum(description="The kind of actor attribute a policy matches on.")
 class PolicyActorKind(enum.Enum):
@@ -35,6 +40,11 @@ class PolicyActorKind(enum.Enum):
     role = "role"
     # Matches every actor regardless of attributes; the value is ignored.
     all = "all"
+    # Matches every person the (serialized) `EmployeeFilter` in `value` resolves
+    # to. Unlike the static kinds above this is evaluated dynamically: a policy
+    # applies to an actor if the actor's uuid is among the persons the filter
+    # matches (see `_person_filter_policy_ids`).
+    person_filter = "person_filter"
 
 
 @strawberry.input(
@@ -120,7 +130,128 @@ def _policy_actor_predicate(filter: PolicyActorFilter) -> ColumnElement:
     return exists().where(db.PolicyActor.policy_fk == db.Policy.id).where(inner)
 
 
-def policy_predicate(info: MOInfo, filter: PolicyFilter) -> ColumnElement:
+def deserialize_person_filter(value: str) -> "EmployeeFilter":
+    """Deserialize a stored `person_filter` actor value into an `EmployeeFilter`.
+
+    The value is the JSON serialization of an `EmployeeFilter` input (the shape
+    the GraphQL API accepts). Raises `ValueError` if the value is not valid JSON
+    or does not describe a well-formed filter, so callers can reject it at
+    declare time and skip it at evaluation time.
+    """
+    # Imported lazily: this module is imported by inputs/mutators, while the
+    # filters module pulls in the wider GraphQL layer.
+    from strawberry import UNSET
+
+    from mora.graphapi.filters import EmployeeFilter
+    from mora.graphapi.filters import EmployeeRegistrationFilter
+    from mora.util import CPR
+
+    try:
+        data = json.loads(value)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"person_filter value is not valid JSON: {exc}") from exc
+    if not isinstance(data, dict):
+        raise ValueError("person_filter value must be a JSON object")
+
+    def dt(key: str) -> datetime | None:
+        raw = data.get(key)
+        return datetime.fromisoformat(raw) if raw is not None else None
+
+    # `from_date`, `to_date` and `query` default to UNSET (not None) on
+    # `EmployeeFilter`; preserve that distinction so an absent key behaves like
+    # a normal query rather than forcing an explicit null.
+    def absent_or_dt(key: str) -> datetime | None:
+        return dt(key) if key in data else UNSET
+
+    try:
+        registration = None
+        reg = data.get("registration")
+        if reg is not None:
+            registration = EmployeeRegistrationFilter(
+                actors=(
+                    [UUID(a) for a in reg["actors"]]
+                    if reg.get("actors") is not None
+                    else None
+                ),
+                start=(
+                    datetime.fromisoformat(reg["start"])
+                    if reg.get("start") is not None
+                    else None
+                ),
+                end=(
+                    datetime.fromisoformat(reg["end"])
+                    if reg.get("end") is not None
+                    else None
+                ),
+            )
+
+        return EmployeeFilter(
+            uuids=(
+                [UUID(u) for u in data["uuids"]]
+                if data.get("uuids") is not None
+                else None
+            ),
+            user_keys=data.get("user_keys"),
+            from_date=absent_or_dt("from_date"),
+            to_date=absent_or_dt("to_date"),
+            registration_time=dt("registration_time"),
+            registration=registration,
+            query=data.get("query", UNSET),
+            cpr_numbers=(
+                [CPR(c) for c in data["cpr_numbers"]]
+                if data.get("cpr_numbers") is not None
+                else None
+            ),
+        )
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"malformed person_filter: {exc}") from exc
+
+
+async def _person_filter_policy_ids(info: MOInfo, uuids: Collection[UUID]) -> set[UUID]:
+    """Policies that have a `person_filter` actor matching any of `uuids`.
+
+    Each `person_filter` actor stores a distinct, dynamic `EmployeeFilter`, so
+    it cannot be expressed as a single static SQL predicate. We evaluate each
+    one with the shared employee predicate, asking "is any of `uuids` among the
+    persons this filter matches?".
+    """
+    if not uuids:
+        return set()
+
+    # Lazy import: `resolvers` belongs to the wider GraphQL layer that imports
+    # this module transitively.
+    from mora.graphapi.resolvers import employee_predicate
+
+    session: AsyncSession = info.context.session
+    rows = await session.execute(
+        select(db.PolicyActor.policy_fk, db.PolicyActor.value).where(
+            db.PolicyActor.kind == PolicyActorKind.person_filter.value
+        )
+    )
+    matched: set[UUID] = set()
+    for policy_fk, value in rows:
+        if policy_fk in matched:
+            continue
+        try:
+            person_filter = deserialize_person_filter(value)
+        except ValueError:
+            # A malformed stored filter matches nothing rather than erroring the
+            # whole request.
+            continue
+        predicate = and_(
+            employee_predicate(info, person_filter),
+            db.BrugerRegistrering.bruger_id.in_(uuids),
+        )
+        if await session.scalar(select(exists().where(predicate))):
+            matched.add(policy_fk)
+    return matched
+
+
+def policy_predicate(
+    info: MOInfo,
+    filter: PolicyFilter,
+    person_filter_policy_ids: Collection[UUID] = (),
+) -> ColumnElement:
     predicates: list[ColumnElement] = [true()]
 
     if filter.uuids is not None:
@@ -135,9 +266,31 @@ def policy_predicate(info: MOInfo, filter: PolicyFilter) -> ColumnElement:
         predicates.append(db.Policy.start <= filter.end)
 
     if filter.actor is not None:
-        predicates.append(_policy_actor_predicate(filter.actor))
+        actor_predicate = _policy_actor_predicate(filter.actor)
+        # `person_filter` actors are matched dynamically (out of band, see
+        # `_person_filter_policy_ids`); a policy in that precomputed set also
+        # satisfies the actor filter.
+        if person_filter_policy_ids:
+            actor_predicate = or_(
+                actor_predicate, db.Policy.id.in_(person_filter_policy_ids)
+            )
+        predicates.append(actor_predicate)
 
     return and_(*predicates)
+
+
+async def policy_predicate_async(info: MOInfo, filter: PolicyFilter) -> ColumnElement:
+    """`policy_predicate` augmented with dynamic `person_filter` actor matching.
+
+    Use this instead of `policy_predicate` whenever the actor filter should also
+    match `person_filter` actors (i.e. when filtering by actor uuid).
+    """
+    person_filter_policy_ids: set[UUID] = set()
+    if filter.actor is not None and filter.actor.uuids:
+        person_filter_policy_ids = await _person_filter_policy_ids(
+            info, filter.actor.uuids
+        )
+    return policy_predicate(info, filter, person_filter_policy_ids)
 
 
 @strawberry.type(description="An actor a policy applies to.")
@@ -242,7 +395,7 @@ async def policy_resolver(
     if filter is None:
         filter = PolicyFilter()
 
-    predicate = policy_predicate(info=info, filter=filter)
+    predicate = await policy_predicate_async(info=info, filter=filter)
     query = select(db.Policy.id).where(predicate).order_by(db.Policy.id)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(session, query, db.Policy.id, limit, cursor)
@@ -281,7 +434,7 @@ async def actor_policies(info: MOInfo, token: Token) -> list[Policy]:
     )
     # Only currently-valid policies are relevant right now.
     current = now()
-    predicate = policy_predicate(
+    predicate = await policy_predicate_async(
         info, PolicyFilter(start=current, end=current, actor=actor_filter)
     )
     session: AsyncSession = info.context.session
@@ -314,14 +467,13 @@ async def actor_grants_field(
         token.uuid, token.preferred_username, token.realm_access.roles
     )
     current = now()
+    predicate = await policy_predicate_async(
+        info, PolicyFilter(start=current, end=current, actor=actor_filter)
+    )
     query = (
         select(db.PolicyRule.condition)
         .where(db.PolicyRule.policy_fk == db.Policy.id)
-        .where(
-            policy_predicate(
-                info, PolicyFilter(start=current, end=current, actor=actor_filter)
-            )
-        )
+        .where(predicate)
         .where(db.PolicyRule.type == type)
         .where(db.PolicyRule.field.in_([field, "*"]))
     )

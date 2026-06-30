@@ -204,6 +204,7 @@ from .policies import Policy
 from .policies import PolicyActor
 from .policies import PolicyActorKind
 from .policies import PolicyRule
+from .policies import deserialize_person_filter
 from .policy_cel import validate_condition
 from .related_units import update_related_units
 from .resolvers import address_resolver
@@ -274,6 +275,17 @@ PriorityType = Annotated[
 ]
 
 
+def _validate_policy_actor(kind: PolicyActorKind, value: str) -> None:
+    """Reject actor values that are not well-formed for their kind.
+
+    Currently only `person_filter` carries structure (a serialized
+    `EmployeeFilter`); validate it up front so malformed filters fail at declare
+    time rather than being silently ignored at permission-check time.
+    """
+    if kind == PolicyActorKind.person_filter:
+        deserialize_person_filter(value)
+
+
 async def _declare_policy_actor(
     session: AsyncSession,
     policy: UUID,
@@ -285,6 +297,7 @@ async def _declare_policy_actor(
         raise ValueError(
             "The policyadmin policy is hard-bound to the admin role and its actors cannot be modified."
         )
+    _validate_policy_actor(kind, value)
     stmt = (
         pg_insert(db.PolicyActor)
         .values(policy_fk=policy, kind=kind.value, value=value)
@@ -2300,6 +2313,8 @@ class Mutation:
             raise ValueError(
                 "The policyadmin policy is hard-bound to the admin role and its actors cannot be modified."
             )
+        for entry in input.actors:
+            _validate_policy_actor(entry.kind, entry.value)
         session: AsyncSession = info.context.session
         desired = {(entry.kind.value, entry.value) for entry in input.actors}
 
