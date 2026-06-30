@@ -1446,6 +1446,89 @@ async def test_pbac_rule_filter_limits_ituser_update_by_person(
     assert update(carol_ituser).errors is not None
 
 
+@pytest.mark.integration_test
+async def test_pbac_rule_filter_cel_scopes_to_caller(
+    graphapi_post: GraphAPIPost, set_settings, set_auth, empty_db, root_org
+) -> None:
+    # The filter is a CEL expression referencing `token`: anyone may update the
+    # IT-users linked to *their own* person, and no one else's.
+    alice = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    bob = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+    create_named_person(graphapi_post, alice, "Alice", "Andersen")
+    create_named_person(graphapi_post, bob, "Bob", "Bertelsen")
+    itsystem = create_itsystem(graphapi_post)
+    alice_ituser = create_ituser_for(graphapi_post, alice, itsystem, "alice-account")
+    bob_ituser = create_ituser_for(graphapi_post, bob, itsystem, "bob-account")
+
+    policy = create_policy(graphapi_post, "own-itusers")
+    declare_actor(graphapi_post, policy, "all", "")
+    declare_rule(
+        graphapi_post,
+        policy,
+        "Mutation",
+        "ituser_update",
+        filter='{"employee": {"uuids": [token.uuid]}}',
+    )
+
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+    set_auth(user_uuid=alice)
+
+    def update(ituser: str) -> object:
+        return graphapi_post(
+            UPDATE_ITUSER,
+            variables={
+                "input": {
+                    "uuid": ituser,
+                    "user_key": "changed",
+                    "validity": {"from": "2020-01-01"},
+                }
+            },
+        )
+
+    # Alice may update her own IT-user (linked to her == token.uuid)...
+    assert update(alice_ituser).errors is None
+    # ...but not Bob's.
+    assert update(bob_ituser).errors is not None
+
+
+@pytest.mark.integration_test
+async def test_pbac_rule_filter_cel_reads_input(
+    graphapi_post: GraphAPIPost, set_settings, set_auth, empty_db, root_org
+) -> None:
+    # The filter is a CEL expression referencing the mutator `input`. Matching
+    # the object whose uuid equals the submitted `input.uuid` is the object being
+    # updated, so the update is granted -- proving `input` is in scope.
+    bob = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+    create_named_person(graphapi_post, bob, "Bob", "Bertelsen")
+    itsystem = create_itsystem(graphapi_post)
+    bob_ituser = create_ituser_for(graphapi_post, bob, itsystem, "bob-account")
+
+    policy = create_policy(graphapi_post, "input-scoped")
+    declare_actor(graphapi_post, policy, "all", "")
+    declare_rule(
+        graphapi_post,
+        policy,
+        "Mutation",
+        "ituser_update",
+        filter='{"uuids": [input.uuid]}',
+    )
+
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+    set_auth(user_uuid=bob)
+
+    response = graphapi_post(
+        UPDATE_ITUSER,
+        variables={
+            "input": {
+                "uuid": bob_ituser,
+                "user_key": "changed",
+                "validity": {"from": "2020-01-01"},
+            }
+        },
+    )
+    assert response.errors is None
+
+
 TERMINATE_ITUSER = """
   mutation TerminateITUser($input: ITUserTerminateInput!) {
     ituser_terminate(input: $input) {
@@ -1584,9 +1667,9 @@ async def test_pbac_rule_filter_fails_hard_when_unevaluatable(
             }
         },
     )
-    # Fails hard with the deserialization error, not a silent permission deny.
+    # Fails hard with the CEL evaluation error, not a silent permission deny.
     assert response.errors is not None
-    assert any("JSON" in (e.get("message") or "") for e in response.errors)
+    assert any("CEL" in (e.get("message") or "") for e in response.errors)
 
 
 @pytest.mark.integration_test

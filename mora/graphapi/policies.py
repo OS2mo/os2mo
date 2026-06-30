@@ -11,6 +11,7 @@ from typing import Any
 from uuid import UUID
 
 import strawberry
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy import ColumnElement
 from sqlalchemy import and_
 from sqlalchemy import exists
@@ -24,7 +25,10 @@ from mora.db import AsyncSession
 from mora.graphapi.context import MOInfo
 from mora.graphapi.filters import gen_filter_string
 from mora.graphapi.policy_cel import build_activation
+from mora.graphapi.policy_cel import build_filter_activation
 from mora.graphapi.policy_cel import evaluate_condition
+from mora.graphapi.policy_cel import evaluate_filter
+from mora.graphapi.policy_cel import validate_filter
 from mora.util import now
 
 from .paged import CursorType
@@ -35,6 +39,10 @@ from .paged import paginate
 if TYPE_CHECKING:  # pragma: no cover
     from mora.graphapi.filters import EmployeeFilter
     from mora.graphapi.filters import ITUserFilter
+
+# Type of strawberry's ``UNSET`` sentinel, mapped to ``null`` when exposing a
+# mutator input to a filter expression (see `_input_map`).
+_UNSET_TYPE = type(strawberry.UNSET)
 
 
 @strawberry.enum(description="The kind of actor attribute a policy matches on.")
@@ -134,14 +142,8 @@ def _policy_actor_predicate(filter: PolicyActorFilter) -> ColumnElement:
     return exists().where(db.PolicyActor.policy_fk == db.Policy.id).where(inner)
 
 
-def deserialize_person_filter(value: str) -> "EmployeeFilter":
-    """Deserialize a stored `person_filter` actor value into an `EmployeeFilter`.
-
-    The value is the JSON serialization of an `EmployeeFilter` input (the shape
-    the GraphQL API accepts). Raises `ValueError` if the value is not valid JSON
-    or does not describe a well-formed filter, so callers can reject it at
-    declare time and skip it at evaluation time.
-    """
+def _person_filter_from_dict(data: dict) -> "EmployeeFilter":
+    """Build an ``EmployeeFilter`` from a plain mapping (the GraphQL shape)."""
     # Imported lazily: this module is imported by inputs/mutators, while the
     # filters module pulls in the wider GraphQL layer.
     from strawberry import UNSET
@@ -150,12 +152,8 @@ def deserialize_person_filter(value: str) -> "EmployeeFilter":
     from mora.graphapi.filters import EmployeeRegistrationFilter
     from mora.util import CPR
 
-    try:
-        data = json.loads(value)
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"person_filter value is not valid JSON: {exc}") from exc
     if not isinstance(data, dict):
-        raise ValueError("person_filter value must be a JSON object")
+        raise ValueError("person filter must be an object")
 
     def dt(key: str) -> datetime | None:
         raw = data.get(key)
@@ -208,29 +206,44 @@ def deserialize_person_filter(value: str) -> "EmployeeFilter":
             ),
         )
     except (TypeError, ValueError) as exc:
-        raise ValueError(f"malformed person_filter: {exc}") from exc
+        raise ValueError(f"malformed person filter: {exc}") from exc
 
 
-def deserialize_ituser_filter(value: str) -> "ITUserFilter":
-    """Deserialize a stored rule ``filter`` value into an ``ITUserFilter``.
+# TODO: Consider whether to make the `person_filter` actor a CEL expression too,
+# the way rule filters are (a CEL expression returning a filter). Unlike rule
+# filters there is no mutator `input` to feed it, and it must also evaluate in
+# the `policies(filter: {actor: {uuids}})` query path where there is no calling
+# `token` -- so the available context would be empty and CEL would buy little
+# over a static filter here. Left static for now; revisit if a need appears.
+def deserialize_person_filter(value: str) -> "EmployeeFilter":
+    """Deserialize a stored `person_filter` actor value into an `EmployeeFilter`.
 
-    Supports the practically useful subset of the filter: the base fields
-    (uuids, user_keys, validity), the linked-person filter (``employee``, reused
-    from :func:`deserialize_person_filter`) and the linked org-unit / IT-system
-    uuid lists. The richer nested sub-filters (registration, engagement,
+    The value is the JSON serialization of an `EmployeeFilter` input. Raises
+    `ValueError` if it is not valid JSON or not a well-formed filter, so callers
+    can reject it at declare time and skip it at evaluation time.
+    """
+    try:
+        data = json.loads(value)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"person_filter value is not valid JSON: {exc}") from exc
+    return _person_filter_from_dict(data)
+
+
+def _ituser_filter_from_dict(data: dict) -> "ITUserFilter":
+    """Build an ``ITUserFilter`` from a plain mapping (the GraphQL shape).
+
+    Supports the practically useful subset: the base fields (uuids, user_keys,
+    validity), the linked-person filter (``employee``) and the linked org-unit /
+    IT-system uuid lists. Richer nested sub-filters (registration, engagement,
     rolebinding, full org_unit/itsystem filters) are not supported yet. Raises
-    ``ValueError`` on malformed input.
+    ``ValueError`` on a malformed mapping.
     """
     from strawberry import UNSET
 
     from mora.graphapi.filters import ITUserFilter
 
-    try:
-        data = json.loads(value)
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"ituser filter value is not valid JSON: {exc}") from exc
     if not isinstance(data, dict):
-        raise ValueError("ituser filter value must be a JSON object")
+        raise ValueError("ituser filter must be an object")
 
     def dt(key: str) -> datetime | None:
         raw = data.get(key)
@@ -245,7 +258,7 @@ def deserialize_ituser_filter(value: str) -> "ITUserFilter":
     try:
         employee = None
         if data.get("employee") is not None:
-            employee = deserialize_person_filter(json.dumps(data["employee"]))
+            employee = _person_filter_from_dict(data["employee"])
 
         return ITUserFilter(
             uuids=uuid_list("uuids"),
@@ -515,7 +528,7 @@ class EntityFilterSpec:
     object's uuid, against which the mutated object's uuid is matched.
     """
 
-    deserialize: Callable[[str], Any]
+    from_dict: Callable[[dict], Any]
     predicate: Callable[[MOInfo, Any], ColumnElement]
     id_column: Any
 
@@ -556,7 +569,7 @@ def _entity_filter_spec(collection: str | None) -> EntityFilterSpec | None:
         from mora.graphapi.resolvers import it_user_predicate
 
         return EntityFilterSpec(
-            deserialize=deserialize_ituser_filter,
+            from_dict=_ituser_filter_from_dict,
             predicate=it_user_predicate,
             id_column=OrganisationFunktionRegistrering.organisationfunktion_id,
         )
@@ -572,19 +585,19 @@ def rule_field_supports_filter(field: str) -> bool:
 
 
 def validate_rule_filter(field: str, filter_value: str | None) -> None:
-    """Reject an entity ``filter`` that is unsupported or not well-formed.
+    """Reject an entity ``filter`` that is unsupported or not compilable.
 
-    Called when declaring a rule so a malformed or unsupported filter fails
-    loudly at declare time rather than silently denying at permission-check time.
+    Called when declaring a rule. The filter is a CEL expression returning a
+    filter map; its result shape depends on ``token``/``input`` so it cannot be
+    validated statically -- declare time only checks the field supports a filter
+    and that the expression compiles. A compilable expression that yields a
+    non-filter fails hard at permission-check time.
     """
     if filter_value is None:
         return
     if not rule_field_supports_filter(field):
         raise ValueError(f"entity filters are not supported for rule field {field!r}")
-    collection, _ = split_rule_field(field)
-    spec = _entity_filter_spec(collection)
-    assert spec is not None  # guaranteed by rule_field_supports_filter
-    spec.deserialize(filter_value)
+    validate_filter(filter_value)
 
 
 def _target_uuid(arguments: dict) -> UUID | None:
@@ -597,6 +610,22 @@ def _target_uuid(arguments: dict) -> UUID | None:
     if input is not None:
         return getattr(input, "uuid", None)
     return arguments.get("uuid")
+
+
+def _input_map(arguments: dict) -> dict:
+    """The mutator's argument exposed to a filter expression as ``input``.
+
+    :func:`jsonable_encoder` coerces types (UUID/datetime/enum -> JSON-ish) and
+    the ``custom_encoder`` maps strawberry ``UNSET`` to ``null`` (so unset fields
+    read as ``null`` rather than a junk value), letting a filter read
+    ``input.uuid``, ``input.person`` (``!= null`` to test presence), etc.
+    Bare-argument mutators (delete) expose their scalar arguments directly, so
+    ``input.uuid`` still works uniformly.
+    """
+    raw = arguments.get("input")
+    source = raw if raw is not None else arguments
+    encoded = jsonable_encoder(source, custom_encoder={_UNSET_TYPE: lambda _: None})
+    return encoded if isinstance(encoded, dict) else {}
 
 
 class EntityFilterError(Exception):
@@ -613,22 +642,25 @@ class EntityFilterError(Exception):
 
 async def _entity_filter_grants(
     info: MOInfo,
+    token: Token,
     collection: str | None,
     arguments: dict | None,
     filter_value: str,
 ) -> bool:
     """Whether a rule's entity ``filter`` matches the object being accessed.
 
-    The filter is a (serialized) MO filter for ``collection``; it grants when the
-    mutated object's uuid is among the objects the filter matches, mirroring how
-    a `person_filter` actor matches the caller's uuid.
+    ``filter_value`` is a CEL expression evaluated with the calling ``token`` and
+    the mutator ``input`` in scope; it must return a filter map for
+    ``collection``. The rule grants when the mutated object's uuid is among the
+    objects that filter matches -- so a filter like
+    ``{"employee": {"uuids": [token.uuid]}}`` scopes the grant to the caller's
+    own objects.
 
     Returns ``False`` only when the filter was evaluated and the object genuinely
     does not match. Anything that prevents evaluation raises
     :class:`EntityFilterError` (fail hard) rather than returning ``False``, so a
-    misconfigured rule or an unexpected mutator shape cannot masquerade as a
-    deny. Declare-time validation (`validate_rule_filter`) makes these reachable
-    only via a malformed configuration, which we want to surface, not hide.
+    misconfigured rule, an unexpected mutator shape or a filter expression that
+    does not yield a valid filter cannot masquerade as a deny.
     """
     spec = _entity_filter_spec(collection)
     if spec is None:
@@ -643,9 +675,13 @@ async def _entity_filter_grants(
             f"entity filter but could not determine the target object's uuid for "
             f"collection {collection!r}; the mutator's shape is unexpected"
         )
-    # A malformed stored filter raises (ValueError) and is intentionally left to
-    # propagate -- it must fail hard rather than be treated as "no match".
-    entity_filter = spec.deserialize(filter_value)
+    # Evaluate the CEL expression to a filter map, then build the typed filter.
+    # Compile/eval failures, a non-map result or a malformed filter all raise and
+    # are intentionally left to propagate -- they must fail hard, not be treated
+    # as "no match".
+    activation = build_filter_activation(token, _input_map(arguments))
+    filter_map = evaluate_filter(filter_value, activation)
+    entity_filter = spec.from_dict(filter_map)
     predicate = and_(spec.predicate(info, entity_filter), spec.id_column == target)
     session: AsyncSession = info.context.session
     return bool(await session.scalar(select(exists().where(predicate))))
@@ -706,7 +742,9 @@ async def actor_grants_field(
             if not evaluate_condition(condition, activation):
                 continue
         if filter is not None:
-            if not await _entity_filter_grants(info, collection, arguments, filter):
+            if not await _entity_filter_grants(
+                info, token, collection, arguments, filter
+            ):
                 continue
         return True
     return False
