@@ -76,7 +76,7 @@ def convert_attr_value(attribute_name, attribute_field_name, attribute_field_val
     # pass on. For complex types like "Soegeord" with specialized adapters,
     # convert to the class for which the adapter is registered.
     field_type = get_field_type(attribute_name, attribute_field_name)
-    if field_type == "soegeord":
+    if field_type == "soegeord":  # pragma: no cover
         return [Soegeord(*ord) for ord in attribute_field_value]
     elif field_type == "offentlighedundtagettype":  # pragma: no cover
         if (
@@ -150,6 +150,7 @@ class Livscyklus(enum.Enum):
     RETTET = "Rettet"
 
 
+# TODO: this vvv
 """
     GENERAL SQL GENERATION.
 
@@ -304,7 +305,7 @@ async def create_or_import_object(class_name, note, registration, uuid=None):
     session = get_session()
     try:
         result = await session.execute(sql)
-    except StatementError as e:
+    except StatementError as e:  # pragma: no cover
         if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
             status_code = int(e.orig.sqlstate[2:])
             raise DBException(status_code, e.orig.diag.message_primary)
@@ -318,10 +319,12 @@ async def delete_object(class_name, note, uuid):
 
     Deleting is the same as updating with the life cycle code "Slettet".
     """
-    if not (await object_exists(class_name, uuid)):
+    if not (await object_exists(class_name, uuid)):  # pragma: no cover
         raise NotFoundException(f"No {class_name} with ID {uuid} found.")
 
-    if (await get_life_cycle_code(class_name, uuid)) == Livscyklus.SLETTET.value:
+    if (
+        await get_life_cycle_code(class_name, uuid)
+    ) == Livscyklus.SLETTET.value:  # pragma: no cover
         # Already deleted, no problem as DELETE is idempotent.
         return
 
@@ -337,7 +340,7 @@ async def delete_object(class_name, note, uuid):
     )
 
 
-async def passivate_object(class_name, note, registration, uuid):
+async def passivate_object(class_name, note, registration, uuid):  # pragma: no cover
     """Passivate object by calling the stored procedure."""
 
     user_ref = str(get_authenticated_user())
@@ -576,33 +579,6 @@ def filter_json_output(output):
     return output
 
 
-def transform_relations(o):  # pragma: no cover
-    """Recurse through output to transform relation lists to dicts.
-
-    Currently, this only applies to DokumentDel relations, because the cast
-    to.JSON for other types of relations is currently done in PostgreSQL cast
-    functions.
-    """
-    if isinstance(o, dict):
-        if "relationer" in o and isinstance(o["relationer"], (list, tuple)):
-            relations = o["relationer"]
-            rel_dict = {}
-            for rel in relations:
-                # Remove the reltype from the dict and add to the output dict
-                rel_type = rel.pop("reltype")
-                rel_dict.setdefault(rel_type, []).append(rel)
-            o["relationer"] = rel_dict
-            return o
-        else:
-            return {k: transform_relations(v) for k, v in o.items()}
-    elif isinstance(o, list):
-        return [transform_relations(v) for v in o]
-    elif isinstance(o, tuple):
-        return tuple(transform_relations(v) for v in o)
-    else:
-        return o
-
-
 def _consolidate_and_trim_object_virkninger(
     obj, valid_from="-infinity", valid_to="infinity"
 ):
@@ -750,7 +726,7 @@ async def search_objects(
         any_attr_value_arr = []
     if not any_rel_uuid_arr:
         any_rel_uuid_arr = []
-    if uuid is not None:
+    if uuid is not None:  # pragma: no cover
         uuid = str(uuid)
 
     time_period = None

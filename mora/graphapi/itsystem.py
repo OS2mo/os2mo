@@ -32,5 +32,6 @@ async def terminate_itsystem(input: ITSystemTerminate) -> UUID:  # pragma: no co
 
 async def delete_itsystem(itsystem_uuid: UUID, note: str) -> UUID:
     # Let LoRa's SQL templates do their magic
+    # TODO: or maybe don't, this blocks from deleting oio_rest entirely
     await db.delete_object("itsystem", note, str(itsystem_uuid))
     return itsystem_uuid

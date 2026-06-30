@@ -85,44 +85,6 @@ service_api_endpoints = {
     "/service/e/{id}/details/",
     "/service/ou/{id}/details/",
 }
-lora_endpoints = {
-    "/lora/",
-    "/lora/klassifikation/classes",
-    "/lora/klassifikation/facet",
-    "/lora/klassifikation/facet/fields",
-    "/lora/klassifikation/facet/schema",
-    "/lora/klassifikation/facet/{uuid}",
-    "/lora/klassifikation/klasse",
-    "/lora/klassifikation/klasse/fields",
-    "/lora/klassifikation/klasse/schema",
-    "/lora/klassifikation/klasse/{uuid}",
-    "/lora/klassifikation/klassifikation",
-    "/lora/klassifikation/klassifikation/fields",
-    "/lora/klassifikation/klassifikation/schema",
-    "/lora/klassifikation/klassifikation/{uuid}",
-    "/lora/organisation/bruger",
-    "/lora/organisation/bruger/fields",
-    "/lora/organisation/bruger/schema",
-    "/lora/organisation/bruger/{uuid}",
-    "/lora/organisation/classes",
-    "/lora/organisation/itsystem",
-    "/lora/organisation/itsystem/fields",
-    "/lora/organisation/itsystem/schema",
-    "/lora/organisation/itsystem/{uuid}",
-    "/lora/organisation/organisation",
-    "/lora/organisation/organisation/fields",
-    "/lora/organisation/organisation/schema",
-    "/lora/organisation/organisation/{uuid}",
-    "/lora/organisation/organisationenhed",
-    "/lora/organisation/organisationenhed/fields",
-    "/lora/organisation/organisationenhed/schema",
-    "/lora/organisation/organisationenhed/{uuid}",
-    "/lora/organisation/organisationfunktion",
-    "/lora/organisation/organisationfunktion/fields",
-    "/lora/organisation/organisationfunktion/schema",
-    "/lora/organisation/organisationfunktion/{uuid}",
-    "/lora/site-map",
-}
 testing_endpoints = {
     "/testing/amqp/emit",
     "/testing/database/restore",
@@ -161,7 +123,6 @@ all_endpoints = (
         "/version/",
         "/saml/sso/",
     }
-    | lora_endpoints
     | doc_endpoints
     | health_endpoints
     | service_api_endpoints

@@ -31,5 +31,6 @@ async def terminate_facet(input: FacetTerminate) -> UUID:
 
 async def delete_facet(facet_uuid: UUID) -> UUID:
     # Let LoRa's SQL templates do their magic
+    # TODO: or maybe don't, this blocks from deleting oio_rest entirely
     await db.delete_object("facet", "", str(facet_uuid))
     return facet_uuid

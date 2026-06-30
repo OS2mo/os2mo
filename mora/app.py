@@ -19,7 +19,6 @@ from prometheus_client import Gauge
 from prometheus_client import Info
 from prometheus_fastapi_instrumentator import Instrumentator
 from sentry_sdk.integrations.strawberry import StrawberryIntegration
-from sqlalchemy.exc import DataError
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
@@ -45,8 +44,6 @@ from mora.service.address_handler.dar import dar_loader_context
 from mora.service.shimmed.meta import meta_router
 from mora.util import now_per_request
 from oio_rest.config import get_settings as lora_get_settings
-from oio_rest.custom_exceptions import OIOException
-from oio_rest.views import create_lora_router
 
 from . import service
 from . import testing
@@ -313,9 +310,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             tags=["Testing"],
         )
 
-    if settings.expose_lora:
-        app.include_router(create_lora_router(), prefix="/lora")
-
     # Set up lifecycle state for depends.py
     app.state.sessionmaker = sessionmaker
     amqp_system = AMQPSystem(settings.amqp)
@@ -328,20 +322,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(AuthenticationError, get_auth_exception_handler(logger))
     app.add_exception_handler(AuthorizationError, authorization_exception_handler)
-
-    # These two exception handlers are for LoRas API:
-    @app.exception_handler(OIOException)
-    def handle_not_allowed(request: Request, exc: OIOException):
-        dct = exc.to_dict()
-        return JSONResponse(status_code=exc.status_code, content=dct)
-
-    @app.exception_handler(DataError)
-    def handle_db_error(request: Request, exc: DataError):
-        message = exc.orig.diag.message_primary
-        context = exc.orig.diag.context
-        return JSONResponse(
-            status_code=400, content={"message": message, "context": context}
-        )
 
     if settings.sentry_dsn:  # pragma: no cover
         # https://docs.sentry.io/platforms/python/integrations/strawberry/

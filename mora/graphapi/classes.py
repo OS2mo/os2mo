@@ -31,5 +31,6 @@ async def terminate_class(input: ClassTerminate) -> UUID:
 
 async def delete_class(class_uuid: UUID) -> UUID:
     # Let LoRa's SQL templates do their magic
+    # TODO: or maybe don't, this blocks from deleting oio_rest entirely
     await db.delete_object("klasse", "", str(class_uuid))
     return class_uuid
