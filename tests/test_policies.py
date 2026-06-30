@@ -560,6 +560,7 @@ DECLARE_RULE = """
       type
       field
       condition
+      filter
     }
   }
 """
@@ -571,6 +572,7 @@ DECLARE_RULES = """
       type
       field
       condition
+      filter
     }
   }
 """
@@ -591,6 +593,7 @@ READ_POLICY_RULES = """
           type
           field
           condition
+          filter
         }
       }
     }
@@ -604,6 +607,7 @@ def declare_rule(
     type: str,
     field: str,
     condition: str | None = None,
+    filter: str | None = None,
 ) -> str:
     response = graphapi_post(
         DECLARE_RULE,
@@ -613,6 +617,7 @@ def declare_rule(
                 "type": type,
                 "field": field,
                 "condition": condition,
+                "filter": filter,
             }
         },
     )
@@ -1280,3 +1285,327 @@ async def test_person_filter_actor_query_filter(
         graphapi_post, {"actor": {"uuids": ["44444444-4444-4444-4444-444444444444"]}}
     )
     assert "person-filter-policy" not in unmatched
+
+
+# Entity rule filters
+# -------------------
+
+CREATE_ITSYSTEM = """
+  mutation CreateITSystem($input: ITSystemCreateInput!) {
+    itsystem_create(input: $input) {
+      uuid
+    }
+  }
+"""
+
+CREATE_ITUSER = """
+  mutation CreateITUser($input: ITUserCreateInput!) {
+    ituser_create(input: $input) {
+      uuid
+    }
+  }
+"""
+
+UPDATE_ITUSER = """
+  mutation UpdateITUser($input: ITUserUpdateInput!) {
+    ituser_update(input: $input) {
+      uuid
+    }
+  }
+"""
+
+
+def create_itsystem(graphapi_post: GraphAPIPost) -> str:
+    response = graphapi_post(
+        CREATE_ITSYSTEM,
+        variables={
+            "input": {
+                "user_key": "test-itsystem",
+                "name": "Test IT system",
+                "validity": {"from": "2020-01-01"},
+            }
+        },
+    )
+    assert response.errors is None
+    return response.data["itsystem_create"]["uuid"]
+
+
+def create_ituser_for(
+    graphapi_post: GraphAPIPost, person: str, itsystem: str, user_key: str
+) -> str:
+    response = graphapi_post(
+        CREATE_ITUSER,
+        variables={
+            "input": {
+                "user_key": user_key,
+                "itsystem": itsystem,
+                "person": person,
+                "validity": {"from": "2020-01-01"},
+            }
+        },
+    )
+    assert response.errors is None
+    return response.data["ituser_create"]["uuid"]
+
+
+@pytest.mark.integration_test
+async def test_policy_rule_filter_declare_and_read(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    policy = create_policy(graphapi_post, "filtered-rule")
+    value = json.dumps({"employee": {"query": "Bob"}})
+    declare_rule(graphapi_post, policy, "Mutation", "ituser_update", filter=value)
+
+    rules = read_policy_rules(graphapi_post, policy)
+    assert len(rules) == 1
+    assert rules[0]["field"] == "ituser_update"
+    assert rules[0]["filter"] == value
+
+
+@pytest.mark.integration_test
+async def test_policy_rule_filter_rejects_unsupported_field(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    # Entity filters are only supported for collections we can evaluate; a
+    # filter on an unsupported field is rejected at declare time.
+    policy = create_policy(graphapi_post, "bad-filtered-rule")
+    response = graphapi_post(
+        DECLARE_RULE,
+        variables={
+            "input": {
+                "policy": policy,
+                "type": "Mutation",
+                "field": "address_update",
+                "filter": json.dumps({"employee": {"query": "Bob"}}),
+            }
+        },
+    )
+    assert response.errors is not None
+
+
+@pytest.mark.integration_test
+async def test_policy_rule_filter_rejects_malformed(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    policy = create_policy(graphapi_post, "malformed-filtered-rule")
+    response = graphapi_post(
+        DECLARE_RULE,
+        variables={
+            "input": {
+                "policy": policy,
+                "type": "Mutation",
+                "field": "ituser_update",
+                "filter": "not json",
+            }
+        },
+    )
+    assert response.errors is not None
+
+
+@pytest.mark.integration_test
+async def test_pbac_rule_filter_limits_ituser_update_by_person(
+    graphapi_post: GraphAPIPost, set_settings, set_auth, empty_db, root_org
+) -> None:
+    # Alice may update IT-users, but only those attached to a person named Bob.
+    bob = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+    carol = "cccccccc-cccc-cccc-cccc-cccccccccccc"
+    create_named_person(graphapi_post, bob, "Bob", "Bertelsen")
+    create_named_person(graphapi_post, carol, "Carol", "Carlsen")
+    itsystem = create_itsystem(graphapi_post)
+    bob_ituser = create_ituser_for(graphapi_post, bob, itsystem, "bob-account")
+    carol_ituser = create_ituser_for(graphapi_post, carol, itsystem, "carol-account")
+
+    policy = create_policy(graphapi_post, "alice-updates-bobs-itusers")
+    declare_actor(graphapi_post, policy, "username", "alice")
+    declare_rule(
+        graphapi_post,
+        policy,
+        "Mutation",
+        "ituser_update",
+        filter=json.dumps({"employee": {"query": "Bob"}}),
+    )
+
+    set_auth(preferred_username="alice")
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+
+    def update(ituser: str) -> object:
+        return graphapi_post(
+            UPDATE_ITUSER,
+            variables={
+                "input": {
+                    "uuid": ituser,
+                    "user_key": "changed",
+                    "validity": {"from": "2020-01-01"},
+                }
+            },
+        )
+
+    # Bob's IT-user matches the rule filter -> Alice may update it.
+    assert update(bob_ituser).errors is None
+    # Carol's does not match -> denied.
+    assert update(carol_ituser).errors is not None
+
+
+TERMINATE_ITUSER = """
+  mutation TerminateITUser($input: ITUserTerminateInput!) {
+    ituser_terminate(input: $input) {
+      uuid
+    }
+  }
+"""
+
+DELETE_ITUSER = """
+  mutation DeleteITUser($uuid: UUID!) {
+    ituser_delete(uuid: $uuid) {
+      uuid
+    }
+  }
+"""
+
+
+@pytest.mark.integration_test
+async def test_pbac_rule_filter_limits_ituser_terminate_by_person(
+    graphapi_post: GraphAPIPost, set_settings, set_auth, empty_db, root_org
+) -> None:
+    # `ituser_terminate` carries the target uuid as `input.uuid`.
+    bob = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+    carol = "cccccccc-cccc-cccc-cccc-cccccccccccc"
+    create_named_person(graphapi_post, bob, "Bob", "Bertelsen")
+    create_named_person(graphapi_post, carol, "Carol", "Carlsen")
+    itsystem = create_itsystem(graphapi_post)
+    bob_ituser = create_ituser_for(graphapi_post, bob, itsystem, "bob-account")
+    carol_ituser = create_ituser_for(graphapi_post, carol, itsystem, "carol-account")
+
+    policy = create_policy(graphapi_post, "alice-terminates-bobs-itusers")
+    declare_actor(graphapi_post, policy, "username", "alice")
+    declare_rule(
+        graphapi_post,
+        policy,
+        "Mutation",
+        "ituser_terminate",
+        filter=json.dumps({"employee": {"query": "Bob"}}),
+    )
+
+    set_auth(preferred_username="alice")
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+
+    def terminate(ituser: str) -> object:
+        return graphapi_post(
+            TERMINATE_ITUSER,
+            variables={"input": {"uuid": ituser, "to": "2021-01-01"}},
+        )
+
+    assert terminate(bob_ituser).errors is None
+    assert terminate(carol_ituser).errors is not None
+
+
+@pytest.mark.integration_test
+async def test_pbac_rule_filter_limits_ituser_delete_by_person(
+    graphapi_post: GraphAPIPost, set_settings, set_auth, empty_db, root_org
+) -> None:
+    # `ituser_delete` takes the target uuid as a bare `uuid` argument, not an
+    # `input`; the gate extracts it just the same.
+    bob = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+    carol = "cccccccc-cccc-cccc-cccc-cccccccccccc"
+    create_named_person(graphapi_post, bob, "Bob", "Bertelsen")
+    create_named_person(graphapi_post, carol, "Carol", "Carlsen")
+    itsystem = create_itsystem(graphapi_post)
+    bob_ituser = create_ituser_for(graphapi_post, bob, itsystem, "bob-account")
+    carol_ituser = create_ituser_for(graphapi_post, carol, itsystem, "carol-account")
+
+    policy = create_policy(graphapi_post, "alice-deletes-bobs-itusers")
+    declare_actor(graphapi_post, policy, "username", "alice")
+    declare_rule(
+        graphapi_post,
+        policy,
+        "Mutation",
+        "ituser_delete",
+        filter=json.dumps({"employee": {"query": "Bob"}}),
+    )
+
+    set_auth(preferred_username="alice")
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+
+    # Carol's does not match -> denied.
+    assert graphapi_post(DELETE_ITUSER, variables={"uuid": carol_ituser}).errors
+    # Bob's IT-user matches the rule filter -> Alice may delete it.
+    assert graphapi_post(DELETE_ITUSER, variables={"uuid": bob_ituser}).errors is None
+
+
+@pytest.mark.integration_test
+async def test_pbac_rule_filter_fails_hard_when_unevaluatable(
+    graphapi_post: GraphAPIPost,
+    set_settings,
+    set_auth,
+    another_transaction,
+    empty_db,
+    root_org,
+) -> None:
+    # A filtered rule that cannot be evaluated must fail hard (surface an error),
+    # never silently deny -- a silent deny would mask the misconfiguration.
+    from sqlalchemy import update as sa_update
+
+    from mora.db import PolicyRule as PolicyRuleTable
+
+    bob = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+    create_named_person(graphapi_post, bob, "Bob", "Bertelsen")
+    itsystem = create_itsystem(graphapi_post)
+    bob_ituser = create_ituser_for(graphapi_post, bob, itsystem, "bob-account")
+
+    policy = create_policy(graphapi_post, "alice-corrupt-filter")
+    declare_actor(graphapi_post, policy, "username", "alice")
+    declare_rule(
+        graphapi_post,
+        policy,
+        "Mutation",
+        "ituser_update",
+        filter=json.dumps({"employee": {"query": "Bob"}}),
+    )
+
+    # Corrupt the stored filter directly, bypassing declare-time validation, to
+    # simulate a filter the engine cannot evaluate.
+    async with another_transaction() as (_, session):
+        await session.execute(
+            sa_update(PolicyRuleTable)
+            .where(PolicyRuleTable.field == "ituser_update")
+            .values(filter="not json")
+        )
+
+    set_auth(preferred_username="alice")
+    set_settings(POLICY_RBAC="true", OS2MO_AUTH="true")
+
+    response = graphapi_post(
+        UPDATE_ITUSER,
+        variables={
+            "input": {
+                "uuid": bob_ituser,
+                "user_key": "changed",
+                "validity": {"from": "2020-01-01"},
+            }
+        },
+    )
+    # Fails hard with the deserialization error, not a silent permission deny.
+    assert response.errors is not None
+    assert any("JSON" in (e.get("message") or "") for e in response.errors)
+
+
+@pytest.mark.integration_test
+async def test_policy_rule_filter_rejected_for_create_and_refresh(
+    graphapi_post: GraphAPIPost, empty_db
+) -> None:
+    # create has no existing object and refresh is a bulk operation, so neither
+    # supports an entity filter (rejected at declare time).
+    policy = create_policy(graphapi_post, "no-filter-here")
+    for field in ("ituser_create", "ituser_refresh"):
+        response = graphapi_post(
+            DECLARE_RULE,
+            variables={
+                "input": {
+                    "policy": policy,
+                    "type": "Mutation",
+                    "field": field,
+                    "filter": json.dumps({"employee": {"query": "Bob"}}),
+                }
+            },
+        )
+        assert response.errors is not None, f"{field} should reject a filter"

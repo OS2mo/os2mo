@@ -955,6 +955,14 @@ class PolicyRuleDeclareInput:
             "grant access. Omit or leave null for an unconditional rule."
         ),
     )
+    filter: str | None = strawberry.field(
+        default=None,
+        description=(
+            "Optional (serialized) entity filter restricting the grant to the "
+            "objects it matches (e.g. an ITUserFilter as JSON for an "
+            "`ituser_*` mutator). Omit or leave null for no entity restriction."
+        ),
+    )
 
 
 @strawberry.input(description="A single rule entry.")
@@ -970,6 +978,14 @@ class PolicyRuleEntryInput:
         description=(
             "Optional CEL condition that must evaluate true for the rule to "
             "grant access. Omit or leave null for an unconditional rule."
+        ),
+    )
+    filter: str | None = strawberry.field(
+        default=None,
+        description=(
+            "Optional (serialized) entity filter restricting the grant to the "
+            "objects it matches (e.g. an ITUserFilter as JSON for an "
+            "`ituser_*` mutator). Omit or leave null for no entity restriction."
         ),
     )
 

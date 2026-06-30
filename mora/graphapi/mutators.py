@@ -205,6 +205,7 @@ from .policies import PolicyActor
 from .policies import PolicyActorKind
 from .policies import PolicyRule
 from .policies import deserialize_person_filter
+from .policies import validate_rule_filter
 from .policy_cel import validate_condition
 from .related_units import update_related_units
 from .resolvers import address_resolver
@@ -323,11 +324,13 @@ async def _declare_policy_rule(
     type: str,
     field: str,
     condition: str | None = None,
+    filter: str | None = None,
 ) -> PolicyRule:
     """Idempotently ensure a policy has a rule for the given (type, field).
 
     An optional CEL ``condition`` gates the grant; an empty one is normalised to
-    an unconditional (null) rule.
+    an unconditional (null) rule. An optional entity ``filter`` further restricts
+    the grant to the objects it matches.
     """
     if policy == db.POLICYADMIN_UUID:
         raise ValueError(
@@ -336,9 +339,17 @@ async def _declare_policy_rule(
     condition = condition or None
     if condition is not None:
         validate_condition(condition)
+    filter = filter or None
+    validate_rule_filter(field, filter)
     stmt = (
         pg_insert(db.PolicyRule)
-        .values(policy_fk=policy, type=type, field=field, condition=condition)
+        .values(
+            policy_fk=policy,
+            type=type,
+            field=field,
+            condition=condition,
+            filter=filter,
+        )
         .on_conflict_do_nothing(constraint="uq_policy_rule")
     )
     await session.execute(stmt)
@@ -348,11 +359,16 @@ async def _declare_policy_rule(
             db.PolicyRule.type == type,
             db.PolicyRule.field == field,
             db.PolicyRule.condition == condition,
+            db.PolicyRule.filter == filter,
         )
     )
     assert rule is not None
     return PolicyRule(
-        uuid=rule.pk, type=rule.type, field=rule.field, condition=rule.condition
+        uuid=rule.pk,
+        type=rule.type,
+        field=rule.field,
+        condition=rule.condition,
+        filter=rule.filter,
     )
 
 
@@ -2402,6 +2418,7 @@ class Mutation:
             input.type,
             input.field,
             input.condition,
+            input.filter,
         )
 
     @strawberry.mutation(
@@ -2427,27 +2444,31 @@ class Mutation:
                 "The policyadmin policy is required for bootstrapping and its rules cannot be modified."
             )
         session: AsyncSession = info.context.session
-        # A rule is keyed by (type, field, condition); an empty condition is
-        # normalised to an unconditional (null) one.
+        # A rule is keyed by (type, field, condition, filter); an empty
+        # condition/filter is normalised to a null (unrestricted) one.
         desired = {
-            (entry.type, entry.field, entry.condition or None) for entry in input.rules
+            (entry.type, entry.field, entry.condition or None, entry.filter or None)
+            for entry in input.rules
         }
-        for *_, condition in desired:
+        for _type, field, condition, filter in desired:
             if condition is not None:
                 validate_condition(condition)
+            validate_rule_filter(field, filter)
 
         existing = list(
             await session.scalars(
                 select(db.PolicyRule).where(db.PolicyRule.policy_fk == input.policy)
             )
         )
-        existing_set = {(rule.type, rule.field, rule.condition) for rule in existing}
+        existing_set = {
+            (rule.type, rule.field, rule.condition, rule.filter) for rule in existing
+        }
 
         # Remove rules no longer desired.
         stale = [
             rule.pk
             for rule in existing
-            if (rule.type, rule.field, rule.condition) not in desired
+            if (rule.type, rule.field, rule.condition, rule.filter) not in desired
         ]
         if stale:
             await session.execute(
@@ -2455,8 +2476,8 @@ class Mutation:
             )
 
         # Add the missing ones.
-        for type, field, condition in desired:
-            if (type, field, condition) in existing_set:
+        for type, field, condition, filter in desired:
+            if (type, field, condition, filter) in existing_set:
                 continue
             await session.execute(
                 pg_insert(db.PolicyRule)
@@ -2465,6 +2486,7 @@ class Mutation:
                     type=type,
                     field=field,
                     condition=condition,
+                    filter=filter,
                 )
                 .on_conflict_do_nothing(constraint="uq_policy_rule")
             )
@@ -2480,6 +2502,7 @@ class Mutation:
                 type=rule.type,
                 field=rule.field,
                 condition=rule.condition,
+                filter=rule.filter,
             )
             for rule in result
         ]

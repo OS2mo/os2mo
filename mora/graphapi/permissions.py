@@ -160,6 +160,11 @@ def gen_role_permission(
                     info._raw_info.parent_type.name,
                     info._raw_info.field_name,
                     permission_role,
+                    # `collection` plus the field arguments (`kwargs`, which hold
+                    # the mutation `input`) let a rule's entity filter be checked
+                    # against the object being mutated.
+                    collection=collection,
+                    arguments=kwargs,
                 )
 
             # Do not check permissions (always allow) if GraphQL RBAC is disabled,
