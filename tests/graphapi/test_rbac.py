@@ -114,7 +114,6 @@ async def test_graphql_rbac(
     # Configure settings as required to enable GraphQL RBAC
     set_settings(
         **{
-            "os2mo_auth": "True",
             "keycloak_rbac_enabled": "True",
             "graphql_rbac": "True",
         }
@@ -202,7 +201,6 @@ async def test_mutators_require_rbac(
     # Configure settings as required to enable GraphQL RBAC
     set_settings(
         **{
-            "os2mo_auth": "True",
             "keycloak_rbac_enabled": "True",
             "graphql_rbac": "True",
         }
