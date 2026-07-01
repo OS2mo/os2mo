@@ -1405,6 +1405,28 @@ def read_rolebinding_uuids(
 
 
 @pytest.fixture
+def read_employee_uuids(
+    graphapi_post: GraphAPIPost,
+) -> Callable[[dict[str, Any]], set[UUID]]:
+    def inner(filter: dict[str, Any]) -> set[UUID]:
+        employee_uuid_query = """
+            query ReadEmployees($filter: EmployeeFilter) {
+                employees(filter: $filter) {
+                    objects {
+                        uuid
+                    }
+                }
+            }
+        """
+        response = graphapi_post(employee_uuid_query, {"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {UUID(obj["uuid"]) for obj in response.data["employees"]["objects"]}
+
+    return inner
+
+
+@pytest.fixture
 def create_address(
     graphapi_post: GraphAPIPost,
     root_org: UUID,

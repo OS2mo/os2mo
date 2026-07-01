@@ -313,6 +313,11 @@ class EmployeeFilter(BaseFilter):
         default=None, description=gen_filter_string("CPR number", "cpr_numbers")
     )
 
+    owner: OwnerFilter | None = strawberry.field(
+        default=None,
+        description="Owner filter limiting which entries are returned.",
+    )
+
 
 @strawberry.input(description="Engagement filter.")
 class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):

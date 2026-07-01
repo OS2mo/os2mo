@@ -1025,6 +1025,23 @@ def employee_predicate(
     if filter.query:
         predicates.append(search_employees_predicate(filter.query))
 
+    # Owner
+    if filter.owner is not None:
+        predicates.append(
+            BrugerRegistrering.bruger_id.in_(
+                select(OrganisationFunktionRelation.rel_maal_uuid).where(
+                    OrganisationFunktionRelation.rel_type
+                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
+                    OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
+                        select(OrganisationFunktionRegistrering.id).where(
+                            owner_predicate(info, filter.owner)
+                        )
+                    ),
+                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                )
+            )
+        )
+
     return and_(*predicates)
 
 
