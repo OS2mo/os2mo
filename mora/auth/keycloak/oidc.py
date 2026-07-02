@@ -190,7 +190,7 @@ async def legacy_auth_adapter(request: Request) -> Token:  # pragma: no cover
     """
     session_id = request.headers.get("session")
     if session_id:
-        logger.warning("Legacy session token used")
+        logger.warning("Legacy session token used", session_id=session_id)
         if validate_session(session_id):
             return await legacyauth()
     return await fetch_keycloak_token(request)

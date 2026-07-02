@@ -83,7 +83,11 @@ def init(log_level: str, json: bool = True):
             structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
         ],
         logger_factory=structlog.stdlib.LoggerFactory(),
-        cache_logger_on_first_use=True,
+        # Caching the logger on first use is a nice performance win, but a
+        # cached logger breaks `structlog.testing.capture_logs()`. Disable it
+        # under test so log assertions work reliably.
+        # https://www.structlog.org/en/stable/testing.html
+        cache_logger_on_first_use=not get_settings().is_under_test(),
     )
 
     log_renderer: structlog.types.Processor
