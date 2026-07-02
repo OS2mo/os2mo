@@ -67,10 +67,6 @@ class IsAuthenticatedPermission(BasePermission):
     # TODO: Should be typed as MOInfo, but gives cyclic import issues
     async def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
         """Returns `True` if a valid token exists."""
-        settings = get_settings()
-        # Always grant access if auth is disabled
-        if not settings.os2mo_auth:  # pragma: no cover
-            return True
         try:
             token = await info.context.get_token()
         except HTTPException as e:

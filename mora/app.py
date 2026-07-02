@@ -292,12 +292,11 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         tags=["GraphQL"],
     )
 
-    if settings.os2mo_auth:
-        app.include_router(
-            keycloak_router(),
-            prefix="/service",
-            tags=["Auth"],
-        )
+    app.include_router(
+        keycloak_router(),
+        prefix="/service",
+        tags=["Auth"],
+    )
     app.include_router(
         meta_router(),
         tags=["Meta"],
