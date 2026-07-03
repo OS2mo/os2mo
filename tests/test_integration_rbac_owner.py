@@ -9,6 +9,7 @@ from more_itertools import one
 
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
+from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
@@ -404,6 +405,14 @@ DELETE_ENGAGEMENT = """
 """
 
 
+@pytest.mark.xfail(
+    reason=(
+        "The owner check reads the mutator's `input` object, but delete mutators "
+        "take a bare `uuid`, so owner deletes crash with KeyError('input'). "
+        "Fixed in the following commit."
+    ),
+    strict=False,
+)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_delete_engagement_as_owner(
@@ -414,25 +423,29 @@ async def test_delete_engagement_as_owner(
     create_owner: CreateOwner,
     create_engagement: CreateEngagement,
 ) -> None:
+    # An owner of the engagement's org unit should be able to delete it, just
+    # like they can update or terminate it.
     set_auth(ADMIN, None)
     owner = create_person()
     person = create_person()
     org_unit = create_org_unit(parent=None)
     engagement = create_engagement(person=person, org_unit=org_unit)
-    create_owner(owner=owner, org_unit=org_unit)
 
+    deny_message = "User does not have delete-access to engagement"
+
+    def delete() -> GQLResponse:
+        return graphapi_post(DELETE_ENGAGEMENT, variables={"uuid": str(engagement)})
+
+    # Without the owner role: denied.
+    set_auth(None, owner)
+    assert one(delete().errors)["message"] == deny_message
+
+    # Owner role, but not owner of the org unit: a clean deny, not a crash.
     set_auth(OWNER, owner)
-    r = graphapi_post(DELETE_ENGAGEMENT, variables={"uuid": str(engagement)})
+    assert one(delete().errors)["message"] == deny_message
 
-    # CURRENT (buggy) behaviour: the owner check reads the mutator's `input`
-    # object to find the affected entity, but delete mutators take a bare `uuid`
-    # (no `input`). The owner branch crashes with `KeyError('input')`, which
-    # leaks out as a bare, untyped GraphQL error (the message is the raw
-    # `'input'`, with no error `type`/`extensions`) returned as a 200 -- an
-    # internal crash, not a clean deny. Documented here; corrected below.
-    assert r.status_code == 200
-    assert r.extensions is None
-    error = one(r.errors)
-    assert error["message"] == "'input'"
-    assert error["path"] == ["engagement_delete"]
-    assert "extensions" not in error
+    # Owner role + owner of the engagement's org unit: allowed to delete.
+    set_auth(ADMIN, None)
+    create_owner(owner=owner, org_unit=org_unit)
+    set_auth(OWNER, owner)
+    assert delete().errors is None
