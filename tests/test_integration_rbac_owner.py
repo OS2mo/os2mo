@@ -5,6 +5,7 @@ from typing import Protocol
 from uuid import UUID
 
 import pytest
+from more_itertools import one
 
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
@@ -392,3 +393,46 @@ async def test_owner_with_input_list(
 
     assert r.errors is not None
     assert r.data is not None
+
+
+DELETE_ENGAGEMENT = """
+  mutation DeleteEngagement($uuid: UUID!) {
+    engagement_delete(uuid: $uuid) {
+      uuid
+    }
+  }
+"""
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_delete_engagement_as_owner(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    create_person: CreatePerson,
+    create_org_unit: CreateOrgUnit,
+    create_owner: CreateOwner,
+    create_engagement: CreateEngagement,
+) -> None:
+    set_auth(ADMIN, None)
+    owner = create_person()
+    person = create_person()
+    org_unit = create_org_unit(parent=None)
+    engagement = create_engagement(person=person, org_unit=org_unit)
+    create_owner(owner=owner, org_unit=org_unit)
+
+    set_auth(OWNER, owner)
+    r = graphapi_post(DELETE_ENGAGEMENT, variables={"uuid": str(engagement)})
+
+    # CURRENT (buggy) behaviour: the owner check reads the mutator's `input`
+    # object to find the affected entity, but delete mutators take a bare `uuid`
+    # (no `input`). The owner branch crashes with `KeyError('input')`, which
+    # leaks out as a bare, untyped GraphQL error (the message is the raw
+    # `'input'`, with no error `type`/`extensions`) returned as a 200 -- an
+    # internal crash, not a clean deny. Documented here; corrected below.
+    assert r.status_code == 200
+    assert r.extensions is None
+    error = one(r.errors)
+    assert error["message"] == "'input'"
+    assert error["path"] == ["engagement_delete"]
+    assert "extensions" not in error
