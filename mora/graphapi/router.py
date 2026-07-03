@@ -6,6 +6,7 @@ from textwrap import dedent
 
 from fastapi import APIRouter
 from fastapi import Depends
+from fastapi import Request
 from fastramqpi.ramqp import AMQPSystem
 from starlette.responses import PlainTextResponse
 from starlette.responses import RedirectResponse
@@ -15,6 +16,8 @@ from mora import db
 from mora import depends
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import token_getter
+from mora.db.query_log import QUERY_LOG_HEADER
+from mora.db.query_log import enable_query_logging
 from mora.graphapi.access_log import get_access_log_loaders
 from mora.graphapi.actor import get_actor_loaders
 from mora.graphapi.custom_router import CustomGraphQLRouter
@@ -27,6 +30,17 @@ from .context import MOContext
 from .context import MOLoaders
 
 router = APIRouter()
+
+
+async def query_log_context(request: Request) -> None:
+    """Enable postgres query logging for this request if the header is set.
+
+    The flag is stored in starlette_context so it is scoped to the current
+    request cycle; the SQLAlchemy event listener reads it to decide whether
+    to log each executed statement.
+    """
+    if request.headers.get(QUERY_LOG_HEADER, "").lower() == "true":
+        enable_query_logging()
 
 
 async def get_context(
@@ -84,5 +98,7 @@ async def redirect_to_latest_graphiql() -> RedirectResponse:
 
 for version in Version:
     router.include_router(
-        prefix=f"/graphql/v{version.value}", router=get_router(version)
+        prefix=f"/graphql/v{version.value}",
+        router=get_router(version),
+        dependencies=[Depends(query_log_context)],
     )

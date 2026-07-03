@@ -75,11 +75,12 @@ from ._organisationsfunktion import OrganisationFunktionRelation
 from ._organisationsfunktion import OrganisationFunktionRelationKode
 from ._organisationsfunktion import OrganisationFunktionTilsGyldighed
 from .files import FileToken
+from .query_log import register_query_logger
 import psycopg
 
 
 def create_engine(user, password, host, name) -> AsyncEngine:
-    return create_async_engine(
+    engine = create_async_engine(
         f"postgresql+psycopg://{user}:{password}@{host}/{name}",
         # Transparently reconnect on connection errors so the calling application does
         # not need to be concerned with error handling. This is required for the
@@ -104,6 +105,8 @@ def create_engine(user, password, host, name) -> AsyncEngine:
             ),
         },
     )
+    register_query_logger(engine)
+    return engine
 
 
 # TODO: InfTimestamptzDumper?
