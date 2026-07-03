@@ -1427,6 +1427,28 @@ def read_employee_uuids(
 
 
 @pytest.fixture
+def read_org_unit_uuids(
+    graphapi_post: GraphAPIPost,
+) -> Callable[[dict[str, Any]], set[UUID]]:
+    def inner(filter: dict[str, Any]) -> set[UUID]:
+        org_unit_uuid_query = """
+            query ReadOrgUnits($filter: OrganisationUnitFilter) {
+                org_units(filter: $filter) {
+                    objects {
+                        uuid
+                    }
+                }
+            }
+        """
+        response = graphapi_post(org_unit_uuid_query, {"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {UUID(obj["uuid"]) for obj in response.data["org_units"]["objects"]}
+
+    return inner
+
+
+@pytest.fixture
 def create_address(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
