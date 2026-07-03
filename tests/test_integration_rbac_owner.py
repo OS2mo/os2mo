@@ -405,14 +405,6 @@ DELETE_ENGAGEMENT = """
 """
 
 
-@pytest.mark.xfail(
-    reason=(
-        "The owner check reads the mutator's `input` object, but delete mutators "
-        "take a bare `uuid`, so owner deletes crash with KeyError('input'). "
-        "Fixed in the following commit."
-    ),
-    strict=False,
-)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_delete_engagement_as_owner(

@@ -3,6 +3,7 @@
 from contextlib import suppress
 from functools import cache
 from functools import partial
+from types import SimpleNamespace
 from typing import Any
 from typing import Literal
 from typing import get_args
@@ -136,21 +137,26 @@ def gen_role_permission(
                 from mora.auth.keycloak.rbac import check_owner
                 from mora.auth.keycloak.uuid_extractor import get_entities_graphql
 
-                # The arguments to this function are the same as the arguments given to the
-                # mutator. Therefore, if the mutator takes an `input` argument, `input`
-                # will be available to us in the kwargs. We don't catch KeyErrors on
-                # purpose to expose a potentially buggy implementation to the user; the
-                # permission check would have failed anyway.
-                input = kwargs["input"]
-                entities = {
-                    x
-                    async for x in get_entities_graphql(
-                        input, collection, permission_type
-                    )
-                }
-                with suppress(AuthorizationError):
-                    await check_owner(token, entities)
-                    return True
+                # The arguments to this function are the same as the arguments
+                # given to the mutator. Most mutators take an `input` object;
+                # delete mutators instead take a bare `uuid`, which we wrap so
+                # ownership can still be determined (the existing object is
+                # looked up by uuid). Anything else (e.g. `refresh`, which takes
+                # a `filter`) has no single target, so the owner fallback does
+                # not apply and we fall through to deny.
+                input = kwargs.get("input")
+                if input is None and "uuid" in kwargs:
+                    input = SimpleNamespace(uuid=kwargs["uuid"])
+                if input is not None:
+                    entities = {
+                        x
+                        async for x in get_entities_graphql(
+                            input, collection, permission_type
+                        )
+                    }
+                    with suppress(AuthorizationError):
+                        await check_owner(token, entities)
+                        return True
 
             return False
 
