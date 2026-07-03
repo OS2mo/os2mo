@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
+from functools import partial
 from typing import Protocol
 from uuid import UUID
 
@@ -396,18 +397,11 @@ async def test_owner_with_input_list(
     assert r.data is not None
 
 
-DELETE_ENGAGEMENT = """
-  mutation DeleteEngagement($uuid: UUID!) {
-    engagement_delete(uuid: $uuid) {
-      uuid
-    }
-  }
-"""
-
-
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-async def test_delete_engagement_as_owner(
+@pytest.mark.parametrize("collection", ["engagement", "employee", "org_unit"])
+async def test_delete_as_owner(
+    collection: str,
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     create_person: CreatePerson,
@@ -415,29 +409,39 @@ async def test_delete_engagement_as_owner(
     create_owner: CreateOwner,
     create_engagement: CreateEngagement,
 ) -> None:
-    # An owner of the engagement's org unit should be able to delete it, just
-    # like they can update or terminate it.
+    # Delete mutators take a bare `uuid`, which the owner check must resolve to
+    # the affected entity through `get_entities_graphql`. This exercises all
+    # three of its extraction branches: the org-function branch (engagement),
+    # the employee branch (employee) and the org_unit branch (org_unit). An owner
+    # of the object may delete it; a non-owner gets a clean deny (not a crash).
     set_auth(ADMIN, None)
     owner = create_person()
-    person = create_person()
-    org_unit = create_org_unit(parent=None)
-    engagement = create_engagement(person=person, org_unit=org_unit)
 
-    deny_message = "User does not have delete-access to engagement"
+    if collection == "engagement":
+        org_unit = create_org_unit(parent=None)
+        target = create_engagement(person=create_person(), org_unit=org_unit)
+        grant_ownership = partial(create_owner, owner=owner, org_unit=org_unit)
+    elif collection == "employee":
+        target = create_person()
+        grant_ownership = partial(create_owner, owner=owner, person=target)
+    else:  # org_unit
+        target = create_org_unit(parent=None)
+        grant_ownership = partial(create_owner, owner=owner, org_unit=target)
+
+    query = (
+        f"mutation D($uuid: UUID!) {{ {collection}_delete(uuid: $uuid) {{ uuid }} }}"
+    )
+    deny_message = f"User does not have delete-access to {collection}"
 
     def delete() -> GQLResponse:
-        return graphapi_post(DELETE_ENGAGEMENT, variables={"uuid": str(engagement)})
+        return graphapi_post(query, variables={"uuid": str(target)})
 
-    # Without the owner role: denied.
-    set_auth(None, owner)
-    assert one(delete().errors)["message"] == deny_message
-
-    # Owner role, but not owner of the org unit: a clean deny, not a crash.
+    # Owner role, but not (yet) an owner of the object: a clean deny, not a crash.
     set_auth(OWNER, owner)
     assert one(delete().errors)["message"] == deny_message
 
-    # Owner role + owner of the engagement's org unit: allowed to delete.
+    # Owner role + owner of the object: allowed to delete.
     set_auth(ADMIN, None)
-    create_owner(owner=owner, org_unit=org_unit)
+    grant_ownership()
     set_auth(OWNER, owner)
     assert delete().errors is None
