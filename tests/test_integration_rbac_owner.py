@@ -445,3 +445,54 @@ async def test_delete_as_owner(
     grant_ownership()
     set_auth(OWNER, owner)
     assert delete().errors is None
+
+
+# Every bare-uuid delete mutator (i.e. all deletes except the two event ones,
+# which take an `input`). Each used to crash the owner branch with
+# KeyError('input').
+BARE_UUID_DELETE_COLLECTIONS = [
+    "address",
+    "class",
+    "employee",
+    "engagement",
+    "facet",
+    "itsystem",
+    "ituser",
+    "org_unit",
+    "rolebinding",
+]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.parametrize("collection", BARE_UUID_DELETE_COLLECTIONS)
+async def test_delete_denied_for_owner_of_nothing(
+    collection: str,
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    create_person: CreatePerson,
+    create_org_unit: CreateOrgUnit,
+) -> None:
+    # A user with the owner role who owns nothing must be cleanly denied for
+    # *every* bare-uuid delete mutator -- previously each crashed the owner
+    # branch with KeyError('input'). This includes the non-ownable collections
+    # (class/facet/itsystem), which owners must never be able to delete.
+    #
+    # The target need not exist -- the permission check runs before the resolver
+    # -- except org_unit, whose ancestor-owner lookup requires a real unit.
+    set_auth(ADMIN, None)
+    owner = create_person()
+    if collection == "org_unit":
+        target: UUID = create_org_unit(parent=None)
+    else:
+        target = UUID("22222222-2222-2222-2222-222222222222")
+
+    query = (
+        f"mutation D($uuid: UUID!) {{ {collection}_delete(uuid: $uuid) {{ uuid }} }}"
+    )
+
+    set_auth(OWNER, owner)
+    r = graphapi_post(query, variables={"uuid": str(target)})
+    assert (
+        one(r.errors)["message"] == f"User does not have delete-access to {collection}"
+    )
