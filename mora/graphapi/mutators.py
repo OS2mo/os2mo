@@ -892,7 +892,7 @@ class Mutation:
         description="Updates an IT-Association.",
         permission_classes=[
             IsAuthenticatedPermission,
-            gen_create_permission("association"),
+            gen_update_permission("association"),
         ],
     )
     async def itassociation_update(
@@ -1127,7 +1127,7 @@ class Mutation:
         description="Updates a KLE annotation.",
         permission_classes=[
             IsAuthenticatedPermission,
-            gen_create_permission("kle"),
+            gen_update_permission("kle"),
         ],
     )
     async def kle_update(self, input: KLEUpdateInput) -> Response[KLE]:
@@ -1202,7 +1202,7 @@ class Mutation:
         description="Updates a leave.",
         permission_classes=[
             IsAuthenticatedPermission,
-            gen_create_permission("leave"),
+            gen_update_permission("leave"),
         ],
     )
     async def leave_update(self, input: LeaveUpdateInput) -> Response[Leave]:
@@ -1482,7 +1482,7 @@ class Mutation:
         description="Updates an owner.",
         permission_classes=[
             IsAuthenticatedPermission,
-            gen_create_permission("owner"),
+            gen_update_permission("owner"),
         ],
     )
     async def owner_update(self, input: OwnerUpdateInput) -> Response[Owner]:
@@ -1492,7 +1492,7 @@ class Mutation:
         description="Terminates an owner.",
         permission_classes=[
             IsAuthenticatedPermission,
-            gen_create_permission("owner"),
+            gen_terminate_permission("owner"),
         ],
     )
     async def owner_terminate(self, input: OwnerTerminateInput) -> Response[Owner]:
@@ -1548,7 +1548,7 @@ class Mutation:
         description="Updates relations for an org_unit.",
         permission_classes=[
             IsAuthenticatedPermission,
-            gen_create_permission("related_unit"),
+            gen_update_permission("related_unit"),
         ],
     )
     async def related_units_update(
@@ -1635,7 +1635,7 @@ class Mutation:
         description="Update a rolebinding.",
         permission_classes=[
             IsAuthenticatedPermission,
-            gen_create_permission("rolebinding"),
+            gen_update_permission("rolebinding"),
         ],
     )
     async def rolebinding_update(
@@ -1649,7 +1649,7 @@ class Mutation:
         description="Terminate a rolebinding.",
         permission_classes=[
             IsAuthenticatedPermission,
-            gen_create_permission("rolebinding"),
+            gen_terminate_permission("rolebinding"),
         ],
     )
     async def rolebinding_terminate(
