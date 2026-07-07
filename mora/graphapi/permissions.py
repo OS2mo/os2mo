@@ -7,7 +7,6 @@ from typing import Any
 from typing import Literal
 from typing import get_args
 
-from fastapi import HTTPException
 from graphql import OperationType
 from strawberry import BasePermission
 from strawberry.types import Info
@@ -65,21 +64,6 @@ ALL_PERMISSIONS = {
     for permission_type in get_args(CollectionPermissionType)
     for collection in get_args(Collections)
 }.union(get_args(FilePermissions)).union(get_args(EventPermissions))
-
-
-class IsAuthenticatedPermission(BasePermission):
-    """Permission class that checks that the request is authenticated."""
-
-    message = "User is not authenticated"
-
-    # TODO: Should be typed as MOInfo, but gives cyclic import issues
-    async def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
-        """Returns `True` if a valid token exists."""
-        try:
-            await info.context.get_token()
-        except HTTPException as e:
-            raise PermissionError(e.detail) from e
-        return True
 
 
 @cache

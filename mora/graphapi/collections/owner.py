@@ -15,7 +15,6 @@ from mora.graphapi.gmodels.mo.details import OwnerRead
 from ..lazy import LazyEmployee
 from ..lazy import LazyOrganisationUnit
 from ..models import OwnerInferencePriority
-from ..permissions import IsAuthenticatedPermission
 from ..permissions import gen_read_permission
 from ..resolvers import employee_resolver
 from ..resolvers import organisation_unit_resolver
@@ -79,7 +78,7 @@ class Owner:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
 
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
@@ -105,7 +104,7 @@ class Owner:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        permission_classes=[gen_read_permission("org_unit")],
         deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -129,7 +128,7 @@ class Owner:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        permission_classes=[gen_read_permission("employee")],
     )
 
     person: list[LazyEmployee] | None = strawberry.field(
@@ -155,7 +154,7 @@ class Owner:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        permission_classes=[gen_read_permission("employee")],
         deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -176,7 +175,7 @@ class Owner:
         """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("owner")],
+        permission_classes=[gen_read_permission("owner")],
     )
 
     owner: list[LazyEmployee] | None = strawberry.field(
@@ -199,7 +198,7 @@ class Owner:
         """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("owner")],
+        permission_classes=[gen_read_permission("owner")],
         deprecation_reason="Use 'owner_response' instead. Will be removed in a future version of OS2mo.",
     )
 

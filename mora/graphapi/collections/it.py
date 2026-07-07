@@ -27,7 +27,6 @@ from ..models import AddressRead
 from ..models import ClassRead
 from ..models import RoleBindingRead
 from ..paged import Paged
-from ..permissions import IsAuthenticatedPermission
 from ..permissions import gen_read_permission
 from ..resolvers import address_resolver
 from ..resolvers import class_resolver
@@ -146,7 +145,7 @@ class ITSystem:
             * "SAP Admin"
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
     )
 
     roles: list[Response[LazyClass]] = strawberry.field(
@@ -179,7 +178,7 @@ class ITSystem:
             * "SAP Admin"
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'roles_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -256,7 +255,7 @@ class ITUser:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        permission_classes=[gen_read_permission("employee")],
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -273,7 +272,7 @@ class ITUser:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        permission_classes=[gen_read_permission("employee")],
     )
 
     person: list[LazyEmployee] | None = strawberry.field(
@@ -299,7 +298,7 @@ class ITUser:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        permission_classes=[gen_read_permission("employee")],
         deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -320,7 +319,7 @@ class ITUser:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
 
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
@@ -348,7 +347,7 @@ class ITUser:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        permission_classes=[gen_read_permission("org_unit")],
         deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -366,10 +365,7 @@ class ITUser:
             A person may have multiple IT accounts with each account being relevant for any number of engagement.
             """
         ),
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("engagement"),
-        ],
+        permission_classes=[gen_read_permission("engagement")],
     )
 
     engagements: list[Response[LazyEngagement]] = strawberry.field(
@@ -386,10 +382,7 @@ class ITUser:
             A person may have multiple IT accounts with each account being relevant for any number of engagement.
             """
         ),
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("engagement"),
-        ],
+        permission_classes=[gen_read_permission("engagement")],
         deprecation_reason="Use 'engagements_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -406,10 +399,7 @@ class ITUser:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("engagement"),
-        ],
+        permission_classes=[gen_read_permission("engagement")],
     )
 
     engagement: list[LazyEngagement] | None = strawberry.field(
@@ -435,10 +425,7 @@ class ITUser:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("engagement"),
-        ],
+        permission_classes=[gen_read_permission("engagement")],
         deprecation_reason="Use 'engagement_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -465,7 +452,7 @@ class ITUser:
             * FK-org UUID
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
+        permission_classes=[gen_read_permission("address")],
     )
 
     addresses: list[LazyAddress] = strawberry.field(
@@ -491,7 +478,7 @@ class ITUser:
             * FK-org UUID
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
+        permission_classes=[gen_read_permission("address")],
         deprecation_reason="Use 'addresses_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -504,7 +491,7 @@ class ITUser:
             ITSystem this account is for.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
+        permission_classes=[gen_read_permission("itsystem")],
     )
 
     itsystem: LazyITSystem = strawberry.field(
@@ -518,7 +505,7 @@ class ITUser:
             ITSystem this account is for.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
+        permission_classes=[gen_read_permission("itsystem")],
         deprecation_reason="Use 'itsystem_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -536,10 +523,7 @@ class ITUser:
             )
         ),
         description="Rolebindings this IT User has in the connected IT system.",
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("rolebinding"),
-        ],
+        permission_classes=[gen_read_permission("rolebinding")],
     )
 
     rolebindings: list[LazyRoleBinding] = strawberry.field(
@@ -556,10 +540,7 @@ class ITUser:
             )
         ),
         description="Rolebindings this IT User has in the connected IT system.",
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("rolebinding"),
-        ],
+        permission_classes=[gen_read_permission("rolebinding")],
         deprecation_reason="Use 'rolebindings_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -584,7 +565,7 @@ class ITUser:
             In the future this convention may become an invariant.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
     )
 
     primary: LazyClass | None = strawberry.field(
@@ -610,7 +591,7 @@ class ITUser:
             In the future this convention may become an invariant.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'primary_response' instead. Will be removed in a future version of OS2mo.",
     )
 
