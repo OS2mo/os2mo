@@ -15,7 +15,6 @@ from ..lazy import LazyClass
 from ..lazy import LazyEmployee
 from ..lazy import LazyEngagement
 from ..models import ClassRead
-from ..permissions import gen_read_permission
 from ..resolvers import class_resolver
 from ..resolvers import employee_resolver
 from ..resolvers import engagement_resolver
@@ -55,7 +54,6 @@ class Leave:
             * \"Garden Leave\"
             """
         ),
-        permission_classes=[gen_read_permission("class")],
     )
 
     leave_type: LazyClass = strawberry.field(
@@ -75,7 +73,6 @@ class Leave:
             * \"Garden Leave\"
             """
         ),
-        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'leave_type_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -91,7 +88,6 @@ class Leave:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[gen_read_permission("employee")],
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -103,7 +99,6 @@ class Leave:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[gen_read_permission("employee")],
     )
 
     person: list[LazyEmployee] = strawberry.field(
@@ -118,7 +113,6 @@ class Leave:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[gen_read_permission("employee")],
         deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -129,7 +123,6 @@ class Leave:
             The engagement the employee is absent from.
             """
         ),
-        permission_classes=[gen_read_permission("engagement")],
     )
 
     engagement: LazyEngagement = strawberry.field(
@@ -144,7 +137,6 @@ class Leave:
             The engagement the employee is absent from.
             """
         ),
-        permission_classes=[gen_read_permission("engagement")],
         deprecation_reason="Use 'engagement_response' instead. Will be removed in a future version of OS2mo.",
     )
 

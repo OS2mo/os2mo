@@ -12,7 +12,6 @@ from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 
 from ..lazy import LazyOrganisationUnit
 from ..paged import Paged
-from ..permissions import gen_read_permission
 from ..resolvers import organisation_unit_resolver
 from ..response import Response
 from ..seed_resolver import seed_resolver
@@ -87,7 +86,6 @@ class RelatedUnit:
             The result list should always be of length 2, corresponding to the elements of the bijection.
             """
         ),
-        permission_classes=[gen_read_permission("org_unit")],
     )
 
     org_units: list[LazyOrganisationUnit] = strawberry.field(
@@ -110,7 +108,6 @@ class RelatedUnit:
             The result list should always be of length 2, corresponding to the elements of the bijection.
             """
         ),
-        permission_classes=[gen_read_permission("org_unit")],
         deprecation_reason="Use 'org_units_response' instead. Will be removed in a future version of OS2mo.",
     )
 

@@ -13,7 +13,6 @@ from ..lazy import LazyFacet
 from ..models import ClassRead
 from ..models import FacetRead
 from ..paged import Paged
-from ..permissions import gen_read_permission
 from ..resolvers import class_resolver
 from ..resolvers import facet_resolver
 from ..response import Response
@@ -46,7 +45,6 @@ class Facet:
             )
         ),
         description="Associated classes",
-        permission_classes=[gen_read_permission("class")],
     )
 
     classes: list[LazyClass] = strawberry.field(
@@ -64,7 +62,6 @@ class Facet:
             )
         ),
         description="Associated classes",
-        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'classes_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -82,7 +79,6 @@ class Facet:
             The inverse operation of `children`.
             """
         ),
-        permission_classes=[gen_read_permission("facet")],
     )
 
     parent: LazyFacet | None = strawberry.field(
@@ -101,7 +97,6 @@ class Facet:
             The inverse operation of `children`.
             """
         ),
-        permission_classes=[gen_read_permission("facet")],
         deprecation_reason="Use 'parent_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -129,7 +124,6 @@ class Facet:
             The inverse operation of `parent`.
             """
         ),
-        permission_classes=[gen_read_permission("facet")],
     )
 
     children: list[LazyFacet] = strawberry.field(
@@ -156,7 +150,6 @@ class Facet:
             The inverse operation of `parent`.
             """
         ),
-        permission_classes=[gen_read_permission("facet")],
         deprecation_reason="Use 'children_response' instead. Will be removed in a future version of OS2mo.",
     )
 

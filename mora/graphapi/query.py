@@ -71,8 +71,6 @@ from .paged import LimitType
 from .paged import ObjectsAndCursor
 from .paged import Paged
 from .paged import to_paged
-from .permissions import gen_read_permission
-from .permissions import gen_role_permission
 from .registrationbase import Registration
 from .resolvers import address_resolver
 from .resolvers import association_resolver
@@ -176,7 +174,6 @@ class Query:
     addresses: Paged[Response[Address]] = strawberry.field(
         resolver=to_paged_response(AddressRead)(address_resolver),
         description="Get addresses.",
-        permission_classes=[gen_read_permission("address")],
     )
 
     # Associations
@@ -184,7 +181,6 @@ class Query:
     associations: Paged[Response[Association]] = strawberry.field(
         resolver=to_paged_response(AssociationRead)(association_resolver),
         description="Get associations.",
-        permission_classes=[gen_read_permission("association")],
     )
 
     # Classes
@@ -192,7 +188,6 @@ class Query:
     classes: Paged[Response[Class]] = strawberry.field(
         resolver=to_paged_response(ClassRead)(class_resolver),
         description="Get classes.",
-        permission_classes=[gen_read_permission("class")],
     )
 
     # Employees
@@ -200,13 +195,11 @@ class Query:
     employees: Paged[Response[Employee]] = strawberry.field(
         resolver=to_paged_response(EmployeeRead)(employee_resolver),
         description="Get employees.",
-        permission_classes=[gen_read_permission("employee")],
         deprecation_reason="Use 'persons' instead. Will be removed in a future version of OS2mo.",
     )
     persons: Paged[Response[Employee]] = strawberry.field(
         resolver=to_paged_response(EmployeeRead)(employee_resolver),
         description="Get persons.",
-        permission_classes=[gen_read_permission("employee")],
     )
 
     # Engagements
@@ -214,7 +207,6 @@ class Query:
     engagements: Paged[Response[Engagement]] = strawberry.field(
         resolver=to_paged_response(EngagementRead)(engagement_resolver),
         description="Get engagements.",
-        permission_classes=[gen_read_permission("engagement")],
     )
 
     # Facets
@@ -222,7 +214,6 @@ class Query:
     facets: Paged[Response[Facet]] = strawberry.field(
         resolver=to_paged_response(FacetRead)(facet_resolver),
         description="Get facets.",
-        permission_classes=[gen_read_permission("facet")],
     )
 
     # ITSystems
@@ -230,7 +221,6 @@ class Query:
     itsystems: Paged[Response[ITSystem]] = strawberry.field(
         resolver=to_paged_response(ITSystemRead)(it_system_resolver),
         description="Get it-systems.",
-        permission_classes=[gen_read_permission("itsystem")],
     )
 
     # ITUsers
@@ -238,7 +228,6 @@ class Query:
     itusers: Paged[Response[ITUser]] = strawberry.field(
         resolver=to_paged_response(ITUserRead)(it_user_resolver),
         description="Get it-users.",
-        permission_classes=[gen_read_permission("ituser")],
     )
 
     # KLEs
@@ -246,7 +235,6 @@ class Query:
     kles: Paged[Response[KLE]] = strawberry.field(
         resolver=to_paged_response(KLERead)(kle_resolver),
         description="Get kles.",
-        permission_classes=[gen_read_permission("kle")],
     )
 
     # Leave
@@ -254,7 +242,6 @@ class Query:
     leaves: Paged[Response[Leave]] = strawberry.field(
         resolver=to_paged_response(LeaveRead)(leave_resolver),
         description="Get leaves.",
-        permission_classes=[gen_read_permission("leave")],
     )
 
     # Managers
@@ -262,7 +249,6 @@ class Query:
     managers: Paged[Response[Manager]] = strawberry.field(
         resolver=to_paged_response(ManagerRead)(manager_resolver),
         description="Get manager roles.",
-        permission_classes=[gen_read_permission("manager")],
     )
 
     # Owners
@@ -270,7 +256,6 @@ class Query:
     owners: Paged[Response[Owner]] = strawberry.field(
         resolver=to_paged_response(OwnerRead)(owner_resolver),
         description="Get owners.",
-        permission_classes=[gen_read_permission("owner")],
     )
 
     # Organisational Units
@@ -278,7 +263,6 @@ class Query:
     org_units: Paged[Response[OrganisationUnit]] = strawberry.field(
         resolver=to_paged_response(OrganisationUnitRead)(organisation_unit_resolver),
         description="Get organisation units.",
-        permission_classes=[gen_read_permission("org_unit")],
     )
 
     # Related Units
@@ -286,7 +270,6 @@ class Query:
     related_units: Paged[Response[RelatedUnit]] = strawberry.field(
         resolver=to_paged_response(RelatedUnitRead)(related_unit_resolver),
         description="Get related organisation units.",
-        permission_classes=[gen_read_permission("related_unit")],
     )
 
     # Roles
@@ -294,7 +277,6 @@ class Query:
     rolebindings: Paged[Response[RoleBinding]] = strawberry.field(
         resolver=to_paged_response(RoleBindingRead)(rolebinding_resolver),
         description="Get role-mappings.",
-        permission_classes=[gen_read_permission("rolebinding")],
     )
 
     # Health
@@ -310,7 +292,6 @@ class Query:
         resolver=to_paged(file_resolver),
         description="Fetch files from the configured file backend (if any).",
         deprecation_reason="The file-store functionality will be removed in a future version of OS2mo.",
-        permission_classes=[gen_read_permission("file")],
     )
 
     registrations__v25: Paged[Registration] = strawberry.field(
@@ -327,7 +308,6 @@ class Query:
             Such integration should rather utilize the GraphQL-based event-system.
             """
         ),
-        permission_classes=[gen_read_permission("registration")],
         metadata=Metadata(version=lambda v: v <= GraphQLVersion.VERSION_25),
     )
     registrations__v26: Paged[IRegistration] = strawberry.field(
@@ -344,7 +324,6 @@ class Query:
             Such integration should rather utilize the GraphQL-based event-system.
             """
         ),
-        permission_classes=[gen_read_permission("registration")],
         metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_26),
     )
 
@@ -357,7 +336,6 @@ class Query:
             Mostly useful for auditing purposes seeing when data was read and by whom.
             """
         ),
-        permission_classes=[gen_read_permission("accesslog")],
     )
 
     # Root Organisation
@@ -371,7 +349,6 @@ class Query:
             """
         ),
         deprecation_reason="The root organisation concept will be removed in a future version of OS2mo.",
-        permission_classes=[gen_read_permission("org")],
     )
     async def org(self, info: MOInfo) -> Organisation:
         return cast(Organisation, await info.context.dataloaders.org_loader.load(0))
@@ -400,19 +377,16 @@ class Query:
             This collection is intended for inspection by humans.
             """
         ),
-        permission_classes=[gen_read_permission("event")],
     )
 
     event_namespaces: Paged[Namespace] = strawberry.field(
         resolver=to_paged(namespace_resolver),
         description="Get event namespaces.",
-        permission_classes=[gen_read_permission("event_namespace")],
     )
 
     event_listeners: Paged[Listener] = strawberry.field(
         resolver=to_paged(listener_resolver),
         description="Get event listeners.",
-        permission_classes=[gen_read_permission("event_listener")],
     )
 
     event_fetch: Event | None = strawberry.field(
@@ -428,7 +402,6 @@ class Query:
             Consumers cannot rely on the order of events, and may receive the same event multiple times.
             """,
         ),
-        permission_classes=[gen_role_permission("fetch_event")],
     )
 
     me: Myself = strawberry.field(
