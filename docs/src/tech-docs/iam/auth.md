@@ -266,29 +266,13 @@ rules:
     operations if the user is the owner of the org unit(s) subject to
     modification or one of the units ancestors.
 
-### Configuration of MO
-
-
-Set the following environment variables on the Docker container of MO to
-enable RBAC:
-
-``` {.bash}
-KEYCLOAK_RBAC_ENABLED: "true"
-```
-
 ### Configuration of Keycloak
 
 
 Keycloak is configured via the [OS2mo Keycloak Realm
 Builder](https://github.com/OS2mo/keycloak-realm-builder). The realm
 builder takes a number of environment variables as input and returns a
-Keycloak realm JSON configuration file as output. In order to enable
-RBAC, the following environment variable must to set on the realm
-builder Docker container (*note: NOT the Keycloak container itself*):
-
-``` {.bash}
-KEYCLOAK_RBAC_ENABLED: "true"
-```
+Keycloak realm JSON configuration file as output.
 
 In the development environment, it is also necessary to
 

@@ -21,7 +21,6 @@ def enable_rbac(set_settings: Callable[..., None]) -> None:
     """Configure settings as required to enable GraphQL RBAC."""
     set_settings(
         **{
-            "keycloak_rbac_enabled": "True",
             "graphql_rbac": "True",
         }
     )

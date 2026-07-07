@@ -14,14 +14,12 @@ from starlette.status import HTTP_400_BAD_REQUEST
 from starlette.status import HTTP_403_FORBIDDEN
 
 from mora.auth.keycloak.oidc import auth
-from mora.config import Settings
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
 from mora.mapping import PERSON
 from mora.mapping import UUID
 from tests.test_integration_rbac import mock_auth
 from tests.util import jsonfile_to_dict
-from tests.util import override_config
 
 # Users
 ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -169,7 +167,6 @@ def create_employment_payload(
         (ADMIN, ANDERS_AND, HTTP_201_CREATED),
     ],
 )
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_employee(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -199,7 +196,6 @@ def test_create_employee(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @parametrize_roles_create
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_creating_detail_address(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -221,7 +217,6 @@ def test_creating_detail_address(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_201_when_creating_it_system_detail_as_owner_of_employee(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -238,7 +233,6 @@ def test_201_when_creating_it_system_detail_as_owner_of_employee(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_201_when_creating_multiple_it_system_details_as_owner_of_employee(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -261,7 +255,6 @@ def test_201_when_creating_multiple_it_system_details_as_owner_of_employee(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @parametrize_roles_create
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_employment(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -280,7 +273,6 @@ def test_create_employment(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_multiple_employments_owns_one_unit_but_not_the_other(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -295,7 +287,6 @@ def test_create_multiple_employments_owns_one_unit_but_not_the_other(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_multiple_employments_owns_all_units(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -312,7 +303,6 @@ def test_create_multiple_employments_owns_all_units(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_multiple_associations_owns_one_unit_but_not_the_other(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -331,7 +321,6 @@ def test_create_multiple_associations_owns_one_unit_but_not_the_other(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_multiple_associations_owns_all_units(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -352,7 +341,6 @@ def test_create_multiple_associations_owns_all_units(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @parametrize_roles_create
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_association(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -381,7 +369,6 @@ def test_create_association(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @parametrize_roles_create
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_manager(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -427,7 +414,6 @@ def test_create_manager(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_object_types_in_list_must_be_identical(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -461,7 +447,6 @@ def test_object_types_in_list_must_be_identical(
     ],
 )
 @parametrize_roles
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_edit(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -497,7 +482,6 @@ def test_edit(
     ],
 )
 @parametrize_roles
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_terminate_details(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -516,7 +500,6 @@ def test_terminate_details(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @parametrize_roles
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_terminate_employee(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -536,7 +519,6 @@ def test_terminate_employee(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_erik_owner")
 @parametrize_roles_create
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_employee_leave(
     fastapi_test_app: FastAPI,
     service_client: TestClient,

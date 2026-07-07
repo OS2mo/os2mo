@@ -50,13 +50,21 @@ FilePermissions = Literal[
     "download_files",
     "upload_files",
 ]
+EventPermissions = Literal[
+    "fetch_event",
+    "acknowledge_event",
+    "send_event",
+    "silence_event",
+    "unsilence_event",
+    "rerun_event",
+]
 
 
 ALL_PERMISSIONS = {
     f"{permission_type}_{collection}"
     for permission_type in get_args(CollectionPermissionType)
     for collection in get_args(Collections)
-}.union(get_args(FilePermissions))
+}.union(get_args(FilePermissions)).union(get_args(EventPermissions))
 
 
 class IsAuthenticatedPermission(BasePermission):
@@ -115,7 +123,7 @@ def gen_role_permission(
             # Do not check permissions (always allow) if GraphQL RBAC is disabled,
             # unless forced.
             if (not settings.graphql_rbac) and (not force_permission_check):
-                return True
+                return True  # pragma: no cover
 
             token = await info.context.get_token()
             token_roles = token.realm_access.roles

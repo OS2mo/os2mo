@@ -192,7 +192,6 @@ services:
       KEYCLOAK_LORA_CLIENT_SECRET: 158a2075-aa8a-421c-94a4-2df35377014a
       KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["http://localhost:5050/*", "http://localhost:5000/*", "http://localhost:5001/*", "http://localhost:5173/*", "http://localhost:4173/*"]'
       KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["http://localhost:5050", "http://localhost:5000", "http://localhost:5001", "http://localhost:5173", "http://localhost:4173"]'
-      KEYCLOAK_RBAC_ENABLED: "true"
       KEYCLOAK_REALM_USERS: |
         [
           {
