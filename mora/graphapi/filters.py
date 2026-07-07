@@ -796,6 +796,11 @@ class OrganisationUnitFilter(BaseFilter):
         ),
     )
 
+    owner: OwnerFilter | None = strawberry.field(
+        default=None,
+        description="Owner filter limiting which entries are returned.",
+    )
+
 
 @strawberry.input(description="Owner filter.")
 class OwnerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
