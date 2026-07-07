@@ -210,6 +210,23 @@ def authorization_exception_handler(
     )
 
 
+async def fetch_token(request: Request) -> Token:
+    """Extract and validate a token from the request.
+
+    Args:
+        request: The FastAPI request object to extract the token from.
+
+    Returns:
+        The validated token.
+
+    Raises:
+        HTTPException: If no token is present or it fails validation.
+    """
+    if auth == legacy_auth_adapter:  # pragma: no cover
+        return await legacy_auth_adapter(request)
+    return await fetch_keycloak_token(request)
+
+
 async def rbac(request: Request, admin_only: bool, token: Token = Depends(auth)):
     """
     Role based access control (RBAC) dependency function for the FastAPI
@@ -242,26 +259,22 @@ async def rbac_owner(request: Request, token: Token = Depends(auth)):
 
 
 def token_getter(request: Request) -> Callable[[], Awaitable[Token]]:
-    """Programatically get a Token using whatever backend has been configured.
+    """Get a callable that returns the request's token, caching on first use.
 
     Args:
         request: The FastAPI request object to extract the token from.
 
     Returns:
-        The extracted or dummy token object or None, if validation fails.
+        A callable that returns the extracted or dummy token object.
+
+    Raises:
+        HTTPException: If no token is present or it fails validation.
     """
 
     async def get_token():
-        if token := context.get("token", False):
-            return token
-
-        if auth == legacy_auth_adapter:  # pragma: no cover
-            result = await legacy_auth_adapter(request)
-        else:
-            result = await fetch_keycloak_token(request)
-
-        context["token"] = result
-        return result
+        if "token" not in context:
+            context["token"] = await fetch_token(request)
+        return context["token"]
 
     return get_token
 
