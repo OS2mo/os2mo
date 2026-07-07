@@ -227,7 +227,7 @@ async def fetch_token(request: Request) -> Token:
     return await fetch_keycloak_token(request)
 
 
-async def rbac(request: Request, admin_only: bool, token: Token = Depends(auth)):
+async def rbac(request: Request, admin_only: bool, token: Token = Depends(fetch_token)):
     """
     Role based access control (RBAC) dependency function for the FastAPI
     endpoints that require authorization in addition to authentication. The
@@ -250,11 +250,11 @@ async def rbac(request: Request, admin_only: bool, token: Token = Depends(auth))
     return await _rbac(token, request, admin_only)
 
 
-async def rbac_admin(request: Request, token: Token = Depends(auth)):
+async def rbac_admin(request: Request, token: Token = Depends(fetch_token)):
     return await rbac(request, True, token)
 
 
-async def rbac_owner(request: Request, token: Token = Depends(auth)):
+async def rbac_owner(request: Request, token: Token = Depends(fetch_token)):
     return await rbac(request, False, token)
 
 
@@ -279,7 +279,7 @@ def token_getter(request: Request) -> Callable[[], Awaitable[Token]]:
     return get_token
 
 
-def service_api_auth(token: Token = Depends(auth)) -> None:
+def service_api_auth(token: Token = Depends(fetch_token)) -> None:
     """Check if the Service API role is set."""
     roles = token.realm_access.roles
 

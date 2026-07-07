@@ -15,7 +15,7 @@ import mora.auth.keycloak.oidc
 from mora.auth.exceptions import AuthenticationError
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
-from mora.auth.keycloak.oidc import auth
+from mora.auth.keycloak.oidc import fetch_token
 
 from .conftest import fake_auth
 from .conftest import serviceapiless_auth
@@ -163,7 +163,7 @@ def test_ensure_endpoints_depend_on_oidc_auth_function(all_routes, no_auth_endpo
     # all excluded endpoints must be explicitly specified in the list
 
     ensure_endpoints_depend_on_oidc_auth_function(
-        all_routes, no_auth_endpoints, mora.auth.keycloak.oidc.auth
+        all_routes, no_auth_endpoints, mora.auth.keycloak.oidc.fetch_token
     )
 
 
@@ -178,7 +178,7 @@ def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(
     # all excluded endpoints must be explicitly specified in the list
 
     ensure_no_auth_endpoints_do_not_depend_on_auth_function(
-        all_routes, no_auth_endpoints, mora.auth.keycloak.oidc.auth
+        all_routes, no_auth_endpoints, mora.auth.keycloak.oidc.fetch_token
     )
 
 
@@ -302,7 +302,7 @@ def test_401_when_uuid_missing_in_token(
         raise AuthenticationError(exc=validation_err)
 
     app = raw_client.app
-    app.dependency_overrides[auth] = fake_auth
+    app.dependency_overrides[fetch_token] = fake_auth
 
     # Make call to random endpoint
     response = raw_client.get("/service/o/", headers=auth_headers)
@@ -318,7 +318,7 @@ def test_missing_service_api_access(
     app = raw_client.app
 
     # Switch to a user without ServiceAPI permission
-    app.dependency_overrides[auth] = serviceapiless_auth
+    app.dependency_overrides[fetch_token] = serviceapiless_auth
 
     # Make call to random endpoint
     response = raw_client.get("/service/o/")
@@ -326,7 +326,7 @@ def test_missing_service_api_access(
     assert response.json() == {"status": "Forbidden", "msg": "The Service API is gone"}
 
     # Switch to a user with ServiceAPI permission
-    app.dependency_overrides[auth] = fake_auth
+    app.dependency_overrides[fetch_token] = fake_auth
 
     # Make call to random endpoint
     response = raw_client.get("/service/o/")
