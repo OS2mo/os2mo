@@ -5,6 +5,7 @@ from typing import Protocol
 from uuid import UUID
 
 import pytest
+from more_itertools import one
 
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
@@ -391,3 +392,50 @@ async def test_owner_with_input_list(
 
     assert r.errors is not None
     assert r.data is not None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_refresh_as_owner_denied(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Calling employee_refresh as owner fails missing permission."""
+    set_auth(OWNER, None)
+
+    r = graphapi_post(
+        """
+        mutation RefreshEmployee {
+          employee_refresh {
+            objects
+          }
+        }
+        """,
+    )
+    error = one(r.errors)
+    assert error["message"] == "User does not have refresh-access to employee"
+    assert error["path"] == ["employee_refresh"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_delete_as_owner_denied(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Calling employee_delete as owner fails missing permission."""
+    set_auth(OWNER, None)
+
+    r = graphapi_post(
+        """
+        mutation DeleteEmployee($uuid: UUID!) {
+          employee_delete(uuid: $uuid) {
+            uuid
+          }
+        }
+        """,
+        variables={"uuid": "22222222-2222-2222-2222-222222222222"},
+    )
+    error = one(r.errors)
+    assert error["message"] == "User does not have delete-access to employee"
+    assert error["path"] == ["employee_delete"]
