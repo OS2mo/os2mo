@@ -196,12 +196,6 @@ async def legacy_auth_adapter(request: Request) -> Token:  # pragma: no cover
     return await fetch_keycloak_token(request)
 
 
-if config.get_settings().os2mo_legacy_sessions:  # pragma: no cover
-    auth = legacy_auth_adapter
-else:
-    auth = keycloak_auth
-
-
 def authorization_exception_handler(
     request: Request, err: AuthorizationError
 ) -> JSONResponse:
@@ -222,7 +216,7 @@ async def fetch_token(request: Request) -> Token:
     Raises:
         HTTPException: If no token is present or it fails validation.
     """
-    if auth == legacy_auth_adapter:  # pragma: no cover
+    if config.get_settings().os2mo_legacy_sessions:  # pragma: no cover
         return await legacy_auth_adapter(request)
     return await fetch_keycloak_token(request)
 
