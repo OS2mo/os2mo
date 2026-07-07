@@ -396,9 +396,6 @@ async def test_owner_with_input_list(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-@pytest.mark.xfail(
-    reason="employee_refresh crashes with KeyError('input') instead of denying"
-)
 async def test_refresh_as_owner_denied(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
@@ -422,9 +419,6 @@ async def test_refresh_as_owner_denied(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-@pytest.mark.xfail(
-    reason="employee_delete crashes with KeyError('input') instead of denying"
-)
 async def test_delete_as_owner_denied(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
