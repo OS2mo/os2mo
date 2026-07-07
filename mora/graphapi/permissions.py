@@ -76,10 +76,10 @@ class IsAuthenticatedPermission(BasePermission):
     async def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
         """Returns `True` if a valid token exists."""
         try:
-            token = await info.context.get_token()
+            await info.context.get_token()
         except HTTPException as e:
             raise PermissionError(e.detail) from e
-        return token is not None
+        return True
 
 
 @cache
