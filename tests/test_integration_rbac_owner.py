@@ -396,11 +396,14 @@ async def test_owner_with_input_list(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-async def test_refresh_as_owner_crashes_keyerror(
+@pytest.mark.xfail(
+    reason="employee_refresh crashes with KeyError('input') instead of denying"
+)
+async def test_refresh_as_owner_denied(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
 ) -> None:
-    """Calling employee_refresh as owner fails with KeyError."""
+    """Calling employee_refresh as owner fails missing permission."""
     set_auth(OWNER, None)
 
     r = graphapi_post(
@@ -413,17 +416,20 @@ async def test_refresh_as_owner_crashes_keyerror(
         """,
     )
     error = one(r.errors)
-    assert error["message"] == "'input'"
+    assert error["message"] == "User does not have refresh-access to employee"
     assert error["path"] == ["employee_refresh"]
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-async def test_delete_as_owner_crashes_keyerror(
+@pytest.mark.xfail(
+    reason="employee_delete crashes with KeyError('input') instead of denying"
+)
+async def test_delete_as_owner_denied(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
 ) -> None:
-    """Calling employee_delete as owner fails with KeyError."""
+    """Calling employee_delete as owner fails missing permission."""
     set_auth(OWNER, None)
 
     r = graphapi_post(
@@ -437,5 +443,5 @@ async def test_delete_as_owner_crashes_keyerror(
         variables={"uuid": "22222222-2222-2222-2222-222222222222"},
     )
     error = one(r.errors)
-    assert error["message"] == "'input'"
+    assert error["message"] == "User does not have delete-access to employee"
     assert error["path"] == ["employee_delete"]
