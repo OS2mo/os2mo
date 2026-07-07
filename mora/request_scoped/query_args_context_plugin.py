@@ -17,5 +17,7 @@ async def query_args_context(request: Request) -> AsyncIterator[None]:
         canonical_log_context()[_MIDDLEWARE_KEY] = dict(request.query_params)
     canonical_log_context()["path"] = request.url.path
     canonical_log_context()["method"] = request.method
+    # The referrer shows which naldo page the user made the request from
+    canonical_log_context()["refferer"] = request.headers.get("referer")
     with request_cycle_context(data):
         yield
