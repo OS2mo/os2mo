@@ -315,7 +315,7 @@ class Query:
     healths: Paged[Health] = strawberry.field(
         resolver=to_paged(health_resolver),
         description="Query healthcheck status.",
-        permission_classes=[],
+        permission_classes=[IsAuthenticatedPermission],
     )
 
     # Files
@@ -403,7 +403,7 @@ class Query:
     # -------
     @strawberry.field(
         description="Get component versions of OS2mo.",
-        permission_classes=[],
+        permission_classes=[IsAuthenticatedPermission],
     )
     async def version(self) -> Version:
         return Version()
