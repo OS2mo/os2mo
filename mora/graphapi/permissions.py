@@ -107,10 +107,7 @@ async def _check_rbac(
 
         input = kwargs["input"]
         entities = {
-            x
-            async for x in get_entities_graphql(
-                input, collection, permission_type
-            )
+            x async for x in get_entities_graphql(input, collection, permission_type)
         }
         with suppress(AuthorizationError):
             await check_owner(token, entities)
