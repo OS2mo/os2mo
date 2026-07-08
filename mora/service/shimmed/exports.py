@@ -24,7 +24,7 @@ from sqlalchemy import select
 from starlette.datastructures import UploadFile
 
 from mora import exceptions
-from mora.auth.keycloak.oidc import auth
+from mora.auth.keycloak.oidc import fetch_token
 from mora.db import FileToken
 from mora.graphapi.shim import execute_graphql
 from mora.service.exports import router as exports_router
@@ -53,7 +53,7 @@ async def purge_all_filetokens(
     response_model=list[str],
     response_model_exclude_unset=True,
     responses={"500": {"description": "Directory does not exist"}},
-    dependencies=[Depends(auth), Depends(purge_all_filetokens)],
+    dependencies=[Depends(fetch_token), Depends(purge_all_filetokens)],
 )
 async def list_export_files(
     response: Response,
@@ -94,7 +94,7 @@ async def list_export_files(
     response_model=str,
     response_model_exclude_unset=True,
     responses={"500": {"description": "Directory does not exist"}},
-    dependencies=[Depends(auth)],
+    dependencies=[Depends(fetch_token)],
 )
 async def upload_export_file(
     file_name: str = Path(..., description="Name of the export file."),

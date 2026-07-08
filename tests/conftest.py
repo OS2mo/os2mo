@@ -39,7 +39,7 @@ from mora import db
 from mora.app import create_app
 from mora.auth import middleware as auth_middleware
 from mora.auth.keycloak.oidc import Token
-from mora.auth.keycloak.oidc import auth
+from mora.auth.keycloak.oidc import fetch_token
 from mora.auth.keycloak.oidc import token_getter
 from mora.config import get_settings
 from mora.graphapi.gmodels.mo import Validity as GValidity
@@ -248,7 +248,7 @@ def set_auth(
 
             return _get
 
-        fastapi_admin_test_app.dependency_overrides[auth] = _auth
+        fastapi_admin_test_app.dependency_overrides[fetch_token] = _auth
         fastapi_admin_test_app.dependency_overrides[token_getter] = _token_getter
 
     return _set_auth
@@ -318,7 +318,7 @@ async def mocked_context() -> YieldFixture[None]:
 def fastapi_test_app(monkeypatch, sessionmakermaker) -> FastAPI:
     app = create_app()
     monkeypatch.setattr(db, "_get_sessionmaker", sessionmakermaker.get_sessionmaker)
-    app.dependency_overrides[auth] = admin_auth
+    app.dependency_overrides[fetch_token] = admin_auth
     app.dependency_overrides[token_getter] = admin_token_getter
     return app
 
@@ -327,7 +327,7 @@ def fastapi_test_app(monkeypatch, sessionmakermaker) -> FastAPI:
 def fastapi_admin_test_app(monkeypatch, sessionmakermaker) -> FastAPI:
     app = create_app()
     monkeypatch.setattr(db, "_get_sessionmaker", sessionmakermaker.get_sessionmaker)
-    app.dependency_overrides[auth] = admin_auth
+    app.dependency_overrides[fetch_token] = admin_auth
     app.dependency_overrides[token_getter] = admin_token_getter
     return app
 

@@ -13,7 +13,7 @@ from starlette.status import HTTP_201_CREATED
 from starlette.status import HTTP_400_BAD_REQUEST
 from starlette.status import HTTP_403_FORBIDDEN
 
-from mora.auth.keycloak.oidc import auth
+from mora.auth.keycloak.oidc import fetch_token
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
 from mora.mapping import PERSON
@@ -66,7 +66,7 @@ async def create_lis_owner(
     service_client: TestClient,
     create_employee_owner_payload: dict[str, Any],
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(ADMIN, FEDTMULE)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(ADMIN, FEDTMULE)
 
     payload = create_employee_owner_payload
     response = service_client.request("POST", "/service/details/create", json=payload)
@@ -80,7 +80,7 @@ async def create_fedtmule_owner(
     create_employee_owner_payload: dict[str, Any],
 ) -> None:
     # Let Anders And be the owner of Erik Smidt Hansen
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(ADMIN, ANDERS_AND)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(ADMIN, ANDERS_AND)
 
     payload = create_employee_owner_payload
     payload[PERSON][UUID] = FEDTMULE
@@ -96,7 +96,7 @@ async def create_erik_owner(
     create_employee_owner_payload: dict[str, Any],
 ) -> None:
     # Let Anders And be the owner of Erik Smidt Hansen
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(ADMIN, ANDERS_AND)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(ADMIN, ANDERS_AND)
 
     payload = create_employee_owner_payload
     payload[PERSON][UUID] = ERIK_SMIDT_HANSEN
@@ -174,7 +174,7 @@ def test_create_employee(
     userid: str,
     status_code: int,
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
     response = service_client.request(
         "POST",
         "/service/e/create",
@@ -203,7 +203,7 @@ def test_creating_detail_address(
     userid: str,
     status_code: int,
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
 
     # Payload for creating detail (phone number) on employee
     payload = one(
@@ -223,7 +223,7 @@ def test_201_when_creating_it_system_detail_as_owner_of_employee(
     create_it_system_payload: dict[str, Any],
 ) -> None:
     # Use user "Anders And" (who owns the employee)
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(OWNER, ANDERS_AND)
 
     payload = [create_it_system_payload]
 
@@ -239,7 +239,7 @@ def test_201_when_creating_multiple_it_system_details_as_owner_of_employee(
     create_it_system_payload: dict[str, Any],
 ) -> None:
     # Use user "Anders And" (who owns the employee)
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(OWNER, ANDERS_AND)
 
     payload = [create_it_system_payload, create_it_system_payload]
 
@@ -263,7 +263,7 @@ def test_create_employment(
     userid: str,
     status_code: int,
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
 
     payload = create_employment_payload
 
@@ -278,7 +278,7 @@ def test_create_multiple_employments_owns_one_unit_but_not_the_other(
     service_client: TestClient,
 ) -> None:
     # Use user "Anders And" (who owns one unit but not the other)
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(OWNER, ANDERS_AND)
 
     payload = jsonfile_to_dict("tests/fixtures/rbac/create_multiple_employments.json")
     response = service_client.request("POST", "/service/details/create", json=payload)
@@ -293,7 +293,7 @@ def test_create_multiple_employments_owns_all_units(
     create_employment_payload: dict[str, Any],
 ) -> None:
     # Use user "Anders And" (who owns all units)
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(OWNER, ANDERS_AND)
 
     payload = [create_employment_payload, create_employment_payload]
 
@@ -308,7 +308,7 @@ def test_create_multiple_associations_owns_one_unit_but_not_the_other(
     service_client: TestClient,
 ) -> None:
     # Use user "Anders And" (who owns one unit but not the other)
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(OWNER, ANDERS_AND)
 
     create_multiple_associations = jsonfile_to_dict(
         "tests/fixtures/rbac/create_multiple_associations.json"
@@ -326,7 +326,7 @@ def test_create_multiple_associations_owns_all_units(
     service_client: TestClient,
 ) -> None:
     # Use user "Anders And" (who owns all units)
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(OWNER, ANDERS_AND)
 
     create_multiple_associations = jsonfile_to_dict(
         "tests/fixtures/rbac/create_multiple_associations.json"
@@ -349,7 +349,7 @@ def test_create_association(
     userid: str,
     status_code: int,
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
 
     payload = create_employee_payload
     payload["type"] = "association"
@@ -377,7 +377,7 @@ def test_create_manager(
     userid: str,
     status_code: int,
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
 
     payload = create_employee_payload
     payload["type"] = "manager"
@@ -419,7 +419,7 @@ def test_object_types_in_list_must_be_identical(
     service_client: TestClient,
 ) -> None:
     # Use user "Anders And" (who owns all units)
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(OWNER, ANDERS_AND)
 
     create_multiple_associations = jsonfile_to_dict(
         "tests/fixtures/rbac/create_multiple_associations.json"
@@ -455,7 +455,7 @@ def test_edit(
     userid: str,
     status_code: int,
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
 
     payload = jsonfile_to_dict(f"tests/fixtures/rbac/{fixture}.json")
     response = service_client.request("POST", "/service/details/edit", json=payload)
@@ -490,7 +490,7 @@ def test_terminate_details(
     userid: str,
     status_code: int,
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
     response = service_client.request(
         "POST", "/service/details/terminate", json=payload
     )
@@ -507,7 +507,7 @@ def test_terminate_employee(
     userid: str,
     status_code: int,
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
     response = service_client.request(
         "POST",
         f"/service/e/{LIS_JENSEN}/terminate",
@@ -526,7 +526,7 @@ def test_employee_leave(
     userid: str,
     status_code: int,
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
     payload = jsonfile_to_dict("tests/fixtures/rbac/leave.json")
     response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == status_code

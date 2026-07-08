@@ -7,7 +7,7 @@ import pytest
 from fastapi import FastAPI
 from sqlalchemy import select
 
-from mora.auth.keycloak.oidc import auth
+from mora.auth.keycloak.oidc import fetch_token
 from mora.auth.keycloak.oidc import token_getter
 from mora.auth.middleware import MISSING_UUID_ON_TOKEN_UUID
 from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
@@ -167,7 +167,7 @@ async def test_unparsable_token(
 
         return _get
 
-    fastapi_admin_test_app.dependency_overrides[auth] = _auth
+    fastapi_admin_test_app.dependency_overrides[fetch_token] = _auth
     fastapi_admin_test_app.dependency_overrides[token_getter] = _token_getter
 
     facet_uuid = create_facet()

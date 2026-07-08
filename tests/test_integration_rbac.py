@@ -15,7 +15,7 @@ from starlette.status import HTTP_403_FORBIDDEN
 
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
-from mora.auth.keycloak.oidc import auth
+from mora.auth.keycloak.oidc import fetch_token
 from mora.auth.keycloak.rbac import _get_employee_uuid_via_it_system
 from mora.config import Settings
 from mora.mapping import ADMIN
@@ -165,7 +165,7 @@ def test_create_org_unit(
     :param userid: the UUID of the user
     :param status_code: the expected HTTP status code
     """
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
 
     payload = create_org_unit_payload
     response = service_client.request("POST", "/service/ou/create", json=payload)
@@ -179,7 +179,7 @@ def test_201_when_creating_unit_as_owner_of_parent_unit(
     service_client: TestClient,
     create_org_unit_payload: dict[str, Any],
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(OWNER, ANDERS_AND)
 
     payload = create_org_unit_payload
     payload["parent"]["uuid"] = HUM_UNIT
@@ -216,7 +216,7 @@ def test_create_top_level_unit(
     :param userid: the UUID of the user
     :param status_code: the expected HTTP status code
     """
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
 
     payload = create_org_unit_payload
     payload.pop("parent")
@@ -254,7 +254,7 @@ def test_rename_org_unit(
     :param userid: the UUID of the user
     :param status_code: the expected HTTP status code
     """
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
 
     # Payload for renaming Humanistisk Fakultet
     payload = {
@@ -278,7 +278,7 @@ def org_unit_no_details_uuid(
     create_org_unit_payload: dict[str, Any],
     org_unit_uuid_1: str,
 ) -> str:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(ADMIN, FEDTMULE)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(ADMIN, FEDTMULE)
 
     create_org_unit_payload["details"] = []
     create_org_unit_payload["parent"]["uuid"] = org_unit_uuid_1
@@ -320,7 +320,7 @@ def test_terminate_org_unit(
     :param userid: the UUID of the user
     :param status_code: the expected HTTP status code
     """
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
 
     # Payload for terminating the newly created org unit
     payload = {"validity": {"to": datetime.today().strftime("%Y-%m-%d")}}
@@ -361,7 +361,7 @@ def test_create_detail(
     :param userid: the UUID of the user
     :param status_code: the expected HTTP status code
     """
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
 
     payload = [address_create_payload]
     response = service_client.request("POST", "/service/details/create", json=payload)
@@ -376,7 +376,7 @@ def test_201_when_creating_multiple_details_as_owner_of_unit(
     address_create_payload: dict[str, Any],
 ) -> None:
     # Use user "Anders And" (who owns the unit)
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(OWNER, ANDERS_AND)
 
     payload = [address_create_payload, address_create_payload]
     response = service_client.request("POST", "/service/details/create", json=payload)
@@ -391,7 +391,7 @@ def test_400_when_creating_multiple_details_with_different_types(
     address_create_payload: dict[str, Any],
 ) -> None:
     # Use user "Anders And" (who owns the unit)
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(OWNER, ANDERS_AND)
 
     payload = [
         address_create_payload,
@@ -466,7 +466,7 @@ def test_edit_detail(
     :param userid: the UUID of the user
     :param status_code: the expected HTTP status code
     """
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
 
     # Payload for editing detail (phone number) on org unit (hum)
     payload = {
@@ -537,7 +537,7 @@ def test_rename_subunit(
     Test that an org unit can be modified by a user who owns the parent
     unit but not the unit subject to modification itself.
     """
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
 
     payload = {
         "type": "org_unit",
@@ -559,7 +559,7 @@ def org_unit_uuid_1(
     service_client: TestClient,
     create_org_unit_payload: dict[str, Any],
 ) -> str:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(ADMIN, FEDTMULE)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(ADMIN, FEDTMULE)
 
     payload = create_org_unit_payload
 
@@ -610,7 +610,7 @@ def org_unit_uuid_2(
     create_org_unit_payload: dict[str, Any],
     org_unit_uuid_1: str,
 ) -> str:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(ADMIN, FEDTMULE)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(ADMIN, FEDTMULE)
 
     create_org_unit_payload["parent"]["uuid"] = org_unit_uuid_1
     payload = create_org_unit_payload
@@ -648,7 +648,7 @@ def test_owner_of_unit(
     status_code: int,
 ) -> None:
     # Use user "Anders And" (who owns the parent unit)
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, owner)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(OWNER, owner)
 
     parent_uuid = org_unit_uuid_1 if one_is_parent else org_unit_uuid_2
 
@@ -696,7 +696,7 @@ def test_owner_of_unit(
 def test_terminate_x_as_owner_of_unit(
     fastapi_test_app: FastAPI, service_client: TestClient, payload: dict[str, Any]
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(OWNER, ANDERS_AND)
 
     response = service_client.request(
         "POST", "/service/details/terminate", json=payload
@@ -723,7 +723,7 @@ def test_terminate_x_as_owner_of_unit(
 def test_ownership_through_it_system(
     fastapi_test_app: FastAPI, service_client: TestClient, token_uuid, expected
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, token_uuid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(OWNER, token_uuid)
 
     payload = {
         "type": "address",
