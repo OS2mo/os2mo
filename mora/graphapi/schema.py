@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import time
 from collections.abc import AsyncIterator
+from collections.abc import Callable
 from contextlib import suppress
 from functools import cache
 from types import SimpleNamespace
@@ -196,7 +197,7 @@ class RBACExtension(SchemaExtension):
 
     async def resolve(  # type: ignore[override]
         self,
-        next_: AsyncIteratorOrIterator,
+        next_: Callable[..., Any],
         root: Any,
         info: GraphQLResolveInfo,
         **kwargs: dict[str, Any],

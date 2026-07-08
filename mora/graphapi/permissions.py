@@ -5,8 +5,8 @@ from typing import Any
 from typing import Literal
 from typing import get_args
 
+from graphql import GraphQLResolveInfo
 from graphql import OperationType
-from strawberry.types import Info
 
 from mora.auth.exceptions import AuthorizationError
 from mora.config import get_settings
@@ -64,7 +64,7 @@ ALL_PERMISSIONS = {
 
 
 async def _check_rbac(
-    info: Info,
+    info: GraphQLResolveInfo,
     permission_role: str,
     force_permission_check: bool,
     collection: Collections | None,
