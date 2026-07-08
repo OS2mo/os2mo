@@ -28,7 +28,6 @@ from .collections import Owner
 from .collections import RelatedUnit
 from .collections import RoleBinding
 from .moobject import MOObject
-from .permissions import IsAuthenticatedPermission
 from .registrationbase import RegistrationBase
 from .response import HasUUIDModel
 from .response import current_resolver
@@ -100,7 +99,6 @@ class ModelRegistration(IRegistration, Generic[MOObject]):
             This the entrypoint is appropriate to use for actual-state integrations and UIs.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission],
         resolver=registration_time_decorator(current_resolver),
     )
 
@@ -118,7 +116,6 @@ class ModelRegistration(IRegistration, Generic[MOObject]):
             For actual-state integrations, please consider using `current` instead.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission],
         resolver=registration_time_decorator(validity_resolver),
     )
 

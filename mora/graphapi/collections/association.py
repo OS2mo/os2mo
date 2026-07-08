@@ -17,7 +17,6 @@ from ..lazy import LazyEmployee
 from ..lazy import LazyITUser
 from ..lazy import LazyOrganisationUnit
 from ..models import ClassRead
-from ..permissions import IsAuthenticatedPermission
 from ..permissions import gen_read_permission
 from ..resolvers import class_resolver
 from ..resolvers import employee_resolver
@@ -52,7 +51,7 @@ class Association:
             * "Employee"
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
     )
 
     association_type: LazyClass | None = strawberry.field(
@@ -72,7 +71,7 @@ class Association:
             * "Employee"
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'association_type_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -96,7 +95,7 @@ class Association:
             Currently no replacement is in place, but specialized fields will probably arive in the future.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
     )
 
     dynamic_class: LazyClass | None = strawberry.field(
@@ -116,7 +115,7 @@ class Association:
             It is currently mainly used for (trade) union specification.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'dynamic_class_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -129,7 +128,7 @@ class Association:
             Marks associations with a trade union
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
     )
 
     trade_union: LazyClass | None = strawberry.field(
@@ -144,7 +143,7 @@ class Association:
             Marks associations with a trade union
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'trade_union_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -172,7 +171,7 @@ class Association:
             The calculate-primary integration can be used to automatically calculate and update primarity fields.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
     )
 
     primary: LazyClass | None = strawberry.field(
@@ -201,7 +200,7 @@ class Association:
             The calculate-primary integration can be used to automatically calculate and update primarity fields.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'primary_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -217,7 +216,7 @@ class Association:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        permission_classes=[gen_read_permission("employee")],
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -231,7 +230,7 @@ class Association:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        permission_classes=[gen_read_permission("employee")],
     )
 
     person: list[LazyEmployee] = strawberry.field(
@@ -246,7 +245,7 @@ class Association:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        permission_classes=[gen_read_permission("employee")],
         deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -260,7 +259,7 @@ class Association:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
@@ -276,7 +275,7 @@ class Association:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        permission_classes=[gen_read_permission("org_unit")],
         deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -290,7 +289,7 @@ class Association:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        permission_classes=[gen_read_permission("employee")],
     )
 
     substitute: list[LazyEmployee] = strawberry.field(
@@ -306,7 +305,7 @@ class Association:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        permission_classes=[gen_read_permission("employee")],
         deprecation_reason="Use 'subsitute_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -324,7 +323,7 @@ class Association:
             * "Jurist"
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
     )
 
     job_function: LazyClass | None = strawberry.field(
@@ -344,7 +343,7 @@ class Association:
             * "Jurist"
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'job_function_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -358,7 +357,7 @@ class Association:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
+        permission_classes=[gen_read_permission("ituser")],
     )
 
     it_user: list[LazyITUser] = strawberry.field(
@@ -373,7 +372,7 @@ class Association:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
+        permission_classes=[gen_read_permission("ituser")],
         deprecation_reason="Use 'it_user_response' instead. Will be removed in a future version of OS2mo.",
     )
 

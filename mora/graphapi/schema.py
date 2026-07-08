@@ -135,6 +135,18 @@ class IntrospectionQueryCacheExtension(SchemaExtension):
         self.cache.setdefault(cache_key, execution_context.result)
 
 
+class IsAuthenticatedExtension(SchemaExtension):
+    """Schema-level extension that requires authentication for all GraphQL operations."""
+
+    async def on_operation(self) -> AsyncIterator[None]:
+        context = self.execution_context.context
+        try:
+            await context.get_token()
+        except Exception as e:
+            raise GraphQLError("User is not authenticated") from e
+        yield
+
+
 @cache
 def get_schema(version: Version) -> CustomSchema:
     """Instantiate Strawberry Schema."""
@@ -167,6 +179,7 @@ def get_schema(version: Version) -> CustomSchema:
         ],
         extensions=[
             StarletteContextExtension,
+            IsAuthenticatedExtension,
             LogContextExtension,
             RuntimeContextExtension,
             RollbackOnError,

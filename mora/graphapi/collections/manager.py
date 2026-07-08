@@ -19,7 +19,6 @@ from ..lazy import LazyEngagement
 from ..lazy import LazyOrganisationUnit
 from ..models import ClassRead
 from ..paged import Paged
-from ..permissions import IsAuthenticatedPermission
 from ..permissions import gen_read_permission
 from ..resolvers import class_resolver
 from ..resolvers import employee_resolver
@@ -60,7 +59,7 @@ class Manager:
             * "Center manager"
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
     )
 
     manager_type: LazyClass = strawberry.field(
@@ -80,7 +79,7 @@ class Manager:
             * "Center manager"
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'manager_type_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -99,7 +98,7 @@ class Manager:
             * "Level 3"
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
     )
 
     manager_level: LazyClass = strawberry.field(
@@ -120,7 +119,7 @@ class Manager:
             * "Level 3"
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'manager_level_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -141,7 +140,7 @@ class Manager:
             * `[]`
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
     )
 
     responsibilities: list[LazyClass] = strawberry.field(
@@ -161,7 +160,7 @@ class Manager:
             * `[]`
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'responsibilities_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -187,7 +186,7 @@ class Manager:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        permission_classes=[gen_read_permission("employee")],
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -203,7 +202,7 @@ class Manager:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        permission_classes=[gen_read_permission("employee")],
     )
 
     person: list[LazyEmployee] | None = strawberry.field(
@@ -228,7 +227,7 @@ class Manager:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        permission_classes=[gen_read_permission("employee")],
         deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -242,7 +241,7 @@ class Manager:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
@@ -258,7 +257,7 @@ class Manager:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        permission_classes=[gen_read_permission("org_unit")],
         deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -271,10 +270,7 @@ class Manager:
             Engagement that this manager role is associated with.
             """
         ),
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("engagement"),
-        ],
+        permission_classes=[gen_read_permission("engagement")],
     )
 
     @strawberry.field(

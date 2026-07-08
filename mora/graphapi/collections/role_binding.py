@@ -15,7 +15,6 @@ from ..lazy import LazyITUser
 from ..lazy import LazyOrganisationUnit
 from ..models import ClassRead
 from ..models import RoleBindingRead
-from ..permissions import IsAuthenticatedPermission
 from ..permissions import gen_read_permission
 from ..resolvers import class_resolver
 from ..resolvers import it_user_resolver
@@ -53,7 +52,7 @@ class RoleBinding:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
     )
 
     role: list[LazyClass] = strawberry.field(
@@ -71,7 +70,7 @@ class RoleBinding:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'role_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -79,7 +78,7 @@ class RoleBinding:
         resolver=lambda root: Response(model=ITUserRead, uuid=root.it_user_uuid),
         description="The IT-user that should be granted this role\n"
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
+        permission_classes=[gen_read_permission("ituser")],
     )
 
     ituser: list[LazyITUser] = strawberry.field(
@@ -90,7 +89,7 @@ class RoleBinding:
         ),
         description="The IT-user that should be granted this role\n"
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
+        permission_classes=[gen_read_permission("ituser")],
         deprecation_reason="Use 'ituser_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -106,7 +105,7 @@ class RoleBinding:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
@@ -122,7 +121,7 @@ class RoleBinding:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        permission_classes=[gen_read_permission("org_unit")],
         deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 

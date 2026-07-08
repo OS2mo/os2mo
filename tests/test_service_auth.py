@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from fastapi.routing import APIWebSocketRoute
 from fastapi.testclient import TestClient
+from more_itertools import one
 from pydantic import MissingError
 from pydantic import ValidationError
 from pydantic.error_wrappers import ErrorWrapper
@@ -225,16 +226,9 @@ async def test_auth_service_with_payload(raw_client: TestClient, url: str) -> No
 async def test_no_auth_graphql(raw_client: TestClient, latest_graphql_url: str) -> None:
     response = raw_client.post(latest_graphql_url, json={"query": "{ org { uuid } }"})
     assert response.status_code == 200
-    assert response.json() == {
-        "data": None,
-        "errors": [
-            {
-                "locations": [{"column": 3, "line": 1}],
-                "message": "Not authenticated",
-                "path": ["org"],
-            }
-        ],
-    }
+    payload = response.json()
+    assert payload["data"] is None
+    assert one(payload["errors"])["message"] == "User is not authenticated"
 
 
 @pytest.mark.integration_test

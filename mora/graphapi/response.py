@@ -38,7 +38,6 @@ from .models import FacetRead
 from .models import RoleBindingRead
 from .moobject import MOObject
 from .paged import to_objects
-from .permissions import IsAuthenticatedPermission
 from .registrationbase import Registration
 from .registrationbase import RegistrationBase
 from .resolver_map import get_dataloader
@@ -199,7 +198,6 @@ class ResponseRegistration(RegistrationBase, Generic[MOObject]):
             For actual-state integrations, please consider using `current` instead.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission],
     )
     async def current(
         self,
@@ -225,7 +223,6 @@ class ResponseRegistration(RegistrationBase, Generic[MOObject]):
             For actual-state integrations, please consider using `current` instead.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission],
     )
     async def validities(  # pragma: no cover
         self,
@@ -278,7 +275,6 @@ class Response(Generic[MOObject]):
             This the entrypoint is appropriate to use for actual-state integrations and UIs.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission],
         resolver=current_resolver,
     )
 
@@ -296,7 +292,6 @@ class Response(Generic[MOObject]):
             For actual-state integrations, please consider using `current` instead.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission],
         deprecation_reason=dedent(
             """
             Will be removed in a future version of GraphQL.
@@ -322,7 +317,6 @@ class Response(Generic[MOObject]):
             For actual-state integrations, please consider using `current` instead.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission],
     )
     async def validities(
         self,
@@ -355,7 +349,6 @@ class Response(Generic[MOObject]):
             Such integration should rather utilize the GraphQL-based event-system.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission],
         resolver=to_objects(
             seed_resolver(
                 registration_resolver,
@@ -388,7 +381,6 @@ class Response(Generic[MOObject]):
             Such integration should rather utilize the GraphQL-based event-system.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission],
         resolver=to_objects(
             seed_resolver(
                 registration_resolver,

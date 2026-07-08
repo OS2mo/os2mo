@@ -25,7 +25,6 @@ from ..lazy import LazyLeave
 from ..lazy import LazyManager
 from ..models import AddressRead
 from ..paged import Paged
-from ..permissions import IsAuthenticatedPermission
 from ..permissions import gen_read_permission
 from ..resolvers import address_resolver
 from ..resolvers import association_resolver
@@ -89,10 +88,7 @@ class Employee:
             May be an empty list if the employee is not employeed.
             """
         ),
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("engagement"),
-        ],
+        permission_classes=[gen_read_permission("engagement")],
     )
 
     engagements: list[LazyEngagement] = strawberry.field(
@@ -116,10 +112,7 @@ class Employee:
             May be an empty list if the employee is not employeed.
             """
         ),
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("engagement"),
-        ],
+        permission_classes=[gen_read_permission("engagement")],
         deprecation_reason="Use 'engagements_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -144,7 +137,7 @@ class Employee:
             Usually an empty list as most employees are not managers.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
+        permission_classes=[gen_read_permission("manager")],
     )
 
     manager_roles: list[LazyManager] = strawberry.field(
@@ -168,7 +161,7 @@ class Employee:
             Usually an empty list as most employees are not managers.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
+        permission_classes=[gen_read_permission("manager")],
         deprecation_reason="Use 'manager_roles_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -199,7 +192,7 @@ class Employee:
             * Personal email
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
+        permission_classes=[gen_read_permission("address")],
     )
 
     addresses: list[LazyAddress] = strawberry.field(
@@ -229,7 +222,7 @@ class Employee:
             * Personal email
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
+        permission_classes=[gen_read_permission("address")],
         deprecation_reason="Use 'addresses_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -254,7 +247,7 @@ class Employee:
             Usually empty as most employees are not on leaves of absence.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
+        permission_classes=[gen_read_permission("leave")],
     )
 
     leaves: list[LazyLeave] = strawberry.field(
@@ -278,7 +271,7 @@ class Employee:
             Usually empty as most employees are not on leaves of absence.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
+        permission_classes=[gen_read_permission("leave")],
         deprecation_reason="Use 'leaves_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -303,10 +296,7 @@ class Employee:
             May be an empty list if the employee is not associated with projects, etc.
             """
         ),
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("association"),
-        ],
+        permission_classes=[gen_read_permission("association")],
     )
 
     associations: list[LazyAssociation] = strawberry.field(
@@ -330,10 +320,7 @@ class Employee:
             May be an empty list if the employee is not associated with projects, etc.
             """
         ),
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("association"),
-        ],
+        permission_classes=[gen_read_permission("association")],
         deprecation_reason="Use 'associations_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -358,7 +345,7 @@ class Employee:
             May be an empty list if the employee does not have any IT-access whatsoever.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
+        permission_classes=[gen_read_permission("ituser")],
     )
 
     itusers: list[LazyITUser] = strawberry.field(
@@ -382,7 +369,7 @@ class Employee:
             May be an empty list if the employee does not have any IT-access whatsoever.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
+        permission_classes=[gen_read_permission("ituser")],
         deprecation_reason="Use 'itusers_response' instead. Will be removed in a future version of OS2mo.",
     )
 

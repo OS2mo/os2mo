@@ -32,7 +32,6 @@ from ..lazy import LazyOrganisationUnit
 from ..models import AddressRead
 from ..models import ClassRead
 from ..paged import Paged
-from ..permissions import IsAuthenticatedPermission
 from ..permissions import gen_read_permission
 from ..resolvers import address_resolver
 from ..resolvers import class_resolver
@@ -95,7 +94,7 @@ class Engagement:
             )
         ),
         description="Addresses connected to the engagement.",
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
+        permission_classes=[gen_read_permission("address")],
     )
 
     engagement_type_response: Response[LazyClass] = strawberry.field(  # type: ignore
@@ -110,7 +109,7 @@ class Engagement:
             * `"Employee (hourly wage)"`
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
     )
 
     engagement_type: LazyClass = strawberry.field(
@@ -130,7 +129,7 @@ class Engagement:
             * `"Employee (hourly wage)"`
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'engagement_type_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -146,7 +145,7 @@ class Engagement:
             * `"Jurist"`
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
     )
 
     job_function: LazyClass = strawberry.field(
@@ -166,7 +165,7 @@ class Engagement:
             * `"Jurist"`
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'job_function_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -194,7 +193,7 @@ class Engagement:
             The calculate-primary integration can be used to automatically calculate and update primarity fields.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
     )
 
     primary: LazyClass | None = strawberry.field(
@@ -223,7 +222,7 @@ class Engagement:
             The calculate-primary integration can be used to automatically calculate and update primarity fields.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'primary_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -248,7 +247,7 @@ class Engagement:
         if root.leave_uuid
         else None,
         description="Related leave",
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
+        permission_classes=[gen_read_permission("leave")],
     )
 
     leave: LazyLeave | None = strawberry.field(
@@ -258,7 +257,7 @@ class Engagement:
             )
         ),
         description="Related leave",
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
+        permission_classes=[gen_read_permission("leave")],
         deprecation_reason="Use 'leave_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -274,7 +273,7 @@ class Engagement:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        permission_classes=[gen_read_permission("employee")],
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -286,7 +285,7 @@ class Engagement:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        permission_classes=[gen_read_permission("employee")],
     )
 
     person: list[LazyEmployee] = strawberry.field(
@@ -301,7 +300,7 @@ class Engagement:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        permission_classes=[gen_read_permission("employee")],
         deprecation_reason="Use 'person_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -315,7 +314,7 @@ class Engagement:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
@@ -331,7 +330,7 @@ class Engagement:
             """
         )
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        permission_classes=[gen_read_permission("org_unit")],
         deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -349,7 +348,7 @@ class Engagement:
             )
         ),
         description="Connected IT-user.\n",
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
+        permission_classes=[gen_read_permission("ituser")],
     )
 
     itusers: list[Response[LazyITUser]] = strawberry.field(
@@ -366,7 +365,7 @@ class Engagement:
             )
         ),
         description="Connected IT-user.\n",
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
+        permission_classes=[gen_read_permission("ituser")],
         deprecation_reason="Use 'itusers_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -441,7 +440,7 @@ class Engagement:
             See the `inherit`-flag for details.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
+        permission_classes=[gen_read_permission("manager")],
     )
     async def managers(
         self,
