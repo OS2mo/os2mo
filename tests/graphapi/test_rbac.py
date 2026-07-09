@@ -8,6 +8,7 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
+from graphql import GraphQLObjectType
 from graphql import NameNode
 from graphql import VariableNode
 from hypothesis import HealthCheck
@@ -25,9 +26,11 @@ from mora.graphapi.events import EventToken
 from mora.graphapi.gmodels.mo import OrganisationRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.models import AddressRead
+from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.schema import get_schema
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.version import LATEST_VERSION
+from mora.graphapi.version import Version
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
@@ -66,6 +69,28 @@ async def load_all_addresses(**kwargs) -> dict[UUID, list[AddressRead]]:
 
 async def load_addresses(keys: list[UUID]) -> list[list[AddressRead]]:
     return [[] * len(keys)]
+
+
+def test_rbac_map_covers_schema() -> None:
+    """RBAC is reject-by-default, so `RBAC_MAP` must cover the full schema.
+
+    Conversely, stale entries which do not correspond to any schema field
+    are dead rules, and therefore most likely mistakes.
+    """
+    schema_fields = set()
+    for version in Version:
+        schema = get_schema(version)._schema
+        for name, type_ in schema.type_map.items():
+            if name.startswith("__"):
+                continue
+            if isinstance(type_, GraphQLObjectType):
+                schema_fields.update((name, field) for field in type_.fields)
+
+    missing = schema_fields - RBAC_MAP.keys()
+    assert missing == set(), f"Schema fields without an RBAC_MAP entry: {missing}"
+
+    stale = RBAC_MAP.keys() - schema_fields
+    assert stale == set(), f"RBAC_MAP entries without a schema field: {stale}"
 
 
 @pytest.mark.integration_test
