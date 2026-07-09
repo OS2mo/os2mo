@@ -12,7 +12,6 @@ import mora.auth.keycloak.uuid_extractor as uuid_extractor
 import mora.config
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
-from mora.auth.keycloak.owner import get_owners
 from mora.graphapi.shim import execute_graphql
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
@@ -121,12 +120,66 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
     raise AuthorizationError("Not authorized to perform this operation")
 
 
+async def _is_owner_org_unit(user_uuid: UUID, entity_uuid: UUID) -> bool:
+    """Check whether `user_uuid` owns the org unit or one of its ancestors.
+
+    The `descendant` filter grants ownership via the unit itself or any of its
+    ancestors, reproducing the ancestor-inheritance semantics that ownership
+    checks have always had for org units.
+    """
+    query = """
+    query CheckOrgUnitOwner($filter: OrganisationUnitFilter!) {
+      org_units(filter: $filter) {
+        objects {
+          uuid
+        }
+      }
+    }
+    """
+    filter_value = {
+        "descendant": {"uuids": [entity_uuid]},
+        "owner": {"owner": {"uuids": [user_uuid]}},
+    }
+    r = await execute_graphql(
+        query,
+        variable_values=jsonable_encoder({"filter": filter_value}),
+    )
+    if r.errors or r.data is None:  # pragma: no cover
+        raise AuthorizationError("Error when checking ownership")
+    return bool(r.data["org_units"]["objects"])
+
+
+async def _is_owner_employee(user_uuid: UUID, entity_uuid: UUID) -> bool:
+    """Check whether `user_uuid` owns the employee."""
+    query = """
+    query CheckEmployeeOwner($filter: EmployeeFilter!) {
+      employees(filter: $filter) {
+        objects {
+          uuid
+        }
+      }
+    }
+    """
+    filter_value = {
+        "uuids": [entity_uuid],
+        "owner": {"owner": {"uuids": [user_uuid]}},
+    }
+    r = await execute_graphql(
+        query,
+        variable_values=jsonable_encoder({"filter": filter_value}),
+    )
+    if r.errors or r.data is None:  # pragma: no cover
+        raise AuthorizationError("Error when checking ownership")
+    return bool(r.data["employees"]["objects"])
+
+
 async def _is_owner(
     user_uuid: UUID, entity_type: EntityType, entity_uuid: UUID
 ) -> bool:
-    """Check whether `user_uuid` owns the given entity."""
-    owners = await get_owners(entity_uuid, entity_type)
-    return user_uuid in owners
+    """Check ownership of a single entity through the GraphQL owner filters."""
+    if entity_type == EntityType.ORG_UNIT:
+        return await _is_owner_org_unit(user_uuid, entity_uuid)
+    return await _is_owner_employee(user_uuid, entity_uuid)
 
 
 async def check_owner(token: Token, entities: set[tuple[EntityType, UUID]]) -> None:
