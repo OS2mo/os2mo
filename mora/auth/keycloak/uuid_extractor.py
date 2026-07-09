@@ -295,7 +295,9 @@ async def get_entity_type(request: Request) -> EntityType:
 
 
 async def get_entities_graphql(
-    raw_input: Any, collection: Collections, permission_type: CollectionPermissionType
+    raw_input: list[Any],
+    collection: Collections,
+    permission_type: CollectionPermissionType,
 ) -> AsyncIterable[tuple[EntityType, UUID]]:
     """Extract the types and UUID(s) for the relevant entities (org unit or employee).
 
@@ -303,7 +305,9 @@ async def get_entities_graphql(
     defined above.
 
     Args:
-        input: The `input` object from the GraphQL mutator.
+        raw_input: The list of `input` objects from the GraphQL mutator. The
+            schema-level RBAC extension always normalises this to a list (see
+            `mora.graphapi.schema._enforce_rbac`).
         collection: The object collection (address, employee, org_unit, etc.).
         permission_type: The operation type (create, update, terminate, delete).
 
@@ -362,9 +366,6 @@ async def get_entities_graphql(
             return
         yield EntityType.EMPLOYEE, getattr(input, "employee", None)
         yield EntityType.EMPLOYEE, getattr(input, "person", None)
-
-    if not isinstance(raw_input, list):
-        raw_input = [raw_input]
 
     for input in raw_input:
         async for entity_type, uuid in extract(input=input):

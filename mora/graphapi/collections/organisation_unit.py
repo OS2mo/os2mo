@@ -39,7 +39,6 @@ from ..lazy import LazyRelatedUnit
 from ..models import AddressRead
 from ..models import ClassRead
 from ..paged import Paged
-from ..permissions import gen_read_permission
 from ..resolvers import address_resolver
 from ..resolvers import association_resolver
 from ..resolvers import class_resolver
@@ -78,7 +77,6 @@ class OrganisationUnit:
             The parent organisation unit in the organisation tree.
             """
         ),
-        permission_classes=[gen_read_permission("org_unit")],
     )
     async def parent_response(
         self, root: OrganisationUnitRead, info: Info
@@ -104,7 +102,6 @@ class OrganisationUnit:
             The parent organisation unit in the organisation tree.
             """
         ),
-        permission_classes=[gen_read_permission("org_unit")],
         deprecation_reason="Use 'parent_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -140,7 +137,6 @@ class OrganisationUnit:
             time. If this is not the case, an error will be thrown.
             """
         ),
-        permission_classes=[gen_read_permission("org_unit")],
     )
 
     root: list[LazyOrganisationUnit] | None = strawberry.field(
@@ -163,7 +159,6 @@ class OrganisationUnit:
             The top-unit (root) of the organisation unit, in the hierarchy.
             """
         ),
-        permission_classes=[gen_read_permission("org_unit")],
         deprecation_reason="Use 'root_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -177,7 +172,6 @@ class OrganisationUnit:
             I.e. the list of all ancestors on the way to the organisation tree root.
             """
         ),
-        permission_classes=[gen_read_permission("org_unit")],
     )
     async def ancestors(
         self, root: OrganisationUnitRead, info: Info
@@ -212,7 +206,6 @@ class OrganisationUnit:
             The immediate descendants in the organisation tree
             """
         ),
-        permission_classes=[gen_read_permission("org_unit")],
     )
 
     children: list[LazyOrganisationUnit] = strawberry.field(
@@ -234,7 +227,6 @@ class OrganisationUnit:
             The immediate descendants in the organisation tree
             """
         ),
-        permission_classes=[gen_read_permission("org_unit")],
         deprecation_reason="Use 'children_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -251,7 +243,6 @@ class OrganisationUnit:
             strip={"parents"},
         ),
         description="Children count of the organisation unit. For performance, consider if `has_children` can answer your query instead.",
-        permission_classes=[gen_read_permission("org_unit")],
     )
 
     has_children: bool = strawberry.field(
@@ -267,7 +258,6 @@ class OrganisationUnit:
             strip={"parents"},
         ),
         description="Returns whether the organisation unit has children.",
-        permission_classes=[gen_read_permission("org_unit")],
     )
 
     # TODO: Should this be a list?
@@ -291,7 +281,6 @@ class OrganisationUnit:
             The organisation-gatekeeper integration is one option to keep hierarchy labels up-to-date.
         """
         ),
-        permission_classes=[gen_read_permission("class")],
     )
 
     # TODO: Remove org prefix from RAModel and remove it here too
@@ -320,7 +309,6 @@ class OrganisationUnit:
             The organisation-gatekeeper integration is one option to keep hierarchy labels up-to-date.
         """
         ),
-        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'unit_hierarchy_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -348,7 +336,6 @@ class OrganisationUnit:
             * "Project"
             """
         ),
-        permission_classes=[gen_read_permission("class")],
     )
 
     unit_type: LazyClass | None = strawberry.field(
@@ -377,7 +364,6 @@ class OrganisationUnit:
             * "Project"
             """
         ),
-        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'unit_type_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -396,7 +382,6 @@ class OrganisationUnit:
             * "N7"
             """
         ),
-        permission_classes=[gen_read_permission("class")],
     )
 
     # TODO: Remove org prefix from RAModel and remove it here too
@@ -418,7 +403,6 @@ class OrganisationUnit:
             * "N7"
             """
         ),
-        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'unit_level_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -432,7 +416,6 @@ class OrganisationUnit:
             Time planning strategy.
             """
         ),
-        permission_classes=[gen_read_permission("class")],
     )
 
     time_planning: LazyClass | None = strawberry.field(
@@ -448,7 +431,6 @@ class OrganisationUnit:
             Time planning strategy.
             """
         ),
-        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'time_planning_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -474,7 +456,6 @@ class OrganisationUnit:
             This situation may occur especially in the middle or the organisation tree.
             """
         ),
-        permission_classes=[gen_read_permission("engagement")],
     )
 
     engagements: list[LazyEngagement] = strawberry.field(
@@ -499,7 +480,6 @@ class OrganisationUnit:
             This situation may occur especially in the middle or the organisation tree.
             """
         ),
-        permission_classes=[gen_read_permission("engagement")],
         deprecation_reason="Use 'engagements_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -570,7 +550,6 @@ class OrganisationUnit:
             See the `inherit`-flag for details.
             """
         ),
-        permission_classes=[gen_read_permission("manager")],
         metadata=Metadata(version=lambda v: v <= GraphQLVersion.VERSION_23),
     )
     async def managers__v23(
@@ -625,7 +604,6 @@ class OrganisationUnit:
             See the `inherit`-flag for details.
             """
         ),
-        permission_classes=[gen_read_permission("manager")],
         metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_24),
     )
 
@@ -651,7 +629,6 @@ class OrganisationUnit:
             See the `inherit`-flag for details.
             """
         ),
-        permission_classes=[gen_read_permission("manager")],
         metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_24),
         deprecation_reason="Use 'managers_response' instead. Will be removed in a future version of OS2mo.",
     )
@@ -666,7 +643,6 @@ class OrganisationUnit:
             See the `inherit`-flag for details.
             """
         ),
-        permission_classes=[gen_read_permission("owner")],
     )
     async def owners(
         self,
@@ -746,7 +722,6 @@ class OrganisationUnit:
             * Contact email
             """
         ),
-        permission_classes=[gen_read_permission("address")],
     )
 
     addresses: list[LazyAddress] = strawberry.field(
@@ -773,7 +748,6 @@ class OrganisationUnit:
             * Contact email
             """
         ),
-        permission_classes=[gen_read_permission("address")],
         deprecation_reason="Use 'address_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -796,7 +770,6 @@ class OrganisationUnit:
             Connection to employees leaves of absence relevant for the organisation unit.
             """
         ),
-        permission_classes=[gen_read_permission("leave")],
     )
 
     leaves: list[LazyLeave] = strawberry.field(
@@ -818,7 +791,6 @@ class OrganisationUnit:
             Connection to employees leaves of absence relevant for the organisation unit.
             """
         ),
-        permission_classes=[gen_read_permission("leave")],
         deprecation_reason="Use 'leaves_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -844,7 +816,6 @@ class OrganisationUnit:
             This situation may occur especially in the middle or the organisation tree.
             """
         ),
-        permission_classes=[gen_read_permission("association")],
     )
 
     associations: list[LazyAssociation] = strawberry.field(
@@ -869,7 +840,6 @@ class OrganisationUnit:
             This situation may occur especially in the middle or the organisation tree.
             """
         ),
-        permission_classes=[gen_read_permission("association")],
         deprecation_reason="Use 'associations_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -895,7 +865,6 @@ class OrganisationUnit:
             This situation may occur especially in the middle or the organisation tree.
             """
         ),
-        permission_classes=[gen_read_permission("ituser")],
     )
 
     itusers: list[LazyITUser] = strawberry.field(
@@ -920,7 +889,6 @@ class OrganisationUnit:
             This situation may occur especially in the middle or the organisation tree.
             """
         ),
-        permission_classes=[gen_read_permission("ituser")],
         deprecation_reason="Use 'itusers_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -945,7 +913,6 @@ class OrganisationUnit:
             Can help out with regards to GDPR by identifying which organisational units operate with sensitive tasks.
             """
         ),
-        permission_classes=[gen_read_permission("kle")],
     )
 
     kles: list[LazyKLE] = strawberry.field(
@@ -969,7 +936,6 @@ class OrganisationUnit:
             Can help out with regards to GDPR by identifying which organisational units operate with sensitive tasks.
             """
         ),
-        permission_classes=[gen_read_permission("kle")],
         deprecation_reason="Use 'kles_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -992,7 +958,6 @@ class OrganisationUnit:
             Related units for the organisational unit.
             """
         ),
-        permission_classes=[gen_read_permission("related_unit")],
     )
 
     related_units: list[LazyRelatedUnit] = strawberry.field(
@@ -1014,7 +979,6 @@ class OrganisationUnit:
             Related units for the organisational unit.
             """
         ),
-        permission_classes=[gen_read_permission("related_unit")],
         deprecation_reason="Use 'related_units_response' instead. Will be removed in a future version of OS2mo.",
     )
 

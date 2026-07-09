@@ -24,7 +24,6 @@ from .paged import LimitType
 from .paged import ObjectsAndCursor
 from .paged import paginate
 from .paged import to_objects
-from .permissions import gen_read_permission
 from .seed_resolver import seed_resolver
 from .types import Cursor
 from .utils import uuid2list
@@ -261,7 +260,6 @@ class Namespace:
             )
         ),
         description="Listeners for this namespace",
-        permission_classes=[gen_read_permission("event_namespace")],
     )
 
 
@@ -280,7 +278,6 @@ class Listener:
 
     @strawberry.field(
         description="The namespace of the listener.",
-        permission_classes=[gen_read_permission("event_namespace")],
     )
     async def namespace(
         root: "Listener", info: strawberry.Info
@@ -297,7 +294,6 @@ class Listener:
             )
         ),
         description="Pending events for this listener. Use `event_fetch` to consume events.",
-        permission_classes=[gen_read_permission("event")],
     )
 
 
@@ -318,7 +314,6 @@ class FullEvent:
 
     @strawberry.field(
         description="The listener that will receive this event.",
-        permission_classes=[gen_read_permission("event_listener")],
     )
     async def listener(
         root: "FullEvent", info: strawberry.Info

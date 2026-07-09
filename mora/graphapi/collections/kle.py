@@ -17,7 +17,6 @@ from ..lazy import LazyClass
 from ..lazy import LazyOrganisationUnit
 from ..models import ClassRead
 from ..paged import Paged
-from ..permissions import gen_read_permission
 from ..resolvers import class_resolver
 from ..resolvers import organisation_unit_resolver
 from ..response import Response
@@ -84,7 +83,6 @@ class KLE:
             For more details read the `KLE` description.
             """
         ),
-        permission_classes=[gen_read_permission("class")],
         metadata=Metadata(version=lambda v: v <= GraphQLVersion.VERSION_22),
     )
 
@@ -97,7 +95,6 @@ class KLE:
             For more details read the `KLE` description.
             """
         ),
-        permission_classes=[gen_read_permission("class")],
     )
 
     kle_number__v23: list[LazyClass] = strawberry.field(
@@ -114,7 +111,6 @@ class KLE:
             For more details read the `KLE` description.
             """
         ),
-        permission_classes=[gen_read_permission("class")],
         metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_23),
         deprecation_reason="Use 'kle_number_response' instead. Will be removed in a future version of OS2mo.",
     )
@@ -138,7 +134,6 @@ class KLE:
             * "Responsible"
             """
         ),
-        permission_classes=[gen_read_permission("class")],
     )
 
     kle_aspects: list[LazyClass] = strawberry.field(
@@ -160,7 +155,6 @@ class KLE:
             * "Responsible"
             """
         ),
-        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'kle_aspects_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -175,7 +169,6 @@ class KLE:
             The organisation unit the responsibility is mapped to.
             """
         ),
-        permission_classes=[gen_read_permission("org_unit")],
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
@@ -197,7 +190,6 @@ class KLE:
             The organisation unit the responsibility is mapped to.
             """
         ),
-        permission_classes=[gen_read_permission("org_unit")],
         deprecation_reason="Use 'org_unit_response' instead. Will be removed in a future version of OS2mo.",
     )
 

@@ -17,7 +17,6 @@ from ..lazy import LazyITSystem
 from ..models import ClassRead
 from ..models import FacetRead
 from ..paged import Paged
-from ..permissions import gen_read_permission
 from ..resolvers import class_resolver
 from ..resolvers import facet_resolver
 from ..resolvers import it_system_resolver
@@ -57,7 +56,6 @@ class Class:
             The inverse operation of `children`.
             """
         ),
-        permission_classes=[gen_read_permission("class")],
     )
 
     parent: LazyClass | None = strawberry.field(
@@ -76,7 +74,6 @@ class Class:
             The inverse operation of `children`.
             """
         ),
-        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'parent_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -104,7 +101,6 @@ class Class:
             The inverse operation of `parent`.
             """
         ),
-        permission_classes=[gen_read_permission("class")],
     )
 
     children: list[LazyClass] = strawberry.field(
@@ -131,7 +127,6 @@ class Class:
             The inverse operation of `parent`.
             """
         ),
-        permission_classes=[gen_read_permission("class")],
         deprecation_reason="Use 'children_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -147,7 +142,6 @@ class Class:
             * `"engagement_job_function"`
             """
         ),
-        permission_classes=[gen_read_permission("facet")],
     )
 
     facet: LazyFacet = strawberry.field(
@@ -164,7 +158,6 @@ class Class:
             * `"engagement_job_function"`
             """
         ),
-        permission_classes=[gen_read_permission("facet")],
         deprecation_reason="Use 'facet_response' instead. Will be removed in a future version of OS2mo.",
     )
 
@@ -186,7 +179,6 @@ class Class:
             For now client-side recursion is the preferred replacement.
             """
         ),
-        permission_classes=[gen_read_permission("facet")],
     )
     async def top_level_facet(self, root: ClassRead, info: Info) -> LazyFacet:
         if root.parent_uuid is None:
@@ -207,7 +199,6 @@ class Class:
             This is intended to be used for (IT) roles.
             """
         ),
-        permission_classes=[gen_read_permission("itsystem")],
     )
 
     it_system: LazyITSystem | None = strawberry.field(
@@ -224,7 +215,6 @@ class Class:
             This is intended to be used for (IT) roles.
             """
         ),
-        permission_classes=[gen_read_permission("itsystem")],
         deprecation_reason="Use 'it_system_response' instead. Will be removed in a future version of OS2mo.",
     )
 

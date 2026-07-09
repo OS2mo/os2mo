@@ -26,7 +26,6 @@ from .events import Namespace
 from .events import listener_resolver
 from .events import namespace_resolver
 from .paged import to_objects
-from .permissions import gen_read_permission
 from .seed_resolver import seed_resolver
 
 BEFORE_ACTOR_UUID = UUID("42c432e8-9c4a-11e6-9f62-873cf34a735f")
@@ -128,7 +127,6 @@ class Actor:
             seed_resolver(namespace_resolver, {"owners": lambda root: [root.uuid]})
         ),
         description="Get event namespaces owned by this actor.",
-        permission_classes=[gen_read_permission("event_namespace")],
     )
 
     event_listeners: list[Listener] = strawberry.field(
@@ -136,7 +134,6 @@ class Actor:
             seed_resolver(listener_resolver, {"owners": lambda root: [root.uuid]})
         ),
         description="Get event listeners owned by this actor.",
-        permission_classes=[gen_read_permission("event_listener")],
     )
 
 

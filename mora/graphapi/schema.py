@@ -2,19 +2,24 @@
 # SPDX-License-Identifier: MPL-2.0
 import time
 from collections.abc import AsyncIterator
+from collections.abc import Callable
 from contextlib import suppress
 from functools import cache
+from types import SimpleNamespace
+from typing import Any
 
 import strawberry
 from fastapi.encoders import jsonable_encoder
 from graphql import ExecutionResult
 from graphql import GraphQLError
+from graphql import GraphQLResolveInfo
 from pydantic import PositiveInt
 from strawberry import Schema
 from strawberry.exceptions import StrawberryGraphQLError
 from strawberry.extensions import SchemaExtension
 from strawberry.schema.config import StrawberryConfig
 from strawberry.utils.await_maybe import AsyncIteratorOrIterator
+from strawberry.utils.await_maybe import await_maybe
 from structlog import get_logger
 
 from mora import config
@@ -43,11 +48,14 @@ from mora.graphapi.model_registration import PersonRegistration
 from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
+from mora.graphapi.permissions import _check_rbac
 from mora.graphapi.query import Query
+from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.types import CPRType
 from mora.graphapi.version import Version
 from mora.log import canonical_gql_context
 from mora.util import CPR
+from mora.util import ensure_list
 
 logger = get_logger()
 
@@ -147,6 +155,57 @@ class IsAuthenticatedExtension(SchemaExtension):
         yield
 
 
+async def _enforce_rbac(
+    info: GraphQLResolveInfo,
+    kwargs: dict[str, Any],
+) -> None:
+    """Check the RBAC requirement for *info* and raise `GraphQLError` if unsatisfied."""
+    requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
+    if requirement is None:
+        return
+    role, collection, permission_type = requirement
+    check_kwargs = kwargs
+    if "input" in kwargs:
+        check_kwargs = {
+            **kwargs,
+            "input": [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])],
+        }
+    allowed = await _check_rbac(
+        info,
+        role,
+        # TODO(#61411) remove along with the graphql_rbac flag.
+        permission_type != "read",
+        collection,
+        permission_type,
+        check_kwargs,
+    )
+    if allowed:
+        return
+    msg = f"User does not have required role: {role}"
+    if collection is not None and permission_type is not None:
+        msg = f"User does not have {permission_type}-access to {collection}"
+    raise GraphQLError(msg)
+
+
+class RBACExtension(SchemaExtension):
+    """Schema-level extension that enforces RBAC for every field.
+
+    The required role is looked up in `RBAC_MAP` by
+    `(parent_type, field_name)`, replacing the per-field
+    `gen_read_permission` / `gen_create_permission` / etc. declarations.
+    """
+
+    async def resolve(  # type: ignore[override]
+        self,
+        next_: Callable[..., Any],
+        root: Any,
+        info: GraphQLResolveInfo,
+        **kwargs: dict[str, Any],
+    ) -> Any:
+        await _enforce_rbac(info, kwargs)
+        return await await_maybe(next_(root, info, **kwargs))
+
+
 @cache
 def get_schema(version: Version) -> CustomSchema:
     """Instantiate Strawberry Schema."""
@@ -180,6 +239,7 @@ def get_schema(version: Version) -> CustomSchema:
         extensions=[
             StarletteContextExtension,
             IsAuthenticatedExtension,
+            RBACExtension,
             LogContextExtension,
             RuntimeContextExtension,
             RollbackOnError,
