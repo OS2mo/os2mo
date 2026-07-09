@@ -16,6 +16,7 @@ affected object.
 # TODO: Do we wanna access-log database access from here?
 import asyncio
 import random
+import signal
 from typing import Literal
 from uuid import UUID
 
@@ -334,15 +335,35 @@ async def start_event_generator(  # pragma: no cover
 
     logger.info("starting amqp subsystem")
 
+    # Shut down gracefully on SIGTERM (sent by docker/Kubernetes). Python
+    # installs no handler for SIGTERM by default. Normally Linux would then
+    # apply the default action of terminating the process, but this process
+    # runs as PID 1 in the container, and the kernel does not apply default
+    # signal actions to PID 1: a signal with no explicitly installed handler is
+    # silently ignored. So without this, SIGTERM is dropped and the
+    # orchestrator has to SIGKILL us after its (default 10 second) timeout.
+    #
+    # Reuse CPython's default SIGINT handler so SIGTERM behaves like Ctrl+C: it
+    # raises KeyboardInterrupt, which asyncio.run() turns into cancellation of
+    # the main task. The CancelledError unwinds the loop and the `async with`
+    # below, closing the AMQP connection cleanly. asyncio.run() re-raises the
+    # KeyboardInterrupt afterwards; the caller in mora.cli suppresses it.
+    signal.signal(signal.SIGTERM, signal.default_int_handler)
+
     amqp_system = AMQPSystem(mo_settings.amqp)
-    async with amqp_system:
-        while True:
-            # Why sleep for a random duration? Otherwise, developers will build on
-            # the assumption that events arrive instantly. Are you a developer
-            # tired of waiting? See if the mora.cli can help you.
-            await asyncio.sleep(random.randint(5, 90))
-            try:
-                async with sessionmaker() as session, session.begin():
-                    await _emit_events(session, amqp_system)
-            except:  # noqa
-                logger.exception("failed to send events")
+    try:
+        async with amqp_system:
+            while True:
+                # Why sleep for a random duration? Otherwise, developers will build on
+                # the assumption that events arrive instantly. Are you a developer
+                # tired of waiting? See if the mora.cli can help you.
+                await asyncio.sleep(random.randint(5, 90))
+                try:
+                    async with sessionmaker() as session, session.begin():
+                        await _emit_events(session, amqp_system)
+                except Exception:
+                    logger.exception("failed to send events")
+    except asyncio.CancelledError:
+        # CancelledError is a BaseException, so it is not caught by the `except
+        # Exception` above.
+        logger.info("stopping amqp subsystem")
