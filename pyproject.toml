@@ -97,3 +97,8 @@ force-single-line = true
 # coverage does not work properly with the mixed concurrency strategies of
 # fastapi, strawberry and (async) sqlalchemy by default.
 concurrency = ["greenlet", "thread"]
+
+[tool.coverage.report]
+exclude_also = [
+    "if TYPE_CHECKING:",
+]

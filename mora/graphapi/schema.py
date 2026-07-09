@@ -7,7 +7,9 @@ from collections.abc import Callable
 from contextlib import suppress
 from functools import cache
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 from typing import Any
+from typing import cast
 
 import strawberry
 from fastapi.encoders import jsonable_encoder
@@ -60,6 +62,9 @@ from mora.graphapi.version import Version
 from mora.log import canonical_gql_context
 from mora.util import CPR
 from mora.util import ensure_list
+
+if TYPE_CHECKING:
+    from mora.graphapi.context import MOInfo
 
 logger = get_logger()
 
@@ -238,7 +243,7 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
             x async for x in get_entities_graphql(input, collection, permission_type)
         }
         with suppress(AuthorizationError):
-            await check_owner(token, entities)
+            await check_owner(cast("MOInfo", info), token, entities)
             return True
 
     return False
