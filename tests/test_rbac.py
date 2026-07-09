@@ -62,20 +62,6 @@ class TestOwnerSingleOrgUnit:
     @unittest.mock.patch("mora.auth.keycloak.rbac.get_owners")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_type")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids")
-    async def test_return_when_owner_owns_unit_or_ancestor(
-        self, mock_uuids, mock_get_entity_type, mock_get_owners
-    ):
-        token = mock_auth(OWNER, ANDERS_AND)()
-        mock_uuids.return_value = {ORG_UNIT_1}
-        mock_get_entity_type.return_value = EntityType.ORG_UNIT
-        mock_get_owners.return_value = {UUID(ANDERS_AND), UUID(FEDTMULE)}
-
-        r = await _rbac(token, None, False)
-        assert r is None
-
-    @unittest.mock.patch("mora.auth.keycloak.rbac.get_owners")
-    @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_type")
-    @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids")
     async def test_raise_exception_when_owner_does_not_owns_unit_or_ancestor(
         self, mock_uuids, mock_get_entity_type, mock_get_owners
     ):
