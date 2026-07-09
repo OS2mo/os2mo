@@ -186,7 +186,7 @@ class _AktivVirkningMixin:
     """
 
     active_tils: Mapped[Any] = mapped_column(
-        TSTZMULTIRANGE, nullable=True, deferred=True
+        TSTZMULTIRANGE, nullable=False, deferred=True
     )
 
     @hybrid_property
