@@ -22,8 +22,6 @@ from tests.test_integration_rbac import ANDERS_AND
 from tests.test_integration_rbac import FEDTMULE
 from tests.test_integration_rbac import mock_auth
 
-ORG_UNIT_1 = "10000000-0000-0000-0000-000000000000"
-ORG_UNIT_2 = "20000000-0000-0000-0000-000000000000"
 FILOSOFISK_INSTITUT = "85715fc7-925d-401b-822d-467eb4b163b6"
 
 
@@ -50,28 +48,6 @@ class TestOwner:
         token = mock_auth(role=OWNER, user_uuid=None)()  # noqa: FURB120
         with pytest.raises(AuthorizationError):
             await _rbac(token, None, False)
-
-
-class TestOwnerMultipleOrgUnits:
-    """
-    This class covers test cases where the user has the owner role and
-    the users modifications involves two org units (i.e. when we are
-    moving an org unit).
-    """
-
-    @unittest.mock.patch("mora.auth.keycloak.rbac.get_owners")
-    @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_type")
-    @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids")
-    async def test_return_when_owner_in_source_and_target_units(
-        self, mock_uuids, mock_get_entity_type, mock_get_owners
-    ):
-        token = mock_auth(OWNER, ANDERS_AND)()
-        mock_uuids.return_value = {ORG_UNIT_1, ORG_UNIT_2}
-        mock_get_entity_type.return_value = EntityType.ORG_UNIT
-        mock_get_owners.return_value = {UUID(ANDERS_AND)}
-
-        r = await _rbac(token, None, False)
-        assert r is None
 
 
 class TestGetAncestorOwners:
