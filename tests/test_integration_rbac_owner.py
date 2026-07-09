@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
+from contextlib import nullcontext
 from typing import Protocol
 from uuid import UUID
 
@@ -327,6 +328,47 @@ async def test_update_engagement(
     create_owner(owner=owner, org_unit=new_org_unit)
     set_auth(OWNER, owner)
     update_engagement(uuid=engagement, person=person, org_unit=new_org_unit)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "root_org")
+@pytest.mark.parametrize(
+    "actor, allowed",
+    [
+        ("first_owner", True),
+        ("second_owner", True),
+        ("non_owner", False),
+    ],
+)
+async def test_multiple_owners_of_org_unit(
+    actor: str,
+    allowed: bool,
+    set_auth: SetAuth,
+    create_person: CreatePerson,
+    create_org_unit: CreateOrgUnit,
+    create_owner: CreateOwner,
+    create_engagement: CreateEngagement,
+) -> None:
+    """Each owner of an org unit, and only they, may act on it."""
+    # Persons must be created as admin: a bare owner cannot.
+    set_auth(ADMIN, None)
+    first_owner = create_person()
+    second_owner = create_person()
+    non_owner = create_person()
+    target = create_person()
+    org_unit = create_org_unit(parent=None)
+    create_owner(owner=first_owner, org_unit=org_unit)
+    create_owner(owner=second_owner, org_unit=org_unit)
+
+    actors = {
+        "first_owner": first_owner,
+        "second_owner": second_owner,
+        "non_owner": non_owner,
+    }
+    set_auth(OWNER, actors[actor])
+    expectation = nullcontext() if allowed else pytest.raises(PermissionError)
+    with expectation:
+        create_engagement(person=target, org_unit=org_unit)
 
 
 @pytest.mark.integration_test

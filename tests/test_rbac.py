@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import copy
 import unittest.mock
 from uuid import UUID
 from uuid import uuid4
@@ -19,7 +18,6 @@ from mora.mapping import ADMIN
 from mora.mapping import OWNER
 from mora.mapping import EntityType
 from tests.test_integration_rbac import ANDERS_AND
-from tests.test_integration_rbac import FEDTMULE
 from tests.test_integration_rbac import mock_auth
 
 FILOSOFISK_INSTITUT = "85715fc7-925d-401b-822d-467eb4b163b6"
@@ -102,27 +100,6 @@ class TestGetAncestorOwners:
                 "person": None,
             }
         ]
-
-    @unittest.mock.patch("mora.auth.keycloak.owner.common.get_connector")
-    @unittest.mock.patch("mora.auth.keycloak.owner.OwnerReader.get_from_type")
-    @unittest.mock.patch("mora.auth.keycloak.owner.mora.service.orgunit.get_unit_tree")
-    async def test_anders_and_and_fedtmule_in_owners(
-        self, mock_get_unit_tree, mock_get_from_type, mock_get_connector
-    ):
-        self.set_up()
-        mock_get_unit_tree.return_value = self.org_unit_tree
-
-        anders_and = self.owners[0]
-        fedtmule = copy.deepcopy(anders_and)
-        fedtmule["owner"]["uuid"] = FEDTMULE
-        self.owners.append(fedtmule)
-
-        mock_get_from_type.side_effect = [[], self.owners, []]
-        mock_get_connector.return_value = None
-
-        ancestor_owners = await get_ancestor_owners(UUID(FILOSOFISK_INSTITUT))
-
-        assert {UUID(ANDERS_AND), UUID(FEDTMULE)} == ancestor_owners
 
     @unittest.mock.patch("mora.auth.keycloak.owner.common.get_connector")
     @unittest.mock.patch("mora.auth.keycloak.owner.OwnerReader.get_from_type")
