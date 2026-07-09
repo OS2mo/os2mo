@@ -1,7 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 import sys
 from contextlib import asynccontextmanager
+from contextlib import suppress
 from itertools import chain
 from typing import Any
 
@@ -52,6 +54,7 @@ from .auth.exceptions import get_auth_exception_handler
 from .config import Environment
 from .db import create_sessionmaker
 from .db import transaction_per_request
+from .db.backfill import backfill_aktiv_virkning
 from .exceptions import ErrorCodes
 from .exceptions import HTTPException
 from .exceptions import http_exception_to_json_response
@@ -181,11 +184,20 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         instrumentator.expose(app)
 
         await triggers.register(app)
-        if settings.amqp_enable:
-            async with app.state.amqp_system:
+        # Fill aktiv_virkning on pre-existing rows in the background (see
+        # mora.db.backfill). Runs on every container and is safe to run
+        # concurrently; it self-terminates once every row is filled.
+        backfill_task = asyncio.create_task(backfill_aktiv_virkning(sessionmaker))
+        try:
+            if settings.amqp_enable:
+                async with app.state.amqp_system:
+                    yield
+            else:
                 yield
-        else:
-            yield
+        finally:
+            backfill_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await backfill_task
 
     lora_settings = lora_get_settings()
     sessionmaker = create_sessionmaker(
