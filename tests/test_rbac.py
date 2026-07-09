@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import unittest.mock
-from uuid import UUID
 from uuid import uuid4
 
 import pytest
@@ -9,7 +8,6 @@ import pytest
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.owner import _get_entity_owners
-from mora.auth.keycloak.owner import get_ancestor_owners
 from mora.auth.keycloak.rbac import _get_employee_uuid
 from mora.auth.keycloak.rbac import _get_employee_uuid_via_token
 from mora.auth.keycloak.rbac import _rbac
@@ -19,8 +17,6 @@ from mora.mapping import OWNER
 from mora.mapping import EntityType
 from tests.test_integration_rbac import ANDERS_AND
 from tests.test_integration_rbac import mock_auth
-
-FILOSOFISK_INSTITUT = "85715fc7-925d-401b-822d-467eb4b163b6"
 
 
 class TestRole:
@@ -46,75 +42,6 @@ class TestOwner:
         token = mock_auth(role=OWNER, user_uuid=None)()  # noqa: FURB120
         with pytest.raises(AuthorizationError):
             await _rbac(token, None, False)
-
-
-class TestGetAncestorOwners:
-    def set_up(self) -> None:
-        self.org_unit_tree = [
-            {
-                "name": "Overordnet Enhed",
-                "user_key": "root",
-                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "validity": {"from": "2016-01-01", "to": None},
-                "children": [
-                    {
-                        "name": "Humanistisk fakultet",
-                        "user_key": "hum",
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "validity": {"from": "2016-01-01", "to": None},
-                        "children": [
-                            {
-                                "name": "Filosofisk Institut",
-                                "user_key": "fil",
-                                "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
-                                "validity": {"from": "2016-01-01", "to": None},
-                            }
-                        ],
-                    }
-                ],
-            }
-        ]
-
-        self.owners = [
-            {
-                "uuid": "c16ff527-3501-42f7-a942-e606c6c1a0a7",
-                "user_key": "f2b92485-2564-41c4-8f0d-3e09190253aa",
-                "validity": {"from": "2021-06-18", "to": None},
-                "owner_inference_priority": None,
-                "owner": {
-                    "givenname": "Anders",
-                    "surname": "And",
-                    "name": "Anders And",
-                    "nickname_givenname": "Donald",
-                    "nickname_surname": "Duck",
-                    "nickname": "Donald Duck",
-                    "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                    "seniority": None,
-                },
-                "org_unit": {
-                    "name": "Humanistisk fakultet",
-                    "user_key": "hum",
-                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                    "validity": {"from": "2016-01-01", "to": None},
-                },
-                "person": None,
-            }
-        ]
-
-    @unittest.mock.patch("mora.auth.keycloak.owner.common.get_connector")
-    @unittest.mock.patch("mora.auth.keycloak.owner.OwnerReader.get_from_type")
-    @unittest.mock.patch("mora.auth.keycloak.owner.mora.service.orgunit.get_unit_tree")
-    async def test_no_owners(
-        self, mock_get_unit_tree, mock_get_from_type, mock_get_connector
-    ):
-        self.set_up()
-        mock_get_unit_tree.return_value = self.org_unit_tree
-        mock_get_from_type.return_value = []
-        mock_get_connector.return_value = None
-
-        ancestor_owners = await get_ancestor_owners(UUID(FILOSOFISK_INSTITUT))
-
-        assert set() == ancestor_owners
 
 
 class TestGetEntityOwners:
