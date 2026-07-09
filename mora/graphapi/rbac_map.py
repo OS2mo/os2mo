@@ -17,8 +17,6 @@ RBACRequirement = tuple[str, "Collections | None", "CollectionPermissionType | N
 
 #: Explicit map of every RBAC-protected field to its requirement tuple.
 RBAC_MAP: dict[tuple[str, str], RBACRequirement] = {
-    ("Actor", "event_listeners"): ("read_event_listener", "event_listener", "read"),
-    ("Actor", "event_namespaces"): ("read_event_namespace", "event_namespace", "read"),
     ("Address", "address_type"): ("read_class", "class", "read"),
     ("Address", "address_type_response"): ("read_class", "class", "read"),
     ("Address", "employee"): ("read_employee", "employee", "read"),
@@ -117,8 +115,7 @@ RBAC_MAP: dict[tuple[str, str], RBACRequirement] = {
     ("ITUser", "rolebindings_response"): ("read_rolebinding", "rolebinding", "read"),
     ("KLE", "kle_aspects"): ("read_class", "class", "read"),
     ("KLE", "kle_aspects_response"): ("read_class", "class", "read"),
-    ("KLE", "kle_number__v22"): ("read_class", "class", "read"),
-    ("KLE", "kle_number__v23"): ("read_class", "class", "read"),
+    ("KLE", "kle_number"): ("read_class", "class", "read"),
     ("KLE", "kle_number_response"): ("read_class", "class", "read"),
     ("KLE", "org_unit"): ("read_org_unit", "org_unit", "read"),
     ("KLE", "org_unit_response"): ("read_org_unit", "org_unit", "read"),
@@ -319,7 +316,6 @@ RBAC_MAP: dict[tuple[str, str], RBACRequirement] = {
     ("OrganisationUnit", "leaves"): ("read_leave", "leave", "read"),
     ("OrganisationUnit", "leaves_response"): ("read_leave", "leave", "read"),
     ("OrganisationUnit", "managers"): ("read_manager", "manager", "read"),
-    ("OrganisationUnit", "managers__v23"): ("read_manager", "manager", "read"),
     ("OrganisationUnit", "managers_response"): ("read_manager", "manager", "read"),
     ("OrganisationUnit", "org_unit_hierarchy_model"): ("read_class", "class", "read"),
     ("OrganisationUnit", "org_unit_level"): ("read_class", "class", "read"),
@@ -371,8 +367,7 @@ RBAC_MAP: dict[tuple[str, str], RBACRequirement] = {
     ("Query", "org_units"): ("read_org_unit", "org_unit", "read"),
     ("Query", "owners"): ("read_owner", "owner", "read"),
     ("Query", "persons"): ("read_employee", "employee", "read"),
-    ("Query", "registrations__v25"): ("read_registration", "registration", "read"),
-    ("Query", "registrations__v26"): ("read_registration", "registration", "read"),
+    ("Query", "registrations"): ("read_registration", "registration", "read"),
     ("Query", "related_units"): ("read_related_unit", "related_unit", "read"),
     ("Query", "rolebindings"): ("read_rolebinding", "rolebinding", "read"),
     ("RelatedUnit", "org_units"): ("read_org_unit", "org_unit", "read"),
@@ -383,4 +378,24 @@ RBAC_MAP: dict[tuple[str, str], RBACRequirement] = {
     ("RoleBinding", "org_unit_response"): ("read_org_unit", "org_unit", "read"),
     ("RoleBinding", "role"): ("read_class", "class", "read"),
     ("RoleBinding", "role_response"): ("read_class", "class", "read"),
+    ("SpecialActor", "event_listeners"): (
+        "read_event_listener",
+        "event_listener",
+        "read",
+    ),
+    ("SpecialActor", "event_namespaces"): (
+        "read_event_namespace",
+        "event_namespace",
+        "read",
+    ),
+    ("UnknownActor", "event_listeners"): (
+        "read_event_listener",
+        "event_listener",
+        "read",
+    ),
+    ("UnknownActor", "event_namespaces"): (
+        "read_event_namespace",
+        "event_namespace",
+        "read",
+    ),
 }
