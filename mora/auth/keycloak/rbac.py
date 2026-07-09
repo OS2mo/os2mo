@@ -121,32 +121,33 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
     raise AuthorizationError("Not authorized to perform this operation")
 
 
+async def _is_owner(
+    user_uuid: UUID, entity_type: EntityType, entity_uuid: UUID
+) -> bool:
+    """Check whether `user_uuid` owns the given entity."""
+    owners = await get_owners(entity_uuid, entity_type)
+    return user_uuid in owners
+
+
 async def check_owner(token: Token, entities: set[tuple[EntityType, UUID]]) -> None:
     """Check if the token is owner of the given entities.
 
     This function is called from both the Service-API and GraphQL.
     """
-    # In some cases several ancestor owner sets are needed, e.g. if
+    # In some cases several entities have to be checked, e.g. if
     # we are moving a unit. In such cases we have to check for
-    # ownerships in both the source (the unit to be moved) and target
-    # (the receiving unit) ancestor trees. In some cases only the
+    # ownership in both the source (the unit to be moved) and target
+    # (the receiving unit). In some cases only the
     # source is relevant, e.g. if an org unit detail is created/edited.
-    # The owners list below will have exactly two elements (sets) if we
-    # are moving a unit and exactly one element otherwise, e.g.
-    # {{<owner_uuid>, <owner_parent_uuid>, <owner_grand_parent_uuid>}}
-    # when editing details of a unit and
-    # {
-    #   {<src_owner_uuid>, <src_owner_parent_uuid>, <src_owner_grand_parent_uuid>},
-    #   {<tar_owner_uuid>, <tar_owner_parent_uuid>, <tar_owner_grand_parent_uuid>}
-    # }
-    # when moving an org unit.
     logger.debug("Check owner", entities=entities)
     user_uuid = await _get_employee_uuid(token)
-    owners = await asyncio.gather(
-        *(get_owners(entity_uuid, entity_type) for entity_type, entity_uuid in entities)
+    ownership = await asyncio.gather(
+        *(
+            _is_owner(user_uuid, entity_type, entity_uuid)
+            for entity_type, entity_uuid in entities
+        )
     )
-    current_user_ownership_verified = [(user_uuid in owner) for owner in owners]
-    if current_user_ownership_verified and all(current_user_ownership_verified):
+    if ownership and all(ownership):
         return None
     # This function intentionally returns None or raises (instead of returning a
     # boolean) because _get_employee_uuid() might also raise an AuthorizationError,
