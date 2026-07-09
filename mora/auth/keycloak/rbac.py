@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
+from collections.abc import Awaitable
+from collections.abc import Callable
 from uuid import UUID
 
 from fastapi import Request
@@ -110,7 +112,7 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
         entity_type = await uuid_extractor.get_entity_type(request)
         entity_uuids = await uuid_extractor.get_entity_uuids(request)
         entities = {(entity_type, uuid) for uuid in entity_uuids}
-        await check_owner(token, entities)
+        await check_owner_serviceapi(token, entities)
         logger.debug(f"User {token.preferred_username} authorized")
         return
 
@@ -120,7 +122,7 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
     raise AuthorizationError("Not authorized to perform this operation")
 
 
-async def _is_owner_org_unit(user_uuid: UUID, entity_uuid: UUID) -> bool:
+async def _is_owner_org_unit_via_graphql(user_uuid: UUID, entity_uuid: UUID) -> bool:
     """Check whether `user_uuid` owns the org unit or one of its ancestors.
 
     The `descendant` filter grants ownership via the unit itself or any of its
@@ -149,7 +151,7 @@ async def _is_owner_org_unit(user_uuid: UUID, entity_uuid: UUID) -> bool:
     return bool(r.data["org_units"]["objects"])
 
 
-async def _is_owner_employee(user_uuid: UUID, entity_uuid: UUID) -> bool:
+async def _is_owner_employee_via_graphql(user_uuid: UUID, entity_uuid: UUID) -> bool:
     """Check whether `user_uuid` owns the employee."""
     query = """
     query CheckEmployeeOwner($filter: EmployeeFilter!) {
@@ -173,30 +175,39 @@ async def _is_owner_employee(user_uuid: UUID, entity_uuid: UUID) -> bool:
     return bool(r.data["employees"]["objects"])
 
 
-async def _is_owner(
+async def _is_owner_via_graphql(
     user_uuid: UUID, entity_type: EntityType, entity_uuid: UUID
 ) -> bool:
-    """Check ownership of a single entity through the GraphQL owner filters."""
-    if entity_type == EntityType.ORG_UNIT:
-        return await _is_owner_org_unit(user_uuid, entity_uuid)
-    return await _is_owner_employee(user_uuid, entity_uuid)
+    """Check ownership through `execute_graphql`.
 
-
-async def check_owner(token: Token, entities: set[tuple[EntityType, UUID]]) -> None:
-    """Check if the token is owner of the given entities.
-
-    This function is called from both the Service-API and GraphQL.
+    Works from both the Service-API and GraphQL, as it needs no GraphQL `info`.
     """
-    # In some cases several entities have to be checked, e.g. if
-    # we are moving a unit. In such cases we have to check for
-    # ownership in both the source (the unit to be moved) and target
-    # (the receiving unit). In some cases only the
-    # source is relevant, e.g. if an org unit detail is created/edited.
+    if entity_type == EntityType.ORG_UNIT:
+        return await _is_owner_org_unit_via_graphql(user_uuid, entity_uuid)
+    return await _is_owner_employee_via_graphql(user_uuid, entity_uuid)
+
+
+async def _check_owner(
+    token: Token,
+    entities: set[tuple[EntityType, UUID]],
+    is_owner: Callable[[UUID, EntityType, UUID], Awaitable[bool]],
+) -> None:
+    """Resolve the token's user and require ownership of all entities.
+
+    In some cases several entities have to be checked, e.g. if
+    we are moving a unit. In such cases we have to check for
+    ownership in both the source (the unit to be moved) and target
+    (the receiving unit). In some cases only the
+    source is relevant, e.g. if an org unit detail is created/edited.
+
+    `is_owner` performs the per-entity lookup; the Service-API and GraphQL
+    supply different implementations.
+    """
     logger.debug("Check owner", entities=entities)
     user_uuid = await _get_employee_uuid(token)
     ownership = await asyncio.gather(
         *(
-            _is_owner(user_uuid, entity_type, entity_uuid)
+            is_owner(user_uuid, entity_type, entity_uuid)
             for entity_type, entity_uuid in entities
         )
     )
@@ -206,3 +217,15 @@ async def check_owner(token: Token, entities: set[tuple[EntityType, UUID]]) -> N
     # boolean) because _get_employee_uuid() might also raise an AuthorizationError,
     # which we would like to propagate to the error message in the Service-API.
     raise AuthorizationError("Not owner")
+
+
+async def check_owner(token: Token, entities: set[tuple[EntityType, UUID]]) -> None:
+    """Check if the token is owner of the given entities."""
+    await _check_owner(token, entities, _is_owner_via_graphql)
+
+
+async def check_owner_serviceapi(
+    token: Token, entities: set[tuple[EntityType, UUID]]
+) -> None:
+    """Check ownership from the Service-API (no GraphQL `info` available)."""
+    await _check_owner(token, entities, _is_owner_via_graphql)
