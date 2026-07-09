@@ -16,6 +16,7 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import synonym
 
 from ._common import Base
+from ._common import _AktivVirkningMixin
 from ._common import _AttrEgenskaberMixin
 from ._common import _OIOEntityMixin
 from ._common import _RegistreringMixin
@@ -100,7 +101,7 @@ class OrganisationFunktionTilsGyldighed(
     )
 
 
-class OrganisationFunktionAttrUdvidelser(_VirkningMixin, Base):
+class OrganisationFunktionAttrUdvidelser(_AktivVirkningMixin, _VirkningMixin, Base):
     __tablename__ = "organisationfunktion_attr_udvidelser"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)

@@ -11,11 +11,13 @@ from sqlalchemy import CheckConstraint
 from sqlalchemy import ColumnElement
 from sqlalchemy import Enum
 from sqlalchemy import Text
+from sqlalchemy import func
 from sqlalchemy import literal_column
 from sqlalchemy import select
 from sqlalchemy import text
 from sqlalchemy import type_coerce
 from sqlalchemy.dialects.postgresql import ENUM
+from sqlalchemy.dialects.postgresql import TSTZMULTIRANGE
 from sqlalchemy.dialects.postgresql import TSTZRANGE
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped
@@ -165,12 +167,51 @@ class _VirkningMixin:
 HasValidity = NewType("HasValidity", _VirkningMixin)
 
 
-class _AttrEgenskaberMixin(_VirkningMixin):
+class _AktivVirkningMixin:
+    """Active-period overlap for a relation/attribute row, for the GraphQL list
+    filters (see #70660).
+
+    ``active_tils`` is the union of the registration's active validity periods
+    (gyldighed=Aktiv / publiceret=Publiceret), copied onto each period row by a
+    trigger; it depends only on the ``tils`` table (one-way data flow). Maintained
+    so it is non-null (empty multirange ``{}`` when the registration is never
+    active); NULL means only "not yet backfilled". Deferred so it is never loaded
+    implicitly.
+
+    ``aktiv_virkning`` is the query-only overlap of the row's own ``virkning``
+    with ``active_tils``. It is not stored; an expression GiST index materialises
+    it (fused with ``rel_type`` / ``rel_maal_uuid``), so the active-period filter
+    is ``aktiv_virkning && window`` -- a single in-row multirange overlap instead
+    of a correlated ``EXISTS`` into the multi-row ``*_tils_*`` table.
+    """
+
+    active_tils: Mapped[Any] = mapped_column(
+        TSTZMULTIRANGE, nullable=True, deferred=True
+    )
+
+    @hybrid_property
+    def aktiv_virkning(self) -> Any:  # pragma: no cover
+        raise NotImplementedError("aktiv_virkning is only available in queries")
+
+    @aktiv_virkning.inplace.expression
+    @classmethod
+    def _aktiv_virkning(cls) -> ColumnElement:
+        # Must render identically to the expression GiST index for the planner
+        # to use it: tstzmultirange((virkning).timeperiod) * active_tils.
+        return func.tstzmultirange(cls.virkning_period).op(
+            "*", return_type=TSTZMULTIRANGE
+        )(cls.active_tils)
+
+
+HasAktivVirkning = NewType("HasAktivVirkning", _AktivVirkningMixin)
+
+
+class _AttrEgenskaberMixin(_AktivVirkningMixin, _VirkningMixin):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     brugervendtnoegle: Mapped[str] = mapped_column(Text, index=True)
 
 
-class _RelationMixin(_VirkningMixin):
+class _RelationMixin(_AktivVirkningMixin, _VirkningMixin):
     @declared_attr
     def __table_args__(cls):
         return (
