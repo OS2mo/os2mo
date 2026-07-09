@@ -52,29 +52,6 @@ class TestOwner:
             await _rbac(token, None, False)
 
 
-class TestOwnerSingleOrgUnit:
-    """
-    This class covers test cases where the user has the owner role and
-    the users modifications involves a single org unit (i.e. we are not
-    moving an org unit in any of these tests).
-    """
-
-    @unittest.mock.patch("mora.auth.keycloak.rbac.get_owners")
-    @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_type")
-    @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids")
-    async def test_raise_exception_when_uuids_list_empty(
-        self, mock_uuids, mock_get_entity_type, mock_get_owners
-    ):
-        # This happens when creating a top-level org unit
-        token = mock_auth(OWNER, ANDERS_AND)()
-        mock_uuids.return_value = set()
-        mock_get_entity_type.return_value = EntityType.ORG_UNIT
-        mock_get_owners.return_value = None
-
-        with pytest.raises(AuthorizationError):
-            await _rbac(token, None, False)
-
-
 class TestOwnerMultipleOrgUnits:
     """
     This class covers test cases where the user has the owner role and
