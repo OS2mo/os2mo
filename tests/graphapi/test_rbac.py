@@ -28,6 +28,8 @@ from mora.graphapi.models import AddressRead
 from mora.graphapi.schema import get_schema
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.version import LATEST_VERSION
+from tests.conftest import GraphAPIPost
+from tests.conftest import SetAuth
 
 ORG_QUERY = "query { org { uuid } }"
 ORG_UNIT_QUERY = "query { org_units { objects { uuid } } }"
@@ -64,6 +66,38 @@ async def load_all_addresses(**kwargs) -> dict[UUID, list[AddressRead]]:
 
 async def load_addresses(keys: list[UUID]) -> list[list[AddressRead]]:
     return [[] * len(keys)]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_introspection_is_public(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Introspection must be available to authenticated users without any roles."""
+    set_auth(None, None)
+
+    query = """
+    query {
+      __typename
+      __schema {
+        query_type: queryType {
+          name
+        }
+      }
+      __type(name: "Address") {
+        name
+        kind
+      }
+    }
+    """
+    response = graphapi_post(query)
+    assert response.errors is None
+    assert response.data == {
+        "__typename": "Query",
+        "__schema": {"query_type": {"name": "Query"}},
+        "__type": {"name": "Address", "kind": "OBJECT"},
+    }
 
 
 @pytest.mark.parametrize(
