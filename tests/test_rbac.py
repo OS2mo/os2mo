@@ -106,22 +106,6 @@ class TestGetAncestorOwners:
     @unittest.mock.patch("mora.auth.keycloak.owner.common.get_connector")
     @unittest.mock.patch("mora.auth.keycloak.owner.OwnerReader.get_from_type")
     @unittest.mock.patch("mora.auth.keycloak.owner.mora.service.orgunit.get_unit_tree")
-    async def test_fedtmule_in_owners(
-        self, mock_get_unit_tree, mock_get_from_type, mock_get_connector
-    ):
-        self.set_up()
-        mock_get_unit_tree.return_value = self.org_unit_tree
-        self.owners[0]["owner"]["uuid"] = FEDTMULE
-        mock_get_from_type.side_effect = [[], self.owners, []]
-        mock_get_connector.return_value = None
-
-        ancestor_owners = await get_ancestor_owners(UUID(FILOSOFISK_INSTITUT))
-
-        assert {UUID(FEDTMULE)} == ancestor_owners
-
-    @unittest.mock.patch("mora.auth.keycloak.owner.common.get_connector")
-    @unittest.mock.patch("mora.auth.keycloak.owner.OwnerReader.get_from_type")
-    @unittest.mock.patch("mora.auth.keycloak.owner.mora.service.orgunit.get_unit_tree")
     async def test_anders_and_and_fedtmule_in_owners(
         self, mock_get_unit_tree, mock_get_from_type, mock_get_connector
     ):
