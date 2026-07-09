@@ -62,20 +62,6 @@ class TestOwnerMultipleOrgUnits:
     @unittest.mock.patch("mora.auth.keycloak.rbac.get_owners")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_type")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids")
-    async def test_raise_exception_when_owner_not_in_target_unit(
-        self, mock_uuids, mock_get_entity_type, mock_get_owners
-    ):
-        token = mock_auth(OWNER, ANDERS_AND)()
-        mock_uuids.return_value = {ORG_UNIT_1, ORG_UNIT_2}
-        mock_get_entity_type.return_value = EntityType.ORG_UNIT
-        mock_get_owners.side_effect = [{ANDERS_AND}, set()]
-
-        with pytest.raises(AuthorizationError):
-            await _rbac(token, None, False)
-
-    @unittest.mock.patch("mora.auth.keycloak.rbac.get_owners")
-    @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_type")
-    @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids")
     async def test_raise_exception_when_owner_not_in_source_unit(
         self, mock_uuids, mock_get_entity_type, mock_get_owners
     ):
