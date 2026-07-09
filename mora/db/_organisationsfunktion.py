@@ -16,6 +16,7 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import synonym
 
 from ._common import Base
+from ._common import _AktivVirkningMixin
 from ._common import _AttrEgenskaberMixin
 from ._common import _OIOEntityMixin
 from ._common import _RegistreringMixin
@@ -50,7 +51,9 @@ FunktionsNavn = Literal[
 ]
 
 
-class OrganisationFunktionAttrEgenskaber(_AttrEgenskaberMixin, Base):
+class OrganisationFunktionAttrEgenskaber(
+    _AktivVirkningMixin, _AttrEgenskaberMixin, Base
+):
     __tablename__ = "organisationfunktion_attr_egenskaber"
 
     funktionsnavn: Mapped[FunktionsNavn]
@@ -75,7 +78,7 @@ class OrganisationFunktionRelationKode(enum.StrEnum):
     tilknyttedepersoner = enum.auto()
 
 
-class OrganisationFunktionRelation(_RelationMixin, Base):
+class OrganisationFunktionRelation(_AktivVirkningMixin, _RelationMixin, Base):
     __tablename__ = "organisationfunktion_relation"
 
     rel_type: Mapped[OrganisationFunktionRelationKode] = mapped_column(
@@ -97,7 +100,7 @@ class OrganisationFunktionTilsGyldighed(
     )
 
 
-class OrganisationFunktionAttrUdvidelser(_VirkningMixin, Base):
+class OrganisationFunktionAttrUdvidelser(_AktivVirkningMixin, _VirkningMixin, Base):
     __tablename__ = "organisationfunktion_attr_udvidelser"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)

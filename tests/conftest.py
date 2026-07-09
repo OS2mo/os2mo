@@ -875,8 +875,12 @@ def root_org(create_org: Callable[[dict[str, Any]], UUID]) -> UUID:
 def create_org_unit(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
-) -> Callable[[str, UUID | None], UUID]:
-    def inner(user_key: str, parent: UUID | None = None) -> UUID:
+) -> Callable[..., UUID]:
+    def inner(
+        user_key: str,
+        parent: UUID | None = None,
+        validity: dict[str, Any] | None = None,
+    ) -> UUID:
         mutate_query = """
             mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
                 org_unit_create(input: $input) {
@@ -891,7 +895,7 @@ def create_org_unit(
                     "name": user_key,
                     "user_key": user_key,
                     "parent": str(parent) if parent else None,
-                    "validity": {"from": "1970-01-01T00:00:00Z"},
+                    "validity": validity or {"from": "1970-01-01T00:00:00Z"},
                     "org_unit_type": str(uuid4()),
                 }
             },

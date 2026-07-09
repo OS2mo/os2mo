@@ -14,6 +14,7 @@ from sqlalchemy.orm import synonym
 
 from ._common import Base
 from ._common import PubliceretStatus
+from ._common import _AktivVirkningMixin
 from ._common import _AttrEgenskaberMixin
 from ._common import _OIOEntityMixin
 from ._common import _RegistreringMixin
@@ -31,7 +32,7 @@ class FacetRegistrering(_RegistreringMixin, Base):
     uuid = synonym("facet_id")
 
 
-class FacetAttrEgenskaber(_AttrEgenskaberMixin, Base):
+class FacetAttrEgenskaber(_AktivVirkningMixin, _AttrEgenskaberMixin, Base):
     __tablename__ = "facet_attr_egenskaber"
 
     beskrivelse: Mapped[str | None] = mapped_column(Text, index=True)
@@ -51,7 +52,7 @@ class FacetRelationKode(enum.StrEnum):
     redaktoerer = enum.auto()
 
 
-class FacetRelation(_RelationMixin, Base):
+class FacetRelation(_AktivVirkningMixin, _RelationMixin, Base):
     __tablename__ = "facet_relation"
 
     rel_type: Mapped[FacetRelationKode] = mapped_column(

@@ -14,6 +14,7 @@ from sqlalchemy.orm import synonym
 
 from ._common import Base
 from ._common import PubliceretStatus
+from ._common import _AktivVirkningMixin
 from ._common import _AttrEgenskaberMixin
 from ._common import _OIOEntityMixin
 from ._common import _RegistreringMixin
@@ -31,7 +32,7 @@ class KlasseRegistrering(_RegistreringMixin, Base):
     uuid = synonym("klasse_id")
 
 
-class KlasseAttrEgenskaber(_AttrEgenskaberMixin, Base):
+class KlasseAttrEgenskaber(_AktivVirkningMixin, _AttrEgenskaberMixin, Base):
     __tablename__ = "klasse_attr_egenskaber"
 
     titel: Mapped[str] = mapped_column(Text, index=True)
@@ -72,7 +73,7 @@ class KlasseRelationKode(enum.StrEnum):
     tilfoejelser = enum.auto()
 
 
-class KlasseRelation(_RelationMixin, Base):
+class KlasseRelation(_AktivVirkningMixin, _RelationMixin, Base):
     __tablename__ = "klasse_relation"
 
     rel_type: Mapped[KlasseRelationKode] = mapped_column(

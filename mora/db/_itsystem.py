@@ -12,6 +12,7 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import synonym
 
 from ._common import Base
+from ._common import _AktivVirkningMixin
 from ._common import _AttrEgenskaberMixin
 from ._common import _OIOEntityMixin
 from ._common import _RegistreringMixin
@@ -29,7 +30,7 @@ class ITSystemRegistrering(_RegistreringMixin, Base):
     uuid = synonym("itsystem_id")
 
 
-class ITSystemAttrEgenskaber(_AttrEgenskaberMixin, Base):
+class ITSystemAttrEgenskaber(_AktivVirkningMixin, _AttrEgenskaberMixin, Base):
     __tablename__ = "itsystem_attr_egenskaber"
 
     itsystemnavn: Mapped[str | None] = mapped_column(Text, index=True)
@@ -47,7 +48,7 @@ ITSystemRelationKode = Literal[
 ]
 
 
-class ITSystemRelation(_RelationMixin, Base):
+class ITSystemRelation(_AktivVirkningMixin, _RelationMixin, Base):
     __tablename__ = "itsystem_relation"
 
     rel_type: Mapped[ITSystemRelationKode]

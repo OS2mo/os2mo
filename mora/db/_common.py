@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from typing import Any
 from typing import Literal
 from typing import NewType
 from uuid import UUID
@@ -11,10 +12,12 @@ from sqlalchemy import ColumnElement
 from sqlalchemy import Enum
 from sqlalchemy import Text
 from sqlalchemy import cast
+from sqlalchemy import func
 from sqlalchemy import select
 from sqlalchemy import text
 from sqlalchemy import type_coerce
 from sqlalchemy.dialects.postgresql import ENUM
+from sqlalchemy.dialects.postgresql import TSTZMULTIRANGE
 from sqlalchemy.dialects.postgresql import TSTZRANGE
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped
@@ -149,6 +152,36 @@ class _VirkningMixin:
 
 
 HasValidity = NewType("HasValidity", _VirkningMixin)
+
+
+class _AktivVirkningMixin:
+    """Lets the GraphQL list filters gate on validity without reading the
+    multi-row ``*_tils_*`` table at all: ``active_tils`` holds the registration's
+    active periods on the period row itself, and ``aktiv_virkning`` intersects
+    them with the row's own ``virkning``. An expression GiST index materialises
+    that intersection, so the filter is a single in-row overlap rather than a
+    correlated ``EXISTS`` whose per-outer-row range Postgres cannot estimate.
+    """
+
+    active_tils: Mapped[Any] = mapped_column(
+        TSTZMULTIRANGE, nullable=True, deferred=True
+    )
+
+    @hybrid_property
+    def aktiv_virkning(self) -> Any:  # pragma: no cover
+        raise NotImplementedError("aktiv_virkning is only available in queries")
+
+    @aktiv_virkning.inplace.expression
+    @classmethod
+    def _aktiv_virkning(cls) -> ColumnElement:
+        # Must render identically to the expression GiST index for the planner
+        # to use it: tstzmultirange((virkning).timeperiod) * active_tils.
+        return func.tstzmultirange(cls.virkning_period).op(
+            "*", return_type=TSTZMULTIRANGE
+        )(cls.active_tils)
+
+
+HasAktivVirkning = NewType("HasAktivVirkning", _AktivVirkningMixin)
 
 
 class _AttrEgenskaberMixin(_VirkningMixin):
