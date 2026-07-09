@@ -715,6 +715,7 @@ RBAC_MAP: dict[tuple[str, str], RBACRequirement | None] = {
     ("Mutation", "leave_terminate"): ("terminate_leave", "leave", "terminate"),
     ("Mutation", "leave_update"): ("update_leave", "leave", "update"),
     ("Mutation", "manager_create"): ("create_manager", "manager", "create"),
+    ("Mutation", "manager_delete"): ("delete_manager", "manager", "delete"),
     ("Mutation", "manager_refresh"): ("refresh_manager", "manager", "refresh"),
     ("Mutation", "manager_terminate"): ("terminate_manager", "manager", "terminate"),
     ("Mutation", "manager_update"): ("update_manager", "manager", "update"),
