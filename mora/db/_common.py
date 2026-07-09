@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from typing import Any
 from typing import Literal
 from typing import NewType
 from uuid import UUID
@@ -10,6 +11,7 @@ from sqlalchemy import CheckConstraint
 from sqlalchemy import ColumnElement
 from sqlalchemy import Enum
 from sqlalchemy import Text
+from sqlalchemy import literal_column
 from sqlalchemy import select
 from sqlalchemy import text
 from sqlalchemy import type_coerce
@@ -21,7 +23,9 @@ from sqlalchemy.orm import column_property
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import declared_attr
 from sqlalchemy.orm import mapped_column
+from sqlalchemy.sql.elements import Grouping
 from sqlalchemy.sql.functions import GenericFunction
+from sqlalchemy.types import UserDefinedType
 
 Base = declarative_base()
 metadata = Base.metadata
@@ -39,6 +43,39 @@ class make_interval(GenericFunction):
         self, years=0, months=0, weeks=0, days=0, hours=0, mins=0, secs=0, **kw
     ):
         super().__init__(years, months, weeks, days, hours, mins, secs, **kw)
+
+
+class _CompositeType(UserDefinedType):
+    """Opaque stand-in for a PostgreSQL composite-type column (``virkning`` /
+    ``registrering``).
+
+    The composite value is never round-tripped through the ORM; the column is
+    mapped (deferred, so it is never loaded implicitly) only so that field
+    access like ``(virkning).timeperiod`` renders with a proper table qualifier
+    that adapts automatically when the table is aliased.
+    """
+
+    cache_ok = True
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    def get_col_spec(self, **kw) -> str:  # pragma: no cover
+        return self.name
+
+
+def _composite_field(column: ColumnElement, field: str, type_: Any) -> ColumnElement:
+    """Access ``field`` of a composite-type ``column`` as ``(column).field``.
+
+    Built from the mapped column rather than a raw ``text("(virkning)...")``
+    fragment, so the table qualifier is rendered correctly and is rewritten
+    automatically when the table is aliased (e.g. in recursive ancestor /
+    descendant org-unit queries). The ``Grouping`` is required because the
+    composite-access syntax needs the parentheses in ``(column).field``.
+    """
+    return type_coerce(
+        Grouping(column).op(".", precedence=15)(literal_column(field)), type_
+    )
 
 
 class _OIOEntityMixin:
@@ -68,19 +105,18 @@ class _RegistreringMixin:
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
 
-    @declared_attr
-    @classmethod
-    def _registrering_period_attr(cls) -> Mapped[TimestamptzRange]:
-        return column_property(cls._registrering_period)
+    registrering: Mapped[Any] = mapped_column(
+        _CompositeType("registreringbase"), deferred=True
+    )
 
     @hybrid_property
     def registrering_period(self) -> TimestamptzRange:  # pragma: no cover
-        return self._registrering_period_attr
+        raise NotImplementedError("registrering_period is only available in queries")
 
     @registrering_period.inplace.expression
     @classmethod
     def _registrering_period(cls) -> ColumnElement[TimestamptzRange]:
-        return type_coerce(text("(registrering).timeperiod"), TSTZRANGE)
+        return _composite_field(cls.registrering, "timeperiod", TSTZRANGE)
 
     # TODO: hybrid_property
     @declared_attr
@@ -94,22 +130,17 @@ class _RegistreringMixin:
     def note(cls) -> Mapped[UUID]:
         return column_property(select(text("(registrering).note")).scalar_subquery())
 
-    @declared_attr
-    @classmethod
-    def _lifecycle_attr(cls) -> Mapped[ENUM]:
-        return column_property(cls._lifecycle)
-
     @hybrid_property
     def lifecycle(self) -> ENUM:  # pragma: no cover
-        return self._lifecycle_attr
+        raise NotImplementedError("lifecycle is only available in queries")
 
     @lifecycle.inplace.expression
     @classmethod
     def _lifecycle(cls) -> ColumnElement[ENUM]:
-        return type_coerce(text("(registrering).livscykluskode"), LivscyklusKode)
+        return _composite_field(cls.registrering, "livscykluskode", LivscyklusKode)
 
     def __repr__(self):  # pragma: no cover
-        return f"{self.__class__.__name__}(id={self.id}, registrering_period={self.registrering_period!r})"
+        return f"{self.__class__.__name__}(id={self.id})"
 
 
 class _VirkningMixin:
@@ -119,19 +150,16 @@ class _VirkningMixin:
         ),
     )
 
-    @declared_attr
-    @classmethod
-    def _virkning_period_attr(cls) -> Mapped[TimestamptzRange]:
-        return column_property(cls._virkning_period)
+    virkning: Mapped[Any] = mapped_column(_CompositeType("virkning"), deferred=True)
 
     @hybrid_property
-    def virkning_period(self) -> TimestamptzRange:
-        return self._virkning_period_attr
+    def virkning_period(self) -> TimestamptzRange:  # pragma: no cover
+        raise NotImplementedError("virkning_period is only available in queries")
 
     @virkning_period.inplace.expression
     @classmethod
     def _virkning_period(cls) -> ColumnElement[TimestamptzRange]:
-        return type_coerce(text("(virkning).timeperiod"), TSTZRANGE)
+        return _composite_field(cls.virkning, "timeperiod", TSTZRANGE)
 
 
 HasValidity = NewType("HasValidity", _VirkningMixin)

@@ -83,8 +83,13 @@ async def test_off_by_zero_or_one(
         return one(r.data["org_units"]["objects"])
 
     async def read_sql() -> list[tuple[str, datetime | None, datetime | None]]:
-        objs = await empty_db.scalars(
-            select(OrganisationEnhedTilsGyldighed)
+        # virkning_period is a query-only hybrid (composite access), so select it
+        # as a column rather than reading it off a loaded instance.
+        rows = await empty_db.execute(
+            select(
+                OrganisationEnhedTilsGyldighed.gyldighed,
+                OrganisationEnhedTilsGyldighed.virkning_period,
+            )
             .join(
                 OrganisationEnhedRegistrering,
                 OrganisationEnhedTilsGyldighed.organisationenhed_registrering_id
@@ -94,8 +99,7 @@ async def test_off_by_zero_or_one(
             .order_by(OrganisationEnhedTilsGyldighed.id)
         )
         return [
-            (obj.gyldighed, obj.virkning_period.lower, obj.virkning_period.upper)
-            for obj in objs
+            (gyldighed, period.lower, period.upper) for gyldighed, period in rows.all()
         ]
 
     # The dates returned by GraphQL are the same dates we created with in both
