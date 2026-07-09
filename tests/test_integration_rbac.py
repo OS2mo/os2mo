@@ -271,6 +271,64 @@ def test_rename_org_unit(
     assert response.status_code == status_code
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "root_org")
+@pytest.mark.parametrize(
+    "actor, status_code",
+    [
+        ("owner", HTTP_200_OK),
+        ("non_owner", HTTP_403_FORBIDDEN),
+    ],
+)
+def test_owner_authorized_despite_vacant_owner(
+    actor: str,
+    status_code: int,
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+    create_person: Callable[..., UUID],
+    create_org_unit: Callable[..., UUID],
+    create_owner: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """A vacant owner seat must not break Service-API ownership checks.
+
+    The real owner stays authorized and the vacant seat grants nobody access.
+    """
+    owner = create_person()
+    non_owner = create_person()
+    org_unit = create_org_unit("owned-unit")
+    create_owner(
+        {
+            "owner": str(owner),
+            "org_unit": str(org_unit),
+            "validity": {"from": "1970-01-01T00:00:00Z"},
+        }
+    )
+    create_owner(
+        {
+            "owner": None,
+            "org_unit": str(org_unit),
+            "validity": {"from": "1970-01-01T00:00:00Z"},
+        }
+    )
+
+    payload = {
+        "type": "org_unit",
+        "data": {
+            "name": "New name",
+            "uuid": str(org_unit),
+            "clamp": True,
+            "validity": {"from": "1980-01-01"},
+        },
+    }
+
+    actors = {"owner": owner, "non_owner": non_owner}
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(
+        OWNER, str(actors[actor])
+    )
+    response = service_client.request("POST", "/service/details/edit", json=payload)
+    assert response.status_code == status_code
+
+
 @pytest.fixture
 def org_unit_no_details_uuid(
     fastapi_test_app: FastAPI,
