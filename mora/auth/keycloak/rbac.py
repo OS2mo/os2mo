@@ -3,21 +3,35 @@
 import asyncio
 from collections.abc import Awaitable
 from collections.abc import Callable
+from functools import partial
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
+from sqlalchemy import exists
+from sqlalchemy import select
 from structlog import get_logger
 
 import mora.auth.keycloak.uuid_extractor as uuid_extractor
 import mora.config
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
+from mora.db import BrugerRegistrering
+from mora.db import OrganisationEnhedRegistrering
+from mora.graphapi.filters import EmployeeFilter
+from mora.graphapi.filters import OrganisationUnitFilter
+from mora.graphapi.filters import OwnerFilter
+from mora.graphapi.resolvers import employee_predicate
+from mora.graphapi.resolvers import organisation_unit_predicate
 from mora.graphapi.shim import execute_graphql
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
 from mora.mapping import EntityType
+
+if TYPE_CHECKING:
+    from mora.graphapi.context import MOInfo
 
 logger = get_logger()
 
@@ -122,6 +136,63 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
     raise AuthorizationError("Not authorized to perform this operation")
 
 
+async def _is_owner_org_unit(
+    info: "MOInfo", user_uuid: UUID, entity_uuid: UUID
+) -> bool:
+    """Check org-unit ownership via the GraphQL org-unit owner filter.
+
+    Owning any ancestor also grants ownership: the `descendant` filter matches
+    the unit together with all of its ancestors.
+    """
+    predicate = organisation_unit_predicate(
+        info=info,
+        filter=OrganisationUnitFilter(
+            descendant=OrganisationUnitFilter(uuids=[entity_uuid]),
+            owner=OwnerFilter(owner=EmployeeFilter(uuids=[user_uuid])),
+        ),
+    )
+    session = info.context.session
+    id_column = OrganisationEnhedRegistrering.organisationenhed_id
+    return bool(
+        await session.scalar(select(exists(select(id_column).where(predicate))))
+    )
+
+
+async def _is_owner_employee(
+    info: "MOInfo", user_uuid: UUID, entity_uuid: UUID
+) -> bool:
+    """Check employee ownership via the GraphQL employee owner filter."""
+    predicate = employee_predicate(
+        info=info,
+        filter=EmployeeFilter(
+            uuids=[entity_uuid],
+            owner=OwnerFilter(owner=EmployeeFilter(uuids=[user_uuid])),
+        ),
+    )
+    session = info.context.session
+    id_column = BrugerRegistrering.bruger_id
+    return bool(
+        await session.scalar(select(exists(select(id_column).where(predicate))))
+    )
+
+
+async def _is_owner_via_predicate(
+    info: "MOInfo",
+    user_uuid: UUID,
+    entity_type: EntityType,
+    entity_uuid: UUID,
+) -> bool:
+    """Check ownership in-process using the GraphQL filter predicates.
+
+    Used from GraphQL mutators, where a real `info` is available to drive the
+    predicate builders, running a lightweight EXISTS query against the
+    request-scoped session instead of a nested `execute_graphql` call.
+    """
+    if entity_type == EntityType.ORG_UNIT:
+        return await _is_owner_org_unit(info, user_uuid, entity_uuid)
+    return await _is_owner_employee(info, user_uuid, entity_uuid)
+
+
 async def _is_owner_org_unit_via_graphql(user_uuid: UUID, entity_uuid: UUID) -> bool:
     """Check whether `user_uuid` owns the org unit or one of its ancestors.
 
@@ -219,9 +290,15 @@ async def _check_owner(
     raise AuthorizationError("Not owner")
 
 
-async def check_owner(token: Token, entities: set[tuple[EntityType, UUID]]) -> None:
-    """Check if the token is owner of the given entities."""
-    await _check_owner(token, entities, _is_owner_via_graphql)
+async def check_owner(
+    info: "MOInfo", token: Token, entities: set[tuple[EntityType, UUID]]
+) -> None:
+    """Check ownership from GraphQL mutators, using the request's `info`.
+
+    Uses the in-process predicate lookup rather than a nested `execute_graphql`
+    call, as a real `info` (and its request-scoped session) is available here.
+    """
+    await _check_owner(token, entities, partial(_is_owner_via_predicate, info))
 
 
 async def check_owner_serviceapi(

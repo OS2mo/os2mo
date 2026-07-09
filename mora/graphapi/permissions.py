@@ -1,8 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from contextlib import suppress
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Literal
+from typing import cast
 from typing import get_args
 
 from graphql import GraphQLResolveInfo
@@ -10,6 +12,9 @@ from graphql import OperationType
 
 from mora.auth.exceptions import AuthorizationError
 from mora.config import get_settings
+
+if TYPE_CHECKING:
+    from mora.graphapi.context import MOInfo
 
 Collections = Literal[
     "accesslog",
@@ -107,7 +112,7 @@ async def _check_rbac(
             x async for x in get_entities_graphql(input, collection, permission_type)
         }
         with suppress(AuthorizationError):
-            await check_owner(token, entities)
+            await check_owner(cast("MOInfo", info), token, entities)
             return True
 
     return False
