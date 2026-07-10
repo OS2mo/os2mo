@@ -15,6 +15,7 @@ from tests.conftest import GraphAPIPost
         ("employees", "employee_delete"),
         ("engagements", "engagement_delete"),
         ("itusers", "ituser_delete"),
+        ("managers", "manager_delete"),
         ("org_units", "org_unit_delete"),
     ],
 )

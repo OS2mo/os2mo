@@ -1071,7 +1071,11 @@ class Mutation:
     ) -> Response[Manager]:
         return uuid2response(await terminate_manager(input.to_pydantic()), ManagerRead)
 
-    # TODO: manager_delete
+    @strawberry.mutation(
+        description="Deletes a manager relation." + delete_warning,
+    )
+    async def manager_delete(self, uuid: UUID) -> Response[Manager]:
+        return uuid2response(await delete_organisationfunktion(uuid), ManagerRead)
 
     @strawberry.mutation(
         description="Refresh managers.",
