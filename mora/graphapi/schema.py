@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import time
 from collections.abc import AsyncIterator
+from collections.abc import Awaitable
 from collections.abc import Callable
 from contextlib import suppress
 from functools import cache
@@ -156,24 +157,29 @@ class IsAuthenticatedExtension(SchemaExtension):
         yield
 
 
-async def _enforce_rbac(
+# A policy takes the resolver info and arguments, and returns whether it
+# grants access to the field.
+Policy = Callable[[GraphQLResolveInfo, dict[str, Any]], Awaitable[bool]]
+
+
+async def rbac_policy(
     info: GraphQLResolveInfo,
     kwargs: dict[str, Any],
-) -> None:
-    """Check the RBAC requirement for *info* and raise `GraphQLError` if unsatisfied."""
+) -> bool:
+    """Check the RBAC requirement for *info*."""
     parent_type_name = info.parent_type.name
     field_name = info.field_name
     # Introspection is available to all users
     if field_name in ("__typename", "__schema", "__type") or is_introspection_type(
         info.parent_type
     ):
-        return
+        return True
     # We expect all accesses to be described in the RBAC_MAP; anything else is
     # an error. test_rbac_map_covers_schema helps ensure everything is captured.
     requirement = RBAC_MAP[(parent_type_name, field_name)]
     if requirement is None:
         # The field is explicitly public: everyone is allowed access
-        return
+        return True
     role, collection, permission_type = requirement
     check_kwargs = kwargs
     if "input" in kwargs:
@@ -189,16 +195,35 @@ async def _enforce_rbac(
         check_kwargs,
     )
     if allowed:
-        return
+        return True
+    return False
+
+
+POLICIES: list[Policy] = [
+    rbac_policy,
+]
+
+
+async def _enforce_pbac(
+    info: GraphQLResolveInfo,
+    kwargs: dict[str, Any],
+) -> None:
+    """Check `POLICIES` for *info* and raise `GraphQLError` if none allow access.
+
+    Policies are checked one by one, and access is granted as soon as any
+    policy allows it.
+    """
+    for policy in POLICIES:
+        if await policy(info, kwargs):
+            return
     raise GraphQLError("No policy approved the access")
 
 
 class RBACExtension(SchemaExtension):
-    """Schema-level extension that enforces RBAC for every field.
+    """Schema-level extension that enforces PBAC for every field.
 
-    The required role is looked up in `RBAC_MAP` by
-    `(parent_type, field_name)`, replacing the per-field
-    `gen_read_permission` / `gen_create_permission` / etc. declarations.
+    Each field access is checked against the policies in `POLICIES`, one by
+    one, until a policy allows access.
 
     Access is rejected by default: every field must have an entry in
     `RBAC_MAP`, either a requirement tuple or `None` for public fields.
@@ -211,7 +236,7 @@ class RBACExtension(SchemaExtension):
         info: GraphQLResolveInfo,
         **kwargs: dict[str, Any],
     ) -> Any:
-        await _enforce_rbac(info, kwargs)
+        await _enforce_pbac(info, kwargs)
         return await await_maybe(next_(root, info, **kwargs))
 
 
