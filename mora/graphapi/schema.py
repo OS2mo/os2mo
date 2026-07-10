@@ -186,12 +186,28 @@ async def rbac_policy(
     info: GraphQLResolveInfo,
     kwargs: dict[str, Any],
 ) -> bool:
-    """Check the RBAC requirement for *info*."""
+    """Allow access if the token has the role required by the `RBAC_MAP`."""
     requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
     if requirement is None:  # pragma: no cover
         # Public fields are already allowed by the no_role_required_policy.
         return False
-    role, collection, permission_type = requirement
+    role, _, _ = requirement
+    token = await info.context.get_token()
+    token_roles = token.realm_access.roles
+
+    # Allow access if token has required role
+    if role in token_roles:
+        return True
+    return False
+
+
+async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
+    """Allow access if the user is the owner of the accessed resources."""
+    requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
+    if requirement is None:  # pragma: no cover
+        # Public fields are already allowed by the no_role_required_policy.
+        return False
+    _, collection, permission_type = requirement
     check_kwargs = kwargs
     if "input" in kwargs:
         check_kwargs = {
@@ -200,10 +216,6 @@ async def rbac_policy(
         }
     token = await info.context.get_token()
     token_roles = token.realm_access.roles
-
-    # Allow access if token has required role
-    if role in token_roles:
-        return True
 
     # Allow access if user is owner. This only works for mutations at the
     # moment, since we need access to the object's UUID to determine ownership.
@@ -236,6 +248,7 @@ POLICIES: list[Policy] = [
     introspection_policy,
     no_role_required_policy,
     rbac_policy,
+    owner_policy,
 ]
 
 
