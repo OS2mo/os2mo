@@ -14,6 +14,7 @@ from fastapi.encoders import jsonable_encoder
 from graphql import ExecutionResult
 from graphql import GraphQLError
 from graphql import GraphQLResolveInfo
+from graphql import OperationType
 from graphql import is_introspection_type
 from pydantic import PositiveInt
 from strawberry import Schema
@@ -25,6 +26,7 @@ from strawberry.utils.await_maybe import await_maybe
 from structlog import get_logger
 
 from mora import config
+from mora.auth.exceptions import AuthorizationError
 from mora.db import get_session
 from mora.exceptions import HTTPException
 from mora.graphapi.actor import SpecialActor
@@ -50,7 +52,6 @@ from mora.graphapi.model_registration import PersonRegistration
 from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
-from mora.graphapi.permissions import _check_rbac
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
@@ -197,15 +198,37 @@ async def rbac_policy(
             **kwargs,
             "input": [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])],
         }
-    allowed = await _check_rbac(
-        info,
-        role,
-        collection,
-        permission_type,
-        check_kwargs,
-    )
-    if allowed:
+    token = await info.context.get_token()
+    token_roles = token.realm_access.roles
+
+    # Allow access if token has required role
+    if role in token_roles:
         return True
+
+    # Allow access if user is owner. This only works for mutations at the
+    # moment, since we need access to the object's UUID to determine ownership.
+    # The object UUID is derived from the "input" key in kwargs which holds the
+    # mutators call args. Owner is currently only implemented for mutators
+    # taking an "input" key as its input.
+    if (
+        "owner" in token_roles
+        and info.operation.operation is OperationType.MUTATION
+        and collection is not None
+        and permission_type is not None
+        and "input" in check_kwargs
+    ):
+        # Import here to avoid circular imports 🙂👍
+        from mora.auth.keycloak.rbac import check_owner
+        from mora.auth.keycloak.uuid_extractor import get_entities_graphql
+
+        input = check_kwargs["input"]
+        entities = {
+            x async for x in get_entities_graphql(input, collection, permission_type)
+        }
+        with suppress(AuthorizationError):
+            await check_owner(token, entities)
+            return True
+
     return False
 
 
