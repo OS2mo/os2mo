@@ -162,6 +162,17 @@ class IsAuthenticatedExtension(SchemaExtension):
 Policy = Callable[[GraphQLResolveInfo, dict[str, Any]], Awaitable[bool]]
 
 
+async def introspection_policy(
+    info: GraphQLResolveInfo, kwargs: dict[str, Any]
+) -> bool:
+    """Allow access to introspection for all users."""
+    return info.field_name in (
+        "__typename",
+        "__schema",
+        "__type",
+    ) or is_introspection_type(info.parent_type)
+
+
 async def rbac_policy(
     info: GraphQLResolveInfo,
     kwargs: dict[str, Any],
@@ -169,11 +180,6 @@ async def rbac_policy(
     """Check the RBAC requirement for *info*."""
     parent_type_name = info.parent_type.name
     field_name = info.field_name
-    # Introspection is available to all users
-    if field_name in ("__typename", "__schema", "__type") or is_introspection_type(
-        info.parent_type
-    ):
-        return True
     # We expect all accesses to be described in the RBAC_MAP; anything else is
     # an error. test_rbac_map_covers_schema helps ensure everything is captured.
     requirement = RBAC_MAP[(parent_type_name, field_name)]
@@ -200,6 +206,7 @@ async def rbac_policy(
 
 
 POLICIES: list[Policy] = [
+    introspection_policy,
     rbac_policy,
 ]
 
