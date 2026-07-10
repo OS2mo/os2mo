@@ -13,6 +13,7 @@ from fastapi.encoders import jsonable_encoder
 from graphql import ExecutionResult
 from graphql import GraphQLError
 from graphql import GraphQLResolveInfo
+from graphql import is_introspection_type
 from pydantic import PositiveInt
 from strawberry import Schema
 from strawberry.exceptions import StrawberryGraphQLError
@@ -160,8 +161,18 @@ async def _enforce_rbac(
     kwargs: dict[str, Any],
 ) -> None:
     """Check the RBAC requirement for *info* and raise `GraphQLError` if unsatisfied."""
-    requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
+    parent_type_name = info.parent_type.name
+    field_name = info.field_name
+    # Introspection is available to all users
+    if field_name in ("__typename", "__schema", "__type") or is_introspection_type(
+        info.parent_type
+    ):
+        return
+    # We expect all accesses to be described in the RBAC_MAP; anything else is
+    # an error. test_rbac_map_covers_schema helps ensure everything is captured.
+    requirement = RBAC_MAP[(parent_type_name, field_name)]
     if requirement is None:
+        # The field is explicitly public: everyone is allowed access
         return
     role, collection, permission_type = requirement
     check_kwargs = kwargs
@@ -193,6 +204,9 @@ class RBACExtension(SchemaExtension):
     The required role is looked up in `RBAC_MAP` by
     `(parent_type, field_name)`, replacing the per-field
     `gen_read_permission` / `gen_create_permission` / etc. declarations.
+
+    Access is rejected by default: every field must have an entry in
+    `RBAC_MAP`, either a requirement tuple or `None` for public fields.
     """
 
     async def resolve(  # type: ignore[override]
