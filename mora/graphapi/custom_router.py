@@ -5,6 +5,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from strawberry.fastapi import GraphQLRouter
 
+from mora import config
 from mora.graphapi.custom_schema import get_version
 from mora.graphapi.version import LATEST_VERSION
 
@@ -97,8 +98,11 @@ HTML = """
       import "graphiql/setup-workers/esm.sh";
       import Keycloak from "keycloak-js";
 
-      const keycloakJson = window.location.origin + "/service/keycloak.json";
-      const keycloak = new Keycloak(keycloakJson);
+      const keycloak = new Keycloak({
+        url: "__KEYCLOAK_URL__",
+        realm: "__KEYCLOAK_REALM__",
+        clientId: "__KEYCLOAK_CLIENT_ID__",
+      });
 
       keycloak
         .init({
@@ -169,7 +173,14 @@ class CustomGraphQLRouter(GraphQLRouter):
     """Custom GraphQL router to inject HTML into the GraphiQL interface."""
 
     async def render_graphql_ide(self, request: Request) -> HTMLResponse:
-        html = HTML
+        # Inject the Keycloak config directly, rather than having the browser
+        # fetch it from the (now removed) /service/keycloak.json endpoint.
+        settings = config.get_settings()
+        html = (
+            HTML.replace("__KEYCLOAK_URL__", str(settings.keycloak_auth_server_url))
+            .replace("__KEYCLOAK_REALM__", settings.keycloak_realm)
+            .replace("__KEYCLOAK_CLIENT_ID__", settings.keycloak_mo_client)
+        )
 
         # Show deprecation notice at the top of the page if accessing an old version
         # of GraphQL.
