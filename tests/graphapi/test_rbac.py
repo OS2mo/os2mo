@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
 from datetime import date
 from operator import attrgetter
 from unittest.mock import AsyncMock
@@ -159,24 +158,14 @@ async def test_introspection_is_public(
         (ORG_UNIT_ADDRESS_QUERY, {"read_org_unit", "read_address"}, set()),
     ],
 )
-async def test_graphql_rbac(
-    query: str, roles: set[str], errors: set[str], set_settings: Callable[..., None]
-) -> None:
+async def test_graphql_rbac(query: str, roles: set[str], errors: set[str]) -> None:
     """Test that we get the expected permission errors.
 
     Args:
         query: The GraphQL query to execute.
         roles: The roles on the OIDC token.
         errors: The errors we expect.
-        set_settings: Fixture to configure settings overrides.
     """
-    # Configure settings as required to enable GraphQL RBAC
-    set_settings(
-        **{
-            "graphql_rbac": "True",
-        }
-    )
-
     # Setup the GraphQL context with the required dataloaders and OIDC token
 
     async def get_token():
@@ -238,9 +227,7 @@ async def test_graphql_rbac(
         },
     )
 )
-async def test_mutators_require_rbac(
-    mutation, set_settings: Callable[..., None]
-) -> None:
+async def test_mutators_require_rbac(mutation) -> None:
     # We reject if 'upload_type_used' is found within the generated mutation.
     # NOTE: This assumes that this string is globally unique within the query.
     #
@@ -255,13 +242,6 @@ async def test_mutators_require_rbac(
     # Thus it is probably easier to just not test the 'upload_file' endpoint,
     # especially as we are hoping to get rid of it long term.
     assume("upload_type_used" not in mutation)
-
-    # Configure settings as required to enable GraphQL RBAC
-    set_settings(
-        **{
-            "graphql_rbac": "True",
-        }
-    )
 
     # Setup the GraphQL context with the required dataloaders and OIDC token
 

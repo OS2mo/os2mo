@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
 
 import pytest
 
@@ -14,16 +13,6 @@ ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 FEDTMULE = "6ee24785-ee9a-4502-81c2-7697009c9053"
 LIS_JENSEN = "7626ad64-327d-481f-8b32-36c78eb12f8c"
 ERIK_SMIDT_HANSEN = "236e0a78-11a0-4ed9-8545-6286bb8611c7"
-
-
-@pytest.fixture(autouse=True)
-def enable_rbac(set_settings: Callable[..., None]) -> None:
-    """Configure settings as required to enable GraphQL RBAC."""
-    set_settings(
-        **{
-            "graphql_rbac": "True",
-        }
-    )
 
 
 parametrize_roles = (

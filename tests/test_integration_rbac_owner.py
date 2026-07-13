@@ -13,17 +13,6 @@ from mora.mapping import OWNER
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
-
-@pytest.fixture(autouse=True)
-def enable_rbac(set_settings: Callable[..., None]) -> None:
-    """Configure settings as required to enable GraphQL RBAC."""
-    set_settings(
-        **{
-            "graphql_rbac": "True",
-        }
-    )
-
-
 CreatePerson = Callable[[], UUID]
 
 

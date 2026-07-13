@@ -91,25 +91,6 @@ class Settings(BaseSettings):
         True, description="Whether to expose the Service REST API on /service"
     )
 
-    # When graphql_rbac is disabled, it is in fact still enabled for graphql mutators.
-    # This is due to a hotfix for a security security vulnerability in the orgviewer.
-    # This hotfix will be removed again later, once the security issues has been fixed.
-    # TODO(#61411) delete this flag
-    graphql_rbac: bool = True
-
-    @root_validator
-    def graphql_rbac_dependencies(cls, values: dict[str, Any]) -> dict[str, Any]:
-        if not values["graphql_rbac"]:  # pragma: no cover
-            return values
-
-        dependencies = {"keycloak_rbac_enabled"}
-        for dependency in dependencies:
-            if not values[dependency]:  # pragma: no cover
-                raise ValueError(
-                    f"'{dependency}' must be true when graphql_rbac is enabled"
-                )
-        return values
-
     # airgapped options
     enable_dar: bool = True
 

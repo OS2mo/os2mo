@@ -9,7 +9,6 @@ from graphql import GraphQLResolveInfo
 from graphql import OperationType
 
 from mora.auth.exceptions import AuthorizationError
-from mora.config import get_settings
 
 Collections = Literal[
     "accesslog",
@@ -66,19 +65,11 @@ ALL_PERMISSIONS = {
 async def _check_rbac(
     info: GraphQLResolveInfo,
     permission_role: str,
-    force_permission_check: bool,
     collection: Collections | None,
     permission_type: CollectionPermissionType | None,
     kwargs: dict[str, Any],
 ) -> bool:
     """Returns `True` if `role_name` exists in the token's roles."""
-    settings = get_settings()
-
-    # Do not check permissions (always allow) if GraphQL RBAC is disabled,
-    # unless forced.
-    if (not settings.graphql_rbac) and (not force_permission_check):
-        return True  # pragma: no cover
-
     token = await info.context.get_token()
     token_roles = token.realm_access.roles
 

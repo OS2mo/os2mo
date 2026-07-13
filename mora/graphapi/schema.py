@@ -184,8 +184,6 @@ async def _enforce_rbac(
     allowed = await _check_rbac(
         info,
         role,
-        # TODO(#61411) remove along with the graphql_rbac flag.
-        permission_type != "read",
         collection,
         permission_type,
         check_kwargs,
