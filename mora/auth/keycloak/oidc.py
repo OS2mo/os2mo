@@ -226,16 +226,12 @@ async def rbac(request: Request, admin_only: bool, token: Token = Depends(fetch_
     Role based access control (RBAC) dependency function for the FastAPI
     endpoints that require authorization in addition to authentication. The
     function just returns, if the user is authorized and throws an
-    AuthorizationError if the user is not authorized. If the RBAC feature is
-    not enabled the function will just return immediately.
+    AuthorizationError if the user is not authorized.
 
     :param request: the incoming FastAPI request.
     :param admin_only:  if true, the endpoint can only be called by the admin role
     :param token: selected JSON values from the Keycloak token
     """
-
-    if not config.get_settings().keycloak_rbac_enabled:  # pragma: no cover
-        return
 
     # This special import structure is currently required to avoid circular
     # import problems in the Python code
