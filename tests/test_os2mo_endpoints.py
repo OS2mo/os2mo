@@ -139,3 +139,12 @@ def test_testing_endpoints(set_settings: Callable[..., None]) -> None:
     app = create_app()
     routes = {r.path for r in app.routes} | {""}
     assert routes == all_endpoints | testing_endpoints
+
+
+def test_service_api_endpoints_can_be_disabled(
+    set_settings: Callable[..., None],
+) -> None:
+    set_settings(EXPOSE_SERVICE_API=False)
+    app = create_app()
+    routes = {r.path for r in app.routes} | {""}
+    assert routes == all_endpoints - service_api_endpoints
