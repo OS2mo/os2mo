@@ -86,6 +86,11 @@ class Settings(BaseSettings):
     # Testing
     insecure_enable_testing_api: bool = False
 
+    # Expose service API
+    expose_service_api: bool = Field(
+        True, description="Whether to expose the Service REST API on /service"
+    )
+
     # When graphql_rbac is disabled, it is in fact still enabled for graphql mutators.
     # This is due to a hotfix for a security security vulnerability in the orgviewer.
     # This hotfix will be removed again later, once the security issues has been fixed.
