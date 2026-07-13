@@ -89,7 +89,6 @@ def no_auth_endpoints():
         "/health/ready",
         "/health/{identifier}",
         "/version/",
-        "/service/token",
         "/service/exports/{file_name}",
         "/service/{rest_of_path:path}",
         "/metrics",
