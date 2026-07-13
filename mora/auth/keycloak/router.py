@@ -21,19 +21,6 @@ def keycloak_router():
     PORT = settings.keycloak_port
     REALM = settings.keycloak_realm
 
-    @router.head("/keycloak.json")
-    @router.get("/keycloak.json")
-    async def get_keycloak_config() -> dict[str, Any]:  # pragma: no cover
-        """Frontend keycloak configuration endpoint."""
-        return {
-            "realm": REALM,
-            "auth-server-url": settings.keycloak_auth_server_url,
-            "ssl-required": settings.keycloak_ssl_required,
-            "resource": settings.keycloak_mo_client,
-            "public-client": True,
-            "confidential-port": 0,
-        }
-
     @router.post("/token")
     async def login(  # pragma: no cover
         form_data: OAuth2PasswordRequestForm = Depends(),
