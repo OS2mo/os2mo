@@ -30,13 +30,19 @@ def meta_router():
 
         return response.data["version"]
 
+    @router.get("/saml/sso/")
+    async def old_auth():  # pragma: no cover
+        return RedirectResponse(url="/")
+
+    return router
+
+
+def service_catchall_router():
+    router = APIRouter()
+
     @router.get("/service/{rest_of_path:path}")
     async def no_such_endpoint(rest_of_path):
         """Throw an error on unknown `/service/` endpoints."""
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
-
-    @router.get("/saml/sso/")
-    async def old_auth():  # pragma: no cover
-        return RedirectResponse(url="/")
 
     return router

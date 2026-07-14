@@ -41,6 +41,7 @@ from mora.graphapi.middleware import set_graphql_version_from_url
 from mora.request_scoped.query_args_context_plugin import query_args_context
 from mora.service.address_handler.dar import dar_loader_context
 from mora.service.shimmed.meta import meta_router
+from mora.service.shimmed.meta import service_catchall_router
 from mora.util import now_per_request
 from oio_rest.config import get_settings as lora_get_settings
 
@@ -272,18 +273,23 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         tags=["Health"],
     )
 
-    for name, router in service.routers.items():
+    if settings.expose_service_api:
+        for name, router in service.routers.items():
+            app.include_router(
+                router,
+                prefix="/service",
+                tags=["Service." + name],
+                dependencies=[Depends(fetch_token), Depends(service_api_auth)],
+            )
+        for name, router in service.no_auth_routers.items():
+            app.include_router(
+                router,
+                prefix="/service",
+                tags=["Service." + name],
+            )
         app.include_router(
-            router,
-            prefix="/service",
-            tags=["Service." + name],
-            dependencies=[Depends(fetch_token), Depends(service_api_auth)],
-        )
-    for name, router in service.no_auth_routers.items():
-        app.include_router(
-            router,
-            prefix="/service",
-            tags=["Service." + name],
+            service_catchall_router(),
+            tags=["Meta"],
         )
 
     app.include_router(
