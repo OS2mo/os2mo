@@ -128,32 +128,32 @@ async def test_introspection_is_public(
     "query,roles,errors",
     [
         # Query our org
-        (ORG_QUERY, set(), {"User does not have read-access to org"}),
+        (ORG_QUERY, set(), {"No policy approved the access"}),
         (ORG_QUERY, {"read_org"}, set()),
         # Query all org-units
-        (ORG_UNIT_QUERY, set(), {"User does not have read-access to org_unit"}),
-        (ORG_UNIT_QUERY, {"read_org"}, {"User does not have read-access to org_unit"}),
+        (ORG_UNIT_QUERY, set(), {"No policy approved the access"}),
+        (ORG_UNIT_QUERY, {"read_org"}, {"No policy approved the access"}),
         (ORG_UNIT_QUERY, {"read_org_unit"}, set()),
         # Query all addresses
-        (ADDRESS_QUERY, set(), {"User does not have read-access to address"}),
-        (ADDRESS_QUERY, {"read_org"}, {"User does not have read-access to address"}),
+        (ADDRESS_QUERY, set(), {"No policy approved the access"}),
+        (ADDRESS_QUERY, {"read_org"}, {"No policy approved the access"}),
         (ADDRESS_QUERY, {"read_address"}, set()),
         # Query all org-units and their addresses
         (
             ORG_UNIT_ADDRESS_QUERY,
             set(),
-            {"User does not have read-access to org_unit"},
+            {"No policy approved the access"},
         ),
         (
             ORG_UNIT_ADDRESS_QUERY,
             {"read_org"},
-            {"User does not have read-access to org_unit"},
+            {"No policy approved the access"},
         ),
         # Address permission is first checked here, as we actually have org-unit data
         (
             ORG_UNIT_ADDRESS_QUERY,
             {"read_org_unit"},
-            {"User does not have read-access to address"},
+            {"No policy approved the access"},
         ),
         (ORG_UNIT_ADDRESS_QUERY, {"read_org_unit", "read_address"}, set()),
     ],
@@ -260,4 +260,4 @@ async def test_mutators_require_rbac(mutation) -> None:
     assert len(response.errors) >= 1
     error_messages = set(map(attrgetter("message"), response.errors))
     for error_message in error_messages:
-        assert "User does not have " in error_message
+        assert error_message == "No policy approved the access"

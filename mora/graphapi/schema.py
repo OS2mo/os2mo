@@ -190,10 +190,7 @@ async def _enforce_rbac(
     )
     if allowed:
         return
-    msg = f"User does not have required role: {role}"
-    if collection is not None and permission_type is not None:
-        msg = f"User does not have {permission_type}-access to {collection}"
-    raise GraphQLError(msg)
+    raise GraphQLError("No policy approved the access")
 
 
 class RBACExtension(SchemaExtension):
