@@ -35,7 +35,6 @@ service_api_endpoints = {
     "/service/insight",
     "/service/insight/download",
     "/service/insight/files",
-    "/service/keycloak.json",
     "/service/o/",
     "/service/o/{orgid}/",
     "/service/o/{orgid}/e/",
