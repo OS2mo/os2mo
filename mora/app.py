@@ -33,7 +33,6 @@ from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.oidc import authorization_exception_handler
 from mora.auth.keycloak.oidc import fetch_token
 from mora.auth.keycloak.oidc import service_api_auth
-from mora.auth.keycloak.router import keycloak_router
 from mora.auth.middleware import set_authenticated_user
 from mora.common import lora_connector_context
 from mora.db.events import setup_event_metrics
@@ -292,11 +291,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         tags=["GraphQL"],
     )
 
-    app.include_router(
-        keycloak_router(),
-        prefix="/service",
-        tags=["Auth"],
-    )
     app.include_router(
         meta_router(),
         tags=["Meta"],
