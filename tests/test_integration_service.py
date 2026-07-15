@@ -17,8 +17,8 @@ org_unit_type_facet = {
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("empty_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_employee_empty_db(service_client: TestClient) -> None:
     # empty
     response = service_client.request(
@@ -37,8 +37,8 @@ async def test_employee_empty_db(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_employee(another_transaction, service_client: TestClient) -> None:
     # invalid
     response = service_client.request(
@@ -730,8 +730,8 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
     }
 
 
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "params,expected",

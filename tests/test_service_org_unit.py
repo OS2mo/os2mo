@@ -8,7 +8,6 @@ from unittest.mock import call
 from unittest.mock import patch
 from uuid import UUID
 
-import freezegun
 import pytest
 from fastapi.testclient import TestClient
 from os2mo_http_trigger_protocol import MOTriggerRegister
@@ -28,7 +27,7 @@ from oio_rest.organisation import OrganisationEnhed
 from tests import util
 
 
-@freezegun.freeze_time("2018-03-15")
+@pytest.mark.freeze_time("2018-03-15")
 async def test_unit_past(monkeypatch, service_client: TestClient) -> None:
     unitid = "ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc"
 

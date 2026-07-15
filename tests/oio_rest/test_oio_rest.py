@@ -4,7 +4,6 @@ import datetime
 from typing import TypeVar
 from urllib.parse import urlencode
 
-import freezegun
 import pytest
 from fastapi import Request
 
@@ -221,7 +220,7 @@ class TestOIORest:
         assert expected_from == actual_from
         assert expected_to == actual_to
 
-    @freezegun.freeze_time("2017-01-01", tz_offset=1)
+    @pytest.mark.freeze_time("2017-01-01", tz_offset=1)
     def test_get_virkning_dates_defaults(self):
         # Arrange
         args = {}
@@ -281,7 +280,7 @@ class TestOIORest:
         assert expected_from == actual_from
         assert expected_to == actual_to
 
-    @freezegun.freeze_time("2017-01-01", tz_offset=1)
+    @pytest.mark.freeze_time("2017-01-01", tz_offset=1)
     def test_get_registreret_dates_defaults(self):
         # Arrange
         args = {}

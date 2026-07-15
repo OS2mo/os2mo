@@ -3,7 +3,6 @@
 from typing import Any
 from uuid import uuid4
 
-import freezegun
 import pytest
 from fastapi.testclient import TestClient
 from more_itertools import first
@@ -17,8 +16,8 @@ engagement_uuid = "d000591f-8705-4324-897a-075e3623f37b"
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2016-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2016-01-01", tz_offset=1)
 async def test_create_employee_itsystem(service_client: TestClient) -> None:
     # Check the POST request
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -111,8 +110,8 @@ async def test_create_employee_itsystem(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_create_unit_itsystem(service_client: TestClient) -> None:
     # Check the POST request
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -191,8 +190,8 @@ async def test_create_unit_itsystem(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-06-22", tz_offset=2)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-06-22", tz_offset=2)
 async def test_edit_itsystem(service_client: TestClient):
     it_func_id = "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276"
 
@@ -710,6 +709,7 @@ reading_unit_result_now = [
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "params,expected",
@@ -731,7 +731,6 @@ reading_unit_result_now = [
         ({"at": "2018-06-01", "validity": "future"}, []),
     ],
 )
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_reading_unit(
     service_client: TestClient, params: dict[str, Any], expected: list[dict]
 ) -> None:

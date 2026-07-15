@@ -4,7 +4,6 @@ from typing import Any
 from typing import Literal
 from uuid import UUID
 
-import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
@@ -88,8 +87,8 @@ def simplified_owner(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_inherit_top_level_empty(service_client: TestClient) -> None:
     """When hitting top-level simply return nothing."""
     response = service_client.request(
@@ -102,6 +101,7 @@ def test_inherit_top_level_empty(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "payload, status_code, verifying_org_unit, verifying_response",
@@ -249,7 +249,6 @@ def test_inherit_top_level_empty(service_client: TestClient) -> None:
         ),
     ],
 )
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_create_org_unit(
     service_client: TestClient,
     payload: dict[str, Any],
@@ -275,6 +274,7 @@ def test_create_org_unit(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "payload, status_code",
@@ -322,7 +322,6 @@ def test_create_org_unit(
         ),
     ],
 )
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_create_person(
     service_client: TestClient,
     payload: dict[str, Any],
@@ -335,6 +334,7 @@ def test_create_person(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "payload, status_code, verifying_response",
@@ -419,7 +419,6 @@ def test_create_person(
         ),
     ],
 )
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_create_person_extended(
     another_transaction,
     service_client: TestClient,

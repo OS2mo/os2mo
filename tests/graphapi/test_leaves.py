@@ -5,7 +5,6 @@ from typing import Any
 from uuid import UUID
 from uuid import uuid4
 
-import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
@@ -229,7 +228,7 @@ async def test_update_leave_integration_test(
 
 
 @pytest.mark.integration_test
-@freezegun.freeze_time("2023-07-13", tz_offset=1)
+@pytest.mark.freeze_time("2023-07-13", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",

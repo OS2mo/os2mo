@@ -66,8 +66,8 @@ HIST = {
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-06-01", tz_offset=2)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-06-01", tz_offset=2)
 @pytest.mark.parametrize(
     "url,expected,message",
     [

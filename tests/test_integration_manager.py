@@ -4,7 +4,6 @@ from typing import Any
 from unittest.mock import patch
 from uuid import UUID
 
-import freezegun
 import pytest
 from fastapi.testclient import TestClient
 from more_itertools import one
@@ -21,6 +20,7 @@ manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
@@ -533,7 +533,6 @@ manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
         ),
     ],
 )
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 @patch("uuid.uuid4", new=lambda: UUID("1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"))
 async def test_create_manager(
     service_client: TestClient,
@@ -558,9 +557,9 @@ async def test_create_manager(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @patch("uuid.uuid4", new=lambda: UUID(mock_uuid))
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_read_manager_multiple_responsibilities(
     another_transaction,
     service_client: TestClient,
@@ -663,9 +662,9 @@ async def test_read_manager_multiple_responsibilities(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @patch("uuid.uuid4", new=lambda: UUID(mock_uuid))
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_create_manager_missing_unit(service_client: TestClient) -> None:
     # Check the POST request
     payload = {
@@ -689,9 +688,9 @@ def test_create_manager_missing_unit(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @patch("uuid.uuid4", new=lambda: UUID(mock_uuid))
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_create_vacant_manager(service_client: TestClient) -> None:
     unit_id = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
 
@@ -789,9 +788,9 @@ def test_create_vacant_manager(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @patch("uuid.uuid4", new=lambda: UUID(mock_uuid))
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_edit_manager_on_unit(service_client: TestClient) -> None:
     unit_id = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
     user_id = "6ee24785-ee9a-4502-81c2-7697009c9053"
@@ -895,8 +894,8 @@ def test_edit_manager_on_unit(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_read_no_inherit_manager(service_client: TestClient) -> None:
     # Anders And is manager at humfak
     filins = "85715fc7-925d-401b-822d-467eb4b163b6"
@@ -907,8 +906,8 @@ def test_read_no_inherit_manager(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_read_inherit_manager_one_level(service_client: TestClient) -> None:
     # Anders And is manager at humfak
     humfak = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
@@ -924,8 +923,8 @@ def test_read_inherit_manager_one_level(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_read_inherit_manager_none_found_all_the_way_up(
     service_client: TestClient,
 ) -> None:

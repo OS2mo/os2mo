@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock
 from uuid import UUID
 from uuid import uuid4
 
-import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
@@ -188,8 +187,8 @@ async def test_create_ituser_org_unit_integration_test(
     assert obj["validity"]["to"] is None
 
 
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
