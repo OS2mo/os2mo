@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import copy
 import json
-from functools import partial
+from collections.abc import Callable
 from typing import Any
 from urllib.parse import urlencode
 from uuid import uuid4
@@ -151,7 +151,12 @@ async def test_create_association(
     mo_data: dict[str, Any],
     mo_expected: dict[str, Any],
     lora_expected: dict[str, Any],
+    set_settings: Callable[..., None],
 ) -> None:
+    set_settings(
+        confdb_substitute_roles=json.dumps(["62ec821f-4179-4758-bfdf-134529d186e9"])
+    )
+
     def url(employee_uuid: str, **kwargs):
         base = f"/service/e/{employee_uuid}/details/association"
         args = {"validity": "future", "only_primary_uuid": "1"}
@@ -160,11 +165,6 @@ async def test_create_association(
         if kwargs:
             args.update(**kwargs)
         return f"{base}?{urlencode(args)}"
-
-    seed_substitute_roles = partial(
-        set_settings_contextmanager,
-        confdb_substitute_roles=json.dumps(["62ec821f-4179-4758-bfdf-134529d186e9"]),
-    )
 
     # Create an "IT User" (aka. "IT system binding")
     response = service_client.request(
@@ -192,12 +192,9 @@ async def test_create_association(
 
     payload[0].update(mo_data)
 
-    with seed_substitute_roles():
-        response = service_client.request(
-            "POST", "/service/details/create", json=payload
-        )
-        assert response.status_code == 201
-        assert response.json() == [association_uuid]
+    response = service_client.request("POST", "/service/details/create", json=payload)
+    assert response.status_code == 201
+    assert response.json() == [association_uuid]
 
     # Check that we created the expected "organisationfunktion" in LoRa
     expected = _lora_organisationfunktion(**lora_expected)
@@ -220,10 +217,9 @@ async def test_create_association(
         "validity": {"from": "2017-12-01", "to": "2017-12-01"},
     }
     expected.update(mo_expected)
-    with seed_substitute_roles():
-        response = service_client.request("GET", url(_userid))
-        assert response.status_code == 200
-        assert response.json() == [expected]
+    response = service_client.request("GET", url(_userid))
+    assert response.status_code == 200
+    assert response.json() == [expected]
 
     # Check that we get the expected response from MO, case 2
     expected = {
@@ -242,13 +238,12 @@ async def test_create_association(
         "third_party_association_type": _substitute_association,
     }
     expected.update(mo_expected)
-    with seed_substitute_roles():
-        response = service_client.request(
-            "GET",
-            url(_userid, first_party_perspective="1"),
-        )
-        assert response.status_code == 200
-        assert response.json() == ([expected] if "it" not in mo_data else [])
+    response = service_client.request(
+        "GET",
+        url(_userid, first_party_perspective="1"),
+    )
+    assert response.status_code == 200
+    assert response.json() == ([expected] if "it" not in mo_data else [])
 
     # Check that we get the expected response from MO, case 3
     response = service_client.request("GET", url(_substitute_uuid))
@@ -272,18 +267,23 @@ async def test_create_association(
         },
     }
     expected.update(mo_expected)
-    with seed_substitute_roles():
-        response = service_client.request(
-            "GET", url(_substitute_uuid, first_party_perspective="1")
-        )
-        assert response.status_code == 200
-        assert response.json() == ([expected] if "it" not in mo_data else [])
+    response = service_client.request(
+        "GET", url(_substitute_uuid, first_party_perspective="1")
+    )
+    assert response.status_code == 200
+    assert response.json() == ([expected] if "it" not in mo_data else [])
 
 
 @pytest.mark.integration_test
 @pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-async def test_create_vacant_association(service_client: TestClient) -> None:
+async def test_create_vacant_association(
+    service_client: TestClient, set_settings: Callable[..., None]
+) -> None:
+    set_settings(
+        confdb_substitute_roles=json.dumps(["62ec821f-4179-4758-bfdf-134529d186e9"])
+    )
+
     # Check the POST request
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -320,22 +320,19 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
             main["person"] = None
         return [main]
 
-    with set_settings_contextmanager(
-        confdb_substitute_roles=json.dumps(["62ec821f-4179-4758-bfdf-134529d186e9"])
-    ):
-        response = service_client.request(
-            "POST", "/service/details/create", json=payload(association_uuid)
-        )
-        assert response.status_code == 201
-        assert response.json() == [association_uuid]
+    response = service_client.request(
+        "POST", "/service/details/create", json=payload(association_uuid)
+    )
+    assert response.status_code == 201
+    assert response.json() == [association_uuid]
 
-        response = service_client.request(
-            "POST",
-            "/service/details/create",
-            json=payload(association_uuid2, include_person=False),
-        )
-        assert response.status_code == 201
-        assert response.json() == [association_uuid2]
+    response = service_client.request(
+        "POST",
+        "/service/details/create",
+        json=payload(association_uuid2, include_person=False),
+    )
+    assert response.status_code == 201
+    assert response.json() == [association_uuid2]
 
     expected = {
         "livscykluskode": "Importeret",
@@ -468,17 +465,14 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
         assoc_content_only_primary_uuid(association_uuid2),
     ]
 
-    with set_settings_contextmanager(
-        confdb_substitute_roles=json.dumps(["62ec821f-4179-4758-bfdf-134529d186e9"])
-    ):
-        # contains sorting (ie. unordered comparison)
-        response = service_client.request(
-            "GET",
-            f"/service/ou/{unitid}/details/association",
-            params={"validity": "future", "only_primary_uuid": 1},
-        )
-        assert response.status_code == 200
-        assert response.json() == expected
+    # contains sorting (ie. unordered comparison)
+    response = service_client.request(
+        "GET",
+        f"/service/ou/{unitid}/details/association",
+        params={"validity": "future", "only_primary_uuid": 1},
+    )
+    assert response.status_code == 200
+    assert response.json() == expected
 
 
 @pytest.mark.integration_test
