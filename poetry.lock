@@ -2156,6 +2156,22 @@ pytest = ">=4.6"
 testing = ["fields", "hunter", "process-tests", "pytest-xdist", "virtualenv"]
 
 [[package]]
+name = "pytest-freezer"
+version = "0.4.9"
+description = "Pytest plugin providing a fixture interface for spulec/freezegun"
+optional = false
+python-versions = ">=3.6"
+groups = ["dev"]
+files = [
+    {file = "pytest_freezer-0.4.9-py3-none-any.whl", hash = "sha256:8b6c50523b7d4aec4590b52bfa5ff766d772ce506e2bf4846c88041ea9ccae59"},
+    {file = "pytest_freezer-0.4.9.tar.gz", hash = "sha256:21bf16bc9cc46bf98f94382c4b5c3c389be7056ff0be33029111ae11b3f1c82a"},
+]
+
+[package.dependencies]
+freezegun = ">=1.1"
+pytest = ">=3.6"
+
+[[package]]
 name = "pytest-randomly"
 version = "3.16.0"
 description = "Pytest plugin to randomly order tests and control random.seed."
@@ -3267,4 +3283,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "229aecd8ff5b7f9144291a5fd78c95cf52aa085a9066c1d98dd666f27af20c40"
+content-hash = "f1c0ea50f3e28840f565528853da8dafe5ab9592e71e87d439251f972e6d2afa"
