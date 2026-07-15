@@ -1265,14 +1265,13 @@ async def test_edit_parent_reads_from_previous_relation(
         assert response.json() == humanistisk_fakultet
 
     async def assert_parent_is(expected_parent, at):
-        with freezegun.freeze_time(at):
-            response = service_client.request(
-                "GET", f"/service/ou/{humanistisk_fakultet}/"
-            )
-            assert response.status_code == 200
-            doc = response.json()
-            actual_parent = doc["parent"]["uuid"]
-            assert actual_parent == expected_parent
+        response = service_client.request(
+            "GET", f"/service/ou/{humanistisk_fakultet}/", params={"at": at}
+        )
+        assert response.status_code == 200
+        doc = response.json()
+        actual_parent = doc["parent"]["uuid"]
+        assert actual_parent == expected_parent
 
     # Initial state: parent is "Overordnet Enhed"
     await assert_parent_is(overordnet_enhed, "2016-01-01")
