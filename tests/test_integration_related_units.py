@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import freezegun
 import pytest
 from fastapi.testclient import TestClient
 
@@ -107,13 +106,31 @@ def test_reading(
     assert response.json() == expected, message
 
 
+def pf(
+    url: str,
+    json: dict,
+    status_code: int,
+    overrides: dict,
+    freeze_time: str | None,
+):
+    """A parametrize case that freezes the whole test at `freeze_time`."""
+    return pytest.param(
+        url,
+        json,
+        status_code,
+        overrides,
+        freeze_time,
+        marks=pytest.mark.freeze_time(freeze_time or "2017-06-01"),
+    )
+
+
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "url,json,status_code,overrides,freeze_time",
     [
         # past
-        (
+        pf(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/map",
             {
                 "destination": [
@@ -128,7 +145,7 @@ def test_reading(
             None,
         ),
         # outside
-        (
+        pf(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/map",
             {
                 "destination": [
@@ -143,7 +160,7 @@ def test_reading(
             None,
         ),
         # accross a change
-        (
+        pf(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/map",
             {
                 "destination": [
@@ -158,7 +175,7 @@ def test_reading(
             "2015-03-01",
         ),
         # invalid origin
-        (
+        pf(
             "/service/ou/00000000-0000-0000-0000-000000000000/map",
             {
                 "destination": [
@@ -177,7 +194,7 @@ def test_reading(
             None,
         ),
         # invalid destination
-        (
+        pf(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/map",
             {
                 "destination": [
@@ -213,10 +230,9 @@ def test_validation(
         "status": status_code,
     }
     expected.update(overrides)
-    with freezegun.freeze_time(freeze_time or "2017-06-01"):
-        response = service_client.request("POST", url, json=json)
-        assert response.status_code == status_code
-        assert response.json() == expected
+    response = service_client.request("POST", url, json=json)
+    assert response.status_code == status_code
+    assert response.json() == expected
 
 
 @pytest.mark.integration_test
