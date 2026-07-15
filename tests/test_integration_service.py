@@ -3,7 +3,6 @@
 from collections.abc import Callable
 from operator import itemgetter
 
-import freezegun
 import pytest
 from fastapi.testclient import TestClient
 
@@ -195,14 +194,6 @@ async def test_employee(another_transaction, service_client: TestClient) -> None
             "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
         },
     }
-
-    with freezegun.freeze_time("1900-01-01"):
-        response = service_client.request(
-            "GET",
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/",
-        )
-        assert response.status_code == 200
-        assert response.json() == {"total": 0, "items": [], "offset": 0}
 
     response = service_client.request(
         "GET",
@@ -561,6 +552,19 @@ async def test_employee(another_transaction, service_client: TestClient) -> None
         "offset": 0,
         "total": 1,
     }
+
+
+@pytest.mark.integration_test
+@pytest.mark.freeze_time("1900-01-01")
+@pytest.mark.usefixtures("fixture_db")
+def test_employee_listing_empty_before_data(service_client: TestClient) -> None:
+    # No employees are valid at the frozen "now", so the listing is empty.
+    response = service_client.request(
+        "GET",
+        "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/",
+    )
+    assert response.status_code == 200
+    assert response.json() == {"total": 0, "items": [], "offset": 0}
 
 
 @pytest.mark.integration_test
