@@ -25,6 +25,7 @@ from mora.access_log import access_log
 from mora.auth.keycloak.models import Token
 from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from mora.auth.middleware import set_authenticated_user
+from mora.config import get_settings
 from mora.db import AccessLogOperation
 from mora.db import AccessLogRead
 from mora.db import AsyncSession
@@ -204,7 +205,7 @@ def access_log_entries_and_filter(
 async def test_access_log_filters(
     another_transaction,
     graphapi_post: GraphAPIPost,
-    set_session_settings: MonkeyPatch,
+    monkeypatch: MonkeyPatch,
     empty_db: AsyncSession,
     access_log_entries_and_filter: tuple[
         list[dict[str, Any]],
@@ -249,8 +250,10 @@ async def test_access_log_filters(
     assert response.errors is None
     assert response.data == {"access_log": {"objects": []}}
 
-    # Add access log entries
-    set_session_settings(ACCESS_LOG_ENABLE="True")
+    # Add access log entries. Enable access logging only while writing them;
+    # enabling it for the whole test would also log the verifying reads below.
+    monkeypatch.setenv("ACCESS_LOG_ENABLE", "True")
+    get_settings.cache_clear()
 
     async with another_transaction() as (_, session):
         for access_event in access_log_entries:
@@ -269,7 +272,8 @@ async def test_access_log_filters(
                 )
 
     # Disable access-logging itself
-    set_session_settings(ACCESS_LOG_ENABLE="False")
+    monkeypatch.setenv("ACCESS_LOG_ENABLE", "False")
+    get_settings.cache_clear()
 
     # Test that we can see all our access log entries
     response = graphapi_post(access_filter_query, {"filter": {}})
