@@ -104,7 +104,7 @@ HTML = """
         clientId: "__KEYCLOAK_CLIENT_ID__",
       });
 
-      keycloak
+      const keycloakReady = keycloak
         .init({
           onLoad: "login-required",
         })
@@ -131,7 +131,10 @@ HTML = """
           console.error("Failed to initialise Keycloak");
         });
 
-      const authorizedFetch = (resource, options) => {
+      const authorizedFetch = async (resource, options) => {
+        // Wait for Keycloak to authenticate before issuing any request, this ensures
+        // that the introspection query GraphiQL fires on mount is sent with a token.
+        await keycloakReady;
         return fetch(resource, {
           ...options,
           headers: {
