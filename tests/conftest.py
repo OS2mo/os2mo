@@ -816,22 +816,6 @@ def ituser_uuids(graphapi_post: GraphAPIPost) -> list[UUID]:
     return uuids
 
 
-@pytest.fixture(scope="session")
-def graphapi_test(fastapi_admin_test_app: FastAPI) -> TestClient:
-    """Fixture yielding a FastAPI test client."""
-    return TestClient(fastapi_admin_test_app)
-
-
-@pytest.fixture(scope="session")
-def graphapi_test_no_exc(fastapi_admin_test_app: FastAPI) -> TestClient:
-    """Fixture yielding a FastAPI test client.
-
-    This test client does not raise server errors. We use it to check error handling
-    in our GraphQL stack.
-    """
-    return TestClient(fastapi_admin_test_app, raise_server_exceptions=False)
-
-
 @pytest.fixture
 def darmocked():
     with darmock() as mock:
