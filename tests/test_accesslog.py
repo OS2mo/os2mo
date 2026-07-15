@@ -326,16 +326,27 @@ async def test_access_log_filters(
 async def test_access_log_disabled(
     empty_db: AsyncSession, set_settings: MonkeyPatch
 ) -> None:
-    """Integrationtest for enabling the access log."""
+    """Disabled access log writes nothing."""
+
+    set_settings(ACCESS_LOG_ENABLE="False")
 
     await assert_empty_access_log_tables(empty_db)
 
-    set_settings(ACCESS_LOG_ENABLE="False")
     uuid = uuid4()
     access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
     await assert_empty_access_log_tables(empty_db)
 
+
+@pytest.mark.integration_test
+async def test_access_log_enabled(
+    empty_db: AsyncSession, set_settings: MonkeyPatch
+) -> None:
+    """Enabled access log writes an entry."""
+
     set_settings(ACCESS_LOG_ENABLE="True")
+
+    await assert_empty_access_log_tables(empty_db)
+
     uuid = uuid4()
     access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
     await assert_one_access_log_entry(empty_db, "AccessLog", "test_access_log", [uuid])
@@ -347,7 +358,7 @@ async def test_access_log_disabled_for_user_graphql(
     set_settings: MonkeyPatch,
     graphapi_post: GraphAPIPost,
 ) -> None:
-    """Integrationtest for selectively disabling the access log (GraphQL)."""
+    """Reads by a no-log user neither return nor produce access events (GraphQL)."""
 
     set_settings(ACCESS_LOG_ENABLE="True")
 
@@ -367,6 +378,7 @@ async def test_access_log_disabled_for_user_graphql(
 
     admin_uuid = str(await admin_auth_uuid())
     set_settings(ACCESS_LOG_NO_LOG_UUIDS=json.dumps([admin_uuid]))
+
     # First call returns nothing, and produces nothing
     response = graphapi_post(query)
     assert response.errors is None
@@ -377,7 +389,33 @@ async def test_access_log_disabled_for_user_graphql(
     assert response.errors is None
     assert response.data == {"access_log": {"objects": []}}
 
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_access_log_enabled_for_user_graphql(
+    set_settings: MonkeyPatch,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Reads by a logged user produce access events (GraphQL)."""
+
+    set_settings(ACCESS_LOG_ENABLE="True")
+
+    query = """
+        query ReadAccessLog {
+          access_log {
+            objects {
+              id
+              time
+              actor
+              model
+              uuids
+            }
+          }
+        }
+    """
+
     set_settings(ACCESS_LOG_NO_LOG_UUIDS=json.dumps([]))
+
     # First call returns nothing, but produces an access event
     response = graphapi_post(query)
     assert response.errors is None
@@ -393,18 +431,29 @@ async def test_access_log_disabled_for_user_graphql(
 async def test_access_log_disabled_for_user(
     empty_db: AsyncSession, set_settings: MonkeyPatch
 ) -> None:
-    """Integrationtest for selectively disabling the access log."""
+    """A read by a no-log user writes nothing."""
 
     set_settings(ACCESS_LOG_ENABLE="True")
+    set_settings(ACCESS_LOG_NO_LOG_UUIDS=json.dumps([str(NO_AUTH_MIDDLEWARE_UUID)]))
 
     await assert_empty_access_log_tables(empty_db)
 
-    set_settings(ACCESS_LOG_NO_LOG_UUIDS=json.dumps([str(NO_AUTH_MIDDLEWARE_UUID)]))
     uuid = uuid4()
     access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
     await assert_empty_access_log_tables(empty_db)
 
+
+@pytest.mark.integration_test
+async def test_access_log_enabled_for_user(
+    empty_db: AsyncSession, set_settings: MonkeyPatch
+) -> None:
+    """A read by a logged user writes an entry."""
+
+    set_settings(ACCESS_LOG_ENABLE="True")
     set_settings(ACCESS_LOG_NO_LOG_UUIDS=json.dumps([]))
+
+    await assert_empty_access_log_tables(empty_db)
+
     uuid = uuid4()
     access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
     await assert_one_access_log_entry(empty_db, "AccessLog", "test_access_log", [uuid])
