@@ -119,6 +119,12 @@ def clear_actor_cache():
     auth_middleware._actor_cache.clear()
 
 
+@pytest.fixture(autouse=True)
+def clear_settings_cache() -> None:
+    """Clear the ``get_settings`` cache so each test reads its env overrides freshly."""
+    get_settings.cache_clear()
+
+
 @pytest.fixture
 def set_settings(
     monkeypatch: MonkeyPatch,
