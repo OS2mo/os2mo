@@ -134,30 +134,6 @@ def set_settings(
     get_settings.cache_clear()
 
 
-@pytest.fixture(scope="session")
-def monkeysession(request):
-    from pytest import MonkeyPatch
-
-    mpatch = MonkeyPatch()
-    yield mpatch
-    mpatch.undo()
-
-
-@pytest.fixture(scope="session")
-def set_session_settings(
-    monkeysession: MonkeyPatch,
-) -> YieldFixture[Callable[..., None]]:
-    """Set settings via kwargs callback."""
-
-    def _inner(**kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            monkeysession.setenv(key, value)
-        get_settings.cache_clear()
-
-    yield _inner
-    get_settings.cache_clear()
-
-
 BRUCE_UUID = UUID("99e7b256-7dfa-4ee8-95c6-e3abe82e236a")
 ALVIDA_UUID = UUID("0fb62199-cb9e-4083-ba45-2a63bfd142d7")
 
