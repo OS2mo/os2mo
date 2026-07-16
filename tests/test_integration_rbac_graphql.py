@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -34,16 +33,6 @@ ACTIVE_DIRECTORY = UUID("59c135c9-2b15-41cc-97c8-b5dff7180beb")
 # IT users
 ANDERS_AND_AD_USER_KEY = "18d2271a-45c4-406c-a482-04ab12f80881"
 ANDERS_AND_AD_EXTERNAL_ID = "e5595d6a-590c-4cae-9164-9fcf8e1178a2"
-
-
-@pytest.fixture(autouse=True)
-def enable_rbac(set_settings: Callable[..., None]) -> None:
-    """Configure settings as required to enable GraphQL RBAC."""
-    set_settings(
-        **{
-            "graphql_rbac": "True",
-        }
-    )
 
 
 @pytest.fixture
