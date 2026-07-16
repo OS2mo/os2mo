@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import json
 from asyncio import Future
 from copy import deepcopy
 from unittest.mock import AsyncMock
@@ -15,7 +16,6 @@ from starlette.datastructures import ImmutableMultiDict
 
 from mora import lora
 from mora import mapping
-from mora.config import Settings
 from mora.handler.impl.association import AssociationReader
 from mora.service.orgunit import UnitDetails
 from mora.service.orgunit import get_one_orgunit
@@ -234,26 +234,26 @@ def get_one_org_mock():
         yield mock
 
 
+@pytest.mark.envvar({"HTTP_ENDPOINTS": json.dumps(["http://whatever"])})
 async def test_returns_integration_error_on_wrong_status(
     get_one_org_mock: MagicMock,
     t_sender_mock: MagicMock,
     t_fetch_mock: MagicMock,
     service_client: TestClient,
 ) -> None:
-    with util.override_config(Settings(http_endpoints=["http://whatever"])):
-        t_fetch_mock.return_value = [
-            MOTriggerRegister(
-                **{
-                    "event_type": mapping.EventType.ON_BEFORE,
-                    "request_type": mapping.RequestType.REFRESH,
-                    "role_type": "org_unit",
-                    "url": "/triggers/ou/refresh",
-                }
-            )
-        ]
-        Trigger.registry = {}
-        await register(None)
-        t_fetch_mock.assert_called()
+    t_fetch_mock.return_value = [
+        MOTriggerRegister(
+            **{
+                "event_type": mapping.EventType.ON_BEFORE,
+                "request_type": mapping.RequestType.REFRESH,
+                "role_type": "org_unit",
+                "url": "/triggers/ou/refresh",
+            }
+        )
+    ]
+    Trigger.registry = {}
+    await register(None)
+    t_fetch_mock.assert_called()
 
     error_msg = "Something horrible happened"
     response_future = Future()
@@ -283,26 +283,26 @@ async def test_returns_integration_error_on_wrong_status(
     )
 
 
+@pytest.mark.envvar({"HTTP_ENDPOINTS": json.dumps(["http://whatever"])})
 async def test_returns_message_on_success(
     get_one_org_mock: MagicMock,
     t_sender_mock: MagicMock,
     t_fetch_mock: MagicMock,
     service_client: TestClient,
 ) -> None:
-    with util.override_config(Settings(http_endpoints=["http://whatever"])):
-        t_fetch_mock.return_value = [
-            MOTriggerRegister(
-                **{
-                    "event_type": mapping.EventType.ON_BEFORE,
-                    "request_type": mapping.RequestType.REFRESH,
-                    "role_type": "org_unit",
-                    "url": "/triggers/ou/refresh",
-                }
-            )
-        ]
-        Trigger.registry = {}
-        await register(None)
-        t_fetch_mock.assert_called()
+    t_fetch_mock.return_value = [
+        MOTriggerRegister(
+            **{
+                "event_type": mapping.EventType.ON_BEFORE,
+                "request_type": mapping.RequestType.REFRESH,
+                "role_type": "org_unit",
+                "url": "/triggers/ou/refresh",
+            }
+        )
+    ]
+    Trigger.registry = {}
+    await register(None)
+    t_fetch_mock.assert_called()
 
     response_msg = "Something good happened"
     response_future = Future()
