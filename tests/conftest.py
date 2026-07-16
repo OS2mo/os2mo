@@ -23,7 +23,6 @@ from uuid import uuid4
 
 import pytest
 import requests
-from _pytest.monkeypatch import MonkeyPatch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from hypothesis import Verbosity
@@ -122,21 +121,6 @@ def clear_actor_cache():
 @pytest.fixture(autouse=True)
 def clear_settings_cache() -> None:
     """Clear the ``get_settings`` cache so each test reads its env overrides freshly."""
-    get_settings.cache_clear()
-
-
-@pytest.fixture
-def set_settings(
-    monkeypatch: MonkeyPatch,
-) -> YieldFixture[Callable[..., None]]:
-    """Set settings via kwargs callback."""
-
-    def _inner(**kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            monkeypatch.setenv(key, value)
-        get_settings.cache_clear()
-
-    yield _inner
     get_settings.cache_clear()
 
 
