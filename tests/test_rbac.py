@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import unittest.mock
+from unittest.mock import AsyncMock
+from uuid import UUID
 from uuid import uuid4
 
 import pytest
@@ -10,11 +12,12 @@ from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.rbac import _get_employee_uuid
 from mora.auth.keycloak.rbac import _get_employee_uuid_via_token
 from mora.auth.keycloak.rbac import _rbac
-from mora.config import Settings
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
 from tests.test_integration_rbac import ANDERS_AND
 from tests.test_integration_rbac import mock_auth
+
+IT_SYSTEM = UUID("07817b1e-a4a3-45a1-8ae0-13a02861cfa9")
 
 
 class TestRole:
@@ -66,15 +69,14 @@ async def test__get_employee_uuid_via_token_strategy():
     assert await _get_employee_uuid(token) == uuid
 
 
-@unittest.mock.patch("mora.auth.keycloak.rbac.mora.config.get_settings")
+@pytest.mark.envvar(
+    {"KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS": str(IT_SYSTEM)}
+)
 @unittest.mock.patch("mora.auth.keycloak.rbac._get_employee_uuid_via_it_system")
-async def test__get_employee_uuid_via_it_system_strategy(mock, mock_get_settings):
-    it_system_uuid = uuid4()
+async def test__get_employee_uuid_via_it_system_strategy(
+    mock: AsyncMock,
+) -> None:
     uuid = uuid4()
-
-    mock_get_settings.return_value = Settings(
-        keycloak_rbac_authoritative_it_system_for_owners=it_system_uuid
-    )
 
     token = Token(
         azp="azp",
@@ -86,4 +88,4 @@ async def test__get_employee_uuid_via_it_system_strategy(mock, mock_get_settings
     await _get_employee_uuid(token)
 
     # We are only testing that the correct strategy is selected
-    mock.assert_awaited_once_with(it_system_uuid, uuid)
+    mock.assert_awaited_once_with(IT_SYSTEM, uuid)
