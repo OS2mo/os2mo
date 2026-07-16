@@ -223,9 +223,9 @@ def trigger_payloads(refresh_trigger_mock: aioresponses) -> Callable[[str], list
 @pytest.mark.usefixtures("empty_db")
 async def test_returns_integration_error_on_wrong_status(
     create_org_unit: Callable[[str, UUID | None], UUID],
-    service_client: TestClient,
     refresh_trigger_mock: aioresponses,
     trigger_payloads: Callable[[str], list[dict]],
+    service_client: TestClient,
 ) -> None:
     """A non-200 from the external http-trigger fails the refresh with an
     INTEGRATION_ERROR carrying the external service's `detail`."""
@@ -259,9 +259,9 @@ async def test_returns_integration_error_on_wrong_status(
 @pytest.mark.usefixtures("empty_db")
 async def test_returns_message_on_success(
     create_org_unit: Callable[[str, UUID | None], UUID],
-    service_client: TestClient,
     refresh_trigger_mock: aioresponses,
     trigger_payloads: Callable[[str], list[dict]],
+    service_client: TestClient,
 ) -> None:
     """A 200 from the external http-trigger surfaces its response body in the
     refresh `message`."""
