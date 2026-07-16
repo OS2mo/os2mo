@@ -17,10 +17,8 @@ from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import fetch_token
 from mora.auth.keycloak.rbac import _get_employee_uuid_via_it_system
-from mora.config import Settings
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
-from tests import util
 
 # Users
 ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -773,10 +771,8 @@ def test_terminate_x_as_owner_of_unit(
         (ANDERS_AND, 403),
     ],
 )
-@util.override_config(
-    Settings(
-        keycloak_rbac_authoritative_it_system_for_owners=ACTIVE_DIRECTORY,
-    )
+@pytest.mark.envvar(
+    {"KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS": str(ACTIVE_DIRECTORY)}
 )
 def test_ownership_through_it_system(
     fastapi_test_app: FastAPI, service_client: TestClient, token_uuid, expected
