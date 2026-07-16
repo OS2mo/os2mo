@@ -3,7 +3,6 @@
 import sys
 from contextlib import asynccontextmanager
 from itertools import chain
-from typing import Any
 
 import sentry_sdk
 from fastapi import Depends
@@ -125,12 +124,11 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     return http_exception_to_json_response(exc=exc)
 
 
-def create_app(settings_overrides: dict[str, Any] | None = None):
+def create_app():
     """
     Create and return a FastApi app instance for MORA.
     """
-    settings_overrides = settings_overrides or {}
-    settings = config.get_settings(**settings_overrides)
+    settings = config.get_settings()
 
     log.init(
         log_level=settings.log_level,
