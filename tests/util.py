@@ -16,9 +16,7 @@ from starlette_context import request_cycle_context
 from strawberry.dataloader import DataLoader
 from yarl import URL
 
-from mora import config
 from mora import lora
-from mora.config import Settings
 from mora.service.address_handler.dar import load_addresses
 
 TESTS_DIR = os.path.dirname(__file__)
@@ -303,16 +301,6 @@ async def load_sample_structures():
 
     for fixture in fixtures:
         await load_fixture(*fixture)
-
-
-@contextlib.contextmanager
-def override_config(config_obj: Settings):
-    original = config.get_settings
-    config.get_settings = lambda: config_obj
-    try:
-        yield
-    finally:
-        config.get_settings = original
 
 
 @contextlib.asynccontextmanager
