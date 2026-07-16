@@ -832,16 +832,6 @@ def auth_headers():
     return {"Authorization": f"Bearer {get_keycloak_token()}"}
 
 
-@pytest.fixture
-def sp_configuration(monkeypatch, tmp_path) -> None:
-    """Configure minimal environment variables to test Serviceplatformen integration."""
-    tmp_file = tmp_path / "testfile"
-    tmp_file.write_text("This is a certificate")
-    monkeypatch.setenv("ENVIRONMENT", "production")
-    monkeypatch.setenv("ENABLE_SP", "True")
-    monkeypatch.setenv("SP_CERTIFICATE_PATH", str(tmp_file))
-    yield
-
 
 @pytest.fixture
 def create_org(graphapi_post: GraphAPIPost) -> Callable[[dict[str, Any]], UUID]:
