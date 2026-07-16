@@ -219,7 +219,12 @@ def t_sender_mock():
 
 @pytest.fixture
 def t_fetch_mock():
+    """Mock the http-trigger fetch. Tests using it together with a client must
+    request it first, so app startup, which also registers triggers, fetches
+    the mock instead of the real endpoints. The default is no triggers.
+    """
     with patch("mora.triggers.internal.http_trigger.fetch_endpoint_trigger") as mock:
+        mock.return_value = []
         yield mock
 
 
@@ -230,8 +235,11 @@ def get_one_org_mock():
 
 
 async def test_returns_integration_error_on_wrong_status(
-    service_client: TestClient, get_one_org_mock, t_sender_mock, t_fetch_mock
-):
+    get_one_org_mock: MagicMock,
+    t_sender_mock: MagicMock,
+    t_fetch_mock: MagicMock,
+    service_client: TestClient,
+) -> None:
     with util.override_config(Settings(http_endpoints=["http://whatever"])):
         t_fetch_mock.return_value = [
             MOTriggerRegister(
@@ -276,8 +284,11 @@ async def test_returns_integration_error_on_wrong_status(
 
 
 async def test_returns_message_on_success(
-    service_client: TestClient, get_one_org_mock, t_sender_mock, t_fetch_mock
-):
+    get_one_org_mock: MagicMock,
+    t_sender_mock: MagicMock,
+    t_fetch_mock: MagicMock,
+    service_client: TestClient,
+) -> None:
     with util.override_config(Settings(http_endpoints=["http://whatever"])):
         t_fetch_mock.return_value = [
             MOTriggerRegister(
