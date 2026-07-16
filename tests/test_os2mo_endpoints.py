@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
+import pytest
 
 from mora.app import create_app
 
@@ -134,17 +134,15 @@ def test_all_endpoints() -> None:
     assert routes == all_endpoints
 
 
-def test_testing_endpoints(set_settings: Callable[..., None]) -> None:
-    set_settings(INSECURE_ENABLE_TESTING_API="true")
+@pytest.mark.envvar({"INSECURE_ENABLE_TESTING_API": "true"})
+def test_testing_endpoints() -> None:
     app = create_app()
     routes = {r.path for r in app.routes} | {""}
     assert routes == all_endpoints | testing_endpoints
 
 
-def test_service_api_endpoints_can_be_disabled(
-    set_settings: Callable[..., None],
-) -> None:
-    set_settings(EXPOSE_SERVICE_API=False)
+@pytest.mark.envvar({"EXPOSE_SERVICE_API": "false"})
+def test_service_api_endpoints_can_be_disabled() -> None:
     app = create_app()
     routes = {r.path for r in app.routes} | {""}
     assert routes == all_endpoints - service_api_endpoints

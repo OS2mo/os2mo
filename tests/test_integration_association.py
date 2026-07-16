@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import copy
 import json
-from collections.abc import Callable
 from typing import Any
 from urllib.parse import urlencode
 from uuid import uuid4
@@ -101,6 +100,9 @@ def _mo_return_it_user_doc():
 @pytest.mark.integration_test
 @pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
+@pytest.mark.envvar(
+    {"CONFDB_SUBSTITUTE_ROLES": json.dumps(["62ec821f-4179-4758-bfdf-134529d186e9"])}
+)
 @pytest.mark.parametrize(
     "mo_data, mo_expected, lora_expected",
     [
@@ -151,12 +153,7 @@ async def test_create_association(
     mo_data: dict[str, Any],
     mo_expected: dict[str, Any],
     lora_expected: dict[str, Any],
-    set_settings: Callable[..., None],
 ) -> None:
-    set_settings(
-        confdb_substitute_roles=json.dumps(["62ec821f-4179-4758-bfdf-134529d186e9"])
-    )
-
     def url(employee_uuid: str, **kwargs):
         base = f"/service/e/{employee_uuid}/details/association"
         args = {"validity": "future", "only_primary_uuid": "1"}
@@ -277,13 +274,10 @@ async def test_create_association(
 @pytest.mark.integration_test
 @pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-async def test_create_vacant_association(
-    service_client: TestClient, set_settings: Callable[..., None]
-) -> None:
-    set_settings(
-        confdb_substitute_roles=json.dumps(["62ec821f-4179-4758-bfdf-134529d186e9"])
-    )
-
+@pytest.mark.envvar(
+    {"CONFDB_SUBSTITUTE_ROLES": json.dumps(["62ec821f-4179-4758-bfdf-134529d186e9"])}
+)
+async def test_create_vacant_association(service_client: TestClient) -> None:
     # Check the POST request
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 

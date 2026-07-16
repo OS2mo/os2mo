@@ -83,12 +83,9 @@ async def assert_one_access_log_entry(
 
 
 @pytest.mark.integration_test
-async def test_access_log_database(
-    empty_db: AsyncSession, set_settings: MonkeyPatch
-) -> None:
+@pytest.mark.envvar({"ACCESS_LOG_ENABLE": "True"})
+async def test_access_log_database(empty_db: AsyncSession) -> None:
     """Integrationtest for reading and writing the access log."""
-
-    set_settings(ACCESS_LOG_ENABLE="True")
 
     await assert_empty_access_log_tables(empty_db)
 
@@ -99,13 +96,11 @@ async def test_access_log_database(
 
 
 @pytest.mark.integration_test
+@pytest.mark.envvar({"ACCESS_LOG_ENABLE": "True"})
 @pytest.mark.usefixtures("empty_db")
-async def test_access_log_graphql_self(
-    set_settings: MonkeyPatch, graphapi_post: GraphAPIPost
-) -> None:
+async def test_access_log_graphql_self(graphapi_post: GraphAPIPost) -> None:
     """Integrationtest for reading and writing the access log."""
 
-    set_settings(ACCESS_LOG_ENABLE="True")
     now = datetime.now(tz=DEFAULT_TIMEZONE)
 
     query = """
@@ -327,12 +322,9 @@ async def test_access_log_filters(
 
 
 @pytest.mark.integration_test
-async def test_access_log_disabled(
-    empty_db: AsyncSession, set_settings: MonkeyPatch
-) -> None:
+@pytest.mark.envvar({"ACCESS_LOG_ENABLE": "False"})
+async def test_access_log_disabled(empty_db: AsyncSession) -> None:
     """Disabled access log writes nothing."""
-
-    set_settings(ACCESS_LOG_ENABLE="False")
 
     await assert_empty_access_log_tables(empty_db)
 
@@ -342,12 +334,9 @@ async def test_access_log_disabled(
 
 
 @pytest.mark.integration_test
-async def test_access_log_enabled(
-    empty_db: AsyncSession, set_settings: MonkeyPatch
-) -> None:
+@pytest.mark.envvar({"ACCESS_LOG_ENABLE": "True"})
+async def test_access_log_enabled(empty_db: AsyncSession) -> None:
     """Enabled access log writes an entry."""
-
-    set_settings(ACCESS_LOG_ENABLE="True")
 
     await assert_empty_access_log_tables(empty_db)
 
@@ -357,14 +346,17 @@ async def test_access_log_enabled(
 
 
 @pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "ACCESS_LOG_ENABLE": "True",
+        "ACCESS_LOG_NO_LOG_UUIDS": json.dumps([str(BRUCE_UUID)]),
+    }
+)
 @pytest.mark.usefixtures("empty_db")
 async def test_access_log_disabled_for_user_graphql(
-    set_settings: MonkeyPatch,
     graphapi_post: GraphAPIPost,
 ) -> None:
     """Reads by a no-log user neither return nor produce access events (GraphQL)."""
-
-    set_settings(ACCESS_LOG_ENABLE="True")
 
     query = """
         query ReadAccessLog {
@@ -379,9 +371,6 @@ async def test_access_log_disabled_for_user_graphql(
           }
         }
     """
-
-    set_settings(ACCESS_LOG_NO_LOG_UUIDS=json.dumps([str(BRUCE_UUID)]))
-
     # First call returns nothing, and produces nothing
     response = graphapi_post(query)
     assert response.errors is None
@@ -394,14 +383,14 @@ async def test_access_log_disabled_for_user_graphql(
 
 
 @pytest.mark.integration_test
+@pytest.mark.envvar(
+    {"ACCESS_LOG_ENABLE": "True", "ACCESS_LOG_NO_LOG_UUIDS": json.dumps([])}
+)
 @pytest.mark.usefixtures("empty_db")
 async def test_access_log_enabled_for_user_graphql(
-    set_settings: MonkeyPatch,
     graphapi_post: GraphAPIPost,
 ) -> None:
     """Reads by a logged user produce access events (GraphQL)."""
-
-    set_settings(ACCESS_LOG_ENABLE="True")
 
     query = """
         query ReadAccessLog {
@@ -416,9 +405,6 @@ async def test_access_log_enabled_for_user_graphql(
           }
         }
     """
-
-    set_settings(ACCESS_LOG_NO_LOG_UUIDS=json.dumps([]))
-
     # First call returns nothing, but produces an access event
     response = graphapi_post(query)
     assert response.errors is None
@@ -431,13 +417,14 @@ async def test_access_log_enabled_for_user_graphql(
 
 
 @pytest.mark.integration_test
-async def test_access_log_disabled_for_user(
-    empty_db: AsyncSession, set_settings: MonkeyPatch
-) -> None:
+@pytest.mark.envvar(
+    {
+        "ACCESS_LOG_ENABLE": "True",
+        "ACCESS_LOG_NO_LOG_UUIDS": json.dumps([str(NO_AUTH_MIDDLEWARE_UUID)]),
+    }
+)
+async def test_access_log_disabled_for_user(empty_db: AsyncSession) -> None:
     """A read by a no-log user writes nothing."""
-
-    set_settings(ACCESS_LOG_ENABLE="True")
-    set_settings(ACCESS_LOG_NO_LOG_UUIDS=json.dumps([str(NO_AUTH_MIDDLEWARE_UUID)]))
 
     await assert_empty_access_log_tables(empty_db)
 
@@ -447,13 +434,11 @@ async def test_access_log_disabled_for_user(
 
 
 @pytest.mark.integration_test
-async def test_access_log_enabled_for_user(
-    empty_db: AsyncSession, set_settings: MonkeyPatch
-) -> None:
+@pytest.mark.envvar(
+    {"ACCESS_LOG_ENABLE": "True", "ACCESS_LOG_NO_LOG_UUIDS": json.dumps([])}
+)
+async def test_access_log_enabled_for_user(empty_db: AsyncSession) -> None:
     """A read by a logged user writes an entry."""
-
-    set_settings(ACCESS_LOG_ENABLE="True")
-    set_settings(ACCESS_LOG_NO_LOG_UUIDS=json.dumps([]))
 
     await assert_empty_access_log_tables(empty_db)
 
@@ -463,14 +448,12 @@ async def test_access_log_enabled_for_user(
 
 
 @pytest.mark.integration_test
+@pytest.mark.envvar({"ACCESS_LOG_ENABLE": "True"})
 @pytest.mark.usefixtures("empty_db")
 async def test_access_log_graphql_cursor(
-    set_settings: MonkeyPatch,
     graphapi_post: GraphAPIPost,
 ) -> None:
     """Ensure that access logs can be iterated without running indefinitely."""
-
-    set_settings(ACCESS_LOG_ENABLE="True")
 
     query = """
         query ReadAccessLog($cursor: Cursor) {
@@ -525,14 +508,13 @@ async def test_access_log_graphql_cursor(
 
 
 @pytest.mark.integration_test
+@pytest.mark.envvar({"ACCESS_LOG_ENABLE": "True"})
 @pytest.mark.usefixtures("empty_db")
 async def test_accesslog_actor_object(
-    set_settings: Callable[..., None],
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     create_person: Callable[..., UUID],
 ) -> None:
-    set_settings(ACCESS_LOG_ENABLE="True")
     read_query = """
         query ReadActorAccess($uuid: UUID!) {
           access_log(filter: {uuids: [$uuid]}) {

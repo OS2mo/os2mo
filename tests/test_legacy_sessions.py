@@ -54,12 +54,12 @@ def test_validate_session(
     assert result == expected
 
 
-async def test_legacy_session_logs_session_id(
-    set_settings: Callable[..., None],
-) -> None:
+@pytest.mark.envvar(
+    {"OS2MO_LEGACY_SESSIONS": json.dumps(["00000000-0000-0000-0000-000000000000"])}
+)
+async def test_legacy_session_logs_session_id() -> None:
     """The session id is included in the log when a legacy session is used."""
     session_id = "00000000-0000-0000-0000-000000000000"
-    set_settings(OS2MO_LEGACY_SESSIONS=json.dumps([session_id]))
 
     request = Request(
         {
