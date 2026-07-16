@@ -150,6 +150,10 @@ async def test_association_filters(
     assert len(response.data["associations"]["objects"]) == expected
 
 
+# A substitute role, used to exercise the substitute logic in the tests below.
+SUBSTITUTE_ROLE = "45751985-321f-4d4f-ae16-847f0a633360"
+
+
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_create_association_integration_test(
@@ -161,9 +165,7 @@ async def test_create_association_integration_test(
 ) -> None:
     """Test that associations can be created in LoRa via GraphQL."""
     # Set a substitute role, to test substitute
-    set_settings(
-        CONFDB_SUBSTITUTE_ROLES=json.dumps(["45751985-321f-4d4f-ae16-847f0a633360"])
-    )
+    set_settings(CONFDB_SUBSTITUTE_ROLES=json.dumps([SUBSTITUTE_ROLE]))
 
     org_uuid = org_uuids[0]
     org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
@@ -326,9 +328,7 @@ async def test_update_association_integration_test(
         return response
 
     # Set a substitute role, to test substitute
-    set_settings(
-        CONFDB_SUBSTITUTE_ROLES=json.dumps(["45751985-321f-4d4f-ae16-847f0a633360"])
-    )
+    set_settings(CONFDB_SUBSTITUTE_ROLES=json.dumps([SUBSTITUTE_ROLE]))
 
     # Add trade_union UUID from fixture `trade_union_uuids`
     test_data["trade_union"] = str(one(trade_union_uuids))
@@ -503,10 +503,10 @@ async def test_update_substitute_vacant(
 ) -> None:
     root = create_org_unit("root")
     person = create_person()
-    substitute_role = uuid4()
+    substitute_role = UUID(SUBSTITUTE_ROLE)
 
     # Set a substitute role, to test substitute
-    set_settings(CONFDB_SUBSTITUTE_ROLES=json.dumps([str(substitute_role)]))
+    set_settings(CONFDB_SUBSTITUTE_ROLES=json.dumps([SUBSTITUTE_ROLE]))
     association = create_association(substitute_role, root, person)
     update_substitute_vacant(association)
 
