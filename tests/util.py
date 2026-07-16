@@ -4,9 +4,7 @@ import contextlib
 import json
 import os
 import re
-from collections.abc import Iterator
 from json import dumps
-from typing import Any
 from unittest.mock import patch
 from urllib.parse import parse_qsl
 
@@ -21,7 +19,6 @@ from yarl import URL
 from mora import config
 from mora import lora
 from mora.config import Settings
-from mora.config import get_settings
 from mora.service.address_handler.dar import load_addresses
 
 TESTS_DIR = os.path.dirname(__file__)
@@ -448,19 +445,3 @@ def modified_normalize_url(url: URL | str) -> URL:
 
 
 aioresponses.core.normalize_url = modified_normalize_url
-
-
-@contextlib.contextmanager
-def set_settings_contextmanager(**kwargs: Any) -> Iterator[None]:
-    """Contextmanager which clear settings cache and to modify environment.
-
-    Args:
-        kwargs: Environment variables to override.
-
-    Yields:
-        None
-    """
-    with patch.dict(os.environ, kwargs):
-        get_settings.cache_clear()
-        yield
-    get_settings.cache_clear()
