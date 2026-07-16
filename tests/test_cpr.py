@@ -15,10 +15,9 @@ from fastapi.testclient import TestClient
 
 from mora import mapping
 from mora.config import Settings
+from mora.config import get_settings
 from mora.service.shimmed import cpr as cpr_shim
 from mora.service.shimmed import serviceplatformen
-
-from . import util
 
 
 @pytest.mark.parametrize(
@@ -236,6 +235,7 @@ def test_handle_erstatningspersonnummer(
     assert actual_result == expected_result
 
 
+@pytest.mark.envvar({"CPR_VALIDATE_BIRTHDATE": "false"})
 async def test_cpr_lookup_handles_erstatningspersonnummer(
     service_client: TestClient,
     monkeypatch,
@@ -261,9 +261,10 @@ async def test_cpr_lookup_handles_erstatningspersonnummer(
     tmp_file.write_text("This is a certificate")
     _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(tmp_file))
 
-    # Skip CPR birthdate validation
-    with util.override_config(Settings(cpr_validate_birthdate=False)):
-        # Invoke CPR lookup
-        response = service_client.request("GET", f"/service/e/cpr_lookup/?q={cpr}")
-        assert response.status_code == 200
-        assert response.json() == {mapping.NAME: "", mapping.CPR_NO: cpr}
+    # The app started before the overrides above, so force them to be re-read
+    get_settings.cache_clear()
+
+    # Invoke CPR lookup
+    response = service_client.request("GET", f"/service/e/cpr_lookup/?q={cpr}")
+    assert response.status_code == 200
+    assert response.json() == {mapping.NAME: "", mapping.CPR_NO: cpr}
