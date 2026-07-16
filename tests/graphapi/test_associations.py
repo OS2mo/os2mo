@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import json
 from collections.abc import Callable
 from typing import Any
 from uuid import UUID
@@ -160,7 +161,9 @@ async def test_create_association_integration_test(
 ) -> None:
     """Test that associations can be created in LoRa via GraphQL."""
     # Set a substitute role, to test substitute
-    set_settings(CONFDB_SUBSTITUTE_ROLES='["45751985-321f-4d4f-ae16-847f0a633360"]')
+    set_settings(
+        CONFDB_SUBSTITUTE_ROLES=json.dumps(["45751985-321f-4d4f-ae16-847f0a633360"])
+    )
 
     org_uuid = org_uuids[0]
     org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
@@ -323,7 +326,9 @@ async def test_update_association_integration_test(
         return response
 
     # Set a substitute role, to test substitute
-    set_settings(CONFDB_SUBSTITUTE_ROLES='["45751985-321f-4d4f-ae16-847f0a633360"]')
+    set_settings(
+        CONFDB_SUBSTITUTE_ROLES=json.dumps(["45751985-321f-4d4f-ae16-847f0a633360"])
+    )
 
     # Add trade_union UUID from fixture `trade_union_uuids`
     test_data["trade_union"] = str(one(trade_union_uuids))
@@ -501,7 +506,7 @@ async def test_update_substitute_vacant(
     substitute_role = uuid4()
 
     # Set a substitute role, to test substitute
-    set_settings(CONFDB_SUBSTITUTE_ROLES=f'["{substitute_role}"]')
+    set_settings(CONFDB_SUBSTITUTE_ROLES=json.dumps([str(substitute_role)]))
     association = create_association(substitute_role, root, person)
     update_substitute_vacant(association)
 

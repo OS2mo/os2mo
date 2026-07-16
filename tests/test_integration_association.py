@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import copy
+import json
 from functools import partial
 from typing import Any
 from urllib.parse import urlencode
@@ -162,7 +163,7 @@ async def test_create_association(
 
     seed_substitute_roles = partial(
         set_settings_contextmanager,
-        confdb_substitute_roles='["62ec821f-4179-4758-bfdf-134529d186e9"]',
+        confdb_substitute_roles=json.dumps(["62ec821f-4179-4758-bfdf-134529d186e9"]),
     )
 
     # Create an "IT User" (aka. "IT system binding")
@@ -320,7 +321,7 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
         return [main]
 
     with set_settings_contextmanager(
-        confdb_substitute_roles='["62ec821f-4179-4758-bfdf-134529d186e9"]'
+        confdb_substitute_roles=json.dumps(["62ec821f-4179-4758-bfdf-134529d186e9"])
     ):
         response = service_client.request(
             "POST", "/service/details/create", json=payload(association_uuid)
@@ -468,7 +469,7 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
     ]
 
     with set_settings_contextmanager(
-        confdb_substitute_roles='["62ec821f-4179-4758-bfdf-134529d186e9"]'
+        confdb_substitute_roles=json.dumps(["62ec821f-4179-4758-bfdf-134529d186e9"])
     ):
         # contains sorting (ie. unordered comparison)
         response = service_client.request(
@@ -1183,7 +1184,7 @@ def test_create_association_fails_on_empty_payload(service_client: TestClient) -
 @pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @set_settings_contextmanager(
-    confdb_substitute_roles='["bcd05828-cc10-48b1-bc48-2f0d204859b2"]'
+    confdb_substitute_roles=json.dumps(["bcd05828-cc10-48b1-bc48-2f0d204859b2"])
 )
 def test_edit_association(service_client: TestClient) -> None:
     # Check the POST request
@@ -1288,7 +1289,7 @@ def test_edit_association(service_client: TestClient) -> None:
 @pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @set_settings_contextmanager(
-    confdb_substitute_roles='["bcd05828-cc10-48b1-bc48-2f0d204859b2"]'
+    confdb_substitute_roles=json.dumps(["bcd05828-cc10-48b1-bc48-2f0d204859b2"])
 )
 def test_edit_association_substitute(service_client: TestClient) -> None:
     """Test that substitute field is removed when writing an association

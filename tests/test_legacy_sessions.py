@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import json
 from collections.abc import Callable
-from uuid import UUID
 
 import pytest
 from fastapi import Request
@@ -16,22 +16,25 @@ from mora.auth.keycloak.oidc import legacy_auth_adapter
 @pytest.mark.parametrize(
     "session_id,environmental_variable,expected",
     [
-        ("alfa", "[]", False),
-        ("beta", "[]", False),
-        ("00000000-0000-0000-0000-000000000000", "[]", False),
+        ("alfa", [], False),
+        ("beta", [], False),
+        ("00000000-0000-0000-0000-000000000000", [], False),
         (
             "00000000-0000-0000-0000-000000000000",
-            '["00000000-0000-0000-0000-000000000000"]',
+            ["00000000-0000-0000-0000-000000000000"],
             True,
         ),
         (
             "00000000-0000-0000-0000-000000000000",
-            '["11111111-1111-1111-1111-111111111111"]',
+            ["11111111-1111-1111-1111-111111111111"],
             False,
         ),
         (
             "00000000-0000-0000-0000-000000000000",
-            '["00000000-0000-0000-0000-000000000000", "11111111-1111-1111-1111-111111111111"]',
+            [
+                "00000000-0000-0000-0000-000000000000",
+                "11111111-1111-1111-1111-111111111111",
+            ],
             True,
         ),
     ],
@@ -39,12 +42,12 @@ from mora.auth.keycloak.oidc import legacy_auth_adapter
 def test_validate_session(
     set_settings: Callable[..., None],
     session_id: str,
-    environmental_variable: list[UUID],
+    environmental_variable: list[str],
     expected: bool,
 ) -> None:
     set_settings(
         **{
-            "OS2MO_LEGACY_SESSIONS": environmental_variable,
+            "OS2MO_LEGACY_SESSIONS": json.dumps(environmental_variable),
         }
     )
     result = validate_session(session_id)
@@ -56,7 +59,7 @@ async def test_legacy_session_logs_session_id(
 ) -> None:
     """The session id is included in the log when a legacy session is used."""
     session_id = "00000000-0000-0000-0000-000000000000"
-    set_settings(OS2MO_LEGACY_SESSIONS=f'["{session_id}"]')
+    set_settings(OS2MO_LEGACY_SESSIONS=json.dumps([session_id]))
 
     request = Request(
         {

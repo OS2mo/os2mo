@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import json
 from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
@@ -365,7 +366,7 @@ async def test_access_log_disabled_for_user_graphql(
     """
 
     admin_uuid = str(await admin_auth_uuid())
-    set_settings(ACCESS_LOG_NO_LOG_UUIDS=f'["{admin_uuid}"]')
+    set_settings(ACCESS_LOG_NO_LOG_UUIDS=json.dumps([admin_uuid]))
     # First call returns nothing, and produces nothing
     response = graphapi_post(query)
     assert response.errors is None
@@ -376,7 +377,7 @@ async def test_access_log_disabled_for_user_graphql(
     assert response.errors is None
     assert response.data == {"access_log": {"objects": []}}
 
-    set_settings(ACCESS_LOG_NO_LOG_UUIDS="[]")
+    set_settings(ACCESS_LOG_NO_LOG_UUIDS=json.dumps([]))
     # First call returns nothing, but produces an access event
     response = graphapi_post(query)
     assert response.errors is None
@@ -398,12 +399,12 @@ async def test_access_log_disabled_for_user(
 
     await assert_empty_access_log_tables(empty_db)
 
-    set_settings(ACCESS_LOG_NO_LOG_UUIDS=f'["{NO_AUTH_MIDDLEWARE_UUID}"]')
+    set_settings(ACCESS_LOG_NO_LOG_UUIDS=json.dumps([str(NO_AUTH_MIDDLEWARE_UUID)]))
     uuid = uuid4()
     access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
     await assert_empty_access_log_tables(empty_db)
 
-    set_settings(ACCESS_LOG_NO_LOG_UUIDS="[]")
+    set_settings(ACCESS_LOG_NO_LOG_UUIDS=json.dumps([]))
     uuid = uuid4()
     access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
     await assert_one_access_log_entry(empty_db, "AccessLog", "test_access_log", [uuid])

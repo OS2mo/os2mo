@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import datetime
+import json
 from uuid import UUID
 
 import pytest
@@ -276,7 +277,7 @@ def test_is_distinct_responsibility_no_duplicate() -> None:
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @set_settings_contextmanager(
-    confdb_substitute_roles='["bcd05828-cc10-48b1-bc48-2f0d204859b2"]'
+    confdb_substitute_roles=json.dumps(["bcd05828-cc10-48b1-bc48-2f0d204859b2"])
 )
 def test_is_substitute_allowed() -> None:
     # This should pass
