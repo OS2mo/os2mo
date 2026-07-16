@@ -13,7 +13,6 @@ from more_itertools import one
 from mora import lora
 from mora import mapping
 from tests.cases import assert_registrations_equal
-from tests.util import set_settings_contextmanager
 
 _substitute_association = {"name": "i18n:substitute_association"}  # const
 _substitute_uuid = "7626ad64-327d-481f-8b32-36c78eb12f8c"
@@ -1171,8 +1170,8 @@ def test_create_association_fails_on_empty_payload(service_client: TestClient) -
 @pytest.mark.integration_test
 @pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@set_settings_contextmanager(
-    confdb_substitute_roles=json.dumps(["bcd05828-cc10-48b1-bc48-2f0d204859b2"])
+@pytest.mark.envvar(
+    {"CONFDB_SUBSTITUTE_ROLES": json.dumps(["bcd05828-cc10-48b1-bc48-2f0d204859b2"])}
 )
 def test_edit_association(service_client: TestClient) -> None:
     # Check the POST request
@@ -1276,8 +1275,8 @@ def test_edit_association(service_client: TestClient) -> None:
 @pytest.mark.integration_test
 @pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@set_settings_contextmanager(
-    confdb_substitute_roles=json.dumps(["bcd05828-cc10-48b1-bc48-2f0d204859b2"])
+@pytest.mark.envvar(
+    {"CONFDB_SUBSTITUTE_ROLES": json.dumps(["bcd05828-cc10-48b1-bc48-2f0d204859b2"])}
 )
 def test_edit_association_substitute(service_client: TestClient) -> None:
     """Test that substitute field is removed when writing an association

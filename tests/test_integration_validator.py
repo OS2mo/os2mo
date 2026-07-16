@@ -11,7 +11,6 @@ from mora import exceptions
 from mora import mapping
 from mora import util as mora_util
 from mora.service.validation import validator
-from tests.util import set_settings_contextmanager
 
 
 @pytest.fixture(autouse=True)
@@ -276,8 +275,8 @@ def test_is_distinct_responsibility_no_duplicate() -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-@set_settings_contextmanager(
-    confdb_substitute_roles=json.dumps(["bcd05828-cc10-48b1-bc48-2f0d204859b2"])
+@pytest.mark.envvar(
+    {"CONFDB_SUBSTITUTE_ROLES": json.dumps(["bcd05828-cc10-48b1-bc48-2f0d204859b2"])}
 )
 def test_is_substitute_allowed() -> None:
     # This should pass
