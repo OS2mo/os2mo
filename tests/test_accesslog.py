@@ -380,8 +380,7 @@ async def test_access_log_disabled_for_user_graphql(
         }
     """
 
-    admin_uuid = str(await admin_auth_uuid())
-    set_settings(ACCESS_LOG_NO_LOG_UUIDS=json.dumps([admin_uuid]))
+    set_settings(ACCESS_LOG_NO_LOG_UUIDS=json.dumps([str(BRUCE_UUID)]))
 
     # First call returns nothing, and produces nothing
     response = graphapi_post(query)
