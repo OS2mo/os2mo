@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from unittest.mock import patch
 
-import freezegun
 import pytest
 from fastapi.testclient import TestClient
 
@@ -12,8 +11,8 @@ mock_uuid = "1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2018-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2018-01-01", tz_offset=1)
 async def test_edit_leave_no_overwrite(service_client: TestClient) -> None:
     leave_uuid = "b807628c-030c-4f5f-a438-de41c1f26ba5"
 
@@ -157,8 +156,8 @@ async def test_edit_leave_no_overwrite(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2018-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_create_leave(service_client: TestClient) -> None:
     # Check the POST request
     userid = "236e0a78-11a0-4ed9-8545-6286bb8611c7"
@@ -216,8 +215,8 @@ def test_create_leave(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2018-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_create_leave_fails_on_empty_payload(service_client: TestClient) -> None:
     payload = [
         {
@@ -237,8 +236,8 @@ def test_create_leave_fails_on_empty_payload(service_client: TestClient) -> None
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2018-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_create_leave_fails_when_no_active_engagement(
     service_client: TestClient,
 ) -> None:
@@ -274,8 +273,8 @@ def test_create_leave_fails_when_no_active_engagement(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2018-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_edit_leave(service_client: TestClient) -> None:
     leave_uuid = "b807628c-030c-4f5f-a438-de41c1f26ba5"
 
@@ -325,8 +324,8 @@ def test_edit_leave(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2018-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_edit_leave_fails_when_no_active_engagement(service_client: TestClient) -> None:
     leave_uuid = "b807628c-030c-4f5f-a438-de41c1f26ba5"
 
@@ -355,8 +354,8 @@ def test_edit_leave_fails_when_no_active_engagement(service_client: TestClient) 
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2018-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_terminate_leave(service_client: TestClient) -> None:
     userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
@@ -391,8 +390,8 @@ def test_terminate_leave(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2018-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_create_leave_missing_user(service_client: TestClient) -> None:
     # Check the POST request
     unitid = "da77153e-30f3-4dc2-a611-ee912a28d8aa"

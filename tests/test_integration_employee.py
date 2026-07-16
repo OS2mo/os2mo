@@ -3,7 +3,6 @@
 from typing import Any
 from uuid import UUID
 
-import freezegun
 import pytest
 from fastapi.testclient import TestClient
 from more_itertools import one
@@ -17,8 +16,8 @@ from .conftest import AnotherTransaction
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_edit_employee_overwrite(service_client: TestClient) -> None:
     # A generic example of editing an employee
 
@@ -158,8 +157,8 @@ async def test_edit_employee_overwrite(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_edit_remove_seniority(
     service_client: TestClient, another_transaction: AnotherTransaction
 ) -> None:
@@ -239,6 +238,7 @@ async def test_edit_remove_seniority(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "cpr_validate_birthdate,cpr,valid_from",
@@ -248,7 +248,6 @@ async def test_edit_remove_seniority(
         (False, "0171501234", "-infinity"),
     ],
 )
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_create_employee(
     service_client: TestClient,
     cpr_validate_birthdate: bool,
@@ -385,8 +384,8 @@ def _get_expected_response(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_edit_employee(service_client: TestClient) -> None:
     # A generic example of editing an employee
 
@@ -513,8 +512,8 @@ async def test_edit_employee(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_edit_employee_without_cpr(service_client: TestClient) -> None:
     # Add a cpr_no to an employee who doesn't have one
 
@@ -584,6 +583,7 @@ userid = "ef78f929-2eb4-4d9e-8891-f9e8dcb47533"
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "payload,status_code,expected",
@@ -680,7 +680,6 @@ userid = "ef78f929-2eb4-4d9e-8891-f9e8dcb47533"
         ),
     ],
 )
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_create_employee_import_and_errors(
     service_client: TestClient, payload: dict, status_code: int, expected: Any
 ) -> None:

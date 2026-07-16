@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import re
 
-import freezegun
 import pytest
 from fastapi.testclient import TestClient
 from more_itertools import one
@@ -263,8 +262,8 @@ async def test_add_org_unit_address_contact_open_hours(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_add_employee_address(service_client: TestClient) -> None:
     employee_id = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
@@ -682,8 +681,8 @@ async def test_create_org_unit_with_address(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_edit_address(service_client: TestClient) -> None:
     addr_id = "414044e0-fe5f-4f82-be20-1e107ad50e80"
 
@@ -926,6 +925,7 @@ nothingid = "00000000-0000-0000-0000-000000000000"
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "req,status_code,expected",
@@ -1061,7 +1061,6 @@ nothingid = "00000000-0000-0000-0000-000000000000"
         ),
     ],
 )
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_create_errors(
     service_client: TestClient, req: dict, status_code: int, expected: dict
 ) -> None:
@@ -1147,8 +1146,8 @@ def test_edit_errors(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_missing_class(
     graphapi_post: GraphAPIPost,
     service_client: TestClient,
@@ -1178,8 +1177,8 @@ async def test_missing_class(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_missing_address(another_transaction, service_client: TestClient) -> None:
     unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
     addrid = "bd7e5317-4a9e-437b-8923-11156406b117"
@@ -1250,8 +1249,8 @@ async def test_missing_address(another_transaction, service_client: TestClient) 
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1, tick=True)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1, tick=True)
 async def test_missing_error(another_transaction, service_client: TestClient) -> None:
     unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
     addrid = "bd7e5317-4a9e-437b-8923-11156406b117"
@@ -1326,8 +1325,8 @@ async def test_missing_error(another_transaction, service_client: TestClient) ->
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_reading(service_client: TestClient) -> None:
     response = service_client.request(
         "GET",

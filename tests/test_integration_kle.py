@@ -3,7 +3,6 @@
 from unittest.mock import patch
 from uuid import UUID
 
-import freezegun
 import pytest
 from fastapi.testclient import TestClient
 
@@ -21,8 +20,8 @@ kle_nummer_facet = {
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2018-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_create_kle(service_client: TestClient) -> None:
     org_unit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
@@ -109,8 +108,8 @@ def test_create_kle(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2018-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_edit_kle_no_overwrite(service_client: TestClient) -> None:
     org_unit_uuid = "dad7d0ad-c7a9-4a94-969d-464337e31fec"
     kle_uuid = "4bee0127-a3a3-419a-8bcc-d1b81d21c5b5"

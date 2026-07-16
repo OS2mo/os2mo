@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from unittest.mock import AsyncMock
 
-import freezegun
 import pytest
 
 from mora import common
@@ -13,7 +12,7 @@ from mora import util as mora_util
 from oio_rest.organisation import Bruger
 
 
-@freezegun.freeze_time("2018-01-01")
+@pytest.mark.freeze_time("2018-01-01")
 async def test_history_missing(monkeypatch):
     userid = "00000000-0000-0000-0000-000000000000"
 

@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from typing import Any
 
-import freezegun
 import pytest
 from fastapi.testclient import TestClient
 from more_itertools import one
@@ -20,6 +19,7 @@ role_uuid = "1b20d0b9-96a0-42a6-b196-293bb86e62e8"
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2000-12-01")
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "orgfunc_uuid,is_vacant",
@@ -31,7 +31,6 @@ role_uuid = "1b20d0b9-96a0-42a6-b196-293bb86e62e8"
         (role_uuid, False),
     ],
 )
-@freezegun.freeze_time("2000-12-01")
 async def test_terminate_employee(
     service_client: TestClient, orgfunc_uuid: str, is_vacant: bool
 ) -> None:
@@ -74,6 +73,7 @@ async def test_terminate_employee(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2000-12-01")
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "orgfunc_uuid",
@@ -85,7 +85,6 @@ async def test_terminate_employee(
         role_uuid,
     ],
 )
-@freezegun.freeze_time("2000-12-01")
 async def test_terminate_employee_vacatables_full(
     service_client: TestClient,
     orgfunc_uuid: str,
@@ -129,6 +128,7 @@ async def test_terminate_employee_vacatables_full(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "orgfunc,orgfunc_uuid,expected",
@@ -181,7 +181,6 @@ async def test_terminate_employee_vacatables_full(
         ),
     ],
 )
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_terminate_via_user(
     service_client: TestClient,
     orgfunc: str,
@@ -252,6 +251,7 @@ async def test_terminate_via_user(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "orgfunc_uuid",
@@ -262,7 +262,6 @@ async def test_terminate_via_user(
         leave_uuid,
     ],
 )
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_terminate_properly_via_user(
     service_client: TestClient,
     orgfunc_uuid: str,
@@ -312,6 +311,7 @@ async def test_terminate_properly_via_user(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "orgfunc,orgfunc_uuid",
@@ -323,7 +323,6 @@ async def test_terminate_properly_via_user(
         ("manager", manager_uuid),
     ],
 )
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_terminate_directly(
     service_client: TestClient,
     orgfunc: str,
@@ -455,8 +454,8 @@ def test_validation_missing_validity_invalid_type(service_client: TestClient) ->
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2018-01-01")
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2018-01-01")
 def test_validation_allow_to_equal_none(service_client: TestClient) -> None:
     response = service_client.request(
         "POST",

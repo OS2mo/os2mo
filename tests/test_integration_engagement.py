@@ -5,7 +5,6 @@ from typing import Any
 from unittest.mock import patch
 from uuid import UUID
 
-import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
@@ -24,6 +23,7 @@ engagement_uuid = "d000591f-8705-4324-897a-075e3623f37b"
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "operation,payload,expected",
@@ -793,7 +793,6 @@ engagement_uuid = "d000591f-8705-4324-897a-075e3623f37b"
         ),
     ],
 )
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_create_engagement(
     service_client: TestClient,
     operation: str,
@@ -816,8 +815,8 @@ async def test_create_engagement(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_terminate_engagement_via_employee(service_client: TestClient) -> None:
     # Check the POST request
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -947,6 +946,7 @@ async def test_terminate_engagement_via_employee(service_client: TestClient) -> 
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "operation,payload,status_code,expected",
@@ -1032,7 +1032,6 @@ async def test_terminate_engagement_via_employee(service_client: TestClient) -> 
         ),
     ],
 )
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_create_engagement_fails(
     service_client: TestClient,
     operation: str,

@@ -4,7 +4,6 @@ from copy import deepcopy
 from itertools import cycle
 from typing import Any
 
-import freezegun
 import pytest
 from fastapi.testclient import TestClient
 from more_itertools import one
@@ -68,6 +67,7 @@ org_unit_uuid = "85715fc7-925d-401b-822d-467eb4b163b6"
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "payload, expected",
@@ -368,7 +368,6 @@ org_unit_uuid = "85715fc7-925d-401b-822d-467eb4b163b6"
         ),
     ],
 )
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_edit_org_unit(
     service_client: TestClient,
     payload: dict[str, Any],
@@ -387,8 +386,8 @@ async def test_edit_org_unit(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2016-01-01")
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2016-01-01")
 async def test_edit_org_unit_earlier_start_on_created(
     service_client: TestClient,
 ) -> None:
@@ -519,8 +518,8 @@ async def test_edit_org_unit_earlier_start_on_created(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01")
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01")
 async def test_create_org_unit(service_client: TestClient) -> None:
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -727,8 +726,8 @@ async def test_create_org_unit(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2016-01-01")
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2016-01-01")
 async def test_rename_root_org_unit(service_client: TestClient) -> None:
     # Test renaming root units
 
@@ -834,8 +833,8 @@ async def test_rename_root_org_unit(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2016-01-01")
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2016-01-01")
 async def test_rename_root_org_unit_no_parent(service_client: TestClient) -> None:
     # Test renaming root units
 
@@ -940,8 +939,8 @@ async def test_rename_root_org_unit_no_parent(service_client: TestClient) -> Non
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2016-01-01")
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2016-01-01")
 async def test_move_org_unit(service_client: TestClient):
     "Test successfully moving organisational units"
 
@@ -1056,8 +1055,8 @@ async def test_move_org_unit(service_client: TestClient):
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2016-01-01")
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2016-01-01")
 async def test_move_org_unit_to_root(service_client: TestClient):
     "Test successfully moving organisational units"
 
@@ -1172,8 +1171,8 @@ async def test_move_org_unit_to_root(service_client: TestClient):
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2016-01-01")
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2016-01-01")
 async def test_move_org_unit_wrong_org(
     another_transaction, service_client: TestClient
 ) -> None:
@@ -1224,8 +1223,8 @@ async def test_move_org_unit_wrong_org(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2016-01-01")
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2016-01-01")
 async def test_edit_parent_reads_from_previous_relation(
     service_client: TestClient,
 ) -> None:
@@ -1265,14 +1264,13 @@ async def test_edit_parent_reads_from_previous_relation(
         assert response.json() == humanistisk_fakultet
 
     async def assert_parent_is(expected_parent, at):
-        with freezegun.freeze_time(at):
-            response = service_client.request(
-                "GET", f"/service/ou/{humanistisk_fakultet}/"
-            )
-            assert response.status_code == 200
-            doc = response.json()
-            actual_parent = doc["parent"]["uuid"]
-            assert actual_parent == expected_parent
+        response = service_client.request(
+            "GET", f"/service/ou/{humanistisk_fakultet}/", params={"at": at}
+        )
+        assert response.status_code == 200
+        doc = response.json()
+        actual_parent = doc["parent"]["uuid"]
+        assert actual_parent == expected_parent
 
     # Initial state: parent is "Overordnet Enhed"
     await assert_parent_is(overordnet_enhed, "2016-01-01")
@@ -1292,8 +1290,8 @@ async def test_edit_parent_reads_from_previous_relation(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2016-01-01")
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2016-01-01")
 async def test_terminate_not_allowed_with_addrs(service_client: TestClient) -> None:
     response = service_client.request(
         "POST",
@@ -1451,6 +1449,7 @@ past_org_unit = {
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "params, expected",
@@ -1466,7 +1465,6 @@ past_org_unit = {
         ({"validity": "future", "at": "2020-01-01"}, []),
     ],
 )
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_org_unit_temporality(
     service_client: TestClient, params: dict[str, Any], expected: list[dict[str, Any]]
 ) -> None:
@@ -1572,8 +1570,8 @@ def test_edit_missing_org_unit(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2010-01-01")
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2010-01-01")
 def test_edit_org_unit_earlier_start(service_client: TestClient) -> None:
     """Test setting the start date to something earlier (#23182)"""
 
@@ -1608,8 +1606,8 @@ def test_edit_org_unit_earlier_start(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2016-01-01")
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2016-01-01")
 def test_edit_org_unit_extending_end(service_client: TestClient) -> None:
     unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
 
@@ -1679,8 +1677,8 @@ def test_edit_org_unit_extending_end(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2016-01-01")
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2016-01-01")
 def test_create_missing_parent(service_client: TestClient) -> None:
     payload = {
         "name": "Fake Corp",
@@ -1849,6 +1847,7 @@ def test_edit_org_unit_should_fail_validation_when_end_before_start(
 
 
 @pytest.mark.integration_test
+@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "inactive_validity, expected_validity",
@@ -1873,7 +1872,6 @@ def test_edit_org_unit_should_fail_validation_when_end_before_start(
         ),
     ],
 )
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_terminate_org_unit(
     service_client: TestClient,
     inactive_validity: dict[str, str],

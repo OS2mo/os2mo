@@ -5,7 +5,6 @@ from datetime import datetime
 from datetime import timezone
 from unittest.mock import AsyncMock
 
-import freezegun
 import pytest
 
 import oio_rest.custom_exceptions as loraexc
@@ -16,7 +15,7 @@ from oio_rest.organisation import Bruger
 from oio_rest.organisation import OrganisationEnhed
 
 
-@freezegun.freeze_time("2010-06-01", tz_offset=2)
+@pytest.mark.freeze_time("2010-06-01", tz_offset=2)
 async def test_get_effects(monkeypatch) -> None:
     async def arrange(_):
         return {
@@ -252,7 +251,7 @@ async def test_finding_nothing(monkeypatch) -> None:
     assert (await lora.Connector().organisationenhed.get("42")) is None
 
 
-@freezegun.freeze_time("2001-01-01 15:30:00")
+@pytest.mark.freeze_time("2001-01-01 15:30:00")
 async def test_get_effects_2(monkeypatch) -> None:
     arrange = {
         "results": [
