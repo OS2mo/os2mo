@@ -9,10 +9,8 @@ import pytest
 
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.rbac import _get_employee_uuid_via_it_system
-from mora.config import Settings
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
-from tests import util
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
@@ -709,10 +707,8 @@ def test_terminate_x_as_owner_of_unit(
         (ANDERS_AND, False),
     ],
 )
-@util.override_config(
-    Settings(
-        keycloak_rbac_authoritative_it_system_for_owners=ACTIVE_DIRECTORY,
-    )
+@pytest.mark.envvar(
+    {"KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS": str(ACTIVE_DIRECTORY)}
 )
 def test_ownership_through_it_system(
     set_auth: SetAuth,

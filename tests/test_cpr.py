@@ -46,12 +46,12 @@ def test_cpr_lookup_raises_on_wrong_length(
     }
 
 
+@pytest.mark.envvar({"CPR_VALIDATE_BIRTHDATE": "false"})
 def test_birthdate_validation_disabled(service_client: TestClient) -> None:
     """Validation of CPR birthdate can be disabled by a feature flag"""
-    with util.override_config(Settings(cpr_validate_birthdate=False)):
-        response = service_client.request("GET", "/service/e/cpr_lookup/?q=0121501234")
-        assert response.status_code == 200
-        assert response.json() == {}
+    response = service_client.request("GET", "/service/e/cpr_lookup/?q=0121501234")
+    assert response.status_code == 200
+    assert response.json() == {}
 
 
 def _sp_config(monkeypatch, **overrides):
