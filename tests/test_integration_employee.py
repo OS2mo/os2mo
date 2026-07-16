@@ -4,14 +4,13 @@ from typing import Any
 from uuid import UUID
 
 import pytest
+from _pytest.mark.structures import ParameterSet
 from fastapi.testclient import TestClient
 from more_itertools import one
 
 from mora import lora
-from mora.config import Settings
 from tests.cases import assert_registrations_equal
 
-from . import util
 from .conftest import AnotherTransaction
 
 
@@ -237,20 +236,30 @@ async def test_edit_remove_seniority(
         assert actual_seniorities == [None, None, "2017-01-01"]
 
 
+def pf(cpr_validate_birthdate: bool, cpr: str, valid_from: str) -> ParameterSet:
+    """A parametrize case that validates CPR birthdates as given."""
+    return pytest.param(
+        cpr,
+        valid_from,
+        marks=pytest.mark.envvar(
+            {"CPR_VALIDATE_BIRTHDATE": str(cpr_validate_birthdate).lower()}
+        ),
+    )
+
+
 @pytest.mark.integration_test
 @pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
-    "cpr_validate_birthdate,cpr,valid_from",
+    "cpr,valid_from",
     [
-        (True, "0101501234", "1950-01-01 00:00:00+01"),
-        (False, "0101501234", "1950-01-01 00:00:00+01"),
-        (False, "0171501234", "-infinity"),
+        pf(True, "0101501234", "1950-01-01 00:00:00+01"),
+        pf(False, "0101501234", "1950-01-01 00:00:00+01"),
+        pf(False, "0171501234", "-infinity"),
     ],
 )
 async def test_create_employee(
     service_client: TestClient,
-    cpr_validate_birthdate: bool,
     cpr: str,
     valid_from: str,
 ) -> None:
@@ -269,10 +278,9 @@ async def test_create_employee(
         "org": {"uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"},
     }
 
-    with util.override_config(Settings(cpr_validate_birthdate=cpr_validate_birthdate)):
-        response = service_client.request("POST", "/service/e/create", json=payload)
-        assert response.status_code == 201
-        userid = response.json()
+    response = service_client.request("POST", "/service/e/create", json=payload)
+    assert response.status_code == 201
+    userid = response.json()
 
     expected = _get_expected_response(first_name, last_name, cpr, valid_from)
     actual = await c.bruger.get(userid)
