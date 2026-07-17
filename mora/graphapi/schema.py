@@ -52,6 +52,7 @@ from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.permissions import _check_rbac
 from mora.graphapi.query import Query
+from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.types import CPRType
 from mora.graphapi.version import Version
@@ -173,6 +174,13 @@ async def introspection_policy(
     ) or is_introspection_type(info.parent_type)
 
 
+async def no_role_required_policy(
+    info: GraphQLResolveInfo, kwargs: dict[str, Any]
+) -> bool:
+    """Allow access to fields which are explicitly listed in `PUBLIC_FIELDS`."""
+    return (info.parent_type.name, info.field_name) in PUBLIC_FIELDS
+
+
 async def rbac_policy(
     info: GraphQLResolveInfo,
     kwargs: dict[str, Any],
@@ -207,6 +215,7 @@ async def rbac_policy(
 
 POLICIES: list[Policy] = [
     introspection_policy,
+    no_role_required_policy,
     rbac_policy,
 ]
 
