@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import json
 from collections.abc import Callable
 from typing import Any
 from uuid import UUID
@@ -149,19 +150,20 @@ async def test_association_filters(
     assert len(response.data["associations"]["objects"]) == expected
 
 
+# A substitute role, used to exercise the substitute logic in the tests below.
+SUBSTITUTE_ROLE = "45751985-321f-4d4f-ae16-847f0a633360"
+
+
 @pytest.mark.integration_test
+@pytest.mark.envvar({"CONFDB_SUBSTITUTE_ROLES": json.dumps([SUBSTITUTE_ROLE])})
 @pytest.mark.usefixtures("fixture_db")
 async def test_create_association_integration_test(
     graphapi_post: GraphAPIPost,
     org_uuids,
     employee_uuids,
     trade_union_uuids: list[UUID],
-    set_settings: Callable[..., None],
 ) -> None:
     """Test that associations can be created in LoRa via GraphQL."""
-    # Set a substitute role, to test substitute
-    set_settings(CONFDB_SUBSTITUTE_ROLES='["45751985-321f-4d4f-ae16-847f0a633360"]')
-
     org_uuid = org_uuids[0]
     org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
 
@@ -235,6 +237,7 @@ async def test_create_association_integration_test(
 
 
 @pytest.mark.integration_test
+@pytest.mark.envvar({"CONFDB_SUBSTITUTE_ROLES": json.dumps([SUBSTITUTE_ROLE])})
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
@@ -292,7 +295,6 @@ async def test_update_association_integration_test(
     graphapi_post: GraphAPIPost,
     test_data: dict[str, Any],
     trade_union_uuids: list[UUID],
-    set_settings: Callable[..., None],
 ) -> None:
     async def query_data(uuid: str) -> GQLResponse:
         query = """
@@ -321,9 +323,6 @@ async def test_update_association_integration_test(
         response = graphapi_post(query=query, variables={"uuid": uuid})
 
         return response
-
-    # Set a substitute role, to test substitute
-    set_settings(CONFDB_SUBSTITUTE_ROLES='["45751985-321f-4d4f-ae16-847f0a633360"]')
 
     # Add trade_union UUID from fixture `trade_union_uuids`
     test_data["trade_union"] = str(one(trade_union_uuids))
@@ -487,6 +486,7 @@ def update_substitute_vacant(
 
 
 @pytest.mark.integration_test
+@pytest.mark.envvar({"CONFDB_SUBSTITUTE_ROLES": json.dumps([SUBSTITUTE_ROLE])})
 @pytest.mark.usefixtures("empty_db")
 async def test_update_substitute_vacant(
     graphapi_post: GraphAPIPost,
@@ -494,14 +494,11 @@ async def test_update_substitute_vacant(
     create_person: Callable[..., UUID],
     create_association: Callable[..., UUID],
     update_substitute_vacant: Callable[..., UUID],
-    set_settings: Callable[..., None],
 ) -> None:
     root = create_org_unit("root")
     person = create_person()
-    substitute_role = uuid4()
+    substitute_role = UUID(SUBSTITUTE_ROLE)
 
-    # Set a substitute role, to test substitute
-    set_settings(CONFDB_SUBSTITUTE_ROLES=f'["{substitute_role}"]')
     association = create_association(substitute_role, root, person)
     update_substitute_vacant(association)
 

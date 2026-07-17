@@ -23,7 +23,6 @@ from uuid import uuid4
 
 import pytest
 import requests
-from _pytest.monkeypatch import MonkeyPatch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from hypothesis import Verbosity
@@ -119,42 +118,9 @@ def clear_actor_cache():
     auth_middleware._actor_cache.clear()
 
 
-@pytest.fixture
-def set_settings(
-    monkeypatch: MonkeyPatch,
-) -> YieldFixture[Callable[..., None]]:
-    """Set settings via kwargs callback."""
-
-    def _inner(**kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            monkeypatch.setenv(key, value)
-        get_settings.cache_clear()
-
-    yield _inner
-    get_settings.cache_clear()
-
-
-@pytest.fixture(scope="session")
-def monkeysession(request):
-    from pytest import MonkeyPatch
-
-    mpatch = MonkeyPatch()
-    yield mpatch
-    mpatch.undo()
-
-
-@pytest.fixture(scope="session")
-def set_session_settings(
-    monkeysession: MonkeyPatch,
-) -> YieldFixture[Callable[..., None]]:
-    """Set settings via kwargs callback."""
-
-    def _inner(**kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            monkeysession.setenv(key, value)
-        get_settings.cache_clear()
-
-    yield _inner
+@pytest.fixture(autouse=True)
+def clear_settings_cache() -> None:
+    """Clear the ``get_settings`` cache so each test reads its env overrides freshly."""
     get_settings.cache_clear()
 
 
@@ -814,22 +780,6 @@ def ituser_uuids(graphapi_post: GraphAPIPost) -> list[UUID]:
         map(UUID, map(itemgetter("uuid"), response.data["itusers"]["objects"]))
     )
     return uuids
-
-
-@pytest.fixture(scope="session")
-def graphapi_test(fastapi_admin_test_app: FastAPI) -> TestClient:
-    """Fixture yielding a FastAPI test client."""
-    return TestClient(fastapi_admin_test_app)
-
-
-@pytest.fixture(scope="session")
-def graphapi_test_no_exc(fastapi_admin_test_app: FastAPI) -> TestClient:
-    """Fixture yielding a FastAPI test client.
-
-    This test client does not raise server errors. We use it to check error handling
-    in our GraphQL stack.
-    """
-    return TestClient(fastapi_admin_test_app, raise_server_exceptions=False)
 
 
 @pytest.fixture

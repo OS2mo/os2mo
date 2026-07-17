@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
-from uuid import UUID
+import json
 
 import pytest
+from _pytest.mark.structures import ParameterSet
 from fastapi import Request
 from more_itertools import one
 from structlog.testing import capture_logs
@@ -13,50 +13,52 @@ from mora.auth.keycloak.oidc import LEGACY_AUTH_UUID
 from mora.auth.keycloak.oidc import legacy_auth_adapter
 
 
+def pf(session_id: str, sessions: list[str], expected: bool) -> ParameterSet:
+    """A parametrize case that enables the given legacy sessions."""
+    return pytest.param(
+        session_id,
+        expected,
+        marks=pytest.mark.envvar({"OS2MO_LEGACY_SESSIONS": json.dumps(sessions)}),
+    )
+
+
 @pytest.mark.parametrize(
-    "session_id,environmental_variable,expected",
+    "session_id,expected",
     [
-        ("alfa", "[]", False),
-        ("beta", "[]", False),
-        ("00000000-0000-0000-0000-000000000000", "[]", False),
-        (
+        pf("alfa", [], False),
+        pf("beta", [], False),
+        pf("00000000-0000-0000-0000-000000000000", [], False),
+        pf(
             "00000000-0000-0000-0000-000000000000",
-            '["00000000-0000-0000-0000-000000000000"]',
+            ["00000000-0000-0000-0000-000000000000"],
             True,
         ),
-        (
+        pf(
             "00000000-0000-0000-0000-000000000000",
-            '["11111111-1111-1111-1111-111111111111"]',
+            ["11111111-1111-1111-1111-111111111111"],
             False,
         ),
-        (
+        pf(
             "00000000-0000-0000-0000-000000000000",
-            '["00000000-0000-0000-0000-000000000000", "11111111-1111-1111-1111-111111111111"]',
+            [
+                "00000000-0000-0000-0000-000000000000",
+                "11111111-1111-1111-1111-111111111111",
+            ],
             True,
         ),
     ],
 )
-def test_validate_session(
-    set_settings: Callable[..., None],
-    session_id: str,
-    environmental_variable: list[UUID],
-    expected: bool,
-) -> None:
-    set_settings(
-        **{
-            "OS2MO_LEGACY_SESSIONS": environmental_variable,
-        }
-    )
+def test_validate_session(session_id: str, expected: bool) -> None:
     result = validate_session(session_id)
     assert result == expected
 
 
-async def test_legacy_session_logs_session_id(
-    set_settings: Callable[..., None],
-) -> None:
+@pytest.mark.envvar(
+    {"OS2MO_LEGACY_SESSIONS": json.dumps(["00000000-0000-0000-0000-000000000000"])}
+)
+async def test_legacy_session_logs_session_id() -> None:
     """The session id is included in the log when a legacy session is used."""
     session_id = "00000000-0000-0000-0000-000000000000"
-    set_settings(OS2MO_LEGACY_SESSIONS=f'["{session_id}"]')
 
     request = Request(
         {
