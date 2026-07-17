@@ -186,14 +186,10 @@ async def rbac_policy(
     kwargs: dict[str, Any],
 ) -> bool:
     """Check the RBAC requirement for *info*."""
-    parent_type_name = info.parent_type.name
-    field_name = info.field_name
-    # We expect all accesses to be described in the RBAC_MAP; anything else is
-    # an error. test_rbac_map_covers_schema helps ensure everything is captured.
-    requirement = RBAC_MAP[(parent_type_name, field_name)]
-    if requirement is None:
-        # The field is explicitly public: everyone is allowed access
-        return True
+    requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
+    if requirement is None:  # pragma: no cover
+        # Public fields are already allowed by the no_role_required_policy.
+        return False
     role, collection, permission_type = requirement
     check_kwargs = kwargs
     if "input" in kwargs:
@@ -241,8 +237,8 @@ class RBACExtension(SchemaExtension):
     Each field access is checked against the policies in `POLICIES`, one by
     one, until a policy allows access.
 
-    Access is rejected by default: every field must have an entry in
-    `RBAC_MAP`, either a requirement tuple or `None` for public fields.
+    Access is rejected by default: every field must be listed in
+    `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP`.
     """
 
     async def resolve(  # type: ignore[override]

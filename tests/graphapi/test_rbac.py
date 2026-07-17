@@ -25,6 +25,7 @@ from mora.graphapi.events import EventToken
 from mora.graphapi.gmodels.mo import OrganisationRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.models import AddressRead
+from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.schema import get_schema
 from mora.graphapi.shim import execute_graphql
@@ -71,10 +72,15 @@ async def load_addresses(keys: list[UUID]) -> list[list[AddressRead]]:
 
 
 def test_rbac_map_covers_schema() -> None:
-    """RBAC is reject-by-default, so `RBAC_MAP` must cover the full schema.
+    """RBAC is reject-by-default, so every field must be classified.
 
-    Conversely, stale entries which do not correspond to any schema field
-    are dead rules, and therefore most likely mistakes.
+    Each schema field must be either public (`PUBLIC_FIELDS`) or have a role
+    requirement (`RBAC_MAP`). Conversely, entries which do not correspond to
+    any schema field are dead rules, and therefore most likely mistakes.
+
+    A field in both would be silently public (the chain grants access as soon
+    as `no_role_required_policy` matches, before `rbac_policy` runs), so it is
+    almost certainly a mistake; the two are required to be disjoint.
     """
     schema_fields = set()
     for version in Version:
@@ -85,11 +91,16 @@ def test_rbac_map_covers_schema() -> None:
             if isinstance(type_, GraphQLObjectType):
                 schema_fields.update((name, field) for field in type_.fields)
 
-    missing = schema_fields - RBAC_MAP.keys()
-    assert missing == set(), f"Schema fields without an RBAC_MAP entry: {missing}"
+    classified = PUBLIC_FIELDS | RBAC_MAP.keys()
 
-    stale = RBAC_MAP.keys() - schema_fields
-    assert stale == set(), f"RBAC_MAP entries without a schema field: {stale}"
+    missing = schema_fields - classified
+    assert missing == set(), f"Unclassified schema fields: {missing}"
+
+    stale = classified - schema_fields
+    assert stale == set(), f"Classified entries without a schema field: {stale}"
+
+    overlap = PUBLIC_FIELDS & RBAC_MAP.keys()
+    assert overlap == set(), f"Fields both public and role-gated: {overlap}"
 
 
 @pytest.mark.integration_test

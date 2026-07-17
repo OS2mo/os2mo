@@ -679,9 +679,8 @@ PUBLIC_FIELDS: frozenset[tuple[str, str]] = frozenset(
 )
 
 # Map of every schema field to its RBAC requirement. Fields without an
-# entry are rejected; a `None` requirement means the field is public.
-RBAC_MAP: dict[tuple[str, str], RBACRequirement | None] = {
-    **dict.fromkeys(PUBLIC_FIELDS, None),
+# entry are rejected.
+RBAC_MAP: dict[tuple[str, str], RBACRequirement] = {
     ("Address", "address_type"): ("read_class", "class", "read"),
     ("Address", "address_type_response"): ("read_class", "class", "read"),
     ("Address", "employee"): ("read_employee", "employee", "read"),
