@@ -4,7 +4,6 @@ import re
 from typing import Any
 
 import requests
-import service_person_stamdata_udvidet
 from fastapi import Query
 from pydantic import BaseModel
 from pydantic import Field
@@ -15,6 +14,7 @@ from mora import exceptions
 from mora import mapping
 from mora import util
 from mora.service.cpr import router as cpr_router
+from mora.service.shimmed import serviceplatformen
 
 logger = get_logger()
 
@@ -32,7 +32,7 @@ def get_citizen(cpr: str) -> dict[str, Any]:
     sp_production = settings.sp_settings.sp_production
     sp_api_version = settings.sp_settings.sp_api_version
     try:
-        return service_person_stamdata_udvidet.get_citizen(
+        return serviceplatformen.get_citizen(
             sp_uuids,
             certificate,
             cpr,
