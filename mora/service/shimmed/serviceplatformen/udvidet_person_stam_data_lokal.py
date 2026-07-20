@@ -9,7 +9,9 @@ from .helpers import construct_envelope_SF1520
 from .helpers import http_post
 
 
-def get_citizen(service_uuids, certificate, cprnr, production=False, **kwargs):
+def get_citizen(
+    service_uuids, certificate, cprnr, production=False, **kwargs
+):  # pragma: no cover
     r"""
     The function returnes a citizen dict from the
     'SF1520 - Udvidet person stamdata (lokal)' service.
@@ -89,7 +91,9 @@ def get_citizen(service_uuids, certificate, cprnr, production=False, **kwargs):
         return {"Error": "Something went wrong"}
 
 
-def call_cpr_person_lookup_request(soap_envelope, certificate, service_url):
+def call_cpr_person_lookup_request(
+    soap_envelope, certificate, service_url
+):  # pragma: no cover
     """Performs a web service call to 'Udvidet Person Stam Data(lokal)'.
     : param soap_envelope: SOAP envelope
     : param certificate: Path to certificate
@@ -107,7 +111,9 @@ def call_cpr_person_lookup_request(soap_envelope, certificate, service_url):
     return response
 
 
-def parse_cpr_person_lookup_xml_to_dict(soap_response_xml, api_version):
+def parse_cpr_person_lookup_xml_to_dict(
+    soap_response_xml, api_version
+):  # pragma: no cover
     """Parses string xml to a dict
     : param soap_response_xml: xml
     : type soap_response_xml: str

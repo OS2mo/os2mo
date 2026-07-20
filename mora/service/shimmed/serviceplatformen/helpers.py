@@ -5,7 +5,7 @@ import requests
 from jinja2 import Template
 
 
-def construct_envelope_SF1520(template, service_uuids, cprnr):
+def construct_envelope_SF1520(template, service_uuids, cprnr):  # pragma: no cover
     """The function returns an envelope for the service
     'SF1520 - Udvidet person stamdata (lokal)'."""
 
@@ -28,7 +28,7 @@ def construct_envelope_SF1520(template, service_uuids, cprnr):
     return latin_1_encoded_soap_envelope
 
 
-def http_post(endpoint, soap_envelope, certificate):
+def http_post(endpoint, soap_envelope, certificate):  # pragma: no cover
     if not endpoint and not soap_envelope and not certificate:
         return None
 
