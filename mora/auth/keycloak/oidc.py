@@ -216,7 +216,7 @@ async def fetch_token(request: Request) -> Token:
     Raises:
         HTTPException: If no token is present or it fails validation.
     """
-    if config.get_settings().os2mo_legacy_sessions:  # pragma: no cover
+    if request.app.state.settings.os2mo_legacy_sessions:  # pragma: no cover
         return await legacy_auth_adapter(request)
     return await fetch_keycloak_token(request)
 

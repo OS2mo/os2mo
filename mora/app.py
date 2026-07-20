@@ -104,7 +104,7 @@ async def request_validation_handler(request: Request, exc: RequestValidationErr
     :param exc:
     :return:
     """
-    settings = config.get_settings()
+    settings = request.app.state.settings
     if not settings.is_production():  # pragma: no cover
         logger.info(
             "os2mo_err_details", exc=exc, url=request.url, params=request.query_params
@@ -117,7 +117,7 @@ async def request_validation_handler(request: Request, exc: RequestValidationErr
 
 
 async def http_exception_handler(request: Request, exc: HTTPException):
-    settings = config.get_settings()
+    settings = request.app.state.settings
     if not settings.is_production():
         logger.info("http_exception", stack=exc.stack, traceback=exc.traceback)
 
