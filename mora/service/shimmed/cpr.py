@@ -10,6 +10,7 @@ from pydantic import Field
 from structlog import get_logger
 
 from mora import config
+from mora import depends
 from mora import exceptions
 from mora import mapping
 from mora import util
@@ -19,9 +20,7 @@ from mora.service.shimmed import serviceplatformen
 logger = get_logger()
 
 
-def get_citizen(cpr: str) -> dict[str, Any]:
-    settings = config.get_settings()
-
+def get_citizen(cpr: str, settings: config.Settings) -> dict[str, Any]:
     sp_uuids = {
         "service_agreement": str(settings.sp_settings.sp_agreement_uuid),
         "user_system": str(settings.sp_settings.sp_system_uuid),
@@ -103,6 +102,7 @@ class SearchCPRReturn(BaseModel):
     },
 )
 def search_cpr(
+    settings: depends.Settings,
     q: str = Query(..., description="The CPR number to search for"),
 ) -> dict[str, str]:
     """Lookup a CPR number in Serviceplatformen and retrieve the name.
@@ -127,7 +127,7 @@ def search_cpr(
     if not util.is_cpr_number(cpr):
         exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr)
 
-    if not config.get_settings().enable_sp:
+    if not settings.enable_sp:
         return {}
 
     # Check for "erstatningspersonnummer"
@@ -135,7 +135,7 @@ def search_cpr(
     if response:
         return response
     try:  # pragma: no cover
-        sp_data = get_citizen(cpr)
+        sp_data = get_citizen(cpr, settings)
     except KeyError as e:  # pragma: no cover
         logger.exception(event="no person found for cpr", exception=e)
         exceptions.ErrorCodes.V_NO_PERSON_FOR_CPR(cpr=cpr)

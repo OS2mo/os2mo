@@ -15,9 +15,10 @@ from fastapi.testclient import TestClient
 
 from mora import mapping
 from mora.config import Settings
-from mora.config import get_settings
 from mora.service.shimmed import cpr as cpr_shim
 from mora.service.shimmed import serviceplatformen
+
+SP_UUID = "12345678-9abc-def1-1111-111111111111"
 
 
 @pytest.mark.parametrize(
@@ -54,13 +55,11 @@ def test_birthdate_validation_disabled(service_client: TestClient) -> None:
 
 
 def _sp_config(monkeypatch, **overrides):
-    UUID_OK = "12345678-9abc-def1-1111-111111111111"
-
     env_vars = {
-        "SP_SERVICE_UUID": UUID_OK,
-        "SP_AGREEMENT_UUID": UUID_OK,
-        "SP_MUNICIPALITY_UUID": UUID_OK,
-        "SP_SYSTEM_UUID": UUID_OK,
+        "SP_SERVICE_UUID": SP_UUID,
+        "SP_AGREEMENT_UUID": SP_UUID,
+        "SP_MUNICIPALITY_UUID": SP_UUID,
+        "SP_SYSTEM_UUID": SP_UUID,
         **overrides,
     }
     for env_var, value in env_vars.items():
@@ -155,6 +154,18 @@ def sp_certificate(tmp_path: Path) -> Path:
     return path
 
 
+@pytest.fixture
+def sp_enabled(monkeypatch: pytest.MonkeyPatch, sp_certificate: Path) -> None:
+    """Enable Serviceplatformen access with a real certificate before the app is built.
+
+    `create_app` reads settings into `app.state.settings` at construction, so the SP
+    configuration has to be in the environment before the `service_client` fixture
+    builds the app. Requesting this fixture ahead of `service_client` guarantees that.
+    """
+    monkeypatch.setenv("ENABLE_SP", "true")
+    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(sp_certificate))
+
+
 # Minimal SF1520 PersonLookupResponse, just enough for `get_citizen` to parse.
 SP_RESPONSE = (
     "<Envelope><Body><PersonLookupResponse>"
@@ -188,9 +199,8 @@ def test_get_citizen_uses_version_kwarg(
 
 
 async def test_cpr_lookup_returns_name_from_serviceplatformen(
+    sp_enabled: None,
     service_client: TestClient,
-    monkeypatch: pytest.MonkeyPatch,
-    sp_certificate: Path,
     respx_mock: respx.MockRouter,
 ) -> None:
     """A normal CPR lookup goes through the `get_citizen` shim and returns the name
@@ -201,13 +211,7 @@ async def test_cpr_lookup_returns_name_from_serviceplatformen(
     ).mock(return_value=httpx.Response(200, text=SP_RESPONSE))
 
     cpr = "0101501234"
-
-    # Set up mock Serviceplatform access, with a certificate `httpx` can load.
-    monkeypatch.setenv("ENABLE_SP", "true")
-    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(sp_certificate))
-
-    with util.override_config(Settings()):
-        response = service_client.get("/service/e/cpr_lookup/", params={"q": cpr})
+    response = service_client.get("/service/e/cpr_lookup/", params={"q": cpr})
 
     assert route.called
     assert response.status_code == 200
@@ -235,11 +239,18 @@ def test_handle_erstatningspersonnummer(
     assert actual_result == expected_result
 
 
-@pytest.mark.envvar({"CPR_VALIDATE_BIRTHDATE": "false"})
+@pytest.mark.envvar(
+    {
+        "CPR_VALIDATE_BIRTHDATE": "false",
+        "SP_SERVICE_UUID": SP_UUID,
+        "SP_AGREEMENT_UUID": SP_UUID,
+        "SP_MUNICIPALITY_UUID": SP_UUID,
+        "SP_SYSTEM_UUID": SP_UUID,
+    }
+)
 async def test_cpr_lookup_handles_erstatningspersonnummer(
+    sp_configuration: None,
     service_client: TestClient,
-    monkeypatch,
-    tmp_path,
 ) -> None:
     """Test that `search_cpr` handles "erstatningspersonnummer" CPR lookups correctly.
 
@@ -254,17 +265,9 @@ async def test_cpr_lookup_handles_erstatningspersonnummer(
 
     cpr = "7202023333"
 
-    # Set up mock Serviceplatform access
-    monkeypatch.setenv("ENABLE_SP", "true")
-    monkeypatch.setenv("ENVIRONMENT", "production")
-    tmp_file = tmp_path / "testfile"
-    tmp_file.write_text("This is a certificate")
-    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(tmp_file))
-
-    # The app started before the overrides above, so force them to be re-read
-    get_settings.cache_clear()
-
-    # Invoke CPR lookup
+    # Serviceplatformen access (sp_configuration) and cpr_validate_birthdate=False
+    # (envvar marker) are both in place before the app is built, so create_app reads
+    # them into app.state.settings.
     response = service_client.request("GET", f"/service/e/cpr_lookup/?q={cpr}")
     assert response.status_code == 200
     assert response.json() == {mapping.NAME: "", mapping.CPR_NO: cpr}
