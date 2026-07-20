@@ -10,7 +10,6 @@
 import os
 import xmltodict
 from .helpers import http_post
-from .helpers import validate_cprnr
 from .helpers import construct_envelope_SF1520
 
 __author__ = "Heini Leander Ovason"
@@ -67,35 +66,32 @@ def get_citizen(service_uuids, certificate, cprnr, production=False, **kwargs):
     if production:
         service_url = "https://prod.serviceplatformen.dk/service/CPR/PersonBaseDataExtended/{0}".format(api_version)
 
-    is_cprnr_valid = validate_cprnr(cprnr)
-    if is_cprnr_valid:
+    template_directory = os.path.dirname(__file__)
+    soap_envelope = "PersonBaseDataExtended_v{0}_envelope.xml".format(api_version)
 
-        template_directory = os.path.dirname(__file__)
-        soap_envelope = "PersonBaseDataExtended_v{0}_envelope.xml".format(api_version)
+    soap_envelope_template = os.path.join(
+        template_directory, soap_envelope
+    )
 
-        soap_envelope_template = os.path.join(
-            template_directory, soap_envelope
+    soap_envelope = construct_envelope_SF1520(
+        template=soap_envelope_template,
+        service_uuids=service_uuids,
+        cprnr=cprnr
+    )
+    response = call_cpr_person_lookup_request(
+        soap_envelope=soap_envelope,
+        certificate=certificate,
+        service_url=service_url,
+    )
+    if response.status_code == 200:
+        citizen_dict = parse_cpr_person_lookup_xml_to_dict(
+            soap_response_xml=response.text,
+            api_version=api_version
         )
-
-        soap_envelope = construct_envelope_SF1520(
-            template=soap_envelope_template,
-            service_uuids=service_uuids,
-            cprnr=cprnr
-        )
-        response = call_cpr_person_lookup_request(
-            soap_envelope=soap_envelope,
-            certificate=certificate,
-            service_url=service_url,
-        )
-        if response.status_code == 200:
-            citizen_dict = parse_cpr_person_lookup_xml_to_dict(
-                soap_response_xml=response.text,
-                api_version=api_version
-            )
-            return citizen_dict
-        else:
-            response.raise_for_status()
-            return {"Error": "Something went wrong"}
+        return citizen_dict
+    else:
+        response.raise_for_status()
+        return {"Error": "Something went wrong"}
 
 
 def call_cpr_person_lookup_request(soap_envelope, certificate, service_url):

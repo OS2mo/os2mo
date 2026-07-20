@@ -7,7 +7,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import re
 import requests
 from jinja2 import Template
 
@@ -80,19 +79,4 @@ def http_post(endpoint, soap_envelope, certificate):
     )
 
     return response
-
-
-def validate_cprnr(cprnr):
-
-    if not cprnr:
-        # Log e.g. 'Type error occured: input'
-        return False
-
-    check = re.match(r'^\d{10}$', cprnr)
-
-    if not check:
-        # Log e.g. 'Not a valid cprnr'
-        return False
-
-    return True
 
