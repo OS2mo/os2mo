@@ -5,7 +5,6 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from strawberry.fastapi import GraphQLRouter
 
-from mora import config
 from mora.graphapi.custom_schema import get_version
 from mora.graphapi.version import LATEST_VERSION
 
@@ -178,7 +177,7 @@ class CustomGraphQLRouter(GraphQLRouter):
     async def render_graphql_ide(self, request: Request) -> HTMLResponse:
         # Inject the Keycloak config directly, rather than having the browser
         # fetch it from the (now removed) /service/keycloak.json endpoint.
-        settings = config.get_settings()
+        settings = request.app.state.settings
         html = (
             HTML.replace("__KEYCLOAK_URL__", str(settings.keycloak_auth_server_url))
             .replace("__KEYCLOAK_REALM__", settings.keycloak_realm)
