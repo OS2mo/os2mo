@@ -519,18 +519,6 @@ files = [
 ]
 
 [[package]]
-name = "chardet"
-version = "3.0.4"
-description = "Universal encoding detector for Python 2 and 3"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "chardet-3.0.4-py2.py3-none-any.whl", hash = "sha256:fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691"},
-    {file = "chardet-3.0.4.tar.gz", hash = "sha256:84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae"},
-]
-
-[[package]]
 name = "charset-normalizer"
 version = "2.1.1"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
@@ -2632,29 +2620,6 @@ tornado = ["tornado (>=6)"]
 unleash = ["UnleashClient (>=6.0.1)"]
 
 [[package]]
-name = "service-person-stamdata-udvidet"
-version = "1.0.3"
-description = "PersonBaseExtendedService integration for the PersonBaseExtendedService webservice which is a part of SF1520 API (https://digitaliseringskataloget.dk/integration/sf1520)"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "service_person_stamdata_udvidet-1.0.3-py3-none-any.whl", hash = "sha256:6f8025ff76a8e9ef62f7f6ef0e7fa0449b8795f0da00a2facb97c369c61ed4e7"},
-    {file = "service_person_stamdata_udvidet-1.0.3.tar.gz", hash = "sha256:7ba8dae52c8f8403bce6adac8bd3c20e70b529f46f620570c79537e87c155d87"},
-]
-
-[package.dependencies]
-certifi = "2022.12.7"
-chardet = "3.0.4"
-charset-normalizer = "2.1.1"
-idna = "3.4"
-Jinja2 = "3.1.2"
-MarkupSafe = "2.1.2"
-requests = "2.28.2"
-urllib3 = "1.26.14"
-xmltodict = "0.13.0"
-
-[[package]]
 name = "six"
 version = "1.17.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -3283,4 +3248,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "7bceb29cfe6561f6a9f639d342cbe8fcbd90b6aaa3fb6ef593964aada3b8dddc"
+content-hash = "3abe3780c3bfc061723c23cded320bd634b0ea4b08fb1af2397d6b2a539522c5"
