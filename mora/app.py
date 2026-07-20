@@ -128,7 +128,7 @@ def create_app():
     """
     Create and return a FastApi app instance for MORA.
     """
-    settings = config.get_settings()
+    settings = config.Settings()
 
     log.init(
         log_level=settings.log_level,
@@ -308,6 +308,7 @@ def create_app():
         )
 
     # Set up lifecycle state for depends.py
+    app.state.settings = settings
     app.state.sessionmaker = sessionmaker
     amqp_system = AMQPSystem(settings.amqp)
     app.state.amqp_system = amqp_system
