@@ -12,8 +12,6 @@ import xmltodict
 from .helpers import http_post
 from .helpers import construct_envelope_SF1520
 
-__author__ = "Heini Leander Ovason"
-
 
 def get_citizen(service_uuids, certificate, cprnr, production=False, **kwargs):
     r"""

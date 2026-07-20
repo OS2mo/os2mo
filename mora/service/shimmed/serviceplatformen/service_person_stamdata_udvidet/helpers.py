@@ -10,8 +10,6 @@
 import requests
 from jinja2 import Template
 
-__author__ = "Heini Leander Ovason"
-
 
 def construct_envelope_SF1520(template, service_uuids, cprnr):
     """The function returns an envelope for the service
