@@ -15,6 +15,7 @@ from starlette_context import context
 from structlog import get_logger
 
 from mora import config
+from mora import depends
 from mora.auth.exceptions import AuthenticationError
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.legacy import validate_session
@@ -195,11 +196,12 @@ def authorization_exception_handler(
     )
 
 
-async def fetch_token(request: Request) -> Token:
+async def fetch_token(request: Request, settings: depends.Settings) -> Token:
     """Extract and validate a token from the request.
 
     Args:
         request: The FastAPI request object to extract the token from.
+        settings: The application settings.
 
     Returns:
         The validated token.
@@ -207,7 +209,7 @@ async def fetch_token(request: Request) -> Token:
     Raises:
         HTTPException: If no token is present or it fails validation.
     """
-    if config.get_settings().os2mo_legacy_sessions:  # pragma: no cover
+    if settings.os2mo_legacy_sessions:  # pragma: no cover
         return await legacy_auth_adapter(request)
     return await fetch_keycloak_token(request)
 
@@ -229,11 +231,14 @@ async def rbac_admin(token: Token = Depends(fetch_token)):
     return await _rbac(token)
 
 
-def token_getter(request: Request) -> Callable[[], Awaitable[Token]]:
+def token_getter(
+    request: Request, settings: depends.Settings
+) -> Callable[[], Awaitable[Token]]:
     """Get a callable that returns the request's token, caching on first use.
 
     Args:
         request: The FastAPI request object to extract the token from.
+        settings: The application settings.
 
     Returns:
         A callable that returns the extracted or dummy token object.
@@ -244,7 +249,7 @@ def token_getter(request: Request) -> Callable[[], Awaitable[Token]]:
 
     async def get_token():
         if "token" not in context:
-            context["token"] = await fetch_token(request)
+            context["token"] = await fetch_token(request, settings)
         return context["token"]
 
     return get_token
