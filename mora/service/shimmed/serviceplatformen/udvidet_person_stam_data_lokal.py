@@ -2,9 +2,11 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import os
+
 import xmltodict
-from .helpers import http_post
+
 from .helpers import construct_envelope_SF1520
+from .helpers import http_post
 
 
 def get_citizen(service_uuids, certificate, cprnr, production=False, **kwargs):
@@ -19,7 +21,7 @@ def get_citizen(service_uuids, certificate, cprnr, production=False, **kwargs):
     .. note::
 
         Here is sample of the service_uuid dictionary:
-        
+
             {
                 'service_agreement': '42571b5d-6371-4edb-8729-1343a3f4c9b9',
                 'user_system': '99478e20-68e6-41ff-b822-681fb69b8ff2',
@@ -30,8 +32,8 @@ def get_citizen(service_uuids, certificate, cprnr, production=False, **kwargs):
     :param str certificate: Path to the required certificate bundle
 
     :param str cprnr:  String of 10 digits -> r'^\d{10}$'
-    
-    :param bool production: Production/Test service mode toggle 
+
+    :param bool production: Production/Test service mode toggle
 
     .. note::
 
@@ -45,30 +47,32 @@ def get_citizen(service_uuids, certificate, cprnr, production=False, **kwargs):
     :return: Dictionary representation of a citizen
     :rtype: dict
     """
-    
+
     api_version = kwargs.get("api_version")
     if api_version:
         if api_version == 4 or api_version == 5:
             api_version = str(api_version)
         else:
-            err_msg = "'{0}' is not a valid api version. If not perhaps input type was a str and not int(?)".format(api_version)
+            err_msg = "'{}' is not a valid api version. If not perhaps input type was a str and not int(?)".format(
+                api_version
+            )
             raise ValueError(err_msg)
 
-    service_url = "https://exttest.serviceplatformen.dk/service/CPR/PersonBaseDataExtended/{0}".format(api_version)
+    service_url = "https://exttest.serviceplatformen.dk/service/CPR/PersonBaseDataExtended/{}".format(
+        api_version
+    )
     if production:
-        service_url = "https://prod.serviceplatformen.dk/service/CPR/PersonBaseDataExtended/{0}".format(api_version)
+        service_url = "https://prod.serviceplatformen.dk/service/CPR/PersonBaseDataExtended/{}".format(
+            api_version
+        )
 
     template_directory = os.path.dirname(__file__)
-    soap_envelope = "PersonBaseDataExtended_v{0}_envelope.xml".format(api_version)
+    soap_envelope = f"PersonBaseDataExtended_v{api_version}_envelope.xml"
 
-    soap_envelope_template = os.path.join(
-        template_directory, soap_envelope
-    )
+    soap_envelope_template = os.path.join(template_directory, soap_envelope)
 
     soap_envelope = construct_envelope_SF1520(
-        template=soap_envelope_template,
-        service_uuids=service_uuids,
-        cprnr=cprnr
+        template=soap_envelope_template, service_uuids=service_uuids, cprnr=cprnr
     )
     response = call_cpr_person_lookup_request(
         soap_envelope=soap_envelope,
@@ -77,8 +81,7 @@ def get_citizen(service_uuids, certificate, cprnr, production=False, **kwargs):
     )
     if response.status_code == 200:
         citizen_dict = parse_cpr_person_lookup_xml_to_dict(
-            soap_response_xml=response.text,
-            api_version=api_version
+            soap_response_xml=response.text, api_version=api_version
         )
         return citizen_dict
     else:
@@ -116,12 +119,16 @@ def parse_cpr_person_lookup_xml_to_dict(soap_response_xml, api_version):
         "http://serviceplatformen.dk/xml/schemas/InvocationContext/1/": None,
         "http://serviceplatformen.dk/xml/schemas/AuthorityContext/1/": None,
         "http://serviceplatformen.dk/xml/schemas/CallContext/1/": None,
-        "http://serviceplatformen.dk/xml/wsdl/soap11/CPR/PersonBaseDataExtended/{0}/".format(api_version): None,
+        "http://serviceplatformen.dk/xml/wsdl/soap11/CPR/PersonBaseDataExtended/{}/".format(
+            api_version
+        ): None,
         "http://schemas.xmlsoap.org/soap/envelope/": None,
     }
-    
-    if api_version == "5": # Add additional namespace
-        namespaces["http://serviceplatformen.dk/xml/schemas/ServiceplatformFault/1/"]: None
+
+    if api_version == "5":  # Add additional namespace
+        namespaces[
+            "http://serviceplatformen.dk/xml/schemas/ServiceplatformFault/1/"
+        ]: None
 
     # Use non-default namespace separator due to https://github.com/libexpat/libexpat/pull/577
     # until a new version of libexpat is stable.

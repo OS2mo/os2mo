@@ -9,35 +9,29 @@ def construct_envelope_SF1520(template, service_uuids, cprnr):
     """The function returns an envelope for the service
     'SF1520 - Udvidet person stamdata (lokal)'."""
 
-    with open(template, "r") as filestream:
+    with open(template) as filestream:
         template_string = filestream.read()
 
     xml_template = Template(template_string)
 
     populated_template = xml_template.render(
         cprnr=cprnr,
-        service_agreement=service_uuids['service_agreement'],
-        user_system=service_uuids['user_system'],
-        user=service_uuids['user'],
-        service=service_uuids['service']
+        service_agreement=service_uuids["service_agreement"],
+        user_system=service_uuids["user_system"],
+        user=service_uuids["user"],
+        service=service_uuids["service"],
     )
 
     # service platform requirement.
-    latin_1_encoded_soap_envelope = populated_template.encode('latin-1')
+    latin_1_encoded_soap_envelope = populated_template.encode("latin-1")
 
     return latin_1_encoded_soap_envelope
 
 
 def http_post(endpoint, soap_envelope, certificate):
-
     if not endpoint and not soap_envelope and not certificate:
         return None
 
-    response = requests.post(
-        url=endpoint,
-        data=soap_envelope,
-        cert=certificate
-    )
+    response = requests.post(url=endpoint, data=soap_envelope, cert=certificate)
 
     return response
-
