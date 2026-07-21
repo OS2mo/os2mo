@@ -325,17 +325,18 @@ async def test_returns_message_on_success(
     )
 
 
-def test_returns_404_on_unknown_unit(
-    service_client: TestClient, get_one_org_mock
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_returns_404_on_unknown_unit(
+    service_client: TestClient,
 ) -> None:
-    get_one_org_mock.return_value = {}
-
-    response = service_client.request(
-        "GET", "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
+    """Refreshing an org unit that does not exist returns 404."""
+    response = service_client.get(
+        "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
     )
     assert response.status_code == 404
     result = response.json()
-    assert "NOT_FOUND" in result.get("error_key")
+    assert "NOT_FOUND" in result["error_key"]
 
 
 @pytest.mark.integration_test
