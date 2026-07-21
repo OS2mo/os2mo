@@ -118,15 +118,17 @@ def test_serviceplatformen_api_version_validation(
 
 def test_get_citizen_uses_version_kwarg():
     # Test that the `version` kwargs is actually used in the call to
-    # `service_person_stamdata_udvidet.get_citizen`.
+    # `serviceplatformen.get_citizen`.
     settings = MagicMock()
     settings.sp_settings = MagicMock()
     settings.sp_settings.sp_api_version = 4
     with util.override_config(settings):
-        with patch("service_person_stamdata_udvidet.get_citizen") as mock_get_citizen:
-            # This calls `service_person_stamdata_udvidet.get_citizen`
+        with patch(
+            "mora.service.shimmed.serviceplatformen.get_citizen"
+        ) as mock_get_citizen:
+            # This calls `serviceplatformen.get_citizen`
             cpr_shim.get_citizen("0101010101")
-            # Assert that our mock `service_person_stamdata_udvidet.get_citizen` is
+            # Assert that our mock `serviceplatformen.get_citizen` is
             # called using the expected `api_version` kwarg.
             mock_get_citizen.assert_called_once()
             call_args = mock_get_citizen.call_args

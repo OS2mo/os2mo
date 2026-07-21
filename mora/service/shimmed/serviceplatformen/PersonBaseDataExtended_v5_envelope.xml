@@ -1,0 +1,14 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://serviceplatformen.dk/xml/wsdl/soap11/CPR/PersonBaseDataExtended/5/" xmlns:ns1="http://serviceplatformen.dk/xml/schemas/CallContext/1/" xmlns:ns2="http://serviceplatformen.dk/xml/schemas/AuthorityContext/1/" xmlns:ns3="http://serviceplatformen.dk/xml/schemas/InvocationContext/1/" xmlns:ns4="http://serviceplatformen.dk/xml/schemas/cpr/PNR/1/">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <ns:PersonLookupRequest>
+         <ns3:InvocationContext>
+            <ns3:ServiceAgreementUUID>{{ service_agreement }}</ns3:ServiceAgreementUUID>
+            <ns3:UserSystemUUID>{{ user_system }}</ns3:UserSystemUUID>
+            <ns3:UserUUID>{{ user }}</ns3:UserUUID>
+            <ns3:ServiceUUID>{{ service }}</ns3:ServiceUUID>
+         </ns3:InvocationContext>
+         <ns4:PNR>{{ cprnr }}</ns4:PNR>
+      </ns:PersonLookupRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
