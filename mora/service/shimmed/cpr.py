@@ -148,9 +148,7 @@ def search_cpr(
     return format_cpr_response(sp_data, cpr)  # pragma: no cover
 
 
-def format_cpr_response(
-    sp_data: dict[str, Any], cpr: str
-) -> dict[str, str]:  # pragma: no cover
+def format_cpr_response(sp_data: dict[str, Any], cpr: str) -> dict[str, str]:
     """Convert a Serviceplatformen response to a SearchCPRReturn dict.
 
     Args:

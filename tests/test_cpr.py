@@ -188,6 +188,33 @@ def test_get_citizen_uses_version_kwarg(
     assert citizen["efternavn"] == "Doe"
 
 
+async def test_cpr_lookup_returns_name_from_serviceplatformen(
+    service_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    sp_certificate: Path,
+    respx_mock: respx.MockRouter,
+) -> None:
+    """A normal CPR lookup goes through the `get_citizen` shim and returns the name
+    parsed from the Serviceplatformen response.
+    """
+    route = respx_mock.post(
+        "https://exttest.serviceplatformen.dk/service/CPR/PersonBaseDataExtended/4"
+    ).mock(return_value=httpx.Response(200, text=SP_RESPONSE))
+
+    cpr = "0101501234"
+
+    # Set up mock Serviceplatform access, with a certificate `httpx` can load.
+    monkeypatch.setenv("ENABLE_SP", "true")
+    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(sp_certificate))
+
+    with util.override_config(Settings()):
+        response = service_client.get("/service/e/cpr_lookup/", params={"q": cpr})
+
+    assert route.called
+    assert response.status_code == 200
+    assert response.json() == {mapping.NAME: "John Doe", mapping.CPR_NO: cpr}
+
+
 @pytest.mark.parametrize(
     "cpr_number,expected_result",
     [
