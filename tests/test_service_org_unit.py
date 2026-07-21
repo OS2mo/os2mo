@@ -1,12 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from asyncio import Future
 from collections.abc import AsyncIterator
 from collections.abc import Callable
 from copy import deepcopy
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
-from unittest.mock import call
 from unittest.mock import patch
 from uuid import UUID
 
@@ -328,54 +326,38 @@ async def test_returns_integration_error_on_wrong_status(
     }
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 async def test_returns_message_on_success(
-    service_client: TestClient, get_one_org_mock, t_sender_mock, t_fetch_mock
-):
-    with util.override_config(Settings(http_endpoints=["http://whatever"])):
-        t_fetch_mock.return_value = [
-            MOTriggerRegister(
-                **{
-                    "event_type": mapping.EventType.ON_BEFORE,
-                    "request_type": mapping.RequestType.REFRESH,
-                    "role_type": "org_unit",
-                    "url": "/triggers/ou/refresh",
-                }
-            )
-        ]
-        Trigger.registry = {}
-        await register(None)
-        t_fetch_mock.assert_called()
+    create_org_unit: Callable[[str, UUID | None], UUID],
+    service_client: TestClient,
+    refresh_trigger: aioresponses,
+    trigger_payloads: Callable[[str], list[dict]],
+) -> None:
+    """A 200 from the external http-trigger surfaces its response body in the
+    refresh `message`."""
+    unit_uuid = create_org_unit("Kolding Kommune")
 
     response_msg = "Something good happened"
-    response_future = Future()
-    response_future.set_result(response_msg)
-    t_sender_mock.return_value = response_future
-
-    get_one_org_mock.return_value = {"whatever": 123}
-
-    response = service_client.request(
-        "GET", "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
+    refresh_trigger.post(
+        "http://whatever/triggers/ou/refresh",
+        status=200,
+        payload=response_msg,
     )
+
+    response = service_client.get(f"/service/ou/{unit_uuid}/refresh")
+
     assert response.status_code == 200
-    result = response.json()
-    assert response_msg == result["message"]
+    assert response.json()["message"] == response_msg
 
-    t_sender_mock.assert_has_calls(
-        [
-            call(
-                "http://whatever/triggers/ou/refresh",
-                {
-                    "request_type": mapping.RequestType.REFRESH,
-                    "request": {"uuid": "44c86c7a-cfe0-447e-9706-33821b5721a4"},
-                    "role_type": "org_unit",
-                    "event_type": mapping.EventType.ON_BEFORE,
-                    "org_unit_uuid": "44c86c7a-cfe0-447e-9706-33821b5721a4",
-                    "uuid": "44c86c7a-cfe0-447e-9706-33821b5721a4",
-                },
-                timeout=5,
-            )
-        ]
-    )
+    (payload,) = trigger_payloads("http://whatever/triggers/ou/refresh")
+    assert payload == {
+        "request_type": mapping.RequestType.REFRESH,
+        "request": {"uuid": str(unit_uuid)},
+        "role_type": "org_unit",
+        "event_type": mapping.EventType.ON_BEFORE,
+        "uuid": str(unit_uuid),
+    }
 
 
 @pytest.mark.integration_test
