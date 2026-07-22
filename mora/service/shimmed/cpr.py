@@ -3,7 +3,7 @@
 import re
 from typing import Any
 
-import requests
+import httpx
 from fastapi import Query
 from pydantic import BaseModel
 from pydantic import Field
@@ -39,14 +39,14 @@ def get_citizen(cpr: str) -> dict[str, Any]:
             production=sp_production,
             api_version=sp_api_version,
         )
-    except requests.HTTPError as e:  # pragma: no cover
+    except httpx.HTTPStatusError as e:  # pragma: no cover
         if "PNRNotFound" in e.response.text:
             raise KeyError("CPR not found")
         else:
-            logger.exception(event="HTTPError", exception=e)
+            logger.exception(event="HTTPStatusError", exception=e)
             raise e
-    except requests.exceptions.SSLError as e:  # pragma: no cover
-        logger.exception(event="SSLError", exception=e)
+    except httpx.ConnectError as e:  # pragma: no cover
+        logger.exception(event="ConnectError", exception=e)
         exceptions.ErrorCodes.E_SP_SSL_ERROR()
 
 
@@ -148,9 +148,7 @@ def search_cpr(
     return format_cpr_response(sp_data, cpr)  # pragma: no cover
 
 
-def format_cpr_response(
-    sp_data: dict[str, Any], cpr: str
-) -> dict[str, str]:  # pragma: no cover
+def format_cpr_response(sp_data: dict[str, Any], cpr: str) -> dict[str, str]:
     """Convert a Serviceplatformen response to a SearchCPRReturn dict.
 
     Args:

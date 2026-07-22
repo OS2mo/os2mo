@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2017 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
-import requests
+import httpx
 from jinja2 import Template
 
 
@@ -32,6 +32,6 @@ def http_post(endpoint, soap_envelope, certificate):  # pragma: no cover
     if not endpoint and not soap_envelope and not certificate:
         return None
 
-    response = requests.post(url=endpoint, data=soap_envelope, cert=certificate)
+    response = httpx.post(endpoint, content=soap_envelope, cert=certificate)
 
     return response
