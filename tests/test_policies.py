@@ -78,6 +78,37 @@ async def test_public_policy_bootstrapped(
 
 
 @pytest.mark.integration_test
+async def test_introspection_policy_bootstrapped(
+    another_transaction: AnotherTransaction, empty_db
+) -> None:
+    """The Introspection policy is seeded active, bound to every actor."""
+    async with another_transaction() as (_, session):
+        policy = (
+            await session.scalars(
+                select(db.Policy).where(db.Policy.name == "Introspection")
+            )
+        ).one()
+        assert policy.activated is True
+        actors = (
+            await session.scalars(
+                select(db.PolicyActor).where(db.PolicyActor.policy_fk == policy.id)
+            )
+        ).all()
+        assert [(actor.kind, actor.value) for actor in actors] == [("all", "")]
+        rules = set(
+            (
+                await session.execute(
+                    select(db.PolicyRule.type, db.PolicyRule.field).where(
+                        db.PolicyRule.policy_fk == policy.id
+                    )
+                )
+            ).all()
+        )
+        assert ("*", "__typename") in rules
+        assert ("__Type", "*") in rules
+
+
+@pytest.mark.integration_test
 async def test_public_field_readable_without_roles(
     graphapi_post: GraphAPIPost, set_auth: SetAuth, empty_db
 ) -> None:

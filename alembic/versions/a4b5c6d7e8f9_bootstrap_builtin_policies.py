@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: MPL-2.0
 """Bootstrap the built-in policies
 
-Seed the built-in policies on top of the policy-engine schema. Currently only
-the "Public" policy: it grants every actor access to the fields that require no
-role under the legacy RBAC map. The remaining legacy policies are migrated into
-the database by later commits, each extending this migration.
+Seed the built-in policies on top of the policy-engine schema: the "Public"
+policy grants every actor access to the fields that require no role under the
+legacy RBAC map, and the "Introspection" policy grants every actor GraphQL
+introspection. The remaining legacy policies are migrated into the database by
+later commits, each extending this migration.
 """
 
 from collections.abc import Sequence
@@ -21,6 +22,7 @@ depends_on: str | Sequence[str] | None = None
 
 # Well-known UUIDs (the policy name encoded in the tail).
 PUBLIC_UUID = "7075626c-9bac-5eed-0000-7075626c6963"
+INTROSPECTION_UUID = "696e7472-9bac-5eed-0000-696e74726f73"
 
 policy = sa.table(
     "policy",
@@ -41,6 +43,21 @@ policy_rule = sa.table(
     sa.column("field", sa.String),
     sa.column("policy_fk", sa.Uuid),
 )
+
+# Introspection: allow GraphQL introspection for every actor. `__typename` is a
+# meta-field that can appear under any type; the __-prefixed introspection types
+# carry the remaining introspection fields.
+INTROSPECTION_RULES = [
+    ("*", "__typename"),
+    ("Query", "__schema"),
+    ("Query", "__type"),
+    ("__Type", "*"),
+    ("__Schema", "*"),
+    ("__Field", "*"),
+    ("__Directive", "*"),
+    ("__EnumValue", "*"),
+    ("__InputValue", "*"),
+]
 
 # Public: every field that requires no role under the legacy RBAC map (its
 # `PUBLIC_FIELDS` entries). Generated from that map; granted to every actor.
@@ -715,21 +732,38 @@ def upgrade() -> None:
                 "description": "Grants access to fields that require no role (public fields).",
                 "activated": True,
             },
+            {
+                "id": INTROSPECTION_UUID,
+                "name": "Introspection",
+                "description": "Grants GraphQL introspection access to every actor.",
+                "activated": True,
+            },
         ],
     )
     op.bulk_insert(
         policy_actor,
         [
             {"kind": "all", "value": "", "policy_fk": PUBLIC_UUID},
+            {"kind": "all", "value": "", "policy_fk": INTROSPECTION_UUID},
         ],
     )
     op.bulk_insert(
         policy_rule,
-        [{"type": t, "field": f, "policy_fk": PUBLIC_UUID} for t, f in PUBLIC_RULES],
+        [
+            *[
+                {"type": t, "field": f, "policy_fk": PUBLIC_UUID}
+                for t, f in PUBLIC_RULES
+            ],
+            *[
+                {"type": t, "field": f, "policy_fk": INTROSPECTION_UUID}
+                for t, f in INTROSPECTION_RULES
+            ],
+        ],
     )
 
 
 def downgrade() -> None:
-    op.execute(f"DELETE FROM policy_rule WHERE policy_fk = '{PUBLIC_UUID}'")
-    op.execute(f"DELETE FROM policy_actor WHERE policy_fk = '{PUBLIC_UUID}'")
-    op.execute(f"DELETE FROM policy WHERE id = '{PUBLIC_UUID}'")
+    ids = f"'{PUBLIC_UUID}', '{INTROSPECTION_UUID}'"
+    op.execute(f"DELETE FROM policy_rule WHERE policy_fk IN ({ids})")
+    op.execute(f"DELETE FROM policy_actor WHERE policy_fk IN ({ids})")
+    op.execute(f"DELETE FROM policy WHERE id IN ({ids})")

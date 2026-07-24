@@ -16,7 +16,6 @@ from graphql import ExecutionResult
 from graphql import GraphQLError
 from graphql import GraphQLResolveInfo
 from graphql import OperationType
-from graphql import is_introspection_type
 from pydantic import PositiveInt
 from strawberry import Schema
 from strawberry.exceptions import StrawberryGraphQLError
@@ -164,26 +163,16 @@ class IsAuthenticatedExtension(SchemaExtension):
 Policy = Callable[[GraphQLResolveInfo, dict[str, Any]], Awaitable[bool]]
 
 
-async def introspection_policy(
-    info: GraphQLResolveInfo, kwargs: dict[str, Any]
-) -> bool:
-    """Allow access to introspection for all users."""
-    return info.field_name in (
-        "__typename",
-        "__schema",
-        "__type",
-    ) or is_introspection_type(info.parent_type)
-
-
 async def pbac_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     """Allow access if an active DB policy grants this (type, field).
 
     This is the policy-based access control (PBAC) check: it asks the policy
     engine whether the calling actor has an active policy with a rule granting
     the accessed GraphQL `(type, field)`. The bootstrapped built-in "Public"
-    policy grants every actor the fields that require no role, replacing the
-    static `PUBLIC_FIELDS` set; the remaining chain policies are migrated into
-    the database one by one.
+    and "Introspection" policies grant every actor the fields that require no
+    role and GraphQL introspection, replacing the static `PUBLIC_FIELDS` set
+    and the introspection special case; the remaining chain policies are
+    migrated into the database one by one.
     """
     # Deferred imports to avoid a circular import at module load.
     from mora.graphapi.context import MOInfo
@@ -263,7 +252,6 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
 
 
 POLICIES: list[Policy] = [
-    introspection_policy,
     pbac_policy,
     rbac_policy,
     owner_policy,
