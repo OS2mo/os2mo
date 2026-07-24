@@ -63,8 +63,8 @@ class MOContext(BaseContext):
     # Per-request authorization cache. Every field resolve consults the policy
     # engine (`actor_grants_field`); since the caller is constant within a
     # request, the caller's applicable policy rules are fetched once and cached
-    # here as their `(type, field)` pairs.
-    applicable_policy_rules: set[tuple[str, str]] | None = None
+    # here, indexed by `(type, field)`.
+    applicable_policy_rules: dict[tuple[str, str], list[str | None]] | None = None
 
 
 MOInfo: TypeAlias = Info[MOContext, None]

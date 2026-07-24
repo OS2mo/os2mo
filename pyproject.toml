@@ -40,6 +40,9 @@ sentry-sdk = { extras = ["fastapi"], version = "^2.47.0" }
 psycopg = "^3.1.13"
 xmltodict = "^0.13.0"
 fastramqpi = "^14.2.1"
+# Official CEL implementation (wraps cel-cpp); pinned while pre-1.0. Used to
+# evaluate policy rule conditions (mora/graphapi/policy_cel.py).
+cel-expr-python = "0.1.3"
 
 [tool.poetry.group.dev.dependencies]
 requests-mock = "^1.11.0"

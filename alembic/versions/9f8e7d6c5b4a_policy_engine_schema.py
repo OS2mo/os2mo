@@ -71,8 +71,15 @@ def upgrade() -> None:
         # field/mutator on it, or "*" for all fields.
         sa.Column("type", sa.Text, nullable=False),
         sa.Column("field", sa.Text, nullable=False),
+        # Optional CEL condition gating the grant; null means unconditional.
+        sa.Column("condition", sa.String(), nullable=True),
         sa.Column("policy_fk", sa.Uuid, sa.ForeignKey("policy.id"), nullable=False),
-        sa.UniqueConstraint("policy_fk", "type", "field", name="uq_policy_rule"),
+    )
+    # `NULLS NOT DISTINCT` keeps unconditional rules deduplicated (requires
+    # PostgreSQL >= 15).
+    op.execute(
+        "ALTER TABLE policy_rule ADD CONSTRAINT uq_policy_rule "
+        "UNIQUE NULLS NOT DISTINCT (policy_fk, type, field, condition)"
     )
 
 

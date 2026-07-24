@@ -16,6 +16,8 @@ from mora.auth.keycloak.models import Token
 from mora.db import AsyncSession
 from mora.graphapi.context import MOInfo
 from mora.graphapi.filters import gen_filter_string
+from mora.graphapi.policy_cel import build_activation
+from mora.graphapi.policy_cel import evaluate_condition
 
 
 @strawberry.enum(description="The kind of actor attribute a policy matches on.")
@@ -104,30 +106,36 @@ def actor_filter_for(roles: Collection[str]) -> PolicyActorFilter:
     return PolicyActorFilter(roles=list(roles))
 
 
-async def _applicable_rule_index(info: MOInfo, token: Token) -> set[tuple[str, str]]:
+async def _applicable_rule_index(
+    info: MOInfo, token: Token
+) -> dict[tuple[str, str], list[str | None]]:
     """The rules of the caller's active policies, cached per request.
 
     Every field resolve consults the policy engine, so the applicable rules --
     the rules of the active policies whose actor matches the caller -- are
-    fetched once and cached on the request context as a set of their
-    ``(type, field)`` for O(1) lookup. The caller (roles) is constant within a
-    request, so the set is too; this turns a query that resolves many fields
-    into a single policy query.
+    fetched once and cached on the request context, keyed by their
+    ``(type, field)`` for O(1) candidate lookup. The caller (roles) is constant
+    within a request, so the set is too; this turns a query that resolves many
+    fields into a single policy query.
     """
     context = info.context
     if context.applicable_policy_rules is None:
         actor_filter = actor_filter_for(token.realm_access.roles)
         predicate = policy_predicate(PolicyFilter(activated=True, actor=actor_filter))
         query = (
-            select(db.PolicyRule.type, db.PolicyRule.field)
+            select(
+                db.PolicyRule.type,
+                db.PolicyRule.field,
+                db.PolicyRule.condition,
+            )
             .where(db.PolicyRule.policy_fk == db.Policy.id)
             .where(predicate)
         )
         session: AsyncSession = context.session
-        context.applicable_policy_rules = {
-            (rule_type, rule_field)
-            for rule_type, rule_field in (await session.execute(query)).all()
-        }
+        index: dict[tuple[str, str], list[str | None]] = {}
+        for rule_type, rule_field, condition in (await session.execute(query)).all():
+            index.setdefault((rule_type, rule_field), []).append(condition)
+        context.applicable_policy_rules = index
     return context.applicable_policy_rules
 
 
@@ -141,19 +149,33 @@ async def actor_grants_field(
 
     True if the actor has an active policy that applies to them (by role) and
     has a rule granting the ``(type, field)`` -- where either component may be
-    the wildcard ``"*"``. This is the core of the policy-based access control
-    (PBAC) permission engine.
+    the wildcard ``"*"`` -- whose CEL condition (if any) holds. This is the
+    core of the policy-based access control (PBAC) permission engine.
 
     The applicable rules are fetched once per request (see
     :func:`_applicable_rule_index`); the candidates for this ``(type, field)``
-    are then checked in Python.
+    are then checked in Python: a rule grants when its condition (if any)
+    holds; a rule without one grants outright.
     """
     index = await _applicable_rule_index(info, token)
-    # A rule matches this exact (type, field) or a wildcard in either component
-    # (``type IN (type,'*') AND field IN (field,'*')``).
-    return (
-        (type, field) in index
-        or (type, "*") in index
-        or ("*", field) in index
-        or ("*", "*") in index
+    # Candidate rules match this exact (type, field) or a wildcard in either
+    # component (``type IN (type,'*') AND field IN (field,'*')``).
+    rules = (
+        index.get((type, field), [])
+        + index.get((type, "*"), [])
+        + index.get(("*", field), [])
+        + index.get(("*", "*"), [])
     )
+    if not rules:
+        return False
+    # Access is granted if any candidate rule is satisfied. The condition
+    # activation is built once and reused across rules.
+    activation = None
+    for condition in rules:
+        if condition is not None:
+            if activation is None:
+                activation = build_activation(token)
+            if not evaluate_condition(condition, activation):
+                continue
+        return True
+    return False

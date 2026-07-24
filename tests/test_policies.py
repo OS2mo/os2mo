@@ -9,6 +9,7 @@ the tests declare them directly through the ORM.
 from uuid import UUID
 
 import pytest
+from more_itertools import one
 from sqlalchemy import select
 from sqlalchemy import update
 
@@ -36,16 +37,22 @@ async def make_policy(
     name: str,
     *,
     actors: list[tuple[str, str]],
-    rules: list[tuple[str, str]],
+    rules: list[tuple],
     activated: bool = True,
 ) -> UUID:
-    """Insert a policy directly in the database."""
+    """Insert a policy directly in the database.
+
+    Rules are (type, field) or (type, field, condition) tuples.
+    """
     async with another_transaction() as (_, session):
         policy = db.Policy(name=name, activated=activated)
         policy.actors = [
             db.PolicyActor(kind=kind, value=value) for kind, value in actors
         ]
-        policy.rules = [db.PolicyRule(type=type, field=field) for type, field in rules]
+        policy.rules = [
+            db.PolicyRule(type=type, field=field, condition=one(rest) if rest else None)
+            for type, field, *rest in rules
+        ]
         session.add(policy)
         await session.flush()
         return policy.id
@@ -222,3 +229,185 @@ async def test_all_actor_policy_grants_everyone(
     )
     set_auth(role="nobody")
     assert graphapi_post(READ_EMPLOYEES).errors is None
+
+
+# Rule conditions (CEL)
+# ---------------------
+
+
+@pytest.mark.integration_test
+async def test_condition_grants_when_true(
+    graphapi_post: GraphAPIPost,
+    set_auth: SetAuth,
+    another_transaction: AnotherTransaction,
+    empty_db,
+) -> None:
+    # The policy applies to the "conditional-role" role but only grants
+    # employees when the condition holds.
+    await make_policy(
+        another_transaction,
+        "conditional",
+        actors=[("role", "conditional-role")],
+        rules=[("Query", "employees", 'token.preferred_username == "bruce"')],
+    )
+    set_auth(role="conditional-role", preferred_username="bruce")
+    assert graphapi_post(READ_EMPLOYEES).errors is None
+
+
+@pytest.mark.integration_test
+async def test_condition_denies_when_false(
+    graphapi_post: GraphAPIPost,
+    set_auth: SetAuth,
+    another_transaction: AnotherTransaction,
+    empty_db,
+) -> None:
+    # The actor matches the policy (by role), but the condition does not hold.
+    await make_policy(
+        another_transaction,
+        "conditional",
+        actors=[("role", "conditional-role")],
+        rules=[("Query", "employees", 'token.preferred_username == "alice"')],
+    )
+    set_auth(role="conditional-role", preferred_username="bruce")
+    assert denied(graphapi_post(READ_EMPLOYEES))
+
+
+@pytest.mark.integration_test
+async def test_unconditional_rule_grants_despite_false_condition(
+    graphapi_post: GraphAPIPost,
+    set_auth: SetAuth,
+    another_transaction: AnotherTransaction,
+    empty_db,
+) -> None:
+    # Two rules for the same field: one with a false condition, one
+    # unconditional. The unconditional one grants access regardless.
+    await make_policy(
+        another_transaction,
+        "conditional",
+        actors=[("role", "conditional-role")],
+        rules=[("Query", "employees", "false"), ("Query", "employees")],
+    )
+    set_auth(role="conditional-role")
+    assert graphapi_post(READ_EMPLOYEES).errors is None
+
+
+# Legacy policy (RBAC-via-PBAC)
+# -----------------------------
+
+
+@pytest.mark.integration_test
+async def test_legacy_policy_bootstrapped(
+    another_transaction: AnotherTransaction, empty_db
+) -> None:
+    async with another_transaction() as (_, session):
+        policy = (
+            await session.scalars(select(db.Policy).where(db.Policy.name == "Legacy"))
+        ).one()
+        assert policy.activated is True
+
+        # Applies to everyone via an "all" actor.
+        actors = (
+            await session.scalars(
+                select(db.PolicyActor).where(db.PolicyActor.policy_fk == policy.id)
+            )
+        ).all()
+        assert [(actor.kind, actor.value) for actor in actors] == [("all", "")]
+
+        # One explicit rule per permission-gated (type, field), each gated on
+        # the field's required RBAC role. No wildcards; covers top-level
+        # queries and mutators as well as nested relation fields.
+        rules = set(
+            (
+                await session.execute(
+                    select(
+                        db.PolicyRule.type,
+                        db.PolicyRule.field,
+                        db.PolicyRule.condition,
+                    ).where(db.PolicyRule.policy_fk == policy.id)
+                )
+            ).all()
+        )
+    assert not any(rule[0] == "*" or rule[1] == "*" for rule in rules)
+    assert ("Query", "employees", '"read_employee" in token.roles') in rules
+    assert ("Mutation", "address_create", '"create_address" in token.roles') in rules
+    assert ("Mutation", "ituser_update", '"update_ituser" in token.roles') in rules
+    assert ("Employee", "addresses", '"read_address" in token.roles') in rules
+
+
+@pytest.mark.integration_test
+async def test_legacy_grants_when_role_matches_permission(
+    graphapi_post: GraphAPIPost, set_auth: SetAuth, empty_db
+) -> None:
+    # Reading employees requires the "read_employee" role under legacy RBAC.
+    # The Legacy policy grants it to anyone carrying that role.
+    set_auth(role="read_employee")
+    assert graphapi_post(READ_EMPLOYEES).errors is None
+
+
+@pytest.mark.integration_test
+async def test_legacy_denies_when_role_missing(
+    graphapi_post: GraphAPIPost, set_auth: SetAuth, empty_db
+) -> None:
+    # A token without the field's required role gets nothing from Legacy.
+    set_auth(role="some_unrelated_role")
+    assert denied(graphapi_post(READ_EMPLOYEES))
+
+
+@pytest.mark.integration_test
+async def test_legacy_permission_is_field_specific(
+    graphapi_post: GraphAPIPost, set_auth: SetAuth, empty_db
+) -> None:
+    # The Legacy rule conditions are gated on the *accessed field's* required
+    # role: "read_employee" grants the employees query but not the org_units
+    # query (which requires "read_org_unit").
+    set_auth(role="read_employee")
+    assert graphapi_post(READ_EMPLOYEES).errors is None
+    assert denied(graphapi_post(READ_ORG_UNITS))
+
+
+# Administrator/Reader convenience policies
+# -----------------------------------------
+
+
+@pytest.mark.integration_test
+async def test_administrator_and_reader_bootstrapped(
+    another_transaction: AnotherTransaction, empty_db
+) -> None:
+    async with another_transaction() as (_, session):
+        rules = set(
+            (
+                await session.execute(
+                    select(
+                        db.Policy.name,
+                        db.PolicyActor.kind,
+                        db.PolicyActor.value,
+                        db.PolicyRule.type,
+                        db.PolicyRule.field,
+                    )
+                    .where(db.PolicyActor.policy_fk == db.Policy.id)
+                    .where(db.PolicyRule.policy_fk == db.Policy.id)
+                    .where(db.Policy.name.in_(["Administrator", "Reader"]))
+                )
+            ).all()
+        )
+    assert rules == {
+        ("Administrator", "role", "admin", "Query", "*"),
+        ("Administrator", "role", "admin", "Mutation", "*"),
+        ("Reader", "role", "reader", "Query", "*"),
+    }
+
+
+@pytest.mark.integration_test
+async def test_reader_role_reads_all_queries(
+    graphapi_post: GraphAPIPost, set_auth: SetAuth, empty_db
+) -> None:
+    set_auth(role="reader")
+    assert graphapi_post(READ_EMPLOYEES).errors is None
+    assert graphapi_post(READ_ORG_UNITS).errors is None
+    # Reader grants queries only, not mutations.
+    delete = """
+    mutation {
+      facet_delete(uuid: "00000000-0000-0000-0000-000000000000") { uuid }
+    }
+    """
+    assert denied(graphapi_post(delete))

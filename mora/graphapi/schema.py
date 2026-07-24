@@ -170,9 +170,10 @@ async def pbac_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     engine whether the calling actor has an active policy with a rule granting
     the accessed GraphQL `(type, field)`. The bootstrapped built-in "Public"
     and "Introspection" policies grant every actor the fields that require no
-    role and GraphQL introspection, replacing the static `PUBLIC_FIELDS` set
-    and the introspection special case; the remaining chain policies are
-    migrated into the database one by one.
+    role and GraphQL introspection, and the "Legacy" policy reproduces the
+    role-based RBAC behaviour through per-field rules gated on the required
+    role via a CEL condition; the remaining chain policies are migrated into
+    the database one by one.
     """
     # Deferred imports to avoid a circular import at module load.
     from mora.graphapi.context import MOInfo
@@ -187,25 +188,6 @@ async def pbac_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
         info.parent_type.name,
         info.field_name,
     )
-
-
-async def rbac_policy(
-    info: GraphQLResolveInfo,
-    kwargs: dict[str, Any],
-) -> bool:
-    """Allow access if the token has the role required by the `RBAC_MAP`."""
-    requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
-    if requirement is None:  # pragma: no cover
-        # Public fields are already granted by the Public policy (pbac_policy).
-        return False
-    role, _, _ = requirement
-    token = await info.context.get_token()
-    token_roles = token.realm_access.roles
-
-    # Allow access if token has required role
-    if role in token_roles:
-        return True
-    return False
 
 
 async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
@@ -253,7 +235,6 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
 
 POLICIES: list[Policy] = [
     pbac_policy,
-    rbac_policy,
     owner_policy,
 ]
 
