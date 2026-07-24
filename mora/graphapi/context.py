@@ -3,6 +3,7 @@
 from collections.abc import Awaitable
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 from typing import TypeAlias
 from uuid import UUID
 
@@ -64,7 +65,7 @@ class MOContext(BaseContext):
     # engine (`actor_grants_field`); since the caller is constant within a
     # request, the caller's applicable policy rules are fetched once and cached
     # here, indexed by `(type, field)`.
-    applicable_policy_rules: dict[tuple[str, str], list[str | None]] | None = None
+    applicable_policy_rules: dict[tuple[str, str], list[Any]] | None = None
 
 
 MOInfo: TypeAlias = Info[MOContext, None]

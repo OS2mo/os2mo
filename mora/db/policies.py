@@ -72,19 +72,25 @@ class PolicyRule(Base):
     # unconditional. The same (type, field) may carry several conditions, each a
     # separate rule, granting access if any of them holds.
     condition: Mapped[str | None]
+    # Optional entity filter further restricting the grant to a specific set of
+    # objects: a CEL expression returning one or more access-check specs, each
+    # run as a SQL existence check against the entity being accessed (see
+    # `_entity_filter_grants`). A null filter places no entity restriction.
+    filter: Mapped[str | None]
 
     policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.id"))
     policy: Mapped[Policy] = relationship(back_populates="rules")
 
-    # A given (type, field, condition) is declared at most once per policy.
-    # NULLs are treated as equal so an unconditional rule is also deduplicated
-    # (requires PostgreSQL >= 15).
+    # A given (type, field, condition, filter) is declared at most once per
+    # policy. NULLs are treated as equal so a filter-less, unconditional rule is
+    # also deduplicated (requires PostgreSQL >= 15).
     __table_args__ = (
         UniqueConstraint(
             "policy_fk",
             "type",
             "field",
             "condition",
+            "filter",
             name="uq_policy_rule",
             postgresql_nulls_not_distinct=True,
         ),

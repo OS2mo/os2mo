@@ -73,13 +73,16 @@ def upgrade() -> None:
         sa.Column("field", sa.Text, nullable=False),
         # Optional CEL condition gating the grant; null means unconditional.
         sa.Column("condition", sa.String(), nullable=True),
+        # Optional CEL filter returning access-check specs; null means no entity
+        # restriction.
+        sa.Column("filter", sa.String(), nullable=True),
         sa.Column("policy_fk", sa.Uuid, sa.ForeignKey("policy.id"), nullable=False),
     )
-    # `NULLS NOT DISTINCT` keeps unconditional rules deduplicated (requires
-    # PostgreSQL >= 15).
+    # `NULLS NOT DISTINCT` keeps unconditional / filter-less rules deduplicated
+    # (requires PostgreSQL >= 15).
     op.execute(
         "ALTER TABLE policy_rule ADD CONSTRAINT uq_policy_rule "
-        "UNIQUE NULLS NOT DISTINCT (policy_fk, type, field, condition)"
+        "UNIQUE NULLS NOT DISTINCT (policy_fk, type, field, condition, filter)"
     )
 
 

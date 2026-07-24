@@ -12,6 +12,7 @@ role-bound blanket access. The remaining legacy behaviour is migrated into the
 database by later commits, each extending this migration.
 """
 
+import json
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -27,6 +28,7 @@ depends_on: str | Sequence[str] | None = None
 PUBLIC_UUID = "7075626c-9bac-5eed-0000-7075626c6963"
 INTROSPECTION_UUID = "696e7472-9bac-5eed-0000-696e74726f73"
 LEGACY_UUID = "0b50137e-9bac-5eed-0000-6c6567616379"
+OWNER_UUID = "6f776e65-9bac-5eed-0000-006f776e6572"
 ADMINISTRATOR_UUID = "e5ca1a7e-9bac-5eed-0000-0061646d696e"
 READER_UUID = "acce5500-9bac-5eed-0000-726561646572"
 
@@ -48,6 +50,7 @@ policy_rule = sa.table(
     sa.column("type", sa.String),
     sa.column("field", sa.String),
     sa.column("condition", sa.String),
+    sa.column("filter", sa.String),
     sa.column("policy_fk", sa.Uuid),
 )
 
@@ -1026,6 +1029,195 @@ PUBLIC_RULES: list[tuple[str, str]] = [
 ]
 
 
+class _Cel(str):
+    """A raw, unquoted CEL expression embedded in a check-spec (e.g. `actor`)."""
+
+
+def _cel_json(value: object) -> str:
+    """Serialize a check-spec to a CEL map literal: JSON, with bare `_Cel`."""
+    if isinstance(value, _Cel):
+        return str(value)
+    if isinstance(value, dict):
+        items = ", ".join(f"{json.dumps(k)}: {_cel_json(v)}" for k, v in value.items())
+        return "{" + items + "}"
+    if isinstance(value, list):
+        return "[" + ", ".join(_cel_json(v) for v in value) + "]"
+    return json.dumps(value)
+
+
+_ACTOR = _Cel("actor")
+# The owned entity, filtered by its owning person (`actor`).
+_OWN_PERSON = {"owner": {"owner": {"uuids": [_ACTOR]}}}
+# ... extended up the org-unit tree (self-or-ancestor).
+_OWN_UNIT = {"ancestor": _OWN_PERSON}
+
+
+def _unit(field: str) -> str:
+    """Require ownership of the org-unit identified by ``field`` (hierarchical)."""
+    return _cel_json(
+        {
+            "collection": "org_unit",
+            "check": "IN",
+            "field": _Cel(field),
+            "filter": _OWN_UNIT,
+        }
+    )
+
+
+def _person(field: str) -> str:
+    """Require ownership of the person identified by ``field``."""
+    return _cel_json(
+        {
+            "collection": "employee",
+            "check": "IN",
+            "field": _Cel(field),
+            "filter": _OWN_PERSON,
+        }
+    )
+
+
+def _obj_unit(collection: str, field: str) -> str:
+    """Require the object (``field``) to link an org-unit the caller owns."""
+    return _cel_json(
+        {
+            "collection": collection,
+            "check": "IN",
+            "field": _Cel(field),
+            "filter": {"org_unit": _OWN_UNIT},
+        }
+    )
+
+
+def _obj_person(collection: str, field: str) -> str:
+    """Require the object (``field``) to link a person the caller owns."""
+    return _cel_json(
+        {
+            "collection": collection,
+            "check": "IN",
+            "field": _Cel(field),
+            "filter": {"employee": _OWN_PERSON},
+        }
+    )
+
+
+# Detail-create branch: own the linked org-unit if present, else the person.
+def _create_branch(item: str, person_field: str) -> str:
+    return (
+        f"{item}.org_unit != null ? {_unit(item + '.org_unit')} "
+        f": {_person(person_field)}"
+    )
+
+
+def _person_ref(collection: str, item: str) -> str:
+    """The CEL expression selecting the linked person's uuid for ``collection``.
+
+    ``AddressCreateInput`` exposes both ``person`` and its ``employee`` alias
+    (either may be set); the other create inputs only have ``person``.
+    """
+    if collection == "address":
+        return f"({item}.employee != null ? {item}.employee : {item}.person)"
+    return f"{item}.person"
+
+
+# (field, filter-CEL) rules. A collection with two entries for one field is an
+# OR (the object may link either an org-unit or a person).
+OWNER_RULES: list[tuple[str, str]] = []
+
+
+def _rule(field: str, filter_cel: str) -> None:
+    OWNER_RULES.append((field, filter_cel))
+
+
+# -- Detail collections -------------------------------------------------------
+# Org-unit-mandatory (create -> own the org-unit; upd/term/del -> own the
+# object's org-unit). `association` also covers the `itassociation_*` mutators.
+for collection, fields in {
+    "association": ["association", "itassociation"],
+    "kle": ["kle"],
+    "manager": ["manager"],
+}.items():
+    for prefix in fields:
+        _rule(f"{prefix}_create", _unit("input.org_unit"))
+        _rule(f"{prefix}_update", _obj_unit(collection, "input.uuid"))
+        _rule(f"{prefix}_terminate", _obj_unit(collection, "input.uuid"))
+
+# Engagement: create/terminate/delete require owning the (object's) org-unit.
+# Update must additionally own the *destination* org-unit when the engagement is
+# moved -- mirroring the legacy owner check, which required owning both source
+# and target. The filter returns a list of check-specs (all must pass, i.e. AND).
+_rule("engagement_create", _unit("input.org_unit"))
+_rule(
+    "engagement_update",
+    f"[{_obj_unit('engagement', 'input.uuid')}]"
+    f" + (input.org_unit != null ? [{_unit('input.org_unit')}] : [])",
+)
+_rule("engagement_terminate", _obj_unit("engagement", "input.uuid"))
+_rule("engagement_delete", _obj_unit("engagement", "input.uuid"))
+_rule("engagements_create", f"input.map(i, {_unit('i.org_unit')})")
+_rule(
+    "engagements_update",
+    f"input.map(i, {_obj_unit('engagement', 'i.uuid')})"
+    f" + input.filter(i, i.org_unit != null).map(i, {_unit('i.org_unit')})",
+)
+# manager has a bulk create.
+_rule("managers_create", f"input.map(i, {_unit('i.org_unit')})")
+
+# Person-only (leave).
+_rule("leave_create", _person("input.person"))
+_rule("leave_update", _obj_person("leave", "input.uuid"))
+_rule("leave_terminate", _obj_person("leave", "input.uuid"))
+
+# Rolebinding: org-unit (nullable, no person) + delete + bulk create.
+for field in ("rolebinding_update", "rolebinding_terminate", "rolebinding_delete"):
+    _rule(field, _obj_unit("rolebinding", "input.uuid"))
+_rule("rolebinding_create", _unit("input.org_unit"))
+_rule("rolebindings_create", f"input.map(i, {_unit('i.org_unit')})")
+
+# Either org-unit or person (address, ituser, owner): two rules for
+# upd/term/del, a branch for create.
+for collection, ops in {
+    "address": ("update", "terminate", "delete"),
+    "ituser": ("update", "terminate", "delete"),
+    "owner": ("update", "terminate"),
+}.items():
+    for op_name in ops:
+        _rule(f"{collection}_{op_name}", _obj_unit(collection, "input.uuid"))
+        _rule(f"{collection}_{op_name}", _obj_person(collection, "input.uuid"))
+    _rule(
+        f"{collection}_create",
+        _create_branch("input", _person_ref(collection, "input")),
+    )
+# address / ituser bulk create.
+_rule(
+    "addresses_create",
+    f"input.map(i, {_create_branch('i', _person_ref('address', 'i'))})",
+)
+_rule(
+    "itusers_create", f"input.map(i, {_create_branch('i', _person_ref('ituser', 'i'))})"
+)
+
+# related_unit: only a (single-input) update, keyed on the origin unit.
+_rule("related_units_update", _unit("input.origin"))
+
+# -- Employee -----------------------------------------------------------------
+# Own the person to mutate it. A brand-new uuid has no owners -> create denied.
+for op_name in ("create", "update", "terminate", "delete"):
+    _rule(f"employee_{op_name}", _person("input.uuid"))
+
+# -- Org-unit -----------------------------------------------------------------
+_rule("org_unit_create", _unit("input.parent"))
+_rule("org_unit_terminate", _unit("input.uuid"))
+_rule("org_unit_delete", _unit("input.uuid"))
+# Move: always own the unit; additionally own the *new* parent, but only when the
+# parent actually changed (mirrors check_owner's `if parent := ...` guard).
+_rule(
+    "org_unit_update",
+    f"[{_unit('input.uuid')}] + "
+    f"(input.parent != null && input.parent != current.parent "
+    f"? [{_unit('input.parent')}] : [])",
+)
+
+
 def upgrade() -> None:
     op.bulk_insert(
         policy,
@@ -1049,6 +1241,12 @@ def upgrade() -> None:
                 "activated": True,
             },
             {
+                "id": OWNER_UUID,
+                "name": "Owner",
+                "description": "Grants owners access to the entities they own. A default starter policy; customize or remove it as needed.",
+                "activated": True,
+            },
+            {
                 "id": ADMINISTRATOR_UUID,
                 "name": "Administrator",
                 "description": "Grants access to all queries and mutators.",
@@ -1068,6 +1266,7 @@ def upgrade() -> None:
             {"kind": "all", "value": "", "policy_fk": PUBLIC_UUID},
             {"kind": "all", "value": "", "policy_fk": INTROSPECTION_UUID},
             {"kind": "all", "value": "", "policy_fk": LEGACY_UUID},
+            {"kind": "role", "value": "owner", "policy_fk": OWNER_UUID},
             {"kind": "role", "value": "admin", "policy_fk": ADMINISTRATOR_UUID},
             {"kind": "role", "value": "reader", "policy_fk": READER_UUID},
         ],
@@ -1076,7 +1275,13 @@ def upgrade() -> None:
         policy_rule,
         [
             *[
-                {"type": t, "field": f, "condition": None, "policy_fk": PUBLIC_UUID}
+                {
+                    "type": t,
+                    "field": f,
+                    "condition": None,
+                    "filter": None,
+                    "policy_fk": PUBLIC_UUID,
+                }
                 for t, f in PUBLIC_RULES
             ],
             *[
@@ -1084,30 +1289,50 @@ def upgrade() -> None:
                     "type": t,
                     "field": f,
                     "condition": None,
+                    "filter": None,
                     "policy_fk": INTROSPECTION_UUID,
                 }
                 for t, f in INTROSPECTION_RULES
             ],
             *[
-                {"type": t, "field": f, "condition": c, "policy_fk": LEGACY_UUID}
+                {
+                    "type": t,
+                    "field": f,
+                    "condition": c,
+                    "filter": None,
+                    "policy_fk": LEGACY_UUID,
+                }
                 for t, f, c in LEGACY_RULES
+            ],
+            *[
+                {
+                    "type": "Mutation",
+                    "field": field,
+                    "condition": None,
+                    "filter": flt,
+                    "policy_fk": OWNER_UUID,
+                }
+                for field, flt in OWNER_RULES
             ],
             {
                 "type": "Query",
                 "field": "*",
                 "condition": None,
+                "filter": None,
                 "policy_fk": ADMINISTRATOR_UUID,
             },
             {
                 "type": "Mutation",
                 "field": "*",
                 "condition": None,
+                "filter": None,
                 "policy_fk": ADMINISTRATOR_UUID,
             },
             {
                 "type": "Query",
                 "field": "*",
                 "condition": None,
+                "filter": None,
                 "policy_fk": READER_UUID,
             },
         ],
@@ -1116,7 +1341,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     ids = (
-        f"'{PUBLIC_UUID}', '{INTROSPECTION_UUID}', '{LEGACY_UUID}', "
+        f"'{PUBLIC_UUID}', '{INTROSPECTION_UUID}', '{LEGACY_UUID}', '{OWNER_UUID}', "
         f"'{ADMINISTRATOR_UUID}', '{READER_UUID}'"
     )
     op.execute(f"DELETE FROM policy_rule WHERE policy_fk IN ({ids})")

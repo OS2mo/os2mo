@@ -5,7 +5,6 @@ from graphql import GraphQLObjectType
 from sqlalchemy import select
 
 from mora import db
-from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import Version
 from tests.conftest import AnotherTransaction
@@ -14,28 +13,23 @@ from tests.conftest import SetAuth
 
 
 @pytest.mark.integration_test
-async def test_rbac_map_covers_schema(
+async def test_policy_rules_cover_schema(
     another_transaction: AnotherTransaction, empty_db
 ) -> None:
-    """Authorization is reject-by-default, so every field must be classified.
+    """Authorization is reject-by-default and DB-driven, so the bootstrapped
+    policy rules must cover the full schema.
 
-    Each schema field must be either granted by the bootstrapped Public policy
-    or have a role requirement (`RBAC_MAP`). Conversely, entries which do not
-    correspond to any schema field are dead rules, and therefore most likely
-    mistakes.
-
-    A field in both would be silently public (the chain grants access as soon
-    as the Public policy matches, before `rbac_policy` runs), so it is almost
-    certainly a mistake; the two are required to be disjoint.
+    This replaces the old static ``RBAC_MAP`` coverage check: every schema field
+    must be granted by at least one bootstrapped policy rule (a ``(type, field)``
+    pattern where either component may be the wildcard ``"*"``), or it would be
+    permanently denied. Introspection (``__``-prefixed) types are governed by the
+    Introspection policy and validated separately by
+    ``test_introspection_is_public``.
     """
     async with another_transaction() as (_, session):
-        public = set(
+        patterns = set(
             (
-                await session.execute(
-                    select(db.PolicyRule.type, db.PolicyRule.field)
-                    .join(db.Policy, db.PolicyRule.policy_fk == db.Policy.id)
-                    .where(db.Policy.name == "Public")
-                )
+                await session.execute(select(db.PolicyRule.type, db.PolicyRule.field))
             ).all()
         )
 
@@ -48,16 +42,16 @@ async def test_rbac_map_covers_schema(
             if isinstance(type_, GraphQLObjectType):
                 schema_fields.update((name, field) for field in type_.fields)
 
-    classified = public | RBAC_MAP.keys()
+    def is_covered(type_name: str, field_name: str) -> bool:
+        return any(
+            rule_type in (type_name, "*") and rule_field in (field_name, "*")
+            for rule_type, rule_field in patterns
+        )
 
-    missing = schema_fields - classified
-    assert missing == set(), f"Unclassified schema fields: {missing}"
-
-    stale = classified - schema_fields
-    assert stale == set(), f"Classified entries without a schema field: {stale}"
-
-    overlap = public & RBAC_MAP.keys()
-    assert overlap == set(), f"Fields both public and role-gated: {overlap}"
+    missing = {field for field in schema_fields if not is_covered(*field)}
+    assert missing == set(), (
+        f"Schema fields not granted by any bootstrapped policy rule: {sorted(missing)}"
+    )
 
 
 @pytest.mark.integration_test
