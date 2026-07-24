@@ -23,6 +23,8 @@ async def test_mocking_and_cache_clearing(mock_organisation):
     assert raw_org == {"uuid": str(uuid), "name": "name", "user_key": "user_key"}
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 def test_query_organisation(graphapi_post: GraphAPIPost, mock_organisation):
     """Test that we are able to query our organisation."""
     uuid = mock_organisation
@@ -39,6 +41,8 @@ def test_query_organisation(graphapi_post: GraphAPIPost, mock_organisation):
     }
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 async def test_invalid_query_no_organisation(graphapi_post: GraphAPIPost, monkeypatch):
     """Test that we get an error when querying with no organisation."""
     monkeypatch.setattr(
@@ -57,6 +61,8 @@ async def test_invalid_query_no_organisation(graphapi_post: GraphAPIPost, monkey
 org_fields = ["uuid", "name", "user_key"]
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "fields",
     sorted(

@@ -8,6 +8,7 @@ from contextlib import suppress
 from functools import cache
 from types import SimpleNamespace
 from typing import Any
+from typing import cast
 
 import strawberry
 from fastapi.encoders import jsonable_encoder
@@ -53,7 +54,6 @@ from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.query import Query
-from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.types import CPRType
 from mora.graphapi.version import Version
@@ -175,11 +175,29 @@ async def introspection_policy(
     ) or is_introspection_type(info.parent_type)
 
 
-async def no_role_required_policy(
-    info: GraphQLResolveInfo, kwargs: dict[str, Any]
-) -> bool:
-    """Allow access to fields which are explicitly listed in `PUBLIC_FIELDS`."""
-    return (info.parent_type.name, info.field_name) in PUBLIC_FIELDS
+async def pbac_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
+    """Allow access if an active DB policy grants this (type, field).
+
+    This is the policy-based access control (PBAC) check: it asks the policy
+    engine whether the calling actor has an active policy with a rule granting
+    the accessed GraphQL `(type, field)`. The bootstrapped built-in "Public"
+    policy grants every actor the fields that require no role, replacing the
+    static `PUBLIC_FIELDS` set; the remaining chain policies are migrated into
+    the database one by one.
+    """
+    # Deferred imports to avoid a circular import at module load.
+    from mora.graphapi.context import MOInfo
+    from mora.graphapi.policies import actor_grants_field
+
+    token = await info.context.get_token()
+    # `actor_grants_field` only reads `info.context` (the MO context), which the
+    # raw `GraphQLResolveInfo` carries as-is.
+    return await actor_grants_field(
+        cast(MOInfo, info),
+        token,
+        info.parent_type.name,
+        info.field_name,
+    )
 
 
 async def rbac_policy(
@@ -189,7 +207,7 @@ async def rbac_policy(
     """Allow access if the token has the role required by the `RBAC_MAP`."""
     requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
     if requirement is None:  # pragma: no cover
-        # Public fields are already allowed by the no_role_required_policy.
+        # Public fields are already granted by the Public policy (pbac_policy).
         return False
     role, _, _ = requirement
     token = await info.context.get_token()
@@ -205,7 +223,7 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
     """Allow access if the user is the owner of the accessed resources."""
     requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
     if requirement is None:  # pragma: no cover
-        # Public fields are already allowed by the no_role_required_policy.
+        # Public fields are already granted by the Public policy (pbac_policy).
         return False
     _, collection, permission_type = requirement
     check_kwargs = kwargs
@@ -246,7 +264,7 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
 
 POLICIES: list[Policy] = [
     introspection_policy,
-    no_role_required_policy,
+    pbac_policy,
     rbac_policy,
     owner_policy,
 ]
@@ -273,8 +291,9 @@ class RBACExtension(SchemaExtension):
     Each field access is checked against the policies in `POLICIES`, one by
     one, until a policy allows access.
 
-    Access is rejected by default: every field must be listed in
-    `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP`.
+    Access is rejected by default: every field must be granted by a database
+    policy (the bootstrapped "Public" policy covers the public fields) or have
+    a requirement in `RBAC_MAP`.
     """
 
     async def resolve(  # type: ignore[override]

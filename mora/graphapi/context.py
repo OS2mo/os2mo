@@ -60,6 +60,11 @@ class MOContext(BaseContext):
     amqp_system: AMQPSystem
     session: db.AsyncSession
     dataloaders: MOLoaders
+    # Per-request authorization cache. Every field resolve consults the policy
+    # engine (`actor_grants_field`); since the caller is constant within a
+    # request, the caller's applicable policy rules are fetched once and cached
+    # here as their `(type, field)` pairs.
+    applicable_policy_rules: set[tuple[str, str]] | None = None
 
 
 MOInfo: TypeAlias = Info[MOContext, None]
