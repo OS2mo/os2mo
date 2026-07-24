@@ -16,7 +16,6 @@ from graphql import ExecutionResult
 from graphql import GraphQLError
 from graphql import GraphQLResolveInfo
 from graphql import OperationType
-from graphql import is_introspection_type
 from pydantic import PositiveInt
 from starlette.datastructures import UploadFile
 from strawberry import Schema
@@ -194,17 +193,6 @@ class IsAuthenticatedExtension(SchemaExtension):
 Policy = Callable[[GraphQLResolveInfo, dict[str, Any]], Awaitable[bool]]
 
 
-async def introspection_policy(
-    info: GraphQLResolveInfo, kwargs: dict[str, Any]
-) -> bool:
-    """Allow access to introspection for all users."""
-    return info.field_name in (
-        "__typename",
-        "__schema",
-        "__type",
-    ) or is_introspection_type(info.parent_type)
-
-
 async def pbac_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     """Allow access if an active DB policy grants this (type, field)."""
     token = await info.context.get_token()
@@ -287,7 +275,6 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
 
 
 POLICIES: list[Policy] = [
-    introspection_policy,
     pbac_policy,
     rbac_policy,
     owner_policy,
