@@ -71,6 +71,8 @@ from .paged import LimitType
 from .paged import ObjectsAndCursor
 from .paged import Paged
 from .paged import to_paged
+from .policies import Policy
+from .policies import policy_resolver
 from .registrationbase import Registration
 from .resolvers import address_resolver
 from .resolvers import association_resolver
@@ -402,6 +404,11 @@ class Query:
             Consumers cannot rely on the order of events, and may receive the same event multiple times.
             """,
         ),
+    )
+
+    policies: Paged[Policy] = strawberry.field(
+        resolver=to_paged(policy_resolver),
+        description="Get access policies.",
     )
 
     me: Myself = strawberry.field(

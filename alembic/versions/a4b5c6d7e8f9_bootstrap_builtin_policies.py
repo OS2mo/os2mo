@@ -25,6 +25,7 @@ branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
 # Well-known UUIDs (the policy name encoded in the tail).
+POLICYADMIN_UUID = "ded1ca7e-9bac-5eed-706f-6c61646d696e"
 PUBLIC_UUID = "7075626c-9bac-5eed-0000-7075626c6963"
 INTROSPECTION_UUID = "696e7472-9bac-5eed-0000-696e74726f73"
 LEGACY_UUID = "0b50137e-9bac-5eed-0000-6c6567616379"
@@ -53,6 +54,19 @@ policy_rule = sa.table(
     sa.column("filter", sa.String),
     sa.column("policy_fk", sa.Uuid),
 )
+
+# Policy Administrator: the (type, field) resources it grants.
+POLICYADMIN_RULES = [
+    ("Query", "policies"),
+    ("Mutation", "policy_declare"),
+    ("Mutation", "policy_delete"),
+    ("Mutation", "policy_actor_declare"),
+    ("Mutation", "policy_actors_declare"),
+    ("Mutation", "policy_actor_delete"),
+    ("Mutation", "policy_rule_declare"),
+    ("Mutation", "policy_rules_declare"),
+    ("Mutation", "policy_rule_delete"),
+]
 
 # Legacy: one rule per permission-gated (type, field), gated on the field's
 # required RBAC role via `"<role>" in token.roles`. Generated from `RBAC_MAP`.
@@ -255,6 +269,14 @@ LEGACY_RULES: list[tuple[str, str, str]] = [
     ("Mutation", "org_unit_refresh", '"refresh_org_unit" in token.roles'),
     ("Mutation", "org_unit_terminate", '"terminate_org_unit" in token.roles'),
     ("Mutation", "org_unit_update", '"update_org_unit" in token.roles'),
+    ("Mutation", "policy_actor_declare", '"create_policy" in token.roles'),
+    ("Mutation", "policy_actor_delete", '"delete_policy" in token.roles'),
+    ("Mutation", "policy_actors_declare", '"create_policy" in token.roles'),
+    ("Mutation", "policy_declare", '"create_policy" in token.roles'),
+    ("Mutation", "policy_delete", '"delete_policy" in token.roles'),
+    ("Mutation", "policy_rule_declare", '"create_policy" in token.roles'),
+    ("Mutation", "policy_rule_delete", '"delete_policy" in token.roles'),
+    ("Mutation", "policy_rules_declare", '"create_policy" in token.roles'),
     ("Mutation", "owner_create", '"create_owner" in token.roles'),
     ("Mutation", "owner_refresh", '"refresh_owner" in token.roles'),
     ("Mutation", "owner_terminate", '"terminate_owner" in token.roles'),
@@ -333,6 +355,7 @@ LEGACY_RULES: list[tuple[str, str, str]] = [
     ("Query", "org", '"read_org" in token.roles'),
     ("Query", "org_units", '"read_org_unit" in token.roles'),
     ("Query", "owners", '"read_owner" in token.roles'),
+    ("Query", "policies", '"read_policy" in token.roles'),
     ("Query", "persons", '"read_employee" in token.roles'),
     ("Query", "registrations", '"read_registration" in token.roles'),
     ("Query", "related_units", '"read_related_unit" in token.roles'),
@@ -841,6 +864,7 @@ PUBLIC_RULES: list[tuple[str, str]] = [
     ("MultifieldAddress", "value2"),
     ("Myself", "actor"),
     ("Myself", "email"),
+    ("Myself", "policies"),
     ("Myself", "roles"),
     ("Myself", "username"),
     ("Namespace", "name"),
@@ -938,6 +962,22 @@ PUBLIC_RULES: list[tuple[str, str]] = [
     ("PersonRegistration", "start"),
     ("PersonRegistration", "uuid"),
     ("PersonRegistration", "validities"),
+    ("Policy", "activated"),
+    ("Policy", "actors"),
+    ("Policy", "description"),
+    ("Policy", "name"),
+    ("Policy", "rules"),
+    ("Policy", "uuid"),
+    ("PolicyActor", "kind"),
+    ("PolicyActor", "uuid"),
+    ("PolicyActor", "value"),
+    ("PolicyPaged", "objects"),
+    ("PolicyPaged", "page_info"),
+    ("PolicyRule", "condition"),
+    ("PolicyRule", "field"),
+    ("PolicyRule", "filter"),
+    ("PolicyRule", "type"),
+    ("PolicyRule", "uuid"),
     ("Query", "healths"),
     ("Query", "me"),
     ("Query", "version"),
@@ -1223,6 +1263,12 @@ def upgrade() -> None:
         policy,
         [
             {
+                "id": POLICYADMIN_UUID,
+                "name": "Policy Administrator",
+                "description": "Bootstrap policy for administering policies.",
+                "activated": True,
+            },
+            {
                 "id": PUBLIC_UUID,
                 "name": "Public",
                 "description": "Grants access to fields that require no role (public fields).",
@@ -1263,6 +1309,7 @@ def upgrade() -> None:
     op.bulk_insert(
         policy_actor,
         [
+            {"kind": "role", "value": "admin", "policy_fk": POLICYADMIN_UUID},
             {"kind": "all", "value": "", "policy_fk": PUBLIC_UUID},
             {"kind": "all", "value": "", "policy_fk": INTROSPECTION_UUID},
             {"kind": "all", "value": "", "policy_fk": LEGACY_UUID},
@@ -1274,6 +1321,16 @@ def upgrade() -> None:
     op.bulk_insert(
         policy_rule,
         [
+            *[
+                {
+                    "type": t,
+                    "field": f,
+                    "condition": None,
+                    "filter": None,
+                    "policy_fk": POLICYADMIN_UUID,
+                }
+                for t, f in POLICYADMIN_RULES
+            ],
             *[
                 {
                     "type": t,
@@ -1341,8 +1398,8 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     ids = (
-        f"'{PUBLIC_UUID}', '{INTROSPECTION_UUID}', '{LEGACY_UUID}', '{OWNER_UUID}', "
-        f"'{ADMINISTRATOR_UUID}', '{READER_UUID}'"
+        f"'{POLICYADMIN_UUID}', '{PUBLIC_UUID}', '{INTROSPECTION_UUID}', "
+        f"'{LEGACY_UUID}', '{OWNER_UUID}', '{ADMINISTRATOR_UUID}', '{READER_UUID}'"
     )
     op.execute(f"DELETE FROM policy_rule WHERE policy_fk IN ({ids})")
     op.execute(f"DELETE FROM policy_actor WHERE policy_fk IN ({ids})")

@@ -27,6 +27,12 @@ from mora.graphapi.policy_cel import build_activation
 from mora.graphapi.policy_cel import build_filter_base_vars
 from mora.graphapi.policy_cel import evaluate_condition
 from mora.graphapi.policy_cel import evaluate_filter
+from mora.graphapi.policy_cel import validate_filter
+
+from .paged import CursorType
+from .paged import LimitType
+from .paged import ObjectsAndCursor
+from .paged import paginate
 
 if TYPE_CHECKING:  # pragma: no cover
     from mora.graphapi.filters import EmployeeFilter
@@ -61,6 +67,9 @@ class PolicyActorFilter:
 
 @strawberry.input(description="Policy filter.")
 class PolicyFilter:
+    uuids: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("UUID", "uuids")
+    )
     activated: bool | None = strawberry.field(
         default=None,
         description=(
@@ -105,6 +114,9 @@ def _policy_actor_predicate(filter: PolicyActorFilter) -> ColumnElement:
 def policy_predicate(filter: PolicyFilter) -> ColumnElement:
     predicates: list[ColumnElement] = [true()]
 
+    if filter.uuids is not None:
+        predicates.append(db.Policy.id.in_(filter.uuids))
+
     if filter.activated is not None:
         predicates.append(db.Policy.activated == filter.activated)
 
@@ -122,6 +134,141 @@ def actor_filter_for(roles: Collection[str]) -> PolicyActorFilter:
     a null `roles`, which is the "match any actor" existence filter.
     """
     return PolicyActorFilter(roles=list(roles))
+
+
+@strawberry.type(description="An actor a policy applies to.")
+class PolicyActor:
+    uuid: UUID = strawberry.field(description="UUID of the actor binding.")
+    kind: PolicyActorKind = strawberry.field(
+        description="The kind of attribute matched on."
+    )
+    value: str = strawberry.field(description="The value the attribute must equal.")
+
+
+@strawberry.type(
+    description=(
+        "A resource a policy grants access to, expressed GraphQL-natively as a "
+        "(type, field) pair."
+    )
+)
+class PolicyRule:
+    uuid: UUID = strawberry.field(description="UUID of the rule.")
+    type: str = strawberry.field(
+        description=(
+            "GraphQL type the rule grants access to: a collection's object "
+            'type, or "Query"/"Mutation".'
+        )
+    )
+    field: str = strawberry.field(
+        description='Field (or mutator) on the type, or "*" for all fields.'
+    )
+    condition: str | None = strawberry.field(
+        description=(
+            "Optional CEL condition that must evaluate true for the rule to "
+            "grant access. Null means the rule is unconditional."
+        )
+    )
+    filter: str | None = strawberry.field(
+        description=(
+            "Optional CEL expression returning one or more access-check specs "
+            "`{collection, filter, check, field}`, each run as a SQL existence "
+            "check; the rule only grants when all of them pass. Null means no "
+            "entity restriction."
+        )
+    )
+
+
+@strawberry.type(
+    description=(
+        "An access policy. A policy applies to a collection of actors and "
+        "grants them access to a number of resources."
+    )
+)
+class Policy:
+    uuid: UUID = strawberry.field(description="UUID of the policy.")
+    name: str = strawberry.field(description="Name of the policy.")
+    description: str | None = strawberry.field(description="Description of the policy.")
+    activated: bool = strawberry.field(description="Whether the policy is in effect.")
+
+    @strawberry.field(description="Actors this policy applies to.")
+    async def actors(root: "Policy", info: MOInfo) -> list[PolicyActor]:
+        session: AsyncSession = info.context.session
+        result = await session.scalars(
+            select(db.PolicyActor)
+            .where(db.PolicyActor.policy_fk == root.uuid)
+            .order_by(db.PolicyActor.pk)
+        )
+        return [
+            PolicyActor(
+                uuid=actor.pk, kind=PolicyActorKind(actor.kind), value=actor.value
+            )
+            for actor in result
+        ]
+
+    @strawberry.field(description="Resources this policy grants access to.")
+    async def rules(root: "Policy", info: MOInfo) -> list[PolicyRule]:
+        session: AsyncSession = info.context.session
+        result = await session.scalars(
+            select(db.PolicyRule)
+            .where(db.PolicyRule.policy_fk == root.uuid)
+            .order_by(db.PolicyRule.pk)
+        )
+        return [
+            PolicyRule(
+                uuid=rule.pk,
+                type=rule.type,
+                field=rule.field,
+                condition=rule.condition,
+                filter=rule.filter,
+            )
+            for rule in result
+        ]
+
+
+def _to_policy(policy: "db.Policy") -> Policy:
+    return Policy(
+        uuid=policy.id,
+        name=policy.name,
+        description=policy.description,
+        activated=policy.activated,
+    )
+
+
+async def policy_resolver(
+    info: MOInfo,
+    filter: PolicyFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> ObjectsAndCursor:
+    if filter is None:
+        filter = PolicyFilter()
+
+    predicate = policy_predicate(filter=filter)
+    query = select(db.Policy.id).where(predicate).order_by(db.Policy.id)
+    session: AsyncSession = info.context.session
+    uuids, next_cursor = await paginate(session, query, db.Policy.id, limit, cursor)
+
+    result = await session.scalars(
+        select(db.Policy).where(db.Policy.id.in_(uuids)).order_by(db.Policy.id)
+    )
+    return ObjectsAndCursor(
+        objects=[_to_policy(policy) for policy in result],
+        next_cursor=next_cursor,
+    )
+
+
+def validate_rule_filter(filter_value: str | None) -> None:
+    """Reject a rule ``filter`` that is not a compilable CEL expression.
+
+    Any rule may carry a filter. The filter is a CEL expression returning one
+    or more check-specs; its result shape depends on runtime variables
+    (``token``/``input``/``actor``/``current``), so declare time only
+    compile-checks it. A compilable expression that yields a non-check-spec fails
+    hard at permission-check time (see :func:`_entity_filter_grants`).
+    """
+    if filter_value is None:
+        return
+    validate_filter(filter_value)
 
 
 def _reject_unknown_keys(data: dict, allowed: set[str], name: str) -> None:

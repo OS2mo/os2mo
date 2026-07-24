@@ -50,6 +50,33 @@ def _compile(condition: str) -> Any:
     return _ENV.compile(condition)
 
 
+def validate_condition(condition: str) -> None:
+    """Raise ``ValueError`` if ``condition`` is not a compilable CEL expression.
+
+    Called when declaring a rule so malformed conditions are rejected up front
+    rather than failing at permission-check time.
+    """
+    try:
+        _compile(condition)
+    except Exception as exc:  # noqa: BLE001 - surface any compile failure uniformly
+        raise ValueError(f"Invalid CEL condition: {exc}") from exc
+
+
+def validate_filter(expression: str) -> None:
+    """Raise ``ValueError`` if ``expression`` is not a compilable CEL expression.
+
+    A rule's entity filter is a CEL expression returning check-specs. Its shape
+    cannot be checked statically (it depends on ``token``/``input``), so declare
+    time only compile-checks it; an expression that compiles but returns a
+    non-check-spec fails hard at permission-check time (see
+    :func:`evaluate_filter`).
+    """
+    try:
+        _compile(expression)
+    except Exception as exc:  # noqa: BLE001 - surface any compile failure uniformly
+        raise ValueError(f"Invalid CEL filter expression: {exc}") from exc
+
+
 def _token_context(token: Token) -> dict:
     """The ``token`` variable as a CEL-friendly mapping."""
     return {

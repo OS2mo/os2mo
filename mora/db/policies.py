@@ -12,6 +12,10 @@ from sqlalchemy.orm import relationship
 
 from ._common import Base
 
+# Well-known "magic" UUID of the bootstrap "policyadmin" policy. It is inserted
+# by a migration and protected from deletion via the `policy_delete` mutator.
+POLICYADMIN_UUID = UUID("ded1ca7e-9bac-5eed-706f-6c61646d696e")
+
 
 class Policy(Base):
     __tablename__ = "policy"
