@@ -238,16 +238,12 @@ async def test_create_engagement(
 
     # No owner role or owner object
     set_auth(None, owner)
-    with pytest.raises(
-        PermissionError, match="User does not have create-access to engagement"
-    ):
+    with pytest.raises(PermissionError, match="No policy approved the access"):
         create_engagement(person=person, org_unit=org_unit)
 
     # Owner role, but no owner object
     set_auth(OWNER, owner)
-    with pytest.raises(
-        PermissionError, match="User does not have create-access to engagement"
-    ):
+    with pytest.raises(PermissionError, match="No policy approved the access"):
         create_engagement(person=person, org_unit=org_unit)
 
     # Owner role + owner of org unit
@@ -278,16 +274,12 @@ async def test_update_engagement(
 
     # No owner role or owner object
     set_auth(None, owner)
-    with pytest.raises(
-        PermissionError, match="User does not have update-access to engagement"
-    ):
+    with pytest.raises(PermissionError, match="No policy approved the access"):
         update_engagement(uuid=engagement, person=person, org_unit=new_org_unit)
 
     # Owner role, but no owner object
     set_auth(OWNER, owner)
-    with pytest.raises(
-        PermissionError, match="User does not have update-access to engagement"
-    ):
+    with pytest.raises(PermissionError, match="No policy approved the access"):
         update_engagement(uuid=engagement, person=person, org_unit=new_org_unit)
 
     # Owner role + owner of old org unit, but not new org unit
@@ -295,9 +287,7 @@ async def test_update_engagement(
     clear_owners()
     create_owner(owner=owner, org_unit=old_org_unit)
     set_auth(OWNER, owner)
-    with pytest.raises(
-        PermissionError, match="User does not have update-access to engagement"
-    ):
+    with pytest.raises(PermissionError, match="No policy approved the access"):
         update_engagement(uuid=engagement, person=person, org_unit=new_org_unit)
 
     # Owner role + owner of new org unit, but not old org unit
@@ -305,9 +295,7 @@ async def test_update_engagement(
     clear_owners()
     create_owner(owner=owner, org_unit=new_org_unit)
     set_auth(OWNER, owner)
-    with pytest.raises(
-        PermissionError, match="User does not have update-access to engagement"
-    ):
+    with pytest.raises(PermissionError, match="No policy approved the access"):
         update_engagement(uuid=engagement, person=person, org_unit=new_org_unit)
 
     # Owner role + owner of old *and* new org unit
@@ -444,7 +432,7 @@ async def test_refresh_as_owner_denied(
         """,
     )
     error = one(r.errors)
-    assert error["message"] == "User does not have refresh-access to employee"
+    assert error["message"] == "No policy approved the access"
     assert error["path"] == ["employee_refresh"]
 
 
@@ -468,5 +456,5 @@ async def test_delete_as_owner_denied(
         variables={"uuid": "22222222-2222-2222-2222-222222222222"},
     )
     error = one(r.errors)
-    assert error["message"] == "User does not have delete-access to employee"
+    assert error["message"] == "No policy approved the access"
     assert error["path"] == ["employee_delete"]

@@ -307,7 +307,7 @@ async def get_entities_graphql(
     Args:
         raw_input: The list of `input` objects from the GraphQL mutator. The
             schema-level RBAC extension always normalises this to a list (see
-            `mora.graphapi.schema._enforce_rbac`).
+            `mora.graphapi.schema.owner_policy`).
         collection: The object collection (address, employee, org_unit, etc.).
         permission_type: The operation type (create, update, terminate, delete).
 
