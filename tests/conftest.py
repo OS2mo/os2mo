@@ -462,7 +462,7 @@ async def empty_db(
     lora_settings: LoraSettings,
     empty_database_template: str,
     sessionmakermaker: SessionmakerMaker,
-) -> AsyncYieldFixture[async_sessionmaker]:
+) -> AsyncYieldFixture[db.AsyncSession]:
     async with (
         _database_copy(superuser, empty_database_template) as database_name,
         _use_session(lora_settings, database_name) as (sessionmaker, session),
