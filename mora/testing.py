@@ -164,28 +164,6 @@ async def copy_database(
     await _set_database_connectable(superuser, destination, True)
 
 
-async def ensure_database(superuser: AsyncConnection, database: str) -> None:
-    """Create a database if it does not already exist.
-
-    Args:
-        superuser:
-            A superuser connection with AUTOCOMMIT isolation level.
-        database:
-            The name of the database to create.
-            Must be a trusted value as it is interpolated into SQL.
-
-    Raises:
-        ProgrammingError:
-            If the database creation fails for any reason other than the database
-            already existing.
-    """
-    try:
-        await superuser.execute(text(f"create database {database}"))
-    except ProgrammingError as e:
-        if not isinstance(e.orig, DuplicateDatabase):  # pragma: no cover
-            raise
-
-
 async def migrate_database(lora_settings: LoraSettings, database: str) -> None:
     """Run alembic migrations on the given database.
 
@@ -232,7 +210,11 @@ async def ensure_empty_db_template(
     Returns:
         The name of the migrated empty database template.
     """
-    await ensure_database(superuser, EMPTY_DB_TEMPLATE)
+    try:
+        await superuser.execute(text(f"create database {EMPTY_DB_TEMPLATE}"))
+    except ProgrammingError as e:
+        if not isinstance(e.orig, DuplicateDatabase):  # pragma: no cover
+            raise
     await migrate_database(lora_settings, EMPTY_DB_TEMPLATE)
     return EMPTY_DB_TEMPLATE
 
