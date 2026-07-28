@@ -46,7 +46,7 @@ def search_employees_predicate(query: str) -> ColumnElement:
 
 
 def _get_cte_uuid_hits(query: str):
-    search_phrase = util.query_to_search_phrase(query)
+    search_phrase = f"%{query}%"
 
     return (
         select(BrugerRegistrering.bruger_id.label("uuid"))

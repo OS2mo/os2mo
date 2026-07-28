@@ -2245,7 +2245,7 @@ def organisation_unit_predicate(
         if len(filter.query) > UUID_SEARCH_MIN_PHRASE_LENGTH:
             clauses.append(
                 cast(OrganisationEnhedRegistrering.organisationenhed_id, Text).ilike(
-                    search_phrase
+                    f"%{filter.query}%"
                 )
             )
 
