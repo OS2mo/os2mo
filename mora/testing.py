@@ -127,11 +127,6 @@ async def _set_database_connectable(
     )
 
 
-async def drop_database(superuser: AsyncConnection, database: str) -> None:
-    await _terminate_database_connections(superuser, database)
-    await superuser.execute(text(f"drop database if exists {database}"))
-
-
 async def copy_database(
     superuser: AsyncConnection, source: str, destination: str
 ) -> None:
@@ -143,7 +138,7 @@ async def copy_database(
     await _terminate_database_connections(superuser, source)
     await _terminate_database_connections(superuser, destination)
     # Copy database
-    await drop_database(superuser, destination)
+    await superuser.execute(text(f"drop database if exists {destination} with (force)"))
     await superuser.execute(text(f"create database {destination} template {source}"))
     # Copying a database does not copy its configuration parameters. These statements
     # are copied from the initial alembic migration.
