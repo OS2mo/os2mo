@@ -164,33 +164,6 @@ async def copy_database(
     await _set_database_connectable(superuser, destination, True)
 
 
-async def migrate_database(lora_settings: LoraSettings, database: str) -> None:
-    """Run alembic migrations on the given database.
-
-    This function is idempotent; running it multiple times on the same database simply
-    ensures that the database is fully migrated, making any changes necessary.
-
-    The first call on an empty database is expensive, since many changes must be made
-    while calling on a fully migrated database essentially is a fast no-op.
-
-    Args:
-        lora_settings:
-            Lora settings used to connect to the database.
-        database:
-            The name of the database to migrate.
-    """
-    engine = db.create_engine(
-        user=lora_settings.db_user,
-        password=lora_settings.db_password,
-        host=lora_settings.db_host,
-        name=database,
-    )
-    try:
-        await run_async_upgrade(engine)
-    finally:
-        await engine.dispose()
-
-
 # Name of our fully migrated, but empty database used for templating
 EMPTY_DB_TEMPLATE = "empty_db_template"
 
@@ -215,7 +188,19 @@ async def ensure_empty_db_template(
     except ProgrammingError as e:
         if not isinstance(e.orig, DuplicateDatabase):  # pragma: no cover
             raise
-    await migrate_database(lora_settings, EMPTY_DB_TEMPLATE)
+
+    # Apply alembic migrations
+    engine = db.create_engine(
+        user=lora_settings.db_user,
+        password=lora_settings.db_password,
+        host=lora_settings.db_host,
+        name=EMPTY_DB_TEMPLATE,
+    )
+    try:
+        await run_async_upgrade(engine)
+    finally:
+        await engine.dispose()
+
     return EMPTY_DB_TEMPLATE
 
 
