@@ -17,10 +17,13 @@ affected object.
 import asyncio
 import random
 import signal
+from contextlib import AbstractAsyncContextManager
+from typing import Any
 from typing import Literal
+from typing import TypeAlias
 from uuid import UUID
 
-from fastramqpi.ramqp import AMQPSystem
+from fastramqpi.ramqp.amqp import AMQPSystem as _AMQPSystem
 from sqlalchemy import Text
 from sqlalchemy import and_
 from sqlalchemy import cast
@@ -107,6 +110,19 @@ _lora_to_mo: dict[str, MO_TYPE] = {
 }
 
 
+class DummyAMQPSystem(AbstractAsyncContextManager):
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        pass  # pragma: no cover
+
+    async def publish_message(
+        self, routing_key: Any, payload: Any, exchange: str | None = None
+    ) -> None:
+        pass  # pragma: no cover
+
+
+AMQPSystem: TypeAlias = DummyAMQPSystem | _AMQPSystem
+
+
 async def _send_amqp_message(
     session: AsyncSession, amqp_system: AMQPSystem, object_type: MO_TYPE, uuid: UUID
 ) -> None:
@@ -119,7 +135,7 @@ async def _send_amqp_message(
 
 async def _emit_events(session: AsyncSession, amqp_system: AMQPSystem) -> None:
     """Send an event for every new registration or validity we've passed since last run."""
-    logger.info("emitting amqp events")
+    logger.info("emitting events")
     # We need to fetch "now" before our queries, or we expose ourself to
     # race-conditions when updating the table in the end.
     last_run = await session.scalar(
@@ -333,7 +349,7 @@ async def start_event_generator(  # pragma: no cover
 ) -> None:
     mo_settings = get_settings()
 
-    logger.info("starting amqp subsystem")
+    logger.info("starting event generator")
 
     # Shut down gracefully on SIGTERM (sent by docker/Kubernetes). Python
     # installs no handler for SIGTERM by default. Normally Linux would then
@@ -350,7 +366,12 @@ async def start_event_generator(  # pragma: no cover
     # KeyboardInterrupt afterwards; the caller in mora.cli suppresses it.
     signal.signal(signal.SIGTERM, signal.default_int_handler)
 
-    amqp_system = AMQPSystem(mo_settings.amqp)
+    if mo_settings.amqp_enable:
+        amqp_system = _AMQPSystem(mo_settings.amqp)
+    else:
+        logger.info("event generator started with amqp disabled")
+        amqp_system = DummyAMQPSystem()
+
     try:
         async with amqp_system:
             while True:
@@ -366,4 +387,4 @@ async def start_event_generator(  # pragma: no cover
     except asyncio.CancelledError:
         # CancelledError is a BaseException, so it is not caught by the `except
         # Exception` above.
-        logger.info("stopping amqp subsystem")
+        logger.info("stopping event generator")
