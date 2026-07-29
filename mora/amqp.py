@@ -135,7 +135,7 @@ async def _send_amqp_message(
 
 async def _emit_events(session: AsyncSession, amqp_system: AMQPSystem) -> None:
     """Send an event for every new registration or validity we've passed since last run."""
-    logger.info("emitting amqp events")
+    logger.info("emitting events")
     # We need to fetch "now" before our queries, or we expose ourself to
     # race-conditions when updating the table in the end.
     last_run = await session.scalar(
@@ -349,7 +349,7 @@ async def start_event_generator(  # pragma: no cover
 ) -> None:
     mo_settings = get_settings()
 
-    logger.info("starting amqp subsystem")
+    logger.info("starting event generator")
 
     # Shut down gracefully on SIGTERM (sent by docker/Kubernetes). Python
     # installs no handler for SIGTERM by default. Normally Linux would then
@@ -369,7 +369,7 @@ async def start_event_generator(  # pragma: no cover
     if mo_settings.amqp_enable:
         amqp_system = _AMQPSystem(mo_settings.amqp)
     else:
-        logger.info("amqp subsystem started with amqp disabled")
+        logger.info("event generator started with amqp disabled")
         amqp_system = DummyAMQPSystem()
 
     try:
@@ -387,4 +387,4 @@ async def start_event_generator(  # pragma: no cover
     except asyncio.CancelledError:
         # CancelledError is a BaseException, so it is not caught by the `except
         # Exception` above.
-        logger.info("stopping amqp subsystem")
+        logger.info("stopping event generator")
