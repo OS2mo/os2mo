@@ -17,10 +17,13 @@ affected object.
 import asyncio
 import random
 import signal
+from contextlib import AbstractAsyncContextManager
+from typing import Any
 from typing import Literal
+from typing import TypeAlias
 from uuid import UUID
 
-from fastramqpi.ramqp import AMQPSystem
+from fastramqpi.ramqp.amqp import AMQPSystem as _AMQPSystem
 from sqlalchemy import Text
 from sqlalchemy import and_
 from sqlalchemy import cast
@@ -105,6 +108,19 @@ _lora_to_mo: dict[str, MO_TYPE] = {
     "Tilknytning": "association",
     "owner": "owner",
 }
+
+
+class DummyAMQPSystem(AbstractAsyncContextManager):
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        pass  # pragma: no cover
+
+    async def publish_message(
+        self, routing_key: Any, payload: Any, exchange: str | None = None
+    ) -> None:
+        pass  # pragma: no cover
+
+
+AMQPSystem: TypeAlias = DummyAMQPSystem | _AMQPSystem
 
 
 async def _send_amqp_message(
@@ -350,7 +366,12 @@ async def start_event_generator(  # pragma: no cover
     # KeyboardInterrupt afterwards; the caller in mora.cli suppresses it.
     signal.signal(signal.SIGTERM, signal.default_int_handler)
 
-    amqp_system = AMQPSystem(mo_settings.amqp)
+    if mo_settings.amqp_enable:
+        amqp_system = _AMQPSystem(mo_settings.amqp)
+    else:
+        logger.info("amqp subsystem started with amqp disabled")
+        amqp_system = DummyAMQPSystem()
+
     try:
         async with amqp_system:
             while True:
