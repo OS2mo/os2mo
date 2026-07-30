@@ -8,6 +8,8 @@ stored in starlette_context, so only queries issued while handling that
 request are logged.
 """
 
+import time
+
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncEngine
 from starlette_context import context
@@ -18,6 +20,7 @@ logger = get_logger()
 
 QUERY_LOG_HEADER = "X-Log-Postgres-Queries"
 _QUERY_LOG_CONTEXT_KEY = "log_postgres_queries"
+_QUERY_LOG_START_TIME_ATTR = "_query_log_start_time"
 
 
 def enable_query_logging() -> None:
@@ -32,17 +35,35 @@ def is_query_logging_enabled() -> bool:
         return False
 
 
-def _log_query(conn, cursor, statement, parameters, context_, executemany) -> None:
-    if is_query_logging_enabled():
-        logger.info(
-            "postgres_query",
-            statement=statement,
-            parameters=parameters,
-            executemany=executemany,
-        )
+def _before_cursor_execute(
+    conn, cursor, statement, parameters, context_, executemany
+) -> None:
+    if is_query_logging_enabled() and context_ is not None:
+        setattr(context_, _QUERY_LOG_START_TIME_ATTR, time.perf_counter())
+
+
+def _after_cursor_execute(
+    conn, cursor, statement, parameters, context_, executemany
+) -> None:
+    if not is_query_logging_enabled():
+        return
+    start_time = (
+        getattr(context_, _QUERY_LOG_START_TIME_ATTR, None) if context_ else None
+    )
+    if start_time is None:
+        return
+    duration_ms = round((time.perf_counter() - start_time) * 1000, 3)
+    logger.info(
+        "postgres_query",
+        statement=statement,
+        parameters=parameters,
+        executemany=executemany,
+        duration_ms=duration_ms,
+    )
 
 
 def register_query_logger(engine: AsyncEngine) -> None:
     """Attach the query-logging listener to the given async engine."""
     # Events fire on the underlying sync engine; async wrappers delegate to it.
-    event.listen(engine.sync_engine, "before_cursor_execute", _log_query)
+    event.listen(engine.sync_engine, "before_cursor_execute", _before_cursor_execute)
+    event.listen(engine.sync_engine, "after_cursor_execute", _after_cursor_execute)

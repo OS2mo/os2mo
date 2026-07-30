@@ -42,6 +42,8 @@ async def test_queries_logged_when_header_set(
     for entry in postgres_logs:
         assert "statement" in entry
         assert "parameters" in entry
+        assert isinstance(entry["duration_ms"], float)
+        assert entry["duration_ms"] >= 0.0
 
 
 @pytest.mark.integration_test
