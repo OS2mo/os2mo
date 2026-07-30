@@ -228,7 +228,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
                 ],
                 # Allow JavaScript to set the following HTTP headers. The headers `Accept`,
                 # `Accept-Language`, `Content-Language`, and `Content-Type` are always allowed.
-                allow_headers=["Authorization"],
+                allow_headers=["Authorization", "X-Request-ID"],
                 # Allow JavaScript to access the following HTTP headers from requests.
                 expose_headers=["Link", "Location"],
                 # Don't allow the browser to send cookies with the request. Allowing
