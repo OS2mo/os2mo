@@ -18,6 +18,7 @@ import strawberry
 from pydantic import PositiveInt
 from sqlalchemy import Select
 from sqlalchemy import SQLColumnExpression
+from sqlalchemy import select
 from strawberry.types import Info
 
 from mora.db import AsyncSession
@@ -132,7 +133,18 @@ async def paginate(
     column: SQLColumnExpression[UUID],
     limit: LimitType,
     cursor: CursorType,
+    fence: bool = False,
 ) -> tuple[Sequence[UUID], CursorType]:
+    if fence:
+        # The query's result is bounded by a selective uuids filter, see
+        # use_fenced_pagination(). Compute it fully behind an optimization
+        # fence and apply ORDER BY, cursor, and LIMIT outside it. Otherwise,
+        # the planner is free to walk the ORDER BY index hoping to fill LIMIT
+        # early and check the selective filter last, which degenerates to a
+        # full scan of all registrations when few or no rows match.
+        fenced = query.order_by(None).cte("fenced_result").prefix_with("MATERIALIZED")
+        column = fenced.c[0]
+        query = select(column).order_by(column)
     if cursor is not None:
         query = query.where(column > cursor.last)
     if limit is not None:

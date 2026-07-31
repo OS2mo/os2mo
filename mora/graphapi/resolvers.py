@@ -119,6 +119,44 @@ def uuid_shortcircuit(
     return subquery
 
 
+# Entity-valued relation filters. A pinned `uuids` list on one of these bounds
+# the query result to the few registrations related to the given entities.
+# Class-valued relation filters (engagement_type, address_type, ...) are
+# deliberately absent: a single class UUID can match most of the table.
+_SELECTIVE_RELATION_FILTERS = ("employee", "org_unit", "engagement", "ituser", "owner")
+
+
+def use_fenced_pagination(filter: BaseFilter) -> bool:
+    """Whether pagination of this filter's query must be fenced, see paginate().
+
+    True when an entity-valued relation filter pins an explicit `uuids` list
+    and the query uses the default at-now validity window. Such a query
+    matches few (often zero) rows, but the planner cannot know this: with
+    ORDER BY + LIMIT fused into the query it may bet on walking the entire
+    output order and filtering, which degenerates to a full scan of all
+    registrations when few or no rows match. Since the result is bounded by
+    the uuids filter, it is instead computed fully behind an optimization
+    fence, with ordering and pagination applied outside.
+
+    The fence must NOT apply when:
+
+    * No entity-valued relation filter pins uuids: broad filters
+      (funktionsnavn, user_keys, nested filters, class-valued relations such
+      as engagement_type) fused into the ordered index walk are exactly what
+      makes unfiltered pagination stop after LIMIT rows.
+    * The query requests an explicit validity window (from_date/to_date):
+      wide windows match everything that ever touched the target, so results
+      are plentiful, the ordered walk terminates quickly, and the fenced plan
+      would instead compute the target's full history on every page.
+    """
+    if filter.from_date is not UNSET or filter.to_date is not UNSET:
+        return False
+    return any(
+        getattr(getattr(filter, name, None), "uuids", None) is not None
+        for name in _SELECTIVE_RELATION_FILTERS
+    )
+
+
 def extend_uuids(output_filter: BaseFilter, input: list[UUID] | None) -> None:
     if input is None:
         return
@@ -748,6 +786,7 @@ async def address_resolver(
         OrganisationFunktionRegistrering.organisationfunktion_id,
         limit,
         cursor,
+        fence=use_fenced_pagination(filter),
     )
 
     access_log(
@@ -945,6 +984,7 @@ async def association_resolver(
         OrganisationFunktionRegistrering.organisationfunktion_id,
         limit,
         cursor,
+        fence=use_fenced_pagination(filter),
     )
 
     access_log(
@@ -1290,6 +1330,7 @@ async def engagement_resolver(
         OrganisationFunktionRegistrering.organisationfunktion_id,
         limit,
         cursor,
+        fence=use_fenced_pagination(filter),
     )
 
     access_log(
@@ -1677,6 +1718,7 @@ async def manager_resolver(
         OrganisationFunktionRegistrering.organisationfunktion_id,
         limit,
         cursor,
+        fence=use_fenced_pagination(filter),
     )
 
     access_log(
@@ -1844,6 +1886,7 @@ async def owner_resolver(
         OrganisationFunktionRegistrering.organisationfunktion_id,
         limit,
         cursor,
+        fence=use_fenced_pagination(filter),
     )
 
     access_log(
@@ -2697,6 +2740,7 @@ async def it_user_resolver(
         OrganisationFunktionRegistrering.organisationfunktion_id,
         limit,
         cursor,
+        fence=use_fenced_pagination(filter),
     )
 
     access_log(
@@ -2831,6 +2875,7 @@ async def kle_resolver(
         OrganisationFunktionRegistrering.organisationfunktion_id,
         limit,
         cursor,
+        fence=use_fenced_pagination(filter),
     )
 
     access_log(
@@ -2988,6 +3033,7 @@ async def leave_resolver(
         OrganisationFunktionRegistrering.organisationfunktion_id,
         limit,
         cursor,
+        fence=use_fenced_pagination(filter),
     )
 
     access_log(
@@ -3148,6 +3194,7 @@ async def related_unit_resolver(
         OrganisationFunktionRegistrering.organisationfunktion_id,
         limit,
         cursor,
+        fence=use_fenced_pagination(filter),
     )
 
     access_log(
@@ -3326,6 +3373,7 @@ async def rolebinding_resolver(
         OrganisationFunktionRegistrering.organisationfunktion_id,
         limit,
         cursor,
+        fence=use_fenced_pagination(filter),
     )
 
     access_log(

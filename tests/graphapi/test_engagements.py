@@ -1,7 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from datetime import datetime
+from typing import Any
 from uuid import UUID
+from uuid import uuid4
 
 import pytest
 from fastapi.encoders import jsonable_encoder
@@ -891,3 +894,79 @@ async def test_clear_extension_field(graphapi_post: GraphAPIPost) -> None:
     set_extension_field3(uuid, "")
     extension_3 = read_extension_field3(uuid)
     assert extension_3 is None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_engagement_uuid_filter_pagination(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[..., UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """Cursor pagination through a uuids-filtered (fenced) engagement query.
+
+    The uuids filter makes paginate() compute the result behind a MATERIALIZED
+    CTE and apply ORDER BY, cursor, and LIMIT outside it, so pagination must
+    be exercised end-to-end through that code path.
+    """
+    unit = create_org_unit("unit")
+    other_unit = create_org_unit("other_unit")
+    person = create_person()
+
+    def engagement(org_unit: UUID) -> UUID:
+        return create_engagement(
+            {
+                "engagement_type": str(uuid4()),
+                "job_function": str(uuid4()),
+                "org_unit": str(org_unit),
+                "person": str(person),
+                "validity": {"from": "1970-01-01T00:00:00Z"},
+            }
+        )
+
+    expected = {engagement(unit) for _ in range(3)}
+    engagement(other_unit)
+
+    query = """
+        query Engagements($filter: EngagementFilter!, $limit: int, $cursor: Cursor) {
+            engagements(filter: $filter, limit: $limit, cursor: $cursor) {
+                objects {
+                    uuid
+                }
+                page_info {
+                    next_cursor
+                }
+            }
+        }
+    """
+    filter = {"org_unit": {"uuids": [str(unit)]}}
+
+    pages = []
+    cursor = None
+    while True:
+        response = graphapi_post(
+            query, {"filter": filter, "limit": 1, "cursor": cursor}
+        )
+        assert response.errors is None
+        assert response.data
+        pages.append(
+            [UUID(obj["uuid"]) for obj in response.data["engagements"]["objects"]]
+        )
+        cursor = response.data["engagements"]["page_info"]["next_cursor"]
+        if cursor is None:
+            break
+
+    assert all(len(page) <= 1 for page in pages)
+    uuids = [uuid for page in pages for uuid in page]
+    assert uuids == sorted(uuids)
+    assert set(uuids) == expected
+
+    # A unit without engagements pages to an empty result immediately
+    response = graphapi_post(
+        query, {"filter": {"org_unit": {"uuids": [str(uuid4())]}}, "limit": 1}
+    )
+    assert response.errors is None
+    assert response.data
+    assert response.data["engagements"]["objects"] == []
+    assert response.data["engagements"]["page_info"]["next_cursor"] is None
