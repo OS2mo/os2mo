@@ -72,6 +72,8 @@ COPY ramodels ./ramodels
 COPY tests ./tests
 
 # Run the server as the mora user on port 5000
+# https://github.com/hadolint/hadolint/issues/1222
+# hadolint ignore=DL3066
 USER mora:mora
 
 # Add build version to the environment last to avoid build cache misses
