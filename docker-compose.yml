@@ -16,7 +16,7 @@ services:
     restart: unless-stopped
 
   naldo:
-    image: magentaaps/os2mo-naldo:3
+    image: magentaaps/os2mo-naldo:4
     environment:
       ORIGIN: http://localhost:5000 # svelte
       PUBLIC_BASE_URL: http://localhost:5000
@@ -31,6 +31,10 @@ services:
       PUBLIC_SHOW_IT_ASSOCIATIONS_TAB: "true"
       PUBLIC_SHOW_EMPLOYEE_BIRTHDAY_IN_SEARCH: "true"
       PUBLIC_ONBOARDING_LINK: "true"
+
+      PUBLIC_KEYCLOAK_URL: "http://localhost:5000/auth"
+      PUBLIC_KEYCLOAK_REALM: "mo"
+      PUBLIC_KEYCLOAK_CLIENT_ID: "mo-frontend"
     restart: unless-stopped
 
   mo:
