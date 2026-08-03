@@ -7,7 +7,6 @@ from mora.mapping import EventType
 from mora.mapping import RequestType
 from mora.service.handlers import RequestHandler
 from mora.triggers import Trigger
-from tests.conftest import YieldFixture
 
 
 class MockHandler(RequestHandler):
@@ -27,14 +26,6 @@ class MockHandler(RequestHandler):
         await super().submit()
 
 
-@pytest.fixture
-def teardown_registry() -> YieldFixture[None]:
-    assert "mock" not in Trigger.registry
-    yield
-    del Trigger.registry["mock"]
-
-
-@pytest.mark.usefixtures("teardown_registry")
 async def test_handler_trigger_any_exception() -> None:
     trigger_called = {"entry": False}
 
@@ -55,7 +46,6 @@ async def test_handler_trigger_any_exception() -> None:
     assert trigger_called["entry"]
 
 
-@pytest.mark.usefixtures("teardown_registry")
 async def test_handler_trigger_own_error() -> None:
     trigger_called = {"entry": False}
 
@@ -77,7 +67,6 @@ async def test_handler_trigger_own_error() -> None:
     assert trigger_called["entry"]
 
 
-@pytest.mark.usefixtures("teardown_registry")
 async def test_handler_trigger_before_edit() -> None:
     trigger_called = {"entry": False}
 
@@ -96,7 +85,6 @@ async def test_handler_trigger_before_edit() -> None:
     assert trigger_called["entry"]
 
 
-@pytest.mark.usefixtures("teardown_registry")
 async def test_handler_trigger_after_edit() -> None:
     trigger_called = {"entry": False}
 
@@ -116,7 +104,6 @@ async def test_handler_trigger_after_edit() -> None:
     assert trigger_called["entry"]
 
 
-@pytest.mark.usefixtures("teardown_registry")
 async def test_handler_trigger_before_create() -> None:
     trigger_called = {"entry": False}
 
@@ -135,7 +122,6 @@ async def test_handler_trigger_before_create() -> None:
     assert trigger_called["entry"]
 
 
-@pytest.mark.usefixtures("teardown_registry")
 async def test_handler_trigger_after_create() -> None:
     trigger_called = {"entry": False}
 
@@ -155,7 +141,6 @@ async def test_handler_trigger_after_create() -> None:
     assert trigger_called["entry"]
 
 
-@pytest.mark.usefixtures("teardown_registry")
 async def test_handler_trigger_before_terminate() -> None:
     trigger_called = {"entry": False}
 
@@ -174,7 +159,6 @@ async def test_handler_trigger_before_terminate() -> None:
     assert trigger_called["entry"]
 
 
-@pytest.mark.usefixtures("teardown_registry")
 async def test_handler_trigger_after_terminate() -> None:
     trigger_called = {"entry": False}
 
