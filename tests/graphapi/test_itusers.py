@@ -604,3 +604,23 @@ def test_terminate_ituser_blocked_by_active_rolebinding(
     )
     assert response.errors is None
     assert response.data["ituser_terminate"]["uuid"] == str(ituser_uuid)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_it_user_uniqueness_includes_external_id(
+    ldap_itsystem: UUID,
+    alice: UUID,
+    create_ituser,
+) -> None:
+    """IT-users identical except for external_id may co-exist."""
+    shared = {
+        "user_key": "lalbj",
+        "itsystem": str(ldap_itsystem),
+        "person": str(alice),
+        "validity": {"from": "2024-01-01"},
+    }
+
+    create_ituser({**shared, "external_id": "guid-a"})
+    create_ituser({**shared, "external_id": "guid-b"})
+    create_ituser({**shared, "external_id": "guid-c"})

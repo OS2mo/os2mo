@@ -57,6 +57,7 @@ class TestITUserUniqueGroupValidation:
             "it_system_uuid": "uuid",
             "engagement_uuids": ("uuid",),
             "it_user_username": "uuid",
+            "external_id": "external_id",
         }
         validation = ITUserUniqueGroupValidation([obj])
         with pytest.raises(HTTPException):

@@ -52,6 +52,7 @@ class _ITUserGroupValidation(GroupValidation):
                     util.checked_get(mo_object, mapping.ENGAGEMENTS, [], required=False)
                 ),
                 "it_user_username": mo_object.get(mapping.USER_KEY),
+                "external_id": mo_object.get(mapping.EXTERNAL_ID),
                 "is_primary": await get_mo_object_primary_value(mo_object),
             }
         ]
@@ -72,6 +73,7 @@ class ITUserUniqueGroupValidation(_ITUserGroupValidation):
                 "it_system_uuid",
                 "it_user_username",
                 "engagement_uuids",
+                "external_id",
             ],
             exceptions.ErrorCodes.V_DUPLICATED_IT_USER,
         )
@@ -160,6 +162,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     it_system_uuid=systemid,
                     it_user_username=bvn,
                     engagement_uuids=tuple(engagement_uuids),
+                    external_id=req.get(mapping.EXTERNAL_ID),
                 )
             ).validate()
 
@@ -384,6 +387,13 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     it_system_uuid=systemid,
                     it_user_username=bvn,
                     engagement_uuids=engagement_uuids,
+                    # Only override external_id when the edit changes it;
+                    # otherwise the value read from the existing object persists.
+                    **(
+                        {"external_id": data.get(mapping.EXTERNAL_ID)}
+                        if mapping.EXTERNAL_ID in data
+                        else {}
+                    ),
                 ),
             ).validate()
 

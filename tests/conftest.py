@@ -911,6 +911,17 @@ def create_person(
 
 
 @pytest.fixture
+def alice(create_person: Callable[[dict[str, Any] | None], UUID]) -> UUID:
+    return create_person(
+        {
+            "given_name": "Alice",
+            "surname": "Nielsen",
+            "cpr_number": "0706991234",
+        }
+    )
+
+
+@pytest.fixture
 def upload_file(
     admin_client: TestClient, latest_graphql_url: str
 ) -> Callable[[str, bytes], None]:
@@ -1161,6 +1172,17 @@ def create_itsystem(
         return itsystem_uuid
 
     return inner
+
+
+@pytest.fixture
+def ldap_itsystem(create_itsystem: Callable[[dict[str, Any]], UUID]) -> UUID:
+    return create_itsystem(
+        {
+            "user_key": "LDAP",
+            "name": "LDAP",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
 
 
 @pytest.fixture
