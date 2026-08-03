@@ -50,6 +50,7 @@ from mora.testing import copy_database
 from mora.testing import drop_database
 from mora.testing import ensure_empty_db_template
 from mora.testing import superuser_connection
+from mora.triggers import Trigger
 from oio_rest.config import Settings as LoraSettings
 from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.organisation import Organisation
@@ -278,6 +279,20 @@ async def mocked_context() -> YieldFixture[None]:
     data = {db._DB_SESSION_CONTEXT_KEY: FakeDatabaseSession()}
     with request_cycle_context(data):
         yield
+
+
+@pytest.fixture(autouse=True)
+def clear_trigger_registry() -> None:
+    """Clear the process-global `Trigger.registry` before every test.
+
+    `Trigger.registry` is a class attribute shared across the whole process,
+    essentially a global variable that otherwise leaks between `create_app`
+    calls.
+
+    App startup only ever adds to the registry (it never clears), so without
+    this a trigger one test registers would leak into all following tests.
+    """
+    Trigger.registry = {}
 
 
 @pytest.fixture
