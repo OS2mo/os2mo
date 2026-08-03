@@ -81,6 +81,10 @@ async def run_async_migrations() -> None:
         password=lora_settings.db_password,
         host=lora_settings.db_host,
         name=lora_settings.db_name,
+        args=(
+            # Migrations might take longer than the default timeout
+            "-c statement_timeout=0",
+        ),
     )
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
