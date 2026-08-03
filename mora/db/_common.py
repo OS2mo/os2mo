@@ -10,6 +10,7 @@ from sqlalchemy import CheckConstraint
 from sqlalchemy import ColumnElement
 from sqlalchemy import Enum
 from sqlalchemy import Text
+from sqlalchemy import cast
 from sqlalchemy import select
 from sqlalchemy import text
 from sqlalchemy import type_coerce
@@ -22,9 +23,22 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import declared_attr
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.sql.functions import GenericFunction
+from sqlalchemy.types import UserDefinedType
 
 Base = declarative_base()
 metadata = Base.metadata
+
+
+class PgSnapshot(UserDefinedType):
+    """The PostgreSQL ``pg_snapshot`` type."""
+
+    cache_ok = True
+
+    def get_col_spec(self, **kw) -> str:
+        return "pg_snapshot"
+
+    def bind_expression(self, bindvalue) -> ColumnElement:
+        return cast(bindvalue, self)
 
 
 class make_interval(GenericFunction):
