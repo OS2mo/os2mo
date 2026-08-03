@@ -1,14 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from asyncio import Future
-from copy import deepcopy
+from collections.abc import AsyncIterator
+from collections.abc import Callable
 from unittest.mock import AsyncMock
-from unittest.mock import MagicMock
-from unittest.mock import call
-from unittest.mock import patch
 from uuid import UUID
 
 import pytest
+from aioresponses import aioresponses
+from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 from os2mo_http_trigger_protocol import MOTriggerRegister
 from starlette.datastructures import ImmutableMultiDict
@@ -20,8 +19,6 @@ from mora.handler.impl.association import AssociationReader
 from mora.service.orgunit import UnitDetails
 from mora.service.orgunit import get_one_orgunit
 from mora.service.orgunit import get_unit_ancestor_tree
-from mora.triggers import Trigger
-from mora.triggers.internal.http_trigger import HTTPTriggerException
 from mora.triggers.internal.http_trigger import register
 from oio_rest.organisation import OrganisationEnhed
 from tests import util
@@ -177,165 +174,133 @@ async def test_unit_past(monkeypatch, service_client: TestClient) -> None:
     )
 
 
-class CopyingMock(MagicMock):
-    """MagicMock that refers to its arguments by value instead of by reference.
+@pytest.fixture
+async def refresh_trigger_mock() -> AsyncIterator[aioresponses]:
+    """A boundary-mocked external http-trigger with a refresh trigger registered.
 
-    Workaround for mutable mock arguments and to avoid the following:
+    Registers a trigger just like `create_app` does it on start-up, but installs
+    an `aioresponses` mock as the receiver, so we can mock the response from the
+    external http-service, and discover how it was called.
 
-    >>> from unittest.mock import MagicMock
-    >>> b = MagicMock()
-    >>> a = {}
-    >>> b(a)
-    <MagicMock name='mock()' id='140710831830928'>
-    >>> b.assert_called_with({})
-
-    Good so far, but then this happens:
-
-    >>> a['b'] = 'c'
-    >>> b.assert_called_with({})
-    Expected: mock({})
-    Actual: mock({'b': 'c'})
-
-    With CopyingMock we do not have `a` by reference, but by value instead, and
-    thus it works 'as you would expect'.
-
-    See: https://docs.python.org/3/library/unittest.mock-examples.html under
-    "Coping with mutable arguments" for further details and the source of this code.
+    The mock is yielded so tests can add the trigger's response and inspect the
+    request it received.
     """
-
-    def __call__(self, /, *args, **kwargs):
-        args = deepcopy(args)
-        kwargs = deepcopy(kwargs)
-        return super().__call__(*args, **kwargs)
-
-
-@pytest.fixture
-def t_sender_mock():
-    with patch(
-        "mora.triggers.internal.http_trigger.http_sender", new_callable=CopyingMock
-    ) as mock:
+    with aioresponses() as mock:
+        mock.get(
+            "http://whatever/triggers",
+            payload=jsonable_encoder(
+                [
+                    MOTriggerRegister(
+                        event_type=mapping.EventType.ON_BEFORE,
+                        request_type=mapping.RequestType.REFRESH,
+                        role_type="org_unit",
+                        url="/triggers/ou/refresh",
+                    )
+                ]
+            ),
+        )
+        with util.override_config(Settings(http_endpoints=["http://whatever"])):
+            await register(None)
         yield mock
 
 
 @pytest.fixture
-def t_fetch_mock():
-    with patch("mora.triggers.internal.http_trigger.fetch_endpoint_trigger") as mock:
-        yield mock
+def trigger_payloads(refresh_trigger_mock: aioresponses) -> Callable[[str], list[dict]]:
+    """Return the JSON bodies POSTed to `url`, as captured at the boundary."""
 
-
-@pytest.fixture
-def get_one_org_mock():
-    with patch("mora.service.orgunit.get_one_orgunit") as mock:
-        yield mock
-
-
-async def test_returns_integration_error_on_wrong_status(
-    service_client: TestClient, get_one_org_mock, t_sender_mock, t_fetch_mock
-):
-    with util.override_config(Settings(http_endpoints=["http://whatever"])):
-        t_fetch_mock.return_value = [
-            MOTriggerRegister(
-                **{
-                    "event_type": mapping.EventType.ON_BEFORE,
-                    "request_type": mapping.RequestType.REFRESH,
-                    "role_type": "org_unit",
-                    "url": "/triggers/ou/refresh",
-                }
-            )
+    def payloads(url: str) -> list[dict]:
+        return [
+            call.kwargs["json"]
+            for (method, called_url), calls in refresh_trigger_mock.requests.items()
+            for call in calls
+            if method == "POST" and str(called_url) == url
         ]
-        Trigger.registry = {}
-        await register(None)
-        t_fetch_mock.assert_called()
+
+    return payloads
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_returns_integration_error_on_wrong_status(
+    create_org_unit: Callable[[str, UUID | None], UUID],
+    service_client: TestClient,
+    refresh_trigger_mock: aioresponses,
+    trigger_payloads: Callable[[str], list[dict]],
+) -> None:
+    """A non-200 from the external http-trigger fails the refresh with an
+    INTEGRATION_ERROR carrying the external service's `detail`."""
+    unit_uuid = create_org_unit("Kolding Kommune")
 
     error_msg = "Something horrible happened"
-    response_future = Future()
-    response_future.set_exception(HTTPTriggerException(error_msg))
-    t_sender_mock.side_effect = response_future
-
-    get_one_org_mock.return_value = {"whatever": 123}
-    response = service_client.request(
-        "GET", "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
+    refresh_trigger_mock.post(
+        "http://whatever/triggers/ou/refresh",
+        status=400,
+        payload={"detail": error_msg},
     )
+
+    response = service_client.get(f"/service/ou/{unit_uuid}/refresh")
+
     assert response.status_code == 400
     result = response.json()
-    assert "INTEGRATION_ERROR" in result.get("error_key")
-    assert error_msg in result.get("description")
+    assert "INTEGRATION_ERROR" in result["error_key"]
+    assert error_msg in result["description"]
 
-    t_sender_mock.assert_called_with(
-        "http://whatever/triggers/ou/refresh",
-        {
-            "request_type": mapping.RequestType.REFRESH,
-            "request": {"uuid": "44c86c7a-cfe0-447e-9706-33821b5721a4"},
-            "role_type": "org_unit",
-            "event_type": mapping.EventType.ON_BEFORE,
-            "org_unit_uuid": "44c86c7a-cfe0-447e-9706-33821b5721a4",
-            "uuid": "44c86c7a-cfe0-447e-9706-33821b5721a4",
-        },
-        timeout=5,
-    )
+    (payload,) = trigger_payloads("http://whatever/triggers/ou/refresh")
+    assert payload == {
+        "request_type": mapping.RequestType.REFRESH,
+        "request": {"uuid": str(unit_uuid)},
+        "role_type": "org_unit",
+        "event_type": mapping.EventType.ON_BEFORE,
+        "uuid": str(unit_uuid),
+    }
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 async def test_returns_message_on_success(
-    service_client: TestClient, get_one_org_mock, t_sender_mock, t_fetch_mock
-):
-    with util.override_config(Settings(http_endpoints=["http://whatever"])):
-        t_fetch_mock.return_value = [
-            MOTriggerRegister(
-                **{
-                    "event_type": mapping.EventType.ON_BEFORE,
-                    "request_type": mapping.RequestType.REFRESH,
-                    "role_type": "org_unit",
-                    "url": "/triggers/ou/refresh",
-                }
-            )
-        ]
-        Trigger.registry = {}
-        await register(None)
-        t_fetch_mock.assert_called()
+    create_org_unit: Callable[[str, UUID | None], UUID],
+    service_client: TestClient,
+    refresh_trigger_mock: aioresponses,
+    trigger_payloads: Callable[[str], list[dict]],
+) -> None:
+    """A 200 from the external http-trigger surfaces its response body in the
+    refresh `message`."""
+    unit_uuid = create_org_unit("Kolding Kommune")
 
     response_msg = "Something good happened"
-    response_future = Future()
-    response_future.set_result(response_msg)
-    t_sender_mock.return_value = response_future
-
-    get_one_org_mock.return_value = {"whatever": 123}
-
-    response = service_client.request(
-        "GET", "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
+    refresh_trigger_mock.post(
+        "http://whatever/triggers/ou/refresh",
+        status=200,
+        payload=response_msg,
     )
+
+    response = service_client.get(f"/service/ou/{unit_uuid}/refresh")
+
     assert response.status_code == 200
-    result = response.json()
-    assert response_msg == result["message"]
+    assert response_msg in response.json()["message"].splitlines()
 
-    t_sender_mock.assert_has_calls(
-        [
-            call(
-                "http://whatever/triggers/ou/refresh",
-                {
-                    "request_type": mapping.RequestType.REFRESH,
-                    "request": {"uuid": "44c86c7a-cfe0-447e-9706-33821b5721a4"},
-                    "role_type": "org_unit",
-                    "event_type": mapping.EventType.ON_BEFORE,
-                    "org_unit_uuid": "44c86c7a-cfe0-447e-9706-33821b5721a4",
-                    "uuid": "44c86c7a-cfe0-447e-9706-33821b5721a4",
-                },
-                timeout=5,
-            )
-        ]
-    )
+    (payload,) = trigger_payloads("http://whatever/triggers/ou/refresh")
+    assert payload == {
+        "request_type": mapping.RequestType.REFRESH,
+        "request": {"uuid": str(unit_uuid)},
+        "role_type": "org_unit",
+        "event_type": mapping.EventType.ON_BEFORE,
+        "uuid": str(unit_uuid),
+    }
 
 
-def test_returns_404_on_unknown_unit(
-    service_client: TestClient, get_one_org_mock
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_returns_404_on_unknown_unit(
+    service_client: TestClient,
 ) -> None:
-    get_one_org_mock.return_value = {}
-
-    response = service_client.request(
-        "GET", "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
+    """Refreshing an org unit that does not exist returns 404."""
+    response = service_client.get(
+        "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
     )
     assert response.status_code == 404
     result = response.json()
-    assert "NOT_FOUND" in result.get("error_key")
+    assert "NOT_FOUND" in result["error_key"]
 
 
 @pytest.mark.integration_test
