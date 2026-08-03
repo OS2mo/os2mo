@@ -131,12 +131,6 @@ async def copy_database(
     superuser: AsyncConnection, source: str, destination: str
 ) -> None:
     """Copy database, overwriting (dropping) destination if it already exists."""
-    # A database cannot be copied or dropped while it has connections; disallow new
-    # connections and terminate existing.
-    await _set_database_connectable(superuser, source, False)
-    await _set_database_connectable(superuser, destination, False)
-    await _terminate_database_connections(superuser, source)
-    await _terminate_database_connections(superuser, destination)
     # Copy database
     await superuser.execute(text(f"drop database if exists {destination} with (force)"))
     await superuser.execute(text(f"create database {destination} template {source}"))
@@ -154,9 +148,6 @@ async def copy_database(
     await superuser.execute(
         text(f"ALTER DATABASE {destination} SET time zone 'Europe/Copenhagen'")
     )
-    # Allow connections again
-    await _set_database_connectable(superuser, source, True)
-    await _set_database_connectable(superuser, destination, True)
 
 
 # Name of our fully migrated, but empty database used for templating
@@ -214,12 +205,23 @@ async def snapshot(session: depends.Session) -> None:
     Snapshot the database.
     """
     logger.warning("Snapshotting database")
+    source = _get_current_database(session)
     async with superuser_connection(lora_get_settings()) as superuser:
-        await copy_database(
-            superuser,
-            source=_get_current_database(session),
-            destination=_get_snapshot_database(session),
-        )
+        # Unlike the other endpoints, we snapshot the database we are currently
+        # connected to. A database cannot be used as a copy template while it has
+        # connections, so disallow new connections and terminate existing.
+        try:
+            await _set_database_connectable(superuser, source, False)
+            await _terminate_database_connections(superuser, source)
+            await copy_database(
+                superuser,
+                source=source,
+                destination=_get_snapshot_database(session),
+            )
+        finally:
+            # Always allow connections again, so a failed snapshot does not leave
+            # the database unusable.
+            await _set_database_connectable(superuser, source, True)
 
 
 @router.post("/database/restore", status_code=HTTP_204_NO_CONTENT)
