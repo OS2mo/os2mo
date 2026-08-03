@@ -2,18 +2,14 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import secrets
-import time
 from uuid import UUID
 
 import pytest
 from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.mo import PayloadUUID
-from sqlalchemy.ext.asyncio import AsyncConnection
 from starlette.testclient import TestClient
 
 from mora.config import get_settings
-from mora.testing import EMPTY_DB_TEMPLATE
-from mora.testing import drop_database
 from tests.conftest import GraphAPIPost
 
 
@@ -219,60 +215,16 @@ async def test_event_reset_last_tried(
     assert fetch_event() == {"subject": str(person_uuid)}
 
 
-def create_org(graphapi_post: GraphAPIPost) -> None:
-    result = graphapi_post(
-        """
-        mutation {
-          org_create(input: {municipality_code: null}) {
-            uuid
-          }
-        }
-        """,
-    )
-    assert result.errors is None
-
-
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-async def test_database_purge(
-    superuser: AsyncConnection,
+@pytest.mark.usefixtures("empty_db")
+async def test_database_reset(
     admin_client: TestClient,
     graphapi_post: GraphAPIPost,
+    alice: UUID,
 ) -> None:
-    # Verify that fixture data exists
-    assert len(read_employee_uuids(graphapi_post)) > 0
+    assert read_employee_uuids(graphapi_post) == {alice}
 
-    # Clear any cached empty-db before testing ensuring a clean non-cached start
-    await drop_database(superuser, EMPTY_DB_TEMPLATE)
+    assert admin_client.post("/testing/database/setup").is_success
+    assert admin_client.post("/testing/database/reset").is_success
 
-    # Purge database
-    # The first call creates the empty_db_template and runs migrations
-    start = time.monotonic()
-    assert admin_client.post("/testing/database/purge").is_success
-    first_purge_time = time.monotonic() - start
-
-    # Verify all data is gone
-    assert read_employee_uuids(graphapi_post) == set()
-
-    # Purge again
-    # This time the template exists, so it should be significantly faster
-    start = time.monotonic()
-    assert admin_client.post("/testing/database/purge").is_success
-    second_purge_time = time.monotonic() - start
-
-    # The second purge should much faster since it skips migrations
-    # Experimentally it is like 5 seconds versus 0.3 seconds
-    # But since CI is very noisy we will just assume it takes at most half the time
-    assert second_purge_time < first_purge_time / 2
-
-    # Verify all data is (still) gone
-    assert read_employee_uuids(graphapi_post) == set()
-
-    # Re-add some data and purge it (now using the cached db)
-    create_org(graphapi_post)
-    uuid = create_employee(graphapi_post, surname="after-purge")
-    assert read_employee_uuids(graphapi_post) == {uuid}
-
-    # Purge using the cached db and verify that it worked
-    assert admin_client.post("/testing/database/purge").is_success
     assert read_employee_uuids(graphapi_post) == set()
