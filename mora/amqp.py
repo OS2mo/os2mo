@@ -138,13 +138,13 @@ async def _emit_events(session: AsyncSession, amqp_system: AMQPSystem) -> None:
     logger.info("emitting events")
     # We need to fetch "now" before our queries, or we expose ourself to
     # race-conditions when updating the table in the end.
-    last_run = await session.scalar(
-        select(AMQPSubsystem.last_run).where(AMQPSubsystem.id == 1)
+    last_validity_run = await session.scalar(
+        select(AMQPSubsystem.last_validity_run).where(AMQPSubsystem.id == 1)
     )
     now = await session.scalar(select(func.now()))
 
     def registration_condition(cls):
-        return func.lower(cls.registrering_period).between(last_run, now)
+        return func.lower(cls.registrering_period).between(last_validity_run, now)
 
     def latest_registrering_condition(cls):
         return and_(
@@ -154,8 +154,8 @@ async def _emit_events(session: AsyncSession, amqp_system: AMQPSystem) -> None:
 
     def validity_condition(v: _VirkningMixin):
         return or_(
-            func.lower(v.virkning_period).between(last_run, now),
-            func.upper(v.virkning_period).between(last_run, now),
+            func.lower(v.virkning_period).between(last_validity_run, now),
+            func.upper(v.virkning_period).between(last_validity_run, now),
         )
 
     query = union(
@@ -339,7 +339,7 @@ async def _emit_events(session: AsyncSession, amqp_system: AMQPSystem) -> None:
     await session.execute(
         update(AMQPSubsystem),
         [
-            {"id": 1, "last_run": now},
+            {"id": 1, "last_validity_run": now},
         ],
     )
 

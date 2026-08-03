@@ -104,10 +104,10 @@ async def _set_last_run(date):  # pragma: no cover
             await session.execute(
                 update(AMQPSubsystem),
                 [
-                    {"id": 1, "last_run": date},
+                    {"id": 1, "last_validity_run": date},
                 ],
             )
-            click.echo(f"Set last_run to {date}")
+            click.echo(f"Set last_validity_run to {date}")
 
 
 @amqp.command()
@@ -154,7 +154,7 @@ def last_run() -> None:  # pragma: no cover
         async with sessionmaker() as session:
             async with session.begin():
                 last_run = await session.scalar(
-                    select(AMQPSubsystem.last_run).where(AMQPSubsystem.id == 1)
+                    select(AMQPSubsystem.last_validity_run).where(AMQPSubsystem.id == 1)
                 )
                 click.echo(last_run)
 
