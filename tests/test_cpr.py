@@ -1,16 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import datetime
-from pathlib import Path
-
 import httpx
 import pytest
 import respx
-from cryptography import x509
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.x509.oid import NameOID
+from pathlib import Path
 from fastapi.testclient import TestClient
 
 from mora import mapping
@@ -125,35 +118,9 @@ def test_serviceplatformen_api_version_validation(
 
 
 @pytest.fixture
-def sp_certificate(tmp_path: Path) -> Path:
-    """Write a throwaway self-signed cert+key PEM and return its path.
-
-    `get_citizen` hands the certificate to `httpx`, which builds its SSL context
-    (loading the file) eagerly, so respx needs a real certificate to load before
-    it can intercept the request.
-    """
-    path = tmp_path / "sp.pem"
-    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test")])
-    certificate = (
-        x509.CertificateBuilder()
-        .subject_name(name)
-        .issuer_name(name)
-        .public_key(key.public_key())
-        .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime(2020, 1, 1))
-        .not_valid_after(datetime.datetime(2030, 1, 1))
-        .sign(key, hashes.SHA256())
-    )
-    path.write_bytes(
-        key.private_bytes(
-            serialization.Encoding.PEM,
-            serialization.PrivateFormat.TraditionalOpenSSL,
-            serialization.NoEncryption(),
-        )
-        + certificate.public_bytes(serialization.Encoding.PEM)
-    )
-    return path
+def sp_certificate() -> Path:
+    """Return the path to the Serviceplatformen test certificate."""
+    return Path("tests/fixtures/sp_certificate.pem")
 
 
 # Minimal SF1520 PersonLookupResponse, just enough for `get_citizen` to parse.
