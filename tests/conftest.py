@@ -30,6 +30,7 @@ from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 from hypothesis.database import InMemoryExampleDatabase
 from more_itertools import one
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette_context import request_cycle_context
@@ -46,9 +47,9 @@ from mora.graphapi.permissions import ALL_PERMISSIONS
 from mora.graphapi.version import LATEST_VERSION
 from mora.mapping import ADMIN
 from mora.service.org import ConfiguredOrganisation
+from mora.testing import EMPTY_DB_TEMPLATE
 from mora.testing import copy_database
-from mora.testing import drop_database
-from mora.testing import ensure_empty_db_template
+from mora.testing import setup as setup_empty_db_template
 from mora.testing import superuser_connection
 from mora.triggers import Trigger
 from oio_rest.config import Settings as LoraSettings
@@ -366,7 +367,7 @@ async def _database_copy(superuser: AsyncConnection, source: str) -> AsyncIterat
     destination = f"{source}_copy_{secrets.token_hex(4)}"
     await copy_database(superuser, source, destination)
     yield destination
-    await drop_database(superuser, destination)
+    await superuser.execute(text(f"drop database if exists {destination} with (force)"))
 
 
 def _create_sessionmaker(lora_settings: LoraSettings, database_name: str):
@@ -421,10 +422,9 @@ async def another_transaction(
 
 
 @pytest.fixture(scope="session")
-async def empty_database_template(
-    superuser: AsyncConnection, lora_settings: LoraSettings
-) -> AsyncYieldFixture[str]:
-    yield await ensure_empty_db_template(superuser, lora_settings)
+async def empty_database_template() -> AsyncYieldFixture[str]:
+    await setup_empty_db_template()
+    yield EMPTY_DB_TEMPLATE
 
 
 @pytest.fixture(scope="session")

@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
+import secrets
 from contextlib import AbstractAsyncContextManager
 from contextlib import asynccontextmanager
 from datetime import datetime
 
 from fastapi import APIRouter
-from psycopg.errors import DuplicateDatabase
 from psycopg.errors import UndefinedTable
 from sqlalchemy import text
 from sqlalchemy import update
@@ -131,63 +131,29 @@ async def copy_database(
     superuser: AsyncConnection, source: str, destination: str
 ) -> None:
     """Copy database, overwriting (dropping) destination if it already exists."""
-    # Copy database
-    await superuser.execute(text(f"drop database if exists {destination} with (force)"))
-    await superuser.execute(text(f"create database {destination} template {source}"))
+    # Copy database to temporary staging database. This ensures no one will
+    # attempt to connect to it while we are working on it.
+    staging = f"staging_{secrets.token_hex(4)}"
+    await superuser.execute(text(f"create database {staging} template {source}"))
     # Copying a database does not copy its configuration parameters. These statements
     # are copied from the initial alembic migration.
     await superuser.execute(
-        text(f"ALTER DATABASE {destination} SET search_path = actual_state,public")
+        text(f"ALTER DATABASE {staging} SET search_path = actual_state,public")
     )
     await superuser.execute(
-        text(f"ALTER DATABASE {destination} SET datestyle to 'ISO, YMD'")
+        text(f"ALTER DATABASE {staging} SET datestyle to 'ISO, YMD'")
     )
     await superuser.execute(
-        text(f"ALTER DATABASE {destination} SET intervalstyle to 'sql_standard'")
+        text(f"ALTER DATABASE {staging} SET intervalstyle to 'sql_standard'")
     )
     await superuser.execute(
-        text(f"ALTER DATABASE {destination} SET time zone 'Europe/Copenhagen'")
+        text(f"ALTER DATABASE {staging} SET time zone 'Europe/Copenhagen'")
     )
-
-
-# Name of our fully migrated, but empty database used for templating
-EMPTY_DB_TEMPLATE = "empty_db_template"
-
-
-async def ensure_empty_db_template(
-    superuser: AsyncConnection,
-    lora_settings: LoraSettings,
-) -> str:
-    """Ensure that a migrated empty database exists for templating.
-
-    Args:
-        superuser:
-            A superuser connection with AUTOCOMMIT isolation level.
-        lora_settings:
-            Lora settings used to connect to the database.
-
-    Returns:
-        The name of the migrated empty database template.
-    """
-    try:
-        await superuser.execute(text(f"create database {EMPTY_DB_TEMPLATE}"))
-    except ProgrammingError as e:
-        if not isinstance(e.orig, DuplicateDatabase):  # pragma: no cover
-            raise
-
-    # Apply alembic migrations
-    engine = db.create_engine(
-        user=lora_settings.db_user,
-        password=lora_settings.db_password,
-        host=lora_settings.db_host,
-        name=EMPTY_DB_TEMPLATE,
+    # Swap staging database in
+    await superuser.execute(text(f"drop database if exists {destination} with (force)"))
+    await superuser.execute(
+        text(f"alter database {staging} rename to {destination}"),
     )
-    try:
-        await run_async_upgrade(engine)
-    finally:
-        await engine.dispose()
-
-    return EMPTY_DB_TEMPLATE
 
 
 def _get_current_database(session: db.AsyncSession) -> str:
@@ -239,21 +205,46 @@ async def restore(session: depends.Session) -> None:
     ConfiguredOrganisation.clear()
 
 
-@router.post("/database/purge", status_code=HTTP_204_NO_CONTENT)
-async def purge(session: depends.Session) -> None:
+EMPTY_DB_TEMPLATE = "empty_db_template"
+
+
+@router.post("/database/setup", status_code=HTTP_204_NO_CONTENT)
+async def setup() -> None:
     """
-    Reset database to a clean, migrated state with all tables empty.
+    Setup empty database for templating.
     """
-    logger.warning("Purging database to clean state")
+    logger.warning("Setting up empty database template")
     lora_settings = lora_get_settings()
 
     async with superuser_connection(lora_settings) as superuser:
-        # Ensure the migrated empty database template exists
-        template = await ensure_empty_db_template(superuser, lora_settings)
-        # Discard our current database in favor of an empty one
+        await superuser.execute(
+            text(f"drop database if exists {EMPTY_DB_TEMPLATE} with (force)")
+        )
+        await superuser.execute(text(f"create database {EMPTY_DB_TEMPLATE}"))
+
+    # Apply alembic migrations
+    engine = db.create_engine(
+        user=lora_settings.db_user,
+        password=lora_settings.db_password,
+        host=lora_settings.db_host,
+        name=EMPTY_DB_TEMPLATE,
+    )
+    try:
+        await run_async_upgrade(engine)
+    finally:
+        await engine.dispose()
+
+
+@router.post("/database/reset", status_code=HTTP_204_NO_CONTENT)
+async def reset(session: depends.Session) -> None:
+    """
+    Reset database to a clean, migrated state with all tables empty.
+    """
+    logger.warning("Resetting database to empty")
+    async with superuser_connection(lora_get_settings()) as superuser:
         await copy_database(
             superuser,
-            source=template,
+            source=EMPTY_DB_TEMPLATE,
             destination=_get_current_database(session),
         )
     ConfiguredOrganisation.clear()
