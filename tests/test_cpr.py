@@ -11,7 +11,8 @@ from mora.config import Settings
 from mora.service.shimmed import cpr as cpr_shim
 from mora.service.shimmed import serviceplatformen
 
-
+SP_UUID = "12345678-9abc-def1-1111-111111111111"
+SP_CERTIFICATE_PATH = "tests/fixtures/sp_certificate.pem"
 
 
 @pytest.mark.parametrize(
@@ -47,47 +48,45 @@ def test_birthdate_validation_disabled(service_client: TestClient) -> None:
     assert response.json() == {}
 
 
-def _sp_config(monkeypatch, **overrides):
-    UUID_OK = "12345678-9abc-def1-1111-111111111111"
-
-    env_vars = {
-        "SP_SERVICE_UUID": UUID_OK,
-        "SP_AGREEMENT_UUID": UUID_OK,
-        "SP_MUNICIPALITY_UUID": UUID_OK,
-        "SP_SYSTEM_UUID": UUID_OK,
-        **overrides,
-    }
-    for env_var, value in env_vars.items():
-        monkeypatch.setenv(env_var, value)
-
-
-def test_serviceplatformen_missing_path(monkeypatch):
+def test_serviceplatformen_missing_path(monkeypatch) -> None:
     monkeypatch.setenv("ENABLE_SP", "true")
-    _sp_config(monkeypatch)
+    monkeypatch.setenv("SP_SERVICE_UUID", SP_UUID)
+    monkeypatch.setenv("SP_AGREEMENT_UUID", SP_UUID)
+    monkeypatch.setenv("SP_MUNICIPALITY_UUID", SP_UUID)
+    monkeypatch.setenv("SP_SYSTEM_UUID", SP_UUID)
 
     with pytest.raises(ValueError) as exc_info:
         Settings()
     assert "sp_certificate_path\n  field required" in str(exc_info.value)
 
 
-def test_serviceplatformen_empty_file(monkeypatch, tmp_path):
+def test_serviceplatformen_empty_file(monkeypatch, tmp_path) -> None:
     tmp_file = tmp_path / "testfile"
     tmp_file.write_text("")
 
     monkeypatch.setenv("ENABLE_SP", "true")
-    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(tmp_file))
+    monkeypatch.setenv("SP_SERVICE_UUID", SP_UUID)
+    monkeypatch.setenv("SP_AGREEMENT_UUID", SP_UUID)
+    monkeypatch.setenv("SP_MUNICIPALITY_UUID", SP_UUID)
+    monkeypatch.setenv("SP_SYSTEM_UUID", SP_UUID)
+    monkeypatch.setenv("SP_CERTIFICATE_PATH", str(tmp_file))
 
     with pytest.raises(ValueError) as exc_info:
         Settings()
     assert "Serviceplatformen certificate can not be empty" in str(exc_info.value)
 
 
-def test_serviceplatformen_happy_path(monkeypatch, tmp_path):
+def test_serviceplatformen_happy_path(monkeypatch, tmp_path) -> None:
     tmp_file = tmp_path / "testfile"
     tmp_file.write_text("This is a certificate")
 
     monkeypatch.setenv("ENVIRONMENT", "production")
-    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(tmp_file))
+    monkeypatch.setenv("ENABLE_SP", "true")
+    monkeypatch.setenv("SP_SERVICE_UUID", SP_UUID)
+    monkeypatch.setenv("SP_AGREEMENT_UUID", SP_UUID)
+    monkeypatch.setenv("SP_MUNICIPALITY_UUID", SP_UUID)
+    monkeypatch.setenv("SP_SYSTEM_UUID", SP_UUID)
+    monkeypatch.setenv("SP_CERTIFICATE_PATH", str(tmp_file))
 
     Settings()
 
@@ -103,22 +102,24 @@ def test_serviceplatformen_happy_path(monkeypatch, tmp_path):
 )
 def test_serviceplatformen_api_version_validation(
     monkeypatch,
-    sp_configuration,
     sp_api_version,
     expected_exception,
-):
+) -> None:
     """Test validation in `ServicePlatformenSettings.validate_api_version`"""
-    _sp_config(monkeypatch, SP_API_VERSION=str(sp_api_version))
+    monkeypatch.setenv("ENABLE_SP", "true")
+    monkeypatch.setenv("SP_SERVICE_UUID", SP_UUID)
+    monkeypatch.setenv("SP_AGREEMENT_UUID", SP_UUID)
+    monkeypatch.setenv("SP_MUNICIPALITY_UUID", SP_UUID)
+    monkeypatch.setenv("SP_SYSTEM_UUID", SP_UUID)
+    monkeypatch.setenv("SP_CERTIFICATE_PATH", SP_CERTIFICATE_PATH)
+    monkeypatch.setenv("SP_API_VERSION", str(sp_api_version))
+
     if expected_exception:
         with pytest.raises(expected_exception):
             Settings()
     else:
         settings = Settings()
         assert settings.sp_settings.sp_api_version == sp_api_version
-
-
-SP_UUID = "12345678-9abc-def1-1111-111111111111"
-SP_CERTIFICATE_PATH = "tests/fixtures/sp_certificate.pem"
 
 
 @pytest.fixture
