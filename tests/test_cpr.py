@@ -11,7 +11,7 @@ from mora.config import Settings
 from mora.service.shimmed import cpr as cpr_shim
 from mora.service.shimmed import serviceplatformen
 
-from . import util
+
 
 
 @pytest.mark.parametrize(
@@ -117,10 +117,14 @@ def test_serviceplatformen_api_version_validation(
         assert settings.sp_settings.sp_api_version == sp_api_version
 
 
+SP_UUID = "12345678-9abc-def1-1111-111111111111"
+SP_CERTIFICATE_PATH = "tests/fixtures/sp_certificate.pem"
+
+
 @pytest.fixture
 def sp_certificate() -> Path:
     """Return the path to the Serviceplatformen test certificate."""
-    return Path("tests/fixtures/sp_certificate.pem")
+    return Path(SP_CERTIFICATE_PATH)
 
 
 # Minimal SF1520 PersonLookupResponse, just enough for `get_citizen` to parse.
@@ -155,10 +159,19 @@ def test_get_citizen_uses_version_kwarg(
     assert citizen["efternavn"] == "Doe"
 
 
+@pytest.mark.envvar(
+    {
+        "ENVIRONMENT": "production",
+        "ENABLE_SP": "true",
+        "SP_SERVICE_UUID": SP_UUID,
+        "SP_AGREEMENT_UUID": SP_UUID,
+        "SP_MUNICIPALITY_UUID": SP_UUID,
+        "SP_SYSTEM_UUID": SP_UUID,
+        "SP_CERTIFICATE_PATH": SP_CERTIFICATE_PATH,
+    }
+)
 async def test_cpr_lookup_returns_name_from_serviceplatformen(
     service_client: TestClient,
-    monkeypatch: pytest.MonkeyPatch,
-    sp_certificate: Path,
     respx_mock: respx.MockRouter,
 ) -> None:
     """A normal CPR lookup goes through the `get_citizen` shim and returns the name
@@ -169,13 +182,7 @@ async def test_cpr_lookup_returns_name_from_serviceplatformen(
     ).mock(return_value=httpx.Response(200, text=SP_RESPONSE))
 
     cpr = "0101501234"
-
-    # Set up mock Serviceplatform access, with a certificate `httpx` can load.
-    monkeypatch.setenv("ENABLE_SP", "true")
-    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(sp_certificate))
-
-    with util.override_config(Settings()):
-        response = service_client.get("/service/e/cpr_lookup/", params={"q": cpr})
+    response = service_client.get("/service/e/cpr_lookup/", params={"q": cpr})
 
     assert route.called
     assert response.status_code == 200
@@ -203,10 +210,20 @@ def test_handle_erstatningspersonnummer(
     assert actual_result == expected_result
 
 
+@pytest.mark.envvar(
+    {
+        "CPR_VALIDATE_BIRTHDATE": "false",
+        "ENVIRONMENT": "production",
+        "ENABLE_SP": "true",
+        "SP_SERVICE_UUID": SP_UUID,
+        "SP_AGREEMENT_UUID": SP_UUID,
+        "SP_MUNICIPALITY_UUID": SP_UUID,
+        "SP_SYSTEM_UUID": SP_UUID,
+        "SP_CERTIFICATE_PATH": SP_CERTIFICATE_PATH,
+    }
+)
 async def test_cpr_lookup_handles_erstatningspersonnummer(
     service_client: TestClient,
-    monkeypatch,
-    tmp_path,
 ) -> None:
     """Test that `search_cpr` handles "erstatningspersonnummer" CPR lookups correctly.
 
@@ -221,16 +238,6 @@ async def test_cpr_lookup_handles_erstatningspersonnummer(
 
     cpr = "7202023333"
 
-    # Set up mock Serviceplatform access
-    monkeypatch.setenv("ENABLE_SP", "true")
-    monkeypatch.setenv("ENVIRONMENT", "production")
-    tmp_file = tmp_path / "testfile"
-    tmp_file.write_text("This is a certificate")
-    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(tmp_file))
-
-    # Skip CPR birthdate validation
-    with util.override_config(Settings(cpr_validate_birthdate=False)):
-        # Invoke CPR lookup
-        response = service_client.request("GET", f"/service/e/cpr_lookup/?q={cpr}")
-        assert response.status_code == 200
-        assert response.json() == {mapping.NAME: "", mapping.CPR_NO: cpr}
+    response = service_client.request("GET", f"/service/e/cpr_lookup/?q={cpr}")
+    assert response.status_code == 200
+    assert response.json() == {mapping.NAME: "", mapping.CPR_NO: cpr}
