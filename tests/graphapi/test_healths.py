@@ -61,6 +61,6 @@ async def test_authorized_healths_endpoint(graphapi_post: GraphAPIPost) -> None:
         },
         {
             "identifier": "dataset",
-            "status": False,
+            "status": True,
         },
     ]

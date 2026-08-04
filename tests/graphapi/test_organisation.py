@@ -13,6 +13,53 @@ from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_root_organisation_exists(graphapi_post: GraphAPIPost) -> None:
+    """The root organisation is created by an alembic migration."""
+    response: GQLResponse = graphapi_post(
+        """
+        query {
+          org {
+            municipality_code
+            name
+            user_key
+          }
+        }
+        """,
+    )
+    assert response.errors is None
+    assert response.data == {
+        "org": {
+            "municipality_code": None,
+            "name": "root",
+            "user_key": "root",
+        }
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_org_create_sets_municipality_code(graphapi_post: GraphAPIPost) -> None:
+    """`org_create` sets the municipality code of the existing organisation."""
+    response: GQLResponse = graphapi_post(
+        """
+        mutation CreateOrg($municipality_code: Int) {
+          org_create(input: {municipality_code: $municipality_code}) {
+            municipality_code
+          }
+        }
+        """,
+        {
+            "municipality_code": 420,
+        },
+    )
+    assert response.errors is None
+    assert response.data == {
+        "org_create": {"municipality_code": 420},
+    }
+
+
 async def test_mocking_and_cache_clearing(mock_organisation):
     """Test that we can mock organisation endpoints and avoid caching.
 

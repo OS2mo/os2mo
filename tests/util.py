@@ -11,12 +11,14 @@ from urllib.parse import parse_qsl
 import aioresponses
 import jinja2
 import requests_mock
+from sqlalchemy import text
 from starlette_context import context
 from starlette_context import request_cycle_context
 from strawberry.dataloader import DataLoader
 from yarl import URL
 
 from mora import config
+from mora import db
 from mora import lora
 from mora.config import Settings
 from mora.service.address_handler.dar import load_addresses
@@ -70,6 +72,12 @@ async def load_fixture(path, fixture_name, uuid=None, **kwargs):
 async def load_sample_structures():
     """Inject our test data into LoRA."""
     orgid = "456362c4-0ee4-4e5e-a72c-751239745e62"
+
+    # OS2mo requires exactly one organisation to exist. An alembic migration
+    # creates one with a random UUID, but the sample structures create their
+    # own, which all the other sample structures reference. We really should
+    # stop using this sample structure fixture for tests soon...
+    await db.get_session().execute(text("truncate organisation cascade"))
 
     fixtures = [
         (

@@ -121,9 +121,13 @@ def clear_actor_cache():
 
 
 @pytest.fixture(autouse=True)
-def clear_settings_cache() -> None:
-    """Clear the ``get_settings`` cache so each test reads its env overrides freshly."""
+def clear_settings_cache() -> YieldFixture[None]:
+    """Clear the ``get_settings`` caches so each test reads its env overrides freshly."""
     get_settings.cache_clear()
+    lora_get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+    lora_get_settings.cache_clear()
 
 
 BRUCE_UUID = UUID("99e7b256-7dfa-4ee8-95c6-e3abe82e236a")
