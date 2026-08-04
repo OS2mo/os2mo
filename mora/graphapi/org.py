@@ -2,17 +2,13 @@
 # SPDX-License-Identifier: MPL-2.0
 """GraphQL org related helper functions."""
 
-import logging
 from textwrap import dedent
-from uuid import UUID
 
 import strawberry
+from sqlalchemy import update
 
-from mora import common
-
-from .orgmodel import Organisation
-
-logger = logging.getLogger(__name__)
+from mora import db
+from mora.db import AsyncSession
 
 
 @strawberry.input
@@ -41,21 +37,22 @@ class OrganisationCreate:
     )
 
 
-async def create_org(input: OrganisationCreate) -> UUID:
-    org_scope = common.get_connector().organisation
+async def create_org(session: AsyncSession, input: OrganisationCreate) -> None:
+    """Set the municipality code of the root organisation.
 
-    # Ensure that no root organisation already exists
-    # NOTE: This code does a direct lookup in LoRa as OS2mo code usually has the
-    #       invariant that a root organisation always exists.
-    organisations = list(await org_scope.fetch(bvn="%"))
-    if len(organisations) != 0:  # pragma: no cover
-        raise ValueError("Root organisation already exists")
-
-    model = Organisation.from_simplified_fields(
-        name="root",
-        user_key="root",
-        municipality_code=input.municipality_code,
+    The root organisation itself is created by an alembic migration, so there
+    is always exactly one - with exactly one registrering holding exactly one
+    `myndighed` relation - and all this has to do is update that relation.
+    """
+    urn = (
+        None
+        if input.municipality_code is None
+        else f"urn:dk:kommune:{input.municipality_code}"
     )
-    payload = model.dict(by_alias=True, exclude={"uuid"}, exclude_none=True)
-    uuid = await org_scope.create(payload)
-    return UUID(uuid)
+    await session.execute(
+        update(db.OrganisationRelation)
+        .where(
+            db.OrganisationRelation.rel_type == db.OrganisationRelationKode.myndighed
+        )
+        .values(rel_maal_urn=urn)
+    )

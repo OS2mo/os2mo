@@ -3,14 +3,19 @@
 import pytest
 from aiohttp import ClientError
 from fastapi.testclient import TestClient
+from sqlalchemy import text
 from starlette.status import HTTP_204_NO_CONTENT
 
+from mora import db
 from mora.graphapi import health
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 async def test_dataset_returns_false_if_no_data_found() -> None:
+    # The root organisation is created by an alembic migration, so it has to be
+    # removed to simulate a database without data.
+    await db.get_session().execute(text("truncate organisation cascade"))
     actual = await health.dataset()
     assert actual is False
 

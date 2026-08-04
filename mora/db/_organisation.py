@@ -1,9 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Literal
+import enum
 from uuid import UUID
 
 from sqlalchemy import Column
+from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 from sqlalchemy import Text
 from sqlalchemy.orm import Mapped
@@ -44,13 +45,18 @@ class OrganisationAttrEgenskaber(_AttrEgenskaberMixin, Base):
     )
 
 
-OrganisationRelationKode = Literal["myndighed"]
+class OrganisationRelationKode(enum.StrEnum):
+    # The database enum contains a lot more values, but OS2mo only ever uses
+    # `myndighed` - to hold the municipality code - on the root organisation.
+    myndighed = enum.auto()
 
 
 class OrganisationRelation(_RelationMixin, Base):
     __tablename__ = "organisation_relation"
 
-    rel_type: Mapped[OrganisationRelationKode]
+    rel_type: Mapped[OrganisationRelationKode] = mapped_column(
+        Enum(OrganisationRelationKode, name="organisationrelationkode")
+    )
 
     organisation_registrering_id = Column(
         ForeignKey("organisation_registrering.id"), index=True

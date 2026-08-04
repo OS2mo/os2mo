@@ -1117,12 +1117,20 @@ class Mutation:
     # Root Organisation
     # -----------------
     @strawberry.mutation(
-        description="Creates the root-organisation.",
+        description=dedent(
+            """\
+            Sets the municipality code of the root-organisation.
+
+            The root-organisation always exists, so - in spite of the name -
+            this does not actually create anything.
+            """
+        ),
         deprecation_reason="The root organisation concept will be removed in a future version of OS2mo.",
     )
     async def org_create(self, info: MOInfo, input: OrganisationCreate) -> Organisation:
+        session: AsyncSession = info.context.session
         # Called for side-effect
-        await create_org(input)
+        await create_org(session, input)
         return cast(Organisation, await info.context.dataloaders.org_loader.load(0))
 
     # TODO: org_update
