@@ -16,12 +16,15 @@ import click  # pragma: no cover
 from fastramqpi.ra_utils.async_to_sync import async_to_sync  # pragma: no cover
 from fastramqpi.ramqp import AMQPSystem  # pragma: no cover
 from fastramqpi.ramqp.mo import MOAMQPSystem  # pragma: no cover
+from sqlalchemy import cast  # pragma: no cover
+from sqlalchemy import literal  # pragma: no cover
 from sqlalchemy import select  # pragma: no cover
 from sqlalchemy import update  # pragma: no cover
 from structlog import get_logger  # pragma: no cover
 
 from mora.amqp import start_event_generator  # pragma: no cover
 from mora.db import AMQPSubsystem  # pragma: no cover
+from mora.db import PgSnapshot  # pragma: no cover
 from mora.db import create_sessionmaker  # pragma: no cover
 from oio_rest.config import get_settings as oio_rest_get_settings  # pragma: no cover
 
@@ -98,16 +101,20 @@ def amqp():  # pragma: no cover
     """Commands for the event generator and AMQP subsystem."""
 
 
-async def _set_last_run(date):  # pragma: no cover
+async def _set_last_run(date, *, reset_registrations):  # pragma: no cover
+    values = {"last_validity_run": date}
+    if reset_registrations:
+        # This is the empty snapshot, which means every registration will be
+        # re-emitted. TODO: does it make sense to reset last_validity then?
+        values["last_registration_snapshot"] = cast(literal("1:1:"), PgSnapshot())
     async with sessionmaker() as session:
         async with session.begin():
             await session.execute(
-                update(AMQPSubsystem),
-                [
-                    {"id": 1, "last_run": date},
-                ],
+                update(AMQPSubsystem).where(AMQPSubsystem.id == 1).values(**values)
             )
-            click.echo(f"Set last_run to {date}")
+            click.echo(f"Set last_validity_run to {date}")
+            if reset_registrations:
+                click.echo("Reset registration snapshot; all registrations re-emit")
 
 
 @amqp.command()
@@ -134,7 +141,7 @@ def send_event(object_type, uuid) -> None:  # pragma: no cover
 @click.argument("date")
 def schedule_since(date) -> None:  # pragma: no cover
     """Send all AMQP events that would be sent, had we not been sending events since *date*."""
-    asyncio.run(_set_last_run(date))
+    asyncio.run(_set_last_run(date, reset_registrations=False))
 
 
 @amqp.command()
@@ -143,7 +150,7 @@ def schedule_all() -> None:  # pragma: no cover
 
     Most event-driven integrations implement a /trigger/all-endpoint, that you
     may want to use instead of this hammer."""
-    asyncio.run(_set_last_run("0001-01-01"))
+    asyncio.run(_set_last_run("0001-01-01", reset_registrations=True))
 
 
 @amqp.command()
@@ -154,7 +161,7 @@ def last_run() -> None:  # pragma: no cover
         async with sessionmaker() as session:
             async with session.begin():
                 last_run = await session.scalar(
-                    select(AMQPSubsystem.last_run).where(AMQPSubsystem.id == 1)
+                    select(AMQPSubsystem.last_validity_run).where(AMQPSubsystem.id == 1)
                 )
                 click.echo(last_run)
 

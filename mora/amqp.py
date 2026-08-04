@@ -28,6 +28,8 @@ from sqlalchemy import Text
 from sqlalchemy import and_
 from sqlalchemy import cast
 from sqlalchemy import func
+from sqlalchemy import literal
+from sqlalchemy import literal_column
 from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy import text
@@ -65,6 +67,7 @@ from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRegistrering
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionTilsGyldighed
+from mora.db import PgSnapshot
 from mora.db._common import _VirkningMixin
 from mora.db.events import add_event
 
@@ -136,15 +139,21 @@ async def _send_amqp_message(
 async def _emit_events(session: AsyncSession, amqp_system: AMQPSystem) -> None:
     """Send an event for every new registration or validity we've passed since last run."""
     logger.info("emitting events")
-    # We need to fetch "now" before our queries, or we expose ourself to
+    # We need to fetch these before our queries, or we expose ourself to
     # race-conditions when updating the table in the end.
-    last_run = await session.scalar(
-        select(AMQPSubsystem.last_run).where(AMQPSubsystem.id == 1)
-    )
-    now = await session.scalar(select(func.now()))
+    previous_run = await session.get(AMQPSubsystem, 1)
+    now, current_snapshot = (
+        await session.execute(select(func.now(), func.pg_current_snapshot()))
+    ).one()
+    before_snapshot = literal(previous_run.last_registration_snapshot, PgSnapshot())
+    after_snapshot = literal(current_snapshot, PgSnapshot())
 
     def registration_condition(cls):
-        return func.lower(cls.registrering_period).between(last_run, now)
+        return func.committed_between(
+            literal_column(f"{cls.__tablename__}.xmin"),
+            before_snapshot,
+            after_snapshot,
+        )
 
     def latest_registrering_condition(cls):
         return and_(
@@ -154,8 +163,8 @@ async def _emit_events(session: AsyncSession, amqp_system: AMQPSystem) -> None:
 
     def validity_condition(v: _VirkningMixin):
         return or_(
-            func.lower(v.virkning_period).between(last_run, now),
-            func.upper(v.virkning_period).between(last_run, now),
+            func.lower(v.virkning_period).between(previous_run.last_validity_run, now),
+            func.upper(v.virkning_period).between(previous_run.last_validity_run, now),
         )
 
     query = union(
@@ -337,10 +346,9 @@ async def _emit_events(session: AsyncSession, amqp_system: AMQPSystem) -> None:
         )
 
     await session.execute(
-        update(AMQPSubsystem),
-        [
-            {"id": 1, "last_run": now},
-        ],
+        update(AMQPSubsystem)
+        .where(AMQPSubsystem.id == 1)
+        .values(last_validity_run=now, last_registration_snapshot=after_snapshot)
     )
 
 
