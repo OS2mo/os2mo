@@ -13,8 +13,6 @@ from mora.service.shimmed import serviceplatformen
 from tests.conftest import SP_CERTIFICATE_EMPTY_PATH
 from tests.conftest import SP_CERTIFICATE_PATH
 
-from . import util
-
 SP_UUID = "12345678-9abc-def1-1111-111111111111"
 
 
@@ -194,9 +192,7 @@ async def test_cpr_lookup_returns_name_from_serviceplatformen(
     ).mock(return_value=httpx.Response(200, text=SP_RESPONSE))
 
     cpr = "0101501234"
-
-    with util.override_config(Settings()):
-        response = service_client.get("/service/e/cpr_lookup/", params={"q": cpr})
+    response = service_client.get("/service/e/cpr_lookup/", params={"q": cpr})
 
     assert route.called
     assert response.status_code == 200
@@ -226,7 +222,8 @@ def test_handle_erstatningspersonnummer(
 
 @pytest.mark.envvar(
     {
-        # Set up mock Serviceplatform access.
+        # Skip CPR birthdate validation, and set up mock Serviceplatform access.
+        "CPR_VALIDATE_BIRTHDATE": "false",
         "ENVIRONMENT": "production",
         "ENABLE_SP": "true",
         "SP_SERVICE_UUID": SP_UUID,
@@ -251,10 +248,6 @@ async def test_cpr_lookup_handles_erstatningspersonnummer(
     """
 
     cpr = "7202023333"
-
-    # Skip CPR birthdate validation
-    with util.override_config(Settings(cpr_validate_birthdate=False)):
-        # Invoke CPR lookup
-        response = service_client.request("GET", f"/service/e/cpr_lookup/?q={cpr}")
-        assert response.status_code == 200
-        assert response.json() == {mapping.NAME: "", mapping.CPR_NO: cpr}
+    response = service_client.request("GET", f"/service/e/cpr_lookup/?q={cpr}")
+    assert response.status_code == 200
+    assert response.json() == {mapping.NAME: "", mapping.CPR_NO: cpr}
