@@ -869,15 +869,6 @@ def auth_headers():
 
 
 @pytest.fixture
-def sp_configuration(monkeypatch: pytest.MonkeyPatch) -> YieldFixture[None]:
-    """Configure minimal environment variables to test Serviceplatformen integration."""
-    monkeypatch.setenv("ENVIRONMENT", "production")
-    monkeypatch.setenv("ENABLE_SP", "True")
-    monkeypatch.setenv("SP_CERTIFICATE_PATH", SP_CERTIFICATE_PATH)
-    yield
-
-
-@pytest.fixture
 def create_org(graphapi_post: GraphAPIPost) -> Callable[[dict[str, Any]], UUID]:
     def inner(input: dict[str, Any]) -> UUID:
         org_create_mutation = """
