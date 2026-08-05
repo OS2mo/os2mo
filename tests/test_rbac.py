@@ -66,12 +66,9 @@ async def test__get_employee_uuid_via_token_strategy():
         preferred_username="Test",
         uuid=uuid,
     )
-    assert await _get_employee_uuid(token) == uuid
+    assert await _get_employee_uuid(token, None) == uuid
 
 
-@pytest.mark.envvar(
-    {"KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS": str(IT_SYSTEM)}
-)
 @unittest.mock.patch("mora.auth.keycloak.rbac._get_employee_uuid_via_it_system")
 async def test__get_employee_uuid_via_it_system_strategy(
     mock: AsyncMock,
@@ -85,7 +82,7 @@ async def test__get_employee_uuid_via_it_system_strategy(
         uuid=uuid,
     )
 
-    await _get_employee_uuid(token)
+    await _get_employee_uuid(token, IT_SYSTEM)
 
     # We are only testing that the correct strategy is selected
     mock.assert_awaited_once_with(IT_SYSTEM, uuid)

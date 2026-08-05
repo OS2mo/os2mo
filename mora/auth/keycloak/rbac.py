@@ -15,7 +15,6 @@ from sqlalchemy import select
 from structlog import get_logger
 
 import mora.auth.keycloak.uuid_extractor as uuid_extractor
-import mora.config
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
 from mora.db import BrugerRegistrering
@@ -79,12 +78,13 @@ def _get_employee_uuid_via_token(token: Token) -> UUID:
     return token.uuid
 
 
-async def _get_employee_uuid(token: Token) -> UUID:
-    """Select employee UUID based on MOs configuration."""
+async def _get_employee_uuid(token: Token, it_system: UUID | None) -> UUID:
+    """Select employee UUID based on MOs configuration.
 
-    it_system = (
-        mora.config.get_settings().keycloak_rbac_authoritative_it_system_for_owners
-    )
+    Args:
+        token: selected JSON values from the Keycloak token.
+        it_system: the authoritative IT system for owners, if one is configured.
+    """
     lookup_via_it_system = it_system is not None
 
     if lookup_via_it_system:
@@ -126,7 +126,11 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
         entity_type = await uuid_extractor.get_entity_type(request)
         entity_uuids = await uuid_extractor.get_entity_uuids(request)
         entities = {(entity_type, uuid) for uuid in entity_uuids}
-        await check_owner_serviceapi(token, entities)
+        await check_owner_serviceapi(
+            token,
+            entities,
+            request.app.state.settings.keycloak_rbac_authoritative_it_system_for_owners,
+        )
         logger.debug(f"User {token.preferred_username} authorized")
         return
 
@@ -253,15 +257,17 @@ async def _is_owner_via_graphql(
 async def _check_owner(
     token: Token,
     entities: set[tuple[EntityType, UUID]],
+    it_system: UUID | None,
     is_owner: Callable[[UUID, EntityType, UUID], Awaitable[bool]],
 ) -> None:
     """Check if the token is owner of the given entities.
 
     `is_owner` performs the per-entity lookup; the Service-API and GraphQL
-    supply different implementations.
+    supply different implementations. They take `it_system` from the request's
+    and the GraphQL context's settings respectively.
     """
     logger.debug("Check owner", entities=entities)
-    user_uuid = await _get_employee_uuid(token)
+    user_uuid = await _get_employee_uuid(token, it_system)
     ownership = await asyncio.gather(
         *(
             is_owner(user_uuid, entity_type, entity_uuid)
@@ -280,11 +286,18 @@ async def check_owner(
     info: "MOInfo", token: Token, entities: set[tuple[EntityType, UUID]]
 ) -> None:
     """Check if the token is owner of the given entities."""
-    await _check_owner(token, entities, partial(_is_owner_via_predicate, info))
+    await _check_owner(
+        token,
+        entities,
+        info.context.settings.keycloak_rbac_authoritative_it_system_for_owners,
+        partial(_is_owner_via_predicate, info),
+    )
 
 
 async def check_owner_serviceapi(
-    token: Token, entities: set[tuple[EntityType, UUID]]
+    token: Token,
+    entities: set[tuple[EntityType, UUID]],
+    it_system: UUID | None,
 ) -> None:
     """Check ownership from the Service-API (no GraphQL `info` available)."""
-    await _check_owner(token, entities, _is_owner_via_graphql)
+    await _check_owner(token, entities, it_system, _is_owner_via_graphql)
