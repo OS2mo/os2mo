@@ -28,6 +28,7 @@ from mora import log
 from mora.auth.exceptions import AuthenticationError
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.oidc import authorization_exception_handler
+from mora.auth.keycloak.oidc import create_keycloak_auth
 from mora.auth.keycloak.oidc import fetch_token
 from mora.auth.keycloak.oidc import service_api_auth
 from mora.auth.middleware import set_authenticated_user
@@ -307,6 +308,7 @@ def create_app():
 
     # Set up lifecycle state for depends.py
     app.state.settings = settings
+    app.state.keycloak_auth = create_keycloak_auth(settings)
     app.state.sessionmaker = sessionmaker
     amqp_system = AMQPSystem(settings.amqp)
     app.state.amqp_system = amqp_system

@@ -141,33 +141,32 @@ def get_auth_dependency(
 
 
 token_url_path = "service/token"
-keycloak_auth = get_auth_dependency(
-    host=config.get_settings().keycloak_host,
-    port=config.get_settings().keycloak_port,
-    realm=config.get_settings().keycloak_realm,
-    token_url_path=token_url_path,
-    token_model=Token,
-    http_schema=config.get_settings().keycloak_schema,
-    alg=config.get_settings().keycloak_signing_alg,
-    verify_audience=config.get_settings().keycloak_verify_audience,
-)
 
 
-async def validate_token(token: str) -> Token:
-    """Validate a keycloak token.
+def create_keycloak_auth(
+    settings: config.Settings,
+) -> Callable[[str], Awaitable[Token]]:
+    """Build the Keycloak auth dependency for an app.
 
-    Args:
-        The token to be validated.
-
-    Returns:
-        Whether the token was validated.
+    Called once per app from `create_app`, which stores the result on
+    `app.state`. Constructing it at import time instead would make importing
+    this module require a valid Keycloak configuration.
     """
-    return await keycloak_auth(token)
+    return get_auth_dependency(
+        host=settings.keycloak_host,
+        port=settings.keycloak_port,
+        realm=settings.keycloak_realm,
+        token_url_path=token_url_path,
+        token_model=Token,
+        http_schema=settings.keycloak_schema,
+        alg=settings.keycloak_signing_alg,
+        verify_audience=settings.keycloak_verify_audience,
+    )
 
 
 async def fetch_keycloak_token(request: Request) -> Token:
     oauth2_scheme = await OAuth2PasswordBearer(tokenUrl=token_url_path)(request)
-    return await validate_token(oauth2_scheme)
+    return await request.app.state.keycloak_auth(oauth2_scheme)
 
 
 async def legacy_auth_adapter(
