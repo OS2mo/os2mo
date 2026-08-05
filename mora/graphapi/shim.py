@@ -23,6 +23,7 @@ from starlette_context import context
 from starlette_context import request_cycle_context
 from strawberry.types import ExecutionResult
 
+from mora import config
 from mora import depends
 from mora import util
 from mora.auth.keycloak.models import Token
@@ -228,7 +229,10 @@ async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
             get_token=context["get_token"],
             amqp_system=context.get("amqp_system"),
             session=context.get("session"),
-            settings=context.get("settings"),
+            # Unlike amqp_system and session, settings must always be present:
+            # the error handlers read it on every failed operation. Callers
+            # outside a request have no starlette context to take it from.
+            settings=context.get("settings") or config.get_settings(),
         )
 
     schema = get_schema(LATEST_VERSION)
