@@ -140,7 +140,7 @@ async def fetch_endpoint_triggers(
         return dict(trigger_tuples)
 
 
-async def register(app) -> bool:
+async def register(settings: config.Settings) -> bool:
     """Register triggers for what the http trigger handlers need.
 
     This method:
@@ -148,7 +148,7 @@ async def register(app) -> bool:
     * Fetches /triggers on all configured http trigger handlers.
     * Registers the http_sender trigger for all the requested events.
     """
-    settings = config.get_settings()
+
     endpoints = settings.http_endpoints
     if not endpoints:
         logger.debug("HTTP Triggers has no endpoints!")
