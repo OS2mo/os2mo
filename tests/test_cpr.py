@@ -1,10 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from pathlib import Path
-
 import httpx
 import pytest
 import respx
+from _pytest.mark.structures import ParameterSet
 from fastapi.testclient import TestClient
 
 from mora import mapping
@@ -15,6 +14,8 @@ from tests.conftest import SP_CERTIFICATE_EMPTY_PATH
 from tests.conftest import SP_CERTIFICATE_PATH
 
 from . import util
+
+SP_UUID = "12345678-9abc-def1-1111-111111111111"
 
 
 @pytest.mark.parametrize(
@@ -50,76 +51,94 @@ def test_birthdate_validation_disabled(service_client: TestClient) -> None:
     assert response.json() == {}
 
 
-def _sp_config(monkeypatch: pytest.MonkeyPatch, **overrides: str) -> None:
-    UUID_OK = "12345678-9abc-def1-1111-111111111111"
-
-    env_vars = {
-        "SP_SERVICE_UUID": UUID_OK,
-        "SP_AGREEMENT_UUID": UUID_OK,
-        "SP_MUNICIPALITY_UUID": UUID_OK,
-        "SP_SYSTEM_UUID": UUID_OK,
-        **overrides,
+@pytest.mark.envvar(
+    {
+        "ENABLE_SP": "true",
+        "SP_SERVICE_UUID": SP_UUID,
+        "SP_AGREEMENT_UUID": SP_UUID,
+        "SP_MUNICIPALITY_UUID": SP_UUID,
+        "SP_SYSTEM_UUID": SP_UUID,
     }
-    for env_var, value in env_vars.items():
-        monkeypatch.setenv(env_var, value)
-
-
-def test_serviceplatformen_missing_path(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("ENABLE_SP", "true")
-    _sp_config(monkeypatch)
-
+)
+def test_serviceplatformen_missing_path() -> None:
     with pytest.raises(ValueError) as exc_info:
         Settings()
     assert "sp_certificate_path\n  field required" in str(exc_info.value)
 
 
-def test_serviceplatformen_empty_file(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("ENABLE_SP", "true")
-    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=SP_CERTIFICATE_EMPTY_PATH)
-
+@pytest.mark.envvar(
+    {
+        "ENABLE_SP": "true",
+        "SP_SERVICE_UUID": SP_UUID,
+        "SP_AGREEMENT_UUID": SP_UUID,
+        "SP_MUNICIPALITY_UUID": SP_UUID,
+        "SP_SYSTEM_UUID": SP_UUID,
+        "SP_CERTIFICATE_PATH": SP_CERTIFICATE_EMPTY_PATH,
+    }
+)
+def test_serviceplatformen_empty_file() -> None:
     with pytest.raises(ValueError) as exc_info:
         Settings()
     assert "Serviceplatformen certificate can not be empty" in str(exc_info.value)
 
 
-def test_serviceplatformen_happy_path(
-    monkeypatch: pytest.MonkeyPatch, sp_certificate: Path
-) -> None:
-    monkeypatch.setenv("ENVIRONMENT", "production")
-    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(sp_certificate))
-
+@pytest.mark.envvar(
+    {
+        "ENVIRONMENT": "production",
+        "ENABLE_SP": "true",
+        "SP_SERVICE_UUID": SP_UUID,
+        "SP_AGREEMENT_UUID": SP_UUID,
+        "SP_MUNICIPALITY_UUID": SP_UUID,
+        "SP_SYSTEM_UUID": SP_UUID,
+        "SP_CERTIFICATE_PATH": SP_CERTIFICATE_PATH,
+    }
+)
+def test_serviceplatformen_happy_path() -> None:
     Settings()
+
+
+def pv(
+    sp_api_version: int | str, expected_exception: type[ValueError] | None
+) -> ParameterSet:
+    """A parametrize case that sets the given SP API version."""
+    return pytest.param(
+        sp_api_version,
+        expected_exception,
+        marks=pytest.mark.envvar({"SP_API_VERSION": str(sp_api_version)}),
+    )
 
 
 @pytest.mark.parametrize(
     "sp_api_version,expected_exception",
     [
-        (1, ValueError),
-        ("", ValueError),
-        (4, None),
-        (5, None),
+        pv(1, ValueError),
+        pv("", ValueError),
+        pv(4, None),
+        pv(5, None),
     ],
 )
+@pytest.mark.envvar(
+    {
+        "ENVIRONMENT": "production",
+        "ENABLE_SP": "true",
+        "SP_SERVICE_UUID": SP_UUID,
+        "SP_AGREEMENT_UUID": SP_UUID,
+        "SP_MUNICIPALITY_UUID": SP_UUID,
+        "SP_SYSTEM_UUID": SP_UUID,
+        "SP_CERTIFICATE_PATH": SP_CERTIFICATE_PATH,
+    }
+)
 def test_serviceplatformen_api_version_validation(
-    monkeypatch: pytest.MonkeyPatch,
-    sp_configuration: None,
     sp_api_version: int | str,
     expected_exception: type[ValueError] | None,
 ) -> None:
     """Test validation in `ServicePlatformenSettings.validate_api_version`"""
-    _sp_config(monkeypatch, SP_API_VERSION=str(sp_api_version))
     if expected_exception:
         with pytest.raises(expected_exception):
             Settings()
     else:
         settings = Settings()
         assert settings.sp_settings.sp_api_version == sp_api_version
-
-
-@pytest.fixture
-def sp_certificate() -> Path:
-    """Return the path to the Serviceplatformen test certificate."""
-    return Path(SP_CERTIFICATE_PATH)
 
 
 # Minimal SF1520 PersonLookupResponse, just enough for `get_citizen` to parse.
@@ -132,9 +151,7 @@ SP_RESPONSE = (
 )
 
 
-def test_get_citizen_uses_version_kwarg(
-    respx_mock: respx.MockRouter, sp_certificate: Path
-) -> None:
+def test_get_citizen_uses_version_kwarg(respx_mock: respx.MockRouter) -> None:
     route = respx_mock.post(
         "https://exttest.serviceplatformen.dk/service/CPR/PersonBaseDataExtended/4"
     ).mock(return_value=httpx.Response(200, text=SP_RESPONSE))
@@ -146,7 +163,7 @@ def test_get_citizen_uses_version_kwarg(
         "service": "44444444-4444-4444-4444-444444444444",
     }
     citizen = serviceplatformen.get_citizen(
-        service_uuids, str(sp_certificate), "0101010101", api_version=4
+        service_uuids, SP_CERTIFICATE_PATH, "0101010101", api_version=4
     )
 
     assert route.called
@@ -154,10 +171,19 @@ def test_get_citizen_uses_version_kwarg(
     assert citizen["efternavn"] == "Doe"
 
 
+@pytest.mark.envvar(
+    {
+        # Set up mock Serviceplatform access, with a certificate `httpx` can load.
+        "ENABLE_SP": "true",
+        "SP_SERVICE_UUID": SP_UUID,
+        "SP_AGREEMENT_UUID": SP_UUID,
+        "SP_MUNICIPALITY_UUID": SP_UUID,
+        "SP_SYSTEM_UUID": SP_UUID,
+        "SP_CERTIFICATE_PATH": SP_CERTIFICATE_PATH,
+    }
+)
 async def test_cpr_lookup_returns_name_from_serviceplatformen(
     service_client: TestClient,
-    monkeypatch: pytest.MonkeyPatch,
-    sp_certificate: Path,
     respx_mock: respx.MockRouter,
 ) -> None:
     """A normal CPR lookup goes through the `get_citizen` shim and returns the name
@@ -168,10 +194,6 @@ async def test_cpr_lookup_returns_name_from_serviceplatformen(
     ).mock(return_value=httpx.Response(200, text=SP_RESPONSE))
 
     cpr = "0101501234"
-
-    # Set up mock Serviceplatform access, with a certificate `httpx` can load.
-    monkeypatch.setenv("ENABLE_SP", "true")
-    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(sp_certificate))
 
     with util.override_config(Settings()):
         response = service_client.get("/service/e/cpr_lookup/", params={"q": cpr})
@@ -202,10 +224,20 @@ def test_handle_erstatningspersonnummer(
     assert actual_result == expected_result
 
 
+@pytest.mark.envvar(
+    {
+        # Set up mock Serviceplatform access.
+        "ENVIRONMENT": "production",
+        "ENABLE_SP": "true",
+        "SP_SERVICE_UUID": SP_UUID,
+        "SP_AGREEMENT_UUID": SP_UUID,
+        "SP_MUNICIPALITY_UUID": SP_UUID,
+        "SP_SYSTEM_UUID": SP_UUID,
+        "SP_CERTIFICATE_PATH": SP_CERTIFICATE_PATH,
+    }
+)
 async def test_cpr_lookup_handles_erstatningspersonnummer(
     service_client: TestClient,
-    monkeypatch: pytest.MonkeyPatch,
-    sp_certificate: Path,
 ) -> None:
     """Test that `search_cpr` handles "erstatningspersonnummer" CPR lookups correctly.
 
@@ -219,11 +251,6 @@ async def test_cpr_lookup_handles_erstatningspersonnummer(
     """
 
     cpr = "7202023333"
-
-    # Set up mock Serviceplatform access
-    monkeypatch.setenv("ENABLE_SP", "true")
-    monkeypatch.setenv("ENVIRONMENT", "production")
-    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(sp_certificate))
 
     # Skip CPR birthdate validation
     with util.override_config(Settings(cpr_validate_birthdate=False)):
