@@ -253,6 +253,7 @@ async def access_log_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "resolve_accesslog",
         "AccessLog",
         {

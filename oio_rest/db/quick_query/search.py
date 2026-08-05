@@ -10,6 +10,7 @@ from psycopg import sql
 from sqlalchemy import text
 
 from mora.access_log import access_log
+from mora.config import get_settings
 from mora.db import get_session
 from oio_rest.db import Livscyklus
 from oio_rest.db import to_bool
@@ -531,6 +532,7 @@ async def quick_search(
     uuids = [ensure_uuid(u) for u in flatten(output)]
     access_log(
         session,
+        get_settings(),
         "quick_search",
         org_class_name,
         access_log_arguments,
