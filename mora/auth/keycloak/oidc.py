@@ -170,7 +170,9 @@ async def fetch_keycloak_token(request: Request) -> Token:
     return await validate_token(oauth2_scheme)
 
 
-async def legacy_auth_adapter(request: Request) -> Token:  # pragma: no cover
+async def legacy_auth_adapter(
+    request: Request, settings: config.Settings
+) -> Token:  # pragma: no cover
     """
     Legacy support for the old session database to allow for grace-period before
     switching to Keycloak auth
@@ -183,7 +185,7 @@ async def legacy_auth_adapter(request: Request) -> Token:  # pragma: no cover
     session_id = request.headers.get("session")
     if session_id:
         logger.warning("Legacy session token used", session_id=session_id)
-        if validate_session(session_id):
+        if validate_session(session_id, settings.os2mo_legacy_sessions):
             return await legacyauth()
     return await fetch_keycloak_token(request)
 
@@ -210,7 +212,7 @@ async def fetch_token(request: Request, settings: depends.Settings) -> Token:
         HTTPException: If no token is present or it fails validation.
     """
     if settings.os2mo_legacy_sessions:  # pragma: no cover
-        return await legacy_auth_adapter(request)
+        return await legacy_auth_adapter(request, settings)
     return await fetch_keycloak_token(request)
 
 
