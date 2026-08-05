@@ -973,6 +973,170 @@ async def test_integration_class_owner_filter(graphapi_post: GraphAPIPost) -> No
     assert include_none == all_classes - 1
 
 
+CLASS_OWNER_QUERY = """
+    query ReadClassOwner($uuid: UUID!) {
+      classes(filter: {uuids: [$uuid]}) {
+        objects {
+          current {
+            owner
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def owned_class_setup(
+    create_org_unit: Callable[[str, UUID | None], UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+) -> dict[str, Any]:
+    """An organisation unit owning a class."""
+    owner_uuid = create_org_unit("owner-unit", None)
+    facet_uuid = create_facet(
+        {"user_key": "org_unit_type", "validity": {"from": "1900-01-01"}}
+    )
+    class_uuid = create_class(
+        {
+            "facet_uuid": str(facet_uuid),
+            "user_key": "owned_class",
+            "name": "Owned Class",
+            "owner": str(owner_uuid),
+            "validity": {"from": "2010-02-03"},
+        }
+    )
+    return {
+        "owner_uuid": owner_uuid,
+        "facet_uuid": facet_uuid,
+        "class_uuid": class_uuid,
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_class_update_clears_owner_via_null(
+    graphapi_post: GraphAPIPost,
+    update_class: Callable[[dict[str, Any]], UUID],
+    owned_class_setup: dict[str, Any],
+) -> None:
+    """`class_update` with `owner: null` must clear an existing owner."""
+    class_uuid = owned_class_setup["class_uuid"]
+    owner_uuid = owned_class_setup["owner_uuid"]
+
+    def read_owner() -> str | None:
+        response = graphapi_post(CLASS_OWNER_QUERY, variables={"uuid": str(class_uuid)})
+        assert response.errors is None
+        return one(response.data["classes"]["objects"])["current"]["owner"]
+
+    assert read_owner() == str(owner_uuid)
+
+    update_class(
+        {
+            "uuid": str(class_uuid),
+            "owner": None,
+            "facet_uuid": str(owned_class_setup["facet_uuid"]),
+            "user_key": "owned_class",
+            "name": "Owned Class",
+            "validity": {"from": "2010-02-03"},
+        }
+    )
+
+    assert read_owner() is None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_class_owner_filter_include_none_after_clearing(
+    graphapi_post: GraphAPIPost,
+    update_class: Callable[[dict[str, Any]], UUID],
+    owned_class_setup: dict[str, Any],
+) -> None:
+    """A class whose owner was cleared must count as having no owner."""
+    class_uuid = owned_class_setup["class_uuid"]
+    owner_uuid = owned_class_setup["owner_uuid"]
+
+    def filtered(include_none: bool) -> set[str]:
+        response = graphapi_post(
+            """
+            query OwnerFilter($owner: [UUID!], $include_none: Boolean!) {
+              classes(
+                filter: {owner: {uuids: $owner, include_none: $include_none}}
+              ) {
+                objects {
+                  uuid
+                }
+              }
+            }
+            """,
+            variables={"owner": [str(owner_uuid)], "include_none": include_none},
+        )
+        assert response.errors is None
+        return {obj["uuid"] for obj in response.data["classes"]["objects"]}
+
+    assert str(class_uuid) in filtered(include_none=False)
+
+    update_class(
+        {
+            "uuid": str(class_uuid),
+            "owner": None,
+            "facet_uuid": str(owned_class_setup["facet_uuid"]),
+            "user_key": "owned_class",
+            "name": "Owned Class",
+            "validity": {"from": "2010-02-03"},
+        }
+    )
+
+    assert str(class_uuid) not in filtered(include_none=False)
+    assert str(class_uuid) in filtered(include_none=True)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_class_owner_response(
+    graphapi_post: GraphAPIPost,
+    create_class: Callable[[dict[str, Any]], UUID],
+    owned_class_setup: dict[str, Any],
+) -> None:
+    """`owner_response` resolves the owning organisation unit, or null."""
+    owner_uuid = owned_class_setup["owner_uuid"]
+
+    def read_owner_response(class_uuid: UUID) -> dict | None:
+        response = graphapi_post(
+            """
+            query ReadOwnerResponse($uuid: UUID!) {
+              classes(filter: {uuids: [$uuid]}) {
+                objects {
+                  current {
+                    owner_response {
+                      uuid
+                    }
+                  }
+                }
+              }
+            }
+            """,
+            variables={"uuid": str(class_uuid)},
+        )
+        assert response.errors is None
+        return one(response.data["classes"]["objects"])["current"]["owner_response"]
+
+    assert read_owner_response(owned_class_setup["class_uuid"]) == {
+        "uuid": str(owner_uuid)
+    }
+
+    unowned_uuid = create_class(
+        {
+            "facet_uuid": str(owned_class_setup["facet_uuid"]),
+            "user_key": "unowned_class",
+            "name": "Unowned Class",
+            "validity": {"from": "2010-02-03"},
+        }
+    )
+
+    assert read_owner_response(unowned_uuid) is None
+
+
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_class_description(
