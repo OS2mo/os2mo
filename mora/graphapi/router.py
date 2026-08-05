@@ -15,6 +15,7 @@ from mora import db
 from mora import depends
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import token_getter
+from mora.config import Settings
 from mora.graphapi.access_log import get_access_log_loaders
 from mora.graphapi.actor import get_actor_loaders
 from mora.graphapi.custom_router import CustomGraphQLRouter
@@ -35,6 +36,7 @@ async def get_context(
     get_token: Callable[[], Awaitable[Token]] = Depends(token_getter),
     amqp_system: AMQPSystem = Depends(depends.get_amqp_system),
     session: db.AsyncSession = Depends(db.get_session),
+    settings: Settings = Depends(depends.get_settings),
 ) -> MOContext:
     loaders = await get_loaders()
     loaders.update(get_access_log_loaders(session))
@@ -45,6 +47,7 @@ async def get_context(
         amqp_system=amqp_system,
         session=session,
         dataloaders=moloaders,
+        settings=settings,
     )
 
 
