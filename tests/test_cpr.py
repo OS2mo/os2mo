@@ -11,6 +11,8 @@ from mora import mapping
 from mora.config import Settings
 from mora.service.shimmed import cpr as cpr_shim
 from mora.service.shimmed import serviceplatformen
+from tests.conftest import SP_CERTIFICATE_EMPTY_PATH
+from tests.conftest import SP_CERTIFICATE_PATH
 
 from . import util
 
@@ -48,7 +50,7 @@ def test_birthdate_validation_disabled(service_client: TestClient) -> None:
         assert response.json() == {}
 
 
-def _sp_config(monkeypatch, **overrides):
+def _sp_config(monkeypatch: pytest.MonkeyPatch, **overrides: str) -> None:
     UUID_OK = "12345678-9abc-def1-1111-111111111111"
 
     env_vars = {
@@ -62,7 +64,7 @@ def _sp_config(monkeypatch, **overrides):
         monkeypatch.setenv(env_var, value)
 
 
-def test_serviceplatformen_missing_path(monkeypatch):
+def test_serviceplatformen_missing_path(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ENABLE_SP", "true")
     _sp_config(monkeypatch)
 
@@ -71,24 +73,20 @@ def test_serviceplatformen_missing_path(monkeypatch):
     assert "sp_certificate_path\n  field required" in str(exc_info.value)
 
 
-def test_serviceplatformen_empty_file(monkeypatch, tmp_path):
-    tmp_file = tmp_path / "testfile"
-    tmp_file.write_text("")
-
+def test_serviceplatformen_empty_file(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ENABLE_SP", "true")
-    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(tmp_file))
+    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=SP_CERTIFICATE_EMPTY_PATH)
 
     with pytest.raises(ValueError) as exc_info:
         Settings()
     assert "Serviceplatformen certificate can not be empty" in str(exc_info.value)
 
 
-def test_serviceplatformen_happy_path(monkeypatch, tmp_path):
-    tmp_file = tmp_path / "testfile"
-    tmp_file.write_text("This is a certificate")
-
+def test_serviceplatformen_happy_path(
+    monkeypatch: pytest.MonkeyPatch, sp_certificate: Path
+) -> None:
     monkeypatch.setenv("ENVIRONMENT", "production")
-    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(tmp_file))
+    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(sp_certificate))
 
     Settings()
 
@@ -103,11 +101,11 @@ def test_serviceplatformen_happy_path(monkeypatch, tmp_path):
     ],
 )
 def test_serviceplatformen_api_version_validation(
-    monkeypatch,
-    sp_configuration,
-    sp_api_version,
-    expected_exception,
-):
+    monkeypatch: pytest.MonkeyPatch,
+    sp_configuration: None,
+    sp_api_version: int | str,
+    expected_exception: type[ValueError] | None,
+) -> None:
     """Test validation in `ServicePlatformenSettings.validate_api_version`"""
     _sp_config(monkeypatch, SP_API_VERSION=str(sp_api_version))
     if expected_exception:
@@ -121,7 +119,7 @@ def test_serviceplatformen_api_version_validation(
 @pytest.fixture
 def sp_certificate() -> Path:
     """Return the path to the Serviceplatformen test certificate."""
-    return Path("tests/fixtures/sp_certificate.pem")
+    return Path(SP_CERTIFICATE_PATH)
 
 
 # Minimal SF1520 PersonLookupResponse, just enough for `get_citizen` to parse.
@@ -206,8 +204,8 @@ def test_handle_erstatningspersonnummer(
 
 async def test_cpr_lookup_handles_erstatningspersonnummer(
     service_client: TestClient,
-    monkeypatch,
-    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+    sp_certificate: Path,
 ) -> None:
     """Test that `search_cpr` handles "erstatningspersonnummer" CPR lookups correctly.
 
@@ -225,9 +223,7 @@ async def test_cpr_lookup_handles_erstatningspersonnummer(
     # Set up mock Serviceplatform access
     monkeypatch.setenv("ENABLE_SP", "true")
     monkeypatch.setenv("ENVIRONMENT", "production")
-    tmp_file = tmp_path / "testfile"
-    tmp_file.write_text("This is a certificate")
-    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(tmp_file))
+    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(sp_certificate))
 
     # Skip CPR birthdate validation
     with util.override_config(Settings(cpr_validate_birthdate=False)):
