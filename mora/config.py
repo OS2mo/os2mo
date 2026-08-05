@@ -210,8 +210,14 @@ class Settings(BaseSettings):
         """Return whether we are running in a production environment."""
         return self.environment is Environment.PRODUCTION
 
-    def is_under_test(self) -> bool:
-        return os.environ.get("PYTEST_RUNNING") is not None
+
+def is_under_test() -> bool:
+    """Return whether we are running under pytest.
+
+    This is a property of the process, not of the configuration, so it is
+    deliberately not a `Settings` field: it must be readable without one.
+    """
+    return os.environ.get("PYTEST_RUNNING") is not None
 
 
 @lru_cache

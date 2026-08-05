@@ -131,7 +131,7 @@ def create_app():
     log.init(
         log_level=settings.log_level,
         json=settings.environment is not Environment.DEVELOPMENT,
-        under_test=settings.is_under_test(),
+        under_test=config.is_under_test(),
     )
     tags_metadata = chain(
         [

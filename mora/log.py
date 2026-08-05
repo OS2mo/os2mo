@@ -14,7 +14,7 @@ from structlog.types import EventDict
 from structlog.types import Processor
 from uvicorn.protocols.utils import get_path_with_query_string
 
-from mora.config import get_settings
+from mora.config import is_under_test
 
 logger = structlog.get_logger()
 
@@ -151,7 +151,7 @@ async def canonical_log_dependency():
 
 
 def canonical_log_context() -> dict:
-    if get_settings().is_under_test() and _CANONICAL_LOG_KEY not in context:
+    if is_under_test() and _CANONICAL_LOG_KEY not in context:
         return {}
     return context[_CANONICAL_LOG_KEY]
 
