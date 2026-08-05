@@ -69,12 +69,13 @@ if TYPE_CHECKING:
 logger = get_logger()
 
 
-def add_exception_extension(error: GraphQLError) -> StrawberryGraphQLError:
+def add_exception_extension(
+    error: GraphQLError, settings: config.Settings
+) -> StrawberryGraphQLError:
     extensions = {}
     if isinstance(error.original_error, HTTPException):
         extensions["error_context"] = jsonable_encoder(error.original_error.detail)
         # Log errors like http_exception_handler in mora/app.py
-        settings = config.get_settings()
         if not settings.is_production():
             logger.info(
                 "http_exception",
@@ -120,7 +121,10 @@ class ExtendedErrorFormatExtension(SchemaExtension):
         yield
         result = self.execution_context.result
         if result and hasattr(result, "errors") and result.errors is not None:
-            result.errors = list(map(add_exception_extension, result.errors))
+            settings = self.execution_context.context.settings
+            result.errors = [
+                add_exception_extension(error, settings) for error in result.errors
+            ]
 
 
 class RollbackOnError(SchemaExtension):

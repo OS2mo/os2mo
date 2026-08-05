@@ -12,7 +12,6 @@ from strawberry.types import ExecutionContext
 from strawberry.types.base import StrawberryObjectDefinition
 from strawberry.types.field import StrawberryField
 
-from mora import config
 from mora.graphapi.fields import Metadata
 from mora.graphapi.version import Version
 from mora.log import canonical_gql_context
@@ -49,7 +48,10 @@ class CustomSchema(Schema):
             for error in errors
         ]
         canonical_gql_context()["exceptions"] = exceptions
-        if not config.get_settings().is_production():
+        # `execution_context` is optional in the strawberry API, but is always
+        # passed for errors raised during execution, which is all we handle here.
+        assert execution_context is not None
+        if not execution_context.context.settings.is_production():
             # Pretty-print exceptions in development
             for exception in exceptions:
                 print(exception, end="")
