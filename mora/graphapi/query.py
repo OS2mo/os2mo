@@ -136,6 +136,7 @@ async def file_resolver(
     # only way to resolve a `File` (which is needed to read the content).
     access_log(
         session,
+        info.context.settings,
         "file_resolver",
         "File",
         {

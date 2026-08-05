@@ -251,6 +251,7 @@ async def actor_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "resolve_actors",
         "Actor",
         {

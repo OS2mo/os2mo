@@ -377,6 +377,7 @@ async def facet_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "filter_facets",
         "Facet",
         {
@@ -569,6 +570,7 @@ async def class_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "filter_classes",
         "Klasse",
         {
@@ -814,6 +816,7 @@ async def address_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "filter_addresses",
         "OrganisationFunktion",
         {
@@ -1013,6 +1016,7 @@ async def association_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "filter_associations",
         "OrganisationFunktion",
         {
@@ -1160,6 +1164,7 @@ async def employee_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "filter_employees",
         "Bruger",
         {
@@ -1384,6 +1389,7 @@ async def engagement_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "filter_engagements",
         "OrganisationFunktion",
         {
@@ -1775,6 +1781,7 @@ async def manager_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "filter_managers",
         "OrganisationFunktion",
         {
@@ -1944,6 +1951,7 @@ async def owner_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "filter_owners",
         "OrganisationFunktion",
         {
@@ -2345,6 +2353,7 @@ async def organisation_unit_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "filter_orgunits",
         "OrganisationEnhed",
         {
@@ -2473,6 +2482,7 @@ async def it_system_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "filter_itsystems",
         "ITSystem",
         {
@@ -2774,6 +2784,7 @@ async def it_user_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "filter_itusers",
         "OrganisationFunktion",
         {
@@ -2910,6 +2921,7 @@ async def kle_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "filter_kles",
         "OrganisationFunktion",
         {
@@ -3069,6 +3081,7 @@ async def leave_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "filter_leaves",
         "OrganisationFunktion",
         {
@@ -3231,6 +3244,7 @@ async def related_unit_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "filter_related_units",
         "OrganisationFunktion",
         {
@@ -3411,6 +3425,7 @@ async def rolebinding_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "filter_rolebindings",
         "OrganisationFunktion",
         {
@@ -3685,6 +3700,7 @@ async def registration_resolver(
 
     access_log(
         session,
+        info.context.settings,
         "resolve_registrations",
         "Registration",
         {

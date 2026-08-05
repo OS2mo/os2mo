@@ -25,6 +25,7 @@ from sqlalchemy.exc import StatementError
 from mora import util
 from mora.access_log import access_log
 from mora.auth.middleware import get_authenticated_user
+from mora.config import get_settings
 from mora.db import get_session
 from ramodels.base import to_parsable_timestamp
 
@@ -257,7 +258,14 @@ async def object_exists(class_name: str, uuid: str) -> bool:
 
     session = get_session()
     try:
-        access_log(session, "object_exists", class_name, arguments, [UUID(uuid)])
+        access_log(
+            session,
+            get_settings(),
+            "object_exists",
+            class_name,
+            arguments,
+            [UUID(uuid)],
+        )
         result = await session.scalar(sql, arguments)
     except StatementError as e:  # pragma: no cover
         if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
@@ -476,7 +484,14 @@ async def list_objects(
     uuids = []
     if output is not None:
         uuids = [entry["id"] for entry in output]
-    access_log(session, "list_objects", class_name, arguments, list(map(UUID, uuids)))
+    access_log(
+        session,
+        get_settings(),
+        "list_objects",
+        class_name,
+        arguments,
+        list(map(UUID, uuids)),
+    )
 
     ret = filter_json_output((output,))
     with suppress(IndexError):
@@ -783,7 +798,14 @@ async def search_objects(
         else:
             raise
     uuids = one(result.fetchone())
-    access_log(session, "search_objects", class_name, arguments, list(map(UUID, uuids)))
+    access_log(
+        session,
+        get_settings(),
+        "search_objects",
+        class_name,
+        arguments,
+        list(map(UUID, uuids)),
+    )
 
     return (uuids,)
 

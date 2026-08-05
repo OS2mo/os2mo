@@ -90,7 +90,7 @@ async def test_access_log_database(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
-    access_log(empty_db, "test_accesslog", "AccessLog", {}, [uuid])
+    access_log(empty_db, get_settings(), "test_accesslog", "AccessLog", {}, [uuid])
 
     await assert_one_access_log_entry(empty_db, "AccessLog", "test_accesslog", [uuid])
 
@@ -260,6 +260,7 @@ async def test_access_log_filters(
                 # TODO: Set time somehow
                 access_log(
                     session,
+                    get_settings(),
                     access_event["operation"],
                     access_event["class_name"],
                     {},
@@ -329,7 +330,7 @@ async def test_access_log_disabled(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
-    access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
+    access_log(empty_db, get_settings(), "test_access_log", "AccessLog", {}, [uuid])
     await assert_empty_access_log_tables(empty_db)
 
 
@@ -341,7 +342,7 @@ async def test_access_log_enabled(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
-    access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
+    access_log(empty_db, get_settings(), "test_access_log", "AccessLog", {}, [uuid])
     await assert_one_access_log_entry(empty_db, "AccessLog", "test_access_log", [uuid])
 
 
@@ -429,7 +430,7 @@ async def test_access_log_disabled_for_user(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
-    access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
+    access_log(empty_db, get_settings(), "test_access_log", "AccessLog", {}, [uuid])
     await assert_empty_access_log_tables(empty_db)
 
 
@@ -443,7 +444,7 @@ async def test_access_log_enabled_for_user(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
-    access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
+    access_log(empty_db, get_settings(), "test_access_log", "AccessLog", {}, [uuid])
     await assert_one_access_log_entry(empty_db, "AccessLog", "test_access_log", [uuid])
 
 
