@@ -3,12 +3,9 @@
 from contextlib import suppress
 from uuid import UUID
 
-from mora import config
 
-
-def validate_session(session_id: str) -> bool:
+def validate_session(session_id: str, legacy_sessions: list[UUID]) -> bool:
     """Validate the existence of a session in our legacy sessions."""
-    settings = config.get_settings()
     with suppress(ValueError):
-        return UUID(session_id) in settings.os2mo_legacy_sessions
+        return UUID(session_id) in legacy_sessions
     return False
