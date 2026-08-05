@@ -6,7 +6,7 @@ from textwrap import dedent
 
 import strawberry
 
-from mora import config
+from mora.graphapi.context import MOInfo
 
 
 @strawberry.type(description="MO and DIPEX versions")
@@ -26,13 +26,13 @@ class Version:
             """
         )
     )
-    async def mo_version(self) -> str | None:
+    async def mo_version(self, info: MOInfo) -> str | None:
         """Get the mo version.
 
         Returns:
             The version.
         """
-        return config.get_settings().commit_tag
+        return info.context.settings.commit_tag
 
     @strawberry.field(
         description=dedent(
@@ -49,22 +49,22 @@ class Version:
             """
         )
     )
-    async def mo_hash(self) -> str | None:
+    async def mo_hash(self, info: MOInfo) -> str | None:
         """Get the mo commit hash.
 
         Returns:
             The commit hash.
         """
-        return config.get_settings().commit_sha
+        return info.context.settings.commit_sha
 
     @strawberry.field(
         description="LoRa version. Returns the exact same as `mo_version`.",
         deprecation_reason="MO and LoRa are shipped and versioned together",
     )
-    async def lora_version(self) -> str | None:
+    async def lora_version(self, info: MOInfo) -> str | None:
         """Get the lora version.
 
         Returns:
             The version.
         """
-        return config.get_settings().commit_tag
+        return info.context.settings.commit_tag

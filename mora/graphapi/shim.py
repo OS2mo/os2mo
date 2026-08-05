@@ -193,6 +193,7 @@ class MOAddress(AddressRead):
 async def set_graphql_context_dependencies(
     amqp_system: depends.AMQPSystem,
     session: depends.Session,
+    settings: depends.Settings,
     get_token: Callable[[], Awaitable[Token]] = Depends(token_getter),
 ):
     """Fetch FastAPI dependencies into starlette context.
@@ -209,6 +210,7 @@ async def set_graphql_context_dependencies(
         "amqp_system": amqp_system,
         "session": session,
         "get_token": get_token,
+        "settings": settings,
     }
     with request_cycle_context(data):
         yield
@@ -226,6 +228,7 @@ async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
             get_token=context["get_token"],
             amqp_system=context.get("amqp_system"),
             session=context.get("session"),
+            settings=context.get("settings"),
         )
 
     schema = get_schema(LATEST_VERSION)
