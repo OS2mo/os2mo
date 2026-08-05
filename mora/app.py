@@ -177,7 +177,7 @@ def create_app():
     async def lifespan(app: FastAPI):
         instrumentator.expose(app)
 
-        await triggers.register(app)
+        await triggers.register(settings)
         try:
             if settings.amqp_enable:
                 async with app.state.amqp_system:

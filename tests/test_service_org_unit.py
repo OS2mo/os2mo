@@ -14,7 +14,7 @@ from starlette.datastructures import ImmutableMultiDict
 
 from mora import lora
 from mora import mapping
-from mora.config import get_settings
+from mora.config import Settings
 from mora.handler.impl.association import AssociationReader
 from mora.service.orgunit import UnitDetails
 from mora.service.orgunit import get_one_orgunit
@@ -199,14 +199,10 @@ async def refresh_trigger_mock() -> AsyncIterator[aioresponses]:
                 ]
             ),
         )
-        # Scope `HTTP_ENDPOINTS` to this `register` call only. The app registers
-        # http-triggers on start-up too, and this test builds two apps, so leaving
-        # the endpoint configured would register the trigger once per app.
-        with pytest.MonkeyPatch.context() as mp:
-            mp.setenv("HTTP_ENDPOINTS", '["http://whatever"]')
-            get_settings.cache_clear()
-            await register(None)
-        get_settings.cache_clear()
+        # Register against this mock only. The app registers http-triggers on
+        # start-up too, and this test builds two apps, so configuring the endpoint
+        # globally would register the trigger once per app.
+        await register(Settings(http_endpoints=["http://whatever"]))
         yield mock
 
 

@@ -72,7 +72,7 @@ async def amqp_sender(amqp_system: AMQPSystem, trigger_dict: dict) -> None:
         )
 
 
-async def register(app) -> bool:
+async def register(settings: config.Settings) -> bool:
     """Register an ON_AFTER triggers for all ROLE_TYPEs and RequestTypes.
 
     This method:
@@ -80,7 +80,7 @@ async def register(app) -> bool:
     * Establishes an AMQP connection to check credentials
     * Registers the AMQP trigger for all types.
     """
-    settings = config.get_settings()
+
     if not settings.amqp_enable:
         logger.debug("AMQP Triggers not enabled!")
         return False
@@ -98,7 +98,7 @@ async def register(app) -> bool:
             Optional[bool]: True if open, False if not open or an error occurs.
                 None if AMQP support is disabled.
         """
-        if not config.get_settings().amqp_enable:  # pragma: no cover
+        if not settings.amqp_enable:  # pragma: no cover
             return None
 
         return amqp_system.healthcheck()
