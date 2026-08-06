@@ -1101,7 +1101,9 @@ def employee_predicate(
 
     # Query search
     if filter.query:
-        predicates.append(search_employees_predicate(filter.query))
+        predicates.append(
+            search_employees_predicate(filter.query, info.context.settings)
+        )
 
     # Owner
     if filter.owner is not None:
