@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import sys
+import traceback
 from contextlib import asynccontextmanager
 from itertools import chain
 
@@ -120,7 +121,8 @@ async def request_validation_handler(request: Request, exc: RequestValidationErr
 async def http_exception_handler(request: Request, exc: HTTPException):
     settings = request.app.state.settings
     if not settings.is_production():
-        logger.info("http_exception", stack=exc.stack)
+        stack = "".join(traceback.format_exception(exc))
+        logger.info("http_exception", stack=stack)
 
     return http_exception_to_json_response(exc=exc)
 

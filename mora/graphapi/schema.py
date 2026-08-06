@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import time
+import traceback
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from collections.abc import Callable
@@ -77,7 +78,8 @@ def add_exception_extension(
         extensions["error_context"] = jsonable_encoder(error.original_error.detail)
         # Log errors like http_exception_handler in mora/app.py
         if not settings.is_production():
-            logger.info("http_exception", stack=error.original_error.stack)
+            stack = "".join(traceback.format_exception(error.original_error))
+            logger.info("http_exception", stack=stack)
 
     return StrawberryGraphQLError(
         extensions=extensions,
