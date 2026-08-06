@@ -9,7 +9,7 @@ from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.mo import PayloadUUID
 from starlette.testclient import TestClient
 
-from mora.config import get_settings
+from mora.config import Settings
 from tests.conftest import GraphAPIPost
 
 
@@ -115,7 +115,7 @@ async def test_amqp_emit(
     graphapi_post: GraphAPIPost,
 ) -> None:
     # Set up AMQP callback
-    settings = get_settings()
+    settings = Settings()
     amqp_settings = settings.amqp.copy(
         update=dict(
             # A queue prefix is required when registering callbacks

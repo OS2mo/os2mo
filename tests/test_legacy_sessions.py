@@ -11,7 +11,7 @@ from structlog.testing import capture_logs
 from mora.auth.keycloak.legacy import validate_session
 from mora.auth.keycloak.oidc import LEGACY_AUTH_UUID
 from mora.auth.keycloak.oidc import legacy_auth_adapter
-from mora.config import get_settings
+from mora.config import Settings
 
 ZERO_UUID = UUID("00000000-0000-0000-0000-000000000000")
 ONE_UUID = UUID("11111111-1111-1111-1111-111111111111")
@@ -56,7 +56,7 @@ async def test_legacy_session_logs_session_id() -> None:
     )
 
     with capture_logs() as logs:
-        token = await legacy_auth_adapter(request, get_settings())
+        token = await legacy_auth_adapter(request, Settings())
 
     # The valid session authenticates as the legacy actor.
     assert token.uuid == LEGACY_AUTH_UUID

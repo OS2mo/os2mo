@@ -371,7 +371,7 @@ def service_client_not_raising(fastapi_test_app: FastAPI) -> YieldFixture[TestCl
 
 @pytest.fixture(scope="session")
 def lora_settings() -> LoraSettings:
-    return lora_get_settings()
+    return LoraSettings()
 
 
 @pytest.fixture(scope="session")

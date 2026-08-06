@@ -12,7 +12,7 @@ from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.mo import PayloadUUID
 from more_itertools import one
 
-from mora.config import get_settings
+from mora.config import Settings
 from tests.conftest import GraphAPIPost
 
 from .test_events import declare_listener
@@ -100,7 +100,7 @@ async def test_refresh_routing(
 
     # Setup AMQPSystem and listener
     amqp_system = AMQPSystem(
-        get_settings().amqp.copy(update=dict(queue_prefix=secrets.token_hex()))
+        Settings().amqp.copy(update=dict(queue_prefix=secrets.token_hex()))
     )
     amqp_uuids = set()
 
