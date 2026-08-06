@@ -38,7 +38,7 @@ from sqlalchemy import update
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from structlog import get_logger
 
-from mora.config import get_settings
+from mora.config import Settings
 from mora.db import AMQPSubsystem
 from mora.db import AsyncSession
 from mora.db import BrugerAttrEgenskaber
@@ -354,9 +354,8 @@ async def _emit_events(session: AsyncSession, amqp_system: AMQPSystem) -> None:
 
 async def start_event_generator(  # pragma: no cover
     sessionmaker: async_sessionmaker,
+    mo_settings: Settings,
 ) -> None:
-    mo_settings = get_settings()
-
     logger.info("starting event generator")
 
     # Shut down gracefully on SIGTERM (sent by docker/Kubernetes). Python
