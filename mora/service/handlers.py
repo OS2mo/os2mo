@@ -18,6 +18,7 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from ..config import Settings
 from ..mapping import EventType
 from ..mapping import RequestType
 from ..triggers import Trigger
@@ -69,16 +70,18 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         HANDLERS_BY_ROLE_TYPE[cls.role_type] = cls
 
-    def __init__(self, request: dict, request_type: RequestType):
+    def __init__(self, request: dict, request_type: RequestType, settings: Settings):
         """
         Initialize a request, and perform all required validation.
 
         :param request: A dict containing a request
         :param request_type: An instance of :class:`RequestType`.
+        :param settings: The application settings.
         """
         super().__init__()
         self.request_type = request_type
         self.request = request
+        self.settings = settings
         self.payload = None
         self.uuid = None
         self.trigger_results_before = None
@@ -352,7 +355,7 @@ def get_handler_for_function(obj: dict):
 
 
 async def generate_requests(
-    requests: list[dict], request_type: RequestType
+    requests: list[dict], request_type: RequestType, settings: Settings
 ) -> list[RequestHandler]:
     operations = {req.get("type") for req in requests}
 
@@ -366,18 +369,20 @@ async def generate_requests(
         requesthandler_klasse = HANDLERS_BY_ROLE_TYPE[req.get("type")]
         if request_type == RequestType.CREATE:
             requesthandlers.append(
-                await requesthandler_klasse.construct(req, request_type)
+                await requesthandler_klasse.construct(req, request_type, settings)
             )
         elif request_type == RequestType.EDIT:
             requesthandlers.append(
-                await requesthandler_klasse.construct(req, request_type)
+                await requesthandler_klasse.construct(req, request_type, settings)
             )
         elif request_type == RequestType.TERMINATE:
             requesthandlers.append(
-                await requesthandler_klasse.construct(req, request_type)
+                await requesthandler_klasse.construct(req, request_type, settings)
             )
         else:  # pragma: no cover
-            requesthandlers.append(await requesthandler_klasse(req, request_type))
+            requesthandlers.append(
+                await requesthandler_klasse(req, request_type, settings)
+            )
     return requesthandlers
 
 

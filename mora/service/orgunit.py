@@ -28,6 +28,7 @@ from more_itertools import flatten
 from more_itertools import last
 from more_itertools import unzip
 
+from mora import depends
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import get_lora_object
 
@@ -146,7 +147,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         )
 
         self.details_requests = await handlers.generate_requests(
-            details_with_org_units, mapping.RequestType.CREATE
+            details_with_org_units, mapping.RequestType.CREATE, self.settings
         )
 
         self.payload = org_unit
@@ -702,7 +703,9 @@ async def get_unit_tree(
 
 
 @router.get("/ou/{unitid}/refresh")
-async def trigger_external_integration(unitid: UUID, only_primary_uuid: bool = False):
+async def trigger_external_integration(
+    unitid: UUID, settings: depends.Settings, only_primary_uuid: bool = False
+):
     """
     Trigger external integration for a given org unit UUID
     :param unitid: The UUID of the org unit to trigger for
@@ -720,7 +723,7 @@ async def trigger_external_integration(unitid: UUID, only_primary_uuid: bool = F
     request = {}
     request[mapping.UUID] = unitid
     handler = await OrgUnitRequestHandler.construct(
-        request, mapping.RequestType.REFRESH
+        request, mapping.RequestType.REFRESH, settings
     )
     result = await handler.submit()
     return result
@@ -967,7 +970,11 @@ async def list_orgunit_tree(
 
 
 @router.post("/ou/create", status_code=201)
-async def create_org_unit(req: dict = Body(...), permissions=Depends(oidc.rbac_owner)):
+async def create_org_unit(
+    settings: depends.Settings,
+    req: dict = Body(...),
+    permissions=Depends(oidc.rbac_owner),
+):
     """Creates new organisational unit
 
     .. :quickref: Unit; Create
@@ -1015,6 +1022,8 @@ async def create_org_unit(req: dict = Body(...), permissions=Depends(oidc.rbac_o
 
     """
 
-    request = await OrgUnitRequestHandler.construct(req, mapping.RequestType.CREATE)
+    request = await OrgUnitRequestHandler.construct(
+        req, mapping.RequestType.CREATE, settings
+    )
 
     return await request.submit()

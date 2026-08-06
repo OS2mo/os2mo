@@ -28,6 +28,7 @@ from more_itertools import first
 from more_itertools import last
 from more_itertools import one
 
+from mora import depends
 from mora.request_scoped.bulking import get_lora_object
 from ramodels.mo.class_ import ClassWrite
 
@@ -433,6 +434,7 @@ class ClassRequestHandler(handlers.RequestHandler):
 async def create_or_update_class(
     facet: str,
     class_model: ClassWrite,
+    settings: depends.Settings,
 ):
     """Will create a new class if there's no UUID or it doesnt match an exiting class
     Will update an existing class if there's a matching UUID
@@ -441,7 +443,9 @@ async def create_or_update_class(
     :param class_model: Pydantic BaseModel for a class
     """
     req = {"facet": facet, "class_model": class_model}
-    request = await ClassRequestHandler.construct(req, mapping.RequestType.CREATE)
+    request = await ClassRequestHandler.construct(
+        req, mapping.RequestType.CREATE, settings
+    )
     return await request.submit()
 
 

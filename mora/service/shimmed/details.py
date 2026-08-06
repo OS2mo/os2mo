@@ -8,8 +8,10 @@ from fastapi.encoders import jsonable_encoder
 from more_itertools import first
 from more_itertools import one
 
+from mora import depends
 from mora import mapping
 from mora.auth.keycloak import oidc
+from mora.config import Settings
 from mora.graphapi.shim import execute_graphql
 from mora.service import handlers
 from mora.service.detail_writing import router as details_router
@@ -29,12 +31,13 @@ GRAPHQL_COMPATIBLE_TYPES = {
     "/details/terminate", responses={"400": {"description": "Unknown role type"}}
 )
 async def terminate(
+    settings: depends.Settings,
     reqs: list[DetailTermination] | DetailTermination = Body(...),
     permissions=Depends(oidc.rbac_owner),
 ):
     results: list[str] = []
     for req in [reqs] if not isinstance(reqs, list) else reqs:
-        results.append(await _termination_request_handler(req))
+        results.append(await _termination_request_handler(req, settings))
 
     # Format response to be compatible with legacy interactions
     if isinstance(reqs, list):
@@ -49,7 +52,9 @@ async def terminate(
 # Private methods
 
 
-async def _termination_request_handler(detail_termination: DetailTermination) -> str:
+async def _termination_request_handler(
+    detail_termination: DetailTermination, settings: Settings
+) -> str:
     """Tries to find a GraphQL mutation handler for the detail-termination, or defaults
     to legacy implementation."""
 
@@ -60,7 +65,7 @@ async def _termination_request_handler(detail_termination: DetailTermination) ->
     # LEGACY implementation for details missing GraphQL mutators (uses: .to_dict())
     if detail_termination.type not in grapql_terminate_handlers.keys():
         legacy_requests = await handlers.generate_requests(
-            [detail_termination.to_dict()], mapping.RequestType.TERMINATE
+            [detail_termination.to_dict()], mapping.RequestType.TERMINATE, settings
         )
 
         uuids = await handlers.submit_requests(legacy_requests)

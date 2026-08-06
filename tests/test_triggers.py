@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import pytest
 
+from mora.config import Settings
 from mora.exceptions import HTTPException
 from mora.mapping import EventType
 from mora.mapping import RequestType
@@ -35,7 +36,7 @@ async def test_handler_trigger_any_exception() -> None:
         raise Exception("Bummer")
 
     with pytest.raises(HTTPException) as err:
-        await MockHandler.construct({}, RequestType.EDIT)
+        await MockHandler.construct({}, RequestType.EDIT, Settings())
 
     assert {
         "description": "Bummer",
@@ -55,7 +56,7 @@ async def test_handler_trigger_own_error() -> None:
         raise Trigger.Error("Bummer", stage="final")
 
     with pytest.raises(HTTPException) as ctxt:
-        await MockHandler.construct({}, RequestType.EDIT)
+        await MockHandler.construct({}, RequestType.EDIT, Settings())
 
     assert {
         "error": True,
@@ -81,7 +82,7 @@ async def test_handler_trigger_before_edit() -> None:
             "uuid": "edit",
         } == trigger_dict
 
-    await MockHandler.construct({}, RequestType.EDIT)
+    await MockHandler.construct({}, RequestType.EDIT, Settings())
     assert trigger_called["entry"]
 
 
@@ -100,7 +101,7 @@ async def test_handler_trigger_after_edit() -> None:
             "result": "okidoki",
         } == trigger_dict
 
-    await (await MockHandler.construct({}, RequestType.EDIT)).submit()
+    await (await MockHandler.construct({}, RequestType.EDIT, Settings())).submit()
     assert trigger_called["entry"]
 
 
@@ -118,7 +119,7 @@ async def test_handler_trigger_before_create() -> None:
             "uuid": "create",
         } == trigger_dict
 
-    await MockHandler.construct({}, RequestType.CREATE)
+    await MockHandler.construct({}, RequestType.CREATE, Settings())
     assert trigger_called["entry"]
 
 
@@ -137,7 +138,7 @@ async def test_handler_trigger_after_create() -> None:
             "result": "okidoki",
         } == trigger_dict
 
-    await (await MockHandler.construct({}, RequestType.CREATE)).submit()
+    await (await MockHandler.construct({}, RequestType.CREATE, Settings())).submit()
     assert trigger_called["entry"]
 
 
@@ -155,7 +156,7 @@ async def test_handler_trigger_before_terminate() -> None:
             "uuid": "terminate",
         } == trigger_dict
 
-    await MockHandler.construct({}, RequestType.TERMINATE)
+    await MockHandler.construct({}, RequestType.TERMINATE, Settings())
     assert trigger_called["entry"]
 
 
@@ -174,5 +175,5 @@ async def test_handler_trigger_after_terminate() -> None:
             "result": "okidoki",
         } == trigger_dict
 
-    await (await MockHandler.construct({}, RequestType.TERMINATE)).submit()
+    await (await MockHandler.construct({}, RequestType.TERMINATE, Settings())).submit()
     assert trigger_called["entry"]

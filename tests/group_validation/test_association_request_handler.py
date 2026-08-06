@@ -5,6 +5,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from mora.config import Settings
 from mora.service.association import AssociationRequestHandler
 
 
@@ -63,7 +64,7 @@ class TestAssociationRequestHandlerGroupValidation:
     ):
         # Arrange
         mock_from_mo_objects = AsyncMock(return_value=Mock())
-        handler = AssociationRequestHandler(None, None)  # type: ignore
+        handler = AssociationRequestHandler(None, None, Settings())  # type: ignore
         with monkeypatch.context() as ctx:
             ctx.setattr(
                 "mora.service.validation.models.GroupValidation.from_mo_objects",

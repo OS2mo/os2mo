@@ -15,6 +15,7 @@ from ... import exceptions
 from ... import lora
 from ... import mapping
 from ... import util
+from ...config import Settings
 from ...lora import LoraObjectType
 
 
@@ -412,11 +413,11 @@ async def does_uuid_have_existing_association(
 
 
 @forceable
-def is_substitute_allowed(association_type_uuid: UUID):
+def is_substitute_allowed(association_type_uuid: UUID, settings: Settings):
     """
     checks whether the chosen association needs a substitute
     """
-    if not util.is_substitute_allowed(association_type_uuid):
+    if not util.is_substitute_allowed(association_type_uuid, settings):
         exceptions.ErrorCodes.E_INVALID_TYPE(
             f'Substitute not allowed for association type "{association_type_uuid}"'
         )

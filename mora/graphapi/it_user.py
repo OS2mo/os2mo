@@ -8,6 +8,7 @@ from mora import exceptions
 from mora import lora
 from mora import mapping
 from mora import util
+from mora.config import Settings
 from mora.service.itsystem import ItsystemRequestHandler
 
 from .models import ITUserCreate
@@ -15,18 +16,18 @@ from .models import ITUserTerminate
 from .models import ITUserUpdate
 
 
-async def create_ituser(input: ITUserCreate) -> UUID:
+async def create_ituser(input: ITUserCreate, settings: Settings) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await ItsystemRequestHandler.construct(
-        input_dict, mapping.RequestType.CREATE
+        input_dict, mapping.RequestType.CREATE, settings
     )
     uuid = await request.submit()
 
     return UUID(uuid)
 
 
-async def update_ituser(input: ITUserUpdate) -> UUID:
+async def update_ituser(input: ITUserUpdate, settings: Settings) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     req = {
@@ -35,19 +36,21 @@ async def update_ituser(input: ITUserUpdate) -> UUID:
         mapping.DATA: input_dict,
     }
 
-    request = await ItsystemRequestHandler.construct(req, mapping.RequestType.EDIT)
+    request = await ItsystemRequestHandler.construct(
+        req, mapping.RequestType.EDIT, settings
+    )
     uuid = await request.submit()
 
     return UUID(uuid)
 
 
-async def terminate_ituser(input: ITUserTerminate) -> UUID:
+async def terminate_ituser(input: ITUserTerminate, settings: Settings) -> UUID:
     await _validate_no_active_rolebindings(input)
 
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await ItsystemRequestHandler.construct(
-        input_dict, mapping.RequestType.TERMINATE
+        input_dict, mapping.RequestType.TERMINATE, settings
     )
     await request.submit()
 

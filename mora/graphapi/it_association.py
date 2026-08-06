@@ -7,6 +7,7 @@ from uuid import UUID
 from fastapi.encoders import jsonable_encoder
 
 from mora import mapping
+from mora.config import Settings
 from mora.service.association import AssociationRequestHandler
 
 from .models import ITAssociationCreate
@@ -14,18 +15,18 @@ from .models import ITAssociationTerminate
 from .models import ITAssociationUpdate
 
 
-async def create_itassociation(input: ITAssociationCreate) -> UUID:
+async def create_itassociation(input: ITAssociationCreate, settings: Settings) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await AssociationRequestHandler.construct(
-        input_dict, mapping.RequestType.CREATE
+        input_dict, mapping.RequestType.CREATE, settings
     )
     uuid = await request.submit()
 
     return UUID(uuid)
 
 
-async def update_itassociation(input: ITAssociationUpdate) -> UUID:
+async def update_itassociation(input: ITAssociationUpdate, settings: Settings) -> UUID:
     """Helper function for updating IT-associations."""
     input_dict = jsonable_encoder(input.to_handler_dict())
 
@@ -35,16 +36,20 @@ async def update_itassociation(input: ITAssociationUpdate) -> UUID:
         mapping.DATA: input_dict,
     }
 
-    request = await AssociationRequestHandler.construct(req, mapping.RequestType.EDIT)
+    request = await AssociationRequestHandler.construct(
+        req, mapping.RequestType.EDIT, settings
+    )
     uuid = await request.submit()
     return UUID(uuid)
 
 
-async def terminate_itassociation(input: ITAssociationTerminate) -> UUID:
+async def terminate_itassociation(
+    input: ITAssociationTerminate, settings: Settings
+) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await AssociationRequestHandler.construct(
-        input_dict, mapping.RequestType.TERMINATE
+        input_dict, mapping.RequestType.TERMINATE, settings
     )
     await request.submit()
 

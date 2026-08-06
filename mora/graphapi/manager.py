@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi.encoders import jsonable_encoder
 
 from mora import mapping
+from mora.config import Settings
 from mora.service.manager import ManagerRequestHandler
 
 from .models import ManagerCreate
@@ -12,19 +13,19 @@ from .models import ManagerTerminate
 from .models import ManagerUpdate
 
 
-async def create_manager(input: ManagerCreate) -> UUID:
+async def create_manager(input: ManagerCreate, settings: Settings) -> UUID:
     """Creating a manager."""
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await ManagerRequestHandler.construct(
-        input_dict, mapping.RequestType.CREATE
+        input_dict, mapping.RequestType.CREATE, settings
     )
     uuid = await request.submit()
 
     return UUID(uuid)
 
 
-async def update_manager(input: ManagerUpdate) -> UUID:
+async def update_manager(input: ManagerUpdate, settings: Settings) -> UUID:
     """Updating a manager."""
     input_dict = jsonable_encoder(input.to_handler_dict())
 
@@ -34,17 +35,19 @@ async def update_manager(input: ManagerUpdate) -> UUID:
         mapping.DATA: input_dict,
     }
 
-    request = await ManagerRequestHandler.construct(req, mapping.RequestType.EDIT)
+    request = await ManagerRequestHandler.construct(
+        req, mapping.RequestType.EDIT, settings
+    )
     uuid = await request.submit()
 
     return UUID(uuid)
 
 
-async def terminate_manager(input: ManagerTerminate) -> UUID:
+async def terminate_manager(input: ManagerTerminate, settings: Settings) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await ManagerRequestHandler.construct(
-        input_dict, mapping.RequestType.TERMINATE
+        input_dict, mapping.RequestType.TERMINATE, settings
     )
     await request.submit()
 

@@ -25,12 +25,12 @@ from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
 
+from mora import depends
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import get_lora_object
 from ramodels.base import tz_isodate
 
 from .. import common
-from .. import config
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -98,8 +98,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             try:
                 valid_from = util.get_cpr_birthdate(cpr)
             except ValueError as exc:
-                settings = config.get_settings()
-                if settings.cpr_validate_birthdate:
+                if self.settings.cpr_validate_birthdate:
                     exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr, cause=exc)
                 else:
                     valid_from = util.NEGATIVE_INFINITY
@@ -136,7 +135,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         # Validate the creation requests individually
         details_with_persons = _inject_persons(details, userid, valid_from, valid_to)
         self.details_requests = await handlers.generate_requests(
-            details_with_persons, mapping.RequestType.CREATE
+            details_with_persons, mapping.RequestType.CREATE, self.settings
         )
 
         self.payload = user
@@ -488,7 +487,11 @@ async def list_employees(
 
 # When RBAC enabled: currently, only the admin role can create employees
 @router.post("/e/create", status_code=201)
-async def create_employee(req: dict = Body(...), permissions=Depends(oidc.rbac_admin)):
+async def create_employee(
+    settings: depends.Settings,
+    req: dict = Body(...),
+    permissions=Depends(oidc.rbac_admin),
+):
     """Create a new employee
 
     .. :quickref: Employee; Create
@@ -556,7 +559,9 @@ async def create_employee(req: dict = Body(...), permissions=Depends(oidc.rbac_a
     :returns: UUID of created employee
 
     """
-    request = await EmployeeRequestHandler.construct(req, mapping.RequestType.CREATE)
+    request = await EmployeeRequestHandler.construct(
+        req, mapping.RequestType.CREATE, settings
+    )
     return await request.submit()
 
 

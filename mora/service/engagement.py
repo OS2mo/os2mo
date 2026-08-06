@@ -89,7 +89,9 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                 address_obj["validity"] = util.checked_get(req, mapping.VALIDITY, {})
 
         address_tasks = (
-            AddressRequestHandler.construct(addr_obj, mapping.RequestType.CREATE)
+            AddressRequestHandler.construct(
+                addr_obj, mapping.RequestType.CREATE, self.settings
+            )
             for addr_obj in addresses
         )
         self.addresses = [await task for task in address_tasks]
@@ -237,6 +239,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                     "uuid": address_obj.get(mapping.UUID),
                 },
                 mapping.RequestType.EDIT,
+                self.settings,
             )
             return addr_uuid, addr_handler
 
@@ -250,6 +253,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                     **address_obj,
                 },
                 mapping.RequestType.CREATE,
+                self.settings,
             )
             return addr_uuid, addr_handler
 

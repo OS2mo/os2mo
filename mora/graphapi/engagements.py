@@ -7,6 +7,7 @@ from uuid import UUID
 from fastapi.encoders import jsonable_encoder
 
 from mora import mapping
+from mora.config import Settings
 from mora.service.engagement import EngagementRequestHandler
 
 from .models import EngagementCreate
@@ -14,18 +15,18 @@ from .models import EngagementTerminate
 from .models import EngagementUpdate
 
 
-async def create_engagement(input: EngagementCreate) -> UUID:
+async def create_engagement(input: EngagementCreate, settings: Settings) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await EngagementRequestHandler.construct(
-        input_dict, mapping.RequestType.CREATE
+        input_dict, mapping.RequestType.CREATE, settings
     )
     uuid = await request.submit()
 
     return UUID(uuid)
 
 
-async def update_engagement(input: EngagementUpdate) -> UUID:
+async def update_engagement(input: EngagementUpdate, settings: Settings) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     req = {
@@ -34,17 +35,19 @@ async def update_engagement(input: EngagementUpdate) -> UUID:
         mapping.DATA: input_dict,
     }
 
-    request = await EngagementRequestHandler.construct(req, mapping.RequestType.EDIT)
+    request = await EngagementRequestHandler.construct(
+        req, mapping.RequestType.EDIT, settings
+    )
     uuid = await request.submit()
 
     return UUID(uuid)
 
 
-async def terminate_engagement(input: EngagementTerminate) -> UUID:
+async def terminate_engagement(input: EngagementTerminate, settings: Settings) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await EngagementRequestHandler.construct(
-        input_dict, mapping.RequestType.TERMINATE
+        input_dict, mapping.RequestType.TERMINATE, settings
     )
     await request.submit()
 

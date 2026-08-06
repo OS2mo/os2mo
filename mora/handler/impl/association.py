@@ -9,6 +9,7 @@ from more_itertools import only
 from more_itertools import partition
 from structlog import get_logger
 
+from mora import config
 from mora import exceptions
 
 from ... import mapping
@@ -161,7 +162,9 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         if it_system_binding_uuid:
             extra = ResponseExtraField.JOB_FUNCTION
         elif associated_function_uuid and util.is_substitute_allowed(
-            UUID(association_type)
+            # TODO: [#58898] pass settings into the reading handlers
+            UUID(association_type),
+            config.get_settings(),
         ):
             extra = ResponseExtraField.SUBSTITUTE
         else:

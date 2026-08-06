@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from mora import exceptions
 from mora import mapping
 from mora import util as mora_util
+from mora.config import Settings
 from mora.service.validation import validator
 
 
@@ -280,11 +281,15 @@ def test_is_distinct_responsibility_no_duplicate() -> None:
 )
 def test_is_substitute_allowed() -> None:
     # This should pass
-    validator.is_substitute_allowed(UUID("bcd05828-cc10-48b1-bc48-2f0d204859b2"))
+    validator.is_substitute_allowed(
+        UUID("bcd05828-cc10-48b1-bc48-2f0d204859b2"), Settings()
+    )
 
     # This shouldn't
     with pytest.raises(exceptions.HTTPException):
-        validator.is_substitute_allowed(UUID("8b073375-4196-4d90-9af9-0eb6ef8b6d0d"))
+        validator.is_substitute_allowed(
+            UUID("8b073375-4196-4d90-9af9-0eb6ef8b6d0d"), Settings()
+        )
 
 
 @pytest.mark.integration_test

@@ -18,10 +18,12 @@ from fastapi import Body
 from fastapi import Depends
 from starlette.status import HTTP_201_CREATED
 
+from mora import depends
 from mora.auth.keycloak import oidc
 
 from .. import exceptions
 from .. import mapping
+from ..config import Settings
 from . import handlers
 
 router = APIRouter()
@@ -30,6 +32,7 @@ router = APIRouter()
 async def handle_requests(
     reqs: dict | list[dict],
     request_type: mapping.RequestType,
+    settings: Settings,
 ):
     if isinstance(reqs, dict):
         is_single_request = True
@@ -39,7 +42,7 @@ async def handle_requests(
     else:  # pragma: no cover
         exceptions.ErrorCodes.E_INVALID_INPUT(request=reqs)
 
-    requests = await handlers.generate_requests(reqs, request_type)
+    requests = await handlers.generate_requests(reqs, request_type, settings)
 
     uuids = await handlers.submit_requests(requests)
     if is_single_request:
@@ -53,6 +56,7 @@ async def handle_requests(
     responses={"400": {"description": "Unknown role type"}},
 )
 async def create(
+    settings: depends.Settings,
     reqs: list[dict] | dict = Body(...),
     permissions=Depends(oidc.rbac_owner),
 ):
@@ -390,11 +394,12 @@ async def create(
       ]
 
     """
-    return await handle_requests(reqs, mapping.RequestType.CREATE)
+    return await handle_requests(reqs, mapping.RequestType.CREATE, settings)
 
 
 @router.post("/details/edit", responses={"400": {"description": "Unknown role type"}})
 async def edit(
+    settings: depends.Settings,
     reqs: list[dict] | dict = Body(...),
     permissions=Depends(oidc.rbac_owner),
 ):
@@ -902,4 +907,4 @@ async def edit(
     See :ref:`Adresses <address>` for more information.
 
     """
-    return await handle_requests(reqs, mapping.RequestType.EDIT)
+    return await handle_requests(reqs, mapping.RequestType.EDIT, settings)

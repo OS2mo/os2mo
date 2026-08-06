@@ -130,7 +130,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         # remove substitute if not needed
         await validator.is_mutually_exclusive(substitute_uuid, job_function_uuid)
         if substitute_uuid and association_type_uuid:  # substitute is specified
-            validator.is_substitute_allowed(UUID(association_type_uuid))
+            validator.is_substitute_allowed(UUID(association_type_uuid), self.settings)
         await validator.is_date_range_in_org_unit_range(org_unit, valid_from, valid_to)
         if employee:
             await validator.is_date_range_in_employee_range(
@@ -267,7 +267,9 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                     {"uuid": association_type_uuid},
                 )
             )
-            if not util.is_substitute_allowed(UUID(association_type_uuid)):
+            if not util.is_substitute_allowed(
+                UUID(association_type_uuid), self.settings
+            ):
                 # Updates "tilknyttedefunktioner"
                 update_fields.append(
                     (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": "", "urn": ""})
@@ -318,7 +320,9 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 association_type_uuid = util.get_mapping_uuid(
                     data, mapping.ASSOCIATION_TYPE, required=True
                 )
-                validator.is_substitute_allowed(UUID(association_type_uuid))
+                validator.is_substitute_allowed(
+                    UUID(association_type_uuid), self.settings
+                )
                 update_fields.append(
                     (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": substitute_uuid})
                 )

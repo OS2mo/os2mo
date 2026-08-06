@@ -11,6 +11,7 @@ from mora import exceptions
 from mora import lora
 from mora import mapping
 from mora import util
+from mora.config import Settings
 from mora.graphapi.version import Version
 from mora.service.orgunit import OrgUnitRequestHandler
 from mora.service.validation import validator
@@ -23,18 +24,22 @@ from .models import OrganisationUnitTerminate
 logger = logging.getLogger(__name__)
 
 
-async def create_org_unit(input: OrganisationUnitCreateInput) -> UUID:
+async def create_org_unit(
+    input: OrganisationUnitCreateInput, settings: Settings
+) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await OrgUnitRequestHandler.construct(
-        input_dict, mapping.RequestType.CREATE
+        input_dict, mapping.RequestType.CREATE, settings
     )
     uuid = await request.submit()
 
     return UUID(uuid)
 
 
-async def update_org_unit(version: Version, input: OrganisationUnitUpdateInput) -> UUID:
+async def update_org_unit(
+    version: Version, input: OrganisationUnitUpdateInput, settings: Settings
+) -> UUID:
     """Updating an organisation unit."""
     handler_dict = input.to_handler_dict()
     if version <= Version.VERSION_21:
@@ -48,7 +53,9 @@ async def update_org_unit(version: Version, input: OrganisationUnitUpdateInput) 
         mapping.DATA: input_dict,
     }
 
-    request = await OrgUnitRequestHandler.construct(req, mapping.RequestType.EDIT)
+    request = await OrgUnitRequestHandler.construct(
+        req, mapping.RequestType.EDIT, settings
+    )
     uuid = await request.submit()
 
     return UUID(uuid)
@@ -117,6 +124,7 @@ async def terminate_org_unit_validation(
 
 async def terminate_org_unit(
     input: OrganisationUnitTerminate,
+    settings: Settings,
 ) -> UUID:
     try:
         await terminate_org_unit_validation(input)
@@ -127,7 +135,7 @@ async def terminate_org_unit(
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await OrgUnitRequestHandler.construct(
-        input_dict, mapping.RequestType.TERMINATE
+        input_dict, mapping.RequestType.TERMINATE, settings
     )
     await request.submit()
 

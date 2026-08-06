@@ -8,6 +8,7 @@ from mora import common
 from mora import lora
 from mora import mapping
 from mora import util
+from mora.config import Settings
 from mora.mapping import RequestType
 from mora.service import handlers
 from mora.service.employee import EmployeeRequestHandler
@@ -18,17 +19,17 @@ from .models import EmployeeTerminate
 from .models import EmployeeUpdate
 
 
-async def create_employee(input: EmployeeCreate) -> UUID:
+async def create_employee(input: EmployeeCreate, settings: Settings) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await EmployeeRequestHandler.construct(
-        input_dict, mapping.RequestType.CREATE
+        input_dict, mapping.RequestType.CREATE, settings
     )
     uuid = await request.submit()
     return UUID(uuid)
 
 
-async def update_employee(input: EmployeeUpdate) -> UUID:
+async def update_employee(input: EmployeeUpdate, settings: Settings) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     req = {
@@ -37,13 +38,15 @@ async def update_employee(input: EmployeeUpdate) -> UUID:
         mapping.DATA: input_dict,
     }
 
-    request = await EmployeeRequestHandler.construct(req, RequestType.EDIT)
+    request = await EmployeeRequestHandler.construct(req, RequestType.EDIT, settings)
     uuid = await request.submit()
 
     return UUID(uuid)
 
 
-async def terminate_employee(termination: EmployeeTerminate) -> UUID:
+async def terminate_employee(
+    termination: EmployeeTerminate, settings: Settings
+) -> UUID:
     # Create request dict, legacy, from data model
     request = {mapping.VALIDITY: {mapping.TO: termination.to_date.date().isoformat()}}
     if termination.from_date:  # pragma: no cover
@@ -70,6 +73,7 @@ async def terminate_employee(termination: EmployeeTerminate) -> UUID:
                 },
             },
             mapping.RequestType.TERMINATE,
+            settings,
         )
         for objid, obj in await c.organisationfunktion.get_all(
             tilknyttedebrugere=uuid,

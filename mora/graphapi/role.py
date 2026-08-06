@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi.encoders import jsonable_encoder
 
 from mora import mapping
+from mora.config import Settings
 from mora.service.role import RoleBindingRequestHandler
 
 from .models import RoleBindingCreate
@@ -12,18 +13,18 @@ from .models import RoleBindingTerminate
 from .models import RoleBindingUpdate
 
 
-async def create_rolebinding(input: RoleBindingCreate) -> UUID:
+async def create_rolebinding(input: RoleBindingCreate, settings: Settings) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await RoleBindingRequestHandler.construct(
-        input_dict, mapping.RequestType.CREATE
+        input_dict, mapping.RequestType.CREATE, settings
     )
     uuid = await request.submit()
 
     return UUID(uuid)
 
 
-async def update_rolebinding(input: RoleBindingUpdate) -> UUID:
+async def update_rolebinding(input: RoleBindingUpdate, settings: Settings) -> UUID:
     """Updating a role."""
     input_dict = jsonable_encoder(input.to_handler_dict())
 
@@ -33,17 +34,21 @@ async def update_rolebinding(input: RoleBindingUpdate) -> UUID:
         mapping.DATA: input_dict,
     }
 
-    request = await RoleBindingRequestHandler.construct(req, mapping.RequestType.EDIT)
+    request = await RoleBindingRequestHandler.construct(
+        req, mapping.RequestType.EDIT, settings
+    )
     uuid = await request.submit()
 
     return UUID(uuid)
 
 
-async def terminate_rolebinding(input: RoleBindingTerminate) -> UUID:
+async def terminate_rolebinding(
+    input: RoleBindingTerminate, settings: Settings
+) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await RoleBindingRequestHandler.construct(
-        input_dict, mapping.RequestType.TERMINATE
+        input_dict, mapping.RequestType.TERMINATE, settings
     )
     await request.submit()
 

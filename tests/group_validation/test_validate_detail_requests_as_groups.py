@@ -3,6 +3,7 @@
 from unittest import mock
 from uuid import uuid4
 
+from mora.config import Settings
 from mora.service.handlers import RequestHandler
 from mora.service.handlers import RequestType
 
@@ -50,7 +51,7 @@ class TestHandlerValidateDetailRequestsAsGroups:
         }
 
         # Assert that the expected validation method is called exactly once
-        instance = _DummyRequestHandler(request, RequestType.CREATE)
+        instance = _DummyRequestHandler(request, RequestType.CREATE, Settings())
         with mock.patch(
             "mora.service.itsystem.ITUserUniqueGroupValidation.validate"
         ) as mock_validate:
