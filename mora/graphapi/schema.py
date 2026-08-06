@@ -77,11 +77,7 @@ def add_exception_extension(
         extensions["error_context"] = jsonable_encoder(error.original_error.detail)
         # Log errors like http_exception_handler in mora/app.py
         if not settings.is_production():
-            logger.info(
-                "http_exception",
-                stack=error.original_error.stack,
-                traceback=error.original_error.traceback,
-            )
+            logger.info("http_exception", stack=error.original_error.stack)
 
     return StrawberryGraphQLError(
         extensions=extensions,

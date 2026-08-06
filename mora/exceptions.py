@@ -169,7 +169,6 @@ class HTTPException(fastapiHTTPException):
         if error_key is not None:
             self.key = error_key
 
-        self.traceback: str | None = None
         self.stack: str | None = None
 
         body = {
