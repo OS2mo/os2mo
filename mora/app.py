@@ -181,11 +181,16 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         instrumentator.expose(app)
 
         await triggers.register(app)
-        if settings.amqp_enable:
-            async with app.state.amqp_system:
+        try:
+            if settings.amqp_enable:
+                async with app.state.amqp_system:
+                    yield
+            else:
                 yield
-        else:
-            yield
+        finally:
+            # Close the connection pool, rather than leaving the connections open
+            # until the engine is garbage collected.
+            await sessionmaker.kw["bind"].dispose()
 
     lora_settings = lora_get_settings()
     sessionmaker = create_sessionmaker(
