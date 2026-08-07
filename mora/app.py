@@ -1,9 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 import sys
 from contextlib import asynccontextmanager
-from contextlib import suppress
 from itertools import chain
 from typing import Any
 
@@ -54,7 +52,6 @@ from .auth.exceptions import get_auth_exception_handler
 from .config import Environment
 from .db import create_sessionmaker
 from .db import transaction_per_request
-from .db.backfill import backfill_aktiv_virkning
 from .exceptions import ErrorCodes
 from .exceptions import HTTPException
 from .exceptions import http_exception_to_json_response
@@ -184,14 +181,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         instrumentator.expose(app)
 
         await triggers.register(app)
-        # The backfill runs against the sessionmaker created from the settings,
-        # which the test suite never migrates: tests work on per-test copies of
-        # `empty_db_template` and only redirect the request-scoped sessionmaker.
-        backfill_task = (
-            None
-            if settings.is_under_test()
-            else asyncio.create_task(backfill_aktiv_virkning(sessionmaker))
-        )
         try:
             if settings.amqp_enable:
                 async with app.state.amqp_system:
@@ -199,10 +188,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             else:
                 yield
         finally:
-            if backfill_task is not None:  # pragma: no cover
-                backfill_task.cancel()
-                with suppress(asyncio.CancelledError):
-                    await backfill_task
             # Close the connection pool, rather than leaving the connections open
             # until the engine is garbage collected.
             await sessionmaker.kw["bind"].dispose()
