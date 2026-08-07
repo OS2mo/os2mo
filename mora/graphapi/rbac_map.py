@@ -719,6 +719,7 @@ RBAC_MAP: dict[tuple[str, str], RBACRequirement] = {
     ("Class", "facet_response"): ("read_facet", "facet", "read"),
     ("Class", "it_system"): ("read_itsystem", "itsystem", "read"),
     ("Class", "it_system_response"): ("read_itsystem", "itsystem", "read"),
+    ("Class", "owner_response"): ("read_org_unit", "org_unit", "read"),
     ("Class", "parent"): ("read_class", "class", "read"),
     ("Class", "parent_response"): ("read_class", "class", "read"),
     ("Class", "top_level_facet"): ("read_facet", "facet", "read"),

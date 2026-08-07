@@ -24,6 +24,7 @@ from uuid import UUID
 from uuid import uuid4
 
 from fastapi import APIRouter
+from more_itertools import first
 from more_itertools import last
 from more_itertools import one
 
@@ -246,8 +247,9 @@ async def get_one_class(
         return clazz["relationer"]["facet"][0]["uuid"]
 
     def get_owner_uuid(clazz):
-        rel = clazz["relationer"]
-        return rel["ejer"][0]["uuid"] if rel.get("ejer") else None
+        owner = first(clazz["relationer"].get("ejer", []), default={})
+        # LoRa represents cleared relations as {uuid: "", urn: ""}
+        return owner.get("uuid") or None
 
     def get_full_name(parents):
         full_name = " - ".join(
