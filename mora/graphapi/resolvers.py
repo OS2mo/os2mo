@@ -252,14 +252,14 @@ def _get_virkning_clause(
     return cls.virkning_period.overlaps(TimestamptzRange(start, end))
 
 
-def _get_gyldighed_clause(
+def _get_tilstand_clause(
     registrering_cls: type[
         BrugerRegistrering
         | ITSystemRegistrering
         | OrganisationEnhedRegistrering
         | OrganisationFunktionRegistrering
     ],
-    gyldighed_cls: type[
+    tilstand_cls: type[
         BrugerTilsGyldighed
         | ITSystemTilsGyldighed
         | OrganisationEnhedTilsGyldighed
@@ -267,11 +267,11 @@ def _get_gyldighed_clause(
     ],
     filter: BaseFilter,
 ) -> ColumnElement:
-    fk_column = getattr(gyldighed_cls, f"{registrering_cls.__tablename__}_id")
+    fk_column = getattr(tilstand_cls, f"{registrering_cls.__tablename__}_id")
     return registrering_cls.id.in_(
         select(fk_column).where(
-            gyldighed_cls.gyldighed == "Aktiv",
-            _get_virkning_clause(gyldighed_cls, filter),
+            tilstand_cls.gyldighed == "Aktiv",
+            _get_virkning_clause(tilstand_cls, filter),
         )
     )
 
@@ -598,7 +598,7 @@ def address_predicate(
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -841,7 +841,7 @@ def association_predicate(
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -1028,7 +1028,7 @@ def employee_predicate(
 ) -> ColumnElement:
     predicates = [
         _get_registrering_clause(BrugerRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             BrugerRegistrering,
             BrugerTilsGyldighed,
             filter,
@@ -1161,7 +1161,7 @@ def engagement_predicate(
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -1384,7 +1384,7 @@ def manager_predicate(
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -1770,7 +1770,7 @@ def owner_predicate(
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -1959,7 +1959,7 @@ def organisation_unit_predicate(
 
     predicates = [
         _get_registrering_clause(OrganisationEnhedRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationEnhedRegistrering,
             OrganisationEnhedTilsGyldighed,
             filter,
@@ -2368,7 +2368,7 @@ def it_system_predicate(
 ) -> ColumnElement:
     predicates = [
         _get_registrering_clause(ITSystemRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             ITSystemRegistrering,
             ITSystemTilsGyldighed,
             filter,
@@ -2466,7 +2466,7 @@ def it_user_predicate(
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -2737,7 +2737,7 @@ def kle_predicate(
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -2871,7 +2871,7 @@ def leave_predicate(
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -3066,7 +3066,7 @@ def related_unit_predicate(
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -3188,7 +3188,7 @@ def rolebinding_predicate(
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
