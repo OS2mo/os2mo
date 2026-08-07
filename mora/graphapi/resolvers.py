@@ -255,22 +255,28 @@ def _get_virkning_clause(
 def _get_tilstand_clause(
     registrering_cls: type[
         BrugerRegistrering
+        | FacetRegistrering
         | ITSystemRegistrering
+        | KlasseRegistrering
         | OrganisationEnhedRegistrering
         | OrganisationFunktionRegistrering
     ],
     tilstand_cls: type[
         BrugerTilsGyldighed
+        | FacetTilsPubliceret
         | ITSystemTilsGyldighed
+        | KlasseTilsPubliceret
         | OrganisationEnhedTilsGyldighed
         | OrganisationFunktionTilsGyldighed
     ],
     filter: BaseFilter,
 ) -> ColumnElement:
-    fk_column = getattr(tilstand_cls, f"{registrering_cls.__tablename__}_id")
-    return registrering_cls.id.in_(
-        select(fk_column).where(
-            tilstand_cls.gyldighed == "Aktiv",
+    return exists(
+        select(1)
+        .select_from(tilstand_cls)
+        .where(
+            tilstand_cls.registrering_id == registrering_cls.id,
+            tilstand_cls.is_active(),
             _get_virkning_clause(tilstand_cls, filter),
         )
     )
@@ -282,12 +288,7 @@ def facet_predicate(
 ) -> ColumnElement:
     predicates = [
         _get_registrering_clause(FacetRegistrering, filter),
-        FacetRegistrering.id.in_(
-            select(FacetTilsPubliceret.facet_registrering_id).where(
-                FacetTilsPubliceret.publiceret == "Publiceret",
-                _get_virkning_clause(FacetTilsPubliceret, filter),
-            )
-        ),
+        _get_tilstand_clause(FacetRegistrering, FacetTilsPubliceret, filter),
     ]
 
     # Registration
@@ -391,12 +392,7 @@ def class_predicate(
 ) -> ColumnElement:
     predicates = [
         _get_registrering_clause(KlasseRegistrering, filter),
-        KlasseRegistrering.id.in_(
-            select(KlasseTilsPubliceret.klasse_registrering_id).where(
-                KlasseTilsPubliceret.publiceret == "Publiceret",
-                _get_virkning_clause(KlasseTilsPubliceret, filter),
-            )
-        ),
+        _get_tilstand_clause(KlasseRegistrering, KlasseTilsPubliceret, filter),
     ]
 
     # Registration
@@ -2106,6 +2102,7 @@ def organisation_unit_predicate(
             )
             .where(
                 _get_registrering_clause(OrganisationEnhedRegistrering, filter),
+                _get_virkning_clause(OrganisationEnhedRelation, filter),
             )
             .join(
                 leafs,
@@ -2114,7 +2111,6 @@ def organisation_unit_predicate(
                     == OrganisationEnhedRelationKode.overordnet,
                     OrganisationEnhedRegistrering.organisationenhed_id
                     == leafs.c.organisationenhed_id,
-                    _get_virkning_clause(OrganisationEnhedRelation, filter),
                 ),
             )
         )
@@ -2136,11 +2132,11 @@ def organisation_unit_predicate(
                 select(OrganisationEnhedRelation.rel_maal_uuid)
                 .where(
                     _get_registrering_clause(OrganisationEnhedRegistrering, filter),
-                    _get_virkning_clause(OrganisationEnhedRelation, filter),
                     OrganisationEnhedRelation.rel_type
                     == OrganisationEnhedRelationKode.overordnet,
                     OrganisationEnhedRelation.rel_maal_uuid
                     == OrganisationEnhedRegistrering.organisationenhed_id,
+                    _get_virkning_clause(OrganisationEnhedRelation, filter),
                 )
                 .correlate(OrganisationEnhedRegistrering)
             )
@@ -2166,10 +2162,10 @@ def organisation_unit_predicate(
                 .join(OrganisationEnhedRegistrering)
                 .where(
                     _get_registrering_clause(OrganisationEnhedRegistrering, filter),
-                    _get_virkning_clause(OrganisationEnhedRelation, filter),
                     OrganisationEnhedRelation.rel_type
                     == OrganisationEnhedRelationKode.overordnet,
                     OrganisationEnhedRegistrering.organisationenhed_id.in_(base_query),
+                    _get_virkning_clause(OrganisationEnhedRelation, filter),
                 )
             )
         )

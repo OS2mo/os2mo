@@ -80,4 +80,5 @@ class BrugerRelation(_AktivVirkningMixin, _RelationMixin, Base):
 class BrugerTilsGyldighed(_TilsGyldighedMixin("bruger"), Base):
     __tablename__ = "bruger_tils_gyldighed"
 
+    registrering_id = synonym("bruger_registrering_id")
     bruger_registrering_id = Column(ForeignKey("bruger_registrering.id"), index=True)
