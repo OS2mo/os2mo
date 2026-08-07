@@ -1589,6 +1589,77 @@ def update_address(
 
 
 @pytest.fixture
+def read_address_ituser_uuid(
+    graphapi_post: GraphAPIPost,
+) -> Callable[[UUID], UUID | None]:
+    def inner(address_uuid: UUID) -> UUID | None:
+        query = """
+        query ReadAddress($uuid: [UUID!]) {
+          addresses(filter: { uuids: $uuid }) {
+            objects {
+              current {
+                ituser_response {
+                  uuid
+                }
+              }
+            }
+          }
+        }
+        """
+        response = graphapi_post(query, variables={"uuid": [str(address_uuid)]})
+        assert response.errors is None
+        assert response.data
+        ituser_response = response.data["addresses"]["objects"][0]["current"][
+            "ituser_response"
+        ]
+        return UUID(ituser_response["uuid"]) if ituser_response else None
+
+    return inner
+
+
+@pytest.fixture
+def address_ituser_structure(
+    create_person: Callable[[dict[str, Any] | None], UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+    create_itsystem: Callable[[dict[str, Any]], UUID],
+    create_ituser: Callable[[dict[str, Any]], UUID],
+) -> dict[str, UUID]:
+    person_uuid = create_person(None)
+
+    address_type_facet = create_facet(
+        {"user_key": "employee_address_type", "validity": {"from": "1900-01-01"}}
+    )
+    address_type = create_class(
+        {
+            "facet_uuid": str(address_type_facet),
+            "user_key": "Email",
+            "name": "Email",
+            "scope": "EMAIL",
+            "validity": {"from": "1900-01-01"},
+        }
+    )
+
+    itsystem_uuid = create_itsystem(
+        {"user_key": "AD", "name": "AD", "validity": {"from": "1900-01-01"}}
+    )
+    ituser_uuid = create_ituser(
+        {
+            "user_key": "AD123",
+            "person": str(person_uuid),
+            "itsystem": str(itsystem_uuid),
+            "validity": {"from": "2020-01-01"},
+        }
+    )
+
+    return {
+        "person_uuid": person_uuid,
+        "address_type": address_type,
+        "ituser_uuid": ituser_uuid,
+    }
+
+
+@pytest.fixture
 async def facets(graphapi_post: GraphAPIPost) -> dict[str, UUID]:
     facets = (
         "address_property",

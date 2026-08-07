@@ -9,6 +9,33 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 31
+
+GraphQL version 31 introduces a breaking change to the `ituser` field on the
+`address_update` mutation, specifically the behavior when this field is set to
+`null`.
+
+Prior to GraphQL version 31 setting `ituser: null` on `address_update` was
+equivalent to not providing the `ituser` field whatsoever, as `null` and `UNSET`
+was treated identically. The related IT-user could therefore never be cleared
+once set.
+
+However in GraphQL version 31, `null` means "clear the relation to the IT-user",
+whereas `UNSET` aka. not supplying the field leaves the existing relation alone.
+Passing an explicit UUID sets the relation, as before.
+
+| `ituser`   | Version 30 and prior | Version 31 and later |
+|------------|----------------------|----------------------|
+| not provided | Relation unchanged | Relation unchanged   |
+| `null`     | Relation unchanged   | **Relation cleared** |
+| `"<uuid>"` | Relation set         | Relation set         |
+
+Integrations that construct their entire `AddressUpdateInput` up-front, sending
+`ituser: null` for addresses they do not intend to touch, will silently clear
+the relation on version 31. The migration path is simple, simply stop passing
+`ituser: null` and instead omit the field entirely.
+
+
 ## Version 30
 
 GraphQL version 30 introduces a very minor breaking change to the `itusers`

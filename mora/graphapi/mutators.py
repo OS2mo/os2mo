@@ -16,6 +16,7 @@ from sqlalchemy import delete
 from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from strawberry import UNSET
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
@@ -39,6 +40,7 @@ from mora.graphapi.gmodels.mo.details import LeaveRead
 from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.graphapi.gmodels.mo.details import OwnerRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
+from mora.graphapi.version import Version
 
 from .address import create_address
 from .address import terminate_address
@@ -287,7 +289,14 @@ class Mutation:
     @strawberry.mutation(
         description="Updates an address.",
     )
-    async def address_update(self, input: AddressUpdateInput) -> Response[Address]:
+    async def address_update(
+        self, info: MOInfo, input: AddressUpdateInput
+    ) -> Response[Address]:
+        # In v30 and prior None and UNSET were handled identically (the
+        # relation was left alone), this branch ensures backwards
+        # compatibility with this behavior.
+        if get_version(info.schema) <= Version.VERSION_30 and input.ituser is None:
+            input.ituser = UNSET
         return uuid2response(await update_address(input.to_pydantic()), AddressRead)  # type: ignore
 
     @strawberry.mutation(
