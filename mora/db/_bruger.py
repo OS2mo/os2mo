@@ -13,6 +13,7 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import synonym
 
 from ._common import Base
+from ._common import _AktivVirkningMixin
 from ._common import _AttrEgenskaberMixin
 from ._common import _OIOEntityMixin
 from ._common import _RegistreringMixin
@@ -31,7 +32,7 @@ class BrugerRegistrering(_RegistreringMixin, Base):
     uuid = synonym("bruger_id")
 
 
-class BrugerAttrEgenskaber(_AttrEgenskaberMixin, Base):
+class BrugerAttrEgenskaber(_AktivVirkningMixin, _AttrEgenskaberMixin, Base):
     __tablename__ = "bruger_attr_egenskaber"
 
     brugernavn: Mapped[str | None] = mapped_column(Text, index=True)
@@ -40,7 +41,7 @@ class BrugerAttrEgenskaber(_AttrEgenskaberMixin, Base):
     bruger_registrering_id = Column(ForeignKey("bruger_registrering.id"), index=True)
 
 
-class BrugerAttrUdvidelser(_VirkningMixin, Base):
+class BrugerAttrUdvidelser(_AktivVirkningMixin, _VirkningMixin, Base):
     __tablename__ = "bruger_attr_udvidelser"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
@@ -66,7 +67,7 @@ class BrugerRelationKode(enum.StrEnum):
     tilknyttedepersoner = enum.auto()
 
 
-class BrugerRelation(_RelationMixin, Base):
+class BrugerRelation(_AktivVirkningMixin, _RelationMixin, Base):
     __tablename__ = "bruger_relation"
 
     rel_type: Mapped[BrugerRelationKode] = mapped_column(

@@ -12,6 +12,7 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import synonym
 
 from ._common import Base
+from ._common import _AktivVirkningMixin
 from ._common import _AttrEgenskaberMixin
 from ._common import _OIOEntityMixin
 from ._common import _RegistreringMixin
@@ -31,7 +32,7 @@ class OrganisationEnhedRegistrering(_RegistreringMixin, Base):
     uuid = synonym("organisationenhed_id")
 
 
-class OrganisationEnhedAttrEgenskaber(_AttrEgenskaberMixin, Base):
+class OrganisationEnhedAttrEgenskaber(_AktivVirkningMixin, _AttrEgenskaberMixin, Base):
     __tablename__ = "organisationenhed_attr_egenskaber"
 
     enhedsnavn: Mapped[str | None] = mapped_column(Text, index=True)
@@ -50,7 +51,7 @@ class OrganisationEnhedRelationKode(enum.StrEnum):
     tilhoerer = enum.auto()
 
 
-class OrganisationEnhedRelation(_RelationMixin, Base):
+class OrganisationEnhedRelation(_AktivVirkningMixin, _RelationMixin, Base):
     __tablename__ = "organisationenhed_relation"
 
     rel_type: Mapped[OrganisationEnhedRelationKode] = mapped_column(
