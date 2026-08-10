@@ -17,7 +17,7 @@ from hypothesis_graphql import nodes
 from hypothesis_graphql import strategies as gql_st
 
 from mora.graphapi.events import EventToken
-from mora.graphapi.rbac_map import PUBLIC_FIELDS
+from mora.graphapi.public_fields import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import LATEST_VERSION
