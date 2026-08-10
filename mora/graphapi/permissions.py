@@ -5,6 +5,7 @@ from typing import get_args
 
 Collections = Literal[
     "accesslog",
+    "actor",
     "address",
     "association",
     "class",
