@@ -15,9 +15,10 @@ from hypothesis import settings
 from hypothesis import strategies as st
 from hypothesis_graphql import nodes
 from hypothesis_graphql import strategies as gql_st
+from sqlalchemy import select
 
+from mora import db
 from mora.graphapi.events import EventToken
-from mora.graphapi.public_fields import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import LATEST_VERSION
@@ -34,18 +35,29 @@ ORG_UNIT_ADDRESS_QUERY = (
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
-async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
+async def test_rbac_map_covers_schema(
+    graphapi_post: GraphAPIPost, empty_db: db.AsyncSession
+) -> None:
     """RBAC is reject-by-default, so every field must be classified.
 
-    Each schema field must be either public (`PUBLIC_FIELDS`) or have a role
+    Each schema field must be either granted by a PBAC policy or have a role
     requirement (`RBAC_MAP`). Conversely, entries which do not correspond to
     any schema field are dead rules, and therefore most likely mistakes.
 
     A field in both would be silently public (the chain grants access as soon
-    as `no_role_required_policy` matches, before `rbac_policy` runs), so it is
-    almost certainly a mistake; the two are required to be disjoint.
+    as the PBAC policy matches, before `rbac_policy` runs), so it is almost
+    certainly a mistake; the two are required to be disjoint.
     """
+    public_fields = set(
+        (
+            await empty_db.execute(
+                select(db.PolicyRule.type, db.PolicyRule.field)
+                .join(db.Policy, db.PolicyRule.policy_fk == db.Policy.id)
+                .where(db.Policy.name == "Public")
+            )
+        ).all()
+    )
+
     schema_fields = set()
     for version in Version:
         response = graphapi_post(
@@ -73,7 +85,7 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
                 (type_["name"], field["name"]) for field in type_["fields"]
             )
 
-    classified = PUBLIC_FIELDS | RBAC_MAP.keys()
+    classified = public_fields | RBAC_MAP.keys()
 
     missing = schema_fields - classified
     assert missing == set(), f"Unclassified schema fields: {missing}"
@@ -81,7 +93,7 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
     stale = classified - schema_fields
     assert stale == set(), f"Classified entries without a schema field: {stale}"
 
-    overlap = PUBLIC_FIELDS & RBAC_MAP.keys()
+    overlap = public_fields & RBAC_MAP.keys()
     assert overlap == set(), f"Fields both public and role-gated: {overlap}"
 
 

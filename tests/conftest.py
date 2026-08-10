@@ -264,7 +264,9 @@ class FakeDatabaseSession:
         elif attr == "under_testing_with_fake_db":
             return True
         else:
-            pytest.fail("This test is not connected to a database")
+            # A plain exception, as `pytest.fail` raises a `BaseException` that a
+            # dataloader batch does not catch, leaving its futures hanging
+            raise AssertionError("This test is not connected to a database")
 
 
 @pytest.fixture
@@ -446,6 +448,22 @@ async def fixture_database_template(
         async with _use_session(lora_settings, database_name):
             await load_sample_structures()
         yield database_name
+
+
+@pytest.fixture
+async def raw_session(
+    lora_settings: LoraSettings, sessionmakermaker: SessionmakerMaker
+) -> AsyncYieldFixture[db.AsyncSession]:
+    """A session on its own connection, with no transaction started for it."""
+    sessionmaker = _create_sessionmaker(
+        lora_settings, sessionmakermaker.get_database_name()
+    )
+    engine = sessionmaker.kw["bind"]
+    try:
+        async with sessionmaker() as session:
+            yield session
+    finally:
+        await engine.dispose()
 
 
 @pytest.fixture

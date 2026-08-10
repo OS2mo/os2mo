@@ -2,11 +2,14 @@
 # SPDX-License-Identifier: MPL-2.0
 from unittest.mock import AsyncMock
 
+import pytest
 from fastapi.testclient import TestClient
 
 from oio_rest.organisation import Organisation
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 def test_no_orgs_in_mo(service_client: TestClient, monkeypatch) -> None:
     monkeypatch.setattr(
         Organisation, "get_objects_direct", AsyncMock(return_value={"results": []})
@@ -22,6 +25,8 @@ def test_no_orgs_in_mo(service_client: TestClient, monkeypatch) -> None:
     }
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 def test_more_than_one_org_in_mo(service_client: TestClient, monkeypatch) -> None:
     monkeypatch.setattr(
         Organisation,
