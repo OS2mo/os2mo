@@ -57,7 +57,6 @@ from mora.graphapi.model_registration import PersonRegistration
 from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
-from mora.graphapi.public_fields import PUBLIC_FIELDS
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.types import CPR_SCALAR
@@ -206,11 +205,23 @@ async def introspection_policy(
     ) or is_introspection_type(info.parent_type)
 
 
-async def no_role_required_policy(
-    info: GraphQLResolveInfo, kwargs: dict[str, Any]
-) -> bool:
-    """Allow access to fields which are explicitly listed in `PUBLIC_FIELDS`."""
-    return (info.parent_type.name, info.field_name) in PUBLIC_FIELDS
+async def pbac_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
+    """Allow access if an active DB policy grants this (type, field)."""
+    token = await info.context.get_token()
+    index = await info.context.dataloaders.policy_loader.load(
+        frozenset(token.realm_access.roles)
+    )
+    type, field = info.parent_type.name, info.field_name
+    # A rule matches this exact (type, field) or a wildcard in either component
+    if (
+        (type, field) in index
+        or (type, "*") in index
+        or ("*", field) in index
+        or ("*", "*") in index
+    ):
+        return True
+    # No rule matched, so no access.
+    return False
 
 
 async def rbac_policy(
@@ -220,7 +231,7 @@ async def rbac_policy(
     """Allow access if the token has the role required by the `RBAC_MAP`."""
     requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
     if requirement is None:  # pragma: no cover
-        # Public fields are already allowed by the no_role_required_policy.
+        # No rule in `RBAC_MAP` means no access by this policy
         return False
     role, _, _ = requirement
     token = await info.context.get_token()
@@ -236,7 +247,7 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
     """Allow access if the user is the owner of the accessed resources."""
     requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
     if requirement is None:  # pragma: no cover
-        # Public fields are already allowed by the no_role_required_policy.
+        # No rule in `RBAC_MAP` means no access by this policy
         return False
     _, collection, permission_type = requirement
     check_kwargs = kwargs
@@ -277,7 +288,7 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
 
 POLICIES: list[Policy] = [
     introspection_policy,
-    no_role_required_policy,
+    pbac_policy,
     rbac_policy,
     owner_policy,
 ]
@@ -304,8 +315,7 @@ class RBACExtension(SchemaExtension):
     Each field access is checked against the policies in `POLICIES`, one by
     one, until a policy allows access.
 
-    Access is rejected by default: every field must be listed in
-    `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP`.
+    Access is rejected by default, and only granted if a policy allows it.
     """
 
     async def resolve(  # type: ignore[override]

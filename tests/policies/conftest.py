@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+"""Fixtures and helpers shared by the policy tests."""
+
+from collections.abc import Awaitable
+from collections.abc import Callable
+
+import pytest
+
+from mora import db
+
+CreatePolicy = Callable[..., Awaitable[None]]
+
+
+@pytest.fixture
+def create_policy(raw_session: db.AsyncSession) -> CreatePolicy:
+    async def inner(
+        name: str,
+        actors: list[tuple[str, str]],
+        rules: list[tuple[str, str]],
+        active: bool = True,
+    ) -> None:
+        """Insert a policy directly in the database."""
+        policy = db.Policy(name=name, active=active)
+        policy.actors = [
+            db.PolicyActor(kind=db.PolicyActorKind(kind), value=value)
+            for kind, value in actors
+        ]
+        policy.rules = [db.PolicyRule(type=type, field=field) for type, field in rules]
+        raw_session.add(policy)
+        await raw_session.commit()
+
+    return inner
