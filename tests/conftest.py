@@ -8,6 +8,7 @@ from collections.abc import AsyncGenerator
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from collections.abc import Callable
+from collections.abc import Collection
 from collections.abc import Generator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -29,6 +30,7 @@ from hypothesis import Verbosity
 from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 from hypothesis.database import InMemoryExampleDatabase
+from more_itertools import always_iterable
 from more_itertools import one
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -169,17 +171,20 @@ def admin_token_getter() -> Callable[[], Awaitable[Token]]:
     return get_fake_admin_token
 
 
-SetAuth = Callable[[str | None, UUID | str | None, str], None]
+SetAuth = Callable[[str | Collection[str] | None, UUID | str | None, str], None]
 
 
 @pytest.fixture
 def set_auth(
     fastapi_admin_test_app: FastAPI,
 ) -> SetAuth:
-    """Set authentication token used by GraphAPIPost."""
+    """Set authentication token used by GraphAPIPost.
+
+    The role may be given as a single role or as a collection of roles.
+    """
 
     def _set_auth(
-        role: str | None = None,
+        role: str | Collection[str] | None = None,
         user_uuid: UUID | str | None = None,
         preferred_username: str = "bruce",
     ) -> None:
@@ -203,11 +208,10 @@ def set_auth(
             "typ": "Bearer",
             "uuid": str(user_uuid) if user_uuid is not None else None,
         }
-        if role is not None:
-            if role == ADMIN:
-                roles = ALL_PERMISSIONS
-            else:
-                roles = {role}
+        roles = set(always_iterable(role))
+        if ADMIN in roles:
+            roles |= ALL_PERMISSIONS
+        if roles:
             token_data["realm_access"] = {"roles": roles}
         token = Token.parse_obj(token_data)
 

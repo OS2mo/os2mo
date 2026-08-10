@@ -1,13 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from datetime import date
-from operator import attrgetter
-from unittest.mock import AsyncMock
+from collections.abc import Callable
+from typing import Any
 from uuid import UUID
 from uuid import uuid4
 
 import pytest
-from graphql import GraphQLObjectType
 from graphql import NameNode
 from graphql import VariableNode
 from hypothesis import HealthCheck
@@ -17,18 +15,11 @@ from hypothesis import settings
 from hypothesis import strategies as st
 from hypothesis_graphql import nodes
 from hypothesis_graphql import strategies as gql_st
-from strawberry.dataloader import DataLoader
 
-from mora.auth.keycloak.models import RealmAccess
-from mora.auth.keycloak.models import Token
 from mora.graphapi.events import EventToken
-from mora.graphapi.gmodels.mo import OrganisationRead
-from mora.graphapi.gmodels.mo import OrganisationUnitRead
-from mora.graphapi.models import AddressRead
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.schema import get_schema
-from mora.graphapi.shim import execute_graphql
 from mora.graphapi.version import LATEST_VERSION
 from mora.graphapi.version import Version
 from tests.conftest import GraphAPIPost
@@ -42,36 +33,9 @@ ORG_UNIT_ADDRESS_QUERY = (
 )
 
 
-async def load_org(keys: list[int]) -> list[OrganisationRead]:
-    return [OrganisationRead.parse_obj({"name": "Test org"})] * len(keys)
-
-
-async def load_all_org_units(**kwargs) -> dict[UUID, list[OrganisationUnitRead]]:
-    return {}
-
-
-async def load_org_units(keys: list[UUID]) -> list[list[OrganisationUnitRead]]:
-    return [
-        [
-            OrganisationUnitRead.parse_obj(
-                {
-                    "name": "Test org",
-                    "validity": {"from": date.today().isoformat(), "to": None},
-                }
-            )
-        ]
-    ] * len(keys)
-
-
-async def load_all_addresses(**kwargs) -> dict[UUID, list[AddressRead]]:
-    return {}
-
-
-async def load_addresses(keys: list[UUID]) -> list[list[AddressRead]]:
-    return [[] * len(keys)]
-
-
-def test_rbac_map_covers_schema() -> None:
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
     """RBAC is reject-by-default, so every field must be classified.
 
     Each schema field must be either public (`PUBLIC_FIELDS`) or have a role
@@ -84,12 +48,30 @@ def test_rbac_map_covers_schema() -> None:
     """
     schema_fields = set()
     for version in Version:
-        schema = get_schema(version)._schema
-        for name, type_ in schema.type_map.items():
-            if name.startswith("__"):
+        response = graphapi_post(
+            """
+            query {
+              __schema {
+                types {
+                  name
+                  kind
+                  fields(includeDeprecated: true) {
+                    name
+                  }
+                }
+              }
+            }
+            """,
+            url=f"/graphql/v{version.value}",
+        )
+        assert response.errors is None
+        assert response.data
+        for type_ in response.data["__schema"]["types"]:
+            if type_["kind"] != "OBJECT" or type_["name"].startswith("__"):
                 continue
-            if isinstance(type_, GraphQLObjectType):
-                schema_fields.update((name, field) for field in type_.fields)
+            schema_fields.update(
+                (type_["name"], field["name"]) for field in type_["fields"]
+            )
 
     classified = PUBLIC_FIELDS | RBAC_MAP.keys()
 
@@ -135,6 +117,39 @@ async def test_introspection_is_public(
     }
 
 
+@pytest.fixture
+def org_unit_with_address(
+    create_org_unit: Callable[..., UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+    create_address: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """An org-unit with an address, so the queries under test return data."""
+    org_unit_uuid = create_org_unit("test")
+    facet_uuid = create_facet(
+        {"user_key": "org_unit_address_type", "validity": {"from": "2000-01-01"}}
+    )
+    address_type_uuid = create_class(
+        {
+            "facet_uuid": str(facet_uuid),
+            "user_key": "email",
+            "name": "Email",
+            "scope": "EMAIL",
+            "validity": {"from": "2000-01-01"},
+        }
+    )
+    create_address(
+        {
+            "address_type": str(address_type_uuid),
+            "org_unit": str(org_unit_uuid),
+            "value": "unit@example.org",
+            "validity": {"from": "2000-01-01"},
+        }
+    )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "org_unit_with_address")
 @pytest.mark.parametrize(
     "query,roles,errors",
     [
@@ -169,51 +184,35 @@ async def test_introspection_is_public(
         (ORG_UNIT_ADDRESS_QUERY, {"read_org_unit", "read_address"}, set()),
     ],
 )
-async def test_graphql_rbac(query: str, roles: set[str], errors: set[str]) -> None:
+async def test_graphql_rbac(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    query: str,
+    roles: set[str],
+    errors: set[str],
+) -> None:
     """Test that we get the expected permission errors.
 
     Args:
+        set_auth: Fixture to set the roles on the OIDC token.
+        graphapi_post: Fixture to execute GraphQL queries.
         query: The GraphQL query to execute.
         roles: The roles on the OIDC token.
         errors: The errors we expect.
     """
-    # Setup the GraphQL context with the required dataloaders and OIDC token
+    set_auth(roles, None)
 
-    async def get_token():
-        return Token(
-            azp="mo",
-            uuid="00000000-0000-0000-0000-000000000000",
-            realm_access=RealmAccess(roles=roles),
-        )
-
-    session = AsyncMock()
-    session.scalars.return_value.all = lambda: [uuid4()]
-
-    # Configure context to allow both attribute and dictionary access
-    context = AsyncMock()
-    context.__getitem__.side_effect = lambda key: getattr(context, key)
-
-    context.session = session
-    context.get_token = get_token
-
-    # Configure dataloaders container
-    context.dataloaders = AsyncMock()
-    context.dataloaders.org_loader = DataLoader(load_fn=load_org)
-    context.dataloaders.address_loader = DataLoader(load_fn=load_addresses)
-    context.dataloaders.address_getter = AsyncMock(side_effect=load_all_addresses)
-    context.dataloaders.org_unit_loader = DataLoader(load_fn=load_org_units)
-    context.dataloaders.org_unit_getter = AsyncMock(side_effect=load_all_org_units)
-    context.dataloaders.org_unit_address_loader = DataLoader(load_fn=load_addresses)
-
-    response = await execute_graphql(query=query, context_value=context)
+    response = graphapi_post(query)
 
     # Assert our errors are as expected
     error_messages = set()
     if response.errors:
-        error_messages = {e.message for e in response.errors}
+        error_messages = {error["message"] for error in response.errors}
     assert errors == error_messages
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 @settings(
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
@@ -238,7 +237,11 @@ async def test_graphql_rbac(query: str, roles: set[str], errors: set[str]) -> No
         },
     )
 )
-async def test_mutators_require_rbac(mutation) -> None:
+async def test_mutators_require_rbac(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    mutation: str,
+) -> None:
     # We reject if 'upload_type_used' is found within the generated mutation.
     # NOTE: This assumes that this string is globally unique within the query.
     #
@@ -254,21 +257,11 @@ async def test_mutators_require_rbac(mutation) -> None:
     # especially as we are hoping to get rid of it long term.
     assume("upload_type_used" not in mutation)
 
-    # Setup the GraphQL context with the required dataloaders and OIDC token
+    # A user without any roles must not be able to call any mutator
+    set_auth(None, None)
 
-    async def get_token():
-        return Token(
-            azp="mo",
-            uuid="00000000-0000-0000-0000-000000000000",
-            realm_access=RealmAccess(roles=[]),
-        )
+    response = graphapi_post(mutation)
 
-    context = AsyncMock()
-    context.__getitem__.side_effect = lambda key: getattr(context, key)
-    context.get_token = get_token
-
-    response = await execute_graphql(query=mutation, context_value=context)
-    assert len(response.errors) >= 1
-    error_messages = set(map(attrgetter("message"), response.errors))
-    for error_message in error_messages:
-        assert error_message == "No policy approved the access"
+    assert response.errors
+    error_messages = {error["message"] for error in response.errors}
+    assert error_messages == {"No policy approved the access"}
