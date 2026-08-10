@@ -8,6 +8,7 @@ from collections.abc import AsyncGenerator
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from collections.abc import Callable
+from collections.abc import Collection
 from collections.abc import Generator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -169,17 +170,21 @@ def admin_token_getter() -> Callable[[], Awaitable[Token]]:
     return get_fake_admin_token
 
 
-SetAuth = Callable[[str | None, UUID | str | None, str], None]
+SetAuth = Callable[[str | Collection[str] | None, UUID | str | None, str], None]
 
 
 @pytest.fixture
 def set_auth(
     fastapi_admin_test_app: FastAPI,
 ) -> SetAuth:
-    """Set authentication token used by GraphAPIPost."""
+    """Set authentication token used by GraphAPIPost.
+
+    The role may be given as a single role or as a collection of roles. The
+    `admin` role implies all permissions.
+    """
 
     def _set_auth(
-        role: str | None = None,
+        role: str | Collection[str] | None = None,
         user_uuid: UUID | str | None = None,
         preferred_username: str = "bruce",
     ) -> None:
@@ -204,10 +209,9 @@ def set_auth(
             "uuid": str(user_uuid) if user_uuid is not None else None,
         }
         if role is not None:
-            if role == ADMIN:
-                roles = ALL_PERMISSIONS
-            else:
-                roles = {role}
+            roles = {role} if isinstance(role, str) else set(role)
+            if ADMIN in roles:
+                roles = (roles - {ADMIN}) | ALL_PERMISSIONS
             token_data["realm_access"] = {"roles": roles}
         token = Token.parse_obj(token_data)
 
