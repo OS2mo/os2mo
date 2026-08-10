@@ -2149,6 +2149,7 @@ def organisation_unit_predicate(
             )
             .where(
                 _get_registrering_clause(OrganisationEnhedRegistrering, filter),
+                _get_active_period_clause(OrganisationEnhedRelation, filter),
             )
             .join(
                 leafs,
@@ -2157,7 +2158,6 @@ def organisation_unit_predicate(
                     == OrganisationEnhedRelationKode.overordnet,
                     OrganisationEnhedRegistrering.organisationenhed_id
                     == leafs.c.organisationenhed_id,
-                    _get_active_period_clause(OrganisationEnhedRelation, filter),
                 ),
             )
         )
