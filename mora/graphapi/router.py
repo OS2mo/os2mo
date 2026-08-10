@@ -19,6 +19,7 @@ from mora.graphapi.access_log import get_access_log_loaders
 from mora.graphapi.actor import get_actor_loaders
 from mora.graphapi.custom_router import CustomGraphQLRouter
 from mora.graphapi.dataloaders import get_loaders
+from mora.graphapi.policies import get_policy_loaders
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import LATEST_VERSION
 from mora.graphapi.version import Version
@@ -39,6 +40,7 @@ async def get_context(
     loaders = await get_loaders()
     loaders.update(get_access_log_loaders(session))
     loaders.update(get_actor_loaders(session))
+    loaders.update(get_policy_loaders(session))
     moloaders = MOLoaders(**loaders)  # type: ignore
     return MOContext(
         get_token=get_token,
