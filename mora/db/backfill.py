@@ -3,6 +3,7 @@
 """Background backfill of aktiv_virkning on pre-existing rows."""
 
 import asyncio
+import random
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -36,7 +37,7 @@ async def _backfill_table(
     statement = text(
         f"UPDATE {table} SET id = id WHERE id IN ("
         f"SELECT id FROM {table} WHERE active_tils IS NULL "
-        f"LIMIT 1000 FOR UPDATE SKIP LOCKED)"
+        f"LIMIT 100 FOR UPDATE SKIP LOCKED)"
     )
     while True:
         async with sessionmaker() as session, session.begin():
@@ -46,7 +47,7 @@ async def _backfill_table(
         logger.info(
             "aktiv_virkning backfill: batch done", table=table, rows=result.rowcount
         )
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(random.uniform(1, 5))
     logger.info("aktiv_virkning backfill: table done", table=table)
 
 
