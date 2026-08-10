@@ -57,8 +57,8 @@ from mora.graphapi.model_registration import PersonRegistration
 from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
+from mora.graphapi.public_fields import PUBLIC_FIELDS
 from mora.graphapi.query import Query
-from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.types import CPR_SCALAR
 from mora.graphapi.types import CURSOR_SCALAR

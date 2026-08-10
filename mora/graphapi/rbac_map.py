@@ -15,33 +15,6 @@ if TYPE_CHECKING:  # pragma: no cover
 # means the owner-fallback does not apply.
 RBACRequirement = tuple[str, "Collections | None", "CollectionPermissionType | None"]
 
-# Fields which are public: every user may access them.
-PUBLIC_FIELDS: frozenset[tuple[str, str]] = frozenset(
-    {
-        ("Health", "identifier"),
-        ("Health", "status"),
-        ("HealthPaged", "objects"),
-        ("HealthPaged", "page_info"),
-        ("Myself", "actor"),
-        ("Myself", "email"),
-        ("Myself", "roles"),
-        ("Myself", "username"),
-        ("PageInfo", "next_cursor"),
-        ("Query", "healths"),
-        ("Query", "me"),
-        ("Query", "version"),
-        ("SpecialActor", "display_name"),
-        ("SpecialActor", "key"),
-        ("SpecialActor", "uuid"),
-        ("UnknownActor", "display_name"),
-        ("UnknownActor", "error"),
-        ("UnknownActor", "uuid"),
-        ("Version", "lora_version"),
-        ("Version", "mo_hash"),
-        ("Version", "mo_version"),
-    }
-)
-
 # Map of every schema field to its RBAC requirement. Fields without an
 # entry are rejected.
 RBAC_MAP: dict[tuple[str, str], RBACRequirement] = {
