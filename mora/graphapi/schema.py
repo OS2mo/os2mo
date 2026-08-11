@@ -55,6 +55,8 @@ from mora.graphapi.model_registration import PersonRegistration
 from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
+from mora.graphapi.policy_cel import build_activation
+from mora.graphapi.policy_cel import check_condition
 from mora.graphapi.query import Query
 from mora.graphapi.types import CPRType
 from mora.graphapi.version import Version
@@ -184,33 +186,21 @@ async def pbac_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     )
     type, field = info.parent_type.name, info.field_name
     # A rule matches this exact (type, field) or a wildcard in either component
-    if (
-        (type, field) in index
-        or (type, "*") in index
-        or ("*", field) in index
-        or ("*", "*") in index
-    ):
+    relevant_rules = (
+        index.get((type, field), [])
+        + index.get((type, "*"), [])
+        + index.get(("*", field), [])
+        + index.get(("*", "*"), [])
+    )
+    if not relevant_rules:
+        return False
+    # A rule without a condition grants outright, so no CEL is needed
+    if "" in relevant_rules:
+        return True
+    activation = build_activation(token)
+    if any(check_condition(condition, activation) for condition in relevant_rules):
         return True
     # No rule matched, so no access.
-    return False
-
-
-async def rbac_policy(
-    info: GraphQLResolveInfo,
-    kwargs: dict[str, Any],
-) -> bool:
-    """Allow access if the token has the role required by the `RBAC_MAP`."""
-    requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
-    if requirement is None:  # pragma: no cover
-        # No rule in `RBAC_MAP` means no access by this policy
-        return False
-    role, _, _ = requirement
-    token = await info.context.get_token()
-    token_roles = token.realm_access.roles
-
-    # Allow access if token has required role
-    if role in token_roles:
-        return True
     return False
 
 
@@ -259,7 +249,6 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
 
 POLICIES: list[Policy] = [
     pbac_policy,
-    rbac_policy,
     owner_policy,
 ]
 

@@ -25,10 +25,8 @@ from mora.graphapi.version import LATEST_VERSION
 from mora.graphapi.version import Version
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
+from tests.policies.helpers import assert_access
 
-ORG_QUERY = "query { org { uuid } }"
-ORG_UNIT_QUERY = "query { org_units { objects { uuid } } }"
-ADDRESS_QUERY = "query { addresses { objects { uuid } } }"
 ORG_UNIT_ADDRESS_QUERY = (
     "query { org_units { objects { objects { addresses { uuid } } } } }"
 )
@@ -163,64 +161,30 @@ def org_unit_with_address(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db", "org_unit_with_address")
 @pytest.mark.parametrize(
-    "query,roles,errors",
+    "roles,granted",
     [
-        # Query our org
-        (ORG_QUERY, set(), {"No policy approved the access"}),
-        (ORG_QUERY, {"read_org"}, set()),
-        # Query all org-units
-        (ORG_UNIT_QUERY, set(), {"No policy approved the access"}),
-        (ORG_UNIT_QUERY, {"read_org"}, {"No policy approved the access"}),
-        (ORG_UNIT_QUERY, {"read_org_unit"}, set()),
-        # Query all addresses
-        (ADDRESS_QUERY, set(), {"No policy approved the access"}),
-        (ADDRESS_QUERY, {"read_org"}, {"No policy approved the access"}),
-        (ADDRESS_QUERY, {"read_address"}, set()),
-        # Query all org-units and their addresses
-        (
-            ORG_UNIT_ADDRESS_QUERY,
-            set(),
-            {"No policy approved the access"},
-        ),
-        (
-            ORG_UNIT_ADDRESS_QUERY,
-            {"read_org"},
-            {"No policy approved the access"},
-        ),
-        # Address permission is first checked here, as we actually have org-unit data
-        (
-            ORG_UNIT_ADDRESS_QUERY,
-            {"read_org_unit"},
-            {"No policy approved the access"},
-        ),
-        (ORG_UNIT_ADDRESS_QUERY, {"read_org_unit", "read_address"}, set()),
+        (set(), False),
+        ({"read_org"}, False),
+        # The address permission is first checked here, as we actually have
+        # org-unit data for the nested resolver to reach
+        ({"read_org_unit"}, False),
+        ({"read_org_unit", "read_address"}, True),
     ],
 )
-async def test_graphql_rbac(
+async def test_nested_field_requires_its_own_permission(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
-    query: str,
     roles: set[str],
-    errors: set[str],
+    granted: bool,
 ) -> None:
-    """Test that we get the expected permission errors.
+    """A nested field is checked on its own, not covered by its parent's grant.
 
-    Args:
-        set_auth: Fixture to set the roles on the OIDC token.
-        graphapi_post: Fixture to execute GraphQL queries.
-        query: The GraphQL query to execute.
-        roles: The roles on the OIDC token.
-        errors: The errors we expect.
+    Reaching an org-unit's addresses takes both permissions, and the check on
+    the nested field only happens once there is data to resolve it against.
+    Grants on a single field are covered by `tests/policies/test_rbac.py`.
     """
     set_auth(roles, None)
-
-    response = graphapi_post(query)
-
-    # Assert our errors are as expected
-    error_messages = set()
-    if response.errors:
-        error_messages = {error["message"] for error in response.errors}
-    assert errors == error_messages
+    assert_access(graphapi_post(ORG_UNIT_ADDRESS_QUERY), granted)
 
 
 @pytest.mark.integration_test
