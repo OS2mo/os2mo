@@ -9,15 +9,20 @@ import pytest
 
 from mora import db
 
+# (type, field[, condition])
+Rule = tuple[str, str] | tuple[str, str, str]
 CreatePolicy = Callable[..., Awaitable[None]]
 
 
 @pytest.fixture
 def create_policy(raw_session: db.AsyncSession) -> CreatePolicy:
+    def create_rule(type: str, field: str, condition: str = "") -> db.PolicyRule:
+        return db.PolicyRule(type=type, field=field, condition=condition)
+
     async def inner(
         name: str,
         actors: list[tuple[str, str]],
-        rules: list[tuple[str, str]],
+        rules: list[Rule],
         active: bool = True,
     ) -> None:
         """Insert a policy directly in the database."""
@@ -26,7 +31,7 @@ def create_policy(raw_session: db.AsyncSession) -> CreatePolicy:
             db.PolicyActor(kind=db.PolicyActorKind(kind), value=value)
             for kind, value in actors
         ]
-        policy.rules = [db.PolicyRule(type=type, field=field) for type, field in rules]
+        policy.rules = [create_rule(*rule) for rule in rules]
         raw_session.add(policy)
         await raw_session.commit()
 

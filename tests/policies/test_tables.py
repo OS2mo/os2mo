@@ -68,10 +68,23 @@ async def test_policy_actor_is_unique_within_a_policy(
 async def test_policy_rule_is_unique_within_a_policy(
     empty_db: db.AsyncSession,
 ) -> None:
-    """uq_policy_rule: a (type, field) is declared at most once per policy."""
+    """uq_policy_rule: a (type, field, condition) is at most once per policy.
+
+    The condition is part of it because a policy may well grant one field twice
+    on different conditions; only an outright duplicate is refused.
+    """
     policy = db.Policy(name="Duplicate rule")
     policy.rules = [db.PolicyRule(type="Query", field="version")]
     empty_db.add(policy)
+    await empty_db.flush()
+
+    # The same (type, field) on another condition is another rule, not a
+    # duplicate, so it is accepted
+    empty_db.add(
+        db.PolicyRule(
+            policy_fk=policy.id, type="Query", field="version", condition="false"
+        )
+    )
     await empty_db.flush()
 
     with pytest.raises(IntegrityError) as exc_info:

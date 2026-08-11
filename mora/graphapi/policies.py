@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections import defaultdict
 from functools import partial
 
 from more_itertools import one
@@ -11,19 +12,24 @@ from strawberry.dataloader import DataLoader
 
 from mora import db
 from mora.db import AsyncSession
+from mora.graphapi.policy_cel import CEL
 
 POLICY_LOADER_KEY = "policy_loader"
 
 
 async def policy_rules_resolver(
     session: AsyncSession, keys: list[frozenset[str]]
-) -> list[set[tuple[str, str]]]:
+) -> list[dict[tuple[str, str], list[CEL]]]:
     """The applicable rules for the caller's roles."""
     # The loader is cached per request, and the token never changes per request,
     # so we only ever get called with one set of roles
     roles = one(keys)
     query = (
-        select(db.PolicyRule.type, db.PolicyRule.field)
+        select(
+            db.PolicyRule.type,
+            db.PolicyRule.field,
+            db.PolicyRule.condition,
+        )
         .join(db.Policy)
         .where(db.Policy.active)
         .where(
@@ -40,8 +46,10 @@ async def policy_rules_resolver(
         )
     )
     rows = (await session.execute(query)).all()
-    result = {(row.type, row.field) for row in rows}
-    return [result]
+    index: dict[tuple[str, str], list[CEL]] = defaultdict(list)
+    for row in rows:
+        index[(row.type, row.field)].append(row.condition)
+    return [index]
 
 
 def get_policy_loaders(session: AsyncSession) -> dict[str, DataLoader]:
