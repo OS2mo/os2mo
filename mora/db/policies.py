@@ -86,11 +86,15 @@ class PolicyRule(Base):
     # The GraphQL (type, field) the rule grants access to; either may be "*"
     type: Mapped[str] = mapped_column(Text)
     field: Mapped[str] = mapped_column(Text)
+    # Optional CEL condition that must hold for the rule to apply
+    condition: Mapped[str] = mapped_column(Text, server_default="")
 
     policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.id"))
     policy: Mapped[Policy] = relationship(back_populates="rules")
 
     __table_args__ = (
-        # A given (type, field) is declared at most once per policy.
-        UniqueConstraint("policy_fk", "type", "field", name="uq_policy_rule"),
+        # A given (type, field, condition) is declared at most once per policy.
+        UniqueConstraint(
+            "policy_fk", "type", "field", "condition", name="uq_policy_rule"
+        ),
     )

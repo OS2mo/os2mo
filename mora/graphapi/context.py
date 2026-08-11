@@ -31,6 +31,7 @@ from mora.graphapi.models import AddressRead
 from mora.graphapi.models import ClassRead
 from mora.graphapi.models import FacetRead
 from mora.graphapi.models import RoleBindingRead
+from mora.graphapi.policy_cel import CEL
 
 
 @dataclass
@@ -51,7 +52,7 @@ class MOLoaders:
     org_loader: DataLoader[int, OrganisationRead]
     org_unit_loader: DataLoader[LoadKey, list[OrganisationUnitRead]]
     owner_loader: DataLoader[LoadKey, list[OwnerRead]]
-    policy_loader: DataLoader[frozenset[str], set[tuple[str, str]]]
+    policy_loader: DataLoader[frozenset[str], dict[tuple[str, str], list[CEL]]]
     rel_unit_loader: DataLoader[LoadKey, list[RelatedUnitRead]]
     rolebinding_loader: DataLoader[LoadKey, list[RoleBindingRead]]
 
