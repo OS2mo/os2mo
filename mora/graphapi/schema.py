@@ -27,6 +27,7 @@ from strawberry.utils.await_maybe import AsyncIteratorOrIterator
 from strawberry.utils.await_maybe import await_maybe
 from structlog import get_logger
 
+from alembic_helpers.rbac_map import RBAC_MAP
 from mora import config
 from mora.auth.exceptions import AuthorizationError
 from mora.db import get_session
@@ -57,7 +58,6 @@ from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.query import Query
-from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.types import CPR_SCALAR
 from mora.graphapi.types import CURSOR_SCALAR
 from mora.graphapi.types import INT_SCALAR
