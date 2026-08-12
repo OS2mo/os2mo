@@ -318,6 +318,17 @@ class EmployeeFilter(BaseFilter):
         description="Owner filter limiting which entries are returned.",
     )
 
+    ituser: ITUserFilter | None = strawberry.field(
+        default=UNSET,
+        description=dedent(
+            """\
+            IT-user filter limiting which entries are returned.
+
+            Set to `null` to only return employees without any IT-users.
+            """
+        ),
+    )
+
 
 @strawberry.input(description="Engagement filter.")
 class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
