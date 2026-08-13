@@ -1,21 +1,37 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
+from collections.abc import Awaitable
+from collections.abc import Callable
+from functools import partial
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
+from sqlalchemy import exists
+from sqlalchemy import select
 from structlog import get_logger
 
 import mora.auth.keycloak.uuid_extractor as uuid_extractor
 import mora.config
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
+from mora.db import BrugerRegistrering
+from mora.db import OrganisationEnhedRegistrering
+from mora.graphapi.filters import EmployeeFilter
+from mora.graphapi.filters import OrganisationUnitFilter
+from mora.graphapi.filters import OwnerFilter
+from mora.graphapi.resolvers import employee_predicate
+from mora.graphapi.resolvers import organisation_unit_predicate
 from mora.graphapi.shim import execute_graphql
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
 from mora.mapping import EntityType
+
+if TYPE_CHECKING:
+    from mora.graphapi.context import MOInfo
 
 logger = get_logger()
 
@@ -110,7 +126,7 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
         entity_type = await uuid_extractor.get_entity_type(request)
         entity_uuids = await uuid_extractor.get_entity_uuids(request)
         entities = {(entity_type, uuid) for uuid in entity_uuids}
-        await check_owner(token, entities)
+        await check_owner_serviceapi(token, entities)
         logger.debug(f"User {token.preferred_username} authorized")
         return
 
@@ -120,7 +136,59 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
     raise AuthorizationError("Not authorized to perform this operation")
 
 
-async def _is_owner_org_unit(user_uuid: UUID, entity_uuid: UUID) -> bool:
+async def _is_owner_org_unit(
+    info: "MOInfo", user_uuid: UUID, entity_uuid: UUID
+) -> bool:
+    """Check org-unit ownership via the GraphQL org-unit owner filter.
+
+    Owning any ancestor also grants ownership: the `descendant` filter matches
+    the unit together with all of its ancestors.
+    """
+    predicate = organisation_unit_predicate(
+        info=info,
+        filter=OrganisationUnitFilter(
+            descendant=OrganisationUnitFilter(uuids=[entity_uuid]),
+            owner=OwnerFilter(owner=EmployeeFilter(uuids=[user_uuid])),
+        ),
+    )
+    session = info.context.session
+    id_column = OrganisationEnhedRegistrering.organisationenhed_id
+    return bool(
+        await session.scalar(select(exists(select(id_column).where(predicate))))
+    )
+
+
+async def _is_owner_employee(
+    info: "MOInfo", user_uuid: UUID, entity_uuid: UUID
+) -> bool:
+    """Check employee ownership via the GraphQL employee owner filter."""
+    predicate = employee_predicate(
+        info=info,
+        filter=EmployeeFilter(
+            uuids=[entity_uuid],
+            owner=OwnerFilter(owner=EmployeeFilter(uuids=[user_uuid])),
+        ),
+    )
+    session = info.context.session
+    id_column = BrugerRegistrering.bruger_id
+    return bool(
+        await session.scalar(select(exists(select(id_column).where(predicate))))
+    )
+
+
+async def _is_owner_via_predicate(
+    info: "MOInfo",
+    user_uuid: UUID,
+    entity_type: EntityType,
+    entity_uuid: UUID,
+) -> bool:
+    """Check ownership in-process using the GraphQL filter predicates."""
+    if entity_type == EntityType.ORG_UNIT:
+        return await _is_owner_org_unit(info, user_uuid, entity_uuid)
+    return await _is_owner_employee(info, user_uuid, entity_uuid)
+
+
+async def _is_owner_org_unit_via_graphql(user_uuid: UUID, entity_uuid: UUID) -> bool:
     """Check whether `user_uuid` owns the org unit or one of its ancestors.
 
     The `descendant` filter grants ownership via the unit itself or any of its
@@ -149,7 +217,7 @@ async def _is_owner_org_unit(user_uuid: UUID, entity_uuid: UUID) -> bool:
     return bool(r.data["org_units"]["objects"])
 
 
-async def _is_owner_employee(user_uuid: UUID, entity_uuid: UUID) -> bool:
+async def _is_owner_employee_via_graphql(user_uuid: UUID, entity_uuid: UUID) -> bool:
     """Check whether `user_uuid` owns the employee."""
     query = """
     query CheckEmployeeOwner($filter: EmployeeFilter!) {
@@ -173,30 +241,30 @@ async def _is_owner_employee(user_uuid: UUID, entity_uuid: UUID) -> bool:
     return bool(r.data["employees"]["objects"])
 
 
-async def _is_owner(
+async def _is_owner_via_graphql(
     user_uuid: UUID, entity_type: EntityType, entity_uuid: UUID
 ) -> bool:
-    """Check ownership of a single entity through the GraphQL owner filters."""
+    """Check ownership via `execute_graphql`."""
     if entity_type == EntityType.ORG_UNIT:
-        return await _is_owner_org_unit(user_uuid, entity_uuid)
-    return await _is_owner_employee(user_uuid, entity_uuid)
+        return await _is_owner_org_unit_via_graphql(user_uuid, entity_uuid)
+    return await _is_owner_employee_via_graphql(user_uuid, entity_uuid)
 
 
-async def check_owner(token: Token, entities: set[tuple[EntityType, UUID]]) -> None:
+async def _check_owner(
+    token: Token,
+    entities: set[tuple[EntityType, UUID]],
+    is_owner: Callable[[UUID, EntityType, UUID], Awaitable[bool]],
+) -> None:
     """Check if the token is owner of the given entities.
 
-    This function is called from both the Service-API and GraphQL.
+    `is_owner` performs the per-entity lookup; the Service-API and GraphQL
+    supply different implementations.
     """
-    # In some cases several entities have to be checked, e.g. if
-    # we are moving a unit. In such cases we have to check for
-    # ownership in both the source (the unit to be moved) and target
-    # (the receiving unit). In some cases only the
-    # source is relevant, e.g. if an org unit detail is created/edited.
     logger.debug("Check owner", entities=entities)
     user_uuid = await _get_employee_uuid(token)
     ownership = await asyncio.gather(
         *(
-            _is_owner(user_uuid, entity_type, entity_uuid)
+            is_owner(user_uuid, entity_type, entity_uuid)
             for entity_type, entity_uuid in entities
         )
     )
@@ -206,3 +274,17 @@ async def check_owner(token: Token, entities: set[tuple[EntityType, UUID]]) -> N
     # boolean) because _get_employee_uuid() might also raise an AuthorizationError,
     # which we would like to propagate to the error message in the Service-API.
     raise AuthorizationError("Not owner")
+
+
+async def check_owner(
+    info: "MOInfo", token: Token, entities: set[tuple[EntityType, UUID]]
+) -> None:
+    """Check if the token is owner of the given entities."""
+    await _check_owner(token, entities, partial(_is_owner_via_predicate, info))
+
+
+async def check_owner_serviceapi(
+    token: Token, entities: set[tuple[EntityType, UUID]]
+) -> None:
+    """Check ownership from the Service-API (no GraphQL `info` available)."""
+    await _check_owner(token, entities, _is_owner_via_graphql)
