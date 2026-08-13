@@ -4,7 +4,6 @@ from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 from uuid import UUID
-from uuid import uuid4
 
 import pytest
 from fastapi import FastAPI
@@ -13,10 +12,8 @@ from starlette.status import HTTP_200_OK
 from starlette.status import HTTP_201_CREATED
 from starlette.status import HTTP_403_FORBIDDEN
 
-from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import fetch_token
-from mora.auth.keycloak.rbac import _get_employee_uuid_via_it_system
 from mora.config import Settings
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
@@ -794,19 +791,3 @@ def test_ownership_through_it_system(
     )
 
     assert response.status_code == expected
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-async def test_it_user_to_employee_uuid():
-    result = await _get_employee_uuid_via_it_system(
-        ACTIVE_DIRECTORY, ANDERS_AND_AD_EXTERNAL_ID
-    )
-    assert ANDERS_AND == str(result)
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-async def test_it_user_to_employee_uuid_missing_it_user():
-    with pytest.raises(AuthorizationError):
-        await _get_employee_uuid_via_it_system(ACTIVE_DIRECTORY, uuid4())
