@@ -4,8 +4,6 @@ import asyncio
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from fastapi.encoders import jsonable_encoder
-from more_itertools import one
 from sqlalchemy import exists
 from sqlalchemy import select
 from structlog import get_logger
@@ -22,7 +20,6 @@ from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.filters import OwnerFilter
 from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.resolvers import organisation_unit_predicate
-from mora.graphapi.shim import execute_graphql
 from mora.mapping import ADMIN
 from mora.mapping import EntityType
 
@@ -30,62 +27,6 @@ if TYPE_CHECKING:
     from mora.graphapi.context import MOInfo
 
 logger = get_logger()
-
-
-async def _get_employee_uuid_via_it_system(
-    it_system: UUID, it_external_id: UUID | str
-) -> UUID:
-    """Return the employee UUID of the related it user.
-
-    This is used to implement the
-    `KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS` configuration option.
-    """
-
-    query = """
-    query GetEmployeeUUIDFromItUser($filter: ITUserFilter!) {
-      itusers(filter: $filter) {
-        objects {
-          current {
-            employee_uuid
-          }
-        }
-      }
-    }
-    """
-    r = await execute_graphql(
-        query,
-        variable_values=jsonable_encoder(
-            {
-                "filter": {
-                    "itsystem": {"uuids": [it_system]},
-                    "external_ids": [it_external_id],
-                }
-            },
-        ),
-    )
-    if r.errors or r.data is None:  # pragma: no cover
-        raise AuthorizationError("Error when looking up IT users")
-    try:
-        return UUID(one(r.data["itusers"]["objects"])["current"]["employee_uuid"])
-    except ValueError:
-        raise AuthorizationError("Expected exactly one matching IT user")
-
-
-def _get_employee_uuid_via_token(token: Token) -> UUID:
-    return token.uuid
-
-
-async def _get_employee_uuid(token: Token) -> UUID:
-    """Select employee UUID based on MOs configuration."""
-
-    it_system = (
-        mora.config.get_settings().keycloak_rbac_authoritative_it_system_for_owners
-    )
-    lookup_via_it_system = it_system is not None
-
-    if lookup_via_it_system:
-        return await _get_employee_uuid_via_it_system(it_system, token.uuid)
-    return _get_employee_uuid_via_token(token)
 
 
 def _actor_filter(token: Token) -> EmployeeFilter:
