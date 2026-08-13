@@ -1095,6 +1095,30 @@ def employee_predicate(
             )
         )
 
+    # IT users
+    if filter.ituser is not UNSET:
+        # `null` matches employees without any IT user in the queried validity
+        ituser_filter = filter.ituser or ITUserFilter(
+            from_date=filter.from_date,
+            to_date=filter.to_date,
+            registration_time=filter.registration_time,
+        )
+        employee_has_ituser = exists().where(
+            OrganisationFunktionRelation.rel_type
+            == OrganisationFunktionRelationKode.tilknyttedebrugere,
+            OrganisationFunktionRelation.rel_maal_uuid == BrugerRegistrering.bruger_id,
+            OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
+                select(OrganisationFunktionRegistrering.id).where(
+                    it_user_predicate(info, ituser_filter)
+                )
+            ),
+            _get_virkning_clause(OrganisationFunktionRelation, filter),
+        )
+        if filter.ituser is None:
+            predicates.append(~employee_has_ituser)
+        else:
+            predicates.append(employee_has_ituser)
+
     return and_(*predicates)
 
 
