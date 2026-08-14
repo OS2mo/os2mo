@@ -139,7 +139,7 @@ async def full_event_resolver(
         clauses.append(db.Event.silenced == filter.silenced)
 
     # Pagination
-    query = select(db.Event.pk).where(*clauses).order_by(db.Event.pk)
+    query = select(db.Event.pk).where(*clauses)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(session, query, db.Event.pk, limit, cursor)
 
@@ -170,9 +170,7 @@ async def listener_resolver(
         filter = ListenerFilter()
 
     # Pagination
-    query = (
-        select(db.Listener.pk).where(*filter.where_clauses()).order_by(db.Listener.pk)
-    )
+    query = select(db.Listener.pk).where(*filter.where_clauses())
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(session, query, db.Listener.pk, limit, cursor)
 

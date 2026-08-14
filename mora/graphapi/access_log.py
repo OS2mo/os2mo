@@ -245,7 +245,6 @@ async def access_log_resolver(
         query = query.where(AccessLogOperation.time.between(start, end))
 
     # Pagination
-    query = query.order_by(AccessLogOperation.id)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
         session, query, AccessLogOperation.id, limit, cursor

@@ -126,6 +126,11 @@ class ObjectsAndCursor(NamedTuple, Generic[T]):
     next_cursor: CursorType = None
 
 
+# Above this many matching rows, a result is dense enough that an ordered
+# index scan is guaranteed to fill its page LIMIT early.
+PROBE_CAP = 10_000
+
+
 async def paginate(
     session: AsyncSession,
     query: Select,
@@ -133,14 +138,53 @@ async def paginate(
     limit: LimitType,
     cursor: CursorType,
 ) -> tuple[Sequence[UUID], CursorType]:
+    """Paginate `query`, which must be unordered and without DISTINCT.
+
+    Combining `ORDER BY column` with a small LIMIT baits the planner into an
+    abort-early plan: walk the ordering index, filter each row, and hope to
+    fill the LIMIT early. Its cost model assumes matching rows are uniformly
+    distributed, so when they are clumped -- e.g. an org unit whose
+    engagements are all in the past -- the walk visits the entire table.
+
+    To avoid this, first probe the filter without ORDER BY and without the
+    page LIMIT, leaving the planner free to drive the query from whichever
+    side is actually selective. The probe's cap bounds what we fetch and
+    reveals which regime we are in: if the full remaining result fits under
+    the cap, paginate it in Python; otherwise the result is dense and the
+    ordered keyset query is safe.
+    """
     if cursor is not None:
         query = query.where(column > cursor.last)
-    if limit is not None:
-        # Fetch one extra row to see if there is another page
-        query = query.limit(limit + 1)
-    uuids = (await session.scalars(query)).all()
-    # `uuids[:limit]` drops the probe row (and is a no-op when limit is None); a
-    # longer `uuids` than the page itself means another page exists.
+
+    if limit is None:
+        # Without a LIMIT the planner costs the full result and never gambles
+        # on early exit, so the ordered query is safe.
+        uuids = (await session.scalars(query.distinct().order_by(column))).all()
+        return uuids, None
+
+    if limit == 0:
+        # SQL LIMIT 0 semantics: an empty page with no next cursor.
+        return [], None
+
+    cap = max(PROBE_CAP, limit)
+    # DISTINCT is applied in Python: in SQL it would force the database to
+    # aggregate all matching rows before the cap could stop anything.
+    rows = (await session.scalars(query.limit(cap + 1))).all()
+    if len(rows) <= cap:
+        # The complete remaining result is in hand. Python UUID comparison
+        # matches Postgres uuid btree order, so cursors remain consistent
+        # with the ordered query below.
+        remaining = sorted(set(rows))
+        page: Sequence[UUID] = remaining[:limit]
+        if len(remaining) > len(page):
+            return page, Cursor(last=page[-1])
+        return page, None
+
+    # Fetch one extra row to see if there is another page
+    ordered = query.distinct().order_by(column).limit(limit + 1)
+    uuids = (await session.scalars(ordered)).all()
+    # `uuids[:limit]` drops the probe row; a longer `uuids` than the page
+    # itself means another page exists.
     page = uuids[:limit]
     if page and len(uuids) > len(page):
         return page, Cursor(last=page[-1])

@@ -245,7 +245,6 @@ async def actor_resolver(
     query = select(ActorTable.actor)
     if filter.uuids is not None:
         query = query.where(ActorTable.actor.in_(filter.uuids))
-    query = query.order_by(ActorTable.actor)
 
     uuids, next_cursor = await paginate(session, query, ActorTable.actor, limit, cursor)
 
