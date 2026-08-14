@@ -31,6 +31,7 @@ from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy import true
 from sqlalchemy import union
+from sqlalchemy.dialects.postgresql import TSTZRANGE
 from sqlalchemy.types import Text
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
@@ -49,6 +50,7 @@ from mora.db import FacetRegistrering
 from mora.db import FacetRelation
 from mora.db import FacetRelationKode
 from mora.db import FacetTilsPubliceret
+from mora.db import HasAktivVirkning
 from mora.db import HasValidity
 from mora.db import ITSystemAttrEgenskaber
 from mora.db import ITSystemRegistrering
@@ -252,28 +254,43 @@ def _get_virkning_clause(
     return cls.virkning_period.overlaps(TimestamptzRange(start, end))
 
 
-def _get_gyldighed_clause(
+def _get_tilstand_clause(
     registrering_cls: type[
         BrugerRegistrering
+        | FacetRegistrering
         | ITSystemRegistrering
+        | KlasseRegistrering
         | OrganisationEnhedRegistrering
         | OrganisationFunktionRegistrering
     ],
-    gyldighed_cls: type[
+    tilstand_cls: type[
         BrugerTilsGyldighed
+        | FacetTilsPubliceret
         | ITSystemTilsGyldighed
+        | KlasseTilsPubliceret
         | OrganisationEnhedTilsGyldighed
         | OrganisationFunktionTilsGyldighed
     ],
     filter: BaseFilter,
 ) -> ColumnElement:
-    fk_column = getattr(gyldighed_cls, f"{registrering_cls.__tablename__}_id")
-    return registrering_cls.id.in_(
-        select(fk_column).where(
-            gyldighed_cls.gyldighed == "Aktiv",
-            _get_virkning_clause(gyldighed_cls, filter),
+    return exists(
+        select(1)
+        .select_from(tilstand_cls)
+        .where(
+            tilstand_cls.registrering_id == registrering_cls.id,
+            tilstand_cls.is_active(),
+            _get_virkning_clause(tilstand_cls, filter),
         )
     )
+
+
+def _get_active_period_clause(
+    period_cls: type[HasAktivVirkning],
+    filter: BaseFilter,
+) -> ColumnElement:
+    start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
+    window = TimestamptzRange(start, end)
+    return period_cls.aktiv_virkning.bool_op("&&")(literal(window, type_=TSTZRANGE))
 
 
 def facet_predicate(
@@ -282,12 +299,7 @@ def facet_predicate(
 ) -> ColumnElement:
     predicates = [
         _get_registrering_clause(FacetRegistrering, filter),
-        FacetRegistrering.id.in_(
-            select(FacetTilsPubliceret.facet_registrering_id).where(
-                FacetTilsPubliceret.publiceret == "Publiceret",
-                _get_virkning_clause(FacetTilsPubliceret, filter),
-            )
-        ),
+        _get_tilstand_clause(FacetRegistrering, FacetTilsPubliceret, filter),
     ]
 
     # Registration
@@ -310,7 +322,7 @@ def facet_predicate(
             FacetRegistrering.id.in_(
                 select(FacetAttrEgenskaber.facet_registrering_id).where(
                     FacetAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
-                    _get_virkning_clause(FacetAttrEgenskaber, filter),
+                    _get_active_period_clause(FacetAttrEgenskaber, filter),
                 )
             )
         )
@@ -330,7 +342,7 @@ def facet_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(FacetRelation, filter),
+                    _get_active_period_clause(FacetRelation, filter),
                 )
             )
         )
@@ -391,12 +403,7 @@ def class_predicate(
 ) -> ColumnElement:
     predicates = [
         _get_registrering_clause(KlasseRegistrering, filter),
-        KlasseRegistrering.id.in_(
-            select(KlasseTilsPubliceret.klasse_registrering_id).where(
-                KlasseTilsPubliceret.publiceret == "Publiceret",
-                _get_virkning_clause(KlasseTilsPubliceret, filter),
-            )
-        ),
+        _get_tilstand_clause(KlasseRegistrering, KlasseTilsPubliceret, filter),
     ]
 
     # Registration
@@ -419,7 +426,7 @@ def class_predicate(
             KlasseRegistrering.id.in_(
                 select(KlasseAttrEgenskaber.klasse_registrering_id).where(
                     KlasseAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
-                    _get_virkning_clause(KlasseAttrEgenskaber, filter),
+                    _get_active_period_clause(KlasseAttrEgenskaber, filter),
                 )
             )
         )
@@ -430,7 +437,7 @@ def class_predicate(
             KlasseRegistrering.id.in_(
                 select(KlasseAttrEgenskaber.klasse_registrering_id).where(
                     KlasseAttrEgenskaber.titel.in_(filter.name),
-                    _get_virkning_clause(KlasseAttrEgenskaber, filter),
+                    _get_active_period_clause(KlasseAttrEgenskaber, filter),
                 )
             )
         )
@@ -441,7 +448,7 @@ def class_predicate(
             KlasseRegistrering.id.in_(
                 select(KlasseAttrEgenskaber.klasse_registrering_id).where(
                     KlasseAttrEgenskaber.omfang.in_(filter.scope),
-                    _get_virkning_clause(KlasseAttrEgenskaber, filter),
+                    _get_active_period_clause(KlasseAttrEgenskaber, filter),
                 )
             )
         )
@@ -461,7 +468,7 @@ def class_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(KlasseRelation, filter),
+                    _get_active_period_clause(KlasseRelation, filter),
                 )
             )
         )
@@ -481,7 +488,7 @@ def class_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(KlasseRelation, filter),
+                    _get_active_period_clause(KlasseRelation, filter),
                 )
             )
         )
@@ -500,7 +507,7 @@ def class_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(KlasseRelation, filter),
+                    _get_active_period_clause(KlasseRelation, filter),
                 )
             )
         )
@@ -518,7 +525,7 @@ def class_predicate(
                         ).where(organisation_unit_predicate(info, filter.owner)),
                     )
                 ),
-                _get_virkning_clause(KlasseRelation, filter),
+                _get_active_period_clause(KlasseRelation, filter),
             )
         )
         if filter.owner.include_none:
@@ -526,7 +533,7 @@ def class_predicate(
                 KlasseRelation.klasse_registrering_id == KlasseRegistrering.id,
                 KlasseRelation.rel_type == KlasseRelationKode.ejer,
                 KlasseRelation.rel_maal_uuid.is_not(None),
-                _get_virkning_clause(KlasseRelation, filter),
+                _get_active_period_clause(KlasseRelation, filter),
             )
             predicates.append(or_(matched_owner, no_owner))
         else:
@@ -592,13 +599,13 @@ def address_predicate(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
                 OrganisationFunktionAttrEgenskaber.funktionsnavn == "Adresse",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                _get_active_period_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -634,7 +641,9 @@ def address_predicate(
                     OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
                         filter.user_keys
                     ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                    _get_active_period_clause(
+                        OrganisationFunktionAttrEgenskaber, filter
+                    ),
                 )
             )
         )
@@ -657,7 +666,7 @@ def address_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -680,7 +689,7 @@ def address_predicate(
                             ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -703,7 +712,7 @@ def address_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -727,7 +736,7 @@ def address_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -766,7 +775,7 @@ def address_predicate(
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedefunktioner,
                     or_(*tilknyttedefunktioner),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -835,13 +844,13 @@ def association_predicate(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
                 OrganisationFunktionAttrEgenskaber.funktionsnavn == "Tilknytning",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                _get_active_period_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -877,7 +886,9 @@ def association_predicate(
                     OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
                         filter.user_keys
                     ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                    _get_active_period_clause(
+                        OrganisationFunktionAttrEgenskaber, filter
+                    ),
                 )
             )
         )
@@ -900,7 +911,7 @@ def association_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -923,7 +934,7 @@ def association_predicate(
                             ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -946,7 +957,7 @@ def association_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -960,7 +971,7 @@ def association_predicate(
                 OrganisationFunktionRelation.rel_type
                 == OrganisationFunktionRelationKode.tilknyttedeitsystemer,
                 OrganisationFunktionRelation.rel_maal_uuid.is_not(None),
-                _get_virkning_clause(OrganisationFunktionRelation, filter),
+                _get_active_period_clause(OrganisationFunktionRelation, filter),
             )
         )
         if filter.it_association:
@@ -1028,7 +1039,7 @@ def employee_predicate(
 ) -> ColumnElement:
     predicates = [
         _get_registrering_clause(BrugerRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             BrugerRegistrering,
             BrugerTilsGyldighed,
             filter,
@@ -1055,7 +1066,7 @@ def employee_predicate(
             BrugerRegistrering.id.in_(
                 select(BrugerAttrEgenskaber.bruger_registrering_id).where(
                     BrugerAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
-                    _get_virkning_clause(BrugerAttrEgenskaber, filter),
+                    _get_active_period_clause(BrugerAttrEgenskaber, filter),
                 )
             )
         )
@@ -1069,7 +1080,7 @@ def employee_predicate(
                     BrugerRelation.rel_maal_urn.in_(
                         f"urn:dk:cpr:person:{c}" for c in filter.cpr_numbers
                     ),
-                    _get_virkning_clause(BrugerRelation, filter),
+                    _get_active_period_clause(BrugerRelation, filter),
                 )
             )
         )
@@ -1090,7 +1101,7 @@ def employee_predicate(
                             owner_predicate(info, filter.owner)
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -1112,7 +1123,7 @@ def employee_predicate(
                     it_user_predicate(info, ituser_filter)
                 )
             ),
-            _get_virkning_clause(OrganisationFunktionRelation, filter),
+            _get_active_period_clause(OrganisationFunktionRelation, filter),
         )
         if filter.ituser is None:
             predicates.append(~employee_has_ituser)
@@ -1179,13 +1190,13 @@ def engagement_predicate(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
                 OrganisationFunktionAttrEgenskaber.funktionsnavn == "Engagement",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                _get_active_period_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -1221,7 +1232,9 @@ def engagement_predicate(
                     OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
                         filter.user_keys
                     ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                    _get_active_period_clause(
+                        OrganisationFunktionAttrEgenskaber, filter
+                    ),
                 )
             )
         )
@@ -1244,7 +1257,7 @@ def engagement_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -1267,7 +1280,7 @@ def engagement_predicate(
                             ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -1289,7 +1302,7 @@ def engagement_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -1311,7 +1324,7 @@ def engagement_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -1332,7 +1345,7 @@ def engagement_predicate(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
                         select(OrganisationFunktionRegistrering.id).where(ituser_pred)
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -1402,13 +1415,13 @@ def manager_predicate(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
                 OrganisationFunktionAttrEgenskaber.funktionsnavn == "Leder",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                _get_active_period_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -1444,7 +1457,9 @@ def manager_predicate(
                     OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
                         filter.user_keys
                     ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                    _get_active_period_clause(
+                        OrganisationFunktionAttrEgenskaber, filter
+                    ),
                 )
             )
         )
@@ -1462,7 +1477,7 @@ def manager_predicate(
                     == OrganisationFunktionRegistrering.id,
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
             vacant_row_exists = exists(
@@ -1473,7 +1488,7 @@ def manager_predicate(
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
                     OrganisationFunktionRelation.rel_maal_uuid.is_(None),
                     OrganisationFunktionRelation.rel_maal_urn.is_(None),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
             predicates.append(
@@ -1502,7 +1517,9 @@ def manager_predicate(
                                     ),
                                 )
                             ),
-                            _get_virkning_clause(OrganisationFunktionRelation, filter),
+                            _get_active_period_clause(
+                                OrganisationFunktionRelation, filter
+                            ),
                         )
                     )
                 )
@@ -1524,7 +1541,7 @@ def manager_predicate(
                                 ),
                             )
                         ),
-                        _get_virkning_clause(OrganisationFunktionRelation, filter),
+                        _get_active_period_clause(OrganisationFunktionRelation, filter),
                     )
                 )
             )
@@ -1551,7 +1568,7 @@ def manager_predicate(
                             ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -1573,7 +1590,7 @@ def manager_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -1595,7 +1612,7 @@ def manager_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -1617,7 +1634,7 @@ def manager_predicate(
                             ).where(engagement_predicate(info, filter.engagement)),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -1640,7 +1657,7 @@ def manager_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
                 .correlate(OrganisationFunktionRegistrering)
             )
@@ -1669,7 +1686,7 @@ def _manager_inherit_org_unit_predicate(
             OrganisationFunktionRelation.rel_type
             == OrganisationFunktionRelationKode.tilknyttedeenheder,
             OrganisationFunktionRelation.rel_maal_uuid == organisationenhed_id,
-            _get_virkning_clause(OrganisationFunktionRelation, filter),
+            _get_active_period_clause(OrganisationFunktionRelation, filter),
         )
 
     def get_parent(child_uuid: ColumnExpressionArgument) -> Select:
@@ -1683,7 +1700,7 @@ def _manager_inherit_org_unit_predicate(
             OrganisationEnhedRelation.rel_type
             == OrganisationEnhedRelationKode.overordnet,
             _get_registrering_clause(OrganisationEnhedRegistrering, filter),
-            _get_virkning_clause(OrganisationEnhedRelation, filter),
+            _get_active_period_clause(OrganisationEnhedRelation, filter),
         )
 
     assert filter.org_unit is not None
@@ -1705,7 +1722,7 @@ def _manager_inherit_org_unit_predicate(
         OrganisationFunktionRelation.rel_type
         == OrganisationFunktionRelationKode.tilknyttedeenheder,
         OrganisationFunktionRelation.rel_maal_uuid.in_(select(walk.c.unit)),
-        _get_virkning_clause(OrganisationFunktionRelation, filter),
+        _get_active_period_clause(OrganisationFunktionRelation, filter),
     )
 
 
@@ -1788,13 +1805,13 @@ def owner_predicate(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
                 OrganisationFunktionAttrEgenskaber.funktionsnavn == "owner",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                _get_active_period_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -1818,7 +1835,9 @@ def owner_predicate(
                     OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
                         filter.user_keys
                     ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                    _get_active_period_clause(
+                        OrganisationFunktionAttrEgenskaber, filter
+                    ),
                 )
             )
         )
@@ -1841,7 +1860,7 @@ def owner_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -1864,7 +1883,7 @@ def owner_predicate(
                             ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -1886,7 +1905,7 @@ def owner_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -1983,7 +2002,7 @@ def organisation_unit_predicate(
 
     predicates = [
         _get_registrering_clause(OrganisationEnhedRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationEnhedRegistrering,
             OrganisationEnhedTilsGyldighed,
             filter,
@@ -2004,7 +2023,7 @@ def organisation_unit_predicate(
                             )
                         )
                     ),
-                    _get_virkning_clause(
+                    _get_active_period_clause(
                         OrganisationFunktionRelation, filter.engagement
                     ),
                 )
@@ -2039,7 +2058,7 @@ def organisation_unit_predicate(
                     OrganisationEnhedAttrEgenskaber.brugervendtnoegle.in_(
                         filter.user_keys
                     ),
-                    _get_virkning_clause(OrganisationEnhedAttrEgenskaber, filter),
+                    _get_active_period_clause(OrganisationEnhedAttrEgenskaber, filter),
                 )
             )
         )
@@ -2052,7 +2071,7 @@ def organisation_unit_predicate(
                     OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
                 ).where(
                     OrganisationEnhedAttrEgenskaber.enhedsnavn.in_(filter.names),
-                    _get_virkning_clause(OrganisationEnhedAttrEgenskaber, filter),
+                    _get_active_period_clause(OrganisationEnhedAttrEgenskaber, filter),
                 )
             )
         )
@@ -2067,7 +2086,7 @@ def organisation_unit_predicate(
                     OrganisationEnhedRelation.rel_type
                     == OrganisationEnhedRelationKode.overordnet,
                     OrganisationEnhedRelation.rel_maal_uuid.in_(_parents_subquery()),
-                    _get_virkning_clause(OrganisationEnhedRelation, filter),
+                    _get_active_period_clause(OrganisationEnhedRelation, filter),
                 )
             )
         )
@@ -2090,7 +2109,7 @@ def organisation_unit_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationEnhedRelation, filter),
+                    _get_active_period_clause(OrganisationEnhedRelation, filter),
                 )
             )
         )
@@ -2130,6 +2149,7 @@ def organisation_unit_predicate(
             )
             .where(
                 _get_registrering_clause(OrganisationEnhedRegistrering, filter),
+                _get_active_period_clause(OrganisationEnhedRelation, filter),
             )
             .join(
                 leafs,
@@ -2138,7 +2158,6 @@ def organisation_unit_predicate(
                     == OrganisationEnhedRelationKode.overordnet,
                     OrganisationEnhedRegistrering.organisationenhed_id
                     == leafs.c.organisationenhed_id,
-                    _get_virkning_clause(OrganisationEnhedRelation, filter),
                 ),
             )
         )
@@ -2160,7 +2179,7 @@ def organisation_unit_predicate(
                 select(OrganisationEnhedRelation.rel_maal_uuid)
                 .where(
                     _get_registrering_clause(OrganisationEnhedRegistrering, filter),
-                    _get_virkning_clause(OrganisationEnhedRelation, filter),
+                    _get_active_period_clause(OrganisationEnhedRelation, filter),
                     OrganisationEnhedRelation.rel_type
                     == OrganisationEnhedRelationKode.overordnet,
                     OrganisationEnhedRelation.rel_maal_uuid
@@ -2190,7 +2209,7 @@ def organisation_unit_predicate(
                 .join(OrganisationEnhedRegistrering)
                 .where(
                     _get_registrering_clause(OrganisationEnhedRegistrering, filter),
-                    _get_virkning_clause(OrganisationEnhedRelation, filter),
+                    _get_active_period_clause(OrganisationEnhedRelation, filter),
                     OrganisationEnhedRelation.rel_type
                     == OrganisationEnhedRelationKode.overordnet,
                     OrganisationEnhedRegistrering.organisationenhed_id.in_(base_query),
@@ -2227,7 +2246,7 @@ def organisation_unit_predicate(
             )
             .where(
                 _get_registrering_clause(OrganisationEnhedRegistrering, filter),
-                _get_virkning_clause(OrganisationEnhedRelation, filter),
+                _get_active_period_clause(OrganisationEnhedRelation, filter),
             )
             .join(
                 base,
@@ -2261,7 +2280,7 @@ def organisation_unit_predicate(
                         ),
                         OrganisationEnhedAttrEgenskaber.enhedsnavn.ilike(search_phrase),
                     ),
-                    _get_virkning_clause(OrganisationEnhedAttrEgenskaber, filter),
+                    _get_active_period_clause(OrganisationEnhedAttrEgenskaber, filter),
                 )
             ),
         ]
@@ -2287,7 +2306,7 @@ def organisation_unit_predicate(
                             owner_predicate(info, filter.owner)
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -2392,7 +2411,7 @@ def it_system_predicate(
 ) -> ColumnElement:
     predicates = [
         _get_registrering_clause(ITSystemRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             ITSystemRegistrering,
             ITSystemTilsGyldighed,
             filter,
@@ -2419,7 +2438,7 @@ def it_system_predicate(
             ITSystemRegistrering.id.in_(
                 select(ITSystemAttrEgenskaber.itsystem_registrering_id).where(
                     ITSystemAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys),
-                    _get_virkning_clause(ITSystemAttrEgenskaber, filter),
+                    _get_active_period_clause(ITSystemAttrEgenskaber, filter),
                 )
             )
         )
@@ -2484,13 +2503,13 @@ def it_user_predicate(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
                 OrganisationFunktionAttrEgenskaber.funktionsnavn == "IT-system",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                _get_active_period_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -2526,7 +2545,9 @@ def it_user_predicate(
                     OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
                         filter.user_keys
                     ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                    _get_active_period_clause(
+                        OrganisationFunktionAttrEgenskaber, filter
+                    ),
                 )
             )
         )
@@ -2549,7 +2570,7 @@ def it_user_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -2572,7 +2593,7 @@ def it_user_predicate(
                             ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -2595,7 +2616,7 @@ def it_user_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -2617,7 +2638,7 @@ def it_user_predicate(
                             ).where(engagement_predicate(info, filter.engagement)),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -2639,7 +2660,7 @@ def it_user_predicate(
             OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
                 select(OrganisationFunktionRegistrering.id).where(rolebinding_pred)
             ),
-            _get_virkning_clause(OrganisationFunktionRelation, filter),
+            _get_active_period_clause(OrganisationFunktionRelation, filter),
         )
         if filter.rolebinding is None:
             predicates.append(~ituser_has_rolebinding)
@@ -2659,7 +2680,7 @@ def it_user_predicate(
                 OrganisationFunktionAttrUdvidelser.organisationfunktion_registrering_id
                 == OrganisationFunktionRegistrering.id,
                 OrganisationFunktionAttrUdvidelser.udvidelse_1.is_not(None),
-                _get_virkning_clause(OrganisationFunktionAttrUdvidelser, filter),
+                _get_active_period_clause(OrganisationFunktionAttrUdvidelser, filter),
             )
         )
     elif filter.external_ids is not UNSET:
@@ -2671,7 +2692,9 @@ def it_user_predicate(
                     OrganisationFunktionAttrUdvidelser.udvidelse_1.in_(
                         filter.external_ids
                     ),
-                    _get_virkning_clause(OrganisationFunktionAttrUdvidelser, filter),
+                    _get_active_period_clause(
+                        OrganisationFunktionAttrUdvidelser, filter
+                    ),
                 )
             )
         )
@@ -2686,7 +2709,9 @@ def it_user_predicate(
                     OrganisationFunktionAttrUdvidelser.udvidelse_2.in_(
                         filter.binding_types
                     ),
-                    _get_virkning_clause(OrganisationFunktionAttrUdvidelser, filter),
+                    _get_active_period_clause(
+                        OrganisationFunktionAttrUdvidelser, filter
+                    ),
                 )
             )
         )
@@ -2708,7 +2733,7 @@ def it_user_predicate(
                     ),
                 )
             ),
-            _get_virkning_clause(OrganisationFunktionRelation, filter),
+            _get_active_period_clause(OrganisationFunktionRelation, filter),
         )
         if filter.primary is None:
             predicates.append(~ituser_has_primary)
@@ -2779,13 +2804,13 @@ def kle_predicate(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
                 OrganisationFunktionAttrEgenskaber.funktionsnavn == "KLE",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                _get_active_period_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -2821,7 +2846,9 @@ def kle_predicate(
                     OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
                         filter.user_keys
                     ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                    _get_active_period_clause(
+                        OrganisationFunktionAttrEgenskaber, filter
+                    ),
                 )
             )
         )
@@ -2844,7 +2871,7 @@ def kle_predicate(
                             ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -2913,13 +2940,13 @@ def leave_predicate(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
                 OrganisationFunktionAttrEgenskaber.funktionsnavn == "Orlov",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                _get_active_period_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -2955,7 +2982,9 @@ def leave_predicate(
                     OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
                         filter.user_keys
                     ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                    _get_active_period_clause(
+                        OrganisationFunktionAttrEgenskaber, filter
+                    ),
                 )
             )
         )
@@ -2978,7 +3007,7 @@ def leave_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -3001,7 +3030,7 @@ def leave_predicate(
                             ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -3108,13 +3137,13 @@ def related_unit_predicate(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
                 OrganisationFunktionAttrEgenskaber.funktionsnavn == "Relateret Enhed",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                _get_active_period_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -3138,7 +3167,9 @@ def related_unit_predicate(
                     OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
                         filter.user_keys
                     ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                    _get_active_period_clause(
+                        OrganisationFunktionAttrEgenskaber, filter
+                    ),
                 )
             )
         )
@@ -3161,7 +3192,7 @@ def related_unit_predicate(
                             ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -3230,13 +3261,13 @@ def rolebinding_predicate(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
             ).where(
                 OrganisationFunktionAttrEgenskaber.funktionsnavn == "Rollebinding",
-                _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                _get_active_period_clause(OrganisationFunktionAttrEgenskaber, filter),
             )
         )
 
     predicates = [
         _get_registrering_clause(OrganisationFunktionRegistrering, filter),
-        _get_gyldighed_clause(
+        _get_tilstand_clause(
             OrganisationFunktionRegistrering,
             OrganisationFunktionTilsGyldighed,
             filter,
@@ -3272,7 +3303,9 @@ def rolebinding_predicate(
                     OrganisationFunktionAttrEgenskaber.brugervendtnoegle.in_(
                         filter.user_keys
                     ),
-                    _get_virkning_clause(OrganisationFunktionAttrEgenskaber, filter),
+                    _get_active_period_clause(
+                        OrganisationFunktionAttrEgenskaber, filter
+                    ),
                 )
             )
         )
@@ -3295,7 +3328,7 @@ def rolebinding_predicate(
                             ).where(organisation_unit_predicate(info, filter.org_unit)),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -3317,7 +3350,7 @@ def rolebinding_predicate(
                             ).where(it_user_predicate(info, filter.ituser)),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )
@@ -3339,7 +3372,7 @@ def rolebinding_predicate(
                             ),
                         )
                     ),
-                    _get_virkning_clause(OrganisationFunktionRelation, filter),
+                    _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
             )
         )

@@ -95,6 +95,7 @@ class OrganisationFunktionTilsGyldighed(
 ):
     __tablename__ = "organisationfunktion_tils_gyldighed"
 
+    registrering_id = synonym("organisationfunktion_registrering_id")
     organisationfunktion_registrering_id = Column(
         ForeignKey("organisationfunktion_registrering.id"), index=True
     )

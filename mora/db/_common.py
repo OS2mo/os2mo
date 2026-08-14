@@ -164,7 +164,7 @@ class _AktivVirkningMixin:
     """
 
     active_tils: Mapped[Any] = mapped_column(
-        TSTZMULTIRANGE, nullable=True, deferred=True
+        TSTZMULTIRANGE, nullable=False, deferred=True
     )
 
     @hybrid_property
@@ -223,6 +223,10 @@ def _TilsGyldighedMixin(oio_type):
             Enum(*Gyldighed.__args__, name=f"{oio_type}gyldighedtils"),
             index=True,
         )
+
+        @classmethod
+        def is_active(cls) -> ColumnElement:
+            return cls.gyldighed == "Aktiv"
 
         def __repr__(self):  # pragma: no cover
             return (

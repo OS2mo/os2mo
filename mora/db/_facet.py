@@ -5,6 +5,7 @@ from uuid import UUID
 
 from sqlalchemy import BigInteger
 from sqlalchemy import Column
+from sqlalchemy import ColumnElement
 from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 from sqlalchemy import Text
@@ -72,4 +73,9 @@ class FacetTilsPubliceret(_VirkningMixin, Base):
         index=True,
     )
 
+    @classmethod
+    def is_active(cls) -> ColumnElement:
+        return cls.publiceret == "Publiceret"
+
+    registrering_id = synonym("facet_registrering_id")
     facet_registrering_id = Column(ForeignKey("facet_registrering.id"), index=True)

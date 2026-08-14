@@ -61,6 +61,7 @@ class ITSystemRelation(_AktivVirkningMixin, _RelationMixin, Base):
 class ITSystemTilsGyldighed(_TilsGyldighedMixin("itsystem"), Base):
     __tablename__ = "itsystem_tils_gyldighed"
 
+    registrering_id = synonym("itsystem_registrering_id")
     itsystem_registrering_id = Column(
         ForeignKey("itsystem_registrering.id"), index=True
     )
