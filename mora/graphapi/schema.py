@@ -3,7 +3,6 @@
 import time
 import traceback
 from collections.abc import AsyncIterator
-from collections.abc import Awaitable
 from collections.abc import Callable
 from contextlib import suppress
 from functools import cache
@@ -186,11 +185,6 @@ class IsAuthenticatedExtension(SchemaExtension):
         yield
 
 
-# A policy takes the resolver info and arguments, and returns whether it
-# grants access to the field.
-Policy = Callable[[GraphQLResolveInfo, dict[str, Any]], Awaitable[bool]]
-
-
 async def pbac_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     """Allow access if an active DB policy grants this (type, field)."""
     token = await info.context.get_token()
@@ -248,33 +242,12 @@ async def pbac_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     return False
 
 
-POLICIES: list[Policy] = [
-    pbac_policy,
-]
-
-
-async def _enforce_pbac(
-    info: GraphQLResolveInfo,
-    kwargs: dict[str, Any],
-) -> None:
-    """Check `POLICIES` for *info* and raise `GraphQLError` if none allow access.
-
-    Policies are checked one by one, and access is granted as soon as any
-    policy allows it.
-    """
-    for policy in POLICIES:
-        if await policy(info, kwargs):
-            return
-    raise GraphQLError("No policy approved the access")
-
-
-class RBACExtension(SchemaExtension):
+class PBACExtension(SchemaExtension):
     """Schema-level extension that enforces PBAC for every field.
 
-    Each field access is checked against the policies in `POLICIES`, one by
-    one, until a policy allows access.
-
-    Access is rejected by default, and only granted if a policy allows it.
+    Every field access is checked by `pbac_policy` against the database-managed
+    policies. Access is rejected by default: a field granted by no policy raises
+    `"No policy approved the access"`.
     """
 
     async def resolve(  # type: ignore[override]
@@ -284,7 +257,8 @@ class RBACExtension(SchemaExtension):
         info: GraphQLResolveInfo,
         **kwargs: dict[str, Any],
     ) -> Any:
-        await _enforce_pbac(info, kwargs)
+        if not await pbac_policy(info, kwargs):
+            raise GraphQLError("No policy approved the access")
         return await await_maybe(next_(root, info, **kwargs))
 
 
@@ -321,7 +295,7 @@ def get_schema(version: Version) -> CustomSchema:
         extensions=[
             StarletteContextExtension,
             IsAuthenticatedExtension,
-            RBACExtension,
+            PBACExtension,
             LogContextExtension,
             RuntimeContextExtension,
             RollbackOnError,
