@@ -206,7 +206,8 @@ async def pbac_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     # A rule without a condition grants outright, so no CEL is needed
     if "" in relevant_rules:
         return True
-    activation = build_activation(token)
+    # A condition may read the field's own arguments, through `args`
+    activation = build_activation(token, jsonable_encoder(kwargs))
     if any(check_condition(condition, activation) for condition in relevant_rules):
         return True
     # No rule matched, so no access.
