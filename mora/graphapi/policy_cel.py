@@ -15,6 +15,7 @@ from typing import TypeAlias
 
 from cel_expr_python import cel  # type: ignore[import-untyped]
 
+import mora.config
 from mora.auth.keycloak.models import Token
 
 # A CEL expression. The empty string means "no expression"
@@ -25,6 +26,7 @@ _ENV = cel.NewEnv(
     variables={
         # Dynamic values: we declare no schema, so any field access compiles
         "token": cel.Type.Map(cel.Type.STRING, cel.Type.DYN),
+        "settings": cel.Type.Map(cel.Type.STRING, cel.Type.DYN),
         # The field's own arguments, as GraphQL coerced them
         "args": cel.Type.Map(cel.Type.STRING, cel.Type.DYN),
     }
@@ -49,7 +51,20 @@ def _token_context(token: Token) -> dict[str, Any]:
 
 def build_activation(token: Token, args: dict) -> cel.Activation:
     """Build the CEL activation shared by every condition and filter."""
-    return _ENV.Activation({"token": _token_context(token), "args": args})
+    it_system = (
+        mora.config.get_settings().keycloak_rbac_authoritative_it_system_for_owners
+    )
+    bound: dict[str, Any] = {
+        "token": _token_context(token),
+        # A curated subset, keeping the interface small and passwords out of it
+        "settings": {
+            "keycloak_rbac_authoritative_it_system_for_owners": (
+                str(it_system) if it_system is not None else None
+            ),
+        },
+        "args": args,
+    }
+    return _ENV.Activation(bound)
 
 
 def evaluate_condition(condition: CEL, activation: cel.Activation) -> bool:
