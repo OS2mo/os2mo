@@ -28,8 +28,6 @@ service_api_endpoints = {
     "/service/e/{eid}/details/address",
     "/service/e/{id}/",
     "/service/e/{uuid}/terminate",
-    "/service/exports/",
-    "/service/exports/{file_name}",
     "/service/f/{facet}/",
     "/service/f/{facet}/children",
     "/service/insight",

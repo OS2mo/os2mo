@@ -286,12 +286,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
                 tags=["Service." + name],
                 dependencies=[Depends(fetch_token), Depends(service_api_auth)],
             )
-        for name, router in service.no_auth_routers.items():
-            app.include_router(
-                router,
-                prefix="/service",
-                tags=["Service." + name],
-            )
         app.include_router(
             service_catchall_router(),
             tags=["Meta"],

@@ -960,28 +960,49 @@ def person(alice: UUID) -> UUID:
     return alice
 
 
+class UploadFile(Protocol):
+    def __call__(
+        self,
+        filename: str,
+        content: bytes,
+        force: bool = False,
+        file_store: str = "EXPORTS",
+    ) -> GQLResponse: ...
+
+
 @pytest.fixture
-def upload_file(
-    admin_client: TestClient, latest_graphql_url: str
-) -> Callable[[str, bytes], None]:
-    def inner(filename: str, content: bytes) -> None:
-        operations = json.dumps(
-            {
-                "query": (
-                    "mutation($file: Upload!) {"
-                    "  upload_file(file_store: EXPORTS, file: $file)"
-                    "}"
-                ),
-                "variables": {"file": None},
+def upload_file(admin_client: TestClient, latest_graphql_url: str) -> UploadFile:
+    """Upload a file through GraphQL."""
+
+    def inner(
+        filename: str,
+        content: bytes,
+        force: bool = False,
+        file_store: str = "EXPORTS",
+    ) -> GQLResponse:
+        mutate_query = """
+            mutation UploadFile($file_store: FileStore!, $file: Upload!, $force: Boolean!) {
+                upload_file(file_store: $file_store, file: $file, force: $force)
             }
-        )
-        file_map = json.dumps({"file": ["variables.file"]})
+        """
+        variables = {"file_store": file_store, "file": None, "force": force}
+        file_map = {"file": ["variables.file"]}
         response = admin_client.post(
             latest_graphql_url,
-            data={"operations": operations, "map": file_map},
+            data={
+                "operations": json.dumps(
+                    {"query": mutate_query, "variables": variables}
+                ),
+                "map": json.dumps(file_map),
+            },
             files={"file": (filename, content)},
         )
-        assert response.json().get("errors") is None
+        return GQLResponse(
+            data=response.json().get("data"),
+            errors=response.json().get("errors"),
+            extensions=response.json().get("extensions"),
+            status_code=response.status_code,
+        )
 
     return inner
 

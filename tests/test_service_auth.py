@@ -89,7 +89,6 @@ def no_auth_endpoints():
         "/health/ready",
         "/health/{identifier}",
         "/version/",
-        "/service/exports/{file_name}",
         "/service/{rest_of_path:path}",
         "/metrics",
         "/saml/sso/",
@@ -142,14 +141,8 @@ def no_auth_endpoints():
 def all_routes(fastapi_test_app: FastAPI) -> list[APIRoute]:
     """Fixture yields all routes defined in the FASTAPI app, excluding endpoints that
     which are NOT to be evaluated."""
-    # List of endpoints to not evaluate
-    skip_endpoints = {
-        # This URL has both a protected and unprotected endpoint
-        "/service/exports/{file_name}",
-    }
     routes = fastapi_test_app.routes
     routes = filter(lambda route: not isinstance(route, APIWebSocketRoute), routes)
-    routes = filter(lambda route: route.path not in skip_endpoints, routes)
     return list(routes)
 
 
@@ -190,7 +183,6 @@ def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(
         "/service/e/cpr_lookup/?q=1234",
         "/service/e/00000000-0000-0000-0000-000000000000/details/",
         "/service/o/00000000-0000-0000-0000-000000000000/e/",
-        "/service/exports/not-important",
         "/service/c/ancestor-tree",
         "/service/o/00000000-0000-0000-0000-000000000000/it/",
         "/service/o/",
