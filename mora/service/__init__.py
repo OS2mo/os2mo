@@ -8,7 +8,6 @@ from . import detail_reading
 from . import detail_writing
 from . import employee
 from . import engagement
-from . import exports
 from . import facet
 from . import insight
 from . import itsystem
@@ -31,7 +30,6 @@ __all__ = [
     "detail_writing",
     "employee",
     "engagement",
-    "exports",
     "facet",
     "insight",
     "itsystem",
@@ -61,7 +59,4 @@ routers = {
     "OrganisationUnit": orgunit.router,
     "Related": related.router,
     "Validate": validate.router,
-}
-no_auth_routers = {
-    "Exports": exports.router,
 }
