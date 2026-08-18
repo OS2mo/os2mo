@@ -61,6 +61,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         manager_level = mapping.MANAGER_LEVEL_FIELD.get_uuid(effect)
         responsibilities = list(mapping.RESPONSIBILITY_FIELD.get_uuids(effect))
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
+        primary_uuid = mapping.PRIMARY_FIELD.get_uuid(effect)
 
         base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
 
@@ -73,6 +74,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
                 "manager_level_uuid": manager_level,
                 "responsibility_uuids": responsibilities,
                 "org_unit_uuid": org_unit,
+                "primary_uuid": primary_uuid,
             }
 
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
