@@ -12,11 +12,15 @@ from tests.conftest import GraphAPIPost
     "collection,mutator",
     [
         ("addresses", "address_delete"),
+        ("associations", "association_delete"),
         ("employees", "employee_delete"),
         ("engagements", "engagement_delete"),
         ("itusers", "ituser_delete"),
+        ("kles", "kle_delete"),
+        ("leaves", "leave_delete"),
         ("managers", "manager_delete"),
         ("org_units", "org_unit_delete"),
+        ("owners", "owner_delete"),
     ],
 )
 async def test_delete_integration_test(
