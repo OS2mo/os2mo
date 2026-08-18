@@ -533,6 +533,7 @@ class ManagerUpdateInput:
     org_unit: UUID | None = None
     manager_type: UUID | None = None
     manager_level: UUID | None = None
+    primary: UUID | None = None
 
     def to_pydantic(self) -> ManagerUpdate:
         kwargs = {
@@ -544,6 +545,7 @@ class ManagerUpdateInput:
             "org_unit": self.org_unit,
             "manager_type": self.manager_type,
             "manager_level": self.manager_level,
+            "primary": self.primary,
         }
 
         # ONLY engagement is passed conditionally to support PATCH semantics

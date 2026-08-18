@@ -1079,11 +1079,11 @@ def create_owner(
 
 
 @pytest.fixture
-def create_manager(
+def create_manager_raw(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
-) -> Callable[[UUID, UUID | None], UUID]:
-    def inner(org_unit: UUID, person: UUID | None = None) -> UUID:
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
         mutate_query = """
             mutation CreateManager($input: ManagerCreateInput!) {
                 manager_create(input: $input) {
@@ -1091,22 +1091,29 @@ def create_manager(
                 }
             }
         """
-        response = graphapi_post(
-            query=mutate_query,
-            variables={
-                "input": {
-                    "manager_level": str(uuid4()),
-                    "manager_type": str(uuid4()),
-                    "responsibility": [],
-                    "org_unit": str(org_unit),
-                    "person": str(person) if person else None,
-                    "validity": {"from": "1970-01-01T00:00:00Z"},
-                }
-            },
-        )
+        response = graphapi_post(query=mutate_query, variables={"input": input})
         assert response.errors is None
         assert response.data
         return UUID(response.data["manager_create"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
+def create_manager(
+    create_manager_raw: Callable[[dict[str, Any]], UUID],
+) -> Callable[[UUID, UUID | None], UUID]:
+    def inner(org_unit: UUID, person: UUID | None = None) -> UUID:
+        return create_manager_raw(
+            {
+                "manager_level": str(uuid4()),
+                "manager_type": str(uuid4()),
+                "responsibility": [],
+                "org_unit": str(org_unit),
+                "person": str(person) if person else None,
+                "validity": {"from": "1970-01-01T00:00:00Z"},
+            }
+        )
 
     return inner
 
