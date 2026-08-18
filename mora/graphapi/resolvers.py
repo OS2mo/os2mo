@@ -31,6 +31,7 @@ from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy import true
 from sqlalchemy import union
+from sqlalchemy.dialects.postgresql import TSTZMULTIRANGE
 from sqlalchemy.dialects.postgresql import TSTZRANGE
 from sqlalchemy.types import Text
 from strawberry import UNSET
@@ -289,6 +290,15 @@ def _get_active_period_clause(
     filter: BaseFilter,
 ) -> ColumnElement:
     start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
+    # An unbounded window overlaps every non-empty multirange, so the overlap is
+    # equivalent to an emptiness check: `aktiv_virkning && '[-infinity,infinity]'`
+    # is true iff `aktiv_virkning != '{}'`. Emit the emptiness check instead: the
+    # overlap exists partly to enable the aktiv_virkning GiST, which degenerates
+    # to millions of heap rechecks when the window is not selective, e.g. for
+    # from_date=null/to_date=null. The emptiness check preserves semantics while
+    # letting the planner use the btree on (rel_type, rel_maal_uuid).
+    if start == util.NEGATIVE_INFINITY and end == util.POSITIVE_INFINITY:
+        return period_cls.aktiv_virkning != cast(literal("{}"), TSTZMULTIRANGE)
     window = TimestamptzRange(start, end)
     return period_cls.aktiv_virkning.bool_op("&&")(literal(window, type_=TSTZRANGE))
 
