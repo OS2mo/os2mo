@@ -37,6 +37,7 @@ DECLARE
 	uuidRegistrering uuid :='0cc293df-fa20-414d-8403-d2a95656d93f'::uuid;
 	update_reg_id bigint;
 	actual_relationer KlasseRelationType[];
+	expected_relationer KlasseRelationType[];
 	actual_publiceret KlassePubliceretTilsType[];
 	actual_egenskaber KlasseEgenskaberAttrType[];
 	klasseEgenskabA_Soegeord1 KlasseSoegeordType;
@@ -418,15 +419,20 @@ array_agg(
 					a.rel_maal_urn,
 					a.objekt_type
 				):: KlasseRelationType
+			ORDER BY a.rel_type, a.rel_maal_uuid
 		) into actual_relationer
 FROM klasse_relation a
 JOIN klasse_registrering as b on a.klasse_registrering_id=b.id
 WHERE b.id=update_reg_id
 ;
 
+SELECT array_agg(a ORDER BY a.reltype, a.uuid) into expected_relationer
+FROM unnest(ARRAY[klasseRelAnsvarlig,klasseRelRedaktoer1,klasseRelRedaktoer2]) as a
+;
+
 RETURN NEXT is(
 	actual_relationer,
-	ARRAY[klasseRelAnsvarlig,klasseRelRedaktoer1,klasseRelRedaktoer2]
+	expected_relationer
 ,'relations carried over'); --ok, if all relations are present.
 
 
