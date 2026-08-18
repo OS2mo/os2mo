@@ -496,6 +496,22 @@ class GQLResponse:
     status_code: int
 
 
+# The one error a denial produces. Anything else is a genuine failure, not a
+# permission decision, so the assertions below keep the two apart
+DENIED = "No policy approved the access"
+
+
+def assert_granted(response: GQLResponse) -> None:
+    """Assert a policy approved the access."""
+    assert response.errors is None
+
+
+def assert_denied(response: GQLResponse) -> None:
+    """Assert no policy approved the access, and nothing else went wrong."""
+    assert response.errors is not None
+    assert one(response.errors)["message"] == DENIED
+
+
 class GraphAPIPost(Protocol):
     def __call__(
         self,
@@ -1078,6 +1094,49 @@ def create_owner(
         assert response.errors is None
         assert response.data
         return UUID(response.data["owner_create"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
+def make_owner(
+    create_owner: Callable[[dict[str, Any]], UUID],
+) -> Callable[..., None]:
+    """Record that `owner` (a person) owns the given org-unit or person."""
+
+    def inner(
+        owner: UUID | str,
+        org_unit: UUID | str | None = None,
+        person: UUID | str | None = None,
+    ) -> None:
+        input: dict = {"owner": str(owner), "validity": {"from": "2020-01-01"}}
+        if org_unit is not None:
+            input["org_unit"] = str(org_unit)
+        if person is not None:
+            input["person"] = str(person)
+        create_owner(input)
+
+    return inner
+
+
+@pytest.fixture
+def employee_update(graphapi_post: GraphAPIPost) -> Callable[[UUID | str], GQLResponse]:
+    """Attempt a person edit, for a test to assert whether a policy allowed it."""
+
+    def inner(person: UUID | str) -> GQLResponse:
+        mutate_query = """
+            mutation UpdateEmployee($input: EmployeeUpdateInput!) {
+                employee_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+        return graphapi_post(
+            mutate_query,
+            variables={
+                "input": {"uuid": str(person), "validity": {"from": "2020-01-01"}}
+            },
+        )
 
     return inner
 
