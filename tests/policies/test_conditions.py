@@ -11,6 +11,7 @@ from mora.db import AsyncSession
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
+from tests.conftest import UploadFile
 from tests.conftest import assert_denied
 from tests.conftest import assert_granted
 from tests.policies.conftest import CreatePolicy
@@ -114,3 +115,33 @@ async def test_condition_reads_the_mutator_input(
     # Alice is the caller, so the input naming her matches the condition
     assert_granted(update(alice))
     assert_denied(update(bob))
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_condition_leaves_an_upload_unread(
+    upload_file: UploadFile,
+    graphapi_post: GraphAPIPost,
+    create_policy: CreatePolicy,
+) -> None:
+    """Building `args` must not read the payload the resolver has yet to read."""
+    await create_policy(
+        "uploads",
+        actors=[("all", "")],
+        rules=[("Mutation", "upload_file", 'args.file == "filename.csv"')],
+    )
+
+    assert_granted(upload_file("filename.csv", b"I'm a file"))
+
+    query = """
+        query Files {
+            files(filter: {file_store: EXPORTS}) {
+                objects {
+                    text_contents
+                }
+            }
+        }
+    """
+    assert one(graphapi_post(query).data["files"]["objects"]) == {
+        "text_contents": "I'm a file"
+    }
