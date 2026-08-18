@@ -4,6 +4,7 @@
 
 from collections.abc import Awaitable
 from collections.abc import Callable
+from typing import Any
 from uuid import UUID
 
 import pytest
@@ -53,6 +54,27 @@ def deactivate_policy(raw_session: db.AsyncSession) -> Callable[[str], Awaitable
             update(db.Policy).where(db.Policy.name == name).values(active=False)
         )
         await raw_session.commit()
+
+    return inner
+
+
+@pytest.fixture
+def make_owner(
+    create_owner: Callable[[dict[str, Any]], UUID],
+) -> Callable[..., None]:
+    """Record that `owner` (a person) owns the given org-unit or person."""
+
+    def inner(
+        owner: UUID | str,
+        org_unit: UUID | str | None = None,
+        person: UUID | str | None = None,
+    ) -> None:
+        input: dict = {"owner": str(owner), "validity": {"from": "2020-01-01"}}
+        if org_unit is not None:
+            input["org_unit"] = str(org_unit)
+        if person is not None:
+            input["person"] = str(person)
+        create_owner(input)
 
     return inner
 
