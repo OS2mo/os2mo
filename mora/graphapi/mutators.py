@@ -375,7 +375,11 @@ class Mutation:
             await terminate_association(input.to_pydantic()), AssociationRead
         )
 
-    # TODO: association_delete
+    @strawberry.mutation(
+        description="Deletes an association." + delete_warning,
+    )
+    async def association_delete(self, uuid: UUID) -> Response[Association]:
+        return uuid2response(await delete_organisationfunktion(uuid), AssociationRead)
 
     @strawberry.mutation(
         description="Refresh associations.",
@@ -940,7 +944,11 @@ class Mutation:
     async def kle_terminate(self, input: KLETerminateInput) -> Response[KLE]:
         return uuid2response(await terminate_kle(input.to_pydantic()), KLERead)
 
-    # TODO: kle_delete
+    @strawberry.mutation(
+        description="Deletes a KLE annotation." + delete_warning,
+    )
+    async def kle_delete(self, uuid: UUID) -> Response[KLE]:
+        return uuid2response(await delete_organisationfunktion(uuid), KLERead)
 
     @strawberry.mutation(
         description="Refresh KLEs.",
@@ -999,7 +1007,11 @@ class Mutation:
     async def leave_terminate(self, input: LeaveTerminateInput) -> Response[Leave]:
         return uuid2response(await terminate_leave(input.to_pydantic()), LeaveRead)
 
-    # TODO: leave_delete
+    @strawberry.mutation(
+        description="Deletes a leave." + delete_warning,
+    )
+    async def leave_delete(self, uuid: UUID) -> Response[Leave]:
+        return uuid2response(await delete_organisationfunktion(uuid), LeaveRead)
 
     @strawberry.mutation(
         description="Refresh leaves.",
@@ -1231,7 +1243,11 @@ class Mutation:
     async def owner_terminate(self, input: OwnerTerminateInput) -> Response[Owner]:
         return uuid2response(await terminate_owner(input.to_pydantic()), OwnerRead)
 
-    # TODO: owner_delete
+    @strawberry.mutation(
+        description="Deletes an owner." + delete_warning,
+    )
+    async def owner_delete(self, uuid: UUID) -> Response[Owner]:
+        return uuid2response(await delete_organisationfunktion(uuid), OwnerRead)
 
     @strawberry.mutation(
         description="Refresh owners.",
