@@ -36,7 +36,6 @@ pydantic = { extras = ["email"], version = "^1.10.13" }
 uvicorn = "^0.34"
 strawberry-graphql = "^0.324.0"
 jsonschema = "^4.20.0"
-sentry-sdk = { extras = ["fastapi"], version = "^2.47.0" }
 psycopg = "^3.1.13"
 xmltodict = "^0.13.0"
 fastramqpi = "^14.2.1"

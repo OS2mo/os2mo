@@ -9,7 +9,6 @@ metadata:
   annotations:
     github.com/project-slug: OS2mo/os2mo
     github.com/team-slug: OS2mo/developers
-    sentry.io/project-slug: magenta/rammearkitektur
     backstage.io/source-location: url:https://git.magenta.dk/rammearkitektur/os2mo
     backstage.io/view-url: https://git.magenta.dk/rammearkitektur/os2mo/-/blob/master/catalog-info.yaml
     backstage.io/edit-url: https://git.magenta.dk/rammearkitektur/os2mo/-/edit/master/catalog-info.yaml

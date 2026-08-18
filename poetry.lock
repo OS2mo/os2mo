@@ -2569,7 +2569,6 @@ files = [
 
 [package.dependencies]
 certifi = "*"
-fastapi = {version = ">=0.79.0", optional = true, markers = "extra == \"fastapi\""}
 urllib3 = ">=1.26.11"
 
 [package.extras]
@@ -3248,4 +3247,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "f27432a73369f4a3049a17acaf606e3017b03c09530f9aacab76b0aebd247e46"
+content-hash = "98126f1dc3e3193feac08ca7664c51c3f5d68aea68742ee61ce90e7946f76e46"
