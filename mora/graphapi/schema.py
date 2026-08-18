@@ -6,7 +6,6 @@ from collections.abc import Awaitable
 from collections.abc import Callable
 from contextlib import suppress
 from functools import cache
-from types import SimpleNamespace
 from typing import TYPE_CHECKING
 from typing import Any
 
@@ -15,7 +14,6 @@ from fastapi.encoders import jsonable_encoder
 from graphql import ExecutionResult
 from graphql import GraphQLError
 from graphql import GraphQLResolveInfo
-from graphql import OperationType
 from pydantic import PositiveInt
 from starlette.datastructures import UploadFile
 from strawberry import Schema
@@ -26,9 +24,7 @@ from strawberry.utils.await_maybe import AsyncIteratorOrIterator
 from strawberry.utils.await_maybe import await_maybe
 from structlog import get_logger
 
-from alembic_helpers.rbac_map import RBAC_MAP
 from mora import config
-from mora.auth.exceptions import AuthorizationError
 from mora.db import get_session
 from mora.exceptions import HTTPException
 from mora.graphapi.actor import SpecialActor
@@ -62,7 +58,6 @@ from mora.graphapi.types import CPRType
 from mora.graphapi.version import Version
 from mora.log import canonical_gql_context
 from mora.util import CPR
-from mora.util import ensure_list
 
 if TYPE_CHECKING:
     from mora.graphapi.context import MOInfo
@@ -246,52 +241,8 @@ async def pbac_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     return False
 
 
-async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
-    """Allow access if the user is the owner of the accessed resources."""
-    requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
-    if requirement is None:  # pragma: no cover
-        # No rule in `RBAC_MAP` means no access by this policy
-        return False
-    _, collection, permission_type = requirement
-    check_kwargs = kwargs
-    if "input" in kwargs:
-        check_kwargs = {
-            **kwargs,
-            "input": [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])],
-        }
-    token = await info.context.get_token()
-    token_roles = token.realm_access.roles
-
-    # Allow access if user is owner. This only works for mutations at the
-    # moment, since we need access to the object's UUID to determine ownership.
-    # The object UUID is derived from the "input" key in kwargs which holds the
-    # mutators call args. Owner is currently only implemented for mutators
-    # taking an "input" key as its input.
-    if (
-        "owner" in token_roles
-        and info.operation.operation is OperationType.MUTATION
-        and collection is not None
-        and permission_type is not None
-        and "input" in check_kwargs
-    ):
-        # Import here to avoid circular imports 🙂👍
-        from mora.auth.keycloak.rbac import check_owner
-        from mora.auth.keycloak.uuid_extractor import get_entities_graphql
-
-        input = check_kwargs["input"]
-        entities = {
-            x async for x in get_entities_graphql(input, collection, permission_type)
-        }
-        with suppress(AuthorizationError):
-            await check_owner(_create_info_from_raw(info), token, entities)
-            return True
-
-    return False
-
-
 POLICIES: list[Policy] = [
     pbac_policy,
-    owner_policy,
 ]
 
 
