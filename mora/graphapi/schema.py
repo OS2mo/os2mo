@@ -236,6 +236,10 @@ async def pbac_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     # A policy is handed graphql-core's info, but the entity filters (and the
     # resolver predicates they call) want Strawberry's
     strawberry_info = _create_info_from_raw(info)
+    # Introspection fields have no Strawberry field definition, and a filter
+    # cannot run without one, so bail out
+    if strawberry_info._field is None:
+        return False
     for filter in applicable:
         if await entity_filter_grants(filter, strawberry_info, activation):
             return True
