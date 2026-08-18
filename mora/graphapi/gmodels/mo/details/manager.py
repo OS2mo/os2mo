@@ -25,6 +25,9 @@ class ManagerRead(MOBase):
     )
     manager_type_uuid: UUID | None = Field(description="UUID of the manager type.")
     manager_level_uuid: UUID | None = Field(description="UUID of the manager level.")
+    primary_uuid: UUID | None = Field(
+        description="UUID of an associated `primary_type` class."
+    )
     responsibility_uuids: list[UUID] | None = Field(
         description="List of UUID's of the responsibilities."
     )

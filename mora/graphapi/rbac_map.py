@@ -805,6 +805,7 @@ RBAC_MAP: dict[tuple[str, str], RBACRequirement] = {
     ("Manager", "org_unit_response"): ("reader", "org_unit", "read"),
     ("Manager", "person"): ("reader", "employee", "read"),
     ("Manager", "person_response"): ("reader", "employee", "read"),
+    ("Manager", "primary_response"): ("reader", "class", "read"),
     ("Manager", "responsibilities"): ("reader", "class", "read"),
     ("Manager", "responsibilities_response"): ("reader", "class", "read"),
     ("Mutation", "address_create"): ("admin", "address", "create"),
