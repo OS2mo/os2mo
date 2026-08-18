@@ -22,6 +22,8 @@ _ENV = cel.NewEnv(
     variables={
         # Dynamic values: we declare no schema, so any field access compiles
         "token": cel.Type.Map(cel.Type.STRING, cel.Type.DYN),
+        # The field's own arguments, as GraphQL coerced them
+        "args": cel.Type.Map(cel.Type.STRING, cel.Type.DYN),
     }
 )
 
@@ -42,9 +44,9 @@ def _token_context(token: Token) -> dict[str, Any]:
     }
 
 
-def build_activation(token: Token) -> cel.Activation:
+def build_activation(token: Token, args: dict) -> cel.Activation:
     """Build the CEL activation shared by every condition in a single check."""
-    return _ENV.Activation({"token": _token_context(token)})
+    return _ENV.Activation({"token": _token_context(token), "args": args})
 
 
 def evaluate_condition(condition: CEL, activation: cel.Activation) -> bool:

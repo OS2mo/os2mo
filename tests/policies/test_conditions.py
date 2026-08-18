@@ -2,13 +2,18 @@
 # SPDX-License-Identifier: MPL-2.0
 """Tests of rule conditions (CEL)."""
 
+from uuid import UUID
+
 import pytest
 from more_itertools import one
 
+from mora.db import AsyncSession
+from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 from tests.policies.conftest import CreatePolicy
 from tests.policies.helpers import assert_access
+from tests.policies.helpers import assert_denied
 from tests.policies.helpers import assert_granted
 
 
@@ -73,3 +78,39 @@ async def test_condition_fails_hard_when_not_boolean(
         "CEL condition 'token.misspelt.field' result is not boolean: "
         'NOT_FOUND: Key not found in map : "misspelt"'
     )
+
+
+@pytest.mark.integration_test
+async def test_condition_reads_the_mutator_input(
+    empty_db: AsyncSession,
+    graphapi_post: GraphAPIPost,
+    set_auth: SetAuth,
+    create_policy: CreatePolicy,
+    alice: UUID,
+    bob: UUID,
+) -> None:
+    """A condition may read the arguments the call carries, through `args`."""
+    await create_policy(
+        "self-service",
+        actors=[("all", "")],
+        rules=[("Mutation", "employee_update", "args.input.uuid == token.uuid")],
+    )
+    set_auth(user_uuid=alice)
+
+    def update(person: UUID) -> GQLResponse:
+        return graphapi_post(
+            """
+            mutation UpdateEmployee($input: EmployeeUpdateInput!) {
+                employee_update(input: $input) {
+                    uuid
+                }
+            }
+            """,
+            variables={
+                "input": {"uuid": str(person), "validity": {"from": "2020-01-01"}}
+            },
+        )
+
+    # Alice is the caller, so the input naming her matches the condition
+    assert_granted(update(alice))
+    assert_denied(update(bob))
