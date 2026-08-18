@@ -260,6 +260,24 @@ class Manager:
         ),
     )
 
+    primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response(model=ClassRead, uuid=root.primary_uuid)
+        if root.primary_uuid
+        else None,
+        description=dedent(
+            """
+            Marks which managerial position is primary.
+
+            Examples of user-keys:
+            * "primary"
+            * "non-primary"
+            * "explicitly-primary"
+
+            It is a convention that at most one managerial position for each employee is set as either `primary` or `explicitly-primary`.
+            """
+        ),
+    )
+
     @strawberry.field(
         description=dedent(
             """

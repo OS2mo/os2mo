@@ -47,6 +47,8 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
 
         engagement_uuid = util.get_mapping_uuid(req, mapping.ENGAGEMENT)
 
+        primary = util.get_mapping_uuid(req, mapping.PRIMARY, required=False)
+
         opgaver = [
             {"objekttype": "lederansvar", "uuid": util.get_uuid(responsibility)}
             for responsibility in responsibilities
@@ -74,6 +76,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid],
             funktionstype=manager_type_uuid,
+            primær=primary,
             tilknyttedefunktioner=[
                 {"uuid": engagement_uuid, "objekttype": "engagement"}
             ]
@@ -152,6 +155,14 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                 (
                     mapping.ASSOCIATED_ORG_UNIT_FIELD,
                     {"uuid": util.get_mapping_uuid(data, mapping.ORG_UNIT)},
+                )
+            )
+
+        if data.get(mapping.PRIMARY):
+            update_fields.append(
+                (
+                    mapping.PRIMARY_FIELD,
+                    {"uuid": util.get_mapping_uuid(data, mapping.PRIMARY)},
                 )
             )
 
