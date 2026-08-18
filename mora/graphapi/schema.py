@@ -17,6 +17,7 @@ from graphql import GraphQLError
 from graphql import GraphQLResolveInfo
 from graphql import OperationType
 from pydantic import PositiveInt
+from starlette.datastructures import UploadFile
 from strawberry import Schema
 from strawberry.exceptions import StrawberryGraphQLError
 from strawberry.extensions import SchemaExtension
@@ -55,6 +56,7 @@ from mora.graphapi.model_registration import PersonRegistration
 from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
+from mora.graphapi.policies import entity_filter_grants
 from mora.graphapi.policy_cel import build_activation
 from mora.graphapi.policy_cel import check_condition
 from mora.graphapi.query import Query
@@ -194,14 +196,40 @@ async def pbac_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     )
     if not relevant_rules:
         return False
+    # Check unfiltered rules first, as entity filters are expensive
+    unfiltered = [condition for condition, filter in relevant_rules if not filter]
     # A rule without a condition grants outright, so no CEL is needed
-    if "" in relevant_rules:
+    if "" in unfiltered:
         return True
-    # A condition may read the field's own arguments, through `args`
-    activation = build_activation(token, jsonable_encoder(kwargs))
-    if any(check_condition(condition, activation) for condition in relevant_rules):
+    # A condition may read the field's own arguments, just as a filter may, so
+    # both are evaluated against the one activation. An upload is named by its
+    # filename alone: encoding it would read the payload out from under the
+    # resolver, which has yet to read it itself
+    activation = build_activation(
+        token,
+        jsonable_encoder(
+            kwargs, custom_encoder={UploadFile: lambda file: file.filename}
+        ),
+    )
+    if any(check_condition(condition, activation) for condition in unfiltered):
         return True
-    # No rule matched, so no access.
+
+    # Only the filtered rules are left
+    filtered = [(condition, filter) for condition, filter in relevant_rules if filter]
+    # Keep only rules whose condition passes
+    applicable = [
+        filter
+        for condition, filter in filtered
+        if check_condition(condition, activation)
+    ]
+    if not applicable:
+        return False
+    # A policy is handed graphql-core's info, but the entity filters (and the
+    # resolver predicates they call) want Strawberry's
+    strawberry_info = _strawberry_info(info)
+    for filter in applicable:
+        if await entity_filter_grants(filter, strawberry_info, activation):
+            return True
     return False
 
 
