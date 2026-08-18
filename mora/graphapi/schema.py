@@ -72,11 +72,17 @@ if TYPE_CHECKING:
 logger = get_logger()
 
 
-def _strawberry_info(info: GraphQLResolveInfo) -> "MOInfo":
-    """Wrap an extension's raw ``GraphQLResolveInfo`` in strawberry's ``Info``."""
-    field = info.parent_type.fields[info.field_name].extensions[
-        GraphQLCoreConverter.DEFINITION_BACKREF
-    ]
+def _strawberry_info(info: GraphQLResolveInfo) -> "MOInfo | None":
+    """Wrap an extension's raw `GraphQLResolveInfo` in strawberry's `Info`.
+
+    Strawberry never handles introspection fields, so there is nothing to wrap.
+    """
+    gql_field = info.parent_type.fields.get(info.field_name)
+    if gql_field is None:
+        return None
+    field = gql_field.extensions.get(GraphQLCoreConverter.DEFINITION_BACKREF)
+    if field is None:
+        return None
     return Info(_raw_info=info, _field=field)
 
 
@@ -227,6 +233,9 @@ async def pbac_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     # A policy is handed graphql-core's info, but the entity filters (and the
     # resolver predicates they call) want Strawberry's
     strawberry_info = _strawberry_info(info)
+    # A filter cannot run without a Strawberry info, so bail out
+    if strawberry_info is None:
+        return False
     for filter in applicable:
         if await entity_filter_grants(filter, strawberry_info, activation):
             return True
@@ -269,8 +278,11 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
         entities = {
             x async for x in get_entities_graphql(input, collection, permission_type)
         }
+        # A mutator `RBAC_MAP` gates always has a Strawberry definition
+        strawberry_info = _strawberry_info(info)
+        assert strawberry_info is not None
         with suppress(AuthorizationError):
-            await check_owner(_strawberry_info(info), token, entities)
+            await check_owner(strawberry_info, token, entities)
             return True
 
     return False
