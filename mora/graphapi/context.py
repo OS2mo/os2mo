@@ -51,7 +51,9 @@ class MOLoaders:
     org_loader: DataLoader[int, OrganisationRead]
     org_unit_loader: DataLoader[LoadKey, list[OrganisationUnitRead]]
     owner_loader: DataLoader[LoadKey, list[OwnerRead]]
-    policy_loader: DataLoader[frozenset[str], dict[tuple[str, str], list[CEL]]]
+    policy_loader: DataLoader[
+        frozenset[str], dict[tuple[str, str], list[tuple[CEL, CEL]]]
+    ]
     rel_unit_loader: DataLoader[LoadKey, list[RelatedUnitRead]]
     rolebinding_loader: DataLoader[LoadKey, list[RoleBindingRead]]
 

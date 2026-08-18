@@ -9,15 +9,17 @@ import pytest
 
 from mora import db
 
-# (type, field[, condition])
-Rule = tuple[str, str] | tuple[str, str, str]
+# (type, field[, condition[, filter]])
+Rule = tuple[str, str] | tuple[str, str, str] | tuple[str, str, str, str]
 CreatePolicy = Callable[..., Awaitable[None]]
 
 
 @pytest.fixture
 def create_policy(raw_session: db.AsyncSession) -> CreatePolicy:
-    def create_rule(type: str, field: str, condition: str = "") -> db.PolicyRule:
-        return db.PolicyRule(type=type, field=field, condition=condition)
+    def create_rule(
+        type: str, field: str, condition: str = "", filter: str = ""
+    ) -> db.PolicyRule:
+        return db.PolicyRule(type=type, field=field, condition=condition, filter=filter)
 
     async def inner(
         name: str,

@@ -88,13 +88,16 @@ class PolicyRule(Base):
     field: Mapped[str] = mapped_column(Text)
     # Optional CEL condition that must hold for the rule to apply
     condition: Mapped[str] = mapped_column(Text, server_default="")
+    # Optional CEL filter selecting the entities the rule applies to
+    filter: Mapped[str] = mapped_column(Text, server_default="")
 
     policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.id"))
     policy: Mapped[Policy] = relationship(back_populates="rules")
 
     __table_args__ = (
-        # A given (type, field, condition) is declared at most once per policy.
+        # A given (type, field, condition, filter) is declared at most once per
+        # policy
         UniqueConstraint(
-            "policy_fk", "type", "field", "condition", name="uq_policy_rule"
+            "policy_fk", "type", "field", "condition", "filter", name="uq_policy_rule"
         ),
     )

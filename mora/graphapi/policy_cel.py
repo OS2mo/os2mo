@@ -1,12 +1,15 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-"""CEL evaluation for policy rule conditions.
+"""CEL evaluation for policy rule conditions and entity filters.
 
 A rule's condition is a boolean CEL (Common Expression Language) expression that
-must hold for the rule to grant access.
+must hold for the rule to apply. Its filter selects the entities the rule applies
+to, as `{collection, filter}` specs run against the collection's own resolver.
 """
 
+import json
 from functools import lru_cache
+from operator import methodcaller
 from typing import Any
 from typing import TypeAlias
 
@@ -45,7 +48,7 @@ def _token_context(token: Token) -> dict[str, Any]:
 
 
 def build_activation(token: Token, args: dict) -> cel.Activation:
-    """Build the CEL activation shared by every condition in a single check."""
+    """Build the CEL activation shared by every condition and filter."""
     return _ENV.Activation({"token": _token_context(token), "args": args})
 
 
@@ -64,3 +67,14 @@ def check_condition(condition: CEL, activation: cel.Activation) -> bool:
     if not condition:
         return True
     return evaluate_condition(condition, activation)
+
+
+def evaluate_filter(expression: CEL, activation: cel.Activation) -> str:
+    """Evaluate a rule's CEL filter `expression`, returning its result as JSON."""
+    result = _compile(expression).eval(activation)
+    if result.type() == cel.Type.ERROR:
+        raise ValueError(
+            f"failed to evaluate CEL filter {expression!r}: {result.value()}"
+        )
+    # CEL values are not serializable, so the hook unwraps each as it is reached
+    return json.dumps(result, default=methodcaller("value"))
