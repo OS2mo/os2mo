@@ -22,14 +22,23 @@ from mora.auth.keycloak.models import Token
 CEL: TypeAlias = str
 
 # Variables available to an expression
+# The `bindings` extension provides the `cel.bind` macro, letting an expression
+# name a value once and reuse it
+_CONFIG = cel.NewEnvConfigFromYaml("""
+name: policy
+extensions:
+  - name: bindings
+""")
+
 _ENV = cel.NewEnv(
+    config=_CONFIG,
     variables={
         # Dynamic values: we declare no schema, so any field access compiles
         "token": cel.Type.Map(cel.Type.STRING, cel.Type.DYN),
         "settings": cel.Type.Map(cel.Type.STRING, cel.Type.DYN),
         # The field's own arguments, as GraphQL coerced them
         "args": cel.Type.Map(cel.Type.STRING, cel.Type.DYN),
-    }
+    },
 )
 
 
