@@ -58,8 +58,11 @@ def _token_context(token: Token) -> dict[str, Any]:
     }
 
 
-def build_activation(token: Token, args: dict) -> cel.Activation:
-    """Build the CEL activation shared by every condition and filter."""
+def build_activation(token: Token, args: dict | None = None) -> cel.Activation:
+    """Build the CEL activation shared by every condition and filter.
+
+    Left without `args`, reading them is an error rather than a wrong answer.
+    """
     it_system = (
         mora.config.get_settings().keycloak_rbac_authoritative_it_system_for_owners
     )
@@ -71,14 +74,28 @@ def build_activation(token: Token, args: dict) -> cel.Activation:
                 str(it_system) if it_system is not None else None
             ),
         },
-        "args": args,
     }
+    if args is not None:
+        bound["args"] = args
     return _ENV.Activation(bound)
 
 
-def evaluate_condition(condition: CEL, activation: cel.Activation) -> bool:
-    """Evaluate a rule's CEL `condition` against `activation` as a bool."""
+# What the evaluator says of a variable an activation leaves out. It offers no
+# error code to check instead, and an undeclared variable is already rejected at
+# compile time, so `args` is the only name an activation can be missing
+_UNBOUND_ARGS = 'UNKNOWN: No value with name "args" found in Activation'
+
+
+def settle_condition(condition: CEL, activation: cel.Activation) -> bool | None:
+    """Whether a rule's condition holds, or `None` if `activation` cannot tell.
+
+    Undecided means evaluation reached the arguments the activation left out.
+    """
+    if not condition:
+        return True
     result = _compile(condition).eval(activation)
+    if result.type() == cel.Type.ERROR and result.value() == _UNBOUND_ARGS:
+        return None
     if result.type() != cel.Type.BOOL:
         raise ValueError(
             f"CEL condition {condition!r} result is not boolean: {result.value()}"
@@ -88,9 +105,10 @@ def evaluate_condition(condition: CEL, activation: cel.Activation) -> bool:
 
 def check_condition(condition: CEL, activation: cel.Activation) -> bool:
     """Whether a rule's condition holds. A rule without one always applies."""
-    if not condition:
-        return True
-    return evaluate_condition(condition, activation)
+    settled = settle_condition(condition, activation)
+    # Only the arguments are ever left out, and this activation carries them
+    assert settled is not None
+    return settled
 
 
 def evaluate_filter(expression: CEL, activation: cel.Activation) -> str:

@@ -7,7 +7,10 @@ from uuid import UUID
 import pytest
 from more_itertools import one
 
+from mora.auth.keycloak.models import Token
 from mora.db import AsyncSession
+from mora.graphapi.policy_cel import build_activation
+from mora.graphapi.policy_cel import settle_condition
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
@@ -145,3 +148,41 @@ async def test_condition_leaves_an_upload_unread(
     assert one(graphapi_post(query).data["files"]["objects"]) == {
         "text_contents": "I'm a file"
     }
+
+
+@pytest.fixture
+def token() -> Token:
+    return Token.parse_obj(
+        {
+            "azp": "mo",
+            "uuid": "00000000-0000-0000-0000-000000000001",
+            "realm_access": {"roles": ["admin"]},
+        }
+    )
+
+
+@pytest.mark.parametrize(
+    "condition,settled",
+    [
+        # The token settles these, whether or not they name the arguments
+        ('"admin" in token.roles', True),
+        ('"nobody" in token.roles', False),
+        ('"nobody" in token.roles && args.input.uuid == token.uuid', False),
+        # These need the call, so they wait for it
+        ("args.input.uuid == token.uuid", None),
+        ('"admin" in token.roles && args.input.uuid == token.uuid', None),
+    ],
+)
+def test_settling_a_condition_without_the_arguments(
+    token: Token, condition: str, settled: bool | None
+) -> None:
+    """A condition is only left undecided where it reaches the missing arguments."""
+    assert settle_condition(condition, build_activation(token)) is settled
+
+
+def test_a_broken_condition_is_not_mistaken_for_needing_the_arguments(
+    token: Token,
+) -> None:
+    """Only the arguments are missing, so any other error is the condition's own."""
+    with pytest.raises(ValueError, match="result is not boolean"):
+        settle_condition("token.misspelt.field", build_activation(token))

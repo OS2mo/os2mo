@@ -51,7 +51,10 @@ from mora.graphapi.model_registration import PersonRegistration
 from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
+from mora.graphapi.policies import build_plan
+from mora.graphapi.policies import collect_accessed_fields
 from mora.graphapi.policies import entity_filter_grants
+from mora.graphapi.policies import load_rules
 from mora.graphapi.policy_cel import build_activation
 from mora.graphapi.policy_cel import check_condition
 from mora.graphapi.query import Query
@@ -178,17 +181,9 @@ class IsAuthenticatedExtension(SchemaExtension):
 async def pbac_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     """Allow access if an active DB policy grants this (type, field)."""
     token = await info.context.get_token()
-    index = await info.context.dataloaders.policy_loader.load(
-        frozenset(token.realm_access.roles)
-    )
-    type, field = info.parent_type.name, info.field_name
-    # A rule matches this exact (type, field) or a wildcard in either component
-    relevant_rules = (
-        index.get((type, field), [])
-        + index.get((type, "*"), [])
-        + index.get(("*", field), [])
-        + index.get(("*", "*"), [])
-    )
+    # Seeded before any resolver ran, with the wildcards merged in and the rules
+    # the token alone settles already dropped
+    relevant_rules = info.context.policy_plan[(info.parent_type.name, info.field_name)]
     if not relevant_rules:
         return False
     # Check unfiltered rules first, as entity filters are expensive
@@ -238,6 +233,27 @@ class PBACExtension(SchemaExtension):
     policies. Access is rejected by default: a field granted by no policy raises
     `"No policy approved the access"`.
     """
+
+    async def on_execute(self) -> AsyncIterator[None]:
+        """Seed the rules each field of the operation has left to be checked against.
+
+        By this hook the document is parsed and validated, and no resolver has run
+        yet. The walk is the contract the enforcement relies on: a field it misses
+        is a field no rule can be found for.
+        """
+        context = self.execution_context.context
+        document = self.execution_context.graphql_document
+        if document is not None:
+            # Strawberry keeps graphql-core's schema, which the walk needs, to itself
+            fields = collect_accessed_fields(
+                self.execution_context.schema._schema, document
+            )
+            token = await context.get_token()
+            index = await load_rules(
+                context.session, frozenset(token.realm_access.roles), fields
+            )
+            context.policy_plan = build_plan(index, token, fields)
+        yield
 
     async def resolve(  # type: ignore[override]
         self,

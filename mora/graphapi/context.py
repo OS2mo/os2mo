@@ -3,6 +3,7 @@
 from collections.abc import Awaitable
 from collections.abc import Callable
 from dataclasses import dataclass
+from dataclasses import field
 from typing import TypeAlias
 from uuid import UUID
 
@@ -51,9 +52,6 @@ class MOLoaders:
     org_loader: DataLoader[int, OrganisationRead]
     org_unit_loader: DataLoader[LoadKey, list[OrganisationUnitRead]]
     owner_loader: DataLoader[LoadKey, list[OwnerRead]]
-    policy_loader: DataLoader[
-        frozenset[str], dict[tuple[str, str], list[tuple[CEL, CEL]]]
-    ]
     rel_unit_loader: DataLoader[LoadKey, list[RelatedUnitRead]]
     rolebinding_loader: DataLoader[LoadKey, list[RoleBindingRead]]
 
@@ -64,6 +62,10 @@ class MOContext(BaseContext):
     amqp_system: AMQPSystem
     session: db.AsyncSession
     dataloaders: MOLoaders
+    # The rules left to check for each field, seeded before any resolver runs
+    policy_plan: dict[tuple[str, str], list[tuple[CEL, CEL]]] = field(
+        default_factory=dict
+    )
 
 
 MOInfo: TypeAlias = Info[MOContext, None]
