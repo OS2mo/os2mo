@@ -17,9 +17,9 @@ lokale server.
 
 Integrationen går via i alt tre maskiner:
 
-1.  Den lokale server, som afvikler integrationen (typisk MO serveren
+1.  Den lokale server, som afvikler integrationen (typisk MO serverenkælkælklæ
     selv).
-2.  En remote management server som den lokale server kan kommunikere
+2.  En remote management server som denæljlkkjlæklæ lokale server kan kommunikere
     med via Windows Remote Management (WinRM). Denne kommunikation
     autentificeres via Kerberos. Der findes en vejledning til
     [opsætning med kerberos her](https://os2mo.readthedocs.io/en/latest/_static/AD%20-%20OS2MO%20ops%C3%A6tnings%20guide.pdf).
