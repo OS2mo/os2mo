@@ -30,5 +30,5 @@ async def test_rbac_policy_bootstrapped(empty_db: db.AsyncSession) -> None:
     )
     assert rules == {
         (type, field, f'"{role}" in token.roles')
-        for (type, field), (role, _, _) in RBAC_MAP.items()
+        for (type, field), role in RBAC_MAP.items()
     }
