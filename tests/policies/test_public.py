@@ -6,6 +6,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy import update
 
+from alembic_helpers.policy_api_fields import POLICY_API_FIELDS
 from alembic_helpers.public_fields import PUBLIC_FIELDS
 from mora import db
 from tests.conftest import GraphAPIPost
@@ -28,7 +29,7 @@ async def test_public_policy_bootstrapped(empty_db: db.AsyncSession) -> None:
             )
         )
     ).all()
-    assert set(rules) == PUBLIC_FIELDS
+    assert set(rules) == PUBLIC_FIELDS | POLICY_API_FIELDS
 
 
 @pytest.mark.integration_test

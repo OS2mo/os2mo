@@ -32,6 +32,9 @@ from .paged import LimitType
 from .paged import ObjectsAndCursor
 from .paged import paginate
 from .paged import to_objects
+from .policies import Policy
+from .policies import PolicyActorFilter
+from .policies import policy_resolver
 from .seed_resolver import seed_resolver
 
 BEFORE_ACTOR_UUID = UUID("42c432e8-9c4a-11e6-9f62-873cf34a735f")
@@ -276,6 +279,16 @@ class Myself:
     )
     roles: list[str] = strawberry.field(
         description="Set of RBAC roles assigned to the client"
+    )
+
+    policies: list[Policy] = strawberry.field(
+        resolver=to_objects(
+            seed_resolver(
+                policy_resolver,
+                {"actor": lambda root: PolicyActorFilter(roles=list(root.roles))},
+            )
+        ),
+        description="Access policies applicable to the client.",
     )
 
 

@@ -52,3 +52,6 @@ def deactivate_policy(raw_session: db.AsyncSession) -> Callable[[str], Awaitable
         await raw_session.commit()
 
     return inner
+
+
+DEFAULT_POLICIES = {"Public", "Introspection", "RBAC", "Owner", "Policy Administrator"}

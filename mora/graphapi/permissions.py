@@ -26,6 +26,7 @@ Collections = Literal[
     "org",
     "org_unit",
     "owner",
+    "policy",
     "registration",
     "related_unit",
     "rolebinding",
@@ -47,10 +48,17 @@ EventPermissions = Literal[
     "unsilence_event",
     "rerun_event",
 ]
+# Declaring a policy grants its own actors and rules, so writing one is a
+# single permission rather than the usual create/update/delete split
+PolicyPermissions = Literal["declare_policy"]
 
 
-ALL_PERMISSIONS = {
-    f"{permission_type}_{collection}"
-    for permission_type in get_args(CollectionPermissionType)
-    for collection in get_args(Collections)
-}.union(get_args(FilePermissions)).union(get_args(EventPermissions))
+ALL_PERMISSIONS = (
+    {
+        f"{permission_type}_{collection}"
+        for permission_type in get_args(CollectionPermissionType)
+        for collection in get_args(Collections)
+    }.union(get_args(FilePermissions))
+    .union(get_args(EventPermissions))
+    .union(get_args(PolicyPermissions))
+)
