@@ -50,7 +50,7 @@ policy_rule = sa.table(
 # required RBAC role via `"<role>" in token.roles`
 RBAC_RULES: list[tuple[str, str, str]] = [
     (type, field, f'"{role}" in token.roles')
-    for (type, field), (role, _, _) in sorted(RBAC_MAP.items())
+    for (type, field), role in sorted(RBAC_MAP.items())
 ]
 
 
