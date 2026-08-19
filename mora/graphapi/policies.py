@@ -29,6 +29,7 @@ from mora.graphapi.context import MOInfo
 from mora.graphapi.filters import gen_filter_string
 from mora.graphapi.policy_cel import CEL
 from mora.graphapi.policy_cel import evaluate_filter
+from mora.graphapi.policy_cel import validate_filter
 
 from .paged import CursorType
 from .paged import LimitType
@@ -355,3 +356,18 @@ async def policy_resolver(
         objects=[to_policy(policy) for policy in result],
         next_cursor=next_cursor,
     )
+
+
+def validate_rule_filter(filter: CEL) -> None:
+    """Reject a rule `filter` that is not a compilable CEL expression.
+
+    Any rule may carry a filter. The filter is a CEL expression returning one
+    or more check-specs; its result shape depends on runtime variables
+    (`token`/`settings`/`args`), so declare time only compile-checks it. A
+    compilable expression that yields a non-check-spec fails hard at
+    permission-check time (see `entity_filter_grants`).
+    """
+    # The empty string means "no filter", so there is nothing to compile
+    if not filter:
+        return
+    validate_filter(filter)

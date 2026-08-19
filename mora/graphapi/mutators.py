@@ -16,6 +16,7 @@ from sqlalchemy import delete
 from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from strawberry import UNSET
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
@@ -146,6 +147,15 @@ from .inputs import OrganisationUnitUpdateInput
 from .inputs import OwnerCreateInput
 from .inputs import OwnerTerminateInput
 from .inputs import OwnerUpdateInput
+from .inputs import PolicyActorDeclareInput
+from .inputs import PolicyActorDeleteInput
+from .inputs import PolicyActorsDeclareInput
+from .inputs import PolicyCreateInput
+from .inputs import PolicyDeleteInput
+from .inputs import PolicyRuleDeclareInput
+from .inputs import PolicyRuleDeleteInput
+from .inputs import PolicyRulesDeclareInput
+from .inputs import PolicyUpdateInput
 from .inputs import RelatedUnitsUpdateInput
 from .inputs import RoleBindingCreateInput
 from .inputs import RoleBindingTerminateInput
@@ -185,6 +195,14 @@ from .owner import update_owner
 from .paged import CursorType
 from .paged import LimitType
 from .paged import Paged
+from .policies import Policy
+from .policies import PolicyActor
+from .policies import PolicyActorKind
+from .policies import PolicyRule
+from .policies import to_policy
+from .policies import to_policy_rule
+from .policies import validate_rule_filter
+from .policy_cel import validate_condition
 from .related_units import update_related_units
 from .resolvers import address_resolver
 from .resolvers import association_resolver
@@ -252,6 +270,89 @@ PriorityType = Annotated[
         description="Priority of the event. 1 is the highest priority.",
     ),
 ]
+
+
+def _reject_protected_policy(policy: UUID, what: str) -> None:
+    """Refuse modification of a built-in policy's actors or rules.
+
+    Built-in policies are seeded and managed by migrations; through the API
+    they can only be (de)activated.
+    """
+    if policy in db.DELETE_PROTECTED_POLICIES:
+        raise ValueError(
+            f"The policy is built-in; its {what} are managed by migrations "
+            "and cannot be modified."
+        )
+
+
+async def _declare_policy_actor(
+    session: AsyncSession,
+    policy: UUID,
+    kind: PolicyActorKind,
+    value: str,
+) -> PolicyActor:
+    """Idempotently ensure a policy has an actor matching the given attribute."""
+    _reject_protected_policy(policy, "actors")
+    stmt = (
+        pg_insert(db.PolicyActor)
+        .values(policy_fk=policy, kind=kind, value=value)
+        .on_conflict_do_nothing(constraint="uq_policy_actor")
+    )
+    await session.execute(stmt)
+    actor = await session.scalar(
+        select(db.PolicyActor).where(
+            db.PolicyActor.policy_fk == policy,
+            db.PolicyActor.kind == kind,
+            db.PolicyActor.value == value,
+        )
+    )
+    assert actor is not None
+    return PolicyActor(uuid=actor.pk, kind=actor.kind, value=actor.value)
+
+
+async def _declare_policy_rule(
+    session: AsyncSession,
+    policy: UUID,
+    type: str,
+    field: str,
+    condition: str | None = None,
+    filter: str | None = None,
+) -> PolicyRule:
+    """Idempotently ensure a policy has a rule for the given (type, field).
+
+    An optional CEL `condition` gates the grant, and an optional entity `filter`
+    further restricts it to the objects the filter matches. Either absent or
+    empty is stored as the empty string, the column's "no expression".
+    """
+    _reject_protected_policy(policy, "rules")
+    condition = condition or ""
+    if condition:
+        validate_condition(condition)
+    filter = filter or ""
+    validate_rule_filter(filter)
+    stmt = (
+        pg_insert(db.PolicyRule)
+        .values(
+            policy_fk=policy,
+            type=type,
+            field=field,
+            condition=condition,
+            filter=filter,
+        )
+        .on_conflict_do_nothing(constraint="uq_policy_rule")
+    )
+    await session.execute(stmt)
+    rule = await session.scalar(
+        select(db.PolicyRule).where(
+            db.PolicyRule.policy_fk == policy,
+            db.PolicyRule.type == type,
+            db.PolicyRule.field == field,
+            db.PolicyRule.condition == condition,
+            db.PolicyRule.filter == filter,
+        )
+    )
+    assert rule is not None
+    return to_policy_rule(rule)
 
 
 @strawberry.type(
@@ -1774,6 +1875,281 @@ class Mutation:
             )
             for result in results
         ]
+
+    # Policies
+    # --------
+
+    @strawberry.mutation(description="Create a policy.")
+    async def policy_create(self, info: MOInfo, input: PolicyCreateInput) -> Policy:
+        session: AsyncSession = info.context.session
+        policy = db.Policy(
+            name=input.name,
+            description=input.description,
+            active=input.active,
+        )
+        session.add(policy)
+        await session.flush()
+        return to_policy(policy)
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Update a policy.
+
+            Only the given fields are changed; omitted ones are left as they
+            are. A built-in policy is managed by migrations, so only its
+            activation can be changed.
+            """
+        ),
+    )
+    async def policy_update(self, info: MOInfo, input: PolicyUpdateInput) -> Policy:
+        if input.uuid == db.POLICYADMIN_UUID:
+            raise ValueError(
+                "The policyadmin policy is required for bootstrapping and cannot be modified."
+            )
+        session: AsyncSession = info.context.session
+
+        policy = await session.get(db.Policy, input.uuid)
+        if policy is None:
+            raise ValueError(f"No policy with uuid {input.uuid}")
+
+        # An omitted field is UNSET; a null one carries no value either, as none
+        # of these are nullable
+        name = None if input.name is UNSET else input.name
+        description = None if input.description is UNSET else input.description
+        active = None if input.active is UNSET else input.active
+
+        renames = (name is not None and name != policy.name) or (
+            description is not None and description != policy.description
+        )
+        if input.uuid in db.DELETE_PROTECTED_POLICIES and renames:
+            raise ValueError(
+                f"The {policy.name!r} policy is built-in; only its activation "
+                "can be changed."
+            )
+
+        if name is not None:
+            policy.name = name
+        if description is not None:
+            policy.description = description
+        if active is not None:
+            policy.active = active
+
+        await session.flush()
+        return to_policy(policy)
+
+    @strawberry.mutation(
+        description="Delete a policy.",
+    )
+    async def policy_delete(self, info: MOInfo, input: PolicyDeleteInput) -> bool:
+        if input.uuid in db.DELETE_PROTECTED_POLICIES:
+            raise ValueError(
+                "The policy is built-in and cannot be deleted; deactivate it instead."
+            )
+        session: AsyncSession = info.context.session
+        # Remove the policy's actors and rules first (the FK has no DB-level
+        # cascade, and a Core delete doesn't trigger the ORM relationship one).
+        await session.execute(
+            delete(db.PolicyActor).where(db.PolicyActor.policy_fk == input.uuid)
+        )
+        await session.execute(
+            delete(db.PolicyRule).where(db.PolicyRule.policy_fk == input.uuid)
+        )
+        await session.execute(delete(db.Policy).where(db.Policy.id == input.uuid))
+        return True
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Declare an actor on a policy.
+
+            Idempotently ensures the policy has an actor matching the given
+            attribute. Declaring the same actor again is a no-op.
+            """
+        ),
+    )
+    async def policy_actor_declare(
+        self, info: MOInfo, input: PolicyActorDeclareInput
+    ) -> PolicyActor:
+        return await _declare_policy_actor(
+            info.context.session, input.policy, input.kind, input.value
+        )
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Declare the full set of actors on a policy.
+
+            Replaces the policy's actors with exactly the given set: actors not
+            in the set are removed and missing ones are added. Declaring an
+            empty list clears all actors. Idempotent.
+            """
+        ),
+    )
+    async def policy_actors_declare(
+        self, info: MOInfo, input: PolicyActorsDeclareInput
+    ) -> list[PolicyActor]:
+        _reject_protected_policy(input.policy, "actors")
+        session: AsyncSession = info.context.session
+        desired = {(entry.kind, entry.value) for entry in input.actors}
+
+        existing = list(
+            await session.scalars(
+                select(db.PolicyActor).where(db.PolicyActor.policy_fk == input.policy)
+            )
+        )
+        existing_set = {(actor.kind, actor.value) for actor in existing}
+
+        # Remove actors no longer desired.
+        stale = [
+            actor.pk for actor in existing if (actor.kind, actor.value) not in desired
+        ]
+        if stale:
+            await session.execute(
+                delete(db.PolicyActor).where(db.PolicyActor.pk.in_(stale))
+            )
+
+        # Add the missing ones.
+        for kind, value in desired:
+            if (kind, value) in existing_set:
+                continue
+            await session.execute(
+                pg_insert(db.PolicyActor)
+                .values(policy_fk=input.policy, kind=kind, value=value)
+                .on_conflict_do_nothing(constraint="uq_policy_actor")
+            )
+
+        result = await session.scalars(
+            select(db.PolicyActor)
+            .where(db.PolicyActor.policy_fk == input.policy)
+            .order_by(db.PolicyActor.pk)
+        )
+        return [
+            PolicyActor(uuid=actor.pk, kind=actor.kind, value=actor.value)
+            for actor in result
+        ]
+
+    @strawberry.mutation(
+        description="Delete an actor from a policy.",
+    )
+    async def policy_actor_delete(
+        self, info: MOInfo, input: PolicyActorDeleteInput
+    ) -> bool:
+        session: AsyncSession = info.context.session
+        actor = await session.get(db.PolicyActor, input.uuid)
+        if actor is not None:
+            _reject_protected_policy(actor.policy_fk, "actors")
+        await session.execute(
+            delete(db.PolicyActor).where(db.PolicyActor.pk == input.uuid)
+        )
+        return True
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Declare a rule on a policy.
+
+            Idempotently ensures the policy grants access to the given GraphQL
+            (type, field) resource. Declaring the same rule again is a no-op.
+            """
+        ),
+    )
+    async def policy_rule_declare(
+        self, info: MOInfo, input: PolicyRuleDeclareInput
+    ) -> PolicyRule:
+        return await _declare_policy_rule(
+            info.context.session,
+            input.policy,
+            input.type,
+            input.field,
+            input.condition,
+            input.filter,
+        )
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Declare the full set of rules on a policy.
+
+            Replaces the policy's rules with exactly the given set: rules not in
+            the set are removed and missing ones are added. Declaring an empty
+            list clears all rules. Idempotent.
+            """
+        ),
+    )
+    async def policy_rules_declare(
+        self, info: MOInfo, input: PolicyRulesDeclareInput
+    ) -> list[PolicyRule]:
+        _reject_protected_policy(input.policy, "rules")
+        session: AsyncSession = info.context.session
+        # A rule is keyed by (type, field, condition, filter); an absent or empty
+        # condition/filter is stored as the empty string, "no expression".
+        desired = {
+            (entry.type, entry.field, entry.condition or "", entry.filter or "")
+            for entry in input.rules
+        }
+        for _type, _field, condition, filter in desired:
+            if condition:
+                validate_condition(condition)
+            validate_rule_filter(filter)
+
+        existing = list(
+            await session.scalars(
+                select(db.PolicyRule).where(db.PolicyRule.policy_fk == input.policy)
+            )
+        )
+        existing_set = {
+            (rule.type, rule.field, rule.condition, rule.filter) for rule in existing
+        }
+
+        # Remove rules no longer desired.
+        stale = [
+            rule.pk
+            for rule in existing
+            if (rule.type, rule.field, rule.condition, rule.filter) not in desired
+        ]
+        if stale:
+            await session.execute(
+                delete(db.PolicyRule).where(db.PolicyRule.pk.in_(stale))
+            )
+
+        # Add the missing ones.
+        for type, field, condition, filter in desired:
+            if (type, field, condition, filter) in existing_set:
+                continue
+            await session.execute(
+                pg_insert(db.PolicyRule)
+                .values(
+                    policy_fk=input.policy,
+                    type=type,
+                    field=field,
+                    condition=condition,
+                    filter=filter,
+                )
+                .on_conflict_do_nothing(constraint="uq_policy_rule")
+            )
+
+        result = await session.scalars(
+            select(db.PolicyRule)
+            .where(db.PolicyRule.policy_fk == input.policy)
+            .order_by(db.PolicyRule.pk)
+        )
+        return [to_policy_rule(rule) for rule in result]
+
+    @strawberry.mutation(
+        description="Delete a rule from a policy.",
+    )
+    async def policy_rule_delete(
+        self, info: MOInfo, input: PolicyRuleDeleteInput
+    ) -> bool:
+        session: AsyncSession = info.context.session
+        rule = await session.get(db.PolicyRule, input.uuid)
+        if rule is not None:
+            _reject_protected_policy(rule.policy_fk, "rules")
+        await session.execute(
+            delete(db.PolicyRule).where(db.PolicyRule.pk == input.uuid)
+        )
+        return True
 
     # Files
     # -----

@@ -63,6 +63,7 @@ from .models import RoleBindingCreate
 from .models import RoleBindingTerminate
 from .models import RoleBindingUpdate
 from .models import Validity
+from .policies import PolicyActorKind
 
 
 def gen_uuid_unset(uuid: UUID | UnsetType | None) -> dict[str, str] | UnsetType | None:
@@ -857,3 +858,156 @@ class EventRerunInput:
     subjects: list[str] | None = None
     priorities: list[int] | None = None
     silenced: bool | None = None
+
+
+# Policies
+# --------
+
+
+@strawberry.input(description="Create a policy.")
+class PolicyCreateInput:
+    name: str = strawberry.field(description="Name of the policy.")
+    description: str = strawberry.field(
+        default="", description="Description of the policy."
+    )
+    active: bool = strawberry.field(
+        default=True,
+        description="Whether the policy is in effect. Defaults to true.",
+    )
+
+
+@strawberry.input(
+    description=dedent(
+        """\
+        Update a policy.
+
+        Only the given fields are changed; omitted ones are left as they are.
+        """
+    )
+)
+class PolicyUpdateInput:
+    uuid: UUID = strawberry.field(description="UUID of the policy to update.")
+    name: str | None = strawberry.field(
+        default=UNSET, description="New name of the policy."
+    )
+    description: str | None = strawberry.field(
+        default=UNSET, description="New description of the policy."
+    )
+    active: bool | None = strawberry.field(
+        default=UNSET, description="Whether the policy is in effect."
+    )
+
+
+@strawberry.input(description="Delete a policy.")
+class PolicyDeleteInput:
+    uuid: UUID = strawberry.field(description="UUID of the policy to delete.")
+
+
+@strawberry.input(
+    description="Declare (idempotently ensure) a single actor on a policy."
+)
+class PolicyActorDeclareInput:
+    policy: UUID = strawberry.field(
+        description="UUID of the policy to declare the actor on."
+    )
+    kind: PolicyActorKind = strawberry.field(
+        description="The kind of attribute to match on."
+    )
+    value: str = strawberry.field(description="The value the attribute must equal.")
+
+
+@strawberry.input(description="A single actor entry.")
+class PolicyActorEntryInput:
+    kind: PolicyActorKind = strawberry.field(
+        description="The kind of attribute to match on."
+    )
+    value: str = strawberry.field(description="The value the attribute must equal.")
+
+
+@strawberry.input(
+    description="Declare (idempotently ensure) a set of actors on a policy."
+)
+class PolicyActorsDeclareInput:
+    policy: UUID = strawberry.field(
+        description="UUID of the policy to declare the actors on."
+    )
+    actors: list[PolicyActorEntryInput] = strawberry.field(
+        description="The actors to declare on the policy."
+    )
+
+
+@strawberry.input(description="Delete an actor from a policy.")
+class PolicyActorDeleteInput:
+    uuid: UUID = strawberry.field(description="UUID of the actor binding to delete.")
+
+
+@strawberry.input(
+    description="Declare (idempotently ensure) a single rule on a policy."
+)
+class PolicyRuleDeclareInput:
+    policy: UUID = strawberry.field(
+        description="UUID of the policy to declare the rule on."
+    )
+    type: str = strawberry.field(
+        description='GraphQL type the rule grants access to (or "Query"/"Mutation").'
+    )
+    field: str = strawberry.field(
+        description='Field/mutator on the type, or "*" for all fields.'
+    )
+    condition: str | None = strawberry.field(
+        default=None,
+        description=(
+            "Optional CEL condition that must evaluate true for the rule to "
+            "grant access. Omit or leave null for an unconditional rule."
+        ),
+    )
+    filter: str | None = strawberry.field(
+        default=None,
+        description=(
+            "Optional CEL expression returning one or more access-check specs "
+            "`{collection, filter}`; the rule only grants when all "
+            "of them pass. Omit or leave null for no entity restriction."
+        ),
+    )
+
+
+@strawberry.input(description="A single rule entry.")
+class PolicyRuleEntryInput:
+    type: str = strawberry.field(
+        description='GraphQL type the rule grants access to (or "Query"/"Mutation").'
+    )
+    field: str = strawberry.field(
+        description='Field/mutator on the type, or "*" for all fields.'
+    )
+    condition: str | None = strawberry.field(
+        default=None,
+        description=(
+            "Optional CEL condition that must evaluate true for the rule to "
+            "grant access. Omit or leave null for an unconditional rule."
+        ),
+    )
+    filter: str | None = strawberry.field(
+        default=None,
+        description=(
+            "Optional CEL expression returning one or more access-check specs "
+            "`{collection, filter}`; the rule only grants when all "
+            "of them pass. Omit or leave null for no entity restriction."
+        ),
+    )
+
+
+@strawberry.input(
+    description="Declare (idempotently ensure) a set of rules on a policy."
+)
+class PolicyRulesDeclareInput:
+    policy: UUID = strawberry.field(
+        description="UUID of the policy to declare the rules on."
+    )
+    rules: list[PolicyRuleEntryInput] = strawberry.field(
+        description="The rules to declare on the policy."
+    )
+
+
+@strawberry.input(description="Delete a rule from a policy.")
+class PolicyRuleDeleteInput:
+    uuid: UUID = strawberry.field(description="UUID of the rule to delete.")

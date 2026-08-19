@@ -19,6 +19,23 @@ from sqlalchemy.orm import relationship
 
 from ._common import Base
 
+# Well-known UUIDs of the built-in policies seeded by migrations.
+POLICYADMIN_UUID = UUID("ded1ca7e-9bac-5eed-706f-6c61646d696e")
+PUBLIC_UUID = UUID("a115ee17-9bac-5eed-0000-7075626c6963")
+INTROSPECTION_UUID = UUID("5e1fde5c-9bac-5eed-696e-74726f737065")
+RBAC_UUID = UUID("12bac000-9bac-5eed-0000-000052424143")
+OWNER_UUID = UUID("b0550000-9bac-5eed-0000-006f776e6572")
+
+# Built-in policies can only have their activation toggled, not be deleted or
+# modified. The policyadmin policy cannot even be deactivated.
+DELETE_PROTECTED_POLICIES = [
+    POLICYADMIN_UUID,
+    PUBLIC_UUID,
+    INTROSPECTION_UUID,
+    RBAC_UUID,
+    OWNER_UUID,
+]
+
 
 class PolicyActorKind(enum.Enum):
     """The kind of actor attribute a policy matches on."""
