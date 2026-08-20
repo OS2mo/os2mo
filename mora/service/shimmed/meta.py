@@ -3,10 +3,8 @@
 from fastapi import APIRouter
 from fastapi.responses import RedirectResponse
 
+from mora import config
 from mora import exceptions
-from mora.graphapi.shim import execute_graphql
-
-from .errors import handle_gql_error
 
 
 def meta_router():
@@ -14,21 +12,13 @@ def meta_router():
 
     @router.get("/version/")
     async def version():  # pragma: no cover
-        query = """
-        query VersionQuery {
-          version {
-            mo_hash
-            mo_version
-            lora_version
-          }
+        settings = config.get_settings()
+        return {
+            "mo_hash": settings.commit_sha,
+            "mo_version": settings.commit_tag,
+            # MO and LoRa are shipped and versioned together
+            "lora_version": settings.commit_tag,
         }
-        """
-
-        # Execute GraphQL query to fetch required data
-        response = await execute_graphql(query)
-        handle_gql_error(response)
-
-        return response.data["version"]
 
     @router.get("/saml/sso/")
     async def old_auth():  # pragma: no cover
