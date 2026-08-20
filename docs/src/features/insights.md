@@ -4,11 +4,13 @@ title: Indsigt
 
 # Få indsigt i de data, der findes i MOs mave
 
-Insights er et modul, der giver muligheden for selv at sammensætte data fra MO og udskrive dem i en csv-fil, der kan åbnes i et regnearksformat (Calc LibreOffice; Excel; Google Sheets).
+Indsigt (Insights) er et modul, der giver muligheden for selv at sammensætte data fra MO og udskrive dem i en csv-fil, der kan åbnes i et regnearksformat (Calc LibreOffice; Excel; Google Sheets).
 
 Formålene med modulet er mange og afhænger af, hvilke data der sammenstilles.
 
-Et eksempel er generering af et udtræk bestående af enheder, lederfunktioner og engagementer, så man kan se, hvem der er chef for hvem og hvor.
+Et eksempel er generering af et udtræk bestående af enheder, lederfunktioner og engagementer, så man kan se, hvem der er chef for hvem og hvor, samt om der skulle være vakante lederstillinger, og endvidere om en leder har for mange medarbejder med fare for stress til følge.
+
+Et andet eksempel er et udtræk af *IT-brugere*, så man kan se, hvilke systemer IT-brugerne har adgang til. Bemærk, at det kun gælder de IT-brugere, der er tilknyttet et engagement.
 
 ## Brugergrænsefladen
 
@@ -34,7 +36,7 @@ Det sker ved valg af "Emne":
 
 ![image](../graphics/insights/insightsemne.png)
 
-Herefter kan der tilføjes eller fjernes data under "Felter" fra det Emne, der er valgt:
+Nu kan der tilføjes eller fjernes data under "Felter" fra det Emne, der er valgt:
 
 ![image](../graphics/insights/insightsfelter.png)
 
@@ -50,7 +52,11 @@ Herefter trykkes "Søg", hvorpå genereringen af filen igangsættes. Hvor lang t
 
 ![image](../graphics/insights/beregning.png)
 
-Bemærk, at hvis man klikker bort fra Indsigt, afbrydes forespørgslen. Hvis du vil arbejde videre i MO, mens du venter, kan du åbne MO i en anden browser.
+Rapportgenereringen er robust over for ustabile netværksforbindelser: Hvis forbindelsen kortvarigt falder ud, prøver Indsigt automatisk igen, så forespørgslen ikke afbrydes.
+
+Bemærk dog, at hvis man klikker bort fra Indsigt, afbrydes forespørgslen. Hvis du gerne vil arbejde videre, mens du venter, kan du åbne MO i en anden browser.
+
+## Download som csv eller Excel
 
 Når "Download som csv"-knappen aktiveres (bliver blå), kan der trykkes på den, og csv-filen bliver hentet ned på din computer:
 
