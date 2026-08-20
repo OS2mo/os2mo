@@ -3,21 +3,21 @@ title: MED/TR-organisationen
 ---
 
 # MED/TR-organisationen i MO
-Nedenfor findes en guide til opbygning og vedligehold af MED-organisationen i OS2mo.
+Nedenfor findes en guide til opbygning og vedligehold af MED-organisationen i MO.
 
 ## Formål
 
 Det er lovpligtigt at vedligeholde et overblik over sin MED-organisation.
 
-Formålet med at have sin MED-organisation i OS2mo er at vedligehold og overblik er nemt.
+Formålet med at have sin MED/TR-organisation i MO er at vedligehold og overblik er nemt samt at datagrundlaget (de ansatte) findes her også, så alle nødvendige informationer er ved hånden.
 
-MED-organisationen kan desuden udstilles på intranettet i et organisationsdiagram, så alle medarbejdere umiddelbart kan tilgå ajourførte oplysninger om fx deres arbejdsmiljørepræsentant og deres tillidsmandsrepræsentant (navn, email, telefonnummer, mv.).
+MED/TR-organisationen kan desuden udstilles på intranettet i et organisationsdiagram, så alle medarbejdere umiddelbart kan tilgå ajourførte oplysninger om fx deres arbejdsmiljørepræsentant og deres tillidsmandsrepræsentant (navn, email, telefonnummer, mv.).
 
-MED-organisationen kan også udskrives til fx Excel-format så administrative medarbejdere kan arbejde videre med MED-organisationen i dette format. Det forudsætter bestilling af en sådan rapport.
+MED/TR-organisationen kan også udskrives til fx Excel-format så administrative medarbejdere kan arbejde videre med MED/TR-organisationen i dette format. Det forudsætter bestilling af en sådan rapport.
 
 ## Forudsætninger
 
-Der er behov for indlæsning af tre datasæt i OS2mo, så MED-organisationen og de tilknyttede medarbejdere kan oprettes med de korrekte metadata:
+Der er behov for indlæsning af tre datasæt i MO, så MED/TR-organisationen og de tilknyttede medarbejdere kan oprettes med de korrekte metadata:
 
 - **Enhedstyper** til opmærkning af MED-organisationen: Fx Lokal-MED, Center-MED, Direktør-MED, Hoved-MED, AMG.
 - **Tilknytningsroller** til opmærkning af medarbejdere: Fx LR formand, LR, FTR næstformand, FTR, TR næstformand, TR, AMR næstformand, AMR.
@@ -25,16 +25,7 @@ Der er behov for indlæsning af tre datasæt i OS2mo, så MED-organisationen og 
 
 ## Option Rollebaseret adgang i OS2mo
 
-Det er desuden muligt at differentiere adgangen til OS2mo, så fx udvalgte HR-medarbejdere har skriveadgang til MED-organisationen, men ikke til lønorganisationen eller til den administrative organisation i OS2mo. Det sikrer mod fejl.
-
-Rollebaseret adgang i OS2mo kræver:
-
-- **Installation af Keycloak**, herunder konfiguration af [ADFS](https://rammearkitektur.docs.magenta.dk/os2mo/guides/adfs-setup.html) og [opsætning af OU’er i Active Directory](https://rammearkitektur.docs.magenta.dk/os2mo/guides/adfs-rbac-setup.html).
-- **Implementering af Ejer-begrebet** i OS2mo.
-
-Når det er gjort, kan man tildele Ejer-rollen til rette vedkommende i OS2mo og dermed give skriveadgang til den del af OS2mo, som håndterer MED-organisationen:
-
-![image](../graphics/EjereiMO.png)
+Det er desuden muligt at differentiere adgangen til MO, så fx udvalgte HR-medarbejdere har skriveadgang til MED-organisationen, men ikke til lønorganisationen eller til den administrative organisation i OS2mo. Det sikrer mod fejl.
 
 ## ​Arbejdsgange
 
@@ -48,15 +39,11 @@ I organisationsmodulet skal man oprette en rodorganisation og de tilhørende und
 
 Klik på Organisation:
 
-![image](../graphics/velkommentilMO.png)
+![image](../graphics/MEDTRorg/medtropretenhed.png)
 
-Klik på Opret enhed i højremenuen:
+Udfyld dialogboksen med ønskede metadata om rodenheden og tryk ‘Opret enhed’ nederst. Idet der er tale om en rodenhed, skal der *ikke* angives en overenhed:
 
-![image](../graphics/opretenhed.png)
-
-Udfyld dialogboksen med ønskede metadata om rodenheden og tryk ‘v’ nederst i højre hjørne:
-
-![image](../graphics/opretenheddialog.png)
+![image](../graphics/MEDTRorg/medtropretenhedii.png)
 
 Obligatoriske oplysninger er:
 
@@ -64,53 +51,49 @@ Obligatoriske oplysninger er:
 - Navn
 - Enhedstype
 
-Bemærk, at for at oprette en rodenhed, skal der ikke angives overenhed.
+Rodenheden kan nu ses i organisationshierarkiet til venstre (i dette eksempel ‘MED/TR-organisationen’):
 
-Rodenheden kan nu ses i organisationshierarkiet til venstre (i dette eksempel ‘MED-organisation’):
-
-![image](../graphics/MEDOrgrodenhed.png)
+![image](../graphics/MEDTRorg/medtrudstilrodenhed.png)
 
 ### Oprettelse af underenhederne
 
-Proceduren fra ‘Oprettelse af rodorganisationen’ ovenfor følges med undtagelse af, at der nu skal angives en overenhed:
-
-![image](../graphics/MEDOrgunderenhed.png)
+Proceduren fra ‘Oprettelse af rodorganisationen’ ovenfor følges med undtagelse af, at der nu skal angives en overenhed.
 
 I takt med at underenhederne bliver oprettet, kan de ses i MED-organisationens hierarki:
 
-![image](../graphics/MEDOrghierarki.png)
+![image](../graphics/MEDTRorg/medtrhierarki.png)
 
 ## Opret medarbejdere i MED-organisationen
 
 ### Oprettelse af tilknytningerne
 
-Når MED-organisationen er oprettet, skal medarbejdere tilknyttes til den fra den administrative organisation / lønorganisationen.
+Når MED/TR-organisationen er oprettet, skal medarbejdere knyttes til den fra den administrative organisation.
 
-En medarbejder tilknyttes til en MED-enhed ved at vælge den relevante MED-enhed, klikke på fanen ‘Tilknytninger’ og vælge ‘+Opret ny’:
+En medarbejder tilknyttes til en MED/TR-enhed ved at vælge den relevante MED/TR-enhed, klikke på fanen ‘Tilknytninger’ og vælge ‘Opret tilknytning’:
 
-![image](../graphics/Tilknytmedarbejder.png)
+![image](../graphics/MEDTRorg/medrtoprettilknytning.png)
 
-I den dialogboks der kommer frem
+I den formular, der kommer frem
 
 - Sættes start- og evt. slutdato
 - Fremfindes medarbejderen ved søgning
 - Vælges Tilknytningsrolle
-- Angives Hovedorganisation / Faglig organisation
-- Fremfindes stedfortræder: Ved nogle tilknytningsroller er der mulighed for at vælge stedfortræder. Kommunen skal fortælle hvilke. I dette tilfælde fordrer tilknytningsrollen ‘AMR’ en stedfortræder:
+- Fremfindes stedfortræder: Ved nogle tilknytningsroller er der krav om at tilknytte en stedfortræder. I dette tilfælde fordrer tilknytningsrollen ‘(F)TR og AMR’ en stedfortræder
+- Angives Hovedorganisation / Faglig organisation:
 
-![image](../graphics/Tilknytmedarbejderdialogboks.png)
+![image](../graphics/MEDTRorg/medtroprettilknytningii.png)
 
 ### Se tilknyttede medarbejdere under MED-enheden
 
 Når ovenstående arbejdsgang er fuldført, kan man se den tilknyttede medarbejder (plus evt. stedfortræder) under MED-enheden og fanen ‘Tilknytninger’:
 
-![image](../graphics/Tilknytningudstillet.png)
+![image](../graphics//MEDTRorg/medtrudstil.png)
 
 ### Se tilknyttede medarbejdere under medarbejderen selv
 
-Det er også muligt at se den tilknyttede medarbejder under sig selv ved at vælge fanen ‘Tilknytninger’:
+Det er også muligt at se den tilknyttede medarbejder under medarbejderen ved at vælge fanen ‘Tilknytninger’:
 
-![image](../graphics/Tilknytningudstilletmedarbejder.png)
+![image](../graphics/MEDTRorg/TRudstilii.png)
 
 ### Se stedfortrædere under stedfortræderen selv
 
@@ -118,46 +101,32 @@ Og man kan ligeledes se stedfortræderen under sig selv ved at vælge fanen ‘T
 
 ![image](../graphics/MEDOrgstedfortræder.png)
 
-### Gør Tilknytningsrolle vakant
+## Fjern stedfortræder
 
-Det er muligt at gøre en tilknytningsrolle vakant - Det gøres ved at redigere en tilknytningsrolle og fjerne den tilknyttede medarbejder:
-
-![image](../graphics/MEDOrgevakant.png)
-
-Operationen vil føre til dette billede i oversigten over de medarbejdere der er tilknyttet til MED-enheden:
-
-![image](../graphics/MEDOrgvakantudstillet.png)
+Stedfortrædere kan fjernes fra en tilknytning igen ved at redigere tilknytningen og fjerne stedfortræderen.
 
 ## Vedligehold
 
-Når hele MED-organisationen er opbygget, skal den vedligeholdes i OS2mo.
+Når hele MED/TR-organisationen er opbygget, skal den vedligeholdes i MO.
 
 ### MED-enheder
 
-MED-enhederne vedligeholdes som alle enheder i OS2mo:
-
-![image](../graphics/MEDenhedervedligehold.png)
+MED/TR-enhederne vedligeholdes som alle enheder i MO.
 
 ### Tilknytningsroller
 
-Tilknytningsrollerne redigeres vha. knapperne ud for hver tilknytningsrolle...:
+Tilknytningsrollerne redigeres vha. knapperne ud for hver tilknytningsrolle.
 
-![image](../graphics/redigertilknytningsrolle.png)
-
-…eller under hver medarbejder under fanen ‘Tilknytninger’:
-
-![image](../graphics/redigertilknytningsrolle1.png)
+…eller under hver medarbejder under fanen ‘Tilknytninger’.
 
 ## Udstilling andre steder
 
 ### Rapport
 
-Det er muligt at genere af MED-data i fx en csv-fil som kan hentes inde fra MOs brugergrænseflade. De data der skal indgå i udtrækket skal specificeres først.
+Det er muligt at genere af MED/TR-data i fx en csv-fil som kan hentes inde fra MOs brugergrænseflade.
 
 ### Organisationsdiagram
 
-Lig den administrative organisation kan MED-organisationen udstilles i et organisationsdiagram på intranettet / internettet.
+Lig den administrative organisation kan MED/TR-organisationen udstilles i et organisationsdiagram på intranettet.
 
-Du kan læse mere om organisationsdiagrammet [her](https://rammearkitektur.docs.magenta.dk/os2mo/data-import-export/exporters/org-chart.html)
-
-![image](../graphics/MEDOrgdiagram.png)
+Du kan læse mere om organisationsdiagrammet [her](https://rammearkitektur.docs.magenta.dk/os2mo/features/org-chart.html).
