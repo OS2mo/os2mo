@@ -17,6 +17,7 @@ from mora.auth.exceptions import AuthenticationError
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import fetch_token
+from mora.auth.keycloak.oidc import token_getter
 
 from .conftest import fake_auth
 from .conftest import serviceapiless_auth
@@ -311,6 +312,7 @@ def test_missing_service_api_access(
 
     # Switch to a user with ServiceAPI permission
     app.dependency_overrides[fetch_token] = fake_auth
+    app.dependency_overrides[token_getter] = lambda: fake_auth
 
     # Make call to random endpoint
     response = raw_client.get("/service/o/")
