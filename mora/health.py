@@ -1,11 +1,12 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from asyncio import gather
+
 from fastapi import APIRouter
 from fastapi import HTTPException
-from more_itertools import one
 from starlette.status import HTTP_204_NO_CONTENT
 
-from mora.graphapi.shim import execute_graphql
+from mora.graphapi.health import health_map
 
 router = APIRouter()
 
@@ -26,41 +27,13 @@ async def readiness():
 
 @router.get("/")
 async def root() -> dict[str, bool]:
-    query = """
-    query HealthQuery {
-      healths {
-        objects {
-          identifier
-          status
-        }
-      }
-    }
-    """
-    r = await execute_graphql(query)
-    if r.errors:  # pragma: no cover
-        raise ValueError(r.errors)
-
-    return {
-        health["identifier"]: health["status"]
-        for health in r.data["healths"]["objects"]
-    }
+    identifiers = list(health_map)
+    statuses = await gather(*(health_map[identifier]() for identifier in identifiers))
+    return dict(zip(identifiers, statuses, strict=True))
 
 
 @router.get("/{identifier}")
 async def healthcheck(identifier: str) -> bool | None:
-    query = """
-    query HealthQuery($identifier: String!) {
-      healths(filter: {identifiers: [$identifier]}) {
-        objects {
-          status
-        }
-      }
-    }
-    """
-
-    r = await execute_graphql(query, variable_values={"identifier": identifier})
-    if r.errors:  # pragma: no cover
-        raise ValueError(r.errors)
-    if not r.data["healths"]["objects"]:  # pragma: no cover
+    if identifier not in health_map:  # pragma: no cover
         raise HTTPException(status_code=404, detail="Healthcheck not found")
-    return one(r.data["healths"]["objects"])["status"]
+    return await health_map[identifier]()
