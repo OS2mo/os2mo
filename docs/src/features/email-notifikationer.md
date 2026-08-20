@@ -2,11 +2,13 @@
 title: Email-notifikationer
 ---
 
-# 📬 Få tilsendt en email automatisk, når du skal være opmærksom på noget
+# Få tilsendt en email automatisk, når du skal være opmærksom på noget
 
-MO kan automatisk sende notifikationer, når nedenstående hændelser indtræffer. Det sikrer, at relevante personer bliver informeret rettidigt og kan handle hurtigt.
+MO kan automatisk sende notifikationer, når hændelser indtræffer. Det sikrer, at relevante personer bliver informeret rettidigt og kan handle hurtigt.
 
-## ✉️ Ny email til nyansatte
+Nedenfor beskrives eksempler på funktionaliteten.
+
+## Ny email til nyansatte
 
 Når en nyansat medarbejder får oprettet sin første arbejds-email, sender MO automatisk en besked til rette vedkommende. Det kan f.eks. være:
 
@@ -17,31 +19,42 @@ Når en nyansat medarbejder får oprettet sin første arbejds-email, sender MO a
 **Baggrund**
 En bruger oprettes i MO og bliver synkroniseret til Active Directory (AD). MOs integration til AD’et genererer et brugernavn og dermed en arbejdsemail-adresse, som sendes tilbage til MO. Idet MO opretter email-adressen, sendes en notifikation til rette vedkommende.
 
-## 👤 Leder fratræder eller lederrolle bliver vakant
+## Leder fratræder eller lederrolle bliver vakant
 
 - Når en leder fratræder, bliver der automatisk sendt en notifikation.
 - Når en lederrolle bliver vakant, bliver der ligeledes automatisk sendt en notifikation.
 
 Disse beskeder hjælper med at sikre, at alle enheder til enhver tid har en aktiv leder tilknyttet.
 
-## 🏢 Manglende relationer mellem enheder
+## Manglende relationer mellem enheder
 
-I organisationer med både en **lønorganisation** og en **administrativ organisation** skal enhederne være korrekt relateret i MO. Hvis denne relation mangler:
+I organisationer med både en **lønorganisation** og en **administrativ organisation** skal enhederne være korrekt relateret i MO. Det gøres ved hjælp af [Organisationssammenkoblingsmodulet](https://rammearkitektur.docs.magenta.dk/os2mo/features/org-sammenkobling.html). Hvis denne relation mangler:
 
 - Kan medarbejdere ikke automatisk flyttes mellem organisationerne
 - Sendes en email-notifikation til MO-administratoren, som kan oprette den manglende relation
 
 Dette understøtter korrekt placering af medarbejdere og drift af automatisering.
 
-## 💻 It-brugere og -roller
+Adviseringer om organisationsenheder finder pålideligt frem til, hvilken Hovedorganisation enheden hører til, ved at følge enhedens overenheder til toppen af træet.
+
+## It-brugere og -roller
 
 Når MO skal oprette en it-bruger i et system, som MO ikke har en systemintegration med, kan MO sende en notifikation til systemets administrator, så vedkommende manuelt kan oprette brugeren med de relevante roller.
 
-Ved ændringer til brugeren eller brugerens roller, sender MO også en email, så systemadministratoren kan foretage de nødvendige opdateringer i det eksterne system.
+Ved ændringer til brugeren eller brugerens roller sender MO også en email, så systemadministratoren kan foretage de nødvendige opdateringer i det eksterne system.
 
-## 🔔 Konkret eksempel: En leder stopper
+## Ingen dublet-adviseringer
 
-Der kan automatisk blive sendt email-notifikationer, når en leders engagement afsluttes i organisationen. Når en leders engagement afsluttes vil personens lederrolle enten blive fjernet fra lederfanen i MO og flyttet ned under **”Fortid”**, eller også vil lederrollen blive stående i **"Nutid"** som *Vakant*. Lederfanen i MO ser således ud:
+Notifikationsmotoren husker, hvilke adviseringer der allerede er sendt, ved at persistere dem i en database. Dermed undgås det, at den samme e-mail sendes flere gange, hvis samme event behandles igen – fx ved leder-, relations- og IT-bruger-hændelser.
+
+## Robusthed
+
+- Timeout mod SMTP-serveren kan konfigureres.
+- Der er et modtager-fallback, så adviseringer ikke tabes, hvis den primære modtager ikke kan udledes.
+
+## Konkret eksempel: En leder stopper
+
+Der kan automatisk blive sendt email-notifikationer, når en leders engagement afsluttes i organisationen. Når en leders engagement afsluttes, vil personens lederrolle enten blive fjernet fra lederfanen i MO og flyttet ned under **”Fortid”**, eller også vil lederrollen blive stående i **"Nutid"** som *Vakant*. Lederfanen i MO ser således ud:
 
 ![Lederfanen](../graphics/ledere.png)
 
@@ -55,7 +68,7 @@ Emailen kan se således ud:
 
 ![Eksempel på email](../graphics/mail.png)
 
-## ✅ Test af løsningen
+## Test af løsningen
 
 Løsningen kan testes på følgende måde:
 
@@ -72,6 +85,6 @@ Løsningen kan testes på følgende måde:
 - Lav fx ændringer i 'lederniveau', 'startdato' eller 'ledertype'.
 - Bekræft at der **ikke** modtages email.
 
-## 🛠️ Udvidelser
+## Udvidelser
 
 Hvis der er behov for at modtage notifikationer på andre hændelser, kan dette tilpasses. Kontakt MO-leverandøren for opsætning af ekstra scenarier.
