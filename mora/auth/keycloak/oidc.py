@@ -21,6 +21,7 @@ from mora.auth.keycloak.legacy import validate_session
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.graphapi.permissions import ALL_PERMISSIONS
+from mora.graphapi.permissions import SHIM_PERMISSIONS
 
 logger = get_logger()
 
@@ -29,12 +30,18 @@ NO_AUTH_UUID = UUID("00000000-0000-0000-0000-000000000000")
 LEGACY_AUTH_UUID = UUID("00000000-0000-0000-0000-000000000001")
 
 
-async def noauth() -> Token:
-    """Noop auth provider."""
+async def shim_auth() -> Token:
+    """The identity the service API shims execute GraphQL as.
+
+    The shims reimplement the service API over GraphQL, and cannot yet pass the
+    caller's own token along (see `execute_graphql`), so they run as this. It
+    holds only what they need, so a caller who is authorized for a service API
+    endpoint does not thereby reach the whole API.
+    """
     return Token(
         azp="mo-frontend",
         uuid=str(NO_AUTH_UUID),
-        realm_access=RealmAccess(roles={"admin", "owner"}.union(ALL_PERMISSIONS)),
+        realm_access=RealmAccess(roles=set(SHIM_PERMISSIONS)),
     )
 
 

@@ -42,7 +42,7 @@ ACTOR_NAME_LOADER_KEY = "actor_name_loader"
 class HardcodedActor(Enum):
     NO_AUTH = strawberry.enum_value(
         NO_AUTH_UUID,
-        description="The change was made when auth was disabled",
+        description="The change was made by MO itself, serving a service API request",
     )
     LEGACY_AUTH = strawberry.enum_value(
         LEGACY_AUTH_UUID,

@@ -24,6 +24,7 @@ from mora.auth.exceptions import get_auth_exception_handler
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import get_auth_dependency
+from mora.auth.keycloak.oidc import shim_auth
 from tests.conftest import BRUCE_UUID
 
 
@@ -487,3 +488,25 @@ def test_token_with_all_fields_set():
     assert token.preferred_username == "bruce"
     assert token.realm_access.roles == roles
     assert token.uuid == uuid
+
+
+async def test_shim_auth_is_least_privilege() -> None:
+    """The shim identity holds what the shims need, and nothing more.
+
+    It reads on the caller's behalf, so widening it hands every service API
+    caller whatever was added.
+    """
+    roles = (await shim_auth()).realm_access.roles
+
+    assert "read_employee" in roles
+    # The only mutations any shim issues
+    assert {"terminate_employee", "terminate_org_unit"} <= roles
+
+    # No blanket roles, and no writes beyond those two terminations
+    assert not {"admin", "owner", "service_api"} & roles
+    writes = {
+        role
+        for role in roles
+        if role.startswith(("create_", "update_", "delete_", "refresh_"))
+    }
+    assert not writes

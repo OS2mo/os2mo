@@ -54,3 +54,11 @@ ALL_PERMISSIONS = {
     for permission_type in get_args(CollectionPermissionType)
     for collection in get_args(Collections)
 }.union(get_args(FilePermissions)).union(get_args(EventPermissions))
+
+# What the service API shims need to execute GraphQL, rather than everything.
+# They read widely, and the only mutations they issue are the two terminations
+# in `mora/service/shimmed/employee.py` and `mora/service/shimmed/org_unit.py`.
+# A shim that grows a new mutation is denied here until this is widened
+SHIM_PERMISSIONS = {f"read_{collection}" for collection in get_args(Collections)}.union(
+    {"terminate_employee", "terminate_org_unit"}
+)

@@ -22,7 +22,7 @@ from strawberry.types import ExecutionResult
 
 from mora import depends
 from mora import util
-from mora.auth.keycloak.oidc import noauth
+from mora.auth.keycloak.oidc import shim_auth
 from mora.graphapi.gmodels.mo import ClassRead
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import FacetRead
@@ -216,7 +216,7 @@ async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
         # TODO: The token should be passed from the original caller, such that the
         #  service API shims get RBAC equivalent to the GraphQL API for free.
         kwargs["context_value"] = await get_context(
-            get_token=noauth,
+            get_token=shim_auth,
             amqp_system=context.get("amqp_system"),
             session=context.get("session"),
         )
