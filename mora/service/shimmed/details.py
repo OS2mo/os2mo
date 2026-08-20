@@ -30,7 +30,7 @@ GRAPHQL_COMPATIBLE_TYPES = {
 )
 async def terminate(
     reqs: list[DetailTermination] | DetailTermination = Body(...),
-    permissions=Depends(oidc.rbac_owner),
+    permissions=Depends(oidc.rbac_admin),
 ):
     results: list[str] = []
     for req in [reqs] if not isinstance(reqs, list) else reqs:

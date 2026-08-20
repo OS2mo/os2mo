@@ -98,7 +98,7 @@ async def get_employee(
     responses={
         "400": {"description": "Invalid input"},
     },
-    dependencies=[Depends(oidc.rbac_owner)],
+    dependencies=[Depends(oidc.rbac_admin)],
 )
 async def terminate_employee(uuid: UUID, request: dict = Body(...)):
     """Terminates an employee and all of his roles beginning at a
