@@ -46,6 +46,7 @@ from mora.graphapi.gmodels.mo import Validity as GValidity
 from mora.graphapi.permissions import ALL_PERMISSIONS
 from mora.graphapi.version import LATEST_VERSION
 from mora.mapping import ADMIN
+from mora.mapping import OWNER
 from mora.service.org import ConfiguredOrganisation
 from mora.testing import EMPTY_DB_TEMPLATE
 from mora.testing import copy_database
@@ -134,12 +135,17 @@ BRUCE_UUID = UUID("99e7b256-7dfa-4ee8-95c6-e3abe82e236a")
 ALVIDA_UUID = UUID("0fb62199-cb9e-4083-ba45-2a63bfd142d7")
 
 
+READ_PERMISSIONS = {
+    permission for permission in ALL_PERMISSIONS if permission.startswith("read_")
+}
+
+
 async def fake_auth() -> Token:
     return Token(
         azp="vue",
         email="bruce@kung.fu",
         preferred_username="bruce",
-        realm_access={"roles": {"service_api"}},
+        realm_access={"roles": {"service_api"} | READ_PERMISSIONS},
         uuid=str(BRUCE_UUID),
     )
 
@@ -206,6 +212,8 @@ def set_auth(
         if role is not None:
             if role == ADMIN:
                 roles = ALL_PERMISSIONS
+            elif role == OWNER:
+                roles = {OWNER} | READ_PERMISSIONS
             else:
                 roles = {role}
             token_data["realm_access"] = {"roles": roles}

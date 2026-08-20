@@ -358,6 +358,10 @@ async def test_owner_with_input_list(
     create_owner: CreateOwner,
     create_engagement: CreateEngagement,
 ) -> None:
+    """An owner of both units may move several engagements in one list input.
+
+    Ownership is checked for every entry in the list, not just the first one.
+    """
     set_auth(ADMIN, None)
     owner = create_person()
 
@@ -366,6 +370,7 @@ async def test_owner_with_input_list(
 
     old_org_unit = create_org_unit(parent=None)
     new_org_unit = create_org_unit(parent=None)
+    unowned_org_unit = create_org_unit(parent=None)
 
     engagement1 = str(create_engagement(person=person1, org_unit=old_org_unit))
     engagement2 = str(create_engagement(person=person2, org_unit=old_org_unit))
@@ -409,8 +414,52 @@ async def test_owner_with_input_list(
         },
     )
 
-    assert r.errors is not None
+    assert r.errors is None
     assert r.data is not None
+    assert r.data["engagements_update"] == [
+        {
+            "current": {
+                "uuid": engagement1,
+                "org_unit_response": {
+                    "uuid": str(new_org_unit),
+                    "current": {"name": "Foo"},
+                },
+            }
+        },
+        {
+            "current": {
+                "uuid": engagement2,
+                "org_unit_response": {
+                    "uuid": str(new_org_unit),
+                    "current": {"name": "Foo"},
+                },
+            }
+        },
+    ]
+
+    # A single entry targeting an unowned unit denies the whole mutation, even
+    # though the other entry is allowed.
+    r = graphapi_post(
+        query,
+        variables={
+            "date": "2026-05-19",
+            "input": [
+                {
+                    "org_unit": str(old_org_unit),
+                    "uuid": engagement1,
+                    "validity": {"from": "2026-05-20"},
+                },
+                {
+                    "org_unit": str(unowned_org_unit),
+                    "uuid": engagement2,
+                    "validity": {"from": "2026-05-20"},
+                },
+            ],
+        },
+    )
+    error = one(r.errors)
+    assert error["message"] == "No policy approved the access"
+    assert error["path"] == ["engagements_update"]
 
 
 @pytest.mark.integration_test

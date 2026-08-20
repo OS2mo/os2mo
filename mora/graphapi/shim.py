@@ -6,11 +6,14 @@
 Used for shimming the service API.
 """
 
+from collections.abc import Awaitable
+from collections.abc import Callable
 from datetime import date
 from typing import Any
 from typing import Optional
 from uuid import UUID
 
+from fastapi import Depends
 from more_itertools import flatten
 from pydantic import BaseModel
 from pydantic import Field
@@ -22,7 +25,9 @@ from strawberry.types import ExecutionResult
 
 from mora import depends
 from mora import util
+from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import noauth
+from mora.auth.keycloak.oidc import token_getter
 from mora.graphapi.gmodels.mo import ClassRead
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import FacetRead
@@ -187,7 +192,9 @@ class MOAddress(AddressRead):
 
 
 async def set_graphql_context_dependencies(
-    amqp_system: depends.AMQPSystem, session: depends.Session
+    amqp_system: depends.AMQPSystem,
+    session: depends.Session,
+    get_token: Callable[[], Awaitable[Token]] = Depends(token_getter),
 ):
     """Fetch FastAPI dependencies into starlette context.
 
@@ -202,6 +209,7 @@ async def set_graphql_context_dependencies(
         **context,
         "amqp_system": amqp_system,
         "session": session,
+        "get_token": get_token,
     }
     with request_cycle_context(data):
         yield
@@ -213,10 +221,11 @@ async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
     from mora.graphapi.schema import get_schema
 
     if "context_value" not in kwargs:
-        # TODO: The token should be passed from the original caller, such that the
-        #  service API shims get RBAC equivalent to the GraphQL API for free.
         kwargs["context_value"] = await get_context(
-            get_token=noauth,
+            # Run as the caller, so a service API endpoint grants no more than
+            # the caller's own permissions. Without a get_token we are outside a
+            # request, and so have no caller, so we just run as admin 🙃
+            get_token=context.get("get_token", noauth),
             amqp_system=context.get("amqp_system"),
             session=context.get("session"),
         )
