@@ -4,9 +4,9 @@ title: Organisationssammenkobling
 
 # Formål
 
-Formålet med at relatere enheder til hinanden er multipelt:
+Formålet med at relatere enheder til hinanden handler i høj grad om at binde lønorganisationsenheder fra et lønsystem sammen med enheder i den administrative organisation, så engagementer (ansættelser) fra lønenheder automatisk bliver flyttet over i den administrative enhed, de bor i. I nedenstående eksempel er Teknik og Miljø (VF) fra lønorganisationen koblet sammen med Teknik, Vej og Miljø i den administrative organisation, så når en ny medarbejder bliver ansat synkroniseres ind i MO fra lønsystemet, bliver vedkommende automatisk flyttet over i den administrative organisations ditto-enhed (Teknik og Miljø (VF) --> Teknik, Vej og Miljø).
 
-Det kan blive brugt til at automatisere nogle arbejdsgange, fx mhp. automatisk overførsel af postadresser fra én enhed til en anden.
+![image](../graphics/orgsam/orgsameksempel.png)
 
 Relationerne kan også eksporteres til andre systemer. Fx har en kunde selv brygget et PowerShell-script sammen, der leverer data til deres intranet med MED-organisation, organisationssammenkobling og MED-medlemmer. På baggrund af de data kan intranettet præsentere den enkelte bruger for, hvilke MED-udvalg der er relevante i relation til en persons ansættelse.
 
@@ -14,38 +14,54 @@ For at opnå det resultat har denne kunde altså skabt relationer mellem enheder
 
 ## Brugergrænsefladen
 
-Når man er inde i Organisationssammenkoblings-modulet i MO, bliver man præsenteret for dette billede:
+Organisationssammenkoblinger tilgås fra venstremenuens arbejdsgange ved at vælge **Organisationssammenkoblinger**:
 
-![image](../graphics/orgsamforside.png)
+![image](../graphics/orgsam/orgsamforside.png)
 
 ### Oprettelse af sammenkoblinger
 
-For at relatere en enhed til en anden enhed eller andre enheder, skal man:
+For at relatere en enhed til en anden enhed eller andre enheder skal man:
 
-1. Navigere til de enheder, der skal kobles sammen, i hhv. organisationerne til venstre og til højre, og sætter flueben (bemærk muligheden for at oprette en 1-mange relation):
+1. Angive en **startdato** for sammenkoblingen.
 
-    ![image](../graphics/orgsamopret.png)
+2. Fremsøge den enhed, du vil relatere *fra* (oprindelsesenheden), i feltet **Organisation**. Søgeresultatet viser både enhedens navn og dens organisatoriske placering, så du kan skelne mellem enheder med samme navn. Vælg herefter den eller de enheder, du vil sammenkoble til, ved at sætte flueben i organisationstræet til højre. Bemærk muligheden for at oprette en 1-mange-relation:
 
-2. Angive en startdato.
+![image](../graphics/orgsam/orgsamopret.png)
 
 3. Trykke "Gem".
 
-4. Se relationerne under de nu relaterede enheder:
+### Udstilling af sammenkoblinger
 
-    ![image](../graphics/orgsamopretresultat.png)
+Sammenkoblingerne kan efterfølgende ses under de relaterede enheder på fanebladet **Relaterede enheder**. Tabellen viser både den relaterede enhed, dens **rodenhed** – så man kan se, hvilken hovedorganisation enheden hører til (fx den administrative organisation eller lønorganisationen) – samt sammenkoblingens gyldighedsperiode:
 
-### Sletning af relationer
+![image](../graphics/orgsam/orgsamopretresultat.png)
 
-1. Naviger hen til den enhed fra hvilken man vil fjerne en relation:
+### Redigering og sletning af sammenkoblinger
 
-    ![image](../graphics/orgsamopret.png)
+1. Naviger til enheden, og vælg fanebladet **Relaterede enheder** og tryk på knappen **Administrér sammenkoblinger**.
 
-2. Fjern den eller de relationer, der skal fjernes, ved at fjerne flueben. Husk at angive, hvornår termineringen skal træde i kraft - Det kan både være en fortidig, nutidig og fremtidig dato:
+![image](../graphics/orgsam/orgsamopret.png)
 
-    ![image](../graphics/orgsamslet.png)
+2. Fjern den eller de relationer, der skal afsluttes, ved at fjerne fluebenet. Husk at angive, hvornår termineringen skal træde i kraft – det kan både være en fortidig, nutidig og fremtidig dato.
+
+![image](../graphics/orgsam/orgsamslet.png)
 
 3. Tryk "Gem".
 
-4. Se relationerne under de nu relaterede enheder:
+4. Se de nye relationer (Social, sundhed og beskæftigelse blev fjernet):
 
-    ![image](../graphics/orgsamsletresultat.png)
+![image](../graphics/orgsam/orgsamsletresultat.png)
+
+## Rekursive sammenkoblinger (valgfri funktion)
+
+Når man sammenkobler to overliggende enheder, kan MO automatisk lade sammenkoblingen gælde for de underliggende enheder: Engagementer på underenheder bliver da automatisk overført til den overliggende enheds sammenkoblede enhed – dog kun, hvis underenhederne ikke selv har egne sammenkoblinger.
+
+Dermed slipper man for at sammenkoble hver enkelt underenhed manuelt, hvis man ikke har behov for en mere finkornet styring.
+
+Funktionen er slået fra som standard og kan aktiveres ved henvendelse til Magenta.
+
+## Automatikker, der bygger på sammenkoblinger
+
+**Automatisk flytning af medarbejdere**: Når en ny medarbejder indlæses i MO fra lønsystemet, flyttes vedkommende automatisk til den tilhørende enhed i den administrative organisation, hvis enhederne er sammenkoblede.
+
+**Email-notifikation ved manglende sammenkobling**: Hvis en enhed mangler en sammenkobling, som automatikken forudsætter, kan MO sende en [email-notifikation](https://rammearkitektur.docs.magenta.dk/os2mo/features/email-notifikationer.html) til MO-administratoren.
