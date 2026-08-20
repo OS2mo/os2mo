@@ -54,7 +54,7 @@ async def handle_requests(
 )
 async def create(
     reqs: list[dict] | dict = Body(...),
-    permissions=Depends(oidc.rbac_owner),
+    permissions=Depends(oidc.rbac_admin),
 ):
     """Creates new relations on employees and units
 
@@ -396,7 +396,7 @@ async def create(
 @router.post("/details/edit", responses={"400": {"description": "Unknown role type"}})
 async def edit(
     reqs: list[dict] | dict = Body(...),
-    permissions=Depends(oidc.rbac_owner),
+    permissions=Depends(oidc.rbac_admin),
 ):
     """Edits a relation or attribute on an employee or unit
 

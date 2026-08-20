@@ -286,7 +286,7 @@ async def get_org_unit_children(
         404: {"description": "No such unit found"},
         409: {"description": "Validation failed"},
     },
-    dependencies=[Depends(oidc.rbac_owner)],
+    dependencies=[Depends(oidc.rbac_admin)],
 )
 async def terminate_org_unit(
     uuid: UUID,

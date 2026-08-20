@@ -11,35 +11,26 @@ from mora.auth.keycloak.rbac import _get_employee_uuid
 from mora.auth.keycloak.rbac import _get_employee_uuid_via_token
 from mora.auth.keycloak.rbac import _rbac
 from mora.config import Settings
-from mora.mapping import ADMIN
 from mora.mapping import OWNER
-from tests.test_integration_rbac import ANDERS_AND
-from tests.test_integration_rbac import mock_auth
+from tests.conftest import admin_auth
+from tests.conftest import fake_auth
 
 
 class TestRole:
     async def test_raise_exception_for_normal_user(self):
         # The user is neither admin or owner
-        token = mock_auth()()
         with pytest.raises(AuthorizationError):
-            await _rbac(token, None, False)
+            await _rbac(await fake_auth())
 
-    async def test_raise_exception_when_role_is_owner_and_admin_only_true(self):
-        token = mock_auth(OWNER, ANDERS_AND)()
+    async def test_raise_exception_when_role_is_owner(self):
+        # Ownership based authorization is only available through GraphQL
+        token = await fake_auth()
+        token.realm_access.roles = {OWNER}
         with pytest.raises(AuthorizationError):
-            await _rbac(token, None, True)
+            await _rbac(token)
 
     async def test_return_when_role_is_admin(self):
-        token = mock_auth(ADMIN, ANDERS_AND)()
-        r = await _rbac(token, None, False)
-        assert r is None
-
-
-class TestOwner:
-    async def test_raise_exception_when_owner_but_no_user_uuid(self):
-        token = mock_auth(role=OWNER, user_uuid=None)()  # noqa: FURB120
-        with pytest.raises(AuthorizationError):
-            await _rbac(token, None, False)
+        assert await _rbac(await admin_auth()) is None
 
 
 def test__get_employee_uuid_via_token():

@@ -221,15 +221,13 @@ async def fetch_token(request: Request) -> Token:
     return await fetch_keycloak_token(request)
 
 
-async def rbac(request: Request, admin_only: bool, token: Token = Depends(fetch_token)):
+async def rbac_admin(token: Token = Depends(fetch_token)):
     """
     Role based access control (RBAC) dependency function for the FastAPI
     endpoints that require authorization in addition to authentication. The
     function just returns, if the user is authorized and throws an
     AuthorizationError if the user is not authorized.
 
-    :param request: the incoming FastAPI request.
-    :param admin_only:  if true, the endpoint can only be called by the admin role
     :param token: selected JSON values from the Keycloak token
     """
 
@@ -237,15 +235,7 @@ async def rbac(request: Request, admin_only: bool, token: Token = Depends(fetch_
     # import problems in the Python code
     from mora.auth.keycloak.rbac import _rbac
 
-    return await _rbac(token, request, admin_only)
-
-
-async def rbac_admin(request: Request, token: Token = Depends(fetch_token)):
-    return await rbac(request, True, token)
-
-
-async def rbac_owner(request: Request, token: Token = Depends(fetch_token)):
-    return await rbac(request, False, token)
+    return await _rbac(token)
 
 
 def token_getter(request: Request) -> Callable[[], Awaitable[Token]]:

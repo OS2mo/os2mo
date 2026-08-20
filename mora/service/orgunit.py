@@ -967,7 +967,7 @@ async def list_orgunit_tree(
 
 
 @router.post("/ou/create", status_code=201)
-async def create_org_unit(req: dict = Body(...), permissions=Depends(oidc.rbac_owner)):
+async def create_org_unit(req: dict = Body(...), permissions=Depends(oidc.rbac_admin)):
     """Creates new organisational unit
 
     .. :quickref: Unit; Create
