@@ -10,6 +10,7 @@ from typing import Any
 from fastapi import Request
 from psycopg.adapt import Buffer
 from psycopg.types.datetime import DateLoader, TimestamptzLoader
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -201,6 +202,23 @@ async def transaction_per_request(request: Request):
     `Session`) or side-step the stack (discouraged) with `get_session` below.
     """
     async with _get_sessionmaker(request)() as session, session.begin():
+        # Enable auto-explain of every statement in this request. Note that
+        # this will be logged by postgres, not this application.
+        if request.headers.get("x-auto-explain") == "1":  # pragma: no cover
+            await session.execute(
+                text(
+                    """
+                    LOAD 'auto_explain';
+                    SET LOCAL auto_explain.log_min_duration = 0;
+                    SET LOCAL auto_explain.log_analyze = true;
+                    SET LOCAL auto_explain.log_buffers = true;
+                    SET LOCAL auto_explain.log_nested_statements = true;
+                    SET LOCAL auto_explain.log_triggers = true;
+                    SET LOCAL auto_explain.log_verbose = true;
+                    """
+                )
+            )
+
         data = {**context, _DB_SESSION_CONTEXT_KEY: session}
         with request_cycle_context(data):
             yield
