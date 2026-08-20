@@ -528,7 +528,7 @@ async def quick_search(
     session = get_session()
     result = await session.execute(sql)
     output = result.fetchall()
-    uuids = list(flatten(output))
+    uuids = [str(uuid) for uuid in flatten(output)]
     access_log(
         session,
         "quick_search",

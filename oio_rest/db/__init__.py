@@ -782,7 +782,7 @@ async def search_objects(
             raise DBException(status_code, e.orig.diag.message_primary)
         else:
             raise
-    uuids = one(result.fetchone())
+    uuids = [str(uuid) for uuid in one(result.fetchone())]
     access_log(session, "search_objects", class_name, arguments, list(map(UUID, uuids)))
 
     return (uuids,)
