@@ -528,13 +528,13 @@ async def quick_search(
     session = get_session()
     result = await session.execute(sql)
     output = result.fetchall()
-    uuids = list(flatten(output))
+    uuids = [ensure_uuid(u) for u in flatten(output)]
     access_log(
         session,
         "quick_search",
         org_class_name,
         access_log_arguments,
-        list(map(ensure_uuid, uuids)),
+        uuids,
     )
 
-    return (uuids,)  # explicit tuple
+    return ([str(uuid) for uuid in uuids],)
