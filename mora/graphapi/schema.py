@@ -9,7 +9,6 @@ from functools import cache
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import cast
 
 import strawberry
 from fastapi.encoders import jsonable_encoder
@@ -67,6 +66,25 @@ if TYPE_CHECKING:
     from mora.graphapi.context import MOInfo
 
 logger = get_logger()
+
+
+def _create_info_from_raw(raw_info: GraphQLResolveInfo) -> "MOInfo":
+    """Create a strawberry Info from raw GraphQLResolveInfo.
+
+    Extensions only ever receive graphql-core's info, see
+    https://github.com/strawberry-graphql/strawberry/pull/1447
+    """
+    # Get the strawberry schema from the GraphQL schema
+    schema = raw_info.schema._strawberry_schema  # type: ignore
+
+    # Get the strawberry field definition (may not exist for introspection fields)
+    strawberry_field = None
+    if raw_info.field_name in raw_info.parent_type.fields:
+        field_def = raw_info.parent_type.fields[raw_info.field_name]
+        strawberry_field = field_def.extensions.get("strawberry-definition")
+
+    # Create Info using the schema's configured info class
+    return schema.config.info_class(_raw_info=raw_info, _field=strawberry_field)
 
 
 def add_exception_extension(error: GraphQLError) -> StrawberryGraphQLError:
@@ -243,7 +261,7 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
             x async for x in get_entities_graphql(input, collection, permission_type)
         }
         with suppress(AuthorizationError):
-            await check_owner(cast("MOInfo", info), token, entities)
+            await check_owner(_create_info_from_raw(info), token, entities)
             return True
 
     return False
