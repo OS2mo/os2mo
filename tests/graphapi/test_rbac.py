@@ -25,13 +25,6 @@ from mora.graphapi.version import Version
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
-ORG_QUERY = "query { org { uuid } }"
-ORG_UNIT_QUERY = "query { org_units { objects { uuid } } }"
-ADDRESS_QUERY = "query { addresses { objects { uuid } } }"
-ORG_UNIT_ADDRESS_QUERY = (
-    "query { org_units { objects { objects { addresses { uuid } } } } }"
-)
-
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
@@ -154,34 +147,54 @@ def org_unit_with_address(
     "query,roles,errors",
     [
         # Query our org
-        (ORG_QUERY, set(), {"No policy approved the access"}),
-        (ORG_QUERY, {"read_org"}, set()),
+        ("query { org { uuid } }", set(), {"No policy approved the access"}),
+        ("query { org { uuid } }", {"read_org"}, set()),
         # Query all org-units
-        (ORG_UNIT_QUERY, set(), {"No policy approved the access"}),
-        (ORG_UNIT_QUERY, {"read_org"}, {"No policy approved the access"}),
-        (ORG_UNIT_QUERY, {"read_org_unit"}, set()),
-        # Query all addresses
-        (ADDRESS_QUERY, set(), {"No policy approved the access"}),
-        (ADDRESS_QUERY, {"read_org"}, {"No policy approved the access"}),
-        (ADDRESS_QUERY, {"read_address"}, set()),
-        # Query all org-units and their addresses
         (
-            ORG_UNIT_ADDRESS_QUERY,
+            "query { org_units { objects { uuid } } }",
             set(),
             {"No policy approved the access"},
         ),
         (
-            ORG_UNIT_ADDRESS_QUERY,
+            "query { org_units { objects { uuid } } }",
+            {"read_org"},
+            {"No policy approved the access"},
+        ),
+        ("query { org_units { objects { uuid } } }", {"read_org_unit"}, set()),
+        # Query all addresses
+        (
+            "query { addresses { objects { uuid } } }",
+            set(),
+            {"No policy approved the access"},
+        ),
+        (
+            "query { addresses { objects { uuid } } }",
+            {"read_org"},
+            {"No policy approved the access"},
+        ),
+        ("query { addresses { objects { uuid } } }", {"read_address"}, set()),
+        # Query all org-units and their addresses
+        (
+            "query { org_units { objects { objects { addresses { uuid } } } } }",
+            set(),
+            {"No policy approved the access"},
+        ),
+        (
+            "query { org_units { objects { objects { addresses { uuid } } } } }",
             {"read_org"},
             {"No policy approved the access"},
         ),
         # Address permission is first checked here, as we actually have org-unit data
         (
-            ORG_UNIT_ADDRESS_QUERY,
+            "query { org_units { objects { objects { addresses { uuid } } } } }",
             {"read_org_unit"},
             {"No policy approved the access"},
         ),
-        (ORG_UNIT_ADDRESS_QUERY, {"read_org_unit", "read_address"}, set()),
+        (
+            "query { org_units { objects { objects { addresses { uuid } } } } }",
+            {"read_org_unit", "read_address"},
+            set(),
+        ),
     ],
 )
 async def test_graphql_rbac(
