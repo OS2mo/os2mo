@@ -45,7 +45,6 @@ from mora.auth.keycloak.oidc import fetch_token
 from mora.auth.keycloak.oidc import token_getter
 from mora.config import get_settings
 from mora.graphapi.gmodels.mo import Validity as GValidity
-from mora.graphapi.permissions import ALL_PERMISSIONS
 from mora.graphapi.version import LATEST_VERSION
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
