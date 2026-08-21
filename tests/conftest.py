@@ -137,9 +137,7 @@ BRUCE_UUID = UUID("99e7b256-7dfa-4ee8-95c6-e3abe82e236a")
 ALVIDA_UUID = UUID("0fb62199-cb9e-4083-ba45-2a63bfd142d7")
 
 
-READ_PERMISSIONS = {
-    permission for permission in ALL_PERMISSIONS if permission.startswith("read_")
-}
+READ_PERMISSIONS = {"reader"}
 
 
 async def fake_auth() -> Token:
