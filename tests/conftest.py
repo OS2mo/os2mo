@@ -21,6 +21,7 @@ from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
 
+import jwt
 import pytest
 import requests
 from fastapi import FastAPI
@@ -821,7 +822,7 @@ def mockaio():
         yield mock
 
 
-def get_keycloak_token() -> str:
+def get_keycloak_token(username: str = "alvida", password: str = "alvida") -> str:
     """Get OIDC token from Keycloak to send to MOs backend.
 
     Returns:
@@ -832,11 +833,22 @@ def get_keycloak_token() -> str:
         data={
             "grant_type": "password",
             "client_id": "mo-frontend",
-            "username": "alvida",
-            "password": "alvida",
+            "username": username,
+            "password": password,
         },
     )
     return r.json()["access_token"]
+
+
+def decode_keycloak_token(username: str, password: str) -> Token:
+    """Fetch a real Keycloak token and decode it into a ``Token`` model.
+
+    The signature is not verified: the token comes straight from the test
+    Keycloak over the docker network, and decoding avoids JWKS roundtrips.
+    """
+    encoded = get_keycloak_token(username, password)
+    claims = jwt.decode(encoded, options={"verify_signature": False})
+    return Token.parse_obj(claims)
 
 
 @pytest.fixture
