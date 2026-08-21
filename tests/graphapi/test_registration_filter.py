@@ -7,7 +7,7 @@ from uuid import uuid4
 
 import pytest
 
-from tests.conftest import BRUCE_UUID
+from tests.conftest import ALVIDA_UUID
 from tests.conftest import GraphAPIPost
 
 
@@ -18,7 +18,7 @@ from tests.conftest import GraphAPIPost
     [
         ({"start": "2000-01-01T00:00:00Z", "end": "2100-01-01T00:00:00Z"}, True),
         ({"start": "1800-01-01T00:00:00Z", "end": "1900-01-01T00:00:00Z"}, False),
-        ({"actors": [str(BRUCE_UUID)]}, True),
+        ({"actors": [str(ALVIDA_UUID)]}, True),
         ({"actors": [str(uuid4())]}, False),
     ],
 )
@@ -52,7 +52,7 @@ def test_registration_filter_employee(
     [
         ({"start": "2000-01-01T00:00:00Z", "end": "2100-01-01T00:00:00Z"}, True),
         ({"start": "1800-01-01T00:00:00Z", "end": "1900-01-01T00:00:00Z"}, False),
-        ({"actors": [str(BRUCE_UUID)]}, True),
+        ({"actors": [str(ALVIDA_UUID)]}, True),
         ({"actors": [str(uuid4())]}, False),
     ],
 )
@@ -86,7 +86,7 @@ def test_registration_filter_org_unit(
     [
         ({"start": "2000-01-01T00:00:00Z", "end": "2100-01-01T00:00:00Z"}, True),
         ({"start": "1800-01-01T00:00:00Z", "end": "1900-01-01T00:00:00Z"}, False),
-        ({"actors": [str(BRUCE_UUID)]}, True),
+        ({"actors": [str(ALVIDA_UUID)]}, True),
         ({"actors": [str(uuid4())]}, False),
     ],
 )
@@ -120,7 +120,7 @@ def test_registration_filter_facet(
     [
         ({"start": "2000-01-01T00:00:00Z", "end": "2100-01-01T00:00:00Z"}, True),
         ({"start": "1800-01-01T00:00:00Z", "end": "1900-01-01T00:00:00Z"}, False),
-        ({"actors": [str(BRUCE_UUID)]}, True),
+        ({"actors": [str(ALVIDA_UUID)]}, True),
         ({"actors": [str(uuid4())]}, False),
     ],
 )
@@ -163,7 +163,7 @@ def test_registration_filter_class(
     [
         ({"start": "2000-01-01T00:00:00Z", "end": "2100-01-01T00:00:00Z"}, True),
         ({"start": "1800-01-01T00:00:00Z", "end": "1900-01-01T00:00:00Z"}, False),
-        ({"actors": [str(BRUCE_UUID)]}, True),
+        ({"actors": [str(ALVIDA_UUID)]}, True),
         ({"actors": [str(uuid4())]}, False),
     ],
 )
@@ -203,7 +203,7 @@ def test_registration_filter_itsystem(
     [
         ({"start": "2000-01-01T00:00:00Z", "end": "2100-01-01T00:00:00Z"}, True),
         ({"start": "1800-01-01T00:00:00Z", "end": "1900-01-01T00:00:00Z"}, False),
-        ({"actors": [str(BRUCE_UUID)]}, True),
+        ({"actors": [str(ALVIDA_UUID)]}, True),
         ({"actors": [str(uuid4())]}, False),
     ],
 )
@@ -250,7 +250,7 @@ def test_registration_filter_ituser(
     [
         ({"start": "2000-01-01T00:00:00Z", "end": "2100-01-01T00:00:00Z"}, True),
         ({"start": "1800-01-01T00:00:00Z", "end": "1900-01-01T00:00:00Z"}, False),
-        ({"actors": [str(BRUCE_UUID)]}, True),
+        ({"actors": [str(ALVIDA_UUID)]}, True),
         ({"actors": [str(uuid4())]}, False),
     ],
 )
@@ -308,7 +308,7 @@ def test_registration_filter_address(
     [
         ({"start": "2000-01-01T00:00:00Z", "end": "2100-01-01T00:00:00Z"}, True),
         ({"start": "1800-01-01T00:00:00Z", "end": "1900-01-01T00:00:00Z"}, False),
-        ({"actors": [str(BRUCE_UUID)]}, True),
+        ({"actors": [str(ALVIDA_UUID)]}, True),
         ({"actors": [str(uuid4())]}, False),
     ],
 )
@@ -354,7 +354,7 @@ def test_registration_filter_engagement(
     [
         ({"start": "2000-01-01T00:00:00Z", "end": "2100-01-01T00:00:00Z"}, True),
         ({"start": "1800-01-01T00:00:00Z", "end": "1900-01-01T00:00:00Z"}, False),
-        ({"actors": [str(BRUCE_UUID)]}, True),
+        ({"actors": [str(ALVIDA_UUID)]}, True),
         ({"actors": [str(uuid4())]}, False),
     ],
 )
@@ -399,7 +399,7 @@ def test_registration_filter_association(
     [
         ({"start": "2000-01-01T00:00:00Z", "end": "2100-01-01T00:00:00Z"}, True),
         ({"start": "1800-01-01T00:00:00Z", "end": "1900-01-01T00:00:00Z"}, False),
-        ({"actors": [str(BRUCE_UUID)]}, True),
+        ({"actors": [str(ALVIDA_UUID)]}, True),
         ({"actors": [str(uuid4())]}, False),
     ],
 )
@@ -437,7 +437,7 @@ def test_registration_filter_manager(
     [
         ({"start": "2000-01-01T00:00:00Z", "end": "2100-01-01T00:00:00Z"}, True),
         ({"start": "1800-01-01T00:00:00Z", "end": "1900-01-01T00:00:00Z"}, False),
-        ({"actors": [str(BRUCE_UUID)]}, True),
+        ({"actors": [str(ALVIDA_UUID)]}, True),
         ({"actors": [str(uuid4())]}, False),
     ],
 )
@@ -481,7 +481,7 @@ def test_registration_filter_kle(
     [
         ({"start": "2000-01-01T00:00:00Z", "end": "2100-01-01T00:00:00Z"}, True),
         ({"start": "1800-01-01T00:00:00Z", "end": "1900-01-01T00:00:00Z"}, False),
-        ({"actors": [str(BRUCE_UUID)]}, True),
+        ({"actors": [str(ALVIDA_UUID)]}, True),
         ({"actors": [str(uuid4())]}, False),
     ],
 )
@@ -536,7 +536,7 @@ def test_registration_filter_leave(
     [
         ({"start": "2000-01-01T00:00:00Z", "end": "2100-01-01T00:00:00Z"}, True),
         ({"start": "1800-01-01T00:00:00Z", "end": "1900-01-01T00:00:00Z"}, False),
-        ({"actors": [str(BRUCE_UUID)]}, True),
+        ({"actors": [str(ALVIDA_UUID)]}, True),
         ({"actors": [str(uuid4())]}, False),
     ],
 )

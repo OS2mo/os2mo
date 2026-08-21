@@ -17,7 +17,7 @@ from more_itertools import only
 
 from mora.util import now
 
-from ...conftest import BRUCE_UUID
+from ...conftest import ALVIDA_UUID
 from ...conftest import GraphAPIPost
 
 
@@ -175,7 +175,7 @@ def test_read_itsystem_registrations(
     # Check that we have one and only one registration
     registration = one(read_itsystem_registration(itsystem_filter))
     assert registration == {
-        "actor": str(BRUCE_UUID),
+        "actor": str(ALVIDA_UUID),
         "start": ANY,
         "end": None,
     }
@@ -240,12 +240,12 @@ def test_read_itsystem_registrations(
     registrations = read_itsystem_registration(itsystem_filter)
     assert registrations == [
         {
-            "actor": str(BRUCE_UUID),
+            "actor": str(ALVIDA_UUID),
             "start": registration_start,
             "end": ANY,
         },
         {
-            "actor": str(BRUCE_UUID),
+            "actor": str(ALVIDA_UUID),
             "start": ANY,
             "end": None,
         },

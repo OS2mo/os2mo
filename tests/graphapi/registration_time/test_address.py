@@ -17,7 +17,7 @@ from more_itertools import only
 
 from mora.util import now
 
-from ...conftest import BRUCE_UUID
+from ...conftest import ALVIDA_UUID
 from ...conftest import GraphAPIPost
 
 
@@ -212,7 +212,7 @@ def test_read_address_registrations(
     # Check that we have one and only one registration
     registration = one(read_address_registration(address_filter))
     assert registration == {
-        "actor": str(BRUCE_UUID),
+        "actor": str(ALVIDA_UUID),
         "start": ANY,
         "end": None,
     }
@@ -275,12 +275,12 @@ def test_read_address_registrations(
     registrations = read_address_registration(address_filter)
     assert registrations == [
         {
-            "actor": str(BRUCE_UUID),
+            "actor": str(ALVIDA_UUID),
             "start": registration_start,
             "end": ANY,
         },
         {
-            "actor": str(BRUCE_UUID),
+            "actor": str(ALVIDA_UUID),
             "start": ANY,
             "end": None,
         },
