@@ -4,6 +4,7 @@ import asyncio
 import json
 import os
 import secrets
+from functools import lru_cache
 from collections.abc import AsyncGenerator
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
@@ -849,6 +850,17 @@ def decode_keycloak_token(username: str, password: str) -> Token:
     encoded = get_keycloak_token(username, password)
     claims = jwt.decode(encoded, options={"verify_signature": False})
     return Token.parse_obj(claims)
+
+
+@lru_cache
+def keycloak_roles(username: str, password: str) -> frozenset[str]:
+    """Fetch the expanded realm roles for a Keycloak user (cached).
+
+    Keycloak expands composite roles (e.g. ``reader`` -> all ``read_*`` roles)
+    into the token, so this yields the full effective role set.
+    """
+    token = decode_keycloak_token(username, password)
+    return frozenset(token.realm_access.roles)
 
 
 @pytest.fixture
