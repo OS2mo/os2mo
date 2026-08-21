@@ -18,7 +18,7 @@ async def test_read_actors(
     """The actors collection exposes the actor data-source.
 
     The actor table is kept ajour as actors interact with OS2mo, so creating
-    data registers the authenticated actor ("bruce") as a side effect.
+    data registers the authenticated actor ("alvida") as a side effect.
     """
     create_person()
 
@@ -38,7 +38,7 @@ async def test_read_actors(
     display_names = {
         actor["display_name"] for actor in response.data["actors"]["objects"]
     }
-    assert "bruce" in display_names
+    assert "alvida" in display_names
 
 
 @pytest.mark.integration_test
@@ -63,15 +63,15 @@ async def test_read_actors_uuid_filter(
     response = graphapi_post(query, {"filter": None})
     assert response.errors is None
     assert response.data
-    bruce = one(
+    alvida = one(
         actor
         for actor in response.data["actors"]["objects"]
-        if actor["display_name"] == "bruce"
+        if actor["display_name"] == "alvida"
     )
 
-    response = graphapi_post(query, {"filter": {"uuids": [bruce["uuid"]]}})
+    response = graphapi_post(query, {"filter": {"uuids": [alvida["uuid"]]}})
     assert response.errors is None
     assert response.data
     filtered = one(response.data["actors"]["objects"])
-    assert filtered["uuid"] == bruce["uuid"]
-    assert filtered["display_name"] == "bruce"
+    assert filtered["uuid"] == alvida["uuid"]
+    assert filtered["display_name"] == "alvida"
