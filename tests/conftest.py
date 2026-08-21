@@ -137,19 +137,8 @@ BRUCE_UUID = UUID("99e7b256-7dfa-4ee8-95c6-e3abe82e236a")
 ALVIDA_UUID = UUID("0fb62199-cb9e-4083-ba45-2a63bfd142d7")
 
 
-READ_PERMISSIONS = {
-    permission for permission in ALL_PERMISSIONS if permission.startswith("read_")
-}
-
-
 async def fake_auth() -> Token:
-    return Token(
-        azp="vue",
-        email="bruce@kung.fu",
-        preferred_username="bruce",
-        realm_access={"roles": {"service_api"} | READ_PERMISSIONS},
-        uuid=str(BRUCE_UUID),
-    )
+    return decode_keycloak_token("bruce", "bruce")
 
 
 async def serviceapiless_auth() -> Token:
@@ -159,9 +148,7 @@ async def serviceapiless_auth() -> Token:
 
 
 async def admin_auth() -> Token:
-    auth = await fake_auth()
-    auth.realm_access.roles = {"admin", "owner", "service_api"}.union(ALL_PERMISSIONS)
-    return auth
+    return decode_keycloak_token("alvida", "alvida")
 
 
 async def admin_auth_uuid() -> UUID:
@@ -823,8 +810,9 @@ def mockaio():
         yield mock
 
 
+@lru_cache
 def get_keycloak_token(username: str = "alvida", password: str = "alvida") -> str:
-    """Get OIDC token from Keycloak to send to MOs backend.
+    """Get OIDC token from Keycloak to send to MOs backend (cached).
 
     Returns:
         Encoded OIDC token from Keycloak
@@ -846,6 +834,8 @@ def decode_keycloak_token(username: str, password: str) -> Token:
 
     The signature is not verified: the token comes straight from the test
     Keycloak over the docker network, and decoding avoids JWKS roundtrips.
+    The encoded token is cached, but a fresh ``Token`` is returned each call
+    so callers may mutate it freely.
     """
     encoded = get_keycloak_token(username, password)
     claims = jwt.decode(encoded, options={"verify_signature": False})
