@@ -208,7 +208,6 @@ async def transaction_per_request(request: Request):
             await session.execute(
                 text(
                     """
-                    LOAD 'auto_explain';
                     SET LOCAL auto_explain.log_min_duration = 0;
                     SET LOCAL auto_explain.log_analyze = true;
                     SET LOCAL auto_explain.log_buffers = true;
