@@ -29,15 +29,6 @@ NO_AUTH_UUID = UUID("00000000-0000-0000-0000-000000000000")
 LEGACY_AUTH_UUID = UUID("00000000-0000-0000-0000-000000000001")
 
 
-async def noauth() -> Token:
-    """Noop auth provider."""
-    return Token(
-        azp="mo-frontend",
-        uuid=str(NO_AUTH_UUID),
-        realm_access=RealmAccess(roles={"admin", "owner"}.union(ALL_PERMISSIONS)),
-    )
-
-
 async def legacyauth() -> Token:  # pragma: no cover
     """Legacy auth provider."""
     return Token(
