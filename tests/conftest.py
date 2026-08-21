@@ -213,9 +213,9 @@ def set_auth(
         }
         if role is not None:
             if role == ADMIN:
-                roles = ALL_PERMISSIONS
+                roles = keycloak_roles("alvida", "alvida")
             elif role == OWNER:
-                roles = {OWNER} | READ_PERMISSIONS
+                roles = keycloak_roles("eline", "eline")
             else:
                 roles = {role}
             token_data["realm_access"] = {"roles": roles}
