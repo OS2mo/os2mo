@@ -12,8 +12,6 @@ import pytest
 from more_itertools import one
 
 from mora import util
-from mora.graphapi.shim import execute_graphql
-from tests.conftest import AnotherTransaction
 
 from ..conftest import GraphAPIPost
 
@@ -109,10 +107,7 @@ def test_query_all(graphapi_post: GraphAPIPost):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-async def test_integration_create_class(
-    graphapi_post: GraphAPIPost,
-    another_transaction: AnotherTransaction,
-) -> None:
+async def test_integration_create_class(graphapi_post: GraphAPIPost) -> None:
     """Integrationtest for create class mutator."""
 
     mutate_query = """
@@ -168,11 +163,10 @@ async def test_integration_create_class(
           }
         }
     """
-    async with another_transaction():
-        query_response = await execute_graphql(
-            query=query_query,
-            variable_values={"uuid": str(response_uuid)},
-        )
+    query_response = graphapi_post(
+        query=query_query,
+        variables={"uuid": str(response_uuid)},
+    )
 
     assert query_response.errors is None
     assert query_response.data is not None
@@ -253,7 +247,7 @@ async def test_class_filter(graphapi_post: GraphAPIPost, filter, expected) -> No
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-async def test_integration_delete_class() -> None:
+async def test_integration_delete_class(graphapi_post: GraphAPIPost) -> None:
     read_query = """
         query ($uuid: [UUID!]!) {
           classes(filter: {uuids: $uuid}) {
@@ -268,9 +262,9 @@ async def test_integration_delete_class() -> None:
     """
     class_uuid = "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
 
-    response = await execute_graphql(
+    response = graphapi_post(
         query=read_query,
-        variable_values={"uuid": class_uuid},
+        variables={"uuid": class_uuid},
     )
     assert response.errors is None
     assert response.data == {
@@ -286,16 +280,16 @@ async def test_integration_delete_class() -> None:
           }
         }
     """
-    response = await execute_graphql(
+    response = graphapi_post(
         query=delete_query,
-        variable_values={"uuid": class_uuid},
+        variables={"uuid": class_uuid},
     )
     assert response.errors is None
     assert response.data == {"class_delete": {"uuid": class_uuid}}
 
-    response = await execute_graphql(
+    response = graphapi_post(
         query=read_query,
-        variable_values={"uuid": class_uuid},
+        variables={"uuid": class_uuid},
     )
     assert response.errors is None
     assert response.data == {"classes": {"objects": []}}
@@ -303,7 +297,7 @@ async def test_integration_delete_class() -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-async def test_update_class() -> None:
+async def test_update_class(graphapi_post: GraphAPIPost) -> None:
     """Unit test for create class mutator."""
     read_query = """
         query ($uuid: [UUID!]!) {
@@ -325,9 +319,9 @@ async def test_update_class() -> None:
     """
     class_uuid = "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
 
-    response = await execute_graphql(
+    response = graphapi_post(
         query=read_query,
-        variable_values={"uuid": class_uuid},
+        variables={"uuid": class_uuid},
     )
     assert response.errors is None
     assert one(response.data.keys()) == "classes"
@@ -355,9 +349,9 @@ async def test_update_class() -> None:
         datetime.datetime.now().date(), datetime.time.min
     ).replace(tzinfo=util.DEFAULT_TIMEZONE)
 
-    response = await execute_graphql(
+    response = graphapi_post(
         query=update_query,
-        variable_values={
+        variables={
             "input": {
                 "uuid": class_uuid,
                 "name": "Postal Address",
@@ -370,9 +364,9 @@ async def test_update_class() -> None:
     assert response.errors is None
     assert response.data == {"class_update": {"uuid": class_uuid}}
 
-    response = await execute_graphql(
+    response = graphapi_post(
         query=read_query,
-        variable_values={"uuid": class_uuid},
+        variables={"uuid": class_uuid},
     )
     assert response.errors is None
     assert one(response.data.keys()) == "classes"

@@ -1,11 +1,14 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import pytest
+from starlette_context import context
+from starlette_context import request_cycle_context
 from strawberry.exceptions import GraphQLError
 
 from mora.graphapi.shim import execute_graphql
 from mora.service.util import handle_gql_error
 from tests.conftest import GraphAPIPost
+from tests.conftest import admin_token_getter
 
 query = """
     query TestMultipleErrors {
@@ -45,7 +48,9 @@ async def test_multiple_errors(graphapi_post: GraphAPIPost) -> None:
 async def test_handle_gql_errors() -> None:
     """Test how handle_gql_errors handles multiple exceptions."""
 
-    response = await execute_graphql(query)
+    # Nobody is calling us, so run as admin
+    with request_cycle_context({**context, "get_token": admin_token_getter()}):
+        response = await execute_graphql(query)
     with pytest.raises(ExceptionGroup) as exc_info:  # noqa: F821
         handle_gql_error(response)
 
