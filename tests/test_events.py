@@ -14,7 +14,7 @@ from more_itertools import one
 
 from mora.db.events import DEFAULT_PRIORITY
 from mora.mapping import ADMIN
-from tests.conftest import BRUCE_UUID
+from tests.conftest import ALVIDA_UUID
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
@@ -1139,31 +1139,31 @@ def test_metrics(
         in metrics
     )
     assert (
-        f'os2mo_event_acknowledged_total{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",user_key="uk"}} {ACK_EVENTS}.0'
+        f'os2mo_event_acknowledged_total{{ns="metric_test",owner="{str(ALVIDA_UUID)}",routing_key="rk",user_key="uk"}} {ACK_EVENTS}.0'
         in metrics
     )
     assert (
-        f'os2mo_events{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="true",user_key="uk"}} 1.0'
+        f'os2mo_events{{ns="metric_test",owner="{str(ALVIDA_UUID)}",routing_key="rk",silenced="true",user_key="uk"}} 1.0'
         in metrics
     )
     assert (
-        f'os2mo_events{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="false",user_key="uk"}} {AMOUNT - ACK_EVENTS - 1}.0'
+        f'os2mo_events{{ns="metric_test",owner="{str(ALVIDA_UUID)}",routing_key="rk",silenced="false",user_key="uk"}} {AMOUNT - ACK_EVENTS - 1}.0'
         in metrics
     )  # -1 for the silenced event
     assert (
-        f'os2mo_events{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="false",user_key="uk2"}} {AMOUNT}.0'
+        f'os2mo_events{{ns="metric_test",owner="{str(ALVIDA_UUID)}",routing_key="rk",silenced="false",user_key="uk2"}} {AMOUNT}.0'
         in metrics
     )
     assert (
-        f'os2mo_event_oldest{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="false",user_key="uk2"}}'
+        f'os2mo_event_oldest{{ns="metric_test",owner="{str(ALVIDA_UUID)}",routing_key="rk",silenced="false",user_key="uk2"}}'
         in metrics
     )
     assert (
-        f'os2mo_event_oldest{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="false",user_key="uk"}}'
+        f'os2mo_event_oldest{{ns="metric_test",owner="{str(ALVIDA_UUID)}",routing_key="rk",silenced="false",user_key="uk"}}'
         in metrics
     )
     assert (
-        f'os2mo_event_oldest{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="true",user_key="uk"}}'
+        f'os2mo_event_oldest{{ns="metric_test",owner="{str(ALVIDA_UUID)}",routing_key="rk",silenced="true",user_key="uk"}}'
         in metrics
     )
 
@@ -1233,8 +1233,8 @@ def test_ns_filter(set_auth: SetAuth, graphapi_post: GraphAPIPost) -> None:
         # Owners filter
         ({"owners": []}, False),
         ({"owners": [str(NOT_FOUND_UUID)]}, False),
-        ({"owners": [str(BRUCE_UUID)]}, True),
-        ({"owners": [str(NOT_FOUND_UUID), str(BRUCE_UUID)]}, True),
+        ({"owners": [str(ALVIDA_UUID)]}, True),
+        ({"owners": [str(NOT_FOUND_UUID), str(ALVIDA_UUID)]}, True),
         # Routing-key filter
         ({"routing_keys": []}, False),
         ({"routing_keys": ["__invalid"]}, False),
@@ -1248,13 +1248,13 @@ def test_ns_filter(set_auth: SetAuth, graphapi_post: GraphAPIPost) -> None:
         ({"namespaces": {"names": ["__invalid", DEFAULT_TEST_NS]}}, True),
         ({"namespaces": {"owners": []}}, False),
         ({"namespaces": {"owners": [str(NOT_FOUND_UUID)]}}, False),
-        ({"namespaces": {"owners": [str(BRUCE_UUID)]}}, True),
+        ({"namespaces": {"owners": [str(ALVIDA_UUID)]}}, True),
         (
             {
                 "namespaces": {
                     "owners": [
                         str(NOT_FOUND_UUID),
-                        str(BRUCE_UUID),
+                        str(ALVIDA_UUID),
                     ]
                 }
             },
@@ -1288,8 +1288,8 @@ def test_metrics_empty_namespace(
     user_key = "user_key"
 
     # Expected metric names
-    unsilenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(BRUCE_UUID)}",routing_key="{routing_key}",silenced="false",user_key="{user_key}"}}'
-    silenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(BRUCE_UUID)}",routing_key="{routing_key}",silenced="true",user_key="{user_key}"}}'
+    unsilenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(ALVIDA_UUID)}",routing_key="{routing_key}",silenced="false",user_key="{user_key}"}}'
+    silenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(ALVIDA_UUID)}",routing_key="{routing_key}",silenced="true",user_key="{user_key}"}}'
 
     response = declare_namespace(graphapi_post, namespace)
     assert response.data is not None
@@ -1331,7 +1331,7 @@ def test_metrics_goes_to_zero(
     user_key = "user_key"
 
     # Expected metric name
-    metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(BRUCE_UUID)}",routing_key="{routing_key}",silenced="false",user_key="{user_key}"}}'
+    metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(ALVIDA_UUID)}",routing_key="{routing_key}",silenced="false",user_key="{user_key}"}}'
 
     # Declare our namespace
     response = declare_namespace(graphapi_post, namespace)
@@ -1374,8 +1374,8 @@ def test_metrics_silenced_goes_to_zero(
     payload = "payload"
 
     # Expected metric names
-    unsilenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(BRUCE_UUID)}",routing_key="{routing_key}",silenced="false",user_key="{user_key}"}}'
-    silenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(BRUCE_UUID)}",routing_key="{routing_key}",silenced="true",user_key="{user_key}"}}'
+    unsilenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(ALVIDA_UUID)}",routing_key="{routing_key}",silenced="false",user_key="{user_key}"}}'
+    silenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(ALVIDA_UUID)}",routing_key="{routing_key}",silenced="true",user_key="{user_key}"}}'
 
     # Declare our namespace
     response = declare_namespace(graphapi_post, namespace)
