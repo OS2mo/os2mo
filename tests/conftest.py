@@ -8,6 +8,7 @@ from collections.abc import AsyncGenerator
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from collections.abc import Callable
+from collections.abc import Collection
 from collections.abc import Generator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -29,6 +30,7 @@ from hypothesis import Verbosity
 from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 from hypothesis.database import InMemoryExampleDatabase
+from more_itertools import always_iterable
 from more_itertools import one
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -175,17 +177,20 @@ def admin_token_getter() -> Callable[[], Awaitable[Token]]:
     return get_fake_admin_token
 
 
-SetAuth = Callable[[str | None, UUID | str | None, str], None]
+SetAuth = Callable[[str | Collection[str] | None, UUID | str | None, str], None]
 
 
 @pytest.fixture
 def set_auth(
     fastapi_admin_test_app: FastAPI,
 ) -> SetAuth:
-    """Set authentication token used by GraphAPIPost."""
+    """Set authentication token used by GraphAPIPost.
+
+    The role may be given as a single role or as a collection of roles.
+    """
 
     def _set_auth(
-        role: str | None = None,
+        role: str | Collection[str] | None = None,
         user_uuid: UUID | str | None = None,
         preferred_username: str = "bruce",
     ) -> None:
@@ -209,13 +214,12 @@ def set_auth(
             "typ": "Bearer",
             "uuid": str(user_uuid) if user_uuid is not None else None,
         }
-        if role is not None:
-            if role == ADMIN:
-                roles = ALL_PERMISSIONS
-            elif role == OWNER:
-                roles = {OWNER} | READ_PERMISSIONS
-            else:
-                roles = {role}
+        roles = set(always_iterable(role))
+        if ADMIN in roles:
+            roles |= ALL_PERMISSIONS
+        if OWNER in roles:
+            roles |= READ_PERMISSIONS
+        if roles:
             token_data["realm_access"] = {"roles": roles}
         token = Token.parse_obj(token_data)
 
@@ -490,6 +494,22 @@ class GQLResponse:
     errors: list[dict] | None
     extensions: dict | None
     status_code: int
+
+
+# The one error a denial produces. Anything else is a genuine failure, not a
+# permission decision, so the assertions below keep the two apart
+DENIED = "No policy approved the access"
+
+
+def assert_granted(response: GQLResponse) -> None:
+    """Assert a policy approved the access."""
+    assert response.errors is None
+
+
+def assert_denied(response: GQLResponse) -> None:
+    """Assert no policy approved the access, and nothing else went wrong."""
+    assert response.errors is not None
+    assert one(response.errors)["message"] == DENIED
 
 
 class GraphAPIPost(Protocol):
@@ -1074,6 +1094,49 @@ def create_owner(
         assert response.errors is None
         assert response.data
         return UUID(response.data["owner_create"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
+def make_owner(
+    create_owner: Callable[[dict[str, Any]], UUID],
+) -> Callable[..., None]:
+    """Record that `owner` (a person) owns the given org-unit or person."""
+
+    def inner(
+        owner: UUID | str,
+        org_unit: UUID | str | None = None,
+        person: UUID | str | None = None,
+    ) -> None:
+        input: dict = {"owner": str(owner), "validity": {"from": "2020-01-01"}}
+        if org_unit is not None:
+            input["org_unit"] = str(org_unit)
+        if person is not None:
+            input["person"] = str(person)
+        create_owner(input)
+
+    return inner
+
+
+@pytest.fixture
+def employee_update(graphapi_post: GraphAPIPost) -> Callable[[UUID | str], GQLResponse]:
+    """Attempt a person edit, for a test to assert whether a policy allowed it."""
+
+    def inner(person: UUID | str) -> GQLResponse:
+        mutate_query = """
+            mutation UpdateEmployee($input: EmployeeUpdateInput!) {
+                employee_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+        return graphapi_post(
+            mutate_query,
+            variables={
+                "input": {"uuid": str(person), "validity": {"from": "2020-01-01"}}
+            },
+        )
 
     return inner
 
