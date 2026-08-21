@@ -4,7 +4,6 @@ import asyncio
 import json
 import os
 import secrets
-from functools import lru_cache
 from collections.abc import AsyncGenerator
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
@@ -12,6 +11,7 @@ from collections.abc import Callable
 from collections.abc import Generator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from functools import lru_cache
 from operator import itemgetter
 from typing import Any
 from typing import AsyncContextManager
