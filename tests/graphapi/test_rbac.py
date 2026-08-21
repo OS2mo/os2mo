@@ -148,31 +148,21 @@ def org_unit_with_address(
     [
         # Query our org
         ("query { org { uuid } }", set(), {"No policy approved the access"}),
-        ("query { org { uuid } }", {"read_org"}, set()),
+        ("query { org { uuid } }", {"reader"}, set()),
         # Query all org-units
         (
             "query { org_units { objects { uuid } } }",
             set(),
             {"No policy approved the access"},
         ),
-        (
-            "query { org_units { objects { uuid } } }",
-            {"read_org"},
-            {"No policy approved the access"},
-        ),
-        ("query { org_units { objects { uuid } } }", {"read_org_unit"}, set()),
+        ("query { org_units { objects { uuid } } }", {"reader"}, set()),
         # Query all addresses
         (
             "query { addresses { objects { uuid } } }",
             set(),
             {"No policy approved the access"},
         ),
-        (
-            "query { addresses { objects { uuid } } }",
-            {"read_org"},
-            {"No policy approved the access"},
-        ),
-        ("query { addresses { objects { uuid } } }", {"read_address"}, set()),
+        ("query { addresses { objects { uuid } } }", {"reader"}, set()),
         # Query all org-units and their addresses
         (
             "query { org_units { objects { objects { addresses { uuid } } } } }",
@@ -181,18 +171,7 @@ def org_unit_with_address(
         ),
         (
             "query { org_units { objects { objects { addresses { uuid } } } } }",
-            {"read_org"},
-            {"No policy approved the access"},
-        ),
-        # Address permission is first checked here, as we actually have org-unit data
-        (
-            "query { org_units { objects { objects { addresses { uuid } } } } }",
-            {"read_org_unit"},
-            {"No policy approved the access"},
-        ),
-        (
-            "query { org_units { objects { objects { addresses { uuid } } } } }",
-            {"read_org_unit", "read_address"},
+            {"reader"},
             set(),
         ),
     ],

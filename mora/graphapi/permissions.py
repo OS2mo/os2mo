@@ -34,6 +34,9 @@ Collections = Literal[
 CollectionPermissionType = Literal[
     "read", "create", "update", "terminate", "delete", "refresh"
 ]
+# Permission types which are expanded into per-collection Keycloak roles.
+# "read" is excluded: reads are governed by the single "reader" role.
+ROLE_PERMISSION_TYPES = [p for p in get_args(CollectionPermissionType) if p != "read"]
 FilePermissions = Literal[
     "list_files",
     "download_files",
@@ -49,8 +52,12 @@ EventPermissions = Literal[
 ]
 
 
-ALL_PERMISSIONS = {
-    f"{permission_type}_{collection}"
-    for permission_type in get_args(CollectionPermissionType)
-    for collection in get_args(Collections)
-}.union(get_args(FilePermissions)).union(get_args(EventPermissions))
+ALL_PERMISSIONS = (
+    {
+        f"{permission_type}_{collection}"
+        for permission_type in ROLE_PERMISSION_TYPES
+        for collection in get_args(Collections)
+    }.union(get_args(FilePermissions))
+    .union(get_args(EventPermissions))
+    .union({"reader"})
+)
