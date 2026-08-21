@@ -84,7 +84,7 @@ variables:
       # file-based database instead, since in-memory one might not work
       # properly: https://github.com/keycloak/keycloak/issues/13252.
       command: ["start", "-Dkeycloak.saml.deprecated.encryption=true", "--db=dev-file"]
-    - name: magentaaps/os2mo-keycloak-realm-builder:7  # please also update docker-compose
+    - name: magentaaps/os2mo-keycloak-realm-builder:8  # please also update docker-compose
       variables:
         # Since GitLab CI doesn't support multiple services on the same port,
         # we cannot (easily) run a separate postgres for the realm builder's

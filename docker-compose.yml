@@ -181,7 +181,7 @@ services:
       - keycloak-volume:/srv/:ro,z
 
   keycloak-realm-builder:
-    image: magentaaps/os2mo-keycloak-realm-builder:7 # please also update gitlab-ci-templates
+    image: magentaaps/os2mo-keycloak-realm-builder:8 # please also update gitlab-ci-templates
     environment:
       KEYCLOAK_VERSION: 14.0.0
 
