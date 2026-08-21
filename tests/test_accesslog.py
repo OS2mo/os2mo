@@ -32,7 +32,7 @@ from mora.db import AsyncSession
 from mora.graphapi.access_log import AccessLogModel
 from mora.mapping import ADMIN
 from mora.util import DEFAULT_TIMEZONE
-from tests.conftest import BRUCE_UUID
+from tests.conftest import ALVIDA_UUID
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 from tests.conftest import admin_auth_uuid
@@ -349,7 +349,7 @@ async def test_access_log_enabled(empty_db: AsyncSession) -> None:
 @pytest.mark.envvar(
     {
         "ACCESS_LOG_ENABLE": "True",
-        "ACCESS_LOG_NO_LOG_UUIDS": json.dumps([str(BRUCE_UUID)]),
+        "ACCESS_LOG_NO_LOG_UUIDS": json.dumps([str(ALVIDA_UUID)]),
     }
 )
 @pytest.mark.usefixtures("empty_db")
@@ -528,19 +528,19 @@ async def test_accesslog_actor_object(
         }
     """
     person_uuid = str(create_person())
-    bruce_uuid = str(BRUCE_UUID)
+    alvida_uuid = str(ALVIDA_UUID)
 
     response = graphapi_post(read_query, {"uuid": person_uuid})
     assert response.errors is None
     assert response.data
     for obj in response.data["access_log"]["objects"]:
-        assert obj["actor_object"] == {"display_name": "bruce", "uuid": bruce_uuid}
+        assert obj["actor_object"] == {"display_name": "alvida", "uuid": alvida_uuid}
 
     # This should update MOs database next time it parses a token.
-    set_auth(ADMIN, bruce_uuid, preferred_username="new name")
+    set_auth(ADMIN, alvida_uuid, preferred_username="new name")
 
     response = graphapi_post(read_query, {"uuid": person_uuid})
     assert response.errors is None
     assert response.data
     for obj in response.data["access_log"]["objects"]:
-        assert obj["actor_object"] == {"display_name": "new name", "uuid": bruce_uuid}
+        assert obj["actor_object"] == {"display_name": "new name", "uuid": alvida_uuid}

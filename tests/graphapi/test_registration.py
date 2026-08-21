@@ -291,7 +291,7 @@ async def test_registration_actor_object(
     assert response.errors is None
     assert response.data
     registration = one(response.data["registrations"]["objects"])
-    assert registration["actor_object"]["display_name"] == "bruce"
+    assert registration["actor_object"]["display_name"] == "alvida"
     actor_uuid = registration["actor_object"]["uuid"]
 
     # This should update MOs database next time it parses a token.
