@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 """Tests of rule conditions (CEL)."""
 
+from collections.abc import Awaitable
+from collections.abc import Callable
 from uuid import UUID
 
 import pytest
@@ -16,6 +18,15 @@ from tests.conftest import assert_denied
 from tests.conftest import assert_granted
 from tests.policies.conftest import CreatePolicy
 from tests.policies.helpers import assert_access
+
+
+@pytest.fixture
+async def no_builtin_role_policies(
+    deactivate_policy: Callable[[str], Awaitable[None]],
+) -> None:
+    """Take the built-in role policies out, so a test's own rules stand alone."""
+    await deactivate_policy("Reader")
+    await deactivate_policy("Admin")
 
 
 @pytest.mark.integration_test
@@ -34,7 +45,12 @@ async def test_condition_gates_the_rule(
     await create_policy(
         "conditional",
         actors=[("role", "conditional-role")],
-        rules=[("Query", "employees", 'token.preferred_username == "bruce"')],
+        rules=[
+            ("Query", "employees", 'token.preferred_username == "bruce"'),
+            ("EmployeeResponsePaged", "objects"),
+            ("EmployeeResponse", "objects"),
+            ("Employee", "uuid"),
+        ],
     )
     set_auth(role="conditional-role", preferred_username=username)
     assert_access(graphapi_post("query { employees { objects { uuid } } }"), granted)
@@ -52,14 +68,20 @@ async def test_unconditional_rule_grants_despite_false_condition(
     await create_policy(
         "conditional",
         actors=[("role", "conditional-role")],
-        rules=[("Query", "employees", "false"), ("Query", "employees")],
+        rules=[
+            ("Query", "employees", "false"),
+            ("Query", "employees"),
+            ("EmployeeResponsePaged", "objects"),
+            ("EmployeeResponse", "objects"),
+            ("Employee", "uuid"),
+        ],
     )
     set_auth(role="conditional-role")
     assert_granted(graphapi_post("query { employees { objects { uuid } } }"))
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
+@pytest.mark.usefixtures("empty_db", "no_builtin_role_policies")
 async def test_condition_fails_hard_when_not_boolean(
     graphapi_post: GraphAPIPost,
     set_auth: SetAuth,
@@ -94,7 +116,10 @@ async def test_condition_reads_the_mutator_input(
     await create_policy(
         "self-service",
         actors=[("all", "")],
-        rules=[("Mutation", "employee_update", "args.input.uuid == token.uuid")],
+        rules=[
+            ("Mutation", "employee_update", "args.input.uuid == token.uuid"),
+            ("EmployeeResponse", "uuid"),
+        ],
     )
     set_auth(user_uuid=alice)
 

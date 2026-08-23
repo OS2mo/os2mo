@@ -54,7 +54,10 @@ async def test_rule_needs_both_its_condition_and_its_filter(
     await create_policy(
         "conditional-filter",
         actors=[("all", "")],
-        rules=[("Mutation", "employee_update", condition, filter)],
+        rules=[
+            ("Mutation", "employee_update", condition, filter),
+            ("EmployeeResponse", "uuid"),
+        ],
     )
     set_auth(user_uuid=alice)
 
@@ -97,7 +100,8 @@ async def test_rule_filter_requires_owning_the_named_entity(
                     }
                 })
                 """,
-            )
+            ),
+            ("EmployeeResponse", "uuid"),
         ],
     )
     set_auth(user_uuid=alice)

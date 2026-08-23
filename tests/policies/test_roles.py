@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-"""Tests of the built-in RBAC policy."""
+"""Tests of the built-in Reader and Admin policies."""
 
 import pytest
 from sqlalchemy import select
@@ -11,12 +11,12 @@ from tests.policies.helpers import assert_bootstrapped
 
 
 @pytest.mark.integration_test
-async def test_rbac_policy_bootstrapped(empty_db: db.AsyncSession) -> None:
-    """The RBAC policy is seeded active, bound to every actor."""
-    policy_id = await assert_bootstrapped(empty_db, "RBAC", ("all", ""))
+@pytest.mark.parametrize("role", ["reader", "admin"])
+async def test_role_policy_bootstrapped(empty_db: db.AsyncSession, role: str) -> None:
+    """The role's policy is seeded active, bound to every actor."""
+    policy_id = await assert_bootstrapped(empty_db, role.capitalize(), ("all", ""))
 
-    # One explicit rule per permission-gated (type, field), gated on the
-    # field's required RBAC role
+    # One explicit rule per (type, field) the role governs, gated on the role
     rules = set(
         (
             await empty_db.execute(
@@ -30,5 +30,6 @@ async def test_rbac_policy_bootstrapped(empty_db: db.AsyncSession) -> None:
     )
     assert rules == {
         (type, field, f'"{role}" in token.roles')
-        for (type, field), role in RBAC_MAP.items()
+        for (type, field), required in RBAC_MAP.items()
+        if required == role
     }
