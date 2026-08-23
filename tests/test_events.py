@@ -1565,6 +1565,44 @@ def test_declare_listener_does_not_return_other_owners_listener(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
+@pytest.mark.parametrize(
+    "role,expected_subjects",
+    [
+        # A non-admin reader only sees events for listeners they own
+        ("reader", {"alice"}),
+        # An admin sees all events
+        (ADMIN, {"alice", "bob"}),
+    ],
+)
+def test_events_filtered_by_owner_unless_admin(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    role: str,
+    expected_subjects: set[str],
+) -> None:
+    namespace = "gneurshk"
+
+    owner, other = uuid4(), uuid4()
+
+    set_auth(ADMIN, owner)
+    declare_namespace(graphapi_post, namespace, public=True)
+    declare_listener(graphapi_post, namespace, "uk1", "rk1")
+    send_event(graphapi_post, namespace, "rk1", "alice")
+
+    set_auth(ADMIN, other)
+    declare_listener(graphapi_post, namespace, "uk2", "rk2")
+
+    # Send an event to the other listener as the namespace owner
+    set_auth(ADMIN, owner)
+    send_event(graphapi_post, namespace, "rk2", "bob")
+
+    # Querying user owns the "uk1" listener, but not the "uk2" listener
+    set_auth(role, owner)
+    assert {e["subject"] for e in get_events(graphapi_post)} == expected_subjects
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 def test_event_rerun_mutator(
     namespace: str,
     graphapi_post: GraphAPIPost,
