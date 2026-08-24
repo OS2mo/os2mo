@@ -76,8 +76,6 @@ class Settings(BaseSettings):
     commit_tag: str | None
     commit_sha: str | None
 
-    sentry_dsn: str | None
-
     # Misc OS2mo settings
     environment: Environment = Environment.PRODUCTION
     log_level: LogLevel = LogLevel.INFO

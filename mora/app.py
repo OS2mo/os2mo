@@ -5,7 +5,6 @@ from contextlib import asynccontextmanager
 from itertools import chain
 from typing import Any
 
-import sentry_sdk
 from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import HTTPException as FastAPIHTTPException
@@ -18,7 +17,6 @@ from more_itertools import only
 from prometheus_client import Gauge
 from prometheus_client import Info
 from prometheus_fastapi_instrumentator import Instrumentator
-from sentry_sdk.integrations.strawberry import StrawberryIntegration
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
@@ -320,16 +318,5 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(AuthenticationError, get_auth_exception_handler(logger))
     app.add_exception_handler(AuthorizationError, authorization_exception_handler)
-
-    if settings.sentry_dsn:  # pragma: no cover
-        # https://docs.sentry.io/platforms/python/integrations/strawberry/
-        sentry_sdk.init(
-            dsn=settings.sentry_dsn,
-            integrations=[
-                StrawberryIntegration(
-                    async_execution=True,
-                ),
-            ],
-        )
 
     return app
