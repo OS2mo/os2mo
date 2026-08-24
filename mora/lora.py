@@ -31,7 +31,6 @@ from uuid import UUID
 
 from fastapi import Request
 from fastapi import Response
-from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 from sqlalchemy.exc import DataError
 from starlette_context import context
@@ -588,7 +587,7 @@ class Scope(BaseScope):
         with lora_to_mo_exception():
             result = await self.lora_class.get_objects_direct(args)
         with suppress(IndexError):
-            return jsonable_encoder(result["results"][0])
+            return result["results"][0]
 
         assert "maximalantalresultater" not in params
         assert "foersteresultat" not in params
