@@ -341,8 +341,8 @@ class EventToken(BaseModel):
             raise ValueError("Could not parse EventToken")
 
 
-EventTokenType: type[EventToken] = strawberry.scalar(
-    EventToken,
+EVENT_TOKEN_SCALAR = strawberry.scalar(
+    name="EventToken",
     serialize=EventToken.serialize,
     parse_value=EventToken.deserialize,
     description=dedent(
@@ -375,7 +375,7 @@ class Event:
         description='An identifier of the subject. All subjects in the (default) "mo" namespace have UUIDs as identifier.'
     )
     priority: int = strawberry.field(description="Priority of the event.")
-    token: EventTokenType = strawberry.field(
+    token: EventToken = strawberry.field(
         description=dedent(
             """\
             EventTokens are opaque tokens needed to acknowledge events.

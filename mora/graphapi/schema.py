@@ -10,7 +10,6 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING
 from typing import Any
 
-import strawberry
 from fastapi.encoders import jsonable_encoder
 from graphql import ExecutionResult
 from graphql import GraphQLError
@@ -18,9 +17,11 @@ from graphql import GraphQLResolveInfo
 from graphql import OperationType
 from graphql import is_introspection_type
 from pydantic import PositiveInt
+from starlette.datastructures import UploadFile
 from strawberry import Schema
 from strawberry.exceptions import StrawberryGraphQLError
 from strawberry.extensions import SchemaExtension
+from strawberry.file_uploads import UploadDefinition
 from strawberry.schema.config import StrawberryConfig
 from strawberry.utils.await_maybe import AsyncIteratorOrIterator
 from strawberry.utils.await_maybe import await_maybe
@@ -36,6 +37,8 @@ from mora.graphapi.collections import DARAddress
 from mora.graphapi.collections import DefaultAddress
 from mora.graphapi.collections import MultifieldAddress
 from mora.graphapi.custom_schema import CustomSchema
+from mora.graphapi.events import EVENT_TOKEN_SCALAR
+from mora.graphapi.events import EventToken
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.model_registration import AddressRegistration
 from mora.graphapi.model_registration import AssociationRegistration
@@ -56,7 +59,10 @@ from mora.graphapi.mutators import Mutation
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
-from mora.graphapi.types import CPRType
+from mora.graphapi.types import CPR_SCALAR
+from mora.graphapi.types import CURSOR_SCALAR
+from mora.graphapi.types import INT_SCALAR
+from mora.graphapi.types import Cursor
 from mora.graphapi.version import Version
 from mora.log import canonical_gql_context
 from mora.util import CPR
@@ -362,9 +368,12 @@ def get_schema(version: Version) -> CustomSchema:
             #
             # Additionally, it preserves the naming of the underlying Python functions.
             auto_camel_case=False,
+            scalar_map={
+                CPR: CPR_SCALAR,
+                Cursor: CURSOR_SCALAR,
+                EventToken: EVENT_TOKEN_SCALAR,
+                PositiveInt: INT_SCALAR,
+                UploadFile: UploadDefinition,
+            },
         ),
-        scalar_overrides={
-            CPR: CPRType,
-            PositiveInt: strawberry.scalar(int),
-        },
     )
