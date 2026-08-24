@@ -14,7 +14,7 @@ from structlog.types import EventDict
 from structlog.types import Processor
 from uvicorn.protocols.utils import get_path_with_query_string
 
-from mora.config import get_settings
+from mora.config import is_under_test
 
 logger = structlog.get_logger()
 
@@ -56,7 +56,7 @@ def gen_accesslog_middleware() -> Callable[[Request, Any], Awaitable[Response]]:
     return accesslog_middleware
 
 
-def init(log_level: str, json: bool = True):
+def init(log_level: str, json: bool = True, under_test: bool = False):
     # Heavily inspired by https://gist.github.com/nymous/f138c7f06062b7c43c060bf03759c29e
     timestamper = structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S", utc=True)
 
@@ -87,7 +87,7 @@ def init(log_level: str, json: bool = True):
         # cached logger breaks `structlog.testing.capture_logs()`. Disable it
         # under test so log assertions work reliably.
         # https://www.structlog.org/en/stable/testing.html
-        cache_logger_on_first_use=not get_settings().is_under_test(),
+        cache_logger_on_first_use=not under_test,
     )
 
     log_renderer: structlog.types.Processor
@@ -151,7 +151,7 @@ async def canonical_log_dependency():
 
 
 def canonical_log_context() -> dict:
-    if get_settings().is_under_test() and _CANONICAL_LOG_KEY not in context:
+    if is_under_test() and _CANONICAL_LOG_KEY not in context:
         return {}
     return context[_CANONICAL_LOG_KEY]
 

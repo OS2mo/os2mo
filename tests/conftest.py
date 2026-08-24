@@ -136,6 +136,10 @@ def clear_settings_cache() -> YieldFixture[None]:
 BRUCE_UUID = UUID("99e7b256-7dfa-4ee8-95c6-e3abe82e236a")
 ALVIDA_UUID = UUID("0fb62199-cb9e-4083-ba45-2a63bfd142d7")
 
+# Serviceplatformen certificate fixtures: one valid, one empty.
+SP_CERTIFICATE_PATH = "tests/fixtures/sp_certificate.pem"
+SP_CERTIFICATE_EMPTY_PATH = "tests/fixtures/sp_certificate_empty.pem"
+
 
 READ_PERMISSIONS = {
     permission for permission in ALL_PERMISSIONS if permission.startswith("read_")
@@ -367,7 +371,7 @@ def service_client_not_raising(fastapi_test_app: FastAPI) -> YieldFixture[TestCl
 
 @pytest.fixture(scope="session")
 def lora_settings() -> LoraSettings:
-    return lora_get_settings()
+    return LoraSettings()
 
 
 @pytest.fixture(scope="session")
@@ -862,17 +866,6 @@ def get_keycloak_token() -> str:
 @pytest.fixture
 def auth_headers():
     return {"Authorization": f"Bearer {get_keycloak_token()}"}
-
-
-@pytest.fixture
-def sp_configuration(monkeypatch, tmp_path) -> None:
-    """Configure minimal environment variables to test Serviceplatformen integration."""
-    tmp_file = tmp_path / "testfile"
-    tmp_file.write_text("This is a certificate")
-    monkeypatch.setenv("ENVIRONMENT", "production")
-    monkeypatch.setenv("ENABLE_SP", "True")
-    monkeypatch.setenv("SP_CERTIFICATE_PATH", str(tmp_file))
-    yield
 
 
 @pytest.fixture

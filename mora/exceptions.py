@@ -1,14 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import inspect
-import traceback
 from enum import Enum
 from typing import NoReturn
 
 from fastapi import HTTPException as fastapiHTTPException
 from starlette.responses import JSONResponse
-
-from mora import config
 
 
 class ErrorCodes(Enum):
@@ -169,9 +165,6 @@ class HTTPException(fastapiHTTPException):
         if error_key is not None:
             self.key = error_key
 
-        self.traceback: str | None = None
-        self.stack: str | None = None
-
         body = {
             "error": True,
             "description": message or self.key.description,
@@ -179,18 +172,6 @@ class HTTPException(fastapiHTTPException):
             "error_key": self.key.name,
             **extras,
         }
-
-        settings = config.get_settings()
-        if not settings.is_production():
-            if cause is None:
-                cause = self.__cause__ or self
-            # just for debugging, remove or change as needed:
-            frame = inspect.currentframe()  # CPython only
-            # the stacked f_backs are just to leave out our crazy __call__
-            # from ErrorCodes of the traceback.
-            self.stack = "".join(
-                traceback.format_stack(f=frame.f_back.f_back.f_back, limit=15)
-            )
 
         super().__init__(status_code=self.key.code, detail=body)
 

@@ -13,6 +13,7 @@ from strawberry.fastapi import BaseContext
 
 from mora import db
 from mora.auth.keycloak.models import Token
+from mora.config import Settings
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
@@ -60,6 +61,7 @@ class MOContext(BaseContext):
     amqp_system: AMQPSystem
     session: db.AsyncSession
     dataloaders: MOLoaders
+    settings: Settings
 
 
 MOInfo: TypeAlias = Info[MOContext, None]

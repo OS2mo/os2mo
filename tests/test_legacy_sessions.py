@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import json
+from uuid import UUID
 
 import pytest
-from _pytest.mark.structures import ParameterSet
 from fastapi import Request
 from more_itertools import one
 from structlog.testing import capture_logs
@@ -11,46 +11,27 @@ from structlog.testing import capture_logs
 from mora.auth.keycloak.legacy import validate_session
 from mora.auth.keycloak.oidc import LEGACY_AUTH_UUID
 from mora.auth.keycloak.oidc import legacy_auth_adapter
+from mora.config import Settings
 
-
-def pf(session_id: str, sessions: list[str], expected: bool) -> ParameterSet:
-    """A parametrize case that enables the given legacy sessions."""
-    return pytest.param(
-        session_id,
-        expected,
-        marks=pytest.mark.envvar({"OS2MO_LEGACY_SESSIONS": json.dumps(sessions)}),
-    )
+ZERO_UUID = UUID("00000000-0000-0000-0000-000000000000")
+ONE_UUID = UUID("11111111-1111-1111-1111-111111111111")
 
 
 @pytest.mark.parametrize(
-    "session_id,expected",
+    "session_id,legacy_sessions,expected",
     [
-        pf("alfa", [], False),
-        pf("beta", [], False),
-        pf("00000000-0000-0000-0000-000000000000", [], False),
-        pf(
-            "00000000-0000-0000-0000-000000000000",
-            ["00000000-0000-0000-0000-000000000000"],
-            True,
-        ),
-        pf(
-            "00000000-0000-0000-0000-000000000000",
-            ["11111111-1111-1111-1111-111111111111"],
-            False,
-        ),
-        pf(
-            "00000000-0000-0000-0000-000000000000",
-            [
-                "00000000-0000-0000-0000-000000000000",
-                "11111111-1111-1111-1111-111111111111",
-            ],
-            True,
-        ),
+        ("alfa", [], False),
+        ("beta", [], False),
+        (str(ZERO_UUID), [], False),
+        (str(ZERO_UUID), [ZERO_UUID], True),
+        (str(ZERO_UUID), [ONE_UUID], False),
+        (str(ZERO_UUID), [ZERO_UUID, ONE_UUID], True),
     ],
 )
-def test_validate_session(session_id: str, expected: bool) -> None:
-    result = validate_session(session_id)
-    assert result == expected
+def test_validate_session(
+    session_id: str, legacy_sessions: list[UUID], expected: bool
+) -> None:
+    assert validate_session(session_id, legacy_sessions) == expected
 
 
 @pytest.mark.envvar(
@@ -75,7 +56,7 @@ async def test_legacy_session_logs_session_id() -> None:
     )
 
     with capture_logs() as logs:
-        token = await legacy_auth_adapter(request)
+        token = await legacy_auth_adapter(request, Settings())
 
     # The valid session authenticates as the legacy actor.
     assert token.uuid == LEGACY_AUTH_UUID

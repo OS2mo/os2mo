@@ -10,8 +10,8 @@ from sqlalchemy.sql import func
 from sqlalchemy.sql import select
 from sqlalchemy.sql import union
 
-from mora import config
 from mora import util
+from mora.config import Settings
 from mora.db import BrugerAttrUdvidelser
 from mora.db import BrugerRegistrering
 from mora.db import BrugerRelation
@@ -22,9 +22,7 @@ from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 from mora.service.autocomplete.shared import string_to_urn
 
 
-def search_employees_predicate(query: str) -> ColumnElement:
-    settings = config.get_settings()
-
+def search_employees_predicate(query: str, settings: Settings) -> ColumnElement:
     ctes = [
         _get_cte_uuid_hits(query),
         _get_cte_user_key_hits(query),

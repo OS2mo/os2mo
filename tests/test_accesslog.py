@@ -11,7 +11,6 @@ from uuid import uuid4
 
 import hypothesis.strategies as st
 import pytest
-from _pytest.monkeypatch import MonkeyPatch
 from fastapi.encoders import jsonable_encoder
 from hypothesis import HealthCheck
 from hypothesis import given
@@ -25,7 +24,7 @@ from mora.access_log import access_log
 from mora.auth.keycloak.models import Token
 from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from mora.auth.middleware import set_authenticated_user
-from mora.config import get_settings
+from mora.config import Settings
 from mora.db import AccessLogOperation
 from mora.db import AccessLogRead
 from mora.db import AsyncSession
@@ -90,7 +89,7 @@ async def test_access_log_database(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
-    access_log(empty_db, "test_accesslog", "AccessLog", {}, [uuid])
+    access_log(empty_db, Settings(), "test_accesslog", "AccessLog", {}, [uuid])
 
     await assert_one_access_log_entry(empty_db, "AccessLog", "test_accesslog", [uuid])
 
@@ -200,7 +199,6 @@ def access_log_entries_and_filter(
 async def test_access_log_filters(
     another_transaction,
     graphapi_post: GraphAPIPost,
-    monkeypatch: MonkeyPatch,
     empty_db: AsyncSession,
     access_log_entries_and_filter: tuple[
         list[dict[str, Any]],
@@ -245,10 +243,10 @@ async def test_access_log_filters(
     assert response.errors is None
     assert response.data == {"access_log": {"objects": []}}
 
-    # Add access log entries. Enable access logging only while writing them;
-    # enabling it for the whole test would also log the verifying reads below.
-    monkeypatch.setenv("ACCESS_LOG_ENABLE", "True")
-    get_settings.cache_clear()
+    # Add access log entries. Enable access logging only for these direct writes;
+    # the app's own settings are unaffected, so the verifying reads below are not
+    # logged.
+    access_log_settings = Settings(access_log_enable=True)
 
     async with another_transaction() as (_, session):
         for access_event in access_log_entries:
@@ -260,15 +258,12 @@ async def test_access_log_filters(
                 # TODO: Set time somehow
                 access_log(
                     session,
+                    access_log_settings,
                     access_event["operation"],
                     access_event["class_name"],
                     {},
                     access_event["uuids"],
                 )
-
-    # Disable access-logging itself
-    monkeypatch.setenv("ACCESS_LOG_ENABLE", "False")
-    get_settings.cache_clear()
 
     # Test that we can see all our access log entries
     response = graphapi_post(access_filter_query, {"filter": {}})
@@ -329,7 +324,7 @@ async def test_access_log_disabled(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
-    access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
+    access_log(empty_db, Settings(), "test_access_log", "AccessLog", {}, [uuid])
     await assert_empty_access_log_tables(empty_db)
 
 
@@ -341,7 +336,7 @@ async def test_access_log_enabled(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
-    access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
+    access_log(empty_db, Settings(), "test_access_log", "AccessLog", {}, [uuid])
     await assert_one_access_log_entry(empty_db, "AccessLog", "test_access_log", [uuid])
 
 
@@ -429,7 +424,7 @@ async def test_access_log_disabled_for_user(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
-    access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
+    access_log(empty_db, Settings(), "test_access_log", "AccessLog", {}, [uuid])
     await assert_empty_access_log_tables(empty_db)
 
 
@@ -443,7 +438,7 @@ async def test_access_log_enabled_for_user(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
-    access_log(empty_db, "test_access_log", "AccessLog", {}, [uuid])
+    access_log(empty_db, Settings(), "test_access_log", "AccessLog", {}, [uuid])
     await assert_one_access_log_entry(empty_db, "AccessLog", "test_access_log", [uuid])
 
 

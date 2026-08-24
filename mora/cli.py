@@ -172,7 +172,7 @@ def last_run() -> None:  # pragma: no cover
 def start() -> None:  # pragma: no cover
     """Start the event generator."""
     with contextlib.suppress(KeyboardInterrupt):
-        asyncio.run(start_event_generator(sessionmaker))
+        asyncio.run(start_event_generator(sessionmaker, settings))
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import sys
+import traceback
 from contextlib import asynccontextmanager
 from itertools import chain
-from typing import Any
 
 from fastapi import Depends
 from fastapi import FastAPI
@@ -29,6 +29,7 @@ from mora import log
 from mora.auth.exceptions import AuthenticationError
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.oidc import authorization_exception_handler
+from mora.auth.keycloak.oidc import create_keycloak_auth
 from mora.auth.keycloak.oidc import fetch_token
 from mora.auth.keycloak.oidc import service_api_auth
 from mora.auth.middleware import set_authenticated_user
@@ -103,7 +104,7 @@ async def request_validation_handler(request: Request, exc: RequestValidationErr
     :param exc:
     :return:
     """
-    settings = config.get_settings()
+    settings = request.app.state.settings
     if not settings.is_production():  # pragma: no cover
         logger.info(
             "os2mo_err_details", exc=exc, url=request.url, params=request.query_params
@@ -116,23 +117,24 @@ async def request_validation_handler(request: Request, exc: RequestValidationErr
 
 
 async def http_exception_handler(request: Request, exc: HTTPException):
-    settings = config.get_settings()
+    settings = request.app.state.settings
     if not settings.is_production():
-        logger.info("http_exception", stack=exc.stack, traceback=exc.traceback)
+        stack = "".join(traceback.format_exception(exc))
+        logger.info("http_exception", stack=stack)
 
     return http_exception_to_json_response(exc=exc)
 
 
-def create_app(settings_overrides: dict[str, Any] | None = None):
+def create_app():
     """
     Create and return a FastApi app instance for MORA.
     """
-    settings_overrides = settings_overrides or {}
-    settings = config.get_settings(**settings_overrides)
+    settings = config.Settings()
 
     log.init(
         log_level=settings.log_level,
         json=settings.environment is not Environment.DEVELOPMENT,
+        under_test=config.is_under_test(),
     )
     tags_metadata = chain(
         [
@@ -178,7 +180,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
     async def lifespan(app: FastAPI):
         instrumentator.expose(app)
 
-        await triggers.register(app)
+        await triggers.register(settings)
         try:
             if settings.amqp_enable:
                 async with app.state.amqp_system:
@@ -307,6 +309,8 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         )
 
     # Set up lifecycle state for depends.py
+    app.state.settings = settings
+    app.state.keycloak_auth = create_keycloak_auth(settings)
     app.state.sessionmaker = sessionmaker
     amqp_system = AMQPSystem(settings.amqp)
     app.state.amqp_system = amqp_system

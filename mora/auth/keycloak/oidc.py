@@ -15,6 +15,7 @@ from starlette_context import context
 from structlog import get_logger
 
 from mora import config
+from mora import depends
 from mora.auth.exceptions import AuthenticationError
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.legacy import validate_session
@@ -140,36 +141,37 @@ def get_auth_dependency(
 
 
 token_url_path = "service/token"
-keycloak_auth = get_auth_dependency(
-    host=config.get_settings().keycloak_host,
-    port=config.get_settings().keycloak_port,
-    realm=config.get_settings().keycloak_realm,
-    token_url_path=token_url_path,
-    token_model=Token,
-    http_schema=config.get_settings().keycloak_schema,
-    alg=config.get_settings().keycloak_signing_alg,
-    verify_audience=config.get_settings().keycloak_verify_audience,
-)
 
 
-async def validate_token(token: str) -> Token:
-    """Validate a keycloak token.
+def create_keycloak_auth(
+    settings: config.Settings,
+) -> Callable[[str], Awaitable[Token]]:
+    """Build the Keycloak auth dependency for an app.
 
-    Args:
-        The token to be validated.
-
-    Returns:
-        Whether the token was validated.
+    Called once per app from `create_app`, which stores the result on
+    `app.state`. Constructing it at import time instead would make importing
+    this module require a valid Keycloak configuration.
     """
-    return await keycloak_auth(token)
+    return get_auth_dependency(
+        host=settings.keycloak_host,
+        port=settings.keycloak_port,
+        realm=settings.keycloak_realm,
+        token_url_path=token_url_path,
+        token_model=Token,
+        http_schema=settings.keycloak_schema,
+        alg=settings.keycloak_signing_alg,
+        verify_audience=settings.keycloak_verify_audience,
+    )
 
 
 async def fetch_keycloak_token(request: Request) -> Token:
     oauth2_scheme = await OAuth2PasswordBearer(tokenUrl=token_url_path)(request)
-    return await validate_token(oauth2_scheme)
+    return await request.app.state.keycloak_auth(oauth2_scheme)
 
 
-async def legacy_auth_adapter(request: Request) -> Token:  # pragma: no cover
+async def legacy_auth_adapter(
+    request: Request, settings: config.Settings
+) -> Token:  # pragma: no cover
     """
     Legacy support for the old session database to allow for grace-period before
     switching to Keycloak auth
@@ -182,7 +184,7 @@ async def legacy_auth_adapter(request: Request) -> Token:  # pragma: no cover
     session_id = request.headers.get("session")
     if session_id:
         logger.warning("Legacy session token used", session_id=session_id)
-        if validate_session(session_id):
+        if validate_session(session_id, settings.os2mo_legacy_sessions):
             return await legacyauth()
     return await fetch_keycloak_token(request)
 
@@ -195,11 +197,12 @@ def authorization_exception_handler(
     )
 
 
-async def fetch_token(request: Request) -> Token:
+async def fetch_token(request: Request, settings: depends.Settings) -> Token:
     """Extract and validate a token from the request.
 
     Args:
         request: The FastAPI request object to extract the token from.
+        settings: The application settings.
 
     Returns:
         The validated token.
@@ -207,8 +210,8 @@ async def fetch_token(request: Request) -> Token:
     Raises:
         HTTPException: If no token is present or it fails validation.
     """
-    if config.get_settings().os2mo_legacy_sessions:  # pragma: no cover
-        return await legacy_auth_adapter(request)
+    if settings.os2mo_legacy_sessions:  # pragma: no cover
+        return await legacy_auth_adapter(request, settings)
     return await fetch_keycloak_token(request)
 
 
@@ -229,11 +232,14 @@ async def rbac_admin(token: Token = Depends(fetch_token)):
     return await _rbac(token)
 
 
-def token_getter(request: Request) -> Callable[[], Awaitable[Token]]:
+def token_getter(
+    request: Request, settings: depends.Settings
+) -> Callable[[], Awaitable[Token]]:
     """Get a callable that returns the request's token, caching on first use.
 
     Args:
         request: The FastAPI request object to extract the token from.
+        settings: The application settings.
 
     Returns:
         A callable that returns the extracted or dummy token object.
@@ -244,7 +250,7 @@ def token_getter(request: Request) -> Callable[[], Awaitable[Token]]:
 
     async def get_token():
         if "token" not in context:
-            context["token"] = await fetch_token(request)
+            context["token"] = await fetch_token(request, settings)
         return context["token"]
 
     return get_token

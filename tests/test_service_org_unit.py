@@ -199,8 +199,10 @@ async def refresh_trigger_mock() -> AsyncIterator[aioresponses]:
                 ]
             ),
         )
-        with util.override_config(Settings(http_endpoints=["http://whatever"])):
-            await register(None)
+        # Register against this mock only. The app registers http-triggers on
+        # start-up too, and this test builds two apps, so configuring the endpoint
+        # globally would register the trigger once per app.
+        await register(Settings(http_endpoints=["http://whatever"]))
         yield mock
 
 
