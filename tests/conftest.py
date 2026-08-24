@@ -141,9 +141,7 @@ SP_CERTIFICATE_PATH = "tests/fixtures/sp_certificate.pem"
 SP_CERTIFICATE_EMPTY_PATH = "tests/fixtures/sp_certificate_empty.pem"
 
 
-READ_PERMISSIONS = {
-    permission for permission in ALL_PERMISSIONS if permission.startswith("read_")
-}
+READ_PERMISSIONS = {"reader"}
 
 
 async def fake_auth() -> Token:
