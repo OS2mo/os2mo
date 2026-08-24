@@ -15,7 +15,7 @@ from mora.db import events
 from mora.graphapi.gmodels.mo import OpenValidity as RAOpenValidity
 from mora.graphapi.gmodels.mo import Validity as RAValidity
 
-from .events import EventTokenType
+from .events import EventToken
 from .events import ListenerFilter
 from .models import AddressCreate
 from .models import AddressTerminate
@@ -814,7 +814,7 @@ class ListenerDeleteInput:
 
 @strawberry.input(description="Acknowledge an event.")
 class EventAcknowledgeInput:
-    token: EventTokenType
+    token: EventToken
 
 
 @strawberry.input

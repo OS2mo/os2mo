@@ -16,7 +16,7 @@ from sqlalchemy import delete
 from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from strawberry.file_uploads import Upload
+from starlette.datastructures import UploadFile
 from strawberry.types import Info
 
 from mora import db
@@ -1820,7 +1820,7 @@ class Mutation:
             strawberry.argument(description="The filestore to upload the file into"),
         ],
         file: Annotated[
-            Upload,
+            UploadFile,
             strawberry.argument(
                 description=dedent(
                     """\
@@ -1838,7 +1838,10 @@ class Mutation:
             strawberry.argument(description="Whether to override pre-existing files."),
         ] = False,
     ) -> str:
-        file_name = file.filename
+        # Starlette only constructs an UploadFile for multipart parts that
+        # actually have a filename; filename-less parts are parsed as plain
+        # form fields, so the filename is never None here.
+        file_name = cast(str, file.filename)
         file_bytes = await file.read()
 
         actor = get_authenticated_user()

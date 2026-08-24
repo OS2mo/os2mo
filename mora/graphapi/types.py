@@ -13,8 +13,8 @@ from pydantic import BaseModel
 from mora.util import CPR
 
 # https://strawberry.rocks/docs/integrations/pydantic#classes-with-__get_validators__
-CPRType = strawberry.scalar(
-    CPR,
+CPR_SCALAR = strawberry.scalar(
+    name="CPR",
     serialize=str,
     parse_value=CPR.validate,
     description=dedent(
@@ -46,11 +46,11 @@ CPRType = strawberry.scalar(
 _CURSOR_DELIMITER = ":"
 
 
-class _Cursor(BaseModel):
+class Cursor(BaseModel):
     last: UUID
 
 
-def _serialize(value: _Cursor) -> str:
+def _serialize(value: Cursor) -> str:
     json_bytes = value.json().encode("ascii")
     # This is a hash of the content, rendered as a 6-long hex string. Seems
     # odd, but people like to inspect the cursor while developing to see that
@@ -62,13 +62,13 @@ def _serialize(value: _Cursor) -> str:
     return f"{h}{_CURSOR_DELIMITER}{cursor}"
 
 
-def _deserialize(opaque_cursor: str) -> _Cursor:
+def _deserialize(opaque_cursor: str) -> Cursor:
     without_hash = opaque_cursor.split(_CURSOR_DELIMITER)[1]
-    return _Cursor(**json.loads(b64decode(without_hash)))
+    return Cursor(**json.loads(b64decode(without_hash)))
 
 
-Cursor = strawberry.scalar(
-    _Cursor,
+CURSOR_SCALAR = strawberry.scalar(
+    name="Cursor",
     serialize=_serialize,
     parse_value=_deserialize,
     description=dedent(
@@ -90,4 +90,15 @@ Cursor = strawberry.scalar(
         The caller should not concern themselves with the actual value contained within, but rather simply pass whatever is returned in the `cursor` argument to continue iteration.
         """
     ),
+)
+
+
+# Preserves the historical schema name `int` (lowercase) used by all `limit:`
+# arguments. Do NOT map PositiveInt to the builtin `Int` scalar: that would
+# rename the scalar in the public SDL and break every client query that
+# declares `$limit: int`.
+INT_SCALAR = strawberry.scalar(
+    name="int",
+    serialize=int,
+    parse_value=int,
 )

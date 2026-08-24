@@ -15,6 +15,7 @@ from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.gmodels.mo.details import ITUserRead
 from mora.graphapi.gmodels.mo.details import LeaveRead
 from mora.graphapi.gmodels.mo.details import ManagerRead
+from mora.util import CPR
 
 from ..filters import EmployeeFilter
 from ..lazy import LazyAddress
@@ -33,7 +34,6 @@ from ..resolvers import leave_resolver
 from ..resolvers import manager_resolver
 from ..response import Response
 from ..seed_resolver import seed_resolver
-from ..types import CPRType
 from ..validity import OpenValidity
 from .utils import to_list
 from .utils import to_paged_response
@@ -380,13 +380,13 @@ class Employee:
         return root.type_
 
     # TODO: Document this
-    cpr_no: CPRType | None = strawberry.field(
+    cpr_no: CPR | None = strawberry.field(
         deprecation_reason="Use 'cpr_number' instead. Will be removed in a future version of OS2mo."
     )
 
     @strawberry.field(description="CPR number of the employee.")
-    async def cpr_number(self, root: EmployeeRead) -> CPRType | None:
-        return cast(CPRType | None, root.cpr_no)
+    async def cpr_number(self, root: EmployeeRead) -> CPR | None:
+        return cast(CPR | None, root.cpr_no)
 
     # TODO: Document this
     seniority: date | None = strawberry.auto
