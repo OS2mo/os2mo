@@ -97,9 +97,9 @@ def create_engine(
         connect_args={
             "options": " ".join(
                 (
-                    # Cancel queries that run for more than 5 minutes, so a bad
-                    # query doesn't run forever.
-                    "-c statement_timeout=300000",
+                    # Cancel transactions that run for more than 5 minutes, so
+                    # a bad query doesn't run forever.
+                    "-c transaction_timeout=300s",
                     # Raise the planner's collapse limits and the genetic
                     # optimizer threshold so larger joins are planned
                     # exhaustively instead of falling back to GEQO.
