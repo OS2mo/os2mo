@@ -184,7 +184,6 @@ def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(
         "/service/e/cpr_lookup/?q=1234",
         "/service/e/00000000-0000-0000-0000-000000000000/details/",
         "/service/o/00000000-0000-0000-0000-000000000000/e/",
-        "/service/c/ancestor-tree",
         "/service/o/00000000-0000-0000-0000-000000000000/it/",
         "/service/o/",
         "/service/ou/00000000-0000-0000-0000-000000000000/children",
