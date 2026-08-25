@@ -9,7 +9,6 @@ from . import detail_writing
 from . import employee
 from . import engagement
 from . import facet
-from . import insight
 from . import itsystem
 from . import kle
 from . import leave
@@ -30,7 +29,6 @@ __all__ = [
     "employee",
     "engagement",
     "facet",
-    "insight",
     "itsystem",
     "kle",
     "leave",
@@ -50,7 +48,6 @@ routers = {
     "DetailWriting": detail_writing.router,
     "Employee": employee.router,
     "Facet": facet.router,
-    "Insight": insight.router,
     "ITSystem": itsystem.router,
     "KLE": kle.router,
     "Organisation": org.router,
