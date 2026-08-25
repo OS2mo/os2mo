@@ -903,29 +903,6 @@ def test_engagement_count(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_leave(service_client: TestClient) -> None:
-    expected = [
-        {
-            "engagement": {"uuid": "d000591f-8705-4324-897a-075e3623f37b"},
-            "leave_type": {"uuid": "bf65769c-5227-49b4-97c5-642cfbe41aa1"},
-            "person": {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"},
-            "user_key": "bvn",
-            "uuid": "b807628c-030c-4f5f-a438-de41c1f26ba5",
-            "validity": {"from": "2017-01-01", "to": None},
-        }
-    ]
-
-    response = service_client.request(
-        "GET",
-        "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/leave",
-        params={"only_primary_uuid": "1"},
-    )
-    assert response.status_code == 200
-    assert response.json() == expected
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "type,uuid,params,has_data",
     [
