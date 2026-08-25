@@ -5,7 +5,6 @@ import json
 from uuid import UUID
 
 import pytest
-from fastapi.testclient import TestClient
 
 from mora import exceptions
 from mora import mapping
@@ -29,28 +28,32 @@ HIST_UNIT = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
 PARENT = SAMF_UNIT
 
 
-def expire_org_unit(service_client: TestClient, org_unit: dict) -> None:
+def expire_org_unit(graphapi_post, org_unit: dict) -> None:
     # Expire the parent from 2018-01-01
-    payload = {"validity": {"to": "2018-01-01"}}
-
-    response = service_client.request(
-        "POST", f"/service/ou/{org_unit}/terminate", json=payload
+    response = graphapi_post(
+        """
+        mutation OrgUnitTerminate($input: OrganisationUnitTerminateInput!) {
+          org_unit_terminate(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables=dict(input={"uuid": str(org_unit), "to": "2018-01-01"}),
     )
-    # amqp_topics={"org_unit.org_unit.delete": 1},
-    assert response.status_code == 200
-    assert response.json() == org_unit
+    assert response.errors is None
+    assert response.data["org_unit_terminate"]["uuid"] == str(org_unit)
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_should_return_true_when_interval_contained(
-    service_client: TestClient,
+    graphapi_post,
 ) -> None:
     """
     [------ super ------)
        [--- sub ---)
     """
-    expire_org_unit(service_client, PARENT)
+    expire_org_unit(graphapi_post, PARENT)
 
     startdate = "01-02-2017"
     enddate = "01-06-2017"
@@ -65,13 +68,13 @@ async def test_should_return_true_when_interval_contained(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_should_return_true_when_interval_contained2(
-    service_client: TestClient,
+    graphapi_post,
 ) -> None:
     """
     [------ super ------)
     [------ sub ---)
     """
-    expire_org_unit(service_client, PARENT)
+    expire_org_unit(graphapi_post, PARENT)
 
     startdate = "01-01-2017"
     enddate = "01-06-2017"
@@ -86,13 +89,13 @@ async def test_should_return_true_when_interval_contained2(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_should_return_true_when_interval_contained3(
-    service_client: TestClient,
+    graphapi_post,
 ) -> None:
     """
     [------ super ------)
       [------ sub ------)
     """
-    expire_org_unit(service_client, PARENT)
+    expire_org_unit(graphapi_post, PARENT)
 
     startdate = "01-02-2017"
     enddate = "01-01-2018"
@@ -107,13 +110,13 @@ async def test_should_return_true_when_interval_contained3(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_should_false_true_when_interval_not_contained1(
-    service_client: TestClient,
+    graphapi_post,
 ) -> None:
     """
       [---- super ------)
     [------ sub ---)
     """
-    expire_org_unit(service_client, PARENT)
+    expire_org_unit(graphapi_post, PARENT)
 
     startdate = "01-01-2016"
     enddate = "01-06-2017"
@@ -129,13 +132,13 @@ async def test_should_false_true_when_interval_not_contained1(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_should_return_false_when_interval_not_contained2(
-    service_client: TestClient,
+    graphapi_post,
 ) -> None:
     """
     [------ super ------)
       [---- sub -----------)
     """
-    expire_org_unit(service_client, PARENT)
+    expire_org_unit(graphapi_post, PARENT)
 
     startdate = "01-02-2017"
     enddate = "01-06-2019"
@@ -151,13 +154,13 @@ async def test_should_return_false_when_interval_not_contained2(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_should_return_false_when_interval_not_contained3(
-    service_client: TestClient,
+    graphapi_post,
 ) -> None:
     """
                                [------ super ------)
     [---- sub -----------)
     """
-    expire_org_unit(service_client, PARENT)
+    expire_org_unit(graphapi_post, PARENT)
 
     startdate = "01-02-2010"
     enddate = "01-06-2015"
@@ -370,12 +373,12 @@ async def test_should_not_move_org_unit_to_itself() -> None:
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_should_return_false_when_candidate_parent_is_inactive(
-    service_client: TestClient,
+    graphapi_post,
 ) -> None:
     move_date = "01-01-2019"
     new_org_uuid = PARENT
 
-    expire_org_unit(service_client, PARENT)
+    expire_org_unit(graphapi_post, PARENT)
 
     with pytest.raises(exceptions.HTTPException):
         await validator.is_candidate_parent_valid(UNIT_TO_MOVE, new_org_uuid, move_date)
