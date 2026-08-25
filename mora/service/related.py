@@ -12,17 +12,12 @@ from asyncio import create_task
 from asyncio import gather
 from uuid import UUID
 
-from fastapi import APIRouter
-from fastapi import Body
-
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
 from . import handlers
-
-router = APIRouter()
 
 
 class RelatedUnitRequestHandler(handlers.OrgFunkRequestHandler):
@@ -43,8 +38,7 @@ class RelatedUnitRequestHandler(handlers.OrgFunkRequestHandler):
         raise NotImplementedError
 
 
-@router.post("/ou/{origin}/map")
-async def map_org_units(origin: UUID, req: dict = Body(...)):
+async def map_org_units(origin: UUID, req: dict):
     """Mark the given organisational units as related.
 
     .. :quickref: Unit; Map
