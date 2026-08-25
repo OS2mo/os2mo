@@ -13,11 +13,6 @@ from tests.cases import assert_registrations_equal
 
 from . import util
 
-org_unit_hierarchy_facet = {
-    "description": "",
-    "user_key": "org_unit_hierarchy",
-    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
-}
 org_unit_type_facet = {
     "description": "",
     "user_key": "org_unit_type",
@@ -1309,103 +1304,6 @@ org_unit_type_faculty = {
     "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
 }
 
-parent_org_unit = {
-    "location": "",
-    "name": "Overordnet Enhed",
-    "org": org,
-    "org_unit_hierarchy": None,
-    "org_unit_level": None,
-    "org_unit_type": org_unit_type_department,
-    "parent": None,
-    "time_planning": None,
-    "user_key": "root",
-    "user_settings": {"orgunit": {}},
-    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-    "validity": {"from": "2016-01-01", "to": None},
-}
-humanities_org_unit = {
-    "location": "Overordnet Enhed",
-    "name": "Humanistisk fakultet",
-    "org": org,
-    "org_unit_hierarchy": {
-        "example": None,
-        "facet": org_unit_hierarchy_facet,
-        "full_name": "Selvejet institution",
-        "name": "Selvejet institution",
-        "owner": None,
-        "published": "Publiceret",
-        "scope": "TEXT",
-        "top_level_facet": org_unit_hierarchy_facet,
-        "user_key": "selvejet",
-        "uuid": "69de6410-bfe7-bea5-e6cc-376b3302189c",
-    },
-    "org_unit_level": None,
-    "org_unit_type": org_unit_type_institute,
-    "parent": parent_org_unit,
-    "time_planning": None,
-    "user_key": "hum",
-    "user_settings": {"orgunit": {}},
-    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-    "validity": {"from": "2016-01-01", "to": None},
-}
-historical_institute_org_unit = {
-    "location": "Overordnet Enhed\\Humanistisk fakultet",
-    "name": "Historisk Institut",
-    "org": org,
-    "org_unit_hierarchy": None,
-    "org_unit_level": None,
-    "org_unit_type": org_unit_type_institute,
-    "parent": humanities_org_unit,
-    "time_planning": None,
-    "user_key": "hist",
-    "user_settings": {"orgunit": {}},
-    "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-    "validity": {"from": "2016-01-01", "to": "2018-12-31"},
-}
-
-future_org_unit = {
-    "location": "Overordnet Enhed\\Humanistisk fakultet\\Historisk Institut",
-    "name": "Afdeling for Fremtidshistorik",
-    "org": org,
-    "org_unit_type": org_unit_type_department,
-    "org_unit_hierarchy": None,
-    "org_unit_level": None,
-    "parent": historical_institute_org_unit,
-    "time_planning": None,
-    "user_key": "frem",
-    "user_settings": {"orgunit": {}},
-    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-    "validity": {"from": "2016-01-01", "to": "2016-12-31"},
-}
-present_org_unit = {
-    "location": "Overordnet Enhed\\Humanistisk fakultet\\Historisk Institut",
-    "name": "Afdeling for Samtidshistorik",
-    "org": org,
-    "org_unit_hierarchy": None,
-    "org_unit_level": None,
-    "org_unit_type": org_unit_type_department,
-    "parent": historical_institute_org_unit,
-    "time_planning": None,
-    "user_key": "frem",
-    "user_settings": {"orgunit": {}},
-    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-    "validity": {"from": "2017-01-01", "to": "2017-12-31"},
-}
-past_org_unit = {
-    "location": "Overordnet Enhed\\Humanistisk fakultet\\Historisk Institut",
-    "name": "Afdeling for Fortidshistorik",
-    "org": org,
-    "org_unit_hierarchy": None,
-    "org_unit_level": None,
-    "org_unit_type": org_unit_type_department,
-    "parent": historical_institute_org_unit,
-    "time_planning": None,
-    "user_key": "frem",
-    "user_settings": {"orgunit": {}},
-    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-    "validity": {"from": "2018-01-01", "to": "2018-12-31"},
-}
-
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
@@ -1775,4 +1673,140 @@ def test_edit_org_unit_should_fail_validation_when_end_before_start(
         "error_key": "V_END_BEFORE_START",
         "status": 400,
         "obj": req["data"],
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.parametrize("path, expected", util.get_fixture("test_trees.json").items())
+def test_tree(service_client: TestClient, path: str, expected: dict[str, Any]) -> None:
+    response = service_client.request("GET", path)
+    assert response.status_code == 200
+    assert response.json() == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_edit_org_unit_60582(graphapi_post):
+    CREATE_ORG_UNIT = "mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) { org_unit_create(input: $input) { uuid } }"
+
+    # create parent
+    response = graphapi_post(
+        CREATE_ORG_UNIT,
+        {
+            "input": {
+                "validity": {"from": "2023-01-01", "to": "2026-01-01"},
+                "name": "Parent",
+                "org_unit_type": "32547559-cfc1-4d97-94c6-70b192eff825",
+            }
+        },
+    )
+    assert response.errors is None
+    parent_uuid = response.data["org_unit_create"]["uuid"]
+
+    # create child
+    child_input = {
+        "input": {
+            "validity": {"from": "2024-01-01", "to": "2025-01-01"},
+            "name": "Child",
+            "parent": parent_uuid,
+            "org_unit_type": "32547559-cfc1-4d97-94c6-70b192eff825",
+        }
+    }
+    response = graphapi_post(
+        CREATE_ORG_UNIT,
+        child_input,
+    )
+    assert response.errors is None
+    child_uuid = response.data["org_unit_create"]["uuid"]
+
+    # edit child to exceed parent validity range
+    child_input["input"]["validity"]["to"] = "2027-01-01"
+    child_input["input"]["uuid"] = child_uuid
+    response = graphapi_post(
+        "mutation EditOrgUnit($input: OrganisationUnitUpdateInput!) { org_unit_update(input: $input) { uuid } }",
+        child_input,
+    )
+    # expect this to fail, since child can't exceed parents validity range
+    assert response.errors is not None
+    assert response.errors[0]["message"] == "ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE"
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_future_children(graphapi_post):
+    CREATE_ORG_UNIT = """
+    mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
+      org_unit_create(input: $input) {
+        uuid
+      }
+    }
+    """
+
+    # Create future parent
+    response = graphapi_post(
+        CREATE_ORG_UNIT,
+        {
+            "input": {
+                "validity": {"from": "2100-01-01"},
+                "name": "parent",
+                "org_unit_type": "32547559-cfc1-4d97-94c6-70b192eff825",
+            }
+        },
+    )
+    assert response.errors is None
+    parent_uuid = response.data["org_unit_create"]["uuid"]
+
+    # Create future child
+    response = graphapi_post(
+        CREATE_ORG_UNIT,
+        {
+            "input": {
+                "validity": {"from": "2100-01-01"},
+                "name": "child",
+                "parent": parent_uuid,
+                "org_unit_type": "32547559-cfc1-4d97-94c6-70b192eff825",
+            }
+        },
+    )
+    assert response.errors is None
+    child_uuid = response.data["org_unit_create"]["uuid"]
+
+    # Read parent's children
+    response = graphapi_post(
+        """
+        query OrgUnitChildren($uuid: [UUID!], $fromDate: DateTime) {
+          org_units(filter: { uuids: $uuid, from_date: $fromDate }) {
+            objects {
+              validities {
+                child_count(filter: { from_date: $fromDate })
+                has_children(filter: { from_date: $fromDate })
+                children(filter: { from_date: $fromDate }) {
+                  uuid
+                }
+              }
+            }
+          }
+        }
+        """,
+        {
+            "uuid": parent_uuid,
+            "fromDate": "2100-01-01",
+        },
+    )
+    assert response.errors is None
+    assert response.data == {
+        "org_units": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "child_count": 1,
+                            "children": [{"uuid": child_uuid}],
+                            "has_children": True,
+                        }
+                    ]
+                }
+            ]
+        }
     }
