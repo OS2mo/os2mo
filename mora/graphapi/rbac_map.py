@@ -18,9 +18,6 @@ RBACRequirement = tuple[str, "Collections | None", "CollectionPermissionType | N
 # Fields which are public: every user may access them.
 PUBLIC_FIELDS: frozenset[tuple[str, str]] = frozenset(
     {
-        ("Event", "priority"),
-        ("Event", "subject"),
-        ("Event", "token"),
         ("Health", "identifier"),
         ("Health", "status"),
         ("HealthPaged", "objects"),
@@ -36,8 +33,6 @@ PUBLIC_FIELDS: frozenset[tuple[str, str]] = frozenset(
         ("SpecialActor", "display_name"),
         ("SpecialActor", "key"),
         ("SpecialActor", "uuid"),
-        ("UUIDPaged", "objects"),
-        ("UUIDPaged", "page_info"),
         ("UnknownActor", "display_name"),
         ("UnknownActor", "error"),
         ("UnknownActor", "uuid"),
@@ -373,6 +368,9 @@ RBAC_MAP: dict[tuple[str, str], RBACRequirement] = {
     ("EngagementResponseRegistration", "start"): ("reader", "engagement", "read"),
     ("EngagementResponseRegistration", "uuid"): ("reader", "engagement", "read"),
     ("EngagementResponseRegistration", "validities"): ("reader", "engagement", "read"),
+    ("Event", "priority"): ("admin", "event", "read"),
+    ("Event", "subject"): ("admin", "event", "read"),
+    ("Event", "token"): ("admin", "event", "read"),
     ("Facet", "children"): ("reader", "facet", "read"),
     ("Facet", "children_response"): ("reader", "facet", "read"),
     ("Facet", "classes"): ("reader", "class", "read"),
@@ -1029,6 +1027,8 @@ RBAC_MAP: dict[tuple[str, str], RBACRequirement] = {
     ),
     ("SpecialActor", "event_listeners"): ("reader", "event_listener", "read"),
     ("SpecialActor", "event_namespaces"): ("reader", "event_namespace", "read"),
+    ("UUIDPaged", "objects"): ("admin", None, None),
+    ("UUIDPaged", "page_info"): ("admin", None, None),
     ("UnknownActor", "event_listeners"): ("reader", "event_listener", "read"),
     ("UnknownActor", "event_namespaces"): ("reader", "event_namespace", "read"),
     ("Validity", "from"): ("reader", "address", "read"),
