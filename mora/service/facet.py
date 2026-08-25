@@ -16,11 +16,9 @@ objects.
 """
 
 import enum
-import locale
 import logging
 from functools import partial
 from typing import Any
-from uuid import UUID
 from uuid import uuid4
 
 from fastapi import APIRouter
@@ -40,7 +38,6 @@ from ..exceptions import ErrorCodes
 from ..graphapi.middleware import is_graphql
 from ..lora import LoraObjectType
 from . import handlers
-from .tree_helper import prepare_ancestor_tree
 
 logger = logging.getLogger(__name__)
 
@@ -64,95 +61,6 @@ FULL_DETAILS = {
     ClassDetails.FULL_NAME,
     ClassDetails.TOP_LEVEL_FACET,
 }
-
-
-@router.get("/c/ancestor-tree")
-# @util.restrictargs('at', 'uuid')
-async def get_class_ancestor_tree(  # pragma: no cover
-    uuid: list[UUID] | None = None, only_primary_uuid: bool | None = None
-):
-    """Obtain the tree of ancestors for the given classes.
-
-    The tree includes siblings of ancestors:
-
-    * Every ancestor of each class.
-    * Every sibling of every ancestor.
-
-    The intent of this routine is to enable easily showing the tree
-    *up to and including* the given classes in the UI.
-
-    .. :quickref: Class; Ancestor tree
-
-    :queryparam uuid: The UUID of the class.
-
-    :see: http:get:`/service/c/(uuid:uuid)/`.
-
-    **Example Response**:
-
-    .. sourcecode:: json
-
-     [{
-        "children": [{
-            "children": [{
-                "name": "Industrigruppen",
-                "user_key": "LO_3f_industri",
-                "uuid": "71acc2cf-9a4f-465d-80b7-d6ba4d823ac5",
-                "...": "..."
-            }],
-            "name": "Fagligt Fælles Forbund (3F)",
-            "user_key": "LO_3f",
-            "uuid": "87fc0429-ab51-4b5a-bad2-f55ba39f88d2",
-            "...": "..."
-        }],
-        "name": "LO",
-        "user_key": "LO",
-        "uuid": "a966e536-998a-42b7-9213-c9f89b27f8f8",
-        "...": "..."
-     }]
-    """
-
-    if uuid is None:
-        return []
-
-    c = common.get_connector()
-    classids = uuid
-
-    with_siblings = True
-
-    async def get_class(classid):
-        r = await get_one_class(
-            c,
-            classid,
-            cache[classid],
-            details=(
-                {ClassDetails.NCHILDREN}
-                if with_siblings and classid not in children
-                else None
-            ),
-            only_primary_uuid=only_primary_uuid,
-        )
-        if classid in children:
-            r["children"] = await get_classes(children[classid])
-        return r
-
-    async def get_classes(classids):
-        classes = [await get_class(cid) for cid in classids]
-        return sorted(
-            classes,
-            key=lambda u: locale.strxfrm(u[mapping.NAME]),
-        )
-
-    def get_children_args(uuid, parent_uuid, cache):
-        return {"overordnetklasse": parent_uuid}
-
-    root_uuids, children, cache = await prepare_ancestor_tree(
-        c.klasse,
-        mapping.PARENT_CLASS_FIELD,
-        classids,
-        get_children_args,
-        with_siblings=with_siblings,
-    )
-    return await get_classes(root for root in root_uuids)
 
 
 async def get_one_facet(c, facetid, facet=None, extended: bool = False, validity=None):
