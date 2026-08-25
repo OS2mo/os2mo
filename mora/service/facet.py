@@ -19,15 +19,12 @@ import enum
 import logging
 from functools import partial
 from typing import Any
-from uuid import uuid4
 
 from fastapi import APIRouter
 from more_itertools import first
 from more_itertools import last
-from more_itertools import one
 
 from mora.request_scoped.bulking import get_lora_object
-from ramodels.mo.class_ import ClassWrite
 
 from .. import common
 from .. import exceptions
@@ -37,7 +34,6 @@ from .. import util
 from ..exceptions import ErrorCodes
 from ..graphapi.middleware import is_graphql
 from ..lora import LoraObjectType
-from . import handlers
 
 logger = logging.getLogger(__name__)
 
@@ -279,78 +275,6 @@ async def get_sorted_primary_class_list(c: lora.Connector) -> list[tuple[str, in
     sorted_classes = sorted(parsed_classes, key=lambda x: x[1], reverse=True)
 
     return sorted_classes
-
-
-class ClassRequestHandler(handlers.RequestHandler):
-    role_type = "class"
-
-    async def prepare_create(self, request: dict):
-        async def get_facetids(facet: str):
-            c = common.get_connector()
-
-            uuid, bvn = (facet, None) if util.is_uuid(facet) else (None, facet)
-
-            facetids = await c.facet.load_uuids(
-                uuid=uuid, bvn=bvn, publiceret="Publiceret"
-            )
-
-            if not facetids:  # pragma: no cover
-                raise exceptions.HTTPException(
-                    exceptions.ErrorCodes.E_NOT_FOUND,
-                    message=f"Facet {facet} not found.",
-                )
-
-            assert len(facetids) <= 1, "Facet is not unique"
-
-            return facetids
-
-        valid_from = util.NEGATIVE_INFINITY
-        valid_to = util.POSITIVE_INFINITY
-
-        facet_bvn = request["facet"]
-        facetids = await get_facetids(facet_bvn)
-        facet_uuid = one(facetids)
-
-        mo_class = request["class_model"]
-
-        clazz = common.create_klasse_payload(
-            valid_from=valid_from,
-            valid_to=valid_to,
-            facet_uuid=facet_uuid,
-            org_uuid=mo_class.org_uuid,
-            owner=mo_class.owner,
-            bvn=mo_class.user_key,
-            title=mo_class.name,
-            scope=mo_class.scope,
-        )
-
-        self.payload = clazz
-        self.uuid = mo_class.uuid or str(uuid4())
-
-    async def submit(self) -> str:
-        c = lora.Connector()
-
-        if self.request_type == mapping.RequestType.CREATE:
-            self.result = await c.klasse.create(self.payload, self.uuid)
-        else:  # pragma: no cover
-            self.result = await c.klasse.update(self.payload, self.uuid)
-        return await super().submit()
-
-
-@router.post("/f/{facet}/")
-async def create_or_update_class(
-    facet: str,
-    class_model: ClassWrite,
-):
-    """Will create a new class if there's no UUID or it doesnt match an exiting class
-    Will update an existing class if there's a matching UUID
-
-    :param facet: One of the facet bvns/uuids.
-    :param class_model: Pydantic BaseModel for a class
-    """
-    req = {"facet": facet, "class_model": class_model}
-    request = await ClassRequestHandler.construct(req, mapping.RequestType.CREATE)
-    return await request.submit()
 
 
 def is_class_primary(mo_class: dict) -> bool:
