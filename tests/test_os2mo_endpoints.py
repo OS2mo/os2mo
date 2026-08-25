@@ -17,7 +17,6 @@ health_endpoints = {
     "/health/{identifier}",
 }
 service_api_endpoints = {
-    "/service/c/ancestor-tree",
     "/service/c/{classid}/",
     "/service/c/{classid}/children",
     "/service/details/create",
@@ -39,7 +38,6 @@ service_api_endpoints = {
     "/service/o/{orgid}/ou/",
     "/service/o/{orgid}/ou/tree",
     "/service/o/{parentid}/children",
-    "/service/ou/ancestor-tree",
     "/service/ou/create",
     "/service/ou/{orgid}/details/address",
     "/service/ou/{origin}/map",
