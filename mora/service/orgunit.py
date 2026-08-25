@@ -37,7 +37,6 @@ from .. import lora
 from .. import mapping
 from .. import util
 from ..graphapi.middleware import is_graphql
-from ..handler.reading import get_handler_for_type
 from ..lora import LoraObjectType
 from ..triggers import Trigger
 from . import facet
@@ -540,101 +539,6 @@ async def get_one_orgunit(
         r["%s_count" % key] = await reader.get_count(c, "ou", unitid)
 
     return r
-
-
-@router.get("/ou/ancestor-tree")
-async def get_unit_ancestor_tree(
-    uuid: list[UUID] = Query(...),
-    only_primary_uuid: bool = Query(False),
-    org_unit_hierarchy: str = "",
-):
-    """Obtain the tree of ancestors for the given units.
-
-    The tree includes siblings of ancestors, with their child counts:
-
-    * Every ancestor of each unit.
-    * Every sibling of every ancestor, with a child count.
-
-    The intent of this routine is to enable easily showing the tree
-    *up to and including* the given units in the UI.
-
-    .. :quickref: Unit; Ancestor tree
-
-    :query unitid: the UUID of the organisational unit. *Required*.
-    :query at: the 'at date' to use, e.g. '2020-01-28'. *Optional*.
-               The tree returned will only include organisational units that
-               were valid at the specified 'at date'.
-    :query count: the name(s) of related objects to count for each unit.
-                  *Optional*. If `count=association`, each organisational unit
-                  in the tree is annotated with an additional
-                  `association_count` key which contains the number of
-                  associations in the unit. `count=engagement` is also allowed.
-                  It is allowed to pass more than one `count` query parameter.
-    :query org_unit_hierarchy: the UUID of an optional 'org unit hierarchy'.
-                               *Optional*. The tree returned is filtered to
-                               contain only organisational units which belong
-                               to the given hierarchy.
-
-    :see: :http:get:`/service/ou/(uuid:unitid)/`
-
-    **Example Response**:
-
-    .. sourcecode:: json
-
-     [{
-        "children": [
-          {
-            "child_count": 2,
-            "name": "Humanistisk fakultet",
-            "user_key": "hum",
-            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-            "validity": {
-              "from": "2016-01-01",
-              "to": null
-            }
-          },
-          {
-            "child_count": 0,
-            "name": "Samfundsvidenskabelige fakultet",
-            "user_key": "samf",
-            "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-            "validity": {
-              "from": "2017-01-01",
-              "to": null
-            }
-          }
-        ],
-        "name": "Overordnet Enhed",
-        "user_key": "root",
-        "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-        "validity": {
-          "from": "2016-01-01",
-          "to": null
-        }
-      }]
-
-    """
-
-    allowed = {"association", "engagement"}
-    given = set(util.get_query_args().getlist("count"))
-    invalid = given - allowed
-    if invalid:  # pragma: no cover
-        exceptions.ErrorCodes.E_INVALID_INPUT(
-            'invalid value(s) for "count" query parameter: %r' % invalid
-        )
-
-    c = common.get_connector()
-    count_related = {t: get_handler_for_type(t) for t in given}
-
-    unitids = list(map(str, uuid))
-    return await get_unit_tree(
-        c,
-        unitids,
-        with_siblings=True,
-        only_primary_uuid=only_primary_uuid,
-        org_unit_hierarchy=org_unit_hierarchy,
-        count_related=count_related,
-    )
 
 
 async def get_unit_tree(
