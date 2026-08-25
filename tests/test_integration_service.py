@@ -561,51 +561,6 @@ def test_employee_listing_empty_before_data(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-def test_children(service_client: TestClient) -> None:
-    response = service_client.request(
-        "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
-    )
-    assert response.status_code == 200
-    assert response.json() == [
-        {
-            "name": "Social og sundhed",
-            "user_key": "social-sundhed",
-            "uuid": "68c5d78e-ae26-441f-a143-0103eca8b62a",
-            "validity": {"from": "2017-01-01", "to": None},
-            "child_count": 0,
-        },
-        {
-            "name": "Humanistisk fakultet",
-            "user_key": "hum",
-            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-            "validity": {
-                "from": "2016-12-31",
-                "to": None,
-            },
-            "child_count": 1,
-        },
-        {
-            "name": "Samfundsvidenskabelige fakultet",
-            "user_key": "samf",
-            "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-            "validity": {
-                "from": "2017-01-01",
-                "to": None,
-            },
-            "child_count": 0,
-        },
-        {
-            "name": "Skole og Børn",
-            "user_key": "skole-børn",
-            "uuid": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
-            "validity": {"from": "2017-01-01", "to": None},
-            "child_count": 1,
-        },
-    ]
-
-
-@pytest.mark.integration_test
 @pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(

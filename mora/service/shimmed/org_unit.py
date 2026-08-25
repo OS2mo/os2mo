@@ -15,7 +15,6 @@ from more_itertools import one
 
 from mora import exceptions
 from mora.graphapi.shim import MOOrgUnit
-from mora.graphapi.shim import OrganisationUnitCount
 from mora.graphapi.shim import UUIDObject
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
@@ -184,96 +183,6 @@ async def get_orgunit(
     org_unit.setdefault("parent", None)
     org_unit["user_settings"] = {"orgunit": {}}
     return org_unit
-
-
-@org_unit_router.get(
-    "/ou/{parentid}/children",
-    response_model=list[OrganisationUnitCount],
-    response_model_exclude_unset=True,
-    responses={"404": {"description": "Org unit not found"}},
-)
-async def get_org_unit_children(
-    parentid: UUID = Path(..., description="The UUID of the parent."),
-    at: date | datetime | None = Query(
-        None,
-        description='The "at date" to use, e.g. `2020-01-31`. '
-        "Results are only included if they are active at the specified date.",
-    ),
-    count: set[Literal["engagement", "association"]] = Query(
-        set(),
-        description="The name(s) of related objects to count. "
-        "If `count=association`, each organisational unit in the tree is annotated "
-        "with an additional `association_count` key which contains the number of "
-        "associations in the unit. `count=engagement` is also allowed. "
-        "It is allowed to pass more than one `count` query parameter.",
-    ),
-    org_unit_hierarchy: UUID | None = Query(
-        None,
-        description="The tree returned is filtered to contain "
-        "only organisational units which belong to the given hierarchy.",
-    ),
-):
-    """Obtain the list of nested units within an organisational unit."""
-    query = """
-    query OrganisationUnitChildrenQuery(
-        $uuid: UUID!,
-        $from_date: DateTime,
-        $engagements: Boolean!,
-        $associations: Boolean!,
-        $hierarchies: [UUID!]
-    ) {
-        org_units(filter: {uuids: [$uuid], from_date: $from_date}) {
-            objects {
-                objects {
-                    children(filter: {hierarchies: $hierarchies}) {
-                        uuid
-                        child_count(filter: {hierarchies: $hierarchies})
-                        name
-                        user_key
-                        associations @include(if: $associations) {
-                            uuid
-                        }
-                        engagements @include(if: $engagements) {
-                            uuid
-                        }
-                        validity {
-                            from
-                            to
-                        }
-                    }
-                }
-            }
-        }
-    }
-    """
-    variables = {
-        "uuid": parentid,
-        "engagements": "engagement" in count,
-        "associations": "association" in count,
-        "hierarchies": org_unit_hierarchy,
-    }
-    if at is not None:  # pragma: no cover
-        variables["from_date"] = at
-
-    response = await execute_graphql(query, variable_values=jsonable_encoder(variables))
-    handle_gql_error(response)
-
-    org_unit_list = flatten_data(response.data["org_units"]["objects"])
-    if not org_unit_list:
-        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=str(parentid))
-    try:
-        org_unit: dict[str, Any] = one(org_unit_list)
-    except ValueError:  # pragma: no cover
-        raise ValueError("Wrong number of parent units returned, expected one.")
-
-    ou_children = org_unit["children"]
-    for child in ou_children:
-        if "engagements" in child:
-            child["engagement_count"] = len(child.pop("engagements"))
-        if "associations" in child:
-            child["association_count"] = len(child.pop("associations"))
-
-    return ou_children
 
 
 @org_unit_router.post(
