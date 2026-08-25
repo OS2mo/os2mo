@@ -4,9 +4,6 @@
 # Fields which are public: every user may access them.
 PUBLIC_FIELDS: frozenset[tuple[str, str]] = frozenset(
     {
-        ("Event", "priority"),
-        ("Event", "subject"),
-        ("Event", "token"),
         ("Health", "identifier"),
         ("Health", "status"),
         ("HealthPaged", "objects"),
@@ -22,8 +19,6 @@ PUBLIC_FIELDS: frozenset[tuple[str, str]] = frozenset(
         ("SpecialActor", "display_name"),
         ("SpecialActor", "key"),
         ("SpecialActor", "uuid"),
-        ("UUIDPaged", "objects"),
-        ("UUIDPaged", "page_info"),
         ("UnknownActor", "display_name"),
         ("UnknownActor", "error"),
         ("UnknownActor", "uuid"),
@@ -339,6 +334,9 @@ RBAC_MAP: dict[tuple[str, str], str] = {
     ("EngagementResponseRegistration", "start"): "reader",
     ("EngagementResponseRegistration", "uuid"): "reader",
     ("EngagementResponseRegistration", "validities"): "reader",
+    ("Event", "priority"): "admin",
+    ("Event", "subject"): "admin",
+    ("Event", "token"): "admin",
     ("Facet", "children"): "reader",
     ("Facet", "children_response"): "reader",
     ("Facet", "classes"): "reader",
@@ -959,6 +957,8 @@ RBAC_MAP: dict[tuple[str, str], str] = {
     ("RoleBindingResponseRegistration", "validities"): "reader",
     ("SpecialActor", "event_listeners"): "reader",
     ("SpecialActor", "event_namespaces"): "reader",
+    ("UUIDPaged", "objects"): "admin",
+    ("UUIDPaged", "page_info"): "admin",
     ("UnknownActor", "event_listeners"): "reader",
     ("UnknownActor", "event_namespaces"): "reader",
     ("Validity", "from"): "reader",
