@@ -8,8 +8,6 @@ def test_ensure_endpoint_function_names_are_unique(fastapi_test_app: FastAPI) ->
     must_be_unique = [
         "create_org_unit",
         "terminate",
-        "terminate_org_unit",
-        "terminate_employee",
     ]
     endpoint_func_names = [route.name for route in fastapi_test_app.routes]
 

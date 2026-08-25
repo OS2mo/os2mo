@@ -6,8 +6,6 @@ from typing import Any
 from typing import Literal
 from uuid import UUID
 
-from fastapi import Body
-from fastapi import Depends
 from fastapi import Path
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
@@ -19,9 +17,7 @@ from mora.graphapi.shim import UUIDObject
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.service.orgunit import router as org_unit_router
-from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 
-from ...auth.keycloak import oidc
 from .errors import handle_gql_error
 
 
@@ -183,49 +179,3 @@ async def get_orgunit(
     org_unit.setdefault("parent", None)
     org_unit["user_settings"] = {"orgunit": {}}
     return org_unit
-
-
-@org_unit_router.post(
-    "/ou/{uuid}/terminate",
-    responses={
-        200: {
-            "description": "The termination succeeded",
-            "model": UUID,
-        },
-        404: {"description": "No such unit found"},
-        409: {"description": "Validation failed"},
-    },
-    dependencies=[Depends(oidc.rbac_admin)],
-)
-async def terminate_org_unit(
-    uuid: UUID,
-    request: OrganisationUnitTerminate = Body(...),
-) -> UUID:
-    query = """
-        mutation($uuid: UUID!, $from: DateTime, $to: DateTime!) {
-            org_unit_terminate(input: {uuid: $uuid, from: $from, to: $to}) {
-                uuid
-            }
-        }
-    """
-
-    response = await execute_graphql(
-        query,
-        variable_values={
-            "uuid": str(uuid),
-            "from": request.validity.from_date.isoformat()
-            if request.validity.from_date
-            else None,
-            "to": request.validity.to_date.isoformat()
-            if request.validity.to_date
-            else None,
-        },
-    )
-    handle_gql_error(response)
-
-    # result = response.data[mutation_func]
-    result_uuid = response.data.get("org_unit_terminate", {}).get("uuid", None)
-    if not result_uuid:  # pragma: no cover
-        raise Exception("Did not get a valid UUID from GraphQL response")
-
-    return UUID(result_uuid)
