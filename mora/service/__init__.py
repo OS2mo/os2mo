@@ -20,7 +20,6 @@ from . import owner
 from . import related
 from . import role
 from . import shimmed
-from .validation import validate
 
 __all__ = [
     "address",
@@ -42,7 +41,6 @@ __all__ = [
     "related",
     "role",
     "shimmed",
-    "validate",
 ]
 
 routers = {
@@ -58,5 +56,4 @@ routers = {
     "Organisation": org.router,
     "OrganisationUnit": orgunit.router,
     "Related": related.router,
-    "Validate": validate.router,
 }
