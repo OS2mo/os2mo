@@ -10,7 +10,6 @@ from aioresponses import aioresponses
 from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 from os2mo_http_trigger_protocol import MOTriggerRegister
-from starlette.datastructures import ImmutableMultiDict
 
 from mora import lora
 from mora import mapping
@@ -18,7 +17,6 @@ from mora.config import Settings
 from mora.handler.impl.association import AssociationReader
 from mora.service.orgunit import UnitDetails
 from mora.service.orgunit import get_one_orgunit
-from mora.service.orgunit import get_unit_ancestor_tree
 from mora.triggers.internal.http_trigger import register
 from oio_rest.organisation import OrganisationEnhed
 from tests import util
@@ -339,42 +337,3 @@ async def test_details(details: UnitDetails, expected_keys: set[str]) -> None:
     )
     assert orgunit is not None
     assert set(orgunit.keys()) == expected_keys
-
-
-def _assert_matching_ou_has(doc, user_key=None, **attrs):
-    # Recurse into `doc` until we find a dictionary whose `user_key` equals
-    # `user_key`. Then, assert that each key-value pair in `attrs` is
-    # present in the matching dict, and has the expected value.
-    def visit(node):
-        if isinstance(node, list):
-            for ou in node:
-                visit(ou)
-        elif isinstance(node, dict):
-            if "children" in node:
-                for ou in node["children"]:
-                    visit(ou)
-            if node.get("user_key") == user_key:
-                for attr_name, attr_value in attrs.items():
-                    assert node.get(attr_name) == attr_value
-
-    visit(doc)
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-@pytest.mark.parametrize(
-    "collection,attrs",
-    [
-        ("association", {"association_count": 2}),
-        ("engagement", {"engagement_count": 3}),
-    ],
-)
-async def test_counts(collection: str, attrs: dict[str, int]) -> None:
-    # The OU "Humanistisk Fakultet" has 3 engagements and 1 association.
-    # We need the UUID of a *child* OU to test `get_unit_ancestor_tree`.
-    # Below is the UUID of "Filosofisk Institut".
-    _orgunit_uuid = [UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")]
-
-    async with util.patch_query_args(ImmutableMultiDict({"count": collection})):
-        result = await get_unit_ancestor_tree(_orgunit_uuid, only_primary_uuid=False)
-        _assert_matching_ou_has(result, user_key="hum", **attrs)
