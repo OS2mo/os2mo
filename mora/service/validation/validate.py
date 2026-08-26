@@ -14,44 +14,6 @@ from . import validator
 _router = APIRouter()
 
 
-@_router.post("/employee/", responses={"400": {"description": "Missing employee"}})
-async def employee_validity(req: dict = Body(...)):
-    """
-    Verify that an employee is valid within a given set of start/end dates
-
-    .. :quickref: Validate; Validate employee
-
-    :statuscode 200: Validation succeeded.
-    :statuscode 400: Validation failed.
-
-    :<json object org_unit: The associated org unit
-    :<json object validity: The relevant validities to be checked
-
-    .. sourcecode:: json
-
-      {
-        "person": {
-          "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
-        },
-        "validity": {
-            "from": "2016-01-01",
-            "to": "2017-12-31"
-        }
-      }
-
-    Possible validation errors:
-
-    * ``V_DATE_OUTSIDE_EMPL_RANGE``
-
-    """
-    employee = util.checked_get(req, mapping.PERSON, {}, required=True)
-    valid_from, valid_to = util.get_validities(req)
-
-    await validator.is_date_range_in_employee_range(employee, valid_from, valid_to)
-
-    return {"success": True}
-
-
 @_router.post("/cpr/", responses={"400": {"description": "Missing CPR number"}})
 async def check_cpr(req: dict = Body(...)):
     """
