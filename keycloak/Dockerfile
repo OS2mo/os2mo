@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
-FROM quay.io/keycloak/keycloak:23.0.4-0
+FROM quay.io/keycloak/keycloak:25.0.6-0
 
 # It is recommended to "build" Keycloak with a configuration for faster
 # startup. The build-time options can no longer be changed by environment

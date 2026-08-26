@@ -168,8 +168,10 @@ services:
     build:
       context: keycloak/
     environment:
-      KC_HOSTNAME_URL: http://localhost:5000/auth
-      KC_HOSTNAME_ADMIN_URL: http://localhost:5000/auth
+      KC_HOSTNAME: http://localhost:5000/auth
+      KC_HOSTNAME_ADMIN: http://localhost:5000/auth
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
 
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
@@ -257,6 +259,7 @@ services:
     restart: on-failure
     volumes:
       - keycloak-volume:/srv/:z
+      - ./keycloak/user-profile.tf:/app/user-profile.tf:ro,z
 
   keycloak-dipex-builder:
     image: magentaaps/os2mo-keycloak-integration-builder:6
