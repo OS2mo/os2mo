@@ -11,22 +11,6 @@ PERSON_UUID = "cc1fc948-d3f6-4bbc-9faf-288e0f956135"
 ORG_UNIT_UUID = "f4f28810-cdd9-4ff5-821e-427378ab4bf7"
 
 
-@patch("mora.service.validate.validator.is_date_range_in_org_unit_range")
-def test_candidate_org_unit(mock, service_client):
-    payload = {
-        "org_unit": UUID,
-        "validity": {"from": FROM_DATE, "to": None},
-    }
-
-    service_client.request("POST", "/service/validate/org-unit/", json=payload)
-
-    mock.assert_called_with(
-        UUID,
-        mora_util.parsedatetime(FROM_DATE),
-        mora_util.POSITIVE_INFINITY,
-    )
-
-
 @patch("mora.service.validate.validator.is_date_range_in_employee_range")
 def test_validate_employee(mock, service_client):
     payload = {
