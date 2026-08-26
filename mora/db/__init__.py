@@ -100,6 +100,9 @@ def create_engine(
                     # Cancel transactions that run for more than 5 minutes, so
                     # a bad query doesn't run forever.
                     "-c transaction_timeout=300s",
+                    # Required for performance. Perhaps it can be removed when
+                    # we have proper dataloaders and no more 1+n problems.
+                    "-c plan_cache_mode=force_custom_plan",
                     # Raise the planner's collapse limits and the genetic
                     # optimizer threshold so larger joins are planned
                     # exhaustively instead of falling back to GEQO.
