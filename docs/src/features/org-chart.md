@@ -10,24 +10,22 @@ Formålet med organisationsdiagrammet er gøre MOs data tilgængelige for alle i
 
 Organisationsdiagrammet kan bruges såvel som opslagsværk som overblik over linjeorganisationen og MED/TR-organisationen.
 
+Organisationsdiagrammet læser data fra MO, dvs. hvis data ændres i MO, afspejles det *med det samme* i organisationsdigrammet.
+
 ### Præsentation af data
 #### Visning af organisationer
-Det er muligt at udstille flere organisationer via forskellige adresser (URLer). Således kan man fx vælge at udstille sin administrative organisation med ansatte og ledere i ét organisationsdiagram og sin MED/TR-organisation med tillidsrepræsentantskabet i et andet.
-
-Organisationsdiagrammet bliver opdateret ‘on-the-fly’, når der sker ændringer i MO.
+Det er muligt at udstille flere organisationer via forskellige adresser (URL'er). Således kan man fx vælge at udstille sin administrative organisation med ansatte og ledere i ét organisationsdiagram og sin MED/TR-organisation med tillidsrepræsentantskabet i et andet.
 
 #### Visning af enheder i en træstruktur
 Enheder vises i en træstruktur, så man tydeligt kan se enhedernes hierarkiske tilhørsforhold.
 
 ![image](../graphics/hierarchy.png)
 
-Bemærk, at diagrammet kan udstilles både vandret og lodret.
-
 #### Udfoldning af træstruktur
 Der er toggle-knapper for hver enhed, som viser eller skjuler overenheder og underenheder til denne.
 
 #### Visning af detaljer for enhed
-Ved klik på en enhed fremkommer en liste af personer, som er tilknyttet enheden, deres leder samt kontaktinformation på enheden.
+Ved klik på en enhed fremkommer en liste af personer, som er er ansatte eller/og tilknyttet enheden, deres leder(e) samt kontaktinformation på enheden.
 
 ![image](../graphics/unitdetails.png)
 
@@ -36,22 +34,27 @@ Ved klik på en person (fra enhedens personliste) fremkommer detaljerede oplysni
 
 ![image](../graphics/employeedetails.png)
 
+#### Visning af tilknytninger og engagementer i samme diagram
+
+Det er muligt at vise såvel engagementer som tilknytninger i ét og samme diagram, fx så både ansatte og MED/TR-repræsentanter fremgår.
+
+#### Kaldenavn
+Det er muligt at udstille Kaldenavn i organisationsdiagrammet i stedet for CPR-navn, såfremt Kaldenavn er angivet i MO. Det betyder også, at det er muligt at søge på Kaldenavn. Kaldenavne benyttes typisk, når CPR-navnet ikke ønskes udstillet.
+
+#### Ledere og engagementer
+Som standard vises både lederrollen og lederens engagement(er) i diagrammet. Ønsker man kun at vise lederrollen, kan dette vælges i konfigurationen
+
 ### Navigation og deling
 
 #### Navigation mellem enheder
 Der navigeres mellem enheder ved at folde den visuelle træstruktur ud og klikke eller ‘tabbe’ sig frem til enheder.
 
-#### Navigation fra enhed til person
-Fra enhederne kan man åbne personlister. Fra personlister kan man åbne persondetaljer.
-På telefoner og andre små skærme vil personlister og persondetaljer fylde hele skærmen.
-På større skærme vil personlister og persondetaljer optage en kolonne til højre på skærmen.
-
 #### Deling af trævisning via URL
-Som udgangspunkt vises træstrukturen med den rodenhed, der er konfigureret, og dennes underenheder vil være foldet ud. Når man klikker rundt i trævisningen, opdateres URLen med den enhed, der aktuelt er i fokus.
+Som udgangspunkt vises træstrukturen med den rodenhed, der er konfigureret, og dennes underenheder vil være foldet ud. Når man klikker rundt i trævisningen, opdateres URL'en med den enhed, der aktuelt er i fokus.
 
-Man kan dele visningen ved at kopiere websidens URL og sende den til en anden part. Modtageren kan indsætte URLen i sin egen browser og få åbnet en trævisning, hvor samme enhed er i fokus og dens underenheder allerede er foldet ud.
+Man kan dele visningen ved at kopiere websidens URL og sende den til en anden part. Modtageren kan indsætte URL'en i sin egen browser og få åbnet en trævisning, hvor samme enhed er i fokus, og dens underenheder allerede er foldet ud.
 
-Når man åbner en enhed for at vise dens personliste og individuelle personer, opdaterer dette også URLen. Dette bruges i søgefunktionen til at linke til visning af bestemte personer.
+Når man åbner en enhed for at vise dens personliste og individuelle personer, opdaterer dette også URL'en. Dette bruges i søgefunktionen til at linke til visning af bestemte personer.
 
 ### Søgefunktion
 Søgefunktionen vises i toppen af skærmen.
@@ -69,10 +72,7 @@ Vælger man en person eller enhed fra søgeresultatet, forsvinder søgeresultate
 Der kan søges på:
 
 1. Enhedsnavn
-2. Personers navn
-
-### Opdatering af data
-Når data opdateres i OS2mo, opdateres organisationsdiagrammet umiddelbart herefter.
+2. Personers navn (herunder Kaldenavn, hvis dette er konfigureret)
 
 ## Datavisning
 ### For visning af enheder
@@ -80,7 +80,7 @@ Når data opdateres i OS2mo, opdateres organisationsdiagrammet umiddelbart heref
 For hver organisationsenhed vises:
 
 1. Enhedens navn
-2. Antal ansatte eller tilknyttede (for hhv. linje- og MED-organisation)
+2. Antal ansatte eller tilknyttede (for hhv. linje- og MED/TR-organisation)
 3. Antal underenheder
 
 ### For visning af enhedsdetaljer
@@ -93,7 +93,7 @@ Når man klikker på en enhed, vises følgende informationer om den:
 
 ### For visning af person
 
-1. Navn (fulde navn)
+1. Navn (fulde navn eller kaldenavn, afhængigt af konfiguration)
 2. Ansættelsestype
 3. Stillingsbetegnelse
 4. Kontaktinformation, fx email, telefon, arbejdsadresse og lokation.
@@ -109,7 +109,7 @@ Løsningen kan integrere lokale design, fra farvekoder til logo.
 Løsningen kan anvendes på både små og store skærme.
 
 ### Understøttelse af browsere
-Understøttelse af browsere inkluderer bagudkompatibilitet med Internet Explorer 11 og aktuel version af Safari.
+Understøttelse af browsere inkluderer bagudkompatibilitet med Internet Explorer 11.
 
 ## Øvrig funktionalitet
 ### Print styles
