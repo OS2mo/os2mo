@@ -17,25 +17,6 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from . import handlers
-
-
-class RelatedUnitRequestHandler(handlers.OrgFunkRequestHandler):
-    """This is a dummy handler that exists to enable reading related units.
-
-    Eventually, we'll do that in the handlers, but for now we use
-    their _existence_ to allow reading.
-
-    """
-
-    role_type = "related_unit"
-    function_key = mapping.RELATED_UNIT_KEY
-
-    def prepare_create(self, req: dict):  # pragma: no cover
-        raise NotImplementedError
-
-    def prepare_edit(self, req: dict):  # pragma: no cover
-        raise NotImplementedError
 
 
 async def map_org_units(origin: UUID, req: dict):

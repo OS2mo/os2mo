@@ -606,68 +606,6 @@ def create_bruger_payload(
     return user
 
 
-def create_klasse_payload(
-    valid_from: str,
-    valid_to: str,
-    bvn: str,
-    title: str,
-    facet_uuid: uuid.UUID,
-    org_uuid: uuid.UUID,
-    owner: uuid.UUID | None = None,
-    description: str | None = None,
-    scope: str | None = None,
-    parent_uuid: uuid.UUID | None = None,
-) -> dict:
-    virkning = _create_virkning(valid_from, valid_to)
-
-    # NOTE: This is used from SD, and should be split out as a library?
-    attributter = {
-        "klasseegenskaber": [
-            {
-                "brugervendtnoegle": bvn,
-                "titel": title,
-                "virkning": virkning,
-            }
-        ]
-    }
-    if description:  # pragma: no cover
-        attributter["klasseegenskaber"][0]["beskrivelse"] = description
-    if scope:
-        attributter["klasseegenskaber"][0]["omfang"] = scope
-    tilstande = {
-        "klassepubliceret": [{"publiceret": "Publiceret", "virkning": virkning}]
-    }
-    relationer = {
-        "facet": [{"uuid": facet_uuid, "virkning": virkning, "objekttype": "Facet"}],
-        "ansvarlig": [
-            {
-                "uuid": org_uuid,
-                "virkning": virkning,
-                "objekttype": "Organisation",
-            }
-        ],
-    }
-    if parent_uuid:  # pragma: no cover
-        relationer["overordnetklasse"] = [
-            {"uuid": parent_uuid, "virkning": virkning, "objekttype": "Klasse"}
-        ]
-    if owner:
-        relationer["ejer"] = [
-            {
-                "uuid": owner,
-                "virkning": virkning,
-                "objekttype": "OrganisationEnhed",
-            }
-        ]
-    klasse = {
-        "attributter": attributter,
-        "relationer": relationer,
-        "tilstande": tilstande,
-    }
-
-    return klasse
-
-
 async def add_history_entry(scope: lora.Scope, id: str, note: str):
     """
     Add a history entry to a given object.

@@ -131,3 +131,65 @@ async def test_update_related_units_integration_test(test_data, graphapi_post) -
             for dest in test_data["destination"]
         ]
         assert len(relations) == len(objects)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_update_related_units_org_unit_not_found(graphapi_post) -> None:
+    """Updating related units with a non-existent unit yields E_ORG_UNIT_NOT_FOUND."""
+    mutation = """
+        mutation UpdateRelatedUnits($input: RelatedUnitsUpdateInput!) {
+            related_units_update(input: $input) {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(
+        mutation,
+        {
+            "input": {
+                "origin": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "destination": ["00000000-0000-0000-0000-000000000000"],
+                "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+            }
+        },
+    )
+    assert response.errors is not None
+    assert any(
+        e.get("extensions", {}).get("error_context", {}).get("error_key")
+        == "E_ORG_UNIT_NOT_FOUND"
+        for e in response.errors
+    ), f"unexpected errors: {response.errors}"
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_update_related_units_date_outside_org_unit_range(graphapi_post) -> None:
+    """Updating related units from a date where a unit is inactive yields
+    V_DATE_OUTSIDE_ORG_UNIT_RANGE."""
+    mutation = """
+        mutation UpdateRelatedUnits($input: RelatedUnitsUpdateInput!) {
+            related_units_update(input: $input) {
+                uuid
+            }
+        }
+    """
+    # HIST_UNIT ("da77153e-30f3-4dc2-a611-ee912a28d8aa") is only valid
+    # from 2016-01-01 to 2018-12-31, so a 2019 effective date puts it
+    # outside its validity range.
+    response: GQLResponse = graphapi_post(
+        mutation,
+        {
+            "input": {
+                "origin": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "destination": ["da77153e-30f3-4dc2-a611-ee912a28d8aa"],
+                "validity": {"from": "2019-06-01T00:00:00+01:00", "to": None},
+            }
+        },
+    )
+    assert response.errors is not None
+    assert any(
+        e.get("extensions", {}).get("error_context", {}).get("error_key")
+        == "V_DATE_OUTSIDE_ORG_UNIT_RANGE"
+        for e in response.errors
+    ), f"unexpected errors: {response.errors}"

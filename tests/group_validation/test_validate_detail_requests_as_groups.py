@@ -19,9 +19,6 @@ class _DummyRequestHandler(RequestHandler):
     async def prepare_edit(self, request: dict):
         pass
 
-    async def prepare_refresh(self, request: dict):
-        pass
-
     async def prepare_terminate(self, request: dict):
         pass
 

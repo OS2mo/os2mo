@@ -969,3 +969,55 @@ def test_manager_engagement_filter(
         {"engagement": {"uuids": [str(engagement_alpha), str(engagement_beta)]}}
     ) == {manager_alpha, manager_beta}
     assert read({"engagement": {"uuids": [str(uuid4())]}}) == set()
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_employee_terminate_with_vacate_marks_manager_vacant(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Terminating an employee with vacate=True empties the user field on their
+    manager roles rather than terminating them entirely."""
+    # Anders And holds a manager role in the fixture data
+    employee_uuid = UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a")
+    manager_uuid = UUID("05609702-977f-4869-9fb4-50ad74c6999a")
+
+    response = graphapi_post(
+        """
+        mutation TerminateEmployee($input: EmployeeTerminateInput!) {
+            employee_terminate(input: $input) { uuid }
+        }
+        """,
+        variables={
+            "input": {
+                "uuid": str(employee_uuid),
+                "to": "2020-01-01",
+                "vacate": True,
+            }
+        },
+    )
+    assert response.errors is None
+
+    # Verify the manager still exists, but with no person attached going forward
+    response = graphapi_post(
+        """
+        query ReadManager($uuid: UUID!) {
+            managers(filter: {uuids: [$uuid]}) {
+                objects {
+                    objects {
+                        uuid
+                        employee_uuid
+                        validity {from to}
+                    }
+                }
+            }
+        }
+        """,
+        variables={"uuid": str(manager_uuid)},
+    )
+    assert response.errors is None
+    validities = one(response.data["managers"]["objects"])["objects"]
+    # Original validity terminated, new vacant validity going forward
+    assert any(
+        v["employee_uuid"] is None for v in validities
+    ), f"expected a vacant validity, got: {validities}"
