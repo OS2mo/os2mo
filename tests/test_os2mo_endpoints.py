@@ -50,7 +50,6 @@ service_api_endpoints = {
     "/service/ou/{unitid}/",
     "/service/ou/{unitid}/refresh",
     "/service/ou/{uuid}/terminate",
-    "/service/validate/address/",
     "/service/{rest_of_path:path}",
     "/service/e/{id}/details/association",
     "/service/e/{id}/details/employee",
