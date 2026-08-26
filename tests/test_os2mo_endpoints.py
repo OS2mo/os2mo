@@ -52,7 +52,6 @@ service_api_endpoints = {
     "/service/ou/{uuid}/terminate",
     "/service/validate/address/",
     "/service/validate/candidate-parent-org-unit/",
-    "/service/validate/existing-associations/",
     "/service/{rest_of_path:path}",
     "/service/e/{id}/details/association",
     "/service/e/{id}/details/employee",

@@ -15,57 +15,6 @@ _router = APIRouter()
 
 
 @_router.post(
-    "/existing-associations/", responses={"400": {"description": "Missing person"}}
-)
-async def employee_existing_associations(req: dict = Body(...)):
-    """
-    Verify that an employee does not have existing associations for a given
-    org unit
-
-    .. :quickref: Validate; Validate existing associations
-
-    :statuscode 200: Validation succeeded.
-    :statuscode 400: Validation failed.
-
-    :<json object person: The associated employee
-    :<json object person: The associated org unit
-    :<json object validity: The relevant validities to be checked
-    :<json object uuid: The UUID of an existing association to be exempt
-        from validation
-
-    .. sourcecode:: json
-
-      {
-        "person": {
-          "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
-        },
-        "org_unit": {
-          "uuid": "c55e9eb3-2b23-4364-b5e4-dff51ddf289e"
-        },
-        "validity": {
-            "from": "2016-01-01",
-            "to": "2017-12-31"
-        },
-        "uuid": "df995126-e747-4f9f-8e3b-ca38cadbfdb1",
-      }
-
-    Possible validation errors:
-
-    * ``V_MORE_THAN_ONE_ASSOCIATION``
-    """
-    employee_uuid = util.get_mapping_uuid(req, mapping.PERSON, required=True)
-    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT, required=True)
-    association_uuid = util.get_uuid(req, required=False)
-    valid_from = util.get_valid_from(req)
-
-    await validator.does_employee_have_existing_association(
-        employee_uuid, org_unit_uuid, valid_from, association_uuid
-    )
-
-    return {"success": True}
-
-
-@_router.post(
     "/candidate-parent-org-unit/",
     responses={"400": {"description": "Missing org unit"}},
 )
