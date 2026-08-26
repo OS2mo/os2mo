@@ -15,47 +15,6 @@ _router = APIRouter()
 
 
 @_router.post(
-    "/active-engagements/", responses={"400": {"description": "Missing person"}}
-)
-async def employee_engagements(req: dict = Body(...)):
-    """
-    Verify that an employee has active engagements
-
-    .. :quickref: Validate; Validate active engagements
-
-    :statuscode 200: Validation succeeded.
-    :statuscode 400: Validation failed.
-
-    :<json object person: The associated employee
-    :<json object validity: The relevant validities to be checked
-
-    .. sourcecode:: json
-
-      {
-        "person": {
-          "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
-        },
-        "validity": {
-            "from": "2016-01-01",
-            "to": "2017-12-31"
-        }
-      }
-
-    Possible validation errors:
-
-    * ``V_NO_ACTIVE_ENGAGEMENT``
-    """
-    employee_uuid = util.get_mapping_uuid(req, mapping.PERSON, required=True)
-    valid_from, valid_to = util.get_validities(req)
-
-    await validator.does_employee_have_active_engagement(
-        employee_uuid, valid_from, valid_to
-    )
-
-    return {"success": True}
-
-
-@_router.post(
     "/existing-associations/", responses={"400": {"description": "Missing person"}}
 )
 async def employee_existing_associations(req: dict = Body(...)):

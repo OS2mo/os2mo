@@ -50,7 +50,6 @@ service_api_endpoints = {
     "/service/ou/{unitid}/",
     "/service/ou/{unitid}/refresh",
     "/service/ou/{uuid}/terminate",
-    "/service/validate/active-engagements/",
     "/service/validate/address/",
     "/service/validate/candidate-parent-org-unit/",
     "/service/validate/existing-associations/",

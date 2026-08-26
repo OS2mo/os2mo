@@ -11,23 +11,6 @@ PERSON_UUID = "cc1fc948-d3f6-4bbc-9faf-288e0f956135"
 ORG_UNIT_UUID = "f4f28810-cdd9-4ff5-821e-427378ab4bf7"
 
 
-@patch("mora.service.validate.validator.does_employee_have_active_engagement")
-def test_employee_engagements(mock, service_client):
-    payload = {
-        "person": {"uuid": PERSON_UUID},
-        "validity": {"from": FROM_DATE, "to": None},
-    }
-
-    service_client.request(
-        "POST", "/service/validate/active-engagements/", json=payload
-    )
-    mock.assert_called_with(
-        PERSON_UUID,
-        mora_util.parsedatetime(FROM_DATE),
-        mora_util.POSITIVE_INFINITY,
-    )
-
-
 @patch("mora.service.validate.validator.does_employee_have_existing_association")
 def test_existing_associations(mock, service_client):
     association_uuid = "7cd87e2a-e41a-4b68-baca-ff69426be753"
