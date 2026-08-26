@@ -53,7 +53,6 @@ service_api_endpoints = {
     "/service/validate/active-engagements/",
     "/service/validate/address/",
     "/service/validate/candidate-parent-org-unit/",
-    "/service/validate/cpr/",
     "/service/validate/existing-associations/",
     "/service/{rest_of_path:path}",
     "/service/e/{id}/details/association",

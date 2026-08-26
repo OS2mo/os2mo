@@ -11,20 +11,6 @@ PERSON_UUID = "cc1fc948-d3f6-4bbc-9faf-288e0f956135"
 ORG_UNIT_UUID = "f4f28810-cdd9-4ff5-821e-427378ab4bf7"
 
 
-@patch("mora.service.validate.validator.does_employee_with_cpr_already_exist")
-def test_cpr(mock, service_client):
-    cpr_no = "1234567890"
-
-    org_uuid = "52e8d1ff-6fe0-4e8a-a19c-8bd8e1154b3b"
-    payload = {"cpr_no": cpr_no, "org": {"uuid": org_uuid}}
-
-    service_client.request("POST", "/service/validate/cpr/", json=payload)
-
-    mock.assert_called_with(
-        cpr_no, mora_util.NEGATIVE_INFINITY, mora_util.POSITIVE_INFINITY, org_uuid
-    )
-
-
 @patch("mora.service.validate.validator.does_employee_have_active_engagement")
 def test_employee_engagements(mock, service_client):
     payload = {

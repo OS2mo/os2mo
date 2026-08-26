@@ -14,42 +14,6 @@ from . import validator
 _router = APIRouter()
 
 
-@_router.post("/cpr/", responses={"400": {"description": "Missing CPR number"}})
-async def check_cpr(req: dict = Body(...)):
-    """
-    Verify that an employee with the given CPR no. does not already exist
-
-    .. :quickref: Validate; Validate CPR no.
-
-    :statuscode 200: Validation succeeded.
-    :statuscode 400: Validation failed.
-
-    :<json string cpr: The associated CPR number
-    :<json object org: The associated organisation
-
-    .. sourcecode:: json
-
-      {
-        "cpr_no": "1212121212",
-        "org": {
-          "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
-        }
-      }
-
-    Possible validation errors:
-
-    * ``V_EXISTING_CPR``
-    """
-    cpr = util.checked_get(req, mapping.CPR_NO, "", required=True)
-    org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
-
-    if await validator.does_employee_with_cpr_already_exist(
-        cpr, util.NEGATIVE_INFINITY, util.POSITIVE_INFINITY, org_uuid
-    ):
-        raise exceptions.HTTPException(exceptions.ErrorCodes.V_EXISTING_CPR)
-    return {"success": True}  # pragma: no cover
-
-
 @_router.post(
     "/active-engagements/", responses={"400": {"description": "Missing person"}}
 )
