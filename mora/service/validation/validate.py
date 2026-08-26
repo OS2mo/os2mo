@@ -14,55 +14,6 @@ from . import validator
 _router = APIRouter()
 
 
-@_router.post(
-    "/candidate-parent-org-unit/",
-    responses={"400": {"description": "Missing org unit"}},
-)
-async def candidate_parent_org_unit(req: dict = Body(...)):
-    """
-    Verify that a given parent is a suitable candidate for an org unit move,
-    i.e. that the candidate parent is not in the sub tree of the org unit being
-    moved, and that the org unit being moved is not a root unit.
-
-    .. :quickref: Validate; Validate candidate parent org unit
-
-    :statuscode 200: Validation succeeded.
-    :statuscode 400: Validation failed.
-
-    :<json object org_unit: The associated org unit to be moved
-    :<json object parent: The associated parent org unit
-    :<json object from: The date on which the move is to take place
-
-    .. sourcecode:: json
-
-      {
-        "org_unit": {
-          "uuid": "c55e9eb3-2b23-4364-b5e4-dff51ddf289e"
-        },
-        "parent": {
-          "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
-        },
-        "validity": {
-            "from": "2016-01-01",
-        }
-      }
-
-    Possible validation errors:
-
-    * ``V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL``
-    * ``V_ORG_UNIT_MOVE_TO_CHILD``
-    * ``V_DATE_OUTSIDE_ORG_UNIT_RANGE``
-    * ``V_UNIT_OUTSIDE_ORG``
-    """
-    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT, required=True)
-    parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
-    valid_from = util.get_valid_from(req)
-
-    await validator.is_candidate_parent_valid(org_unit_uuid, parent_uuid, valid_from)
-
-    return {"success": True}
-
-
 @_router.post("/address/")
 async def address_value(req: dict = Body(...), only_primary_uuid: bool | None = None):
     """

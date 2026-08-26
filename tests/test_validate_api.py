@@ -11,27 +11,6 @@ PERSON_UUID = "cc1fc948-d3f6-4bbc-9faf-288e0f956135"
 ORG_UNIT_UUID = "f4f28810-cdd9-4ff5-821e-427378ab4bf7"
 
 
-@patch("mora.service.validate.validator.is_candidate_parent_valid")
-def test_parent_org_unit(mock, service_client):
-    parent_uuid = "cc1fc948-d3f6-4bbc-9faf-288e0f956135"
-
-    payload = {
-        "org_unit": {"uuid": ORG_UNIT_UUID},
-        "parent": {"uuid": parent_uuid},
-        "validity": {
-            "from": FROM_DATE,
-        },
-    }
-
-    service_client.request(
-        "POST", "/service/validate/candidate-parent-org-unit/", json=payload
-    )
-
-    mock.assert_called_with(
-        ORG_UNIT_UUID, parent_uuid, mora_util.parsedatetime(FROM_DATE)
-    )
-
-
 @patch("mora.service.address_handler.base.get_handler_for_scope")
 @patch("mora.service.facet.get_one_class")
 def test_address(get_one_class, get_handler_for_scope, service_client):
