@@ -349,69 +349,6 @@ async def is_candidate_parent_valid(
 
 
 @forceable
-async def does_employee_have_existing_association(
-    employee_uuid, org_unit_uuid, valid_from, association_uuid=None
-):  # pragma: no cover
-    """
-    Check if an employee already has an active association for a given org
-    unit on a given date
-
-    :param employee_uuid: UUID of the employee
-    :param org_unit_uuid: UUID of the org unit
-    :param valid_from: The date to check
-    :param association_uuid: An optional uuid of an organisation
-        being edited to be exempt from validation.
-    :return:
-    """
-    return await does_uuid_have_existing_association(
-        uuid=employee_uuid,
-        uuid_search_key="tilknyttedebrugere",
-        org_unit_uuid=org_unit_uuid,
-        valid_from=valid_from,
-        association_function_key=mapping.ASSOCIATION_KEY,
-        association_uuid=association_uuid,
-    )
-
-
-@forceable
-async def does_uuid_have_existing_association(
-    uuid: str,
-    uuid_search_key: str,
-    org_unit_uuid: str,
-    valid_from: str,
-    association_function_key: str,
-    association_uuid=None,
-):  # pragma: no cover
-    """
-    Check if an employee already has an active association for a given org
-    unit on a given date
-
-    :param uuid: UUID of the obj
-    :param uuid_search_key: "lora-column" in which to look for the uuid
-    :param org_unit_uuid: UUID of the org unit
-    :param valid_from: The date to check
-    :param association_function_key: The key denoting the association type
-    :param association_uuid: An optional uuid of an organisation
-        being edited to be exempt from validation.
-    :return:
-    """
-    c = lora.Connector(effective_date=valid_from)
-
-    r = await c.organisationfunktion.load_uuids(
-        tilknyttedeenheder=org_unit_uuid,
-        gyldighed="Aktiv",
-        funktionsnavn=association_function_key,
-        **{uuid_search_key: uuid},
-    )
-
-    if association_uuid is not None and association_uuid in r:
-        return
-
-    if r:
-        exceptions.ErrorCodes.V_MORE_THAN_ONE_ASSOCIATION(existing=r)
-
-
-@forceable
 def is_substitute_allowed(association_type_uuid: UUID):
     """
     checks whether the chosen association needs a substitute

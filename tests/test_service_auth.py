@@ -203,7 +203,6 @@ async def test_auth_service(raw_client: TestClient, url: str) -> None:
     [
         "/service/details/create",
         "/service/ou/00000000-0000-0000-0000-000000000000/map",
-        "/service/validate/org-unit/",
     ],
 )
 async def test_auth_service_with_payload(raw_client: TestClient, url: str) -> None:
