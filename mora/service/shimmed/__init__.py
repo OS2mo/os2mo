@@ -4,7 +4,6 @@ from . import cpr
 from . import details
 from . import employee
 from . import facet
-from . import insight
 from . import it_systems
 from . import org
 from . import org_unit
@@ -13,7 +12,6 @@ __all__ = [
     "cpr",
     "employee",
     "facet",
-    "insight",
     "it_systems",
     "org",
     "org_unit",
