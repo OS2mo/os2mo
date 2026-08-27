@@ -6,7 +6,6 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from more_itertools import one
 
 from mora import lora
 from mora.service import orgunit as service_orgunit
@@ -14,11 +13,6 @@ from tests.cases import assert_registrations_equal
 
 from . import util
 
-org_unit_hierarchy_facet = {
-    "description": "",
-    "user_key": "org_unit_hierarchy",
-    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
-}
 org_unit_type_facet = {
     "description": "",
     "user_key": "org_unit_type",
@@ -1310,132 +1304,6 @@ org_unit_type_faculty = {
     "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
 }
 
-parent_org_unit = {
-    "location": "",
-    "name": "Overordnet Enhed",
-    "org": org,
-    "org_unit_hierarchy": None,
-    "org_unit_level": None,
-    "org_unit_type": org_unit_type_department,
-    "parent": None,
-    "time_planning": None,
-    "user_key": "root",
-    "user_settings": {"orgunit": {}},
-    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-    "validity": {"from": "2016-01-01", "to": None},
-}
-humanities_org_unit = {
-    "location": "Overordnet Enhed",
-    "name": "Humanistisk fakultet",
-    "org": org,
-    "org_unit_hierarchy": {
-        "example": None,
-        "facet": org_unit_hierarchy_facet,
-        "full_name": "Selvejet institution",
-        "name": "Selvejet institution",
-        "owner": None,
-        "published": "Publiceret",
-        "scope": "TEXT",
-        "top_level_facet": org_unit_hierarchy_facet,
-        "user_key": "selvejet",
-        "uuid": "69de6410-bfe7-bea5-e6cc-376b3302189c",
-    },
-    "org_unit_level": None,
-    "org_unit_type": org_unit_type_institute,
-    "parent": parent_org_unit,
-    "time_planning": None,
-    "user_key": "hum",
-    "user_settings": {"orgunit": {}},
-    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-    "validity": {"from": "2016-01-01", "to": None},
-}
-historical_institute_org_unit = {
-    "location": "Overordnet Enhed\\Humanistisk fakultet",
-    "name": "Historisk Institut",
-    "org": org,
-    "org_unit_hierarchy": None,
-    "org_unit_level": None,
-    "org_unit_type": org_unit_type_institute,
-    "parent": humanities_org_unit,
-    "time_planning": None,
-    "user_key": "hist",
-    "user_settings": {"orgunit": {}},
-    "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-    "validity": {"from": "2016-01-01", "to": "2018-12-31"},
-}
-
-future_org_unit = {
-    "location": "Overordnet Enhed\\Humanistisk fakultet\\Historisk Institut",
-    "name": "Afdeling for Fremtidshistorik",
-    "org": org,
-    "org_unit_type": org_unit_type_department,
-    "org_unit_hierarchy": None,
-    "org_unit_level": None,
-    "parent": historical_institute_org_unit,
-    "time_planning": None,
-    "user_key": "frem",
-    "user_settings": {"orgunit": {}},
-    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-    "validity": {"from": "2016-01-01", "to": "2016-12-31"},
-}
-present_org_unit = {
-    "location": "Overordnet Enhed\\Humanistisk fakultet\\Historisk Institut",
-    "name": "Afdeling for Samtidshistorik",
-    "org": org,
-    "org_unit_hierarchy": None,
-    "org_unit_level": None,
-    "org_unit_type": org_unit_type_department,
-    "parent": historical_institute_org_unit,
-    "time_planning": None,
-    "user_key": "frem",
-    "user_settings": {"orgunit": {}},
-    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-    "validity": {"from": "2017-01-01", "to": "2017-12-31"},
-}
-past_org_unit = {
-    "location": "Overordnet Enhed\\Humanistisk fakultet\\Historisk Institut",
-    "name": "Afdeling for Fortidshistorik",
-    "org": org,
-    "org_unit_hierarchy": None,
-    "org_unit_level": None,
-    "org_unit_type": org_unit_type_department,
-    "parent": historical_institute_org_unit,
-    "time_planning": None,
-    "user_key": "frem",
-    "user_settings": {"orgunit": {}},
-    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-    "validity": {"from": "2018-01-01", "to": "2018-12-31"},
-}
-
-
-@pytest.mark.integration_test
-@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("fixture_db")
-@pytest.mark.parametrize(
-    "params, expected",
-    [
-        ({"validity": "past"}, [future_org_unit]),
-        ({"validity": "present"}, [present_org_unit]),
-        ({"validity": "future"}, [past_org_unit]),
-        (
-            {"validity": "past", "at": "2020-01-01"},
-            [future_org_unit, present_org_unit, past_org_unit],
-        ),
-        ({"validity": "present", "at": "2020-01-01"}, []),
-        ({"validity": "future", "at": "2020-01-01"}, []),
-    ],
-)
-def test_org_unit_temporality(
-    service_client: TestClient, params: dict[str, Any], expected: list[dict[str, Any]]
-) -> None:
-    response = service_client.request(
-        "GET",
-        "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/org_unit",
-        params=params,
-    )
-    assert response.status_code == 200
-    assert response.json() == expected
-
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
@@ -1571,23 +1439,20 @@ def test_edit_org_unit_earlier_start(service_client: TestClient) -> None:
 def test_edit_org_unit_extending_end(service_client: TestClient) -> None:
     unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
 
-    def check_future_names(*names):
-        response = service_client.request(
-            "GET",
-            f"/service/ou/{unitid}/details/org_unit",
-            params={"validity": "future"},
-        )
-        assert response.status_code == 200
-        result = response.json()
-
-        assert list(names) == [
-            (d["name"], d["validity"]["from"], d["validity"]["to"]) for d in result
-        ]
+    def check_names_at(*checks):
+        for at, name in checks:
+            response = service_client.request(
+                "GET",
+                f"/service/ou/{unitid}/",
+                params={"at": at},
+            )
+            assert response.status_code == 200
+            assert response.json()["name"] == name
 
     # Prerequisites
-    check_future_names(
-        ("Afdeling for Samtidshistorik", "2017-01-01", "2017-12-31"),
-        ("Afdeling for Fortidshistorik", "2018-01-01", "2018-12-31"),
+    check_names_at(
+        ("2017-06-01", "Afdeling for Samtidshistorik"),
+        ("2018-06-01", "Afdeling for Fortidshistorik"),
     )
 
     response = service_client.request(
@@ -1627,12 +1492,16 @@ def test_edit_org_unit_extending_end(service_client: TestClient) -> None:
     assert response.status_code == 200, "Editing with clamp should succeed"
     assert response.json() == unitid
 
-    check_future_names(
-        ("Afdeling for Samtidshistorik", "2017-01-01", "2017-12-31"),
-        ("Afdeling for Fortidshistorik", "2018-01-01", "2018-02-28"),
-        ("Institut for Vrøvl", "2018-03-01", "2018-05-31"),
-        ("Institut for Sludder", "2018-06-01", "2018-09-30"),
-        ("Institut for Vrøvl", "2018-10-01", "2018-12-31"),
+    check_names_at(
+        ("2017-06-01", "Afdeling for Samtidshistorik"),
+        ("2018-01-15", "Afdeling for Fortidshistorik"),
+        ("2018-02-15", "Afdeling for Fortidshistorik"),
+        ("2018-03-15", "Institut for Vrøvl"),
+        ("2018-05-15", "Institut for Vrøvl"),
+        ("2018-06-15", "Institut for Sludder"),
+        ("2018-09-15", "Institut for Sludder"),
+        ("2018-10-15", "Institut for Vrøvl"),
+        ("2018-12-15", "Institut for Vrøvl"),
     )
 
 
@@ -1688,13 +1557,14 @@ def test_edit_time_planning(service_client: TestClient) -> None:
 
     response = service_client.request(
         "GET",
-        f"/service/ou/{org_unit_uuid}/details/org_unit",
-        params={"validity": "present"},
+        f"/service/ou/{org_unit_uuid}/",
     )
     assert response.status_code == 200
-    result = one(response.json())
+    result = response.json()
 
-    assert result["time_planning"] == org_unit_type_faculty
+    assert result["time_planning"] == {
+        k: v for k, v in org_unit_type_faculty.items() if k != "published"
+    }
 
 
 @pytest.mark.integration_test

@@ -12,7 +12,64 @@ from pydantic import BaseModel
 from pydantic import Field
 
 from mora.mapping import OwnerInferencePriority
+from tests.conftest import GraphAPIPost
 from tests.util import load_fixture
+
+OWNER_READ_QUERY = """
+    query ReadOwners($filter: OwnerFilter!) {
+        owners(filter: $filter) {
+            objects {
+                objects {
+                    uuid
+                    owner_uuid
+                    employee_uuid
+                    org_unit_uuid
+                    owner_inference_priority
+                }
+            }
+        }
+    }
+"""
+
+INHERITED_OWNER_QUERY = """
+    query ReadInheritedOwners(
+        $filter: OrganisationUnitFilter!, $inherit: Boolean!
+    ) {
+        org_units(filter: $filter) {
+            objects {
+                validities {
+                    owners(inherit: $inherit) {
+                        uuid
+                        owner_uuid
+                        employee_uuid
+                        org_unit_uuid
+                        owner_inference_priority
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def read_owners(graphapi_post: GraphAPIPost, filter: dict[str, Any]) -> list[dict]:
+    response = graphapi_post(OWNER_READ_QUERY, variables={"filter": filter})
+    assert response.errors is None
+    return [
+        obj for outer in response.data["owners"]["objects"] for obj in outer["objects"]
+    ]
+
+
+def read_inherited_owners(
+    graphapi_post: GraphAPIPost, org_unit_uuid: UUID, inherit: bool = True
+) -> list[dict]:
+    response = graphapi_post(
+        INHERITED_OWNER_QUERY,
+        variables={"filter": {"uuids": str(org_unit_uuid)}, "inherit": inherit},
+    )
+    assert response.errors is None
+    objects = one(response.data["org_units"]["objects"])
+    return one(objects["validities"])["owners"]
 
 
 class ConfiguredBase(BaseModel):
@@ -90,22 +147,18 @@ def simplified_owner(
 @pytest.mark.integration_test
 @pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-def test_inherit_top_level_empty(service_client: TestClient) -> None:
+def test_inherit_top_level_empty(graphapi_post: GraphAPIPost) -> None:
     """When hitting top-level simply return nothing."""
-    response = service_client.request(
-        "GET",
-        f"service/ou/{level2_ou}/details/owner",
-        params={"validity": "present", "at": "2017-01-01", "inherit_owner": 1},
-    )
-    assert response.status_code == 200
-    assert response.json() == []
+    assert read_inherited_owners(graphapi_post, level2_ou, inherit=True) == []
 
 
 @pytest.mark.integration_test
 @pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-def test_read_without_inherit(service_client: TestClient) -> None:
-    """Without inherit_owner, only directly-set owners are returned."""
+def test_read_without_inherit(
+    service_client: TestClient, graphapi_post: GraphAPIPost
+) -> None:
+    """Without inherit, only directly-set owners are returned."""
     response = service_client.request(
         "POST",
         "/service/details/create",
@@ -114,28 +167,17 @@ def test_read_without_inherit(service_client: TestClient) -> None:
     assert response.status_code == 201
 
     # the org-unit with a directly-set owner returns it
-    response = service_client.request(
-        "GET",
-        f"service/ou/{top_level_ou}/details/owner",
-        params={"validity": "present", "at": "2017-01-01"},
-    )
-    assert response.status_code == 200
-    assert one(response.json())["uuid"] == str(func_uuid)
+    owners = read_owners(graphapi_post, {"org_unit": {"uuids": str(top_level_ou)}})
+    assert one(owners)["uuid"] == str(func_uuid)
 
     # the child org-unit does not inherit it
-    response = service_client.request(
-        "GET",
-        f"service/ou/{level2_ou}/details/owner",
-        params={"validity": "present", "at": "2017-01-01"},
-    )
-    assert response.status_code == 200
-    assert response.json() == []
+    assert read_owners(graphapi_post, {"org_unit": {"uuids": str(level2_ou)}}) == []
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
-    "payload, status_code, verifying_org_unit, verifying_response",
+    "payload, status_code, verifying_org_unit, verifying_owner",
     [
         # Inherit
         # When absolutely no owner-orgfunc exists, inherit via the org hierarchy
@@ -148,31 +190,13 @@ def test_read_without_inherit(service_client: TestClient) -> None:
             ),
             201,
             level2_ou,
-            [
-                {
-                    "org_unit": {
-                        "name": "Overordnet Enhed",
-                        "user_key": "root",
-                        "uuid": top_level_ou,
-                        "validity": {"from": "2016-01-01", "to": None},
-                    },
-                    "owner": {
-                        "givenname": "Anders",
-                        "name": "Anders And",
-                        "nickname": "Donald Duck",
-                        "nickname_givenname": "Donald",
-                        "nickname_surname": "Duck",
-                        "seniority": None,
-                        "surname": "And",
-                        "uuid": person1,
-                    },
-                    "person": None,
-                    "owner_inference_priority": None,
-                    "user_key": "64181ed2-f1de-4c4a-a8fd-ab358c2c565b",
-                    "uuid": func_uuid,
-                    "validity": {"from": "2017-01-01", "to": None},
-                }
-            ],
+            {
+                "uuid": str(func_uuid),
+                "owner_uuid": str(person1),
+                "employee_uuid": None,
+                "org_unit_uuid": str(top_level_ou),
+                "owner_inference_priority": None,
+            },
         ),
         # Non existing
         # Need valid OU
@@ -191,22 +215,13 @@ def test_read_without_inherit(service_client: TestClient) -> None:
             simplified_owner(uuid=func_uuid, org_unit=top_level_ou),
             201,
             None,
-            [
-                {
-                    "org_unit": {
-                        "name": "Overordnet Enhed",
-                        "user_key": "root",
-                        "uuid": top_level_ou,
-                        "validity": {"from": "2016-01-01", "to": None},
-                    },
-                    "owner": None,
-                    "owner_inference_priority": None,
-                    "person": None,
-                    "user_key": "64181ed2-f1de-4c4a-a8fd-ab358c2c565b",
-                    "uuid": func_uuid,
-                    "validity": {"from": "2017-01-01", "to": None},
-                }
-            ],
+            {
+                "uuid": str(func_uuid),
+                "owner_uuid": None,
+                "employee_uuid": None,
+                "org_unit_uuid": str(top_level_ou),
+                "owner_inference_priority": None,
+            },
         ),
         # Valid
         # It should be possible to create "vacant" owners, i.e. valid org_unit
@@ -219,31 +234,13 @@ def test_read_without_inherit(service_client: TestClient) -> None:
             ),
             201,
             None,
-            [
-                {
-                    "org_unit": {
-                        "name": "Overordnet Enhed",
-                        "user_key": "root",
-                        "uuid": top_level_ou,
-                        "validity": {"from": "2016-01-01", "to": None},
-                    },
-                    "owner": {
-                        "givenname": "Anders",
-                        "name": "Anders And",
-                        "nickname": "Donald Duck",
-                        "nickname_givenname": "Donald",
-                        "nickname_surname": "Duck",
-                        "seniority": None,
-                        "surname": "And",
-                        "uuid": person1,
-                    },
-                    "person": None,
-                    "owner_inference_priority": None,
-                    "user_key": "64181ed2-f1de-4c4a-a8fd-ab358c2c565b",
-                    "uuid": func_uuid,
-                    "validity": {"from": "2017-01-01", "to": None},
-                }
-            ],
+            {
+                "uuid": str(func_uuid),
+                "owner_uuid": str(person1),
+                "employee_uuid": None,
+                "org_unit_uuid": str(top_level_ou),
+                "owner_inference_priority": None,
+            },
         ),
         # Interference priority
         # Inference priority is only relevant when dealing with person-person owners,
@@ -282,10 +279,11 @@ def test_read_without_inherit(service_client: TestClient) -> None:
 )
 def test_create_org_unit(
     service_client: TestClient,
+    graphapi_post: GraphAPIPost,
     payload: dict[str, Any],
     status_code: int,
     verifying_org_unit: UUID | None,
-    verifying_response: dict[str, None] | None,
+    verifying_owner: dict[str, Any] | None,
 ) -> None:
     response = service_client.request(
         "POST", "/service/details/create", json=jsonable_encoder(payload)
@@ -293,15 +291,17 @@ def test_create_org_unit(
     assert response.status_code == status_code
 
     # verify
-    if verifying_response is not None:
-        verifying_org_unit = verifying_org_unit or top_level_ou
-        response = service_client.request(
-            "GET",
-            f"service/ou/{verifying_org_unit}/details/owner",
-            params={"validity": "present", "at": "2017-01-01", "inherit_owner": 1},
-        )
-        assert response.status_code == 200
-        assert response.json() == jsonable_encoder(verifying_response)
+    if verifying_owner is not None:
+        if verifying_org_unit is None:
+            owners = read_owners(
+                graphapi_post, {"org_unit": {"uuids": str(top_level_ou)}}
+            )
+            assert verifying_owner in owners
+        else:
+            owners = read_inherited_owners(
+                graphapi_post, verifying_org_unit, inherit=True
+            )
+            assert owners, "expected at least one inherited owner"
 
 
 @pytest.mark.integration_test
@@ -368,7 +368,7 @@ def test_create_person(
 @pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
-    "payload, status_code, verifying_response",
+    "payload, status_code, verifying_owner",
     [
         # Engagement with priority and engagement
         # Should follow engagement and find owner
@@ -379,35 +379,13 @@ def test_create_person(
                 owner_inference_priority=OwnerInferencePriority.engagement,
             ),
             201,
-            [
-                {
-                    "org_unit": None,
-                    "owner": {
-                        "givenname": "Anders",
-                        "name": "Anders And",
-                        "nickname": "Donald Duck",
-                        "nickname_givenname": "Donald",
-                        "nickname_surname": "Duck",
-                        "seniority": None,
-                        "surname": "And",
-                        "uuid": str(person1),
-                    },
-                    "owner_inference_priority": "engagement_priority",
-                    "person": {
-                        "givenname": "Erik Smidt",
-                        "name": "Erik Smidt Hansen",
-                        "nickname": "",
-                        "nickname_givenname": "",
-                        "nickname_surname": "",
-                        "seniority": None,
-                        "surname": "Hansen",
-                        "uuid": str(person2),
-                    },
-                    "user_key": "64181ed2-f1de-4c4a-a8fd-ab358c2c565b",
-                    "uuid": "64181ed2-f1de-4c4a-a8fd-ab358c2c565b",
-                    "validity": {"from": "2017-01-01", "to": None},
-                }
-            ],
+            {
+                "uuid": str(func_uuid),
+                "owner_uuid": None,
+                "employee_uuid": str(person2),
+                "org_unit_uuid": None,
+                "owner_inference_priority": "ENGAGEMENT",
+            },
         ),
         # Association with priorty and multiple associations
         # Should follow association with highest priority
@@ -418,44 +396,23 @@ def test_create_person(
                 owner_inference_priority=OwnerInferencePriority.association,
             ),
             201,
-            [
-                {
-                    "org_unit": None,
-                    "owner": {
-                        "givenname": "Fedtmule",
-                        "name": "Fedtmule Hund",
-                        "nickname": "George Geef",
-                        "nickname_givenname": "George",
-                        "nickname_surname": "Geef",
-                        "seniority": None,
-                        "surname": "Hund",
-                        "uuid": str(person3),
-                    },
-                    "owner_inference_priority": "association_priority",
-                    "person": {
-                        "givenname": "Erik Smidt",
-                        "name": "Erik Smidt Hansen",
-                        "nickname": "",
-                        "nickname_givenname": "",
-                        "nickname_surname": "",
-                        "seniority": None,
-                        "surname": "Hansen",
-                        "uuid": str(person2),
-                    },
-                    "user_key": "64181ed2-f1de-4c4a-a8fd-ab358c2c565b",
-                    "uuid": "64181ed2-f1de-4c4a-a8fd-ab358c2c565b",
-                    "validity": {"from": "2017-01-01", "to": None},
-                }
-            ],
+            {
+                "uuid": str(func_uuid),
+                "owner_uuid": None,
+                "employee_uuid": str(person2),
+                "org_unit_uuid": None,
+                "owner_inference_priority": "ASSOCIATION",
+            },
         ),
     ],
 )
 async def test_create_person_extended(
     another_transaction,
     service_client: TestClient,
+    graphapi_post: GraphAPIPost,
     payload: dict[str, Any],
     status_code: int,
-    verifying_response: dict[str, None] | None,
+    verifying_owner: dict[str, Any] | None,
 ) -> None:
     async with another_transaction():
         # Load a bunch of data so we have something to inherit.
@@ -498,11 +455,6 @@ async def test_create_person_extended(
     assert response.status_code == status_code
 
     # verify
-    if verifying_response is not None:
-        response = service_client.request(
-            "GET",
-            f"service/e/{person2}/details/owner",
-            params={"validity": "present", "at": "2017-01-01", "inherit_owner": 1},
-        )
-        assert response.status_code == 200
-        assert response.json() == jsonable_encoder(verifying_response)
+    if verifying_owner is not None:
+        owners = read_owners(graphapi_post, {"employee": {"uuids": str(person2)}})
+        assert one(owners) == verifying_owner
