@@ -328,11 +328,6 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.uuid = util.get_uuid(request)
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = self.uuid
 
-    async def prepare_refresh(self, request: dict):
-        unitid = request[mapping.UUID]
-        self.uuid = unitid
-        self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
-
     async def submit(self) -> str:
         c = lora.Connector()
 
@@ -341,20 +336,10 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             if self.details_requests:
                 for r in self.details_requests:
                     await r.submit()
-
-        elif self.request_type == mapping.RequestType.REFRESH:
-            pass
         else:
             self.result = await c.organisationenhed.update(self.payload, self.uuid)
 
-        submit = await super().submit()
-        if self.request_type == mapping.RequestType.REFRESH:
-            return {
-                "message": "\n".join(
-                    map(str, self.trigger_results_before + self.trigger_results_after)
-                )
-            }
-        return submit
+        return await super().submit()
 
 
 async def request_bulked_get_one_orgunit(
@@ -544,29 +529,17 @@ async def get_one_orgunit(
 async def get_unit_tree(
     c: lora.Connector,
     unitids: list[str],
-    with_siblings: bool = False,
     only_primary_uuid: bool = False,
-    org_unit_hierarchy: str = None,
-    count_related: dict | None = None,
 ):
-    """Return a tree, bounded by the given unitid.
-
-    The tree includes siblings of ancestors, with their child counts.
-    """
+    """Return a tree, bounded by the given unitid."""
 
     async def get_unit(unitid):
-        details = (
-            UnitDetails.NCHILDREN
-            if with_siblings and unitid not in children
-            else UnitDetails.MINIMAL
-        )
         r = await get_one_orgunit(
             c,
             unitid,
             cache[unitid],
-            details=details,
+            details=UnitDetails.MINIMAL,
             only_primary_uuid=only_primary_uuid,
-            count_related=count_related,
         )
         if unitid in children:
             r["children"] = await get_units(children[unitid])
@@ -576,28 +549,10 @@ async def get_unit_tree(
         units = [await get_unit(uid) for uid in unitids]
         return sorted(units, key=lambda u: locale.strxfrm(u[mapping.NAME]))
 
-    def get_children_args(uuid, parent_uuid, cache):
-        def get_org(uuid, cache):
-            for orgid in mapping.BELONGS_TO_FIELD.get_uuids(cache[uuid]):
-                return orgid
-
-        args = {
-            "overordnet": parent_uuid,
-            "tilhoerer": get_org(uuid, cache),
-            "gyldighed": "Aktiv",
-        }
-
-        if org_unit_hierarchy:  # pragma: no cover
-            args.update({mapping.ORG_UNIT_HIERARCHY_KEY: org_unit_hierarchy})
-
-        return args
-
     root_uuids, children, cache = await prepare_ancestor_tree(
         c.organisationenhed,
         mapping.PARENT_FIELD,
         unitids,
-        get_children_args,
-        with_siblings=with_siblings,
     )
     # Strip off one level
     root_uuids = set(flatten([children[uuid] for uuid in root_uuids]))

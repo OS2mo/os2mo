@@ -187,6 +187,56 @@ def test_update_payload_complex() -> None:
     assert expected_payload == actual_payload
 
 
+def test_update_payload_lora_relation_workaround() -> None:
+    """Exercise the LoRa workaround that injects empty uuid/urn for empty
+    relation updates.
+
+    See https://redmine.magenta-aps.dk/issues/31576.
+    """
+    # Arrange
+    fields = [
+        (
+            mapping.FieldTuple(
+                ("relationer", "tilknyttedeenheder"),
+                mapping.FieldTypes.ZERO_TO_MANY,
+                lambda x: True,
+            ),
+            # Empty dict; only "virkning" is set on it by update_payload, which
+            # triggers the workaround for LoRa bug #31576.
+            {},
+        ),
+    ]
+
+    original = {"relationer": {"tilknyttedeenheder": []}}
+
+    expected_payload = {
+        "relationer": {
+            "tilknyttedeenheder": [
+                {
+                    "uuid": "",
+                    "urn": "",
+                    "virkning": {
+                        "from": "2017-01-01T00:00:00+01:00",
+                        "to": "2021-01-01T00:00:00+01:00",
+                    },
+                }
+            ]
+        }
+    }
+
+    # Act
+    actual_payload = common.update_payload(
+        "2017-01-01T00:00:00+01:00",
+        "2021-01-01T00:00:00+01:00",
+        fields,
+        original,
+        {},
+    )
+
+    # Assert
+    assert expected_payload == actual_payload
+
+
 def test_inactivates_correctly_when_diminishing_bounds() -> None:
     # Arrange
     old_from = "2013-01-01T00:00:00+01:00"

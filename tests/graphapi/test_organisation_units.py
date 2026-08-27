@@ -1280,3 +1280,102 @@ async def test_org_tree_filters(
         if x["current"] is not None
     }
     assert results == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_terminate_org_unit_with_children_and_roles(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Terminating a unit with both children and roles raises
+    V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES."""
+    # Overordnet Enhed has child units and also holds the manager role
+    # of Anders And in the fixture data
+    response = graphapi_post(
+        """
+        mutation TerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
+            org_unit_terminate(input: $input) { uuid }
+        }
+        """,
+        variables={
+            "input": {
+                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "to": "2018-01-01",
+            }
+        },
+        # Use v28 to also exercise the legacy to_date + ONE_DAY branch in
+        # `Validity.get_terminate_effect_to_date` (mora/graphapi/models.py).
+        url="/graphql/v28",
+    )
+    assert response.errors is not None
+    assert "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES" in str(response.errors)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_terminate_org_unit_with_roles_only(graphapi_post: GraphAPIPost) -> None:
+    """Terminating a unit with active roles but no children raises
+    V_TERMINATE_UNIT_WITH_ROLES."""
+    # Construct a fresh unit with no children and a manager role attached
+    create_org_response = graphapi_post(
+        """
+        mutation CreateOrg($input: OrganisationCreate!) {
+            org_create(input: $input) { uuid }
+        }
+        """,
+        variables={"input": {"municipality_code": None}},
+    )
+    assert create_org_response.errors is None
+
+    create_unit_response = graphapi_post(
+        """
+        mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
+            org_unit_create(input: $input) { uuid }
+        }
+        """,
+        variables={
+            "input": {
+                "name": "lonely",
+                "user_key": "lonely",
+                "parent": None,
+                "validity": {"from": "1970-01-01T00:00:00Z"},
+                "org_unit_type": str(uuid4()),
+            }
+        },
+    )
+    assert create_unit_response.errors is None
+    unit_uuid = create_unit_response.data["org_unit_create"]["uuid"]
+
+    create_manager_response = graphapi_post(
+        """
+        mutation CreateManager($input: ManagerCreateInput!) {
+            manager_create(input: $input) { uuid }
+        }
+        """,
+        variables={
+            "input": {
+                "org_unit": unit_uuid,
+                "manager_level": "ca76a441-6226-404f-88a9-31e02e420e52",
+                "manager_type": "32547559-cfc1-4d97-94c6-70b192eff825",
+                "responsibility": ["4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"],
+                "validity": {"from": "1970-01-01"},
+            }
+        },
+    )
+    assert create_manager_response.errors is None
+
+    response = graphapi_post(
+        """
+        mutation TerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
+            org_unit_terminate(input: $input) { uuid }
+        }
+        """,
+        variables={
+            "input": {
+                "uuid": unit_uuid,
+                "to": "2018-01-01",
+            }
+        },
+    )
+    assert response.errors is not None
+    assert "V_TERMINATE_UNIT_WITH_ROLES" in str(response.errors)

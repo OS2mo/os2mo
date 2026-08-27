@@ -70,3 +70,65 @@ async def test_handle_gql_errors() -> None:
         exceptions[1].message
         == "Cannot query field '_non_existent_field_2' on type 'ITSystem'."
     )
+
+
+single_error_query = """
+    query TestSingleError {
+      itsystems {
+        objects {
+          current {
+            _non_existent_field
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_handle_gql_error_single() -> None:
+    """A single GraphQL error is raised as-is rather than grouped."""
+
+    # Nobody is calling us, so run as admin
+    with request_cycle_context({**context, "get_token": admin_token_getter()}):
+        response = await execute_graphql(single_error_query)
+    with pytest.raises(GraphQLError) as exc_info:
+        handle_gql_error(response)
+
+    assert (
+        exc_info.value.message
+        == "Cannot query field '_non_existent_field' on type 'ITSystem'."
+    )
+
+
+resolver_error_query = """
+    mutation TriggerResolverError($input: RelatedUnitsUpdateInput!) {
+      related_units_update(input: $input) { uuid }
+    }
+"""
+
+resolver_error_variables = {
+    "input": {
+        "origin": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        "destination": ["00000000-0000-0000-0000-000000000000"],
+        "validity": {"from": "2017-01-01T00:00:00+01:00"},
+    }
+}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_handle_gql_error_with_original_error() -> None:
+    """Errors raised by resolvers carry an original_error which is unwrapped."""
+
+    # Nobody is calling us, so run as admin
+    with request_cycle_context({**context, "get_token": admin_token_getter()}):
+        response = await execute_graphql(
+            resolver_error_query, variable_values=resolver_error_variables
+        )
+    assert response.errors is not None
+    with pytest.raises(Exception) as exc_info:
+        handle_gql_error(response)
+    # The unwrapped original error is raised (not the GraphQL wrapper)
+    assert not isinstance(exc_info.value, GraphQLError)

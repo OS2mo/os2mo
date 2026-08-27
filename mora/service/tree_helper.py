@@ -25,8 +25,6 @@ async def prepare_ancestor_tree(
     connector_entry: Scope,
     mapping_parent: FieldTuple,
     uuids: list[UUID],
-    get_children_args,
-    with_siblings=False,
 ):
     """Return a tree helper structure, bounded by the given uuids.
 
@@ -35,12 +33,8 @@ async def prepare_ancestor_tree(
             Lora Connector instance from mora/lora.py.
         mapping_parent (FieldTuple):
             Mapping entry from mora/mapping.py.
-        get_children_args (Function):
-            Function from (uuid, parent_uuid, cache) --> dict, the dict being
-            applied as a filter to the connector_entry.get_all call when fetching
-            children of the current uuid.
-        with_siblings (bool):
-            Add siblings of ancestors to children and cache.
+        uuids (list[UUID]):
+            UUIDs to build the tree from.
 
     Returns:
         set, dict(set), dict:
@@ -69,13 +63,6 @@ async def prepare_ancestor_tree(
         objs = dict(await connector_entry.get_all_by_uuid(uuids=uuids))
         cache.update(objs)
         return objs
-
-    async def get_children(uuid, parent_uuid) -> dict:
-        children = dict(
-            await connector_entry.get_all(**get_children_args(uuid, parent_uuid, cache))
-        )
-        cache.update(children)
-        return children
 
     async def get_parent(uuid):
         obj = await get(uuid)
@@ -107,10 +94,6 @@ async def prepare_ancestor_tree(
 
         # Build parent --> children map
         children[parent_uuid].add(uuid)
-        if with_siblings:
-            siblings = await get_children(uuid, parent_uuid)
-            sibling_uuids = siblings.keys()
-            children[parent_uuid].update(sibling_uuids)
 
     # create tasks in parallel
     for uuid in set(uuids):

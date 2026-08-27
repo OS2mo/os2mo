@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import uuid
 from datetime import date
 from datetime import datetime
 from datetime import timezone
@@ -555,3 +556,9 @@ async def test_validity_tuple(
 ):
     result = lora.validity_tuple(validity_literal, now=now)
     assert result == expected
+
+
+def test_uuid_to_str_top_level_uuid() -> None:
+    """uuid_to_str converts a top-level UUID to its string form."""
+    uid = uuid.UUID("00000000-0000-0000-0000-000000000000")
+    assert lora.uuid_to_str(uid) == str(uid)
