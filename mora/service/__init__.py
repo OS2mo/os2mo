@@ -51,5 +51,4 @@ routers = {
     "KLE": kle.router,
     "Organisation": org.router,
     "OrganisationUnit": orgunit.router,
-    "Related": related.router,
 }
