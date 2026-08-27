@@ -86,7 +86,7 @@ variables:
       # file-based database instead, since in-memory one might not work
       # properly: https://github.com/keycloak/keycloak/issues/13252.
       command: ["start", "-Dkeycloak.saml.deprecated.encryption=true", "--db=dev-file"]
-    - name: magentaaps/os2mo-keycloak-realm-builder:8  # please also update docker-compose
+    - name: magentaaps/os2mo-keycloak-realm-builder:9  # please also update docker-compose
       variables:
         # Since GitLab CI doesn't support multiple services on the same port,
         # we cannot (easily) run a separate postgres for the realm builder's
@@ -147,103 +147,6 @@ variables:
         - "sh"
         - "-c"
         - |
-          # Keycloak 24+ filters user attributes not declared in the realm's
-          # user profile. Declare all default attributes plus `object-guid` so
-          # the realm-builder can set them on users.
-          cat > /app/user-profile.tf << 'EOF'
-          resource "keycloak_realm_user_profile" "mo_user_profile" {
-            realm_id = keycloak_realm.mo.id
-
-            attribute {
-              name         = "username"
-              display_name = "$${username}"
-              validator {
-                name = "length"
-                config = {
-                  min = "3"
-                  max = "255"
-                }
-              }
-              validator {
-                name = "username-prohibited-characters"
-              }
-              validator {
-                name = "up-username-not-idn-homograph"
-              }
-              permissions {
-                view = ["admin", "user"]
-                edit = ["admin", "user"]
-              }
-            }
-
-            attribute {
-              name         = "email"
-              display_name = "$${email}"
-              validator {
-                name = "email"
-              }
-              validator {
-                name = "length"
-                config = {
-                  max = "255"
-                }
-              }
-              required_for_roles = ["user"]
-              permissions {
-                view = ["admin", "user"]
-                edit = ["admin", "user"]
-              }
-            }
-
-            attribute {
-              name         = "firstName"
-              display_name = "$${firstName}"
-              validator {
-                name = "length"
-                config = {
-                  max = "255"
-                }
-              }
-              validator {
-                name = "person-name-prohibited-characters"
-              }
-              required_for_roles = ["user"]
-              permissions {
-                view = ["admin", "user"]
-                edit = ["admin", "user"]
-              }
-            }
-
-            attribute {
-              name         = "lastName"
-              display_name = "$${lastName}"
-              validator {
-                name = "length"
-                config = {
-                  max = "255"
-                }
-              }
-              validator {
-                name = "person-name-prohibited-characters"
-              }
-              required_for_roles = ["user"]
-              permissions {
-                view = ["admin", "user"]
-                edit = ["admin", "user"]
-              }
-            }
-
-            attribute {
-              name         = "object-guid"
-              display_name = "object-guid"
-              permissions {
-                view = ["admin", "user"]
-                edit = ["admin"]
-              }
-            }
-          }
-          EOF
-
           # GitLab CI services are one-shot without any restart policy, and does not
           # start in the order they are defined. To replicate init containers, the
           # entrypoint of the service is overwritten to retry until it succeeds.

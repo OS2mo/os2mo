@@ -184,7 +184,7 @@ services:
       - keycloak-volume:/srv/:ro,z
 
   keycloak-realm-builder:
-    image: magentaaps/os2mo-keycloak-realm-builder:8 # please also update gitlab-ci-templates
+    image: magentaaps/os2mo-keycloak-realm-builder:9 # please also update gitlab-ci-templates
     environment:
       KEYCLOAK_VERSION: 14.0.0
 
@@ -259,7 +259,6 @@ services:
     restart: on-failure
     volumes:
       - keycloak-volume:/srv/:z
-      - ./keycloak/user-profile.tf:/app/user-profile.tf:ro,z
 
   keycloak-dipex-builder:
     image: magentaaps/os2mo-keycloak-integration-builder:6
