@@ -201,6 +201,7 @@ async def test_auth_service(raw_client: TestClient, url: str) -> None:
     "url",
     [
         "/service/details/create",
+        "/service/details/terminate",
     ],
 )
 async def test_auth_service_with_payload(raw_client: TestClient, url: str) -> None:

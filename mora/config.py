@@ -78,7 +78,7 @@ class Settings(BaseSettings):
 
     # Misc OS2mo settings
     environment: Environment = Environment.PRODUCTION
-    log_level: LogLevel = LogLevel.INFO
+    log_level: LogLevel = LogLevel.DEBUG
     navlinks: list[NavLink] = []
 
     # Testing
