@@ -32,6 +32,7 @@ from mora import config
 from mora.auth.exceptions import AuthorizationError
 from mora.db import get_session
 from mora.exceptions import HTTPException
+from mora.graphapi import policy_eval
 from mora.graphapi.actor import SpecialActor
 from mora.graphapi.actor import UnknownActor
 from mora.graphapi.collections import DARAddress
@@ -59,8 +60,6 @@ from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.owner_entities import OWNER_ENTITIES
 from mora.graphapi.query import Query
-from mora.graphapi.rbac_map import PUBLIC_FIELDS
-from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.types import CPR_SCALAR
 from mora.graphapi.types import CURSOR_SCALAR
 from mora.graphapi.types import INT_SCALAR
@@ -207,27 +206,19 @@ async def introspection_policy(
     ) or is_introspection_type(info.parent_type)
 
 
-async def no_role_required_policy(
-    info: GraphQLResolveInfo, kwargs: dict[str, Any]
-) -> bool:
-    """Allow access to fields which are explicitly listed in `PUBLIC_FIELDS`."""
-    return (info.parent_type.name, info.field_name) in PUBLIC_FIELDS
+async def policy_grant(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
+    """Allow access if a built-in policy grants the field or mutator.
 
-
-async def rbac_policy(
-    info: GraphQLResolveInfo,
-    kwargs: dict[str, Any],
-) -> bool:
-    """Allow access if the token has the role required by the `RBAC_MAP`."""
-    role = RBAC_MAP.get((info.parent_type.name, info.field_name))
-    if role is None:  # pragma: no cover
-        # Public fields are already allowed by the no_role_required_policy.
-        return False
+    Read rules and type rules grant `(type, field)`; mutators grant
+    `(Mutation, name)`. The owner policy's mutators are checked separately by
+    `owner_policy`, as they need the call arguments.
+    """
     token = await info.context.get_token()
-    token_roles = token.realm_access.roles
-
-    # Allow access if token has required role
-    if role in token_roles:
+    roles = set(token.realm_access.roles)
+    type, field = info.parent_type.name, info.field_name
+    if (type, field) in policy_eval.field_grants(roles):
+        return True
+    if type == "Mutation" and field in policy_eval.mutator_names(roles):
         return True
     return False
 
@@ -275,8 +266,7 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
 
 POLICIES: list[Policy] = [
     introspection_policy,
-    no_role_required_policy,
-    rbac_policy,
+    policy_grant,
     owner_policy,
 ]
 
@@ -302,8 +292,8 @@ class RBACExtension(SchemaExtension):
     Each field access is checked against the policies in `POLICIES`, one by
     one, until a policy allows access.
 
-    Access is rejected by default: every field must be listed in
-    `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP`.
+    Access is rejected by default: every field must be granted by one of the
+    built-in policies in `mora.graphapi.policies_builtin`.
     """
 
     async def resolve(  # type: ignore[override]
