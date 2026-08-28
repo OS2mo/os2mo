@@ -76,6 +76,7 @@ from mora.db import OrganisationRegistrering
 from mora.graphapi.context import MOInfo
 from mora.graphapi.custom_schema import get_version
 from mora.graphapi.gmodels.base import tz_isodate
+from mora.graphapi.policy_eval import base_predicate_for
 from mora.graphapi.version import Version
 from mora.service.autocomplete.employees import search_employees_predicate
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
@@ -374,6 +375,7 @@ async def facet_resolver(
         info=info,
         filter=filter,
     )
+    predicate = and_(predicate, await base_predicate_for(info, "facet"))
     query = (
         select(distinct(FacetRegistrering.facet_id))
         .where(predicate)
@@ -567,6 +569,7 @@ async def class_resolver(
         info=info,
         filter=filter,
     )
+    predicate = and_(predicate, await base_predicate_for(info, "class"))
     query = (
         select(distinct(KlasseRegistrering.klasse_id))
         .where(predicate)
@@ -809,6 +812,7 @@ async def address_resolver(
         info=info,
         filter=filter,
     )
+    predicate = and_(predicate, await base_predicate_for(info, "address"))
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
@@ -1009,6 +1013,7 @@ async def association_resolver(
         info=info,
         filter=filter,
     )
+    predicate = and_(predicate, await base_predicate_for(info, "association"))
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
@@ -1163,6 +1168,7 @@ async def employee_resolver(
         info=info,
         filter=filter,
     )
+    predicate = and_(predicate, await base_predicate_for(info, "employee"))
     query = (
         select(distinct(BrugerRegistrering.bruger_id))
         .where(predicate)
@@ -1384,6 +1390,7 @@ async def engagement_resolver(
         info=info,
         filter=filter,
     )
+    predicate = and_(predicate, await base_predicate_for(info, "engagement"))
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
@@ -1776,6 +1783,7 @@ async def manager_resolver(
         filter=filter,
         inherit=inherit,
     )
+    predicate = and_(predicate, await base_predicate_for(info, "manager"))
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
@@ -1946,6 +1954,7 @@ async def owner_resolver(
         info=info,
         filter=filter,
     )
+    predicate = and_(predicate, await base_predicate_for(info, "owner"))
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
@@ -2348,6 +2357,7 @@ async def organisation_unit_resolver(
         info=info,
         filter=filter,
     )
+    predicate = and_(predicate, await base_predicate_for(info, "org_unit"))
     query = (
         select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
         .where(predicate)
@@ -2396,6 +2406,7 @@ async def organisation_unit_has_children(
         info=info,
         filter=filter,
     )
+    predicate = and_(predicate, await base_predicate_for(info, "org_unit"))
     query = (
         select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
         .where(predicate)
@@ -2415,6 +2426,7 @@ async def organisation_unit_child_count(
         info=info,
         filter=filter,
     )
+    predicate = and_(predicate, await base_predicate_for(info, "org_unit"))
     query = (
         select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
         .where(predicate)
@@ -2481,6 +2493,7 @@ async def it_system_resolver(
         info=info,
         filter=filter,
     )
+    predicate = and_(predicate, await base_predicate_for(info, "itsystem"))
     query = (
         select(distinct(ITSystemRegistrering.itsystem_id))
         .where(predicate)
@@ -2779,6 +2792,7 @@ async def it_user_resolver(
         info=info,
         filter=filter,
     )
+    predicate = and_(predicate, await base_predicate_for(info, "ituser"))
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
@@ -2916,6 +2930,7 @@ async def kle_resolver(
         info=info,
         filter=filter,
     )
+    predicate = and_(predicate, await base_predicate_for(info, "kle"))
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
@@ -3076,6 +3091,7 @@ async def leave_resolver(
         info=info,
         filter=filter,
     )
+    predicate = and_(predicate, await base_predicate_for(info, "leave"))
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
@@ -3239,6 +3255,7 @@ async def related_unit_resolver(
         info=info,
         filter=filter,
     )
+    predicate = and_(predicate, await base_predicate_for(info, "related_unit"))
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)
@@ -3420,6 +3437,7 @@ async def rolebinding_resolver(
         info=info,
         filter=filter,
     )
+    predicate = and_(predicate, await base_predicate_for(info, "rolebinding"))
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate)

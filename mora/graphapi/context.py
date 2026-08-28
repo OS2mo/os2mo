@@ -3,6 +3,7 @@
 from collections.abc import Awaitable
 from collections.abc import Callable
 from dataclasses import dataclass
+from dataclasses import field
 from typing import TypeAlias
 from uuid import UUID
 
@@ -62,6 +63,8 @@ class MOContext(BaseContext):
     session: db.AsyncSession
     dataloaders: MOLoaders
     settings: Settings
+    # Per-request cache of each collection's base predicate, computed lazily
+    base_predicates: dict = field(default_factory=dict)
 
 
 MOInfo: TypeAlias = Info[MOContext, None]

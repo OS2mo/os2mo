@@ -21,7 +21,7 @@ from mora.graphapi.permissions import Collections
 Predicate = Callable[..., ColumnElement]
 
 
-def _everything() -> ColumnElement:
+def _everything(**kwargs: object) -> ColumnElement:
     """The predicate for a pseudo-collection: it selects everything."""
     return true()
 
