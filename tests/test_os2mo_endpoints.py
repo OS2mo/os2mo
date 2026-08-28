@@ -31,7 +31,6 @@ service_api_endpoints = {
     "/service/o/",
     "/service/o/{orgid}/",
     "/service/o/{orgid}/e/",
-    "/service/o/{orgid}/f/",
     "/service/o/{orgid}/f/{facet}/",
     "/service/o/{orgid}/it/",
     "/service/o/{orgid}/ou/",
