@@ -29,17 +29,14 @@ def field_grants(roles: set[str]) -> set[tuple[str, str]]:
 
 
 def mutator_names(roles: set[str]) -> set[str]:
-    """The mutator names the applicable policies grant outright (non-owner)."""
+    """The mutator names the applicable policies grant outright.
+
+    The owner policy's mutators are excluded: they are subject to the owner
+    check, run separately by `owner_policy` against the call arguments.
+    """
     return {
         mutator.name
         for policy in _applicable_policies(roles)
         for mutator in policy.mutators
         if policy is not builtin.OWNER
     }
-
-
-def owner_mutator_names(roles: set[str]) -> set[str]:
-    """The mutator names the owner policy grants, subject to the owner check."""
-    if not builtin.OWNER.applies_to(roles):
-        return set()
-    return {mutator.name for mutator in builtin.OWNER.mutators}
