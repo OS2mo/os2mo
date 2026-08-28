@@ -27,6 +27,13 @@ def test_check_condition_empty_is_true() -> None:
     assert check_condition("", build_activation(_token(), {})) is True
 
 
+def test_check_condition_delegates() -> None:
+    """A rule with a condition is checked by evaluating it."""
+    activation = build_activation(_token(), {})
+    assert check_condition("true", activation) is True
+    assert check_condition("false", activation) is False
+
+
 def test_condition_reads_token_and_args() -> None:
     """A condition may read the token and the call arguments."""
     activation = build_activation(_token(), {"uuid": "1234"})
