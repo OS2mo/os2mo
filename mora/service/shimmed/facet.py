@@ -70,59 +70,6 @@ class MOFacetReturn(BaseModel):
     path: str = Field(description="The location on the web server.")
 
 
-@facet_router.get(
-    "/o/{orgid}/f/",
-    response_model=list[MOFacetReturn],
-    response_model_exclude_unset=True,
-    responses={500: {"description": "Unknown Error."}},
-)
-async def list_facets(
-    orgid: UUID = Path(
-        ...,
-        description="UUID of the organisation to retrieve facets from.",
-        examples="3b866d97-0b1f-48e0-8078-686d96f430b3",
-    ),
-):
-    """List the facet types available in a given organisation."""
-    query = """
-    query FacetQuery {
-      facets {
-        objects {
-          current {
-            uuid
-            user_key
-            description
-            org_uuid
-          }
-        }
-      }
-    }
-    """
-    response = await execute_graphql(query)
-    handle_gql_error(response)
-
-    # Handle org unit data
-    facets = [x["current"] for x in response.data["facets"]["objects"]]
-    if not facets:  # pragma: no cover
-        return []
-
-    def filter_by_orgid(facet: dict[str, Any]) -> bool:
-        return UUID(facet["org_uuid"]) == orgid
-
-    def construct(facet: dict[str, Any]) -> dict[str, Any]:
-        return {
-            "uuid": facet["uuid"],
-            "user_key": facet["user_key"],
-            "description": facet["description"],
-            "path": facet_router.url_path_for(
-                "get_classes", orgid=orgid, facet=facet["user_key"]
-            ),
-        }
-
-    facets = filter(filter_by_orgid, facets)
-    return list(map(construct, facets))
-
-
 DataT = TypeVar("DataT")
 
 
