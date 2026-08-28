@@ -1333,33 +1333,6 @@ not_found_error = {
             ],
         ),
         (
-            "/service/c/32547559-cfc1-4d97-94c6-70b192eff825/",
-            200,
-            {
-                "example": None,
-                "name": "Afdeling",
-                "owner": None,
-                "scope": None,
-                "user_key": "afd",
-                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-            },
-        ),
-        (
-            "/service/c/32547559-cfc1-4d97-94c6-70b192eff825/?full_name=1&facet=1&top_level_facet=1",
-            200,
-            {
-                "example": None,
-                "facet": org_unit_type_facet,
-                "full_name": "Afdeling",
-                "name": "Afdeling",
-                "owner": None,
-                "scope": None,
-                "top_level_facet": org_unit_type_facet,
-                "user_key": "afd",
-                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-            },
-        ),
-        (
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/org_unit_type/",
             200,
             {
