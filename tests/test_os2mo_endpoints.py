@@ -17,7 +17,6 @@ health_endpoints = {
     "/health/{identifier}",
 }
 service_api_endpoints = {
-    "/service/c/{classid}/",
     "/service/c/{classid}/children",
     "/service/details/create",
     "/service/details/edit",
