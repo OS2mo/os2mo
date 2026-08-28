@@ -8,7 +8,6 @@ from uuid import UUID
 
 from fastapi import Path
 from fastapi import Query
-from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 from pydantic import BaseModel
 from pydantic import Field
@@ -52,94 +51,6 @@ class MOClassReturn(BaseModel):
     top_level_facet: MOFacetRead | None = Field(
         description="Top level facet under which the class exists."
     )
-
-
-@facet_router.get(
-    "/c/{classid}/",
-    response_model=MOClassReturn | UUIDObject,
-    response_model_exclude_unset=True,
-    responses={404: {"description": "Class not found."}},
-)
-async def get_class(
-    classid: UUID = Path(..., description="UUID of the class to retrieve."),
-    only_primary_uuid: bool | None = Query(
-        None, description="Only retrieve the UUID of the class unit."
-    ),
-    full_name: bool | None = Query(None, description="Include full name in response."),
-    top_level_facet: bool | None = Query(
-        None, description="Include top-level facet in response."
-    ),
-    facet: bool | None = Query(None, description="Include facet in response."),
-) -> dict[str, Any]:
-    """Get a class."""
-    variables = {
-        "uuid": classid,
-        "full_name": bool(full_name),
-        "top_level_facet": bool(top_level_facet),
-        "facet": bool(facet),
-    }
-    if only_primary_uuid:  # pragma: no cover
-        query = """
-        query ClassQuery($uuid: UUID!)
-        {
-          classes(filter: {uuids: [$uuid]}) {
-            objects {
-              current {
-                uuid
-              }
-            }
-          }
-        }
-        """
-    else:
-        query = """
-        query ClassQuery(
-          $uuid: UUID!,
-          $full_name: Boolean!,
-          $top_level_facet: Boolean!,
-          $facet: Boolean!,
-        ) {
-          classes(filter: {uuids: [$uuid]}) {
-            objects {
-              current {
-                uuid
-                name
-                user_key
-                example
-                scope
-                owner
-
-                full_name @include(if: $full_name)
-
-                top_level_facet @include(if: $top_level_facet) {
-                  ...facet_fields
-                }
-
-                facet @include(if: $facet) {
-                  ...facet_fields
-                }
-              }
-            }
-          }
-        }
-        fragment facet_fields on Facet {
-          uuid
-          user_key
-          description
-        }
-        """
-    response = await execute_graphql(query, variable_values=jsonable_encoder(variables))
-    handle_gql_error(response)
-
-    # Handle org unit data
-    class_list = [x["current"] for x in response.data["classes"]["objects"]]
-    if not class_list:  # pragma: no cover
-        exceptions.ErrorCodes.E_CLASS_NOT_FOUND(class_uuid=classid)
-    try:
-        clazz: dict[str, Any] = one(class_list)
-    except ValueError as err:  # pragma: no cover
-        raise ValueError("Wrong number of classes returned, expected one.") from err
-    return clazz
 
 
 class MOFacetReturn(BaseModel):
