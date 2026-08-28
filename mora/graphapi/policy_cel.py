@@ -1,0 +1,100 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+"""CEL evaluation for policy conditions and entity filters.
+
+A rule's condition is a boolean CEL (Common Expression Language) expression that
+must hold for the rule to apply. Its filter `k` selects the entities the rule
+reaches, as `{collection, filter}` specs run against the collection's resolver.
+"""
+
+import json
+from functools import lru_cache
+from operator import methodcaller
+from typing import Any
+
+from cel_expr_python import cel  # type: ignore[import-untyped]
+
+import mora.config
+from mora.auth.keycloak.models import Token
+from mora.graphapi.policy import CEL as CELExpr
+
+# Variables available to an expression. The `bindings` extension provides the
+# `cel.bind` macro, letting an expression name a value once and reuse it
+_CONFIG = cel.NewEnvConfigFromYaml("""
+name: policy
+extensions:
+  - name: bindings
+""")
+
+_ENV = cel.NewEnv(
+    config=_CONFIG,
+    variables={
+        # Dynamic values: we declare no schema, so any field access compiles
+        "token": cel.Type.Map(cel.Type.STRING, cel.Type.DYN),
+        "settings": cel.Type.Map(cel.Type.STRING, cel.Type.DYN),
+        # The field's own arguments, as GraphQL coerced them
+        "args": cel.Type.Map(cel.Type.STRING, cel.Type.DYN),
+    },
+)
+
+
+@lru_cache(maxsize=2048)
+def _compile(expression: CELExpr) -> cel.Expression:
+    """Compile (and cache) a CEL expression into an evaluable program."""
+    return _ENV.compile(expression)
+
+
+def _token_context(token: Token) -> dict[str, Any]:
+    """The `token` variable as a CEL-friendly mapping."""
+    return {
+        "uuid": str(token.uuid) if token.uuid is not None else None,
+        "preferred_username": token.preferred_username,
+        # A list rather than a set: CEL has no set type
+        "roles": list(token.realm_access.roles),
+    }
+
+
+def build_activation(token: Token, args: dict) -> cel.Activation:
+    """Build the CEL activation shared by every condition and filter."""
+    it_system = (
+        mora.config.get_settings().keycloak_rbac_authoritative_it_system_for_owners
+    )
+    bound: dict[str, Any] = {
+        "token": _token_context(token),
+        # A curated subset, keeping the interface small and passwords out of it
+        "settings": {
+            "keycloak_rbac_authoritative_it_system_for_owners": (
+                str(it_system) if it_system is not None else None
+            ),
+        },
+        "args": args,
+    }
+    return _ENV.Activation(bound)
+
+
+def evaluate_condition(condition: CELExpr, activation: cel.Activation) -> bool:
+    """Evaluate a rule's CEL `condition` against `activation` as a bool."""
+    result = _compile(condition).eval(activation)
+    if result.type() != cel.Type.BOOL:
+        raise ValueError(
+            f"CEL condition {condition!r} result is not boolean: {result.value()}"
+        )
+    return result.value()
+
+
+def check_condition(condition: CELExpr, activation: cel.Activation) -> bool:
+    """Whether a rule's condition holds. A rule without one always applies."""
+    if not condition:
+        return True
+    return evaluate_condition(condition, activation)
+
+
+def evaluate_filter(expression: CELExpr, activation: cel.Activation) -> str:
+    """Evaluate a rule's CEL filter `expression`, returning its result as JSON."""
+    result = _compile(expression).eval(activation)
+    if result.type() == cel.Type.ERROR:
+        raise ValueError(
+            f"failed to evaluate CEL filter {expression!r}: {result.value()}"
+        )
+    # CEL values are not serializable, so the hook unwraps each as it is reached
+    return json.dumps(result, default=methodcaller("value"))
