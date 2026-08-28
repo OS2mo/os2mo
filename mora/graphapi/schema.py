@@ -57,6 +57,7 @@ from mora.graphapi.model_registration import PersonRegistration
 from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
+from mora.graphapi.owner_entities import OWNER_ENTITIES
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
@@ -218,11 +219,10 @@ async def rbac_policy(
     kwargs: dict[str, Any],
 ) -> bool:
     """Allow access if the token has the role required by the `RBAC_MAP`."""
-    requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
-    if requirement is None:  # pragma: no cover
+    role = RBAC_MAP.get((info.parent_type.name, info.field_name))
+    if role is None:  # pragma: no cover
         # Public fields are already allowed by the no_role_required_policy.
         return False
-    role, _, _ = requirement
     token = await info.context.get_token()
     token_roles = token.realm_access.roles
 
@@ -234,11 +234,11 @@ async def rbac_policy(
 
 async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     """Allow access if the user is the owner of the accessed resources."""
-    requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
-    if requirement is None:  # pragma: no cover
-        # Public fields are already allowed by the no_role_required_policy.
+    entities_spec = OWNER_ENTITIES.get(info.field_name)
+    if entities_spec is None:  # pragma: no cover
+        # Not a mutator with an owner check; nothing to grant here.
         return False
-    _, collection, permission_type = requirement
+    collection, permission_type = entities_spec
     check_kwargs = kwargs
     if "input" in kwargs:
         check_kwargs = {
@@ -256,8 +256,6 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
     if (
         "owner" in token_roles
         and info.operation.operation is OperationType.MUTATION
-        and collection is not None
-        and permission_type is not None
         and "input" in check_kwargs
     ):
         # Import here to avoid circular imports 🙂👍
