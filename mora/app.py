@@ -35,6 +35,7 @@ from mora.auth.keycloak.oidc import service_api_auth
 from mora.auth.middleware import set_authenticated_user
 from mora.common import lora_connector_context
 from mora.db.events import setup_event_metrics
+from mora.graphapi import policy_eval
 from mora.graphapi.middleware import is_graphql_context
 from mora.graphapi.middleware import set_graphql_version_from_url
 from mora.request_scoped.query_args_context_plugin import query_args_context
@@ -179,6 +180,10 @@ def create_app():
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         instrumentator.expose(app)
+
+        # Bring the policies in the database into effect
+        async with sessionmaker() as session:
+            await policy_eval.load_policies(session)
 
         await triggers.register(settings)
         try:

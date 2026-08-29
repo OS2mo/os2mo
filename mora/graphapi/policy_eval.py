@@ -1,32 +1,89 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-"""Evaluation of the built-in policies against a field or mutator access.
+"""Evaluation of the policies against a field or mutator access.
 
-The evaluator is given the caller's roles and the field being resolved, and
-returns whether any applicable policy grants the access. Read rules and type
-rules grant `(type, field)` pairs; mutators grant `(Mutation, name)`. The owner
-policy's mutators additionally require the owner check against the database.
+The policies are loaded from the database at startup; until then the hardcoded
+built-ins, which the seeded rows mirror, are enforced. The evaluator is given
+the caller's roles and the field being resolved, and returns whether any
+applicable policy grants the access. Read rules and type rules grant
+`(type, field)` pairs; mutators grant `(Mutation, name)`. The owner policy's
+mutators additionally require the owner check against the database.
 """
 
 from typing import TYPE_CHECKING
 
+from more_itertools import one
 from sqlalchemy import ColumnElement
 from sqlalchemy import false
+from sqlalchemy import select
 from sqlalchemy import true
+from sqlalchemy.orm import selectinload
 
 if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
     from mora.graphapi.context import MOContext
     from mora.graphapi.context import MOInfo
 
+from mora.db import Policy as PolicyRow
 from mora.graphapi import policies_builtin as builtin
 from mora.graphapi.permissions import Collections
+from mora.graphapi.policy import Mutator
 from mora.graphapi.policy import Policy
 from mora.graphapi.policy import ReadRule
+from mora.graphapi.policy import Selector
+from mora.graphapi.policy import SelectorKind
+from mora.graphapi.policy import TypeRule
+
+# The policies in effect, loaded from the database at startup. Until then the
+# hardcoded built-ins are enforced, which the seeded rows mirror.
+_policies: tuple[Policy, ...] = builtin.POLICIES
+
+
+def _to_policy(row: PolicyRow) -> Policy:
+    """The in-code `Policy` a database row expresses."""
+    s = one(row.selectors)
+    return Policy(
+        name=row.name,
+        selector=Selector(kind=SelectorKind(s.kind.value), value=s.value),
+        readers=tuple(
+            ReadRule(
+                collection=r.collection,
+                fields=frozenset(r.fields),
+                k=r.k,
+                condition=r.condition,
+            )
+            for r in row.readers
+        ),
+        mutators=tuple(Mutator(name=m.name, mk=m.mk, k=m.k) for m in row.mutators),
+        types=TypeRule(grants=frozenset((g.type, g.field) for g in row.type_grants)),
+        active=row.active,
+    )
+
+
+async def load_policies(session: "AsyncSession") -> None:
+    """Load the policies from the database into effect."""
+    global _policies
+    rows = (
+        (
+            await session.scalars(
+                select(PolicyRow).options(
+                    selectinload(PolicyRow.selectors),
+                    selectinload(PolicyRow.readers),
+                    selectinload(PolicyRow.mutators),
+                    selectinload(PolicyRow.type_grants),
+                )
+            )
+        )
+        .unique()
+        .all()
+    )
+    _policies = tuple(_to_policy(row) for row in rows)
 
 
 def _applicable_policies(roles: set[str]) -> list[Policy]:
     """The active policies selecting a principal holding `roles`."""
-    return [policy for policy in builtin.POLICIES if policy.applies_to(roles)]
+    return [policy for policy in _policies if policy.applies_to(roles)]
 
 
 def field_grants(roles: set[str]) -> set[tuple[str, str]]:
