@@ -10,6 +10,7 @@ applicable policy grants the access. Read rules and type rules grant
 mutators additionally require the owner check against the database.
 """
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 from more_itertools import one
@@ -18,6 +19,7 @@ from sqlalchemy import false
 from sqlalchemy import select
 from sqlalchemy import true
 from sqlalchemy.orm import selectinload
+from structlog import get_logger
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -34,6 +36,8 @@ from mora.graphapi.policy import ReadRule
 from mora.graphapi.policy import Selector
 from mora.graphapi.policy import SelectorKind
 from mora.graphapi.policy import TypeRule
+
+logger = get_logger()
 
 # The policies in effect, loaded from the database at startup. Until then the
 # hardcoded built-ins are enforced, which the seeded rows mirror.
@@ -62,9 +66,22 @@ def _to_policy(row: PolicyRow) -> Policy:
 
 
 async def load_policies(session: "AsyncSession") -> None:
-    """Load the policies from the database into effect."""
+    """Load the policies from the database into effect.
+
+    On any database failure the hardcoded built-ins, which the seeded rows
+    mirror, stay in effect, so the app still starts without the policy tables.
+    """
     global _policies
-    rows = (
+    try:
+        rows = await _read_rows(session)
+    except Exception:
+        logger.warning("Could not load the policies; enforcing the built-ins")
+        return
+    _policies = tuple(_to_policy(row) for row in rows)
+
+
+async def _read_rows(session: "AsyncSession") -> Sequence[PolicyRow]:
+    return (
         (
             await session.scalars(
                 select(PolicyRow).options(
@@ -78,7 +95,6 @@ async def load_policies(session: "AsyncSession") -> None:
         .unique()
         .all()
     )
-    _policies = tuple(_to_policy(row) for row in rows)
 
 
 def _applicable_policies(roles: set[str]) -> list[Policy]:
