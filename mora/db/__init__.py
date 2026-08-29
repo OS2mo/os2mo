@@ -78,6 +78,12 @@ from ._organisationsfunktion import OrganisationFunktionRegistrering
 from ._organisationsfunktion import OrganisationFunktionRelation
 from ._organisationsfunktion import OrganisationFunktionRelationKode
 from ._organisationsfunktion import OrganisationFunktionTilsGyldighed
+from ._policies import Policy
+from ._policies import PolicyMutator
+from ._policies import PolicyReader
+from ._policies import PolicySelector
+from ._policies import PolicySelectorKind
+from ._policies import PolicyTypeGrant
 from .files import FileToken
 import psycopg
 
