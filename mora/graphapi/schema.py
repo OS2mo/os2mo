@@ -57,6 +57,7 @@ from mora.graphapi.model_registration import PersonRegistration
 from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
+from mora.graphapi.owner_entities import OWNER_ENTITIES
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
@@ -218,11 +219,10 @@ async def rbac_policy(
     kwargs: dict[str, Any],
 ) -> bool:
     """Allow access if the token has the role required by the `RBAC_MAP`."""
-    requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
-    if requirement is None:  # pragma: no cover
+    role = RBAC_MAP.get((info.parent_type.name, info.field_name))
+    if role is None:  # pragma: no cover
         # Public fields are already allowed by the no_role_required_policy.
         return False
-    role, _, _ = requirement
     token = await info.context.get_token()
     token_roles = token.realm_access.roles
 
@@ -234,43 +234,34 @@ async def rbac_policy(
 
 async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     """Allow access if the user is the owner of the accessed resources."""
-    requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
-    if requirement is None:  # pragma: no cover
-        # Public fields are already allowed by the no_role_required_policy.
-        return False
-    _, collection, permission_type = requirement
-    check_kwargs = kwargs
-    if "input" in kwargs:
-        check_kwargs = {
-            **kwargs,
-            "input": [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])],
-        }
     token = await info.context.get_token()
     token_roles = token.realm_access.roles
 
-    # Allow access if user is owner. This only works for mutations at the
-    # moment, since we need access to the object's UUID to determine ownership.
-    # The object UUID is derived from the "input" key in kwargs which holds the
-    # mutators call args. Owner is currently only implemented for mutators
-    # taking an "input" key as its input.
-    if (
-        "owner" in token_roles
-        and info.operation.operation is OperationType.MUTATION
-        and collection is not None
-        and permission_type is not None
-        and "input" in check_kwargs
-    ):
-        # Import here to avoid circular imports 🙂👍
-        from mora.auth.keycloak.rbac import check_owner
-        from mora.auth.keycloak.uuid_extractor import get_entities_graphql
+    if "owner" not in token_roles:
+        return False
 
-        input = check_kwargs["input"]
-        entities = {
-            x async for x in get_entities_graphql(input, collection, permission_type)
-        }
-        with suppress(AuthorizationError):
-            await check_owner(_create_info_from_raw(info), token, entities)
-            return True
+    if info.operation.operation is not OperationType.MUTATION:
+        return False
+
+    if "input" not in kwargs:
+        return False
+
+    if info.field_name not in OWNER_ENTITIES:
+        return False
+    collection, permission_type = OWNER_ENTITIES[info.field_name]
+
+    input = [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])]
+
+    # Import here to avoid circular imports 🙂👍
+    from mora.auth.keycloak.rbac import check_owner
+    from mora.auth.keycloak.uuid_extractor import get_entities_graphql
+
+    entities = {
+        x async for x in get_entities_graphql(input, collection, permission_type)
+    }
+    with suppress(AuthorizationError):
+        await check_owner(_create_info_from_raw(info), token, entities)
+        return True
 
     return False
 

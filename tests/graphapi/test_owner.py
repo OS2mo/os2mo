@@ -807,3 +807,63 @@ async def test_owner_without_a_token_uuid_is_denied(
 
     set_auth(role="owner", user_uuid=None)
     assert_denied(employee_update(bob))
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_owner_ignores_aliases(
+    create_org_unit: Callable[..., UUID],
+    set_auth: SetAuth,
+    alice: UUID,
+    make_owner: Callable[..., None],
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """The policies key off `info.field_name`, the real name, never the alias."""
+    owned = create_org_unit("owned")
+    unowned = create_org_unit("unowned")
+    make_owner(alice, org_unit=owned)
+
+    def rename(unit: UUID) -> GQLResponse:
+        return graphapi_post(
+            """
+            mutation UpdateOU($input: OrganisationUnitUpdateInput!) {
+                not_a_mutator: org_unit_update(input: $input) { uuid }
+            }
+            """,
+            variables=jsonable_encoder(
+                {
+                    "input": {
+                        "uuid": unit,
+                        "validity": {"from": "2021-01-01"},
+                        "name": "Renamed",
+                    }
+                }
+            ),
+        )
+
+    set_auth(role="owner", user_uuid=alice)
+    # `not_a_mutator` has no owner rule, so an alias-keyed check would deny
+    # everything; these follow `org_unit_update`'s rule instead
+    assert_granted(rename(owned))
+    assert_denied(rename(unowned))
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_owner_grants_mutations_only(
+    set_auth: SetAuth,
+    alice: UUID,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Ownership only ever grants mutations, never a query."""
+    set_auth(role="owner", user_uuid=alice)
+    assert_denied(
+        graphapi_post(
+            """
+            query FetchEvent($filter: EventFilter!) {
+                event_fetch(filter: $filter) { token }
+            }
+            """,
+            variables=jsonable_encoder({"filter": {"listener": uuid4()}}),
+        )
+    )
