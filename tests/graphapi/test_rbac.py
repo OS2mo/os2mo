@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
+from itertools import chain
 from typing import Any
 from uuid import UUID
 from uuid import uuid4
@@ -15,6 +16,7 @@ from hypothesis import settings
 from hypothesis import strategies as st
 from hypothesis_graphql import nodes
 from hypothesis_graphql import strategies as gql_st
+from more_itertools import duplicates_everseen
 
 from mora.graphapi.events import EventToken
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
@@ -36,7 +38,7 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
     any schema field are dead rules, and therefore most likely mistakes.
 
     A field in both would be silently public (the chain grants access as soon
-    as `no_role_required_policy` matches, before `rbac_policy` runs), so it is
+    as `no_role_required_policy` matches, before `reader_policy` runs), so it is
     almost certainly a mistake; the two are required to be disjoint.
     """
     schema_fields = set()
@@ -74,8 +76,8 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
     stale = classified - schema_fields
     assert stale == set(), f"Classified entries without a schema field: {stale}"
 
-    overlap = PUBLIC_FIELDS & RBAC_MAP.keys()
-    assert overlap == set(), f"Fields both public and role-gated: {overlap}"
+    overlap = set(duplicates_everseen(chain(PUBLIC_FIELDS, RBAC_MAP)))
+    assert overlap == set(), f"Fields classified more than once: {overlap}"
 
 
 @pytest.mark.integration_test

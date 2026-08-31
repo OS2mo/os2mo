@@ -214,22 +214,26 @@ async def no_role_required_policy(
     return (info.parent_type.name, info.field_name) in PUBLIC_FIELDS
 
 
-async def rbac_policy(
+async def reader_policy(
     info: GraphQLResolveInfo,
     kwargs: dict[str, Any],
 ) -> bool:
-    """Allow access if the token has the role required by the `RBAC_MAP`."""
-    role = RBAC_MAP.get((info.parent_type.name, info.field_name))
-    if role is None:  # pragma: no cover
-        # Public fields are already allowed by the no_role_required_policy.
-        return False
+    """Allow access if the field requires the `reader` role and the token has it."""
     token = await info.context.get_token()
-    token_roles = token.realm_access.roles
+    if "reader" not in token.realm_access.roles:
+        return False
+    return RBAC_MAP.get((info.parent_type.name, info.field_name)) == "reader"
 
-    # Allow access if token has required role
-    if role in token_roles:
-        return True
-    return False
+
+async def admin_policy(
+    info: GraphQLResolveInfo,
+    kwargs: dict[str, Any],
+) -> bool:
+    """Allow access if the field requires the `admin` role and the token has it."""
+    token = await info.context.get_token()
+    if "admin" not in token.realm_access.roles:
+        return False
+    return RBAC_MAP.get((info.parent_type.name, info.field_name)) == "admin"
 
 
 async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
@@ -269,7 +273,8 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
 POLICIES: list[Policy] = [
     introspection_policy,
     no_role_required_policy,
-    rbac_policy,
+    reader_policy,
+    admin_policy,
     owner_policy,
 ]
 
