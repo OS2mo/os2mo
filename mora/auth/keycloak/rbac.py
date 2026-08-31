@@ -9,12 +9,8 @@ from sqlalchemy import exists
 from sqlalchemy import select
 from structlog import get_logger
 
-import mora.config
 from mora.auth.exceptions import AuthorizationError
-from mora.auth.keycloak.models import Token
 from mora.graphapi.filters import EmployeeFilter
-from mora.graphapi.filters import ITSystemFilter
-from mora.graphapi.filters import ITUserFilter
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.filters import OwnerFilter
 from mora.graphapi.resolvers import employee_predicate
@@ -24,28 +20,6 @@ if TYPE_CHECKING:
     from mora.graphapi.context import MOInfo
 
 logger = get_logger()
-
-
-def _actor_filter(token: Token) -> EmployeeFilter:
-    """The employee filter matching the calling actor.
-
-    With `KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS` configured, the
-    actor is the employee holding the token's uuid as an external id in that
-    IT system; otherwise the employee with the token's uuid itself.
-    """
-    # A token with no uuid never gets this far, see `owner_policy`
-    assert token.uuid is not None
-    it_system = (
-        mora.config.get_settings().keycloak_rbac_authoritative_it_system_for_owners
-    )
-    if it_system is not None:
-        return EmployeeFilter(
-            ituser=ITUserFilter(
-                itsystem=ITSystemFilter(uuids=[it_system]),
-                external_ids=[str(token.uuid)],
-            )
-        )
-    return EmployeeFilter(uuids=[token.uuid])
 
 
 def _is_owner_org_unit(
