@@ -4,12 +4,9 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy import ColumnElement
-from sqlalchemy import and_
 from sqlalchemy import exists
-from sqlalchemy import select
 from structlog import get_logger
 
-from mora.auth.exceptions import AuthorizationError
 from mora.graphapi.filters import EmployeeFilter
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.filters import OwnerFilter
@@ -60,11 +57,3 @@ def _is_owner_employee(
         ),
     )
     return exists().where(predicate)
-
-
-async def check_owner(info: "MOInfo", checks: list[ColumnElement]) -> None:
-    """Check if the token is owner of the given entities."""
-    logger.debug("Check owner", checks=checks)
-    if checks and await info.context.session.scalar(select(and_(*checks))):
-        return None
-    raise AuthorizationError("Not owner")

@@ -18,6 +18,8 @@ from graphql import GraphQLResolveInfo
 from graphql import OperationType
 from graphql import is_introspection_type
 from pydantic import PositiveInt
+from sqlalchemy import and_
+from sqlalchemy import select
 from starlette.datastructures import UploadFile
 from strawberry import Schema
 from strawberry.exceptions import StrawberryGraphQLError
@@ -29,7 +31,6 @@ from strawberry.utils.await_maybe import await_maybe
 from structlog import get_logger
 
 from mora import config
-from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
 from mora.db import get_session
 from mora.exceptions import HTTPException
@@ -286,7 +287,6 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
     input = [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])]
 
     # Import here to avoid circular imports 🙂👍
-    from mora.auth.keycloak.rbac import check_owner
     from mora.auth.keycloak.uuid_extractor import get_entities_graphql
 
     moinfo = _create_info_from_raw(info)
@@ -297,11 +297,11 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
             moinfo, actor, input, collection, permission_type
         )
     ]
-    with suppress(AuthorizationError):
-        await check_owner(moinfo, checks)
-        return True
-
-    return False
+    logger.debug("Check owner", checks=checks)
+    # Nothing to own is not owned by anybody
+    if not checks:
+        return False
+    return bool(await moinfo.context.session.scalar(select(and_(*checks))))
 
 
 POLICIES: list[Policy] = [
