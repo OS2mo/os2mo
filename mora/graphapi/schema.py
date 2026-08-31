@@ -251,13 +251,14 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
         # Public fields are already allowed by the no_role_required_policy.
         return False
     _, collection, permission_type = requirement
+
+    if (collection is None or permission_type is None):
+        return False
+
     check_kwargs = {
         **kwargs,
         "input": [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])],
     }
-
-    if (collection is None or permission_type is None):
-        return False
 
     # Import here to avoid circular imports 🙂👍
     from mora.auth.keycloak.rbac import check_owner
