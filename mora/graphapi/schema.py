@@ -234,6 +234,9 @@ async def rbac_policy(
 
 async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     """Allow access if the user is the owner of the accessed resources."""
+    token = await info.context.get_token()
+    token_roles = token.realm_access.roles
+
     requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
     if requirement is None:  # pragma: no cover
         # Public fields are already allowed by the no_role_required_policy.
@@ -245,8 +248,6 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
             **kwargs,
             "input": [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])],
         }
-    token = await info.context.get_token()
-    token_roles = token.realm_access.roles
 
     # Allow access if user is owner. This only works for mutations at the
     # moment, since we need access to the object's UUID to determine ownership.
