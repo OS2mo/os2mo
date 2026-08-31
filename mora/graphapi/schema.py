@@ -291,12 +291,9 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
 
     moinfo = _create_info_from_raw(info)
     actor = _actor_filter(moinfo.context.settings, token)
-    checks = [
-        check
-        async for check in get_entities_graphql(
-            moinfo, actor, input, collection, permission_type
-        )
-    ]
+    checks = list(
+        get_entities_graphql(moinfo, actor, input, collection, permission_type)
+    )
     logger.debug("Check owner", checks=checks)
     # Nothing to own is not owned by anybody
     if not checks:

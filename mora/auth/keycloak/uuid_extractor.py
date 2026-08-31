@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import AsyncIterable
+from collections.abc import Iterable
 from typing import TYPE_CHECKING
 from typing import Any
 from uuid import UUID
@@ -9,7 +9,7 @@ from sqlalchemy import ColumnElement
 from sqlalchemy import exists
 from sqlalchemy import or_
 
-from mora import common
+from mora.auth.keycloak.rbac import _is_owner_detail
 from mora.auth.keycloak.rbac import _is_owner_employee
 from mora.auth.keycloak.rbac import _is_owner_org_unit
 from mora.graphapi.filters import EmployeeFilter
@@ -17,8 +17,6 @@ from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.permissions import CollectionPermissionType
 from mora.graphapi.permissions import Collections
 from mora.graphapi.resolvers import organisation_unit_predicate
-from mora.mapping import ASSOCIATED_ORG_UNITS_FIELD
-from mora.mapping import USER_FIELD
 
 if TYPE_CHECKING:
     from mora.graphapi.context import MOInfo
@@ -36,13 +34,13 @@ def _keeps_parent(info: "MOInfo", uuid: UUID, parent: UUID) -> ColumnElement:
     )
 
 
-async def get_entities_graphql(
+def get_entities_graphql(
     info: "MOInfo",
     actor: EmployeeFilter,
     raw_input: list[Any],
     collection: Collections,
     permission_type: CollectionPermissionType,
-) -> AsyncIterable[ColumnElement]:
+) -> Iterable[ColumnElement]:
     """Check the ownership of the relevant entities (org unit or employee).
 
     Args:
@@ -58,7 +56,7 @@ async def get_entities_graphql(
         An iterable of checks, all of which must hold, for check_owner().
     """
 
-    async def extract(input) -> AsyncIterable[ColumnElement | None]:
+    def extract(input) -> Iterable[ColumnElement | None]:
         # Allow both employee and person to avoid bugs in the future
         if collection in {"employee", "person"}:
             yield _is_owner_employee(info, actor, getattr(input, "uuid"))
@@ -97,11 +95,7 @@ async def get_entities_graphql(
         # Everything (except creates) requires ownership of both the existing
         # database object as well as the new object from the input.
         if permission_type != "create":
-            org_function = await _get_org_function(getattr(input, "uuid"))
-            if org_unit_str := ASSOCIATED_ORG_UNITS_FIELD.get_uuid(org_function):
-                yield _is_owner_org_unit(info, actor, UUID(org_unit_str))
-            elif person_str := USER_FIELD.get_uuid(org_function):
-                yield _is_owner_employee(info, actor, UUID(person_str))
+            yield _is_owner_detail(info, actor, collection, getattr(input, "uuid"))
 
         # Existing object (e.g. update). Again, we prefer org unit over person.
         if org_unit := getattr(input, "org_unit", None):
@@ -111,13 +105,8 @@ async def get_entities_graphql(
         yield _is_owner_employee(info, actor, getattr(input, "person", None))
 
     for input in raw_input:
-        async for check in extract(input=input):
+        for check in extract(input=input):
             # Make sure we don't check a None UUID! Doing so makes the later code behave
             # wrongly and may grant too wide access.
             if check is not None:
                 yield check
-
-
-async def _get_org_function(uuid: UUID) -> dict | None:
-    c = common.get_connector()
-    return await c.organisationfunktion.get(uuid=uuid)
