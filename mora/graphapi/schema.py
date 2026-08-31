@@ -219,11 +219,10 @@ async def rbac_policy(
     kwargs: dict[str, Any],
 ) -> bool:
     """Allow access if the token has the role required by the `RBAC_MAP`."""
-    requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
-    if requirement is None:  # pragma: no cover
+    role = RBAC_MAP.get((info.parent_type.name, info.field_name))
+    if role is None:  # pragma: no cover
         # Public fields are already allowed by the no_role_required_policy.
         return False
-    role, _, _ = requirement
     token = await info.context.get_token()
     token_roles = token.realm_access.roles
 
