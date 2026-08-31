@@ -241,7 +241,7 @@ async def admin_policy(
     return (info.parent_type.name, info.field_name) in ADMIN_MAP
 
 
-def _actor_filter(token: Token) -> EmployeeFilter:
+def _actor_filter(settings: config.Settings, token: Token) -> EmployeeFilter:
     """The employee filter matching the calling actor.
 
     With `KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS` configured, the
@@ -250,7 +250,7 @@ def _actor_filter(token: Token) -> EmployeeFilter:
     """
     # A token with no uuid never gets this far, see `owner_policy`
     assert token.uuid is not None
-    it_system = config.get_settings().keycloak_rbac_authoritative_it_system_for_owners
+    it_system = settings.keycloak_rbac_authoritative_it_system_for_owners
     if it_system is not None:
         return EmployeeFilter(
             ituser=ITUserFilter(
@@ -290,7 +290,7 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
     from mora.auth.keycloak.uuid_extractor import get_entities_graphql
 
     moinfo = _create_info_from_raw(info)
-    actor = _actor_filter(token)
+    actor = _actor_filter(moinfo.context.settings, token)
     checks = [
         check
         async for check in get_entities_graphql(
