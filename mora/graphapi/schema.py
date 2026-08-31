@@ -280,20 +280,20 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
     if "input" not in kwargs:
         return False
 
-    if info.field_name not in OWNER_ENTITIES:
+    rule = OWNER_ENTITIES.get(info.field_name)
+    if rule is None:
         return False
-    collection, permission_type = OWNER_ENTITIES[info.field_name]
 
     input = [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])]
 
-    # Import here to avoid circular imports 🙂👍
-    from mora.auth.keycloak.uuid_extractor import get_entities_graphql
-
     moinfo = _create_info_from_raw(info)
     actor = _actor_filter(moinfo.context.settings, token)
-    checks = list(
-        get_entities_graphql(moinfo, actor, input, collection, permission_type)
-    )
+    checks = [
+        check
+        for item in input
+        for check in rule(moinfo, actor, item)
+        if check is not None
+    ]
     logger.debug("Check owner", checks=checks)
     # Nothing to own is not owned by anybody
     if not checks:
