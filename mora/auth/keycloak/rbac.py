@@ -35,6 +35,8 @@ def _actor_filter(token: Token) -> EmployeeFilter:
     actor is the employee holding the token's uuid as an external id in that
     IT system; otherwise the employee with the token's uuid itself.
     """
+    # A token with no uuid never gets this far, see `owner_policy`
+    assert token.uuid is not None
     it_system = (
         mora.config.get_settings().keycloak_rbac_authoritative_it_system_for_owners
     )

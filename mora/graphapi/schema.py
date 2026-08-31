@@ -245,6 +245,10 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
     if "owner" not in token_roles:
         return False
 
+    # A token carrying no uuid names no employee, so it owns nothing
+    if token.uuid is None:
+        return False
+
     if info.operation.operation is not OperationType.MUTATION:
         return False
 
