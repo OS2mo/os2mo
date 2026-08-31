@@ -1,9 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 from typing import TYPE_CHECKING
 from uuid import UUID
 
+from sqlalchemy import ColumnElement
+from sqlalchemy import and_
 from sqlalchemy import exists
 from sqlalchemy import select
 from structlog import get_logger
@@ -11,8 +12,6 @@ from structlog import get_logger
 import mora.config
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
-from mora.db import BrugerRegistrering
-from mora.db import OrganisationEnhedRegistrering
 from mora.graphapi.filters import EmployeeFilter
 from mora.graphapi.filters import ITSystemFilter
 from mora.graphapi.filters import ITUserFilter
@@ -20,7 +19,6 @@ from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.filters import OwnerFilter
 from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.resolvers import organisation_unit_predicate
-from mora.mapping import EntityType
 
 if TYPE_CHECKING:
     from mora.graphapi.context import MOInfo
@@ -50,9 +48,9 @@ def _actor_filter(token: Token) -> EmployeeFilter:
     return EmployeeFilter(uuids=[token.uuid])
 
 
-async def _is_owner_org_unit(
+def _is_owner_org_unit(
     info: "MOInfo", actor: EmployeeFilter, entity_uuid: UUID
-) -> bool:
+) -> ColumnElement:
     """Check org-unit ownership via the GraphQL org-unit owner filter.
 
     Owning any ancestor also grants ownership: the `descendant` filter matches
@@ -65,16 +63,12 @@ async def _is_owner_org_unit(
             owner=OwnerFilter(owner=actor),
         ),
     )
-    session = info.context.session
-    id_column = OrganisationEnhedRegistrering.organisationenhed_id
-    return bool(
-        await session.scalar(select(exists(select(id_column).where(predicate))))
-    )
+    return exists().where(predicate)
 
 
-async def _is_owner_employee(
+def _is_owner_employee(
     info: "MOInfo", actor: EmployeeFilter, entity_uuid: UUID
-) -> bool:
+) -> ColumnElement:
     """Check employee ownership via the GraphQL employee owner filter."""
     predicate = employee_predicate(
         info=info,
@@ -83,37 +77,12 @@ async def _is_owner_employee(
             owner=OwnerFilter(owner=actor),
         ),
     )
-    session = info.context.session
-    id_column = BrugerRegistrering.bruger_id
-    return bool(
-        await session.scalar(select(exists(select(id_column).where(predicate))))
-    )
+    return exists().where(predicate)
 
 
-async def _is_owner(
-    info: "MOInfo",
-    token: Token,
-    entity_type: EntityType,
-    entity_uuid: UUID,
-) -> bool:
-    """Check ownership in-process using the GraphQL filter predicates."""
-    actor = _actor_filter(token)
-    if entity_type == EntityType.ORG_UNIT:
-        return await _is_owner_org_unit(info, actor, entity_uuid)
-    return await _is_owner_employee(info, actor, entity_uuid)
-
-
-async def check_owner(
-    info: "MOInfo", token: Token, entities: set[tuple[EntityType, UUID]]
-) -> None:
+async def check_owner(info: "MOInfo", checks: list[ColumnElement]) -> None:
     """Check if the token is owner of the given entities."""
-    logger.debug("Check owner", entities=entities)
-    ownership = await asyncio.gather(
-        *(
-            _is_owner(info, token, entity_type, entity_uuid)
-            for entity_type, entity_uuid in entities
-        )
-    )
-    if ownership and all(ownership):
+    logger.debug("Check owner", checks=checks)
+    if checks and await info.context.session.scalar(select(and_(*checks))):
         return None
     raise AuthorizationError("Not owner")

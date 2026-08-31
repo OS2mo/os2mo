@@ -262,14 +262,20 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
     input = [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])]
 
     # Import here to avoid circular imports 🙂👍
+    from mora.auth.keycloak.rbac import _actor_filter
     from mora.auth.keycloak.rbac import check_owner
     from mora.auth.keycloak.uuid_extractor import get_entities_graphql
 
-    entities = {
-        x async for x in get_entities_graphql(input, collection, permission_type)
-    }
+    moinfo = _create_info_from_raw(info)
+    actor = _actor_filter(token)
+    checks = [
+        check
+        async for check in get_entities_graphql(
+            moinfo, actor, input, collection, permission_type
+        )
+    ]
     with suppress(AuthorizationError):
-        await check_owner(_create_info_from_raw(info), token, entities)
+        await check_owner(moinfo, checks)
         return True
 
     return False
