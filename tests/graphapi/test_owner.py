@@ -846,3 +846,24 @@ async def test_owner_ignores_aliases(
     # everything; these follow `org_unit_update`'s rule instead
     assert_granted(rename(owned))
     assert_denied(rename(unowned))
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_owner_grants_mutations_only(
+    set_auth: SetAuth,
+    alice: UUID,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Ownership only ever grants mutations, never a query."""
+    set_auth(role="owner", user_uuid=alice)
+    assert_denied(
+        graphapi_post(
+            """
+            query FetchEvent($filter: EventFilter!) {
+                event_fetch(filter: $filter) { token }
+            }
+            """,
+            variables=jsonable_encoder({"filter": {"listener": uuid4()}}),
+        )
+    )
