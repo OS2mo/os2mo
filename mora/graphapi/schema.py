@@ -256,26 +256,20 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
         "input": [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])],
     }
 
-    # Allow access if user is owner. This only works for mutations at the
-    # moment, since we need access to the object's UUID to determine ownership.
-    # The object UUID is derived from the "input" key in kwargs which holds the
-    # mutators call args. Owner is currently only implemented for mutators
-    # taking an "input" key as its input.
-    if (
-        collection is not None
-        and permission_type is not None
-    ):
-        # Import here to avoid circular imports 🙂👍
-        from mora.auth.keycloak.rbac import check_owner
-        from mora.auth.keycloak.uuid_extractor import get_entities_graphql
+    if (collection is None or permission_type is None):
+        return False
 
-        input = check_kwargs["input"]
-        entities = {
-            x async for x in get_entities_graphql(input, collection, permission_type)
-        }
-        with suppress(AuthorizationError):
-            await check_owner(_create_info_from_raw(info), token, entities)
-            return True
+    # Import here to avoid circular imports 🙂👍
+    from mora.auth.keycloak.rbac import check_owner
+    from mora.auth.keycloak.uuid_extractor import get_entities_graphql
+
+    input = check_kwargs["input"]
+    entities = {
+        x async for x in get_entities_graphql(input, collection, permission_type)
+    }
+    with suppress(AuthorizationError):
+        await check_owner(_create_info_from_raw(info), token, entities)
+        return True
 
     return False
 
