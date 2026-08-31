@@ -1,8 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
-from typing import Any
-from uuid import UUID
 from uuid import uuid4
 
 import pytest
@@ -17,6 +14,7 @@ from hypothesis_graphql import nodes
 from hypothesis_graphql import strategies as gql_st
 
 from mora.graphapi.events import EventToken
+from mora.graphapi.policies import COLLECTION_TYPE_NAMES
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.schema import get_schema
@@ -26,20 +24,32 @@ from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
 
+def _named_type(type_: dict) -> str | None:
+    """The name of the innermost named type, unwrapping non-null and list."""
+    while type_["name"] is None:
+        type_ = type_["ofType"]
+        if type_ is None:  # pragma: no cover
+            return None
+    return type_["name"]
+
+
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
     """RBAC is reject-by-default, so every field must be classified.
 
-    Each schema field must be either public (`PUBLIC_FIELDS`) or have a role
-    requirement (`RBAC_MAP`). Conversely, entries which do not correspond to
-    any schema field are dead rules, and therefore most likely mistakes.
+    Each schema field must be either public (`PUBLIC_FIELDS`), have a role
+    requirement (`RBAC_MAP`) or read a collection (`COLLECTION_TYPE_NAMES`).
+    Conversely, entries which do not correspond to any
+    schema field are dead rules, and therefore most likely mistakes.
 
-    A field in both would be silently public (the chain grants access as soon
-    as `no_role_required_policy` matches, before `rbac_policy` runs), so it is
-    almost certainly a mistake; the two are required to be disjoint.
+    A field in more than one would silently get the weakest of its
+    requirements (the chain grants access as soon as a policy matches), so it
+    is almost certainly a mistake; the three are required to be pairwise
+    disjoint.
     """
     schema_fields = set()
+    policy_granted = set()
     for version in Version:
         response = graphapi_post(
             """
@@ -50,6 +60,19 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
                   kind
                   fields(includeDeprecated: true) {
                     name
+                    type {
+                      kind
+                      name
+                      ofType {
+                        kind
+                        name
+                        ofType {
+                          kind
+                          name
+                          ofType { kind name }
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -65,8 +88,20 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
             schema_fields.update(
                 (type_["name"], field["name"]) for field in type_["fields"]
             )
+            # Fields on a collection's types, and fields yielding one, read
+            # the collection and are granted by its policies. The mutation
+            # root's own fields write it, and keep their requirement.
+            policy_granted.update(
+                (type_["name"], field["name"])
+                for field in type_["fields"]
+                if type_["name"] in COLLECTION_TYPE_NAMES
+                or (
+                    type_["name"] != "Mutation"
+                    and _named_type(field["type"]) in COLLECTION_TYPE_NAMES
+                )
+            )
 
-    classified = PUBLIC_FIELDS | RBAC_MAP.keys()
+    classified = PUBLIC_FIELDS | RBAC_MAP.keys() | policy_granted
 
     missing = schema_fields - classified
     assert missing == set(), f"Unclassified schema fields: {missing}"
@@ -76,6 +111,12 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
 
     overlap = PUBLIC_FIELDS & RBAC_MAP.keys()
     assert overlap == set(), f"Fields both public and role-gated: {overlap}"
+
+    # `PUBLIC_FIELDS` and the collection reads are both granted by
+    # `no_role_required_policy`, so a field may be in both: an edge leaving a
+    # collection requires no role of its own, and is limited at the other end.
+    overlap = RBAC_MAP.keys() & policy_granted
+    assert overlap == set(), f"Fields both role-gated and policy-granted: {overlap}"
 
 
 @pytest.mark.integration_test
@@ -110,37 +151,6 @@ async def test_introspection_is_public(
     }
 
 
-@pytest.fixture
-def org_unit_with_address(
-    create_org_unit: Callable[..., UUID],
-    create_facet: Callable[[dict[str, Any]], UUID],
-    create_class: Callable[[dict[str, Any]], UUID],
-    create_address: Callable[[dict[str, Any]], UUID],
-) -> None:
-    """An org-unit with an address, so the queries under test return data."""
-    org_unit_uuid = create_org_unit("test")
-    facet_uuid = create_facet(
-        {"user_key": "org_unit_address_type", "validity": {"from": "2000-01-01"}}
-    )
-    address_type_uuid = create_class(
-        {
-            "facet_uuid": str(facet_uuid),
-            "user_key": "email",
-            "name": "Email",
-            "scope": "EMAIL",
-            "validity": {"from": "2000-01-01"},
-        }
-    )
-    create_address(
-        {
-            "address_type": str(address_type_uuid),
-            "org_unit": str(org_unit_uuid),
-            "value": "unit@example.org",
-            "validity": {"from": "2000-01-01"},
-        }
-    )
-
-
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db", "org_unit_with_address")
 @pytest.mark.parametrize(
@@ -156,12 +166,9 @@ def org_unit_with_address(
             {"No policy approved the access"},
         ),
         ("query { org_units { objects { uuid } } }", {"reader"}, set()),
-        # Query all addresses
-        (
-            "query { addresses { objects { uuid } } }",
-            set(),
-            {"No policy approved the access"},
-        ),
+        # Query all addresses. Addresses are collection-based, so asking
+        # without the reader role is allowed; it just yields nothing.
+        ("query { addresses { objects { uuid } } }", set(), set()),
         ("query { addresses { objects { uuid } } }", {"reader"}, set()),
         # Query all org-units and their addresses
         (

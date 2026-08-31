@@ -76,6 +76,7 @@ from mora.db import OrganisationRegistrering
 from mora.graphapi.context import MOInfo
 from mora.graphapi.custom_schema import get_version
 from mora.graphapi.gmodels.base import tz_isodate
+from mora.graphapi.policies import address_read_predicate
 from mora.graphapi.version import Version
 from mora.service.autocomplete.employees import search_employees_predicate
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
@@ -809,9 +810,10 @@ async def address_resolver(
         info=info,
         filter=filter,
     )
+    # Start from the addresses the caller may read, then limit by the filter
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
-        .where(predicate)
+        .where(await address_read_predicate(info.context), predicate)
         .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     )
     # Pagination

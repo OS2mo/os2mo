@@ -1610,6 +1610,37 @@ def create_address(
 
 
 @pytest.fixture
+def org_unit_with_address(
+    create_org_unit: Callable[..., UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+    create_address: Callable[[dict[str, Any]], UUID],
+) -> UUID:
+    """An org-unit with an address, so the queries under test return data."""
+    org_unit_uuid = create_org_unit("test")
+    facet_uuid = create_facet(
+        {"user_key": "org_unit_address_type", "validity": {"from": "2000-01-01"}}
+    )
+    address_type_uuid = create_class(
+        {
+            "facet_uuid": str(facet_uuid),
+            "user_key": "email",
+            "name": "Email",
+            "scope": "EMAIL",
+            "validity": {"from": "2000-01-01"},
+        }
+    )
+    return create_address(
+        {
+            "address_type": str(address_type_uuid),
+            "org_unit": str(org_unit_uuid),
+            "value": "unit@example.org",
+            "validity": {"from": "2000-01-01"},
+        }
+    )
+
+
+@pytest.fixture
 def update_address(
     graphapi_post: GraphAPIPost,
     root_org: UUID,

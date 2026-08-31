@@ -16,6 +16,7 @@ from graphql import ExecutionResult
 from graphql import GraphQLError
 from graphql import GraphQLResolveInfo
 from graphql import OperationType
+from graphql import get_named_type
 from graphql import is_introspection_type
 from pydantic import PositiveInt
 from starlette.datastructures import UploadFile
@@ -58,6 +59,7 @@ from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.owner_entities import OWNER_ENTITIES
+from mora.graphapi.policies import COLLECTION_TYPE_NAMES
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
@@ -207,11 +209,36 @@ async def introspection_policy(
     ) or is_introspection_type(info.parent_type)
 
 
+def _reads_a_collection(info: GraphQLResolveInfo) -> bool:
+    """Whether the field reads a collection, however it was reached.
+
+    Both the fields *on* a collection's types and the fields *yielding* one
+    read it. The mutation root's own fields do not: they change a collection
+    instead, and keep their requirement in `RBAC_MAP`. Everything below them
+    is a read of the mutation's result.
+    """
+    if info.parent_type.name in COLLECTION_TYPE_NAMES:
+        return True
+    if info.parent_type is info.schema.mutation_type:
+        return False
+    return get_named_type(info.return_type).name in COLLECTION_TYPE_NAMES
+
+
 async def no_role_required_policy(
     info: GraphQLResolveInfo, kwargs: dict[str, Any]
 ) -> bool:
-    """Allow access to fields which are explicitly listed in `PUBLIC_FIELDS`."""
-    return (info.parent_type.name, info.field_name) in PUBLIC_FIELDS
+    """Allow access to the fields which require no role to ask for.
+
+    Those are the ones explicitly listed in `PUBLIC_FIELDS`, and the reads of
+    a collection: reading a collection is never forbidden by route, as what
+    the caller may see is decided by the collection's predicate, applied by
+    the resolver producing its objects (see `mora.graphapi.policies`). The
+    caller lacking the role therefore gets an empty collection, not an error.
+    """
+    return (
+        info.parent_type.name,
+        info.field_name,
+    ) in PUBLIC_FIELDS or _reads_a_collection(info)
 
 
 async def rbac_policy(
@@ -296,7 +323,9 @@ class RBACExtension(SchemaExtension):
     one, until a policy allows access.
 
     Access is rejected by default: every field must be listed in
-    `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP`.
+    `PUBLIC_FIELDS`, have a requirement in `RBAC_MAP`, or read a collection,
+    whose resolver applies the collection's predicate instead
+    (`mora.graphapi.policies`).
     """
 
     async def resolve(  # type: ignore[override]
