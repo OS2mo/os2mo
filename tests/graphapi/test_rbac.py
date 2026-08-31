@@ -72,7 +72,7 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
                 (type_["name"], field["name"]) for field in type_["fields"]
             )
 
-    classified = PUBLIC_FIELDS | RBAC_MAP.keys() | ADMIN_MAP.keys()
+    classified = PUBLIC_FIELDS | RBAC_MAP | ADMIN_MAP.keys()
 
     missing = schema_fields - classified
     assert missing == set(), f"Unclassified schema fields: {missing}"

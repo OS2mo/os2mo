@@ -223,7 +223,7 @@ async def reader_policy(
     token = await info.context.get_token()
     if "reader" not in token.realm_access.roles:
         return False
-    return RBAC_MAP.get((info.parent_type.name, info.field_name)) == "reader"
+    return (info.parent_type.name, info.field_name) in RBAC_MAP
 
 
 async def admin_policy(
