@@ -255,16 +255,12 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
     if (collection is None or permission_type is None):
         return False
 
-    check_kwargs = {
-        **kwargs,
-        "input": [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])],
-    }
+    input = [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])]
 
     # Import here to avoid circular imports 🙂👍
     from mora.auth.keycloak.rbac import check_owner
     from mora.auth.keycloak.uuid_extractor import get_entities_graphql
 
-    input = check_kwargs["input"]
     entities = {
         x async for x in get_entities_graphql(input, collection, permission_type)
     }
