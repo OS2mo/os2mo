@@ -234,7 +234,7 @@ async def admin_policy(
     token = await info.context.get_token()
     if "admin" not in token.realm_access.roles:
         return False
-    return ADMIN_MAP.get((info.parent_type.name, info.field_name)) == "admin"
+    return (info.parent_type.name, info.field_name) in ADMIN_MAP
 
 
 async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
