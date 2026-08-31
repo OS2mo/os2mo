@@ -6,19 +6,34 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import ColumnElement
+from sqlalchemy import exists
+from sqlalchemy import or_
 
 from mora import common
 from mora.auth.keycloak.rbac import _is_owner_employee
 from mora.auth.keycloak.rbac import _is_owner_org_unit
 from mora.graphapi.filters import EmployeeFilter
+from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.permissions import CollectionPermissionType
 from mora.graphapi.permissions import Collections
+from mora.graphapi.resolvers import organisation_unit_predicate
 from mora.mapping import ASSOCIATED_ORG_UNITS_FIELD
-from mora.mapping import PARENT_FIELD
 from mora.mapping import USER_FIELD
 
 if TYPE_CHECKING:
     from mora.graphapi.context import MOInfo
+
+
+def _keeps_parent(info: "MOInfo", uuid: UUID, parent: UUID) -> ColumnElement:
+    """Whether the parent named is the one the org unit already has."""
+    return exists().where(
+        organisation_unit_predicate(
+            info=info,
+            filter=OrganisationUnitFilter(
+                uuids=[parent], child=OrganisationUnitFilter(uuids=[uuid])
+            ),
+        )
+    )
 
 
 async def get_entities_graphql(
@@ -57,14 +72,14 @@ async def get_entities_graphql(
             # Otherwise, changes always requires ownership of the org unit itself
             yield _is_owner_org_unit(info, actor, getattr(input, "uuid"))
             # Additionally, moving an org unit (changing its parent) requires ownership
-            # of the new parent. GraphQL edits always contain the full object, so we
-            # must compare with the current parent in the database to figure out if it
-            # was changed.
+            # of the new parent. GraphQL edits always contain the full object, so the
+            # parent named is just as often the one the unit already has, which is no
+            # move at all.
             if parent := getattr(input, "parent", None):
-                current = await _get_org_unit(getattr(input, "uuid"))
-                current_parent = PARENT_FIELD.get_uuid(current)
-                if str(parent) != current_parent:
-                    yield _is_owner_org_unit(info, actor, parent)
+                yield or_(
+                    _keeps_parent(info, getattr(input, "uuid"), parent),
+                    _is_owner_org_unit(info, actor, parent),
+                )
             return
 
         if collection == "related_unit":
@@ -101,11 +116,6 @@ async def get_entities_graphql(
             # wrongly and may grant too wide access.
             if check is not None:
                 yield check
-
-
-async def _get_org_unit(uuid: UUID) -> dict | None:
-    c = common.get_connector()
-    return await c.organisationenhed.get(uuid=uuid)
 
 
 async def _get_org_function(uuid: UUID) -> dict | None:
