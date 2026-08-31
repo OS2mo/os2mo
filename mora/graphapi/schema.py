@@ -243,17 +243,18 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
     if info.operation.operation is not OperationType.MUTATION:
         return False
 
+    if "input" not in kwargs:
+        return False
+
     requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
     if requirement is None:  # pragma: no cover
         # Public fields are already allowed by the no_role_required_policy.
         return False
     _, collection, permission_type = requirement
-    check_kwargs = kwargs
-    if "input" in kwargs:
-        check_kwargs = {
-            **kwargs,
-            "input": [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])],
-        }
+    check_kwargs = {
+        **kwargs,
+        "input": [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])],
+    }
 
     # Allow access if user is owner. This only works for mutations at the
     # moment, since we need access to the object's UUID to determine ownership.
@@ -263,7 +264,6 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
     if (
         collection is not None
         and permission_type is not None
-        and "input" in check_kwargs
     ):
         # Import here to avoid circular imports 🙂👍
         from mora.auth.keycloak.rbac import check_owner
