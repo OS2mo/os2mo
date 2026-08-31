@@ -240,6 +240,9 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
     if "owner" not in token_roles:
         return False
 
+    if info.operation.operation is not OperationType.MUTATION:
+        return False
+
     requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
     if requirement is None:  # pragma: no cover
         # Public fields are already allowed by the no_role_required_policy.
@@ -258,8 +261,7 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
     # mutators call args. Owner is currently only implemented for mutators
     # taking an "input" key as its input.
     if (
-        info.operation.operation is OperationType.MUTATION
-        and collection is not None
+        collection is not None
         and permission_type is not None
         and "input" in check_kwargs
     ):
