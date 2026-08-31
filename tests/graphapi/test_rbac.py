@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
+from itertools import chain
 from typing import Any
 from uuid import UUID
 from uuid import uuid4
@@ -15,8 +16,10 @@ from hypothesis import settings
 from hypothesis import strategies as st
 from hypothesis_graphql import nodes
 from hypothesis_graphql import strategies as gql_st
+from more_itertools import duplicates_everseen
 
 from mora.graphapi.events import EventToken
+from mora.graphapi.rbac_map import ADMIN_MAP
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.schema import get_schema
@@ -32,12 +35,15 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
     """RBAC is reject-by-default, so every field must be classified.
 
     Each schema field must be either public (`PUBLIC_FIELDS`) or have a role
-    requirement (`RBAC_MAP`). Conversely, entries which do not correspond to
-    any schema field are dead rules, and therefore most likely mistakes.
+    requirement (`RBAC_MAP` or `ADMIN_MAP`). Conversely, entries which do not
+    correspond to any schema field are dead rules, and therefore most likely
+    mistakes.
 
-    A field in both would be silently public (the chain grants access as soon
-    as `no_role_required_policy` matches, before `rbac_policy` runs), so it is
-    almost certainly a mistake; the two are required to be disjoint.
+    A field in more than one of them would silently get the weakest of its
+    requirements (the chain grants access as soon as a policy matches, and
+    `no_role_required_policy` runs before `reader_policy`, which runs before
+    `admin_policy`), so it is almost certainly a mistake; the three are
+    required to be pairwise disjoint.
     """
     schema_fields = set()
     for version in Version:
@@ -66,7 +72,7 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
                 (type_["name"], field["name"]) for field in type_["fields"]
             )
 
-    classified = PUBLIC_FIELDS | RBAC_MAP.keys()
+    classified = PUBLIC_FIELDS | RBAC_MAP | ADMIN_MAP
 
     missing = schema_fields - classified
     assert missing == set(), f"Unclassified schema fields: {missing}"
@@ -74,8 +80,8 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
     stale = classified - schema_fields
     assert stale == set(), f"Classified entries without a schema field: {stale}"
 
-    overlap = PUBLIC_FIELDS & RBAC_MAP.keys()
-    assert overlap == set(), f"Fields both public and role-gated: {overlap}"
+    overlap = set(duplicates_everseen(chain(PUBLIC_FIELDS, RBAC_MAP, ADMIN_MAP)))
+    assert overlap == set(), f"Fields classified more than once: {overlap}"
 
 
 @pytest.mark.integration_test
