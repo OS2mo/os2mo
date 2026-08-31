@@ -21,24 +21,6 @@ if TYPE_CHECKING:
     from mora.graphapi.context import MOInfo
 
 
-def _org_unit(
-    info: "MOInfo", actor: EmployeeFilter, uuid: UUID | None
-) -> ColumnElement | None:
-    """Check the ownership of the org unit, if one is named."""
-    if uuid is None:
-        return None
-    return _is_owner_org_unit(info, actor, uuid)
-
-
-def _employee(
-    info: "MOInfo", actor: EmployeeFilter, uuid: UUID | None
-) -> ColumnElement | None:
-    """Check the ownership of the employee, if one is named."""
-    if uuid is None:
-        return None
-    return _is_owner_employee(info, actor, uuid)
-
-
 async def get_entities_graphql(
     info: "MOInfo",
     actor: EmployeeFilter,
@@ -64,16 +46,16 @@ async def get_entities_graphql(
     async def extract(input) -> AsyncIterable[ColumnElement | None]:
         # Allow both employee and person to avoid bugs in the future
         if collection in {"employee", "person"}:
-            yield _employee(info, actor, getattr(input, "uuid"))
+            yield _is_owner_employee(info, actor, getattr(input, "uuid"))
             return
 
         if collection == "org_unit":
             # Create requires ownership of the parent we are trying to insert under
             if permission_type == "create":
-                yield _org_unit(info, actor, getattr(input, "parent", None))
+                yield _is_owner_org_unit(info, actor, getattr(input, "parent", None))
                 return
             # Otherwise, changes always requires ownership of the org unit itself
-            yield _org_unit(info, actor, getattr(input, "uuid"))
+            yield _is_owner_org_unit(info, actor, getattr(input, "uuid"))
             # Additionally, moving an org unit (changing its parent) requires ownership
             # of the new parent. GraphQL edits always contain the full object, so we
             # must compare with the current parent in the database to figure out if it
@@ -82,7 +64,7 @@ async def get_entities_graphql(
                 current = await _get_org_unit(getattr(input, "uuid"))
                 current_parent = PARENT_FIELD.get_uuid(current)
                 if str(parent) != current_parent:
-                    yield _org_unit(info, actor, parent)
+                    yield _is_owner_org_unit(info, actor, parent)
             return
 
         if collection == "related_unit":
@@ -90,7 +72,7 @@ async def get_entities_graphql(
             # `destination`s. Originally we required ownership of both the
             # origin and destinations, but that's not compatible with the old
             # service-api owner calculation
-            yield _org_unit(info, actor, getattr(input, "origin", None))
+            yield _is_owner_org_unit(info, actor, getattr(input, "origin", None))
             return
 
         # Even though most of the remaining object types (addresses,
@@ -102,16 +84,16 @@ async def get_entities_graphql(
         if permission_type != "create":
             org_function = await _get_org_function(getattr(input, "uuid"))
             if org_unit_str := ASSOCIATED_ORG_UNITS_FIELD.get_uuid(org_function):
-                yield _org_unit(info, actor, UUID(org_unit_str))
+                yield _is_owner_org_unit(info, actor, UUID(org_unit_str))
             elif person_str := USER_FIELD.get_uuid(org_function):
-                yield _employee(info, actor, UUID(person_str))
+                yield _is_owner_employee(info, actor, UUID(person_str))
 
         # Existing object (e.g. update). Again, we prefer org unit over person.
         if org_unit := getattr(input, "org_unit", None):
-            yield _org_unit(info, actor, org_unit)
+            yield _is_owner_org_unit(info, actor, org_unit)
             return
-        yield _employee(info, actor, getattr(input, "employee", None))
-        yield _employee(info, actor, getattr(input, "person", None))
+        yield _is_owner_employee(info, actor, getattr(input, "employee", None))
+        yield _is_owner_employee(info, actor, getattr(input, "person", None))
 
     for input in raw_input:
         async for check in extract(input=input):
