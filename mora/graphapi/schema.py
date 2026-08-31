@@ -57,6 +57,7 @@ from mora.graphapi.model_registration import PersonRegistration
 from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
+from mora.graphapi.owner_entities import OWNER_ENTITIES
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
@@ -246,14 +247,9 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
     if "input" not in kwargs:
         return False
 
-    requirement = RBAC_MAP.get((info.parent_type.name, info.field_name))
-    if requirement is None:  # pragma: no cover
-        # Public fields are already allowed by the no_role_required_policy.
+    if info.field_name not in OWNER_ENTITIES:
         return False
-    _, collection, permission_type = requirement
-
-    if (collection is None or permission_type is None):
-        return False
+    collection, permission_type = OWNER_ENTITIES[info.field_name]
 
     input = [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])]
 
