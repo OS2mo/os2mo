@@ -59,6 +59,7 @@ from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.owner_entities import OWNER_ENTITIES
 from mora.graphapi.query import Query
+from mora.graphapi.rbac_map import ADMIN_MAP
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.types import CPR_SCALAR
@@ -233,7 +234,7 @@ async def admin_policy(
     token = await info.context.get_token()
     if "admin" not in token.realm_access.roles:
         return False
-    return RBAC_MAP.get((info.parent_type.name, info.field_name)) == "admin"
+    return ADMIN_MAP.get((info.parent_type.name, info.field_name)) == "admin"
 
 
 async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
@@ -301,7 +302,7 @@ class RBACExtension(SchemaExtension):
     one, until a policy allows access.
 
     Access is rejected by default: every field must be listed in
-    `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP`.
+    `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP` or `ADMIN_MAP`.
     """
 
     async def resolve(  # type: ignore[override]
