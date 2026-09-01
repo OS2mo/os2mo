@@ -311,21 +311,6 @@ POLICIES: list[Policy] = [
 ]
 
 
-async def _enforce_pbac(
-    info: GraphQLResolveInfo,
-    kwargs: dict[str, Any],
-) -> None:
-    """Check `POLICIES` for *info* and raise `GraphQLError` if none allow access.
-
-    Policies are checked one by one, and access is granted as soon as any
-    policy allows it.
-    """
-    for policy in POLICIES:
-        if await policy(info, kwargs):
-            return
-    raise GraphQLError("No policy approved the access")
-
-
 class RBACExtension(SchemaExtension):
     """Schema-level extension that enforces PBAC for every field.
 
@@ -343,8 +328,10 @@ class RBACExtension(SchemaExtension):
         info: GraphQLResolveInfo,
         **kwargs: dict[str, Any],
     ) -> Any:
-        await _enforce_pbac(info, kwargs)
-        return await await_maybe(next_(root, info, **kwargs))
+        for policy in POLICIES:
+            if await policy(info, kwargs):
+                return await await_maybe(next_(root, info, **kwargs))
+        raise GraphQLError("No policy approved the access")
 
 
 @cache
