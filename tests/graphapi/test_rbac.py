@@ -4,7 +4,6 @@ from collections.abc import Callable
 from functools import partial
 from itertools import chain
 from typing import Any
-from typing import get_type_hints
 from uuid import UUID
 from uuid import uuid4
 
@@ -21,6 +20,8 @@ from hypothesis_graphql import strategies as gql_st
 from more_itertools import duplicates_everseen
 
 from mora.graphapi.events import EventToken
+from mora.graphapi.filters import EmployeeFilter
+from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.owner_entities import OWNER_ENTITIES
 from mora.graphapi.rbac_map import ADMIN_MAP
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
@@ -268,18 +269,29 @@ async def test_mutators_require_rbac(
     assert error_messages == {"No policy approved the access"}
 
 
-def test_detail_terminates_are_aligned() -> None:
+DETAIL_RULES = [
+    (mutator, rule)
+    for mutator, rule in sorted(OWNER_ENTITIES.items())
+    if isinstance(rule, partial) and "filter_class" in rule.keywords
+]
+
+
+@pytest.mark.parametrize(
+    "mutator,rule",
+    DETAIL_RULES,
+)
+def test_detail_terminates_are_aligned(mutator: str, rule: partial) -> None:
     """The detail rules' link flags match what their filters accept.
 
     Every detail's filter must take an org unit link, and the `person` flag
     (defaulting to True in `detail()`) must match the employee field.
     """
-    for mutator, rule in OWNER_ENTITIES.items():
-        if not isinstance(rule, partial):
-            continue
-        resolver = rule.keywords["resolver"]
-        filter_class = get_type_hints(resolver)["filter"]
-        hints = get_type_hints(filter_class)
-        assert "org_unit" in hints, mutator
-        person = rule.keywords.get("person", True)
-        assert ("employee" in hints) == person, mutator
+    filter_class = rule.keywords["filter_class"]
+    uuid = uuid4()
+    org_unit = OrganisationUnitFilter(ancestor=OrganisationUnitFilter())
+    filter_class(uuids=[uuid], org_unit=org_unit)
+    if rule.keywords.get("person", True):
+        filter_class(uuids=[uuid], employee=EmployeeFilter())
+        return
+    with pytest.raises(TypeError):
+        filter_class(uuids=[uuid], employee=EmployeeFilter())

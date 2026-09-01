@@ -7,7 +7,6 @@ from collections.abc import Iterable
 from functools import partial
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import get_type_hints
 
 from more_itertools import first
 from more_itertools import flatten
@@ -16,9 +15,18 @@ from sqlalchemy import exists
 from sqlalchemy import or_
 
 from mora.graphapi import resolvers
+from mora.graphapi.filters import AddressFilter
+from mora.graphapi.filters import AssociationFilter
+from mora.graphapi.filters import BaseFilter
 from mora.graphapi.filters import EmployeeFilter
+from mora.graphapi.filters import EngagementFilter
+from mora.graphapi.filters import ITUserFilter
+from mora.graphapi.filters import KLEFilter
+from mora.graphapi.filters import LeaveFilter
+from mora.graphapi.filters import ManagerFilter
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.filters import OwnerFilter
+from mora.graphapi.filters import RoleBindingFilter
 from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.resolvers import organisation_unit_predicate
 
@@ -79,6 +87,7 @@ def detail(
     input: Any,
     *,
     resolver: Callable[..., ColumnElement],
+    filter_class: Callable[..., BaseFilter],
     person: bool = True,
 ) -> Checks:
     """The detail itself, whatever it links to now.
@@ -89,7 +98,6 @@ def detail(
     against the filters by a test.
     """
     owner = OwnerFilter(owner=actor)
-    filter_class = get_type_hints(resolver)["filter"]
     uuid = getattr(input, "uuid")
     # Whoever owns what the detail links: its org unit (through any ancestor)
     via_org_unit = exists().where(
@@ -117,16 +125,38 @@ def detail(
 
 # The rule for each collection's detail. KLEs and role-bindings cannot name
 # a person; every other detail can
-address: OwnerRule = partial(detail, resolver=resolvers.address_predicate)
-association: OwnerRule = partial(detail, resolver=resolvers.association_predicate)
-engagement: OwnerRule = partial(detail, resolver=resolvers.engagement_predicate)
-ituser: OwnerRule = partial(detail, resolver=resolvers.it_user_predicate)
-kle: OwnerRule = partial(detail, resolver=resolvers.kle_predicate, person=False)
-leave: OwnerRule = partial(detail, resolver=resolvers.leave_predicate)
-manager: OwnerRule = partial(detail, resolver=resolvers.manager_predicate)
-owner: OwnerRule = partial(detail, resolver=resolvers.owner_predicate)
+address: OwnerRule = partial(
+    detail, resolver=resolvers.address_predicate, filter_class=AddressFilter
+)
+association: OwnerRule = partial(
+    detail, resolver=resolvers.association_predicate, filter_class=AssociationFilter
+)
+engagement: OwnerRule = partial(
+    detail, resolver=resolvers.engagement_predicate, filter_class=EngagementFilter
+)
+ituser: OwnerRule = partial(
+    detail, resolver=resolvers.it_user_predicate, filter_class=ITUserFilter
+)
+kle: OwnerRule = partial(
+    detail,
+    resolver=resolvers.kle_predicate,
+    filter_class=KLEFilter,
+    person=False,
+)
+leave: OwnerRule = partial(
+    detail, resolver=resolvers.leave_predicate, filter_class=LeaveFilter
+)
+manager: OwnerRule = partial(
+    detail, resolver=resolvers.manager_predicate, filter_class=ManagerFilter
+)
+owner: OwnerRule = partial(
+    detail, resolver=resolvers.owner_predicate, filter_class=OwnerFilter
+)
 rolebinding: OwnerRule = partial(
-    detail, resolver=resolvers.rolebinding_predicate, person=False
+    detail,
+    resolver=resolvers.rolebinding_predicate,
+    filter_class=RoleBindingFilter,
+    person=False,
 )
 
 
