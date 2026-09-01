@@ -6,6 +6,7 @@ from collections.abc import Callable
 from collections.abc import Iterable
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import get_type_hints
 from uuid import UUID
 
 from more_itertools import first
@@ -14,12 +15,12 @@ from sqlalchemy import ColumnElement
 from sqlalchemy import exists
 from sqlalchemy import or_
 
-from mora.auth.keycloak.rbac import _is_owner_detail
-from mora.auth.keycloak.rbac import _is_owner_employee
-from mora.auth.keycloak.rbac import _is_owner_org_unit
+from mora.graphapi import resolvers
 from mora.graphapi.filters import EmployeeFilter
 from mora.graphapi.filters import OrganisationUnitFilter
+from mora.graphapi.filters import OwnerFilter
 from mora.graphapi.permissions import Collections
+from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.resolvers import organisation_unit_predicate
 
 if TYPE_CHECKING:
@@ -32,10 +33,24 @@ OwnerRule = Callable[["MOInfo", EmployeeFilter, Any], Checks]
 
 
 def org_unit(field: str = "org_unit") -> OwnerRule:
-    """The org unit the field names, if it names one."""
+    """The org unit the field names, if it names one.
+
+    Owning any ancestor also grants ownership: the `descendant` filter
+    matches the unit together with all of its ancestors.
+    """
 
     def check(info: "MOInfo", actor: EmployeeFilter, input: Any) -> Checks:
-        return [_is_owner_org_unit(info, actor, getattr(input, field, None))]
+        entity_uuid = getattr(input, field, None)
+        if entity_uuid is None:
+            return []
+        predicate = organisation_unit_predicate(
+            info=info,
+            filter=OrganisationUnitFilter(
+                descendant=OrganisationUnitFilter(uuids=[entity_uuid]),
+                owner=OwnerFilter(owner=actor),
+            ),
+        )
+        return [exists().where(predicate)]
 
     return check
 
@@ -44,16 +59,68 @@ def person(field: str = "person") -> OwnerRule:
     """The person the field names, if it names one."""
 
     def check(info: "MOInfo", actor: EmployeeFilter, input: Any) -> Checks:
-        return [_is_owner_employee(info, actor, getattr(input, field, None))]
+        entity_uuid = getattr(input, field, None)
+        if entity_uuid is None:
+            return []
+        predicate = employee_predicate(
+            info=info,
+            filter=EmployeeFilter(
+                uuids=[entity_uuid],
+                owner=OwnerFilter(owner=actor),
+            ),
+        )
+        return [exists().where(predicate)]
 
     return check
 
 
 def detail(collection: Collections) -> OwnerRule:
-    """The detail itself, whatever it links to now."""
+    """The detail itself, whatever it links to now.
+
+    A detail is owned by whoever owns the org unit or the person it links.
+    """
 
     def check(info: "MOInfo", actor: EmployeeFilter, input: Any) -> Checks:
-        return [_is_owner_detail(info, actor, collection, getattr(input, "uuid"))]
+        # The detail collections, each the predicate selecting its objects
+        predicates: dict[str, Callable[..., ColumnElement]] = {
+            "address": resolvers.address_predicate,
+            "association": resolvers.association_predicate,
+            "engagement": resolvers.engagement_predicate,
+            "ituser": resolvers.it_user_predicate,
+            "kle": resolvers.kle_predicate,
+            "leave": resolvers.leave_predicate,
+            "manager": resolvers.manager_predicate,
+            "owner": resolvers.owner_predicate,
+            "rolebinding": resolvers.rolebinding_predicate,
+        }
+        predicate = predicates[collection]
+        filter = get_type_hints(predicate)["filter"]
+        owner = OwnerFilter(owner=actor)
+        entity_uuid = getattr(input, "uuid")
+        # Whoever owns what the detail links: its org unit (through any ancestor)
+        via_org_unit = exists().where(
+            predicate(
+                info=info,
+                filter=filter(
+                    uuids=[entity_uuid],
+                    org_unit=OrganisationUnitFilter(
+                        ancestor=OrganisationUnitFilter(owner=owner)
+                    ),
+                ),
+            )
+        )
+        if "employee" not in get_type_hints(filter):
+            return [via_org_unit]
+        # ... or its person
+        via_person = exists().where(
+            predicate(
+                info=info,
+                filter=filter(
+                    uuids=[entity_uuid], employee=EmployeeFilter(owner=owner)
+                ),
+            )
+        )
+        return [or_(via_org_unit, via_person)]
 
     return check
 
@@ -108,8 +175,15 @@ def check_parent(info: "MOInfo", actor: EmployeeFilter, input: Any) -> Checks:
     parent = getattr(input, "parent", None)
     if parent is None:
         return []
-    moved_under = _is_owner_org_unit(info, actor, parent)
-    assert moved_under is not None
+    moved_under = exists().where(
+        organisation_unit_predicate(
+            info=info,
+            filter=OrganisationUnitFilter(
+                descendant=OrganisationUnitFilter(uuids=[parent]),
+                owner=OwnerFilter(owner=actor),
+            ),
+        )
+    )
     return [or_(_keeps_parent(info, uuid, parent), moved_under)]
 
 
