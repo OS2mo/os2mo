@@ -9,6 +9,7 @@ from uuid import uuid4
 import pytest
 from graphql import NameNode
 from graphql import VariableNode
+from graphql import get_introspection_query
 from hypothesis import HealthCheck
 from hypothesis import assume
 from hypothesis import given
@@ -113,6 +114,68 @@ async def test_introspection_is_public(
         "__typename": "Query",
         "__schema": {"query_type": {"name": "Query"}},
         "__type": {"name": "Address", "kind": "OBJECT"},
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_full_introspection_is_public(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """The introspection query clients actually send must work without roles.
+
+    `RBACExtension` grants introspection through a synchronous fast path, so
+    this exercises every introspection parent type -- `__Type`, `__Field`,
+    `__InputValue`, `__EnumValue` and `__Directive` -- rather than only the
+    handful `test_introspection_is_public` reaches.
+    """
+    set_auth(None, None)
+
+    response = graphapi_post(get_introspection_query())
+
+    assert response.errors is None
+    assert response.data
+    schema = response.data["__schema"]
+    assert schema["queryType"]["name"] == "Query"
+    assert schema["types"]
+    assert schema["directives"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_introspection_does_not_exempt_regular_fields(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Introspection is granted per field, not per query.
+
+    The fast path in `RBACExtension` skips the policy chain, so a regular
+    field must still be rejected when it is requested in the same document as
+    an introspection field.
+    """
+    set_auth(None, None)
+
+    response = graphapi_post(
+        """
+        query {
+          __schema {
+            queryType {
+              name
+            }
+          }
+          org_units {
+            objects {
+              uuid
+            }
+          }
+        }
+        """
+    )
+
+    assert response.errors
+    assert {error["message"] for error in response.errors} == {
+        "No policy approved the access"
     }
 
 
