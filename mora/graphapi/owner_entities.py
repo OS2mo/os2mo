@@ -4,6 +4,7 @@
 
 from collections.abc import Callable
 from collections.abc import Iterable
+from functools import partial
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import get_type_hints
@@ -18,7 +19,6 @@ from mora.graphapi import resolvers
 from mora.graphapi.filters import EmployeeFilter
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.filters import OwnerFilter
-from mora.graphapi.permissions import Collections
 from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.resolvers import organisation_unit_predicate
 
@@ -73,55 +73,61 @@ def person(field: str = "person") -> OwnerRule:
     return check
 
 
-def detail(collection: Collections) -> OwnerRule:
+def detail(
+    info: "MOInfo",
+    actor: EmployeeFilter,
+    input: Any,
+    *,
+    resolver: Callable[..., ColumnElement],
+    person: bool = True,
+) -> Checks:
     """The detail itself, whatever it links to now.
 
-    A detail is owned by whoever owns the org unit or the person it links.
+    A detail is owned by whoever owns what it links: its org unit, through
+    any ancestor, or its person. Every detail links an org unit; the few
+    that cannot also name a person say so in the partials below, pinned
+    against the filters by a test.
     """
-
-    def check(info: "MOInfo", actor: EmployeeFilter, input: Any) -> Checks:
-        # The detail collections, each the predicate selecting its objects
-        predicates: dict[str, Callable[..., ColumnElement]] = {
-            "address": resolvers.address_predicate,
-            "association": resolvers.association_predicate,
-            "engagement": resolvers.engagement_predicate,
-            "ituser": resolvers.it_user_predicate,
-            "kle": resolvers.kle_predicate,
-            "leave": resolvers.leave_predicate,
-            "manager": resolvers.manager_predicate,
-            "owner": resolvers.owner_predicate,
-            "rolebinding": resolvers.rolebinding_predicate,
-        }
-        predicate = predicates[collection]
-        filter = get_type_hints(predicate)["filter"]
-        owner = OwnerFilter(owner=actor)
-        entity_uuid = getattr(input, "uuid")
-        # Whoever owns what the detail links: its org unit (through any ancestor)
-        via_org_unit = exists().where(
-            predicate(
-                info=info,
-                filter=filter(
-                    uuids=[entity_uuid],
-                    org_unit=OrganisationUnitFilter(
-                        ancestor=OrganisationUnitFilter(owner=owner)
-                    ),
+    owner = OwnerFilter(owner=actor)
+    filter_class = get_type_hints(resolver)["filter"]
+    uuid = getattr(input, "uuid")
+    # Whoever owns what the detail links: its org unit (through any ancestor)
+    via_org_unit = exists().where(
+        resolver(
+            info=info,
+            filter=filter_class(
+                uuids=[uuid],
+                org_unit=OrganisationUnitFilter(
+                    ancestor=OrganisationUnitFilter(owner=owner)
                 ),
-            )
+            ),
         )
-        if "employee" not in get_type_hints(filter):
-            return [via_org_unit]
-        # ... or its person
-        via_person = exists().where(
-            predicate(
-                info=info,
-                filter=filter(
-                    uuids=[entity_uuid], employee=EmployeeFilter(owner=owner)
-                ),
-            )
+    )
+    if not person:
+        return [via_org_unit]
+    # ... or its person
+    via_person = exists().where(
+        resolver(
+            info=info,
+            filter=filter_class(uuids=[uuid], employee=EmployeeFilter(owner=owner)),
         )
-        return [or_(via_org_unit, via_person)]
+    )
+    return [or_(via_org_unit, via_person)]
 
-    return check
+
+# The rule for each collection's detail. KLEs and role-bindings cannot name
+# a person; every other detail can
+address: OwnerRule = partial(detail, resolver=resolvers.address_predicate)
+association: OwnerRule = partial(detail, resolver=resolvers.association_predicate)
+engagement: OwnerRule = partial(detail, resolver=resolvers.engagement_predicate)
+ituser: OwnerRule = partial(detail, resolver=resolvers.it_user_predicate)
+kle: OwnerRule = partial(detail, resolver=resolvers.kle_predicate, person=False)
+leave: OwnerRule = partial(detail, resolver=resolvers.leave_predicate)
+manager: OwnerRule = partial(detail, resolver=resolvers.manager_predicate)
+owner: OwnerRule = partial(detail, resolver=resolvers.owner_predicate)
+rolebinding: OwnerRule = partial(
+    detail, resolver=resolvers.rolebinding_predicate, person=False
+)
 
 
 def first_of(*rules: OwnerRule) -> OwnerRule:
@@ -189,44 +195,44 @@ def check_parent(info: "MOInfo", actor: EmployeeFilter, input: Any) -> Checks:
 OWNER_ENTITIES: dict[str, OwnerRule] = {
     # The unit or the person the address links to (exactly one is set)
     "address_create": org_unit_or_person_employee,
-    "address_terminate": detail("address"),
-    "address_update": all_of(detail("address"), org_unit_or_person_employee),
+    "address_terminate": address,
+    "address_update": all_of(address, org_unit_or_person_employee),
     "addresses_create": org_unit_or_person_employee,
     # The unit of the association
     "association_create": org_unit_or_person_employee,
-    "association_terminate": detail("association"),
-    "association_update": all_of(detail("association"), org_unit_or_person_employee),
+    "association_terminate": association,
+    "association_update": all_of(association, org_unit_or_person_employee),
     # The employee itself
     "employee_create": person("uuid"),
     "employee_terminate": person("uuid"),
     "employee_update": person("uuid"),
     # The unit of the engagement
     "engagement_create": org_unit_or_person_employee,
-    "engagement_terminate": detail("engagement"),
-    "engagement_update": all_of(detail("engagement"), org_unit_or_person_employee),
+    "engagement_terminate": engagement,
+    "engagement_update": all_of(engagement, org_unit_or_person_employee),
     "engagements_create": org_unit_or_person_employee,
-    "engagements_update": all_of(detail("engagement"), org_unit_or_person_employee),
+    "engagements_update": all_of(engagement, org_unit_or_person_employee),
     # The unit of the IT-association
     "itassociation_create": org_unit_or_person,
-    "itassociation_terminate": detail("association"),
-    "itassociation_update": all_of(detail("association"), org_unit_or_person),
+    "itassociation_terminate": association,
+    "itassociation_update": all_of(association, org_unit_or_person),
     # The unit or the person the IT-user belongs to (exactly one is set)
     "ituser_create": org_unit_or_person,
-    "ituser_terminate": detail("ituser"),
-    "ituser_update": all_of(detail("ituser"), org_unit_or_person),
+    "ituser_terminate": ituser,
+    "ituser_update": all_of(ituser, org_unit_or_person),
     "itusers_create": org_unit_or_person,
     # The annotated unit
     "kle_create": org_unit(),
-    "kle_terminate": detail("kle"),
-    "kle_update": all_of(detail("kle"), org_unit()),
+    "kle_terminate": kle,
+    "kle_update": all_of(kle, org_unit()),
     # The person on leave
     "leave_create": person(),
-    "leave_terminate": detail("leave"),
-    "leave_update": all_of(detail("leave"), person()),
+    "leave_terminate": leave,
+    "leave_update": all_of(leave, person()),
     # The unit of the manager
     "manager_create": org_unit_or_person,
-    "manager_terminate": detail("manager"),
-    "manager_update": all_of(detail("manager"), org_unit_or_person),
+    "manager_terminate": manager,
+    "manager_update": all_of(manager, org_unit_or_person),
     "managers_create": org_unit_or_person,
     # The parent, or the unit itself and its new parent if it is being moved
     "org_unit_create": org_unit("parent"),
@@ -234,13 +240,13 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
     "org_unit_update": all_of(org_unit("uuid"), check_parent),
     # The unit or the person owned (exactly one is set)
     "owner_create": org_unit_or_person,
-    "owner_terminate": detail("owner"),
-    "owner_update": all_of(detail("owner"), org_unit_or_person),
+    "owner_terminate": owner,
+    "owner_update": all_of(owner, org_unit_or_person),
     # The origin of the relation
     "related_units_update": org_unit("origin"),
     # The unit of the role-binding, if one is named
     "rolebinding_create": org_unit(),
-    "rolebinding_terminate": detail("rolebinding"),
-    "rolebinding_update": all_of(detail("rolebinding"), org_unit()),
+    "rolebinding_terminate": rolebinding,
+    "rolebinding_update": all_of(rolebinding, org_unit()),
     "rolebindings_create": org_unit(),
 }
