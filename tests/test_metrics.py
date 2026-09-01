@@ -12,6 +12,7 @@ from tests.conftest import BRUCE_UUID
 from tests.conftest import SetAuth
 
 METRIC_NAME = "os2mo_max_daily_registrations_single_org_func"
+ORG_FUNC_METRIC_NAME = "os2mo_daily_registrations_org_func"
 
 
 @pytest.mark.integration_test
@@ -154,3 +155,65 @@ def test_max_daily_registrations_switches_actor(
     metrics = fetch_metrics()
     assert f'{METRIC_NAME}{{actor="{bob}"}} 4.0' in metrics
     assert f'actor="{alice}"' not in metrics
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_daily_registrations_org_func(
+    fetch_metrics: Callable[[], str],
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[[dict[str, Any] | None], UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    update_engagement: Callable[[dict[str, Any]], UUID],
+    create_itsystem: Callable[[dict[str, Any]], UUID],
+    create_ituser: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """Registrations within the last day are counted per org func type.
+
+    The funktionsnavn is reported under its english name, and the count is
+    recomputed on every scrape, so scraping repeatedly does not inflate it.
+    """
+    person = create_person()
+    org_unit = create_org_unit("unit")
+
+    engagement = create_engagement(
+        {
+            "user_key": "engagement",
+            "person": str(person),
+            "org_unit": str(org_unit),
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
+            "validity": {"from": "2024-01-01", "to": None},
+        }
+    )
+    itsystem = create_itsystem(
+        {
+            "user_key": "suila",
+            "name": "Suila-tapit",
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+    create_ituser(
+        {
+            "user_key": "ituser",
+            "itsystem": str(itsystem),
+            "person": str(person),
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+
+    metrics = fetch_metrics()
+    assert f'{ORG_FUNC_METRIC_NAME}{{name="engagement"}} 1.0' in metrics
+    assert f'{ORG_FUNC_METRIC_NAME}{{name="ituser"}} 1.0' in metrics
+
+    # A second registration on the engagement, leaving the ituser untouched.
+    update_engagement(
+        {
+            "uuid": str(engagement),
+            "validity": {"from": "2024-01-01", "to": "2024-06-30"},
+        }
+    )
+
+    metrics = fetch_metrics()
+    assert f'{ORG_FUNC_METRIC_NAME}{{name="engagement"}} 2.0' in metrics
+    assert f'{ORG_FUNC_METRIC_NAME}{{name="ituser"}} 1.0' in metrics
