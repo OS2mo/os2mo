@@ -1084,6 +1084,27 @@ def create_engagement(
 
 
 @pytest.fixture
+def update_engagement(
+    graphapi_post: GraphAPIPost,
+    root_org: UUID,
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation UpdateEngagement($input: EngagementUpdateInput!) {
+                engagement_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["engagement_update"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
 def create_owner(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
