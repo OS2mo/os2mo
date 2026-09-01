@@ -1,27 +1,21 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 from typing import TYPE_CHECKING
+from typing import get_type_hints
 from uuid import UUID
 
+from sqlalchemy import ColumnElement
 from sqlalchemy import exists
-from sqlalchemy import select
+from sqlalchemy import or_
 from structlog import get_logger
 
-import mora.config
-from mora.auth.exceptions import AuthorizationError
-from mora.auth.keycloak.models import Token
-from mora.db import BrugerRegistrering
-from mora.db import OrganisationEnhedRegistrering
+from mora.graphapi import resolvers
 from mora.graphapi.filters import EmployeeFilter
-from mora.graphapi.filters import ITSystemFilter
-from mora.graphapi.filters import ITUserFilter
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.filters import OwnerFilter
+from mora.graphapi.permissions import Collections
 from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.resolvers import organisation_unit_predicate
-from mora.mapping import ADMIN
-from mora.mapping import EntityType
 
 if TYPE_CHECKING:
     from mora.graphapi.context import MOInfo
@@ -29,57 +23,17 @@ if TYPE_CHECKING:
 logger = get_logger()
 
 
-def _actor_filter(token: Token) -> EmployeeFilter:
-    """The employee filter matching the calling actor.
-
-    With `KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS` configured, the
-    actor is the employee holding the token's uuid as an external id in that
-    IT system; otherwise the employee with the token's uuid itself.
-    """
-    it_system = (
-        mora.config.get_settings().keycloak_rbac_authoritative_it_system_for_owners
-    )
-    if it_system is not None:
-        return EmployeeFilter(
-            ituser=ITUserFilter(
-                itsystem=ITSystemFilter(uuids=[it_system]),
-                external_ids=[str(token.uuid)],
-            )
-        )
-    return EmployeeFilter(uuids=[token.uuid])
-
-
-async def _rbac(token: Token) -> None:
-    """
-    Role based access control (RBAC) dependency function for the FastAPI
-    endpoints that require authorization in addition to authentication. The
-    function just returns, if the user is authorized and throws an
-    AuthorizationError if the user is not authorized. Only a user with the
-    admin role set in the Keycloak token is authorized. Ownership based
-    authorization is exclusively available through GraphQL.
-
-    :param token: selected JSON values from the Keycloak token
-    """
-    logger.debug("_rbac called")
-    roles = token.realm_access.roles
-    if ADMIN in roles:
-        logger.debug("User has admin role - write permission granted")
-        return
-
-    logger.debug(
-        f"User {token.preferred_username} with UUID {token.uuid} not authorized"
-    )
-    raise AuthorizationError("Not authorized to perform this operation")
-
-
-async def _is_owner_org_unit(
-    info: "MOInfo", actor: EmployeeFilter, entity_uuid: UUID
-) -> bool:
+def _is_owner_org_unit(
+    info: "MOInfo", actor: EmployeeFilter, entity_uuid: UUID | None
+) -> ColumnElement | None:
     """Check org-unit ownership via the GraphQL org-unit owner filter.
 
     Owning any ancestor also grants ownership: the `descendant` filter matches
-    the unit together with all of its ancestors.
+    the unit together with all of its ancestors. No org unit named is nothing
+    to own, and thus nothing to check.
     """
+    if entity_uuid is None:
+        return None
     predicate = organisation_unit_predicate(
         info=info,
         filter=OrganisationUnitFilter(
@@ -87,17 +41,18 @@ async def _is_owner_org_unit(
             owner=OwnerFilter(owner=actor),
         ),
     )
-    session = info.context.session
-    id_column = OrganisationEnhedRegistrering.organisationenhed_id
-    return bool(
-        await session.scalar(select(exists(select(id_column).where(predicate))))
-    )
+    return exists().where(predicate)
 
 
-async def _is_owner_employee(
-    info: "MOInfo", actor: EmployeeFilter, entity_uuid: UUID
-) -> bool:
-    """Check employee ownership via the GraphQL employee owner filter."""
+def _is_owner_employee(
+    info: "MOInfo", actor: EmployeeFilter, entity_uuid: UUID | None
+) -> ColumnElement | None:
+    """Check employee ownership via the GraphQL employee owner filter.
+
+    No employee named is nothing to own, and thus nothing to check.
+    """
+    if entity_uuid is None:
+        return None
     predicate = employee_predicate(
         info=info,
         filter=EmployeeFilter(
@@ -105,37 +60,46 @@ async def _is_owner_employee(
             owner=OwnerFilter(owner=actor),
         ),
     )
-    session = info.context.session
-    id_column = BrugerRegistrering.bruger_id
-    return bool(
-        await session.scalar(select(exists(select(id_column).where(predicate))))
-    )
+    return exists().where(predicate)
 
 
-async def _is_owner(
-    info: "MOInfo",
-    token: Token,
-    entity_type: EntityType,
-    entity_uuid: UUID,
-) -> bool:
-    """Check ownership in-process using the GraphQL filter predicates."""
-    actor = _actor_filter(token)
-    if entity_type == EntityType.ORG_UNIT:
-        return await _is_owner_org_unit(info, actor, entity_uuid)
-    return await _is_owner_employee(info, actor, entity_uuid)
-
-
-async def check_owner(
-    info: "MOInfo", token: Token, entities: set[tuple[EntityType, UUID]]
-) -> None:
-    """Check if the token is owner of the given entities."""
-    logger.debug("Check owner", entities=entities)
-    ownership = await asyncio.gather(
-        *(
-            _is_owner(info, token, entity_type, entity_uuid)
-            for entity_type, entity_uuid in entities
+def _is_owner_detail(
+    info: "MOInfo", actor: EmployeeFilter, collection: Collections, entity_uuid: UUID
+) -> ColumnElement:
+    """Check detail ownership via the GraphQL filter of its own collection."""
+    # The detail collections, each the predicate selecting its objects
+    predicate = {
+        "address": resolvers.address_predicate,
+        "association": resolvers.association_predicate,
+        "engagement": resolvers.engagement_predicate,
+        "ituser": resolvers.it_user_predicate,
+        "kle": resolvers.kle_predicate,
+        "leave": resolvers.leave_predicate,
+        "manager": resolvers.manager_predicate,
+        "owner": resolvers.owner_predicate,
+        "rolebinding": resolvers.rolebinding_predicate,
+    }[collection]
+    filter = get_type_hints(predicate)["filter"]
+    owner = OwnerFilter(owner=actor)
+    # A detail is owned by whoever owns the org unit or the person it links.
+    # Every collection can name an org unit, only some can name a person
+    via_org_unit = exists().where(
+        predicate(
+            info=info,
+            filter=filter(
+                uuids=[entity_uuid],
+                org_unit=OrganisationUnitFilter(
+                    ancestor=OrganisationUnitFilter(owner=owner)
+                ),
+            ),
         )
     )
-    if ownership and all(ownership):
-        return None
-    raise AuthorizationError("Not owner")
+    if "employee" not in get_type_hints(filter):
+        return via_org_unit
+    via_person = exists().where(
+        predicate(
+            info=info,
+            filter=filter(uuids=[entity_uuid], employee=EmployeeFilter(owner=owner)),
+        )
+    )
+    return or_(via_org_unit, via_person)

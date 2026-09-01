@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
 from contextlib import nullcontext
+from typing import Any
 from typing import Protocol
 from uuid import UUID
 
@@ -13,33 +14,7 @@ from mora.mapping import OWNER
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
-CreatePerson = Callable[[], UUID]
-
-
-@pytest.fixture
-async def create_person(graphapi_post: GraphAPIPost) -> CreatePerson:
-    def _create_person() -> UUID:
-        input = {
-            # Nothing here matters
-            "given_name": "Foo",
-            "surname": "Bar",
-        }
-        r = graphapi_post(
-            """
-            mutation EmployeeCreate($input: EmployeeCreateInput!) {
-              employee_create(input: $input) {
-                uuid
-              }
-            }
-            """,
-            variables=dict(input=input),
-        )
-        if r.errors is not None:
-            raise PermissionError(r.errors)
-        assert r.data is not None
-        return UUID(r.data["employee_create"]["uuid"])
-
-    return _create_person
+CreatePerson = Callable[..., UUID]
 
 
 class CreateOrgUnit(Protocol):
@@ -221,6 +196,29 @@ async def update_engagement(graphapi_post: GraphAPIPost) -> UpdateEngagement:
     return _update_engagement
 
 
+@pytest.fixture
+def update_rolebinding(
+    graphapi_post: GraphAPIPost,
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        r = graphapi_post(
+            """
+            mutation RoleBindingUpdate($input: RoleBindingUpdateInput!) {
+                rolebinding_update(input: $input) {
+                    uuid
+                }
+            }
+            """,
+            variables=dict(input=input),
+        )
+        if r.errors is not None:
+            raise PermissionError(r.errors)
+        assert r.data is not None
+        return UUID(r.data["rolebinding_update"]["uuid"])
+
+    return inner
+
+
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_create_engagement(
@@ -305,6 +303,83 @@ async def test_update_engagement(
     create_owner(owner=owner, org_unit=new_org_unit)
     set_auth(OWNER, owner)
     update_engagement(uuid=engagement, person=person, org_unit=new_org_unit)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+@pytest.mark.parametrize(
+    "owns_old, owns_new, allowed",
+    [
+        (False, False, False),
+        (False, True, False),
+        (True, False, False),
+        (True, True, True),
+    ],
+)
+async def test_update_rolebinding(
+    owns_old: bool,
+    owns_new: bool,
+    allowed: bool,
+    set_auth: SetAuth,
+    alice: UUID,
+    bob: UUID,
+    itsystem: UUID,
+    role_facet: UUID,
+    create_class: Callable[[dict[str, Any]], UUID],
+    create_ituser: Callable[[dict[str, Any]], UUID],
+    create_rolebinding: Callable[[dict[str, Any]], UUID],
+    create_org_unit: CreateOrgUnit,
+    create_owner: CreateOwner,
+    update_rolebinding: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """A role-binding names no person, so only its org unit carries ownership."""
+    set_auth(ADMIN, None)
+    old_org_unit = create_org_unit(parent=None)
+    new_org_unit = create_org_unit(parent=None)
+    role = create_class(
+        {
+            "user_key": "admin",
+            "name": "Administrator",
+            "facet_uuid": str(role_facet),
+            "it_system_uuid": str(itsystem),
+            "validity": {"from": "2010-01-01"},
+        }
+    )
+    ituser = create_ituser(
+        {
+            "user_key": "bob",
+            "itsystem": str(itsystem),
+            "person": str(bob),
+            "validity": {"from": "2010-01-01"},
+        }
+    )
+    rolebinding = create_rolebinding(
+        {
+            "user_key": "old_admin",
+            "ituser": str(ituser),
+            "role": str(role),
+            "org_unit": str(old_org_unit),
+            "validity": {"from": "2010-01-01"},
+        }
+    )
+    if owns_old:
+        create_owner(owner=alice, org_unit=old_org_unit)
+    if owns_new:
+        create_owner(owner=alice, org_unit=new_org_unit)
+
+    set_auth(OWNER, alice)
+    expectation = pytest.raises(PermissionError, match="No policy approved the access")
+    if allowed:
+        expectation = nullcontext()
+    with expectation:
+        update_rolebinding(
+            {
+                "uuid": str(rolebinding),
+                "ituser": str(ituser),
+                "org_unit": str(new_org_unit),
+                "validity": {"from": "2010-01-01"},
+            }
+        )
 
 
 @pytest.mark.integration_test
