@@ -7,7 +7,6 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import get_type_hints
-from uuid import UUID
 
 from more_itertools import first
 from more_itertools import flatten
@@ -153,18 +152,6 @@ org_unit_or_person = first_of(org_unit(), person())
 org_unit_or_person_employee = first_of(org_unit_or_person, person("employee"))
 
 
-def _keeps_parent(info: "MOInfo", uuid: UUID, parent: UUID) -> ColumnElement:
-    """Whether the parent named is the one the org unit already has."""
-    return exists().where(
-        organisation_unit_predicate(
-            info=info,
-            filter=OrganisationUnitFilter(
-                uuids=[parent], child=OrganisationUnitFilter(uuids=[uuid])
-            ),
-        )
-    )
-
-
 def check_parent(info: "MOInfo", actor: EmployeeFilter, input: Any) -> Checks:
     """The parent the unit is moved under, if the input names a new one.
 
@@ -175,6 +162,15 @@ def check_parent(info: "MOInfo", actor: EmployeeFilter, input: Any) -> Checks:
     parent = getattr(input, "parent", None)
     if parent is None:
         return []
+    # Whether the parent named is the one the unit already has
+    keeps_parent = exists().where(
+        organisation_unit_predicate(
+            info=info,
+            filter=OrganisationUnitFilter(
+                uuids=[parent], child=OrganisationUnitFilter(uuids=[uuid])
+            ),
+        )
+    )
     moved_under = exists().where(
         organisation_unit_predicate(
             info=info,
@@ -184,7 +180,7 @@ def check_parent(info: "MOInfo", actor: EmployeeFilter, input: Any) -> Checks:
             ),
         )
     )
-    return [or_(_keeps_parent(info, uuid, parent), moved_under)]
+    return [or_(keeps_parent, moved_under)]
 
 
 # What a mutator requires owned. A mutator not listed here is never granted by
