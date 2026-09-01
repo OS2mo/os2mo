@@ -197,15 +197,20 @@ class IsAuthenticatedExtension(SchemaExtension):
 Policy = Callable[[GraphQLResolveInfo, dict[str, Any]], Awaitable[bool]]
 
 
-async def introspection_policy(
-    info: GraphQLResolveInfo, kwargs: dict[str, Any]
-) -> bool:
-    """Allow access to introspection for all users."""
+def _is_introspection_field(info: GraphQLResolveInfo) -> bool:
+    """Check if the field is an introspection field, without any async overhead."""
     return info.field_name in (
         "__typename",
         "__schema",
         "__type",
     ) or is_introspection_type(info.parent_type)
+
+
+async def introspection_policy(
+    info: GraphQLResolveInfo, kwargs: dict[str, Any]
+) -> bool:
+    """Allow access to introspection for all users."""
+    return _is_introspection_field(info)
 
 
 async def no_role_required_policy(
@@ -305,7 +310,21 @@ class RBACExtension(SchemaExtension):
     `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP` or `ADMIN_MAP`.
     """
 
-    async def resolve(  # type: ignore[override]
+    def resolve(  # type: ignore[override]
+        self,
+        next_: Callable[..., Any],
+        root: Any,
+        info: GraphQLResolveInfo,
+        **kwargs: dict[str, Any],
+    ) -> Any:
+        # Skip the async PBAC chain for introspection fields; the introspection
+        # policy allows them unconditionally, and the per-field await overhead
+        # adds seconds to the introspection query on large schemas.
+        if _is_introspection_field(info):
+            return next_(root, info, **kwargs)
+        return self._resolve_with_pbac(next_, root, info, **kwargs)
+
+    async def _resolve_with_pbac(
         self,
         next_: Callable[..., Any],
         root: Any,
