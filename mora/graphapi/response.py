@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 """Strawberry type for chosing validity."""
 
+from collections.abc import Iterable
+from collections.abc import Iterator
 from datetime import datetime
 from textwrap import dedent
 from typing import Any
@@ -12,6 +14,7 @@ from uuid import UUID
 import strawberry
 from more_itertools import only
 from strawberry import UNSET
+from strawberry.types.nodes import SelectedField
 
 from mora.graphapi.context import MOInfo
 from mora.graphapi.fields import Metadata
@@ -38,6 +41,9 @@ from .models import FacetRead
 from .models import RoleBindingRead
 from .moobject import MOObject
 from .paged import to_objects
+from .policies import POLICY_FOR
+from .policies import ObjectPermission
+from .policies import PolicyKey
 from .registrationbase import Registration
 from .registrationbase import RegistrationBase
 from .resolver_map import get_dataloader
@@ -97,12 +103,74 @@ class HasUUIDModel(Protocol):
     def model(self) -> type[Any] | str: ...
 
 
+def _collection(root: HasUUIDModel) -> str | None:
+    """The policy-guarded collection *root* belongs to, if any.
+
+    Collections without a policy are still gated by `RBAC_MAP`, and their
+    content is never withheld here.
+    """
+    model = root.model
+    name = model if isinstance(model, str) else model2name(model)
+    return name if name in POLICY_FOR else None
+
+
+def _selected(selections: Iterable[Any]) -> Iterator[str]:
+    """The field names in *selections*, descending into fragments.
+
+    A fragment is only a way of writing the selection down, so the fields
+    inside one count as asked for; skipping them would let a policy be
+    sidestepped by wrapping the selection in `... on Address`.
+    """
+    for selection in selections:
+        if isinstance(selection, SelectedField):
+            yield selection.name
+        else:
+            yield from _selected(selection.selections)
+
+
+def _requested(info: MOInfo) -> frozenset[str]:
+    """The fields asked for below the field being resolved."""
+    return frozenset(
+        name for field in info.selected_fields for name in _selected(field.selections)
+    )
+
+
+async def _permission(root: HasUUIDModel, info: MOInfo) -> ObjectPermission | None:
+    """What the policies allow of *root*, or None if its collection has none.
+
+    The lookup is batched across the objects of a page.
+    """
+    collection = _collection(root)
+    if collection is None:
+        return None
+    return await info.context.dataloaders.policy_loader.load(
+        PolicyKey(collection, root.uuid)
+    )
+
+
+async def _withheld(root: HasUUIDModel, info: MOInfo) -> frozenset[str]:
+    """Which of the requested fields the policies withhold from *root*.
+
+    Empty when the object may be read as asked, so the caller resolves it
+    normally.
+    """
+    permission = await _permission(root, info)
+    if permission is None:
+        return frozenset()
+    return permission.withheld(_requested(info))
+
+
 async def current_resolver(
     root: HasUUIDModel,
     info: MOInfo,
     at: datetime | None = UNSET,
     registration_time: datetime | None = None,
 ) -> Any | None:
+    # The policies decide what may be read of this object, however it was
+    # reached. Withheld content is null rather than an error.
+    if await _withheld(root, info):
+        return None
+
     def active_now(obj: Any) -> bool:
         """Predicate on whether the object is active right now.
 
@@ -154,6 +222,10 @@ async def validity_resolver(
     end: datetime | None = UNSET,
     registration_time: datetime | None = None,
 ) -> list[Any]:
+    # Withheld content is an empty list rather than an error; `redacted`
+    # tells it apart from having no validities in the interval.
+    if await _withheld(root, info):
+        return []
     # Hack to ensure model is of the right type
     # TODO: Refactor model on Response to be a string
     model = root.model
@@ -260,6 +332,49 @@ class Response(Generic[MOObject]):
 
     # Reference to the underlying model type
     model: strawberry.Private[type[MOObject]]
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            Whether the policies withhold this object's content.
+
+            Without this, a withheld object cannot be told apart from an
+            ordinary one: `current` is already null when nothing is active
+            right now, and the temporal lists are already empty when nothing
+            falls in the interval.
+
+            The UUID is returned either way, so an object which disappears
+            entirely really was deleted, rather than merely hidden.
+            """
+        )
+    )
+    async def redacted(self, root: "Response", info: MOInfo) -> bool:
+        permission = await _permission(root, info)
+        if permission is None:
+            return False
+        return not permission.readable or bool(permission.denied_fields)
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            Why this object's content is withheld, if it is.
+
+            Names the policy-restricted fields which were denied, or is the
+            bare statement that the object itself may not be read. Null when
+            nothing is withheld.
+            """
+        )
+    )
+    async def reason(self, root: "Response", info: MOInfo) -> str | None:
+        permission = await _permission(root, info)
+        if permission is None:
+            return None
+        if not permission.readable:
+            return "not allowed to read the object"
+        if permission.denied_fields:
+            denied = ", ".join(sorted(permission.denied_fields))
+            return f"not allowed to read: {denied}"
+        return None
 
     # NOTE: The `current` and `validities` field also occur on `ModelRegistration`.
     current: MOObject | None = strawberry.field(

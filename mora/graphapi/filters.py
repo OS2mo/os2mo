@@ -11,6 +11,7 @@ import strawberry
 from strawberry import UNSET
 
 from mora.graphapi.models import FileStore
+from mora.graphapi.policies import Denied
 from mora.util import CPR
 
 
@@ -98,6 +99,23 @@ class OrganisationUnitFiltered:
 
 @strawberry.input(description="Address filter.")
 class AddressFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    denied: Denied = strawberry.field(
+        default=Denied.REMOVE,
+        description=dedent(
+            """\
+            What to do with the addresses the policies deny.
+
+            `REMOVE`, the default, leaves them out entirely, which is what a
+            user interface wants: you see what you may see.
+
+            `REDACT` keeps them as bare UUIDs whose content is withheld, so
+            that a missing UUID means the address really was deleted. An
+            integration reconciling a downstream system needs this, as it
+            must not mistake "you may not read this" for "this is gone".
+            """
+        ),
+    )
+
     registration: AddressRegistrationFilter | None = strawberry.field(
         default=None,
         description=dedent(

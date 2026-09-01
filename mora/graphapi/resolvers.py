@@ -76,7 +76,8 @@ from mora.db import OrganisationRegistrering
 from mora.graphapi.context import MOInfo
 from mora.graphapi.custom_schema import get_version
 from mora.graphapi.gmodels.base import tz_isodate
-from mora.graphapi.policies import address_read_predicate
+from mora.graphapi.policies import Denied
+from mora.graphapi.policies import address_policy
 from mora.graphapi.version import Version
 from mora.service.autocomplete.employees import search_employees_predicate
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
@@ -810,10 +811,14 @@ async def address_resolver(
         info=info,
         filter=filter,
     )
-    # Start from the addresses the caller may read, then limit by the filter
+    # Start from the addresses the caller may read, then limit by the filter.
+    # Asked to redact rather than remove, the denied addresses stay in, as
+    # bare UUIDs whose content `Response` withholds.
+    policy = address_policy(await info.context.get_token())
+    rows = true() if filter.denied is Denied.REDACT else policy.rows
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
-        .where(await address_read_predicate(info.context), predicate)
+        .where(rows, predicate)
         .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     )
     # Pagination
