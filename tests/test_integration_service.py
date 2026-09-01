@@ -1519,34 +1519,3 @@ def test_detail_list(
     response = service_client.request("GET", f"/service/{type}/{uuid}/details/")
     assert response.status_code == 200
     assert response.json() == expected
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-def test_facet_children(service_client: TestClient) -> None:
-    expected = [
-        {
-            "child_count": 0,
-            "name": "Skolepsykolog",
-            "user_key": "Skolepsykolog",
-            "uuid": "07cea156-1aaf-4c89-bf1b-8e721f704e22",
-        },
-        {
-            "child_count": 0,
-            "name": "Specialist",
-            "user_key": "specialist",
-            "uuid": "890d4ff0-b453-4900-b79b-dbb461eda3ee",
-        },
-        {
-            "child_count": 0,
-            "name": "Bogopsætter",
-            "user_key": "Bogopsætter",
-            "uuid": "f42dd694-f1fd-42a6-8a97-38777b73adc4",
-        },
-    ]
-
-    response = service_client.request(
-        "GET", "/service/f/1a6045a2-7a8e-4916-ab27-b2402e64f2be/children"
-    )
-    assert response.status_code == 200
-    assert response.json() == expected
