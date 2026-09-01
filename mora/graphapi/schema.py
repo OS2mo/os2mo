@@ -21,6 +21,7 @@ from pydantic import PositiveInt
 from sqlalchemy import and_
 from sqlalchemy import select
 from starlette.datastructures import UploadFile
+from starlette_context import context as starlette_context
 from strawberry import Schema
 from strawberry.exceptions import StrawberryGraphQLError
 from strawberry.extensions import SchemaExtension
@@ -189,11 +190,11 @@ class IsAuthenticatedExtension(SchemaExtension):
     """Schema-level extension that requires authentication for all GraphQL operations."""
 
     async def on_operation(self) -> AsyncIterator[None]:
-        context = self.execution_context.context
         try:
-            await context.get_token()
+            token = await starlette_context["get_token"]()
         except Exception as e:
             raise GraphQLError("User is not authenticated") from e
+        self.execution_context.context.token = token
         yield
 
 
@@ -225,7 +226,7 @@ async def reader_policy(
     kwargs: dict[str, Any],
 ) -> bool:
     """Allow access if the field requires the `reader` role and the token has it."""
-    token = await info.context.get_token()
+    token = info.context.token
     if "reader" not in token.realm_access.roles:
         return False
     return (info.parent_type.name, info.field_name) in RBAC_MAP
@@ -236,7 +237,7 @@ async def admin_policy(
     kwargs: dict[str, Any],
 ) -> bool:
     """Allow access if the field requires the `admin` role and the token has it."""
-    token = await info.context.get_token()
+    token = info.context.token
     if "admin" not in token.realm_access.roles:
         return False
     return (info.parent_type.name, info.field_name) in ADMIN_MAP
@@ -264,7 +265,7 @@ def _actor_filter(settings: config.Settings, token: Token) -> EmployeeFilter:
 
 async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     """Allow access if the user is the owner of the accessed resources."""
-    token = await info.context.get_token()
+    token = info.context.token
     token_roles = token.realm_access.roles
 
     if "owner" not in token_roles:

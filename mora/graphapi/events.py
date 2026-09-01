@@ -121,8 +121,7 @@ async def full_event_resolver(
 
     # Only resolve the owners own events _unless_ they have the
     # "admin" role.
-    token = await info.context.get_token()
-    if "admin" not in token.realm_access.roles:
+    if "admin" not in info.context.token.realm_access.roles:
         owner = get_authenticated_user()
         clauses.append(db.Listener.owner == owner)
 
