@@ -39,6 +39,7 @@ jsonschema = "^4.20.0"
 psycopg = "^3.1.13"
 xmltodict = "^0.13.0"
 fastramqpi = "^14.2.1"
+async-lru = "^2.3.0"
 
 [tool.poetry.group.dev.dependencies]
 requests-mock = "^1.11.0"
