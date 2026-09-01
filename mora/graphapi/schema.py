@@ -163,7 +163,7 @@ class IntrospectionQueryCacheExtension(SchemaExtension):
     cache: dict[tuple[Schema, str | None], ExecutionResult | None] = {}
 
     def on_execute(self) -> AsyncIteratorOrIterator[None]:  # type: ignore
-        """Cache GraphQL introspection query, which otherwise takes 5-10s to execute.
+        """Cache the GraphQL introspection query, which is expensive to execute.
 
         Based on the "In memory cached execution" example from
         https://strawberry.rocks/docs/guides/custom-extensions.
@@ -197,10 +197,14 @@ class IsAuthenticatedExtension(SchemaExtension):
 Policy = Callable[[GraphQLResolveInfo, dict[str, Any]], Awaitable[bool]]
 
 
-async def introspection_policy(
-    info: GraphQLResolveInfo, kwargs: dict[str, Any]
-) -> bool:
-    """Allow access to introspection for all users."""
+def is_introspection_access(info: GraphQLResolveInfo) -> bool:
+    """Whether *info* is schema introspection, which is public to all users.
+
+    Deliberately a plain predicate rather than a `Policy`: an introspection
+    query resolves tens of thousands of fields, and awaiting a coroutine for
+    each of them costs an order of magnitude more than the access check
+    itself. See `RBACExtension.resolve`.
+    """
     return info.field_name in (
         "__typename",
         "__schema",
@@ -272,7 +276,6 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
 
 
 POLICIES: list[Policy] = [
-    introspection_policy,
     no_role_required_policy,
     reader_policy,
     admin_policy,
@@ -299,13 +302,30 @@ class RBACExtension(SchemaExtension):
     """Schema-level extension that enforces PBAC for every field.
 
     Each field access is checked against the policies in `POLICIES`, one by
-    one, until a policy allows access.
+    one, until a policy allows access. Introspection is the exception, and is
+    granted up-front by `is_introspection_access`.
 
     Access is rejected by default: every field must be listed in
     `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP` or `ADMIN_MAP`.
     """
 
-    async def resolve(  # type: ignore[override]
+    def resolve(  # type: ignore[override]
+        self,
+        next_: Callable[..., Any],
+        root: Any,
+        info: GraphQLResolveInfo,
+        **kwargs: dict[str, Any],
+    ) -> Any:
+        # `resolve` is synchronous, and returns a coroutine only for the fields
+        # that actually need to await a policy. Introspection needs no token,
+        # so resolving it inline keeps graphql-core on its synchronous
+        # execution path; awaiting once per field instead makes an
+        # introspection query ~20x slower.
+        if is_introspection_access(info):
+            return next_(root, info, **kwargs)
+        return self._resolve_checked(next_, root, info, **kwargs)
+
+    async def _resolve_checked(
         self,
         next_: Callable[..., Any],
         root: Any,
