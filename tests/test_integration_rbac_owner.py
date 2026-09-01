@@ -13,33 +13,7 @@ from mora.mapping import OWNER
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
-CreatePerson = Callable[[], UUID]
-
-
-@pytest.fixture
-async def create_person(graphapi_post: GraphAPIPost) -> CreatePerson:
-    def _create_person() -> UUID:
-        input = {
-            # Nothing here matters
-            "given_name": "Foo",
-            "surname": "Bar",
-        }
-        r = graphapi_post(
-            """
-            mutation EmployeeCreate($input: EmployeeCreateInput!) {
-              employee_create(input: $input) {
-                uuid
-              }
-            }
-            """,
-            variables=dict(input=input),
-        )
-        if r.errors is not None:
-            raise PermissionError(r.errors)
-        assert r.data is not None
-        return UUID(r.data["employee_create"]["uuid"])
-
-    return _create_person
+CreatePerson = Callable[..., UUID]
 
 
 class CreateOrgUnit(Protocol):
