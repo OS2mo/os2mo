@@ -197,10 +197,8 @@ class IsAuthenticatedExtension(SchemaExtension):
 Policy = Callable[[GraphQLResolveInfo, dict[str, Any]], Awaitable[bool]]
 
 
-async def introspection_policy(
-    info: GraphQLResolveInfo, kwargs: dict[str, Any]
-) -> bool:
-    """Allow access to introspection for all users."""
+def _is_introspection_field(info: GraphQLResolveInfo) -> bool:
+    """Whether *info* is an introspection field, available to all users."""
     return info.field_name in (
         "__typename",
         "__schema",
@@ -272,7 +270,6 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
 
 
 POLICIES: list[Policy] = [
-    introspection_policy,
     no_role_required_policy,
     reader_policy,
     admin_policy,
@@ -303,9 +300,26 @@ class RBACExtension(SchemaExtension):
 
     Access is rejected by default: every field must be listed in
     `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP` or `ADMIN_MAP`.
+    Introspection is exempt and resolved synchronously: an async middleware
+    would otherwise put graphql-core on its coroutine execution path for
+    every one of the ~30k fields of an introspection query, ~20x slower.
     """
 
-    async def resolve(  # type: ignore[override]
+    def resolve(  # type: ignore[override]
+        self,
+        next_: Callable[..., Any],
+        root: Any,
+        info: GraphQLResolveInfo,
+        **kwargs: dict[str, Any],
+    ) -> Any:
+        # Introspection is available to all users, see `_is_introspection_field`.
+        # Short-circuiting it keeps the introspection query on graphql-core's
+        # synchronous execution path instead of awaiting each field.
+        if _is_introspection_field(info):
+            return next_(root, info, **kwargs)
+        return self._resolve(next_, root, info, **kwargs)
+
+    async def _resolve(
         self,
         next_: Callable[..., Any],
         root: Any,
