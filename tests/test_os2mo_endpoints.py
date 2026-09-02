@@ -52,7 +52,6 @@ service_api_endpoints = {
     "/service/ou/{id}/details/kle",
     "/service/ou/{id}/details/manager",
     "/service/e/{id}/details/",
-    "/service/ou/{id}/details/",
 }
 testing_endpoints = {
     "/testing/amqp/emit",
