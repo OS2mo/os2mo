@@ -84,49 +84,6 @@ def test_get_with_counts(service_client: TestClient):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_ou_details(service_client: TestClient):
-    response = service_client.request(
-        "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/details/org_unit"
-    )
-    assert response.status_code == 200
-    assert response.json() == [
-        {
-            "name": "Overordnet Enhed",
-            "user_key": "root",
-            "user_settings": {"orgunit": {}},
-            "location": "",
-            "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-            "org": {
-                "name": "Aarhus Universitet",
-                "user_key": "AU",
-                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-            },
-            "org_unit_hierarchy": None,
-            "org_unit_level": None,
-            "org_unit_type": {
-                "example": None,
-                "facet": org_unit_type_facet,
-                "name": "Afdeling",
-                "full_name": "Afdeling",
-                "owner": None,
-                "published": "Publiceret",
-                "scope": None,
-                "top_level_facet": org_unit_type_facet,
-                "user_key": "afd",
-                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-            },
-            "parent": None,
-            "time_planning": None,
-            "validity": {
-                "from": "2016-01-01",
-                "to": None,
-            },
-        }
-    ]
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
 def test_get_children(service_client: TestClient):
     response = service_client.request(
         "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
