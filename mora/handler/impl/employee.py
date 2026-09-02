@@ -5,7 +5,6 @@ from typing import Any
 from structlog import get_logger
 
 from ... import common
-from ... import exceptions
 from ... import mapping
 from ... import util
 from ...graphapi.middleware import is_graphql
@@ -28,14 +27,6 @@ class EmployeeReader(reading.ReadingHandler):
         flat: bool = False,
     ):
         object_tuples = await cls._get_lora_object(c=c, search_fields=search_fields)
-        return await cls._get_obj_effects(c, object_tuples)
-
-    @classmethod
-    async def get_from_type(cls, c: Connector, type: str, objid):  # pragma: no cover
-        if type != "e":
-            exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
-
-        object_tuples = await c.bruger.get_all_by_uuid(uuids=[objid])
         return await cls._get_obj_effects(c, object_tuples)
 
     @classmethod
