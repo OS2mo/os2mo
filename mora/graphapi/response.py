@@ -42,7 +42,9 @@ from .models import RoleBindingRead
 from .moobject import MOObject
 from .paged import to_objects
 from .policies import POLICY_FOR
+from .policies import Denied
 from .policies import ObjectPermission
+from .policies import PolicyError
 from .policies import PolicyKey
 from .registrationbase import Registration
 from .registrationbase import RegistrationBase
@@ -152,12 +154,19 @@ async def _withheld(root: HasUUIDModel, info: MOInfo) -> frozenset[str]:
     """Which of the requested fields the policies withhold from *root*.
 
     Empty when the object may be read as asked, so the caller resolves it
-    normally.
+    normally. Asked to error rather than withhold, this is where the caller
+    finds out: it knows both what was touched and what may be read, so it
+    can say which field it was.
     """
     permission = await _permission(root, info)
     if permission is None:
         return frozenset()
-    return permission.withheld(_requested(info))
+    withheld = permission.withheld(_requested(info))
+    if withheld and getattr(root, "denied", Denied.REMOVE) is Denied.ERROR:
+        raise PolicyError(
+            f"not allowed to read {', '.join(sorted(withheld))} of {root.uuid}"
+        )
+    return withheld
 
 
 async def current_resolver(
@@ -332,6 +341,10 @@ class Response(Generic[MOObject]):
 
     # Reference to the underlying model type
     model: strawberry.Private[type[MOObject]]
+
+    # What the read asked to have done with withheld content. Objects reached
+    # outside a collection read, such as through a relation, keep the default.
+    denied: strawberry.Private[Denied] = Denied.REMOVE
 
     @strawberry.field(
         description=dedent(

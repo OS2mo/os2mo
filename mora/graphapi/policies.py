@@ -63,10 +63,15 @@ COLLECTION_TYPE_NAMES: frozenset[str] = frozenset(
 )
 
 
+class PolicyError(Exception):
+    """A read touched content the policies withhold, and asked to be told."""
+
+
 @strawberry.enum(description="What to do with objects the policies deny.")
 class Denied(Enum):
     REMOVE = "REMOVE"
     REDACT = "REDACT"
+    ERROR = "ERROR"
 
 
 @dataclass(frozen=True)

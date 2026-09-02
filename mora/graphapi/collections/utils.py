@@ -16,6 +16,7 @@ from more_itertools import last
 from more_itertools import one
 from more_itertools import only
 from strawberry import UNSET
+from strawberry.types.nodes import SelectedField
 
 from mora.graphapi.context import MOInfo
 
@@ -23,6 +24,7 @@ from ..graphql_utils import LoadKey
 from ..moobject import MOObject
 from ..paged import ObjectsAndCursor
 from ..paged import to_paged
+from ..policies import Denied
 from ..resolver_map import get_dataloader
 from ..response import Response
 from ..utils import uuid2list
@@ -57,8 +59,6 @@ class ForceNoneReturnError(Exception):
     Note: The function that should forcefully return None must be decorated with
           `force_none_return_wrapper`.
     """
-
-    pass
 
 
 def force_none_return_wrapper(func: Callable) -> Callable:
@@ -101,6 +101,21 @@ def result_translation(
     return wrapper
 
 
+def _denied_argument(info: MOInfo) -> Denied:
+    """What the read asked to have done with the objects its policies deny.
+
+    Reads reaching a collection without a filter of their own, such as the
+    bare relations, get the default.
+    """
+    for field in info.selected_fields:
+        if not isinstance(field, SelectedField):  # pragma: no cover
+            continue
+        denied = (field.arguments.get("filter") or {}).get("denied")
+        if denied is not None:
+            return Denied(denied)
+    return Denied.REMOVE
+
+
 def result2response_list(
     model: type[MOObject],
     result: ResolverResult,
@@ -120,8 +135,11 @@ def result2response_list(
     for uuid, objects in result.items():
         dataloader = get_dataloader(info, model)
         dataloader.prime(LoadKey(uuid, UNSET, UNSET, None), objects)
-    # Return our Response objects
-    return [Response(model=model, uuid=uuid) for uuid in result]
+    # Return our Response objects, told what to do with the content the
+    # policies withhold. The field's own filter says so, and the objects of
+    # one read all share it.
+    denied = _denied_argument(info)
+    return [Response(model=model, uuid=uuid, denied=denied) for uuid in result]
 
 
 def to_response(

@@ -83,6 +83,28 @@ query {
 }
 """
 
+ERRORING = """
+query {
+    addresses(filter: {denied: ERROR}) {
+        objects {
+            uuid
+            current { value }
+        }
+    }
+}
+"""
+
+ERRORING_UUIDS_ONLY = """
+query {
+    addresses(filter: {denied: ERROR}) {
+        objects {
+            uuid
+            current { uuid }
+        }
+    }
+}
+"""
+
 
 @pytest.fixture
 def set_address_policy() -> Iterator[Callable[[Policy], None]]:
@@ -302,3 +324,53 @@ async def test_field_policy_sees_through_fragments(
     assert by_uuid[str(denied)]["current"] is None
     assert by_uuid[str(denied)]["reason"] == "not allowed to read: value"
     assert by_uuid[str(granted)]["current"] == {"value": "granted@example.org"}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "org_unit_with_address")
+async def test_error_says_so_when_the_object_may_not_be_read(
+    set_auth: SetAuth, graphapi_post: GraphAPIPost
+) -> None:
+    """Asked to error, a denied object is reported rather than withheld."""
+    set_auth(set(), uuid4())
+
+    response = graphapi_post(ERRORING)
+
+    assert response.errors
+    assert "not allowed to read" in response.errors[0]["message"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_error_names_the_denied_field(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    set_address_policy: Callable[[Policy], None],
+    two_addresses: tuple[UUID, UUID],
+) -> None:
+    """Touching a restricted field errors, and says which field it was."""
+    granted, denied = two_addresses
+    set_address_policy(
+        Policy(
+            rows=true(),
+            fields={
+                "value": OrganisationFunktionRegistrering.organisationfunktion_id
+                == granted
+            },
+        )
+    )
+    set_auth({"reader"}, uuid4())
+
+    # Touching the restricted field on the address it is not granted on
+    response = graphapi_post(ERRORING)
+    assert response.errors
+    assert response.errors[0]["message"] == f"not allowed to read value of {denied}"
+
+    # Not touching it is fine, even though the policy restricts it
+    response = graphapi_post(ERRORING_UUIDS_ONLY)
+    assert response.errors is None
+    assert response.data
+    assert {x["uuid"] for x in response.data["addresses"]["objects"]} == {
+        str(granted),
+        str(denied),
+    }

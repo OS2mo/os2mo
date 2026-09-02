@@ -815,7 +815,7 @@ async def address_resolver(
     # Asked to redact rather than remove, the denied addresses stay in, as
     # bare UUIDs whose content `Response` withholds.
     policy = address_policy(await info.context.get_token())
-    rows = true() if filter.denied is Denied.REDACT else policy.rows
+    rows = policy.rows if filter.denied is Denied.REMOVE else true()
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(rows, predicate)
