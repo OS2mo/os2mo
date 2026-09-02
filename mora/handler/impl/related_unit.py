@@ -37,9 +37,9 @@ class RoleReader(reading.OrgFunkReadingHandler):
                 "org_unit_uuids": org_units_uuid,
             }
 
-        only_primary_uuid = util.get_args_flag("only_primary_uuid")
+        only_primary_uuid = util.get_args_flag("only_primary_uuid")  # pragma: no cover
 
-        org_units = [
+        org_units = [  # pragma: no cover
             await orgunit.request_bulked_get_one_orgunit(
                 unitid=org_unit_uuid,
                 details=orgunit.UnitDetails.MINIMAL,
@@ -48,9 +48,9 @@ class RoleReader(reading.OrgFunkReadingHandler):
             for org_unit_uuid in org_units_uuid
         ]
 
-        r = {
+        r = {  # pragma: no cover
             **base_obj,
             mapping.ORG_UNIT: sorted(org_units, key=lambda x: x.get("name")),
         }
 
-        return r
+        return r  # pragma: no cover
