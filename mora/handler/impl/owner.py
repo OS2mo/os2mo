@@ -35,42 +35,6 @@ logger = get_logger()
 class OwnerReader(reading.OrgFunkReadingHandler):
     function_key = mapping.OWNER
 
-    @classmethod
-    async def get_from_type(
-        cls,
-        c,
-        type,
-        object_id,
-        inherit_owner: bool = False,
-    ):
-        if inherit_owner or util.get_args_flag("inherit_owner"):
-            return await cls.get_inherited_owner(c, type, object_id)
-
-        return await super().get_from_type(c, type, object_id)
-
-    @classmethod
-    async def get_inherited_owner(cls, c, type, object_id):
-        search_fields = {cls.SEARCH_FIELDS[type]: object_id}
-
-        owner = list(await super().get(c, search_fields))
-
-        if owner:
-            return owner
-
-        only_primary_uuid = util.get_args_flag("only_primary_uuid")
-        ou = await orgunit.get_one_orgunit(
-            c,
-            object_id,
-            details=orgunit.UnitDetails.FULL,
-            only_primary_uuid=only_primary_uuid,
-        )
-        try:
-            parent_id = ou[mapping.PARENT][mapping.UUID]
-        except (TypeError, KeyError):
-            return owner
-
-        return await cls.get_inherited_owner(c, type, parent_id)
-
     @staticmethod
     def __owner_priority(
         obj: dict[str, Any], primary_priorities: dict[str, int]
