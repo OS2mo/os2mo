@@ -28,6 +28,7 @@ from strawberry.extensions import SchemaExtension
 from strawberry.file_uploads import UploadDefinition
 from strawberry.schema.config import StrawberryConfig
 from strawberry.utils.await_maybe import AsyncIteratorOrIterator
+from strawberry.utils.await_maybe import AwaitableOrValue
 from strawberry.utils.await_maybe import await_maybe
 from structlog import get_logger
 
@@ -200,12 +201,11 @@ class IsAuthenticatedExtension(SchemaExtension):
 
 # A policy takes the resolver info and arguments, and returns whether it
 # grants access to the field.
-Policy = Callable[[GraphQLResolveInfo, dict[str, Any]], Awaitable[bool]]
+SyncPolicy = Callable[[GraphQLResolveInfo, dict[str, Any]], bool]
+AsyncPolicy = Callable[[GraphQLResolveInfo, dict[str, Any]], Awaitable[bool]]
 
 
-async def introspection_policy(
-    info: GraphQLResolveInfo, kwargs: dict[str, Any]
-) -> bool:
+def introspection_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     """Allow access to introspection for all users."""
     return info.field_name in (
         "__typename",
@@ -214,14 +214,12 @@ async def introspection_policy(
     ) or is_introspection_type(info.parent_type)
 
 
-async def no_role_required_policy(
-    info: GraphQLResolveInfo, kwargs: dict[str, Any]
-) -> bool:
+def no_role_required_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
     """Allow access to fields which are explicitly listed in `PUBLIC_FIELDS`."""
     return (info.parent_type.name, info.field_name) in PUBLIC_FIELDS
 
 
-async def reader_policy(
+def reader_policy(
     info: GraphQLResolveInfo,
     kwargs: dict[str, Any],
 ) -> bool:
@@ -232,7 +230,7 @@ async def reader_policy(
     return (info.parent_type.name, info.field_name) in RBAC_MAP
 
 
-async def admin_policy(
+def admin_policy(
     info: GraphQLResolveInfo,
     kwargs: dict[str, Any],
 ) -> bool:
@@ -302,49 +300,51 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
     return bool(await moinfo.context.session.scalar(select(and_(*checks))))
 
 
-POLICIES: list[Policy] = [
+SYNC_POLICIES: list[SyncPolicy] = [
     introspection_policy,
     no_role_required_policy,
     reader_policy,
     admin_policy,
+]
+ASYNC_POLICIES: list[AsyncPolicy] = [
     owner_policy,
 ]
-
-
-async def _enforce_pbac(
-    info: GraphQLResolveInfo,
-    kwargs: dict[str, Any],
-) -> None:
-    """Check `POLICIES` for *info* and raise `GraphQLError` if none allow access.
-
-    Policies are checked one by one, and access is granted as soon as any
-    policy allows it.
-    """
-    for policy in POLICIES:
-        if await policy(info, kwargs):
-            return
-    raise GraphQLError("No policy approved the access")
 
 
 class RBACExtension(SchemaExtension):
     """Schema-level extension that enforces PBAC for every field.
 
-    Each field access is checked against the policies in `POLICIES`, one by
-    one, until a policy allows access.
+    Each field access is checked against the policies in `SYNC_POLICIES` and
+    `ASYNC_POLICIES`, one by one, until a policy allows access.
 
     Access is rejected by default: every field must be listed in
     `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP` or `ADMIN_MAP`.
     """
 
-    async def resolve(  # type: ignore[override]
+    def resolve(  # type: ignore[override]
         self,
         next_: Callable[..., Any],
         root: Any,
         info: GraphQLResolveInfo,
         **kwargs: dict[str, Any],
+    ) -> AwaitableOrValue[Any]:
+        for policy in SYNC_POLICIES:
+            if policy(info, kwargs):
+                return next_(root, info, **kwargs)
+        return self._resolve_async(next_, root, info, kwargs)
+
+    async def _resolve_async(
+        self,
+        next_: Callable[..., Any],
+        root: Any,
+        info: GraphQLResolveInfo,
+        kwargs: dict[str, Any],
     ) -> Any:
-        await _enforce_pbac(info, kwargs)
-        return await await_maybe(next_(root, info, **kwargs))
+        """Resolve the field if any of the `ASYNC_POLICIES` allows access."""
+        for policy in ASYNC_POLICIES:
+            if await policy(info, kwargs):
+                return await await_maybe(next_(root, info, **kwargs))
+        raise GraphQLError("No policy approved the access")
 
 
 @cache
