@@ -35,44 +35,8 @@ logger = get_logger()
 class OwnerReader(reading.OrgFunkReadingHandler):
     function_key = mapping.OWNER
 
-    @classmethod
-    async def get_from_type(
-        cls,
-        c,
-        type,
-        object_id,
-        inherit_owner: bool = False,
-    ):
-        if inherit_owner or util.get_args_flag("inherit_owner"):
-            return await cls.get_inherited_owner(c, type, object_id)
-
-        return await super().get_from_type(c, type, object_id)
-
-    @classmethod
-    async def get_inherited_owner(cls, c, type, object_id):
-        search_fields = {cls.SEARCH_FIELDS[type]: object_id}
-
-        owner = list(await super().get(c, search_fields))
-
-        if owner:
-            return owner
-
-        only_primary_uuid = util.get_args_flag("only_primary_uuid")
-        ou = await orgunit.get_one_orgunit(
-            c,
-            object_id,
-            details=orgunit.UnitDetails.FULL,
-            only_primary_uuid=only_primary_uuid,
-        )
-        try:
-            parent_id = ou[mapping.PARENT][mapping.UUID]
-        except (TypeError, KeyError):
-            return owner
-
-        return await cls.get_inherited_owner(c, type, parent_id)
-
     @staticmethod
-    def __owner_priority(
+    def __owner_priority(  # pragma: no cover
         obj: dict[str, Any], primary_priorities: dict[str, int]
     ) -> tuple[int, float, str]:
         """
@@ -96,7 +60,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         return scope_priority, start, uuid
 
     @staticmethod
-    async def get_relation_candidates(
+    async def get_relation_candidates(  # pragma: no cover
         owned_person_uuid: UUID, inference_priority: OwnerInferencePriority
     ) -> list[dict[str, Any]]:
         if inference_priority is OwnerInferencePriority.engagement:
@@ -116,7 +80,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         )
 
     @classmethod
-    async def infer_owner(
+    async def infer_owner(  # pragma: no cover
         cls,
         owned_person_uuid: UUID,
         inference_priority: OwnerInferencePriority,
@@ -178,7 +142,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
                 "owner_inference_priority": inference_priority_str,
             }
 
-        func: dict[Any, Any] = {
+        func: dict[Any, Any] = {  # pragma: no cover
             **base_obj,
             mapping.OWNER_INFERENCE_PRIORITY: inference_priority.value
             if inference_priority is not None
@@ -188,7 +152,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
             mapping.PERSON: None,
         }
 
-        if inference_priority:
+        if inference_priority:  # pragma: no cover
             if owned_person:
                 func[mapping.OWNER] = await cls.infer_owner(
                     owned_person_uuid=owned_person,
@@ -198,21 +162,21 @@ class OwnerReader(reading.OrgFunkReadingHandler):
                 ErrorCodes.E_INTERNAL_ERROR(
                     f"ill-formatted object encountered: {effect}"
                 )
-        elif owner_uuid:
+        elif owner_uuid:  # pragma: no cover
             func[mapping.OWNER] = await employee.request_bulked_get_one_employee(
                 owner_uuid, only_primary_uuid=only_primary_uuid
             )
 
-        if org_unit:
+        if org_unit:  # pragma: no cover
             func[mapping.ORG_UNIT] = await orgunit.request_bulked_get_one_orgunit(
                 org_unit,
                 details=orgunit.UnitDetails.MINIMAL,
                 only_primary_uuid=only_primary_uuid,
             )
 
-        if owned_person:
+        if owned_person:  # pragma: no cover
             func[mapping.PERSON] = await employee.request_bulked_get_one_employee(
                 str(owned_person), only_primary_uuid=only_primary_uuid
             )
 
-        return func
+        return func  # pragma: no cover

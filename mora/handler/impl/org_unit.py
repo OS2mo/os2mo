@@ -3,7 +3,6 @@
 from structlog import get_logger
 
 from ... import common
-from ... import exceptions
 from ... import mapping
 from ... import util
 from ...graphapi.middleware import is_graphql
@@ -20,13 +19,6 @@ class OrgUnitReader(reading.ReadingHandler):
     @classmethod
     async def get(cls, c, search_fields, flat=False):
         object_tuples = await cls._get_lora_object(c=c, search_fields=search_fields)
-        return await cls._get_obj_effects(c, object_tuples)
-
-    @classmethod
-    async def get_from_type(cls, c, type, objid):
-        if type != "ou":  # pragma: no cover
-            exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
-        object_tuples = await c.organisationenhed.get_all_by_uuid(uuids=[objid])
         return await cls._get_obj_effects(c, object_tuples)
 
     @classmethod

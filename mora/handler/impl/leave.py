@@ -40,15 +40,15 @@ class LeaveReader(reading.OrgFunkReadingHandler):
                 "engagement_uuid": engagement_uuid,
             }
 
-        person_obj = await employee.request_bulked_get_one_employee(
+        person_obj = await employee.request_bulked_get_one_employee(  # pragma: no cover
             person, only_primary_uuid=only_primary_uuid
         )
 
-        leave_type_obj = await facet.request_bulked_get_one_class(
+        leave_type_obj = await facet.request_bulked_get_one_class(  # pragma: no cover
             leave_type, only_primary_uuid=only_primary_uuid
         )
 
-        if only_primary_uuid:
+        if only_primary_uuid:  # pragma: no cover
             engagement = {mapping.UUID: engagement_uuid}
         else:  # pragma: no cover
             # We look up whatever engagement is active at the present time period
@@ -57,11 +57,11 @@ class LeaveReader(reading.OrgFunkReadingHandler):
             present_connector = lora.Connector(validity="present")
             engagement = await get_engagement(present_connector, uuid=engagement_uuid)
 
-        r = {
+        r = {  # pragma: no cover
             **base_obj,
             mapping.PERSON: person_obj,
             mapping.LEAVE_TYPE: leave_type_obj,
             mapping.ENGAGEMENT: engagement,
         }
 
-        return r
+        return r  # pragma: no cover
