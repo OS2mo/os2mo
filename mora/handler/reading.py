@@ -27,7 +27,7 @@ def register(object_type):
     return decorator
 
 
-def get_handler_for_type(object_type) -> "ReadingHandler":
+def get_handler_for_type(object_type: str) -> "ReadingHandler":
     try:
         return READING_HANDLERS[object_type]
     except LookupError:  # pragma: no cover

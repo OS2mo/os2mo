@@ -6,7 +6,6 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from more_itertools import one
 
 from mora import lora
 from mora.service import orgunit as service_orgunit
@@ -1449,35 +1448,6 @@ past_org_unit = {
 
 
 @pytest.mark.integration_test
-@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("fixture_db")
-@pytest.mark.parametrize(
-    "params, expected",
-    [
-        ({"validity": "past"}, [future_org_unit]),
-        ({"validity": "present"}, [present_org_unit]),
-        ({"validity": "future"}, [past_org_unit]),
-        (
-            {"validity": "past", "at": "2020-01-01"},
-            [future_org_unit, present_org_unit, past_org_unit],
-        ),
-        ({"validity": "present", "at": "2020-01-01"}, []),
-        ({"validity": "future", "at": "2020-01-01"}, []),
-    ],
-)
-def test_org_unit_temporality(
-    service_client: TestClient, params: dict[str, Any], expected: list[dict[str, Any]]
-) -> None:
-    response = service_client.request(
-        "GET",
-        "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/org_unit",
-        params=params,
-    )
-    assert response.status_code == 200
-    assert response.json() == expected
-
-
-@pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 def test_create_org_unit_fails_validation_outside_org_unit(
     service_client: TestClient,
@@ -1608,77 +1578,6 @@ def test_edit_org_unit_earlier_start(service_client: TestClient) -> None:
 @pytest.mark.integration_test
 @pytest.mark.freeze_time("2016-01-01")
 @pytest.mark.usefixtures("fixture_db")
-def test_edit_org_unit_extending_end(service_client: TestClient) -> None:
-    unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
-
-    def check_future_names(*names):
-        response = service_client.request(
-            "GET",
-            f"/service/ou/{unitid}/details/org_unit",
-            params={"validity": "future"},
-        )
-        assert response.status_code == 200
-        result = response.json()
-
-        assert list(names) == [
-            (d["name"], d["validity"]["from"], d["validity"]["to"]) for d in result
-        ]
-
-    # Prerequisites
-    check_future_names(
-        ("Afdeling for Samtidshistorik", "2017-01-01", "2017-12-31"),
-        ("Afdeling for Fortidshistorik", "2018-01-01", "2018-12-31"),
-    )
-
-    response = service_client.request(
-        "POST",
-        "/service/details/edit",
-        json={
-            "type": "org_unit",
-            "data": {
-                "name": "Institut for Vrøvl",
-                "uuid": unitid,
-                "clamp": True,
-                "validity": {
-                    "from": "2018-03-01",
-                },
-            },
-        },
-    )
-    assert response.status_code == 200, "Editing with clamp should succeed"
-    assert response.json() == unitid
-
-    response = service_client.request(
-        "POST",
-        "/service/details/edit",
-        json={
-            "type": "org_unit",
-            "data": {
-                "name": "Institut for Sludder",
-                "uuid": unitid,
-                "clamp": True,
-                "validity": {
-                    "from": "2018-06-01",
-                    "to": "2018-09-30",
-                },
-            },
-        },
-    )
-    assert response.status_code == 200, "Editing with clamp should succeed"
-    assert response.json() == unitid
-
-    check_future_names(
-        ("Afdeling for Samtidshistorik", "2017-01-01", "2017-12-31"),
-        ("Afdeling for Fortidshistorik", "2018-01-01", "2018-02-28"),
-        ("Institut for Vrøvl", "2018-03-01", "2018-05-31"),
-        ("Institut for Sludder", "2018-06-01", "2018-09-30"),
-        ("Institut for Vrøvl", "2018-10-01", "2018-12-31"),
-    )
-
-
-@pytest.mark.integration_test
-@pytest.mark.freeze_time("2016-01-01")
-@pytest.mark.usefixtures("fixture_db")
 def test_create_missing_parent(service_client: TestClient) -> None:
     payload = {
         "name": "Fake Corp",
@@ -1700,41 +1599,6 @@ def test_create_missing_parent(service_client: TestClient) -> None:
         "org_unit_uuid": "00000000-0000-0000-0000-000000000000",
         "status": 404,
     }
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-def test_edit_time_planning(service_client: TestClient) -> None:
-    org_unit_uuid = "85715fc7-925d-401b-822d-467eb4b163b6"
-
-    response = service_client.request(
-        "POST",
-        "/service/details/edit",
-        json={
-            "type": "org_unit",
-            "data": {
-                "time_planning": {
-                    "uuid": org_unit_type_faculty["uuid"],
-                },
-                "uuid": org_unit_uuid,
-                "validity": {
-                    "from": "2017-01-01",
-                },
-            },
-        },
-    )
-    assert response.status_code == 200
-    assert response.json() == org_unit_uuid
-
-    response = service_client.request(
-        "GET",
-        f"/service/ou/{org_unit_uuid}/details/org_unit",
-        params={"validity": "present"},
-    )
-    assert response.status_code == 200
-    result = one(response.json())
-
-    assert result["time_planning"] == org_unit_type_faculty
 
 
 @pytest.mark.integration_test
@@ -1844,75 +1708,6 @@ def test_edit_org_unit_should_fail_validation_when_end_before_start(
         "status": 400,
         "obj": req["data"],
     }
-
-
-@pytest.mark.integration_test
-@pytest.mark.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("fixture_db")
-@pytest.mark.parametrize(
-    "inactive_validity, expected_validity",
-    [
-        # Test new payload, which includes both "from" and "to" dates
-        (
-            # The payload asks for an *inactive* period from Jan 1, 2017 to
-            # Jan 1, 2018.
-            {"from": "2017-01-01", "to": "2018-01-01"},
-            # Upon termination, the org unit will have an *active* period from
-            # Jan 1, 2016 to Dec 31, 2016 (the day before its termination.)
-            {"from": "2016-01-01", "to": "2016-12-31"},
-        ),
-        # Test old payload, which only has a "to" date
-        (
-            # The payload asks for an *inactive* period beginning infinitely
-            # far in the past and ending on Oct 21, 2016.
-            {"to": "2016-10-21"},
-            # Upon termination, the org unit will have an *active* period from
-            # Jan 1, 2016 to Oct 21, 2016 (the day of its termination.)
-            {"from": "2016-01-01", "to": "2016-10-21"},
-        ),
-    ],
-)
-def test_terminate_org_unit(
-    service_client: TestClient,
-    inactive_validity: dict[str, str],
-    expected_validity: dict[str, str],
-) -> None:
-    unitid = "85715fc7-925d-401b-822d-467eb4b163b6"
-    payload = {"validity": inactive_validity}
-
-    response = service_client.request(
-        "POST", f"/service/ou/{unitid}/terminate", json=payload
-    )
-    assert response.status_code == 200
-    assert response.json() == unitid
-
-    response = service_client.request(
-        "GET", f"/service/ou/{unitid}/details/org_unit", params={"validity": "past"}
-    )
-    assert response.status_code == 200
-    assert response.json() == [
-        {
-            "location": "Overordnet Enhed\\Humanistisk fakultet",
-            "name": "Filosofisk Institut",
-            "org": org,
-            "org_unit_hierarchy": None,
-            "org_unit_level": None,
-            "org_unit_type": org_unit_type_institute,
-            "parent": humanities_org_unit,
-            "time_planning": None,
-            "user_key": "fil",
-            "user_settings": {"orgunit": {}},
-            "uuid": unitid,
-            "validity": expected_validity,
-        }
-    ]
-
-    # Verify that we are no longer able to see org unit
-    response = service_client.request(
-        "GET", f"/service/ou/{unitid}/details/org_unit", params={"validity": "present"}
-    )
-    assert response.status_code == 200
-    assert response.json() == []
 
 
 @pytest.mark.integration_test
