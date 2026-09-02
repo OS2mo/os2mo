@@ -109,6 +109,53 @@ def read_explicit_manager(
     return inner
 
 
+@pytest.fixture
+def read_engagement_managers(
+    graphapi_post: GraphAPIPost,
+) -> Callable[..., list[UUID]]:
+    def inner(engagement_uuid: UUID, **kwargs: Any) -> list[UUID]:
+        query = """
+            query Managers(
+                $uuid: UUID!,
+                $filter: OrgUnitboundmanagerfilter,
+                $inherit: Boolean,
+                $exclude_self: Boolean,
+                $explicit_manager_first: Boolean
+            ) {
+                engagements(filter: {uuids: [$uuid]}) {
+                    objects {
+                        current {
+                            managers(
+                                filter: $filter
+                                inherit: $inherit
+                                exclude_self: $exclude_self
+                                explicit_manager_first: $explicit_manager_first
+                            ) {
+                                uuid
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        variables: dict[str, Any] = {
+            "uuid": str(engagement_uuid),
+            "filter": kwargs.get("filter"),
+            "inherit": kwargs.get("inherit", False),
+            "exclude_self": kwargs.get("exclude_self", False),
+        }
+        # Omit the flag unless provided so the schema default is exercised
+        if "explicit_manager_first" in kwargs:
+            variables["explicit_manager_first"] = kwargs["explicit_manager_first"]
+        response = graphapi_post(query, variables=variables)
+        assert response.errors is None
+        assert response.data
+        current = one(response.data["engagements"]["objects"])["current"]
+        return [UUID(manager["uuid"]) for manager in current["managers"]]
+
+    return inner
+
+
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
@@ -344,3 +391,104 @@ def test_engagement_explicit_manager_does_not_affect_other_fields(
 
     # ... and the engagement can still be found through it
     assert read_engagement_uuids({"ituser": {"uuids": [str(ituser)]}}) == {engagement}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+@pytest.mark.parametrize(
+    "explicit, arguments, expected",
+    [
+        # Without an explicit manager the flag does nothing
+        (None, {}, ["unit"]),
+        (None, {"explicit_manager_first": True}, ["unit"]),
+        (None, {"explicit_manager_first": False}, ["unit"]),
+        # The explicit manager is returned first by default
+        ("unit", {}, ["unit"]),
+        ("other", {}, ["other", "unit"]),
+        # Explicitly enabling the flag behaves identically
+        ("unit", {"explicit_manager_first": True}, ["unit"]),
+        ("other", {"explicit_manager_first": True}, ["other", "unit"]),
+        # Explicitly disabling the flag fails to regard the explicit manager
+        ("unit", {"explicit_manager_first": False}, ["unit"]),
+        ("other", {"explicit_manager_first": False}, ["unit"]),
+        # The filter also applies to the explicit manager
+        (
+            "other",
+            {"explicit_manager_first": True, "filter": {"uuids": ["unit"]}},
+            ["unit"],
+        ),
+        (
+            "other",
+            {
+                "explicit_manager_first": True,
+                "filter": {"employee": {"uuids": ["other_person"]}},
+            },
+            ["other"],
+        ),
+        # exclude_self also removes the employee's own explicit manager
+        (
+            "self",
+            {"explicit_manager_first": True, "exclude_self": True},
+            [],
+        ),
+    ],
+)
+def test_engagement_managers_explicit_manager_first(
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[..., UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    create_manager: Callable[..., UUID],
+    read_engagement_managers: Callable[..., list[UUID]],
+    explicit: str | None,
+    arguments: dict[str, Any],
+    expected: list[str],
+) -> None:
+    """The explicit manager is returned first by default.
+
+    The `explicit_manager_first` flag controls whether the engagement's
+    explicit manager is returned first, and it is enabled by default.
+
+    Args:
+        create_org_unit: Helper to create organisation units.
+        create_person: Helper to create people.
+        create_engagement: Helper to create engagements.
+        create_manager: Helper to create managers.
+        read_engagement_managers: Helper to read engagement managers.
+        explicit: Key of the manager to set as the explicit manager.
+        arguments: Keyword arguments passed on to `managers`.
+        expected: Keys of the expected managers, in order.
+    """
+    org_unit = create_org_unit("root")
+    other_unit = create_org_unit("other", org_unit)
+    person = create_person()
+    other_person = create_person()
+    managers = {
+        # The engagement employee's own manager role
+        "self": create_manager(other_unit, person),
+        # The organisation unit's manager role
+        "unit": create_manager(org_unit, person),
+        # A manager role elsewhere, belonging to another person
+        "other": create_manager(other_unit, other_person),
+    }
+    managers["other_person"] = other_person
+    managers["person"] = person
+
+    engagement = create_engagement(
+        org_unit, person, explicit_manager=managers.get(explicit)
+    )
+
+    def resolve(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {key: resolve(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [resolve(item) for item in value]
+        if isinstance(value, str) and value in managers:
+            return str(managers[value])
+        return value
+
+    result = read_engagement_managers(
+        engagement,
+        **{key: resolve(value) for key, value in arguments.items()},
+    )
+
+    assert [managers[manager] for manager in expected] == result

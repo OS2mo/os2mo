@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 """Strawberry types describing the MO graph - Engagement."""
 
+import dataclasses
 from collections.abc import Callable
+from itertools import chain
 from textwrap import dedent
 from typing import Annotated
 from typing import Any
@@ -490,6 +492,22 @@ class Engagement:
                 )
             ),
         ] = False,
+        explicit_manager_first: Annotated[
+            bool,
+            strawberry.argument(
+                description=dedent(
+                    """\
+                    Whether to return the engagement's explicit manager first.
+
+                    If the engagement has an explicit manager, and this flag is:
+                    * False: The explicit manager is not regarded, and only the managerial roles of the organisation unit are returned.
+                    * True: The explicit manager is returned first, followed by the remaining managerial roles of the organisation unit.
+
+                    The provided filter applies to the explicit manager too, e.g. an explicit manager pointing at the employee self is also removed when `exclude_self` is set.
+                    """
+                )
+            ),
+        ] = True,
     ) -> list[LazyManager]:
         # Recurse up the tree using the parent org-unit
         filter = filter or ManagerFilter()
@@ -510,7 +528,35 @@ class Engagement:
             )
 
         resolver = to_list(seed_resolver(manager_resolver, seeds))
-        return await resolver(root=root, info=info, filter=filter, inherit=inherit)
+        managers = await resolver(root=root, info=info, filter=filter, inherit=inherit)
+
+        if not explicit_manager_first or root.explicit_manager_uuid is None:
+            return managers
+
+        explicit_uuid = root.explicit_manager_uuid
+        if filter.uuids is not None and explicit_uuid not in filter.uuids:
+            return managers
+
+        filter_args = {
+            field.name: getattr(filter, field.name)
+            for field in dataclasses.fields(filter)
+        }
+        filter_args["uuids"] = [explicit_uuid]
+        if exclude_self:
+            filter_args["exclude"] = EmployeeFilter(
+                uuids=uuid2list(root.employee_uuid),
+                from_date=None,
+                to_date=None,
+            )
+        explicit = await manager_resolver(
+            info=info, filter=ManagerFilter(**filter_args)
+        )
+        explicit_managers = list(chain.from_iterable(explicit.values()))
+
+        explicit_uuids = {manager.uuid for manager in explicit_managers}
+        return explicit_managers + [
+            manager for manager in managers if manager.uuid not in explicit_uuids
+        ]
 
     # TODO: Document this
     fraction: int | None = strawberry.auto
