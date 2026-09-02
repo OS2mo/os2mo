@@ -224,9 +224,6 @@ async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
 
     if "context_value" not in kwargs:
         kwargs["context_value"] = await get_context(
-            # Run as the caller, so a service API endpoint grants no more than
-            # the caller's own permissions.
-            get_token=context["get_token"],
             amqp_system=context.get("amqp_system"),
             session=context.get("session"),
             # Unlike amqp_system and session, settings must always be present:

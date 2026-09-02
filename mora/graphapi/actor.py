@@ -12,7 +12,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from strawberry.dataloader import DataLoader
 
 from mora.access_log import access_log
-from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import LEGACY_AUTH_UUID
 from mora.auth.keycloak.oidc import NO_AUTH_UUID
 from mora.auth.middleware import LORA_USER_UUID
@@ -280,8 +279,8 @@ class Myself:
     )
 
 
-async def myself_resolver(info: MOInfo) -> Myself:
-    token: Token = await info.context.get_token()
+def myself_resolver(info: MOInfo) -> Myself:
+    token = info.context.token
     return Myself(
         actor=actor_uuid_to_actor(token.uuid),
         email=token.email,

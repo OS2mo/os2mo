@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Awaitable
-from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TypeAlias
 from uuid import UUID
@@ -57,11 +55,21 @@ class MOLoaders:
 
 @dataclass
 class MOContext(BaseContext):
-    get_token: Callable[[], Awaitable[Token]]
     amqp_system: AMQPSystem
     session: db.AsyncSession
     dataloaders: MOLoaders
     settings: Settings
+    _token: Token | None = None
+
+    @property
+    def token(self) -> Token:
+        # `IsAuthenticatedExtension` authenticates before any field is resolved
+        assert self._token is not None
+        return self._token
+
+    @token.setter
+    def token(self, token: Token) -> None:
+        self._token = token
 
 
 MOInfo: TypeAlias = Info[MOContext, None]
