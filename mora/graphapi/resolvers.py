@@ -304,6 +304,50 @@ def _get_active_period_clause(
     return period_cls.aktiv_virkning.bool_op("&&")(literal(window, type_=TSTZRANGE))
 
 
+def _related_person_predicate(
+    info: MOInfo,
+    filter: BaseFilter,
+    person: EmployeeFilter,
+) -> ColumnElement:
+    return OrganisationFunktionRegistrering.id.in_(
+        select(OrganisationFunktionRelation.organisationfunktion_registrering_id).where(
+            OrganisationFunktionRelation.rel_type
+            == OrganisationFunktionRelationKode.tilknyttedebrugere,
+            OrganisationFunktionRelation.rel_maal_uuid.in_(
+                uuid_shortcircuit(
+                    person,
+                    select(BrugerRegistrering.bruger_id).where(
+                        employee_predicate(info, person)
+                    ),
+                )
+            ),
+            _get_active_period_clause(OrganisationFunktionRelation, filter),
+        )
+    )
+
+
+def _related_org_unit_predicate(
+    info: MOInfo,
+    filter: BaseFilter,
+    org_unit: OrganisationUnitFilter,
+) -> ColumnElement:
+    return OrganisationFunktionRegistrering.id.in_(
+        select(OrganisationFunktionRelation.organisationfunktion_registrering_id).where(
+            OrganisationFunktionRelation.rel_type
+            == OrganisationFunktionRelationKode.tilknyttedeenheder,
+            OrganisationFunktionRelation.rel_maal_uuid.in_(
+                uuid_shortcircuit(
+                    org_unit,
+                    select(OrganisationEnhedRegistrering.organisationenhed_id).where(
+                        organisation_unit_predicate(info, org_unit)
+                    ),
+                )
+            ),
+            _get_active_period_clause(OrganisationFunktionRelation, filter),
+        )
+    )
+
+
 async def _resolve_orgfunk_uuids(
     info: MOInfo,
     predicate: Callable[[MOInfo, Any], ColumnElement],
@@ -686,48 +730,12 @@ def address_predicate(
     # Employees
     handle_deprecated_employee_filters(filter)
     if filter.employee:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        uuid_shortcircuit(
-                            filter.employee,
-                            select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(info, filter.employee)
-                            ),
-                        )
-                    ),
-                    _get_active_period_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
+        predicates.append(_related_person_predicate(info, filter, filter.employee))
 
     # Org units
     handle_deprecated_org_unit_filters(filter)
     if filter.org_unit:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        uuid_shortcircuit(
-                            filter.org_unit,
-                            select(
-                                OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
-                        )
-                    ),
-                    _get_active_period_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
+        predicates.append(_related_org_unit_predicate(info, filter, filter.org_unit))
 
     # Address type
     handle_deprecated_address_type_filters(filter)
@@ -918,48 +926,12 @@ def association_predicate(
     # Employees
     handle_deprecated_employee_filters(filter)
     if filter.employee:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        uuid_shortcircuit(
-                            filter.employee,
-                            select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(info, filter.employee)
-                            ),
-                        )
-                    ),
-                    _get_active_period_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
+        predicates.append(_related_person_predicate(info, filter, filter.employee))
 
     # Org units
     handle_deprecated_org_unit_filters(filter)
     if filter.org_unit:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        uuid_shortcircuit(
-                            filter.org_unit,
-                            select(
-                                OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
-                        )
-                    ),
-                    _get_active_period_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
+        predicates.append(_related_org_unit_predicate(info, filter, filter.org_unit))
 
     # Association type
     handle_deprecated_association_type_filters(filter)
@@ -1254,48 +1226,12 @@ def engagement_predicate(
     # Employees
     handle_deprecated_employee_filters(filter)
     if filter.employee:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        uuid_shortcircuit(
-                            filter.employee,
-                            select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(info, filter.employee)
-                            ),
-                        )
-                    ),
-                    _get_active_period_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
+        predicates.append(_related_person_predicate(info, filter, filter.employee))
 
     # Org units
     handle_deprecated_org_unit_filters(filter)
     if filter.org_unit:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        uuid_shortcircuit(
-                            filter.org_unit,
-                            select(
-                                OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
-                        )
-                    ),
-                    _get_active_period_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
+        predicates.append(_related_org_unit_predicate(info, filter, filter.org_unit))
 
     # Job function
     if filter.job_function is not None:
@@ -1506,48 +1442,12 @@ def manager_predicate(
             handle_deprecated_employee_filters(filter)
             if filter.employee:
                 predicates.append(
-                    OrganisationFunktionRegistrering.id.in_(
-                        select(
-                            OrganisationFunktionRelation.organisationfunktion_registrering_id
-                        ).where(
-                            OrganisationFunktionRelation.rel_type
-                            == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                            OrganisationFunktionRelation.rel_maal_uuid.in_(
-                                uuid_shortcircuit(
-                                    filter.employee,
-                                    select(BrugerRegistrering.bruger_id).where(
-                                        employee_predicate(info, filter.employee)
-                                    ),
-                                )
-                            ),
-                            _get_active_period_clause(
-                                OrganisationFunktionRelation, filter
-                            ),
-                        )
-                    )
+                    _related_person_predicate(info, filter, filter.employee)
                 )
     else:
         handle_deprecated_employee_filters(filter)
         if filter.employee:
-            predicates.append(
-                OrganisationFunktionRegistrering.id.in_(
-                    select(
-                        OrganisationFunktionRelation.organisationfunktion_registrering_id
-                    ).where(
-                        OrganisationFunktionRelation.rel_type
-                        == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                        OrganisationFunktionRelation.rel_maal_uuid.in_(
-                            uuid_shortcircuit(
-                                filter.employee,
-                                select(BrugerRegistrering.bruger_id).where(
-                                    employee_predicate(info, filter.employee)
-                                ),
-                            )
-                        ),
-                        _get_active_period_clause(OrganisationFunktionRelation, filter),
-                    )
-                )
-            )
+            predicates.append(_related_person_predicate(info, filter, filter.employee))
 
     # Org units
     handle_deprecated_org_unit_filters(filter)
@@ -1556,25 +1456,7 @@ def manager_predicate(
             raise ValueError("The inherit flag requires an organizational unit filter")
         predicates.append(_manager_inherit_org_unit_predicate(info, filter))
     elif filter.org_unit:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        uuid_shortcircuit(
-                            filter.org_unit,
-                            select(
-                                OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
-                        )
-                    ),
-                    _get_active_period_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
+        predicates.append(_related_org_unit_predicate(info, filter, filter.org_unit))
 
     # Responsibility
     if filter.responsibility is not None:
@@ -1848,48 +1730,12 @@ def owner_predicate(
     # Employees
     handle_deprecated_employee_filters(filter)
     if filter.employee:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        uuid_shortcircuit(
-                            filter.employee,
-                            select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(info, filter.employee)
-                            ),
-                        )
-                    ),
-                    _get_active_period_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
+        predicates.append(_related_person_predicate(info, filter, filter.employee))
 
     # Org units
     handle_deprecated_org_unit_filters(filter)
     if filter.org_unit:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        uuid_shortcircuit(
-                            filter.org_unit,
-                            select(
-                                OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
-                        )
-                    ),
-                    _get_active_period_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
+        predicates.append(_related_org_unit_predicate(info, filter, filter.org_unit))
 
     # Owner
     if filter.owner is not None:
@@ -2547,48 +2393,12 @@ def it_user_predicate(
     # Employees
     handle_deprecated_employee_filters(filter)
     if filter.employee:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        uuid_shortcircuit(
-                            filter.employee,
-                            select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(info, filter.employee)
-                            ),
-                        )
-                    ),
-                    _get_active_period_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
+        predicates.append(_related_person_predicate(info, filter, filter.employee))
 
     # Org units
     handle_deprecated_org_unit_filters(filter)
     if filter.org_unit:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        uuid_shortcircuit(
-                            filter.org_unit,
-                            select(
-                                OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
-                        )
-                    ),
-                    _get_active_period_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
+        predicates.append(_related_org_unit_predicate(info, filter, filter.org_unit))
 
     # IT systems
     handle_deprecated_itsystem_filters(filter)
@@ -2835,25 +2645,7 @@ def kle_predicate(
     # Org units
     handle_deprecated_org_unit_filters(filter)
     if filter.org_unit:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        uuid_shortcircuit(
-                            filter.org_unit,
-                            select(
-                                OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
-                        )
-                    ),
-                    _get_active_period_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
+        predicates.append(_related_org_unit_predicate(info, filter, filter.org_unit))
 
     return and_(*predicates)
 
@@ -2958,48 +2750,12 @@ def leave_predicate(
     # Employees
     handle_deprecated_employee_filters(filter)
     if filter.employee:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedebrugere,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        uuid_shortcircuit(
-                            filter.employee,
-                            select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(info, filter.employee)
-                            ),
-                        )
-                    ),
-                    _get_active_period_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
+        predicates.append(_related_person_predicate(info, filter, filter.employee))
 
     # Org units
     handle_deprecated_org_unit_filters(filter)
     if filter.org_unit:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        uuid_shortcircuit(
-                            filter.org_unit,
-                            select(
-                                OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
-                        )
-                    ),
-                    _get_active_period_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
+        predicates.append(_related_org_unit_predicate(info, filter, filter.org_unit))
 
     return and_(*predicates)
 
@@ -3130,25 +2886,7 @@ def related_unit_predicate(
     # Org units
     handle_deprecated_org_unit_filters(filter)
     if filter.org_unit:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        uuid_shortcircuit(
-                            filter.org_unit,
-                            select(
-                                OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
-                        )
-                    ),
-                    _get_active_period_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
+        predicates.append(_related_org_unit_predicate(info, filter, filter.org_unit))
 
     return and_(*predicates)
 
@@ -3253,25 +2991,7 @@ def rolebinding_predicate(
     # Org units
     handle_deprecated_org_unit_filters(filter)
     if filter.org_unit:
-        predicates.append(
-            OrganisationFunktionRegistrering.id.in_(
-                select(
-                    OrganisationFunktionRelation.organisationfunktion_registrering_id
-                ).where(
-                    OrganisationFunktionRelation.rel_type
-                    == OrganisationFunktionRelationKode.tilknyttedeenheder,
-                    OrganisationFunktionRelation.rel_maal_uuid.in_(
-                        uuid_shortcircuit(
-                            filter.org_unit,
-                            select(
-                                OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
-                        )
-                    ),
-                    _get_active_period_clause(OrganisationFunktionRelation, filter),
-                )
-            )
-        )
+        predicates.append(_related_org_unit_predicate(info, filter, filter.org_unit))
 
     # IT-user
     if filter.ituser is not None:
