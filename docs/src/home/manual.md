@@ -4,9 +4,9 @@ title: Manual
 
 ## Introduktion
 
-MO er bygget til at håndtere en eller flere organisationer, dens medarbejdere og andre tilknyttede personer (eksterne konsulenter, praktikanter, mv.). Organisationstyperne kan fx være lønørganisationen, den administrative organisation, MED-organisationen, økonomiorganisationen, projektorganisationen, mv.
+MO er bygget til at håndtere en eller flere organisationer, dens medarbejdere og andre tilknyttede personer (eksterne konsulenter, praktikanter, mv.). Organisationstyperne kan fx være lønorganisationen, den administrative organisation, MED-organisationen, økonomiorganisationen, projektorganisationen, mv.
 
-Det smarte ved MO er, at samtlige organisationer og samtlige tilknyttede personer håndteres i ét system. Alle oplysningerne kan og bør sendes videre til andre systemer, således at disse grundlæggende oplysningerne altid er ens i alle systemer, der er forbundet til MO, herunder fx et organisationsdiagram, Active Directory, et patientjournalsystem, et Identity Management system (IdM), m.fl.
+Det smarte ved MO er, at samtlige organisationer og samtlige tilknyttede personer håndteres i ét system. Alle oplysningerne kan og bør sendes videre til andre systemer, således at disse grundlæggende oplysninger altid er ens i alle systemer, der er forbundet til MO, herunder fx et organisationsdiagram, Active Directory, et patientjournalsystem, et Identity Management-system (IdM), m.fl.
 
 Nedenfor beskrives en række grundbegreber og \-logikker samt den funktionalitet, der er indlejret i brugergrænsefladen.
 
@@ -34,15 +34,15 @@ En **IT-bruger** er knyttet til et engagement, men ikke personen bag engagemente
 
 **Registreringstid** er tidspunktet for selve registreringen, fx oprettelsen af en enhed eller en medarbejder.
 
-Denne tidsakse tilvejebringer typisk de data, der er behov for ifm. med sporbarhed: Hvem har ændret hvilke data hvornår?
+Denne tidsakse tilvejebringer typisk de data, der er behov for ifm. sporbarhed: Hvem har ændret hvilke data hvornår?
 
 **Virkningstid** er den periode, inden for hvilken en registrering er gyldig, fx at en enhed eksisterer fra 1\. januar 2020 til 31\. december 2024, eller at en medarbejder er ansat i en given periode.
 
 Organisationsændringer kan altså laves på forhånd, og ansatte kan oprettes i systemet på bagkant; man kan se, hvornår en specifik medarbejder havde adgang til hvilke it-systemer, og det kan ligeledes spores, hvilken bruger der oprettede vedkommende i systemet.
 
-Alt det betyder, at det i MO er muligt at have overblik over fortidige, nutidige og fremtidige oplysninger, planlægge dem på forhånd og inspicere dem retrospekt. Man kan tilmed se, hvem der har lavet ændringerne. Se også [auditloggen](https://rammearkitektur.docs.magenta.dk/os2mo/tech-docs/audit-log.html).
+Alt det betyder, at det i MO er muligt at have overblik over fortidige, nutidige og fremtidige oplysninger, planlægge dem på forhånd og inspicere dem retrospektivt. Man kan tilmed se, hvem der har lavet ændringerne. Se også [auditloggen](https://rammearkitektur.docs.magenta.dk/os2mo/features/audit-log.html).
 
-Oplysninger om virkningstider er tilgængelige i de tre "tids-tabs", Fremtid, Nutid og Fremtid, under hvert faneblad. Man kan altså se alle de ændringer, der er foretaget over tid i brugergrænsefladen. Nedenfor er der tale om en enheds navn før, nu og siden.
+Oplysninger om virkningstider er tilgængelige i de tre "tids-tabs", Fortid, Nutid og Fremtid, under hvert faneblad. Man kan altså se alle de ændringer, der er foretaget over tid i brugergrænsefladen. Nedenfor er der tale om en enheds navn før, nu og siden.
 
 ![image](../graphics/momanual/bitemp.png)
 
@@ -50,7 +50,7 @@ Oplysninger om virkningstider er tilgængelige i de tre "tids-tabs", Fremtid, Nu
 
 **Inspicér**
 
-Se [auditloggen](https://rammearkitektur.docs.magenta.dk/os2mo/tech-docs/audit-log.html).
+Se [auditloggen](https://rammearkitektur.docs.magenta.dk/os2mo/features/audit-log.html).
 
 ![image](../graphics/momanual/inspicer.png)
 
@@ -66,7 +66,7 @@ I eksemplet nedenfor har Viggo et job som *Udvikler*, men det er planlagt, at ha
 
 **Overskrivninger**
 
-Såfremt startdatoen ikke ændres, vil det resultere i en *overskrivning* af den eksisterende registrering, og der vil ikke blive oprettet historik på oplysningen i brugergrænsefladen (det vil dog kunne spores i [auditloggen](https://rammearkitektur.docs.magenta.dk/os2mo/tech-docs/audit-log.html)), fordi det ikke bliver opfattet som en ændring, men en rettelse (fx ifm. fejlindtastning).
+Såfremt startdatoen ikke ændres, vil det resultere i en *overskrivning* af den eksisterende registrering, og der vil ikke blive oprettet historik på oplysningen i brugergrænsefladen (det vil dog kunne spores i [auditloggen](https://rammearkitektur.docs.magenta.dk/os2mo/features/audit-log.html)), fordi det ikke bliver opfattet som en ændring, men en rettelse (fx ifm. fejlindtastning).
 
 **Afslut**
 
@@ -77,6 +77,18 @@ Det er muligt fx at afslutte en ansættelse, sådan at en medarbejders engagemen
 ## MOs brugergrænseflade
 
 MO består af en eller flere organisationer, organisationshierarkierne, deres metadata, de indplacerede medarbejdere samt deres metadata. Hertil kommer en række moduler og arbejdsgange, der understøtter forvaltning af organisationen:
+
+![image](../graphics/momanual/mosforside.png)
+
+## Tema (lys og mørk visning)
+
+MO har en tema-vælger, så man kan skifte mellem lys og mørk visning (dark mode) efter behag:
+
+![image](../graphics/momanual/ManualTema.png)
+
+## Miljø-banner
+
+For at man aldrig er i tvivl om, hvorvidt man arbejder i produktionsmiljøet eller i et test-/udviklingsmiljø, viser MO et gult banner i bunden, når man befinder sig i et miljø, der ikke er produktion:
 
 ![image](../graphics/momanual/mosforside.png)
 
@@ -96,7 +108,7 @@ MO består af en eller flere organisationer, organisationshierarkierne, deres me
 
 * [**API (GraphQL)**](https://rammearkitektur.docs.magenta.dk/os2mo/tech-docs/graphql/intro.html), som åbner MOs API ved ét klik.
 
-## MOS arbejdsgange
+## MOs arbejdsgange
 
 * **Ny medarbejder**, der giver muligheden for at oprette en ny medarbejder.
 
@@ -110,7 +122,7 @@ MO består af en eller flere organisationer, organisationshierarkierne, deres me
 
 ![image](../graphics/momanual/flytmedarbejdere.png)
 
-* [**Organisationssammenkobling**](https://rammearkitektur.docs.magenta.dk/os2mo/features/org-sammenkobling.html). Det er muligt at skabe relationer mellem organisationsenheder vha. modulet *Organisationssammenkobling*, hvilket tillader en række automatikker mellem enheder der tilsvarer hinanden i to forskellige Organisationer, fx lønorganisationen og den administrative organisation.
+* [**Organisationssammenkoblinger**](https://rammearkitektur.docs.magenta.dk/os2mo/features/org-sammenkobling.html). Det er muligt at skabe relationer mellem organisationsenheder vha. modulet *Organisationssammenkoblinger*, hvilket tillader en række automatikker mellem enheder der tilsvarer hinanden i to forskellige Organisationer, fx lønorganisationen og den administrative organisation.
 
 ![image](../graphics/momanual/orgsam.png)
 
@@ -131,6 +143,7 @@ Søgefunktionen fungerer i kontekst med enten Medarbejderdelen eller Organisatio
 - Kaldenavn
 - CPR-nummer (uden bindestreg)
 - IT-bruger
+- Adresser, fx email og telefonnummer (kan slås til og fra)
 
 **Organisationsenheders:**
 
@@ -150,7 +163,7 @@ Søgefunktionen fungerer i kontekst med enten Medarbejderdelen eller Organisatio
 
 - Navn
 - Organisatorisk overenhed
-- Organisatiorisk rodenhed
+- Organisatorisk rodenhed
 
 ### Organisationshierarki med mulighed for flere parallelle organisationer
 
@@ -228,7 +241,7 @@ Dette underfaneblad tillader vedligehold af kontonavne til forskellige it-system
 
 For hver konto, man har i et it-system, kan der høre forskellige roller.
 
-I nedenstående eksempel har en ansat fået oprettet en it-konto i systemet NextCloud og fået tildelt rollen Admin. Hvis MO er integreret med NextCloud, bliver it-kontoen med tilhørende rolle automatisk oprettet i det system. Er MO og NextCloud ikke integreret, kan oprettelsen i MO udløse afsendelsen af en mail til en system-adminsitrator, som skal stå for den manuelle oprettelse af it-kontoen i NextCloud.
+I nedenstående eksempel har en ansat fået oprettet en it-konto i systemet NextCloud og fået tildelt rollen Admin. Hvis MO er integreret med NextCloud, bliver it-kontoen med tilhørende rolle automatisk oprettet i det system. Er MO og NextCloud ikke integreret, kan oprettelsen i MO udløse afsendelsen af en mail til en system-administrator, som skal stå for den manuelle oprettelse af it-kontoen i NextCloud.
 
 ![image](../graphics/momanual/roller.png)
 
@@ -236,7 +249,9 @@ I nedenstående eksempel har en ansat fået oprettet en it-konto i systemet Next
 
 Det er muligt at opmærke sine enheder med [KL's Emnesystematik (KLE)](http://www.kle-online.dk/soegning).
 
-KL's Emnesystematik er oprindeligt tænkt som en opgavetaksomnomi, der skal give et overblik over, hvem der udfører hvilke opgaver.
+KL's Emnesystematik er oprindeligt tænkt som en opgavetaksonomi, der skal give et overblik over, hvem der udfører hvilke opgaver.
+
+KLE-numrene vises sorteret, så de er lette at finde rundt i.
 
 Anvendelsen varierer, men hovedformålene er dataafgrænsning og/eller opgavestyring.
 
@@ -259,6 +274,7 @@ Ledere kan beskrives vha:
 - **Lederansvar** beskriver de ansvarstyper, en leder kan have. Eksempel: MUS-ansvarlig, Personaleansvarlig. En leder kan have flere ansvarsområder.
 - **Ledertype** indikerer ofte lederens funktion og hierarkiske placering eller tilknytning til et specifikt organisatorisk niveau. Eksempel: Direktør, Beredskabschef, Centerchef, Institutionsleder.
 - **Lederniveau** er en hierarkisk beskrivelse. Eksempel: Niveau 1, 2, 3\.
+- **Engagement**. Det engagement (den ansættelse), der bemyndiger personen til at bestride lederrollen. Engagementet angives, når lederen oprettes eller redigeres, og vises i ledertabellernes Engagementskolonne. Læs mere om det under [Lederhåndtering](https://rammearkitektur.docs.magenta.dk/os2mo/features/lederhaandtering.html). 
 
 For ledere gælder det, at de er markeret med en stjerne (\*), hvis de er nedarvede fra en overordnet organisationsenhed som følge af, at enheden ikke har en direkte leder.
 
@@ -282,11 +298,13 @@ Denne rettighedsstyring er sat op via [Keycloak](https://www.keycloak.org/), og 
 
 Fanebladet findes også under Medarbejdere i MO og indeholder samme oplysninger blot for den enkelte ansatte.
 
-#### Fanebladet Relateret
+#### Fanebladet Relaterede enheder
 
-Viser om en organisationsenhed har en relation til en anden. Relationen kan foregates enten under fanebladet ved at vælge "Opret relateret enhed", eller i selve Organisationssammenkoblingsmodulet:
+Viser, om en organisationsenhed har en relation til en anden. Tabellen viser både den relaterede enhed og dens rodenhed, så man kan se, hvilken hovedorganisation den relaterede enhed hører til.
 
-![image](../graphics/momanual/sammenkobling.png)
+Relationerne administreres via knappen **Administrér sammenkoblinger** på fanebladet eller i selve Organisationssammenkoblingsmodulet:
+
+![image](../graphics/orgsam/orgsamopretresultat.png)
 
 Sammenkoblingerne kan benyttes til forskellige formål, fx til at flytte engagementer fra en lønorganisationsenhed til dens pendant i den administrative organisation.
 
@@ -298,12 +316,13 @@ Bemærk, at sammenkoblingerne kan datostyres.
 
 ![image](../graphics/momanual/medarbejder.png)
 
-Under denne fane ses stamoplysninger på en person, nemlig navn, kaldenavn samt datoer.
+Under denne fane ses stamoplysninger på en person, nemlig navn, kaldenavn CPR-nummer samt datoer.
 
 * **Navnet** er altid personens CPR-navn.
 * **Kaldenavnet** benyttes især, hvis man ikke er interesseret i at korrespondancer indeholder personfølsomme oplysninger. Det kan fx være fordi man arbejder med udsatte børn og unge. Hvis et kaldenavn er sat, vil en integration til et andet system kunne konfigureres til at videreformidle dette og ikke CPR-navnet.
+* **CPR-nummeret** er som udgangspunkt skjult og vises først, når man klikker på knappen 'Vis CPR'. Det mindsker risikoen for, at CPR-numre utilsigtet eksponeres, fx ved skærmdeling:
+![image](../graphics/momanual/manualviscpr.png)
 * **Datoer**. Som udgangspunkt vil startdatoen være ens fødselsdato. Såfremt der ændres i en stamoplysning - fx at et kaldenavn angives - vil startdatoen ændres til at matche denne dato, og hvis man er interesseret i at se en persons fødselsdato, skal man klikke på Fortid:
-
 ![image](../graphics/momanual/kaldenavnfortid.png)
 
 #### Fanebladet IT-Tilknytninger
