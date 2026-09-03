@@ -3,6 +3,7 @@
 from collections.abc import Callable
 from typing import Any
 from uuid import UUID
+from uuid import uuid4
 
 import pytest
 
@@ -153,3 +154,56 @@ async def test_vacant_manager_change_occupy(
 
     result = fetch_managers({"employee": None})
     assert result == set()
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_vacant_manager_inherit(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[..., UUID],
+    create_engagement: Callable[..., UUID],
+    create_manager: Callable[..., UUID],
+) -> None:
+    """Regression test for 499d61fa88a."""
+    root = create_org_unit("root")
+    child = create_org_unit("child", root)
+
+    person = create_person()
+    create_engagement(
+        {
+            "person": str(person),
+            "org_unit": str(child),
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
+            "validity": {"from": "1970-01-01T00:00:00Z"},
+        }
+    )
+
+    # The child unit has an occupied manager, the root unit a vacant one, so
+    # the vacant filter must make the walk continue past the child unit.
+    create_manager(child, create_person())
+    vacant = create_manager(root)
+
+    query = """
+      query EngagementManagers {
+        engagements {
+          objects {
+            current {
+              managers(inherit: true, filter: {employee: null}) {
+                uuid
+              }
+            }
+          }
+        }
+      }
+    """
+    response = graphapi_post(query)
+    assert response.errors is None
+    assert response.data
+    result = {
+        UUID(manager["uuid"])
+        for engagement in response.data["engagements"]["objects"]
+        for manager in engagement["current"]["managers"]
+    }
+    assert result == {vacant}
