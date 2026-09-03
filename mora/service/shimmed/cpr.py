@@ -21,6 +21,7 @@ logger = get_logger()
 
 
 def get_citizen(cpr: str, settings: config.Settings) -> dict[str, Any]:
+    assert settings.sp_settings is not None
     sp_uuids = {
         "service_agreement": str(settings.sp_settings.sp_agreement_uuid),
         "user_system": str(settings.sp_settings.sp_system_uuid),
@@ -49,7 +50,7 @@ def get_citizen(cpr: str, settings: config.Settings) -> dict[str, Any]:
         exceptions.ErrorCodes.E_SP_SSL_ERROR()
 
 
-def _handle_erstatningspersonnummer(cpr: str) -> dict:
+def _handle_erstatningspersonnummer(cpr: str) -> dict | None:
     """Handle "erstatningspersonnummer" CPR numbers - that is, CPR numbers where the
     'day' part of the birthdate is in the range 61-91.
 
