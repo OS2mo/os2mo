@@ -1490,16 +1490,19 @@ def manager_predicate(
             # * A missing tilknyttedebrugere row
             # Depending on whether other validities exist within the same registration.
             bruger_row_exists = exists(
-                select(OrganisationFunktionRelation.id).where(
+                select(OrganisationFunktionRelation.id)
+                .where(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
                     == OrganisationFunktionRegistrering.id,
                     OrganisationFunktionRelation.rel_type
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
+                .correlate(OrganisationFunktionRegistrering)
             )
             vacant_row_exists = exists(
-                select(OrganisationFunktionRelation.id).where(
+                select(OrganisationFunktionRelation.id)
+                .where(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id
                     == OrganisationFunktionRegistrering.id,
                     OrganisationFunktionRelation.rel_type
@@ -1508,6 +1511,7 @@ def manager_predicate(
                     OrganisationFunktionRelation.rel_maal_urn.is_(None),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
+                .correlate(OrganisationFunktionRegistrering)
             )
             predicates.append(
                 or_(
