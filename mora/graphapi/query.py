@@ -12,6 +12,9 @@ from mora import db
 from mora.access_log import access_log
 from mora.db import AsyncSession
 from mora.graphapi.context import MOInfo
+from mora.graphapi.cpr import CPRError
+from mora.graphapi.cpr import CPRPerson
+from mora.graphapi.cpr import cpr_resolver
 from mora.graphapi.fields import Metadata
 from mora.graphapi.gmodels.mo.details.association import AssociationRead
 from mora.graphapi.gmodels.mo.details.engagement import EngagementRead
@@ -432,5 +435,19 @@ class Query:
             as their configured actor UUID, RBAC roles, login / contact email address,
             created event namespaces and listeners, etc.
             """,
+        ),
+    )
+
+    # CPR
+    # ---
+    cpr: CPRPerson | CPRError = strawberry.field(
+        resolver=cpr_resolver,
+        description=dedent(
+            """\
+            Look up a person by their CPR number.
+
+            This performs a lookup in Serviceplatformen, which must be
+            configured (`ENABLE_SP=true`), otherwise an error is returned.
+            """
         ),
     )
