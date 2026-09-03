@@ -31,11 +31,14 @@ from mora.graphapi.models import AddressRead
 from mora.graphapi.models import ClassRead
 from mora.graphapi.models import FacetRead
 from mora.graphapi.models import RoleBindingRead
+from mora.graphapi.policies import PolicyKey
+from mora.graphapi.policies import Readable
 
 
 @dataclass
 class MOLoaders:
     access_log_read_loader: DataLoader[UUID, list[UUID]]
+    policy_loader: DataLoader[PolicyKey, Readable]
     actor_name_loader: DataLoader[UUID, str | None]
     address_loader: DataLoader[LoadKey, list[AddressRead]]
     association_loader: DataLoader[LoadKey, list[AssociationRead]]

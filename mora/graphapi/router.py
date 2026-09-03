@@ -9,6 +9,7 @@ from fastapi import Depends
 from fastramqpi.ramqp import AMQPSystem
 from starlette.responses import PlainTextResponse
 from starlette.responses import RedirectResponse
+from strawberry.dataloader import DataLoader
 from strawberry.printer import print_schema
 
 from mora import db
@@ -20,6 +21,7 @@ from mora.graphapi.access_log import get_access_log_loaders
 from mora.graphapi.actor import get_actor_loaders
 from mora.graphapi.custom_router import CustomGraphQLRouter
 from mora.graphapi.dataloaders import get_loaders
+from mora.graphapi.policies import policy_loader
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import LATEST_VERSION
 from mora.graphapi.version import Version
@@ -41,6 +43,7 @@ async def get_context(
     loaders = await get_loaders()
     loaders.update(get_access_log_loaders(session))
     loaders.update(get_actor_loaders(session))
+    loaders["policy_loader"] = DataLoader(load_fn=policy_loader(session, get_token))
     moloaders = MOLoaders(**loaders)  # type: ignore
     return MOContext(
         get_token=get_token,
