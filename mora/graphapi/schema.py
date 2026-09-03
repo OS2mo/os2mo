@@ -289,7 +289,7 @@ async def _enforce_pbac(
     raise GraphQLError("No policy approved the access")
 
 
-class RBACExtension(SchemaExtension):
+class PBACExtension(SchemaExtension):
     """Schema-level extension that enforces PBAC for every field.
 
     Each field access is checked against the policies in `POLICIES`, one by
@@ -343,7 +343,7 @@ def get_schema(version: Version) -> CustomSchema:
         extensions=[
             StarletteContextExtension,
             IsAuthenticatedExtension,
-            RBACExtension,
+            PBACExtension,
             LogContextExtension,
             RuntimeContextExtension,
             RollbackOnError,
