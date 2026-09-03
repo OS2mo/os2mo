@@ -58,6 +58,7 @@ from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.owner_entities import OWNER_ENTITIES
+from mora.graphapi.policies import requested_fields
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
@@ -298,6 +299,18 @@ class PBACExtension(SchemaExtension):
     Access is rejected by default: every field must be listed in
     `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP`.
     """
+
+    def on_execute(self) -> AsyncIteratorOrIterator[None]:  # type: ignore
+        """Find what each read of a collection asks for, before anything is read."""
+        execution_context = self.execution_context
+        assert execution_context.graphql_document is not None
+        execution_context.context.requested = requested_fields(
+            execution_context.schema._schema,
+            execution_context.graphql_document,
+            execution_context.operation_name,
+            execution_context.variables,
+        )
+        yield
 
     async def resolve(  # type: ignore[override]
         self,

@@ -18,9 +18,26 @@ from collections.abc import Callable
 from collections.abc import Iterable
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import Any
 from typing import NamedTuple
 from uuid import UUID
 
+from graphql import DocumentNode
+from graphql import FieldNode
+from graphql import FragmentDefinitionNode
+from graphql import FragmentSpreadNode
+from graphql import GraphQLIncludeDirective
+from graphql import GraphQLInterfaceType
+from graphql import GraphQLNamedType
+from graphql import GraphQLObjectType
+from graphql import GraphQLSchema
+from graphql import GraphQLSkipDirective
+from graphql import InlineFragmentNode
+from graphql import SelectionNode
+from graphql import SelectionSetNode
+from graphql import get_directive_values
+from graphql import get_named_type
+from graphql import get_operation_ast
 from sqlalchemy import ColumnElement
 from sqlalchemy import SQLColumnExpression
 from sqlalchemy import distinct
@@ -186,3 +203,88 @@ def policy_loader(
         return [loaded[key] for key in keys]
 
     return load
+
+
+class Read(NamedTuple):
+    """A read of a collection: the response path of the field leading into it."""
+
+    collection: str
+    path: tuple[str, ...]
+
+
+def requested_fields(
+    schema: GraphQLSchema,
+    document: DocumentNode,
+    operation_name: str | None,
+    variables: dict[str, Any] | None,
+) -> dict[Read, frozenset[str]]:
+    """The fields each read of a collection in the operation asks for.
+
+    Found by walking the operation with the schema's types: through fragments
+    and the containers wrapping the objects, but not through the fields
+    leading out of the collection, or into it anew.
+    """
+    operation = get_operation_ast(document, operation_name)
+    assert operation is not None
+    root = schema.get_root_type(operation.operation)
+    assert root is not None
+    fragments = {
+        definition.name.value: definition
+        for definition in document.definitions
+        if isinstance(definition, FragmentDefinitionNode)
+    }
+    requested: dict[Read, set[str]] = defaultdict(set)
+
+    def skipped(node: SelectionNode) -> bool:
+        skip = get_directive_values(GraphQLSkipDirective, node, variables)
+        include = get_directive_values(GraphQLIncludeDirective, node, variables)
+        return bool(skip and skip["if"]) or bool(include and not include["if"])
+
+    def condition(
+        node: FragmentDefinitionNode | InlineFragmentNode, default: GraphQLNamedType
+    ) -> GraphQLNamedType:
+        if node.type_condition is None:
+            return default
+        type_ = schema.get_type(node.type_condition.name.value)
+        assert type_ is not None
+        return type_
+
+    def walk(
+        selection_set: SelectionSetNode,
+        parent: GraphQLNamedType,
+        path: tuple[str, ...],
+        reads: dict[str, Read],
+    ) -> None:
+        for selection in selection_set.selections:
+            if skipped(selection):
+                continue
+            if isinstance(selection, FragmentSpreadNode):
+                fragment = fragments[selection.name.value]
+                walk(fragment.selection_set, condition(fragment, parent), path, reads)
+            elif isinstance(selection, InlineFragmentNode):
+                walk(selection.selection_set, condition(selection, parent), path, reads)
+            elif (
+                isinstance(selection, FieldNode)
+                and not selection.name.value.startswith("__")
+                and isinstance(parent, GraphQLObjectType | GraphQLInterfaceType)
+            ):
+                name = selection.name.value
+                returned = get_named_type(parent.fields[name].type)
+                key = path + ((selection.alias or selection.name).value,)
+                inner = dict(reads)
+                concrete = (
+                    [parent]
+                    if isinstance(parent, GraphQLObjectType)
+                    else schema.get_possible_types(parent)
+                )
+                for type_ in concrete:
+                    for collection in COLLECTIONS.values():
+                        if collection.enters(type_.name, returned.name):
+                            inner[collection.name] = Read(collection.name, key)
+                        elif collection.is_object_field(type_.name, returned.name):
+                            requested[reads[collection.name]].add(name)
+                if selection.selection_set is not None:
+                    walk(selection.selection_set, returned, key, inner)
+
+    walk(operation.selection_set, root, (), {})
+    return {read: frozenset(fields) for read, fields in requested.items()}

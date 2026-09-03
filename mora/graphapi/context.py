@@ -3,6 +3,7 @@
 from collections.abc import Awaitable
 from collections.abc import Callable
 from dataclasses import dataclass
+from dataclasses import field
 from typing import TypeAlias
 from uuid import UUID
 
@@ -32,6 +33,7 @@ from mora.graphapi.models import ClassRead
 from mora.graphapi.models import FacetRead
 from mora.graphapi.models import RoleBindingRead
 from mora.graphapi.policies import PolicyKey
+from mora.graphapi.policies import Read
 from mora.graphapi.policies import Readable
 
 
@@ -65,6 +67,9 @@ class MOContext(BaseContext):
     session: db.AsyncSession
     dataloaders: MOLoaders
     settings: Settings
+    # What each read of a collection in the operation asks for, found before
+    # anything is read
+    requested: dict[Read, frozenset[str]] = field(default_factory=dict)
 
 
 MOInfo: TypeAlias = Info[MOContext, None]
