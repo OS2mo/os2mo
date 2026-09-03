@@ -104,6 +104,8 @@ from .paged import CursorType
 from .paged import LimitType
 from .paged import ObjectsAndCursor
 from .paged import paginate
+from .policies import ADDRESS
+from .policies import check_readable
 from .registrationbase import RegistrationBase
 from .validity import OpenValidityModel
 
@@ -823,6 +825,7 @@ async def address_resolver(
         limit,
         cursor,
     )
+    await check_readable(info, ADDRESS, uuids)
 
     access_log(
         session,

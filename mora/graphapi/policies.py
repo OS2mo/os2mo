@@ -18,6 +18,7 @@ from collections.abc import Callable
 from collections.abc import Iterable
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import NamedTuple
 from uuid import UUID
@@ -26,6 +27,7 @@ from graphql import DocumentNode
 from graphql import FieldNode
 from graphql import FragmentDefinitionNode
 from graphql import FragmentSpreadNode
+from graphql import GraphQLError
 from graphql import GraphQLIncludeDirective
 from graphql import GraphQLInterfaceType
 from graphql import GraphQLNamedType
@@ -46,6 +48,9 @@ from sqlalchemy import select
 from mora.auth.keycloak.models import Token
 from mora.db import AsyncSession
 from mora.db import OrganisationFunktionRegistrering
+
+if TYPE_CHECKING:
+    from mora.graphapi.context import MOInfo
 
 
 @dataclass(frozen=True)
@@ -288,3 +293,33 @@ def requested_fields(
 
     walk(operation.selection_set, root, (), {})
     return {read: frozenset(fields) for read, fields in requested.items()}
+
+
+def fields_read(info: "MOInfo", collection: Collection) -> frozenset[str]:
+    """The fields the read at *info* asks for of the objects of *collection*.
+
+    Always `uuid`: the page itself tells which objects exist.
+    """
+    path = tuple(key for key in info.path.as_list() if isinstance(key, str))
+    requested = info.context.requested.get(Read(collection.name, path), frozenset())
+    return requested | {"uuid"}
+
+
+async def check_readable(
+    info: "MOInfo", collection: Collection, uuids: Sequence[UUID]
+) -> None:
+    """Fail the read at *info* unless the caller may read what it asks for of every object.
+
+    Once, naming the fields rather than the objects: a caller expecting to
+    read everything learns what their policies lack, while one who may read
+    nothing learns nothing about which objects exist.
+    """
+    fields = fields_read(info, collection)
+    loaded = await info.context.dataloaders.policy_loader.load_many(
+        [PolicyKey(collection.name, uuid) for uuid in uuids]
+    )
+    denied = frozenset[str]().union(*(readable.denies(fields) for readable in loaded))
+    if denied:
+        raise GraphQLError(
+            f"No policy approved the access to {', '.join(sorted(denied))}"
+        )

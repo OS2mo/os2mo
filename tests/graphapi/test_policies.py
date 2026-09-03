@@ -16,6 +16,7 @@ from uuid import uuid4
 import pytest
 from graphql import parse
 
+from mora.db import OrganisationFunktionRegistrering
 from mora.graphapi import policies
 from mora.graphapi.policies import Policy
 from mora.graphapi.policies import Read
@@ -294,3 +295,123 @@ def test_requested_fields(
     schema = get_schema(LATEST_VERSION)._schema
 
     assert requested_fields(schema, parse(query), None, variables) == expected
+
+
+def _failures(response: Any) -> list[tuple[str, list[str | int]]]:
+    return [(error["message"], error["path"]) for error in response.errors]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "two_addresses")
+async def test_without_rules_a_read_fails_once(
+    set_auth: SetAuth, graphapi_post: GraphAPIPost
+) -> None:
+    """The read is refused as a whole, not address by address.
+
+    One error per address would tell a caller who may read nothing how many
+    addresses match any filter of their choosing.
+    """
+    set_auth(set(), uuid4())
+
+    response = graphapi_post(TOP_LEVEL)
+
+    assert response.data is None
+    assert _failures(response) == [
+        ("No policy approved the access to uuid, value", ["addresses"])
+    ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_read_fails_naming_the_fields_no_rule_grants(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    set_policy: SetPolicy,
+    two_addresses: tuple[UUID, UUID],
+) -> None:
+    set_policy(
+        "reader",
+        Policy(rules=(Rule("address", fields=frozenset({"uuid", "user_key"})),)),
+    )
+    set_auth({"reader"}, uuid4())
+
+    response = graphapi_post(TOP_LEVEL)
+    assert response.data is None
+    assert _failures(response) == [
+        ("No policy approved the access to value", ["addresses"])
+    ]
+
+    response = graphapi_post(
+        "query { addresses { objects { uuid current { user_key } } } }"
+    )
+    assert response.errors is None
+    assert response.data
+    assert {x["uuid"] for x in response.data["addresses"]["objects"]} == {
+        str(uuid) for uuid in two_addresses
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "org_unit_with_address")
+async def test_registration_metadata_are_fields_of_the_object(
+    set_auth: SetAuth, graphapi_post: GraphAPIPost, set_policy: SetPolicy
+) -> None:
+    set_policy("reader", Policy(rules=(Rule("address", fields=frozenset({"uuid"})),)))
+    set_auth({"reader"}, uuid4())
+
+    response = graphapi_post(
+        "query { addresses { objects { registrations { note } } } }"
+    )
+
+    assert _failures(response) == [
+        ("No policy approved the access to note", ["addresses"])
+    ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_read_fails_when_some_object_may_not_be_read(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    set_policy: SetPolicy,
+    two_addresses: tuple[UUID, UUID],
+) -> None:
+    """A rule may grant its fields on some objects only."""
+    granted, denied = two_addresses
+    set_policy(
+        "reader",
+        Policy(
+            rules=(
+                Rule(
+                    "address",
+                    objects=OrganisationFunktionRegistrering.organisationfunktion_id
+                    == granted,
+                ),
+            )
+        ),
+    )
+    set_auth({"reader"}, uuid4())
+
+    response = graphapi_post(TOP_LEVEL)
+    assert _failures(response) == [
+        ("No policy approved the access to uuid, value", ["addresses"])
+    ]
+
+    response = graphapi_post(
+        """
+        query($uuid: UUID!) {
+            addresses(filter: {uuids: [$uuid]}) {
+                objects { uuid current { value } }
+            }
+        }
+        """,
+        {"uuid": str(granted)},
+    )
+    assert response.errors is None
+    assert response.data == {
+        "addresses": {
+            "objects": [
+                {"uuid": str(granted), "current": {"value": "granted@example.org"}}
+            ]
+        }
+    }

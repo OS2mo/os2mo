@@ -157,11 +157,12 @@ async def test_introspection_is_public(
             {"No policy approved the access"},
         ),
         ("query { org_units { objects { uuid } } }", {"reader"}, set()),
-        # Query all addresses
+        # Query all addresses. Guarded by policy: the read as a whole is
+        # refused, naming the fields, rather than the addresses field itself.
         (
             "query { addresses { objects { uuid } } }",
             set(),
-            {"No policy approved the access"},
+            {"No policy approved the access to uuid"},
         ),
         ("query { addresses { objects { uuid } } }", {"reader"}, set()),
         # Query all org-units and their addresses
