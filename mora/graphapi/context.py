@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from dataclasses import dataclass
+from dataclasses import field
 from typing import TypeAlias
 from uuid import UUID
 
@@ -51,6 +52,14 @@ class MOLoaders:
     owner_loader: DataLoader[LoadKey, list[OwnerRead]]
     rel_unit_loader: DataLoader[LoadKey, list[RelatedUnitRead]]
     rolebinding_loader: DataLoader[LoadKey, list[RoleBindingRead]]
+
+    # The resolvers create the loaders below on demand, rather than
+    # `get_loaders` creating them up front, because each loader is specific to a
+    # filter that is only known once a resolver runs. The dicts map a string
+    # identifying that filter to the loader batching its lookups.
+    orgfunk_relation_loaders: dict[str, DataLoader[UUID, list[UUID]]] = field(
+        default_factory=dict
+    )
 
 
 @dataclass
