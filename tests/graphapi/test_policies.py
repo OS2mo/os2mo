@@ -7,15 +7,157 @@ is decided per address, by the rules of their roles' policies (see
 `mora.graphapi.policies`).
 """
 
+from collections.abc import Callable
+from collections.abc import Iterator
 from typing import Any
+from uuid import UUID
+from uuid import uuid4
 
 import pytest
 from graphql import parse
 
+from mora.graphapi import policies
+from mora.graphapi.policies import Policy
 from mora.graphapi.policies import Read
+from mora.graphapi.policies import Rule
 from mora.graphapi.policies import requested_fields
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import LATEST_VERSION
+from tests.conftest import GraphAPIPost
+from tests.conftest import SetAuth
+
+SetPolicy = Callable[[str, Policy], None]
+
+
+@pytest.fixture
+def set_policy() -> Iterator[SetPolicy]:
+    """Install a role's policy for the duration of a test.
+
+    Policies have no store of their own yet, so a test supplies one directly.
+    """
+    original = dict(policies.ROLE_POLICIES)
+
+    def inner(role: str, policy: Policy) -> None:
+        policies.ROLE_POLICIES[role] = policy
+
+    yield inner
+    policies.ROLE_POLICIES.clear()
+    policies.ROLE_POLICIES.update(original)
+
+
+TOP_LEVEL = """
+query {
+    addresses {
+        objects { uuid current { value } }
+    }
+}
+"""
+
+NESTED = """
+query {
+    org_units {
+        objects {
+            current { addresses { uuid value } }
+        }
+    }
+}
+"""
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_reader_reads_addresses_wherever_reached(
+    set_auth: SetAuth, graphapi_post: GraphAPIPost, org_unit_with_address: UUID
+) -> None:
+    set_auth({"reader"}, uuid4())
+
+    response = graphapi_post(TOP_LEVEL)
+    assert response.errors is None
+    assert response.data == {
+        "addresses": {
+            "objects": [
+                {
+                    "uuid": str(org_unit_with_address),
+                    "current": {"value": "unit@example.org"},
+                }
+            ]
+        }
+    }
+
+    response = graphapi_post(NESTED)
+    assert response.errors is None
+    assert response.data == {
+        "org_units": {
+            "objects": [
+                {
+                    "current": {
+                        "addresses": [
+                            {
+                                "uuid": str(org_unit_with_address),
+                                "value": "unit@example.org",
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_fields_are_checked_per_object_however_reached(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    set_policy: SetPolicy,
+    org_unit_with_address: UUID,
+) -> None:
+    """A field no rule grants is denied even off the collection's resolver.
+
+    The registrations reach an address by UUID, so no resolver stands between
+    the caller and the object: only the check of the field itself does.
+    """
+    set_policy("reader", Policy(rules=(Rule("address", fields=frozenset({"uuid"})),)))
+    set_auth({"reader"}, uuid4())
+
+    response = graphapi_post(
+        """
+        query {
+            registrations(filter: {models: ["address"]}) {
+                objects {
+                    ... on AddressRegistration { current { uuid value } }
+                }
+            }
+        }
+        """
+    )
+
+    assert response.errors
+    assert {error["message"] for error in response.errors} == {
+        "No policy approved the access"
+    }
+    assert {tuple(error["path"]) for error in response.errors} == {
+        ("registrations", "objects", 0, "current", "value")
+    }
+    assert response.data == {"registrations": {"objects": [{"current": None}]}}
+
+    response = graphapi_post(
+        """
+        query {
+            registrations(filter: {models: ["address"]}) {
+                objects {
+                    ... on AddressRegistration { current { uuid } }
+                }
+            }
+        }
+        """
+    )
+    assert response.errors is None
+    assert response.data == {
+        "registrations": {
+            "objects": [{"current": {"uuid": str(org_unit_with_address)}}]
+        }
+    }
 
 
 @pytest.mark.parametrize(

@@ -16,6 +16,7 @@ from graphql import ExecutionResult
 from graphql import GraphQLError
 from graphql import GraphQLResolveInfo
 from graphql import OperationType
+from graphql import get_named_type
 from graphql import is_introspection_type
 from pydantic import PositiveInt
 from starlette.datastructures import UploadFile
@@ -58,6 +59,8 @@ from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.owner_entities import OWNER_ENTITIES
+from mora.graphapi.policies import COLLECTION_OF_TYPE
+from mora.graphapi.policies import PolicyKey
 from mora.graphapi.policies import requested_fields
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
@@ -192,13 +195,13 @@ class IsAuthenticatedExtension(SchemaExtension):
         yield
 
 
-# A policy takes the resolver info and arguments, and returns whether it
-# grants access to the field.
-Policy = Callable[[GraphQLResolveInfo, dict[str, Any]], Awaitable[bool]]
+# A policy takes the parent object, the resolver info and the arguments, and
+# returns whether it grants access to the field.
+Policy = Callable[[Any, GraphQLResolveInfo, dict[str, Any]], Awaitable[bool]]
 
 
 async def introspection_policy(
-    info: GraphQLResolveInfo, kwargs: dict[str, Any]
+    root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
 ) -> bool:
     """Allow access to introspection for all users."""
     return info.field_name in (
@@ -209,13 +212,42 @@ async def introspection_policy(
 
 
 async def no_role_required_policy(
-    info: GraphQLResolveInfo, kwargs: dict[str, Any]
+    root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
 ) -> bool:
     """Allow access to fields which are explicitly listed in `PUBLIC_FIELDS`."""
     return (info.parent_type.name, info.field_name) in PUBLIC_FIELDS
 
 
+async def collection_policy(
+    root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
+) -> bool:
+    """Allow reading a collection as its read policies permit.
+
+    Leading into a collection requires nothing: what may be read is decided
+    object by object once there (see `mora.graphapi.policies`). A field of an
+    object is allowed if the caller's rules grant it on that very object. The
+    fields leading further in, through the containers and pages wrapping the
+    objects, are allowed as such.
+    """
+    parent = info.parent_type.name
+    returned = get_named_type(info.return_type).name
+    collection = COLLECTION_OF_TYPE.get(parent)
+    if collection is None:
+        # The mutation root's fields change a collection rather than read it
+        return (
+            returned in COLLECTION_OF_TYPE
+            and info.parent_type is not info.schema.mutation_type
+        )
+    if not collection.is_object_field(parent, returned):
+        return True
+    readable = await info.context.dataloaders.policy_loader.load(
+        PolicyKey(collection.name, root.uuid)
+    )
+    return info.field_name in readable
+
+
 async def rbac_policy(
+    root: Any,
     info: GraphQLResolveInfo,
     kwargs: dict[str, Any],
 ) -> bool:
@@ -233,7 +265,9 @@ async def rbac_policy(
     return False
 
 
-async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
+async def owner_policy(
+    root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
+) -> bool:
     """Allow access if the user is the owner of the accessed resources."""
     token = await info.context.get_token()
     token_roles = token.realm_access.roles
@@ -270,12 +304,14 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
 POLICIES: list[Policy] = [
     introspection_policy,
     no_role_required_policy,
+    collection_policy,
     rbac_policy,
     owner_policy,
 ]
 
 
 async def _enforce_pbac(
+    root: Any,
     info: GraphQLResolveInfo,
     kwargs: dict[str, Any],
 ) -> None:
@@ -285,7 +321,7 @@ async def _enforce_pbac(
     policy allows it.
     """
     for policy in POLICIES:
-        if await policy(info, kwargs):
+        if await policy(root, info, kwargs):
             return
     raise GraphQLError("No policy approved the access")
 
@@ -297,7 +333,8 @@ class PBACExtension(SchemaExtension):
     one, until a policy allows access.
 
     Access is rejected by default: every field must be listed in
-    `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP`.
+    `PUBLIC_FIELDS`, have a requirement in `RBAC_MAP`, or belong to a
+    collection guarded by read policies (`mora.graphapi.policies`).
     """
 
     def on_execute(self) -> AsyncIteratorOrIterator[None]:  # type: ignore
@@ -319,7 +356,7 @@ class PBACExtension(SchemaExtension):
         info: GraphQLResolveInfo,
         **kwargs: dict[str, Any],
     ) -> Any:
-        await _enforce_pbac(info, kwargs)
+        await _enforce_pbac(root, info, kwargs)
         return await await_maybe(next_(root, info, **kwargs))
 
 

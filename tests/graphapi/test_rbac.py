@@ -1,8 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
-from typing import Any
-from uuid import UUID
 from uuid import uuid4
 
 import pytest
@@ -17,6 +14,7 @@ from hypothesis_graphql import nodes
 from hypothesis_graphql import strategies as gql_st
 
 from mora.graphapi.events import EventToken
+from mora.graphapi.policies import COLLECTION_OF_TYPE
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.schema import get_schema
@@ -26,20 +24,30 @@ from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
 
+def _named_type(type_: dict) -> str:
+    """The name of the innermost named type, unwrapping non-null and list."""
+    while type_["name"] is None:
+        type_ = type_["ofType"]
+    return type_["name"]
+
+
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
     """RBAC is reject-by-default, so every field must be classified.
 
-    Each schema field must be either public (`PUBLIC_FIELDS`) or have a role
-    requirement (`RBAC_MAP`). Conversely, entries which do not correspond to
-    any schema field are dead rules, and therefore most likely mistakes.
+    Each schema field must be either public (`PUBLIC_FIELDS`), have a role
+    requirement (`RBAC_MAP`), or read a collection guarded by policies: the
+    fields of the collection's types, and those leading into it. Conversely,
+    entries which do not correspond to any schema field are dead rules, and
+    therefore most likely mistakes.
 
-    A field in both would be silently public (the chain grants access as soon
-    as `no_role_required_policy` matches, before `rbac_policy` runs), so it is
-    almost certainly a mistake; the two are required to be disjoint.
+    A field classified twice would silently get the weakest of its
+    requirements (the chain grants access as soon as a policy matches), so it
+    is almost certainly a mistake; the three are required to be disjoint.
     """
     schema_fields = set()
+    policy_governed = set()
     for version in Version:
         response = graphapi_post(
             """
@@ -50,6 +58,16 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
                   kind
                   fields(includeDeprecated: true) {
                     name
+                    type {
+                      name
+                      ofType {
+                        name
+                        ofType {
+                          name
+                          ofType { name }
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -65,8 +83,19 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
             schema_fields.update(
                 (type_["name"], field["name"]) for field in type_["fields"]
             )
+            # The mutation root's fields change a collection rather than read
+            # it, and keep their requirement
+            policy_governed.update(
+                (type_["name"], field["name"])
+                for field in type_["fields"]
+                if type_["name"] in COLLECTION_OF_TYPE
+                or (
+                    type_["name"] != "Mutation"
+                    and _named_type(field["type"]) in COLLECTION_OF_TYPE
+                )
+            )
 
-    classified = PUBLIC_FIELDS | RBAC_MAP.keys()
+    classified = PUBLIC_FIELDS | RBAC_MAP.keys() | policy_governed
 
     missing = schema_fields - classified
     assert missing == set(), f"Unclassified schema fields: {missing}"
@@ -76,6 +105,9 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
 
     overlap = PUBLIC_FIELDS & RBAC_MAP.keys()
     assert overlap == set(), f"Fields both public and role-gated: {overlap}"
+
+    overlap = policy_governed & (PUBLIC_FIELDS | RBAC_MAP.keys())
+    assert overlap == set(), f"Fields both policy-governed and otherwise: {overlap}"
 
 
 @pytest.mark.integration_test
@@ -108,37 +140,6 @@ async def test_introspection_is_public(
         "__schema": {"query_type": {"name": "Query"}},
         "__type": {"name": "Address", "kind": "OBJECT"},
     }
-
-
-@pytest.fixture
-def org_unit_with_address(
-    create_org_unit: Callable[..., UUID],
-    create_facet: Callable[[dict[str, Any]], UUID],
-    create_class: Callable[[dict[str, Any]], UUID],
-    create_address: Callable[[dict[str, Any]], UUID],
-) -> None:
-    """An org-unit with an address, so the queries under test return data."""
-    org_unit_uuid = create_org_unit("test")
-    facet_uuid = create_facet(
-        {"user_key": "org_unit_address_type", "validity": {"from": "2000-01-01"}}
-    )
-    address_type_uuid = create_class(
-        {
-            "facet_uuid": str(facet_uuid),
-            "user_key": "email",
-            "name": "Email",
-            "scope": "EMAIL",
-            "validity": {"from": "2000-01-01"},
-        }
-    )
-    create_address(
-        {
-            "address_type": str(address_type_uuid),
-            "org_unit": str(org_unit_uuid),
-            "value": "unit@example.org",
-            "validity": {"from": "2000-01-01"},
-        }
-    )
 
 
 @pytest.mark.integration_test
