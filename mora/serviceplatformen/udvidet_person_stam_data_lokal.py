@@ -87,6 +87,10 @@ def get_citizen(
         )
         return citizen_dict
     else:
+        # FIXME: this will not raise for any success code, i.e. any 2XX code.
+        #   We only check for status == 200 above, so any success code other
+        #   than 200 will result in the bogus dictionary below. We should really
+        #   raise on any non-200 code.
         response.raise_for_status()
         return {"Error": "Something went wrong"}
 
