@@ -1,12 +1,14 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import dataclasses
+from collections import defaultdict
 from collections.abc import Callable
 from collections.abc import Sequence
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
 from functools import lru_cache
+from functools import partial
 from textwrap import dedent
 from typing import Annotated
 from typing import Any
@@ -14,6 +16,7 @@ from typing import cast as tcast
 from uuid import UUID
 
 import strawberry
+from more_itertools import one
 from more_itertools import unique_everseen
 from psycopg.types.range import TimestamptzRange
 from pydantic import ValidationError
@@ -34,6 +37,7 @@ from sqlalchemy import true
 from sqlalchemy import union
 from sqlalchemy.dialects.postgresql import TSTZMULTIRANGE
 from sqlalchemy.dialects.postgresql import TSTZRANGE
+from sqlalchemy.orm import aliased
 from sqlalchemy.types import Text
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
@@ -348,6 +352,70 @@ def _related_org_unit_predicate(
     )
 
 
+async def _load_orgfunks_by_relation(
+    info: MOInfo,
+    predicate: Callable[[MOInfo, Any], ColumnElement],
+    filter: BaseFilter,
+    rel_type: OrganisationFunktionRelationKode,
+    related_uuids: list[UUID],
+) -> list[list[UUID]]:
+    """Dataloader batch resolving organisation functions by relation."""
+
+    # Alias the relation. SQLAlchemy correlates a subquery to any table its
+    # enclosing query selects from, which would leave the subqueries of
+    # `predicate` that select from the relation with nothing to select from.
+    relation = aliased(OrganisationFunktionRelation)
+    query = (
+        # Select `(related object, organisation function)` UUID pairs.
+        select(
+            relation.rel_maal_uuid,
+            OrganisationFunktionRegistrering.organisationfunktion_id,
+        )
+        .where(
+            predicate(info, filter),
+            relation.organisationfunktion_registrering_id
+            == OrganisationFunktionRegistrering.id,
+            relation.rel_type == rel_type,
+            relation.rel_maal_uuid.in_(related_uuids),
+            _get_active_period_clause(relation, filter),
+        )
+        .distinct()
+        .order_by(
+            relation.rel_maal_uuid,
+            OrganisationFunktionRegistrering.organisationfunktion_id,
+        )
+    )
+
+    session: AsyncSession = info.context.session
+    orgfunks = defaultdict(list)
+    for related_uuid, orgfunk_uuid in await session.execute(query):
+        orgfunks[related_uuid].append(orgfunk_uuid)
+
+    return [orgfunks[related_uuid] for related_uuid in related_uuids]
+
+
+def _orgfunk_relation_loader(
+    info: MOInfo,
+    predicate: Callable[[MOInfo, Any], ColumnElement],
+    filter: BaseFilter,
+    rel_type: OrganisationFunktionRelationKode,
+) -> DataLoader[UUID, list[UUID]]:
+    """Get the dataloader batching `predicate` lookups by `rel_type` relation."""
+    # The key must tell apart every loader whose query would differ, so equal
+    # filters need equal reprs. Filters are dataclasses, whose reprs are
+    # structural. A filter field holding an object with an identity based repr
+    # would silently give every call its own loader, and thus its own query.
+    key = repr((getattr(predicate, "__name__", repr(predicate)), rel_type, filter))
+    loaders = info.context.dataloaders.orgfunk_relation_loaders
+    if key not in loaders:
+        loaders[key] = DataLoader(
+            load_fn=partial(
+                _load_orgfunks_by_relation, info, predicate, filter, rel_type
+            )
+        )
+    return loaders[key]
+
+
 async def _resolve_orgfunk_uuids(
     info: MOInfo,
     predicate: Callable[[MOInfo, Any], ColumnElement],
@@ -355,7 +423,58 @@ async def _resolve_orgfunk_uuids(
     limit: LimitType,
     cursor: CursorType,
 ) -> tuple[Sequence[UUID], CursorType]:
-    """Resolve the UUIDs of the organisation functions matching `filter`."""
+    """Resolve the UUIDs of the organisation functions matching `filter`.
+
+    A filter pinning its related person or organisation unit to a single UUID
+    goes through a dataloader. The dataloader batches the (1+n) calls made by
+    field-level resolvers, such as `persons { engagements_response }`, into
+    one query.
+
+    Paginating calls are not batched. `LIMIT` and the cursor apply to the whole
+    result set rather than to each related object, so one query cannot page its
+    members individually.
+    """
+
+    def _pinned_uuid(
+        related_filter: BaseFilter | None,
+        deprecated_uuids: list[UUID] | None,
+    ) -> UUID | None:
+        """The UUID `related_filter` pins its objects to, if it pins exactly one."""
+        if deprecated_uuids is not None:
+            return None
+        if (
+            not related_filter
+            or related_filter.uuids is None
+            or len(related_filter.uuids) != 1
+        ):
+            return None
+        return one(related_filter.uuids)
+
+    if limit is None and cursor is None:
+        person_uuid = _pinned_uuid(
+            getattr(filter, "employee", None), getattr(filter, "employees", None)
+        )
+        if person_uuid is not None:
+            loader = _orgfunk_relation_loader(
+                info,
+                predicate,
+                dataclasses.replace(filter, **{"employee": UNSET}),
+                OrganisationFunktionRelationKode.tilknyttedebrugere,
+            )
+            return await loader.load(person_uuid), None
+
+        org_unit_uuid = _pinned_uuid(
+            getattr(filter, "org_unit", None), getattr(filter, "org_units", None)
+        )
+        if org_unit_uuid is not None:
+            loader = _orgfunk_relation_loader(
+                info,
+                predicate,
+                dataclasses.replace(filter, **{"org_unit": UNSET}),
+                OrganisationFunktionRelationKode.tilknyttedeenheder,
+            )
+            return await loader.load(org_unit_uuid), None
+
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
         .where(predicate(info, filter))

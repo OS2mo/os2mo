@@ -1,7 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from datetime import datetime
+from typing import Any
 from uuid import UUID
+from uuid import uuid4
 
 import pytest
 from fastapi.encoders import jsonable_encoder
@@ -891,3 +894,120 @@ async def test_clear_extension_field(graphapi_post: GraphAPIPost) -> None:
     set_extension_field3(uuid, "")
     extension_3 = read_extension_field3(uuid)
     assert extension_3 is None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_engagements_per_person(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[..., UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+) -> None:
+    unit = create_org_unit("unit")
+    other_unit = create_org_unit("other unit")
+
+    def create_engagement_for(person: UUID, org_unit: UUID) -> UUID:
+        return create_engagement(
+            {
+                "engagement_type": str(uuid4()),
+                "job_function": str(uuid4()),
+                "org_unit": str(org_unit),
+                "person": str(person),
+                "validity": {"from": "1970-01-01T00:00:00Z"},
+            }
+        )
+
+    # Three people, holding two engagements, one engagement, and none.
+    alice, bob, carol = (create_person() for _ in range(3))
+    engagements = {
+        alice: {
+            create_engagement_for(alice, unit),
+            create_engagement_for(alice, other_unit),
+        },
+        bob: {create_engagement_for(bob, unit)},
+        carol: set(),
+    }
+
+    query = """
+        query ReadPersonEngagements {
+            employees {
+                objects {
+                    uuid
+                    current {
+                        engagements_response {
+                            objects { uuid }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(query)
+    assert response.errors is None
+    assert response.data
+    actual = {
+        UUID(employee["uuid"]): {
+            UUID(engagement["uuid"])
+            for engagement in employee["current"]["engagements_response"]["objects"]
+        }
+        for employee in response.data["employees"]["objects"]
+    }
+    assert actual == engagements
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_engagements_per_org_unit_filtered(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[..., UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """The rest of the filter must still apply to each batched org unit."""
+    units = {name: create_org_unit(name) for name in ("first", "second")}
+    person = create_person()
+
+    def create_engagement_in(org_unit: UUID, user_key: str) -> UUID:
+        return create_engagement(
+            {
+                "user_key": user_key,
+                "engagement_type": str(uuid4()),
+                "job_function": str(uuid4()),
+                "org_unit": str(org_unit),
+                "person": str(person),
+                "validity": {"from": "1970-01-01T00:00:00Z"},
+            }
+        )
+
+    wanted = {
+        name: create_engagement_in(unit, "wanted") for name, unit in units.items()
+    }
+    for unit in units.values():
+        create_engagement_in(unit, "unwanted")
+
+    query = """
+        query ReadOrgUnitEngagements($filter: OrgUnitboundengagementfilter) {
+            org_units {
+                objects {
+                    uuid
+                    current {
+                        engagements_response(filter: $filter) {
+                            objects { uuid }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(query, variables={"filter": {"user_keys": ["wanted"]}})
+    assert response.errors is None
+    assert response.data
+    actual = {
+        UUID(org_unit["uuid"]): [
+            UUID(engagement["uuid"])
+            for engagement in org_unit["current"]["engagements_response"]["objects"]
+        ]
+        for org_unit in response.data["org_units"]["objects"]
+    }
+    assert actual == {units[name]: [engagement] for name, engagement in wanted.items()}
