@@ -13,9 +13,9 @@ from mora import config
 from mora import depends
 from mora import exceptions
 from mora import mapping
+from mora import serviceplatformen
 from mora import util
 from mora.service.cpr import router as cpr_router
-from mora.service.shimmed import serviceplatformen
 
 logger = get_logger()
 
