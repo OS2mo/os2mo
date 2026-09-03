@@ -7,9 +7,9 @@ from _pytest.mark.structures import ParameterSet
 from fastapi.testclient import TestClient
 
 from mora import mapping
+from mora import serviceplatformen
 from mora.config import Settings
 from mora.service.shimmed import cpr as cpr_shim
-from mora.service.shimmed import serviceplatformen
 from tests.conftest import SP_CERTIFICATE_EMPTY_PATH
 from tests.conftest import SP_CERTIFICATE_PATH
 
