@@ -415,3 +415,249 @@ async def test_a_read_fails_when_some_object_may_not_be_read(
             ]
         }
     }
+
+
+READABLE = """
+query {
+    addresses(filter: {include: READABLE}) {
+        objects { uuid current { value } }
+    }
+}
+"""
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "two_addresses")
+async def test_without_rules_readable_is_empty(
+    set_auth: SetAuth, graphapi_post: GraphAPIPost
+) -> None:
+    set_auth(set(), uuid4())
+
+    response = graphapi_post(READABLE)
+
+    assert response.errors is None
+    assert response.data == {"addresses": {"objects": []}}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_readable_leaves_out_the_objects_with_a_field_denied(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    set_policy: SetPolicy,
+    two_addresses: tuple[UUID, UUID],
+) -> None:
+    """Which objects are left out depends on the fields asked for."""
+    set_policy(
+        "reader",
+        Policy(rules=(Rule("address", fields=frozenset({"uuid", "user_key"})),)),
+    )
+    set_auth({"reader"}, uuid4())
+
+    response = graphapi_post(READABLE)
+    assert response.errors is None
+    assert response.data == {"addresses": {"objects": []}}
+
+    response = graphapi_post(
+        """
+        query {
+            addresses(filter: {include: READABLE}) {
+                objects { uuid current { user_key } }
+            }
+        }
+        """
+    )
+    assert response.errors is None
+    assert response.data
+    assert {x["uuid"] for x in response.data["addresses"]["objects"]} == {
+        str(uuid) for uuid in two_addresses
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_readable_keeps_the_objects_some_rule_covers(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    set_policy: SetPolicy,
+    two_addresses: tuple[UUID, UUID],
+) -> None:
+    granted, denied = two_addresses
+    set_policy(
+        "reader",
+        Policy(
+            rules=(
+                Rule(
+                    "address",
+                    objects=OrganisationFunktionRegistrering.organisationfunktion_id
+                    == granted,
+                ),
+            )
+        ),
+    )
+    set_auth({"reader"}, uuid4())
+
+    response = graphapi_post(READABLE)
+
+    assert response.errors is None
+    assert response.data == {
+        "addresses": {
+            "objects": [
+                {"uuid": str(granted), "current": {"value": "granted@example.org"}}
+            ]
+        }
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_readable_is_decided_before_paging(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    set_policy: SetPolicy,
+    two_addresses: tuple[UUID, UUID],
+) -> None:
+    """Objects left out do not take up room on a page."""
+    granted, denied = two_addresses
+    set_policy(
+        "reader",
+        Policy(
+            rules=(
+                Rule(
+                    "address",
+                    objects=OrganisationFunktionRegistrering.organisationfunktion_id
+                    == granted,
+                ),
+            )
+        ),
+    )
+    set_auth({"reader"}, uuid4())
+
+    response = graphapi_post(
+        """
+        query {
+            addresses(filter: {include: READABLE}, limit: 1) {
+                objects { uuid }
+                page_info { next_cursor }
+            }
+        }
+        """
+    )
+
+    assert response.errors is None
+    assert response.data == {
+        "addresses": {
+            "objects": [{"uuid": str(granted)}],
+            "page_info": {"next_cursor": None},
+        }
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_readable_is_decided_per_read(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    set_policy: SetPolicy,
+    two_addresses: tuple[UUID, UUID],
+) -> None:
+    """Every read is judged by the fields it asks for, through fragments too."""
+    set_policy(
+        "reader",
+        Policy(rules=(Rule("address", fields=frozenset({"uuid", "user_key"})),)),
+    )
+    set_auth({"reader"}, uuid4())
+
+    response = graphapi_post(
+        """
+        query {
+            values: addresses(filter: {include: READABLE}) {
+                objects { ...response }
+            }
+            keys: addresses(filter: {include: READABLE}) {
+                objects { current { user_key } }
+            }
+        }
+        fragment response on AddressResponse {
+            current { ... on Address { value } }
+        }
+        """
+    )
+
+    assert response.errors is None
+    assert response.data
+    assert response.data["values"] == {"objects": []}
+    assert len(response.data["keys"]["objects"]) == 2
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_readable_minds_directives(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    set_policy: SetPolicy,
+    two_addresses: tuple[UUID, UUID],
+) -> None:
+    set_policy(
+        "reader",
+        Policy(rules=(Rule("address", fields=frozenset({"uuid", "user_key"})),)),
+    )
+    set_auth({"reader"}, uuid4())
+
+    response = graphapi_post(
+        """
+        query($show: Boolean!) {
+            addresses(filter: {include: READABLE}) {
+                objects { current { user_key value @include(if: $show) } }
+            }
+        }
+        """,
+        {"show": False},
+    )
+
+    assert response.errors is None
+    assert response.data
+    assert len(response.data["addresses"]["objects"]) == 2
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_readable_applies_to_nested_reads(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    set_policy: SetPolicy,
+    two_addresses: tuple[UUID, UUID],
+) -> None:
+    granted, denied = two_addresses
+    set_policy(
+        "reader",
+        Policy(
+            rules=(
+                Rule(
+                    "address",
+                    objects=OrganisationFunktionRegistrering.organisationfunktion_id
+                    == granted,
+                ),
+            )
+        ),
+    )
+    set_auth({"reader"}, uuid4())
+
+    response = graphapi_post(
+        """
+        query {
+            org_units {
+                objects {
+                    current {
+                        addresses(filter: {include: READABLE}) { uuid }
+                    }
+                }
+            }
+        }
+        """
+    )
+
+    assert response.errors is None
+    assert response.data == {
+        "org_units": {"objects": [{"current": {"addresses": [{"uuid": str(granted)}]}}]}
+    }

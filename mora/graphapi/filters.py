@@ -11,6 +11,7 @@ import strawberry
 from strawberry import UNSET
 
 from mora.graphapi.models import FileStore
+from mora.graphapi.policies import Include
 from mora.util import CPR
 
 
@@ -98,6 +99,16 @@ class OrganisationUnitFiltered:
 
 @strawberry.input(description="Address filter.")
 class AddressFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    include: Include = strawberry.field(
+        default=Include.ALL,
+        description=dedent(
+            """\
+            Which of the matching addresses to include, given what the caller
+            may read of them.
+            """
+        ),
+    )
+
     registration: AddressRegistrationFilter | None = strawberry.field(
         default=None,
         description=dedent(

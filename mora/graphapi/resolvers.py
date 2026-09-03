@@ -105,7 +105,9 @@ from .paged import LimitType
 from .paged import ObjectsAndCursor
 from .paged import paginate
 from .policies import ADDRESS
+from .policies import Include
 from .policies import check_readable
+from .policies import readable_predicate
 from .registrationbase import RegistrationBase
 from .validity import OpenValidityModel
 
@@ -816,6 +818,8 @@ async def address_resolver(
         .where(predicate)
         .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     )
+    if filter.include is Include.READABLE:
+        query = query.where(await readable_predicate(info, ADDRESS))
     # Pagination
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
@@ -825,7 +829,8 @@ async def address_resolver(
         limit,
         cursor,
     )
-    await check_readable(info, ADDRESS, uuids)
+    if filter.include is Include.ALL:
+        await check_readable(info, ADDRESS, uuids)
 
     access_log(
         session,

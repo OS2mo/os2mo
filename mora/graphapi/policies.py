@@ -6,7 +6,8 @@ Access is collection-based rather than route-based. It does not matter how
 an object is reached, only what the caller may read of it, and that is
 decided object by object: the union of the fields granted by the rules
 matching it. Reading a field no rule grants fails, just like reading a field
-no role grants.
+no role grants, unless the read asks to include only the objects it may read
+as asked (see `Include`).
 
 Only the address collection is expressed here so far. Everything else is
 still gated route by route in `mora.graphapi.rbac_map`.
@@ -18,11 +19,14 @@ from collections.abc import Callable
 from collections.abc import Iterable
 from collections.abc import Sequence
 from dataclasses import dataclass
+from enum import Enum
+from textwrap import dedent
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import NamedTuple
 from uuid import UUID
 
+import strawberry
 from graphql import DocumentNode
 from graphql import FieldNode
 from graphql import FragmentDefinitionNode
@@ -42,8 +46,12 @@ from graphql import get_named_type
 from graphql import get_operation_ast
 from sqlalchemy import ColumnElement
 from sqlalchemy import SQLColumnExpression
+from sqlalchemy import and_
 from sqlalchemy import distinct
+from sqlalchemy import false
+from sqlalchemy import or_
 from sqlalchemy import select
+from sqlalchemy import true
 
 from mora.auth.keycloak.models import Token
 from mora.db import AsyncSession
@@ -323,3 +331,57 @@ async def check_readable(
         raise GraphQLError(
             f"No policy approved the access to {', '.join(sorted(denied))}"
         )
+
+
+@strawberry.enum(
+    description=dedent(
+        """\
+        Which of the objects a read matches to include, given what the caller
+        may read of them.
+        """
+    )
+)
+class Include(Enum):
+    ALL = strawberry.enum_value(
+        "ALL",
+        description=dedent(
+            """\
+            Every one. Asking for a field the caller may not read of any of
+            them fails the read, so a caller expecting to read everything
+            finds out about a lacking policy instead of reading a subset.
+            """
+        ),
+    )
+    READABLE = strawberry.enum_value(
+        "READABLE",
+        description=dedent(
+            """\
+            Only the objects of which the caller may read every field asked
+            for. What the caller may not see is left out, which is what a user
+            interface wants.
+            """
+        ),
+    )
+
+
+async def readable_predicate(
+    info: "MOInfo", collection: Collection
+) -> ColumnElement[bool]:
+    """Select the objects of which the caller may read what the read at *info* asks for.
+
+    Every field asked for must be granted by some rule matching the object.
+    """
+    rules = rules_for(await info.context.get_token(), collection.name)
+    return and_(
+        *(
+            or_(
+                false(),
+                *(
+                    true() if rule.objects is None else rule.objects
+                    for rule in rules
+                    if rule.grants(field)
+                ),
+            )
+            for field in sorted(fields_read(info, collection))
+        )
+    )
