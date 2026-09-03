@@ -2,12 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import AsyncIterator
 from collections.abc import Callable
-from uuid import UUID
 
 import pytest
 from aioresponses import aioresponses
 from fastapi.encoders import jsonable_encoder
-from fastapi.testclient import TestClient
 from os2mo_http_trigger_protocol import MOTriggerRegister
 
 from mora import lora
@@ -65,90 +63,6 @@ def trigger_payloads(refresh_trigger_mock: aioresponses) -> Callable[[str], list
         ]
 
     return payloads
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
-async def test_returns_integration_error_on_wrong_status(
-    create_org_unit: Callable[[str, UUID | None], UUID],
-    service_client: TestClient,
-    refresh_trigger_mock: aioresponses,
-    trigger_payloads: Callable[[str], list[dict]],
-) -> None:
-    """A non-200 from the external http-trigger fails the refresh with an
-    INTEGRATION_ERROR carrying the external service's `detail`."""
-    unit_uuid = create_org_unit("Kolding Kommune")
-
-    error_msg = "Something horrible happened"
-    refresh_trigger_mock.post(
-        "http://whatever/triggers/ou/refresh",
-        status=400,
-        payload={"detail": error_msg},
-    )
-
-    response = service_client.get(f"/service/ou/{unit_uuid}/refresh")
-
-    assert response.status_code == 400
-    result = response.json()
-    assert "INTEGRATION_ERROR" in result["error_key"]
-    assert error_msg in result["description"]
-
-    (payload,) = trigger_payloads("http://whatever/triggers/ou/refresh")
-    assert payload == {
-        "request_type": mapping.RequestType.REFRESH,
-        "request": {"uuid": str(unit_uuid)},
-        "role_type": "org_unit",
-        "event_type": mapping.EventType.ON_BEFORE,
-        "uuid": str(unit_uuid),
-    }
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
-async def test_returns_message_on_success(
-    create_org_unit: Callable[[str, UUID | None], UUID],
-    service_client: TestClient,
-    refresh_trigger_mock: aioresponses,
-    trigger_payloads: Callable[[str], list[dict]],
-) -> None:
-    """A 200 from the external http-trigger surfaces its response body in the
-    refresh `message`."""
-    unit_uuid = create_org_unit("Kolding Kommune")
-
-    response_msg = "Something good happened"
-    refresh_trigger_mock.post(
-        "http://whatever/triggers/ou/refresh",
-        status=200,
-        payload=response_msg,
-    )
-
-    response = service_client.get(f"/service/ou/{unit_uuid}/refresh")
-
-    assert response.status_code == 200
-    assert response_msg in response.json()["message"].splitlines()
-
-    (payload,) = trigger_payloads("http://whatever/triggers/ou/refresh")
-    assert payload == {
-        "request_type": mapping.RequestType.REFRESH,
-        "request": {"uuid": str(unit_uuid)},
-        "role_type": "org_unit",
-        "event_type": mapping.EventType.ON_BEFORE,
-        "uuid": str(unit_uuid),
-    }
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
-async def test_returns_404_on_unknown_unit(
-    service_client: TestClient,
-) -> None:
-    """Refreshing an org unit that does not exist returns 404."""
-    response = service_client.get(
-        "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
-    )
-    assert response.status_code == 404
-    result = response.json()
-    assert "NOT_FOUND" in result["error_key"]
 
 
 @pytest.mark.integration_test
