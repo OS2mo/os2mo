@@ -29,18 +29,6 @@ HIST_UNIT = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
 PARENT = SAMF_UNIT
 
 
-def expire_org_unit(service_client: TestClient, org_unit: dict) -> None:
-    # Expire the parent from 2018-01-01
-    payload = {"validity": {"to": "2018-01-01"}}
-
-    response = service_client.request(
-        "POST", f"/service/ou/{org_unit}/terminate", json=payload
-    )
-    # amqp_topics={"org_unit.org_unit.delete": 1},
-    assert response.status_code == 200
-    assert response.json() == org_unit
-
-
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_should_return_true_when_interval_contained(
