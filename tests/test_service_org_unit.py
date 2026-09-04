@@ -1,68 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import AsyncIterator
-from collections.abc import Callable
 
 import pytest
-from aioresponses import aioresponses
-from fastapi.encoders import jsonable_encoder
-from os2mo_http_trigger_protocol import MOTriggerRegister
 
 from mora import lora
-from mora import mapping
-from mora.config import Settings
 from mora.handler.impl.association import AssociationReader
 from mora.service.orgunit import UnitDetails
 from mora.service.orgunit import get_one_orgunit
-from mora.triggers.internal.http_trigger import register
 from tests import util
-
-
-@pytest.fixture
-async def refresh_trigger_mock() -> AsyncIterator[aioresponses]:
-    """A boundary-mocked external http-trigger with a refresh trigger registered.
-
-    Registers a trigger just like `create_app` does it on start-up, but installs
-    an `aioresponses` mock as the receiver, so we can mock the response from the
-    external http-service, and discover how it was called.
-
-    The mock is yielded so tests can add the trigger's response and inspect the
-    request it received.
-    """
-    with aioresponses() as mock:
-        mock.get(
-            "http://whatever/triggers",
-            payload=jsonable_encoder(
-                [
-                    MOTriggerRegister(
-                        event_type=mapping.EventType.ON_BEFORE,
-                        request_type=mapping.RequestType.REFRESH,
-                        role_type="org_unit",
-                        url="/triggers/ou/refresh",
-                    )
-                ]
-            ),
-        )
-        # Register against this mock only. The app registers http-triggers on
-        # start-up too, and this test builds two apps, so configuring the endpoint
-        # globally would register the trigger once per app.
-        await register(Settings(http_endpoints=["http://whatever"]))
-        yield mock
-
-
-@pytest.fixture
-def trigger_payloads(refresh_trigger_mock: aioresponses) -> Callable[[str], list[dict]]:
-    """Return the JSON bodies POSTed to `url`, as captured at the boundary."""
-
-    def payloads(url: str) -> list[dict]:
-        return [
-            call.kwargs["json"]
-            for (method, called_url), calls in refresh_trigger_mock.requests.items()
-            for call in calls
-            if method == "POST" and str(called_url) == url
-        ]
-
-    return payloads
 
 
 @pytest.mark.integration_test
