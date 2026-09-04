@@ -20,17 +20,16 @@ async def update_related_units(input: RelatedUnitsUpdate) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     origin = input_dict.pop("origin")
-    handler = await _map_org_units(origin=origin, req=input_dict)
-    if handler:
-        uuid = origin
-
-    return UUID(uuid)
+    _ = await _map_org_units(origin=origin, req=input_dict)
+    return UUID(origin)
 
 
 # TODO: this was inlined from the service API as part of #71423, it's old code
 #   but it has worked for years. It could benefit from being inlined further
 #   because there is an unnecessary round-trip to a JSON dict and back
-async def _map_org_units(origin: UUID, req: dict = Body(...)):
+async def _map_org_units(
+    origin: UUID | str, req: dict = Body(...)
+) -> dict[str, list[UUID | str]]:
     """Mark the given organisational units as related.
 
     .. :quickref: Unit; Map
@@ -93,7 +92,8 @@ async def _map_org_units(origin: UUID, req: dict = Body(...)):
 
     date = util.get_valid_from(req)
     c = lora.Connector(effective_date=date)
-    destinations = set(util.checked_get(req, "destination", [], required=True))
+    default: list[UUID] = []
+    destinations = set(util.checked_get(req, "destination", default, required=True))
     if origin in destinations:  # pragma: no cover
         exceptions.ErrorCodes.E_RELATED_TO_SELF(
             origin=origin,
@@ -146,33 +146,32 @@ async def _map_org_units(origin: UUID, req: dict = Body(...)):
     creations = [
         common.create_organisationsfunktion_payload(
             mapping.RELATED_UNIT_KEY,
-            date,
-            util.POSITIVE_INFINITY,
+            date,  # type: ignore
+            util.POSITIVE_INFINITY,  # type: ignore
             "{} <-> {}".format(
                 mapping.ORG_UNIT_EGENSKABER_FIELD(units[origin])[0][
                     "brugervendtnoegle"
                 ],
-                mapping.ORG_UNIT_EGENSKABER_FIELD(units[destid])[0][
+                mapping.ORG_UNIT_EGENSKABER_FIELD(units[str(destid)])[0][
                     "brugervendtnoegle"
                 ],
             ),
             tilknyttedebrugere=[],
             tilknyttedeorganisationer=[orgid],
-            tilknyttedeenheder=[origin, destid],
+            tilknyttedeenheder=[origin, str(destid)],
         )
         for destid in destinations
         if destid not in preexisting
     ]
 
+    deleted = await gather(
+        *[
+            create_task(c.organisationfunktion.update(req, funcid))
+            for funcid, req in edits.items()
+        ]
+    )
     return {
-        "deleted": sorted(
-            await gather(
-                *[
-                    create_task(c.organisationfunktion.update(req, funcid))
-                    for funcid, req in edits.items()
-                ]
-            )
-        ),
+        "deleted": sorted(filter(None, deleted)),
         "added": sorted(
             await gather(
                 *[create_task(c.organisationfunktion.create(req)) for req in creations]
