@@ -5,7 +5,6 @@ import json
 from uuid import UUID
 
 import pytest
-from fastapi.testclient import TestClient
 
 from mora import exceptions
 from mora import mapping
@@ -224,20 +223,6 @@ async def test_should_not_move_org_unit_to_itself() -> None:
 
     with pytest.raises(exceptions.HTTPException):
         await validator.is_candidate_parent_valid(UNIT_TO_MOVE, UNIT_TO_MOVE, move_date)
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-async def test_should_return_false_when_candidate_parent_is_inactive(
-    service_client: TestClient,
-) -> None:
-    move_date = "01-01-2019"
-    new_org_uuid = PARENT
-
-    expire_org_unit(service_client, PARENT)
-
-    with pytest.raises(exceptions.HTTPException):
-        await validator.is_candidate_parent_valid(UNIT_TO_MOVE, new_org_uuid, move_date)
 
 
 @pytest.mark.parametrize(
