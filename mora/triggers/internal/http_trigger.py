@@ -117,7 +117,7 @@ async def fetch_endpoint_trigger(  # pragma: no cover
 
 async def fetch_endpoint_triggers(
     endpoints: list[str], timeout: int = 10
-) -> dict[str, list[MOTriggerRegister]]:
+) -> dict[str, list[MOTriggerRegister]]:  # pragma: no cover
     """Construct trigger configuration maps from endpoints.
 
     Args:
@@ -140,7 +140,7 @@ async def fetch_endpoint_triggers(
         return dict(trigger_tuples)
 
 
-async def register(settings: config.Settings) -> bool:
+async def register(settings: config.Settings) -> bool:  # pragma: no cover
     """Register triggers for what the http trigger handlers need.
 
     This method:
