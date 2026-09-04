@@ -36,7 +36,6 @@ service_api_endpoints = {
     "/service/o/{parentid}/children",
     "/service/ou/create",
     "/service/ou/{orgid}/details/address",
-    "/service/ou/{origin}/map",
     "/service/ou/{parentid}/children",
     "/service/ou/{unitid}/",
     "/service/ou/{uuid}/terminate",

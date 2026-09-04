@@ -16,7 +16,6 @@ from . import manager
 from . import org
 from . import orgunit
 from . import owner
-from . import related
 from . import role
 from . import shimmed
 
@@ -36,7 +35,6 @@ __all__ = [
     "org",
     "orgunit",
     "owner",
-    "related",
     "role",
     "shimmed",
 ]
@@ -52,5 +50,4 @@ routers = {
     "KLE": kle.router,
     "Organisation": org.router,
     "OrganisationUnit": orgunit.router,
-    "Related": related.router,
 }
