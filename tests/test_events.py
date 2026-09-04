@@ -3,6 +3,8 @@
 import concurrent.futures
 import random
 from collections.abc import Callable
+from datetime import datetime
+from datetime import timedelta
 from typing import Any
 from unittest.mock import ANY
 from uuid import UUID
@@ -758,6 +760,32 @@ def test_idempotent_listener_declare(
     actual_listener = one(get_listeners(graphapi_post))
     assert UUID(actual_listener["uuid"]) == listener
     assert one(actual_listener["events"])
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_created_at(namespace: str, graphapi_post: GraphAPIPost) -> None:
+    declare_listener(graphapi_post, namespace, "uk", "rk")
+    send_event(graphapi_post, namespace, "rk", "alice")
+
+    response = graphapi_post(
+        """
+        query GetEvents {
+          events {
+            objects {
+              subject
+              created_at
+            }
+          }
+        }
+        """
+    )
+    assert response.errors is None
+    assert response.data
+    event = one(response.data["events"]["objects"])
+    assert event["subject"] == "alice"
+    created_at = datetime.fromisoformat(event["created_at"])
+    assert datetime.now(tz=created_at.tzinfo) - created_at < timedelta(minutes=1)
 
 
 @pytest.mark.integration_test

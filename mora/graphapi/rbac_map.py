@@ -381,6 +381,7 @@ RBAC_MAP: frozenset[tuple[str, str]] = frozenset(
         ("File", "text_contents"),
         ("FilePaged", "objects"),
         ("FilePaged", "page_info"),
+        ("FullEvent", "created_at"),
         ("FullEvent", "listener"),
         ("FullEvent", "priority"),
         ("FullEvent", "silenced"),

@@ -1770,6 +1770,7 @@ class Mutation:
                 subject=result.subject,
                 priority=result.priority,
                 silenced=result.silenced,
+                created_at=result.created_at,
                 listener_uuid=result.listener_fk,
             )
             for result in results

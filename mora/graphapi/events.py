@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from base64 import b64decode
 from base64 import b64encode
+from datetime import datetime
 from textwrap import dedent
 from uuid import UUID
 
@@ -151,6 +152,7 @@ async def full_event_resolver(
                 subject=event.subject,
                 priority=event.priority,
                 silenced=event.silenced,
+                created_at=event.created_at,
                 listener_uuid=event.listener_fk,
             )
             for event in result
@@ -308,6 +310,9 @@ class FullEvent:
     )
     silenced: bool = strawberry.field(
         description="Whether the event is silenced. Silencing does not affect delivery, it only affects whether alerts are triggered."
+    )
+    created_at: datetime = strawberry.field(
+        description="The time the event was first created. Preserved across deduplication."
     )
     listener_uuid: strawberry.Private[UUID]
 
