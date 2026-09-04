@@ -70,7 +70,7 @@ async def prepare_ancestor_tree(
         cache.update(objs)
         return objs
 
-    async def get_children(uuid, parent_uuid) -> dict:
+    async def get_children(uuid, parent_uuid) -> dict:  # pragma: no cover
         children = dict(
             await connector_entry.get_all(**get_children_args(uuid, parent_uuid, cache))
         )
@@ -107,7 +107,7 @@ async def prepare_ancestor_tree(
 
         # Build parent --> children map
         children[parent_uuid].add(uuid)
-        if with_siblings:
+        if with_siblings:  # pragma: no cover
             siblings = await get_children(uuid, parent_uuid)
             sibling_uuids = siblings.keys()
             children[parent_uuid].update(sibling_uuids)

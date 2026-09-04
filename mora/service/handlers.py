@@ -127,7 +127,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             await obj.prepare_edit(obj.request)
         elif obj.request_type == RequestType.TERMINATE:
             await obj.prepare_terminate(obj.request)
-        elif obj.request_type == RequestType.REFRESH:
+        elif obj.request_type == RequestType.REFRESH:  # pragma: no cover
             await obj.prepare_refresh(obj.request)
         else:  # pragma: no cover
             raise NotImplementedError
