@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
-from datetime import datetime
 from typing import Any
 
 import pytest
@@ -258,47 +257,6 @@ def org_unit_no_details_uuid(
     response = service_client.request("POST", "/service/ou/create", json=payload)
     assert response.status_code == 201
     return response.json()
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-@pytest.mark.parametrize(
-    "role, userid, status_code",
-    [
-        (None, None, HTTP_403_FORBIDDEN),
-        (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-        (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
-        (ADMIN, FEDTMULE, HTTP_200_OK),
-    ],
-)
-def test_terminate_org_unit(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-    org_unit_no_details_uuid: str,
-    role: str,
-    userid: str,
-    status_code: int,
-) -> None:
-    """
-    Test of write access for the following cases:
-    1) Normal user (no roles set)
-    2) User with the owner role, but not owner of the relevant entity
-    3) User with the owner role and owner of the relative entity
-    4) User with the admin role
-
-    :param role: the role of the user
-    :param userid: the UUID of the user
-    :param status_code: the expected HTTP status code
-    """
-    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
-
-    # Payload for terminating the newly created org unit
-    payload = {"validity": {"to": datetime.today().strftime("%Y-%m-%d")}}
-
-    url_terminate = f"/service/ou/{org_unit_no_details_uuid}/terminate"
-
-    response = service_client.request("POST", url_terminate, json=payload)
-    assert response.status_code == status_code
 
 
 @pytest.mark.integration_test
