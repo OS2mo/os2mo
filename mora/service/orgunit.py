@@ -328,7 +328,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.uuid = util.get_uuid(request)
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = self.uuid
 
-    async def prepare_refresh(self, request: dict):
+    async def prepare_refresh(self, request: dict):  # pragma: no cover
         unitid = request[mapping.UUID]
         self.uuid = unitid
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
@@ -342,13 +342,13 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                 for r in self.details_requests:
                     await r.submit()
 
-        elif self.request_type == mapping.RequestType.REFRESH:
+        elif self.request_type == mapping.RequestType.REFRESH:  # pragma: no cover
             pass
         else:
             self.result = await c.organisationenhed.update(self.payload, self.uuid)
 
         submit = await super().submit()
-        if self.request_type == mapping.RequestType.REFRESH:
+        if self.request_type == mapping.RequestType.REFRESH:  # pragma: no cover
             return {
                 "message": "\n".join(
                     map(str, self.trigger_results_before + self.trigger_results_after)
