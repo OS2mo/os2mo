@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
-from operator import itemgetter
 
 import pytest
 from fastapi.testclient import TestClient
 
 from . import util
+from .conftest import GraphAPIPost
 
 org_unit_type_facet = {
     "description": "",
@@ -614,7 +614,9 @@ def test_children(service_client: TestClient) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_facet_create_and_update(service_client: TestClient) -> None:
+def test_facet_create_and_update(
+    service_client: TestClient, graphapi_post: GraphAPIPost
+) -> None:
     # Tests new creation - 200 message
     response = service_client.request(
         "POST",
@@ -632,58 +634,68 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
     actual_post = response.json()
     assert actual_post == "18638313-d9e6-4e1d-aea6-67f5fce7a6b0"
 
-    job_functions = [
-        {
+    job_functions = {
+        "07cea156-1aaf-4c89-bf1b-8e721f704e22": {
             "example": None,
             "name": "Skolepsykolog",
             "owner": None,
             "scope": None,
-            "user_key": "Skolepsykolog",
             "uuid": "07cea156-1aaf-4c89-bf1b-8e721f704e22",
+            "user_key": "Skolepsykolog",
         },
-        {
+        "890d4ff0-b453-4900-b79b-dbb461eda3ee": {
             "example": None,
             "name": "Specialist",
             "owner": None,
             "scope": "TEXT",
-            "user_key": "specialist",
             "uuid": "890d4ff0-b453-4900-b79b-dbb461eda3ee",
+            "user_key": "specialist",
         },
-        {
+        "f42dd694-f1fd-42a6-8a97-38777b73adc4": {
             "example": None,
             "name": "Bogopsætter",
             "owner": None,
             "scope": None,
-            "user_key": "Bogopsætter",
             "uuid": "f42dd694-f1fd-42a6-8a97-38777b73adc4",
+            "user_key": "Bogopsætter",
         },
-    ]
+    }
 
-    # Tests the GET data matches
-    response = service_client.request("GET", "/service/f/engagement_job_function/")
-    assert response.status_code == 200
-    actual_get = response.json()
-    assert actual_get == {
-        "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
-        "user_key": "engagement_job_function",
-        "description": "",
-        "data": {
-            "total": 4,
-            "offset": 0,
-            "items": sorted(
-                job_functions
-                + [
-                    {
-                        "example": None,
-                        "name": "Jurist",
-                        "owner": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "scope": "TEXT",
-                        "user_key": "BVN",
-                        "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
+    def read_classes() -> dict[str, dict[str, str | None]]:
+        query = """
+            query ReadJobFunctionClasses {
+                classes(filter: {facet: {user_keys: "engagement_job_function"}}) {
+                    objects {
+                        current {
+                            uuid
+                            user_key
+                            name
+                            example
+                            owner
+                            scope
+                        }
                     }
-                ],
-                key=itemgetter("uuid"),
-            ),
+                }
+            }
+        """
+        response = graphapi_post(query)
+        assert response.errors is None
+        assert response.data
+        return {
+            klass["current"]["uuid"]: klass["current"]
+            for klass in response.data["classes"]["objects"]
+        }
+
+    # Tests the GraphQL data matches
+    assert read_classes() == {
+        **job_functions,
+        "18638313-d9e6-4e1d-aea6-67f5fce7a6b0": {
+            "example": None,
+            "name": "Jurist",
+            "owner": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            "scope": "TEXT",
+            "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
+            "user_key": "BVN",
         },
     }
 
@@ -705,31 +717,16 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
     actual_put = response.json()
     assert actual_put == "18638313-d9e6-4e1d-aea6-67f5fce7a6b0"
 
-    # Tests the GET data matches
-    response = service_client.request("GET", "/service/f/engagement_job_function/")
-    assert response.status_code == 200
-    actual_get = response.json()
-    assert actual_get == {
-        "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
-        "user_key": "engagement_job_function",
-        "description": "",
-        "data": {
-            "total": 4,
-            "offset": 0,
-            "items": sorted(
-                job_functions
-                + [
-                    {
-                        "example": None,
-                        "name": "Ergoterapeut",
-                        "owner": None,
-                        "scope": "TEXT",
-                        "user_key": "BVN",
-                        "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
-                    }
-                ],
-                key=itemgetter("uuid"),
-            ),
+    # Tests the GraphQL data matches
+    assert read_classes() == {
+        **job_functions,
+        "18638313-d9e6-4e1d-aea6-67f5fce7a6b0": {
+            "example": None,
+            "name": "Ergoterapeut",
+            "owner": None,
+            "scope": "TEXT",
+            "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
+            "user_key": "BVN",
         },
     }
 
