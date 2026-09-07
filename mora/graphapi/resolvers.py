@@ -20,6 +20,7 @@ from more_itertools import one
 from more_itertools import unique_everseen
 from psycopg.types.range import TimestamptzRange
 from pydantic import ValidationError
+from sqlalchemy import CTE
 from sqlalchemy import ColumnElement
 from sqlalchemy import ColumnExpressionArgument
 from sqlalchemy import CompoundSelect
@@ -352,6 +353,22 @@ def _related_org_unit_predicate(
     )
 
 
+def _pinned_uuid(
+    related_filter: BaseFilter | None,
+    deprecated_uuids: list[UUID] | None,
+) -> UUID | None:
+    """The UUID `related_filter` pins its objects to, if it pins exactly one."""
+    if deprecated_uuids is not None:
+        return None
+    if (
+        not related_filter
+        or related_filter.uuids is None
+        or len(related_filter.uuids) != 1
+    ):
+        return None
+    return one(related_filter.uuids)
+
+
 async def _load_orgfunks_by_relation(
     info: MOInfo,
     predicate: Callable[[MOInfo, Any], ColumnElement],
@@ -445,22 +462,6 @@ async def _resolve_orgfunk_uuids(
     result set rather than to each related object, so one query cannot page its
     members individually.
     """
-
-    def _pinned_uuid(
-        related_filter: BaseFilter | None,
-        deprecated_uuids: list[UUID] | None,
-    ) -> UUID | None:
-        """The UUID `related_filter` pins its objects to, if it pins exactly one."""
-        if deprecated_uuids is not None:
-            return None
-        if (
-            not related_filter
-            or related_filter.uuids is None
-            or len(related_filter.uuids) != 1
-        ):
-            return None
-        return one(related_filter.uuids)
-
     if limit is None and cursor is None:
         person_uuid = (
             _pinned_uuid(filter.employee, filter.employees)
@@ -1685,12 +1686,16 @@ def manager_predicate(
     return and_(*predicates)
 
 
-def _manager_inherit_org_unit_predicate(
+def _manager_inherit_walk(
     info: MOInfo,
     filter: ManagerFilter,
-) -> ColumnElement:
-    """Walk each starting unit up the org tree, returning managers from the
-    nearest ancestor that has any matching the rest of the filter."""
+) -> CTE:
+    """Walk each starting unit up the org tree, stopping at the nearest ancestor
+    that has any manager matching the rest of the filter.
+
+    The `root` column holds the unit a walk started from, and `unit` a unit the
+    walk reached. Only the last unit of a walk has matching managers.
+    """
 
     def has_manager(organisationenhed_id: ColumnExpressionArgument) -> ColumnElement:
         """Whether `organisationenhed_id` has any manager matching the rest of
@@ -1708,11 +1713,14 @@ def _manager_inherit_org_unit_predicate(
             _get_active_period_clause(OrganisationFunktionRelation, filter),
         )
 
-    def get_parent(child_uuid: ColumnExpressionArgument) -> Select:
+    def get_parent(
+        root_uuid: ColumnElement,
+        child_uuid: ColumnExpressionArgument,
+    ) -> Select:
         """Active parent unit of `child_uuid` via an `overordnet` relation."""
         # Morally equivalent to `organisation_unit_predicate` with
         # `filter.child = child_uuid`.
-        return select(OrganisationEnhedRelation.rel_maal_uuid).where(
+        return select(root_uuid, OrganisationEnhedRelation.rel_maal_uuid).where(
             OrganisationEnhedRelation.organisationenhed_registrering_id
             == OrganisationEnhedRegistrering.id,
             OrganisationEnhedRegistrering.organisationenhed_id == child_uuid,
@@ -1725,14 +1733,24 @@ def _manager_inherit_org_unit_predicate(
     assert filter.org_unit is not None
     walk = (
         select(
+            OrganisationEnhedRegistrering.organisationenhed_id.label("root"),
             OrganisationEnhedRegistrering.organisationenhed_id.label("unit"),
         )
         .where(organisation_unit_predicate(info, filter.org_unit))
         .cte(recursive=True)
     )
     # Stop the walk at the nearest ancestor with a matching manager.
-    walk = walk.union(get_parent(walk.c.unit).where(~has_manager(walk.c.unit)))
+    return walk.union(
+        get_parent(walk.c.root, walk.c.unit).where(~has_manager(walk.c.unit))
+    )
 
+
+def _manager_inherit_org_unit_predicate(
+    info: MOInfo,
+    filter: ManagerFilter,
+) -> ColumnElement:
+    """Whether any unit selected by `filter.org_unit` inherits a manager."""
+    walk = _manager_inherit_walk(info, filter)
     # Intermediate units in the walk have no matching managers by construction,
     # so including them in the IN-clause is harmless.
     return exists().where(
@@ -1740,8 +1758,118 @@ def _manager_inherit_org_unit_predicate(
         == OrganisationFunktionRegistrering.id,
         OrganisationFunktionRelation.rel_type
         == OrganisationFunktionRelationKode.tilknyttedeenheder,
-        OrganisationFunktionRelation.rel_maal_uuid.in_(select(walk.c.unit)),
+        OrganisationFunktionRelation.rel_maal_uuid.in_(select(distinct(walk.c.unit))),
         _get_active_period_clause(OrganisationFunktionRelation, filter),
+    )
+
+
+async def _load_inherited_managers_by_org_unit(
+    info: MOInfo,
+    filter: ManagerFilter,
+    org_unit_uuids: list[UUID],
+) -> list[list[UUID]]:
+    """Dataloader batch resolving inherited managers by organisation unit."""
+    assert filter.org_unit is not None
+    walk = _manager_inherit_walk(
+        info,
+        dataclasses.replace(
+            filter,
+            org_unit=dataclasses.replace(filter.org_unit, uuids=list(org_unit_uuids)),
+        ),
+    )
+
+    # Alias the relation. SQLAlchemy would otherwise correlate the subqueries
+    # of `manager_predicate` that select from the relation to this query,
+    # leaving them with nothing to select from.
+    relation = aliased(OrganisationFunktionRelation)
+    query = (
+        # Select `(organisation unit, manager)` UUID pairs.
+        select(
+            walk.c.root,
+            OrganisationFunktionRegistrering.organisationfunktion_id,
+        )
+        .where(
+            manager_predicate(info, dataclasses.replace(filter, org_unit=None)),
+            relation.organisationfunktion_registrering_id
+            == OrganisationFunktionRegistrering.id,
+            relation.rel_type == OrganisationFunktionRelationKode.tilknyttedeenheder,
+            relation.rel_maal_uuid == walk.c.unit,
+            _get_active_period_clause(relation, filter),
+        )
+        .distinct()
+        .order_by(
+            walk.c.root,
+            OrganisationFunktionRegistrering.organisationfunktion_id,
+        )
+    )
+
+    session: AsyncSession = info.context.session
+    managers = defaultdict(list)
+    for org_unit_uuid, manager_uuid in await session.execute(query):
+        managers[org_unit_uuid].append(manager_uuid)
+
+    return [managers[org_unit_uuid] for org_unit_uuid in org_unit_uuids]
+
+
+def _inherited_manager_loader(
+    info: MOInfo,
+    filter: ManagerFilter,
+) -> DataLoader[UUID, list[UUID]]:
+    """Get the dataloader batching inherited manager lookups for `filter`."""
+    assert filter.org_unit is not None
+    # The key holds everything but the organisation units the batch provides.
+    # Unlike `_orgfunk_relation_loader`, the key needs neither the predicate nor
+    # the relation: inherited managers only ever come from `manager_predicate`
+    # through their unit.
+    key = repr(
+        dataclasses.replace(
+            filter, org_unit=dataclasses.replace(filter.org_unit, uuids=None)
+        )
+    )
+    loaders = info.context.dataloaders.inherited_manager_loaders
+    if key not in loaders:
+        loaders[key] = DataLoader(
+            load_fn=partial(_load_inherited_managers_by_org_unit, info, filter)
+        )
+    return loaders[key]
+
+
+async def _resolve_inherited_manager_uuids(
+    info: MOInfo,
+    filter: ManagerFilter,
+    limit: LimitType,
+    cursor: CursorType,
+) -> tuple[Sequence[UUID], CursorType]:
+    """Resolve the UUIDs of the managers inherited by `filter.org_unit`.
+
+    Also see `_resolve_orgfunk_uuids`.
+
+    Filters excluding a person, which is what `exclude_self` builds, differ per
+    root object. Each root object therefore gets a loader of its own, and a
+    query of its own. `exclude_self` gains nothing from the batching.
+    """
+    # Merge the deprecated `org_units` field into `org_unit` here rather than
+    # leaving it to `manager_predicate`, so callers setting the deprecated
+    # field, such as the v23 `org_unit.managers` field, batch too.
+    handle_deprecated_org_unit_filters(filter)
+
+    if limit is None and cursor is None:
+        org_unit_uuid = _pinned_uuid(filter.org_unit, filter.org_units)
+        if org_unit_uuid is not None:
+            loader = _inherited_manager_loader(info, filter)
+            return await loader.load(org_unit_uuid), None
+
+    query = (
+        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
+        .where(manager_predicate(info=info, filter=filter, inherit=True))
+        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
+    )
+    return await paginate(
+        info.context.session,
+        query,
+        OrganisationFunktionRegistrering.organisationfunktion_id,
+        limit,
+        cursor,
     )
 
 
@@ -1778,17 +1906,8 @@ async def manager_resolver(
             info, manager_predicate, filter, limit, cursor
         )
     else:
-        query = (
-            select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
-            .where(manager_predicate(info=info, filter=filter, inherit=True))
-            .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
-        )
-        uuids, next_cursor = await paginate(
-            session,
-            query,
-            OrganisationFunktionRegistrering.organisationfunktion_id,
-            limit,
-            cursor,
+        uuids, next_cursor = await _resolve_inherited_manager_uuids(
+            info, filter, limit, cursor
         )
 
     access_log(

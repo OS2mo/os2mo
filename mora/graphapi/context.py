@@ -60,6 +60,9 @@ class MOLoaders:
     orgfunk_relation_loaders: dict[str, DataLoader[UUID, list[UUID]]] = field(
         default_factory=dict
     )
+    inherited_manager_loaders: dict[str, DataLoader[UUID, list[UUID]]] = field(
+        default_factory=dict
+    )
 
 
 @dataclass

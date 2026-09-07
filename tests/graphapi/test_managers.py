@@ -837,6 +837,224 @@ def test_engagement_inherit_non_existent(graphapi_post: GraphAPIPost) -> None:
     assert managers == []
 
 
+def read_engagement_managers_per_engagement(
+    graphapi_post: GraphAPIPost,
+    manager_filter: dict[str, Any] | None = None,
+    exclude_self: bool = False,
+) -> dict[UUID, list[UUID]]:
+    query = """
+        query ReadEngagementManagers(
+            $manager_filter: OrgUnitboundmanagerfilter,
+            $exclude_self: Boolean!
+        ) {
+            engagements {
+                objects {
+                    uuid
+                    current {
+                        managers(
+                            filter: $manager_filter
+                            inherit: true
+                            exclude_self: $exclude_self
+                        ) {
+                            uuid
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(
+        query,
+        variables={"manager_filter": manager_filter, "exclude_self": exclude_self},
+    )
+    assert response.errors is None
+    assert response.data
+    return {
+        UUID(engagement["uuid"]): [
+            UUID(manager["uuid"]) for manager in engagement["current"]["managers"]
+        ]
+        for engagement in response.data["engagements"]["objects"]
+    }
+
+
+def create_engagement_in(
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    org_unit: UUID,
+    person: UUID,
+) -> UUID:
+    return create_engagement(
+        {
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
+            "org_unit": str(org_unit),
+            "person": str(person),
+            "validity": {"from": "1970-01-01T00:00:00Z"},
+        }
+    )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_engagement_inherit_per_engagement(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[..., UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    create_manager: Callable[..., UUID],
+) -> None:
+    r"""Each engagement must inherit the managers of its own organisation unit.
+
+            root (mgr_root)
+           /              \
+         l                 r (mgr_right)
+        /
+      ll
+    """
+    root = create_org_unit("root")
+    left = create_org_unit("l", root)
+    ll = create_org_unit("ll", left)
+    right = create_org_unit("r", root)
+
+    mgr_root = create_manager(root)
+    mgr_right = create_manager(right)
+
+    engagements = {
+        unit: create_engagement_in(create_engagement, unit, create_person())
+        for unit in (root, left, ll, right)
+    }
+
+    assert read_engagement_managers_per_engagement(graphapi_post) == {
+        engagements[root]: [mgr_root],
+        engagements[left]: [mgr_root],
+        engagements[ll]: [mgr_root],
+        engagements[right]: [mgr_right],
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_engagement_inherit_filtered_per_engagement(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[..., UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    create_manager: Callable[..., UUID],
+) -> None:
+    r"""Only managers matching the filter may stop the walk up the org tree.
+
+    root (mgr_alice, held by Alice)
+     |
+     l (mgr_bob, held by Bob)
+     |
+    ll
+    """
+    root = create_org_unit("root")
+    left = create_org_unit("l", root)
+    ll = create_org_unit("ll", left)
+
+    alice, bob = create_person(), create_person()
+    mgr_alice = create_manager(root, alice)
+    mgr_bob = create_manager(left, bob)
+
+    engagements = {
+        unit: create_engagement_in(create_engagement, unit, create_person())
+        for unit in (root, left, ll)
+    }
+
+    # Bob's managerial role on `l` does not match, so `l` and `ll` walk past it.
+    assert read_engagement_managers_per_engagement(
+        graphapi_post, {"employee": {"uuids": [str(alice)]}}
+    ) == {
+        engagements[root]: [mgr_alice],
+        engagements[left]: [mgr_alice],
+        engagements[ll]: [mgr_alice],
+    }
+    # Filtering the other way around leaves `root` with nothing to inherit.
+    assert read_engagement_managers_per_engagement(
+        graphapi_post, {"employee": {"uuids": [str(bob)]}}
+    ) == {
+        engagements[root]: [],
+        engagements[left]: [mgr_bob],
+        engagements[ll]: [mgr_bob],
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_engagement_inherit_vacant_per_engagement(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[..., UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    create_manager: Callable[..., UUID],
+) -> None:
+    r"""Each engagement must inherit the vacant managers of its own unit.
+
+    Filtering by `employee: null` is the one filter whose batched query nests
+    subqueries selecting from the very relation the batch matches against.
+
+            root (mgr_root, vacant)
+           /              \
+         l (held)          r (mgr_right, vacant)
+        /
+      ll
+    """
+    root = create_org_unit("root")
+    left = create_org_unit("l", root)
+    ll = create_org_unit("ll", left)
+    right = create_org_unit("r", root)
+
+    mgr_root = create_manager(root)
+    mgr_right = create_manager(right)
+    create_manager(left, create_person())
+
+    engagements = {
+        unit: create_engagement_in(create_engagement, unit, create_person())
+        for unit in (left, ll, right)
+    }
+
+    # The held managerial role on `l` is not vacant, so `l` and `ll` walk past
+    # it to the vacant one on `root`.
+    managers = read_engagement_managers_per_engagement(
+        graphapi_post, {"employee": None}
+    )
+    assert managers == {
+        engagements[left]: [mgr_root],
+        engagements[ll]: [mgr_root],
+        engagements[right]: [mgr_right],
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_engagement_inherit_exclude_self_per_engagement(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[..., UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    create_manager: Callable[..., UUID],
+) -> None:
+    """Engagements in the same organisation unit must each exclude themselves.
+
+    Each lookup shares an organisation unit but excludes a different person, so
+    no two of them can share a batch.
+    """
+    unit = create_org_unit("root")
+
+    engagements = {}
+    managers = {}
+    for name in ("alice", "bob"):
+        person = create_person()
+        managers[name] = create_manager(unit, person)
+        engagements[name] = create_engagement_in(create_engagement, unit, person)
+
+    actual = read_engagement_managers_per_engagement(graphapi_post, exclude_self=True)
+    assert actual == {
+        engagements["alice"]: [managers["bob"]],
+        engagements["bob"]: [managers["alice"]],
+    }
+
+
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 def test_manager_user_key_filter(
