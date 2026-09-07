@@ -3,7 +3,6 @@
 import time
 import traceback
 from collections.abc import AsyncIterator
-from collections.abc import Awaitable
 from collections.abc import Callable
 from contextlib import suppress
 from functools import cache
@@ -202,7 +201,9 @@ class IsAuthenticatedExtension(SchemaExtension):
 # A policy takes the resolver info and arguments, and returns whether it
 # grants access to the field.
 SyncPolicy = Callable[[GraphQLResolveInfo, dict[str, Any]], bool]
-AsyncPolicy = Callable[[GraphQLResolveInfo, dict[str, Any]], Awaitable[bool]]
+# An async policy may have to look something up, and answers with an awaitable
+# when it does; when it does not, it answers at once
+AsyncPolicy = Callable[[GraphQLResolveInfo, dict[str, Any]], AwaitableOrValue[bool]]
 
 
 def introspection_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
@@ -261,7 +262,9 @@ def _actor_filter(settings: config.Settings, token: Token) -> EmployeeFilter:
     return EmployeeFilter(uuids=[token.uuid])
 
 
-async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
+def owner_policy(
+    info: GraphQLResolveInfo, kwargs: dict[str, Any]
+) -> AwaitableOrValue[bool]:
     """Allow access if the user is the owner of the accessed resources."""
     token = info.context.token
     token_roles = token.realm_access.roles
@@ -297,7 +300,11 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
     # Nothing to own is not owned by anybody
     if not checks:
         return False
-    return bool(await moinfo.context.session.scalar(select(and_(*checks))))
+
+    async def owned() -> bool:
+        return bool(await moinfo.context.session.scalar(select(and_(*checks))))
+
+    return owned()
 
 
 SYNC_POLICIES: list[SyncPolicy] = [
@@ -342,7 +349,7 @@ class PBACExtension(SchemaExtension):
     ) -> Any:
         """Resolve the field if any of the `ASYNC_POLICIES` allows access."""
         for policy in ASYNC_POLICIES:
-            if await policy(info, kwargs):
+            if await await_maybe(policy(info, kwargs)):
                 return await await_maybe(next_(root, info, **kwargs))
         raise GraphQLError("No policy approved the access")
 
