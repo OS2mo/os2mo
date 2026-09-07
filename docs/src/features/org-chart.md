@@ -21,6 +21,8 @@ Enheder vises i en træstruktur, så man tydeligt kan se enhedernes hierarkiske 
 
 ![image](../graphics/hierarchy.png)
 
+Træstrukturen kan konfigureres til at folde sig ud enten lodret eller vandret.
+
 #### Udfoldning af træstruktur
 Der er toggle-knapper for hver enhed, som viser eller skjuler overenheder og underenheder til denne.
 
@@ -37,6 +39,8 @@ Ved klik på en person (fra enhedens personliste) fremkommer detaljerede oplysni
 #### Visning af tilknytninger og engagementer i samme diagram
 
 Det er muligt at vise såvel engagementer som tilknytninger i ét og samme diagram, fx så både ansatte og MED/TR-repræsentanter fremgår.
+
+I konfigurationen vælges det, om personer skal vises på baggrund af deres engagementer, deres tilknytninger eller begge dele.
 
 #### Kaldenavn
 Det er muligt at udstille Kaldenavn i organisationsdiagrammet i stedet for CPR-navn, såfremt Kaldenavn er angivet i MO. Det betyder også, at det er muligt at søge på Kaldenavn. Kaldenavne benyttes typisk, når CPR-navnet ikke ønskes udstillet.
@@ -83,6 +87,8 @@ For hver organisationsenhed vises:
 2. Antal ansatte eller tilknyttede (for hhv. linje- og MED/TR-organisation)
 3. Antal underenheder
 
+Antallet af ansatte/tilknyttede og antallet af underenheder kan hver især slås fra i konfigurationen.
+
 ### For visning af enhedsdetaljer
 Når man klikker på en enhed, vises følgende informationer om den:
 
@@ -98,18 +104,50 @@ Når man klikker på en enhed, vises følgende informationer om den:
 3. Stillingsbetegnelse
 4. Kontaktinformation, fx email, telefon, arbejdsadresse og lokation.
 
+## Filtrering og tilpasning af data
+
+Nedenstående muligheder sættes i konfigurationen af den enkelte udstilling. De påvirker udelukkende, hvad organisationsdiagrammet viser - data i MO ændres ikke.
+
+### Udgangspunkt for diagrammet
+Hver udstilling har en konfigureret rodenhed, som træstrukturen foldes ud fra. Enheder uden for rodenhedens del af organisationen vises ikke.
+
+### Filtrering på organisationshierarki
+Udstillingen kan afgrænses til de enheder, der er markeret med et eller flere bestemte [organisationshierarkier](https://rammearkitektur.docs.magenta.dk/os2mo/integrations/organisationsopmaerkning.html), fx 'Linjeorganisation' eller 'MED-organisation'. Det er denne mekanisme, der typisk bruges til at udstille den administrative organisation og MED-organisationen i hver sit diagram.
+
+### Fravalg af enheder
+Enheder kan skjules i træet på tre måder:
+
+1. Ved at angive enhedernes UUID'er
+2. Ved at angive tekststrenge, så enheder, hvis navn indeholder strengen, skjules
+3. Ved at angive enhedsniveauer (org_unit_level), så alle enheder på de pågældende niveauer skjules
+
+### Sortering af enheder
+Enheder sorteres som udgangspunkt alfabetisk. Udvalgte enheder kan angives ved UUID, så de i stedet altid placeres nederst under deres overenhed.
+
+### Fravalg af enhedens e-mail
+Enhedens e-mailadresse kan fjernes fra enhedsdetaljerne, fx hvis en fællespostkasse ikke ønskes udstillet offentligt.
+
+### Fravalg af adressetyper
+Udvalgte adressetyper kan skjules ved at angive deres brugervendte nøgler (user keys). Det gælder både for enheder og personer og bruges, når fx en bestemt telefon- eller adressetype ikke skal udstilles.
+
+### Fravalg af engagementstyper
+Engagementer af bestemte engagementstyper kan fjernes fra personlisterne, fx så robotkonti eller eksterne konti ikke vises i diagrammet.
+
+### Valg mellem to stillingsbetegnelser
+Mange medarbejdere har i praksis to stillingsbetegnelser: en overenskomstmæssig (fx "specialkonsulent") og en titel, der beskriver det faktiske arbejde (fx "projektleder for byudvikling"). Diagrammet kan konfigureres til at vise én af de to.
+
 ## Brugeroplevelse
 ### Tilgængelighed
 Løsningen lever op til krav om tilgængelighed og kan derfor udstilles på både intranet og hjemmeside.
 
 ### Look and feel
-Løsningen kan integrere lokale design, fra farvekoder til logo.
+Løsningen kan integrere lokale design, fra farvekoder til logo. Konkret kan der konfigureres et selvstændigt stylesheet (farver, typografi mv.), et logo, et favicon samt en titel.
 
 ### Responsivt layout
 Løsningen kan anvendes på både små og store skærme.
 
 ### Understøttelse af browsere
-Understøttelse af browsere inkluderer bagudkompatibilitet med Internet Explorer 11.
+Løsningen understøtter gængse, opdaterede browsere.
 
 ## Øvrig funktionalitet
 ### Print styles
