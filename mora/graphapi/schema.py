@@ -311,7 +311,7 @@ ASYNC_POLICIES: list[AsyncPolicy] = [
 ]
 
 
-class RBACExtension(SchemaExtension):
+class PBACExtension(SchemaExtension):
     """Schema-level extension that enforces PBAC for every field.
 
     Each field access is checked against the policies in `SYNC_POLICIES` and
@@ -380,7 +380,7 @@ def get_schema(version: Version) -> CustomSchema:
         extensions=[
             StarletteContextExtension,
             IsAuthenticatedExtension,
-            RBACExtension,
+            PBACExtension,
             LogContextExtension,
             RuntimeContextExtension,
             RollbackOnError,
