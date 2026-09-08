@@ -11,14 +11,14 @@ still gated route by route in `mora.graphapi.rbac_map`.
 
 The decisions are made through a dataloader, the access loader, answering
 whether the caller may read a field of an object, so that all of a resolution
-wave's, across collections, objects and fields alike, cost one lookup.
+wave's, across collections, objects and fields alike, cost one lookup, which
+returns only the accesses to deny.
 """
 
 from collections import defaultdict
 from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Iterable
-from collections.abc import Sequence
 from functools import partial
 from typing import Any
 from typing import NamedTuple
@@ -28,9 +28,8 @@ from uuid import UUID
 from more_itertools import flatten
 from sqlalchemy import ARRAY
 from sqlalchemy import ColumnElement
-from sqlalchemy import Row
 from sqlalchemy import Select
-from sqlalchemy import String
+from sqlalchemy import Uuid
 from sqlalchemy import distinct
 from sqlalchemy import func
 from sqlalchemy import literal
@@ -119,11 +118,13 @@ class AccessKey(NamedTuple):
     field: str
 
 
-def uuids_by_collection(keys: Iterable[AccessKey]) -> dict[Collection, set[UUID]]:
-    """Group the objects asked about by their collection."""
-    grouped: dict[Collection, set[UUID]] = defaultdict(set)
-    for collection, uuid, _ in keys:
-        grouped[collection].add(uuid)
+def uuids_by_access(
+    keys: Iterable[AccessKey],
+) -> dict[tuple[Collection, str], set[UUID]]:
+    """Group the objects asked about by the collection and field asked for."""
+    grouped: dict[tuple[Collection, str], set[UUID]] = defaultdict(set)
+    for collection, uuid, field in keys:
+        grouped[collection, field].add(uuid)
     return grouped
 
 
@@ -132,46 +133,25 @@ def rules_of(roles: Iterable[str]) -> list[Rule]:
     return list(flatten(ROLE_POLICIES.get(role, []) for role in roles))
 
 
-def rules_by_collection(
-    rules: Iterable[Rule],
-) -> dict[Collection, list[tuple[ColumnElement[bool], Fields]]]:
-    """Group *rules* by their collection, as (condition, fields)."""
-    grouped: dict[Collection, list[tuple[ColumnElement[bool], Fields]]] = defaultdict(
-        list
-    )
-    for collection, condition, fields in rules:
-        grouped[collection].append((condition, fields))
-    return grouped
+def denied_select(
+    collection: Collection, field: str, uuids: set[UUID], rules: Iterable[Rule]
+) -> Select[Any]:
+    """Select the accesses to deny among reading *field* of *uuids*.
 
-
-# A match, (collection, fields, objects): the objects a rule of the collection
-# matched, which it grants the fields of
-Match = tuple[Collection, Fields, Sequence[UUID]]
-
-
-def matches_of(rows: Iterable[Row[Any]]) -> list[Match]:
-    """The matches in the *rows* of the policy query, one per rule.
-
-    Aggregating no objects gives null rather than an empty array.
+    Those of the objects matched by no rule granting the field.
     """
-    return [
-        (collection, Fields(fields), matching or [])
-        for collection, fields, matching in rows
+    asked = select(func.unnest(literal(sorted(uuids), ARRAY(Uuid))).label("uuid"))
+    granted: list[Select[Any]] = [
+        OBJECTS_OF_COLLECTION[collection](uuids).where(condition)
+        for rule_collection, condition, fields in rules
+        if rule_collection == collection and field in fields
     ]
-
-
-def fields_by_object(matches: Iterable[Match]) -> dict[Collection, dict[UUID, Fields]]:
-    """The fields granted of each object in *matches*, by collection.
-
-    Those of every rule matching it; none of an object no rule matched.
-    """
-    granted: dict[Collection, dict[UUID, Fields]] = defaultdict(
-        lambda: defaultdict(Fields)
+    denied = asked.except_(*granted).subquery() if granted else asked.subquery()
+    return select(
+        literal(collection).label("collection"),
+        denied.c.uuid.label("uuid"),
+        literal(field).label("field"),
     )
-    for collection, fields, objects in matches:
-        for uuid in objects:
-            granted[collection][uuid] |= fields
-    return granted
 
 
 async def access_load_fn(
@@ -181,30 +161,28 @@ async def access_load_fn(
 ) -> list[bool]:
     """Whether the caller may read some fields of some objects, in one query.
 
-    A union of one select per rule of the caller's roles for a collection in
-    the batch, each returning the fields it grants and the objects matching
-    its condition. An object gets the fields of every rule matching it.
+    One select per field asked for of a collection, keeping, of the objects it
+    is asked of, those matched by no rule of the caller's roles granting it.
+    Only the accesses to deny come back, as the fields denied of each object:
+    usually nothing at all.
     """
-    roles = sorted((await get_token()).realm_access.roles)
-    rules = rules_by_collection(rules_of(roles))
-    selects: list[Select[Any]] = []
-    for collection, uuids in uuids_by_collection(keys).items():
-        objects = OBJECTS_OF_COLLECTION[collection]
-        for condition, fields in rules.get(collection, []):
-            matching = objects(uuids).where(condition).subquery()
-            selects.append(
-                select(
-                    literal(collection),
-                    literal(sorted(fields), ARRAY(String)),
-                    func.array_agg(matching.c[0]),
-                )
-            )
-    if not selects:
-        # No rule applies, so the caller may read nothing of these objects
-        return [False] * len(keys)
-    rows = await session.execute(union_all(*selects))
-    granted = fields_by_object(matches_of(rows))
-    return [field in granted[collection][uuid] for collection, uuid, field in keys]
+    rules = rules_of(sorted((await get_token()).realm_access.roles))
+    denials = union_all(
+        *(
+            denied_select(collection, field, uuids, rules)
+            for (collection, field), uuids in uuids_by_access(keys).items()
+        )
+    ).subquery()
+    rows = await session.execute(
+        select(
+            denials.c.collection, denials.c.uuid, func.array_agg(denials.c.field)
+        ).group_by(denials.c.collection, denials.c.uuid)
+    )
+    missing = {(collection, uuid): Fields(fields) for collection, uuid, fields in rows}
+    return [
+        field not in missing.get((collection, uuid), Fields())
+        for collection, uuid, field in keys
+    ]
 
 
 def get_access_loaders(
