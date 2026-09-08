@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import time
 import traceback
+from asyncio import Future
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from collections.abc import Callable
@@ -326,7 +327,8 @@ class PBACExtension(SchemaExtension):
     """Schema-level extension that enforces PBAC for every field.
 
     The awaitable answers are awaited only if no policy allows access at once,
-    so a field costs a coroutine only when a policy has to look something up.
+    so a field costs a coroutine only when a policy has to look something up,
+    and a future already done, such as a dataloader's cache hit, costs none.
 
     Access is rejected by default: every field must be listed in
     `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP` or `ADMIN_MAP`.
@@ -343,6 +345,9 @@ class PBACExtension(SchemaExtension):
         pending: list[Awaitable[bool]] = []
         for policy in POLICIES:
             allowed = policy(root, info, kwargs)
+            # Dataloaders return futures, which may already be resolved
+            if isinstance(allowed, Future) and allowed.done():
+                allowed = allowed.result()
             if allowed is False:
                 continue
             if allowed is True:
