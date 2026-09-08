@@ -131,3 +131,61 @@ async def test_update_related_units_integration_test(test_data, graphapi_post) -
             for dest in test_data["destination"]
         ]
         assert len(relations) == len(objects)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_update_related_units_unknown_destination(graphapi_post: GraphAPIPost) -> None:
+    """Updating related units with a non-existent destination is rejected."""
+    mutation = """
+        mutation UpdateRelatedUnits($input: RelatedUnitsUpdateInput!) {
+            related_units_update(input: $input) {
+                uuid
+            }
+        }
+    """
+    response = graphapi_post(
+        mutation,
+        {
+            "input": {
+                "origin": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "destination": ["00000000-0000-0000-0000-000000000000"],
+                "validity": {"from": "2017-06-01"},
+            }
+        },
+    )
+    assert response.errors is not None
+    assert (
+        response.errors[0]["extensions"]["error_context"]["error_key"]
+        == "E_ORG_UNIT_NOT_FOUND"
+    )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_update_related_units_outside_validity(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """A destination that is not active at the given date is rejected."""
+    mutation = """
+        mutation UpdateRelatedUnits($input: RelatedUnitsUpdateInput!) {
+            related_units_update(input: $input) {
+                uuid
+            }
+        }
+    """
+    response = graphapi_post(
+        mutation,
+        {
+            "input": {
+                "origin": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "destination": ["da77153e-30f3-4dc2-a611-ee912a28d8aa"],
+                "validity": {"from": "2019-01-01"},
+            }
+        },
+    )
+    assert response.errors is not None
+    assert (
+        response.errors[0]["extensions"]["error_context"]["error_key"]
+        == "V_DATE_OUTSIDE_ORG_UNIT_RANGE"
+    )
