@@ -230,6 +230,7 @@ async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
             # the error handlers read it on every failed operation. Callers
             # outside a request have no starlette context to take it from.
             settings=context.get("settings") or config.get_settings(),
+            get_token=context.get("get_token"),
         )
 
     schema = get_schema(LATEST_VERSION)

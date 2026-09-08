@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Awaitable
+from collections.abc import Callable
 from textwrap import dedent
 
 from fastapi import APIRouter
@@ -11,11 +13,14 @@ from strawberry.printer import print_schema
 
 from mora import db
 from mora import depends
+from mora.auth.keycloak.models import Token
+from mora.auth.keycloak.oidc import token_getter
 from mora.config import Settings
 from mora.graphapi.access_log import get_access_log_loaders
 from mora.graphapi.actor import get_actor_loaders
 from mora.graphapi.custom_router import CustomGraphQLRouter
 from mora.graphapi.dataloaders import get_loaders
+from mora.graphapi.policies import get_policy_loaders
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import LATEST_VERSION
 from mora.graphapi.version import Version
@@ -32,10 +37,12 @@ async def get_context(
     amqp_system: AMQPSystem = Depends(depends.get_amqp_system),
     session: db.AsyncSession = Depends(db.get_session),
     settings: Settings = Depends(depends.get_settings),
+    get_token: Callable[[], Awaitable[Token]] = Depends(token_getter),
 ) -> MOContext:
     loaders = await get_loaders()
     loaders.update(get_access_log_loaders(session))
     loaders.update(get_actor_loaders(session))
+    loaders.update(get_policy_loaders(session, get_token))
     moloaders = MOLoaders(**loaders)  # type: ignore
     return MOContext(
         amqp_system=amqp_system,

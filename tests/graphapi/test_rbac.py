@@ -19,6 +19,8 @@ from hypothesis_graphql import strategies as gql_st
 from more_itertools import duplicates_everseen
 
 from mora.graphapi.events import EventToken
+from mora.graphapi.policies import OBJECTS_OF_COLLECTION
+from mora.graphapi.policies import ROLE_POLICIES
 from mora.graphapi.rbac_map import ADMIN_MAP
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
@@ -34,15 +36,16 @@ from tests.conftest import SetAuth
 async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
     """RBAC is reject-by-default, so every field must be classified.
 
-    Each schema field must be either public (`PUBLIC_FIELDS`) or have a role
-    requirement (`RBAC_MAP` or `ADMIN_MAP`). Conversely, entries which do not
-    correspond to any schema field are dead rules, and therefore most likely
-    mistakes.
+    Each schema field must be either public (`PUBLIC_FIELDS`), have a role
+    requirement (`RBAC_MAP` or `ADMIN_MAP`), or belong to a type guarded by
+    read policies and be granted by some rule (`mora.graphapi.policies`).
+    Conversely, entries which do not correspond to any schema field are dead
+    rules, and therefore most likely mistakes.
 
     A field in more than one of them would silently get the weakest of its
     requirements (the chain grants access as soon as a policy matches, and
     `no_role_required_policy` runs before `reader_policy`, which runs before
-    `admin_policy`), so it is almost certainly a mistake; the three are
+    `admin_policy`), so it is almost certainly a mistake; the four are
     required to be pairwise disjoint.
     """
     schema_fields = set()
@@ -72,7 +75,22 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
                 (type_["name"], field["name"]) for field in type_["fields"]
             )
 
-    classified = PUBLIC_FIELDS | RBAC_MAP | ADMIN_MAP
+    # The fields of the types a collection guards are read as its policies
+    # grant, so each must be granted by some rule rather than listed in a map
+    policy_fields = {
+        (type_, field)
+        for type_, field in schema_fields
+        if type_ in OBJECTS_OF_COLLECTION
+    }
+    rule_fields = {
+        (collection, field)
+        for rules in ROLE_POLICIES.values()
+        for collection, _, fields in rules
+        for field in fields
+    }
+    granted = policy_fields & rule_fields
+
+    classified = PUBLIC_FIELDS | RBAC_MAP | ADMIN_MAP | granted
 
     missing = schema_fields - classified
     assert missing == set(), f"Unclassified schema fields: {missing}"
@@ -80,7 +98,12 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
     stale = classified - schema_fields
     assert stale == set(), f"Classified entries without a schema field: {stale}"
 
-    overlap = set(duplicates_everseen(chain(PUBLIC_FIELDS, RBAC_MAP, ADMIN_MAP)))
+    dead = rule_fields - policy_fields
+    assert dead == set(), f"Rule fields without a schema field: {dead}"
+
+    overlap = set(
+        duplicates_everseen(chain(PUBLIC_FIELDS, RBAC_MAP, ADMIN_MAP, policy_fields))
+    )
     assert overlap == set(), f"Fields classified more than once: {overlap}"
 
 
