@@ -9,10 +9,9 @@ roles grants it on that object, wherever the object is reached. Only the
 fields of the address types are guarded this way so far; everything else is
 still gated route by route in `mora.graphapi.rbac_map`.
 
-The decisions are made through two dataloaders, so that all of a resolution
-wave's, across collections, objects and fields alike, cost one lookup: the
-policy loader answers which fields the caller may read of an object, and the
-access loader asks it whether they may read one field of it.
+The decisions are made through a dataloader, the access loader, answering
+whether the caller may read a field of an object, so that all of a resolution
+wave's, across collections, objects and fields alike, cost one lookup.
 """
 
 from collections import defaultdict
@@ -112,15 +111,18 @@ ROLE_POLICIES: dict[str, list[Rule]] = {
 }
 
 
-class PolicyKey(NamedTuple):
+class AccessKey(NamedTuple):
+    """An access: reading a field of an object of a collection."""
+
     collection: Collection
     uuid: UUID
+    field: str
 
 
-def uuids_by_collection(keys: Iterable[PolicyKey]) -> dict[Collection, set[UUID]]:
+def uuids_by_collection(keys: Iterable[AccessKey]) -> dict[Collection, set[UUID]]:
     """Group the objects asked about by their collection."""
     grouped: dict[Collection, set[UUID]] = defaultdict(set)
-    for collection, uuid in keys:
+    for collection, uuid, _ in keys:
         grouped[collection].add(uuid)
     return grouped
 
@@ -172,12 +174,12 @@ def fields_by_object(matches: Iterable[Match]) -> dict[Collection, dict[UUID, Fi
     return granted
 
 
-async def policy_load_fn(
+async def access_load_fn(
     session: AsyncSession,
     get_token: Callable[[], Awaitable[Token]],
-    keys: list[PolicyKey],
-) -> list[Fields]:
-    """Which fields the caller may read of some objects, in one query.
+    keys: list[AccessKey],
+) -> list[bool]:
+    """Whether the caller may read some fields of some objects, in one query.
 
     A union of one select per rule of the caller's roles for a collection in
     the batch, each returning the fields it grants and the objects matching
@@ -199,39 +201,18 @@ async def policy_load_fn(
             )
     if not selects:
         # No rule applies, so the caller may read nothing of these objects
-        return [Fields()] * len(keys)
+        return [False] * len(keys)
     rows = await session.execute(union_all(*selects))
     granted = fields_by_object(matches_of(rows))
-    return [granted[collection][uuid] for collection, uuid in keys]
+    return [field in granted[collection][uuid] for collection, uuid, field in keys]
 
 
-class AccessKey(NamedTuple):
-    collection: Collection
-    uuid: UUID
-    field: str
-
-
-async def access_load_fn(
-    policies: DataLoader[PolicyKey, Fields], keys: list[AccessKey]
-) -> list[bool]:
-    """Whether the caller may read a field of some objects.
-
-    Asks *policies* about all of the batch's objects at once, so however many
-    fields of however many objects a resolution wave reads, their checks
-    collapse into one batch of it.
-    """
-    readable = await policies.load_many(
-        [PolicyKey(key.collection, key.uuid) for key in keys]
-    )
-    return [key.field in fields for key, fields in zip(keys, readable, strict=True)]
-
-
-def get_policy_loaders(
+def get_access_loaders(
     session: AsyncSession, get_token: Callable[[], Awaitable[Token]]
 ) -> dict[str, DataLoader]:
-    """Return the dataloaders deciding what the caller may read."""
-    policy_loader = DataLoader(load_fn=partial(policy_load_fn, session, get_token))
+    """Return the dataloader deciding what the caller may read."""
     return {
-        "policy_loader": policy_loader,
-        "access_loader": DataLoader(load_fn=partial(access_load_fn, policy_loader)),
+        "access_loader": DataLoader(
+            load_fn=partial(access_load_fn, session, get_token)
+        ),
     }

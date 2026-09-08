@@ -35,13 +35,10 @@ from mora.graphapi.models import RoleBindingRead
 
 if TYPE_CHECKING:
     from mora.graphapi.policies import AccessKey
-    from mora.graphapi.policies import Fields
-    from mora.graphapi.policies import PolicyKey
 
 
 @dataclass
 class MOLoaders:
-    access_loader: DataLoader[AccessKey, bool]
     access_log_read_loader: DataLoader[UUID, list[UUID]]
     actor_name_loader: DataLoader[UUID, str | None]
     address_loader: DataLoader[LoadKey, list[AddressRead]]
@@ -58,7 +55,7 @@ class MOLoaders:
     org_loader: DataLoader[int, OrganisationRead]
     org_unit_loader: DataLoader[LoadKey, list[OrganisationUnitRead]]
     owner_loader: DataLoader[LoadKey, list[OwnerRead]]
-    policy_loader: DataLoader[PolicyKey, Fields]
+    access_loader: DataLoader[AccessKey, bool]
     rel_unit_loader: DataLoader[LoadKey, list[RelatedUnitRead]]
     rolebinding_loader: DataLoader[LoadKey, list[RoleBindingRead]]
 

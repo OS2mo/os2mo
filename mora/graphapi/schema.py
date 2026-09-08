@@ -321,8 +321,8 @@ def collection_policy(
 ) -> AwaitableOrValue[bool]:
     """Allow reading a field of a collection's object if the caller's policies grant it.
 
-    Decided per object by the access loader, whose future is handed back so
-    that all of a resolution wave's decisions are made in one lookup (see
+    The access loader decides, so all of a resolution wave's lookups are made
+    in one, and an access already looked up is decided at once (see
     `mora.graphapi.policies`).
     """
     collection = info.parent_type.name
