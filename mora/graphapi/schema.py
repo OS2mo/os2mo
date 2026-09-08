@@ -68,6 +68,8 @@ from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.owner_entities import OWNER_ENTITIES
+from mora.graphapi.policies import OBJECTS_OF_COLLECTION
+from mora.graphapi.policies import AccessKey
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import ADMIN_MAP
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
@@ -314,11 +316,29 @@ def owner_policy(
     return owned()
 
 
+def collection_policy(
+    root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
+) -> AwaitableOrValue[bool]:
+    """Allow reading a field of a collection's object if the caller's policies grant it.
+
+    Decided per object by the access loader, whose future is handed back so
+    that all of a resolution wave's decisions are made in one lookup (see
+    `mora.graphapi.policies`).
+    """
+    collection = info.parent_type.name
+    if collection not in OBJECTS_OF_COLLECTION:
+        return False
+    return info.context.dataloaders.access_loader.load(
+        AccessKey(collection, root.uuid, info.field_name)
+    )
+
+
 POLICIES: list[Policy] = [
     introspection_policy,
     no_role_required_policy,
     reader_policy,
     admin_policy,
+    collection_policy,
     owner_policy,
 ]
 
@@ -331,7 +351,8 @@ class PBACExtension(SchemaExtension):
     and a future already done, such as a dataloader's cache hit, costs none.
 
     Access is rejected by default: every field must be listed in
-    `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP` or `ADMIN_MAP`.
+    `PUBLIC_FIELDS`, have a requirement in `RBAC_MAP` or `ADMIN_MAP`, or
+    belong to a type guarded by read policies (`mora.graphapi.policies`).
     """
 
     def resolve(  # type: ignore[override]

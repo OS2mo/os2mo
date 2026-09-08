@@ -1,6 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from __future__ import annotations
+
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from typing import TypeAlias
 from uuid import UUID
 
@@ -29,9 +32,11 @@ from mora.graphapi.models import AddressRead
 from mora.graphapi.models import ClassRead
 from mora.graphapi.models import FacetRead
 from mora.graphapi.models import RoleBindingRead
-from mora.graphapi.policies import AccessKey
-from mora.graphapi.policies import Fields
-from mora.graphapi.policies import PolicyKey
+
+if TYPE_CHECKING:
+    from mora.graphapi.policies import AccessKey
+    from mora.graphapi.policies import Fields
+    from mora.graphapi.policies import PolicyKey
 
 
 @dataclass
