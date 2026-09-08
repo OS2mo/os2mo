@@ -347,3 +347,70 @@ def test_leave_user_key_filter(
     assert read({"user_keys": ["beta"]}) == {beta_uuid}
     assert read({"user_keys": ["alpha", "gamma"]}) == {alpha_uuid, gamma_uuid}
     assert read({"user_keys": ["nonexistent"]}) == set()
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_leave_org_unit_filter(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[[dict[str, Any] | None], UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """Leaves are not directly associated with an org-unit, so filtering by
+    org_unit never matches any leave.
+    """
+    org_unit_a = create_org_unit("org-unit-a")
+    org_unit_b = create_org_unit("org-unit-b")
+    person_uuid = create_person({"given_name": "Xylia", "surname": "Shadowthorn"})
+
+    def create_leave(org_unit: UUID, user_key: str) -> UUID:
+        engagement_uuid = create_engagement(
+            {
+                "engagement_type": str(uuid4()),
+                "job_function": str(uuid4()),
+                "org_unit": str(org_unit),
+                "person": str(person_uuid),
+                "validity": {"from": "1970-01-01T00:00:00Z"},
+            }
+        )
+        response = graphapi_post(
+            """
+            mutation CreateLeave($input: LeaveCreateInput!) {
+                leave_create(input: $input) { uuid }
+            }
+            """,
+            {
+                "input": {
+                    "user_key": user_key,
+                    "person": str(person_uuid),
+                    "engagement": str(engagement_uuid),
+                    "leave_type": str(uuid4()),
+                    "validity": {"from": "2024-01-01"},
+                }
+            },
+        )
+        assert response.errors is None
+        assert response.data is not None
+        return UUID(response.data["leave_create"]["uuid"])
+
+    alpha_uuid = create_leave(org_unit_a, "alpha")
+    beta_uuid = create_leave(org_unit_b, "beta")
+
+    query = """
+        query ReadLeaves($filter: LeaveFilter) {
+            leaves(filter: $filter) {
+                objects { uuid }
+            }
+        }
+    """
+
+    def read(filter: dict) -> set[UUID]:
+        response = graphapi_post(query, {"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {UUID(o["uuid"]) for o in response.data["leaves"]["objects"]}
+
+    assert read({}) == {alpha_uuid, beta_uuid}
+    assert read({"org_unit": {"uuids": [str(org_unit_a)]}}) == set()
+    assert read({"org_unit": {"uuids": [str(org_unit_a), str(org_unit_b)]}}) == set()
