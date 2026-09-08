@@ -3,9 +3,12 @@
 import time
 import traceback
 from collections.abc import AsyncIterator
+from collections.abc import Awaitable
 from collections.abc import Callable
 from contextlib import suppress
 from functools import cache
+from functools import partial
+from inspect import isawaitable
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 from typing import Any
@@ -200,10 +203,7 @@ class IsAuthenticatedExtension(SchemaExtension):
 
 # A policy takes the resolver info and arguments, and returns whether it
 # grants access to the field.
-SyncPolicy = Callable[[GraphQLResolveInfo, dict[str, Any]], bool]
-# An async policy may have to look something up, and answers with an awaitable
-# when it does; when it does not, it answers at once
-AsyncPolicy = Callable[[GraphQLResolveInfo, dict[str, Any]], AwaitableOrValue[bool]]
+Policy = Callable[[GraphQLResolveInfo, dict[str, Any]], AwaitableOrValue[bool]]
 
 
 def introspection_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
@@ -307,13 +307,11 @@ def owner_policy(
     return owned()
 
 
-SYNC_POLICIES: list[SyncPolicy] = [
+POLICIES: list[Policy] = [
     introspection_policy,
     no_role_required_policy,
     reader_policy,
     admin_policy,
-]
-ASYNC_POLICIES: list[AsyncPolicy] = [
     owner_policy,
 ]
 
@@ -321,8 +319,8 @@ ASYNC_POLICIES: list[AsyncPolicy] = [
 class PBACExtension(SchemaExtension):
     """Schema-level extension that enforces PBAC for every field.
 
-    Each field access is checked against the policies in `SYNC_POLICIES` and
-    `ASYNC_POLICIES`, one by one, until a policy allows access.
+    The awaitable answers are awaited only if no policy allows access at once,
+    so a field costs a coroutine only when a policy has to look something up.
 
     Access is rejected by default: every field must be listed in
     `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP` or `ADMIN_MAP`.
@@ -335,22 +333,27 @@ class PBACExtension(SchemaExtension):
         info: GraphQLResolveInfo,
         **kwargs: dict[str, Any],
     ) -> AwaitableOrValue[Any]:
-        for policy in SYNC_POLICIES:
-            if policy(info, kwargs):
-                return next_(root, info, **kwargs)
-        return self._resolve_async(next_, root, info, kwargs)
+        resolve_field = partial(next_, root, info, **kwargs)
+        pending: list[Awaitable[bool]] = []
+        for policy in POLICIES:
+            allowed = policy(info, kwargs)
+            if allowed is False:
+                continue
+            if allowed is True:
+                return resolve_field()
+            assert isawaitable(allowed)
+            pending.append(allowed)
+        if pending:
+            return self._resolve_async(pending, resolve_field)
+        raise GraphQLError("No policy approved the access")
 
     async def _resolve_async(
-        self,
-        next_: Callable[..., Any],
-        root: Any,
-        info: GraphQLResolveInfo,
-        kwargs: dict[str, Any],
+        self, pending: list[Awaitable[bool]], resolve_field: Callable[[], Any]
     ) -> Any:
-        """Resolve the field if any of the `ASYNC_POLICIES` allows access."""
-        for policy in ASYNC_POLICIES:
-            if await await_maybe(policy(info, kwargs)):
-                return await await_maybe(next_(root, info, **kwargs))
+        """Resolve the field if any of the *pending* answers allows access."""
+        for allowed in pending:
+            if await allowed is True:
+                return await await_maybe(resolve_field())
         raise GraphQLError("No policy approved the access")
 
 
