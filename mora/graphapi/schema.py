@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import inspect
 import time
 import traceback
 from collections.abc import AsyncIterator
@@ -75,6 +76,7 @@ from mora.graphapi.types import INT_SCALAR
 from mora.graphapi.types import Cursor
 from mora.graphapi.version import Version
 from mora.log import canonical_gql_context
+from mora.log import current_field
 from mora.util import CPR
 from mora.util import ensure_list
 
@@ -137,6 +139,30 @@ class LogContextExtension(SchemaExtension):
             canonical_gql_context()["errors"] = (
                 self.execution_context.pre_execution_errors
             )
+
+
+class FieldContextExtension(SchemaExtension):
+    def resolve(
+        self,
+        _next: Callable,
+        root: Any,
+        info: GraphQLResolveInfo,
+        *args: str,
+        **kwargs: Any,
+    ) -> AwaitableOrValue[Any]:
+        result = _next(root, info, *args, **kwargs)
+        if not inspect.isawaitable(result):
+            # A synchronous resolver cannot await the database.
+            return result
+
+        async def resolve_as_field() -> Any:
+            token = current_field.set(f"{info.parent_type.name}.{info.field_name}")
+            try:
+                return await result
+            finally:
+                current_field.reset(token)
+
+        return resolve_as_field()
 
 
 class RuntimeContextExtension(SchemaExtension):
@@ -382,6 +408,7 @@ def get_schema(version: Version) -> CustomSchema:
             IsAuthenticatedExtension,
             RBACExtension,
             LogContextExtension,
+            FieldContextExtension,
             RuntimeContextExtension,
             RollbackOnError,
             ExtendedErrorFormatExtension,

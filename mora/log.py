@@ -1,8 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import logging
+from collections import Counter
 from collections.abc import Awaitable
 from collections.abc import Callable
+from contextvars import ContextVar
 from typing import Any
 
 import structlog
@@ -10,6 +12,7 @@ from fastapi import Request
 from fastapi import Response
 from starlette_context import context
 from starlette_context import request_cycle_context
+from starlette_context.errors import ContextDoesNotExistError
 from structlog.types import EventDict
 from structlog.types import Processor
 from uvicorn.protocols.utils import get_path_with_query_string
@@ -131,14 +134,51 @@ def init(log_level: str, json: bool = True, under_test: bool = False):
 
 
 _CANONICAL_LOG_KEY = "canonical"
+_CANONICAL_DB_KEY = "db"
 _CANONICAL_GQL_KEY = "gql"
 NOLOG_PATHS = ["/metrics", "/health"]
 
 
+# We are trying to track n+1 problems
+_DB_STATEMENT_COUNT_KEY = "_statement_counts"
+current_field: ContextVar[str | None] = ContextVar("current_field", default=None)
+
+
+def count_db_statement(*args: Any, **kwargs: Any) -> None:
+    try:
+        counts = context.get(_DB_STATEMENT_COUNT_KEY)
+    except ContextDoesNotExistError:
+        return
+    if counts is None:
+        return
+    counts[current_field.get()] += 1
+
+
+def _summarise_db_statements(counts: Counter) -> dict[str, Any]:
+    """Total the statements, and pick out the fields repeating them."""
+    MAX_FIELDS_INCLUDED_IN_LOG = 3
+    MINIMUM_REPEATS_FOR_INCLUSION_IN_LOG = 11
+
+    repeated = [
+        {"count": count, "field": field}
+        for field, count in counts.most_common(MAX_FIELDS_INCLUDED_IN_LOG)
+        if count >= MINIMUM_REPEATS_FOR_INCLUSION_IN_LOG
+    ]
+    return {"statements": sum(counts.values()), "repeated": repeated}
+
+
 async def canonical_log_dependency():
-    data = {**context, _CANONICAL_LOG_KEY: {}}
+    db_statement_counter: Counter = Counter()
+    data = {
+        **context,
+        _CANONICAL_LOG_KEY: {},
+        _DB_STATEMENT_COUNT_KEY: db_statement_counter,
+    }
     with request_cycle_context(data):
         yield
+        data[_CANONICAL_LOG_KEY][_CANONICAL_DB_KEY] = _summarise_db_statements(
+            db_statement_counter
+        )
         if "errors" in data[_CANONICAL_LOG_KEY].get(_CANONICAL_GQL_KEY, {}):
             logger_function = logger.warning
         else:

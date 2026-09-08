@@ -10,6 +10,7 @@ from typing import Any
 from fastapi import Request
 from psycopg.adapt import Buffer
 from psycopg.types.datetime import DateLoader, TimestamptzLoader
+from sqlalchemy import event
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import AsyncEngine
@@ -18,6 +19,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from starlette_context import context
 from starlette_context import request_cycle_context
 
+from ..log import count_db_statement
 from ..util import NEGATIVE_INFINITY, POSITIVE_INFINITY
 
 from . import files
@@ -85,7 +87,7 @@ import psycopg
 def create_engine(
     user: str, password: str | None, host: str, name: str, args: Iterable[str] = ()
 ) -> AsyncEngine:
-    return create_async_engine(
+    engine = create_async_engine(
         f"postgresql+psycopg://{user}:{password}@{host}/{name}",
         # Transparently reconnect on connection errors so the calling application does
         # not need to be concerned with error handling. This is required for the
@@ -114,6 +116,8 @@ def create_engine(
             ),
         },
     )
+    event.listen(engine.sync_engine, "before_cursor_execute", count_db_statement)
+    return engine
 
 
 # TODO: InfTimestamptzDumper?
