@@ -1786,26 +1786,17 @@ class Mutation:
 
             How to do this is client-specific, but below is an example using [curl](https://curl.se/):
             ```console
-            curl https://{{MO_URL}}/graphql/v7 \\
+            curl https://{{MO_URL}}/graphql/v30 \\
               -H "Authorization: Bearer {{TOKEN}}" \\
-              -F operations="{\\\"query\\\": \\\"{{QUERY}}\\\", \\
-                  \\\"variables\\\": {\\\"file\\\": null}}" \\
+              -F operations='{"query": "mutation($file: Upload!) { upload_file(file_store: EXPORTS, file: $file, force: false) }", "variables": {"file": null}}' \\
               -F map='{"file": ["variables.file"]}' \\
               -F file=@myfile.txt
             ```
             Where:
-            * `myfile.txt` is the file to upload.
             * `{{MO_URL}}` is the base-url for the OS2mo instance to upload the file to.
             * `{{TOKEN}}` is a valid JWT-token acquired from Keycloak.
-            * `{{QUERY}}` is the upload query:
-            ```gql
-            mutation($file: Upload!) {
-              upload_file(
-                file_store: EXPORTS,
-                file: $file
-              )
-            }
-            ```
+            * `myfile.txt` is the file to upload. The filename is taken from this
+              multipart part; there is no separate filename argument.
 
             Note:
             As GraphiQL does not support sending multipart form-data payloads, it is unfortunately not possible to upload files from GraphiQL.
