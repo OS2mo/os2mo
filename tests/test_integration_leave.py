@@ -158,6 +158,43 @@ async def test_edit_leave_no_overwrite(service_client: TestClient) -> None:
 @pytest.mark.integration_test
 @pytest.mark.freeze_time("2018-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
+async def test_edit_leave_with_person(service_client: TestClient) -> None:
+    """Editing a leave with an explicit person updates the person relation."""
+    leave_uuid = "b807628c-030c-4f5f-a438-de41c1f26ba5"
+    user_id = "236e0a78-11a0-4ed9-8545-6286bb8611c7"
+
+    req = [
+        {
+            "type": "leave",
+            "uuid": leave_uuid,
+            "data": {
+                "leave_type": {"uuid": "3c791935-2cfa-46b5-a12e-66f7f54e70fe"},
+                "engagement": {"uuid": "301a906b-ef51-4d5c-9c77-386fb8410459"},
+                "person": {"uuid": user_id},
+                "user_key": "whatever",
+                "validity": {
+                    "from": "2017-01-01",
+                },
+            },
+        }
+    ]
+
+    response = service_client.request("POST", "/service/details/edit", json=req)
+    assert response.status_code == 200
+
+    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+    actual_leave = await c.organisationfunktion.get(leave_uuid)
+
+    person_uuids = {
+        relation["uuid"]
+        for relation in actual_leave["relationer"]["tilknyttedebrugere"]
+    }
+    assert user_id in person_uuids
+
+
+@pytest.mark.integration_test
+@pytest.mark.freeze_time("2018-01-01", tz_offset=1)
+@pytest.mark.usefixtures("fixture_db")
 def test_create_leave(service_client: TestClient) -> None:
     # Check the POST request
     userid = "236e0a78-11a0-4ed9-8545-6286bb8611c7"
