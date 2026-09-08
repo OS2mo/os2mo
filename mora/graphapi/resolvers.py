@@ -3144,7 +3144,11 @@ def leave_predicate(
 
     # Org units
     handle_deprecated_org_unit_filters(filter)
-    if filter.org_unit:
+    # FIXME(#71819): leaves never carry a 'tilknyttedeenheder' relation (their
+    #   org unit is only reachable via the associated engagement), so this
+    #   predicate never matches and org_unit filtering returns nothing. Should
+    #   be removed??
+    if filter.org_unit:  # pragma: no cover
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
                 select(
