@@ -139,6 +139,16 @@ ALVIDA_UUID = UUID("0fb62199-cb9e-4083-ba45-2a63bfd142d7")
 # Serviceplatformen certificate fixtures: one valid, one empty.
 SP_CERTIFICATE_PATH = "tests/fixtures/sp_certificate.pem"
 SP_CERTIFICATE_EMPTY_PATH = "tests/fixtures/sp_certificate_empty.pem"
+SP_UUID = "12345678-9abc-def1-1111-111111111111"
+
+# Minimal SF1520 PersonLookupResponse, just enough for `get_citizen` to parse.
+SP_RESPONSE = (
+    "<Envelope><Body><PersonLookupResponse>"
+    "<persondata><navn><fornavn>John</fornavn><efternavn>Doe</efternavn></navn></persondata>"
+    "<adresse><aktuelAdresse></aktuelAdresse></adresse>"
+    "<relationer><mor><personnummer>0101010101</personnummer></mor></relationer>"
+    "</PersonLookupResponse></Body></Envelope>"
+)
 
 
 READ_PERMISSIONS = {"reader"}
