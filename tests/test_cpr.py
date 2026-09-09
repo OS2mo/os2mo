@@ -12,8 +12,8 @@ from mora.config import Settings
 from mora.service.shimmed import cpr as cpr_shim
 from tests.conftest import SP_CERTIFICATE_EMPTY_PATH
 from tests.conftest import SP_CERTIFICATE_PATH
-
-SP_UUID = "12345678-9abc-def1-1111-111111111111"
+from tests.conftest import SP_RESPONSE
+from tests.conftest import SP_UUID
 
 
 @pytest.mark.parametrize(
@@ -137,16 +137,6 @@ def test_serviceplatformen_api_version_validation(
     else:
         settings = Settings()
         assert settings.sp_settings.sp_api_version == sp_api_version
-
-
-# Minimal SF1520 PersonLookupResponse, just enough for `get_citizen` to parse.
-SP_RESPONSE = (
-    "<Envelope><Body><PersonLookupResponse>"
-    "<persondata><navn><fornavn>John</fornavn><efternavn>Doe</efternavn></navn></persondata>"
-    "<adresse><aktuelAdresse></aktuelAdresse></adresse>"
-    "<relationer><mor><personnummer>0101010101</personnummer></mor></relationer>"
-    "</PersonLookupResponse></Body></Envelope>"
-)
 
 
 def test_get_citizen_uses_version_kwarg(respx_mock: respx.MockRouter) -> None:
