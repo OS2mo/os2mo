@@ -361,6 +361,21 @@ def admin_client(fastapi_admin_test_app: FastAPI) -> YieldFixture[TestClient]:
 
 
 @pytest.fixture
+def fetch_metrics(service_client: TestClient) -> Callable[[], str]:
+    """Fixture yielding a callable returning the exposition text of /metrics."""
+
+    def inner() -> str:
+        # The metrics are calculated, but not returned on the first request...
+        service_client.request("GET", "/metrics")
+        response = service_client.request("GET", "/metrics")
+        assert response.status_code == 200
+        metrics = response.text
+        return metrics
+
+    return inner
+
+
+@pytest.fixture
 def service_client_not_raising(fastapi_test_app: FastAPI) -> YieldFixture[TestClient]:
     """Fixture yielding a FastAPI test client."""
     with TestClient(fastapi_test_app, raise_server_exceptions=False) as client:
