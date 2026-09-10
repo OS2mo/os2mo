@@ -8,6 +8,7 @@ from sqlalchemy import ColumnElement
 from sqlalchemy import and_
 from sqlalchemy import exists
 from sqlalchemy import or_
+from strawberry import UNSET
 
 from mora.auth.keycloak.models import Token
 from mora.config import Settings
@@ -52,7 +53,7 @@ def org_unit(
     Owning any ancestor also grants ownership: the `descendant` filter matches
     the unit together with all of its ancestors.
     """
-    if uuid is None:
+    if uuid is None or uuid is UNSET:
         return None
     predicate = organisation_unit_predicate(
         settings=settings,
@@ -69,7 +70,7 @@ def person(
     settings: Settings, version: Version, token: Token, uuid: UUID | None
 ) -> ColumnElement | None:
     """Require ownership of the person named, if one is named."""
-    if uuid is None:
+    if uuid is None or uuid is UNSET:
         return None
     predicate = employee_predicate(
         settings=settings,
@@ -162,7 +163,7 @@ def check_parent(
     GraphQL edits always contain the full object, so the parent named is just
     as often the one the unit already has, which is no move at all.
     """
-    if parent is None:
+    if parent is None or parent is UNSET:
         return None
     # Whether the parent named is the one the unit already has
     keeps_parent = exists().where(
