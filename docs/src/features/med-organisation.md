@@ -123,7 +123,7 @@ Tilknytningsrollerne redigeres vha. knapperne ud for hver tilknytningsrolle.
 
 ### Rapport
 
-Det er muligt at genere af MED/TR-data i fx en csv-fil som kan hentes inde fra MOs brugergrænseflade.
+Det er muligt at generere et udtræk af MED/TR-data i fx en csv-fil som kan hentes inde fra MOs brugergrænseflade.
 
 ### Organisationsdiagram
 
