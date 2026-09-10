@@ -13,15 +13,97 @@ from tests.conftest import AnotherTransaction
 # Prometheus counters are exposed with a `_total` suffix.
 METRIC_NAME = "os2mo_registration_count_total"
 
+# Every LoRa object that is not an organisation function, and its registration
+# count on a migrated, otherwise empty database.
+OBJECT_TYPE_COUNTS = {
+    "person": 0,
+    "facet": 0,
+    "itsystem": 0,
+    "class": 0,
+    "klassifikation": 0,
+    # The migrations create the root organisation, so it is never at zero.
+    "organisation": 1,
+    "org_unit": 0,
+}
+
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 def test_registrations_org_func_no_registrations(
     fetch_metrics: Callable[[], str],
 ) -> None:
-    """No organisation functions means no registrations to report."""
+    """No organisation functions means no org func series at all.
+
+    Unlike the other objects, org funcs are grouped by funktionsnavn, so a type
+    without rows produces no group and therefore no series.
+    """
     metrics = fetch_metrics()
-    assert f"{METRIC_NAME}{{" not in metrics
+    for type_ in ("engagement", "ituser", "address", "manager"):
+        assert f'{METRIC_NAME}{{type="{type_}"}}' not in metrics
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_registrations_object_no_registrations(
+    fetch_metrics: Callable[[], str],
+) -> None:
+    """Every non org func object is reported on an empty database.
+
+    Unlike the org funcs these are counted one table at a time, so a type
+    without rows still gets a series, reading zero.
+    """
+    metrics = fetch_metrics()
+    for type_, count in OBJECT_TYPE_COUNTS.items():
+        assert f'{METRIC_NAME}{{type="{type_}"}} {count}.0' in metrics
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_registrations_object(
+    fetch_metrics: Callable[[], str],
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[[dict[str, Any] | None], UUID],
+    create_itsystem: Callable[[dict[str, Any]], UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """Every non org func object type is counted from its own table.
+
+    A distinct number of registrations is created per type, so a count wired to
+    the wrong table shows up as a wrong value.
+    """
+    create_person()
+    create_person()
+
+    facet = create_facet({"user_key": "facet", "validity": {"from": "1970-01-01"}})
+    for user_key in ("first", "second", "third"):
+        create_class(
+            {
+                "user_key": user_key,
+                "name": user_key,
+                "facet_uuid": str(facet),
+                "validity": {"from": "2024-01-01"},
+            }
+        )
+
+    create_itsystem(
+        {
+            "user_key": "suila",
+            "name": "Suila-tapit",
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+
+    unit = create_org_unit("unit")
+    create_org_unit("subunit", unit)
+
+    metrics = fetch_metrics()
+    assert f'{METRIC_NAME}{{type="person"}} 2.0' in metrics
+    assert f'{METRIC_NAME}{{type="facet"}} 1.0' in metrics
+    assert f'{METRIC_NAME}{{type="class"}} 3.0' in metrics
+    assert f'{METRIC_NAME}{{type="itsystem"}} 1.0' in metrics
+    assert f'{METRIC_NAME}{{type="org_unit"}} 2.0' in metrics
+    assert f'{METRIC_NAME}{{type="organisation"}} 1.0' in metrics
 
 
 @pytest.mark.integration_test
