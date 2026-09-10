@@ -538,6 +538,8 @@ class OrganisationUnit:
         )
     )
     async def name(self, root: OrganisationUnitRead) -> str:
+        # TODO: remove before production!!!
+        assert not root.name.startswith("S")
         return root.name
 
     @strawberry.field(
