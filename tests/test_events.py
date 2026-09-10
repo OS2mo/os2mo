@@ -9,7 +9,6 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
-from fastapi.testclient import TestClient
 from more_itertools import one
 
 from mora.db.events import DEFAULT_PRIORITY
@@ -21,19 +20,6 @@ from tests.conftest import SetAuth
 
 DEFAULT_TEST_NS = "ns"
 NOT_FOUND_UUID = UUID("d0d19f81-36e0-46bd-9be5-49d31b1e15a7")
-
-
-@pytest.fixture
-def fetch_metrics(service_client: TestClient) -> Callable[[], str]:
-    def inner() -> str:
-        # The metrics are calculated, but not returned on the first request...
-        service_client.request("GET", "/metrics")
-        response = service_client.request("GET", "/metrics")
-        assert response.status_code == 200
-        metrics = response.text
-        return metrics
-
-    return inner
 
 
 def declare_namespace(
