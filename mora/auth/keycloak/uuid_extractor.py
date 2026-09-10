@@ -12,6 +12,7 @@ from more_itertools import one
 from sqlalchemy import ColumnElement
 from sqlalchemy import exists
 from sqlalchemy import or_
+from strawberry import UNSET
 
 from mora.graphapi import resolvers
 from mora.graphapi.filters import EmployeeFilter
@@ -21,6 +22,7 @@ from mora.graphapi.permissions import CollectionPermissionType
 from mora.graphapi.permissions import Collections
 from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.resolvers import organisation_unit_predicate
+from mora.util import ensure_list
 
 if TYPE_CHECKING:
     from mora.graphapi.context import MOInfo
@@ -36,7 +38,7 @@ def org_unit(uuid: UUID | None) -> list[Check]:
     Owning any ancestor also grants ownership: the `descendant` filter matches
     the unit together with all of its ancestors.
     """
-    if uuid is None:
+    if uuid is None or uuid is UNSET:
         return []
 
     def check(info: "MOInfo", actor: EmployeeFilter) -> ColumnElement:
@@ -54,7 +56,7 @@ def org_unit(uuid: UUID | None) -> list[Check]:
 
 def person(uuid: UUID | None) -> list[Check]:
     """Require ownership of the person named, if one is named."""
-    if uuid is None:
+    if uuid is None or uuid is UNSET:
         return []
 
     def check(info: "MOInfo", actor: EmployeeFilter) -> ColumnElement:
@@ -149,7 +151,7 @@ def check_parent(uuid: UUID, parent: UUID | None) -> list[Check]:
     GraphQL edits always contain the full object, so the parent named is just
     as often the one the unit already has, which is no move at all.
     """
-    if parent is None:
+    if parent is None or parent is UNSET:
         return []
 
     def check(info: "MOInfo", actor: EmployeeFilter) -> ColumnElement:
@@ -170,16 +172,15 @@ def check_parent(uuid: UUID, parent: UUID | None) -> list[Check]:
 
 
 def get_entities_graphql(
-    raw_input: list[Any],
+    raw_input: Any,
     collection: Collections,
     permission_type: CollectionPermissionType,
 ) -> list[Check]:
     """The ownership checks of the relevant entities (org unit or employee).
 
     Args:
-        raw_input: The list of `input` objects from the GraphQL mutator. The
-            schema-level RBAC extension always normalises this to a list (see
-            `mora.graphapi.schema.owner_policy`).
+        raw_input: The `input` of the GraphQL mutator, one object or, for the
+            plural mutators, a list of them.
         collection: The object collection (address, employee, org_unit, etc.).
         permission_type: The operation type (create, update, terminate, delete).
 
@@ -224,4 +225,4 @@ def get_entities_graphql(
             return linked
         return all_of(detail(getattr(input, "uuid"), collection), linked)
 
-    return each(rule)(raw_input)
+    return each(rule)(ensure_list(raw_input))
