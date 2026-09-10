@@ -37,6 +37,7 @@ from mora.common import lora_connector_context
 from mora.db.events import setup_event_metrics
 from mora.graphapi.middleware import is_graphql_context
 from mora.graphapi.middleware import set_graphql_version_from_url
+from mora.metrics import setup_registration_metrics
 from mora.request_scoped.query_args_context_plugin import query_args_context
 from mora.service.address_handler.dar import dar_loader_context
 from mora.service.shimmed.meta import meta_router
@@ -271,6 +272,7 @@ def create_app():
     )
     METRIC_AMQP_ENABLED.set(settings.amqp_enable)
     setup_event_metrics(instrumentator)
+    setup_registration_metrics(instrumentator)
 
     app.include_router(
         health.router,

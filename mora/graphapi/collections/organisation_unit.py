@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """Strawberry types describing the MO graph - Organisation Unit."""
 
+import os
 from textwrap import dedent
 from typing import Annotated
 from uuid import UUID
@@ -538,6 +539,9 @@ class OrganisationUnit:
         )
     )
     async def name(self, root: OrganisationUnitRead) -> str:
+        # TODO: remove before production!!!
+        if os.environ.get("DONT_ALLOW_S"):
+            assert not root.name.startswith("S")
         return root.name
 
     @strawberry.field(
