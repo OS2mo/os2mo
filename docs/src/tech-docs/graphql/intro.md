@@ -7,7 +7,7 @@ API on the `/graphql` endpoint.
 
 This API is the only way to interact with MO. 
 
-This documentation serves as an introduction to guide integration writers to how to write integrations for OS2mo. It does not aim to teach the reader about GraphQL, but rather seeks to introduce and document OS2mo-specifics.
+This documentation serves as an introduction to guide integration writers on how to write integrations for OS2mo. It does not aim to teach the reader about GraphQL, but rather seeks to introduce and document OS2mo-specifics.
 
 For a general introduction to GraphQL, please seek out other guides online.
 
