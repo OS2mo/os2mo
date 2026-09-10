@@ -6,17 +6,27 @@ from prometheus_fastapi_instrumentator.metrics import Info
 from sqlalchemy import Text
 from sqlalchemy import func
 from sqlalchemy import select
+from sqlalchemy import table
 from sqlalchemy import type_coerce
 
 import mora.db
 from mora.amqp import _lora_to_mo
 from mora.db import AsyncSession
 from mora.db import OrganisationFunktionAttrEgenskaber
+from oio_rest.db.db_structure import REAL_DB_STRUCTURE
 
 METRIC_REGISTRATION_COUNT = Counter(
     "os2mo_registration_count",
     "Number of registrations",
     ["type"],
+)
+
+# Every LoRa object has a `<name>_registrering` table. Organisation functions
+# are left out; they are counted per funktionsnavn instead.
+LORA_OBJECTS = tuple(
+    lora_object
+    for lora_object in REAL_DB_STRUCTURE
+    if lora_object != "organisationfunktion"
 )
 
 
@@ -43,6 +53,16 @@ async def org_func_registration_count(session: AsyncSession) -> None:
         METRIC_REGISTRATION_COUNT.labels(type=type_).inc(registrations)
 
 
+async def object_registrations_count(session: AsyncSession) -> None:
+    """Count registrations of every other LoRa object, one type at a time."""
+    for lora_object in LORA_OBJECTS:
+        query = select(func.count()).select_from(table(f"{lora_object}_registrering"))
+        result = await session.execute(query)
+        registrations = result.scalar_one()
+        type_ = _lora_to_mo.get(lora_object, lora_object)
+        METRIC_REGISTRATION_COUNT.labels(type=type_).inc(registrations)
+
+
 async def registration_count(info: Info) -> None:
     """Set METRIC_REGISTRATION_COUNT from the database.
 
@@ -55,6 +75,8 @@ async def registration_count(info: Info) -> None:
 
     # Dropping the children resets them, so the following `inc` leaves each
     # child at the number of registrations rather than accumulating scrapes.
+    # Both counting functions share the metric, so this has to happen once,
+    # before either of them runs.
     METRIC_REGISTRATION_COUNT.clear()
 
     async with (
@@ -62,6 +84,7 @@ async def registration_count(info: Info) -> None:
         session.begin(),
     ):
         await org_func_registration_count(session)
+        await object_registrations_count(session)
 
 
 def setup_registration_metrics(instrumentator: Instrumentator) -> None:
