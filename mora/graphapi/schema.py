@@ -7,6 +7,8 @@ from collections.abc import Awaitable
 from collections.abc import Callable
 from contextlib import suppress
 from functools import cache
+from functools import partial
+from inspect import isawaitable
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 from typing import Any
@@ -201,8 +203,7 @@ class IsAuthenticatedExtension(SchemaExtension):
 
 # A policy takes the resolver info and arguments, and returns whether it
 # grants access to the field.
-SyncPolicy = Callable[[GraphQLResolveInfo, dict[str, Any]], bool]
-AsyncPolicy = Callable[[GraphQLResolveInfo, dict[str, Any]], Awaitable[bool]]
+Policy = Callable[[GraphQLResolveInfo, dict[str, Any]], AwaitableOrValue[bool]]
 
 
 def introspection_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
@@ -261,7 +262,9 @@ def _actor_filter(settings: config.Settings, token: Token) -> EmployeeFilter:
     return EmployeeFilter(uuids=[token.uuid])
 
 
-async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
+def owner_policy(
+    info: GraphQLResolveInfo, kwargs: dict[str, Any]
+) -> AwaitableOrValue[bool]:
     """Allow access if the user is the owner of the accessed resources."""
     token = info.context.token
     token_roles = token.realm_access.roles
@@ -297,25 +300,27 @@ async def owner_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool
     # Nothing to own is not owned by anybody
     if not checks:
         return False
-    return bool(await moinfo.context.session.scalar(select(and_(*checks))))
+
+    async def owned() -> bool:
+        return bool(await moinfo.context.session.scalar(select(and_(*checks))))
+
+    return owned()
 
 
-SYNC_POLICIES: list[SyncPolicy] = [
+POLICIES: list[Policy] = [
     introspection_policy,
     no_role_required_policy,
     reader_policy,
     admin_policy,
-]
-ASYNC_POLICIES: list[AsyncPolicy] = [
     owner_policy,
 ]
 
 
-class RBACExtension(SchemaExtension):
+class PBACExtension(SchemaExtension):
     """Schema-level extension that enforces PBAC for every field.
 
-    Each field access is checked against the policies in `SYNC_POLICIES` and
-    `ASYNC_POLICIES`, one by one, until a policy allows access.
+    The awaitable answers are awaited only if no policy allows access at once,
+    so a field costs a coroutine only when a policy has to look something up.
 
     Access is rejected by default: every field must be listed in
     `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP` or `ADMIN_MAP`.
@@ -328,22 +333,27 @@ class RBACExtension(SchemaExtension):
         info: GraphQLResolveInfo,
         **kwargs: dict[str, Any],
     ) -> AwaitableOrValue[Any]:
-        for policy in SYNC_POLICIES:
-            if policy(info, kwargs):
-                return next_(root, info, **kwargs)
-        return self._resolve_async(next_, root, info, kwargs)
+        resolve_field = partial(next_, root, info, **kwargs)
+        pending: list[Awaitable[bool]] = []
+        for policy in POLICIES:
+            allowed = policy(info, kwargs)
+            if allowed is False:
+                continue
+            if allowed is True:
+                return resolve_field()
+            assert isawaitable(allowed)
+            pending.append(allowed)
+        if pending:
+            return self._resolve_async(pending, resolve_field)
+        raise GraphQLError("No policy approved the access")
 
     async def _resolve_async(
-        self,
-        next_: Callable[..., Any],
-        root: Any,
-        info: GraphQLResolveInfo,
-        kwargs: dict[str, Any],
+        self, pending: list[Awaitable[bool]], resolve_field: Callable[[], Any]
     ) -> Any:
-        """Resolve the field if any of the `ASYNC_POLICIES` allows access."""
-        for policy in ASYNC_POLICIES:
-            if await policy(info, kwargs):
-                return await await_maybe(next_(root, info, **kwargs))
+        """Resolve the field if any of the *pending* answers allows access."""
+        for allowed in pending:
+            if await allowed is True:
+                return await await_maybe(resolve_field())
         raise GraphQLError("No policy approved the access")
 
 
@@ -380,7 +390,7 @@ def get_schema(version: Version) -> CustomSchema:
         extensions=[
             StarletteContextExtension,
             IsAuthenticatedExtension,
-            RBACExtension,
+            PBACExtension,
             LogContextExtension,
             RuntimeContextExtension,
             RollbackOnError,
