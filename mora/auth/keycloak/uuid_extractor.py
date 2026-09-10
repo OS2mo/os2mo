@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
-from collections.abc import Iterable
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import get_type_hints
@@ -171,17 +170,13 @@ def check_parent(uuid: UUID, parent: UUID | None) -> list[Check]:
 
 
 def get_entities_graphql(
-    info: "MOInfo",
-    actor: EmployeeFilter,
     raw_input: list[Any],
     collection: Collections,
     permission_type: CollectionPermissionType,
-) -> Iterable[ColumnElement]:
-    """Check the ownership of the relevant entities (org unit or employee).
+) -> list[Check]:
+    """The ownership checks of the relevant entities (org unit or employee).
 
     Args:
-        info: The resolver info, carrying the session the checks read.
-        actor: The employee filter naming the owner to check against.
         raw_input: The list of `input` objects from the GraphQL mutator. The
             schema-level RBAC extension always normalises this to a list (see
             `mora.graphapi.schema.owner_policy`).
@@ -189,7 +184,7 @@ def get_entities_graphql(
         permission_type: The operation type (create, update, terminate, delete).
 
     Returns:
-        An iterable of checks, all of which must hold, for check_owner().
+        The checks, all of which must hold, for `owner_policy` to evaluate.
     """
 
     def rule(input: Any) -> list[Check]:
@@ -229,4 +224,4 @@ def get_entities_graphql(
             return linked
         return all_of(detail(getattr(input, "uuid"), collection), linked)
 
-    return [check(info, actor) for check in each(rule)(raw_input)]
+    return each(rule)(raw_input)
