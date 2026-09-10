@@ -281,9 +281,9 @@ def owner_policy(
     if "input" not in kwargs:
         return False
 
-    if info.field_name not in OWNER_ENTITIES:
+    rule = OWNER_ENTITIES.get(info.field_name)
+    if rule is None:
         return False
-    rule = OWNER_ENTITIES[info.field_name]
 
     moinfo = _create_info_from_raw(info)
     actor = _actor_filter(moinfo.context.settings, token)
