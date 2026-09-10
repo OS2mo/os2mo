@@ -49,7 +49,7 @@ async def org_func_registration_count(session: AsyncSession) -> None:
     for funktionsnavn, registrations in result.all():
         # `funktionsnavn` is an unconstrained text column, so fall back to the
         # LoRa name rather than dropping registrations we cannot map.
-        type_ = _lora_to_mo.get(funktionsnavn, funktionsnavn)
+        type_ = _lora_to_mo.get(funktionsnavn, funktionsnavn.lower())
         METRIC_REGISTRATION_COUNT.labels(type=type_).inc(registrations)
 
 

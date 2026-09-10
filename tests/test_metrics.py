@@ -184,7 +184,8 @@ async def test_registrations_org_func_unknown_funktionsnavn(
 
     Older databases hold funktionsnavne that are no longer part of
     `mora.db.FunktionsNavn`, e.g. "Rolle". Reading one must neither fail the
-    scrape nor drop the registration.
+    scrape nor drop the registration. There is no english name to map it to, so
+    it is reported lowercased, like the mapped ones.
     """
     person = create_person()
     org_unit = create_org_unit("unit")
@@ -208,4 +209,4 @@ async def test_registrations_org_func_unknown_funktionsnavn(
         )
 
     metrics = fetch_metrics()
-    assert f'{METRIC_NAME}{{type="Rolle"}} 1.0' in metrics
+    assert f'{METRIC_NAME}{{type="rolle"}} 1.0' in metrics
