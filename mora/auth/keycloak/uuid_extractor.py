@@ -19,12 +19,10 @@ from mora.graphapi.filters import ITSystemFilter
 from mora.graphapi.filters import ITUserFilter
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.filters import OwnerFilter
-from mora.graphapi.permissions import CollectionPermissionType
 from mora.graphapi.permissions import Collections
 from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.resolvers import organisation_unit_predicate
 from mora.graphapi.version import Version
-from mora.util import ensure_list
 
 OwnerRule = Callable[[Settings, Version, Token, dict[str, Any]], ColumnElement | None]
 
@@ -183,50 +181,3 @@ def check_parent(
     moved_under = org_unit(settings, version, token, parent)
     assert moved_under is not None
     return or_(keeps_parent, moved_under)
-
-
-def get_entities_graphql(
-    settings: Settings,
-    version: Version,
-    token: Token,
-    arguments: dict[str, Any],
-    collection: Collections,
-    permission_type: CollectionPermissionType,
-) -> ColumnElement | None:
-    """The ownership checks of the relevant entities (org unit or employee).
-
-    Args:
-        settings: The settings the predicates take.
-        version: The GraphQL schema version the predicates take.
-        token: The token of the calling actor.
-        arguments: The arguments of the GraphQL mutator, as the mutator itself
-            gets them; its `input` is one object or, for the plural mutators,
-            a list of them.
-        collection: The object collection (address, employee, org_unit, etc.).
-        permission_type: The operation type (create, update, terminate, delete).
-
-    Returns:
-        The check for `owner_policy` to evaluate, or None with nothing to check.
-    """
-
-    def rule(input: Any) -> ColumnElement | None:
-        # Even though most of the remaining object types (addresses,
-        # associations, engagements, IT-users, leaves, managers, owners and
-        # role-bindings, at time of writing) can reference both employees and
-        # org units, we prefer org units and short-circuit if that is set.
-        # Everything (except creates) requires ownership of both the existing
-        # database object as well as the new object from the input.
-        linked = org_unit_or_person(
-            settings,
-            version,
-            token,
-            getattr(input, "org_unit", None),
-            getattr(input, "person", None) or getattr(input, "employee", None),
-        )
-        if permission_type == "create":
-            return linked
-        return and_or_none(
-            detail(settings, version, token, getattr(input, "uuid"), collection), linked
-        )
-
-    return and_or_none(*(rule(input) for input in ensure_list(arguments["input"])))
