@@ -210,22 +210,6 @@ def get_entities_graphql(
     """
 
     def rule(input: Any) -> ColumnElement | None:
-        if collection == "org_unit":
-            # Create requires ownership of the parent we are trying to insert under
-            if permission_type == "create":
-                return org_unit(
-                    settings, version, token, getattr(input, "parent", None)
-                )
-            # Otherwise, changes always requires ownership of the org unit itself,
-            # and moving it (changing its parent) that of the new parent as well
-            uuid = getattr(input, "uuid")
-            return and_or_none(
-                org_unit(settings, version, token, uuid),
-                check_parent(
-                    settings, version, token, uuid, getattr(input, "parent", None)
-                ),
-            )
-
         if collection == "related_unit":
             # Related units have a single `origin` field and a list of
             # `destination`s. Originally we required ownership of both the
