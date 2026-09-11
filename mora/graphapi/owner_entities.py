@@ -9,27 +9,9 @@ from mora.auth.keycloak.uuid_extractor import all_of
 from mora.auth.keycloak.uuid_extractor import check_parent
 from mora.auth.keycloak.uuid_extractor import detail
 from mora.auth.keycloak.uuid_extractor import each
-from mora.auth.keycloak.uuid_extractor import get_entities_graphql
 from mora.auth.keycloak.uuid_extractor import org_unit
 from mora.auth.keycloak.uuid_extractor import org_unit_or_person
 from mora.auth.keycloak.uuid_extractor import person
-from mora.graphapi.permissions import CollectionPermissionType
-from mora.graphapi.permissions import Collections
-
-# The collection and operation each mutator touches
-_TOUCHES: dict[str, tuple[Collections, CollectionPermissionType]] = {
-    "address_update": ("address", "update"),
-    "association_update": ("association", "update"),
-    "engagement_update": ("engagement", "update"),
-    "engagements_update": ("engagement", "update"),
-    "itassociation_update": ("association", "update"),
-    "ituser_update": ("ituser", "update"),
-    "kle_update": ("kle", "update"),
-    "leave_update": ("leave", "update"),
-    "manager_update": ("manager", "update"),
-    "owner_update": ("owner", "update"),
-    "rolebinding_update": ("rolebinding", "update"),
-}
 
 # The rule for each collection's detail
 address = partial(detail, collection="address")
@@ -51,6 +33,10 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         input.org_unit, input.person or input.employee
     ),
     "address_terminate": lambda input: address(input.uuid),
+    "address_update": lambda input: all_of(
+        address(input.uuid),
+        org_unit_or_person(input.org_unit, input.person or input.employee),
+    ),
     "addresses_create": each(
         lambda input: org_unit_or_person(input.org_unit, input.person or input.employee)
     ),
@@ -59,6 +45,10 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         input.org_unit, input.person or input.employee
     ),
     "association_terminate": lambda input: association(input.uuid),
+    "association_update": lambda input: all_of(
+        association(input.uuid),
+        org_unit_or_person(input.org_unit, input.person or input.employee),
+    ),
     # The employee itself
     "employee_create": lambda input: person(input.uuid),
     "employee_terminate": lambda input: person(input.uuid),
@@ -68,29 +58,50 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         input.org_unit, input.person or input.employee
     ),
     "engagement_terminate": lambda input: engagement(input.uuid),
+    "engagement_update": lambda input: all_of(
+        engagement(input.uuid),
+        org_unit_or_person(input.org_unit, input.person or input.employee),
+    ),
     "engagements_create": each(
         lambda input: org_unit_or_person(input.org_unit, input.person or input.employee)
+    ),
+    "engagements_update": each(
+        lambda input: all_of(
+            engagement(input.uuid),
+            org_unit_or_person(input.org_unit, input.person or input.employee),
+        )
     ),
     # The unit of the IT-association, whose update cannot name a person
     "itassociation_create": lambda input: org_unit_or_person(
         input.org_unit, input.person
     ),
     "itassociation_terminate": lambda input: association(input.uuid),
+    "itassociation_update": lambda input: all_of(
+        association(input.uuid), org_unit(input.org_unit)
+    ),
     # The unit or the person the IT-user belongs to (exactly one is set)
     "ituser_create": lambda input: org_unit_or_person(input.org_unit, input.person),
     "ituser_terminate": lambda input: ituser(input.uuid),
+    "ituser_update": lambda input: all_of(
+        ituser(input.uuid), org_unit_or_person(input.org_unit, input.person)
+    ),
     "itusers_create": each(
         lambda input: org_unit_or_person(input.org_unit, input.person)
     ),
     # The annotated unit
     "kle_create": lambda input: org_unit(input.org_unit),
     "kle_terminate": lambda input: kle(input.uuid),
+    "kle_update": lambda input: all_of(kle(input.uuid), org_unit(input.org_unit)),
     # The person on leave
     "leave_create": lambda input: person(input.person),
     "leave_terminate": lambda input: leave(input.uuid),
+    "leave_update": lambda input: all_of(leave(input.uuid), person(input.person)),
     # The unit of the manager
     "manager_create": lambda input: org_unit_or_person(input.org_unit, input.person),
     "manager_terminate": lambda input: manager(input.uuid),
+    "manager_update": lambda input: all_of(
+        manager(input.uuid), org_unit_or_person(input.org_unit, input.person)
+    ),
     "managers_create": each(
         lambda input: org_unit_or_person(input.org_unit, input.person)
     ),
@@ -103,17 +114,16 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
     # The unit or the person owned (exactly one is set)
     "owner_create": lambda input: org_unit_or_person(input.org_unit, input.person),
     "owner_terminate": lambda input: owner(input.uuid),
+    "owner_update": lambda input: all_of(
+        owner(input.uuid), org_unit_or_person(input.org_unit, input.person)
+    ),
     # The origin of the relation
     "related_units_update": lambda input: org_unit(input.origin),
     # The unit of the role-binding, if one is named
     "rolebinding_create": lambda input: org_unit(input.org_unit),
     "rolebinding_terminate": lambda input: rolebinding(input.uuid),
+    "rolebinding_update": lambda input: all_of(
+        rolebinding(input.uuid), org_unit(input.org_unit)
+    ),
     "rolebindings_create": each(lambda input: org_unit(input.org_unit)),
-    # The mutators whose rule is still branched on collection and operation
-    **{
-        mutator: partial(
-            get_entities_graphql, collection=collection, permission_type=permission_type
-        )
-        for mutator, (collection, permission_type) in _TOUCHES.items()
-    },
 }
