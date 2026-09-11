@@ -259,10 +259,7 @@ def owner_policy(
 
     if info.field_name not in OWNER_ENTITIES:
         return False
-    collection, permission_type = OWNER_ENTITIES[info.field_name]
-
-    # Import here to avoid circular imports 🙂👍
-    from mora.auth.keycloak.uuid_extractor import get_entities_graphql
+    rule = OWNER_ENTITIES[info.field_name]
 
     moinfo = _create_info_from_raw(info)
     settings = moinfo.context.settings
@@ -275,9 +272,7 @@ def owner_policy(
         scalar_registry=moinfo.schema.schema_converter.scalar_registry,
         config=moinfo.schema.config,
     )
-    check = get_entities_graphql(
-        settings, version, token, arguments, collection, permission_type
-    )
+    check = rule(settings, version, token, arguments)
     logger.debug("Check owner", check=check)
     # Nothing to own is not owned by anybody
     if check is None:
