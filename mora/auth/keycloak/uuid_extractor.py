@@ -8,6 +8,7 @@ from typing import get_type_hints
 from uuid import UUID
 
 from more_itertools import first
+from more_itertools import flatten
 from more_itertools import one
 from sqlalchemy import ColumnElement
 from sqlalchemy import exists
@@ -121,6 +122,11 @@ def first_of(*checks: list[Check]) -> list[Check]:
     return first(filter(None, checks), [])
 
 
+def all_of(*checks: list[Check]) -> list[Check]:
+    """Require all of the checks."""
+    return list(flatten(checks))
+
+
 def org_unit_or_person(
     org_unit_uuid: UUID | None, person_uuid: UUID | None
 ) -> list[Check]:
@@ -176,35 +182,28 @@ def get_entities_graphql(
         An iterable of checks, all of which must hold, for check_owner().
     """
 
-    def now(checks: list[Check]) -> Iterable[ColumnElement]:
-        """The clauses of the checks, run against the request at hand."""
-        return (check(info, actor) for check in checks)
-
-    def extract(input) -> Iterable[ColumnElement]:
+    def rule(input: Any) -> list[Check]:
         # Allow both employee and person to avoid bugs in the future
         if collection in {"employee", "person"}:
-            yield from now(person(getattr(input, "uuid")))
-            return
+            return person(getattr(input, "uuid"))
 
         if collection == "org_unit":
             # Create requires ownership of the parent we are trying to insert under
             if permission_type == "create":
-                yield from now(org_unit(getattr(input, "parent", None)))
-                return
+                return org_unit(getattr(input, "parent", None))
             # Otherwise, changes always requires ownership of the org unit itself,
             # and moving it (changing its parent) that of the new parent as well
             uuid = getattr(input, "uuid")
-            yield from now(org_unit(uuid))
-            yield from now(check_parent(uuid, getattr(input, "parent", None)))
-            return
+            return all_of(
+                org_unit(uuid), check_parent(uuid, getattr(input, "parent", None))
+            )
 
         if collection == "related_unit":
             # Related units have a single `origin` field and a list of
             # `destination`s. Originally we required ownership of both the
             # origin and destinations, but that's not compatible with the old
             # service-api owner calculation
-            yield from now(org_unit(getattr(input, "origin", None)))
-            return
+            return org_unit(getattr(input, "origin", None))
 
         # Even though most of the remaining object types (addresses,
         # associations, engagements, IT-users, leaves, managers, owners and
@@ -212,15 +211,12 @@ def get_entities_graphql(
         # org units, we prefer org units and short-circuit if that is set.
         # Everything (except creates) requires ownership of both the existing
         # database object as well as the new object from the input.
-        if permission_type != "create":
-            yield from now(detail(getattr(input, "uuid"), collection))
-
-        yield from now(
-            org_unit_or_person(
-                getattr(input, "org_unit", None),
-                getattr(input, "person", None) or getattr(input, "employee", None),
-            )
+        linked = org_unit_or_person(
+            getattr(input, "org_unit", None),
+            getattr(input, "person", None) or getattr(input, "employee", None),
         )
+        if permission_type == "create":
+            return linked
+        return all_of(detail(getattr(input, "uuid"), collection), linked)
 
-    for input in raw_input:
-        yield from extract(input=input)
+    return [check(info, actor) for input in raw_input for check in rule(input)]
