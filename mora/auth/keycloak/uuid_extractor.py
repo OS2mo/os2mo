@@ -140,6 +140,22 @@ def _keeps_parent(info: "MOInfo", uuid: UUID, parent: UUID) -> ColumnElement:
     )
 
 
+def check_parent(uuid: UUID, parent: UUID | None) -> list[Check]:
+    """Require ownership of the parent a unit is moved under, if it is moved.
+
+    GraphQL edits always contain the full object, so the parent named is just
+    as often the one the unit already has, which is no move at all.
+    """
+    if parent is None:
+        return []
+
+    def check(info: "MOInfo", actor: EmployeeFilter) -> ColumnElement:
+        moved_under = one(org_unit(parent))(info, actor)
+        return or_(_keeps_parent(info, uuid, parent), moved_under)
+
+    return [check]
+
+
 def get_entities_graphql(
     info: "MOInfo",
     actor: EmployeeFilter,
@@ -177,17 +193,11 @@ def get_entities_graphql(
             if permission_type == "create":
                 yield from now(org_unit(getattr(input, "parent", None)))
                 return
-            # Otherwise, changes always requires ownership of the org unit itself
-            yield from now(org_unit(getattr(input, "uuid")))
-            # Additionally, moving an org unit (changing its parent) requires ownership
-            # of the new parent. GraphQL edits always contain the full object, so the
-            # parent named is just as often the one the unit already has, which is no
-            # move at all.
-            if parent := getattr(input, "parent", None):
-                yield or_(
-                    _keeps_parent(info, getattr(input, "uuid"), parent),
-                    one(now(org_unit(parent))),
-                )
+            # Otherwise, changes always requires ownership of the org unit itself,
+            # and moving it (changing its parent) that of the new parent as well
+            uuid = getattr(input, "uuid")
+            yield from now(org_unit(uuid))
+            yield from now(check_parent(uuid, getattr(input, "parent", None)))
             return
 
         if collection == "related_unit":
