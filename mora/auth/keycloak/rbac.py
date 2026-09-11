@@ -49,19 +49,16 @@ def org_unit(uuid: UUID | None) -> list[Check]:
     return [check]
 
 
-def _is_owner_employee(entity_uuid: UUID | None) -> list[Check]:
-    """Check employee ownership via the GraphQL employee owner filter.
-
-    No employee named is nothing to own, and thus nothing to check.
-    """
-    if entity_uuid is None:
+def person(uuid: UUID | None) -> list[Check]:
+    """Require ownership of the person named, if one is named."""
+    if uuid is None:
         return []
 
     def check(info: "MOInfo", actor: EmployeeFilter) -> ColumnElement:
         predicate = employee_predicate(
             info=info,
             filter=EmployeeFilter(
-                uuids=[entity_uuid],
+                uuids=[uuid],
                 owner=OwnerFilter(owner=actor),
             ),
         )
