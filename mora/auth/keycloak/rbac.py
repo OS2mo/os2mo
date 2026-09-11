@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 from typing import get_type_hints
 from uuid import UUID
@@ -22,10 +23,11 @@ if TYPE_CHECKING:
 
 logger = get_logger()
 
+# A check builds the clause the actor must satisfy to own an entity
+Check = Callable[["MOInfo", EmployeeFilter], ColumnElement]
 
-def _is_owner_org_unit(
-    info: "MOInfo", actor: EmployeeFilter, entity_uuid: UUID | None
-) -> list[ColumnElement]:
+
+def _is_owner_org_unit(entity_uuid: UUID | None) -> list[Check]:
     """Check org-unit ownership via the GraphQL org-unit owner filter.
 
     Owning any ancestor also grants ownership: the `descendant` filter matches
@@ -34,72 +36,82 @@ def _is_owner_org_unit(
     """
     if entity_uuid is None:
         return []
-    predicate = organisation_unit_predicate(
-        info=info,
-        filter=OrganisationUnitFilter(
-            descendant=OrganisationUnitFilter(uuids=[entity_uuid]),
-            owner=OwnerFilter(owner=actor),
-        ),
-    )
-    return [exists().where(predicate)]
+
+    def check(info: "MOInfo", actor: EmployeeFilter) -> ColumnElement:
+        predicate = organisation_unit_predicate(
+            info=info,
+            filter=OrganisationUnitFilter(
+                descendant=OrganisationUnitFilter(uuids=[entity_uuid]),
+                owner=OwnerFilter(owner=actor),
+            ),
+        )
+        return exists().where(predicate)
+
+    return [check]
 
 
-def _is_owner_employee(
-    info: "MOInfo", actor: EmployeeFilter, entity_uuid: UUID | None
-) -> list[ColumnElement]:
+def _is_owner_employee(entity_uuid: UUID | None) -> list[Check]:
     """Check employee ownership via the GraphQL employee owner filter.
 
     No employee named is nothing to own, and thus nothing to check.
     """
     if entity_uuid is None:
         return []
-    predicate = employee_predicate(
-        info=info,
-        filter=EmployeeFilter(
-            uuids=[entity_uuid],
-            owner=OwnerFilter(owner=actor),
-        ),
-    )
-    return [exists().where(predicate)]
 
-
-def _is_owner_detail(
-    info: "MOInfo", actor: EmployeeFilter, collection: Collections, entity_uuid: UUID
-) -> list[ColumnElement]:
-    """Check detail ownership via the GraphQL filter of its own collection."""
-    # The detail collections, each the predicate selecting its objects
-    predicate = {
-        "address": resolvers.address_predicate,
-        "association": resolvers.association_predicate,
-        "engagement": resolvers.engagement_predicate,
-        "ituser": resolvers.it_user_predicate,
-        "kle": resolvers.kle_predicate,
-        "leave": resolvers.leave_predicate,
-        "manager": resolvers.manager_predicate,
-        "owner": resolvers.owner_predicate,
-        "rolebinding": resolvers.rolebinding_predicate,
-    }[collection]
-    filter = get_type_hints(predicate)["filter"]
-    owner = OwnerFilter(owner=actor)
-    # A detail is owned by whoever owns the org unit or the person it links.
-    # Every collection can name an org unit, only some can name a person
-    via_org_unit = exists().where(
-        predicate(
+    def check(info: "MOInfo", actor: EmployeeFilter) -> ColumnElement:
+        predicate = employee_predicate(
             info=info,
-            filter=filter(
+            filter=EmployeeFilter(
                 uuids=[entity_uuid],
-                org_unit=OrganisationUnitFilter(
-                    ancestor=OrganisationUnitFilter(owner=owner)
-                ),
+                owner=OwnerFilter(owner=actor),
             ),
         )
-    )
-    if "employee" not in get_type_hints(filter):
-        return [via_org_unit]
-    via_person = exists().where(
-        predicate(
-            info=info,
-            filter=filter(uuids=[entity_uuid], employee=EmployeeFilter(owner=owner)),
+        return exists().where(predicate)
+
+    return [check]
+
+
+def _is_owner_detail(collection: Collections, entity_uuid: UUID) -> list[Check]:
+    """Check detail ownership via the GraphQL filter of its own collection."""
+
+    def check(info: "MOInfo", actor: EmployeeFilter) -> ColumnElement:
+        # The detail collections, each the predicate selecting its objects
+        predicate = {
+            "address": resolvers.address_predicate,
+            "association": resolvers.association_predicate,
+            "engagement": resolvers.engagement_predicate,
+            "ituser": resolvers.it_user_predicate,
+            "kle": resolvers.kle_predicate,
+            "leave": resolvers.leave_predicate,
+            "manager": resolvers.manager_predicate,
+            "owner": resolvers.owner_predicate,
+            "rolebinding": resolvers.rolebinding_predicate,
+        }[collection]
+        filter = get_type_hints(predicate)["filter"]
+        owner = OwnerFilter(owner=actor)
+        # A detail is owned by whoever owns the org unit or the person it links.
+        # Every collection can name an org unit, only some can name a person
+        via_org_unit = exists().where(
+            predicate(
+                info=info,
+                filter=filter(
+                    uuids=[entity_uuid],
+                    org_unit=OrganisationUnitFilter(
+                        ancestor=OrganisationUnitFilter(owner=owner)
+                    ),
+                ),
+            )
         )
-    )
-    return [or_(via_org_unit, via_person)]
+        if "employee" not in get_type_hints(filter):
+            return via_org_unit
+        via_person = exists().where(
+            predicate(
+                info=info,
+                filter=filter(
+                    uuids=[entity_uuid], employee=EmployeeFilter(owner=owner)
+                ),
+            )
+        )
+        return or_(via_org_unit, via_person)
+
+    return [check]
