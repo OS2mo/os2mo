@@ -146,21 +146,6 @@ def org_unit_or_person(
     return person(settings, version, token, person_uuid)
 
 
-def _keeps_parent(
-    settings: Settings, version: Version, uuid: UUID, parent: UUID
-) -> ColumnElement:
-    """Whether the parent named is the one the org unit already has."""
-    return exists().where(
-        organisation_unit_predicate(
-            settings=settings,
-            version=version,
-            filter=OrganisationUnitFilter(
-                uuids=[parent], child=OrganisationUnitFilter(uuids=[uuid])
-            ),
-        )
-    )
-
-
 def check_parent(
     settings: Settings, version: Version, token: Token, uuid: UUID, parent: UUID | None
 ) -> ColumnElement | None:
@@ -171,9 +156,20 @@ def check_parent(
     """
     if parent is None:
         return None
+    # Whether the parent named is the one the unit already has
+    keeps_parent = exists().where(
+        organisation_unit_predicate(
+            settings=settings,
+            version=version,
+            filter=OrganisationUnitFilter(
+                uuids=[parent], child=OrganisationUnitFilter(uuids=[uuid])
+            ),
+        )
+    )
+    # ... or the actor owns the parent it is moved under
     moved_under = org_unit(settings, version, token, parent)
     assert moved_under is not None
-    return or_(_keeps_parent(settings, version, uuid, parent), moved_under)
+    return or_(keeps_parent, moved_under)
 
 
 def get_entities_graphql(
