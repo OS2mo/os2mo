@@ -6,6 +6,7 @@ from functools import partial
 
 from mora.auth.keycloak.uuid_extractor import OwnerRule
 from mora.auth.keycloak.uuid_extractor import get_entities_graphql
+from mora.auth.keycloak.uuid_extractor import person
 from mora.graphapi.permissions import CollectionPermissionType
 from mora.graphapi.permissions import Collections
 
@@ -18,9 +19,6 @@ _TOUCHES: dict[str, tuple[Collections, CollectionPermissionType]] = {
     "association_create": ("association", "create"),
     "association_terminate": ("association", "terminate"),
     "association_update": ("association", "update"),
-    "employee_create": ("employee", "create"),
-    "employee_terminate": ("employee", "terminate"),
-    "employee_update": ("employee", "update"),
     "engagement_create": ("engagement", "create"),
     "engagement_terminate": ("engagement", "terminate"),
     "engagement_update": ("engagement", "update"),
@@ -56,11 +54,18 @@ _TOUCHES: dict[str, tuple[Collections, CollectionPermissionType]] = {
     "rolebindings_create": ("rolebinding", "create"),
 }
 
-# What a mutator requires owned: the rule for its collection and operation.
+# What a mutator requires owned, read off its `input`.
 # A mutator not listed here is never granted by ownership
 OWNER_ENTITIES: dict[str, OwnerRule] = {
-    mutator: partial(
-        get_entities_graphql, collection=collection, permission_type=permission_type
-    )
-    for mutator, (collection, permission_type) in _TOUCHES.items()
+    # The employee itself
+    "employee_create": lambda input: person(input.uuid),
+    "employee_terminate": lambda input: person(input.uuid),
+    "employee_update": lambda input: person(input.uuid),
+    # The mutators whose rule is still branched on collection and operation
+    **{
+        mutator: partial(
+            get_entities_graphql, collection=collection, permission_type=permission_type
+        )
+        for mutator, (collection, permission_type) in _TOUCHES.items()
+    },
 }

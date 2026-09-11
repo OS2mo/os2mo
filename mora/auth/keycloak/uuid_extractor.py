@@ -189,10 +189,6 @@ def get_entities_graphql(
     """
 
     def rule(input: Any) -> list[Check]:
-        # Allow both employee and person to avoid bugs in the future
-        if collection in {"employee", "person"}:
-            return person(getattr(input, "uuid"))
-
         if collection == "org_unit":
             # Create requires ownership of the parent we are trying to insert under
             if permission_type == "create":
