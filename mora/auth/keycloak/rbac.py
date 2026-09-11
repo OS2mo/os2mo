@@ -67,8 +67,11 @@ def person(uuid: UUID | None) -> list[Check]:
     return [check]
 
 
-def _is_owner_detail(collection: Collections, entity_uuid: UUID) -> list[Check]:
-    """Check detail ownership via the GraphQL filter of its own collection."""
+def detail(uuid: UUID, collection: Collections) -> list[Check]:
+    """Require ownership of the detail itself, whatever it links to now.
+
+    A detail is owned by whoever owns the org unit or the person it links.
+    """
 
     def check(info: "MOInfo", actor: EmployeeFilter) -> ColumnElement:
         # The detail collections, each the predicate selecting its objects
@@ -85,13 +88,12 @@ def _is_owner_detail(collection: Collections, entity_uuid: UUID) -> list[Check]:
         }[collection]
         filter = get_type_hints(predicate)["filter"]
         owner = OwnerFilter(owner=actor)
-        # A detail is owned by whoever owns the org unit or the person it links.
-        # Every collection can name an org unit, only some can name a person
+        # Whoever owns what the detail links: its org unit (through any ancestor)
         via_org_unit = exists().where(
             predicate(
                 info=info,
                 filter=filter(
-                    uuids=[entity_uuid],
+                    uuids=[uuid],
                     org_unit=OrganisationUnitFilter(
                         ancestor=OrganisationUnitFilter(owner=owner)
                     ),
@@ -100,12 +102,11 @@ def _is_owner_detail(collection: Collections, entity_uuid: UUID) -> list[Check]:
         )
         if "employee" not in get_type_hints(filter):
             return via_org_unit
+        # ... or its person
         via_person = exists().where(
             predicate(
                 info=info,
-                filter=filter(
-                    uuids=[entity_uuid], employee=EmployeeFilter(owner=owner)
-                ),
+                filter=filter(uuids=[uuid], employee=EmployeeFilter(owner=owner)),
             )
         )
         return or_(via_org_unit, via_person)

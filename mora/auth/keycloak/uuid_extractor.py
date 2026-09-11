@@ -11,7 +11,7 @@ from sqlalchemy import exists
 from sqlalchemy import or_
 
 from mora.auth.keycloak.rbac import Check
-from mora.auth.keycloak.rbac import _is_owner_detail
+from mora.auth.keycloak.rbac import detail
 from mora.auth.keycloak.rbac import org_unit
 from mora.auth.keycloak.rbac import person
 from mora.graphapi.filters import EmployeeFilter
@@ -101,7 +101,7 @@ def get_entities_graphql(
         # Everything (except creates) requires ownership of both the existing
         # database object as well as the new object from the input.
         if permission_type != "create":
-            yield from now(_is_owner_detail(collection, getattr(input, "uuid")))
+            yield from now(detail(getattr(input, "uuid"), collection))
 
         # Existing object (e.g. update). Again, we prefer org unit over person.
         if org_unit_uuid := getattr(input, "org_unit", None):
