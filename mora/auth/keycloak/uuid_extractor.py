@@ -13,7 +13,7 @@ from sqlalchemy import or_
 from mora.auth.keycloak.rbac import Check
 from mora.auth.keycloak.rbac import _is_owner_detail
 from mora.auth.keycloak.rbac import _is_owner_employee
-from mora.auth.keycloak.rbac import _is_owner_org_unit
+from mora.auth.keycloak.rbac import org_unit
 from mora.graphapi.filters import EmployeeFilter
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.permissions import CollectionPermissionType
@@ -71,10 +71,10 @@ def get_entities_graphql(
         if collection == "org_unit":
             # Create requires ownership of the parent we are trying to insert under
             if permission_type == "create":
-                yield from now(_is_owner_org_unit(getattr(input, "parent", None)))
+                yield from now(org_unit(getattr(input, "parent", None)))
                 return
             # Otherwise, changes always requires ownership of the org unit itself
-            yield from now(_is_owner_org_unit(getattr(input, "uuid")))
+            yield from now(org_unit(getattr(input, "uuid")))
             # Additionally, moving an org unit (changing its parent) requires ownership
             # of the new parent. GraphQL edits always contain the full object, so the
             # parent named is just as often the one the unit already has, which is no
@@ -82,7 +82,7 @@ def get_entities_graphql(
             if parent := getattr(input, "parent", None):
                 yield or_(
                     _keeps_parent(info, getattr(input, "uuid"), parent),
-                    one(now(_is_owner_org_unit(parent))),
+                    one(now(org_unit(parent))),
                 )
             return
 
@@ -91,7 +91,7 @@ def get_entities_graphql(
             # `destination`s. Originally we required ownership of both the
             # origin and destinations, but that's not compatible with the old
             # service-api owner calculation
-            yield from now(_is_owner_org_unit(getattr(input, "origin", None)))
+            yield from now(org_unit(getattr(input, "origin", None)))
             return
 
         # Even though most of the remaining object types (addresses,
@@ -104,8 +104,8 @@ def get_entities_graphql(
             yield from now(_is_owner_detail(collection, getattr(input, "uuid")))
 
         # Existing object (e.g. update). Again, we prefer org unit over person.
-        if org_unit := getattr(input, "org_unit", None):
-            yield from now(_is_owner_org_unit(org_unit))
+        if org_unit_uuid := getattr(input, "org_unit", None):
+            yield from now(org_unit(org_unit_uuid))
             return
         yield from now(_is_owner_employee(getattr(input, "employee", None)))
         yield from now(_is_owner_employee(getattr(input, "person", None)))

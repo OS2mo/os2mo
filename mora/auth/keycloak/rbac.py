@@ -27,21 +27,20 @@ logger = get_logger()
 Check = Callable[["MOInfo", EmployeeFilter], ColumnElement]
 
 
-def _is_owner_org_unit(entity_uuid: UUID | None) -> list[Check]:
-    """Check org-unit ownership via the GraphQL org-unit owner filter.
+def org_unit(uuid: UUID | None) -> list[Check]:
+    """Require ownership of the unit named, if one is named.
 
     Owning any ancestor also grants ownership: the `descendant` filter matches
-    the unit together with all of its ancestors. No org unit named is nothing
-    to own, and thus nothing to check.
+    the unit together with all of its ancestors.
     """
-    if entity_uuid is None:
+    if uuid is None:
         return []
 
     def check(info: "MOInfo", actor: EmployeeFilter) -> ColumnElement:
         predicate = organisation_unit_predicate(
             info=info,
             filter=OrganisationUnitFilter(
-                descendant=OrganisationUnitFilter(uuids=[entity_uuid]),
+                descendant=OrganisationUnitFilter(uuids=[uuid]),
                 owner=OwnerFilter(owner=actor),
             ),
         )
