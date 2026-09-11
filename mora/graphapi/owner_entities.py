@@ -47,7 +47,6 @@ _TOUCHES: dict[str, tuple[Collections, CollectionPermissionType]] = {
     "owner_create": ("owner", "create"),
     "owner_terminate": ("owner", "terminate"),
     "owner_update": ("owner", "update"),
-    "related_units_update": ("related_unit", "update"),
     "rolebinding_create": ("rolebinding", "create"),
     "rolebinding_terminate": ("rolebinding", "terminate"),
     "rolebinding_update": ("rolebinding", "update"),
@@ -67,6 +66,8 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
     "org_unit_update": lambda input: all_of(
         org_unit(input.uuid), check_parent(input.uuid, input.parent)
     ),
+    # The origin of the relation
+    "related_units_update": lambda input: org_unit(input.origin),
     # The mutators whose rule is still branched on collection and operation
     **{
         mutator: partial(
