@@ -161,6 +161,21 @@ def _keeps_parent(
     )
 
 
+def check_parent(
+    settings: Settings, version: Version, token: Token, uuid: UUID, parent: UUID | None
+) -> ColumnElement | None:
+    """Require ownership of the parent a unit is moved under, if it is moved.
+
+    GraphQL edits always contain the full object, so the parent named is just
+    as often the one the unit already has, which is no move at all.
+    """
+    if parent is None:
+        return None
+    moved_under = org_unit(settings, version, token, parent)
+    assert moved_under is not None
+    return or_(_keeps_parent(settings, version, uuid, parent), moved_under)
+
+
 def get_entities_graphql(
     settings: Settings,
     version: Version,
@@ -196,17 +211,13 @@ def get_entities_graphql(
             if permission_type == "create":
                 yield org_unit(settings, version, token, getattr(input, "parent", None))
                 return
-            # Otherwise, changes always requires ownership of the org unit itself
-            yield org_unit(settings, version, token, getattr(input, "uuid"))
-            # Additionally, moving an org unit (changing its parent) requires ownership
-            # of the new parent. GraphQL edits always contain the full object, so the
-            # parent named is just as often the one the unit already has, which is no
-            # move at all.
-            if parent := getattr(input, "parent", None):
-                yield or_(
-                    _keeps_parent(settings, version, getattr(input, "uuid"), parent),
-                    org_unit(settings, version, token, parent),
-                )
+            # Otherwise, changes always requires ownership of the org unit itself,
+            # and moving it (changing its parent) that of the new parent as well
+            uuid = getattr(input, "uuid")
+            yield org_unit(settings, version, token, uuid)
+            yield check_parent(
+                settings, version, token, uuid, getattr(input, "parent", None)
+            )
             return
 
         if collection == "related_unit":
