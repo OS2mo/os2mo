@@ -65,20 +65,17 @@ def org_unit(
     return exists().where(predicate)
 
 
-def _is_owner_employee(
-    settings: Settings, version: Version, token: Token, entity_uuid: UUID | None
+def person(
+    settings: Settings, version: Version, token: Token, uuid: UUID | None
 ) -> ColumnElement | None:
-    """Check employee ownership via the GraphQL employee owner filter.
-
-    No employee named is nothing to own, and thus nothing to check.
-    """
-    if entity_uuid is None:
+    """Require ownership of the person named, if one is named."""
+    if uuid is None:
         return None
     predicate = employee_predicate(
         settings=settings,
         version=version,
         filter=EmployeeFilter(
-            uuids=[entity_uuid],
+            uuids=[uuid],
             owner=OwnerFilter(owner=_actor_filter(settings, token)),
         ),
     )

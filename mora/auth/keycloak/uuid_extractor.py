@@ -10,8 +10,8 @@ from sqlalchemy import or_
 
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.rbac import _is_owner_detail
-from mora.auth.keycloak.rbac import _is_owner_employee
 from mora.auth.keycloak.rbac import org_unit
+from mora.auth.keycloak.rbac import person
 from mora.config import Settings
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.permissions import CollectionPermissionType
@@ -62,7 +62,7 @@ def get_entities_graphql(
     def extract(input) -> Iterable[ColumnElement | None]:
         # Allow both employee and person to avoid bugs in the future
         if collection in {"employee", "person"}:
-            yield _is_owner_employee(settings, version, token, getattr(input, "uuid"))
+            yield person(settings, version, token, getattr(input, "uuid"))
             return
 
         if collection == "org_unit":
@@ -106,12 +106,8 @@ def get_entities_graphql(
         if org_unit_uuid := getattr(input, "org_unit", None):
             yield org_unit(settings, version, token, org_unit_uuid)
             return
-        yield _is_owner_employee(
-            settings, version, token, getattr(input, "employee", None)
-        )
-        yield _is_owner_employee(
-            settings, version, token, getattr(input, "person", None)
-        )
+        yield person(settings, version, token, getattr(input, "employee", None))
+        yield person(settings, version, token, getattr(input, "person", None))
 
     for input in raw_input:
         for check in extract(input=input):
