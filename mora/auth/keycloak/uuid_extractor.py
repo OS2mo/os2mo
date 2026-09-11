@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 
 # A check builds the clause the actor must satisfy to own an entity
 Check = Callable[["MOInfo", EmployeeFilter], ColumnElement]
+OwnerRule = Callable[[Any], list[Check]]
 
 
 def org_unit(uuid: UUID | None) -> list[Check]:
@@ -127,6 +128,15 @@ def all_of(*checks: list[Check]) -> list[Check]:
     return list(flatten(checks))
 
 
+def each(rule: OwnerRule) -> OwnerRule:
+    """Turn a rule for one input into the rule for a list of them.
+
+    The plural mutators, `addresses_create` and the like, take a list of
+    inputs, and the actor must own whatever every one of them requires.
+    """
+    return lambda inputs: all_of(*map(rule, inputs))
+
+
 def org_unit_or_person(
     org_unit_uuid: UUID | None, person_uuid: UUID | None
 ) -> list[Check]:
@@ -219,4 +229,4 @@ def get_entities_graphql(
             return linked
         return all_of(detail(getattr(input, "uuid"), collection), linked)
 
-    return [check(info, actor) for input in raw_input for check in rule(input)]
+    return [check(info, actor) for check in each(rule)(raw_input)]
