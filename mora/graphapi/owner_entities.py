@@ -5,7 +5,10 @@
 from functools import partial
 
 from mora.auth.keycloak.uuid_extractor import OwnerRule
+from mora.auth.keycloak.uuid_extractor import all_of
+from mora.auth.keycloak.uuid_extractor import check_parent
 from mora.auth.keycloak.uuid_extractor import get_entities_graphql
+from mora.auth.keycloak.uuid_extractor import org_unit
 from mora.auth.keycloak.uuid_extractor import person
 from mora.graphapi.permissions import CollectionPermissionType
 from mora.graphapi.permissions import Collections
@@ -41,9 +44,6 @@ _TOUCHES: dict[str, tuple[Collections, CollectionPermissionType]] = {
     "manager_terminate": ("manager", "terminate"),
     "manager_update": ("manager", "update"),
     "managers_create": ("manager", "create"),
-    "org_unit_create": ("org_unit", "create"),
-    "org_unit_terminate": ("org_unit", "terminate"),
-    "org_unit_update": ("org_unit", "update"),
     "owner_create": ("owner", "create"),
     "owner_terminate": ("owner", "terminate"),
     "owner_update": ("owner", "update"),
@@ -61,6 +61,12 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
     "employee_create": lambda input: person(input.uuid),
     "employee_terminate": lambda input: person(input.uuid),
     "employee_update": lambda input: person(input.uuid),
+    # The parent, or the unit itself and its new parent if it is being moved
+    "org_unit_create": lambda input: org_unit(input.parent),
+    "org_unit_terminate": lambda input: org_unit(input.uuid),
+    "org_unit_update": lambda input: all_of(
+        org_unit(input.uuid), check_parent(input.uuid, input.parent)
+    ),
     # The mutators whose rule is still branched on collection and operation
     **{
         mutator: partial(
