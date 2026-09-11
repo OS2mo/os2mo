@@ -18,11 +18,9 @@ from mora.graphapi import resolvers
 from mora.graphapi.filters import EmployeeFilter
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.filters import OwnerFilter
-from mora.graphapi.permissions import CollectionPermissionType
 from mora.graphapi.permissions import Collections
 from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.resolvers import organisation_unit_predicate
-from mora.util import ensure_list
 
 if TYPE_CHECKING:
     from mora.graphapi.context import MOInfo
@@ -169,38 +167,3 @@ def check_parent(uuid: UUID, parent: UUID | None) -> list[Check]:
         return or_(keeps_parent, moved_under)
 
     return [check]
-
-
-def get_entities_graphql(
-    raw_input: Any,
-    collection: Collections,
-    permission_type: CollectionPermissionType,
-) -> list[Check]:
-    """The ownership checks of the relevant entities (org unit or employee).
-
-    Args:
-        raw_input: The `input` of the GraphQL mutator, one object or, for the
-            plural mutators, a list of them.
-        collection: The object collection (address, employee, org_unit, etc.).
-        permission_type: The operation type (create, update, terminate, delete).
-
-    Returns:
-        The checks, all of which must hold, for `owner_policy` to evaluate.
-    """
-
-    def rule(input: Any) -> list[Check]:
-        # Even though most of the remaining object types (addresses,
-        # associations, engagements, IT-users, leaves, managers, owners and
-        # role-bindings, at time of writing) can reference both employees and
-        # org units, we prefer org units and short-circuit if that is set.
-        # Everything (except creates) requires ownership of both the existing
-        # database object as well as the new object from the input.
-        linked = org_unit_or_person(
-            getattr(input, "org_unit", None),
-            getattr(input, "person", None) or getattr(input, "employee", None),
-        )
-        if permission_type == "create":
-            return linked
-        return all_of(detail(getattr(input, "uuid"), collection), linked)
-
-    return each(rule)(ensure_list(raw_input))
