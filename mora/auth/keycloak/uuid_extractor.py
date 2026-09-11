@@ -210,13 +210,6 @@ def get_entities_graphql(
     """
 
     def rule(input: Any) -> ColumnElement | None:
-        if collection == "related_unit":
-            # Related units have a single `origin` field and a list of
-            # `destination`s. Originally we required ownership of both the
-            # origin and destinations, but that's not compatible with the old
-            # service-api owner calculation
-            return org_unit(settings, version, token, getattr(input, "origin", None))
-
         # Even though most of the remaining object types (addresses,
         # associations, engagements, IT-users, leaves, managers, owners and
         # role-bindings, at time of writing) can reference both employees and
