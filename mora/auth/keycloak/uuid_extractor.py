@@ -7,6 +7,7 @@ from typing import Any
 from typing import get_type_hints
 from uuid import UUID
 
+from more_itertools import first
 from more_itertools import one
 from sqlalchemy import ColumnElement
 from sqlalchemy import exists
@@ -115,6 +116,18 @@ def detail(uuid: UUID, collection: Collections) -> list[Check]:
     return [check]
 
 
+def first_of(*checks: list[Check]) -> list[Check]:
+    """Require only the first of the checks that requires anything."""
+    return first(filter(None, checks), [])
+
+
+def org_unit_or_person(
+    org_unit_uuid: UUID | None, person_uuid: UUID | None
+) -> list[Check]:
+    """Require ownership of the unit if one is named, else of the person."""
+    return first_of(org_unit(org_unit_uuid), person(person_uuid))
+
+
 def _keeps_parent(info: "MOInfo", uuid: UUID, parent: UUID) -> ColumnElement:
     """Whether the parent named is the one the org unit already has."""
     return exists().where(
@@ -194,12 +207,12 @@ def get_entities_graphql(
         if permission_type != "create":
             yield from now(detail(getattr(input, "uuid"), collection))
 
-        # Existing object (e.g. update). Again, we prefer org unit over person.
-        if org_unit_uuid := getattr(input, "org_unit", None):
-            yield from now(org_unit(org_unit_uuid))
-            return
-        yield from now(person(getattr(input, "employee", None)))
-        yield from now(person(getattr(input, "person", None)))
+        yield from now(
+            org_unit_or_person(
+                getattr(input, "org_unit", None),
+                getattr(input, "person", None) or getattr(input, "employee", None),
+            )
+        )
 
     for input in raw_input:
         yield from extract(input=input)
