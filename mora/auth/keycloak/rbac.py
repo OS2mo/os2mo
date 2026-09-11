@@ -82,14 +82,17 @@ def person(
     return exists().where(predicate)
 
 
-def _is_owner_detail(
+def detail(
     settings: Settings,
     version: Version,
     token: Token,
     collection: Collections,
-    entity_uuid: UUID,
+    uuid: UUID,
 ) -> ColumnElement:
-    """Check detail ownership via the GraphQL filter of its own collection."""
+    """Require ownership of the detail itself, whatever it links to now.
+
+    A detail is owned by whoever owns the org unit or the person it links.
+    """
     # The detail collections, each the predicate selecting its objects
     predicate = {
         "address": resolvers.address_predicate,
@@ -104,14 +107,13 @@ def _is_owner_detail(
     }[collection]
     filter = get_type_hints(predicate)["filter"]
     owner = OwnerFilter(owner=_actor_filter(settings, token))
-    # A detail is owned by whoever owns the org unit or the person it links.
-    # Every collection can name an org unit, only some can name a person
+    # Whoever owns what the detail links: its org unit (through any ancestor)
     via_org_unit = exists().where(
         predicate(
             settings=settings,
             version=version,
             filter=filter(
-                uuids=[entity_uuid],
+                uuids=[uuid],
                 org_unit=OrganisationUnitFilter(
                     ancestor=OrganisationUnitFilter(owner=owner)
                 ),
@@ -120,11 +122,12 @@ def _is_owner_detail(
     )
     if "employee" not in get_type_hints(filter):
         return via_org_unit
+    # ... or its person
     via_person = exists().where(
         predicate(
             settings=settings,
             version=version,
-            filter=filter(uuids=[entity_uuid], employee=EmployeeFilter(owner=owner)),
+            filter=filter(uuids=[uuid], employee=EmployeeFilter(owner=owner)),
         )
     )
     return or_(via_org_unit, via_person)
