@@ -8,27 +8,9 @@ from mora.auth.keycloak.uuid_extractor import OwnerRule
 from mora.auth.keycloak.uuid_extractor import and_or_none
 from mora.auth.keycloak.uuid_extractor import check_parent
 from mora.auth.keycloak.uuid_extractor import detail
-from mora.auth.keycloak.uuid_extractor import get_entities_graphql
 from mora.auth.keycloak.uuid_extractor import org_unit
 from mora.auth.keycloak.uuid_extractor import org_unit_or_person
 from mora.auth.keycloak.uuid_extractor import person
-from mora.graphapi.permissions import CollectionPermissionType
-from mora.graphapi.permissions import Collections
-
-# The collection and operation each mutator touches
-_TOUCHES: dict[str, tuple[Collections, CollectionPermissionType]] = {
-    "address_update": ("address", "update"),
-    "association_update": ("association", "update"),
-    "engagement_update": ("engagement", "update"),
-    "engagements_update": ("engagement", "update"),
-    "itassociation_update": ("association", "update"),
-    "ituser_update": ("ituser", "update"),
-    "kle_update": ("kle", "update"),
-    "leave_update": ("leave", "update"),
-    "manager_update": ("manager", "update"),
-    "owner_update": ("owner", "update"),
-    "rolebinding_update": ("rolebinding", "update"),
-}
 
 # The rule for each collection's detail
 address = partial(detail, collection="address")
@@ -56,6 +38,16 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
     "address_terminate": lambda settings, version, token, arguments: address(
         settings, version, token, arguments["input"].uuid
     ),
+    "address_update": lambda settings, version, token, arguments: and_or_none(
+        address(settings, version, token, arguments["input"].uuid),
+        org_unit_or_person(
+            settings,
+            version,
+            token,
+            arguments["input"].org_unit,
+            arguments["input"].person or arguments["input"].employee,
+        ),
+    ),
     "addresses_create": lambda settings, version, token, arguments: and_or_none(
         *(
             org_unit_or_person(
@@ -78,6 +70,16 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
     "association_terminate": lambda settings, version, token, arguments: association(
         settings, version, token, arguments["input"].uuid
     ),
+    "association_update": lambda settings, version, token, arguments: and_or_none(
+        association(settings, version, token, arguments["input"].uuid),
+        org_unit_or_person(
+            settings,
+            version,
+            token,
+            arguments["input"].org_unit,
+            arguments["input"].person or arguments["input"].employee,
+        ),
+    ),
     # The employee itself
     "employee_create": lambda settings, version, token, arguments: person(
         settings, version, token, arguments["input"].uuid
@@ -99,10 +101,35 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
     "engagement_terminate": lambda settings, version, token, arguments: engagement(
         settings, version, token, arguments["input"].uuid
     ),
+    "engagement_update": lambda settings, version, token, arguments: and_or_none(
+        engagement(settings, version, token, arguments["input"].uuid),
+        org_unit_or_person(
+            settings,
+            version,
+            token,
+            arguments["input"].org_unit,
+            arguments["input"].person or arguments["input"].employee,
+        ),
+    ),
     "engagements_create": lambda settings, version, token, arguments: and_or_none(
         *(
             org_unit_or_person(
                 settings, version, token, input.org_unit, input.person or input.employee
+            )
+            for input in arguments["input"]
+        )
+    ),
+    "engagements_update": lambda settings, version, token, arguments: and_or_none(
+        *(
+            and_or_none(
+                engagement(settings, version, token, input.uuid),
+                org_unit_or_person(
+                    settings,
+                    version,
+                    token,
+                    input.org_unit,
+                    input.person or input.employee,
+                ),
             )
             for input in arguments["input"]
         )
@@ -117,12 +144,26 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
     "itassociation_terminate": lambda settings, version, token, arguments: association(
         settings, version, token, arguments["input"].uuid
     ),
+    "itassociation_update": lambda settings, version, token, arguments: and_or_none(
+        association(settings, version, token, arguments["input"].uuid),
+        org_unit(settings, version, token, arguments["input"].org_unit),
+    ),
     # The unit or the person the IT-user belongs to (exactly one is set)
     "ituser_create": lambda settings, version, token, arguments: org_unit_or_person(
         settings, version, token, arguments["input"].org_unit, arguments["input"].person
     ),
     "ituser_terminate": lambda settings, version, token, arguments: ituser(
         settings, version, token, arguments["input"].uuid
+    ),
+    "ituser_update": lambda settings, version, token, arguments: and_or_none(
+        ituser(settings, version, token, arguments["input"].uuid),
+        org_unit_or_person(
+            settings,
+            version,
+            token,
+            arguments["input"].org_unit,
+            arguments["input"].person,
+        ),
     ),
     "itusers_create": lambda settings, version, token, arguments: and_or_none(
         *(
@@ -137,6 +178,10 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
     "kle_terminate": lambda settings, version, token, arguments: kle(
         settings, version, token, arguments["input"].uuid
     ),
+    "kle_update": lambda settings, version, token, arguments: and_or_none(
+        kle(settings, version, token, arguments["input"].uuid),
+        org_unit(settings, version, token, arguments["input"].org_unit),
+    ),
     # The person on leave
     "leave_create": lambda settings, version, token, arguments: person(
         settings, version, token, arguments["input"].person
@@ -144,12 +189,26 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
     "leave_terminate": lambda settings, version, token, arguments: leave(
         settings, version, token, arguments["input"].uuid
     ),
+    "leave_update": lambda settings, version, token, arguments: and_or_none(
+        leave(settings, version, token, arguments["input"].uuid),
+        person(settings, version, token, arguments["input"].person),
+    ),
     # The unit of the manager
     "manager_create": lambda settings, version, token, arguments: org_unit_or_person(
         settings, version, token, arguments["input"].org_unit, arguments["input"].person
     ),
     "manager_terminate": lambda settings, version, token, arguments: manager(
         settings, version, token, arguments["input"].uuid
+    ),
+    "manager_update": lambda settings, version, token, arguments: and_or_none(
+        manager(settings, version, token, arguments["input"].uuid),
+        org_unit_or_person(
+            settings,
+            version,
+            token,
+            arguments["input"].org_unit,
+            arguments["input"].person,
+        ),
     ),
     "managers_create": lambda settings, version, token, arguments: and_or_none(
         *(
@@ -177,6 +236,16 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
     "owner_terminate": lambda settings, version, token, arguments: owner(
         settings, version, token, arguments["input"].uuid
     ),
+    "owner_update": lambda settings, version, token, arguments: and_or_none(
+        owner(settings, version, token, arguments["input"].uuid),
+        org_unit_or_person(
+            settings,
+            version,
+            token,
+            arguments["input"].org_unit,
+            arguments["input"].person,
+        ),
+    ),
     # Related units have a single `origin` field and a list of
     # `destination`s. Originally we required ownership of both the
     # origin and destinations, but that's not compatible with the old
@@ -191,17 +260,14 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
     "rolebinding_terminate": lambda settings, version, token, arguments: rolebinding(
         settings, version, token, arguments["input"].uuid
     ),
+    "rolebinding_update": lambda settings, version, token, arguments: and_or_none(
+        rolebinding(settings, version, token, arguments["input"].uuid),
+        org_unit(settings, version, token, arguments["input"].org_unit),
+    ),
     "rolebindings_create": lambda settings, version, token, arguments: and_or_none(
         *(
             org_unit(settings, version, token, input.org_unit)
             for input in arguments["input"]
         )
     ),
-    # The mutators whose rule is still branched on collection and operation
-    **{
-        mutator: partial(
-            get_entities_graphql, collection=collection, permission_type=permission_type
-        )
-        for mutator, (collection, permission_type) in _TOUCHES.items()
-    },
 }
