@@ -20,7 +20,6 @@ from graphql import GraphQLResolveInfo
 from graphql import OperationType
 from graphql import is_introspection_type
 from pydantic import PositiveInt
-from sqlalchemy import and_
 from sqlalchemy import select
 from starlette.datastructures import UploadFile
 from starlette_context import context as starlette_context
@@ -271,18 +270,16 @@ def owner_policy(
     moinfo = _create_info_from_raw(info)
     settings = moinfo.context.settings
     version = get_version(moinfo.schema)
-    checks = list(
-        get_entities_graphql(
-            settings, version, token, input, collection, permission_type
-        )
+    check = get_entities_graphql(
+        settings, version, token, input, collection, permission_type
     )
-    logger.debug("Check owner", checks=checks)
+    logger.debug("Check owner", check=check)
     # Nothing to own is not owned by anybody
-    if not checks:
+    if check is None:
         return False
 
     async def owned() -> bool:
-        return bool(await moinfo.context.session.scalar(select(and_(*checks))))
+        return bool(await moinfo.context.session.scalar(select(check)))
 
     return owned()
 

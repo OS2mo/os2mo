@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Iterable
 from typing import Any
 from typing import get_type_hints
 from uuid import UUID
 
 from sqlalchemy import ColumnElement
+from sqlalchemy import and_
 from sqlalchemy import exists
 from sqlalchemy import or_
 
@@ -133,6 +133,14 @@ def detail(
     return or_(via_org_unit, via_person)
 
 
+def and_or_none(*checks: ColumnElement | None) -> ColumnElement | None:
+    """Require all of the checks, or nothing if there is nothing to check."""
+    clauses = [check for check in checks if check is not None]
+    if not clauses:
+        return None
+    return and_(*clauses)
+
+
 def org_unit_or_person(
     settings: Settings,
     version: Version,
@@ -179,8 +187,8 @@ def get_entities_graphql(
     raw_input: list[Any],
     collection: Collections,
     permission_type: CollectionPermissionType,
-) -> Iterable[ColumnElement]:
-    """Check the ownership of the relevant entities (org unit or employee).
+) -> ColumnElement | None:
+    """The ownership checks of the relevant entities (org unit or employee).
 
     Args:
         settings: The settings the predicates take.
@@ -193,36 +201,36 @@ def get_entities_graphql(
         permission_type: The operation type (create, update, terminate, delete).
 
     Returns:
-        An iterable of checks, all of which must hold, for check_owner().
+        The check for `owner_policy` to evaluate, or None with nothing to check.
     """
 
-    def extract(input) -> Iterable[ColumnElement | None]:
+    def rule(input: Any) -> ColumnElement | None:
         # Allow both employee and person to avoid bugs in the future
         if collection in {"employee", "person"}:
-            yield person(settings, version, token, getattr(input, "uuid"))
-            return
+            return person(settings, version, token, getattr(input, "uuid"))
 
         if collection == "org_unit":
             # Create requires ownership of the parent we are trying to insert under
             if permission_type == "create":
-                yield org_unit(settings, version, token, getattr(input, "parent", None))
-                return
+                return org_unit(
+                    settings, version, token, getattr(input, "parent", None)
+                )
             # Otherwise, changes always requires ownership of the org unit itself,
             # and moving it (changing its parent) that of the new parent as well
             uuid = getattr(input, "uuid")
-            yield org_unit(settings, version, token, uuid)
-            yield check_parent(
-                settings, version, token, uuid, getattr(input, "parent", None)
+            return and_or_none(
+                org_unit(settings, version, token, uuid),
+                check_parent(
+                    settings, version, token, uuid, getattr(input, "parent", None)
+                ),
             )
-            return
 
         if collection == "related_unit":
             # Related units have a single `origin` field and a list of
             # `destination`s. Originally we required ownership of both the
             # origin and destinations, but that's not compatible with the old
             # service-api owner calculation
-            yield org_unit(settings, version, token, getattr(input, "origin", None))
-            return
+            return org_unit(settings, version, token, getattr(input, "origin", None))
 
         # Even though most of the remaining object types (addresses,
         # associations, engagements, IT-users, leaves, managers, owners and
@@ -230,20 +238,17 @@ def get_entities_graphql(
         # org units, we prefer org units and short-circuit if that is set.
         # Everything (except creates) requires ownership of both the existing
         # database object as well as the new object from the input.
-        if permission_type != "create":
-            yield detail(settings, version, token, collection, getattr(input, "uuid"))
-
-        yield org_unit_or_person(
+        linked = org_unit_or_person(
             settings,
             version,
             token,
             getattr(input, "org_unit", None),
             getattr(input, "person", None) or getattr(input, "employee", None),
         )
+        if permission_type == "create":
+            return linked
+        return and_or_none(
+            detail(settings, version, token, collection, getattr(input, "uuid")), linked
+        )
 
-    for input in raw_input:
-        for check in extract(input=input):
-            # Make sure we don't check a None UUID! Doing so makes the later code behave
-            # wrongly and may grant too wide access.
-            if check is not None:
-                yield check
+    return and_or_none(*(rule(input) for input in raw_input))
