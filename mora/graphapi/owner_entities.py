@@ -2,10 +2,15 @@
 # SPDX-License-Identifier: MPL-2.0
 """Owner resolution map."""
 
+from functools import partial
+
+from mora.auth.keycloak.uuid_extractor import OwnerRule
+from mora.auth.keycloak.uuid_extractor import get_entities_graphql
 from mora.graphapi.permissions import CollectionPermissionType
 from mora.graphapi.permissions import Collections
 
-OWNER_ENTITIES: dict[str, tuple[Collections, CollectionPermissionType]] = {
+# The collection and operation each mutator touches
+_TOUCHES: dict[str, tuple[Collections, CollectionPermissionType]] = {
     "address_create": ("address", "create"),
     "address_terminate": ("address", "terminate"),
     "address_update": ("address", "update"),
@@ -49,4 +54,13 @@ OWNER_ENTITIES: dict[str, tuple[Collections, CollectionPermissionType]] = {
     "rolebinding_terminate": ("rolebinding", "terminate"),
     "rolebinding_update": ("rolebinding", "update"),
     "rolebindings_create": ("rolebinding", "create"),
+}
+
+# What a mutator requires owned: the rule for its collection and operation.
+# A mutator not listed here is never granted by ownership
+OWNER_ENTITIES: dict[str, OwnerRule] = {
+    mutator: partial(
+        get_entities_graphql, collection=collection, permission_type=permission_type
+    )
+    for mutator, (collection, permission_type) in _TOUCHES.items()
 }
