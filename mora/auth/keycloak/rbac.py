@@ -25,7 +25,7 @@ logger = get_logger()
 
 def _is_owner_org_unit(
     info: "MOInfo", actor: EmployeeFilter, entity_uuid: UUID | None
-) -> ColumnElement | None:
+) -> list[ColumnElement]:
     """Check org-unit ownership via the GraphQL org-unit owner filter.
 
     Owning any ancestor also grants ownership: the `descendant` filter matches
@@ -33,7 +33,7 @@ def _is_owner_org_unit(
     to own, and thus nothing to check.
     """
     if entity_uuid is None:
-        return None
+        return []
     predicate = organisation_unit_predicate(
         info=info,
         filter=OrganisationUnitFilter(
@@ -41,18 +41,18 @@ def _is_owner_org_unit(
             owner=OwnerFilter(owner=actor),
         ),
     )
-    return exists().where(predicate)
+    return [exists().where(predicate)]
 
 
 def _is_owner_employee(
     info: "MOInfo", actor: EmployeeFilter, entity_uuid: UUID | None
-) -> ColumnElement | None:
+) -> list[ColumnElement]:
     """Check employee ownership via the GraphQL employee owner filter.
 
     No employee named is nothing to own, and thus nothing to check.
     """
     if entity_uuid is None:
-        return None
+        return []
     predicate = employee_predicate(
         info=info,
         filter=EmployeeFilter(
@@ -60,12 +60,12 @@ def _is_owner_employee(
             owner=OwnerFilter(owner=actor),
         ),
     )
-    return exists().where(predicate)
+    return [exists().where(predicate)]
 
 
 def _is_owner_detail(
     info: "MOInfo", actor: EmployeeFilter, collection: Collections, entity_uuid: UUID
-) -> ColumnElement:
+) -> list[ColumnElement]:
     """Check detail ownership via the GraphQL filter of its own collection."""
     # The detail collections, each the predicate selecting its objects
     predicate = {
@@ -95,11 +95,11 @@ def _is_owner_detail(
         )
     )
     if "employee" not in get_type_hints(filter):
-        return via_org_unit
+        return [via_org_unit]
     via_person = exists().where(
         predicate(
             info=info,
             filter=filter(uuids=[entity_uuid], employee=EmployeeFilter(owner=owner)),
         )
     )
-    return or_(via_org_unit, via_person)
+    return [or_(via_org_unit, via_person)]
