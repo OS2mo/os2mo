@@ -133,6 +133,19 @@ def detail(
     return or_(via_org_unit, via_person)
 
 
+def org_unit_or_person(
+    settings: Settings,
+    version: Version,
+    token: Token,
+    org_unit_uuid: UUID | None,
+    person_uuid: UUID | None,
+) -> ColumnElement | None:
+    """Require ownership of the unit if one is named, else of the person."""
+    if (unit := org_unit(settings, version, token, org_unit_uuid)) is not None:
+        return unit
+    return person(settings, version, token, person_uuid)
+
+
 def _keeps_parent(
     settings: Settings, version: Version, uuid: UUID, parent: UUID
 ) -> ColumnElement:
@@ -213,12 +226,13 @@ def get_entities_graphql(
         if permission_type != "create":
             yield detail(settings, version, token, collection, getattr(input, "uuid"))
 
-        # Existing object (e.g. update). Again, we prefer org unit over person.
-        if org_unit_uuid := getattr(input, "org_unit", None):
-            yield org_unit(settings, version, token, org_unit_uuid)
-            return
-        yield person(settings, version, token, getattr(input, "employee", None))
-        yield person(settings, version, token, getattr(input, "person", None))
+        yield org_unit_or_person(
+            settings,
+            version,
+            token,
+            getattr(input, "org_unit", None),
+            getattr(input, "person", None) or getattr(input, "employee", None),
+        )
 
     for input in raw_input:
         for check in extract(input=input):
