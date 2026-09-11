@@ -47,7 +47,6 @@ _TOUCHES: dict[str, tuple[Collections, CollectionPermissionType]] = {
     "owner_create": ("owner", "create"),
     "owner_terminate": ("owner", "terminate"),
     "owner_update": ("owner", "update"),
-    "related_units_update": ("related_unit", "update"),
     "rolebinding_create": ("rolebinding", "create"),
     "rolebinding_terminate": ("rolebinding", "terminate"),
     "rolebinding_update": ("rolebinding", "update"),
@@ -79,6 +78,13 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         check_parent(
             settings, version, token, arguments["input"].uuid, arguments["input"].parent
         ),
+    ),
+    # Related units have a single `origin` field and a list of
+    # `destination`s. Originally we required ownership of both the
+    # origin and destinations, but that's not compatible with the old
+    # service-api owner calculation
+    "related_units_update": lambda settings, version, token, arguments: org_unit(
+        settings, version, token, arguments["input"].origin
     ),
     # The mutators whose rule is still branched on collection and operation
     **{
