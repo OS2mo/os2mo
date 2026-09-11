@@ -91,8 +91,8 @@ def detail(
     settings: Settings,
     version: Version,
     token: Token,
-    collection: Collections,
     uuid: UUID,
+    collection: Collections,
 ) -> ColumnElement:
     """Require ownership of the detail itself, whatever it links to now.
 
@@ -226,7 +226,7 @@ def get_entities_graphql(
         if permission_type == "create":
             return linked
         return and_or_none(
-            detail(settings, version, token, collection, getattr(input, "uuid")), linked
+            detail(settings, version, token, getattr(input, "uuid"), collection), linked
         )
 
     return and_or_none(*(rule(input) for input in ensure_list(arguments["input"])))
