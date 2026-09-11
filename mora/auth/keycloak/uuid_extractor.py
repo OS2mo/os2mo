@@ -128,18 +128,6 @@ def org_unit_or_person(
     return first_of(org_unit(org_unit_uuid), person(person_uuid))
 
 
-def _keeps_parent(info: "MOInfo", uuid: UUID, parent: UUID) -> ColumnElement:
-    """Whether the parent named is the one the org unit already has."""
-    return exists().where(
-        organisation_unit_predicate(
-            info=info,
-            filter=OrganisationUnitFilter(
-                uuids=[parent], child=OrganisationUnitFilter(uuids=[uuid])
-            ),
-        )
-    )
-
-
 def check_parent(uuid: UUID, parent: UUID | None) -> list[Check]:
     """Require ownership of the parent a unit is moved under, if it is moved.
 
@@ -150,8 +138,18 @@ def check_parent(uuid: UUID, parent: UUID | None) -> list[Check]:
         return []
 
     def check(info: "MOInfo", actor: EmployeeFilter) -> ColumnElement:
+        # Whether the parent named is the one the unit already has
+        keeps_parent = exists().where(
+            organisation_unit_predicate(
+                info=info,
+                filter=OrganisationUnitFilter(
+                    uuids=[parent], child=OrganisationUnitFilter(uuids=[uuid])
+                ),
+            )
+        )
+        # ... or the actor owns the parent it is moved under
         moved_under = one(org_unit(parent))(info, actor)
-        return or_(_keeps_parent(info, uuid, parent), moved_under)
+        return or_(keeps_parent, moved_under)
 
     return [check]
 
