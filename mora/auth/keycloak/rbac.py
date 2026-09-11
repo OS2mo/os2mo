@@ -44,22 +44,21 @@ def _actor_filter(settings: Settings, token: Token) -> EmployeeFilter:
     return EmployeeFilter(uuids=[token.uuid])
 
 
-def _is_owner_org_unit(
-    settings: Settings, version: Version, token: Token, entity_uuid: UUID | None
+def org_unit(
+    settings: Settings, version: Version, token: Token, uuid: UUID | None
 ) -> ColumnElement | None:
-    """Check org-unit ownership via the GraphQL org-unit owner filter.
+    """Require ownership of the unit named, if one is named.
 
     Owning any ancestor also grants ownership: the `descendant` filter matches
-    the unit together with all of its ancestors. No org unit named is nothing
-    to own, and thus nothing to check.
+    the unit together with all of its ancestors.
     """
-    if entity_uuid is None:
+    if uuid is None:
         return None
     predicate = organisation_unit_predicate(
         settings=settings,
         version=version,
         filter=OrganisationUnitFilter(
-            descendant=OrganisationUnitFilter(uuids=[entity_uuid]),
+            descendant=OrganisationUnitFilter(uuids=[uuid]),
             owner=OwnerFilter(owner=_actor_filter(settings, token)),
         ),
     )
