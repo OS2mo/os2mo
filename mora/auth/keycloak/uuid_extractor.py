@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from typing import Any
 from typing import get_type_hints
 from uuid import UUID
@@ -24,6 +25,8 @@ from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.resolvers import organisation_unit_predicate
 from mora.graphapi.version import Version
 from mora.util import ensure_list
+
+OwnerRule = Callable[[Settings, Version, Token, dict[str, Any]], ColumnElement | None]
 
 
 def _actor_filter(settings: Settings, token: Token) -> EmployeeFilter:
