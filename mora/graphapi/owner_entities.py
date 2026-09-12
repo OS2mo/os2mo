@@ -22,7 +22,6 @@ from mora.graphapi.filters import ITSystemFilter
 from mora.graphapi.filters import ITUserFilter
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.filters import OwnerFilter
-from mora.graphapi.permissions import Collections
 from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.resolvers import organisation_unit_predicate
 from mora.graphapi.version import Version
@@ -93,24 +92,13 @@ def detail(
     version: Version,
     token: Token,
     uuid: UUID,
-    collection: Collections,
+    *,
+    predicate: Callable[..., ColumnElement],
 ) -> ColumnElement:
     """Require ownership of the detail itself, whatever it links to now.
 
     A detail is owned by whoever owns the org unit or the person it links.
     """
-    # The detail collections, each the predicate selecting its objects
-    predicate = {
-        "address": resolvers.address_predicate,
-        "association": resolvers.association_predicate,
-        "engagement": resolvers.engagement_predicate,
-        "ituser": resolvers.it_user_predicate,
-        "kle": resolvers.kle_predicate,
-        "leave": resolvers.leave_predicate,
-        "manager": resolvers.manager_predicate,
-        "owner": resolvers.owner_predicate,
-        "rolebinding": resolvers.rolebinding_predicate,
-    }[collection]
     filter = get_type_hints(predicate)["filter"]
     owner = OwnerFilter(owner=_actor_filter(settings, token))
     # Whoever owns what the detail links: its org unit (through any ancestor)
@@ -187,15 +175,15 @@ def check_parent(
 
 
 # The rule for each collection's detail
-address = partial(detail, collection="address")
-association = partial(detail, collection="association")
-engagement = partial(detail, collection="engagement")
-ituser = partial(detail, collection="ituser")
-kle = partial(detail, collection="kle")
-leave = partial(detail, collection="leave")
-manager = partial(detail, collection="manager")
-owner = partial(detail, collection="owner")
-rolebinding = partial(detail, collection="rolebinding")
+address = partial(detail, predicate=resolvers.address_predicate)
+association = partial(detail, predicate=resolvers.association_predicate)
+engagement = partial(detail, predicate=resolvers.engagement_predicate)
+ituser = partial(detail, predicate=resolvers.it_user_predicate)
+kle = partial(detail, predicate=resolvers.kle_predicate)
+leave = partial(detail, predicate=resolvers.leave_predicate)
+manager = partial(detail, predicate=resolvers.manager_predicate)
+owner = partial(detail, predicate=resolvers.owner_predicate)
+rolebinding = partial(detail, predicate=resolvers.rolebinding_predicate)
 
 
 # What a mutator requires owned, read off its arguments.
