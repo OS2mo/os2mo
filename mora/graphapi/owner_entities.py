@@ -87,6 +87,56 @@ def person(
     return exists().where(predicate)
 
 
+def detail_org_unit(
+    settings: Settings,
+    version: Version,
+    token: Token,
+    uuid: UUID,
+    *,
+    predicate: Callable[..., ColumnElement],
+) -> ColumnElement:
+    """Require ownership of the org unit the detail links, through any ancestor."""
+    filter = get_type_hints(predicate)["filter"]
+    return exists().where(
+        predicate(
+            settings=settings,
+            version=version,
+            filter=filter(
+                uuids=[uuid],
+                org_unit=OrganisationUnitFilter(
+                    ancestor=OrganisationUnitFilter(
+                        owner=OwnerFilter(owner=_actor_filter(settings, token))
+                    )
+                ),
+            ),
+        )
+    )
+
+
+def detail_person(
+    settings: Settings,
+    version: Version,
+    token: Token,
+    uuid: UUID,
+    *,
+    predicate: Callable[..., ColumnElement],
+) -> ColumnElement:
+    """Require ownership of the person the detail links."""
+    filter = get_type_hints(predicate)["filter"]
+    return exists().where(
+        predicate(
+            settings=settings,
+            version=version,
+            filter=filter(
+                uuids=[uuid],
+                employee=EmployeeFilter(
+                    owner=OwnerFilter(owner=_actor_filter(settings, token))
+                ),
+            ),
+        )
+    )
+
+
 def detail(
     settings: Settings,
     version: Version,
@@ -95,36 +145,11 @@ def detail(
     *,
     predicate: Callable[..., ColumnElement],
 ) -> ColumnElement:
-    """Require ownership of the detail itself, whatever it links to now.
-
-    A detail is owned by whoever owns the org unit or the person it links.
-    """
-    filter = get_type_hints(predicate)["filter"]
-    owner = OwnerFilter(owner=_actor_filter(settings, token))
-    # Whoever owns what the detail links: its org unit (through any ancestor)
-    via_org_unit = exists().where(
-        predicate(
-            settings=settings,
-            version=version,
-            filter=filter(
-                uuids=[uuid],
-                org_unit=OrganisationUnitFilter(
-                    ancestor=OrganisationUnitFilter(owner=owner)
-                ),
-            ),
-        )
+    """Require ownership of the org unit or the person the detail links."""
+    return or_(
+        detail_org_unit(settings, version, token, uuid, predicate=predicate),
+        detail_person(settings, version, token, uuid, predicate=predicate),
     )
-    if "employee" not in get_type_hints(filter):
-        return via_org_unit
-    # ... or its person
-    via_person = exists().where(
-        predicate(
-            settings=settings,
-            version=version,
-            filter=filter(uuids=[uuid], employee=EmployeeFilter(owner=owner)),
-        )
-    )
-    return or_(via_org_unit, via_person)
 
 
 def and_or_none(*checks: ColumnElement | None) -> ColumnElement | None:
@@ -174,16 +199,17 @@ def check_parent(
     return or_(keeps_parent, moved_under)
 
 
-# The rule for each collection's detail
+# The rule for each collection's detail. A KLE and a role-binding link no
+# person, so owning the unit they link is the only way to own them
 address = partial(detail, predicate=resolvers.address_predicate)
 association = partial(detail, predicate=resolvers.association_predicate)
 engagement = partial(detail, predicate=resolvers.engagement_predicate)
 ituser = partial(detail, predicate=resolvers.it_user_predicate)
-kle = partial(detail, predicate=resolvers.kle_predicate)
+kle = partial(detail_org_unit, predicate=resolvers.kle_predicate)
 leave = partial(detail, predicate=resolvers.leave_predicate)
 manager = partial(detail, predicate=resolvers.manager_predicate)
 owner = partial(detail, predicate=resolvers.owner_predicate)
-rolebinding = partial(detail, predicate=resolvers.rolebinding_predicate)
+rolebinding = partial(detail_org_unit, predicate=resolvers.rolebinding_predicate)
 
 
 # What a mutator requires owned, read off its arguments.
