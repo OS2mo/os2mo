@@ -1,8 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import inspect
 from collections.abc import Callable
+from functools import partial
 from itertools import chain
 from typing import Any
+from typing import get_type_hints
 from uuid import UUID
 from uuid import uuid4
 
@@ -18,6 +21,7 @@ from hypothesis_graphql import nodes
 from hypothesis_graphql import strategies as gql_st
 from more_itertools import duplicates_everseen
 
+from mora.graphapi import owner_entities
 from mora.graphapi.events import EventToken
 from mora.graphapi.rbac_map import ADMIN_MAP
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
@@ -263,3 +267,22 @@ async def test_mutators_require_rbac(
     assert response.errors
     error_messages = {error["message"] for error in response.errors}
     assert error_messages == {"No policy approved the access"}
+
+
+def test_detail_rules_match_their_filters() -> None:
+    """Each detail rule requires owned only what its filter can link.
+
+    Every detail's filter must take an org unit; only those taking an
+    employee as well may be required through their person.
+    """
+    # Every detail rule is a partial pinning the predicate of its collection
+    for name, rule in inspect.getmembers(
+        owner_entities,
+        lambda rule: (
+            isinstance(rule, partial)
+            and rule.func in (owner_entities.detail, owner_entities.detail_org_unit)
+        ),
+    ):
+        hints = get_type_hints(get_type_hints(rule.keywords["predicate"])["filter"])
+        assert "org_unit" in hints, name
+        assert ("employee" in hints) == (rule.func is owner_entities.detail), name

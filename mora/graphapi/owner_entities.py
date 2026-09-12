@@ -72,43 +72,62 @@ def person(uuid: UUID | None) -> list[Check]:
     return [check]
 
 
-def detail(
+def detail_org_unit(
     uuid: UUID,
     *,
     predicate: Callable[..., ColumnElement],
 ) -> list[Check]:
-    """Require ownership of the detail itself, whatever it links to now.
-
-    A detail is owned by whoever owns the org unit or the person it links.
-    """
+    """Require ownership of the org unit the detail links, through any ancestor."""
 
     def check(info: "MOInfo", actor: EmployeeFilter) -> ColumnElement:
         filter = get_type_hints(predicate)["filter"]
-        owner = OwnerFilter(owner=actor)
-        # Whoever owns what the detail links: its org unit (through any ancestor)
-        via_org_unit = exists().where(
+        return exists().where(
             predicate(
                 info=info,
                 filter=filter(
                     uuids=[uuid],
                     org_unit=OrganisationUnitFilter(
-                        ancestor=OrganisationUnitFilter(owner=owner)
+                        ancestor=OrganisationUnitFilter(owner=OwnerFilter(owner=actor))
                     ),
                 ),
             )
         )
-        if "employee" not in get_type_hints(filter):
-            return via_org_unit
-        # ... or its person
-        via_person = exists().where(
-            predicate(
-                info=info,
-                filter=filter(uuids=[uuid], employee=EmployeeFilter(owner=owner)),
-            )
-        )
-        return or_(via_org_unit, via_person)
 
     return [check]
+
+
+def detail_person(
+    uuid: UUID,
+    *,
+    predicate: Callable[..., ColumnElement],
+) -> list[Check]:
+    """Require ownership of the person the detail links."""
+
+    def check(info: "MOInfo", actor: EmployeeFilter) -> ColumnElement:
+        filter = get_type_hints(predicate)["filter"]
+        return exists().where(
+            predicate(
+                info=info,
+                filter=filter(
+                    uuids=[uuid],
+                    employee=EmployeeFilter(owner=OwnerFilter(owner=actor)),
+                ),
+            )
+        )
+
+    return [check]
+
+
+def detail(
+    uuid: UUID,
+    *,
+    predicate: Callable[..., ColumnElement],
+) -> list[Check]:
+    """Require ownership of the org unit or the person the detail links."""
+    return any_of(
+        detail_org_unit(uuid, predicate=predicate),
+        detail_person(uuid, predicate=predicate),
+    )
 
 
 def first_of(*checks: list[Check]) -> list[Check]:
@@ -119,6 +138,15 @@ def first_of(*checks: list[Check]) -> list[Check]:
 def all_of(*checks: list[Check]) -> list[Check]:
     """Require all of the checks."""
     return list(flatten(checks))
+
+
+def any_of(*checks: list[Check]) -> list[Check]:
+    """Require at least one of the checks."""
+
+    def check(info: "MOInfo", actor: EmployeeFilter) -> ColumnElement:
+        return or_(*(required(info, actor) for required in flatten(checks)))
+
+    return [check]
 
 
 def each(rule: OwnerRule) -> OwnerRule:
@@ -163,16 +191,17 @@ def check_parent(uuid: UUID, parent: UUID | None) -> list[Check]:
     return [check]
 
 
-# The rule for each collection's detail
+# The rule for each collection's detail. A KLE and a role-binding link no
+# person, so owning the unit they link is the only way to own them
 address = partial(detail, predicate=resolvers.address_predicate)
 association = partial(detail, predicate=resolvers.association_predicate)
 engagement = partial(detail, predicate=resolvers.engagement_predicate)
 ituser = partial(detail, predicate=resolvers.it_user_predicate)
-kle = partial(detail, predicate=resolvers.kle_predicate)
+kle = partial(detail_org_unit, predicate=resolvers.kle_predicate)
 leave = partial(detail, predicate=resolvers.leave_predicate)
 manager = partial(detail, predicate=resolvers.manager_predicate)
 owner = partial(detail, predicate=resolvers.owner_predicate)
-rolebinding = partial(detail, predicate=resolvers.rolebinding_predicate)
+rolebinding = partial(detail_org_unit, predicate=resolvers.rolebinding_predicate)
 
 
 # What a mutator requires owned, read off its `input`.
