@@ -1,9 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
-from inspect import signature
 from typing import TYPE_CHECKING
-from typing import Any
 from typing import get_type_hints
 from uuid import UUID
 
@@ -69,19 +66,6 @@ def _is_owner_employee(
     return exists().where(predicate)
 
 
-def _arguments(
-    predicate: Callable[..., ColumnElement], info: "MOInfo"
-) -> dict[str, Any]:
-    """The arguments a predicate declares, off the info."""
-    available = {
-        "settings": info.context.settings,
-        "version": get_version(info.schema),
-        "info": info,
-    }
-    declared = signature(predicate).parameters
-    return {name: value for name, value in available.items() if name in declared}
-
-
 def _is_owner_detail(
     info: "MOInfo", actor: EmployeeFilter, collection: Collections, entity_uuid: UUID
 ) -> ColumnElement:
@@ -104,7 +88,8 @@ def _is_owner_detail(
     # Every collection can name an org unit, only some can name a person
     via_org_unit = exists().where(
         predicate(
-            **_arguments(predicate, info),
+            settings=info.context.settings,
+            version=get_version(info.schema),
             filter=filter(
                 uuids=[entity_uuid],
                 org_unit=OrganisationUnitFilter(
@@ -117,7 +102,8 @@ def _is_owner_detail(
         return via_org_unit
     via_person = exists().where(
         predicate(
-            **_arguments(predicate, info),
+            settings=info.context.settings,
+            version=get_version(info.schema),
             filter=filter(uuids=[entity_uuid], employee=EmployeeFilter(owner=owner)),
         )
     )
