@@ -60,6 +60,7 @@ def _is_owner_employee(
         return None
     predicate = employee_predicate(
         settings=info.context.settings,
+        version=get_version(info.schema),
         info=info,
         filter=EmployeeFilter(
             uuids=[entity_uuid],

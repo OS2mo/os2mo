@@ -679,7 +679,9 @@ def address_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(settings, info, filter.employee)
+                                employee_predicate(
+                                    settings, version, info, filter.employee
+                                )
                             ),
                         )
                     ),
@@ -939,7 +941,9 @@ def association_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(settings, info, filter.employee)
+                                employee_predicate(
+                                    settings, version, info, filter.employee
+                                )
                             ),
                         )
                     ),
@@ -1074,6 +1078,7 @@ async def association_resolver(
 
 def employee_predicate(
     settings: Settings,
+    version: Version,
     info: MOInfo,
     filter: EmployeeFilter,
 ) -> ColumnElement:
@@ -1138,9 +1143,7 @@ def employee_predicate(
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
                     OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
                         select(OrganisationFunktionRegistrering.id).where(
-                            owner_predicate(
-                                settings, get_version(info.schema), info, filter.owner
-                            )
+                            owner_predicate(settings, version, info, filter.owner)
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -1162,9 +1165,7 @@ def employee_predicate(
             OrganisationFunktionRelation.rel_maal_uuid == BrugerRegistrering.bruger_id,
             OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
                 select(OrganisationFunktionRegistrering.id).where(
-                    it_user_predicate(
-                        settings, get_version(info.schema), info, ituser_filter
-                    )
+                    it_user_predicate(settings, version, info, ituser_filter)
                 )
             ),
             _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -1189,6 +1190,7 @@ async def employee_resolver(
 
     predicate = employee_predicate(
         settings=info.context.settings,
+        version=get_version(info.schema),
         info=info,
         filter=filter,
     )
@@ -1301,7 +1303,9 @@ def engagement_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(settings, info, filter.employee)
+                                employee_predicate(
+                                    settings, version, info, filter.employee
+                                )
                             ),
                         )
                     ),
@@ -1600,7 +1604,7 @@ def manager_predicate(
                                     filter.employee,
                                     select(BrugerRegistrering.bruger_id).where(
                                         employee_predicate(
-                                            settings, info, filter.employee
+                                            settings, version, info, filter.employee
                                         )
                                     ),
                                 )
@@ -1625,7 +1629,9 @@ def manager_predicate(
                             uuid_shortcircuit(
                                 filter.employee,
                                 select(BrugerRegistrering.bruger_id).where(
-                                    employee_predicate(settings, info, filter.employee)
+                                    employee_predicate(
+                                        settings, version, info, filter.employee
+                                    )
                                 ),
                             )
                         ),
@@ -1749,7 +1755,9 @@ def manager_predicate(
                         uuid_shortcircuit(
                             filter.exclude,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(settings, info, filter.exclude)
+                                employee_predicate(
+                                    settings, version, info, filter.exclude
+                                )
                             ),
                         )
                     ),
@@ -1963,7 +1971,9 @@ def owner_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(settings, info, filter.employee)
+                                employee_predicate(
+                                    settings, version, info, filter.employee
+                                )
                             ),
                         )
                     ),
@@ -2012,7 +2022,9 @@ def owner_predicate(
                         uuid_shortcircuit(
                             filter.owner,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(settings, info, filter.owner)
+                                employee_predicate(
+                                    settings, version, info, filter.owner
+                                )
                             ),
                         )
                     ),
@@ -2693,7 +2705,9 @@ def it_user_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(settings, info, filter.employee)
+                                employee_predicate(
+                                    settings, version, info, filter.employee
+                                )
                             ),
                         )
                     ),
@@ -3154,7 +3168,9 @@ def leave_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(settings, info, filter.employee)
+                                employee_predicate(
+                                    settings, version, info, filter.employee
+                                )
                             ),
                         )
                     ),
