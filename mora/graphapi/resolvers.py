@@ -1470,6 +1470,7 @@ async def engagement_resolver(
 
 
 def manager_predicate(
+    settings: Settings,
     info: MOInfo,
     filter: ManagerFilter,
     inherit: bool = False,
@@ -1583,7 +1584,7 @@ def manager_predicate(
                                     filter.employee,
                                     select(BrugerRegistrering.bruger_id).where(
                                         employee_predicate(
-                                            info.context.settings, info, filter.employee
+                                            settings, info, filter.employee
                                         )
                                     ),
                                 )
@@ -1608,9 +1609,7 @@ def manager_predicate(
                             uuid_shortcircuit(
                                 filter.employee,
                                 select(BrugerRegistrering.bruger_id).where(
-                                    employee_predicate(
-                                        info.context.settings, info, filter.employee
-                                    )
+                                    employee_predicate(settings, info, filter.employee)
                                 ),
                             )
                         ),
@@ -1624,9 +1623,7 @@ def manager_predicate(
     if inherit:
         if filter.org_unit is None:
             raise ValueError("The inherit flag requires an organizational unit filter")
-        predicates.append(
-            _manager_inherit_org_unit_predicate(info.context.settings, info, filter)
-        )
+        predicates.append(_manager_inherit_org_unit_predicate(settings, info, filter))
     elif filter.org_unit:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
@@ -1642,7 +1639,7 @@ def manager_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    info.context.settings, info, filter.org_unit
+                                    settings, info, filter.org_unit
                                 )
                             ),
                         )
@@ -1665,9 +1662,7 @@ def manager_predicate(
                         uuid_shortcircuit(
                             filter.responsibility,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    info.context.settings, info, filter.responsibility
-                                )
+                                class_predicate(settings, info, filter.responsibility)
                             ),
                         )
                     ),
@@ -1689,9 +1684,7 @@ def manager_predicate(
                         uuid_shortcircuit(
                             filter.manager_type,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    info.context.settings, info, filter.manager_type
-                                )
+                                class_predicate(settings, info, filter.manager_type)
                             ),
                         )
                     ),
@@ -1715,9 +1708,7 @@ def manager_predicate(
                             select(
                                 OrganisationFunktionRegistrering.organisationfunktion_id
                             ).where(
-                                engagement_predicate(
-                                    info.context.settings, info, filter.engagement
-                                )
+                                engagement_predicate(settings, info, filter.engagement)
                             ),
                         )
                     ),
@@ -1740,9 +1731,7 @@ def manager_predicate(
                         uuid_shortcircuit(
                             filter.exclude,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info.context.settings, info, filter.exclude
-                                )
+                                employee_predicate(settings, info, filter.exclude)
                             ),
                         )
                     ),
@@ -1769,7 +1758,9 @@ def _manager_inherit_org_unit_predicate(
         # Morally equivalent to `manager_predicate` with
         # `filter.org_unit = organisationenhed_id`.
         return exists().where(
-            manager_predicate(info, dataclasses.replace(filter, org_unit=None)),
+            manager_predicate(
+                settings, info, dataclasses.replace(filter, org_unit=None)
+            ),
             # Manager is attached to organisationenhed_id:
             OrganisationFunktionRelation.organisationfunktion_registrering_id
             == OrganisationFunktionRegistrering.id,
@@ -1844,6 +1835,7 @@ async def manager_resolver(
         filter = ManagerFilter()
 
     predicate = manager_predicate(
+        settings=info.context.settings,
         info=info,
         filter=filter,
         inherit=inherit,
