@@ -12,6 +12,7 @@ from sqlalchemy import or_
 from mora.auth.keycloak.rbac import _is_owner_detail
 from mora.auth.keycloak.rbac import _is_owner_employee
 from mora.auth.keycloak.rbac import _is_owner_org_unit
+from mora.graphapi.custom_schema import get_version
 from mora.graphapi.filters import EmployeeFilter
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.permissions import CollectionPermissionType
@@ -27,6 +28,7 @@ def _keeps_parent(info: "MOInfo", uuid: UUID, parent: UUID) -> ColumnElement:
     return exists().where(
         organisation_unit_predicate(
             settings=info.context.settings,
+            version=get_version(info.schema),
             info=info,
             filter=OrganisationUnitFilter(
                 uuids=[parent], child=OrganisationUnitFilter(uuids=[uuid])

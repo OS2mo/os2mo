@@ -534,7 +534,9 @@ def class_predicate(
                         select(
                             OrganisationEnhedRegistrering.organisationenhed_id
                         ).where(
-                            organisation_unit_predicate(settings, info, filter.owner)
+                            organisation_unit_predicate(
+                                settings, get_version(info.schema), info, filter.owner
+                            )
                         ),
                     )
                 ),
@@ -707,7 +709,7 @@ def address_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, info, filter.org_unit
+                                    settings, version, info, filter.org_unit
                                 )
                             ),
                         )
@@ -969,7 +971,7 @@ def association_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, info, filter.org_unit
+                                    settings, version, info, filter.org_unit
                                 )
                             ),
                         )
@@ -1331,7 +1333,7 @@ def engagement_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, info, filter.org_unit
+                                    settings, version, info, filter.org_unit
                                 )
                             ),
                         )
@@ -1661,7 +1663,7 @@ def manager_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, info, filter.org_unit
+                                    settings, version, info, filter.org_unit
                                 )
                             ),
                         )
@@ -1818,7 +1820,11 @@ def _manager_inherit_org_unit_predicate(
         select(
             OrganisationEnhedRegistrering.organisationenhed_id.label("unit"),
         )
-        .where(organisation_unit_predicate(settings, info, filter.org_unit))
+        .where(
+            organisation_unit_predicate(
+                settings, get_version(info.schema), info, filter.org_unit
+            )
+        )
         .cte(recursive=True)
     )
     # Stop the walk at the nearest ancestor with a matching manager.
@@ -1999,7 +2005,7 @@ def owner_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, info, filter.org_unit
+                                    settings, version, info, filter.org_unit
                                 )
                             ),
                         )
@@ -2092,6 +2098,7 @@ async def owner_resolver(
 
 def organisation_unit_predicate(
     settings: Settings,
+    version: Version,
     info: MOInfo,
     filter: OrganisationUnitFilter,
 ) -> ColumnElement:
@@ -2114,7 +2121,7 @@ def organisation_unit_predicate(
             extend_uuids(org_unit_filter, filter.parents)
         return union(
             select(OrganisationEnhedRegistrering.organisationenhed_id).where(
-                organisation_unit_predicate(settings, info, org_unit_filter)
+                organisation_unit_predicate(settings, version, info, org_unit_filter)
             ),
             # Because the root unit isn't an org unit in the database, the
             # organisation_unit_predicate can't fetch it. Instead, we include
@@ -2146,7 +2153,7 @@ def organisation_unit_predicate(
                         select(OrganisationFunktionRegistrering.id).where(
                             engagement_predicate(
                                 settings=settings,
-                                version=get_version(info.schema),
+                                version=version,
                                 info=info,
                                 filter=filter.engagement,
                             )
@@ -2255,6 +2262,7 @@ def organisation_unit_predicate(
         )
         base_leafs_predicate = organisation_unit_predicate(
             settings=settings,
+            version=version,
             info=info,
             filter=org_unit_filter,
         )
@@ -2322,6 +2330,7 @@ def organisation_unit_predicate(
         # Find parents having one of the provided children as a direct child
         child_predicate = organisation_unit_predicate(
             settings=settings,
+            version=version,
             info=info,
             filter=filter.child,
         )
@@ -2354,6 +2363,7 @@ def organisation_unit_predicate(
         org_unit_filter = filter.ancestor or OrganisationUnitFilter()
         ancestor_predicate = organisation_unit_predicate(
             settings=settings,
+            version=version,
             info=info,
             filter=org_unit_filter,
         )
@@ -2435,9 +2445,7 @@ def organisation_unit_predicate(
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
                         select(OrganisationFunktionRegistrering.id).where(
-                            owner_predicate(
-                                settings, get_version(info.schema), info, filter.owner
-                            )
+                            owner_predicate(settings, version, info, filter.owner)
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -2460,6 +2468,7 @@ async def organisation_unit_resolver(
 
     predicate = organisation_unit_predicate(
         settings=info.context.settings,
+        version=get_version(info.schema),
         info=info,
         filter=filter,
     )
@@ -2509,6 +2518,7 @@ async def organisation_unit_has_children(
     assert filter is not None  # cannot be None, but signature required for seeding
     predicate = organisation_unit_predicate(
         settings=info.context.settings,
+        version=get_version(info.schema),
         info=info,
         filter=filter,
     )
@@ -2529,6 +2539,7 @@ async def organisation_unit_child_count(
     assert filter is not None  # cannot be None, but signature required for seeding
     predicate = organisation_unit_predicate(
         settings=info.context.settings,
+        version=get_version(info.schema),
         info=info,
         filter=filter,
     )
@@ -2733,7 +2744,7 @@ def it_user_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, info, filter.org_unit
+                                    settings, version, info, filter.org_unit
                                 )
                             ),
                         )
@@ -3026,7 +3037,7 @@ def kle_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, info, filter.org_unit
+                                    settings, version, info, filter.org_unit
                                 )
                             ),
                         )
@@ -3196,7 +3207,7 @@ def leave_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, info, filter.org_unit
+                                    settings, version, info, filter.org_unit
                                 )
                             ),
                         )
@@ -3366,7 +3377,10 @@ def related_unit_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, info, filter.org_unit
+                                    settings,
+                                    get_version(info.schema),
+                                    info,
+                                    filter.org_unit,
                                 )
                             ),
                         )
@@ -3510,7 +3524,7 @@ def rolebinding_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, info, filter.org_unit
+                                    settings, version, info, filter.org_unit
                                 )
                             ),
                         )
