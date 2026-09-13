@@ -605,6 +605,7 @@ async def class_resolver(
 
 
 def address_predicate(
+    settings: Settings,
     info: MOInfo,
     filter: AddressFilter,
 ) -> ColumnElement:
@@ -677,9 +678,7 @@ def address_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info.context.settings, info, filter.employee
-                                )
+                                employee_predicate(settings, info, filter.employee)
                             ),
                         )
                     ),
@@ -705,7 +704,7 @@ def address_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    info.context.settings, info, filter.org_unit
+                                    settings, info, filter.org_unit
                                 )
                             ),
                         )
@@ -729,9 +728,7 @@ def address_predicate(
                         uuid_shortcircuit(
                             filter.address_type,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    info.context.settings, info, filter.address_type
-                                )
+                                class_predicate(settings, info, filter.address_type)
                             ),
                         )
                     ),
@@ -755,9 +752,7 @@ def address_predicate(
                         uuid_shortcircuit(
                             filter.visibility,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    info.context.settings, info, filter.visibility
-                                )
+                                class_predicate(settings, info, filter.visibility)
                             ),
                         )
                     ),
@@ -819,6 +814,7 @@ async def address_resolver(
         filter = AddressFilter()
 
     predicate = address_predicate(
+        settings=info.context.settings,
         info=info,
         filter=filter,
     )
