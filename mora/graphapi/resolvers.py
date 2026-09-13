@@ -785,7 +785,11 @@ def address_predicate(
                         filter.ituser,
                         select(
                             OrganisationFunktionRegistrering.organisationfunktion_id
-                        ).where(it_user_predicate(settings, info, filter.ituser)),
+                        ).where(
+                            it_user_predicate(
+                                settings, get_version(info.schema), info, filter.ituser
+                            )
+                        ),
                     )
                 )
             )
@@ -1152,7 +1156,9 @@ def employee_predicate(
             OrganisationFunktionRelation.rel_maal_uuid == BrugerRegistrering.bruger_id,
             OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
                 select(OrganisationFunktionRegistrering.id).where(
-                    it_user_predicate(settings, info, ituser_filter)
+                    it_user_predicate(
+                        settings, get_version(info.schema), info, ituser_filter
+                    )
                 )
             ),
             _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -1397,6 +1403,7 @@ def engagement_predicate(
     if filter.ituser is not None:
         ituser_pred = it_user_predicate(
             settings,
+            get_version(info.schema),
             info,
             filter.ituser,
         )
@@ -2593,6 +2600,7 @@ async def it_system_resolver(
 
 def it_user_predicate(
     settings: Settings,
+    version: Version,
     info: MOInfo,
     filter: ITUserFilter,
 ) -> ColumnElement:
@@ -2775,7 +2783,7 @@ def it_user_predicate(
 
     # In v29 and prior None and UNSET were handled identically (no filtering),
     # this branch ensures backwards compatability with this behavior.
-    if get_version(info.schema) <= Version.VERSION_29 and filter.external_ids is None:
+    if version <= Version.VERSION_29 and filter.external_ids is None:
         filter.external_ids = UNSET
 
     # External IDs
@@ -2861,6 +2869,7 @@ async def it_user_resolver(
 
     predicate = it_user_predicate(
         settings=info.context.settings,
+        version=get_version(info.schema),
         info=info,
         filter=filter,
     )
@@ -3481,7 +3490,14 @@ def rolebinding_predicate(
                             filter.ituser,
                             select(
                                 OrganisationFunktionRegistrering.organisationfunktion_id
-                            ).where(it_user_predicate(settings, info, filter.ituser)),
+                            ).where(
+                                it_user_predicate(
+                                    settings,
+                                    get_version(info.schema),
+                                    info,
+                                    filter.ituser,
+                                )
+                            ),
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
