@@ -3256,6 +3256,7 @@ async def generic_resolver(
 
 
 def related_unit_predicate(
+    settings: Settings,
     info: MOInfo,
     filter: RelatedUnitFilter,
 ) -> ColumnElement:
@@ -3319,7 +3320,7 @@ def related_unit_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    info.context.settings, info, filter.org_unit
+                                    settings, info, filter.org_unit
                                 )
                             ),
                         )
@@ -3343,6 +3344,7 @@ async def related_unit_resolver(
         filter = RelatedUnitFilter()
 
     predicate = related_unit_predicate(
+        settings=info.context.settings,
         info=info,
         filter=filter,
     )
