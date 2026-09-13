@@ -304,7 +304,6 @@ def _get_active_period_clause(
 
 
 def facet_predicate(
-    info: MOInfo,
     filter: FacetFilter,
 ) -> ColumnElement:
     predicates = [
@@ -348,7 +347,7 @@ def facet_predicate(
                         uuid_shortcircuit(
                             filter.parent,
                             select(FacetRegistrering.facet_id).where(
-                                facet_predicate(info, filter.parent)
+                                facet_predicate(filter.parent)
                             ),
                         )
                     ),
@@ -371,7 +370,6 @@ async def facet_resolver(
         filter = FacetFilter()
 
     predicate = facet_predicate(
-        info=info,
         filter=filter,
     )
     query = (
@@ -475,7 +473,7 @@ def class_predicate(
                         uuid_shortcircuit(
                             filter.facet,
                             select(FacetRegistrering.facet_id).where(
-                                facet_predicate(info, filter.facet)
+                                facet_predicate(filter.facet)
                             ),
                         )
                     ),
