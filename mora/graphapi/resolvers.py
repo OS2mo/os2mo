@@ -774,7 +774,9 @@ def address_predicate(
                         select(
                             OrganisationFunktionRegistrering.organisationfunktion_id
                         ).where(
-                            engagement_predicate(settings, info, filter.engagement)
+                            engagement_predicate(
+                                settings, version, info, filter.engagement
+                            )
                         ),
                     )
                 )
@@ -1222,6 +1224,7 @@ async def employee_resolver(
 
 def engagement_predicate(
     settings: Settings,
+    version: Version,
     info: MOInfo,
     filter: EngagementFilter,
 ) -> ColumnElement:
@@ -1403,7 +1406,7 @@ def engagement_predicate(
     if filter.ituser is not None:
         ituser_pred = it_user_predicate(
             settings,
-            get_version(info.schema),
+            version,
             info,
             filter.ituser,
         )
@@ -1435,6 +1438,7 @@ async def engagement_resolver(
 
     predicate = engagement_predicate(
         settings=info.context.settings,
+        version=get_version(info.schema),
         info=info,
         filter=filter,
     )
@@ -1716,7 +1720,9 @@ def manager_predicate(
                             select(
                                 OrganisationFunktionRegistrering.organisationfunktion_id
                             ).where(
-                                engagement_predicate(settings, info, filter.engagement)
+                                engagement_predicate(
+                                    settings, version, info, filter.engagement
+                                )
                             ),
                         )
                     ),
@@ -2122,6 +2128,7 @@ def organisation_unit_predicate(
                         select(OrganisationFunktionRegistrering.id).where(
                             engagement_predicate(
                                 settings=settings,
+                                version=get_version(info.schema),
                                 info=info,
                                 filter=filter.engagement,
                             )
@@ -2752,7 +2759,9 @@ def it_user_predicate(
                             select(
                                 OrganisationFunktionRegistrering.organisationfunktion_id
                             ).where(
-                                engagement_predicate(settings, info, filter.engagement)
+                                engagement_predicate(
+                                    settings, version, info, filter.engagement
+                                )
                             ),
                         )
                     ),
