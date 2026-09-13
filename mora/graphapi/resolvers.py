@@ -1659,7 +1659,9 @@ def manager_predicate(
     if inherit:
         if filter.org_unit is None:
             raise ValueError("The inherit flag requires an organizational unit filter")
-        predicates.append(_manager_inherit_org_unit_predicate(settings, info, filter))
+        predicates.append(
+            _manager_inherit_org_unit_predicate(settings, version, info, filter)
+        )
     elif filter.org_unit:
         predicates.append(
             OrganisationFunktionRegistrering.id.in_(
@@ -1790,6 +1792,7 @@ def manager_predicate(
 
 def _manager_inherit_org_unit_predicate(
     settings: Settings,
+    version: Version,
     info: MOInfo,
     filter: ManagerFilter,
 ) -> ColumnElement:
@@ -1804,7 +1807,7 @@ def _manager_inherit_org_unit_predicate(
         return exists().where(
             manager_predicate(
                 settings,
-                get_version(info.schema),
+                version,
                 info,
                 dataclasses.replace(filter, org_unit=None),
             ),
@@ -1836,11 +1839,7 @@ def _manager_inherit_org_unit_predicate(
         select(
             OrganisationEnhedRegistrering.organisationenhed_id.label("unit"),
         )
-        .where(
-            organisation_unit_predicate(
-                settings, get_version(info.schema), info, filter.org_unit
-            )
-        )
+        .where(organisation_unit_predicate(settings, version, info, filter.org_unit))
         .cte(recursive=True)
     )
     # Stop the walk at the nearest ancestor with a matching manager.
