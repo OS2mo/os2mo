@@ -3055,6 +3055,7 @@ async def kle_resolver(
 
 
 def leave_predicate(
+    settings: Settings,
     info: MOInfo,
     filter: LeaveFilter,
 ) -> ColumnElement:
@@ -3127,9 +3128,7 @@ def leave_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info.context.settings, info, filter.employee
-                                )
+                                employee_predicate(settings, info, filter.employee)
                             ),
                         )
                     ),
@@ -3155,7 +3154,7 @@ def leave_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    info.context.settings, info, filter.org_unit
+                                    settings, info, filter.org_unit
                                 )
                             ),
                         )
@@ -3179,6 +3178,7 @@ async def leave_resolver(
         filter = LeaveFilter()
 
     predicate = leave_predicate(
+        settings=info.context.settings,
         info=info,
         filter=filter,
     )
