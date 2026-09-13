@@ -532,7 +532,11 @@ def class_predicate(
                         filter.owner,
                         select(
                             OrganisationEnhedRegistrering.organisationenhed_id
-                        ).where(organisation_unit_predicate(info, filter.owner)),
+                        ).where(
+                            organisation_unit_predicate(
+                                info.context.settings, info, filter.owner
+                            )
+                        ),
                     )
                 ),
                 _get_active_period_clause(KlasseRelation, filter),
@@ -699,7 +703,11 @@ def address_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
+                            ).where(
+                                organisation_unit_predicate(
+                                    info.context.settings, info, filter.org_unit
+                                )
+                            ),
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -947,7 +955,11 @@ def association_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
+                            ).where(
+                                organisation_unit_predicate(
+                                    info.context.settings, info, filter.org_unit
+                                )
+                            ),
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -1299,7 +1311,11 @@ def engagement_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
+                            ).where(
+                                organisation_unit_predicate(
+                                    info.context.settings, info, filter.org_unit
+                                )
+                            ),
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -1619,7 +1635,11 @@ def manager_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
+                            ).where(
+                                organisation_unit_predicate(
+                                    info.context.settings, info, filter.org_unit
+                                )
+                            ),
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -1764,7 +1784,9 @@ def _manager_inherit_org_unit_predicate(
         select(
             OrganisationEnhedRegistrering.organisationenhed_id.label("unit"),
         )
-        .where(organisation_unit_predicate(info, filter.org_unit))
+        .where(
+            organisation_unit_predicate(info.context.settings, info, filter.org_unit)
+        )
         .cte(recursive=True)
     )
     # Stop the walk at the nearest ancestor with a matching manager.
@@ -1939,7 +1961,11 @@ def owner_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
+                            ).where(
+                                organisation_unit_predicate(
+                                    info.context.settings, info, filter.org_unit
+                                )
+                            ),
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -2027,6 +2053,7 @@ async def owner_resolver(
 
 
 def organisation_unit_predicate(
+    settings: Settings,
     info: MOInfo,
     filter: OrganisationUnitFilter,
 ) -> ColumnElement:
@@ -2049,7 +2076,7 @@ def organisation_unit_predicate(
             extend_uuids(org_unit_filter, filter.parents)
         return union(
             select(OrganisationEnhedRegistrering.organisationenhed_id).where(
-                organisation_unit_predicate(info, org_unit_filter)
+                organisation_unit_predicate(settings, info, org_unit_filter)
             ),
             # Because the root unit isn't an org unit in the database, the
             # organisation_unit_predicate can't fetch it. Instead, we include
@@ -2187,6 +2214,7 @@ def organisation_unit_predicate(
             filter.descendant or filter.subtree or OrganisationUnitFilter()
         )
         base_leafs_predicate = organisation_unit_predicate(
+            settings=settings,
             info=info,
             filter=org_unit_filter,
         )
@@ -2253,6 +2281,7 @@ def organisation_unit_predicate(
     elif filter.child is not UNSET:
         # Find parents having one of the provided children as a direct child
         child_predicate = organisation_unit_predicate(
+            settings=settings,
             info=info,
             filter=filter.child,
         )
@@ -2284,6 +2313,7 @@ def organisation_unit_predicate(
         # Find all matching parents and then recursively find their children.
         org_unit_filter = filter.ancestor or OrganisationUnitFilter()
         ancestor_predicate = organisation_unit_predicate(
+            settings=settings,
             info=info,
             filter=org_unit_filter,
         )
@@ -2387,6 +2417,7 @@ async def organisation_unit_resolver(
         filter = OrganisationUnitFilter()
 
     predicate = organisation_unit_predicate(
+        settings=info.context.settings,
         info=info,
         filter=filter,
     )
@@ -2435,6 +2466,7 @@ async def organisation_unit_has_children(
     """Resolve whether an organisation unit has children."""
     assert filter is not None  # cannot be None, but signature required for seeding
     predicate = organisation_unit_predicate(
+        settings=info.context.settings,
         info=info,
         filter=filter,
     )
@@ -2454,6 +2486,7 @@ async def organisation_unit_child_count(
     """Resolve the number of children of an organisation unit."""
     assert filter is not None  # cannot be None, but signature required for seeding
     predicate = organisation_unit_predicate(
+        settings=info.context.settings,
         info=info,
         filter=filter,
     )
@@ -2654,7 +2687,11 @@ def it_user_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
+                            ).where(
+                                organisation_unit_predicate(
+                                    info.context.settings, info, filter.org_unit
+                                )
+                            ),
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -2933,7 +2970,11 @@ def kle_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
+                            ).where(
+                                organisation_unit_predicate(
+                                    info.context.settings, info, filter.org_unit
+                                )
+                            ),
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -3095,7 +3136,11 @@ def leave_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
+                            ).where(
+                                organisation_unit_predicate(
+                                    info.context.settings, info, filter.org_unit
+                                )
+                            ),
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -3258,7 +3303,11 @@ def related_unit_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
+                            ).where(
+                                organisation_unit_predicate(
+                                    info.context.settings, info, filter.org_unit
+                                )
+                            ),
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -3395,7 +3444,11 @@ def rolebinding_predicate(
                             filter.org_unit,
                             select(
                                 OrganisationEnhedRegistrering.organisationenhed_id
-                            ).where(organisation_unit_predicate(info, filter.org_unit)),
+                            ).where(
+                                organisation_unit_predicate(
+                                    info.context.settings, info, filter.org_unit
+                                )
+                            ),
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),

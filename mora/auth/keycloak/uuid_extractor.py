@@ -26,6 +26,7 @@ def _keeps_parent(info: "MOInfo", uuid: UUID, parent: UUID) -> ColumnElement:
     """Whether the parent named is the one the org unit already has."""
     return exists().where(
         organisation_unit_predicate(
+            settings=info.context.settings,
             info=info,
             filter=OrganisationUnitFilter(
                 uuids=[parent], child=OrganisationUnitFilter(uuids=[uuid])
