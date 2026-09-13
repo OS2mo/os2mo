@@ -785,7 +785,7 @@ def address_predicate(
                         filter.ituser,
                         select(
                             OrganisationFunktionRegistrering.organisationfunktion_id
-                        ).where(it_user_predicate(info, filter.ituser)),
+                        ).where(it_user_predicate(settings, info, filter.ituser)),
                     )
                 )
             )
@@ -1152,7 +1152,7 @@ def employee_predicate(
             OrganisationFunktionRelation.rel_maal_uuid == BrugerRegistrering.bruger_id,
             OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
                 select(OrganisationFunktionRegistrering.id).where(
-                    it_user_predicate(info, ituser_filter)
+                    it_user_predicate(settings, info, ituser_filter)
                 )
             ),
             _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -1396,6 +1396,7 @@ def engagement_predicate(
     # pointing at the engagement UUID; resolve via the ituser predicate.
     if filter.ituser is not None:
         ituser_pred = it_user_predicate(
+            settings,
             info,
             filter.ituser,
         )
@@ -2601,6 +2602,7 @@ async def it_system_resolver(
 
 
 def it_user_predicate(
+    settings: Settings,
     info: MOInfo,
     filter: ITUserFilter,
 ) -> ColumnElement:
@@ -2673,9 +2675,7 @@ def it_user_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info.context.settings, info, filter.employee
-                                )
+                                employee_predicate(settings, info, filter.employee)
                             ),
                         )
                     ),
@@ -2701,7 +2701,7 @@ def it_user_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    info.context.settings, info, filter.org_unit
+                                    settings, info, filter.org_unit
                                 )
                             ),
                         )
@@ -2749,9 +2749,7 @@ def it_user_predicate(
                             select(
                                 OrganisationFunktionRegistrering.organisationfunktion_id
                             ).where(
-                                engagement_predicate(
-                                    info.context.settings, info, filter.engagement
-                                )
+                                engagement_predicate(settings, info, filter.engagement)
                             ),
                         )
                     ),
@@ -2846,7 +2844,7 @@ def it_user_predicate(
                 uuid_shortcircuit(
                     primary_filter,
                     select(KlasseRegistrering.klasse_id).where(
-                        class_predicate(info.context.settings, info, primary_filter)
+                        class_predicate(settings, info, primary_filter)
                     ),
                 )
             ),
@@ -2871,6 +2869,7 @@ async def it_user_resolver(
         filter = ITUserFilter()
 
     predicate = it_user_predicate(
+        settings=info.context.settings,
         info=info,
         filter=filter,
     )
@@ -3488,7 +3487,11 @@ def rolebinding_predicate(
                             filter.ituser,
                             select(
                                 OrganisationFunktionRegistrering.organisationfunktion_id
-                            ).where(it_user_predicate(info, filter.ituser)),
+                            ).where(
+                                it_user_predicate(
+                                    info.context.settings, info, filter.ituser
+                                )
+                            ),
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
