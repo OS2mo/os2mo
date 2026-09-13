@@ -606,6 +606,7 @@ async def class_resolver(
 
 def address_predicate(
     settings: Settings,
+    version: Version,
     info: MOInfo,
     filter: AddressFilter,
 ) -> ColumnElement:
@@ -786,9 +787,7 @@ def address_predicate(
                         select(
                             OrganisationFunktionRegistrering.organisationfunktion_id
                         ).where(
-                            it_user_predicate(
-                                settings, get_version(info.schema), info, filter.ituser
-                            )
+                            it_user_predicate(settings, version, info, filter.ituser)
                         ),
                     )
                 )
@@ -821,6 +820,7 @@ async def address_resolver(
 
     predicate = address_predicate(
         settings=info.context.settings,
+        version=get_version(info.schema),
         info=info,
         filter=filter,
     )
