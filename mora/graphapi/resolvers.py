@@ -1478,6 +1478,7 @@ async def engagement_resolver(
 
 def manager_predicate(
     settings: Settings,
+    version: Version,
     info: MOInfo,
     filter: ManagerFilter,
     inherit: bool = False,
@@ -1538,7 +1539,7 @@ def manager_predicate(
         )
 
     # Employees
-    if get_version(info.schema) >= Version.VERSION_25:
+    if version >= Version.VERSION_25:
         if filter.employee is None:
             # Vacant managers are encoded in two ways, either:
             # * As a tilknyttedebrugere row with nulls in both UUID and URN, or
@@ -1766,7 +1767,10 @@ def _manager_inherit_org_unit_predicate(
         # `filter.org_unit = organisationenhed_id`.
         return exists().where(
             manager_predicate(
-                settings, info, dataclasses.replace(filter, org_unit=None)
+                settings,
+                get_version(info.schema),
+                info,
+                dataclasses.replace(filter, org_unit=None),
             ),
             # Manager is attached to organisationenhed_id:
             OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -1843,6 +1847,7 @@ async def manager_resolver(
 
     predicate = manager_predicate(
         settings=info.context.settings,
+        version=get_version(info.schema),
         info=info,
         filter=filter,
         inherit=inherit,
