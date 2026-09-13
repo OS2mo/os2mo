@@ -3075,6 +3075,7 @@ async def kle_resolver(
 
 def leave_predicate(
     settings: Settings,
+    version: Version,
     info: MOInfo,
     filter: LeaveFilter,
 ) -> ColumnElement:
@@ -3198,6 +3199,7 @@ async def leave_resolver(
 
     predicate = leave_predicate(
         settings=info.context.settings,
+        version=get_version(info.schema),
         info=info,
         filter=filter,
     )
