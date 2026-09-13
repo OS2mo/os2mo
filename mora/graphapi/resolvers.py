@@ -40,6 +40,7 @@ from strawberry.types.unset import UnsetType
 
 from mora import util
 from mora.access_log import access_log
+from mora.config import Settings
 from mora.db import AsyncSession
 from mora.db import BrugerAttrEgenskaber
 from mora.db import BrugerRegistrering
@@ -672,7 +673,9 @@ def address_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(info, filter.employee)
+                                employee_predicate(
+                                    info.context.settings, info, filter.employee
+                                )
                             ),
                         )
                     ),
@@ -918,7 +921,9 @@ def association_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(info, filter.employee)
+                                employee_predicate(
+                                    info.context.settings, info, filter.employee
+                                )
                             ),
                         )
                     ),
@@ -1046,6 +1051,7 @@ async def association_resolver(
 
 
 def employee_predicate(
+    settings: Settings,
     info: MOInfo,
     filter: EmployeeFilter,
 ) -> ColumnElement:
@@ -1099,9 +1105,7 @@ def employee_predicate(
 
     # Query search
     if filter.query:
-        predicates.append(
-            search_employees_predicate(filter.query, info.context.settings)
-        )
+        predicates.append(search_employees_predicate(filter.query, settings))
 
     # Owner
     if filter.owner is not None:
@@ -1158,6 +1162,7 @@ async def employee_resolver(
         filter = EmployeeFilter()
 
     predicate = employee_predicate(
+        settings=info.context.settings,
         info=info,
         filter=filter,
     )
@@ -1268,7 +1273,9 @@ def engagement_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(info, filter.employee)
+                                employee_predicate(
+                                    info.context.settings, info, filter.employee
+                                )
                             ),
                         )
                     ),
@@ -1556,7 +1563,9 @@ def manager_predicate(
                                 uuid_shortcircuit(
                                     filter.employee,
                                     select(BrugerRegistrering.bruger_id).where(
-                                        employee_predicate(info, filter.employee)
+                                        employee_predicate(
+                                            info.context.settings, info, filter.employee
+                                        )
                                     ),
                                 )
                             ),
@@ -1580,7 +1589,9 @@ def manager_predicate(
                             uuid_shortcircuit(
                                 filter.employee,
                                 select(BrugerRegistrering.bruger_id).where(
-                                    employee_predicate(info, filter.employee)
+                                    employee_predicate(
+                                        info.context.settings, info, filter.employee
+                                    )
                                 ),
                             )
                         ),
@@ -1696,7 +1707,9 @@ def manager_predicate(
                         uuid_shortcircuit(
                             filter.exclude,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(info, filter.exclude)
+                                employee_predicate(
+                                    info.context.settings, info, filter.exclude
+                                )
                             ),
                         )
                     ),
@@ -1900,7 +1913,9 @@ def owner_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(info, filter.employee)
+                                employee_predicate(
+                                    info.context.settings, info, filter.employee
+                                )
                             ),
                         )
                     ),
@@ -1945,7 +1960,9 @@ def owner_predicate(
                         uuid_shortcircuit(
                             filter.owner,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(info, filter.owner)
+                                employee_predicate(
+                                    info.context.settings, info, filter.owner
+                                )
                             ),
                         )
                     ),
@@ -2611,7 +2628,9 @@ def it_user_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(info, filter.employee)
+                                employee_predicate(
+                                    info.context.settings, info, filter.employee
+                                )
                             ),
                         )
                     ),
@@ -3050,7 +3069,9 @@ def leave_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(info, filter.employee)
+                                employee_predicate(
+                                    info.context.settings, info, filter.employee
+                                )
                             ),
                         )
                     ),

@@ -54,6 +54,7 @@ def _is_owner_employee(
     if entity_uuid is None:
         return None
     predicate = employee_predicate(
+        settings=info.context.settings,
         info=info,
         filter=EmployeeFilter(
             uuids=[entity_uuid],
