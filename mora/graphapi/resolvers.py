@@ -3332,6 +3332,7 @@ async def generic_resolver(
 
 def related_unit_predicate(
     settings: Settings,
+    version: Version,
     info: MOInfo,
     filter: RelatedUnitFilter,
 ) -> ColumnElement:
@@ -3396,7 +3397,7 @@ def related_unit_predicate(
                             ).where(
                                 organisation_unit_predicate(
                                     settings,
-                                    get_version(info.schema),
+                                    version,
                                     info,
                                     filter.org_unit,
                                 )
@@ -3423,6 +3424,7 @@ async def related_unit_resolver(
 
     predicate = related_unit_predicate(
         settings=info.context.settings,
+        version=get_version(info.schema),
         info=info,
         filter=filter,
     )
