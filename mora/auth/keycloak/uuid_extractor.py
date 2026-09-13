@@ -29,7 +29,6 @@ def _keeps_parent(info: "MOInfo", uuid: UUID, parent: UUID) -> ColumnElement:
         organisation_unit_predicate(
             settings=info.context.settings,
             version=get_version(info.schema),
-            info=info,
             filter=OrganisationUnitFilter(
                 uuids=[parent], child=OrganisationUnitFilter(uuids=[uuid])
             ),

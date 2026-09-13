@@ -410,7 +410,6 @@ async def facet_resolver(
 def class_predicate(
     settings: Settings,
     version: Version,
-    info: MOInfo,
     filter: ClassFilter,
 ) -> ColumnElement:
     predicates = [
@@ -496,7 +495,7 @@ def class_predicate(
                         uuid_shortcircuit(
                             filter.parent,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(settings, version, info, filter.parent)
+                                class_predicate(settings, version, filter.parent)
                             ),
                         )
                     ),
@@ -535,9 +534,7 @@ def class_predicate(
                         select(
                             OrganisationEnhedRegistrering.organisationenhed_id
                         ).where(
-                            organisation_unit_predicate(
-                                settings, version, info, filter.owner
-                            )
+                            organisation_unit_predicate(settings, version, filter.owner)
                         ),
                     )
                 ),
@@ -571,7 +568,6 @@ async def class_resolver(
     predicate = class_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        info=info,
         filter=filter,
     )
     query = (
@@ -611,7 +607,6 @@ async def class_resolver(
 def address_predicate(
     settings: Settings,
     version: Version,
-    info: MOInfo,
     filter: AddressFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
@@ -683,9 +678,7 @@ def address_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    settings, version, info, filter.employee
-                                )
+                                employee_predicate(settings, version, filter.employee)
                             ),
                         )
                     ),
@@ -711,7 +704,7 @@ def address_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, version, info, filter.org_unit
+                                    settings, version, filter.org_unit
                                 )
                             ),
                         )
@@ -735,9 +728,7 @@ def address_predicate(
                         uuid_shortcircuit(
                             filter.address_type,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    settings, version, info, filter.address_type
-                                )
+                                class_predicate(settings, version, filter.address_type)
                             ),
                         )
                     ),
@@ -761,9 +752,7 @@ def address_predicate(
                         uuid_shortcircuit(
                             filter.visibility,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    settings, version, info, filter.visibility
-                                )
+                                class_predicate(settings, version, filter.visibility)
                             ),
                         )
                     ),
@@ -784,9 +773,7 @@ def address_predicate(
                         select(
                             OrganisationFunktionRegistrering.organisationfunktion_id
                         ).where(
-                            engagement_predicate(
-                                settings, version, info, filter.engagement
-                            )
+                            engagement_predicate(settings, version, filter.engagement)
                         ),
                     )
                 )
@@ -798,9 +785,7 @@ def address_predicate(
                         filter.ituser,
                         select(
                             OrganisationFunktionRegistrering.organisationfunktion_id
-                        ).where(
-                            it_user_predicate(settings, version, info, filter.ituser)
-                        ),
+                        ).where(it_user_predicate(settings, version, filter.ituser)),
                     )
                 )
             )
@@ -833,7 +818,6 @@ async def address_resolver(
     predicate = address_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        info=info,
         filter=filter,
     )
     query = (
@@ -877,7 +861,6 @@ async def address_resolver(
 def association_predicate(
     settings: Settings,
     version: Version,
-    info: MOInfo,
     filter: AssociationFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
@@ -949,9 +932,7 @@ def association_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    settings, version, info, filter.employee
-                                )
+                                employee_predicate(settings, version, filter.employee)
                             ),
                         )
                     ),
@@ -977,7 +958,7 @@ def association_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, version, info, filter.org_unit
+                                    settings, version, filter.org_unit
                                 )
                             ),
                         )
@@ -1002,7 +983,7 @@ def association_predicate(
                             filter.association_type,
                             select(KlasseRegistrering.klasse_id).where(
                                 class_predicate(
-                                    settings, version, info, filter.association_type
+                                    settings, version, filter.association_type
                                 )
                             ),
                         )
@@ -1045,7 +1026,6 @@ async def association_resolver(
     predicate = association_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        info=info,
         filter=filter,
     )
     query = (
@@ -1089,7 +1069,6 @@ async def association_resolver(
 def employee_predicate(
     settings: Settings,
     version: Version,
-    info: MOInfo,
     filter: EmployeeFilter,
 ) -> ColumnElement:
     predicates = [
@@ -1153,7 +1132,7 @@ def employee_predicate(
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
                     OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
                         select(OrganisationFunktionRegistrering.id).where(
-                            owner_predicate(settings, version, info, filter.owner)
+                            owner_predicate(settings, version, filter.owner)
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -1175,7 +1154,7 @@ def employee_predicate(
             OrganisationFunktionRelation.rel_maal_uuid == BrugerRegistrering.bruger_id,
             OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
                 select(OrganisationFunktionRegistrering.id).where(
-                    it_user_predicate(settings, version, info, ituser_filter)
+                    it_user_predicate(settings, version, ituser_filter)
                 )
             ),
             _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -1201,7 +1180,6 @@ async def employee_resolver(
     predicate = employee_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        info=info,
         filter=filter,
     )
     query = (
@@ -1241,7 +1219,6 @@ async def employee_resolver(
 def engagement_predicate(
     settings: Settings,
     version: Version,
-    info: MOInfo,
     filter: EngagementFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
@@ -1313,9 +1290,7 @@ def engagement_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    settings, version, info, filter.employee
-                                )
+                                employee_predicate(settings, version, filter.employee)
                             ),
                         )
                     ),
@@ -1341,7 +1316,7 @@ def engagement_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, version, info, filter.org_unit
+                                    settings, version, filter.org_unit
                                 )
                             ),
                         )
@@ -1364,9 +1339,7 @@ def engagement_predicate(
                         uuid_shortcircuit(
                             filter.job_function,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    settings, version, info, filter.job_function
-                                )
+                                class_predicate(settings, version, filter.job_function)
                             ),
                         )
                     ),
@@ -1389,7 +1362,7 @@ def engagement_predicate(
                             filter.engagement_type,
                             select(KlasseRegistrering.klasse_id).where(
                                 class_predicate(
-                                    settings, version, info, filter.engagement_type
+                                    settings, version, filter.engagement_type
                                 )
                             ),
                         )
@@ -1411,7 +1384,7 @@ def engagement_predicate(
                 uuid_shortcircuit(
                     primary_filter,
                     select(KlasseRegistrering.klasse_id).where(
-                        class_predicate(settings, version, info, primary_filter)
+                        class_predicate(settings, version, primary_filter)
                     ),
                 )
             ),
@@ -1429,7 +1402,6 @@ def engagement_predicate(
         ituser_pred = it_user_predicate(
             settings,
             version,
-            info,
             filter.ituser,
         )
         predicates.append(
@@ -1461,7 +1433,6 @@ async def engagement_resolver(
     predicate = engagement_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        info=info,
         filter=filter,
     )
     query = (
@@ -1505,7 +1476,6 @@ async def engagement_resolver(
 def manager_predicate(
     settings: Settings,
     version: Version,
-    info: MOInfo,
     filter: ManagerFilter,
     inherit: bool = False,
 ) -> ColumnElement:
@@ -1618,7 +1588,7 @@ def manager_predicate(
                                     filter.employee,
                                     select(BrugerRegistrering.bruger_id).where(
                                         employee_predicate(
-                                            settings, version, info, filter.employee
+                                            settings, version, filter.employee
                                         )
                                     ),
                                 )
@@ -1644,7 +1614,7 @@ def manager_predicate(
                                 filter.employee,
                                 select(BrugerRegistrering.bruger_id).where(
                                     employee_predicate(
-                                        settings, version, info, filter.employee
+                                        settings, version, filter.employee
                                     )
                                 ),
                             )
@@ -1660,7 +1630,7 @@ def manager_predicate(
         if filter.org_unit is None:
             raise ValueError("The inherit flag requires an organizational unit filter")
         predicates.append(
-            _manager_inherit_org_unit_predicate(settings, version, info, filter)
+            _manager_inherit_org_unit_predicate(settings, version, filter)
         )
     elif filter.org_unit:
         predicates.append(
@@ -1677,7 +1647,7 @@ def manager_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, version, info, filter.org_unit
+                                    settings, version, filter.org_unit
                                 )
                             ),
                         )
@@ -1701,7 +1671,7 @@ def manager_predicate(
                             filter.responsibility,
                             select(KlasseRegistrering.klasse_id).where(
                                 class_predicate(
-                                    settings, version, info, filter.responsibility
+                                    settings, version, filter.responsibility
                                 )
                             ),
                         )
@@ -1724,9 +1694,7 @@ def manager_predicate(
                         uuid_shortcircuit(
                             filter.manager_type,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    settings, version, info, filter.manager_type
-                                )
+                                class_predicate(settings, version, filter.manager_type)
                             ),
                         )
                     ),
@@ -1751,7 +1719,7 @@ def manager_predicate(
                                 OrganisationFunktionRegistrering.organisationfunktion_id
                             ).where(
                                 engagement_predicate(
-                                    settings, version, info, filter.engagement
+                                    settings, version, filter.engagement
                                 )
                             ),
                         )
@@ -1775,9 +1743,7 @@ def manager_predicate(
                         uuid_shortcircuit(
                             filter.exclude,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    settings, version, info, filter.exclude
-                                )
+                                employee_predicate(settings, version, filter.exclude)
                             ),
                         )
                     ),
@@ -1793,7 +1759,6 @@ def manager_predicate(
 def _manager_inherit_org_unit_predicate(
     settings: Settings,
     version: Version,
-    info: MOInfo,
     filter: ManagerFilter,
 ) -> ColumnElement:
     """Walk each starting unit up the org tree, returning managers from the
@@ -1806,10 +1771,7 @@ def _manager_inherit_org_unit_predicate(
         # `filter.org_unit = organisationenhed_id`.
         return exists().where(
             manager_predicate(
-                settings,
-                version,
-                info,
-                dataclasses.replace(filter, org_unit=None),
+                settings, version, dataclasses.replace(filter, org_unit=None)
             ),
             # Manager is attached to organisationenhed_id:
             OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -1839,7 +1801,7 @@ def _manager_inherit_org_unit_predicate(
         select(
             OrganisationEnhedRegistrering.organisationenhed_id.label("unit"),
         )
-        .where(organisation_unit_predicate(settings, version, info, filter.org_unit))
+        .where(organisation_unit_predicate(settings, version, filter.org_unit))
         .cte(recursive=True)
     )
     # Stop the walk at the nearest ancestor with a matching manager.
@@ -1887,7 +1849,6 @@ async def manager_resolver(
     predicate = manager_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        info=info,
         filter=filter,
         inherit=inherit,
     )
@@ -1932,7 +1893,6 @@ async def manager_resolver(
 def owner_predicate(
     settings: Settings,
     version: Version,
-    info: MOInfo,
     filter: OwnerFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
@@ -1992,9 +1952,7 @@ def owner_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    settings, version, info, filter.employee
-                                )
+                                employee_predicate(settings, version, filter.employee)
                             ),
                         )
                     ),
@@ -2020,7 +1978,7 @@ def owner_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, version, info, filter.org_unit
+                                    settings, version, filter.org_unit
                                 )
                             ),
                         )
@@ -2043,9 +2001,7 @@ def owner_predicate(
                         uuid_shortcircuit(
                             filter.owner,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    settings, version, info, filter.owner
-                                )
+                                employee_predicate(settings, version, filter.owner)
                             ),
                         )
                     ),
@@ -2070,7 +2026,6 @@ async def owner_resolver(
     predicate = owner_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        info=info,
         filter=filter,
     )
     query = (
@@ -2114,7 +2069,6 @@ async def owner_resolver(
 def organisation_unit_predicate(
     settings: Settings,
     version: Version,
-    info: MOInfo,
     filter: OrganisationUnitFilter,
 ) -> ColumnElement:
     def _parents_subquery() -> Select | CompoundSelect:
@@ -2136,7 +2090,7 @@ def organisation_unit_predicate(
             extend_uuids(org_unit_filter, filter.parents)
         return union(
             select(OrganisationEnhedRegistrering.organisationenhed_id).where(
-                organisation_unit_predicate(settings, version, info, org_unit_filter)
+                organisation_unit_predicate(settings, version, org_unit_filter)
             ),
             # Because the root unit isn't an org unit in the database, the
             # organisation_unit_predicate can't fetch it. Instead, we include
@@ -2169,7 +2123,6 @@ def organisation_unit_predicate(
                             engagement_predicate(
                                 settings=settings,
                                 version=version,
-                                info=info,
                                 filter=filter.engagement,
                             )
                         )
@@ -2256,9 +2209,7 @@ def organisation_unit_predicate(
                         uuid_shortcircuit(
                             filter.hierarchy,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    settings, version, info, filter.hierarchy
-                                )
+                                class_predicate(settings, version, filter.hierarchy)
                             ),
                         )
                     ),
@@ -2280,7 +2231,6 @@ def organisation_unit_predicate(
         base_leafs_predicate = organisation_unit_predicate(
             settings=settings,
             version=version,
-            info=info,
             filter=org_unit_filter,
         )
         base_leafs = (
@@ -2348,7 +2298,6 @@ def organisation_unit_predicate(
         child_predicate = organisation_unit_predicate(
             settings=settings,
             version=version,
-            info=info,
             filter=filter.child,
         )
         base_query = (
@@ -2381,7 +2330,6 @@ def organisation_unit_predicate(
         ancestor_predicate = organisation_unit_predicate(
             settings=settings,
             version=version,
-            info=info,
             filter=org_unit_filter,
         )
         base_query = (
@@ -2462,7 +2410,7 @@ def organisation_unit_predicate(
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
                         select(OrganisationFunktionRegistrering.id).where(
-                            owner_predicate(settings, version, info, filter.owner)
+                            owner_predicate(settings, version, filter.owner)
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -2486,7 +2434,6 @@ async def organisation_unit_resolver(
     predicate = organisation_unit_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        info=info,
         filter=filter,
     )
     query = (
@@ -2536,7 +2483,6 @@ async def organisation_unit_has_children(
     predicate = organisation_unit_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        info=info,
         filter=filter,
     )
     query = (
@@ -2557,7 +2503,6 @@ async def organisation_unit_child_count(
     predicate = organisation_unit_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        info=info,
         filter=filter,
     )
     query = (
@@ -2661,7 +2606,6 @@ async def it_system_resolver(
 def it_user_predicate(
     settings: Settings,
     version: Version,
-    info: MOInfo,
     filter: ITUserFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
@@ -2733,9 +2677,7 @@ def it_user_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    settings, version, info, filter.employee
-                                )
+                                employee_predicate(settings, version, filter.employee)
                             ),
                         )
                     ),
@@ -2761,7 +2703,7 @@ def it_user_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, version, info, filter.org_unit
+                                    settings, version, filter.org_unit
                                 )
                             ),
                         )
@@ -2810,7 +2752,7 @@ def it_user_predicate(
                                 OrganisationFunktionRegistrering.organisationfunktion_id
                             ).where(
                                 engagement_predicate(
-                                    settings, version, info, filter.engagement
+                                    settings, version, filter.engagement
                                 )
                             ),
                         )
@@ -2828,7 +2770,6 @@ def it_user_predicate(
         rolebinding_pred = rolebinding_predicate(
             settings,
             version,
-            info,
             filter.rolebinding or RoleBindingFilter(),
         )
         ituser_has_rolebinding = exists().where(
@@ -2908,7 +2849,7 @@ def it_user_predicate(
                 uuid_shortcircuit(
                     primary_filter,
                     select(KlasseRegistrering.klasse_id).where(
-                        class_predicate(settings, version, info, primary_filter)
+                        class_predicate(settings, version, primary_filter)
                     ),
                 )
             ),
@@ -2935,7 +2876,6 @@ async def it_user_resolver(
     predicate = it_user_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        info=info,
         filter=filter,
     )
     query = (
@@ -2979,7 +2919,6 @@ async def it_user_resolver(
 def kle_predicate(
     settings: Settings,
     version: Version,
-    info: MOInfo,
     filter: KLEFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
@@ -3054,7 +2993,7 @@ def kle_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, version, info, filter.org_unit
+                                    settings, version, filter.org_unit
                                 )
                             ),
                         )
@@ -3080,7 +3019,6 @@ async def kle_resolver(
     predicate = kle_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        info=info,
         filter=filter,
     )
     query = (
@@ -3124,7 +3062,6 @@ async def kle_resolver(
 def leave_predicate(
     settings: Settings,
     version: Version,
-    info: MOInfo,
     filter: LeaveFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
@@ -3196,9 +3133,7 @@ def leave_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    settings, version, info, filter.employee
-                                )
+                                employee_predicate(settings, version, filter.employee)
                             ),
                         )
                     ),
@@ -3224,7 +3159,7 @@ def leave_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, version, info, filter.org_unit
+                                    settings, version, filter.org_unit
                                 )
                             ),
                         )
@@ -3250,7 +3185,6 @@ async def leave_resolver(
     predicate = leave_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        info=info,
         filter=filter,
     )
     query = (
@@ -3332,7 +3266,6 @@ async def generic_resolver(
 def related_unit_predicate(
     settings: Settings,
     version: Version,
-    info: MOInfo,
     filter: RelatedUnitFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
@@ -3395,10 +3328,7 @@ def related_unit_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings,
-                                    version,
-                                    info,
-                                    filter.org_unit,
+                                    settings, version, filter.org_unit
                                 )
                             ),
                         )
@@ -3424,7 +3354,6 @@ async def related_unit_resolver(
     predicate = related_unit_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        info=info,
         filter=filter,
     )
     query = (
@@ -3468,7 +3397,6 @@ async def related_unit_resolver(
 def rolebinding_predicate(
     settings: Settings,
     version: Version,
-    info: MOInfo,
     filter: RoleBindingFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
@@ -3543,7 +3471,7 @@ def rolebinding_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    settings, version, info, filter.org_unit
+                                    settings, version, filter.org_unit
                                 )
                             ),
                         )
@@ -3568,12 +3496,7 @@ def rolebinding_predicate(
                             select(
                                 OrganisationFunktionRegistrering.organisationfunktion_id
                             ).where(
-                                it_user_predicate(
-                                    settings,
-                                    version,
-                                    info,
-                                    filter.ituser,
-                                )
+                                it_user_predicate(settings, version, filter.ituser)
                             ),
                         )
                     ),
@@ -3595,7 +3518,7 @@ def rolebinding_predicate(
                         uuid_shortcircuit(
                             filter.role,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(settings, version, info, filter.role)
+                                class_predicate(settings, version, filter.role)
                             ),
                         )
                     ),
@@ -3620,7 +3543,6 @@ async def rolebinding_resolver(
     predicate = rolebinding_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        info=info,
         filter=filter,
     )
     query = (

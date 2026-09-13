@@ -41,7 +41,6 @@ def _is_owner_org_unit(
     predicate = organisation_unit_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        info=info,
         filter=OrganisationUnitFilter(
             descendant=OrganisationUnitFilter(uuids=[entity_uuid]),
             owner=OwnerFilter(owner=actor),
@@ -62,7 +61,6 @@ def _is_owner_employee(
     predicate = employee_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        info=info,
         filter=EmployeeFilter(
             uuids=[entity_uuid],
             owner=OwnerFilter(owner=actor),
