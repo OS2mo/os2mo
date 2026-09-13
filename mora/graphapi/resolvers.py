@@ -866,6 +866,7 @@ async def address_resolver(
 
 def association_predicate(
     settings: Settings,
+    version: Version,
     info: MOInfo,
     filter: AssociationFilter,
 ) -> ColumnElement:
@@ -1029,6 +1030,7 @@ async def association_resolver(
 
     predicate = association_predicate(
         settings=info.context.settings,
+        version=get_version(info.schema),
         info=info,
         filter=filter,
     )
