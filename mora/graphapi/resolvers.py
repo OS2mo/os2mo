@@ -2930,6 +2930,7 @@ async def it_user_resolver(
 
 def kle_predicate(
     settings: Settings,
+    version: Version,
     info: MOInfo,
     filter: KLEFilter,
 ) -> ColumnElement:
@@ -3030,6 +3031,7 @@ async def kle_resolver(
 
     predicate = kle_predicate(
         settings=info.context.settings,
+        version=get_version(info.schema),
         info=info,
         filter=filter,
     )
