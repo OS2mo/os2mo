@@ -512,7 +512,7 @@ def class_predicate(
                         uuid_shortcircuit(
                             filter.it_system,
                             select(ITSystemRegistrering.itsystem_id).where(
-                                it_system_predicate(info, filter.it_system)
+                                it_system_predicate(filter.it_system)
                             ),
                         )
                     ),
@@ -2452,7 +2452,6 @@ async def organisation_unit_child_count(
 
 
 def it_system_predicate(
-    info: MOInfo,
     filter: ITSystemFilter,
 ) -> ColumnElement:
     predicates = [
@@ -2503,7 +2502,6 @@ async def it_system_resolver(
         filter = ITSystemFilter()
 
     predicate = it_system_predicate(
-        info=info,
         filter=filter,
     )
     query = (
@@ -2659,7 +2657,7 @@ def it_user_predicate(
                         uuid_shortcircuit(
                             filter.itsystem,
                             select(ITSystemRegistrering.itsystem_id).where(
-                                it_system_predicate(info, filter.itsystem)
+                                it_system_predicate(filter.itsystem)
                             ),
                         )
                     ),
