@@ -409,6 +409,7 @@ async def facet_resolver(
 
 def class_predicate(
     settings: Settings,
+    version: Version,
     info: MOInfo,
     filter: ClassFilter,
 ) -> ColumnElement:
@@ -495,7 +496,7 @@ def class_predicate(
                         uuid_shortcircuit(
                             filter.parent,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(settings, info, filter.parent)
+                                class_predicate(settings, version, info, filter.parent)
                             ),
                         )
                     ),
@@ -535,7 +536,7 @@ def class_predicate(
                             OrganisationEnhedRegistrering.organisationenhed_id
                         ).where(
                             organisation_unit_predicate(
-                                settings, get_version(info.schema), info, filter.owner
+                                settings, version, info, filter.owner
                             )
                         ),
                     )
@@ -569,6 +570,7 @@ async def class_resolver(
 
     predicate = class_predicate(
         settings=info.context.settings,
+        version=get_version(info.schema),
         info=info,
         filter=filter,
     )
@@ -733,7 +735,9 @@ def address_predicate(
                         uuid_shortcircuit(
                             filter.address_type,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(settings, info, filter.address_type)
+                                class_predicate(
+                                    settings, version, info, filter.address_type
+                                )
                             ),
                         )
                     ),
@@ -757,7 +761,9 @@ def address_predicate(
                         uuid_shortcircuit(
                             filter.visibility,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(settings, info, filter.visibility)
+                                class_predicate(
+                                    settings, version, info, filter.visibility
+                                )
                             ),
                         )
                     ),
@@ -995,7 +1001,9 @@ def association_predicate(
                         uuid_shortcircuit(
                             filter.association_type,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(settings, info, filter.association_type)
+                                class_predicate(
+                                    settings, version, info, filter.association_type
+                                )
                             ),
                         )
                     ),
@@ -1356,7 +1364,9 @@ def engagement_predicate(
                         uuid_shortcircuit(
                             filter.job_function,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(settings, info, filter.job_function)
+                                class_predicate(
+                                    settings, version, info, filter.job_function
+                                )
                             ),
                         )
                     ),
@@ -1378,7 +1388,9 @@ def engagement_predicate(
                         uuid_shortcircuit(
                             filter.engagement_type,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(settings, info, filter.engagement_type)
+                                class_predicate(
+                                    settings, version, info, filter.engagement_type
+                                )
                             ),
                         )
                     ),
@@ -1399,7 +1411,7 @@ def engagement_predicate(
                 uuid_shortcircuit(
                     primary_filter,
                     select(KlasseRegistrering.klasse_id).where(
-                        class_predicate(settings, info, primary_filter)
+                        class_predicate(settings, version, info, primary_filter)
                     ),
                 )
             ),
@@ -1686,7 +1698,9 @@ def manager_predicate(
                         uuid_shortcircuit(
                             filter.responsibility,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(settings, info, filter.responsibility)
+                                class_predicate(
+                                    settings, version, info, filter.responsibility
+                                )
                             ),
                         )
                     ),
@@ -1708,7 +1722,9 @@ def manager_predicate(
                         uuid_shortcircuit(
                             filter.manager_type,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(settings, info, filter.manager_type)
+                                class_predicate(
+                                    settings, version, info, filter.manager_type
+                                )
                             ),
                         )
                     ),
@@ -2241,7 +2257,9 @@ def organisation_unit_predicate(
                         uuid_shortcircuit(
                             filter.hierarchy,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(settings, info, filter.hierarchy)
+                                class_predicate(
+                                    settings, version, info, filter.hierarchy
+                                )
                             ),
                         )
                     ),
@@ -2891,7 +2909,7 @@ def it_user_predicate(
                 uuid_shortcircuit(
                     primary_filter,
                     select(KlasseRegistrering.klasse_id).where(
-                        class_predicate(settings, info, primary_filter)
+                        class_predicate(settings, version, info, primary_filter)
                     ),
                 )
             ),
@@ -3576,7 +3594,7 @@ def rolebinding_predicate(
                         uuid_shortcircuit(
                             filter.role,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(settings, info, filter.role)
+                                class_predicate(settings, version, info, filter.role)
                             ),
                         )
                     ),
