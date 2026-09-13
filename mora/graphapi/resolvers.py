@@ -772,7 +772,9 @@ def address_predicate(
                         filter.engagement,
                         select(
                             OrganisationFunktionRegistrering.organisationfunktion_id
-                        ).where(engagement_predicate(info, filter.engagement)),
+                        ).where(
+                            engagement_predicate(settings, info, filter.engagement)
+                        ),
                     )
                 )
             )
@@ -1213,6 +1215,7 @@ async def employee_resolver(
 
 
 def engagement_predicate(
+    settings: Settings,
     info: MOInfo,
     filter: EngagementFilter,
 ) -> ColumnElement:
@@ -1285,9 +1288,7 @@ def engagement_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info.context.settings, info, filter.employee
-                                )
+                                employee_predicate(settings, info, filter.employee)
                             ),
                         )
                     ),
@@ -1313,7 +1314,7 @@ def engagement_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    info.context.settings, info, filter.org_unit
+                                    settings, info, filter.org_unit
                                 )
                             ),
                         )
@@ -1336,9 +1337,7 @@ def engagement_predicate(
                         uuid_shortcircuit(
                             filter.job_function,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    info.context.settings, info, filter.job_function
-                                )
+                                class_predicate(settings, info, filter.job_function)
                             ),
                         )
                     ),
@@ -1360,9 +1359,7 @@ def engagement_predicate(
                         uuid_shortcircuit(
                             filter.engagement_type,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    info.context.settings, info, filter.engagement_type
-                                )
+                                class_predicate(settings, info, filter.engagement_type)
                             ),
                         )
                     ),
@@ -1383,7 +1380,7 @@ def engagement_predicate(
                 uuid_shortcircuit(
                     primary_filter,
                     select(KlasseRegistrering.klasse_id).where(
-                        class_predicate(info.context.settings, info, primary_filter)
+                        class_predicate(settings, info, primary_filter)
                     ),
                 )
             ),
@@ -1429,6 +1426,7 @@ async def engagement_resolver(
         filter = EngagementFilter()
 
     predicate = engagement_predicate(
+        settings=info.context.settings,
         info=info,
         filter=filter,
     )
@@ -1715,7 +1713,11 @@ def manager_predicate(
                             filter.engagement,
                             select(
                                 OrganisationFunktionRegistrering.organisationfunktion_id
-                            ).where(engagement_predicate(info, filter.engagement)),
+                            ).where(
+                                engagement_predicate(
+                                    info.context.settings, info, filter.engagement
+                                )
+                            ),
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -2116,6 +2118,7 @@ def organisation_unit_predicate(
                     OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
                         select(OrganisationFunktionRegistrering.id).where(
                             engagement_predicate(
+                                settings=settings,
                                 info=info,
                                 filter=filter.engagement,
                             )
@@ -2745,7 +2748,11 @@ def it_user_predicate(
                             filter.engagement,
                             select(
                                 OrganisationFunktionRegistrering.organisationfunktion_id
-                            ).where(engagement_predicate(info, filter.engagement)),
+                            ).where(
+                                engagement_predicate(
+                                    info.context.settings, info, filter.engagement
+                                )
+                            ),
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
