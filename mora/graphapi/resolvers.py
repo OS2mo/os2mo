@@ -2912,6 +2912,7 @@ async def it_user_resolver(
 
 
 def kle_predicate(
+    settings: Settings,
     info: MOInfo,
     filter: KLEFilter,
 ) -> ColumnElement:
@@ -2987,7 +2988,7 @@ def kle_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    info.context.settings, info, filter.org_unit
+                                    settings, info, filter.org_unit
                                 )
                             ),
                         )
@@ -3011,6 +3012,7 @@ async def kle_resolver(
         filter = KLEFilter()
 
     predicate = kle_predicate(
+        settings=info.context.settings,
         info=info,
         filter=filter,
     )
