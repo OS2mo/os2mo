@@ -857,6 +857,7 @@ async def address_resolver(
 
 
 def association_predicate(
+    settings: Settings,
     info: MOInfo,
     filter: AssociationFilter,
 ) -> ColumnElement:
@@ -929,9 +930,7 @@ def association_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info.context.settings, info, filter.employee
-                                )
+                                employee_predicate(settings, info, filter.employee)
                             ),
                         )
                     ),
@@ -957,7 +956,7 @@ def association_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    info.context.settings, info, filter.org_unit
+                                    settings, info, filter.org_unit
                                 )
                             ),
                         )
@@ -981,9 +980,7 @@ def association_predicate(
                         uuid_shortcircuit(
                             filter.association_type,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    info.context.settings, info, filter.association_type
-                                )
+                                class_predicate(settings, info, filter.association_type)
                             ),
                         )
                     ),
@@ -1023,6 +1020,7 @@ async def association_resolver(
         filter = AssociationFilter()
 
     predicate = association_predicate(
+        settings=info.context.settings,
         info=info,
         filter=filter,
     )
