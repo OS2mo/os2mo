@@ -1130,7 +1130,7 @@ def employee_predicate(
                     == OrganisationFunktionRelationKode.tilknyttedebrugere,
                     OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
                         select(OrganisationFunktionRegistrering.id).where(
-                            owner_predicate(info, filter.owner)
+                            owner_predicate(settings, info, filter.owner)
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -1879,6 +1879,7 @@ async def manager_resolver(
 
 
 def owner_predicate(
+    settings: Settings,
     info: MOInfo,
     filter: OwnerFilter,
 ) -> ColumnElement:
@@ -1939,9 +1940,7 @@ def owner_predicate(
                         uuid_shortcircuit(
                             filter.employee,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info.context.settings, info, filter.employee
-                                )
+                                employee_predicate(settings, info, filter.employee)
                             ),
                         )
                     ),
@@ -1967,7 +1966,7 @@ def owner_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    info.context.settings, info, filter.org_unit
+                                    settings, info, filter.org_unit
                                 )
                             ),
                         )
@@ -1990,9 +1989,7 @@ def owner_predicate(
                         uuid_shortcircuit(
                             filter.owner,
                             select(BrugerRegistrering.bruger_id).where(
-                                employee_predicate(
-                                    info.context.settings, info, filter.owner
-                                )
+                                employee_predicate(settings, info, filter.owner)
                             ),
                         )
                     ),
@@ -2015,6 +2012,7 @@ async def owner_resolver(
         filter = OwnerFilter()
 
     predicate = owner_predicate(
+        settings=info.context.settings,
         info=info,
         filter=filter,
     )
@@ -2400,7 +2398,7 @@ def organisation_unit_predicate(
                     == OrganisationFunktionRelationKode.tilknyttedeenheder,
                     OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
                         select(OrganisationFunktionRegistrering.id).where(
-                            owner_predicate(info, filter.owner)
+                            owner_predicate(settings, info, filter.owner)
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
