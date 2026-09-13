@@ -2777,6 +2777,7 @@ def it_user_predicate(
     if filter.rolebinding is not UNSET:
         rolebinding_pred = rolebinding_predicate(
             settings,
+            version,
             info,
             filter.rolebinding or RoleBindingFilter(),
         )
@@ -3405,6 +3406,7 @@ async def related_unit_resolver(
 
 def rolebinding_predicate(
     settings: Settings,
+    version: Version,
     info: MOInfo,
     filter: RoleBindingFilter,
 ) -> ColumnElement:
@@ -3507,7 +3509,7 @@ def rolebinding_predicate(
                             ).where(
                                 it_user_predicate(
                                     settings,
-                                    get_version(info.schema),
+                                    version,
                                     info,
                                     filter.ituser,
                                 )
@@ -3556,6 +3558,7 @@ async def rolebinding_resolver(
 
     predicate = rolebinding_predicate(
         settings=info.context.settings,
+        version=get_version(info.schema),
         info=info,
         filter=filter,
     )
