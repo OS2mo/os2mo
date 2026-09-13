@@ -2754,6 +2754,7 @@ def it_user_predicate(
     # predicate in SQL and matching ITUser UUIDs against the relation's target.
     if filter.rolebinding is not UNSET:
         rolebinding_pred = rolebinding_predicate(
+            settings,
             info,
             filter.rolebinding or RoleBindingFilter(),
         )
@@ -3380,6 +3381,7 @@ async def related_unit_resolver(
 
 
 def rolebinding_predicate(
+    settings: Settings,
     info: MOInfo,
     filter: RoleBindingFilter,
 ) -> ColumnElement:
@@ -3455,7 +3457,7 @@ def rolebinding_predicate(
                                 OrganisationEnhedRegistrering.organisationenhed_id
                             ).where(
                                 organisation_unit_predicate(
-                                    info.context.settings, info, filter.org_unit
+                                    settings, info, filter.org_unit
                                 )
                             ),
                         )
@@ -3479,11 +3481,7 @@ def rolebinding_predicate(
                             filter.ituser,
                             select(
                                 OrganisationFunktionRegistrering.organisationfunktion_id
-                            ).where(
-                                it_user_predicate(
-                                    info.context.settings, info, filter.ituser
-                                )
-                            ),
+                            ).where(it_user_predicate(settings, info, filter.ituser)),
                         )
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
@@ -3504,9 +3502,7 @@ def rolebinding_predicate(
                         uuid_shortcircuit(
                             filter.role,
                             select(KlasseRegistrering.klasse_id).where(
-                                class_predicate(
-                                    info.context.settings, info, filter.role
-                                )
+                                class_predicate(settings, info, filter.role)
                             ),
                         )
                     ),
@@ -3529,6 +3525,7 @@ async def rolebinding_resolver(
         filter = RoleBindingFilter()
 
     predicate = rolebinding_predicate(
+        settings=info.context.settings,
         info=info,
         filter=filter,
     )
