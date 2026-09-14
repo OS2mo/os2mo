@@ -67,10 +67,20 @@ def get_entities_graphql(
         if collection == "org_unit":
             # Create requires ownership of the parent we are trying to insert under
             if permission_type == "create":
-                yield _is_owner_org_unit(info, actor, getattr(input, "parent", None))
+                yield _is_owner_org_unit(
+                    info.context.settings,
+                    get_version(info.schema),
+                    actor,
+                    getattr(input, "parent", None),
+                )
                 return
             # Otherwise, changes always requires ownership of the org unit itself
-            yield _is_owner_org_unit(info, actor, getattr(input, "uuid"))
+            yield _is_owner_org_unit(
+                info.context.settings,
+                get_version(info.schema),
+                actor,
+                getattr(input, "uuid"),
+            )
             # Additionally, moving an org unit (changing its parent) requires ownership
             # of the new parent. GraphQL edits always contain the full object, so the
             # parent named is just as often the one the unit already has, which is no
@@ -78,7 +88,9 @@ def get_entities_graphql(
             if parent := getattr(input, "parent", None):
                 yield or_(
                     _keeps_parent(info, getattr(input, "uuid"), parent),
-                    _is_owner_org_unit(info, actor, parent),
+                    _is_owner_org_unit(
+                        info.context.settings, get_version(info.schema), actor, parent
+                    ),
                 )
             return
 
@@ -87,7 +99,12 @@ def get_entities_graphql(
             # `destination`s. Originally we required ownership of both the
             # origin and destinations, but that's not compatible with the old
             # service-api owner calculation
-            yield _is_owner_org_unit(info, actor, getattr(input, "origin", None))
+            yield _is_owner_org_unit(
+                info.context.settings,
+                get_version(info.schema),
+                actor,
+                getattr(input, "origin", None),
+            )
             return
 
         # Even though most of the remaining object types (addresses,
@@ -101,7 +118,9 @@ def get_entities_graphql(
 
         # Existing object (e.g. update). Again, we prefer org unit over person.
         if org_unit := getattr(input, "org_unit", None):
-            yield _is_owner_org_unit(info, actor, org_unit)
+            yield _is_owner_org_unit(
+                info.context.settings, get_version(info.schema), actor, org_unit
+            )
             return
         yield _is_owner_employee(info, actor, getattr(input, "employee", None))
         yield _is_owner_employee(info, actor, getattr(input, "person", None))

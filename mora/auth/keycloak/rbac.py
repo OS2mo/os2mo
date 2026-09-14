@@ -9,6 +9,7 @@ from sqlalchemy import exists
 from sqlalchemy import or_
 from structlog import get_logger
 
+from mora.config import Settings
 from mora.graphapi import resolvers
 from mora.graphapi.custom_schema import get_version
 from mora.graphapi.filters import EmployeeFilter
@@ -17,6 +18,7 @@ from mora.graphapi.filters import OwnerFilter
 from mora.graphapi.permissions import Collections
 from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.resolvers import organisation_unit_predicate
+from mora.graphapi.version import Version
 
 if TYPE_CHECKING:
     from mora.graphapi.context import MOInfo
@@ -25,7 +27,10 @@ logger = get_logger()
 
 
 def _is_owner_org_unit(
-    info: "MOInfo", actor: EmployeeFilter, entity_uuid: UUID | None
+    settings: Settings,
+    version: Version,
+    actor: EmployeeFilter,
+    entity_uuid: UUID | None,
 ) -> ColumnElement | None:
     """Check org-unit ownership via the GraphQL org-unit owner filter.
 
@@ -36,8 +41,8 @@ def _is_owner_org_unit(
     if entity_uuid is None:
         return None
     predicate = organisation_unit_predicate(
-        settings=info.context.settings,
-        version=get_version(info.schema),
+        settings=settings,
+        version=version,
         filter=OrganisationUnitFilter(
             descendant=OrganisationUnitFilter(uuids=[entity_uuid]),
             owner=OwnerFilter(owner=actor),
