@@ -35,7 +35,6 @@ from strawberry.utils.await_maybe import await_maybe
 from structlog import get_logger
 
 from mora import config
-from mora.auth.keycloak.models import Token
 from mora.db import get_session
 from mora.exceptions import HTTPException
 from mora.graphapi.actor import SpecialActor
@@ -47,9 +46,6 @@ from mora.graphapi.custom_schema import CustomSchema
 from mora.graphapi.custom_schema import get_version
 from mora.graphapi.events import EVENT_TOKEN_SCALAR
 from mora.graphapi.events import EventToken
-from mora.graphapi.filters import EmployeeFilter
-from mora.graphapi.filters import ITSystemFilter
-from mora.graphapi.filters import ITUserFilter
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.model_registration import AddressRegistration
 from mora.graphapi.model_registration import AssociationRegistration
@@ -243,26 +239,6 @@ def admin_policy(
     return (info.parent_type.name, info.field_name) in ADMIN_MAP
 
 
-def _actor_filter(settings: config.Settings, token: Token) -> EmployeeFilter:
-    """The employee filter matching the calling actor.
-
-    With `KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS` configured, the
-    actor is the employee holding the token's uuid as an external id in that
-    IT system; otherwise the employee with the token's uuid itself.
-    """
-    # A token with no uuid never gets this far, see `owner_policy`
-    assert token.uuid is not None
-    it_system = settings.keycloak_rbac_authoritative_it_system_for_owners
-    if it_system is not None:
-        return EmployeeFilter(
-            ituser=ITUserFilter(
-                itsystem=ITSystemFilter(uuids=[it_system]),
-                external_ids=[str(token.uuid)],
-            )
-        )
-    return EmployeeFilter(uuids=[token.uuid])
-
-
 def owner_policy(
     info: GraphQLResolveInfo, kwargs: dict[str, Any]
 ) -> AwaitableOrValue[bool]:
@@ -290,6 +266,7 @@ def owner_policy(
     input = [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])]
 
     # Import here to avoid circular imports 🙂👍
+    from mora.auth.keycloak.rbac import _actor_filter
     from mora.auth.keycloak.uuid_extractor import get_entities_graphql
 
     moinfo = _create_info_from_raw(info)
