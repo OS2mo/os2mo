@@ -1346,6 +1346,29 @@ def engagement_predicate(
             )
         )
 
+    # Primary class
+    if filter.primary is not UNSET:
+        primary_filter = filter.primary or ClassFilter()
+        engagement_has_primary = exists().where(
+            OrganisationFunktionRelation.rel_type
+            == OrganisationFunktionRelationKode.primær,
+            OrganisationFunktionRelation.organisationfunktion_registrering_id
+            == OrganisationFunktionRegistrering.id,
+            OrganisationFunktionRelation.rel_maal_uuid.in_(
+                uuid_shortcircuit(
+                    primary_filter,
+                    select(KlasseRegistrering.klasse_id).where(
+                        class_predicate(info, primary_filter)
+                    ),
+                )
+            ),
+            _get_active_period_clause(OrganisationFunktionRelation, filter),
+        )
+        if filter.primary is None:
+            predicates.append(~engagement_has_primary)
+        else:
+            predicates.append(engagement_has_primary)
+
     # IT user
     # The `tilknyttedefunktioner` relation lives on the ITUser's registration
     # pointing at the engagement UUID; resolve via the ituser predicate.
