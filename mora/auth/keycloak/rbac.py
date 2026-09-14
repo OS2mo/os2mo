@@ -45,10 +45,7 @@ def _actor_filter(settings: Settings, token: Token) -> EmployeeFilter:
 
 
 def _is_owner_org_unit(
-    settings: Settings,
-    version: Version,
-    actor: EmployeeFilter,
-    entity_uuid: UUID | None,
+    settings: Settings, version: Version, token: Token, entity_uuid: UUID | None
 ) -> ColumnElement | None:
     """Check org-unit ownership via the GraphQL org-unit owner filter.
 
@@ -63,7 +60,7 @@ def _is_owner_org_unit(
         version=version,
         filter=OrganisationUnitFilter(
             descendant=OrganisationUnitFilter(uuids=[entity_uuid]),
-            owner=OwnerFilter(owner=actor),
+            owner=OwnerFilter(owner=_actor_filter(settings, token)),
         ),
     )
     return exists().where(predicate)
