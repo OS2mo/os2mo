@@ -71,11 +71,11 @@ def get_entities_graphql(
             # Create requires ownership of the parent we are trying to insert under
             if permission_type == "create":
                 yield _is_owner_org_unit(
-                    settings, version, actor, getattr(input, "parent", None)
+                    settings, version, token, getattr(input, "parent", None)
                 )
                 return
             # Otherwise, changes always requires ownership of the org unit itself
-            yield _is_owner_org_unit(settings, version, actor, getattr(input, "uuid"))
+            yield _is_owner_org_unit(settings, version, token, getattr(input, "uuid"))
             # Additionally, moving an org unit (changing its parent) requires ownership
             # of the new parent. GraphQL edits always contain the full object, so the
             # parent named is just as often the one the unit already has, which is no
@@ -83,7 +83,7 @@ def get_entities_graphql(
             if parent := getattr(input, "parent", None):
                 yield or_(
                     _keeps_parent(settings, version, getattr(input, "uuid"), parent),
-                    _is_owner_org_unit(settings, version, actor, parent),
+                    _is_owner_org_unit(settings, version, token, parent),
                 )
             return
 
@@ -93,7 +93,7 @@ def get_entities_graphql(
             # origin and destinations, but that's not compatible with the old
             # service-api owner calculation
             yield _is_owner_org_unit(
-                settings, version, actor, getattr(input, "origin", None)
+                settings, version, token, getattr(input, "origin", None)
             )
             return
 
@@ -110,7 +110,7 @@ def get_entities_graphql(
 
         # Existing object (e.g. update). Again, we prefer org unit over person.
         if org_unit := getattr(input, "org_unit", None):
-            yield _is_owner_org_unit(settings, version, actor, org_unit)
+            yield _is_owner_org_unit(settings, version, token, org_unit)
             return
         yield _is_owner_employee(
             settings, version, actor, getattr(input, "employee", None)
