@@ -67,10 +67,7 @@ def _is_owner_org_unit(
 
 
 def _is_owner_employee(
-    settings: Settings,
-    version: Version,
-    actor: EmployeeFilter,
-    entity_uuid: UUID | None,
+    settings: Settings, version: Version, token: Token, entity_uuid: UUID | None
 ) -> ColumnElement | None:
     """Check employee ownership via the GraphQL employee owner filter.
 
@@ -83,7 +80,7 @@ def _is_owner_employee(
         version=version,
         filter=EmployeeFilter(
             uuids=[entity_uuid],
-            owner=OwnerFilter(owner=actor),
+            owner=OwnerFilter(owner=_actor_filter(settings, token)),
         ),
     )
     return exists().where(predicate)
