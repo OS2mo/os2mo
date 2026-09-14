@@ -24,6 +24,7 @@ from sqlalchemy import column
 from sqlalchemy import func
 from sqlalchemy import literal
 from sqlalchemy import select
+from sqlalchemy import true
 from sqlalchemy import union_all
 from strawberry.dataloader import DataLoader
 
@@ -85,7 +86,45 @@ MODEL_OF_COLLECTION: dict[Collection, Any] = {
 
 
 # The rules of every role. A caller's are those of their roles.
-ROLE_POLICIES: list[Rule] = []
+ROLE_POLICIES: list[Rule] = [
+    Rule(
+        role="reader",
+        collection="Address",
+        condition=true(),
+        fields=frozenset(
+            {
+                "address_type",
+                "address_type_response",
+                "address_type_uuid",
+                "employee",
+                "employee_uuid",
+                "engagement",
+                "engagement_response",
+                "engagement_uuid",
+                "href",
+                "ituser",
+                "ituser_response",
+                "ituser_uuid",
+                "name",
+                "org_unit",
+                "org_unit_response",
+                "org_unit_uuid",
+                "person",
+                "person_response",
+                "resolve",
+                "type",
+                "user_key",
+                "uuid",
+                "validity",
+                "value",
+                "value2",
+                "visibility",
+                "visibility_response",
+                "visibility_uuid",
+            }
+        ),
+    ),
+]
 
 
 def load_rules(
