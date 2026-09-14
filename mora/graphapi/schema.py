@@ -266,16 +266,14 @@ def owner_policy(
     input = [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])]
 
     # Import here to avoid circular imports 🙂👍
-    from mora.auth.keycloak.rbac import _actor_filter
     from mora.auth.keycloak.uuid_extractor import get_entities_graphql
 
     moinfo = _create_info_from_raw(info)
     settings = moinfo.context.settings
     version = get_version(moinfo.schema)
-    actor = _actor_filter(settings, token)
     checks = list(
         get_entities_graphql(
-            settings, version, actor, input, collection, permission_type
+            settings, version, token, input, collection, permission_type
         )
     )
     logger.debug("Check owner", checks=checks)
