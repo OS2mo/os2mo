@@ -44,6 +44,7 @@ from mora.graphapi.collections import DARAddress
 from mora.graphapi.collections import DefaultAddress
 from mora.graphapi.collections import MultifieldAddress
 from mora.graphapi.custom_schema import CustomSchema
+from mora.graphapi.custom_schema import get_version
 from mora.graphapi.events import EVENT_TOKEN_SCALAR
 from mora.graphapi.events import EventToken
 from mora.graphapi.filters import EmployeeFilter
@@ -292,9 +293,13 @@ def owner_policy(
     from mora.auth.keycloak.uuid_extractor import get_entities_graphql
 
     moinfo = _create_info_from_raw(info)
-    actor = _actor_filter(moinfo.context.settings, token)
+    settings = moinfo.context.settings
+    version = get_version(moinfo.schema)
+    actor = _actor_filter(settings, token)
     checks = list(
-        get_entities_graphql(moinfo, actor, input, collection, permission_type)
+        get_entities_graphql(
+            settings, version, actor, input, collection, permission_type
+        )
     )
     logger.debug("Check owner", checks=checks)
     # Nothing to own is not owned by anybody
