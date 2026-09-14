@@ -89,7 +89,7 @@ def _is_owner_employee(
 def _is_owner_detail(
     settings: Settings,
     version: Version,
-    actor: EmployeeFilter,
+    token: Token,
     collection: Collections,
     entity_uuid: UUID,
 ) -> ColumnElement:
@@ -107,7 +107,7 @@ def _is_owner_detail(
         "rolebinding": resolvers.rolebinding_predicate,
     }[collection]
     filter = get_type_hints(predicate)["filter"]
-    owner = OwnerFilter(owner=actor)
+    owner = OwnerFilter(owner=_actor_filter(settings, token))
     # A detail is owned by whoever owns the org unit or the person it links.
     # Every collection can name an org unit, only some can name a person
     via_org_unit = exists().where(
