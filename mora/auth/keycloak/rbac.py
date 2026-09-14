@@ -52,7 +52,10 @@ def _is_owner_org_unit(
 
 
 def _is_owner_employee(
-    info: "MOInfo", actor: EmployeeFilter, entity_uuid: UUID | None
+    settings: Settings,
+    version: Version,
+    actor: EmployeeFilter,
+    entity_uuid: UUID | None,
 ) -> ColumnElement | None:
     """Check employee ownership via the GraphQL employee owner filter.
 
@@ -61,8 +64,8 @@ def _is_owner_employee(
     if entity_uuid is None:
         return None
     predicate = employee_predicate(
-        settings=info.context.settings,
-        version=get_version(info.schema),
+        settings=settings,
+        version=version,
         filter=EmployeeFilter(
             uuids=[entity_uuid],
             owner=OwnerFilter(owner=actor),

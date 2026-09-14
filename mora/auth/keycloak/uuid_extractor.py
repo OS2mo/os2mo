@@ -61,7 +61,12 @@ def get_entities_graphql(
     def extract(input) -> Iterable[ColumnElement | None]:
         # Allow both employee and person to avoid bugs in the future
         if collection in {"employee", "person"}:
-            yield _is_owner_employee(info, actor, getattr(input, "uuid"))
+            yield _is_owner_employee(
+                info.context.settings,
+                get_version(info.schema),
+                actor,
+                getattr(input, "uuid"),
+            )
             return
 
         if collection == "org_unit":
@@ -122,8 +127,18 @@ def get_entities_graphql(
                 info.context.settings, get_version(info.schema), actor, org_unit
             )
             return
-        yield _is_owner_employee(info, actor, getattr(input, "employee", None))
-        yield _is_owner_employee(info, actor, getattr(input, "person", None))
+        yield _is_owner_employee(
+            info.context.settings,
+            get_version(info.schema),
+            actor,
+            getattr(input, "employee", None),
+        )
+        yield _is_owner_employee(
+            info.context.settings,
+            get_version(info.schema),
+            actor,
+            getattr(input, "person", None),
+        )
 
     for input in raw_input:
         for check in extract(input=input):
