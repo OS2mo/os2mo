@@ -9,7 +9,6 @@ from sqlalchemy import exists
 from sqlalchemy import or_
 
 from mora.auth.keycloak.models import Token
-from mora.auth.keycloak.rbac import _actor_filter
 from mora.auth.keycloak.rbac import _is_owner_detail
 from mora.auth.keycloak.rbac import _is_owner_employee
 from mora.auth.keycloak.rbac import _is_owner_org_unit
@@ -59,7 +58,6 @@ def get_entities_graphql(
     Returns:
         An iterable of checks, all of which must hold, for check_owner().
     """
-    actor = _actor_filter(settings, token)
 
     def extract(input) -> Iterable[ColumnElement | None]:
         # Allow both employee and person to avoid bugs in the future
@@ -105,7 +103,7 @@ def get_entities_graphql(
         # database object as well as the new object from the input.
         if permission_type != "create":
             yield _is_owner_detail(
-                settings, version, actor, collection, getattr(input, "uuid")
+                settings, version, token, collection, getattr(input, "uuid")
             )
 
         # Existing object (e.g. update). Again, we prefer org unit over person.
