@@ -5,6 +5,238 @@
 -- extracted verbatim from a database migrated to the previous head
 -- (d903192968e9) using pg_get_functiondef.
 
+-- Drop the overloads introduced by the upgrade before restoring the old
+-- signatures, so the schema round-trips exactly.
+
+DROP FUNCTION IF EXISTS actual_state.as_create_or_import_bruger(
+    brugerregistreringtype, uuid
+);
+DROP FUNCTION IF EXISTS actual_state.as_create_or_import_facet(
+    facetregistreringtype, uuid
+);
+DROP FUNCTION IF EXISTS actual_state.as_create_or_import_itsystem(
+    itsystemregistreringtype, uuid
+);
+DROP FUNCTION IF EXISTS actual_state.as_create_or_import_klasse(
+    klasseregistreringtype, uuid
+);
+DROP FUNCTION IF EXISTS actual_state.as_create_or_import_klassifikation(
+    klassifikationregistreringtype, uuid
+);
+DROP FUNCTION IF EXISTS actual_state.as_create_or_import_organisationenhed(
+    organisationenhedregistreringtype, uuid
+);
+DROP FUNCTION IF EXISTS actual_state.as_create_or_import_organisationfunktion(
+    organisationfunktionregistreringtype, uuid
+);
+DROP FUNCTION IF EXISTS actual_state.as_create_or_import_organisation(
+    organisationregistreringtype, uuid
+);
+DROP FUNCTION IF EXISTS actual_state.as_list_bruger(
+    uuid[], tstzrange, tstzrange
+);
+DROP FUNCTION IF EXISTS actual_state.as_list_facet(
+    uuid[], tstzrange, tstzrange
+);
+DROP FUNCTION IF EXISTS actual_state.as_list_itsystem(
+    uuid[], tstzrange, tstzrange
+);
+DROP FUNCTION IF EXISTS actual_state.as_list_klasse(
+    uuid[], tstzrange, tstzrange
+);
+DROP FUNCTION IF EXISTS actual_state.as_list_klassifikation(
+    uuid[], tstzrange, tstzrange
+);
+DROP FUNCTION IF EXISTS actual_state.as_list_organisationenhed(
+    uuid[], tstzrange, tstzrange
+);
+DROP FUNCTION IF EXISTS actual_state.as_list_organisationfunktion(
+    uuid[], tstzrange, tstzrange
+);
+DROP FUNCTION IF EXISTS actual_state.as_list_organisation(
+    uuid[], tstzrange, tstzrange
+);
+DROP FUNCTION IF EXISTS actual_state.as_read_bruger(uuid, tstzrange, tstzrange);
+DROP FUNCTION IF EXISTS actual_state.as_read_facet(uuid, tstzrange, tstzrange);
+DROP FUNCTION IF EXISTS actual_state.as_read_itsystem(
+    uuid, tstzrange, tstzrange
+);
+DROP FUNCTION IF EXISTS actual_state.as_read_klasse(uuid, tstzrange, tstzrange);
+DROP FUNCTION IF EXISTS actual_state.as_read_klassifikation(
+    uuid, tstzrange, tstzrange
+);
+DROP FUNCTION IF EXISTS actual_state.as_read_organisationenhed(
+    uuid, tstzrange, tstzrange
+);
+DROP FUNCTION IF EXISTS actual_state.as_read_organisationfunktion(
+    uuid, tstzrange, tstzrange
+);
+DROP FUNCTION IF EXISTS actual_state.as_read_organisation(
+    uuid, tstzrange, tstzrange
+);
+DROP FUNCTION IF EXISTS actual_state.as_search_bruger(
+    integer,
+    uuid,
+    brugerregistreringtype,
+    tstzrange,
+    integer,
+    text[],
+    uuid[],
+    text[]
+);
+DROP FUNCTION IF EXISTS actual_state.as_search_facet(
+    integer,
+    uuid,
+    facetregistreringtype,
+    tstzrange,
+    integer,
+    text[],
+    uuid[],
+    text[]
+);
+DROP FUNCTION IF EXISTS actual_state.as_search_itsystem(
+    integer,
+    uuid,
+    itsystemregistreringtype,
+    tstzrange,
+    integer,
+    text[],
+    uuid[],
+    text[]
+);
+DROP FUNCTION IF EXISTS actual_state.as_search_klasse(
+    integer,
+    uuid,
+    klasseregistreringtype,
+    tstzrange,
+    integer,
+    text[],
+    uuid[],
+    text[]
+);
+DROP FUNCTION IF EXISTS actual_state.as_search_klassifikation(
+    integer,
+    uuid,
+    klassifikationregistreringtype,
+    tstzrange,
+    integer,
+    text[],
+    uuid[],
+    text[]
+);
+DROP FUNCTION IF EXISTS actual_state.as_search_organisationenhed(
+    integer,
+    uuid,
+    organisationenhedregistreringtype,
+    tstzrange,
+    integer,
+    text[],
+    uuid[],
+    text[]
+);
+DROP FUNCTION IF EXISTS actual_state.as_search_organisationfunktion(
+    integer,
+    uuid,
+    organisationfunktionregistreringtype,
+    tstzrange,
+    integer,
+    text[],
+    uuid[],
+    text[]
+);
+DROP FUNCTION IF EXISTS actual_state.as_search_organisation(
+    integer,
+    uuid,
+    organisationregistreringtype,
+    tstzrange,
+    integer,
+    text[],
+    uuid[],
+    text[]
+);
+DROP FUNCTION IF EXISTS actual_state.as_update_bruger(
+    uuid,
+    uuid,
+    text,
+    livscykluskode,
+    brugeregenskaberattrtype[],
+    brugerudvidelserattrtype[],
+    brugergyldighedtilstype[],
+    brugerrelationtype[],
+    timestamp with time zone
+);
+DROP FUNCTION IF EXISTS actual_state.as_update_facet(
+    uuid,
+    uuid,
+    text,
+    livscykluskode,
+    facetegenskaberattrtype[],
+    facetpublicerettilstype[],
+    facetrelationtype[],
+    timestamp with time zone
+);
+DROP FUNCTION IF EXISTS actual_state.as_update_itsystem(
+    uuid,
+    uuid,
+    text,
+    livscykluskode,
+    itsystemegenskaberattrtype[],
+    itsystemgyldighedtilstype[],
+    itsystemrelationtype[],
+    timestamp with time zone
+);
+DROP FUNCTION IF EXISTS actual_state.as_update_klasse(
+    uuid,
+    uuid,
+    text,
+    livscykluskode,
+    klasseegenskaberattrtype[],
+    klassepublicerettilstype[],
+    klasserelationtype[],
+    timestamp with time zone
+);
+DROP FUNCTION IF EXISTS actual_state.as_update_klassifikation(
+    uuid,
+    uuid,
+    text,
+    livscykluskode,
+    klassifikationegenskaberattrtype[],
+    klassifikationpublicerettilstype[],
+    klassifikationrelationtype[],
+    timestamp with time zone
+);
+DROP FUNCTION IF EXISTS actual_state.as_update_organisationenhed(
+    uuid,
+    uuid,
+    text,
+    livscykluskode,
+    organisationenhedegenskaberattrtype[],
+    organisationenhedgyldighedtilstype[],
+    organisationenhedrelationtype[],
+    timestamp with time zone
+);
+DROP FUNCTION IF EXISTS actual_state.as_update_organisationfunktion(
+    uuid,
+    uuid,
+    text,
+    livscykluskode,
+    organisationfunktionegenskaberattrtype[],
+    organisationfunktionudvidelserattrtype[],
+    organisationfunktiongyldighedtilstype[],
+    organisationfunktionrelationtype[],
+    timestamp with time zone
+);
+DROP FUNCTION IF EXISTS actual_state.as_update_organisation(
+    uuid,
+    uuid,
+    text,
+    livscykluskode,
+    organisationegenskaberattrtype[],
+    organisationgyldighedtilstype[],
+    organisationrelationtype[],
+    timestamp with time zone
+);
+
 -- as_create_or_import_bruger(brugerregistreringtype,uuid,brugerregistreringtype[])
 
 CREATE OR REPLACE FUNCTION actual_state.as_create_or_import_bruger(

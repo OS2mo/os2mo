@@ -1,17 +1,294 @@
 -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
--- The functions below were extracted verbatim from a database migrated to
--- the previous head (d903192968e9) using pg_get_functiondef. This file is a
--- no-op: the actual changes are layered on top of this baseline in a later
--- commit.
+-- The auth_criteria_arr parameter and its per-object filtering were never
+-- used in practice (no caller, neither Python nor SQL templates, passes the
+-- argument), yet every as_list_*/as_search_* call paid an O(n^2) array
+-- containment check. This migration drops the parameter and the filter
+-- functions entirely.
 
--- as_create_or_import_bruger(brugerregistreringtype,uuid,brugerregistreringtype[])
+DROP FUNCTION actual_state.as_create_or_import_bruger(
+    brugerregistreringtype, uuid, brugerregistreringtype[]
+);
+DROP FUNCTION actual_state.as_create_or_import_facet(
+    facetregistreringtype, uuid, facetregistreringtype[]
+);
+DROP FUNCTION actual_state.as_create_or_import_itsystem(
+    itsystemregistreringtype, uuid, itsystemregistreringtype[]
+);
+DROP FUNCTION actual_state.as_create_or_import_klasse(
+    klasseregistreringtype, uuid, klasseregistreringtype[]
+);
+DROP FUNCTION actual_state.as_create_or_import_klassifikation(
+    klassifikationregistreringtype, uuid, klassifikationregistreringtype[]
+);
+DROP FUNCTION actual_state.as_create_or_import_organisationenhed(
+    organisationenhedregistreringtype, uuid, organisationenhedregistreringtype[]
+);
+DROP FUNCTION actual_state.as_create_or_import_organisationfunktion(
+    organisationfunktionregistreringtype,
+    uuid,
+    organisationfunktionregistreringtype[]
+);
+DROP FUNCTION actual_state.as_create_or_import_organisation(
+    organisationregistreringtype, uuid, organisationregistreringtype[]
+);
+DROP FUNCTION actual_state._as_filter_unauth_bruger(
+    uuid[], brugerregistreringtype[]
+);
+DROP FUNCTION actual_state._as_filter_unauth_facet(
+    uuid[], facetregistreringtype[]
+);
+DROP FUNCTION actual_state._as_filter_unauth_itsystem(
+    uuid[], itsystemregistreringtype[]
+);
+DROP FUNCTION actual_state._as_filter_unauth_klasse(
+    uuid[], klasseregistreringtype[]
+);
+DROP FUNCTION actual_state._as_filter_unauth_klassifikation(
+    uuid[], klassifikationregistreringtype[]
+);
+DROP FUNCTION actual_state._as_filter_unauth_organisationenhed(
+    uuid[], organisationenhedregistreringtype[]
+);
+DROP FUNCTION actual_state._as_filter_unauth_organisationfunktion(
+    uuid[], organisationfunktionregistreringtype[]
+);
+DROP FUNCTION actual_state._as_filter_unauth_organisation(
+    uuid[], organisationregistreringtype[]
+);
+DROP FUNCTION actual_state.as_list_bruger(
+    uuid[], tstzrange, tstzrange, brugerregistreringtype[]
+);
+DROP FUNCTION actual_state.as_list_facet(
+    uuid[], tstzrange, tstzrange, facetregistreringtype[]
+);
+DROP FUNCTION actual_state.as_list_itsystem(
+    uuid[], tstzrange, tstzrange, itsystemregistreringtype[]
+);
+DROP FUNCTION actual_state.as_list_klasse(
+    uuid[], tstzrange, tstzrange, klasseregistreringtype[]
+);
+DROP FUNCTION actual_state.as_list_klassifikation(
+    uuid[], tstzrange, tstzrange, klassifikationregistreringtype[]
+);
+DROP FUNCTION actual_state.as_list_organisationenhed(
+    uuid[], tstzrange, tstzrange, organisationenhedregistreringtype[]
+);
+DROP FUNCTION actual_state.as_list_organisationfunktion(
+    uuid[], tstzrange, tstzrange, organisationfunktionregistreringtype[]
+);
+DROP FUNCTION actual_state.as_list_organisation(
+    uuid[], tstzrange, tstzrange, organisationregistreringtype[]
+);
+DROP FUNCTION actual_state.as_read_bruger(
+    uuid, tstzrange, tstzrange, brugerregistreringtype[]
+);
+DROP FUNCTION actual_state.as_read_facet(
+    uuid, tstzrange, tstzrange, facetregistreringtype[]
+);
+DROP FUNCTION actual_state.as_read_itsystem(
+    uuid, tstzrange, tstzrange, itsystemregistreringtype[]
+);
+DROP FUNCTION actual_state.as_read_klasse(
+    uuid, tstzrange, tstzrange, klasseregistreringtype[]
+);
+DROP FUNCTION actual_state.as_read_klassifikation(
+    uuid, tstzrange, tstzrange, klassifikationregistreringtype[]
+);
+DROP FUNCTION actual_state.as_read_organisationenhed(
+    uuid, tstzrange, tstzrange, organisationenhedregistreringtype[]
+);
+DROP FUNCTION actual_state.as_read_organisationfunktion(
+    uuid, tstzrange, tstzrange, organisationfunktionregistreringtype[]
+);
+DROP FUNCTION actual_state.as_read_organisation(
+    uuid, tstzrange, tstzrange, organisationregistreringtype[]
+);
+DROP FUNCTION actual_state.as_search_bruger(
+    integer,
+    uuid,
+    brugerregistreringtype,
+    tstzrange,
+    integer,
+    text[],
+    uuid[],
+    text[],
+    brugerregistreringtype[]
+);
+DROP FUNCTION actual_state.as_search_facet(
+    integer,
+    uuid,
+    facetregistreringtype,
+    tstzrange,
+    integer,
+    text[],
+    uuid[],
+    text[],
+    facetregistreringtype[]
+);
+DROP FUNCTION actual_state.as_search_itsystem(
+    integer,
+    uuid,
+    itsystemregistreringtype,
+    tstzrange,
+    integer,
+    text[],
+    uuid[],
+    text[],
+    itsystemregistreringtype[]
+);
+DROP FUNCTION actual_state.as_search_klasse(
+    integer,
+    uuid,
+    klasseregistreringtype,
+    tstzrange,
+    integer,
+    text[],
+    uuid[],
+    text[],
+    klasseregistreringtype[]
+);
+DROP FUNCTION actual_state.as_search_klassifikation(
+    integer,
+    uuid,
+    klassifikationregistreringtype,
+    tstzrange,
+    integer,
+    text[],
+    uuid[],
+    text[],
+    klassifikationregistreringtype[]
+);
+DROP FUNCTION actual_state.as_search_organisationenhed(
+    integer,
+    uuid,
+    organisationenhedregistreringtype,
+    tstzrange,
+    integer,
+    text[],
+    uuid[],
+    text[],
+    organisationenhedregistreringtype[]
+);
+DROP FUNCTION actual_state.as_search_organisationfunktion(
+    integer,
+    uuid,
+    organisationfunktionregistreringtype,
+    tstzrange,
+    integer,
+    text[],
+    uuid[],
+    text[],
+    organisationfunktionregistreringtype[]
+);
+DROP FUNCTION actual_state.as_search_organisation(
+    integer,
+    uuid,
+    organisationregistreringtype,
+    tstzrange,
+    integer,
+    text[],
+    uuid[],
+    text[],
+    organisationregistreringtype[]
+);
+DROP FUNCTION actual_state.as_update_bruger(
+    uuid,
+    uuid,
+    text,
+    livscykluskode,
+    brugeregenskaberattrtype[],
+    brugerudvidelserattrtype[],
+    brugergyldighedtilstype[],
+    brugerrelationtype[],
+    timestamp with time zone,
+    brugerregistreringtype[]
+);
+DROP FUNCTION actual_state.as_update_facet(
+    uuid,
+    uuid,
+    text,
+    livscykluskode,
+    facetegenskaberattrtype[],
+    facetpublicerettilstype[],
+    facetrelationtype[],
+    timestamp with time zone,
+    facetregistreringtype[]
+);
+DROP FUNCTION actual_state.as_update_itsystem(
+    uuid,
+    uuid,
+    text,
+    livscykluskode,
+    itsystemegenskaberattrtype[],
+    itsystemgyldighedtilstype[],
+    itsystemrelationtype[],
+    timestamp with time zone,
+    itsystemregistreringtype[]
+);
+DROP FUNCTION actual_state.as_update_klasse(
+    uuid,
+    uuid,
+    text,
+    livscykluskode,
+    klasseegenskaberattrtype[],
+    klassepublicerettilstype[],
+    klasserelationtype[],
+    timestamp with time zone,
+    klasseregistreringtype[]
+);
+DROP FUNCTION actual_state.as_update_klassifikation(
+    uuid,
+    uuid,
+    text,
+    livscykluskode,
+    klassifikationegenskaberattrtype[],
+    klassifikationpublicerettilstype[],
+    klassifikationrelationtype[],
+    timestamp with time zone,
+    klassifikationregistreringtype[]
+);
+DROP FUNCTION actual_state.as_update_organisationenhed(
+    uuid,
+    uuid,
+    text,
+    livscykluskode,
+    organisationenhedegenskaberattrtype[],
+    organisationenhedgyldighedtilstype[],
+    organisationenhedrelationtype[],
+    timestamp with time zone,
+    organisationenhedregistreringtype[]
+);
+DROP FUNCTION actual_state.as_update_organisationfunktion(
+    uuid,
+    uuid,
+    text,
+    livscykluskode,
+    organisationfunktionegenskaberattrtype[],
+    organisationfunktionudvidelserattrtype[],
+    organisationfunktiongyldighedtilstype[],
+    organisationfunktionrelationtype[],
+    timestamp with time zone,
+    organisationfunktionregistreringtype[]
+);
+DROP FUNCTION actual_state.as_update_organisation(
+    uuid,
+    uuid,
+    text,
+    livscykluskode,
+    organisationegenskaberattrtype[],
+    organisationgyldighedtilstype[],
+    organisationrelationtype[],
+    timestamp with time zone,
+    organisationregistreringtype[]
+);
+
+-- as_create_or_import_bruger(brugerregistreringtype,uuid)
 
 CREATE OR REPLACE FUNCTION actual_state.as_create_or_import_bruger(
     bruger_registrering brugerregistreringtype,
-    bruger_uuid uuid DEFAULT NULL::uuid,
-    auth_criteria_arr brugerregistreringtype[] DEFAULT NULL::brugerregistreringtype[]
+    bruger_uuid uuid DEFAULT NULL::uuid
 )
 RETURNS uuid
 LANGUAGE plpgsql
@@ -28,7 +305,6 @@ AS $function$ DECLARE bruger_registrering_id bigint;
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 
@@ -204,13 +480,6 @@ END IF;
 
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-/*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_bruger(array[bruger_uuid]::uuid[],auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[bruger_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import bruger with uuid [%]. Object does not met stipulated criteria:%',bruger_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 
 
@@ -222,12 +491,10 @@ $function$
 
 ;
 
--- as_create_or_import_facet(facetregistreringtype,uuid,facetregistreringtype[])
+-- as_create_or_import_facet(facetregistreringtype,uuid)
 
 CREATE OR REPLACE FUNCTION actual_state.as_create_or_import_facet(
-    facet_registrering facetregistreringtype,
-    facet_uuid uuid DEFAULT NULL::uuid,
-    auth_criteria_arr facetregistreringtype[] DEFAULT NULL::facetregistreringtype[]
+    facet_registrering facetregistreringtype, facet_uuid uuid DEFAULT NULL::uuid
 )
 RETURNS uuid
 LANGUAGE plpgsql
@@ -245,7 +512,6 @@ AS $function$ DECLARE facet_registrering_id bigint;
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 
@@ -398,13 +664,6 @@ END IF;
 
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-/*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_facet(array[facet_uuid]::uuid[],auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[facet_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import facet with uuid [%]. Object does not met stipulated criteria:%',facet_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 
 
@@ -416,12 +675,11 @@ $function$
 
 ;
 
--- as_create_or_import_itsystem(itsystemregistreringtype,uuid,itsystemregistreringtype[])
+-- as_create_or_import_itsystem(itsystemregistreringtype,uuid)
 
 CREATE OR REPLACE FUNCTION actual_state.as_create_or_import_itsystem(
     itsystem_registrering itsystemregistreringtype,
-    itsystem_uuid uuid DEFAULT NULL::uuid,
-    auth_criteria_arr itsystemregistreringtype[] DEFAULT NULL::itsystemregistreringtype[]
+    itsystem_uuid uuid DEFAULT NULL::uuid
 )
 RETURNS uuid
 LANGUAGE plpgsql
@@ -439,7 +697,6 @@ AS $function$ DECLARE itsystem_registrering_id bigint;
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 
@@ -586,13 +843,6 @@ END IF;
 
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-/*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_itsystem(array[itsystem_uuid]::uuid[],auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[itsystem_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import itsystem with uuid [%]. Object does not met stipulated criteria:%',itsystem_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 
 
@@ -604,12 +854,11 @@ $function$
 
 ;
 
--- as_create_or_import_klasse(klasseregistreringtype,uuid,klasseregistreringtype[])
+-- as_create_or_import_klasse(klasseregistreringtype,uuid)
 
 CREATE OR REPLACE FUNCTION actual_state.as_create_or_import_klasse(
     klasse_registrering klasseregistreringtype,
-    klasse_uuid uuid DEFAULT NULL::uuid,
-    auth_criteria_arr klasseregistreringtype[] DEFAULT NULL::klasseregistreringtype[]
+    klasse_uuid uuid DEFAULT NULL::uuid
 )
 RETURNS uuid
 LANGUAGE plpgsql
@@ -630,7 +879,6 @@ AS $function$ DECLARE klasse_registrering_id bigint;
     klasse_attr_egenskaber_soegeord_obj KlasseSoegeordType;
 
 
-    auth_filtered_uuids uuid[];
 
 
 
@@ -812,13 +1060,6 @@ END IF;
 
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-/*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_klasse(array[klasse_uuid]::uuid[],auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[klasse_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import klasse with uuid [%]. Object does not met stipulated criteria:%',klasse_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 
 
@@ -830,12 +1071,11 @@ $function$
 
 ;
 
--- as_create_or_import_klassifikation(klassifikationregistreringtype,uuid,klassifikationregistreringtype[])
+-- as_create_or_import_klassifikation(klassifikationregistreringtype,uuid)
 
 CREATE OR REPLACE FUNCTION actual_state.as_create_or_import_klassifikation(
     klassifikation_registrering klassifikationregistreringtype,
-    klassifikation_uuid uuid DEFAULT NULL::uuid,
-    auth_criteria_arr klassifikationregistreringtype[] DEFAULT NULL::klassifikationregistreringtype[]
+    klassifikation_uuid uuid DEFAULT NULL::uuid
 )
 RETURNS uuid
 LANGUAGE plpgsql
@@ -853,7 +1093,6 @@ AS $function$ DECLARE klassifikation_registrering_id bigint;
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 
@@ -1000,13 +1239,6 @@ END IF;
 
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-/*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_klassifikation(array[klassifikation_uuid]::uuid[],auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[klassifikation_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import klassifikation with uuid [%]. Object does not met stipulated criteria:%',klassifikation_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 
 
@@ -1018,12 +1250,11 @@ $function$
 
 ;
 
--- as_create_or_import_organisationenhed(organisationenhedregistreringtype,uuid,organisationenhedregistreringtype[])
+-- as_create_or_import_organisationenhed(organisationenhedregistreringtype,uuid)
 
 CREATE OR REPLACE FUNCTION actual_state.as_create_or_import_organisationenhed(
     organisationenhed_registrering organisationenhedregistreringtype,
-    organisationenhed_uuid uuid DEFAULT NULL::uuid,
-    auth_criteria_arr organisationenhedregistreringtype[] DEFAULT NULL::organisationenhedregistreringtype[]
+    organisationenhed_uuid uuid DEFAULT NULL::uuid
 )
 RETURNS uuid
 LANGUAGE plpgsql
@@ -1041,7 +1272,6 @@ AS $function$ DECLARE organisationenhed_registrering_id bigint;
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 
@@ -1184,13 +1414,6 @@ END IF;
 
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-/*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationenhed(array[organisationenhed_uuid]::uuid[],auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[organisationenhed_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import organisationenhed with uuid [%]. Object does not met stipulated criteria:%',organisationenhed_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 
 
@@ -1202,12 +1425,11 @@ $function$
 
 ;
 
--- as_create_or_import_organisationfunktion(organisationfunktionregistreringtype,uuid,organisationfunktionregistreringtype[])
+-- as_create_or_import_organisationfunktion(organisationfunktionregistreringtype,uuid)
 
 CREATE OR REPLACE FUNCTION actual_state.as_create_or_import_organisationfunktion(
     organisationfunktion_registrering organisationfunktionregistreringtype,
-    organisationfunktion_uuid uuid DEFAULT NULL::uuid,
-    auth_criteria_arr organisationfunktionregistreringtype[] DEFAULT NULL::organisationfunktionregistreringtype[]
+    organisationfunktion_uuid uuid DEFAULT NULL::uuid
 )
 RETURNS uuid
 LANGUAGE plpgsql
@@ -1227,7 +1449,6 @@ AS $function$ DECLARE organisationfunktion_registrering_id bigint;
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 
@@ -1415,13 +1636,6 @@ END IF;
 
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-/*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationfunktion(array[organisationfunktion_uuid]::uuid[],auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[organisationfunktion_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import organisationfunktion with uuid [%]. Object does not met stipulated criteria:%',organisationfunktion_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 
 
@@ -1433,12 +1647,11 @@ $function$
 
 ;
 
--- as_create_or_import_organisation(organisationregistreringtype,uuid,organisationregistreringtype[])
+-- as_create_or_import_organisation(organisationregistreringtype,uuid)
 
 CREATE OR REPLACE FUNCTION actual_state.as_create_or_import_organisation(
     organisation_registrering organisationregistreringtype,
-    organisation_uuid uuid DEFAULT NULL::uuid,
-    auth_criteria_arr organisationregistreringtype[] DEFAULT NULL::organisationregistreringtype[]
+    organisation_uuid uuid DEFAULT NULL::uuid
 )
 RETURNS uuid
 LANGUAGE plpgsql
@@ -1456,7 +1669,6 @@ AS $function$ DECLARE organisation_registrering_id bigint;
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 
@@ -1599,13 +1811,6 @@ END IF;
 
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-/*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisation(array[organisation_uuid]::uuid[],auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[organisation_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import organisation with uuid [%]. Object does not met stipulated criteria:%',organisation_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 
 
@@ -1617,1909 +1822,23 @@ $function$
 
 ;
 
--- _as_filter_unauth_bruger(uuid[],brugerregistreringtype[])
 
-CREATE OR REPLACE FUNCTION actual_state._as_filter_unauth_bruger(
-    bruger_uuids uuid[], registreringobjarr brugerregistreringtype[]
-)
-RETURNS uuid[]
-LANGUAGE plpgsql
-STABLE
-AS $function$
-DECLARE
-	bruger_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
-	bruger_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[];
-	attrEgenskaberTypeObj BrugerEgenskaberAttrType;
-	attrUdvidelserTypeObj BrugerUdvidelserAttrType;
-
-  	tilsGyldighedTypeObj BrugerGyldighedTilsType;
-	relationTypeObj BrugerRelationType;
-	registreringObj BrugerRegistreringType;
-	actual_virkning TIMESTAMPTZ:=current_timestamp;
-BEGIN
-
---RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
-
-IF registreringObjArr IS NULL THEN
-	RETURN bruger_uuids; --special case: All is allowed, no criteria present
-END IF;
-
-IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
-END IF;
-
-IF bruger_uuids IS NULL OR coalesce(array_length(bruger_uuids,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
-END IF;
-
-
-
-FOREACH registreringObj IN ARRAY registreringObjArr
-LOOP
-
-bruger_candidates:= bruger_uuids;
-
-
-
---RAISE DEBUG 'bruger_candidates_is_initialized step 1:%',bruger_candidates_is_initialized;
---RAISE DEBUG 'bruger_candidates step 1:%',bruger_candidates;
---/****************************//
-
---filter on attributes
---/**********************************************************//
---Filtration on attribute: Egenskaber
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
-	--RAISE DEBUG 'as_search_bruger: skipping filtration on attrEgenskaber';
-ELSE
-	IF coalesce(array_length(bruger_candidates,1),0)>0 THEN
-		FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-		LOOP
-			bruger_candidates:=array(
-			SELECT DISTINCT
-			b.bruger_id
-			FROM  bruger_attr_egenskaber a
-			JOIN bruger_registrering b on a.bruger_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.brugernavn IS NULL
-					OR
-					a.brugernavn = attrEgenskaberTypeObj.brugernavn
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.brugertype IS NULL
-					OR
-					a.brugertype = attrEgenskaberTypeObj.brugertype
-				)
-				AND b.bruger_id = ANY (bruger_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-			);
-
-		END LOOP;
-	END IF;
-END IF;
---/**********************************************************//
---Filtration on attribute: Udvidelser
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).attrUdvidelser IS NULL THEN
-	--RAISE DEBUG 'as_search_bruger: skipping filtration on attrUdvidelser';
-ELSE
-	IF coalesce(array_length(bruger_candidates,1),0)>0 THEN
-		FOREACH attrUdvidelserTypeObj IN ARRAY registreringObj.attrUdvidelser
-		LOOP
-			bruger_candidates:=array(
-			SELECT DISTINCT
-			b.bruger_id
-			FROM  bruger_attr_udvidelser a
-			JOIN bruger_registrering b on a.bruger_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					attrUdvidelserTypeObj.fornavn IS NULL
-					OR
-					a.fornavn = attrUdvidelserTypeObj.fornavn
-				)
-				AND
-				(
-					attrUdvidelserTypeObj.efternavn IS NULL
-					OR
-					a.efternavn = attrUdvidelserTypeObj.efternavn
-				)
-				AND
-				(
-					attrUdvidelserTypeObj.kaldenavn_fornavn IS NULL
-					OR
-					a.kaldenavn_fornavn = attrUdvidelserTypeObj.kaldenavn_fornavn
-				)
-				AND
-				(
-					attrUdvidelserTypeObj.kaldenavn_efternavn IS NULL
-					OR
-					a.kaldenavn_efternavn = attrUdvidelserTypeObj.kaldenavn_efternavn
-				)
-				AND
-				(
-					attrUdvidelserTypeObj.seniority IS NULL
-					OR
-					a.seniority = attrUdvidelserTypeObj.seniority
-				)
-				AND b.bruger_id = ANY (bruger_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-			);
-
-		END LOOP;
-	END IF;
-END IF;
---RAISE DEBUG 'bruger_candidates_is_initialized step 3:%',bruger_candidates_is_initialized;
---RAISE DEBUG 'bruger_candidates step 3:%',bruger_candidates;
-
---RAISE DEBUG 'registrering,%',registreringObj;
-
-
---/**********************************************************//
---Filtration on state: Gyldighed
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).tilsGyldighed IS NULL THEN
-	--RAISE DEBUG 'as_search_bruger: skipping filtration on tilsGyldighed';
-ELSE
-	IF coalesce(array_length(bruger_candidates,1),0)>0 THEN
-
-		FOREACH tilsGyldighedTypeObj IN ARRAY registreringObj.tilsGyldighed
-		LOOP
-			bruger_candidates:=array(
-			SELECT DISTINCT
-			b.bruger_id
-			FROM  bruger_tils_gyldighed a
-			JOIN bruger_registrering b on a.bruger_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					tilsGyldighedTypeObj.gyldighed IS NULL
-					OR
-					tilsGyldighedTypeObj.gyldighed = a.gyldighed
-				)
-				AND b.bruger_id = ANY (bruger_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-	);
-
-		END LOOP;
-	END IF;
-END IF;
-
-/*
---relationer BrugerRelationType[]
-*/
-
-
---RAISE DEBUG 'bruger_candidates_is_initialized step 4:%',bruger_candidates_is_initialized;
---RAISE DEBUG 'bruger_candidates step 4:%',bruger_candidates;
-
---/**********************************************************//
---Filtration on relations
---/**********************************************************//
-
-
-IF registreringObj IS NULL OR (registreringObj).relationer IS NULL OR coalesce(array_length((registreringObj).relationer,1),0)=0 THEN
-	--RAISE DEBUG 'as_search_bruger: skipping filtration on relationer';
-ELSE
-	IF coalesce(array_length(bruger_candidates,1),0)>0 THEN
-		FOREACH relationTypeObj IN ARRAY registreringObj.relationer
-		LOOP
-			bruger_candidates:=array(
-			SELECT DISTINCT
-			b.bruger_id
-			FROM  bruger_relation a
-			JOIN bruger_registrering b on a.bruger_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					relationTypeObj.relType IS NULL
-					OR
-					relationTypeObj.relType = a.rel_type
-				)
-				AND
-				(
-					relationTypeObj.uuid IS NULL
-					OR
-					relationTypeObj.uuid = a.rel_maal_uuid
-				)
-				AND
-				(
-					relationTypeObj.objektType IS NULL
-					OR
-					relationTypeObj.objektType = a.objekt_type
-				)
-				AND
-				(
-					relationTypeObj.urn IS NULL
-					OR
-					relationTypeObj.urn = a.rel_maal_urn
-				)
-				AND b.bruger_id = ANY (bruger_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-	);
-		END LOOP;
-	END IF;
-END IF;
---/**********************//
-
---RAISE DEBUG 'bruger_candidates_is_initialized step 5:%',bruger_candidates_is_initialized;
---RAISE DEBUG 'bruger_candidates step 5:%',bruger_candidates;
-
-bruger_passed_auth_filter:=array(
-SELECT
-a.id
-FROM
-unnest (bruger_passed_auth_filter) a(id)
-UNION
-SELECT
-b.id
-FROM
-unnest (bruger_candidates) b(id)
-);
-
---optimization
-IF coalesce(array_length(bruger_passed_auth_filter,1),0)=coalesce(array_length(bruger_uuids,1),0) AND bruger_passed_auth_filter @>bruger_uuids THEN
-	RETURN bruger_passed_auth_filter;
-END IF;
-
-
-END LOOP; --LOOP registreringObj
-
-
-RETURN bruger_passed_auth_filter;
-
-
-END;
-$function$
-
-;
-
--- _as_filter_unauth_facet(uuid[],facetregistreringtype[])
-
-CREATE OR REPLACE FUNCTION actual_state._as_filter_unauth_facet(
-    facet_uuids uuid[], registreringobjarr facetregistreringtype[]
-)
-RETURNS uuid[]
-LANGUAGE plpgsql
-STABLE
-AS $function$
-DECLARE
-	facet_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
-	facet_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[];
-	attrEgenskaberTypeObj FacetEgenskaberAttrType;
-
-  	tilsPubliceretTypeObj FacetPubliceretTilsType;
-	relationTypeObj FacetRelationType;
-	registreringObj FacetRegistreringType;
-	actual_virkning TIMESTAMPTZ:=current_timestamp;
-BEGIN
-
---RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
-
-IF registreringObjArr IS NULL THEN
-	RETURN facet_uuids; --special case: All is allowed, no criteria present
-END IF;
-
-IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
-END IF;
-
-IF facet_uuids IS NULL OR coalesce(array_length(facet_uuids,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
-END IF;
-
-
-
-FOREACH registreringObj IN ARRAY registreringObjArr
-LOOP
-
-facet_candidates:= facet_uuids;
-
-
-
---RAISE DEBUG 'facet_candidates_is_initialized step 1:%',facet_candidates_is_initialized;
---RAISE DEBUG 'facet_candidates step 1:%',facet_candidates;
---/****************************//
-
---filter on attributes
---/**********************************************************//
---Filtration on attribute: Egenskaber
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
-	--RAISE DEBUG 'as_search_facet: skipping filtration on attrEgenskaber';
-ELSE
-	IF coalesce(array_length(facet_candidates,1),0)>0 THEN
-		FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-		LOOP
-			facet_candidates:=array(
-			SELECT DISTINCT
-			b.facet_id
-			FROM  facet_attr_egenskaber a
-			JOIN facet_registrering b on a.facet_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.beskrivelse IS NULL
-					OR
-					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.opbygning IS NULL
-					OR
-					a.opbygning = attrEgenskaberTypeObj.opbygning
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.ophavsret IS NULL
-					OR
-					a.ophavsret = attrEgenskaberTypeObj.ophavsret
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.plan IS NULL
-					OR
-					a.plan = attrEgenskaberTypeObj.plan
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.supplement IS NULL
-					OR
-					a.supplement = attrEgenskaberTypeObj.supplement
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.retskilde IS NULL
-					OR
-					a.retskilde = attrEgenskaberTypeObj.retskilde
-				)
-				AND b.facet_id = ANY (facet_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-			);
-
-		END LOOP;
-	END IF;
-END IF;
---RAISE DEBUG 'facet_candidates_is_initialized step 3:%',facet_candidates_is_initialized;
---RAISE DEBUG 'facet_candidates step 3:%',facet_candidates;
-
---RAISE DEBUG 'registrering,%',registreringObj;
-
-
---/**********************************************************//
---Filtration on state: Publiceret
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).tilsPubliceret IS NULL THEN
-	--RAISE DEBUG 'as_search_facet: skipping filtration on tilsPubliceret';
-ELSE
-	IF coalesce(array_length(facet_candidates,1),0)>0 THEN
-
-		FOREACH tilsPubliceretTypeObj IN ARRAY registreringObj.tilsPubliceret
-		LOOP
-			facet_candidates:=array(
-			SELECT DISTINCT
-			b.facet_id
-			FROM  facet_tils_publiceret a
-			JOIN facet_registrering b on a.facet_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					tilsPubliceretTypeObj.publiceret IS NULL
-					OR
-					tilsPubliceretTypeObj.publiceret = a.publiceret
-				)
-				AND b.facet_id = ANY (facet_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-	);
-
-		END LOOP;
-	END IF;
-END IF;
-
-/*
---relationer FacetRelationType[]
-*/
-
-
---RAISE DEBUG 'facet_candidates_is_initialized step 4:%',facet_candidates_is_initialized;
---RAISE DEBUG 'facet_candidates step 4:%',facet_candidates;
-
---/**********************************************************//
---Filtration on relations
---/**********************************************************//
-
-
-IF registreringObj IS NULL OR (registreringObj).relationer IS NULL OR coalesce(array_length((registreringObj).relationer,1),0)=0 THEN
-	--RAISE DEBUG 'as_search_facet: skipping filtration on relationer';
-ELSE
-	IF coalesce(array_length(facet_candidates,1),0)>0 THEN
-		FOREACH relationTypeObj IN ARRAY registreringObj.relationer
-		LOOP
-			facet_candidates:=array(
-			SELECT DISTINCT
-			b.facet_id
-			FROM  facet_relation a
-			JOIN facet_registrering b on a.facet_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					relationTypeObj.relType IS NULL
-					OR
-					relationTypeObj.relType = a.rel_type
-				)
-				AND
-				(
-					relationTypeObj.uuid IS NULL
-					OR
-					relationTypeObj.uuid = a.rel_maal_uuid
-				)
-				AND
-				(
-					relationTypeObj.objektType IS NULL
-					OR
-					relationTypeObj.objektType = a.objekt_type
-				)
-				AND
-				(
-					relationTypeObj.urn IS NULL
-					OR
-					relationTypeObj.urn = a.rel_maal_urn
-				)
-				AND b.facet_id = ANY (facet_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-	);
-		END LOOP;
-	END IF;
-END IF;
---/**********************//
-
---RAISE DEBUG 'facet_candidates_is_initialized step 5:%',facet_candidates_is_initialized;
---RAISE DEBUG 'facet_candidates step 5:%',facet_candidates;
-
-facet_passed_auth_filter:=array(
-SELECT
-a.id
-FROM
-unnest (facet_passed_auth_filter) a(id)
-UNION
-SELECT
-b.id
-FROM
-unnest (facet_candidates) b(id)
-);
-
---optimization
-IF coalesce(array_length(facet_passed_auth_filter,1),0)=coalesce(array_length(facet_uuids,1),0) AND facet_passed_auth_filter @>facet_uuids THEN
-	RETURN facet_passed_auth_filter;
-END IF;
-
-
-END LOOP; --LOOP registreringObj
-
-
-RETURN facet_passed_auth_filter;
-
-
-END;
-$function$
-
-;
-
--- _as_filter_unauth_itsystem(uuid[],itsystemregistreringtype[])
-
-CREATE OR REPLACE FUNCTION actual_state._as_filter_unauth_itsystem(
-    itsystem_uuids uuid[], registreringobjarr itsystemregistreringtype[]
-)
-RETURNS uuid[]
-LANGUAGE plpgsql
-STABLE
-AS $function$
-DECLARE
-	itsystem_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
-	itsystem_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[];
-	attrEgenskaberTypeObj ItsystemEgenskaberAttrType;
-
-  	tilsGyldighedTypeObj ItsystemGyldighedTilsType;
-	relationTypeObj ItsystemRelationType;
-	registreringObj ItsystemRegistreringType;
-	actual_virkning TIMESTAMPTZ:=current_timestamp;
-BEGIN
-
---RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
-
-IF registreringObjArr IS NULL THEN
-	RETURN itsystem_uuids; --special case: All is allowed, no criteria present
-END IF;
-
-IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
-END IF;
-
-IF itsystem_uuids IS NULL OR coalesce(array_length(itsystem_uuids,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
-END IF;
-
-
-
-FOREACH registreringObj IN ARRAY registreringObjArr
-LOOP
-
-itsystem_candidates:= itsystem_uuids;
-
-
-
---RAISE DEBUG 'itsystem_candidates_is_initialized step 1:%',itsystem_candidates_is_initialized;
---RAISE DEBUG 'itsystem_candidates step 1:%',itsystem_candidates;
---/****************************//
-
---filter on attributes
---/**********************************************************//
---Filtration on attribute: Egenskaber
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
-	--RAISE DEBUG 'as_search_itsystem: skipping filtration on attrEgenskaber';
-ELSE
-	IF coalesce(array_length(itsystem_candidates,1),0)>0 THEN
-		FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-		LOOP
-			itsystem_candidates:=array(
-			SELECT DISTINCT
-			b.itsystem_id
-			FROM  itsystem_attr_egenskaber a
-			JOIN itsystem_registrering b on a.itsystem_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.itsystemnavn IS NULL
-					OR
-					a.itsystemnavn = attrEgenskaberTypeObj.itsystemnavn
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.itsystemtype IS NULL
-					OR
-					a.itsystemtype = attrEgenskaberTypeObj.itsystemtype
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.konfigurationreference IS NULL
-					OR
-						((coalesce(array_length(attrEgenskaberTypeObj.konfigurationreference,1),0)=0 AND coalesce(array_length(a.konfigurationreference,1),0)=0 ) OR (attrEgenskaberTypeObj.konfigurationreference @> a.konfigurationreference AND a.konfigurationreference @>attrEgenskaberTypeObj.konfigurationreference  ))
-				)
-				AND b.itsystem_id = ANY (itsystem_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-			);
-
-		END LOOP;
-	END IF;
-END IF;
---RAISE DEBUG 'itsystem_candidates_is_initialized step 3:%',itsystem_candidates_is_initialized;
---RAISE DEBUG 'itsystem_candidates step 3:%',itsystem_candidates;
-
---RAISE DEBUG 'registrering,%',registreringObj;
-
-
---/**********************************************************//
---Filtration on state: Gyldighed
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).tilsGyldighed IS NULL THEN
-	--RAISE DEBUG 'as_search_itsystem: skipping filtration on tilsGyldighed';
-ELSE
-	IF coalesce(array_length(itsystem_candidates,1),0)>0 THEN
-
-		FOREACH tilsGyldighedTypeObj IN ARRAY registreringObj.tilsGyldighed
-		LOOP
-			itsystem_candidates:=array(
-			SELECT DISTINCT
-			b.itsystem_id
-			FROM  itsystem_tils_gyldighed a
-			JOIN itsystem_registrering b on a.itsystem_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					tilsGyldighedTypeObj.gyldighed IS NULL
-					OR
-					tilsGyldighedTypeObj.gyldighed = a.gyldighed
-				)
-				AND b.itsystem_id = ANY (itsystem_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-	);
-
-		END LOOP;
-	END IF;
-END IF;
-
-/*
---relationer ItsystemRelationType[]
-*/
-
-
---RAISE DEBUG 'itsystem_candidates_is_initialized step 4:%',itsystem_candidates_is_initialized;
---RAISE DEBUG 'itsystem_candidates step 4:%',itsystem_candidates;
-
---/**********************************************************//
---Filtration on relations
---/**********************************************************//
-
-
-IF registreringObj IS NULL OR (registreringObj).relationer IS NULL OR coalesce(array_length((registreringObj).relationer,1),0)=0 THEN
-	--RAISE DEBUG 'as_search_itsystem: skipping filtration on relationer';
-ELSE
-	IF coalesce(array_length(itsystem_candidates,1),0)>0 THEN
-		FOREACH relationTypeObj IN ARRAY registreringObj.relationer
-		LOOP
-			itsystem_candidates:=array(
-			SELECT DISTINCT
-			b.itsystem_id
-			FROM  itsystem_relation a
-			JOIN itsystem_registrering b on a.itsystem_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					relationTypeObj.relType IS NULL
-					OR
-					relationTypeObj.relType = a.rel_type
-				)
-				AND
-				(
-					relationTypeObj.uuid IS NULL
-					OR
-					relationTypeObj.uuid = a.rel_maal_uuid
-				)
-				AND
-				(
-					relationTypeObj.objektType IS NULL
-					OR
-					relationTypeObj.objektType = a.objekt_type
-				)
-				AND
-				(
-					relationTypeObj.urn IS NULL
-					OR
-					relationTypeObj.urn = a.rel_maal_urn
-				)
-				AND b.itsystem_id = ANY (itsystem_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-	);
-		END LOOP;
-	END IF;
-END IF;
---/**********************//
-
---RAISE DEBUG 'itsystem_candidates_is_initialized step 5:%',itsystem_candidates_is_initialized;
---RAISE DEBUG 'itsystem_candidates step 5:%',itsystem_candidates;
-
-itsystem_passed_auth_filter:=array(
-SELECT
-a.id
-FROM
-unnest (itsystem_passed_auth_filter) a(id)
-UNION
-SELECT
-b.id
-FROM
-unnest (itsystem_candidates) b(id)
-);
-
---optimization
-IF coalesce(array_length(itsystem_passed_auth_filter,1),0)=coalesce(array_length(itsystem_uuids,1),0) AND itsystem_passed_auth_filter @>itsystem_uuids THEN
-	RETURN itsystem_passed_auth_filter;
-END IF;
-
-
-END LOOP; --LOOP registreringObj
-
-
-RETURN itsystem_passed_auth_filter;
-
-
-END;
-$function$
-
-;
-
--- _as_filter_unauth_klasse(uuid[],klasseregistreringtype[])
-
-CREATE OR REPLACE FUNCTION actual_state._as_filter_unauth_klasse(
-    klasse_uuids uuid[], registreringobjarr klasseregistreringtype[]
-)
-RETURNS uuid[]
-LANGUAGE plpgsql
-STABLE
-AS $function$
-DECLARE
-	klasse_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
-	klasse_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[];
-	attrEgenskaberTypeObj KlasseEgenskaberAttrType;
-
-  	tilsPubliceretTypeObj KlassePubliceretTilsType;
-	relationTypeObj KlasseRelationType;
-	registreringObj KlasseRegistreringType;
-	actual_virkning TIMESTAMPTZ:=current_timestamp;
-BEGIN
-
---RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
-
-IF registreringObjArr IS NULL THEN
-	RETURN klasse_uuids; --special case: All is allowed, no criteria present
-END IF;
-
-IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
-END IF;
-
-IF klasse_uuids IS NULL OR coalesce(array_length(klasse_uuids,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
-END IF;
-
-
-
-FOREACH registreringObj IN ARRAY registreringObjArr
-LOOP
-
-klasse_candidates:= klasse_uuids;
-
-
-
---RAISE DEBUG 'klasse_candidates_is_initialized step 1:%',klasse_candidates_is_initialized;
---RAISE DEBUG 'klasse_candidates step 1:%',klasse_candidates;
---/****************************//
-
---filter on attributes
---/**********************************************************//
---Filtration on attribute: Egenskaber
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
-	--RAISE DEBUG 'as_search_klasse: skipping filtration on attrEgenskaber';
-ELSE
-	IF coalesce(array_length(klasse_candidates,1),0)>0 THEN
-		FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-		LOOP
-			klasse_candidates:=array(
-			SELECT DISTINCT
-			b.klasse_id
-			FROM  klasse_attr_egenskaber a
-			JOIN klasse_registrering b on a.klasse_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.beskrivelse IS NULL
-					OR
-					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.eksempel IS NULL
-					OR
-					a.eksempel = attrEgenskaberTypeObj.eksempel
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.omfang IS NULL
-					OR
-					a.omfang = attrEgenskaberTypeObj.omfang
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.titel IS NULL
-					OR
-					a.titel = attrEgenskaberTypeObj.titel
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.retskilde IS NULL
-					OR
-					a.retskilde = attrEgenskaberTypeObj.retskilde
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.aendringsnotat IS NULL
-					OR
-					a.aendringsnotat = attrEgenskaberTypeObj.aendringsnotat
-				)
-				AND b.klasse_id = ANY (klasse_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-			);
-
-		END LOOP;
-	END IF;
-END IF;
---RAISE DEBUG 'klasse_candidates_is_initialized step 3:%',klasse_candidates_is_initialized;
---RAISE DEBUG 'klasse_candidates step 3:%',klasse_candidates;
-
---RAISE DEBUG 'registrering,%',registreringObj;
-
-
---/**********************************************************//
---Filtration on state: Publiceret
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).tilsPubliceret IS NULL THEN
-	--RAISE DEBUG 'as_search_klasse: skipping filtration on tilsPubliceret';
-ELSE
-	IF coalesce(array_length(klasse_candidates,1),0)>0 THEN
-
-		FOREACH tilsPubliceretTypeObj IN ARRAY registreringObj.tilsPubliceret
-		LOOP
-			klasse_candidates:=array(
-			SELECT DISTINCT
-			b.klasse_id
-			FROM  klasse_tils_publiceret a
-			JOIN klasse_registrering b on a.klasse_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					tilsPubliceretTypeObj.publiceret IS NULL
-					OR
-					tilsPubliceretTypeObj.publiceret = a.publiceret
-				)
-				AND b.klasse_id = ANY (klasse_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-	);
-
-		END LOOP;
-	END IF;
-END IF;
-
-/*
---relationer KlasseRelationType[]
-*/
-
-
---RAISE DEBUG 'klasse_candidates_is_initialized step 4:%',klasse_candidates_is_initialized;
---RAISE DEBUG 'klasse_candidates step 4:%',klasse_candidates;
-
---/**********************************************************//
---Filtration on relations
---/**********************************************************//
-
-
-IF registreringObj IS NULL OR (registreringObj).relationer IS NULL OR coalesce(array_length((registreringObj).relationer,1),0)=0 THEN
-	--RAISE DEBUG 'as_search_klasse: skipping filtration on relationer';
-ELSE
-	IF coalesce(array_length(klasse_candidates,1),0)>0 THEN
-		FOREACH relationTypeObj IN ARRAY registreringObj.relationer
-		LOOP
-			klasse_candidates:=array(
-			SELECT DISTINCT
-			b.klasse_id
-			FROM  klasse_relation a
-			JOIN klasse_registrering b on a.klasse_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					relationTypeObj.relType IS NULL
-					OR
-					relationTypeObj.relType = a.rel_type
-				)
-				AND
-				(
-					relationTypeObj.uuid IS NULL
-					OR
-					relationTypeObj.uuid = a.rel_maal_uuid
-				)
-				AND
-				(
-					relationTypeObj.objektType IS NULL
-					OR
-					relationTypeObj.objektType = a.objekt_type
-				)
-				AND
-				(
-					relationTypeObj.urn IS NULL
-					OR
-					relationTypeObj.urn = a.rel_maal_urn
-				)
-				AND b.klasse_id = ANY (klasse_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-	);
-		END LOOP;
-	END IF;
-END IF;
---/**********************//
-
---RAISE DEBUG 'klasse_candidates_is_initialized step 5:%',klasse_candidates_is_initialized;
---RAISE DEBUG 'klasse_candidates step 5:%',klasse_candidates;
-
-klasse_passed_auth_filter:=array(
-SELECT
-a.id
-FROM
-unnest (klasse_passed_auth_filter) a(id)
-UNION
-SELECT
-b.id
-FROM
-unnest (klasse_candidates) b(id)
-);
-
---optimization
-IF coalesce(array_length(klasse_passed_auth_filter,1),0)=coalesce(array_length(klasse_uuids,1),0) AND klasse_passed_auth_filter @>klasse_uuids THEN
-	RETURN klasse_passed_auth_filter;
-END IF;
-
-
-END LOOP; --LOOP registreringObj
-
-
-RETURN klasse_passed_auth_filter;
-
-
-END;
-$function$
-
-;
-
--- _as_filter_unauth_klassifikation(uuid[],klassifikationregistreringtype[])
-
-CREATE OR REPLACE FUNCTION actual_state._as_filter_unauth_klassifikation(
-    klassifikation_uuids uuid[],
-    registreringobjarr klassifikationregistreringtype[]
-)
-RETURNS uuid[]
-LANGUAGE plpgsql
-STABLE
-AS $function$
-DECLARE
-	klassifikation_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
-	klassifikation_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[];
-	attrEgenskaberTypeObj KlassifikationEgenskaberAttrType;
-
-  	tilsPubliceretTypeObj KlassifikationPubliceretTilsType;
-	relationTypeObj KlassifikationRelationType;
-	registreringObj KlassifikationRegistreringType;
-	actual_virkning TIMESTAMPTZ:=current_timestamp;
-BEGIN
-
---RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
-
-IF registreringObjArr IS NULL THEN
-	RETURN klassifikation_uuids; --special case: All is allowed, no criteria present
-END IF;
-
-IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
-END IF;
-
-IF klassifikation_uuids IS NULL OR coalesce(array_length(klassifikation_uuids,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
-END IF;
-
-
-
-FOREACH registreringObj IN ARRAY registreringObjArr
-LOOP
-
-klassifikation_candidates:= klassifikation_uuids;
-
-
-
---RAISE DEBUG 'klassifikation_candidates_is_initialized step 1:%',klassifikation_candidates_is_initialized;
---RAISE DEBUG 'klassifikation_candidates step 1:%',klassifikation_candidates;
---/****************************//
-
---filter on attributes
---/**********************************************************//
---Filtration on attribute: Egenskaber
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
-	--RAISE DEBUG 'as_search_klassifikation: skipping filtration on attrEgenskaber';
-ELSE
-	IF coalesce(array_length(klassifikation_candidates,1),0)>0 THEN
-		FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-		LOOP
-			klassifikation_candidates:=array(
-			SELECT DISTINCT
-			b.klassifikation_id
-			FROM  klassifikation_attr_egenskaber a
-			JOIN klassifikation_registrering b on a.klassifikation_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.beskrivelse IS NULL
-					OR
-					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.kaldenavn IS NULL
-					OR
-					a.kaldenavn = attrEgenskaberTypeObj.kaldenavn
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.ophavsret IS NULL
-					OR
-					a.ophavsret = attrEgenskaberTypeObj.ophavsret
-				)
-				AND b.klassifikation_id = ANY (klassifikation_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-			);
-
-		END LOOP;
-	END IF;
-END IF;
---RAISE DEBUG 'klassifikation_candidates_is_initialized step 3:%',klassifikation_candidates_is_initialized;
---RAISE DEBUG 'klassifikation_candidates step 3:%',klassifikation_candidates;
-
---RAISE DEBUG 'registrering,%',registreringObj;
-
-
---/**********************************************************//
---Filtration on state: Publiceret
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).tilsPubliceret IS NULL THEN
-	--RAISE DEBUG 'as_search_klassifikation: skipping filtration on tilsPubliceret';
-ELSE
-	IF coalesce(array_length(klassifikation_candidates,1),0)>0 THEN
-
-		FOREACH tilsPubliceretTypeObj IN ARRAY registreringObj.tilsPubliceret
-		LOOP
-			klassifikation_candidates:=array(
-			SELECT DISTINCT
-			b.klassifikation_id
-			FROM  klassifikation_tils_publiceret a
-			JOIN klassifikation_registrering b on a.klassifikation_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					tilsPubliceretTypeObj.publiceret IS NULL
-					OR
-					tilsPubliceretTypeObj.publiceret = a.publiceret
-				)
-				AND b.klassifikation_id = ANY (klassifikation_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-	);
-
-		END LOOP;
-	END IF;
-END IF;
-
-/*
---relationer KlassifikationRelationType[]
-*/
-
-
---RAISE DEBUG 'klassifikation_candidates_is_initialized step 4:%',klassifikation_candidates_is_initialized;
---RAISE DEBUG 'klassifikation_candidates step 4:%',klassifikation_candidates;
-
---/**********************************************************//
---Filtration on relations
---/**********************************************************//
-
-
-IF registreringObj IS NULL OR (registreringObj).relationer IS NULL OR coalesce(array_length((registreringObj).relationer,1),0)=0 THEN
-	--RAISE DEBUG 'as_search_klassifikation: skipping filtration on relationer';
-ELSE
-	IF coalesce(array_length(klassifikation_candidates,1),0)>0 THEN
-		FOREACH relationTypeObj IN ARRAY registreringObj.relationer
-		LOOP
-			klassifikation_candidates:=array(
-			SELECT DISTINCT
-			b.klassifikation_id
-			FROM  klassifikation_relation a
-			JOIN klassifikation_registrering b on a.klassifikation_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					relationTypeObj.relType IS NULL
-					OR
-					relationTypeObj.relType = a.rel_type
-				)
-				AND
-				(
-					relationTypeObj.uuid IS NULL
-					OR
-					relationTypeObj.uuid = a.rel_maal_uuid
-				)
-				AND
-				(
-					relationTypeObj.objektType IS NULL
-					OR
-					relationTypeObj.objektType = a.objekt_type
-				)
-				AND
-				(
-					relationTypeObj.urn IS NULL
-					OR
-					relationTypeObj.urn = a.rel_maal_urn
-				)
-				AND b.klassifikation_id = ANY (klassifikation_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-	);
-		END LOOP;
-	END IF;
-END IF;
---/**********************//
-
---RAISE DEBUG 'klassifikation_candidates_is_initialized step 5:%',klassifikation_candidates_is_initialized;
---RAISE DEBUG 'klassifikation_candidates step 5:%',klassifikation_candidates;
-
-klassifikation_passed_auth_filter:=array(
-SELECT
-a.id
-FROM
-unnest (klassifikation_passed_auth_filter) a(id)
-UNION
-SELECT
-b.id
-FROM
-unnest (klassifikation_candidates) b(id)
-);
-
---optimization
-IF coalesce(array_length(klassifikation_passed_auth_filter,1),0)=coalesce(array_length(klassifikation_uuids,1),0) AND klassifikation_passed_auth_filter @>klassifikation_uuids THEN
-	RETURN klassifikation_passed_auth_filter;
-END IF;
-
-
-END LOOP; --LOOP registreringObj
-
-
-RETURN klassifikation_passed_auth_filter;
-
-
-END;
-$function$
-
-;
-
--- _as_filter_unauth_organisationenhed(uuid[],organisationenhedregistreringtype[])
-
-CREATE OR REPLACE FUNCTION actual_state._as_filter_unauth_organisationenhed(
-    organisationenhed_uuids uuid[],
-    registreringobjarr organisationenhedregistreringtype[]
-)
-RETURNS uuid[]
-LANGUAGE plpgsql
-STABLE
-AS $function$
-DECLARE
-	organisationenhed_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
-	organisationenhed_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[];
-	attrEgenskaberTypeObj OrganisationenhedEgenskaberAttrType;
-
-  	tilsGyldighedTypeObj OrganisationenhedGyldighedTilsType;
-	relationTypeObj OrganisationenhedRelationType;
-	registreringObj OrganisationenhedRegistreringType;
-	actual_virkning TIMESTAMPTZ:=current_timestamp;
-BEGIN
-
---RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
-
-IF registreringObjArr IS NULL THEN
-	RETURN organisationenhed_uuids; --special case: All is allowed, no criteria present
-END IF;
-
-IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
-END IF;
-
-IF organisationenhed_uuids IS NULL OR coalesce(array_length(organisationenhed_uuids,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
-END IF;
-
-
-
-FOREACH registreringObj IN ARRAY registreringObjArr
-LOOP
-
-organisationenhed_candidates:= organisationenhed_uuids;
-
-
-
---RAISE DEBUG 'organisationenhed_candidates_is_initialized step 1:%',organisationenhed_candidates_is_initialized;
---RAISE DEBUG 'organisationenhed_candidates step 1:%',organisationenhed_candidates;
---/****************************//
-
---filter on attributes
---/**********************************************************//
---Filtration on attribute: Egenskaber
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
-	--RAISE DEBUG 'as_search_organisationenhed: skipping filtration on attrEgenskaber';
-ELSE
-	IF coalesce(array_length(organisationenhed_candidates,1),0)>0 THEN
-		FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-		LOOP
-			organisationenhed_candidates:=array(
-			SELECT DISTINCT
-			b.organisationenhed_id
-			FROM  organisationenhed_attr_egenskaber a
-			JOIN organisationenhed_registrering b on a.organisationenhed_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.enhedsnavn IS NULL
-					OR
-					a.enhedsnavn = attrEgenskaberTypeObj.enhedsnavn
-				)
-				AND b.organisationenhed_id = ANY (organisationenhed_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-			);
-
-		END LOOP;
-	END IF;
-END IF;
---RAISE DEBUG 'organisationenhed_candidates_is_initialized step 3:%',organisationenhed_candidates_is_initialized;
---RAISE DEBUG 'organisationenhed_candidates step 3:%',organisationenhed_candidates;
-
---RAISE DEBUG 'registrering,%',registreringObj;
-
-
---/**********************************************************//
---Filtration on state: Gyldighed
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).tilsGyldighed IS NULL THEN
-	--RAISE DEBUG 'as_search_organisationenhed: skipping filtration on tilsGyldighed';
-ELSE
-	IF coalesce(array_length(organisationenhed_candidates,1),0)>0 THEN
-
-		FOREACH tilsGyldighedTypeObj IN ARRAY registreringObj.tilsGyldighed
-		LOOP
-			organisationenhed_candidates:=array(
-			SELECT DISTINCT
-			b.organisationenhed_id
-			FROM  organisationenhed_tils_gyldighed a
-			JOIN organisationenhed_registrering b on a.organisationenhed_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					tilsGyldighedTypeObj.gyldighed IS NULL
-					OR
-					tilsGyldighedTypeObj.gyldighed = a.gyldighed
-				)
-				AND b.organisationenhed_id = ANY (organisationenhed_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-	);
-
-		END LOOP;
-	END IF;
-END IF;
-
-/*
---relationer OrganisationenhedRelationType[]
-*/
-
-
---RAISE DEBUG 'organisationenhed_candidates_is_initialized step 4:%',organisationenhed_candidates_is_initialized;
---RAISE DEBUG 'organisationenhed_candidates step 4:%',organisationenhed_candidates;
-
---/**********************************************************//
---Filtration on relations
---/**********************************************************//
-
-
-IF registreringObj IS NULL OR (registreringObj).relationer IS NULL OR coalesce(array_length((registreringObj).relationer,1),0)=0 THEN
-	--RAISE DEBUG 'as_search_organisationenhed: skipping filtration on relationer';
-ELSE
-	IF coalesce(array_length(organisationenhed_candidates,1),0)>0 THEN
-		FOREACH relationTypeObj IN ARRAY registreringObj.relationer
-		LOOP
-			organisationenhed_candidates:=array(
-			SELECT DISTINCT
-			b.organisationenhed_id
-			FROM  organisationenhed_relation a
-			JOIN organisationenhed_registrering b on a.organisationenhed_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					relationTypeObj.relType IS NULL
-					OR
-					relationTypeObj.relType = a.rel_type
-				)
-				AND
-				(
-					relationTypeObj.uuid IS NULL
-					OR
-					relationTypeObj.uuid = a.rel_maal_uuid
-				)
-				AND
-				(
-					relationTypeObj.objektType IS NULL
-					OR
-					relationTypeObj.objektType = a.objekt_type
-				)
-				AND
-				(
-					relationTypeObj.urn IS NULL
-					OR
-					relationTypeObj.urn = a.rel_maal_urn
-				)
-				AND b.organisationenhed_id = ANY (organisationenhed_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-	);
-		END LOOP;
-	END IF;
-END IF;
---/**********************//
-
---RAISE DEBUG 'organisationenhed_candidates_is_initialized step 5:%',organisationenhed_candidates_is_initialized;
---RAISE DEBUG 'organisationenhed_candidates step 5:%',organisationenhed_candidates;
-
-organisationenhed_passed_auth_filter:=array(
-SELECT
-a.id
-FROM
-unnest (organisationenhed_passed_auth_filter) a(id)
-UNION
-SELECT
-b.id
-FROM
-unnest (organisationenhed_candidates) b(id)
-);
-
---optimization
-IF coalesce(array_length(organisationenhed_passed_auth_filter,1),0)=coalesce(array_length(organisationenhed_uuids,1),0) AND organisationenhed_passed_auth_filter @>organisationenhed_uuids THEN
-	RETURN organisationenhed_passed_auth_filter;
-END IF;
-
-
-END LOOP; --LOOP registreringObj
-
-
-RETURN organisationenhed_passed_auth_filter;
-
-
-END;
-$function$
-
-;
-
--- _as_filter_unauth_organisationfunktion(uuid[],organisationfunktionregistreringtype[])
-
-CREATE OR REPLACE FUNCTION actual_state._as_filter_unauth_organisationfunktion(
-    organisationfunktion_uuids uuid[],
-    registreringobjarr organisationfunktionregistreringtype[]
-)
-RETURNS uuid[]
-LANGUAGE plpgsql
-STABLE
-AS $function$
-DECLARE
-	organisationfunktion_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
-	organisationfunktion_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[];
-	attrEgenskaberTypeObj OrganisationfunktionEgenskaberAttrType;
-	attrUdvidelserTypeObj OrganisationfunktionUdvidelserAttrType;
-
-  	tilsGyldighedTypeObj OrganisationfunktionGyldighedTilsType;
-	relationTypeObj OrganisationfunktionRelationType;
-	registreringObj OrganisationfunktionRegistreringType;
-	actual_virkning TIMESTAMPTZ:=current_timestamp;
-BEGIN
-
---RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
-
-IF registreringObjArr IS NULL THEN
-	RETURN organisationfunktion_uuids; --special case: All is allowed, no criteria present
-END IF;
-
-IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
-END IF;
-
-IF organisationfunktion_uuids IS NULL OR coalesce(array_length(organisationfunktion_uuids,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
-END IF;
-
-
-
-FOREACH registreringObj IN ARRAY registreringObjArr
-LOOP
-
-organisationfunktion_candidates:= organisationfunktion_uuids;
-
-
-
---RAISE DEBUG 'organisationfunktion_candidates_is_initialized step 1:%',organisationfunktion_candidates_is_initialized;
---RAISE DEBUG 'organisationfunktion_candidates step 1:%',organisationfunktion_candidates;
---/****************************//
-
---filter on attributes
---/**********************************************************//
---Filtration on attribute: Egenskaber
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
-	--RAISE DEBUG 'as_search_organisationfunktion: skipping filtration on attrEgenskaber';
-ELSE
-	IF coalesce(array_length(organisationfunktion_candidates,1),0)>0 THEN
-		FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-		LOOP
-			organisationfunktion_candidates:=array(
-			SELECT DISTINCT
-			b.organisationfunktion_id
-			FROM  organisationfunktion_attr_egenskaber a
-			JOIN organisationfunktion_registrering b on a.organisationfunktion_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.funktionsnavn IS NULL
-					OR
-					a.funktionsnavn = attrEgenskaberTypeObj.funktionsnavn
-				)
-				AND b.organisationfunktion_id = ANY (organisationfunktion_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-			);
-
-		END LOOP;
-	END IF;
-END IF;
---/**********************************************************//
---Filtration on attribute: Udvidelser
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).attrUdvidelser IS NULL THEN
-	--RAISE DEBUG 'as_search_organisationfunktion: skipping filtration on attrUdvidelser';
-ELSE
-	IF coalesce(array_length(organisationfunktion_candidates,1),0)>0 THEN
-		FOREACH attrUdvidelserTypeObj IN ARRAY registreringObj.attrUdvidelser
-		LOOP
-			organisationfunktion_candidates:=array(
-			SELECT DISTINCT
-			b.organisationfunktion_id
-			FROM  organisationfunktion_attr_udvidelser a
-			JOIN organisationfunktion_registrering b on a.organisationfunktion_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					attrUdvidelserTypeObj.primær IS NULL
-					OR
-					a.primær = attrUdvidelserTypeObj.primær
-				)
-				AND
-				(
-					attrUdvidelserTypeObj.fraktion IS NULL
-					OR
-					a.fraktion = attrUdvidelserTypeObj.fraktion
-				)
-				AND
-				(
-					attrUdvidelserTypeObj.udvidelse_1 IS NULL
-					OR
-					a.udvidelse_1 = attrUdvidelserTypeObj.udvidelse_1
-				)
-				AND
-				(
-					attrUdvidelserTypeObj.udvidelse_2 IS NULL
-					OR
-					a.udvidelse_2 = attrUdvidelserTypeObj.udvidelse_2
-				)
-				AND
-				(
-					attrUdvidelserTypeObj.udvidelse_3 IS NULL
-					OR
-					a.udvidelse_3 = attrUdvidelserTypeObj.udvidelse_3
-				)
-				AND
-				(
-					attrUdvidelserTypeObj.udvidelse_4 IS NULL
-					OR
-					a.udvidelse_4 = attrUdvidelserTypeObj.udvidelse_4
-				)
-				AND
-				(
-					attrUdvidelserTypeObj.udvidelse_5 IS NULL
-					OR
-					a.udvidelse_5 = attrUdvidelserTypeObj.udvidelse_5
-				)
-				AND
-				(
-					attrUdvidelserTypeObj.udvidelse_6 IS NULL
-					OR
-					a.udvidelse_6 = attrUdvidelserTypeObj.udvidelse_6
-				)
-				AND
-				(
-					attrUdvidelserTypeObj.udvidelse_7 IS NULL
-					OR
-					a.udvidelse_7 = attrUdvidelserTypeObj.udvidelse_7
-				)
-				AND
-				(
-					attrUdvidelserTypeObj.udvidelse_8 IS NULL
-					OR
-					a.udvidelse_8 = attrUdvidelserTypeObj.udvidelse_8
-				)
-				AND
-				(
-					attrUdvidelserTypeObj.udvidelse_9 IS NULL
-					OR
-					a.udvidelse_9 = attrUdvidelserTypeObj.udvidelse_9
-				)
-				AND
-				(
-					attrUdvidelserTypeObj.udvidelse_10 IS NULL
-					OR
-					a.udvidelse_10 = attrUdvidelserTypeObj.udvidelse_10
-				)
-				AND b.organisationfunktion_id = ANY (organisationfunktion_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-			);
-
-		END LOOP;
-	END IF;
-END IF;
---RAISE DEBUG 'organisationfunktion_candidates_is_initialized step 3:%',organisationfunktion_candidates_is_initialized;
---RAISE DEBUG 'organisationfunktion_candidates step 3:%',organisationfunktion_candidates;
-
---RAISE DEBUG 'registrering,%',registreringObj;
-
-
---/**********************************************************//
---Filtration on state: Gyldighed
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).tilsGyldighed IS NULL THEN
-	--RAISE DEBUG 'as_search_organisationfunktion: skipping filtration on tilsGyldighed';
-ELSE
-	IF coalesce(array_length(organisationfunktion_candidates,1),0)>0 THEN
-
-		FOREACH tilsGyldighedTypeObj IN ARRAY registreringObj.tilsGyldighed
-		LOOP
-			organisationfunktion_candidates:=array(
-			SELECT DISTINCT
-			b.organisationfunktion_id
-			FROM  organisationfunktion_tils_gyldighed a
-			JOIN organisationfunktion_registrering b on a.organisationfunktion_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					tilsGyldighedTypeObj.gyldighed IS NULL
-					OR
-					tilsGyldighedTypeObj.gyldighed = a.gyldighed
-				)
-				AND b.organisationfunktion_id = ANY (organisationfunktion_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-	);
-
-		END LOOP;
-	END IF;
-END IF;
-
-/*
---relationer OrganisationfunktionRelationType[]
-*/
-
-
---RAISE DEBUG 'organisationfunktion_candidates_is_initialized step 4:%',organisationfunktion_candidates_is_initialized;
---RAISE DEBUG 'organisationfunktion_candidates step 4:%',organisationfunktion_candidates;
-
---/**********************************************************//
---Filtration on relations
---/**********************************************************//
-
-
-IF registreringObj IS NULL OR (registreringObj).relationer IS NULL OR coalesce(array_length((registreringObj).relationer,1),0)=0 THEN
-	--RAISE DEBUG 'as_search_organisationfunktion: skipping filtration on relationer';
-ELSE
-	IF coalesce(array_length(organisationfunktion_candidates,1),0)>0 THEN
-		FOREACH relationTypeObj IN ARRAY registreringObj.relationer
-		LOOP
-			organisationfunktion_candidates:=array(
-			SELECT DISTINCT
-			b.organisationfunktion_id
-			FROM  organisationfunktion_relation a
-			JOIN organisationfunktion_registrering b on a.organisationfunktion_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					relationTypeObj.relType IS NULL
-					OR
-					relationTypeObj.relType = a.rel_type
-				)
-				AND
-				(
-					relationTypeObj.uuid IS NULL
-					OR
-					relationTypeObj.uuid = a.rel_maal_uuid
-				)
-				AND
-				(
-					relationTypeObj.objektType IS NULL
-					OR
-					relationTypeObj.objektType = a.objekt_type
-				)
-				AND
-				(
-					relationTypeObj.urn IS NULL
-					OR
-					relationTypeObj.urn = a.rel_maal_urn
-				)
-				AND b.organisationfunktion_id = ANY (organisationfunktion_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-	);
-		END LOOP;
-	END IF;
-END IF;
---/**********************//
-
---RAISE DEBUG 'organisationfunktion_candidates_is_initialized step 5:%',organisationfunktion_candidates_is_initialized;
---RAISE DEBUG 'organisationfunktion_candidates step 5:%',organisationfunktion_candidates;
-
-organisationfunktion_passed_auth_filter:=array(
-SELECT
-a.id
-FROM
-unnest (organisationfunktion_passed_auth_filter) a(id)
-UNION
-SELECT
-b.id
-FROM
-unnest (organisationfunktion_candidates) b(id)
-);
-
---optimization
-IF coalesce(array_length(organisationfunktion_passed_auth_filter,1),0)=coalesce(array_length(organisationfunktion_uuids,1),0) AND organisationfunktion_passed_auth_filter @>organisationfunktion_uuids THEN
-	RETURN organisationfunktion_passed_auth_filter;
-END IF;
-
-
-END LOOP; --LOOP registreringObj
-
-
-RETURN organisationfunktion_passed_auth_filter;
-
-
-END;
-$function$
-
-;
-
--- _as_filter_unauth_organisation(uuid[],organisationregistreringtype[])
-
-CREATE OR REPLACE FUNCTION actual_state._as_filter_unauth_organisation(
-    organisation_uuids uuid[], registreringobjarr organisationregistreringtype[]
-)
-RETURNS uuid[]
-LANGUAGE plpgsql
-STABLE
-AS $function$
-DECLARE
-	organisation_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
-	organisation_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[];
-	attrEgenskaberTypeObj OrganisationEgenskaberAttrType;
-
-  	tilsGyldighedTypeObj OrganisationGyldighedTilsType;
-	relationTypeObj OrganisationRelationType;
-	registreringObj OrganisationRegistreringType;
-	actual_virkning TIMESTAMPTZ:=current_timestamp;
-BEGIN
-
---RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
-
-IF registreringObjArr IS NULL THEN
-	RETURN organisation_uuids; --special case: All is allowed, no criteria present
-END IF;
-
-IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
-END IF;
-
-IF organisation_uuids IS NULL OR coalesce(array_length(organisation_uuids,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
-END IF;
-
-
-
-FOREACH registreringObj IN ARRAY registreringObjArr
-LOOP
-
-organisation_candidates:= organisation_uuids;
-
-
-
---RAISE DEBUG 'organisation_candidates_is_initialized step 1:%',organisation_candidates_is_initialized;
---RAISE DEBUG 'organisation_candidates step 1:%',organisation_candidates;
---/****************************//
-
---filter on attributes
---/**********************************************************//
---Filtration on attribute: Egenskaber
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
-	--RAISE DEBUG 'as_search_organisation: skipping filtration on attrEgenskaber';
-ELSE
-	IF coalesce(array_length(organisation_candidates,1),0)>0 THEN
-		FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-		LOOP
-			organisation_candidates:=array(
-			SELECT DISTINCT
-			b.organisation_id
-			FROM  organisation_attr_egenskaber a
-			JOIN organisation_registrering b on a.organisation_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
-				)
-				AND
-				(
-					attrEgenskaberTypeObj.organisationsnavn IS NULL
-					OR
-					a.organisationsnavn = attrEgenskaberTypeObj.organisationsnavn
-				)
-				AND b.organisation_id = ANY (organisation_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-			);
-
-		END LOOP;
-	END IF;
-END IF;
---RAISE DEBUG 'organisation_candidates_is_initialized step 3:%',organisation_candidates_is_initialized;
---RAISE DEBUG 'organisation_candidates step 3:%',organisation_candidates;
-
---RAISE DEBUG 'registrering,%',registreringObj;
-
-
---/**********************************************************//
---Filtration on state: Gyldighed
---/**********************************************************//
-IF registreringObj IS NULL OR (registreringObj).tilsGyldighed IS NULL THEN
-	--RAISE DEBUG 'as_search_organisation: skipping filtration on tilsGyldighed';
-ELSE
-	IF coalesce(array_length(organisation_candidates,1),0)>0 THEN
-
-		FOREACH tilsGyldighedTypeObj IN ARRAY registreringObj.tilsGyldighed
-		LOOP
-			organisation_candidates:=array(
-			SELECT DISTINCT
-			b.organisation_id
-			FROM  organisation_tils_gyldighed a
-			JOIN organisation_registrering b on a.organisation_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					tilsGyldighedTypeObj.gyldighed IS NULL
-					OR
-					tilsGyldighedTypeObj.gyldighed = a.gyldighed
-				)
-				AND b.organisation_id = ANY (organisation_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-	);
-
-		END LOOP;
-	END IF;
-END IF;
-
-/*
---relationer OrganisationRelationType[]
-*/
-
-
---RAISE DEBUG 'organisation_candidates_is_initialized step 4:%',organisation_candidates_is_initialized;
---RAISE DEBUG 'organisation_candidates step 4:%',organisation_candidates;
-
---/**********************************************************//
---Filtration on relations
---/**********************************************************//
-
-
-IF registreringObj IS NULL OR (registreringObj).relationer IS NULL OR coalesce(array_length((registreringObj).relationer,1),0)=0 THEN
-	--RAISE DEBUG 'as_search_organisation: skipping filtration on relationer';
-ELSE
-	IF coalesce(array_length(organisation_candidates,1),0)>0 THEN
-		FOREACH relationTypeObj IN ARRAY registreringObj.relationer
-		LOOP
-			organisation_candidates:=array(
-			SELECT DISTINCT
-			b.organisation_id
-			FROM  organisation_relation a
-			JOIN organisation_registrering b on a.organisation_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			WHERE
-				(
-					relationTypeObj.relType IS NULL
-					OR
-					relationTypeObj.relType = a.rel_type
-				)
-				AND
-				(
-					relationTypeObj.uuid IS NULL
-					OR
-					relationTypeObj.uuid = a.rel_maal_uuid
-				)
-				AND
-				(
-					relationTypeObj.objektType IS NULL
-					OR
-					relationTypeObj.objektType = a.objekt_type
-				)
-				AND
-				(
-					relationTypeObj.urn IS NULL
-					OR
-					relationTypeObj.urn = a.rel_maal_urn
-				)
-				AND b.organisation_id = ANY (organisation_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning
-	);
-		END LOOP;
-	END IF;
-END IF;
---/**********************//
-
---RAISE DEBUG 'organisation_candidates_is_initialized step 5:%',organisation_candidates_is_initialized;
---RAISE DEBUG 'organisation_candidates step 5:%',organisation_candidates;
-
-organisation_passed_auth_filter:=array(
-SELECT
-a.id
-FROM
-unnest (organisation_passed_auth_filter) a(id)
-UNION
-SELECT
-b.id
-FROM
-unnest (organisation_candidates) b(id)
-);
-
---optimization
-IF coalesce(array_length(organisation_passed_auth_filter,1),0)=coalesce(array_length(organisation_uuids,1),0) AND organisation_passed_auth_filter @>organisation_uuids THEN
-	RETURN organisation_passed_auth_filter;
-END IF;
-
-
-END LOOP; --LOOP registreringObj
-
-
-RETURN organisation_passed_auth_filter;
-
-
-END;
-$function$
-
-;
-
--- as_list_bruger(uuid[],tstzrange,tstzrange,brugerregistreringtype[])
+-- as_list_bruger(uuid[],tstzrange,tstzrange)
 
 CREATE OR REPLACE FUNCTION actual_state.as_list_bruger(
     bruger_uuids uuid[],
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr brugerregistreringtype[] DEFAULT NULL::brugerregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS brugertype[]
 LANGUAGE plpgsql
 STABLE
 AS $function$
 DECLARE
-	auth_filtered_uuids uuid[];
 	result BrugerType[];
 BEGIN
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_bruger(bruger_uuids,auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(bruger_uuids,1),0) AND auth_filtered_uuids @>bruger_uuids) THEN
-  RAISE EXCEPTION 'Unable to list bruger with uuids [%]. All objects do not fullfill the stipulated criteria:%',bruger_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 SELECT
 array_agg(x.brugerObj) into result
@@ -3701,30 +2020,22 @@ $function$
 
 ;
 
--- as_list_facet(uuid[],tstzrange,tstzrange,facetregistreringtype[])
+-- as_list_facet(uuid[],tstzrange,tstzrange)
 
 CREATE OR REPLACE FUNCTION actual_state.as_list_facet(
     facet_uuids uuid[],
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr facetregistreringtype[] DEFAULT NULL::facetregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS facettype[]
 LANGUAGE plpgsql
 STABLE
 AS $function$
 DECLARE
-	auth_filtered_uuids uuid[];
 	result FacetType[];
 BEGIN
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_facet(facet_uuids,auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(facet_uuids,1),0) AND auth_filtered_uuids @>facet_uuids) THEN
-  RAISE EXCEPTION 'Unable to list facet with uuids [%]. All objects do not fullfill the stipulated criteria:%',facet_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 SELECT
 array_agg(x.facetObj) into result
@@ -3867,30 +2178,22 @@ $function$
 
 ;
 
--- as_list_itsystem(uuid[],tstzrange,tstzrange,itsystemregistreringtype[])
+-- as_list_itsystem(uuid[],tstzrange,tstzrange)
 
 CREATE OR REPLACE FUNCTION actual_state.as_list_itsystem(
     itsystem_uuids uuid[],
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr itsystemregistreringtype[] DEFAULT NULL::itsystemregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS itsystemtype[]
 LANGUAGE plpgsql
 STABLE
 AS $function$
 DECLARE
-	auth_filtered_uuids uuid[];
 	result ItsystemType[];
 BEGIN
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_itsystem(itsystem_uuids,auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(itsystem_uuids,1),0) AND auth_filtered_uuids @>itsystem_uuids) THEN
-  RAISE EXCEPTION 'Unable to list itsystem with uuids [%]. All objects do not fullfill the stipulated criteria:%',itsystem_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 SELECT
 array_agg(x.itsystemObj) into result
@@ -4030,30 +2333,22 @@ $function$
 
 ;
 
--- as_list_klasse(uuid[],tstzrange,tstzrange,klasseregistreringtype[])
+-- as_list_klasse(uuid[],tstzrange,tstzrange)
 
 CREATE OR REPLACE FUNCTION actual_state.as_list_klasse(
     klasse_uuids uuid[],
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr klasseregistreringtype[] DEFAULT NULL::klasseregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS klassetype[]
 LANGUAGE plpgsql
 STABLE
 AS $function$
 DECLARE
-	auth_filtered_uuids uuid[];
 	result KlasseType[];
 BEGIN
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_klasse(klasse_uuids,auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(klasse_uuids,1),0) AND auth_filtered_uuids @>klasse_uuids) THEN
-  RAISE EXCEPTION 'Unable to list klasse with uuids [%]. All objects do not fullfill the stipulated criteria:%',klasse_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 SELECT
 array_agg(x.klasseObj) into result
@@ -4243,30 +2538,22 @@ $function$
 
 ;
 
--- as_list_klassifikation(uuid[],tstzrange,tstzrange,klassifikationregistreringtype[])
+-- as_list_klassifikation(uuid[],tstzrange,tstzrange)
 
 CREATE OR REPLACE FUNCTION actual_state.as_list_klassifikation(
     klassifikation_uuids uuid[],
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr klassifikationregistreringtype[] DEFAULT NULL::klassifikationregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS klassifikationtype[]
 LANGUAGE plpgsql
 STABLE
 AS $function$
 DECLARE
-	auth_filtered_uuids uuid[];
 	result KlassifikationType[];
 BEGIN
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_klassifikation(klassifikation_uuids,auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(klassifikation_uuids,1),0) AND auth_filtered_uuids @>klassifikation_uuids) THEN
-  RAISE EXCEPTION 'Unable to list klassifikation with uuids [%]. All objects do not fullfill the stipulated criteria:%',klassifikation_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 SELECT
 array_agg(x.klassifikationObj) into result
@@ -4406,30 +2693,22 @@ $function$
 
 ;
 
--- as_list_organisationenhed(uuid[],tstzrange,tstzrange,organisationenhedregistreringtype[])
+-- as_list_organisationenhed(uuid[],tstzrange,tstzrange)
 
 CREATE OR REPLACE FUNCTION actual_state.as_list_organisationenhed(
     organisationenhed_uuids uuid[],
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr organisationenhedregistreringtype[] DEFAULT NULL::organisationenhedregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS organisationenhedtype[]
 LANGUAGE plpgsql
 STABLE
 AS $function$
 DECLARE
-	auth_filtered_uuids uuid[];
 	result OrganisationenhedType[];
 BEGIN
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationenhed(organisationenhed_uuids,auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(organisationenhed_uuids,1),0) AND auth_filtered_uuids @>organisationenhed_uuids) THEN
-  RAISE EXCEPTION 'Unable to list organisationenhed with uuids [%]. All objects do not fullfill the stipulated criteria:%',organisationenhed_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 SELECT
 array_agg(x.organisationenhedObj) into result
@@ -4567,30 +2846,22 @@ $function$
 
 ;
 
--- as_list_organisationfunktion(uuid[],tstzrange,tstzrange,organisationfunktionregistreringtype[])
+-- as_list_organisationfunktion(uuid[],tstzrange,tstzrange)
 
 CREATE OR REPLACE FUNCTION actual_state.as_list_organisationfunktion(
     organisationfunktion_uuids uuid[],
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr organisationfunktionregistreringtype[] DEFAULT NULL::organisationfunktionregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS organisationfunktiontype[]
 LANGUAGE plpgsql
 STABLE
 AS $function$
 DECLARE
-	auth_filtered_uuids uuid[];
 	result OrganisationfunktionType[];
 BEGIN
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationfunktion(organisationfunktion_uuids,auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(organisationfunktion_uuids,1),0) AND auth_filtered_uuids @>organisationfunktion_uuids) THEN
-  RAISE EXCEPTION 'Unable to list organisationfunktion with uuids [%]. All objects do not fullfill the stipulated criteria:%',organisationfunktion_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 SELECT
 array_agg(x.organisationfunktionObj) into result
@@ -4778,30 +3049,22 @@ $function$
 
 ;
 
--- as_list_organisation(uuid[],tstzrange,tstzrange,organisationregistreringtype[])
+-- as_list_organisation(uuid[],tstzrange,tstzrange)
 
 CREATE OR REPLACE FUNCTION actual_state.as_list_organisation(
     organisation_uuids uuid[],
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr organisationregistreringtype[] DEFAULT NULL::organisationregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS organisationtype[]
 LANGUAGE plpgsql
 STABLE
 AS $function$
 DECLARE
-	auth_filtered_uuids uuid[];
 	result OrganisationType[];
 BEGIN
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisation(organisation_uuids,auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(organisation_uuids,1),0) AND auth_filtered_uuids @>organisation_uuids) THEN
-  RAISE EXCEPTION 'Unable to list organisation with uuids [%]. All objects do not fullfill the stipulated criteria:%',organisation_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 SELECT
 array_agg(x.organisationObj) into result
@@ -4939,13 +3202,12 @@ $function$
 
 ;
 
--- as_read_bruger(uuid,tstzrange,tstzrange,brugerregistreringtype[])
+-- as_read_bruger(uuid,tstzrange,tstzrange)
 
 CREATE OR REPLACE FUNCTION actual_state.as_read_bruger(
     bruger_uuid uuid,
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr brugerregistreringtype[] DEFAULT NULL::brugerregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS brugertype
 LANGUAGE plpgsql
@@ -4954,7 +3216,7 @@ AS $function$
 DECLARE
 	resArr BrugerType[];
 BEGIN
-    resArr := as_list_bruger(ARRAY[bruger_uuid], registrering_tstzrange, virkning_tstzrange, auth_criteria_arr);
+    resArr := as_list_bruger(ARRAY[bruger_uuid], registrering_tstzrange, virkning_tstzrange);
     IF resArr is not null and coalesce(array_length(resArr, 1), 0) = 1 THEN
 	    RETURN resArr[1];
     ELSE
@@ -4965,13 +3227,12 @@ $function$
 
 ;
 
--- as_read_facet(uuid,tstzrange,tstzrange,facetregistreringtype[])
+-- as_read_facet(uuid,tstzrange,tstzrange)
 
 CREATE OR REPLACE FUNCTION actual_state.as_read_facet(
     facet_uuid uuid,
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr facetregistreringtype[] DEFAULT NULL::facetregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS facettype
 LANGUAGE plpgsql
@@ -4980,7 +3241,7 @@ AS $function$
 DECLARE
 	resArr FacetType[];
 BEGIN
-    resArr := as_list_facet(ARRAY[facet_uuid], registrering_tstzrange, virkning_tstzrange, auth_criteria_arr);
+    resArr := as_list_facet(ARRAY[facet_uuid], registrering_tstzrange, virkning_tstzrange);
     IF resArr is not null and coalesce(array_length(resArr, 1), 0) = 1 THEN
 	    RETURN resArr[1];
     ELSE
@@ -4991,13 +3252,12 @@ $function$
 
 ;
 
--- as_read_itsystem(uuid,tstzrange,tstzrange,itsystemregistreringtype[])
+-- as_read_itsystem(uuid,tstzrange,tstzrange)
 
 CREATE OR REPLACE FUNCTION actual_state.as_read_itsystem(
     itsystem_uuid uuid,
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr itsystemregistreringtype[] DEFAULT NULL::itsystemregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS itsystemtype
 LANGUAGE plpgsql
@@ -5006,7 +3266,7 @@ AS $function$
 DECLARE
 	resArr ItsystemType[];
 BEGIN
-    resArr := as_list_itsystem(ARRAY[itsystem_uuid], registrering_tstzrange, virkning_tstzrange, auth_criteria_arr);
+    resArr := as_list_itsystem(ARRAY[itsystem_uuid], registrering_tstzrange, virkning_tstzrange);
     IF resArr is not null and coalesce(array_length(resArr, 1), 0) = 1 THEN
 	    RETURN resArr[1];
     ELSE
@@ -5017,13 +3277,12 @@ $function$
 
 ;
 
--- as_read_klasse(uuid,tstzrange,tstzrange,klasseregistreringtype[])
+-- as_read_klasse(uuid,tstzrange,tstzrange)
 
 CREATE OR REPLACE FUNCTION actual_state.as_read_klasse(
     klasse_uuid uuid,
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr klasseregistreringtype[] DEFAULT NULL::klasseregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS klassetype
 LANGUAGE plpgsql
@@ -5032,7 +3291,7 @@ AS $function$
 DECLARE
 	resArr KlasseType[];
 BEGIN
-    resArr := as_list_klasse(ARRAY[klasse_uuid], registrering_tstzrange, virkning_tstzrange, auth_criteria_arr);
+    resArr := as_list_klasse(ARRAY[klasse_uuid], registrering_tstzrange, virkning_tstzrange);
     IF resArr is not null and coalesce(array_length(resArr, 1), 0) = 1 THEN
 	    RETURN resArr[1];
     ELSE
@@ -5043,13 +3302,12 @@ $function$
 
 ;
 
--- as_read_klassifikation(uuid,tstzrange,tstzrange,klassifikationregistreringtype[])
+-- as_read_klassifikation(uuid,tstzrange,tstzrange)
 
 CREATE OR REPLACE FUNCTION actual_state.as_read_klassifikation(
     klassifikation_uuid uuid,
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr klassifikationregistreringtype[] DEFAULT NULL::klassifikationregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS klassifikationtype
 LANGUAGE plpgsql
@@ -5058,7 +3316,7 @@ AS $function$
 DECLARE
 	resArr KlassifikationType[];
 BEGIN
-    resArr := as_list_klassifikation(ARRAY[klassifikation_uuid], registrering_tstzrange, virkning_tstzrange, auth_criteria_arr);
+    resArr := as_list_klassifikation(ARRAY[klassifikation_uuid], registrering_tstzrange, virkning_tstzrange);
     IF resArr is not null and coalesce(array_length(resArr, 1), 0) = 1 THEN
 	    RETURN resArr[1];
     ELSE
@@ -5069,13 +3327,12 @@ $function$
 
 ;
 
--- as_read_organisationenhed(uuid,tstzrange,tstzrange,organisationenhedregistreringtype[])
+-- as_read_organisationenhed(uuid,tstzrange,tstzrange)
 
 CREATE OR REPLACE FUNCTION actual_state.as_read_organisationenhed(
     organisationenhed_uuid uuid,
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr organisationenhedregistreringtype[] DEFAULT NULL::organisationenhedregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS organisationenhedtype
 LANGUAGE plpgsql
@@ -5084,7 +3341,7 @@ AS $function$
 DECLARE
 	resArr OrganisationenhedType[];
 BEGIN
-    resArr := as_list_organisationenhed(ARRAY[organisationenhed_uuid], registrering_tstzrange, virkning_tstzrange, auth_criteria_arr);
+    resArr := as_list_organisationenhed(ARRAY[organisationenhed_uuid], registrering_tstzrange, virkning_tstzrange);
     IF resArr is not null and coalesce(array_length(resArr, 1), 0) = 1 THEN
 	    RETURN resArr[1];
     ELSE
@@ -5095,13 +3352,12 @@ $function$
 
 ;
 
--- as_read_organisationfunktion(uuid,tstzrange,tstzrange,organisationfunktionregistreringtype[])
+-- as_read_organisationfunktion(uuid,tstzrange,tstzrange)
 
 CREATE OR REPLACE FUNCTION actual_state.as_read_organisationfunktion(
     organisationfunktion_uuid uuid,
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr organisationfunktionregistreringtype[] DEFAULT NULL::organisationfunktionregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS organisationfunktiontype
 LANGUAGE plpgsql
@@ -5110,7 +3366,7 @@ AS $function$
 DECLARE
 	resArr OrganisationfunktionType[];
 BEGIN
-    resArr := as_list_organisationfunktion(ARRAY[organisationfunktion_uuid], registrering_tstzrange, virkning_tstzrange, auth_criteria_arr);
+    resArr := as_list_organisationfunktion(ARRAY[organisationfunktion_uuid], registrering_tstzrange, virkning_tstzrange);
     IF resArr is not null and coalesce(array_length(resArr, 1), 0) = 1 THEN
 	    RETURN resArr[1];
     ELSE
@@ -5121,13 +3377,12 @@ $function$
 
 ;
 
--- as_read_organisation(uuid,tstzrange,tstzrange,organisationregistreringtype[])
+-- as_read_organisation(uuid,tstzrange,tstzrange)
 
 CREATE OR REPLACE FUNCTION actual_state.as_read_organisation(
     organisation_uuid uuid,
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr organisationregistreringtype[] DEFAULT NULL::organisationregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS organisationtype
 LANGUAGE plpgsql
@@ -5136,7 +3391,7 @@ AS $function$
 DECLARE
 	resArr OrganisationType[];
 BEGIN
-    resArr := as_list_organisation(ARRAY[organisation_uuid], registrering_tstzrange, virkning_tstzrange, auth_criteria_arr);
+    resArr := as_list_organisation(ARRAY[organisation_uuid], registrering_tstzrange, virkning_tstzrange);
     IF resArr is not null and coalesce(array_length(resArr, 1), 0) = 1 THEN
 	    RETURN resArr[1];
     ELSE
@@ -5147,7 +3402,7 @@ $function$
 
 ;
 
--- as_search_bruger(integer,uuid,brugerregistreringtype,tstzrange,integer,text[],uuid[],text[],brugerregistreringtype[])
+-- as_search_bruger(integer,uuid,brugerregistreringtype,tstzrange,integer,text[],uuid[],text[])
 
 CREATE OR REPLACE FUNCTION actual_state.as_search_bruger(
     firstresult integer,
@@ -5157,8 +3412,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_search_bruger(
     maxresults integer DEFAULT 2147483647,
     anyattrvaluearr text[] DEFAULT '{}'::text[],
     anyuuidarr uuid[] DEFAULT '{}'::uuid[],
-    anyurnarr text[] DEFAULT '{}'::text[],
-    auth_criteria_arr brugerregistreringtype[] DEFAULT NULL::brugerregistreringtype[]
+    anyurnarr text[] DEFAULT '{}'::text[]
 )
 RETURNS uuid[]
 LANGUAGE plpgsql
@@ -5181,7 +3435,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -6436,13 +4689,10 @@ END IF;
 --RAISE DEBUG 'bruger_candidates step 6:%',bruger_candidates;
 
 
-/*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_bruger(bruger_candidates,auth_criteria_arr);
-/*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
-   auth_filtered_uuids = _as_sorted_bruger(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
+   bruger_candidates = _as_sorted_bruger(bruger_candidates, virkningSoeg, registreringObj, firstResult, maxResults);
 END IF;
-return auth_filtered_uuids;
+return bruger_candidates;
 
 
 END;
@@ -6450,7 +4700,7 @@ $function$
 
 ;
 
--- as_search_facet(integer,uuid,facetregistreringtype,tstzrange,integer,text[],uuid[],text[],facetregistreringtype[])
+-- as_search_facet(integer,uuid,facetregistreringtype,tstzrange,integer,text[],uuid[],text[])
 
 CREATE OR REPLACE FUNCTION actual_state.as_search_facet(
     firstresult integer,
@@ -6460,8 +4710,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_search_facet(
     maxresults integer DEFAULT 2147483647,
     anyattrvaluearr text[] DEFAULT '{}'::text[],
     anyuuidarr uuid[] DEFAULT '{}'::uuid[],
-    anyurnarr text[] DEFAULT '{}'::text[],
-    auth_criteria_arr facetregistreringtype[] DEFAULT NULL::facetregistreringtype[]
+    anyurnarr text[] DEFAULT '{}'::text[]
 )
 RETURNS uuid[]
 LANGUAGE plpgsql
@@ -6483,7 +4732,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -7504,13 +5752,10 @@ END IF;
 --RAISE DEBUG 'facet_candidates step 6:%',facet_candidates;
 
 
-/*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_facet(facet_candidates,auth_criteria_arr);
-/*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
-   auth_filtered_uuids = _as_sorted_facet(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
+   facet_candidates = _as_sorted_facet(facet_candidates, virkningSoeg, registreringObj, firstResult, maxResults);
 END IF;
-return auth_filtered_uuids;
+return facet_candidates;
 
 
 END;
@@ -7518,7 +5763,7 @@ $function$
 
 ;
 
--- as_search_itsystem(integer,uuid,itsystemregistreringtype,tstzrange,integer,text[],uuid[],text[],itsystemregistreringtype[])
+-- as_search_itsystem(integer,uuid,itsystemregistreringtype,tstzrange,integer,text[],uuid[],text[])
 
 CREATE OR REPLACE FUNCTION actual_state.as_search_itsystem(
     firstresult integer,
@@ -7528,8 +5773,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_search_itsystem(
     maxresults integer DEFAULT 2147483647,
     anyattrvaluearr text[] DEFAULT '{}'::text[],
     anyuuidarr uuid[] DEFAULT '{}'::uuid[],
-    anyurnarr text[] DEFAULT '{}'::text[],
-    auth_criteria_arr itsystemregistreringtype[] DEFAULT NULL::itsystemregistreringtype[]
+    anyurnarr text[] DEFAULT '{}'::text[]
 )
 RETURNS uuid[]
 LANGUAGE plpgsql
@@ -7551,7 +5795,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -8551,13 +6794,10 @@ END IF;
 --RAISE DEBUG 'itsystem_candidates step 6:%',itsystem_candidates;
 
 
-/*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_itsystem(itsystem_candidates,auth_criteria_arr);
-/*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
-   auth_filtered_uuids = _as_sorted_itsystem(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
+   itsystem_candidates = _as_sorted_itsystem(itsystem_candidates, virkningSoeg, registreringObj, firstResult, maxResults);
 END IF;
-return auth_filtered_uuids;
+return itsystem_candidates;
 
 
 END;
@@ -8565,7 +6805,7 @@ $function$
 
 ;
 
--- as_search_klasse(integer,uuid,klasseregistreringtype,tstzrange,integer,text[],uuid[],text[],klasseregistreringtype[])
+-- as_search_klasse(integer,uuid,klasseregistreringtype,tstzrange,integer,text[],uuid[],text[])
 
 CREATE OR REPLACE FUNCTION actual_state.as_search_klasse(
     firstresult integer,
@@ -8575,8 +6815,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_search_klasse(
     maxresults integer DEFAULT 2147483647,
     anyattrvaluearr text[] DEFAULT '{}'::text[],
     anyuuidarr uuid[] DEFAULT '{}'::uuid[],
-    anyurnarr text[] DEFAULT '{}'::text[],
-    auth_criteria_arr klasseregistreringtype[] DEFAULT NULL::klasseregistreringtype[]
+    anyurnarr text[] DEFAULT '{}'::text[]
 )
 RETURNS uuid[]
 LANGUAGE plpgsql
@@ -8598,7 +6837,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
     manipulatedAttrEgenskaberArr KlasseEgenskaberAttrType[]:='{}';
@@ -9686,13 +7924,10 @@ END IF;
 --RAISE DEBUG 'klasse_candidates step 6:%',klasse_candidates;
 
 
-/*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_klasse(klasse_candidates,auth_criteria_arr);
-/*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
-   auth_filtered_uuids = _as_sorted_klasse(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
+   klasse_candidates = _as_sorted_klasse(klasse_candidates, virkningSoeg, registreringObj, firstResult, maxResults);
 END IF;
-return auth_filtered_uuids;
+return klasse_candidates;
 
 
 END;
@@ -9700,7 +7935,7 @@ $function$
 
 ;
 
--- as_search_klassifikation(integer,uuid,klassifikationregistreringtype,tstzrange,integer,text[],uuid[],text[],klassifikationregistreringtype[])
+-- as_search_klassifikation(integer,uuid,klassifikationregistreringtype,tstzrange,integer,text[],uuid[],text[])
 
 CREATE OR REPLACE FUNCTION actual_state.as_search_klassifikation(
     firstresult integer,
@@ -9710,8 +7945,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_search_klassifikation(
     maxresults integer DEFAULT 2147483647,
     anyattrvaluearr text[] DEFAULT '{}'::text[],
     anyuuidarr uuid[] DEFAULT '{}'::uuid[],
-    anyurnarr text[] DEFAULT '{}'::text[],
-    auth_criteria_arr klassifikationregistreringtype[] DEFAULT NULL::klassifikationregistreringtype[]
+    anyurnarr text[] DEFAULT '{}'::text[]
 )
 RETURNS uuid[]
 LANGUAGE plpgsql
@@ -9733,7 +7967,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -10733,13 +8966,10 @@ END IF;
 --RAISE DEBUG 'klassifikation_candidates step 6:%',klassifikation_candidates;
 
 
-/*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_klassifikation(klassifikation_candidates,auth_criteria_arr);
-/*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
-   auth_filtered_uuids = _as_sorted_klassifikation(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
+   klassifikation_candidates = _as_sorted_klassifikation(klassifikation_candidates, virkningSoeg, registreringObj, firstResult, maxResults);
 END IF;
-return auth_filtered_uuids;
+return klassifikation_candidates;
 
 
 END;
@@ -10747,7 +8977,7 @@ $function$
 
 ;
 
--- as_search_organisationenhed(integer,uuid,organisationenhedregistreringtype,tstzrange,integer,text[],uuid[],text[],organisationenhedregistreringtype[])
+-- as_search_organisationenhed(integer,uuid,organisationenhedregistreringtype,tstzrange,integer,text[],uuid[],text[])
 
 CREATE OR REPLACE FUNCTION actual_state.as_search_organisationenhed(
     firstresult integer,
@@ -10757,8 +8987,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_search_organisationenhed(
     maxresults integer DEFAULT 2147483647,
     anyattrvaluearr text[] DEFAULT '{}'::text[],
     anyuuidarr uuid[] DEFAULT '{}'::uuid[],
-    anyurnarr text[] DEFAULT '{}'::text[],
-    auth_criteria_arr organisationenhedregistreringtype[] DEFAULT NULL::organisationenhedregistreringtype[]
+    anyurnarr text[] DEFAULT '{}'::text[]
 )
 RETURNS uuid[]
 LANGUAGE plpgsql
@@ -10780,7 +9009,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -11766,13 +9994,10 @@ END IF;
 --RAISE DEBUG 'organisationenhed_candidates step 6:%',organisationenhed_candidates;
 
 
-/*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationenhed(organisationenhed_candidates,auth_criteria_arr);
-/*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
-   auth_filtered_uuids = _as_sorted_organisationenhed(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
+   organisationenhed_candidates = _as_sorted_organisationenhed(organisationenhed_candidates, virkningSoeg, registreringObj, firstResult, maxResults);
 END IF;
-return auth_filtered_uuids;
+return organisationenhed_candidates;
 
 
 END;
@@ -11780,7 +10005,7 @@ $function$
 
 ;
 
--- as_search_organisationfunktion(integer,uuid,organisationfunktionregistreringtype,tstzrange,integer,text[],uuid[],text[],organisationfunktionregistreringtype[])
+-- as_search_organisationfunktion(integer,uuid,organisationfunktionregistreringtype,tstzrange,integer,text[],uuid[],text[])
 
 CREATE OR REPLACE FUNCTION actual_state.as_search_organisationfunktion(
     firstresult integer,
@@ -11790,8 +10015,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_search_organisationfunktion(
     maxresults integer DEFAULT 2147483647,
     anyattrvaluearr text[] DEFAULT '{}'::text[],
     anyuuidarr uuid[] DEFAULT '{}'::uuid[],
-    anyurnarr text[] DEFAULT '{}'::text[],
-    auth_criteria_arr organisationfunktionregistreringtype[] DEFAULT NULL::organisationfunktionregistreringtype[]
+    anyurnarr text[] DEFAULT '{}'::text[]
 )
 RETURNS uuid[]
 LANGUAGE plpgsql
@@ -11814,7 +10038,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -13113,13 +11336,10 @@ END IF;
 --RAISE DEBUG 'organisationfunktion_candidates step 6:%',organisationfunktion_candidates;
 
 
-/*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationfunktion(organisationfunktion_candidates,auth_criteria_arr);
-/*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
-   auth_filtered_uuids = _as_sorted_organisationfunktion(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
+   organisationfunktion_candidates = _as_sorted_organisationfunktion(organisationfunktion_candidates, virkningSoeg, registreringObj, firstResult, maxResults);
 END IF;
-return auth_filtered_uuids;
+return organisationfunktion_candidates;
 
 
 END;
@@ -13127,7 +11347,7 @@ $function$
 
 ;
 
--- as_search_organisation(integer,uuid,organisationregistreringtype,tstzrange,integer,text[],uuid[],text[],organisationregistreringtype[])
+-- as_search_organisation(integer,uuid,organisationregistreringtype,tstzrange,integer,text[],uuid[],text[])
 
 CREATE OR REPLACE FUNCTION actual_state.as_search_organisation(
     firstresult integer,
@@ -13137,8 +11357,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_search_organisation(
     maxresults integer DEFAULT 2147483647,
     anyattrvaluearr text[] DEFAULT '{}'::text[],
     anyuuidarr uuid[] DEFAULT '{}'::uuid[],
-    anyurnarr text[] DEFAULT '{}'::text[],
-    auth_criteria_arr organisationregistreringtype[] DEFAULT NULL::organisationregistreringtype[]
+    anyurnarr text[] DEFAULT '{}'::text[]
 )
 RETURNS uuid[]
 LANGUAGE plpgsql
@@ -13160,7 +11379,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -14146,13 +12364,10 @@ END IF;
 --RAISE DEBUG 'organisation_candidates step 6:%',organisation_candidates;
 
 
-/*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisation(organisation_candidates,auth_criteria_arr);
-/*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
-   auth_filtered_uuids = _as_sorted_organisation(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
+   organisation_candidates = _as_sorted_organisation(organisation_candidates, virkningSoeg, registreringObj, firstResult, maxResults);
 END IF;
-return auth_filtered_uuids;
+return organisation_candidates;
 
 
 END;
@@ -14160,7 +12375,7 @@ $function$
 
 ;
 
--- as_update_bruger(uuid,uuid,text,livscykluskode,brugeregenskaberattrtype[],brugerudvidelserattrtype[],brugergyldighedtilstype[],brugerrelationtype[],timestamp with time zone,brugerregistreringtype[])
+-- as_update_bruger(uuid,uuid,text,livscykluskode,brugeregenskaberattrtype[],brugerudvidelserattrtype[],brugergyldighedtilstype[],brugerrelationtype[],timestamp with time zone)
 
 CREATE OR REPLACE FUNCTION actual_state.as_update_bruger(
     bruger_uuid uuid,
@@ -14171,8 +12386,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_update_bruger(
     attrudvidelser brugerudvidelserattrtype[],
     tilsgyldighed brugergyldighedtilstype[],
     relationer brugerrelationtype[],
-    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone,
-    auth_criteria_arr brugerregistreringtype[] DEFAULT NULL::brugerregistreringtype[]
+    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -14194,7 +12408,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -14207,12 +12420,6 @@ BEGIN
     -- object on a exclusive row lock. This lock will be held by the current
     -- transaction until it terminates.
     PERFORM a.id FROM bruger a WHERE a.id=bruger_uuid FOR UPDATE;
-
-    -- Verify that the object meets the stipulated access allowed criteria
-    auth_filtered_uuids := _as_filter_unauth_bruger(array[bruger_uuid]::uuid[], auth_criteria_arr);
-    IF NOT (coalesce(array_length(auth_filtered_uuids, 1), 0) = 1 AND auth_filtered_uuids @>ARRAY[bruger_uuid]) THEN
-      RAISE EXCEPTION 'Unable to update bruger with uuid [%]. Object does not met stipulated criteria:%', bruger_uuid, to_json(auth_criteria_arr) USING ERRCODE = 'MO401';
-    END IF;
 
     new_bruger_registrering := _as_create_bruger_registrering(bruger_uuid, livscykluskode, brugerref, note);
     prev_bruger_registrering := _as_get_prev_bruger_registrering(new_bruger_registrering);
@@ -14669,7 +12876,7 @@ END; $function$
 
 ;
 
--- as_update_facet(uuid,uuid,text,livscykluskode,facetegenskaberattrtype[],facetpublicerettilstype[],facetrelationtype[],timestamp with time zone,facetregistreringtype[])
+-- as_update_facet(uuid,uuid,text,livscykluskode,facetegenskaberattrtype[],facetpublicerettilstype[],facetrelationtype[],timestamp with time zone)
 
 CREATE OR REPLACE FUNCTION actual_state.as_update_facet(
     facet_uuid uuid,
@@ -14679,8 +12886,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_update_facet(
     attregenskaber facetegenskaberattrtype[],
     tilspubliceret facetpublicerettilstype[],
     relationer facetrelationtype[],
-    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone,
-    auth_criteria_arr facetregistreringtype[] DEFAULT NULL::facetregistreringtype[]
+    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -14700,7 +12906,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -14713,12 +12918,6 @@ BEGIN
     -- object on a exclusive row lock. This lock will be held by the current
     -- transaction until it terminates.
     PERFORM a.id FROM facet a WHERE a.id=facet_uuid FOR UPDATE;
-
-    -- Verify that the object meets the stipulated access allowed criteria
-    auth_filtered_uuids := _as_filter_unauth_facet(array[facet_uuid]::uuid[], auth_criteria_arr);
-    IF NOT (coalesce(array_length(auth_filtered_uuids, 1), 0) = 1 AND auth_filtered_uuids @>ARRAY[facet_uuid]) THEN
-      RAISE EXCEPTION 'Unable to update facet with uuid [%]. Object does not met stipulated criteria:%', facet_uuid, to_json(auth_criteria_arr) USING ERRCODE = 'MO401';
-    END IF;
 
     new_facet_registrering := _as_create_facet_registrering(facet_uuid, livscykluskode, brugerref, note);
     prev_facet_registrering := _as_get_prev_facet_registrering(new_facet_registrering);
@@ -15078,7 +13277,7 @@ END; $function$
 
 ;
 
--- as_update_itsystem(uuid,uuid,text,livscykluskode,itsystemegenskaberattrtype[],itsystemgyldighedtilstype[],itsystemrelationtype[],timestamp with time zone,itsystemregistreringtype[])
+-- as_update_itsystem(uuid,uuid,text,livscykluskode,itsystemegenskaberattrtype[],itsystemgyldighedtilstype[],itsystemrelationtype[],timestamp with time zone)
 
 CREATE OR REPLACE FUNCTION actual_state.as_update_itsystem(
     itsystem_uuid uuid,
@@ -15088,8 +13287,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_update_itsystem(
     attregenskaber itsystemegenskaberattrtype[],
     tilsgyldighed itsystemgyldighedtilstype[],
     relationer itsystemrelationtype[],
-    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone,
-    auth_criteria_arr itsystemregistreringtype[] DEFAULT NULL::itsystemregistreringtype[]
+    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -15109,7 +13307,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -15122,12 +13319,6 @@ BEGIN
     -- object on a exclusive row lock. This lock will be held by the current
     -- transaction until it terminates.
     PERFORM a.id FROM itsystem a WHERE a.id=itsystem_uuid FOR UPDATE;
-
-    -- Verify that the object meets the stipulated access allowed criteria
-    auth_filtered_uuids := _as_filter_unauth_itsystem(array[itsystem_uuid]::uuid[], auth_criteria_arr);
-    IF NOT (coalesce(array_length(auth_filtered_uuids, 1), 0) = 1 AND auth_filtered_uuids @>ARRAY[itsystem_uuid]) THEN
-      RAISE EXCEPTION 'Unable to update itsystem with uuid [%]. Object does not met stipulated criteria:%', itsystem_uuid, to_json(auth_criteria_arr) USING ERRCODE = 'MO401';
-    END IF;
 
     new_itsystem_registrering := _as_create_itsystem_registrering(itsystem_uuid, livscykluskode, brugerref, note);
     prev_itsystem_registrering := _as_get_prev_itsystem_registrering(new_itsystem_registrering);
@@ -15463,7 +13654,7 @@ END; $function$
 
 ;
 
--- as_update_klasse(uuid,uuid,text,livscykluskode,klasseegenskaberattrtype[],klassepublicerettilstype[],klasserelationtype[],timestamp with time zone,klasseregistreringtype[])
+-- as_update_klasse(uuid,uuid,text,livscykluskode,klasseegenskaberattrtype[],klassepublicerettilstype[],klasserelationtype[],timestamp with time zone)
 
 CREATE OR REPLACE FUNCTION actual_state.as_update_klasse(
     klasse_uuid uuid,
@@ -15473,8 +13664,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_update_klasse(
     attregenskaber klasseegenskaberattrtype[],
     tilspubliceret klassepublicerettilstype[],
     relationer klasserelationtype[],
-    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone,
-    auth_criteria_arr klasseregistreringtype[] DEFAULT NULL::klasseregistreringtype[]
+    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -15497,7 +13687,6 @@ DECLARE
     klasseSoegeordObj KlasseSoegeordType;
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -15510,12 +13699,6 @@ BEGIN
     -- object on a exclusive row lock. This lock will be held by the current
     -- transaction until it terminates.
     PERFORM a.id FROM klasse a WHERE a.id=klasse_uuid FOR UPDATE;
-
-    -- Verify that the object meets the stipulated access allowed criteria
-    auth_filtered_uuids := _as_filter_unauth_klasse(array[klasse_uuid]::uuid[], auth_criteria_arr);
-    IF NOT (coalesce(array_length(auth_filtered_uuids, 1), 0) = 1 AND auth_filtered_uuids @>ARRAY[klasse_uuid]) THEN
-      RAISE EXCEPTION 'Unable to update klasse with uuid [%]. Object does not met stipulated criteria:%', klasse_uuid, to_json(auth_criteria_arr) USING ERRCODE = 'MO401';
-    END IF;
 
     new_klasse_registrering := _as_create_klasse_registrering(klasse_uuid, livscykluskode, brugerref, note);
     prev_klasse_registrering := _as_get_prev_klasse_registrering(new_klasse_registrering);
@@ -15935,7 +14118,7 @@ END; $function$
 
 ;
 
--- as_update_klassifikation(uuid,uuid,text,livscykluskode,klassifikationegenskaberattrtype[],klassifikationpublicerettilstype[],klassifikationrelationtype[],timestamp with time zone,klassifikationregistreringtype[])
+-- as_update_klassifikation(uuid,uuid,text,livscykluskode,klassifikationegenskaberattrtype[],klassifikationpublicerettilstype[],klassifikationrelationtype[],timestamp with time zone)
 
 CREATE OR REPLACE FUNCTION actual_state.as_update_klassifikation(
     klassifikation_uuid uuid,
@@ -15945,8 +14128,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_update_klassifikation(
     attregenskaber klassifikationegenskaberattrtype[],
     tilspubliceret klassifikationpublicerettilstype[],
     relationer klassifikationrelationtype[],
-    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone,
-    auth_criteria_arr klassifikationregistreringtype[] DEFAULT NULL::klassifikationregistreringtype[]
+    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -15966,7 +14148,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -15979,12 +14160,6 @@ BEGIN
     -- object on a exclusive row lock. This lock will be held by the current
     -- transaction until it terminates.
     PERFORM a.id FROM klassifikation a WHERE a.id=klassifikation_uuid FOR UPDATE;
-
-    -- Verify that the object meets the stipulated access allowed criteria
-    auth_filtered_uuids := _as_filter_unauth_klassifikation(array[klassifikation_uuid]::uuid[], auth_criteria_arr);
-    IF NOT (coalesce(array_length(auth_filtered_uuids, 1), 0) = 1 AND auth_filtered_uuids @>ARRAY[klassifikation_uuid]) THEN
-      RAISE EXCEPTION 'Unable to update klassifikation with uuid [%]. Object does not met stipulated criteria:%', klassifikation_uuid, to_json(auth_criteria_arr) USING ERRCODE = 'MO401';
-    END IF;
 
     new_klassifikation_registrering := _as_create_klassifikation_registrering(klassifikation_uuid, livscykluskode, brugerref, note);
     prev_klassifikation_registrering := _as_get_prev_klassifikation_registrering(new_klassifikation_registrering);
@@ -16321,7 +14496,7 @@ END; $function$
 
 ;
 
--- as_update_organisationenhed(uuid,uuid,text,livscykluskode,organisationenhedegenskaberattrtype[],organisationenhedgyldighedtilstype[],organisationenhedrelationtype[],timestamp with time zone,organisationenhedregistreringtype[])
+-- as_update_organisationenhed(uuid,uuid,text,livscykluskode,organisationenhedegenskaberattrtype[],organisationenhedgyldighedtilstype[],organisationenhedrelationtype[],timestamp with time zone)
 
 CREATE OR REPLACE FUNCTION actual_state.as_update_organisationenhed(
     organisationenhed_uuid uuid,
@@ -16331,8 +14506,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_update_organisationenhed(
     attregenskaber organisationenhedegenskaberattrtype[],
     tilsgyldighed organisationenhedgyldighedtilstype[],
     relationer organisationenhedrelationtype[],
-    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone,
-    auth_criteria_arr organisationenhedregistreringtype[] DEFAULT NULL::organisationenhedregistreringtype[]
+    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -16352,7 +14526,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -16365,12 +14538,6 @@ BEGIN
     -- object on a exclusive row lock. This lock will be held by the current
     -- transaction until it terminates.
     PERFORM a.id FROM organisationenhed a WHERE a.id=organisationenhed_uuid FOR UPDATE;
-
-    -- Verify that the object meets the stipulated access allowed criteria
-    auth_filtered_uuids := _as_filter_unauth_organisationenhed(array[organisationenhed_uuid]::uuid[], auth_criteria_arr);
-    IF NOT (coalesce(array_length(auth_filtered_uuids, 1), 0) = 1 AND auth_filtered_uuids @>ARRAY[organisationenhed_uuid]) THEN
-      RAISE EXCEPTION 'Unable to update organisationenhed with uuid [%]. Object does not met stipulated criteria:%', organisationenhed_uuid, to_json(auth_criteria_arr) USING ERRCODE = 'MO401';
-    END IF;
 
     new_organisationenhed_registrering := _as_create_organisationenhed_registrering(organisationenhed_uuid, livscykluskode, brugerref, note);
     prev_organisationenhed_registrering := _as_get_prev_organisationenhed_registrering(new_organisationenhed_registrering);
@@ -16691,7 +14858,7 @@ END; $function$
 
 ;
 
--- as_update_organisationfunktion(uuid,uuid,text,livscykluskode,organisationfunktionegenskaberattrtype[],organisationfunktionudvidelserattrtype[],organisationfunktiongyldighedtilstype[],organisationfunktionrelationtype[],timestamp with time zone,organisationfunktionregistreringtype[])
+-- as_update_organisationfunktion(uuid,uuid,text,livscykluskode,organisationfunktionegenskaberattrtype[],organisationfunktionudvidelserattrtype[],organisationfunktiongyldighedtilstype[],organisationfunktionrelationtype[],timestamp with time zone)
 
 CREATE OR REPLACE FUNCTION actual_state.as_update_organisationfunktion(
     organisationfunktion_uuid uuid,
@@ -16702,8 +14869,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_update_organisationfunktion(
     attrudvidelser organisationfunktionudvidelserattrtype[],
     tilsgyldighed organisationfunktiongyldighedtilstype[],
     relationer organisationfunktionrelationtype[],
-    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone,
-    auth_criteria_arr organisationfunktionregistreringtype[] DEFAULT NULL::organisationfunktionregistreringtype[]
+    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -16725,7 +14891,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -16738,12 +14903,6 @@ BEGIN
     -- object on a exclusive row lock. This lock will be held by the current
     -- transaction until it terminates.
     PERFORM a.id FROM organisationfunktion a WHERE a.id=organisationfunktion_uuid FOR UPDATE;
-
-    -- Verify that the object meets the stipulated access allowed criteria
-    auth_filtered_uuids := _as_filter_unauth_organisationfunktion(array[organisationfunktion_uuid]::uuid[], auth_criteria_arr);
-    IF NOT (coalesce(array_length(auth_filtered_uuids, 1), 0) = 1 AND auth_filtered_uuids @>ARRAY[organisationfunktion_uuid]) THEN
-      RAISE EXCEPTION 'Unable to update organisationfunktion with uuid [%]. Object does not met stipulated criteria:%', organisationfunktion_uuid, to_json(auth_criteria_arr) USING ERRCODE = 'MO401';
-    END IF;
 
     new_organisationfunktion_registrering := _as_create_organisationfunktion_registrering(organisationfunktion_uuid, livscykluskode, brugerref, note);
     prev_organisationfunktion_registrering := _as_get_prev_organisationfunktion_registrering(new_organisationfunktion_registrering);
@@ -17280,7 +15439,7 @@ END; $function$
 
 ;
 
--- as_update_organisation(uuid,uuid,text,livscykluskode,organisationegenskaberattrtype[],organisationgyldighedtilstype[],organisationrelationtype[],timestamp with time zone,organisationregistreringtype[])
+-- as_update_organisation(uuid,uuid,text,livscykluskode,organisationegenskaberattrtype[],organisationgyldighedtilstype[],organisationrelationtype[],timestamp with time zone)
 
 CREATE OR REPLACE FUNCTION actual_state.as_update_organisation(
     organisation_uuid uuid,
@@ -17290,8 +15449,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_update_organisation(
     attregenskaber organisationegenskaberattrtype[],
     tilsgyldighed organisationgyldighedtilstype[],
     relationer organisationrelationtype[],
-    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone,
-    auth_criteria_arr organisationregistreringtype[] DEFAULT NULL::organisationregistreringtype[]
+    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -17311,7 +15469,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -17324,12 +15481,6 @@ BEGIN
     -- object on a exclusive row lock. This lock will be held by the current
     -- transaction until it terminates.
     PERFORM a.id FROM organisation a WHERE a.id=organisation_uuid FOR UPDATE;
-
-    -- Verify that the object meets the stipulated access allowed criteria
-    auth_filtered_uuids := _as_filter_unauth_organisation(array[organisation_uuid]::uuid[], auth_criteria_arr);
-    IF NOT (coalesce(array_length(auth_filtered_uuids, 1), 0) = 1 AND auth_filtered_uuids @>ARRAY[organisation_uuid]) THEN
-      RAISE EXCEPTION 'Unable to update organisation with uuid [%]. Object does not met stipulated criteria:%', organisation_uuid, to_json(auth_criteria_arr) USING ERRCODE = 'MO401';
-    END IF;
 
     new_organisation_registrering := _as_create_organisation_registrering(organisation_uuid, livscykluskode, brugerref, note);
     prev_organisation_registrering := _as_get_prev_organisation_registrering(new_organisation_registrering);
