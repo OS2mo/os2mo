@@ -8,11 +8,12 @@ from sqlalchemy import ColumnElement
 from sqlalchemy import exists
 from sqlalchemy import or_
 
+from mora.auth.keycloak.models import Token
+from mora.auth.keycloak.rbac import _actor_filter
 from mora.auth.keycloak.rbac import _is_owner_detail
 from mora.auth.keycloak.rbac import _is_owner_employee
 from mora.auth.keycloak.rbac import _is_owner_org_unit
 from mora.config import Settings
-from mora.graphapi.filters import EmployeeFilter
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.permissions import CollectionPermissionType
 from mora.graphapi.permissions import Collections
@@ -38,7 +39,7 @@ def _keeps_parent(
 def get_entities_graphql(
     settings: Settings,
     version: Version,
-    actor: EmployeeFilter,
+    token: Token,
     raw_input: list[Any],
     collection: Collections,
     permission_type: CollectionPermissionType,
@@ -48,7 +49,7 @@ def get_entities_graphql(
     Args:
         settings: The settings the predicates take.
         version: The GraphQL schema version the predicates take.
-        actor: The employee filter naming the owner to check against.
+        token: The token of the calling actor.
         raw_input: The list of `input` objects from the GraphQL mutator. The
             schema-level RBAC extension always normalises this to a list (see
             `mora.graphapi.schema.owner_policy`).
@@ -58,6 +59,7 @@ def get_entities_graphql(
     Returns:
         An iterable of checks, all of which must hold, for check_owner().
     """
+    actor = _actor_filter(settings, token)
 
     def extract(input) -> Iterable[ColumnElement | None]:
         # Allow both employee and person to avoid bugs in the future
