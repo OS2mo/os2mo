@@ -74,7 +74,6 @@ from mora.graphapi.types import Cursor
 from mora.graphapi.version import Version
 from mora.log import canonical_gql_context
 from mora.util import CPR
-from mora.util import ensure_list
 
 if TYPE_CHECKING:
     from mora.graphapi.context import MOInfo
@@ -277,12 +276,7 @@ def owner_policy(
         config=moinfo.schema.config,
     )
     check = get_entities_graphql(
-        settings,
-        version,
-        token,
-        ensure_list(arguments["input"]),
-        collection,
-        permission_type,
+        settings, version, token, arguments, collection, permission_type
     )
     logger.debug("Check owner", check=check)
     # Nothing to own is not owned by anybody
