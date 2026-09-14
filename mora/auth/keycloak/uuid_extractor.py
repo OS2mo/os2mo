@@ -12,23 +12,27 @@ from sqlalchemy import or_
 from mora.auth.keycloak.rbac import _is_owner_detail
 from mora.auth.keycloak.rbac import _is_owner_employee
 from mora.auth.keycloak.rbac import _is_owner_org_unit
+from mora.config import Settings
 from mora.graphapi.custom_schema import get_version
 from mora.graphapi.filters import EmployeeFilter
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.permissions import CollectionPermissionType
 from mora.graphapi.permissions import Collections
 from mora.graphapi.resolvers import organisation_unit_predicate
+from mora.graphapi.version import Version
 
 if TYPE_CHECKING:
     from mora.graphapi.context import MOInfo
 
 
-def _keeps_parent(info: "MOInfo", uuid: UUID, parent: UUID) -> ColumnElement:
+def _keeps_parent(
+    settings: Settings, version: Version, uuid: UUID, parent: UUID
+) -> ColumnElement:
     """Whether the parent named is the one the org unit already has."""
     return exists().where(
         organisation_unit_predicate(
-            settings=info.context.settings,
-            version=get_version(info.schema),
+            settings=settings,
+            version=version,
             filter=OrganisationUnitFilter(
                 uuids=[parent], child=OrganisationUnitFilter(uuids=[uuid])
             ),
@@ -92,7 +96,12 @@ def get_entities_graphql(
             # move at all.
             if parent := getattr(input, "parent", None):
                 yield or_(
-                    _keeps_parent(info, getattr(input, "uuid"), parent),
+                    _keeps_parent(
+                        info.context.settings,
+                        get_version(info.schema),
+                        getattr(input, "uuid"),
+                        parent,
+                    ),
                     _is_owner_org_unit(
                         info.context.settings, get_version(info.schema), actor, parent
                     ),
