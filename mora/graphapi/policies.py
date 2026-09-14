@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """Rule-based read access to specific fields of specific entities of a collection."""
 
+from collections import defaultdict
 from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Container
@@ -16,13 +17,15 @@ from uuid import UUID
 from more_itertools import map_reduce
 from sqlalchemy import ARRAY
 from sqlalchemy import ColumnElement
+from sqlalchemy import CompoundSelect
 from sqlalchemy import Select
 from sqlalchemy import String
 from sqlalchemy import Uuid
 from sqlalchemy import any_
-from sqlalchemy import column
+from sqlalchemy import false
 from sqlalchemy import func
 from sqlalchemy import literal
+from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy import true
 from sqlalchemy import union_all
@@ -141,75 +144,78 @@ def load_rules(
     ]
 
 
-def requested_select(keys: Iterable[AccessKey]) -> Select[Any]:
-    """Select the requested accesses as rows of uuid and field."""
-    # Unnesting the uuids and the fields side by side turns the accesses
-    # [(uuid1, field1), (uuid1, field2), (uuid2, field1), ...]
-    # into the rows:
-    #
-    #   uuid  | field
-    #   ------+-------
-    #   uuid1 | field1
-    #   uuid1 | field2
-    #   uuid2 | field1
-    #   ...   | ...
-    accesses = list({(key.uuid, key.field) for key in keys})
-    rows = (
-        func.unnest(
-            literal([uuid for uuid, _ in accesses], ARRAY(Uuid)),
-            literal([field for _, field in accesses], ARRAY(String)),
-        )
-        .table_valued(
-            column("uuid", Uuid),
-            column("field", String),
-        )
-        .render_derived()
+def rules_granting(rules: Sequence[Rule], field: Field) -> tuple[int, ...]:
+    """The rules granting reading field, by their index."""
+    return tuple(index for index, rule in enumerate(rules) if field in rule.fields)
+
+
+def accesses_by_rules(
+    keys: Iterable[AccessKey], rules: Sequence[Rule]
+) -> dict[frozenset[Field], frozenset[UUID]]:
+    """The objects asked about, by the fields asked of them that the same rules grant.
+
+    Whether a field is denied an object turns on the rules granting it, never
+    on the field itself, so the fields the same rules grant are decided
+    together: one test of an object answers for all of them.
+    """
+    grouped: dict[tuple[int, ...], tuple[set[Field], set[UUID]]] = defaultdict(
+        lambda: (set(), set())
     )
-    return select(rows.c.uuid, rows.c.field)
+    for _, uuid, field in keys:
+        fields, uuids = grouped[rules_granting(rules, field)]
+        fields.add(field)
+        uuids.add(uuid)
+    return {frozenset(fields): frozenset(uuids) for fields, uuids in grouped.values()}
 
 
-def granted_select(rule: Rule, uuids: frozenset[UUID]) -> Select[Any]:
-    """Select the accesses rule grants among uuids."""
-    # Unnesting the fields across the matching objects turns the grant of
-    # (field1, field2, ...) on uuid1, uuid2, ...
-    # into the rows:
-    #
-    #   uuid  | field
-    #   ------+-------
-    #   uuid1 | field1
-    #   uuid1 | field2
-    #   uuid2 | field1
-    #   uuid2 | field2
-    #   ...   | ...
-    model = MODEL_OF_COLLECTION[rule.collection]
+def denied_select(
+    collection: Collection,
+    fields: frozenset[Field],
+    uuids: frozenset[UUID],
+    conditions: Sequence[ColumnElement[bool]],
+) -> Select[Any]:
+    """Select the accesses to deny among reading fields of uuids.
+
+    The objects asked about, less those matching a rule granting the fields.
+    The rules add a condition each to the objects' rows, so their disjunction
+    stands for all of them, and the fields they grant are expanded from the one
+    select rather than selected one by one.
+    """
+    uuid_array = literal(list(uuids), ARRAY(Uuid))
+    model = MODEL_OF_COLLECTION[collection]
+    # The disjunction of no conditions is false: without a rule, nothing is granted
+    granted = select(model.uuid).where(
+        model.uuid == any_(uuid_array),
+        or_(false(), *conditions),
+    )
+    denied = select(func.unnest(uuid_array).label("uuid")).except_(granted).subquery()
     return select(
-        model.uuid.label("uuid"),
-        func.unnest(literal(list(rule.fields), ARRAY(String))).label("field"),
-    ).where(
-        model.uuid == any_(literal(list(uuids), ARRAY(Uuid))),
-        rule.condition,
+        literal(collection).label("collection"),
+        denied.c.uuid.label("uuid"),
+        func.unnest(literal(list(fields), ARRAY(String))).label("field"),
     )
 
 
 def collection_denials(
     collection: Collection, keys: Sequence[AccessKey], roles: Container[Role]
-) -> Select[Any]:
-    """Select the accesses to collection that the roles' rules do not grant."""
-    requested = requested_select(keys).cte()
-    # Without a rule nothing is granted, so everything is denied
-    denied = requested
+) -> CompoundSelect:
+    """Select the accesses to collection the roles' rules do not grant.
 
+    One select per set of fields the same rules grant, deciding them on the
+    objects they were asked of under the rules granting all of them: the fields
+    were grouped by the rules granting them, so a rule granting one grants all.
+    """
     rules = load_rules(roles, collection, keys)
-    if rules:
-        asked = select(requested.c.uuid, requested.c.field)
-        uuids = frozenset(key.uuid for key in keys)
-        granted = union_all(*(granted_select(rule, uuids) for rule in rules)).cte()
-        denied = asked.except_(select(granted.c.uuid, granted.c.field)).cte()
-
-    return select(
-        literal(collection).label("collection"),
-        denied.c.uuid.label("uuid"),
-        denied.c.field.label("field"),
+    return union_all(
+        *(
+            denied_select(
+                collection,
+                fields,
+                uuids,
+                [rule.condition for rule in rules if fields <= rule.fields],
+            )
+            for fields, uuids in accesses_by_rules(keys, rules).items()
+        )
     )
 
 
