@@ -63,6 +63,8 @@ from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.owner_entities import OWNER_ENTITIES
+from mora.graphapi.policies import ROLE_POLICIES
+from mora.graphapi.policies import AccessKey
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import ADMIN_MAP
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
@@ -290,11 +292,25 @@ def owner_policy(
     return owned()
 
 
+def collection_policy(
+    root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
+) -> AwaitableOrValue[bool]:
+    """Allow access if a rule of the caller's roles grants the field on the object."""
+    collection = info.parent_type.name
+    # Collections without rules are gated by the RBAC maps instead
+    if collection not in {rule.collection for rule in ROLE_POLICIES}:
+        return False
+    return info.context.dataloaders.access_loader.load(
+        AccessKey(collection, root.uuid, info.field_name)
+    )
+
+
 POLICIES: list[Policy] = [
     introspection_policy,
     no_role_required_policy,
     reader_policy,
     admin_policy,
+    collection_policy,
     owner_policy,
 ]
 
@@ -306,7 +322,8 @@ class PBACExtension(SchemaExtension):
     so a field costs a coroutine only when a policy has to look something up.
 
     Access is rejected by default: every field must be listed in
-    `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP` or `ADMIN_MAP`.
+    `PUBLIC_FIELDS`, have a requirement in `RBAC_MAP` or `ADMIN_MAP`, or
+    belong to a type guarded by read policies (`mora.graphapi.policies`).
     """
 
     def resolve(  # type: ignore[override]
