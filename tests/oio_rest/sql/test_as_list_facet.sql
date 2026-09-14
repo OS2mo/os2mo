@@ -38,7 +38,6 @@ DECLARE
 	expected_facets1 FacetType[];
 	override_timeperiod1 TSTZRANGE;
 	override_timeperiod2 TSTZRANGE;
-	actual_facets2 FacetType[];
 	expected_facets2 FacetType[];
 	actual_facets3 FacetType[];
 	expected_facets3 FacetType[];
@@ -269,61 +268,12 @@ RETURN NEXT is(
 	expected_facets1,
 	'list test 1');
 
-/**********************************************************/
-BEGIN
-
-
-actual_facets2=as_list_facet(array[new_uuid,new_uuid2]::uuid[],null,null,
-ARRAY[
- ROW (
-	null --reg base
-	,null -- publiceret ,
-	,ARRAY[
-	ROW (
-	'brugervendt_noegle_B',
-	   null,
-	   null,
-	   null,
-	   null,
-	   null,
-	   NULL, --restkilde
-   	null --virkEgenskaberB
-) :: FacetEgenskaberAttrType]::FacetEgenskaberAttrType[]
-	,null --relationer
-) :: FacetRegistreringType
-]::FacetRegistreringType[]
-);
-
-RETURN NEXT ok(false,'as_list_facet test #2: Should throw MO401 exception');
-EXCEPTION
-WHEN sqlstate 'MO401' THEN
-	RETURN NEXT ok(true,'as_list_facet test #2: Throws MO401 exception (as it should)');
-END;
 
 
 /**********************************************************/
 
 
-actual_facets3=as_list_facet(array[new_uuid2]::uuid[],null,null,
-ARRAY[
- ROW (
-	null --reg base
-	,null -- publiceret ,
-	,ARRAY[
-	ROW (
-	'brugervendt_noegle_B',
-	   null,
-	   null,
-	   null,
-	   null,
-	   null,
-	   NULL, --restkilde
-   	null --virkEgenskaberB
-) :: FacetEgenskaberAttrType]::FacetEgenskaberAttrType[]
-	,null --relationer
-) :: FacetRegistreringType
-]::FacetRegistreringType[]
-);
+actual_facets3=as_list_facet(array[new_uuid2]::uuid[],null,null);
 
 expected_facets3:= ARRAY[
 	ROW(

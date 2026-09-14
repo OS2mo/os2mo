@@ -236,55 +236,11 @@ RETURN NEXT is(
 ,'import creates new facet.');
 
 --****************************
---test that an exception is thrown when stipulated access criteria is not met
+--test a second import operation
 
+uuid_returned_from_import2:=as_create_or_import_facet(registrering,uuid_to_import2);
 
-BEGIN
-uuid_returned_from_import2:=as_create_or_import_facet(registrering,uuid_to_import2,
-	ARRAY[
-	ROW(
-		null,
-		array [
-			ROW (
-			null,
-			'IkkePubliceret'
-			):: FacetPubliceretTilsType
-		]
-		,null
-		,null
-		)
-	::FacetRegistreringType
-		]
-	);
-
-
-RETURN NEXT ok(false,'as_create_or_import test auth criteria#1: Should throw MO401 exception');
-EXCEPTION
-WHEN sqlstate 'MO401' THEN
-	RETURN NEXT ok(true,'as_create_or_import test auth criteria#1: Throws MO401 exception (as it should)');
-END;
-
---****************************
---test that an exception is not thrown when stipulated access criteria is met
-
-uuid_returned_from_import2:=as_create_or_import_facet(registrering,uuid_to_import2,
-	ARRAY[
-	ROW(
-		null,
-		array [
-			ROW (
-			null,
-			'Publiceret'
-			):: FacetPubliceretTilsType
-		]
-		,null
-		,null
-		)
-	::FacetRegistreringType
-		]
-	);
-
-RETURN NEXT is (uuid_returned_from_import2,uuid_to_import2,'No exception thrown, when criteria is met invoking import.');
+RETURN NEXT is (uuid_returned_from_import2,uuid_to_import2,'second import returns uuid');
 
 
 

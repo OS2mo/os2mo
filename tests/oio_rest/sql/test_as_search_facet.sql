@@ -76,13 +76,11 @@ DECLARE
 	search_result6 uuid[];
 	search_result7 uuid[];
 	search_result8 uuid[];
-	search_result9 uuid[];
 	search_result9B uuid[];
 
 	expected_result2 uuid[];
 	expected_result4 uuid[];
 	expected_result8 uuid[];
-	expected_result9 uuid[];
 	expected_result9B uuid[];
 
 	search_registrering_3 FacetRegistreringType;
@@ -746,7 +744,7 @@ expected_result8:=ARRAY[new_uuid_B,new_uuid_C]::uuid[];
 RETURN NEXT ok(expected_result8 @> search_result8 and search_result8 @>expected_result8 and array_length(expected_result8,1)=array_length(search_result8,1), 'search state publiceretStatus and relationer combined');
 
 /************************/
---test if search filters is filtered the rigth way, if access criteria is met.
+--test search on a publiceret state with a virkning period
 
 search_registrering_9 := ROW (
 	ROW (
@@ -771,61 +769,7 @@ search_registrering_9 := ROW (
 
 
 
-search_result9 :=as_search_facet(
-	null,--TOOD ??
-	null,
-	search_registrering_9, --registrering_A Facetregistrering_AType
-	null--virkningSoeg
-	,null --maxResults
-	,null --anyAttrValueArr
-	,null --anyuuidArr
-	,null --anyurnArr
-	,ARRAY[
-	 ROW (
-	 	null --reg base
-	 	,null --states
-	 	,ARRAY[
-		 	ROW (
-			null --'brugervendt_noegle_text3',
-	   		,null--'facetbeskrivelse_text3',
-	   		,'facetplan_text1' --,
-	  		,null --'facetopbygning_text3',
-	   		,null --'facetophavsret_text3',
-	   		,null --'facetsupplement_text3',
-	   		,null
-	   		,null
-			) :: FacetEgenskaberAttrType
-	 	]::FacetEgenskaberAttrType[]
-	 	,null --relationer
-	 	)::FacetRegistreringType
-	 ,ROW (
-	 		null --reg base
-	 	,null --states
-	 	,ARRAY[
-		 	ROW (
-			null --'brugervendt_noegle_text3',
-	   		,null--'facetbeskrivelse_text3',
-	   		,'facetplan_text2' --,
-	  		,null --'facetopbygning_text3',
-	   		,null --'facetophavsret_text3',
-	   		,null --'facetsupplement_text3',
-	   		,null
-	   		,null
-			) :: FacetEgenskaberAttrType
-			]
-			::FacetEgenskaberAttrType[]
-	 	,null --relationer
-	 	)::FacetRegistreringType
 
-
-	]::FacetRegistreringType[]
-);
-
-expected_result9:=ARRAY[new_uuid_A,new_uuid_B]::uuid[];
-
-RETURN NEXT ok(expected_result9 @> search_result9 and search_result9 @>expected_result9 and array_length(expected_result9,1)=array_length(search_result9,1), 'search filter on stipulated access criteria #1');
-
---try same search_registrering_9, but his time don't supply any auth criteria
 
 expected_result9B:=ARRAY[new_uuid_A,new_uuid_B,new_uuid_C]::uuid[];
 
@@ -837,7 +781,7 @@ search_result9B :=as_search_facet(
 	null--virkningSoeg
 	);
 
-RETURN NEXT ok(expected_result9B @> search_result9B and search_result9B @>expected_result9B and array_length(expected_result9B,1)=array_length(search_result9B,1), 'no search filter, when no stipulated criteria #2');
+RETURN NEXT ok(expected_result9B @> search_result9B and search_result9B @>expected_result9B and array_length(expected_result9B,1)=array_length(search_result9B,1), 'search state publiceretStatus with virkning period');
 
 
 

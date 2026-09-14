@@ -9,6 +9,30 @@
 
 -- The signatures change, so the old functions must be dropped rather
 -- than replaced.
+DROP FUNCTION actual_state._as_filter_unauth_bruger(
+    uuid[], brugerregistreringtype[]
+);
+DROP FUNCTION actual_state._as_filter_unauth_facet(
+    uuid[], facetregistreringtype[]
+);
+DROP FUNCTION actual_state._as_filter_unauth_itsystem(
+    uuid[], itsystemregistreringtype[]
+);
+DROP FUNCTION actual_state._as_filter_unauth_klasse(
+    uuid[], klasseregistreringtype[]
+);
+DROP FUNCTION actual_state._as_filter_unauth_klassifikation(
+    uuid[], klassifikationregistreringtype[]
+);
+DROP FUNCTION actual_state._as_filter_unauth_organisation(
+    uuid[], organisationregistreringtype[]
+);
+DROP FUNCTION actual_state._as_filter_unauth_organisationenhed(
+    uuid[], organisationenhedregistreringtype[]
+);
+DROP FUNCTION actual_state._as_filter_unauth_organisationfunktion(
+    uuid[], organisationfunktionregistreringtype[]
+);
 DROP FUNCTION actual_state.as_list_bruger(
     uuid[], tstzrange, tstzrange, brugerregistreringtype[]
 );
@@ -265,25 +289,17 @@ DROP FUNCTION actual_state.as_create_or_import_organisationfunktion(
 CREATE OR REPLACE FUNCTION actual_state.as_list_bruger(
     bruger_uuids uuid[],
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr brugerregistreringtype[] DEFAULT NULL::brugerregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS brugertype[]
 LANGUAGE plpgsql
 STABLE
 AS $function$
 DECLARE
-	auth_filtered_uuids uuid[];
 	result BrugerType[];
 BEGIN
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_bruger(bruger_uuids,auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(bruger_uuids,1),0) AND auth_filtered_uuids @>bruger_uuids) THEN
-  RAISE EXCEPTION 'Unable to list bruger with uuids [%]. All objects do not fullfill the stipulated criteria:%',bruger_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 SELECT
 array_agg(x.brugerObj) into result
@@ -466,25 +482,17 @@ $function$;
 CREATE OR REPLACE FUNCTION actual_state.as_list_facet(
     facet_uuids uuid[],
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr facetregistreringtype[] DEFAULT NULL::facetregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS facettype[]
 LANGUAGE plpgsql
 STABLE
 AS $function$
 DECLARE
-	auth_filtered_uuids uuid[];
 	result FacetType[];
 BEGIN
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_facet(facet_uuids,auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(facet_uuids,1),0) AND auth_filtered_uuids @>facet_uuids) THEN
-  RAISE EXCEPTION 'Unable to list facet with uuids [%]. All objects do not fullfill the stipulated criteria:%',facet_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 SELECT
 array_agg(x.facetObj) into result
@@ -628,25 +636,17 @@ $function$;
 CREATE OR REPLACE FUNCTION actual_state.as_list_itsystem(
     itsystem_uuids uuid[],
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr itsystemregistreringtype[] DEFAULT NULL::itsystemregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS itsystemtype[]
 LANGUAGE plpgsql
 STABLE
 AS $function$
 DECLARE
-	auth_filtered_uuids uuid[];
 	result ItsystemType[];
 BEGIN
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_itsystem(itsystem_uuids,auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(itsystem_uuids,1),0) AND auth_filtered_uuids @>itsystem_uuids) THEN
-  RAISE EXCEPTION 'Unable to list itsystem with uuids [%]. All objects do not fullfill the stipulated criteria:%',itsystem_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 SELECT
 array_agg(x.itsystemObj) into result
@@ -787,25 +787,17 @@ $function$;
 CREATE OR REPLACE FUNCTION actual_state.as_list_klasse(
     klasse_uuids uuid[],
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr klasseregistreringtype[] DEFAULT NULL::klasseregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS klassetype[]
 LANGUAGE plpgsql
 STABLE
 AS $function$
 DECLARE
-	auth_filtered_uuids uuid[];
 	result KlasseType[];
 BEGIN
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_klasse(klasse_uuids,auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(klasse_uuids,1),0) AND auth_filtered_uuids @>klasse_uuids) THEN
-  RAISE EXCEPTION 'Unable to list klasse with uuids [%]. All objects do not fullfill the stipulated criteria:%',klasse_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 SELECT
 array_agg(x.klasseObj) into result
@@ -996,25 +988,17 @@ $function$;
 CREATE OR REPLACE FUNCTION actual_state.as_list_klassifikation(
     klassifikation_uuids uuid[],
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr klassifikationregistreringtype[] DEFAULT NULL::klassifikationregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS klassifikationtype[]
 LANGUAGE plpgsql
 STABLE
 AS $function$
 DECLARE
-	auth_filtered_uuids uuid[];
 	result KlassifikationType[];
 BEGIN
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_klassifikation(klassifikation_uuids,auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(klassifikation_uuids,1),0) AND auth_filtered_uuids @>klassifikation_uuids) THEN
-  RAISE EXCEPTION 'Unable to list klassifikation with uuids [%]. All objects do not fullfill the stipulated criteria:%',klassifikation_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 SELECT
 array_agg(x.klassifikationObj) into result
@@ -1155,25 +1139,17 @@ $function$;
 CREATE OR REPLACE FUNCTION actual_state.as_list_organisation(
     organisation_uuids uuid[],
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr organisationregistreringtype[] DEFAULT NULL::organisationregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS organisationtype[]
 LANGUAGE plpgsql
 STABLE
 AS $function$
 DECLARE
-	auth_filtered_uuids uuid[];
 	result OrganisationType[];
 BEGIN
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisation(organisation_uuids,auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(organisation_uuids,1),0) AND auth_filtered_uuids @>organisation_uuids) THEN
-  RAISE EXCEPTION 'Unable to list organisation with uuids [%]. All objects do not fullfill the stipulated criteria:%',organisation_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 SELECT
 array_agg(x.organisationObj) into result
@@ -1312,25 +1288,17 @@ $function$;
 CREATE OR REPLACE FUNCTION actual_state.as_list_organisationenhed(
     organisationenhed_uuids uuid[],
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr organisationenhedregistreringtype[] DEFAULT NULL::organisationenhedregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS organisationenhedtype[]
 LANGUAGE plpgsql
 STABLE
 AS $function$
 DECLARE
-	auth_filtered_uuids uuid[];
 	result OrganisationenhedType[];
 BEGIN
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationenhed(organisationenhed_uuids,auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(organisationenhed_uuids,1),0) AND auth_filtered_uuids @>organisationenhed_uuids) THEN
-  RAISE EXCEPTION 'Unable to list organisationenhed with uuids [%]. All objects do not fullfill the stipulated criteria:%',organisationenhed_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 SELECT
 array_agg(x.organisationenhedObj) into result
@@ -1469,25 +1437,17 @@ $function$;
 CREATE OR REPLACE FUNCTION actual_state.as_list_organisationfunktion(
     organisationfunktion_uuids uuid[],
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr organisationfunktionregistreringtype[] DEFAULT NULL::organisationfunktionregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS organisationfunktiontype[]
 LANGUAGE plpgsql
 STABLE
 AS $function$
 DECLARE
-	auth_filtered_uuids uuid[];
 	result OrganisationfunktionType[];
 BEGIN
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationfunktion(organisationfunktion_uuids,auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(organisationfunktion_uuids,1),0) AND auth_filtered_uuids @>organisationfunktion_uuids) THEN
-  RAISE EXCEPTION 'Unable to list organisationfunktion with uuids [%]. All objects do not fullfill the stipulated criteria:%',organisationfunktion_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 SELECT
 array_agg(x.organisationfunktionObj) into result
@@ -1676,8 +1636,7 @@ $function$;
 CREATE OR REPLACE FUNCTION actual_state.as_read_bruger(
     bruger_uuid uuid,
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr brugerregistreringtype[] DEFAULT NULL::brugerregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS brugertype
 LANGUAGE plpgsql
@@ -1686,7 +1645,7 @@ AS $function$
 DECLARE
 	resArr BrugerType[];
 BEGIN
-    resArr := as_list_bruger(ARRAY[bruger_uuid], registrering_tstzrange, virkning_tstzrange, auth_criteria_arr);
+    resArr := as_list_bruger(ARRAY[bruger_uuid], registrering_tstzrange, virkning_tstzrange);
     IF resArr is not null and coalesce(array_length(resArr, 1), 0) = 1 THEN
 	    RETURN resArr[1];
     ELSE
@@ -1698,8 +1657,7 @@ $function$;
 CREATE OR REPLACE FUNCTION actual_state.as_read_facet(
     facet_uuid uuid,
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr facetregistreringtype[] DEFAULT NULL::facetregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS facettype
 LANGUAGE plpgsql
@@ -1708,7 +1666,7 @@ AS $function$
 DECLARE
 	resArr FacetType[];
 BEGIN
-    resArr := as_list_facet(ARRAY[facet_uuid], registrering_tstzrange, virkning_tstzrange, auth_criteria_arr);
+    resArr := as_list_facet(ARRAY[facet_uuid], registrering_tstzrange, virkning_tstzrange);
     IF resArr is not null and coalesce(array_length(resArr, 1), 0) = 1 THEN
 	    RETURN resArr[1];
     ELSE
@@ -1720,8 +1678,7 @@ $function$;
 CREATE OR REPLACE FUNCTION actual_state.as_read_itsystem(
     itsystem_uuid uuid,
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr itsystemregistreringtype[] DEFAULT NULL::itsystemregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS itsystemtype
 LANGUAGE plpgsql
@@ -1730,7 +1687,7 @@ AS $function$
 DECLARE
 	resArr ItsystemType[];
 BEGIN
-    resArr := as_list_itsystem(ARRAY[itsystem_uuid], registrering_tstzrange, virkning_tstzrange, auth_criteria_arr);
+    resArr := as_list_itsystem(ARRAY[itsystem_uuid], registrering_tstzrange, virkning_tstzrange);
     IF resArr is not null and coalesce(array_length(resArr, 1), 0) = 1 THEN
 	    RETURN resArr[1];
     ELSE
@@ -1742,8 +1699,7 @@ $function$;
 CREATE OR REPLACE FUNCTION actual_state.as_read_klasse(
     klasse_uuid uuid,
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr klasseregistreringtype[] DEFAULT NULL::klasseregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS klassetype
 LANGUAGE plpgsql
@@ -1752,7 +1708,7 @@ AS $function$
 DECLARE
 	resArr KlasseType[];
 BEGIN
-    resArr := as_list_klasse(ARRAY[klasse_uuid], registrering_tstzrange, virkning_tstzrange, auth_criteria_arr);
+    resArr := as_list_klasse(ARRAY[klasse_uuid], registrering_tstzrange, virkning_tstzrange);
     IF resArr is not null and coalesce(array_length(resArr, 1), 0) = 1 THEN
 	    RETURN resArr[1];
     ELSE
@@ -1764,8 +1720,7 @@ $function$;
 CREATE OR REPLACE FUNCTION actual_state.as_read_klassifikation(
     klassifikation_uuid uuid,
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr klassifikationregistreringtype[] DEFAULT NULL::klassifikationregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS klassifikationtype
 LANGUAGE plpgsql
@@ -1774,7 +1729,7 @@ AS $function$
 DECLARE
 	resArr KlassifikationType[];
 BEGIN
-    resArr := as_list_klassifikation(ARRAY[klassifikation_uuid], registrering_tstzrange, virkning_tstzrange, auth_criteria_arr);
+    resArr := as_list_klassifikation(ARRAY[klassifikation_uuid], registrering_tstzrange, virkning_tstzrange);
     IF resArr is not null and coalesce(array_length(resArr, 1), 0) = 1 THEN
 	    RETURN resArr[1];
     ELSE
@@ -1786,8 +1741,7 @@ $function$;
 CREATE OR REPLACE FUNCTION actual_state.as_read_organisation(
     organisation_uuid uuid,
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr organisationregistreringtype[] DEFAULT NULL::organisationregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS organisationtype
 LANGUAGE plpgsql
@@ -1796,7 +1750,7 @@ AS $function$
 DECLARE
 	resArr OrganisationType[];
 BEGIN
-    resArr := as_list_organisation(ARRAY[organisation_uuid], registrering_tstzrange, virkning_tstzrange, auth_criteria_arr);
+    resArr := as_list_organisation(ARRAY[organisation_uuid], registrering_tstzrange, virkning_tstzrange);
     IF resArr is not null and coalesce(array_length(resArr, 1), 0) = 1 THEN
 	    RETURN resArr[1];
     ELSE
@@ -1808,8 +1762,7 @@ $function$;
 CREATE OR REPLACE FUNCTION actual_state.as_read_organisationenhed(
     organisationenhed_uuid uuid,
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr organisationenhedregistreringtype[] DEFAULT NULL::organisationenhedregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS organisationenhedtype
 LANGUAGE plpgsql
@@ -1818,7 +1771,7 @@ AS $function$
 DECLARE
 	resArr OrganisationenhedType[];
 BEGIN
-    resArr := as_list_organisationenhed(ARRAY[organisationenhed_uuid], registrering_tstzrange, virkning_tstzrange, auth_criteria_arr);
+    resArr := as_list_organisationenhed(ARRAY[organisationenhed_uuid], registrering_tstzrange, virkning_tstzrange);
     IF resArr is not null and coalesce(array_length(resArr, 1), 0) = 1 THEN
 	    RETURN resArr[1];
     ELSE
@@ -1830,8 +1783,7 @@ $function$;
 CREATE OR REPLACE FUNCTION actual_state.as_read_organisationfunktion(
     organisationfunktion_uuid uuid,
     registrering_tstzrange tstzrange,
-    virkning_tstzrange tstzrange,
-    auth_criteria_arr organisationfunktionregistreringtype[] DEFAULT NULL::organisationfunktionregistreringtype[]
+    virkning_tstzrange tstzrange
 )
 RETURNS organisationfunktiontype
 LANGUAGE plpgsql
@@ -1840,7 +1792,7 @@ AS $function$
 DECLARE
 	resArr OrganisationfunktionType[];
 BEGIN
-    resArr := as_list_organisationfunktion(ARRAY[organisationfunktion_uuid], registrering_tstzrange, virkning_tstzrange, auth_criteria_arr);
+    resArr := as_list_organisationfunktion(ARRAY[organisationfunktion_uuid], registrering_tstzrange, virkning_tstzrange);
     IF resArr is not null and coalesce(array_length(resArr, 1), 0) = 1 THEN
 	    RETURN resArr[1];
     ELSE
@@ -1857,8 +1809,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_search_bruger(
     maxresults integer DEFAULT 2147483647,
     anyattrvaluearr text[] DEFAULT '{}'::text[],
     anyuuidarr uuid[] DEFAULT '{}'::uuid[],
-    anyurnarr text[] DEFAULT '{}'::text[],
-    auth_criteria_arr brugerregistreringtype[] DEFAULT NULL::brugerregistreringtype[]
+    anyurnarr text[] DEFAULT '{}'::text[]
 )
 RETURNS uuid[]
 LANGUAGE plpgsql
@@ -1881,7 +1832,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -3136,13 +3086,10 @@ END IF;
 --RAISE DEBUG 'bruger_candidates step 6:%',bruger_candidates;
 
 
-/*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_bruger(bruger_candidates,auth_criteria_arr);
-/*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
-   auth_filtered_uuids = _as_sorted_bruger(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
+   bruger_candidates = _as_sorted_bruger(bruger_candidates, virkningSoeg, registreringObj, firstResult, maxResults);
 END IF;
-return auth_filtered_uuids;
+return bruger_candidates;
 
 
 END;
@@ -3156,8 +3103,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_search_facet(
     maxresults integer DEFAULT 2147483647,
     anyattrvaluearr text[] DEFAULT '{}'::text[],
     anyuuidarr uuid[] DEFAULT '{}'::uuid[],
-    anyurnarr text[] DEFAULT '{}'::text[],
-    auth_criteria_arr facetregistreringtype[] DEFAULT NULL::facetregistreringtype[]
+    anyurnarr text[] DEFAULT '{}'::text[]
 )
 RETURNS uuid[]
 LANGUAGE plpgsql
@@ -3179,7 +3125,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -4200,13 +4145,10 @@ END IF;
 --RAISE DEBUG 'facet_candidates step 6:%',facet_candidates;
 
 
-/*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_facet(facet_candidates,auth_criteria_arr);
-/*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
-   auth_filtered_uuids = _as_sorted_facet(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
+   facet_candidates = _as_sorted_facet(facet_candidates, virkningSoeg, registreringObj, firstResult, maxResults);
 END IF;
-return auth_filtered_uuids;
+return facet_candidates;
 
 
 END;
@@ -4220,8 +4162,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_search_itsystem(
     maxresults integer DEFAULT 2147483647,
     anyattrvaluearr text[] DEFAULT '{}'::text[],
     anyuuidarr uuid[] DEFAULT '{}'::uuid[],
-    anyurnarr text[] DEFAULT '{}'::text[],
-    auth_criteria_arr itsystemregistreringtype[] DEFAULT NULL::itsystemregistreringtype[]
+    anyurnarr text[] DEFAULT '{}'::text[]
 )
 RETURNS uuid[]
 LANGUAGE plpgsql
@@ -4243,7 +4184,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -5243,13 +5183,10 @@ END IF;
 --RAISE DEBUG 'itsystem_candidates step 6:%',itsystem_candidates;
 
 
-/*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_itsystem(itsystem_candidates,auth_criteria_arr);
-/*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
-   auth_filtered_uuids = _as_sorted_itsystem(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
+   itsystem_candidates = _as_sorted_itsystem(itsystem_candidates, virkningSoeg, registreringObj, firstResult, maxResults);
 END IF;
-return auth_filtered_uuids;
+return itsystem_candidates;
 
 
 END;
@@ -5263,8 +5200,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_search_klasse(
     maxresults integer DEFAULT 2147483647,
     anyattrvaluearr text[] DEFAULT '{}'::text[],
     anyuuidarr uuid[] DEFAULT '{}'::uuid[],
-    anyurnarr text[] DEFAULT '{}'::text[],
-    auth_criteria_arr klasseregistreringtype[] DEFAULT NULL::klasseregistreringtype[]
+    anyurnarr text[] DEFAULT '{}'::text[]
 )
 RETURNS uuid[]
 LANGUAGE plpgsql
@@ -5286,7 +5222,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
     manipulatedAttrEgenskaberArr KlasseEgenskaberAttrType[]:='{}';
@@ -6374,13 +6309,10 @@ END IF;
 --RAISE DEBUG 'klasse_candidates step 6:%',klasse_candidates;
 
 
-/*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_klasse(klasse_candidates,auth_criteria_arr);
-/*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
-   auth_filtered_uuids = _as_sorted_klasse(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
+   klasse_candidates = _as_sorted_klasse(klasse_candidates, virkningSoeg, registreringObj, firstResult, maxResults);
 END IF;
-return auth_filtered_uuids;
+return klasse_candidates;
 
 
 END;
@@ -6394,8 +6326,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_search_klassifikation(
     maxresults integer DEFAULT 2147483647,
     anyattrvaluearr text[] DEFAULT '{}'::text[],
     anyuuidarr uuid[] DEFAULT '{}'::uuid[],
-    anyurnarr text[] DEFAULT '{}'::text[],
-    auth_criteria_arr klassifikationregistreringtype[] DEFAULT NULL::klassifikationregistreringtype[]
+    anyurnarr text[] DEFAULT '{}'::text[]
 )
 RETURNS uuid[]
 LANGUAGE plpgsql
@@ -6417,7 +6348,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -7417,13 +7347,10 @@ END IF;
 --RAISE DEBUG 'klassifikation_candidates step 6:%',klassifikation_candidates;
 
 
-/*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_klassifikation(klassifikation_candidates,auth_criteria_arr);
-/*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
-   auth_filtered_uuids = _as_sorted_klassifikation(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
+   klassifikation_candidates = _as_sorted_klassifikation(klassifikation_candidates, virkningSoeg, registreringObj, firstResult, maxResults);
 END IF;
-return auth_filtered_uuids;
+return klassifikation_candidates;
 
 
 END;
@@ -7437,8 +7364,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_search_organisation(
     maxresults integer DEFAULT 2147483647,
     anyattrvaluearr text[] DEFAULT '{}'::text[],
     anyuuidarr uuid[] DEFAULT '{}'::uuid[],
-    anyurnarr text[] DEFAULT '{}'::text[],
-    auth_criteria_arr organisationregistreringtype[] DEFAULT NULL::organisationregistreringtype[]
+    anyurnarr text[] DEFAULT '{}'::text[]
 )
 RETURNS uuid[]
 LANGUAGE plpgsql
@@ -7460,7 +7386,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -8446,13 +8371,10 @@ END IF;
 --RAISE DEBUG 'organisation_candidates step 6:%',organisation_candidates;
 
 
-/*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisation(organisation_candidates,auth_criteria_arr);
-/*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
-   auth_filtered_uuids = _as_sorted_organisation(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
+   organisation_candidates = _as_sorted_organisation(organisation_candidates, virkningSoeg, registreringObj, firstResult, maxResults);
 END IF;
-return auth_filtered_uuids;
+return organisation_candidates;
 
 
 END;
@@ -8466,8 +8388,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_search_organisationenhed(
     maxresults integer DEFAULT 2147483647,
     anyattrvaluearr text[] DEFAULT '{}'::text[],
     anyuuidarr uuid[] DEFAULT '{}'::uuid[],
-    anyurnarr text[] DEFAULT '{}'::text[],
-    auth_criteria_arr organisationenhedregistreringtype[] DEFAULT NULL::organisationenhedregistreringtype[]
+    anyurnarr text[] DEFAULT '{}'::text[]
 )
 RETURNS uuid[]
 LANGUAGE plpgsql
@@ -8489,7 +8410,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -9475,13 +9395,10 @@ END IF;
 --RAISE DEBUG 'organisationenhed_candidates step 6:%',organisationenhed_candidates;
 
 
-/*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationenhed(organisationenhed_candidates,auth_criteria_arr);
-/*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
-   auth_filtered_uuids = _as_sorted_organisationenhed(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
+   organisationenhed_candidates = _as_sorted_organisationenhed(organisationenhed_candidates, virkningSoeg, registreringObj, firstResult, maxResults);
 END IF;
-return auth_filtered_uuids;
+return organisationenhed_candidates;
 
 
 END;
@@ -9495,8 +9412,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_search_organisationfunktion(
     maxresults integer DEFAULT 2147483647,
     anyattrvaluearr text[] DEFAULT '{}'::text[],
     anyuuidarr uuid[] DEFAULT '{}'::uuid[],
-    anyurnarr text[] DEFAULT '{}'::text[],
-    auth_criteria_arr organisationfunktionregistreringtype[] DEFAULT NULL::organisationfunktionregistreringtype[]
+    anyurnarr text[] DEFAULT '{}'::text[]
 )
 RETURNS uuid[]
 LANGUAGE plpgsql
@@ -9519,7 +9435,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -10818,13 +10733,10 @@ END IF;
 --RAISE DEBUG 'organisationfunktion_candidates step 6:%',organisationfunktion_candidates;
 
 
-/*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationfunktion(organisationfunktion_candidates,auth_criteria_arr);
-/*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
-   auth_filtered_uuids = _as_sorted_organisationfunktion(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
+   organisationfunktion_candidates = _as_sorted_organisationfunktion(organisationfunktion_candidates, virkningSoeg, registreringObj, firstResult, maxResults);
 END IF;
-return auth_filtered_uuids;
+return organisationfunktion_candidates;
 
 
 END;
@@ -10839,8 +10751,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_update_bruger(
     attrudvidelser brugerudvidelserattrtype[],
     tilsgyldighed brugergyldighedtilstype[],
     relationer brugerrelationtype[],
-    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone,
-    auth_criteria_arr brugerregistreringtype[] DEFAULT NULL::brugerregistreringtype[]
+    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -10862,7 +10773,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -10875,12 +10785,6 @@ BEGIN
     -- object on a exclusive row lock. This lock will be held by the current
     -- transaction until it terminates.
     PERFORM a.id FROM bruger a WHERE a.id=bruger_uuid FOR UPDATE;
-
-    -- Verify that the object meets the stipulated access allowed criteria
-    auth_filtered_uuids := _as_filter_unauth_bruger(array[bruger_uuid]::uuid[], auth_criteria_arr);
-    IF NOT (coalesce(array_length(auth_filtered_uuids, 1), 0) = 1 AND auth_filtered_uuids @>ARRAY[bruger_uuid]) THEN
-      RAISE EXCEPTION 'Unable to update bruger with uuid [%]. Object does not met stipulated criteria:%', bruger_uuid, to_json(auth_criteria_arr) USING ERRCODE = 'MO401';
-    END IF;
 
     new_bruger_registrering := _as_create_bruger_registrering(bruger_uuid, livscykluskode, brugerref, note);
     prev_bruger_registrering := _as_get_prev_bruger_registrering(new_bruger_registrering);
@@ -11343,8 +11247,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_update_facet(
     attregenskaber facetegenskaberattrtype[],
     tilspubliceret facetpublicerettilstype[],
     relationer facetrelationtype[],
-    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone,
-    auth_criteria_arr facetregistreringtype[] DEFAULT NULL::facetregistreringtype[]
+    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -11364,7 +11267,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -11377,12 +11279,6 @@ BEGIN
     -- object on a exclusive row lock. This lock will be held by the current
     -- transaction until it terminates.
     PERFORM a.id FROM facet a WHERE a.id=facet_uuid FOR UPDATE;
-
-    -- Verify that the object meets the stipulated access allowed criteria
-    auth_filtered_uuids := _as_filter_unauth_facet(array[facet_uuid]::uuid[], auth_criteria_arr);
-    IF NOT (coalesce(array_length(auth_filtered_uuids, 1), 0) = 1 AND auth_filtered_uuids @>ARRAY[facet_uuid]) THEN
-      RAISE EXCEPTION 'Unable to update facet with uuid [%]. Object does not met stipulated criteria:%', facet_uuid, to_json(auth_criteria_arr) USING ERRCODE = 'MO401';
-    END IF;
 
     new_facet_registrering := _as_create_facet_registrering(facet_uuid, livscykluskode, brugerref, note);
     prev_facet_registrering := _as_get_prev_facet_registrering(new_facet_registrering);
@@ -11748,8 +11644,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_update_itsystem(
     attregenskaber itsystemegenskaberattrtype[],
     tilsgyldighed itsystemgyldighedtilstype[],
     relationer itsystemrelationtype[],
-    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone,
-    auth_criteria_arr itsystemregistreringtype[] DEFAULT NULL::itsystemregistreringtype[]
+    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -11769,7 +11664,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -11782,12 +11676,6 @@ BEGIN
     -- object on a exclusive row lock. This lock will be held by the current
     -- transaction until it terminates.
     PERFORM a.id FROM itsystem a WHERE a.id=itsystem_uuid FOR UPDATE;
-
-    -- Verify that the object meets the stipulated access allowed criteria
-    auth_filtered_uuids := _as_filter_unauth_itsystem(array[itsystem_uuid]::uuid[], auth_criteria_arr);
-    IF NOT (coalesce(array_length(auth_filtered_uuids, 1), 0) = 1 AND auth_filtered_uuids @>ARRAY[itsystem_uuid]) THEN
-      RAISE EXCEPTION 'Unable to update itsystem with uuid [%]. Object does not met stipulated criteria:%', itsystem_uuid, to_json(auth_criteria_arr) USING ERRCODE = 'MO401';
-    END IF;
 
     new_itsystem_registrering := _as_create_itsystem_registrering(itsystem_uuid, livscykluskode, brugerref, note);
     prev_itsystem_registrering := _as_get_prev_itsystem_registrering(new_itsystem_registrering);
@@ -12129,8 +12017,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_update_klasse(
     attregenskaber klasseegenskaberattrtype[],
     tilspubliceret klassepublicerettilstype[],
     relationer klasserelationtype[],
-    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone,
-    auth_criteria_arr klasseregistreringtype[] DEFAULT NULL::klasseregistreringtype[]
+    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -12153,7 +12040,6 @@ DECLARE
     klasseSoegeordObj KlasseSoegeordType;
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -12166,12 +12052,6 @@ BEGIN
     -- object on a exclusive row lock. This lock will be held by the current
     -- transaction until it terminates.
     PERFORM a.id FROM klasse a WHERE a.id=klasse_uuid FOR UPDATE;
-
-    -- Verify that the object meets the stipulated access allowed criteria
-    auth_filtered_uuids := _as_filter_unauth_klasse(array[klasse_uuid]::uuid[], auth_criteria_arr);
-    IF NOT (coalesce(array_length(auth_filtered_uuids, 1), 0) = 1 AND auth_filtered_uuids @>ARRAY[klasse_uuid]) THEN
-      RAISE EXCEPTION 'Unable to update klasse with uuid [%]. Object does not met stipulated criteria:%', klasse_uuid, to_json(auth_criteria_arr) USING ERRCODE = 'MO401';
-    END IF;
 
     new_klasse_registrering := _as_create_klasse_registrering(klasse_uuid, livscykluskode, brugerref, note);
     prev_klasse_registrering := _as_get_prev_klasse_registrering(new_klasse_registrering);
@@ -12597,8 +12477,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_update_klassifikation(
     attregenskaber klassifikationegenskaberattrtype[],
     tilspubliceret klassifikationpublicerettilstype[],
     relationer klassifikationrelationtype[],
-    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone,
-    auth_criteria_arr klassifikationregistreringtype[] DEFAULT NULL::klassifikationregistreringtype[]
+    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -12618,7 +12497,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -12631,12 +12509,6 @@ BEGIN
     -- object on a exclusive row lock. This lock will be held by the current
     -- transaction until it terminates.
     PERFORM a.id FROM klassifikation a WHERE a.id=klassifikation_uuid FOR UPDATE;
-
-    -- Verify that the object meets the stipulated access allowed criteria
-    auth_filtered_uuids := _as_filter_unauth_klassifikation(array[klassifikation_uuid]::uuid[], auth_criteria_arr);
-    IF NOT (coalesce(array_length(auth_filtered_uuids, 1), 0) = 1 AND auth_filtered_uuids @>ARRAY[klassifikation_uuid]) THEN
-      RAISE EXCEPTION 'Unable to update klassifikation with uuid [%]. Object does not met stipulated criteria:%', klassifikation_uuid, to_json(auth_criteria_arr) USING ERRCODE = 'MO401';
-    END IF;
 
     new_klassifikation_registrering := _as_create_klassifikation_registrering(klassifikation_uuid, livscykluskode, brugerref, note);
     prev_klassifikation_registrering := _as_get_prev_klassifikation_registrering(new_klassifikation_registrering);
@@ -12979,8 +12851,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_update_organisation(
     attregenskaber organisationegenskaberattrtype[],
     tilsgyldighed organisationgyldighedtilstype[],
     relationer organisationrelationtype[],
-    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone,
-    auth_criteria_arr organisationregistreringtype[] DEFAULT NULL::organisationregistreringtype[]
+    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -13000,7 +12871,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -13013,12 +12883,6 @@ BEGIN
     -- object on a exclusive row lock. This lock will be held by the current
     -- transaction until it terminates.
     PERFORM a.id FROM organisation a WHERE a.id=organisation_uuid FOR UPDATE;
-
-    -- Verify that the object meets the stipulated access allowed criteria
-    auth_filtered_uuids := _as_filter_unauth_organisation(array[organisation_uuid]::uuid[], auth_criteria_arr);
-    IF NOT (coalesce(array_length(auth_filtered_uuids, 1), 0) = 1 AND auth_filtered_uuids @>ARRAY[organisation_uuid]) THEN
-      RAISE EXCEPTION 'Unable to update organisation with uuid [%]. Object does not met stipulated criteria:%', organisation_uuid, to_json(auth_criteria_arr) USING ERRCODE = 'MO401';
-    END IF;
 
     new_organisation_registrering := _as_create_organisation_registrering(organisation_uuid, livscykluskode, brugerref, note);
     prev_organisation_registrering := _as_get_prev_organisation_registrering(new_organisation_registrering);
@@ -13344,8 +13208,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_update_organisationenhed(
     attregenskaber organisationenhedegenskaberattrtype[],
     tilsgyldighed organisationenhedgyldighedtilstype[],
     relationer organisationenhedrelationtype[],
-    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone,
-    auth_criteria_arr organisationenhedregistreringtype[] DEFAULT NULL::organisationenhedregistreringtype[]
+    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -13365,7 +13228,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -13378,12 +13240,6 @@ BEGIN
     -- object on a exclusive row lock. This lock will be held by the current
     -- transaction until it terminates.
     PERFORM a.id FROM organisationenhed a WHERE a.id=organisationenhed_uuid FOR UPDATE;
-
-    -- Verify that the object meets the stipulated access allowed criteria
-    auth_filtered_uuids := _as_filter_unauth_organisationenhed(array[organisationenhed_uuid]::uuid[], auth_criteria_arr);
-    IF NOT (coalesce(array_length(auth_filtered_uuids, 1), 0) = 1 AND auth_filtered_uuids @>ARRAY[organisationenhed_uuid]) THEN
-      RAISE EXCEPTION 'Unable to update organisationenhed with uuid [%]. Object does not met stipulated criteria:%', organisationenhed_uuid, to_json(auth_criteria_arr) USING ERRCODE = 'MO401';
-    END IF;
 
     new_organisationenhed_registrering := _as_create_organisationenhed_registrering(organisationenhed_uuid, livscykluskode, brugerref, note);
     prev_organisationenhed_registrering := _as_get_prev_organisationenhed_registrering(new_organisationenhed_registrering);
@@ -13711,8 +13567,7 @@ CREATE OR REPLACE FUNCTION actual_state.as_update_organisationfunktion(
     attrudvidelser organisationfunktionudvidelserattrtype[],
     tilsgyldighed organisationfunktiongyldighedtilstype[],
     relationer organisationfunktionrelationtype[],
-    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone,
-    auth_criteria_arr organisationfunktionregistreringtype[] DEFAULT NULL::organisationfunktionregistreringtype[]
+    lostupdatepreventiontz timestamp with time zone DEFAULT NULL::timestamp with time zone
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -13734,7 +13589,6 @@ DECLARE
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 BEGIN
@@ -13747,12 +13601,6 @@ BEGIN
     -- object on a exclusive row lock. This lock will be held by the current
     -- transaction until it terminates.
     PERFORM a.id FROM organisationfunktion a WHERE a.id=organisationfunktion_uuid FOR UPDATE;
-
-    -- Verify that the object meets the stipulated access allowed criteria
-    auth_filtered_uuids := _as_filter_unauth_organisationfunktion(array[organisationfunktion_uuid]::uuid[], auth_criteria_arr);
-    IF NOT (coalesce(array_length(auth_filtered_uuids, 1), 0) = 1 AND auth_filtered_uuids @>ARRAY[organisationfunktion_uuid]) THEN
-      RAISE EXCEPTION 'Unable to update organisationfunktion with uuid [%]. Object does not met stipulated criteria:%', organisationfunktion_uuid, to_json(auth_criteria_arr) USING ERRCODE = 'MO401';
-    END IF;
 
     new_organisationfunktion_registrering := _as_create_organisationfunktion_registrering(organisationfunktion_uuid, livscykluskode, brugerref, note);
     prev_organisationfunktion_registrering := _as_get_prev_organisationfunktion_registrering(new_organisationfunktion_registrering);
@@ -14289,8 +14137,7 @@ END; $function$;
 
 CREATE OR REPLACE FUNCTION actual_state.as_create_or_import_bruger(
     bruger_registrering brugerregistreringtype,
-    bruger_uuid uuid DEFAULT NULL::uuid,
-    auth_criteria_arr brugerregistreringtype[] DEFAULT NULL::brugerregistreringtype[]
+    bruger_uuid uuid DEFAULT NULL::uuid
 )
 RETURNS uuid
 LANGUAGE plpgsql
@@ -14307,7 +14154,6 @@ AS $function$ DECLARE bruger_registrering_id bigint;
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 
@@ -14483,13 +14329,6 @@ END IF;
 
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-/*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_bruger(array[bruger_uuid]::uuid[],auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[bruger_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import bruger with uuid [%]. Object does not met stipulated criteria:%',bruger_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 
 
@@ -14501,8 +14340,7 @@ $function$;
 
 CREATE OR REPLACE FUNCTION actual_state.as_create_or_import_facet(
     facet_registrering facetregistreringtype,
-    facet_uuid uuid DEFAULT NULL::uuid,
-    auth_criteria_arr facetregistreringtype[] DEFAULT NULL::facetregistreringtype[]
+    facet_uuid uuid DEFAULT NULL::uuid
 )
 RETURNS uuid
 LANGUAGE plpgsql
@@ -14520,7 +14358,6 @@ AS $function$ DECLARE facet_registrering_id bigint;
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 
@@ -14673,13 +14510,6 @@ END IF;
 
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-/*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_facet(array[facet_uuid]::uuid[],auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[facet_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import facet with uuid [%]. Object does not met stipulated criteria:%',facet_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 
 
@@ -14691,8 +14521,7 @@ $function$;
 
 CREATE OR REPLACE FUNCTION actual_state.as_create_or_import_itsystem(
     itsystem_registrering itsystemregistreringtype,
-    itsystem_uuid uuid DEFAULT NULL::uuid,
-    auth_criteria_arr itsystemregistreringtype[] DEFAULT NULL::itsystemregistreringtype[]
+    itsystem_uuid uuid DEFAULT NULL::uuid
 )
 RETURNS uuid
 LANGUAGE plpgsql
@@ -14710,7 +14539,6 @@ AS $function$ DECLARE itsystem_registrering_id bigint;
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 
@@ -14857,13 +14685,6 @@ END IF;
 
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-/*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_itsystem(array[itsystem_uuid]::uuid[],auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[itsystem_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import itsystem with uuid [%]. Object does not met stipulated criteria:%',itsystem_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 
 
@@ -14875,8 +14696,7 @@ $function$;
 
 CREATE OR REPLACE FUNCTION actual_state.as_create_or_import_klasse(
     klasse_registrering klasseregistreringtype,
-    klasse_uuid uuid DEFAULT NULL::uuid,
-    auth_criteria_arr klasseregistreringtype[] DEFAULT NULL::klasseregistreringtype[]
+    klasse_uuid uuid DEFAULT NULL::uuid
 )
 RETURNS uuid
 LANGUAGE plpgsql
@@ -14897,7 +14717,6 @@ AS $function$ DECLARE klasse_registrering_id bigint;
     klasse_attr_egenskaber_soegeord_obj KlasseSoegeordType;
 
 
-    auth_filtered_uuids uuid[];
 
 
 
@@ -15079,13 +14898,6 @@ END IF;
 
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-/*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_klasse(array[klasse_uuid]::uuid[],auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[klasse_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import klasse with uuid [%]. Object does not met stipulated criteria:%',klasse_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 
 
@@ -15097,8 +14909,7 @@ $function$;
 
 CREATE OR REPLACE FUNCTION actual_state.as_create_or_import_klassifikation(
     klassifikation_registrering klassifikationregistreringtype,
-    klassifikation_uuid uuid DEFAULT NULL::uuid,
-    auth_criteria_arr klassifikationregistreringtype[] DEFAULT NULL::klassifikationregistreringtype[]
+    klassifikation_uuid uuid DEFAULT NULL::uuid
 )
 RETURNS uuid
 LANGUAGE plpgsql
@@ -15116,7 +14927,6 @@ AS $function$ DECLARE klassifikation_registrering_id bigint;
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 
@@ -15263,13 +15073,6 @@ END IF;
 
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-/*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_klassifikation(array[klassifikation_uuid]::uuid[],auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[klassifikation_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import klassifikation with uuid [%]. Object does not met stipulated criteria:%',klassifikation_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 
 
@@ -15281,8 +15084,7 @@ $function$;
 
 CREATE OR REPLACE FUNCTION actual_state.as_create_or_import_organisation(
     organisation_registrering organisationregistreringtype,
-    organisation_uuid uuid DEFAULT NULL::uuid,
-    auth_criteria_arr organisationregistreringtype[] DEFAULT NULL::organisationregistreringtype[]
+    organisation_uuid uuid DEFAULT NULL::uuid
 )
 RETURNS uuid
 LANGUAGE plpgsql
@@ -15300,7 +15102,6 @@ AS $function$ DECLARE organisation_registrering_id bigint;
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 
@@ -15443,13 +15244,6 @@ END IF;
 
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-/*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisation(array[organisation_uuid]::uuid[],auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[organisation_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import organisation with uuid [%]. Object does not met stipulated criteria:%',organisation_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 
 
@@ -15461,8 +15255,7 @@ $function$;
 
 CREATE OR REPLACE FUNCTION actual_state.as_create_or_import_organisationenhed(
     organisationenhed_registrering organisationenhedregistreringtype,
-    organisationenhed_uuid uuid DEFAULT NULL::uuid,
-    auth_criteria_arr organisationenhedregistreringtype[] DEFAULT NULL::organisationenhedregistreringtype[]
+    organisationenhed_uuid uuid DEFAULT NULL::uuid
 )
 RETURNS uuid
 LANGUAGE plpgsql
@@ -15480,7 +15273,6 @@ AS $function$ DECLARE organisationenhed_registrering_id bigint;
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 
@@ -15623,13 +15415,6 @@ END IF;
 
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-/*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationenhed(array[organisationenhed_uuid]::uuid[],auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[organisationenhed_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import organisationenhed with uuid [%]. Object does not met stipulated criteria:%',organisationenhed_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 
 
@@ -15641,8 +15426,7 @@ $function$;
 
 CREATE OR REPLACE FUNCTION actual_state.as_create_or_import_organisationfunktion(
     organisationfunktion_registrering organisationfunktionregistreringtype,
-    organisationfunktion_uuid uuid DEFAULT NULL::uuid,
-    auth_criteria_arr organisationfunktionregistreringtype[] DEFAULT NULL::organisationfunktionregistreringtype[]
+    organisationfunktion_uuid uuid DEFAULT NULL::uuid
 )
 RETURNS uuid
 LANGUAGE plpgsql
@@ -15662,7 +15446,6 @@ AS $function$ DECLARE organisationfunktion_registrering_id bigint;
 
 
 
-    auth_filtered_uuids uuid[];
 
 
 
@@ -15850,13 +15633,6 @@ END IF;
 
 
 
-/*** Verify that the object meets the stipulated access allowed criteria  ***/
-/*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationfunktion(array[organisationfunktion_uuid]::uuid[],auth_criteria_arr);
-IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[organisationfunktion_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import organisationfunktion with uuid [%]. Object does not met stipulated criteria:%',organisationfunktion_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
-END IF;
-/*********************/
 
 
 
