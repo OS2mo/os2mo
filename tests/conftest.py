@@ -45,9 +45,11 @@ from mora.auth.keycloak.oidc import fetch_token
 from mora.auth.keycloak.oidc import token_getter
 from mora.config import get_settings
 from mora.graphapi import policies
+from mora.graphapi import schema
 from mora.graphapi.gmodels.mo import Validity as GValidity
 from mora.graphapi.permissions import ALL_PERMISSIONS
 from mora.graphapi.policies import Rule
+from mora.graphapi.schema import Policy
 from mora.graphapi.version import LATEST_VERSION
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
@@ -194,6 +196,7 @@ def token_getter_of(*roles: str) -> Callable[[], Awaitable[Token]]:
 
 SetAuth = Callable[[str | Collection[str] | None, UUID | str | None, str], None]
 SetRules = Callable[[list[Rule]], None]
+SetPolicies = Callable[[list[Policy]], None]
 
 
 @pytest.fixture
@@ -1651,6 +1654,22 @@ def set_rules() -> YieldFixture[SetRules]:
 
     yield inner
     policies.ROLE_POLICIES[:] = original
+
+
+@pytest.fixture
+def set_policies() -> YieldFixture[SetPolicies]:
+    """Install the checks PBAC asks of every field, for one test.
+
+    These are the policies themselves, `collection_policy` among them, rather
+    than the rules that one decides by.
+    """
+    original = list(schema.POLICIES)
+
+    def inner(checks: list[Policy]) -> None:
+        schema.POLICIES[:] = checks
+
+    yield inner
+    schema.POLICIES[:] = original
 
 
 @pytest.fixture
