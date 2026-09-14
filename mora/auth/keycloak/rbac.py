@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import TYPE_CHECKING
 from typing import get_type_hints
 from uuid import UUID
 
@@ -11,7 +10,6 @@ from structlog import get_logger
 
 from mora.config import Settings
 from mora.graphapi import resolvers
-from mora.graphapi.custom_schema import get_version
 from mora.graphapi.filters import EmployeeFilter
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.filters import OwnerFilter
@@ -19,9 +17,6 @@ from mora.graphapi.permissions import Collections
 from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.resolvers import organisation_unit_predicate
 from mora.graphapi.version import Version
-
-if TYPE_CHECKING:
-    from mora.graphapi.context import MOInfo
 
 logger = get_logger()
 
@@ -75,7 +70,11 @@ def _is_owner_employee(
 
 
 def _is_owner_detail(
-    info: "MOInfo", actor: EmployeeFilter, collection: Collections, entity_uuid: UUID
+    settings: Settings,
+    version: Version,
+    actor: EmployeeFilter,
+    collection: Collections,
+    entity_uuid: UUID,
 ) -> ColumnElement:
     """Check detail ownership via the GraphQL filter of its own collection."""
     # The detail collections, each the predicate selecting its objects
@@ -96,8 +95,8 @@ def _is_owner_detail(
     # Every collection can name an org unit, only some can name a person
     via_org_unit = exists().where(
         predicate(
-            settings=info.context.settings,
-            version=get_version(info.schema),
+            settings=settings,
+            version=version,
             filter=filter(
                 uuids=[entity_uuid],
                 org_unit=OrganisationUnitFilter(
@@ -110,8 +109,8 @@ def _is_owner_detail(
         return via_org_unit
     via_person = exists().where(
         predicate(
-            settings=info.context.settings,
-            version=get_version(info.schema),
+            settings=settings,
+            version=version,
             filter=filter(uuids=[entity_uuid], employee=EmployeeFilter(owner=owner)),
         )
     )

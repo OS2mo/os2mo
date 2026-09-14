@@ -119,7 +119,13 @@ def get_entities_graphql(
         # Everything (except creates) requires ownership of both the existing
         # database object as well as the new object from the input.
         if permission_type != "create":
-            yield _is_owner_detail(info, actor, collection, getattr(input, "uuid"))
+            yield _is_owner_detail(
+                info.context.settings,
+                get_version(info.schema),
+                actor,
+                collection,
+                getattr(input, "uuid"),
+            )
 
         # Existing object (e.g. update). Again, we prefer org unit over person.
         if org_unit := getattr(input, "org_unit", None):
