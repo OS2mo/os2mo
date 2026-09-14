@@ -23,6 +23,7 @@ from mora.graphapi.permissions import Collections
 from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.resolvers import organisation_unit_predicate
 from mora.graphapi.version import Version
+from mora.util import ensure_list
 
 
 def _actor_filter(settings: Settings, token: Token) -> EmployeeFilter:
@@ -185,7 +186,7 @@ def get_entities_graphql(
     settings: Settings,
     version: Version,
     token: Token,
-    raw_input: list[Any],
+    arguments: dict[str, Any],
     collection: Collections,
     permission_type: CollectionPermissionType,
 ) -> ColumnElement | None:
@@ -195,9 +196,9 @@ def get_entities_graphql(
         settings: The settings the predicates take.
         version: The GraphQL schema version the predicates take.
         token: The token of the calling actor.
-        raw_input: The list of `input` objects from the GraphQL mutator. The
-            schema-level RBAC extension always normalises this to a list (see
-            `mora.graphapi.schema.owner_policy`).
+        arguments: The arguments of the GraphQL mutator, as the mutator itself
+            gets them; its `input` is one object or, for the plural mutators,
+            a list of them.
         collection: The object collection (address, employee, org_unit, etc.).
         permission_type: The operation type (create, update, terminate, delete).
 
@@ -252,4 +253,4 @@ def get_entities_graphql(
             detail(settings, version, token, collection, getattr(input, "uuid")), linked
         )
 
-    return and_or_none(*(rule(input) for input in raw_input))
+    return and_or_none(*(rule(input) for input in ensure_list(arguments["input"])))
