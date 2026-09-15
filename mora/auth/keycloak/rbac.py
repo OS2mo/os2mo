@@ -10,6 +10,7 @@ from sqlalchemy import or_
 from structlog import get_logger
 
 from mora.graphapi import resolvers
+from mora.graphapi.custom_schema import get_version
 from mora.graphapi.filters import EmployeeFilter
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.filters import OwnerFilter
@@ -35,7 +36,8 @@ def _is_owner_org_unit(
     if entity_uuid is None:
         return None
     predicate = organisation_unit_predicate(
-        info=info,
+        settings=info.context.settings,
+        version=get_version(info.schema),
         filter=OrganisationUnitFilter(
             descendant=OrganisationUnitFilter(uuids=[entity_uuid]),
             owner=OwnerFilter(owner=actor),
@@ -54,7 +56,8 @@ def _is_owner_employee(
     if entity_uuid is None:
         return None
     predicate = employee_predicate(
-        info=info,
+        settings=info.context.settings,
+        version=get_version(info.schema),
         filter=EmployeeFilter(
             uuids=[entity_uuid],
             owner=OwnerFilter(owner=actor),
@@ -85,7 +88,8 @@ def _is_owner_detail(
     # Every collection can name an org unit, only some can name a person
     via_org_unit = exists().where(
         predicate(
-            info=info,
+            settings=info.context.settings,
+            version=get_version(info.schema),
             filter=filter(
                 uuids=[entity_uuid],
                 org_unit=OrganisationUnitFilter(
@@ -98,7 +102,8 @@ def _is_owner_detail(
         return via_org_unit
     via_person = exists().where(
         predicate(
-            info=info,
+            settings=info.context.settings,
+            version=get_version(info.schema),
             filter=filter(uuids=[entity_uuid], employee=EmployeeFilter(owner=owner)),
         )
     )
