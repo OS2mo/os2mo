@@ -19,7 +19,9 @@ from sqlalchemy import CompoundSelect
 from sqlalchemy import Select
 from sqlalchemy import String
 from sqlalchemy import Uuid
+from sqlalchemy import and_
 from sqlalchemy import column
+from sqlalchemy import exists
 from sqlalchemy import false
 from sqlalchemy import func
 from sqlalchemy import literal
@@ -49,6 +51,7 @@ from mora.db import PolicySelectorKind
 from mora.graphapi import resolvers
 from mora.graphapi.custom_schema import get_version
 from mora.graphapi.policy import AccessKey
+from mora.graphapi.policy import CheckSpec
 from mora.graphapi.policy import Collection
 from mora.graphapi.policy import Field
 from mora.graphapi.policy import MutatorRule
@@ -159,6 +162,47 @@ def reached_objects(
         settings,
         schema,
     )
+
+
+def as_spec(spec: Any) -> CheckSpec:
+    """The check spec a mutator rule's filter names."""
+    match spec:
+        case {"collection": str(collection), "filter": dict(filter)}:
+            return CheckSpec(collection, filter)
+    raise ValueError(f"A mutator rule names no object in {spec!r}")
+
+
+def owned_objects(
+    rules: Iterable[MutatorRule],
+    settings: Settings,
+    schema: Schema,
+    activation: Activation,
+) -> ColumnElement[bool] | None:
+    """What the caller must own for one of the rules to grant the mutator.
+
+    A rule requires every object its filter names, and the rules of a mutator
+    are alternatives, so any one of them granting is enough. A rule naming
+    nothing requires an object that does not exist, so it grants nothing, and
+    None is the answer when no rule is left to grant anything.
+    """
+    owned = []
+    for rule in rules:
+        specs = [as_spec(spec) for spec in evaluate_filter(rule.filter, activation)]
+        if not specs:
+            continue
+        owned.append(
+            and_(
+                *(
+                    exists().where(
+                        named_objects(spec.collection, spec.filter, settings, schema)
+                    )
+                    for spec in specs
+                )
+            )
+        )
+    if not owned:
+        return None
+    return or_(*owned)
 
 
 async def load_rules(
