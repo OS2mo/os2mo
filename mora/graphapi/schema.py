@@ -27,7 +27,6 @@ from strawberry.exceptions import StrawberryGraphQLError
 from strawberry.extensions import SchemaExtension
 from strawberry.file_uploads import UploadDefinition
 from strawberry.schema.config import StrawberryConfig
-from strawberry.types.arguments import convert_arguments
 from strawberry.utils.await_maybe import AsyncIteratorOrIterator
 from strawberry.utils.await_maybe import AwaitableOrValue
 from strawberry.utils.await_maybe import await_maybe
@@ -42,7 +41,6 @@ from mora.graphapi.collections import DARAddress
 from mora.graphapi.collections import DefaultAddress
 from mora.graphapi.collections import MultifieldAddress
 from mora.graphapi.custom_schema import CustomSchema
-from mora.graphapi.custom_schema import get_version
 from mora.graphapi.events import EVENT_TOKEN_SCALAR
 from mora.graphapi.events import EventToken
 from mora.graphapi.middleware import StarletteContextExtension
@@ -62,7 +60,9 @@ from mora.graphapi.model_registration import PersonRegistration
 from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
-from mora.graphapi.owner_entities import OWNER_ENTITIES
+from mora.graphapi.policies import owned_objects
+from mora.graphapi.policy_cel import build_activation
+from mora.graphapi.policy_cel import check_condition
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import ADMIN_MAP
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
@@ -240,48 +240,38 @@ def admin_policy(
 def owner_policy(
     info: GraphQLResolveInfo, kwargs: dict[str, Any]
 ) -> AwaitableOrValue[bool]:
-    """Allow access if the user is the owner of the accessed resources."""
-    token = info.context.token
-    token_roles = token.realm_access.roles
-
-    if "owner" not in token_roles:
-        return False
-
-    # A token carrying no uuid names no employee, so it owns nothing
-    if token.uuid is None:
-        return False
-
+    """Allow access if the user owns what the mutator changes."""
+    # Only a mutator changes anything, and only rules grant one
     if info.operation.operation is not OperationType.MUTATION:
         return False
 
-    if "input" not in kwargs:
-        return False
-
-    rule = OWNER_ENTITIES.get(info.field_name)
-    if rule is None:
-        return False
-
+    context = info.context
     moinfo = _create_info_from_raw(info)
-    settings = moinfo.context.settings
-    version = get_version(moinfo.schema)
-    # Extensions see the arguments as graphql-core coerced them, input objects
-    # still being dicts; convert them into the inputs the mutator itself gets
-    arguments = convert_arguments(
-        kwargs,
-        moinfo._field.arguments,
-        scalar_registry=moinfo.schema.schema_converter.scalar_registry,
-        config=moinfo.schema.config,
-    )
-    check = rule(settings, version, token, arguments)
-    logger.debug("Check owner", check=check)
-    # Nothing to own is not owned by anybody
-    if check is None:
-        return False
 
-    async def owned() -> bool:
-        return bool(await moinfo.context.session.scalar(select(check)))
+    async def owns() -> bool:
+        # The rules of the caller's policies, read once per request
+        rules = await context.dataloaders.policy_loader.load(
+            frozenset(context.token.realm_access.roles)
+        )
+        # Extensions see the arguments as graphql-core coerced them, which is
+        # how a rule reads them: input objects are plain maps
+        activation = build_activation(context.token, context.settings, kwargs)
+        granting = [
+            rule
+            for rule in rules
+            if rule.name == info.field_name
+            and check_condition(rule.condition, activation)
+        ]
+        # A rule requiring nothing owned grants the mutator outright
+        if any(not rule.filter for rule in granting):
+            return True
+        owned = owned_objects(granting, context.settings, moinfo.schema, activation)
+        # Nothing to own is not owned by anybody
+        if owned is None:
+            return False
+        return bool(await context.session.scalar(select(owned)))
 
-    return owned()
+    return owns()
 
 
 POLICIES: list[Policy] = [
