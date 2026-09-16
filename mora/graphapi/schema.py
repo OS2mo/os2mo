@@ -9,7 +9,6 @@ from contextlib import suppress
 from functools import cache
 from functools import partial
 from inspect import isawaitable
-from types import SimpleNamespace
 from typing import TYPE_CHECKING
 from typing import Any
 
@@ -20,7 +19,6 @@ from graphql import GraphQLResolveInfo
 from graphql import OperationType
 from graphql import is_introspection_type
 from pydantic import PositiveInt
-from sqlalchemy import and_
 from sqlalchemy import select
 from starlette.datastructures import UploadFile
 from starlette_context import context as starlette_context
@@ -29,13 +27,13 @@ from strawberry.exceptions import StrawberryGraphQLError
 from strawberry.extensions import SchemaExtension
 from strawberry.file_uploads import UploadDefinition
 from strawberry.schema.config import StrawberryConfig
+from strawberry.types.arguments import convert_arguments
 from strawberry.utils.await_maybe import AsyncIteratorOrIterator
 from strawberry.utils.await_maybe import AwaitableOrValue
 from strawberry.utils.await_maybe import await_maybe
 from structlog import get_logger
 
 from mora import config
-from mora.auth.keycloak.models import Token
 from mora.db import get_session
 from mora.exceptions import HTTPException
 from mora.graphapi.actor import SpecialActor
@@ -44,11 +42,9 @@ from mora.graphapi.collections import DARAddress
 from mora.graphapi.collections import DefaultAddress
 from mora.graphapi.collections import MultifieldAddress
 from mora.graphapi.custom_schema import CustomSchema
+from mora.graphapi.custom_schema import get_version
 from mora.graphapi.events import EVENT_TOKEN_SCALAR
 from mora.graphapi.events import EventToken
-from mora.graphapi.filters import EmployeeFilter
-from mora.graphapi.filters import ITSystemFilter
-from mora.graphapi.filters import ITUserFilter
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.model_registration import AddressRegistration
 from mora.graphapi.model_registration import AssociationRegistration
@@ -78,7 +74,6 @@ from mora.graphapi.types import Cursor
 from mora.graphapi.version import Version
 from mora.log import canonical_gql_context
 from mora.util import CPR
-from mora.util import ensure_list
 
 if TYPE_CHECKING:
     from mora.graphapi.context import MOInfo
@@ -242,26 +237,6 @@ def admin_policy(
     return (info.parent_type.name, info.field_name) in ADMIN_MAP
 
 
-def _actor_filter(settings: config.Settings, token: Token) -> EmployeeFilter:
-    """The employee filter matching the calling actor.
-
-    With `KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS` configured, the
-    actor is the employee holding the token's uuid as an external id in that
-    IT system; otherwise the employee with the token's uuid itself.
-    """
-    # A token with no uuid never gets this far, see `owner_policy`
-    assert token.uuid is not None
-    it_system = settings.keycloak_rbac_authoritative_it_system_for_owners
-    if it_system is not None:
-        return EmployeeFilter(
-            ituser=ITUserFilter(
-                itsystem=ITSystemFilter(uuids=[it_system]),
-                external_ids=[str(token.uuid)],
-            )
-        )
-    return EmployeeFilter(uuids=[token.uuid])
-
-
 def owner_policy(
     info: GraphQLResolveInfo, kwargs: dict[str, Any]
 ) -> AwaitableOrValue[bool]:
@@ -282,27 +257,29 @@ def owner_policy(
     if "input" not in kwargs:
         return False
 
-    if info.field_name not in OWNER_ENTITIES:
+    rule = OWNER_ENTITIES.get(info.field_name)
+    if rule is None:
         return False
-    collection, permission_type = OWNER_ENTITIES[info.field_name]
-
-    input = [SimpleNamespace(**item) for item in ensure_list(kwargs["input"])]
-
-    # Import here to avoid circular imports 🙂👍
-    from mora.auth.keycloak.uuid_extractor import get_entities_graphql
 
     moinfo = _create_info_from_raw(info)
-    actor = _actor_filter(moinfo.context.settings, token)
-    checks = list(
-        get_entities_graphql(moinfo, actor, input, collection, permission_type)
+    settings = moinfo.context.settings
+    version = get_version(moinfo.schema)
+    # Extensions see the arguments as graphql-core coerced them, input objects
+    # still being dicts; convert them into the inputs the mutator itself gets
+    arguments = convert_arguments(
+        kwargs,
+        moinfo._field.arguments,
+        scalar_registry=moinfo.schema.schema_converter.scalar_registry,
+        config=moinfo.schema.config,
     )
-    logger.debug("Check owner", checks=checks)
+    check = rule(settings, version, token, arguments)
+    logger.debug("Check owner", check=check)
     # Nothing to own is not owned by anybody
-    if not checks:
+    if check is None:
         return False
 
     async def owned() -> bool:
-        return bool(await moinfo.context.session.scalar(select(and_(*checks))))
+        return bool(await moinfo.context.session.scalar(select(check)))
 
     return owned()
 
