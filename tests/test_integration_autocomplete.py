@@ -58,3 +58,28 @@ def test_employee_address_search_phone(
     assert response.errors is None
     uuids = {obj["uuid"] for obj in response.data["employees"]["objects"]}
     assert "53181ed2-f1de-4c4a-a8fd-ab358c2c454a" in uuids
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_employee_cpr_search_enabled(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """CPR search should return matching employees by default."""
+    response = graphapi_post(EMPLOYEE_SEARCH_QUERY, variables={"query": "0906340000"})
+    assert response.errors is None
+    uuids = {obj["uuid"] for obj in response.data["employees"]["objects"]}
+    assert "53181ed2-f1de-4c4a-a8fd-ab358c2c454a" in uuids
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar({"PERSON_CPR_SEARCH_ENABLED": "False"})
+@pytest.mark.usefixtures("fixture_db")
+def test_employee_cpr_search_disabled(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """CPR search should not return results when the flag is disabled."""
+    response = graphapi_post(EMPLOYEE_SEARCH_QUERY, variables={"query": "0906340000"})
+    assert response.errors is None
+    uuids = {obj["uuid"] for obj in response.data["employees"]["objects"]}
+    assert "53181ed2-f1de-4c4a-a8fd-ab358c2c454a" not in uuids
