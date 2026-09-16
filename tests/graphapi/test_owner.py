@@ -9,7 +9,13 @@ from uuid import uuid4
 
 import pytest
 from fastapi.encoders import jsonable_encoder
+from sqlalchemy import delete
 
+from mora.db import Policy
+from mora.db import PolicyMutator
+from mora.db import PolicySelector
+from mora.db import PolicySelectorKind
+from tests.conftest import AnotherTransaction
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
@@ -867,3 +873,115 @@ async def test_owner_grants_mutations_only(
             variables=jsonable_encoder({"filter": {"listener": uuid4()}}),
         )
     )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_owner_calls_only_the_mutators_a_policy_names(
+    create_org_unit: Callable[..., UUID],
+    set_auth: SetAuth,
+    alice: UUID,
+    make_owner: Callable[..., None],
+    another_transaction: AnotherTransaction,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """The mutators ownership grants are the ones the database names."""
+    owned = create_org_unit("owned")
+    make_owner(alice, org_unit=owned)
+
+    def rename(name: str) -> GQLResponse:
+        return graphapi_post(
+            """
+            mutation UpdateOU($input: OrganisationUnitUpdateInput!) {
+                org_unit_update(input: $input) { uuid }
+            }
+            """,
+            variables=jsonable_encoder(
+                {
+                    "input": {
+                        "uuid": owned,
+                        "validity": {"from": "2021-01-01"},
+                        "name": name,
+                    }
+                }
+            ),
+        )
+
+    set_auth(role="owner", user_uuid=alice)
+    assert_granted(rename("Renamed"))
+
+    # Dropping the mutator leaves the ownership intact and the call ungranted
+    async with another_transaction() as (_, session):
+        await session.execute(
+            delete(PolicyMutator).where(PolicyMutator.name == "org_unit_update")
+        )
+
+    assert_denied(rename("Renamed again"))
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_mutator_rule_names_what_its_caller_must_own(
+    create_org_unit: Callable[..., UUID],
+    set_auth: SetAuth,
+    alice: UUID,
+    make_owner: Callable[..., None],
+    another_transaction: AnotherTransaction,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """A policy grants a mutator to whoever owns what its rule names.
+
+    Ownership is nothing but a rule: a policy of any name grants a mutator to
+    the callers its selector names, over the objects its filter names.
+    """
+    owned = create_org_unit("owned")
+    unowned = create_org_unit("unowned")
+    make_owner(alice, org_unit=owned)
+
+    def rename(unit: UUID) -> GQLResponse:
+        return graphapi_post(
+            """
+            mutation UpdateOU($input: OrganisationUnitUpdateInput!) {
+                org_unit_update(input: $input) { uuid }
+            }
+            """,
+            variables=jsonable_encoder(
+                {
+                    "input": {
+                        "uuid": unit,
+                        "validity": {"from": "2021-01-01"},
+                        "name": "Renamed",
+                    }
+                }
+            ),
+        )
+
+    async with another_transaction() as (_, session):
+        session.add(
+            Policy(
+                name="HR",
+                active=True,
+                selectors=[PolicySelector(kind=PolicySelectorKind.role, value="hr")],
+                mutators=[
+                    PolicyMutator(
+                        name="org_unit_update",
+                        filter="""[{
+                            "collection": "OrganisationUnit",
+                            "filter": {
+                                "descendant": {"uuids": [args.input.uuid]},
+                                "owner": {"owner": {"uuids": [token.uuid]}}
+                            }
+                        }]""",
+                    )
+                ],
+            )
+        )
+
+    # `reader` reads the mutation's response, `hr` names the policy granting it
+    set_auth(role=["reader", "hr"], user_uuid=alice)
+    assert_granted(rename(owned))
+    assert_denied(rename(unowned))
+
+    # The policy names no other caller, whoever they own
+    set_auth(role="reader", user_uuid=alice)
+    assert_denied(rename(owned))
