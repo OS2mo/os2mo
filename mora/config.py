@@ -206,6 +206,9 @@ class Settings(BaseSettings):
 
     person_address_search_enabled: bool = False
 
+    # Whether free text search of persons also matches CPR numbers
+    person_cpr_search_enabled: bool = True
+
     def is_production(self) -> bool:
         """Return whether we are running in a production environment."""
         return self.environment is Environment.PRODUCTION

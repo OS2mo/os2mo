@@ -27,9 +27,10 @@ def search_employees_predicate(query: str, settings: Settings) -> ColumnElement:
         _get_cte_uuid_hits(query),
         _get_cte_user_key_hits(query),
         _get_cte_name_hits(query),
-        _get_cte_cpr_hits(query),
         _get_cte_itsystem_hits(query),
     ]
+    if settings.person_cpr_search_enabled:
+        ctes.append(_get_cte_cpr_hits(query))
     if settings.person_address_search_enabled:
         ctes.append(_get_cte_addr_hits(query))
 
