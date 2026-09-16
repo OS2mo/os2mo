@@ -14,13 +14,20 @@ from uuid import uuid4
 
 import pytest
 from sqlalchemy import Boolean
+from sqlalchemy import delete
 from sqlalchemy import literal
 from sqlalchemy import true
+from sqlalchemy import update
 
 from mora.db import OrganisationFunktionRegistrering
+from mora.db import Policy
+from mora.db import PolicyReader
+from mora.db import PolicySelector
+from mora.db import PolicySelectorKind
 from mora.graphapi import schema
 from mora.graphapi.policy import ReadRule
 from mora.graphapi.policy import Rules
+from tests.conftest import AnotherTransaction
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
@@ -214,3 +221,153 @@ async def test_a_condition_unknown_of_an_object_grants_nothing_on_it(
     assert _failures(response) == {
         (DENIED, ("addresses", "objects", index, "current", "value"))
     }
+
+
+ADDRESS_READER = delete(PolicyReader).where(PolicyReader.collection == "Address")
+
+# `uuid` on the address itself, which only a read rule grants, unlike the
+# `uuid` of the response wrapping it, which the RBAC map grants
+ADDRESS_UUID = """
+query {
+    addresses {
+        objects { current { uuid } }
+    }
+}
+"""
+
+NO_ADDRESS = {"addresses": {"objects": [{"current": None}, {"current": None}]}}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "two_addresses")
+async def test_a_reader_dropped_from_the_database_grants_nothing(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    another_transaction: AnotherTransaction,
+) -> None:
+    """Every read is decided by the policies the database holds at the time."""
+    async with another_transaction() as (_, session):
+        await session.execute(ADDRESS_READER)
+    set_auth({"reader"}, uuid4())
+
+    response = graphapi_post(ADDRESS_UUID)
+
+    assert response.data == NO_ADDRESS
+    assert _failures(response) == {
+        (DENIED, ("addresses", "objects", index, "current", "uuid")) for index in (0, 1)
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "two_addresses")
+async def test_a_policy_grants_the_callers_its_selector_names(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    another_transaction: AnotherTransaction,
+) -> None:
+    """A policy is the caller's when one of its selectors matches their roles."""
+    async with another_transaction() as (_, session):
+        await session.execute(ADDRESS_READER)
+        session.add(
+            Policy(
+                name="HR",
+                active=True,
+                selectors=[PolicySelector(kind=PolicySelectorKind.role, value="hr")],
+                readers=[PolicyReader(collection="Address", fields=["uuid"])],
+            )
+        )
+
+    # The `reader` role names no policy granting an address any more
+    set_auth({"reader"}, uuid4())
+    response = graphapi_post(ADDRESS_UUID)
+    assert response.data == NO_ADDRESS
+    assert _failures(response) == {
+        (DENIED, ("addresses", "objects", index, "current", "uuid")) for index in (0, 1)
+    }
+
+    # ... but `hr` names one, and holding both roles is holding both policies
+    set_auth({"reader", "hr"}, uuid4())
+    response = graphapi_post(ADDRESS_UUID)
+    assert response.errors is None
+    assert response.data
+    objects = response.data["addresses"]["objects"]
+    assert len(objects) == 2
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_readers_filter_names_the_objects_it_reaches(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    another_transaction: AnotherTransaction,
+    two_addresses: tuple[UUID, UUID],
+) -> None:
+    """A reader reaches the objects its CEL filter names, and no others.
+
+    The filter is the GraphQL filter a caller would write on the collection,
+    so the objects it names are the ones that query would return.
+    """
+    matched, unmatched = two_addresses
+    async with another_transaction() as (_, session):
+        # The seeded reader grants the uuid of every address ...
+        await session.execute(
+            update(PolicyReader)
+            .where(PolicyReader.collection == "Address")
+            .values(fields=["uuid"])
+        )
+        # ... and a second one grants the value of one address only
+        session.add(
+            Policy(
+                name="Values",
+                active=True,
+                selectors=[
+                    PolicySelector(kind=PolicySelectorKind.role, value="reader")
+                ],
+                readers=[
+                    PolicyReader(
+                        collection="Address",
+                        fields=["value"],
+                        filter=f'{{"uuids": ["{matched}"]}}',
+                    )
+                ],
+            )
+        )
+    set_auth({"reader"}, uuid4())
+
+    response = graphapi_post(TOP_LEVEL)
+
+    assert response.data
+    objects = response.data["addresses"]["objects"]
+    current = {x["uuid"]: x["current"] for x in objects}
+    assert current == {str(matched): {"value": VALUES[0]}, str(unmatched): None}
+    index = objects.index({"uuid": str(unmatched), "current": None})
+    assert _failures(response) == {
+        (DENIED, ("addresses", "objects", index, "current", "value"))
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "two_addresses")
+async def test_a_readers_condition_must_hold_for_it_to_apply(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    another_transaction: AnotherTransaction,
+) -> None:
+    """A reader whose CEL condition the caller fails grants them nothing."""
+    async with another_transaction() as (_, session):
+        await session.execute(
+            update(PolicyReader)
+            .where(PolicyReader.collection == "Address")
+            .values(condition='token.preferred_username == "alice"')
+        )
+
+    set_auth({"reader"}, uuid4(), "bruce")
+    response = graphapi_post(ADDRESS_UUID)
+    assert response.data == NO_ADDRESS
+    assert _failures(response) == {
+        (DENIED, ("addresses", "objects", index, "current", "uuid")) for index in (0, 1)
+    }
+
+    set_auth({"reader"}, uuid4(), "alice")
+    response = graphapi_post(ADDRESS_UUID)
+    assert response.errors is None
