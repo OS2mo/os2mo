@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from itertools import chain
 from unittest.mock import AsyncMock
+from uuid import UUID
 
 import pytest
 from more_itertools import distinct_permutations
@@ -70,19 +71,19 @@ async def test_mocking_and_cache_clearing(mock_organisation):
     assert raw_org == {"uuid": str(uuid), "name": "name", "user_key": "user_key"}
 
 
-def test_query_organisation(graphapi_post: GraphAPIPost, mock_organisation):
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_query_organisation(graphapi_post: GraphAPIPost, root_org: UUID):
     """Test that we are able to query our organisation."""
-    uuid = mock_organisation
-
     query = "query { org { uuid, name, user_key }}"
     result: GQLResponse = graphapi_post(query)
 
     assert result.errors is None
     assert result.data
     assert result.data["org"] == {
-        "uuid": str(uuid),
-        "name": "name",
-        "user_key": "user_key",
+        "uuid": str(root_org),
+        "name": "root",
+        "user_key": "root",
     }
 
 
@@ -104,6 +105,8 @@ async def test_invalid_query_no_organisation(graphapi_post: GraphAPIPost, monkey
 org_fields = ["uuid", "name", "user_key"]
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "fields",
     sorted(
@@ -115,33 +118,28 @@ org_fields = ["uuid", "name", "user_key"]
     ),
 )
 async def test_query_all_permutations_of_organisation(
-    graphapi_post: GraphAPIPost, respx_mock, fields, mock_organisation
+    graphapi_post: GraphAPIPost, fields, root_org: UUID
 ):
     """Test all permutations (15) of queries against our organisation.
 
     We will only check all permutations here, and for all other entity types we will
     just assume that it works as expected.
     """
-    uuid = mock_organisation
-
     # Fields will contain a tuple of field names with atleast 1 element
     combined_fields = ", ".join(fields)
     query = "query { org { %s }}" % combined_fields
     result: GQLResponse = graphapi_post(query)
-
-    # We expect only expect the GraphQL request.
-    assert respx_mock.calls.call_count == 1
 
     assert result.errors is None
     # Check that all expected fields are in output
     assert result.data
     org = result.data["org"]
     if "uuid" in fields:
-        assert org.pop("uuid") == str(uuid)
+        assert org.pop("uuid") == str(root_org)
     if "name" in fields:
-        assert org.pop("name") == "name"
+        assert org.pop("name") == "root"
     if "user_key" in fields:
-        assert org.pop("user_key") == "user_key"
+        assert org.pop("user_key") == "root"
     # Check that no extra fields were returned
     assert org == {}
 
