@@ -20,7 +20,7 @@ from sqlalchemy import CompoundSelect
 from sqlalchemy import Select
 from sqlalchemy import String
 from sqlalchemy import Uuid
-from sqlalchemy import any_
+from sqlalchemy import column
 from sqlalchemy import false
 from sqlalchemy import func
 from sqlalchemy import literal
@@ -154,19 +154,20 @@ def denied_select(
     """Select the accesses to deny among accesses that the same rules grant.
 
     A rule granting one of the fields grants them all, so one test per object
-    answers for every field, and the fields are expanded onto the objects the
-    test denied.
+    answers for every field, and the fields are expanded onto the objects no
+    rule granted.
     """
     uuids = literal(list({access.uuid for access in accesses}), ARRAY(Uuid))
     fields = literal(list({access.field for access in accesses}), ARRAY(String))
     model = MODEL_OF_COLLECTION[collection]
 
+    asked = func.unnest(uuids).table_valued(column("uuid", Uuid)).render_derived()
     # The disjunction of no conditions is false: without a rule, nothing is granted
-    granted = select(model.uuid).where(
-        model.uuid == any_(uuids),
+    granted = select(1).where(
+        model.uuid == asked.c.uuid,
         or_(false(), *(rule.condition for rule in rules)),
     )
-    denied = select(func.unnest(uuids).label("uuid")).except_(granted).subquery()
+    denied = select(asked.c.uuid).where(~granted.exists()).subquery()
 
     return select(
         literal(collection).label("collection"),
