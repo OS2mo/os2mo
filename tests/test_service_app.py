@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import pytest
 from fastapi.testclient import TestClient
 from starlette.responses import JSONResponse
 
@@ -27,6 +28,8 @@ class TestServiceApp:
             "status": 404,
         }
 
+    @pytest.mark.integration_test
+    @pytest.mark.usefixtures("empty_db")
     def test_exception_handling(
         self, service_client_not_raising: TestClient, monkeypatch
     ):

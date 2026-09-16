@@ -2,17 +2,16 @@
 # SPDX-License-Identifier: MPL-2.0
 """Rule-based read access to specific fields of specific entities of a collection."""
 
-from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Container
 from collections.abc import Iterable
 from collections.abc import Sequence
 from functools import partial
 from typing import Any
-from typing import NamedTuple
-from typing import TypeAlias
+from typing import get_type_hints
 from uuid import UUID
 
+from graphql import coerce_input_value
 from more_itertools import map_reduce
 from sqlalchemy import ARRAY
 from sqlalchemy import ColumnElement
@@ -28,9 +27,13 @@ from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy import true
 from sqlalchemy import union_all
+from sqlalchemy.orm import selectinload
+from strawberry import Schema
 from strawberry.dataloader import DataLoader
+from strawberry.types.arguments import convert_argument
 
 from mora.auth.keycloak.models import Token
+from mora.config import Settings
 from mora.db import AsyncSession
 from mora.db import BrugerRegistrering
 from mora.db import FacetRegistrering
@@ -39,31 +42,23 @@ from mora.db import KlasseRegistrering
 from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationFunktionRegistrering
 from mora.db import OrganisationRegistrering
-
-# OIDC token role
-Role: TypeAlias = str
-# GraphQL collection
-Collection: TypeAlias = str
-# GraphQL field
-Field: TypeAlias = str
-
-
-class Rule(NamedTuple):
-    """Grants read access to the fields on the collection under the condition."""
-
-    role: Role
-    collection: Collection
-    condition: ColumnElement[bool]
-    fields: frozenset[Field]
-
-
-class AccessKey(NamedTuple):
-    """A field access request."""
-
-    collection: Collection
-    uuid: UUID
-    field: Field
-
+from mora.db import Policy
+from mora.db import PolicyReader
+from mora.db import PolicySelector
+from mora.db import PolicySelectorKind
+from mora.graphapi import resolvers
+from mora.graphapi.custom_schema import get_version
+from mora.graphapi.policy import AccessKey
+from mora.graphapi.policy import Collection
+from mora.graphapi.policy import Field
+from mora.graphapi.policy import MutatorRule
+from mora.graphapi.policy import ReadRule
+from mora.graphapi.policy import Role
+from mora.graphapi.policy import Rules
+from mora.graphapi.policy_cel import Activation
+from mora.graphapi.policy_cel import build_activation
+from mora.graphapi.policy_cel import check_condition
+from mora.graphapi.policy_cel import evaluate_filter
 
 # Each collection's model, holding the registrations of its objects.
 # Every detail is an organisation function.
@@ -87,505 +82,151 @@ MODEL_OF_COLLECTION: dict[Collection, Any] = {
 }
 
 
-# The rules of every role. A caller's are those of their roles.
-ROLE_POLICIES: list[Rule] = [
-    Rule(
-        role="reader",
-        collection="Address",
-        condition=true(),
-        fields=frozenset(
-            {
-                "address_type",
-                "address_type_response",
-                "address_type_uuid",
-                "employee",
-                "employee_uuid",
-                "engagement",
-                "engagement_response",
-                "engagement_uuid",
-                "href",
-                "ituser",
-                "ituser_response",
-                "ituser_uuid",
-                "name",
-                "org_unit",
-                "org_unit_response",
-                "org_unit_uuid",
-                "person",
-                "person_response",
-                "resolve",
-                "type",
-                "user_key",
-                "uuid",
-                "validity",
-                "value",
-                "value2",
-                "visibility",
-                "visibility_response",
-                "visibility_uuid",
-            }
-        ),
-    ),
-    Rule(
-        role="reader",
-        collection="Association",
-        condition=true(),
-        fields=frozenset(
-            {
-                "association_type",
-                "association_type_response",
-                "association_type_uuid",
-                "dynamic_class",
-                "dynamic_class_response",
-                "dynamic_class_uuid",
-                "employee",
-                "employee_uuid",
-                "it_user",
-                "it_user_response",
-                "it_user_uuid",
-                "job_function",
-                "job_function_response",
-                "job_function_uuid",
-                "org_unit",
-                "org_unit_response",
-                "org_unit_uuid",
-                "person",
-                "person_response",
-                "primary",
-                "primary_response",
-                "primary_uuid",
-                "substitute",
-                "substitute_response",
-                "substitute_uuid",
-                "trade_union",
-                "trade_union_response",
-                "trade_union_uuid",
-                "type",
-                "user_key",
-                "uuid",
-                "validity",
-            }
-        ),
-    ),
-    Rule(
-        role="reader",
-        collection="Class",
-        condition=true(),
-        fields=frozenset(
-            {
-                "children",
-                "children_response",
-                "description",
-                "example",
-                "facet",
-                "facet_response",
-                "facet_uuid",
-                "full_name",
-                "it_system",
-                "it_system_response",
-                "it_system_uuid",
-                "name",
-                "org_uuid",
-                "owner",
-                "owner_response",
-                "parent",
-                "parent_response",
-                "parent_uuid",
-                "published",
-                "scope",
-                "top_level_facet",
-                "type",
-                "user_key",
-                "uuid",
-                "validity",
-            }
-        ),
-    ),
-    Rule(
-        role="reader",
-        collection="Employee",
-        condition=true(),
-        fields=frozenset(
-            {
-                "addresses",
-                "addresses_response",
-                "associations",
-                "associations_response",
-                "cpr_no",
-                "cpr_number",
-                "engagements",
-                "engagements_response",
-                "given_name",
-                "givenname",
-                "itusers",
-                "itusers_response",
-                "leaves",
-                "leaves_response",
-                "manager_roles",
-                "manager_roles_response",
-                "name",
-                "nickname",
-                "nickname_given_name",
-                "nickname_givenname",
-                "nickname_surname",
-                "seniority",
-                "surname",
-                "type",
-                "user_key",
-                "uuid",
-                "validity",
-            }
-        ),
-    ),
-    Rule(
-        role="reader",
-        collection="Engagement",
-        condition=true(),
-        fields=frozenset(
-            {
-                "addresses_response",
-                "employee",
-                "employee_uuid",
-                "engagement_type",
-                "engagement_type_response",
-                "engagement_type_uuid",
-                "extension_1",
-                "extension_10",
-                "extension_2",
-                "extension_3",
-                "extension_4",
-                "extension_5",
-                "extension_6",
-                "extension_7",
-                "extension_8",
-                "extension_9",
-                "fraction",
-                "is_primary",
-                "itusers",
-                "itusers_response",
-                "job_function",
-                "job_function_response",
-                "job_function_uuid",
-                "leave",
-                "leave_response",
-                "leave_uuid",
-                "managers",
-                "org_unit",
-                "org_unit_response",
-                "org_unit_uuid",
-                "person",
-                "person_response",
-                "primary",
-                "primary_response",
-                "primary_uuid",
-                "type",
-                "user_key",
-                "uuid",
-                "validity",
-            }
-        ),
-    ),
-    Rule(
-        role="reader",
-        collection="Facet",
-        condition=true(),
-        fields=frozenset(
-            {
-                "children",
-                "children_response",
-                "classes",
-                "classes_responses",
-                "description",
-                "org_uuid",
-                "parent",
-                "parent_response",
-                "parent_uuid",
-                "published",
-                "type",
-                "user_key",
-                "uuid",
-                "validity",
-            }
-        ),
-    ),
-    Rule(
-        role="reader",
-        collection="ITSystem",
-        condition=true(),
-        fields=frozenset(
-            {
-                "name",
-                "roles",
-                "roles_response",
-                "system_type",
-                "type",
-                "user_key",
-                "uuid",
-                "validity",
-            }
-        ),
-    ),
-    Rule(
-        role="reader",
-        collection="ITUser",
-        condition=true(),
-        fields=frozenset(
-            {
-                "addresses",
-                "addresses_response",
-                "binding_type",
-                "employee",
-                "employee_uuid",
-                "engagement",
-                "engagement_response",
-                "engagement_uuid",
-                "engagement_uuids",
-                "engagements",
-                "engagements_responses",
-                "external_id",
-                "itsystem",
-                "itsystem_response",
-                "itsystem_uuid",
-                "org_unit",
-                "org_unit_response",
-                "org_unit_uuid",
-                "person",
-                "person_response",
-                "primary",
-                "primary_response",
-                "primary_uuid",
-                "rolebindings",
-                "rolebindings_response",
-                "type",
-                "user_key",
-                "uuid",
-                "validity",
-            }
-        ),
-    ),
-    Rule(
-        role="reader",
-        collection="KLE",
-        condition=true(),
-        fields=frozenset(
-            {
-                "kle_aspect_uuids",
-                "kle_aspects",
-                "kle_aspects_response",
-                "kle_number",
-                "kle_number_response",
-                "kle_number_uuid",
-                "org_unit",
-                "org_unit_response",
-                "org_unit_uuid",
-                "type",
-                "user_key",
-                "uuid",
-                "validity",
-            }
-        ),
-    ),
-    Rule(
-        role="reader",
-        collection="Leave",
-        condition=true(),
-        fields=frozenset(
-            {
-                "employee",
-                "employee_uuid",
-                "engagement",
-                "engagement_response",
-                "engagement_uuid",
-                "leave_type",
-                "leave_type_response",
-                "leave_type_uuid",
-                "person",
-                "person_response",
-                "type",
-                "user_key",
-                "uuid",
-                "validity",
-            }
-        ),
-    ),
-    Rule(
-        role="reader",
-        collection="Manager",
-        condition=true(),
-        fields=frozenset(
-            {
-                "employee",
-                "employee_uuid",
-                "engagement_response",
-                "manager_level",
-                "manager_level_response",
-                "manager_level_uuid",
-                "manager_type",
-                "manager_type_response",
-                "manager_type_uuid",
-                "org_unit",
-                "org_unit_response",
-                "org_unit_uuid",
-                "person",
-                "person_response",
-                "responsibilities",
-                "responsibilities_response",
-                "responsibility_uuids",
-                "type",
-                "user_key",
-                "uuid",
-                "validity",
-            }
-        ),
-    ),
-    Rule(
-        role="reader",
-        collection="Organisation",
-        condition=true(),
-        fields=frozenset(
-            {
-                "municipality_code",
-                "name",
-                "type",
-                "user_key",
-                "uuid",
-            }
-        ),
-    ),
-    Rule(
-        role="reader",
-        collection="OrganisationUnit",
-        condition=true(),
-        fields=frozenset(
-            {
-                "addresses",
-                "addresses_response",
-                "ancestors",
-                "associations",
-                "associations_response",
-                "child_count",
-                "children",
-                "children_response",
-                "engagements",
-                "engagements_response",
-                "has_children",
-                "itusers",
-                "itusers_response",
-                "kles",
-                "kles_response",
-                "leaves",
-                "leaves_response",
-                "managers",
-                "managers_response",
-                "name",
-                "org_unit_hierarchy",
-                "org_unit_hierarchy_model",
-                "org_unit_level",
-                "org_unit_level_uuid",
-                "owners",
-                "parent",
-                "parent_response",
-                "parent_uuid",
-                "related_units",
-                "related_units_response",
-                "root",
-                "root_response",
-                "time_planning",
-                "time_planning_response",
-                "time_planning_uuid",
-                "type",
-                "unit_hierarchy_response",
-                "unit_level_response",
-                "unit_type",
-                "unit_type_response",
-                "unit_type_uuid",
-                "user_key",
-                "uuid",
-                "validity",
-            }
-        ),
-    ),
-    Rule(
-        role="reader",
-        collection="Owner",
-        condition=true(),
-        fields=frozenset(
-            {
-                "employee_uuid",
-                "org_unit",
-                "org_unit_response",
-                "org_unit_uuid",
-                "owner",
-                "owner_inference_priority",
-                "owner_response",
-                "owner_uuid",
-                "person",
-                "person_response",
-                "type",
-                "user_key",
-                "uuid",
-                "validity",
-            }
-        ),
-    ),
-    Rule(
-        role="reader",
-        collection="RelatedUnit",
-        condition=true(),
-        fields=frozenset(
-            {
-                "org_unit_uuids",
-                "org_units",
-                "org_units_response",
-                "type",
-                "user_key",
-                "uuid",
-                "validity",
-            }
-        ),
-    ),
-    Rule(
-        role="reader",
-        collection="RoleBinding",
-        condition=true(),
-        fields=frozenset(
-            {
-                "ituser",
-                "ituser_response",
-                "org_unit",
-                "org_unit_response",
-                "role",
-                "role_response",
-                "user_key",
-                "uuid",
-                "validity",
-            }
-        ),
-    ),
-]
+# Each collection's predicate, selecting the objects a filter names.
+# `Organisation` has none: there is one root organisation, and nothing to name
+PREDICATE_OF_COLLECTION: dict[Collection, Callable[..., ColumnElement]] = {
+    "Address": resolvers.address_predicate,
+    "Association": resolvers.association_predicate,
+    "Class": resolvers.class_predicate,
+    "Employee": resolvers.employee_predicate,
+    "Engagement": resolvers.engagement_predicate,
+    "Facet": resolvers.facet_predicate,
+    "ITSystem": resolvers.it_system_predicate,
+    "ITUser": resolvers.it_user_predicate,
+    "KLE": resolvers.kle_predicate,
+    "Leave": resolvers.leave_predicate,
+    "Manager": resolvers.manager_predicate,
+    "OrganisationUnit": resolvers.organisation_unit_predicate,
+    "Owner": resolvers.owner_predicate,
+    "RelatedUnit": resolvers.related_unit_predicate,
+    "RoleBinding": resolvers.rolebinding_predicate,
+}
 
 
-def load_rules(
-    roles: Container[Role], collection: Collection, keys: Sequence[AccessKey]
-) -> list[Rule]:
-    """Load the relevant rules for the given collection, roles and fields."""
+def selects(selector: PolicySelector, roles: Container[Role]) -> bool:
+    """Whether the selector matches a caller holding the roles."""
+    if selector.kind is PolicySelectorKind.all:
+        return True
+    return selector.value in roles
+
+
+def named_objects(
+    collection: Collection,
+    filter: Any,
+    settings: Settings,
+    schema: Schema,
+) -> ColumnElement[bool]:
+    """The objects of the collection a GraphQL filter names.
+
+    The filter is coerced as the schema would coerce one written in a query,
+    so the collection's own predicate decides which objects it names, and the
+    caller gets the same objects that filter would return.
+    """
+    if collection not in PREDICATE_OF_COLLECTION:
+        raise ValueError(f"A filter cannot name the objects of {collection}")
+    predicate = PREDICATE_OF_COLLECTION[collection]
+    filter_type = get_type_hints(predicate)["filter"]
+    coerced = coerce_input_value(
+        filter, schema.schema_converter.from_input_object(filter_type)
+    )
+    return predicate(
+        settings=settings,
+        version=get_version(schema),
+        filter=convert_argument(
+            coerced,
+            filter_type,
+            scalar_registry=schema.schema_converter.scalar_registry,
+            config=schema.config,
+        ),
+    )
+
+
+def reached_objects(
+    reader: PolicyReader,
+    settings: Settings,
+    schema: Schema,
+    activation: Activation,
+) -> ColumnElement[bool]:
+    """The objects a reader reaches: the ones its filter names.
+
+    A reader carrying no filter reaches every object of its collection.
+    """
+    if not reader.filter:
+        return true()
+    return named_objects(
+        reader.collection,
+        evaluate_filter(reader.filter, activation),
+        settings,
+        schema,
+    )
+
+
+async def load_rules(
+    session: AsyncSession, token: Token, settings: Settings, schema: Schema
+) -> Rules:
+    """Load what the caller's policies grant them.
+
+    A policy is the caller's while it is active and one of its selectors
+    matches their roles. Its readers are then theirs, save those whose
+    condition they do not pass, and so are its mutators.
+    """
+    policies = await session.scalars(
+        select(Policy)
+        .where(Policy.active)
+        .options(
+            selectinload(Policy.selectors),
+            selectinload(Policy.readers),
+            selectinload(Policy.mutators),
+        )
+    )
+    # The rules are read before any field is resolved, so no field has arguments
+    activation = build_activation(token, settings, {})
+    roles = token.realm_access.roles
+    held = [
+        policy
+        for policy in policies
+        if any(selects(selector, roles) for selector in policy.selectors)
+    ]
+    return Rules(
+        read=[
+            ReadRule(
+                collection=reader.collection,
+                condition=reached_objects(reader, settings, schema, activation),
+                fields=frozenset(reader.fields),
+            )
+            for policy in held
+            for reader in policy.readers
+            if check_condition(reader.condition, activation)
+        ],
+        mutators=[
+            MutatorRule(
+                name=mutator.name, condition=mutator.condition, filter=mutator.filter
+            )
+            for policy in held
+            for mutator in policy.mutators
+        ],
+    )
+
+
+def rules_deciding(
+    rules: Iterable[ReadRule], collection: Collection, keys: Sequence[AccessKey]
+) -> list[ReadRule]:
+    """The caller's rules for the given collection and fields."""
     accessed_fields = {key.field for key in keys}
     return [
         rule
-        for rule in ROLE_POLICIES
-        if rule.role in roles
-        and rule.collection == collection
-        and rule.fields & accessed_fields
+        for rule in rules
+        if rule.collection == collection and rule.fields & accessed_fields
     ]
 
 
-def rules_granting(rules: Sequence[Rule], field: Field) -> frozenset[Rule]:
+def rules_granting(rules: Sequence[ReadRule], field: Field) -> frozenset[ReadRule]:
     """The rules granting the field."""
     return frozenset(rule for rule in rules if field in rule.fields)
 
 
 def denied_select(
-    collection: Collection, accesses: Sequence[AccessKey], rules: Iterable[Rule]
+    collection: Collection, accesses: Sequence[AccessKey], rules: Iterable[ReadRule]
 ) -> Select[Any]:
     """Select the accesses to deny among accesses that the same rules grant.
 
@@ -613,16 +254,16 @@ def denied_select(
 
 
 def collection_denials(
-    collection: Collection, keys: Sequence[AccessKey], roles: Container[Role]
+    rules: Iterable[ReadRule], collection: Collection, keys: Sequence[AccessKey]
 ) -> CompoundSelect:
-    """Select the accesses to collection the roles' rules do not grant.
+    """Select the accesses to collection the caller's rules do not grant.
 
     Whether a field is denied an object turns on the rules granting it, never
     on the field itself, so the accesses are grouped by those rules and one
     select decides each group.
     """
-    rules = load_rules(roles, collection, keys)
-    by_rules = map_reduce(keys, keyfunc=lambda key: rules_granting(rules, key.field))
+    deciding = rules_deciding(rules, collection, keys)
+    by_rules = map_reduce(keys, keyfunc=lambda key: rules_granting(deciding, key.field))
     return union_all(
         *(
             denied_select(collection, accesses, granting)
@@ -632,16 +273,13 @@ def collection_denials(
 
 
 async def access_load_fn(
-    session: AsyncSession,
-    get_token: Callable[[], Awaitable[Token]],
-    keys: list[AccessKey],
+    session: AsyncSession, rules: Sequence[ReadRule], keys: list[AccessKey]
 ) -> list[bool]:
     """Determine whether the requested field access is allowed."""
-    roles = (await get_token()).realm_access.roles
     by_collection = map_reduce(keys, keyfunc=lambda key: key.collection)
     denied = union_all(
         *(
-            collection_denials(collection, accesses, roles)
+            collection_denials(rules, collection, accesses)
             for collection, accesses in by_collection.items()
         )
     ).subquery()
@@ -659,13 +297,8 @@ async def access_load_fn(
     ]
 
 
-def get_access_loaders(
-    session: AsyncSession,
-    get_token: Callable[[], Awaitable[Token]],
-) -> dict[str, DataLoader]:
+def get_access_loader(
+    session: AsyncSession, rules: Sequence[ReadRule]
+) -> DataLoader[AccessKey, bool]:
     """Return the dataloader deciding what the caller may read."""
-    return {
-        "access_loader": DataLoader(
-            load_fn=partial(access_load_fn, session, get_token)
-        ),
-    }
+    return DataLoader(load_fn=partial(access_load_fn, session, rules))

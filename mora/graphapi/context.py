@@ -29,7 +29,8 @@ from mora.graphapi.models import AddressRead
 from mora.graphapi.models import ClassRead
 from mora.graphapi.models import FacetRead
 from mora.graphapi.models import RoleBindingRead
-from mora.graphapi.policies import AccessKey
+from mora.graphapi.policy import AccessKey
+from mora.graphapi.policy import Rules
 
 
 @dataclass
@@ -50,7 +51,6 @@ class MOLoaders:
     org_loader: DataLoader[int, OrganisationRead]
     org_unit_loader: DataLoader[LoadKey, list[OrganisationUnitRead]]
     owner_loader: DataLoader[LoadKey, list[OwnerRead]]
-    access_loader: DataLoader[AccessKey, bool]
     rel_unit_loader: DataLoader[LoadKey, list[RelatedUnitRead]]
     rolebinding_loader: DataLoader[LoadKey, list[RoleBindingRead]]
 
@@ -62,6 +62,8 @@ class MOContext(BaseContext):
     dataloaders: MOLoaders
     settings: Settings
     _token: Token | None = None
+    _rules: Rules | None = None
+    _access_loader: DataLoader[AccessKey, bool] | None = None
 
     @property
     def token(self) -> Token:
@@ -72,6 +74,26 @@ class MOContext(BaseContext):
     @token.setter
     def token(self, token: Token) -> None:
         self._token = token
+
+    @property
+    def rules(self) -> Rules:
+        # `PBACExtension` loads the rules before any field is resolved
+        assert self._rules is not None
+        return self._rules
+
+    @rules.setter
+    def rules(self, rules: Rules) -> None:
+        self._rules = rules
+
+    @property
+    def access_loader(self) -> DataLoader[AccessKey, bool]:
+        # The loader holds the rules, so it is built once they are loaded
+        assert self._access_loader is not None
+        return self._access_loader
+
+    @access_loader.setter
+    def access_loader(self, loader: DataLoader[AccessKey, bool]) -> None:
+        self._access_loader = loader
 
 
 MOInfo: TypeAlias = Info[MOContext, None]

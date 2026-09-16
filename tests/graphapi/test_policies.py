@@ -8,7 +8,6 @@ address: the fields granted by the rules of their roles matching it (see
 """
 
 from collections.abc import Callable
-from collections.abc import Iterator
 from typing import Any
 from uuid import UUID
 from uuid import uuid4
@@ -19,29 +18,33 @@ from sqlalchemy import literal
 from sqlalchemy import true
 
 from mora.db import OrganisationFunktionRegistrering
-from mora.graphapi import policies
-from mora.graphapi.policies import Rule
+from mora.graphapi import schema
+from mora.graphapi.policy import ReadRule
+from mora.graphapi.policy import Rules
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
-SetPolicy = Callable[[list[Rule]], None]
+SetPolicy = Callable[[list[ReadRule]], None]
 
 DENIED = "No policy approved the access"
 
 
 @pytest.fixture
-def set_policy() -> Iterator[SetPolicy]:
-    """Install the rules for the duration of a test.
+def set_policy(monkeypatch: pytest.MonkeyPatch) -> SetPolicy:
+    """Install the read rules for the duration of a test.
 
-    Policies have no store of their own yet, so a test supplies them directly.
+    A condition is a SQL expression, which a policy writes as a CEL filter over
+    its collection; a test states the SQL itself, in place of what the policies
+    in the database grant.
     """
-    original = list(policies.ROLE_POLICIES)
 
-    def inner(rules: list[Rule]) -> None:
-        policies.ROLE_POLICIES[:] = rules
+    def inner(rules: list[ReadRule]) -> None:
+        async def loaded(*args: Any) -> Rules:
+            return Rules(read=rules, mutators=frozenset())
 
-    yield inner
-    policies.ROLE_POLICIES[:] = original
+        monkeypatch.setattr(schema, "load_rules", loaded)
+
+    return inner
 
 
 def _failures(response: Any) -> set[tuple[str, tuple[str | int, ...]]]:
@@ -106,7 +109,7 @@ async def test_a_field_no_rule_grants_is_denied_where_it_is_read(
     Through the registrations too, which reach an address by UUID with no
     resolver in between: only the check of each field stands there.
     """
-    set_policy([Rule("reader", "Address", true(), frozenset({"uuid"}))])
+    set_policy([ReadRule("Address", true(), frozenset({"uuid"}))])
     set_auth({"reader"}, uuid4())
 
     response = graphapi_post(TOP_LEVEL)
@@ -151,9 +154,8 @@ async def test_an_object_gets_the_fields_of_every_rule_matching_it(
     matched, unmatched = two_addresses
     set_policy(
         [
-            Rule("reader", "Address", true(), frozenset({"uuid"})),
-            Rule(
-                "reader",
+            ReadRule("Address", true(), frozenset({"uuid"})),
+            ReadRule(
                 "Address",
                 OrganisationFunktionRegistrering.organisationfunktion_id == matched,
                 frozenset({"value"}),
@@ -191,10 +193,9 @@ async def test_a_condition_unknown_of_an_object_grants_nothing_on_it(
     matched, unmatched = two_addresses
     set_policy(
         [
-            Rule("reader", "Address", true(), frozenset({"uuid"})),
-            Rule("reader", "Address", literal(None, Boolean), frozenset({"value"})),
-            Rule(
-                "reader",
+            ReadRule("Address", true(), frozenset({"uuid"})),
+            ReadRule("Address", literal(None, Boolean), frozenset({"value"})),
+            ReadRule(
                 "Address",
                 OrganisationFunktionRegistrering.organisationfunktion_id == matched,
                 frozenset({"value"}),

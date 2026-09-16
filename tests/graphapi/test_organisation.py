@@ -87,6 +87,8 @@ def test_query_organisation(graphapi_post: GraphAPIPost, root_org: UUID):
     }
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 async def test_invalid_query_no_organisation(graphapi_post: GraphAPIPost, monkeypatch):
     """Test that we get an error when querying with no organisation."""
     monkeypatch.setattr(

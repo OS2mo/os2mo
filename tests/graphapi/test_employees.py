@@ -153,6 +153,7 @@ async def test_create_employee_with_nickname(graphapi_post) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "given_mutator_args,given_error_msg_checks",
     [

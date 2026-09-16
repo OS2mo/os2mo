@@ -64,8 +64,9 @@ from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.owner_entities import OWNER_ENTITIES
-from mora.graphapi.policies import ROLE_POLICIES
-from mora.graphapi.policies import AccessKey
+from mora.graphapi.policies import get_access_loader
+from mora.graphapi.policies import load_rules
+from mora.graphapi.policy import AccessKey
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import ADMIN_MAP
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
@@ -251,9 +252,9 @@ def owner_policy(
 ) -> AwaitableOrValue[bool]:
     """Allow access if the user is the owner of the accessed resources."""
     token = info.context.token
-    token_roles = token.realm_access.roles
 
-    if "owner" not in token_roles:
+    # A mutator is the caller's to call only if a policy of theirs names it
+    if info.field_name not in {rule.name for rule in info.context.rules.mutators}:
         return False
 
     # A token carrying no uuid names no employee, so it owns nothing
@@ -296,13 +297,13 @@ def owner_policy(
 def collection_policy(
     root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
 ) -> AwaitableOrValue[bool]:
-    """Allow access if a rule of the caller's roles grants the field on the object."""
+    """Allow access if a rule of the caller's policies grants the field on the object."""
     collection = info.parent_type.name
-    # Collections without rules are gated by the RBAC maps instead
-    guarded_collections = {rule.collection for rule in ROLE_POLICIES}
+    # Collections no rule of theirs names are gated by the RBAC maps instead
+    guarded_collections = {rule.collection for rule in info.context.rules.read}
     if collection not in guarded_collections:
         return False
-    return info.context.dataloaders.access_loader.load(
+    return info.context.access_loader.load(
         AccessKey(collection, root.uuid, info.field_name)
     )
 
@@ -328,6 +329,18 @@ class PBACExtension(SchemaExtension):
     `PUBLIC_FIELDS`, have a requirement in `RBAC_MAP` or `ADMIN_MAP`, or
     belong to a type guarded by read policies (`mora.graphapi.policies`).
     """
+
+    async def on_execute(self) -> AsyncIterator[None]:
+        """Load what the caller's policies grant, before any field is resolved."""
+        context = self.execution_context.context
+        context.rules = await load_rules(
+            context.session,
+            context.token,
+            context.settings,
+            self.execution_context.schema,
+        )
+        context.access_loader = get_access_loader(context.session, context.rules.read)
+        yield
 
     def resolve(  # type: ignore[override]
         self,

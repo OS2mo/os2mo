@@ -17,10 +17,12 @@ from hypothesis import strategies as st
 from hypothesis_graphql import nodes
 from hypothesis_graphql import strategies as gql_st
 from more_itertools import duplicates_everseen
+from sqlalchemy import select
 
+from mora.db import AsyncSession
+from mora.db import PolicyReader
 from mora.graphapi.events import EventToken
 from mora.graphapi.policies import MODEL_OF_COLLECTION
-from mora.graphapi.policies import ROLE_POLICIES
 from mora.graphapi.rbac_map import ADMIN_MAP
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
@@ -32,8 +34,9 @@ from tests.conftest import SetAuth
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
-async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
+async def test_rbac_map_covers_schema(
+    empty_db: AsyncSession, graphapi_post: GraphAPIPost
+) -> None:
     """RBAC is reject-by-default, so every field must be classified.
 
     Each schema field must be either public (`PUBLIC_FIELDS`), have a role
@@ -77,12 +80,15 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
 
     # The fields of the collections some rule names are read as the rules
     # grant, so each must be granted by some rule rather than listed in a map
-    guarded = {rule.collection for rule in ROLE_POLICIES}
+    readers = (
+        await empty_db.execute(select(PolicyReader.collection, PolicyReader.fields))
+    ).all()
+    guarded = {collection for collection, _ in readers}
     policy_fields = {
         (type_, field) for type_, field in schema_fields if type_ in guarded
     }
     rule_fields = {
-        (rule.collection, field) for rule in ROLE_POLICIES for field in rule.fields
+        (collection, field) for collection, fields in readers for field in fields
     }
     granted = policy_fields & rule_fields
 
