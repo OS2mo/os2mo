@@ -323,6 +323,44 @@ ROLE_POLICIES: list[Rule] = [
             }
         ),
     ),
+    Rule(
+        role="reader",
+        collection="ITUser",
+        condition=true(),
+        fields=frozenset(
+            {
+                "addresses",
+                "addresses_response",
+                "binding_type",
+                "employee",
+                "employee_uuid",
+                "engagement",
+                "engagement_response",
+                "engagement_uuid",
+                "engagement_uuids",
+                "engagements",
+                "engagements_responses",
+                "external_id",
+                "itsystem",
+                "itsystem_response",
+                "itsystem_uuid",
+                "org_unit",
+                "org_unit_response",
+                "org_unit_uuid",
+                "person",
+                "person_response",
+                "primary",
+                "primary_response",
+                "primary_uuid",
+                "rolebindings",
+                "rolebindings_response",
+                "type",
+                "user_key",
+                "uuid",
+                "validity",
+            }
+        ),
+    ),
 ]
 
 
