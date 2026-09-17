@@ -1,8 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
+from collections.abc import Callable
+from uuid import UUID
+from uuid import uuid4
+
 import pytest
 from fastapi.encoders import jsonable_encoder
+from more_itertools import one
 
 from tests.conftest import GQLResponse
 
@@ -131,3 +136,92 @@ async def test_update_related_units_integration_test(test_data, graphapi_post) -
             for dest in test_data["destination"]
         ]
         assert len(relations) == len(objects)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_update_related_units_unknown_destination(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+) -> None:
+    """Updating related units with a non-existent destination is rejected."""
+
+    origin = create_org_unit("origin")
+
+    mutation = """
+        mutation UpdateRelatedUnits($input: RelatedUnitsUpdateInput!) {
+            related_units_update(input: $input) {
+                uuid
+            }
+        }
+    """
+
+    response = graphapi_post(
+        mutation,
+        {
+            "input": {
+                "origin": str(origin),
+                "destination": [str(uuid4())],
+                "validity": {"from": "2017-06-01"},
+            }
+        },
+    )
+    assert response.errors is not None
+    assert (
+        one(response.errors)["extensions"]["error_context"]["error_key"]
+        == "E_ORG_UNIT_NOT_FOUND"
+    )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_update_related_units_outside_validity(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+) -> None:
+    """A destination that is not active at the given date is rejected."""
+
+    origin = create_org_unit("origin")
+    destination = create_org_unit("destination")
+
+    terminate = """
+        mutation TerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
+            org_unit_terminate(input: $input) {
+                uuid
+            }
+        }
+    """
+    response = graphapi_post(
+        terminate,
+        {
+            "input": {
+                "uuid": str(destination),
+                "to": "2017-01-01",
+            }
+        },
+    )
+    assert response.errors is None
+
+    mutation = """
+        mutation UpdateRelatedUnits($input: RelatedUnitsUpdateInput!) {
+            related_units_update(input: $input) {
+                uuid
+            }
+        }
+    """
+
+    response = graphapi_post(
+        mutation,
+        {
+            "input": {
+                "origin": str(origin),
+                "destination": [str(destination)],
+                "validity": {"from": "2018-01-01"},
+            }
+        },
+    )
+    assert response.errors is not None
+    assert (
+        one(response.errors)["extensions"]["error_context"]["error_key"]
+        == "V_DATE_OUTSIDE_ORG_UNIT_RANGE"
+    )
