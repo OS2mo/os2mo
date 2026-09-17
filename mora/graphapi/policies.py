@@ -361,6 +361,28 @@ ROLE_POLICIES: list[Rule] = [
             }
         ),
     ),
+    Rule(
+        role="reader",
+        collection="KLE",
+        condition=true(),
+        fields=frozenset(
+            {
+                "kle_aspect_uuids",
+                "kle_aspects",
+                "kle_aspects_response",
+                "kle_number",
+                "kle_number_response",
+                "kle_number_uuid",
+                "org_unit",
+                "org_unit_response",
+                "org_unit_uuid",
+                "type",
+                "user_key",
+                "uuid",
+                "validity",
+            }
+        ),
+    ),
 ]
 
 
