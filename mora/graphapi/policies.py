@@ -306,6 +306,23 @@ ROLE_POLICIES: list[Rule] = [
             }
         ),
     ),
+    Rule(
+        role="reader",
+        collection="ITSystem",
+        condition=true(),
+        fields=frozenset(
+            {
+                "name",
+                "roles",
+                "roles_response",
+                "system_type",
+                "type",
+                "user_key",
+                "uuid",
+                "validity",
+            }
+        ),
+    ),
 ]
 
 
