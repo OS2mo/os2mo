@@ -383,6 +383,29 @@ ROLE_POLICIES: list[Rule] = [
             }
         ),
     ),
+    Rule(
+        role="reader",
+        collection="Leave",
+        condition=true(),
+        fields=frozenset(
+            {
+                "employee",
+                "employee_uuid",
+                "engagement",
+                "engagement_response",
+                "engagement_uuid",
+                "leave_type",
+                "leave_type_response",
+                "leave_type_uuid",
+                "person",
+                "person_response",
+                "type",
+                "user_key",
+                "uuid",
+                "validity",
+            }
+        ),
+    ),
 ]
 
 
