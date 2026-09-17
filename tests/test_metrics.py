@@ -10,8 +10,7 @@ from sqlalchemy import text
 
 from tests.conftest import AnotherTransaction
 
-# Prometheus counters are exposed with a `_total` suffix.
-METRIC_NAME = "os2mo_registration_count_total"
+METRIC_NAME = "os2mo_registration_count"
 
 # Every LoRa object that is not an organisation function, and its registration
 # count on a migrated, otherwise empty database.

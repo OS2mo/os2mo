@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from prometheus_client import Counter
+from prometheus_client import Gauge
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_fastapi_instrumentator.metrics import Info
 from sqlalchemy import Text
@@ -15,7 +15,7 @@ from mora.db import AsyncSession
 from mora.db import OrganisationFunktionAttrEgenskaber
 from oio_rest.db.db_structure import REAL_DB_STRUCTURE
 
-METRIC_REGISTRATION_COUNT = Counter(
+METRIC_REGISTRATION_COUNT = Gauge(
     "os2mo_registration_count",
     "Number of registrations",
     ["type"],
@@ -50,7 +50,7 @@ async def org_func_registration_count(session: AsyncSession) -> None:
         # `funktionsnavn` is an unconstrained text column, so fall back to the
         # LoRa name rather than dropping registrations we cannot map.
         type_ = _lora_to_mo.get(funktionsnavn, funktionsnavn.lower())
-        METRIC_REGISTRATION_COUNT.labels(type=type_).inc(registrations)
+        METRIC_REGISTRATION_COUNT.labels(type=type_).set(registrations)
 
 
 async def object_registrations_count(session: AsyncSession) -> None:
@@ -60,7 +60,7 @@ async def object_registrations_count(session: AsyncSession) -> None:
         result = await session.execute(query)
         registrations = result.scalar_one()
         type_ = _lora_to_mo.get(lora_object, lora_object)
-        METRIC_REGISTRATION_COUNT.labels(type=type_).inc(registrations)
+        METRIC_REGISTRATION_COUNT.labels(type=type_).set(registrations)
 
 
 async def registration_count(info: Info) -> None:
@@ -73,10 +73,9 @@ async def registration_count(info: Info) -> None:
     if not (url_path.endswith("metrics") or url_path.endswith("metrics/")):
         return
 
-    # Dropping the children resets them, so the following `inc` leaves each
-    # child at the number of registrations rather than accumulating scrapes.
-    # Both counting functions share the metric, so this has to happen once,
-    # before either of them runs.
+    # Drop the children so types that disappear from the database stop being
+    # reported with their stale count. Both counting functions share the metric,
+    # so this has to happen once, before either of them runs.
     METRIC_REGISTRATION_COUNT.clear()
 
     async with (
