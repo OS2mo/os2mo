@@ -436,6 +436,20 @@ ROLE_POLICIES: list[Rule] = [
             }
         ),
     ),
+    Rule(
+        role="reader",
+        collection="Organisation",
+        condition=true(),
+        fields=frozenset(
+            {
+                "municipality_code",
+                "name",
+                "type",
+                "user_key",
+                "uuid",
+            }
+        ),
+    ),
 ]
 
 
