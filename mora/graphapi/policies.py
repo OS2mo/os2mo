@@ -283,6 +283,29 @@ ROLE_POLICIES: list[Rule] = [
             }
         ),
     ),
+    Rule(
+        role="reader",
+        collection="Facet",
+        condition=true(),
+        fields=frozenset(
+            {
+                "children",
+                "children_response",
+                "classes",
+                "classes_responses",
+                "description",
+                "org_uuid",
+                "parent",
+                "parent_response",
+                "parent_uuid",
+                "published",
+                "type",
+                "user_key",
+                "uuid",
+                "validity",
+            }
+        ),
+    ),
 ]
 
 
