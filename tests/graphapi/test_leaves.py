@@ -141,6 +141,17 @@ async def test_create_leave_integration_test(
             "person": None,
             "validity": {"from": "2023-01-01T00:00:00+01:00", "to": None},
         },
+        {
+            # orlov_andersand
+            "uuid": "b807628c-030c-4f5f-a438-de41c1f26ba5",
+            "user_key": None,
+            # engagement_eriksmidthansen
+            "engagement": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab",
+            "leave_type": None,
+            # erik_smidt_hansen
+            "person": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        },
     ],
 )
 async def test_update_leave_integration_test(
