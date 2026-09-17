@@ -503,6 +503,29 @@ ROLE_POLICIES: list[Rule] = [
             }
         ),
     ),
+    Rule(
+        role="reader",
+        collection="Owner",
+        condition=true(),
+        fields=frozenset(
+            {
+                "employee_uuid",
+                "org_unit",
+                "org_unit_response",
+                "org_unit_uuid",
+                "owner",
+                "owner_inference_priority",
+                "owner_response",
+                "owner_uuid",
+                "person",
+                "person_response",
+                "type",
+                "user_key",
+                "uuid",
+                "validity",
+            }
+        ),
+    ),
 ]
 
 
