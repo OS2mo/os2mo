@@ -124,6 +124,47 @@ ROLE_POLICIES: list[Rule] = [
             }
         ),
     ),
+    Rule(
+        role="reader",
+        collection="Association",
+        condition=true(),
+        fields=frozenset(
+            {
+                "association_type",
+                "association_type_response",
+                "association_type_uuid",
+                "dynamic_class",
+                "dynamic_class_response",
+                "dynamic_class_uuid",
+                "employee",
+                "employee_uuid",
+                "it_user",
+                "it_user_response",
+                "it_user_uuid",
+                "job_function",
+                "job_function_response",
+                "job_function_uuid",
+                "org_unit",
+                "org_unit_response",
+                "org_unit_uuid",
+                "person",
+                "person_response",
+                "primary",
+                "primary_response",
+                "primary_uuid",
+                "substitute",
+                "substitute_response",
+                "substitute_uuid",
+                "trade_union",
+                "trade_union_response",
+                "trade_union_uuid",
+                "type",
+                "user_key",
+                "uuid",
+                "validity",
+            }
+        ),
+    ),
 ]
 
 
