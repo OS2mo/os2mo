@@ -406,6 +406,36 @@ ROLE_POLICIES: list[Rule] = [
             }
         ),
     ),
+    Rule(
+        role="reader",
+        collection="Manager",
+        condition=true(),
+        fields=frozenset(
+            {
+                "employee",
+                "employee_uuid",
+                "engagement_response",
+                "manager_level",
+                "manager_level_response",
+                "manager_level_uuid",
+                "manager_type",
+                "manager_type_response",
+                "manager_type_uuid",
+                "org_unit",
+                "org_unit_response",
+                "org_unit_uuid",
+                "person",
+                "person_response",
+                "responsibilities",
+                "responsibilities_response",
+                "responsibility_uuids",
+                "type",
+                "user_key",
+                "uuid",
+                "validity",
+            }
+        ),
+    ),
 ]
 
 
