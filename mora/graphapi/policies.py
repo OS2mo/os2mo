@@ -526,6 +526,22 @@ ROLE_POLICIES: list[Rule] = [
             }
         ),
     ),
+    Rule(
+        role="reader",
+        collection="RelatedUnit",
+        condition=true(),
+        fields=frozenset(
+            {
+                "org_unit_uuids",
+                "org_units",
+                "org_units_response",
+                "type",
+                "user_key",
+                "uuid",
+                "validity",
+            }
+        ),
+    ),
 ]
 
 
