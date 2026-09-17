@@ -343,3 +343,55 @@ def test_kle_user_key_filter(
     assert read({"user_keys": ["beta"]}) == {beta_uuid}
     assert read({"user_keys": ["alpha", "gamma"]}) == {alpha_uuid, gamma_uuid}
     assert read({"user_keys": ["nonexistent"]}) == set()
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_kle_org_unit_filter(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_kle: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """Test that kles can be filtered by org_unit."""
+    org_unit_a = create_org_unit("org-unit-a")
+    org_unit_b = create_org_unit("org-unit-b")
+    kle_number_uuid = uuid4()
+    kle_aspect_uuid = uuid4()
+
+    def make_kle(org_unit: UUID, user_key: str) -> UUID:
+        return create_kle(
+            {
+                "user_key": user_key,
+                "org_unit": str(org_unit),
+                "kle_number": str(kle_number_uuid),
+                "kle_aspects": [str(kle_aspect_uuid)],
+                "validity": {"from": "2024-01-01"},
+            }
+        )
+
+    alpha_uuid = make_kle(org_unit_a, "alpha")
+    beta_uuid = make_kle(org_unit_b, "beta")
+
+    query = """
+        query ReadKLEs($filter: KLEFilter) {
+            kles(filter: $filter) {
+                objects {
+                    uuid
+                }
+            }
+        }
+    """
+
+    def read(filter: dict) -> set[UUID]:
+        response = graphapi_post(query, {"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {UUID(o["uuid"]) for o in response.data["kles"]["objects"]}
+
+    assert read({"org_unit": {"uuids": [str(org_unit_a)]}}) == {alpha_uuid}
+    assert read({"org_unit": {"uuids": [str(org_unit_b)]}}) == {beta_uuid}
+    assert read({"org_unit": {"uuids": [str(org_unit_a), str(org_unit_b)]}}) == {
+        alpha_uuid,
+        beta_uuid,
+    }
+    assert read({"org_unit": {"uuids": [str(uuid4())]}}) == set()
