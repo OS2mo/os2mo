@@ -141,6 +141,14 @@ async def test_create_leave_integration_test(
             "person": None,
             "validity": {"from": "2023-01-01T00:00:00+01:00", "to": None},
         },
+        {
+            "uuid": "00000001-f728-8ce5-b799-d47c5d910a68",
+            "user_key": None,
+            "engagement": "00000002-dd8c-8a01-bba3-494b49c6b9f2",
+            "leave_type": None,
+            "person": "00000003-6828-899c-a5fe-652c0fdf2179",
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        },
     ],
 )
 async def test_update_leave_integration_test(
