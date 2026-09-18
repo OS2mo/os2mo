@@ -14,6 +14,7 @@ from sqlalchemy import literal
 from sqlalchemy import true
 
 from mora.db import AsyncSession
+from mora.db import Collection
 from mora.db import OrganisationFunktionRegistrering
 from mora.graphapi.policies import AccessKey
 from mora.graphapi.policies import Rule
@@ -76,13 +77,13 @@ async def test_an_object_gets_the_fields_of_every_rule_matching_it(
         [
             Rule(
                 role="reader",
-                collection="Address",
+                collection=Collection.Address,
                 condition=true(),
                 fields=frozenset({"user_key"}),
             ),
             Rule(
                 role="reader",
-                collection="Address",
+                collection=Collection.Address,
                 condition=OrganisationFunktionRegistrering.organisationfunktion_id
                 == matched,
                 fields=frozenset({"value"}),
@@ -94,12 +95,12 @@ async def test_an_object_gets_the_fields_of_every_rule_matching_it(
         empty_db,
         token_getter_of("reader"),
         [
-            AccessKey("Address", matched, "value"),
-            AccessKey("Address", matched, "user_key"),
-            AccessKey("Address", matched, "name"),
-            AccessKey("Address", unmatched, "value"),
-            AccessKey("Address", unmatched, "user_key"),
-            AccessKey("Address", unmatched, "name"),
+            AccessKey(Collection.Address, matched, "value"),
+            AccessKey(Collection.Address, matched, "user_key"),
+            AccessKey(Collection.Address, matched, "name"),
+            AccessKey(Collection.Address, unmatched, "value"),
+            AccessKey(Collection.Address, unmatched, "user_key"),
+            AccessKey(Collection.Address, unmatched, "name"),
         ],
     )
 
@@ -141,7 +142,7 @@ async def test_a_rule_of_a_role_the_caller_lacks_grants_nothing(
         [
             Rule(
                 role="reader",
-                collection="Address",
+                collection=Collection.Address,
                 condition=true(),
                 fields=frozenset({"value"}),
             )
@@ -149,7 +150,9 @@ async def test_a_rule_of_a_role_the_caller_lacks_grants_nothing(
     )
 
     allowed = await access_load_fn(
-        empty_db, token_getter_of("owner"), [AccessKey("Address", address, "value")]
+        empty_db,
+        token_getter_of("owner"),
+        [AccessKey(Collection.Address, address, "value")],
     )
 
     assert allowed == [False]
@@ -190,7 +193,7 @@ async def test_a_batch_spans_collections_and_grants_only_where_a_rule_names_one(
         [
             Rule(
                 role="reader",
-                collection="Address",
+                collection=Collection.Address,
                 condition=true(),
                 fields=frozenset({"value"}),
             )
@@ -201,8 +204,8 @@ async def test_a_batch_spans_collections_and_grants_only_where_a_rule_names_one(
         empty_db,
         token_getter_of("reader"),
         [
-            AccessKey("Address", address, "value"),
-            AccessKey("Employee", uuid4(), "cpr_number"),
+            AccessKey(Collection.Address, address, "value"),
+            AccessKey(Collection.Employee, uuid4(), "cpr_number"),
         ],
     )
 
@@ -252,13 +255,13 @@ async def test_a_condition_unknown_of_an_object_grants_nothing_on_it(
         [
             Rule(
                 role="reader",
-                collection="Address",
+                collection=Collection.Address,
                 condition=literal(None, Boolean),
                 fields=frozenset({"value"}),
             ),
             Rule(
                 role="reader",
-                collection="Address",
+                collection=Collection.Address,
                 condition=OrganisationFunktionRegistrering.organisationfunktion_id
                 == matched,
                 fields=frozenset({"value"}),
@@ -270,8 +273,8 @@ async def test_a_condition_unknown_of_an_object_grants_nothing_on_it(
         empty_db,
         token_getter_of("reader"),
         [
-            AccessKey("Address", matched, "value"),
-            AccessKey("Address", unmatched, "value"),
+            AccessKey(Collection.Address, matched, "value"),
+            AccessKey(Collection.Address, unmatched, "value"),
         ],
     )
 

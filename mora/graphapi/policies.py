@@ -31,6 +31,7 @@ from strawberry.dataloader import DataLoader
 from mora.auth.keycloak.models import Token
 from mora.db import AsyncSession
 from mora.db import BrugerRegistrering
+from mora.db import Collection
 from mora.db import FacetRegistrering
 from mora.db import ITSystemRegistrering
 from mora.db import KlasseRegistrering
@@ -40,8 +41,6 @@ from mora.db import OrganisationRegistrering
 
 # OIDC token role
 Role: TypeAlias = str
-# GraphQL collection
-Collection: TypeAlias = str
 # GraphQL field
 Field: TypeAlias = str
 
@@ -66,22 +65,22 @@ class AccessKey(NamedTuple):
 # Each collection's model, holding the registrations of its objects.
 # Every detail is an organisation function.
 MODEL_OF_COLLECTION: dict[Collection, Any] = {
-    "Address": OrganisationFunktionRegistrering,
-    "Association": OrganisationFunktionRegistrering,
-    "Class": KlasseRegistrering,
-    "Employee": BrugerRegistrering,
-    "Engagement": OrganisationFunktionRegistrering,
-    "Facet": FacetRegistrering,
-    "ITSystem": ITSystemRegistrering,
-    "ITUser": OrganisationFunktionRegistrering,
-    "KLE": OrganisationFunktionRegistrering,
-    "Leave": OrganisationFunktionRegistrering,
-    "Manager": OrganisationFunktionRegistrering,
-    "Organisation": OrganisationRegistrering,
-    "OrganisationUnit": OrganisationEnhedRegistrering,
-    "Owner": OrganisationFunktionRegistrering,
-    "RelatedUnit": OrganisationFunktionRegistrering,
-    "RoleBinding": OrganisationFunktionRegistrering,
+    Collection.Address: OrganisationFunktionRegistrering,
+    Collection.Association: OrganisationFunktionRegistrering,
+    Collection.Class: KlasseRegistrering,
+    Collection.Employee: BrugerRegistrering,
+    Collection.Engagement: OrganisationFunktionRegistrering,
+    Collection.Facet: FacetRegistrering,
+    Collection.ITSystem: ITSystemRegistrering,
+    Collection.ITUser: OrganisationFunktionRegistrering,
+    Collection.KLE: OrganisationFunktionRegistrering,
+    Collection.Leave: OrganisationFunktionRegistrering,
+    Collection.Manager: OrganisationFunktionRegistrering,
+    Collection.Organisation: OrganisationRegistrering,
+    Collection.OrganisationUnit: OrganisationEnhedRegistrering,
+    Collection.Owner: OrganisationFunktionRegistrering,
+    Collection.RelatedUnit: OrganisationFunktionRegistrering,
+    Collection.RoleBinding: OrganisationFunktionRegistrering,
 }
 
 
@@ -89,7 +88,7 @@ MODEL_OF_COLLECTION: dict[Collection, Any] = {
 ROLE_POLICIES: list[Rule] = [
     Rule(
         role="reader",
-        collection="Address",
+        collection=Collection.Address,
         condition=true(),
         fields=frozenset(
             {
@@ -126,7 +125,7 @@ ROLE_POLICIES: list[Rule] = [
     ),
     Rule(
         role="reader",
-        collection="Association",
+        collection=Collection.Association,
         condition=true(),
         fields=frozenset(
             {
@@ -167,7 +166,7 @@ ROLE_POLICIES: list[Rule] = [
     ),
     Rule(
         role="reader",
-        collection="Class",
+        collection=Collection.Class,
         condition=true(),
         fields=frozenset(
             {
@@ -201,7 +200,7 @@ ROLE_POLICIES: list[Rule] = [
     ),
     Rule(
         role="reader",
-        collection="Employee",
+        collection=Collection.Employee,
         condition=true(),
         fields=frozenset(
             {
@@ -237,7 +236,7 @@ ROLE_POLICIES: list[Rule] = [
     ),
     Rule(
         role="reader",
-        collection="Engagement",
+        collection=Collection.Engagement,
         condition=true(),
         fields=frozenset(
             {
@@ -285,7 +284,7 @@ ROLE_POLICIES: list[Rule] = [
     ),
     Rule(
         role="reader",
-        collection="Facet",
+        collection=Collection.Facet,
         condition=true(),
         fields=frozenset(
             {
@@ -308,7 +307,7 @@ ROLE_POLICIES: list[Rule] = [
     ),
     Rule(
         role="reader",
-        collection="ITSystem",
+        collection=Collection.ITSystem,
         condition=true(),
         fields=frozenset(
             {
@@ -325,7 +324,7 @@ ROLE_POLICIES: list[Rule] = [
     ),
     Rule(
         role="reader",
-        collection="ITUser",
+        collection=Collection.ITUser,
         condition=true(),
         fields=frozenset(
             {
@@ -363,7 +362,7 @@ ROLE_POLICIES: list[Rule] = [
     ),
     Rule(
         role="reader",
-        collection="KLE",
+        collection=Collection.KLE,
         condition=true(),
         fields=frozenset(
             {
@@ -385,7 +384,7 @@ ROLE_POLICIES: list[Rule] = [
     ),
     Rule(
         role="reader",
-        collection="Leave",
+        collection=Collection.Leave,
         condition=true(),
         fields=frozenset(
             {
@@ -408,7 +407,7 @@ ROLE_POLICIES: list[Rule] = [
     ),
     Rule(
         role="reader",
-        collection="Manager",
+        collection=Collection.Manager,
         condition=true(),
         fields=frozenset(
             {
@@ -438,7 +437,7 @@ ROLE_POLICIES: list[Rule] = [
     ),
     Rule(
         role="reader",
-        collection="Organisation",
+        collection=Collection.Organisation,
         condition=true(),
         fields=frozenset(
             {
@@ -452,7 +451,7 @@ ROLE_POLICIES: list[Rule] = [
     ),
     Rule(
         role="reader",
-        collection="OrganisationUnit",
+        collection=Collection.OrganisationUnit,
         condition=true(),
         fields=frozenset(
             {
@@ -505,7 +504,7 @@ ROLE_POLICIES: list[Rule] = [
     ),
     Rule(
         role="reader",
-        collection="Owner",
+        collection=Collection.Owner,
         condition=true(),
         fields=frozenset(
             {
@@ -528,7 +527,7 @@ ROLE_POLICIES: list[Rule] = [
     ),
     Rule(
         role="reader",
-        collection="RelatedUnit",
+        collection=Collection.RelatedUnit,
         condition=true(),
         fields=frozenset(
             {
@@ -544,7 +543,7 @@ ROLE_POLICIES: list[Rule] = [
     ),
     Rule(
         role="reader",
-        collection="RoleBinding",
+        collection=Collection.RoleBinding,
         condition=true(),
         fields=frozenset(
             {

@@ -35,6 +35,7 @@ from strawberry.utils.await_maybe import await_maybe
 from structlog import get_logger
 
 from mora import config
+from mora.db import Collection
 from mora.db import get_session
 from mora.exceptions import HTTPException
 from mora.graphapi.actor import SpecialActor
@@ -302,7 +303,7 @@ def collection_policy(
     if collection not in MODEL_OF_COLLECTION:
         return False
     return info.context.dataloaders.access_loader.load(
-        AccessKey(collection, root.uuid, info.field_name)
+        AccessKey(Collection(collection), root.uuid, info.field_name)
     )
 
 
