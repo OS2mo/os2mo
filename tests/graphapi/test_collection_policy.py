@@ -23,25 +23,13 @@ from tests.conftest import SetRules
 from tests.conftest import token_getter_of
 
 
-async def test_a_collection_no_rule_names_is_rejected_without_asking(
-    set_rules: SetRules,
-) -> None:
+async def test_a_type_which_is_no_collection_is_rejected_without_asking() -> None:
     """The policy answers at once, rather than handing back a future to await.
 
-    Only `info.parent_type.name` is read to decide it, so that is all the
-    resolver info needs to carry.
+    A type with no objects of its own, the paged wrapper here, has nothing a
+    rule could reach, and only `info.parent_type.name` is read to tell.
     """
-    set_rules(
-        [
-            Rule(
-                role="reader",
-                collection="Address",
-                condition=true(),
-                fields=frozenset({"value"}),
-            )
-        ]
-    )
-    info = SimpleNamespace(parent_type=SimpleNamespace(name="Employee"))
+    info = SimpleNamespace(parent_type=SimpleNamespace(name="AddressPaged"))
 
     assert collection_policy(None, info, {}) is False
 

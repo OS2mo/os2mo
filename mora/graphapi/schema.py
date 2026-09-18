@@ -64,7 +64,7 @@ from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.owner_entities import OWNER_ENTITIES
-from mora.graphapi.policies import ROLE_POLICIES
+from mora.graphapi.policies import MODEL_OF_COLLECTION
 from mora.graphapi.policies import AccessKey
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import ADMIN_MAP
@@ -298,9 +298,8 @@ def collection_policy(
 ) -> AwaitableOrValue[bool]:
     """Allow access if a rule of the caller's roles grants the field on the object."""
     collection = info.parent_type.name
-    # Collections without rules are gated by the RBAC maps instead
-    guarded_collections = {rule.collection for rule in ROLE_POLICIES}
-    if collection not in guarded_collections:
+    # Non-collection types are gated by the RBAC maps instead
+    if collection not in MODEL_OF_COLLECTION:
         return False
     return info.context.dataloaders.access_loader.load(
         AccessKey(collection, root.uuid, info.field_name)
