@@ -28,6 +28,7 @@ from sqlalchemy import true
 from sqlalchemy import union_all
 from strawberry.dataloader import DataLoader
 
+from alembic_helpers.read_rules import READ_RULES
 from mora.auth.keycloak.models import Token
 from mora.db import AsyncSession
 from mora.db import BrugerRegistrering
@@ -41,7 +42,6 @@ from mora.db import OrganisationRegistrering
 from mora.db import Policy
 from mora.db import PolicyReadRule
 from mora.db import PolicyReadRuleField
-from mora.graphapi.read_rules import READ_RULES
 
 # OIDC token role
 Role: TypeAlias = str
