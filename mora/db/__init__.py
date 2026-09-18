@@ -79,6 +79,9 @@ from ._organisationsfunktion import OrganisationFunktionRegistrering
 from ._organisationsfunktion import OrganisationFunktionRelation
 from ._organisationsfunktion import OrganisationFunktionRelationKode
 from ._organisationsfunktion import OrganisationFunktionTilsGyldighed
+from ._policies import Policy
+from ._policies import PolicyReadRule
+from ._policies import PolicyReadRuleField
 from .files import FileToken
 import psycopg
 
