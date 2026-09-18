@@ -564,7 +564,7 @@ ROLE_POLICIES: list[Rule] = [
 
 
 def load_rules(
-    roles: Container[Role], collection: Collection, keys: Sequence[AccessKey]
+    collection: Collection, keys: Sequence[AccessKey], roles: Container[Role]
 ) -> list[Rule]:
     """Load the relevant rules for the given collection, roles and fields."""
     accessed_fields = {key.field for key in keys}
@@ -635,7 +635,7 @@ def collection_denials(
     # Without a rule nothing is granted, so everything is denied
     denied = requested
 
-    rules = load_rules(roles, collection, keys)
+    rules = load_rules(collection, keys, roles)
     if rules:
         asked = select(requested.c.uuid, requested.c.field)
         uuids = frozenset(key.uuid for key in keys)
