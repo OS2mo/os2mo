@@ -38,6 +38,9 @@ from mora.db import KlasseRegistrering
 from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationFunktionRegistrering
 from mora.db import OrganisationRegistrering
+from mora.db import Policy
+from mora.db import PolicyReadRule
+from mora.db import PolicyReadRuleField
 
 # OIDC token role
 Role: TypeAlias = str
@@ -652,6 +655,37 @@ def collection_denials(
         denied.c.uuid.label("uuid"),
         denied.c.field.label("field"),
     )
+
+
+async def policy_load_fn(
+    session: AsyncSession,
+    get_token: Callable[[], Awaitable[Token]],
+    keys: list[int],
+) -> list[list[Rule]]:
+    """Load the rules of the policies granted to the caller's roles."""
+    roles = (await get_token()).realm_access.roles
+    rows = await session.execute(
+        select(
+            Policy.role,
+            PolicyReadRule.collection,
+            func.array_agg(PolicyReadRuleField.field),
+        )
+        .join(Policy.read_rules)
+        .join(PolicyReadRule.fields)
+        .where(Policy.role == any_(literal(roles, ARRAY(String))))
+        .group_by(Policy.role, PolicyReadRule.pk, PolicyReadRule.collection)
+    )
+    rules = [
+        Rule(
+            role=role,
+            collection=collection,
+            # A row carries no condition, so its rule reaches every object
+            condition=true(),
+            fields=frozenset(fields),
+        )
+        for role, collection, fields in rows
+    ]
+    return [rules for _ in keys]
 
 
 async def access_load_fn(
