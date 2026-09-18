@@ -74,12 +74,15 @@ async def test_rbac_map_covers_schema(graphapi_post: GraphAPIPost) -> None:
                 (type_["name"], field["name"]) for field in type_["fields"]
             )
 
-    guarded = {rule.collection for rule in ROLE_POLICIES}
+    # A collection is named after the type it grants on
+    guarded = {rule.collection.value for rule in ROLE_POLICIES}
     policy_fields = {
         (type_, field) for type_, field in schema_fields if type_ in guarded
     }
     rule_fields = {
-        (rule.collection, field) for rule in ROLE_POLICIES for field in rule.fields
+        (rule.collection.value, field)
+        for rule in ROLE_POLICIES
+        for field in rule.fields
     }
     granted = policy_fields & rule_fields
 

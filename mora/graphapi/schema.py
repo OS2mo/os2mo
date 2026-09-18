@@ -35,6 +35,7 @@ from strawberry.utils.await_maybe import await_maybe
 from structlog import get_logger
 
 from mora import config
+from mora.db import Collection
 from mora.db import get_session
 from mora.exceptions import HTTPException
 from mora.graphapi.actor import SpecialActor
@@ -64,7 +65,6 @@ from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.owner_entities import OWNER_ENTITIES
-from mora.graphapi.policies import MODEL_OF_COLLECTION
 from mora.graphapi.policies import AccessKey
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import ADMIN_MAP
@@ -297,9 +297,10 @@ def collection_policy(
     root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
 ) -> AwaitableOrValue[bool]:
     """Allow access if a rule of the caller's roles grants the field on the object."""
-    collection = info.parent_type.name
-    # Non-collection types are gated by the RBAC maps instead
-    if collection not in MODEL_OF_COLLECTION:
+    try:
+        collection = Collection(info.parent_type.name)
+    except ValueError:
+        # Non-collection types are gated by the RBAC maps instead
         return False
     return info.context.dataloaders.access_loader.load(
         AccessKey(collection, root.uuid, info.field_name)
