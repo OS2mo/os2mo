@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import time
 import traceback
+from asyncio import Future
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from collections.abc import Callable
@@ -63,6 +64,8 @@ from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.owner_entities import OWNER_ENTITIES
+from mora.graphapi.policies import ROLE_POLICIES
+from mora.graphapi.policies import AccessKey
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import ADMIN_MAP
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
@@ -196,12 +199,14 @@ class IsAuthenticatedExtension(SchemaExtension):
         yield
 
 
-# A policy takes the resolver info and arguments, and returns whether it
-# grants access to the field.
-Policy = Callable[[GraphQLResolveInfo, dict[str, Any]], AwaitableOrValue[bool]]
+# A policy takes the parent object, the resolver info and arguments, and returns
+# whether it grants access to the field.
+Policy = Callable[[Any, GraphQLResolveInfo, dict[str, Any]], AwaitableOrValue[bool]]
 
 
-def introspection_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
+def introspection_policy(
+    root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
+) -> bool:
     """Allow access to introspection for all users."""
     return info.field_name in (
         "__typename",
@@ -210,12 +215,15 @@ def introspection_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bo
     ) or is_introspection_type(info.parent_type)
 
 
-def no_role_required_policy(info: GraphQLResolveInfo, kwargs: dict[str, Any]) -> bool:
+def no_role_required_policy(
+    root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
+) -> bool:
     """Allow access to fields which are explicitly listed in `PUBLIC_FIELDS`."""
     return (info.parent_type.name, info.field_name) in PUBLIC_FIELDS
 
 
 def reader_policy(
+    root: Any,
     info: GraphQLResolveInfo,
     kwargs: dict[str, Any],
 ) -> bool:
@@ -227,6 +235,7 @@ def reader_policy(
 
 
 def admin_policy(
+    root: Any,
     info: GraphQLResolveInfo,
     kwargs: dict[str, Any],
 ) -> bool:
@@ -238,7 +247,7 @@ def admin_policy(
 
 
 def owner_policy(
-    info: GraphQLResolveInfo, kwargs: dict[str, Any]
+    root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
 ) -> AwaitableOrValue[bool]:
     """Allow access if the user is the owner of the accessed resources."""
     token = info.context.token
@@ -284,11 +293,26 @@ def owner_policy(
     return owned()
 
 
+def collection_policy(
+    root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
+) -> AwaitableOrValue[bool]:
+    """Allow access if a rule of the caller's roles grants the field on the object."""
+    collection = info.parent_type.name
+    # Collections without rules are gated by the RBAC maps instead
+    guarded_collections = {rule.collection for rule in ROLE_POLICIES}
+    if collection not in guarded_collections:
+        return False
+    return info.context.dataloaders.access_loader.load(
+        AccessKey(collection, root.uuid, info.field_name)
+    )
+
+
 POLICIES: list[Policy] = [
     introspection_policy,
     no_role_required_policy,
     reader_policy,
     admin_policy,
+    collection_policy,
     owner_policy,
 ]
 
@@ -297,10 +321,12 @@ class PBACExtension(SchemaExtension):
     """Schema-level extension that enforces PBAC for every field.
 
     The awaitable answers are awaited only if no policy allows access at once,
-    so a field costs a coroutine only when a policy has to look something up.
+    so a field costs a coroutine only when a policy has to look something up,
+    and a future already done, such as a dataloader's cache hit, costs none.
 
     Access is rejected by default: every field must be listed in
-    `PUBLIC_FIELDS` or have a requirement in `RBAC_MAP` or `ADMIN_MAP`.
+    `PUBLIC_FIELDS`, have a requirement in `RBAC_MAP` or `ADMIN_MAP`, or
+    belong to a type guarded by read policies (`mora.graphapi.policies`).
     """
 
     def resolve(  # type: ignore[override]
@@ -313,7 +339,10 @@ class PBACExtension(SchemaExtension):
         resolve_field = partial(next_, root, info, **kwargs)
         pending: list[Awaitable[bool]] = []
         for policy in POLICIES:
-            allowed = policy(info, kwargs)
+            allowed = policy(root, info, kwargs)
+            # Dataloaders return futures, which may already be resolved
+            if isinstance(allowed, Future) and allowed.done():
+                allowed = allowed.result()
             if allowed is False:
                 continue
             if allowed is True:

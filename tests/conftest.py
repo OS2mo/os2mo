@@ -44,8 +44,12 @@ from mora.auth.keycloak.oidc import Token
 from mora.auth.keycloak.oidc import fetch_token
 from mora.auth.keycloak.oidc import token_getter
 from mora.config import get_settings
+from mora.graphapi import policies
+from mora.graphapi import schema
 from mora.graphapi.gmodels.mo import Validity as GValidity
 from mora.graphapi.permissions import ALL_PERMISSIONS
+from mora.graphapi.policies import Rule
+from mora.graphapi.schema import Policy
 from mora.graphapi.version import LATEST_VERSION
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
@@ -179,7 +183,20 @@ def admin_token_getter() -> Callable[[], Awaitable[Token]]:
     return get_fake_admin_token
 
 
+def token_getter_of(*roles: str) -> Callable[[], Awaitable[Token]]:
+    """Get a callable returning a token carrying *roles* and nothing else."""
+
+    async def get_fake_token() -> Token:
+        auth = await fake_auth()
+        auth.realm_access.roles = set(roles)
+        return auth
+
+    return get_fake_token
+
+
 SetAuth = Callable[[str | Collection[str] | None, UUID | str | None, str], None]
+SetRules = Callable[[list[Rule]], None]
+SetPolicies = Callable[[list[Policy]], None]
 
 
 @pytest.fixture
@@ -1622,6 +1639,37 @@ def create_address(
         return UUID(response.data["address_create"]["uuid"])
 
     return inner
+
+
+@pytest.fixture
+def set_rules() -> YieldFixture[SetRules]:
+    """Install the rules `collection_policy` decides by, for one test.
+
+    Rules have no store of their own yet, so a test supplies them directly.
+    """
+    original = list(policies.ROLE_POLICIES)
+
+    def inner(rules: list[Rule]) -> None:
+        policies.ROLE_POLICIES[:] = rules
+
+    yield inner
+    policies.ROLE_POLICIES[:] = original
+
+
+@pytest.fixture
+def set_policies() -> YieldFixture[SetPolicies]:
+    """Install the checks PBAC asks of every field, for one test.
+
+    These are the policies themselves, `collection_policy` among them, rather
+    than the rules that one decides by.
+    """
+    original = list(schema.POLICIES)
+
+    def inner(checks: list[Policy]) -> None:
+        schema.POLICIES[:] = checks
+
+    yield inner
+    schema.POLICIES[:] = original
 
 
 @pytest.fixture
