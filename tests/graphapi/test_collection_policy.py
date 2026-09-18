@@ -9,6 +9,7 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
+from more_itertools import one
 from sqlalchemy import Boolean
 from sqlalchemy import literal
 from sqlalchemy import true
@@ -16,9 +17,13 @@ from sqlalchemy import true
 from mora.db import AsyncSession
 from mora.db import Collection
 from mora.db import OrganisationFunktionRegistrering
+from mora.db import Policy
+from mora.db import PolicyReadRule
+from mora.db import PolicyReadRuleField
 from mora.graphapi.policies import AccessKey
 from mora.graphapi.policies import Rule
 from mora.graphapi.policies import access_load_fn
+from mora.graphapi.policies import policy_load_fn
 from mora.graphapi.schema import collection_policy
 from tests.conftest import SetRules
 from tests.conftest import token_getter_of
@@ -279,3 +284,47 @@ async def test_a_condition_unknown_of_an_object_grants_nothing_on_it(
     )
 
     assert allowed == [True, False]
+
+
+@pytest.mark.integration_test
+async def test_the_rules_of_the_callers_policies_are_loaded(
+    empty_db: AsyncSession,
+) -> None:
+    """Only the rules of the caller's own policies are loaded."""
+    empty_db.add_all(
+        [
+            Policy(
+                name="reader",
+                role="reader",
+                read_rules=[
+                    PolicyReadRule(
+                        collection=Collection.Address,
+                        fields=[
+                            PolicyReadRuleField(field="uuid"),
+                            PolicyReadRuleField(field="value"),
+                        ],
+                    )
+                ],
+            ),
+            Policy(
+                name="owner",
+                role="owner",
+                read_rules=[
+                    PolicyReadRule(
+                        collection=Collection.Employee,
+                        fields=[PolicyReadRuleField(field="name")],
+                    )
+                ],
+            ),
+        ]
+    )
+    await empty_db.flush()
+
+    rules = one(await policy_load_fn(empty_db, token_getter_of("reader"), [0]))
+    rule = one(rules)
+
+    assert rule.role == "reader"
+    assert rule.collection == Collection.Address
+    assert rule.fields == frozenset({"uuid", "value"})
+    # A row carries no condition, so its rule reaches every object
+    assert rule.condition.compare(true())
