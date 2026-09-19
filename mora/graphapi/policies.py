@@ -4,7 +4,6 @@
 
 from collections.abc import Awaitable
 from collections.abc import Callable
-from collections.abc import Container
 from collections.abc import Iterable
 from collections.abc import Sequence
 from functools import partial
@@ -88,19 +87,14 @@ MODEL_OF_COLLECTION: dict[Collection, Any] = {
 
 
 def load_rules(
-    collection: Collection,
-    keys: Sequence[AccessKey],
-    roles: Container[Role],
-    rules: Iterable[Rule],
+    collection: Collection, keys: Sequence[AccessKey], rules: Iterable[Rule]
 ) -> list[Rule]:
     """Return the relevant rules for the given collection and fields."""
     accessed_fields = {key.field for key in keys}
     return [
         rule
         for rule in rules
-        if rule.role in roles
-        and rule.collection == collection
-        and rule.fields & accessed_fields
+        if rule.collection == collection and rule.fields & accessed_fields
     ]
 
 
@@ -155,17 +149,14 @@ def granted_select(rule: Rule, uuids: frozenset[UUID]) -> Select[Any]:
 
 
 def collection_denials(
-    collection: Collection,
-    keys: Sequence[AccessKey],
-    roles: Container[Role],
-    rules: Iterable[Rule],
+    collection: Collection, keys: Sequence[AccessKey], rules: Iterable[Rule]
 ) -> Select[Any]:
-    """Select the accesses to collection that the roles' rules do not grant."""
+    """Select the accesses to collection that the caller's rules do not grant."""
     requested = requested_select(keys).cte()
     # Without a rule nothing is granted, so everything is denied
     denied = requested
 
-    rules = load_rules(collection, keys, roles, rules)
+    rules = load_rules(collection, keys, rules)
     if rules:
         asked = select(requested.c.uuid, requested.c.field)
         uuids = frozenset(key.uuid for key in keys)
@@ -212,19 +203,17 @@ async def policy_load_fn(
 
 async def access_load_fn(
     session: AsyncSession,
-    get_token: Callable[[], Awaitable[Token]],
     policy_loader: DataLoader[int, list[Rule]],
     keys: list[AccessKey],
 ) -> list[bool]:
     """Determine whether the requested field access is allowed."""
     # If this function is performing poorly, consider checking out 52d2a3fe
     # and c22dce95
-    roles = (await get_token()).realm_access.roles
     rules = await policy_loader.load(0)
     by_collection = map_reduce(keys, keyfunc=lambda key: key.collection)
     denied = union_all(
         *(
-            collection_denials(collection, accesses, roles, rules)
+            collection_denials(collection, accesses, rules)
             for collection, accesses in by_collection.items()
         )
     ).subquery()
@@ -253,6 +242,6 @@ def get_access_loaders(
 
     return {
         "access_loader": DataLoader(
-            load_fn=partial(access_load_fn, session, get_token, policy_loader)
+            load_fn=partial(access_load_fn, session, policy_loader)
         ),
     }
