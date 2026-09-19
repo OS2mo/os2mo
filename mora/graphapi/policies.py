@@ -28,7 +28,6 @@ from sqlalchemy import true
 from sqlalchemy import union_all
 from strawberry.dataloader import DataLoader
 
-from alembic_helpers.read_rules import READ_RULES
 from mora.auth.keycloak.models import Token
 from mora.db import AsyncSession
 from mora.db import BrugerRegistrering
@@ -86,18 +85,6 @@ MODEL_OF_COLLECTION: dict[Collection, Any] = {
     Collection.RelatedUnit: OrganisationFunktionRegistrering,
     Collection.RoleBinding: OrganisationFunktionRegistrering,
 }
-
-
-# The rules of every role. A caller's are those of their roles.
-ROLE_POLICIES: list[Rule] = [
-    Rule(
-        role="reader",
-        collection=Collection(collection),
-        condition=true(),
-        fields=fields,
-    )
-    for collection, fields in READ_RULES.items()
-]
 
 
 def load_rules(
@@ -226,13 +213,14 @@ async def policy_load_fn(
 async def access_load_fn(
     session: AsyncSession,
     get_token: Callable[[], Awaitable[Token]],
+    policy_loader: DataLoader[int, list[Rule]],
     keys: list[AccessKey],
 ) -> list[bool]:
     """Determine whether the requested field access is allowed."""
     # If this function is performing poorly, consider checking out 52d2a3fe
     # and c22dce95
     roles = (await get_token()).realm_access.roles
-    rules = ROLE_POLICIES
+    rules = await policy_loader.load(0)
     by_collection = map_reduce(keys, keyfunc=lambda key: key.collection)
     denied = union_all(
         *(
@@ -261,8 +249,12 @@ def get_access_loaders(
     get_token: Callable[[], Awaitable[Token]],
 ) -> dict[str, DataLoader]:
     """Return the dataloader deciding what the caller may read."""
+    policy_loader: DataLoader[int, list[Rule]] = DataLoader(
+        load_fn=partial(policy_load_fn, session, get_token)
+    )
+
     return {
         "access_loader": DataLoader(
-            load_fn=partial(access_load_fn, session, get_token)
+            load_fn=partial(access_load_fn, session, get_token, policy_loader)
         ),
     }

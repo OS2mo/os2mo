@@ -13,9 +13,8 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import true
 
-from mora.graphapi.policies import Rule
+from mora.db import Collection
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 from tests.conftest import SetRules
@@ -79,7 +78,7 @@ async def test_a_field_no_rule_grants_is_denied_where_it_is_read(
         )
         for value in VALUES
     ]
-    set_rules([Rule("reader", "Address", true(), frozenset({"uuid"}))])
+    await set_rules("reader", Collection.Address, {"uuid"})
     set_auth({"reader"}, uuid4())
 
     response = graphapi_post(TOP_LEVEL)
