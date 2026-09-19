@@ -42,7 +42,7 @@ async def get_context(
     loaders = await get_loaders()
     loaders.update(get_access_log_loaders(session))
     loaders.update(get_actor_loaders(session))
-    loaders.update(get_access_loaders(session, get_token))
+    loaders.update(get_access_loaders(session, settings, get_token))
     moloaders = MOLoaders(**loaders)  # type: ignore
     return MOContext(
         amqp_system=amqp_system,

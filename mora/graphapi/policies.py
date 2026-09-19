@@ -242,15 +242,19 @@ def collection_denials(
 
 async def policy_load_fn(
     session: AsyncSession,
+    settings: Settings,
     get_token: Callable[[], Awaitable[Token]],
     keys: list[int],
 ) -> list[list[Rule]]:
     """Load the rules of the active policies granted to the caller's roles."""
-    roles = (await get_token()).realm_access.roles
+    token = await get_token()
+    roles = token.realm_access.roles
     rows = await session.execute(
         select(
             Policy.role,
             PolicyReadRule.collection,
+            PolicyReadRule.graphql_version,
+            PolicyReadRule.condition,
             func.array_agg(PolicyReadRuleField.field),
         )
         .join(Policy.read_rules)
@@ -259,17 +263,24 @@ async def policy_load_fn(
             Policy.role == any_(literal(roles, ARRAY(String))),
             Policy.active,
         )
-        .group_by(Policy.role, PolicyReadRule.pk, PolicyReadRule.collection)
+        .group_by(
+            Policy.role,
+            PolicyReadRule.pk,
+            PolicyReadRule.collection,
+            PolicyReadRule.graphql_version,
+            PolicyReadRule.condition,
+        )
     )
     rules = [
         Rule(
             role=role,
             collection=collection,
-            # A row carries no condition, so its rule reaches every object
-            condition=true(),
+            condition=cel2predicate(
+                settings, collection, graphql_version, condition, token
+            ),
             fields=frozenset(fields),
         )
-        for role, collection, fields in rows
+        for role, collection, graphql_version, condition, fields in rows
     ]
     return [rules for _ in keys]
 
@@ -308,11 +319,12 @@ async def access_load_fn(
 
 def get_access_loaders(
     session: AsyncSession,
+    settings: Settings,
     get_token: Callable[[], Awaitable[Token]],
 ) -> dict[str, DataLoader]:
     """Return the dataloader deciding what the caller may read."""
     policy_loader: DataLoader[int, list[Rule]] = DataLoader(
-        load_fn=partial(policy_load_fn, session, get_token)
+        load_fn=partial(policy_load_fn, session, settings, get_token)
     )
 
     return {
