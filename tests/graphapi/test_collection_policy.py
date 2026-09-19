@@ -277,3 +277,24 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
     assert rule.fields == frozenset({"uuid", "value"})
     # A row carries no condition, so its rule reaches every object
     assert rule.condition.compare(true())
+
+
+@pytest.mark.integration_test
+async def test_a_policy_switched_off_grants_nothing(empty_db: AsyncSession) -> None:
+    """The rules of an inactive policy are left where they are, unread."""
+    empty_db.add(
+        Policy(
+            name="auditor",
+            role="auditor",
+            active=False,
+            read_rules=[
+                PolicyReadRule(
+                    collection=Collection.Address,
+                    fields=[PolicyReadRuleField(field="uuid")],
+                )
+            ],
+        )
+    )
+    await empty_db.flush()
+
+    assert await policy_load_fn(empty_db, token_getter_of("auditor"), [0]) == [[]]
