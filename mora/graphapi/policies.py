@@ -564,13 +564,16 @@ ROLE_POLICIES: list[Rule] = [
 
 
 def load_rules(
-    collection: Collection, keys: Sequence[AccessKey], roles: Container[Role]
+    collection: Collection,
+    keys: Sequence[AccessKey],
+    roles: Container[Role],
+    rules: Iterable[Rule],
 ) -> list[Rule]:
-    """Load the relevant rules for the given collection, roles and fields."""
+    """Return the relevant rules for the given collection and fields."""
     accessed_fields = {key.field for key in keys}
     return [
         rule
-        for rule in ROLE_POLICIES
+        for rule in rules
         if rule.role in roles
         and rule.collection == collection
         and rule.fields & accessed_fields
@@ -628,14 +631,17 @@ def granted_select(rule: Rule, uuids: frozenset[UUID]) -> Select[Any]:
 
 
 def collection_denials(
-    collection: Collection, keys: Sequence[AccessKey], roles: Container[Role]
+    collection: Collection,
+    keys: Sequence[AccessKey],
+    roles: Container[Role],
+    rules: Iterable[Rule],
 ) -> Select[Any]:
     """Select the accesses to collection that the roles' rules do not grant."""
     requested = requested_select(keys).cte()
     # Without a rule nothing is granted, so everything is denied
     denied = requested
 
-    rules = load_rules(collection, keys, roles)
+    rules = load_rules(collection, keys, roles, rules)
     if rules:
         asked = select(requested.c.uuid, requested.c.field)
         uuids = frozenset(key.uuid for key in keys)
@@ -658,10 +664,11 @@ async def access_load_fn(
     # If this function is performing poorly, consider checking out 52d2a3fe
     # and c22dce95
     roles = (await get_token()).realm_access.roles
+    rules = ROLE_POLICIES
     by_collection = map_reduce(keys, keyfunc=lambda key: key.collection)
     denied = union_all(
         *(
-            collection_denials(collection, accesses, roles)
+            collection_denials(collection, accesses, roles, rules)
             for collection, accesses in by_collection.items()
         )
     ).subquery()
