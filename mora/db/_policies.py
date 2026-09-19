@@ -7,14 +7,31 @@ from uuid import UUID
 from sqlalchemy import Boolean
 from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
 from sqlalchemy import Text
+from sqlalchemy import TypeDecorator
 from sqlalchemy import text
+from sqlalchemy.engine import Dialect
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 
+from mora.graphapi.policy_cel import CEL
+from mora.graphapi.version import Version
+
 from ._collections import Collection
 from ._common import Base
+
+
+class GraphQLVersion(TypeDecorator):
+    impl = Integer
+    cache_ok = True
+
+    def process_bind_param(self, value: Version, dialect: Dialect) -> int:
+        return value.value
+
+    def process_result_value(self, value: int, dialect: Dialect) -> Version:
+        return Version(value)
 
 
 class Policy(Base):
@@ -44,6 +61,8 @@ class PolicyReadRule(Base):
     collection: Mapped[Collection] = mapped_column(
         Enum(Collection, name="policycollection")
     )
+    condition: Mapped[CEL] = mapped_column(Text)
+    graphql_version: Mapped[Version] = mapped_column(GraphQLVersion)
     policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.pk"))
     policy: Mapped[Policy] = relationship(back_populates="read_rules")
 

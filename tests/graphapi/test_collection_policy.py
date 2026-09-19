@@ -15,6 +15,7 @@ from more_itertools import one
 from sqlalchemy import Boolean
 from sqlalchemy import literal
 from sqlalchemy import select
+from sqlalchemy import text
 from sqlalchemy import true
 from strawberry.dataloader import DataLoader
 
@@ -339,6 +340,49 @@ async def test_a_condition_yielding_what_the_filter_rejects_fails() -> None:
 
 
 @pytest.mark.integration_test
+async def test_a_rule_keeps_its_condition_and_version(empty_db: AsyncSession) -> None:
+    """A rule reads back as it was written, the version as the enum it went in as."""
+    empty_db.add(
+        Policy(
+            name="Email Auditor",
+            description="Allows auditors to read all email addresses",
+            active=True,
+            role="email_auditor",
+            read_rules=[
+                PolicyReadRule(
+                    collection=Collection.Address,
+                    condition='{"address_type": {"scope": ["EMAIL"]}}',
+                    graphql_version=LATEST_VERSION,
+                    fields=[PolicyReadRuleField(field="value")],
+                )
+            ],
+        )
+    )
+    await empty_db.flush()
+    # Read it back rather than out of the identity map
+    empty_db.expunge_all()
+
+    rule = one(
+        (
+            await empty_db.scalars(
+                select(PolicyReadRule)
+                .join(Policy)
+                .where(Policy.role == "email_auditor")
+            )
+        ).all()
+    )
+    assert rule.condition == '{"address_type": {"scope": ["EMAIL"]}}'
+    assert rule.graphql_version is LATEST_VERSION
+    assert (
+        await empty_db.scalar(
+            text("SELECT graphql_version FROM policy_read_rule WHERE pk = :pk"),
+            {"pk": rule.pk},
+        )
+        == LATEST_VERSION.value
+    )
+
+
+@pytest.mark.integration_test
 async def test_the_rules_of_the_callers_policies_are_loaded(
     empty_db: AsyncSession,
 ) -> None:
@@ -356,6 +400,8 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
                 read_rules=[
                     PolicyReadRule(
                         collection=Collection.Address,
+                        condition="",
+                        graphql_version=LATEST_VERSION,
                         fields=[
                             PolicyReadRuleField(field="uuid"),
                             PolicyReadRuleField(field="value"),
@@ -371,6 +417,8 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
                 read_rules=[
                     PolicyReadRule(
                         collection=Collection.Employee,
+                        condition="",
+                        graphql_version=LATEST_VERSION,
                         fields=[PolicyReadRuleField(field="name")],
                     )
                 ],
@@ -401,6 +449,8 @@ async def test_a_policy_switched_off_grants_nothing(empty_db: AsyncSession) -> N
             read_rules=[
                 PolicyReadRule(
                     collection=Collection.Address,
+                    condition="",
+                    graphql_version=LATEST_VERSION,
                     fields=[PolicyReadRuleField(field="uuid")],
                 )
             ],
