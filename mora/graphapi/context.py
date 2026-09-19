@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from dataclasses import dataclass
+from typing import NamedTuple
 from typing import TypeAlias
 from uuid import UUID
 
@@ -29,7 +30,14 @@ from mora.graphapi.models import AddressRead
 from mora.graphapi.models import ClassRead
 from mora.graphapi.models import FacetRead
 from mora.graphapi.models import RoleBindingRead
-from mora.graphapi.policies import AccessKey
+
+
+class AccessKey(NamedTuple):
+    """A field access request."""
+
+    collection: db.Collection
+    uuid: UUID
+    field: str
 
 
 @dataclass

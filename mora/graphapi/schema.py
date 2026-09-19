@@ -43,6 +43,7 @@ from mora.graphapi.actor import UnknownActor
 from mora.graphapi.collections import DARAddress
 from mora.graphapi.collections import DefaultAddress
 from mora.graphapi.collections import MultifieldAddress
+from mora.graphapi.context import AccessKey
 from mora.graphapi.custom_schema import CustomSchema
 from mora.graphapi.custom_schema import get_version
 from mora.graphapi.events import EVENT_TOKEN_SCALAR
@@ -66,7 +67,6 @@ from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.owner_entities import OWNER_ENTITIES
 from mora.graphapi.policies import MODEL_OF_COLLECTION
-from mora.graphapi.policies import AccessKey
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import ADMIN_MAP
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
