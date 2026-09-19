@@ -12,6 +12,9 @@ from typing import NamedTuple
 from typing import TypeAlias
 from uuid import UUID
 
+import strawberry
+from graphql import GraphQLInputObjectType
+from graphql.utilities import coerce_input_value
 from more_itertools import map_reduce
 from sqlalchemy import ARRAY
 from sqlalchemy import ColumnElement
@@ -26,6 +29,7 @@ from sqlalchemy import select
 from sqlalchemy import true
 from sqlalchemy import union_all
 from strawberry.dataloader import DataLoader
+from strawberry.types.arguments import convert_argument
 
 from mora.auth.keycloak.models import Token
 from mora.db import AsyncSession
@@ -40,6 +44,8 @@ from mora.db import OrganisationRegistrering
 from mora.db import Policy
 from mora.db import PolicyReadRule
 from mora.db import PolicyReadRuleField
+from mora.graphapi import filters
+from mora.graphapi import resolvers
 from mora.graphapi.context import AccessKey
 
 # OIDC token role
@@ -77,6 +83,74 @@ MODEL_OF_COLLECTION: dict[Collection, Any] = {
     Collection.RelatedUnit: OrganisationFunktionRegistrering,
     Collection.RoleBinding: OrganisationFunktionRegistrering,
 }
+
+
+# The filter naming the objects of each collection, and the predicate turning one
+# into a condition on them. `Organisation` has neither, being a single object no
+# filter selects, so a rule on it can carry no condition.
+FILTER_OF_COLLECTION: dict[Collection, Any] = {
+    Collection.Address: filters.AddressFilter,
+    Collection.Association: filters.AssociationFilter,
+    Collection.Class: filters.ClassFilter,
+    Collection.Employee: filters.EmployeeFilter,
+    Collection.Engagement: filters.EngagementFilter,
+    Collection.Facet: filters.FacetFilter,
+    Collection.ITSystem: filters.ITSystemFilter,
+    Collection.ITUser: filters.ITUserFilter,
+    Collection.KLE: filters.KLEFilter,
+    Collection.Leave: filters.LeaveFilter,
+    Collection.Manager: filters.ManagerFilter,
+    Collection.OrganisationUnit: filters.OrganisationUnitFilter,
+    Collection.Owner: filters.OwnerFilter,
+    Collection.RelatedUnit: filters.RelatedUnitFilter,
+    Collection.RoleBinding: filters.RoleBindingFilter,
+}
+
+PREDICATE_OF_COLLECTION: dict[Collection, Callable[..., ColumnElement]] = {
+    Collection.Address: resolvers.address_predicate,
+    Collection.Association: resolvers.association_predicate,
+    Collection.Class: resolvers.class_predicate,
+    Collection.Employee: resolvers.employee_predicate,
+    Collection.Engagement: resolvers.engagement_predicate,
+    Collection.Facet: resolvers.facet_predicate,
+    Collection.ITSystem: resolvers.it_system_predicate,
+    Collection.ITUser: resolvers.it_user_predicate,
+    Collection.KLE: resolvers.kle_predicate,
+    Collection.Leave: resolvers.leave_predicate,
+    Collection.Manager: resolvers.manager_predicate,
+    Collection.OrganisationUnit: resolvers.organisation_unit_predicate,
+    Collection.Owner: resolvers.owner_predicate,
+    Collection.RelatedUnit: resolvers.related_unit_predicate,
+    Collection.RoleBinding: resolvers.rolebinding_predicate,
+}
+
+
+def parse_filter(
+    schema: strawberry.Schema, collection: Collection, raw: dict[str, Any]
+) -> Any:
+    """Validate a stored filter against the GraphQL schema and instantiate it."""
+    filter = FILTER_OF_COLLECTION[collection]
+    name = schema.config.name_converter.from_type(filter.__strawberry_definition__)
+    input_type = schema._schema.type_map[name]
+    assert isinstance(input_type, GraphQLInputObjectType)
+
+    errors: list[str] = []
+    coerced = coerce_input_value(
+        raw,
+        input_type,
+        lambda path, invalid, error: errors.append(
+            f"{'.'.join(map(str, path))}: {error}"
+        ),
+    )
+    if errors:
+        raise ValueError("invalid filter: " + "; ".join(errors))
+
+    return convert_argument(
+        coerced,
+        filter,
+        scalar_registry=schema.schema_converter.scalar_registry,
+        config=schema.config,
+    )
 
 
 def load_rules(
