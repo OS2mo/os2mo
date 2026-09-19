@@ -4,6 +4,7 @@
 
 from uuid import UUID
 
+from sqlalchemy import Boolean
 from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 from sqlalchemy import Text
@@ -26,6 +27,7 @@ class Policy(Base):
     )
     name: Mapped[str] = mapped_column(Text, unique=True)
     description: Mapped[str] = mapped_column(Text)
+    active: Mapped[bool] = mapped_column(Boolean)
     role: Mapped[str] = mapped_column(Text, index=True)
 
     read_rules: Mapped[list["PolicyReadRule"]] = relationship(back_populates="policy")

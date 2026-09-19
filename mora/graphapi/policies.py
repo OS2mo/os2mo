@@ -175,7 +175,7 @@ async def policy_load_fn(
     get_token: Callable[[], Awaitable[Token]],
     keys: list[int],
 ) -> list[list[Rule]]:
-    """Load the rules of the policies granted to the caller's roles."""
+    """Load the rules of the active policies granted to the caller's roles."""
     roles = (await get_token()).realm_access.roles
     rows = await session.execute(
         select(
@@ -185,7 +185,10 @@ async def policy_load_fn(
         )
         .join(Policy.read_rules)
         .join(PolicyReadRule.fields)
-        .where(Policy.role == any_(literal(roles, ARRAY(String))))
+        .where(
+            Policy.role == any_(literal(roles, ARRAY(String))),
+            Policy.active,
+        )
         .group_by(Policy.role, PolicyReadRule.pk, PolicyReadRule.collection)
     )
     rules = [

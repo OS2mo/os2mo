@@ -1659,6 +1659,7 @@ def set_rules(empty_db: db.AsyncSession) -> SetRules:
             db.Policy(
                 name=role,
                 description=f"Grants {role} the fields a test asks about",
+                active=True,
                 role=role,
                 read_rules=[
                     db.PolicyReadRule(
