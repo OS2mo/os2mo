@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from typing import TypeAlias
 from uuid import UUID
 
@@ -29,7 +30,9 @@ from mora.graphapi.models import AddressRead
 from mora.graphapi.models import ClassRead
 from mora.graphapi.models import FacetRead
 from mora.graphapi.models import RoleBindingRead
-from mora.graphapi.policies import AccessKey
+
+if TYPE_CHECKING:
+    from mora.graphapi.policies import AccessKey
 
 
 @dataclass
@@ -50,7 +53,7 @@ class MOLoaders:
     org_loader: DataLoader[int, OrganisationRead]
     org_unit_loader: DataLoader[LoadKey, list[OrganisationUnitRead]]
     owner_loader: DataLoader[LoadKey, list[OwnerRead]]
-    access_loader: DataLoader[AccessKey, bool]
+    access_loader: DataLoader["AccessKey", bool]
     rel_unit_loader: DataLoader[LoadKey, list[RelatedUnitRead]]
     rolebinding_loader: DataLoader[LoadKey, list[RoleBindingRead]]
 
