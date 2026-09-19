@@ -7,6 +7,7 @@ from uuid import UUID
 from sqlalchemy import Boolean
 from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
 from sqlalchemy import Text
 from sqlalchemy import text
 from sqlalchemy.orm import Mapped
@@ -44,6 +45,8 @@ class PolicyReadRule(Base):
     collection: Mapped[Collection] = mapped_column(
         Enum(Collection, name="policycollection")
     )
+    condition: Mapped[str] = mapped_column(Text, server_default="")
+    graphql_version: Mapped[int] = mapped_column(Integer)
     policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.pk"))
     policy: Mapped[Policy] = relationship(back_populates="read_rules")
 

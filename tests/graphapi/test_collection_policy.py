@@ -27,6 +27,7 @@ from mora.graphapi.policies import Rule
 from mora.graphapi.policies import access_load_fn
 from mora.graphapi.policies import policy_load_fn
 from mora.graphapi.schema import collection_policy
+from mora.graphapi.version import LATEST_VERSION
 from tests.conftest import token_getter_of
 
 
@@ -248,6 +249,7 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
                 read_rules=[
                     PolicyReadRule(
                         collection=Collection.Address,
+                        graphql_version=LATEST_VERSION.value,
                         fields=[
                             PolicyReadRuleField(field="uuid"),
                             PolicyReadRuleField(field="value"),
@@ -261,6 +263,7 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
                 read_rules=[
                     PolicyReadRule(
                         collection=Collection.Employee,
+                        graphql_version=LATEST_VERSION.value,
                         fields=[PolicyReadRuleField(field="name")],
                     )
                 ],
@@ -290,6 +293,7 @@ async def test_a_policy_switched_off_grants_nothing(empty_db: AsyncSession) -> N
             read_rules=[
                 PolicyReadRule(
                     collection=Collection.Address,
+                    graphql_version=LATEST_VERSION.value,
                     fields=[PolicyReadRuleField(field="uuid")],
                 )
             ],
