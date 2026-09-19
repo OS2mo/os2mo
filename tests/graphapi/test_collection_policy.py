@@ -22,7 +22,7 @@ from mora.db import OrganisationFunktionRegistrering
 from mora.db import Policy
 from mora.db import PolicyReadRule
 from mora.db import PolicyReadRuleField
-from mora.graphapi.policies import AccessKey
+from mora.graphapi.graphql_utils import AccessKey
 from mora.graphapi.policies import Rule
 from mora.graphapi.policies import access_load_fn
 from mora.graphapi.policies import policy_load_fn

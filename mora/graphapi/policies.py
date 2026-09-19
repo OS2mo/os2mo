@@ -40,6 +40,7 @@ from mora.db import OrganisationRegistrering
 from mora.db import Policy
 from mora.db import PolicyReadRule
 from mora.db import PolicyReadRuleField
+from mora.graphapi.graphql_utils import AccessKey
 
 # OIDC token role
 Role: TypeAlias = str
@@ -54,14 +55,6 @@ class Rule(NamedTuple):
     collection: Collection
     condition: ColumnElement[bool]
     fields: frozenset[Field]
-
-
-class AccessKey(NamedTuple):
-    """A field access request."""
-
-    collection: Collection
-    uuid: UUID
-    field: Field
 
 
 # Each collection's model, holding the registrations of its objects.
