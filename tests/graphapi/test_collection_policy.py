@@ -101,7 +101,6 @@ async def test_an_object_gets_the_fields_of_every_rule_matching_it(
 
     allowed = await access_load_fn(
         empty_db,
-        token_getter_of("reader"),
         DataLoader(load_fn=partial(fake_policy_loader, rules)),
         [
             AccessKey(Collection.Address, matched, "value"),
@@ -157,7 +156,6 @@ async def test_a_batch_spans_collections_and_grants_only_where_a_rule_names_one(
 
     allowed = await access_load_fn(
         empty_db,
-        token_getter_of("reader"),
         DataLoader(load_fn=partial(fake_policy_loader, rules)),
         [
             AccessKey(Collection.Address, address, "value"),
@@ -224,7 +222,6 @@ async def test_a_condition_unknown_of_an_object_grants_nothing_on_it(
 
     allowed = await access_load_fn(
         empty_db,
-        token_getter_of("reader"),
         DataLoader(load_fn=partial(fake_policy_loader, rules)),
         [
             AccessKey(Collection.Address, matched, "value"),
