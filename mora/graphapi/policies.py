@@ -151,7 +151,9 @@ def cel2predicate(
         return true()
     predicate = PREDICATE_OF_COLLECTION[collection]
     filter = parse_filter(
-        get_schema(graphql_version), collection, policy_cel.evaluate(condition, token)
+        get_schema(graphql_version),
+        collection,
+        policy_cel.evaluate(condition, token, {}),
     )
     return predicate(settings=settings, version=graphql_version, filter=filter)
 
