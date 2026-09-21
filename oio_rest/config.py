@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     db_port: str = "5432"
     db_sslmode: str | None
 
+    # Required for performance. Perhaps it can be removed when
+    # we have proper dataloaders and no more 1+n problems.
+    db_plan_cache_mode: str = "force_custom_plan"
+
     # The log level for the Python application
     lora_log_level: str = "WARNING"
 
