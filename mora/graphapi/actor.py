@@ -20,7 +20,7 @@ from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from mora.auth.middleware import UNABLE_TO_PARSE_TOKEN_UUID
 from mora.db import Actor as ActorTable
 from mora.graphapi.context import MOInfo
-from mora.graphapi.filters import gen_filter_string
+from mora.graphapi.filter_models import gen_filter_string
 
 from .events import Listener
 from .events import Namespace
