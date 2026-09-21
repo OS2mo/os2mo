@@ -573,7 +573,7 @@ def load_rules(
         for rule in ROLE_POLICIES
         if rule.role in roles
         and rule.collection == collection
-        and rule.fields & accessed_fields
+        and rule.fields.intersection(accessed_fields)
     ]
 
 
