@@ -21,11 +21,9 @@ from sqlalchemy import String
 from sqlalchemy import Uuid
 from sqlalchemy import any_
 from sqlalchemy import column
-from sqlalchemy import false
 from sqlalchemy import func
 from sqlalchemy import literal
 from sqlalchemy import select
-from sqlalchemy import true
 from sqlalchemy import union_all
 from strawberry.dataloader import DataLoader
 
@@ -59,7 +57,7 @@ class Rule(NamedTuple):
 
     role: Role
     collection: Collection
-    condition: ColumnElement[bool]
+    condition: bool | ColumnElement[bool]
     fields: frozenset[Field]
 
 
@@ -120,15 +118,14 @@ def cel2predicate(
     graphql_version: Version,
     condition: CEL,
     token: Token,
-) -> ColumnElement[bool]:
+) -> bool | ColumnElement[bool]:
     """Evaluate the CEL condition into a bool or filter, if filter convert to clause."""
     # No condition -> applies to all entities
     if not condition:
-        return true()
+        return True
     result = policy_cel.evaluate(condition, token)
-    # Boolean returned -> Make raw accept / reject condition
     if isinstance(result, bool):
-        return true() if result else false()
+        return result
     predicate = PREDICATE_OF_COLLECTION[collection]
     filter_type = get_type_hints(predicate)["filter"]
     filter = filter_type.parse_obj(result)
@@ -187,6 +184,7 @@ def granted_select(rule: Rule, uuids: frozenset[UUID]) -> Select[Any]:
     #   uuid2 | field1
     #   uuid2 | field2
     #   ...   | ...
+    assert not isinstance(rule.condition, bool)
     model = MODEL_OF_COLLECTION[rule.collection]
     return select(
         model.uuid.label("uuid"),
@@ -199,13 +197,24 @@ def granted_select(rule: Rule, uuids: frozenset[UUID]) -> Select[Any]:
 
 def collection_denials(
     collection: Collection, keys: Sequence[AccessKey], rules: Iterable[Rule]
-) -> Select[Any]:
-    """Select the accesses to collection that the caller's rules do not grant."""
+) -> Select[Any] | None:
+    """Select the accesses to collection that the caller's rules do not grant.
+
+    None where the rules settle every access asked, leaving nothing to decide.
+    """
+    rules = load_rules(collection, keys, rules)
+    settled = frozenset().union(
+        *(rule.fields for rule in rules if rule.condition is True)
+    )
+    keys = [key for key in keys if key.field not in settled]
+    if not keys:
+        return None
+
     requested = requested_select(keys).cte()
     # Without a rule nothing is granted, so everything is denied
     denied = requested
 
-    rules = load_rules(collection, keys, rules)
+    rules = [rule for rule in rules if rule.condition is not True]
     if rules:
         asked = select(requested.c.uuid, requested.c.field)
         uuids = frozenset(key.uuid for key in keys)
@@ -261,6 +270,7 @@ async def policy_load_fn(
         )
         for role, collection, graphql_version, condition, fields in rows
     ]
+    rules = [rule for rule in rules if rule.condition is not False]
     return [rules for _ in keys]
 
 
@@ -274,12 +284,14 @@ async def access_load_fn(
     # and c22dce95
     rules = await policy_loader.load(0)
     by_collection = map_reduce(keys, keyfunc=lambda key: key.collection)
-    denied = union_all(
-        *(
-            collection_denials(collection, accesses, rules)
-            for collection, accesses in by_collection.items()
-        )
-    ).subquery()
+    denials = [
+        denial
+        for collection, accesses in by_collection.items()
+        if (denial := collection_denials(collection, accesses, rules)) is not None
+    ]
+    if not denials:
+        return [True] * len(keys)
+    denied = union_all(*denials).subquery()
     rows = await session.execute(
         select(
             denied.c.collection, denied.c.uuid, func.array_agg(denied.c.field)

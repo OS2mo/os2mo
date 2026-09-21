@@ -16,7 +16,6 @@ from sqlalchemy import Boolean
 from sqlalchemy import literal
 from sqlalchemy import select
 from sqlalchemy import text
-from sqlalchemy import true
 from strawberry.dataloader import DataLoader
 
 from mora.auth.keycloak.models import RealmAccess
@@ -533,7 +532,7 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
     assert rule.collection == Collection.Address
     assert rule.fields == frozenset({"uuid", "value"})
     # A row carries no condition, so its rule reaches every object
-    assert rule.condition.compare(true())
+    assert rule.condition is True
 
 
 @pytest.mark.integration_test
@@ -560,3 +559,51 @@ async def test_a_policy_switched_off_grants_nothing(empty_db: AsyncSession) -> N
     assert await policy_load_fn(
         empty_db, Settings(), token_getter_of("auditor"), [0]
     ) == [[]]
+
+
+@pytest.mark.integration_test
+async def test_a_condition_the_token_settles_needs_no_object_to_decide(
+    empty_db: AsyncSession,
+) -> None:
+    """A rule the token settles grants outright, one it settles against is dropped.
+
+    The uuids are of no address at all, so only the rule itself can grant them.
+    """
+    empty_db.add(
+        Policy(
+            name="auditor",
+            description="Reads the value of every address, the user_key of none",
+            active=True,
+            role="auditor",
+            read_rules=[
+                PolicyReadRule(
+                    collection=Collection.Address,
+                    condition='"auditor" in token.roles',
+                    graphql_version=LATEST_VERSION,
+                    fields=[PolicyReadRuleField(field="value")],
+                ),
+                PolicyReadRule(
+                    collection=Collection.Address,
+                    condition='"owner" in token.roles',
+                    graphql_version=LATEST_VERSION,
+                    fields=[PolicyReadRuleField(field="user_key")],
+                ),
+            ],
+        )
+    )
+    await empty_db.flush()
+    get_token = token_getter_of("auditor")
+
+    rule = one(one(await policy_load_fn(empty_db, Settings(), get_token, [0])))
+    assert rule.fields == frozenset({"value"})
+
+    allowed = await access_load_fn(
+        empty_db,
+        DataLoader(load_fn=partial(policy_load_fn, empty_db, Settings(), get_token)),
+        [
+            AccessKey(Collection.Address, uuid4(), "value"),
+            AccessKey(Collection.Address, uuid4(), "user_key"),
+        ],
+    )
+
+    assert allowed == [True, False]
