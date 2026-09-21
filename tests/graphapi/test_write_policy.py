@@ -8,14 +8,18 @@ from uuid import UUID
 
 import pytest
 from graphql import GraphQLError
+from more_itertools import one
 from pydantic import ValidationError
 from sqlalchemy import select
+from sqlalchemy import text
 
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.config import Settings
 from mora.db import AsyncSession
 from mora.db import Collection
+from mora.db import Policy
+from mora.db import PolicyWriteRule
 from mora.graphapi.policies import cel2check
 from mora.graphapi.version import LATEST_VERSION
 from tests.conftest import ALVIDA_UUID
@@ -209,4 +213,53 @@ async def test_a_check_yielding_what_the_filter_rejects_fails(
 
     assert str(raised.value) == (
         """Invalid value 'not-a-uuid' at 'value.uuids[0]': Value cannot represent a UUID: "not-a-uuid". badly formed hexadecimal UUID string"""
+    )
+
+
+@pytest.mark.integration_test
+async def test_a_rule_keeps_its_mutator_condition_and_version(
+    empty_db: AsyncSession,
+) -> None:
+    """A rule reads back as it was written, the version as the enum it went in as."""
+    condition = """
+    [{
+        "collection": "OrganisationUnit",
+        "filter": {"uuids": [args.input.org_unit]}
+    }]
+    """
+    empty_db.add(
+        Policy(
+            name="Unit Owner",
+            description="Allows unit owners to create addresses in their own unit",
+            active=True,
+            role="unit_owner",
+            write_rules=[
+                PolicyWriteRule(
+                    mutator="address_create",
+                    condition=condition,
+                    graphql_version=LATEST_VERSION,
+                )
+            ],
+        )
+    )
+    await empty_db.flush()
+    # Read it back rather than out of the identity map
+    empty_db.expunge_all()
+
+    rule = one(
+        (
+            await empty_db.scalars(
+                select(PolicyWriteRule).join(Policy).where(Policy.role == "unit_owner")
+            )
+        ).all()
+    )
+    assert rule.mutator == "address_create"
+    assert rule.condition == condition
+    assert rule.graphql_version is LATEST_VERSION
+    assert (
+        await empty_db.scalar(
+            text("SELECT graphql_version FROM policy_write_rule WHERE pk = :pk"),
+            {"pk": rule.pk},
+        )
+        == LATEST_VERSION.value
     )
