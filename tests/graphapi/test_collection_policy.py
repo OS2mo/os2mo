@@ -92,25 +92,37 @@ async def test_an_object_gets_the_fields_of_every_rule_matching_it(
         )
         for value in ("first@example.org", "second@example.org")
     )
-    rules = [
-        Rule(
-            role="reader",
-            collection=Collection.Address,
-            condition=true(),
-            fields=frozenset({"user_key"}),
-        ),
-        Rule(
-            role="reader",
-            collection=Collection.Address,
-            condition=OrganisationFunktionRegistrering.organisationfunktion_id
-            == matched,
-            fields=frozenset({"value"}),
-        ),
-    ]
+    empty_db.add(
+        Policy(
+            name="Address Auditor",
+            description="Allows address auditors to read one address in full",
+            active=True,
+            role="address_auditor",
+            read_rules=[
+                PolicyReadRule(
+                    collection=Collection.Address,
+                    graphql_version=LATEST_VERSION,
+                    condition="",
+                    fields=[PolicyReadRuleField(field="user_key")],
+                ),
+                PolicyReadRule(
+                    collection=Collection.Address,
+                    graphql_version=LATEST_VERSION,
+                    condition=f'{{"uuids": ["{matched}"]}}',
+                    fields=[PolicyReadRuleField(field="value")],
+                ),
+            ],
+        )
+    )
+    await empty_db.flush()
 
     allowed = await access_load_fn(
         empty_db,
-        DataLoader(load_fn=partial(fake_policy_loader, rules)),
+        DataLoader(
+            load_fn=partial(
+                policy_load_fn, empty_db, Settings(), token_getter_of("address_auditor")
+            )
+        ),
         [
             AccessKey(Collection.Address, matched, "value"),
             AccessKey(Collection.Address, matched, "user_key"),
@@ -154,18 +166,31 @@ async def test_a_batch_spans_collections_and_grants_only_where_a_rule_names_one(
             "validity": {"from": "2000-01-01"},
         }
     )
-    rules = [
-        Rule(
-            role="reader",
-            collection=Collection.Address,
-            condition=true(),
-            fields=frozenset({"value"}),
+    empty_db.add(
+        Policy(
+            name="Address Auditor",
+            description="Allows address auditors to read the value of every address",
+            active=True,
+            role="address_auditor",
+            read_rules=[
+                PolicyReadRule(
+                    collection=Collection.Address,
+                    graphql_version=LATEST_VERSION,
+                    condition="",
+                    fields=[PolicyReadRuleField(field="value")],
+                )
+            ],
         )
-    ]
+    )
+    await empty_db.flush()
 
     allowed = await access_load_fn(
         empty_db,
-        DataLoader(load_fn=partial(fake_policy_loader, rules)),
+        DataLoader(
+            load_fn=partial(
+                policy_load_fn, empty_db, Settings(), token_getter_of("address_auditor")
+            )
+        ),
         [
             AccessKey(Collection.Address, address, "value"),
             AccessKey(Collection.Employee, uuid4(), "cpr_number"),
