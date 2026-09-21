@@ -17,11 +17,11 @@ from strawberry import UNSET
 from mora.auth.keycloak.models import Token
 from mora.config import Settings
 from mora.graphapi import resolvers
-from mora.graphapi.filters import EmployeeFilter
-from mora.graphapi.filters import ITSystemFilter
-from mora.graphapi.filters import ITUserFilter
-from mora.graphapi.filters import OrganisationUnitFilter
-from mora.graphapi.filters import OwnerFilter
+from mora.graphapi.filter_models import EmployeeFilter
+from mora.graphapi.filter_models import ITSystemFilter
+from mora.graphapi.filter_models import ITUserFilter
+from mora.graphapi.filter_models import OrganisationUnitFilter
+from mora.graphapi.filter_models import OwnerFilter
 from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.resolvers import organisation_unit_predicate
 from mora.graphapi.version import Version

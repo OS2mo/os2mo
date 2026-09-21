@@ -1,260 +1,169 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from __future__ import annotations
+"""Strawberry input types for the filters in `filter_models`.
 
-from datetime import datetime
+Only the GraphQL specifics live here: descriptions, deprecations, and which of
+a model's fields the input exposes. An undeclared field is absent from GraphQL
+and keeps its model default, which is how the registration filters pin their
+collection. Nested filters are cyclic, so they use the lazy aliases below.
+"""
+
+# `from_pydantic` is generated per filter and never called polymorphically
+# mypy: disable-error-code="override"
+
 from textwrap import dedent
-from typing import Any
-from uuid import UUID
+from typing import Annotated
 
 import strawberry
-from strawberry import UNSET
 
 from mora.graphapi.models import FileStore
-from mora.util import CPR
 
+from . import filter_models
 from .filter_models import gen_filter_string
-from .filter_models import gen_filter_table
+
+_SELF = "mora.graphapi.filters"
+
+LazyAddressRegistrationFilter = Annotated[
+    "AddressRegistrationFilter", strawberry.lazy(_SELF)
+]
+LazyAssociationRegistrationFilter = Annotated[
+    "AssociationRegistrationFilter", strawberry.lazy(_SELF)
+]
+LazyClassFilter = Annotated["ClassFilter", strawberry.lazy(_SELF)]
+LazyClassOwnerFilter = Annotated["ClassOwnerFilter", strawberry.lazy(_SELF)]
+LazyClassRegistrationFilter = Annotated[
+    "ClassRegistrationFilter", strawberry.lazy(_SELF)
+]
+LazyEmployeeFilter = Annotated["EmployeeFilter", strawberry.lazy(_SELF)]
+LazyEmployeeRegistrationFilter = Annotated[
+    "EmployeeRegistrationFilter", strawberry.lazy(_SELF)
+]
+LazyEngagementFilter = Annotated["EngagementFilter", strawberry.lazy(_SELF)]
+LazyEngagementRegistrationFilter = Annotated[
+    "EngagementRegistrationFilter", strawberry.lazy(_SELF)
+]
+LazyFacetFilter = Annotated["FacetFilter", strawberry.lazy(_SELF)]
+LazyFacetRegistrationFilter = Annotated[
+    "FacetRegistrationFilter", strawberry.lazy(_SELF)
+]
+LazyITSystemFilter = Annotated["ITSystemFilter", strawberry.lazy(_SELF)]
+LazyITSystemRegistrationFilter = Annotated[
+    "ITSystemRegistrationFilter", strawberry.lazy(_SELF)
+]
+LazyITUserFilter = Annotated["ITUserFilter", strawberry.lazy(_SELF)]
+LazyITUserRegistrationFilter = Annotated[
+    "ITUserRegistrationFilter", strawberry.lazy(_SELF)
+]
+LazyKLERegistrationFilter = Annotated["KLERegistrationFilter", strawberry.lazy(_SELF)]
+LazyLeaveRegistrationFilter = Annotated[
+    "LeaveRegistrationFilter", strawberry.lazy(_SELF)
+]
+LazyManagerRegistrationFilter = Annotated[
+    "ManagerRegistrationFilter", strawberry.lazy(_SELF)
+]
+LazyOrganisationUnitFilter = Annotated["OrganisationUnitFilter", strawberry.lazy(_SELF)]
+LazyOrganisationUnitRegistrationFilter = Annotated[
+    "OrganisationUnitRegistrationFilter", strawberry.lazy(_SELF)
+]
+LazyOwnerFilter = Annotated["OwnerFilter", strawberry.lazy(_SELF)]
+LazyRoleBindingFilter = Annotated["RoleBindingFilter", strawberry.lazy(_SELF)]
+LazyRoleRegistrationFilter = Annotated["RoleRegistrationFilter", strawberry.lazy(_SELF)]
 
 
-@strawberry.input
+@strawberry.experimental.pydantic.input(model=filter_models.BaseFilter)
 class BaseFilter:
-    uuids: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("UUID", "uuids")
-    )
-    user_keys: list[str] | None = strawberry.field(
-        default=None, description=gen_filter_string("User-key", "user_keys")
-    )
-
-    from_date: datetime | None = strawberry.field(
-        default=UNSET,
-        description="Limit the elements returned by their starting validity.",
-    )
-    to_date: datetime | None = strawberry.field(
-        default=UNSET,
-        description="Limit the elements returned by their ending validity.",
-    )
-    registration_time: datetime | None = strawberry.field(
-        default=None,
-        description="Show elements as they were at the provided registration time",
-    )
+    uuids: strawberry.auto
+    user_keys: strawberry.auto
+    from_date: strawberry.auto
+    to_date: strawberry.auto
+    registration_time: strawberry.auto
 
 
-@strawberry.input
+@strawberry.experimental.pydantic.input(model=filter_models.EmployeeFiltered)
 class EmployeeFiltered:
-    employee: EmployeeFilter | None = strawberry.field(
-        default=UNSET,
-        description=dedent(
-            """\
-            Employee filter limiting which entries are returned.
-            """
-        ),
-    )
-    employees: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Employee UUID", "employees"),
+    employee: LazyEmployeeFilter | None
+    employees: strawberry.auto = strawberry.field(
         deprecation_reason="Replaced by the 'employee' filter",
     )
 
 
-@strawberry.input
+@strawberry.experimental.pydantic.input(model=filter_models.OrganisationUnitFiltered)
 class OrganisationUnitFiltered:
-    org_unit: OrganisationUnitFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Organisation Unit filter limiting which entries are returned.
-            """
-        ),
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
+    org_unit: LazyOrganisationUnitFilter | None
+    org_units: strawberry.auto = strawberry.field(
         deprecation_reason="Replaced by the 'org_unit' filter",
     )
 
 
-@strawberry.input(description="Address filter.")
+@strawberry.experimental.pydantic.input(
+    model=filter_models.AddressFilter, description="Address filter."
+)
 class AddressFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
-    registration: AddressRegistrationFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Registration filter limiting which entries are returned.
-            """
-        ),
-    )
+    registration: LazyAddressRegistrationFilter | None
 
-    address_type: ClassFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Address type filter limiting which entries are returned.
-            """
-        ),
-    )
-    address_types: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Address type UUID", "address_types"),
+    address_type: LazyClassFilter | None
+    address_types: strawberry.auto = strawberry.field(
         deprecation_reason="Replaced by the 'address_type' filter",
     )
-    address_type_user_keys: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string(
-            "Address type user-key", "address_type_user_keys"
-        ),
+    address_type_user_keys: strawberry.auto = strawberry.field(
         deprecation_reason="Replaced by the 'address_type' filter",
     )
 
-    engagement: EngagementFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Engagement filter limiting which entries are returned.
-            """
-        ),
-    )
-    engagements: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Engagement UUID", "engagements"),
+    engagement: LazyEngagementFilter | None
+    engagements: strawberry.auto = strawberry.field(
         deprecation_reason="Replaced by the 'engagement' filter",
     )
 
-    ituser: ITUserFilter | None = strawberry.field(
-        default=None,
-        description="ITUser filter limiting which entries are returned.",
-    )
+    ituser: LazyITUserFilter | None
 
-    visibility: ClassFilter | None = strawberry.field(
-        default=None,
-        description="Visibility filter limiting which entries are returned.",
-    )
+    visibility: LazyClassFilter | None
 
 
-@strawberry.input(description="Association filter.")
+@strawberry.experimental.pydantic.input(
+    model=filter_models.AssociationFilter, description="Association filter."
+)
 class AssociationFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
-    registration: AssociationRegistrationFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Registration filter limiting which entries are returned.
-            """
-        ),
-    )
+    registration: LazyAssociationRegistrationFilter | None
 
-    association_type: ClassFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Address type filter limiting which entries are returned.
-            """
-        ),
-    )
-    association_types: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Association type UUID", "association_types"),
+    association_type: LazyClassFilter | None
+    association_types: strawberry.auto = strawberry.field(
         deprecation_reason="Replaced by the 'association_type' filter",
     )
-    association_type_user_keys: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string(
-            "Association type user-key", "association_type_user_keys"
-        ),
+    association_type_user_keys: strawberry.auto = strawberry.field(
         deprecation_reason="Replaced by the 'association_type' filter",
     )
-    it_association: bool | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Query for either IT-Associations or "normal" Associations. `None` returns all.
-
-            This field is needed to replicate the functionality in the service API:
-            `?it=1`
-            """
-        ),
-    )
+    it_association: strawberry.auto
 
 
-@strawberry.input(description="Class filter.")
+@strawberry.experimental.pydantic.input(
+    model=filter_models.ClassFilter, description="Class filter."
+)
 class ClassFilter(BaseFilter):
-    registration: ClassRegistrationFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Registration filter limiting which entries are returned.
-            """
-        ),
-    )
+    registration: LazyClassRegistrationFilter | None
 
-    name: list[str] | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Name filter finding exact matches by name.
-            """
-        ),
-    )
+    name: strawberry.auto
 
-    facet: FacetFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Facet filter limiting which entries are returned.
-            """
-        ),
-    )
-    facets: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Facet UUID", "facets"),
+    facet: LazyFacetFilter | None
+    facets: strawberry.auto = strawberry.field(
         deprecation_reason="Replaced by the 'facet' filter",
     )
-    facet_user_keys: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Facet user-key", "facet_user_keys"),
+    facet_user_keys: strawberry.auto = strawberry.field(
         deprecation_reason="Replaced by the 'facet' filter",
     )
 
-    parent: ClassFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Parent filter limiting which entries are returned.
-            """
-        ),
-    )
-    parents: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Parent UUID", "parents"),
+    parent: LazyClassFilter | None
+    parents: strawberry.auto = strawberry.field(
         deprecation_reason="Replaced by the 'parent' filter",
     )
-    parent_user_keys: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Parent user-key", "parent_user_keys"),
+    parent_user_keys: strawberry.auto = strawberry.field(
         deprecation_reason="Replaced by the 'parent' filter",
     )
 
-    it_system: ITSystemFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            IT-System filter limiting which entries are returned.
-            """
-        ),
-    )
+    it_system: LazyITSystemFilter | None
 
-    owner: ClassOwnerFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Owner filter limiting which entries are returned.
-            """
-        ),
-    )
+    owner: LazyClassOwnerFilter | None
 
-    scope: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Scope", "scope"),
-    )
+    scope: strawberry.auto
 
 
 @strawberry.input(description="Configuration filter.")
@@ -265,122 +174,46 @@ class ConfigurationFilter:
     )
 
 
-@strawberry.input(description="Employee filter.")
+@strawberry.experimental.pydantic.input(
+    model=filter_models.EmployeeFilter, description="Employee filter."
+)
 class EmployeeFilter(BaseFilter):
-    registration: EmployeeRegistrationFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Registration filter limiting which entries are returned.
-            """
-        ),
-    )
+    registration: LazyEmployeeRegistrationFilter | None
 
-    query: str | None = strawberry.field(
-        default=UNSET,
-        description=dedent(
-            """\
-            Free text search.
+    query: strawberry.auto
+    cpr_numbers: strawberry.auto
 
-            Does best effort lookup to find entities matching the query string.
-            No quarantees are given w.r.t. the entries returned.
-            """
-        ),
-    )
-    cpr_numbers: list[CPR] | None = strawberry.field(
-        default=None, description=gen_filter_string("CPR number", "cpr_numbers")
-    )
+    owner: LazyOwnerFilter | None
 
-    owner: OwnerFilter | None = strawberry.field(
-        default=None,
-        description="Owner filter limiting which entries are returned.",
-    )
-
-    ituser: ITUserFilter | None = strawberry.field(
-        default=UNSET,
-        description=dedent(
-            """\
-            IT-user filter limiting which entries are returned.
-
-            Set to `null` to only return employees without any IT-users.
-            """
-        ),
-    )
+    ituser: LazyITUserFilter | None
 
 
-@strawberry.input(description="Engagement filter.")
+@strawberry.experimental.pydantic.input(
+    model=filter_models.EngagementFilter, description="Engagement filter."
+)
 class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
-    registration: EngagementRegistrationFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Registration filter limiting which entries are returned.
-            """
-        ),
-    )
+    registration: LazyEngagementRegistrationFilter | None
 
-    job_function: ClassFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Job function filter limiting which entries are returned.
-            """
-        ),
-    )
+    job_function: LazyClassFilter | None
 
-    engagement_type: ClassFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Engagement type filter limiting which entries are returned.
-            """
-        ),
-    )
+    engagement_type: LazyClassFilter | None
 
-    ituser: ITUserFilter | None = strawberry.field(
-        default=None,
-        description="ITUser filter limiting which entries are returned.",
-    )
+    ituser: LazyITUserFilter | None
 
-    primary: ClassFilter | None = strawberry.field(
-        default=UNSET,
-        description=dedent(
-            """\
-            Primary class filter limiting which entries are returned.
-
-            Set to `null` to only return engagements without a primary class.
-            """
-        ),
-    )
+    primary: LazyClassFilter | None
 
 
-@strawberry.input(description="Facet filter.")
+@strawberry.experimental.pydantic.input(
+    model=filter_models.FacetFilter, description="Facet filter."
+)
 class FacetFilter(BaseFilter):
-    registration: FacetRegistrationFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Registration filter limiting which entries are returned.
-            """
-        ),
-    )
+    registration: LazyFacetRegistrationFilter | None
 
-    parent: FacetFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Parent filter limiting which entries are returned.
-            """
-        ),
-    )
-    parents: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Parent UUID", "parents"),
+    parent: LazyFacetFilter | None
+    parents: strawberry.auto = strawberry.field(
         deprecation_reason="Replaced by the 'parent' filter",
     )
-    parent_user_keys: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Parent user-key", "parent_user_keys"),
+    parent_user_keys: strawberry.auto = strawberry.field(
         deprecation_reason="Replaced by the 'parent' filter",
     )
 
@@ -411,173 +244,63 @@ class HealthFilter:
     )
 
 
-@strawberry.input(description="IT system filter.")
+@strawberry.experimental.pydantic.input(
+    model=filter_models.ITSystemFilter, description="IT system filter."
+)
 class ITSystemFilter(BaseFilter):
-    registration: ITSystemRegistrationFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Registration filter limiting which entries are returned.
-            """
-        ),
-    )
+    registration: LazyITSystemRegistrationFilter | None
 
 
-@strawberry.input(description="IT user filter.")
+@strawberry.experimental.pydantic.input(
+    model=filter_models.ITUserFilter, description="IT user filter."
+)
 class ITUserFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
-    registration: ITUserRegistrationFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Registration filter limiting which entries are returned.
-            """
-        ),
-    )
+    registration: LazyITUserRegistrationFilter | None
 
-    itsystem: ITSystemFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            ITSystem filter limiting which entries are returned.
-            """
-        ),
-    )
-    itsystem_uuids: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string(
-            "Only return IT users of ITSystem with these UUIDs", "itsystem_uuids"
-        ),
+    itsystem: LazyITSystemFilter | None
+    itsystem_uuids: strawberry.auto = strawberry.field(
         deprecation_reason="Replaced by the 'itsystem' filter",
     )
 
-    engagement: EngagementFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Engagement filter limiting which entries are returned.
-            """
-        ),
-    )
+    engagement: LazyEngagementFilter | None
 
-    rolebinding: RoleBindingFilter | None = strawberry.field(
-        default=UNSET,
-        description=dedent(
-            """\
-            Rolebinding filter limiting which entries are returned.
+    rolebinding: LazyRoleBindingFilter | None
 
-            Set to `null` to only return IT users without any rolebindings.
-            """
-        ),
-    )
+    external_ids: strawberry.auto
 
-    external_ids: list[str] | None = strawberry.field(
-        default=UNSET,
-        description=dedent(
-            """\
-            Only return IT users with this `external_id`.
+    binding_types: strawberry.auto
 
-            | `external_id` | Elements returned                            |
-            |---------------|----------------------------------------------|
-            | not provided  | All                                          |
-            | `null`        | Only entries where `external_id` is not set  |
-            | `[]`          | None                                         |
-            | `"x"`         | `["x"]` or `[]` (`*`)                        |
-            | `["x", "y"]`  | `["x", "y"]`, `["x"]`, `["y"]` or `[]` (`*`) |
-
-            `*`: Elements returned depends on which elements were found.
-            """
-        ),
-    )
-
-    binding_types: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string(
-            "Only return IT users with this `binding_type`", "binding_type"
-        ),
-    )
-
-    primary: ClassFilter | None = strawberry.field(
-        default=UNSET,
-        description=dedent(
-            """\
-            Primary class filter limiting which entries are returned.
-
-            Set to `null` to only return IT users without a primary class.
-            """
-        ),
-    )
+    primary: LazyClassFilter | None
 
 
-@strawberry.input(description="KLE filter.")
+@strawberry.experimental.pydantic.input(
+    model=filter_models.KLEFilter, description="KLE filter."
+)
 class KLEFilter(BaseFilter, OrganisationUnitFiltered):
-    registration: KLERegistrationFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Registration filter limiting which entries are returned.
-            """
-        ),
-    )
+    registration: LazyKLERegistrationFilter | None
 
 
-@strawberry.input(description="Leave filter.")
+@strawberry.experimental.pydantic.input(
+    model=filter_models.LeaveFilter, description="Leave filter."
+)
 class LeaveFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
-    registration: LeaveRegistrationFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Registration filter limiting which entries are returned.
-            """
-        ),
-    )
+    registration: LazyLeaveRegistrationFilter | None
 
 
-@strawberry.input(description="Manager filter.")
+@strawberry.experimental.pydantic.input(
+    model=filter_models.ManagerFilter, description="Manager filter."
+)
 class ManagerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
-    registration: ManagerRegistrationFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Registration filter limiting which entries are returned.
-            """
-        ),
-    )
-    engagement: EngagementFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Engagement filter limiting which entries are returned.
-            """
-        ),
-    )
+    registration: LazyManagerRegistrationFilter | None
+    engagement: LazyEngagementFilter | None
 
-    responsibility: ClassFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Responsibility filter limiting which entries are returned.
-            """
-        ),
-    )
-    manager_type: ClassFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Manager_type filter limiting which entries are returned.
-            """
-        ),
-    )
-    exclude: EmployeeFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Employee filter for managers to exclude from the result.
-            """
-        ),
-    )
+    responsibility: LazyClassFilter | None
+    manager_type: LazyClassFilter | None
+    exclude: LazyEmployeeFilter | None
 
 
-@strawberry.input(
+@strawberry.experimental.pydantic.input(
+    model=filter_models.OrganisationUnitFilter,
     description=dedent(
         """\
         Organisation unit filter.
@@ -620,372 +343,208 @@ class ManagerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         * `{child: {}, parent: null}` returns all roots with children.
         * ...
         """
-    )
+    ),
 )
 class OrganisationUnitFilter(BaseFilter):
-    registration: OrganisationUnitRegistrationFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Registration filter limiting which entries are returned.
-            """
-        ),
-    )
+    registration: LazyOrganisationUnitRegistrationFilter | None
 
-    query: str | None = strawberry.field(
-        default=UNSET,
-        description=dedent(
-            """\
-            Free text search.
+    query: strawberry.auto
+    names: strawberry.auto
 
-            Does best effort lookup to find entities matching the query string.
-            No quarantees are given w.r.t. the entries returned.
-            """
-        ),
-    )
-    names: list[str] | None = strawberry.field(
-        default=UNSET,
-        description=dedent(
-            """\
-            Name filter finding exact matches by name.
-            """
-        )
-        + gen_filter_table("names"),
-    )
-
-    parent: OrganisationUnitFilter | None = strawberry.field(
-        default=UNSET,
-        description=dedent(
-            """\
-            Select organisation units whose parent matches the given filter.
-
-            Set to `None` to find root units.
-            Set to `{}` to find non-root units.
-
-            This endpoint behaves to ancestor as child does to descendant.
-            """
-        ),
-    )
-    parents: list[UUID] | None = strawberry.field(
-        default=UNSET,
-        description=gen_filter_string("Parent UUID", "parents"),
+    parent: LazyOrganisationUnitFilter | None
+    parents: strawberry.auto = strawberry.field(
         deprecation_reason="Replaced by the 'parent' filter",
     )
 
-    child: OrganisationUnitFilter | None = strawberry.field(
-        default=UNSET,
-        description=dedent(
-            """\
-            Select organisation units whose children matches the given filter.
+    child: LazyOrganisationUnitFilter | None
 
-            Set to `None` to find leaf node units.
-            Set to `{}` to find inner node units.
-
-            This endpoint behaves to descendant as parent does to ancestor.
-            """
-        ),
-    )
-
-    hierarchy: ClassFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Hierarchy filter limiting which entries are returned.
-
-            Filter organisation units by their organisational hierarchy labels.
-
-            Can be used to extract a subset of the organisational structure.
-
-            Examples of user-keys:
-            * `"Line-management"`
-            * `"Self-owned institution"`
-            * `"Outside organisation"`
-            * `"Hidden"`
-
-            Note:
-            The organisation-gatekeeper integration is one option to keep hierarchy labels up-to-date.
-            """
-        ),
-    )
-    hierarchies: list[UUID] | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-        Filter organisation units by their organisational hierarchy labels.
-
-        Can be used to extract a subset of the organisational structure.
-
-        Examples of user-keys:
-        * `"Line-management"`
-        * `"Self-owned institution"`
-        * `"Outside organisation"`
-        * `"Hidden"`
-
-        Note:
-        The organisation-gatekeeper integration is one option to keep hierarchy labels up-to-date.
-        """
-        )
-        + gen_filter_table("hierarchies"),
+    hierarchy: LazyClassFilter | None
+    hierarchies: strawberry.auto = strawberry.field(
         deprecation_reason="Replaced by the 'hierarchy' filter",
     )
 
-    subtree: OrganisationUnitFilter | None = strawberry.field(
-        default=UNSET,
+    subtree: LazyOrganisationUnitFilter | None = strawberry.field(
         deprecation_reason="Renamed to 'descendant'",
     )
 
-    descendant: OrganisationUnitFilter | None = strawberry.field(
-        default=UNSET,
-        description=dedent(
-            """\
-            Select organisation units which have a descendant matching the given filter.
+    descendant: LazyOrganisationUnitFilter | None
 
-            Note that every node is its own descendant as per [CLRS] 12.2-6.
+    ancestor: LazyOrganisationUnitFilter | None
 
-            Given the following tree:
-            ```
-            A
-            ├── B
-            │   ├── C
-            │   │   └── D
-            │   └── E
-            └── F
-            ```
-            the `descendant` filter behaves according to the following table:
+    engagement: LazyEngagementFilter | None
 
-            | Filter | Returned    |
-            |--------|-------------|
-            |      A | A           |
-            |      B | A B         |
-            |      C | A B C       |
-            |      D | A B C D     |
-            |      E | A B E       |
-            |      F | A F         |
-            """,
-        ),
-    )
-
-    ancestor: OrganisationUnitFilter | None = strawberry.field(
-        default=UNSET,
-        description=dedent(
-            """\
-            Select organisation units which have an ancestor matching the given filter.
-
-            Note that every node is its own ancestor as per [CLRS] 12.2-6.
-
-            Given the following tree:
-            ```
-            A
-            ├── B
-            │   ├── C
-            │   │   └── D
-            │   └── E
-            └── F
-            ```
-            the `ancestor` filter behaves according to the following table:
-
-            | Filter | Returned    |
-            |--------|-------------|
-            |      A | A B C D E F |
-            |      B | B C D E     |
-            |      C | C D         |
-            |      D | D           |
-            |      E | E           |
-            |      F | F           |
-            """
-        ),
-    )
-
-    engagement: EngagementFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Filter organisation units to only include matches pointed to by engagements.
-
-            Can be used to find organisation units for certain engagements.
-            """
-        ),
-    )
-
-    owner: OwnerFilter | None = strawberry.field(
-        default=None,
-        description="Owner filter limiting which entries are returned.",
-    )
+    owner: LazyOwnerFilter | None
 
 
-@strawberry.input(description="Owner filter.")
+@strawberry.experimental.pydantic.input(
+    model=filter_models.OwnerFilter, description="Owner filter."
+)
 class OwnerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
-    owner: EmployeeFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Owner filter limiting which entries are returned.
-            """
-        ),
-    )
+    owner: LazyEmployeeFilter | None
 
 
-@strawberry.input(description="Registration filter.")
+@strawberry.experimental.pydantic.input(
+    model=filter_models.RegistrationFilter, description="Registration filter."
+)
 class RegistrationFilter:
-    uuids: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("UUID", "uuids")
-    )
-    actors: list[UUID] | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Filter registrations by their changing actor.
-
-            Can be used to select all changes made by a particular user or integration.
-            """
-        )
-        + gen_filter_table("actors"),
-    )
-    # TODO: Turn this into an enum
-    models: list[str] | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Filter registrations by their model type.
-
-            Can be used to select all changes of a type.
-            """
-        )
-        + gen_filter_table("models"),
-    )
-    start: datetime | None = strawberry.field(
-        default=None,
-        description="Limit the elements returned by their starting validity.",
-    )
-    end: datetime | None = strawberry.field(
-        default=None,
-        description="Limit the elements returned by their ending validity.",
-    )
+    uuids: strawberry.auto
+    actors: strawberry.auto
+    models: strawberry.auto
+    start: strawberry.auto
+    end: strawberry.auto
 
 
-def mutable_default(value: Any) -> Any:
-    return strawberry.field(default_factory=lambda: value)
+@strawberry.experimental.pydantic.input(
+    model=filter_models.AddressRegistrationFilter,
+    description="Address registration filter.",
+)
+class AddressRegistrationFilter:
+    actors: strawberry.auto
+    start: strawberry.auto
+    end: strawberry.auto
 
 
-@strawberry.input(description="Address registration filter.")
-class AddressRegistrationFilter(RegistrationFilter):
-    uuids: strawberry.Private[list[UUID] | None] = None
-    models: strawberry.Private[list[str] | None] = mutable_default(["address"])
+@strawberry.experimental.pydantic.input(
+    model=filter_models.AssociationRegistrationFilter,
+    description="Association registration filter.",
+)
+class AssociationRegistrationFilter:
+    actors: strawberry.auto
+    start: strawberry.auto
+    end: strawberry.auto
 
 
-@strawberry.input(description="Association registration filter.")
-class AssociationRegistrationFilter(RegistrationFilter):
-    uuids: strawberry.Private[list[UUID] | None] = None
-    models: strawberry.Private[list[str] | None] = mutable_default(["association"])
+@strawberry.experimental.pydantic.input(
+    model=filter_models.ClassRegistrationFilter,
+    description="Class registration filter.",
+)
+class ClassRegistrationFilter:
+    actors: strawberry.auto
+    start: strawberry.auto
+    end: strawberry.auto
 
 
-@strawberry.input(description="Class registration filter.")
-class ClassRegistrationFilter(RegistrationFilter):
-    uuids: strawberry.Private[list[UUID] | None] = None
-    models: strawberry.Private[list[str] | None] = mutable_default(["class"])
+@strawberry.experimental.pydantic.input(
+    model=filter_models.EmployeeRegistrationFilter,
+    description="Employee registration filter.",
+)
+class EmployeeRegistrationFilter:
+    actors: strawberry.auto
+    start: strawberry.auto
+    end: strawberry.auto
 
 
-@strawberry.input(description="Employee registration filter.")
-class EmployeeRegistrationFilter(RegistrationFilter):
-    uuids: strawberry.Private[list[UUID] | None] = None
-    models: strawberry.Private[list[str] | None] = mutable_default(["employee"])
+@strawberry.experimental.pydantic.input(
+    model=filter_models.EngagementRegistrationFilter,
+    description="Engagement registration filter.",
+)
+class EngagementRegistrationFilter:
+    actors: strawberry.auto
+    start: strawberry.auto
+    end: strawberry.auto
 
 
-@strawberry.input(description="Engagement registration filter.")
-class EngagementRegistrationFilter(RegistrationFilter):
-    uuids: strawberry.Private[list[UUID] | None] = None
-    models: strawberry.Private[list[str] | None] = mutable_default(["engagement"])
+@strawberry.experimental.pydantic.input(
+    model=filter_models.FacetRegistrationFilter,
+    description="Facet registration filter.",
+)
+class FacetRegistrationFilter:
+    actors: strawberry.auto
+    start: strawberry.auto
+    end: strawberry.auto
 
 
-@strawberry.input(description="Facet registration filter.")
-class FacetRegistrationFilter(RegistrationFilter):
-    uuids: strawberry.Private[list[UUID] | None] = None
-    models: strawberry.Private[list[str] | None] = mutable_default(["facet"])
+@strawberry.experimental.pydantic.input(
+    model=filter_models.ITSystemRegistrationFilter,
+    description="ITSystem registration filter.",
+)
+class ITSystemRegistrationFilter:
+    actors: strawberry.auto
+    start: strawberry.auto
+    end: strawberry.auto
 
 
-@strawberry.input(description="ITSystem registration filter.")
-class ITSystemRegistrationFilter(RegistrationFilter):
-    uuids: strawberry.Private[list[UUID] | None] = None
-    models: strawberry.Private[list[str] | None] = mutable_default(["itsystem"])
+@strawberry.experimental.pydantic.input(
+    model=filter_models.ITUserRegistrationFilter,
+    description="ITUser registration filter.",
+)
+class ITUserRegistrationFilter:
+    actors: strawberry.auto
+    start: strawberry.auto
+    end: strawberry.auto
 
 
-@strawberry.input(description="ITUser registration filter.")
-class ITUserRegistrationFilter(RegistrationFilter):
-    uuids: strawberry.Private[list[UUID] | None] = None
-    models: strawberry.Private[list[str] | None] = mutable_default(["ituser"])
+@strawberry.experimental.pydantic.input(
+    model=filter_models.KLERegistrationFilter,
+    description="KLE registration filter.",
+)
+class KLERegistrationFilter:
+    actors: strawberry.auto
+    start: strawberry.auto
+    end: strawberry.auto
 
 
-@strawberry.input(description="KLE registration filter.")
-class KLERegistrationFilter(RegistrationFilter):
-    uuids: strawberry.Private[list[UUID] | None] = None
-    models: strawberry.Private[list[str] | None] = mutable_default(["kle"])
+@strawberry.experimental.pydantic.input(
+    model=filter_models.LeaveRegistrationFilter,
+    description="Leave registration filter.",
+)
+class LeaveRegistrationFilter:
+    actors: strawberry.auto
+    start: strawberry.auto
+    end: strawberry.auto
 
 
-@strawberry.input(description="Leave registration filter.")
-class LeaveRegistrationFilter(RegistrationFilter):
-    uuids: strawberry.Private[list[UUID] | None] = None
-    models: strawberry.Private[list[str] | None] = mutable_default(["leave"])
+@strawberry.experimental.pydantic.input(
+    model=filter_models.ManagerRegistrationFilter,
+    description="Manager registration filter.",
+)
+class ManagerRegistrationFilter:
+    actors: strawberry.auto
+    start: strawberry.auto
+    end: strawberry.auto
 
 
-@strawberry.input(description="Manager registration filter.")
-class ManagerRegistrationFilter(RegistrationFilter):
-    uuids: strawberry.Private[list[UUID] | None] = None
-    models: strawberry.Private[list[str] | None] = mutable_default(["manager"])
+@strawberry.experimental.pydantic.input(
+    model=filter_models.OrganisationUnitRegistrationFilter,
+    description="OrganisationUnit registration filter.",
+)
+class OrganisationUnitRegistrationFilter:
+    actors: strawberry.auto
+    start: strawberry.auto
+    end: strawberry.auto
 
 
-@strawberry.input(description="OrganisationUnit registration filter.")
-class OrganisationUnitRegistrationFilter(RegistrationFilter):
-    uuids: strawberry.Private[list[UUID] | None] = None
-    models: strawberry.Private[list[str] | None] = mutable_default(["org_unit"])
+@strawberry.experimental.pydantic.input(
+    model=filter_models.RoleRegistrationFilter,
+    description="Role registration filter.",
+)
+class RoleRegistrationFilter:
+    actors: strawberry.auto
+    start: strawberry.auto
+    end: strawberry.auto
 
 
-@strawberry.input(description="Role registration filter.")
-class RoleRegistrationFilter(RegistrationFilter):
-    uuids: strawberry.Private[list[UUID] | None] = None
-    models: strawberry.Private[list[str] | None] = mutable_default(["role"])
-
-
-@strawberry.input(description="Related unit filter.")
+@strawberry.experimental.pydantic.input(
+    model=filter_models.RelatedUnitFilter,
+    description="Related unit filter.",
+    all_fields=True,
+)
 class RelatedUnitFilter(BaseFilter, OrganisationUnitFiltered):
     # TODO: registration filter
     pass
 
 
-@strawberry.input(description="Rolebinding filter.")
+@strawberry.experimental.pydantic.input(
+    model=filter_models.RoleBindingFilter, description="Rolebinding filter."
+)
 class RoleBindingFilter(BaseFilter, OrganisationUnitFiltered):
-    registration: RoleRegistrationFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Registration filter limiting which entries are returned.
-            """
-        ),
-    )
-    ituser: ITUserFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            ITUser filter limiting which entries are returned.
-            """
-        ),
-    )
-    role: ClassFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Role filter limiting which entries are returned.
-            """
-        ),
-    )
+    registration: LazyRoleRegistrationFilter | None
+    ituser: LazyITUserFilter | None
+    role: LazyClassFilter | None
 
 
-@strawberry.input(description="Class owner filter")
+@strawberry.experimental.pydantic.input(
+    model=filter_models.ClassOwnerFilter, description="Class owner filter"
+)
 class ClassOwnerFilter(OrganisationUnitFilter):
-    include_none: bool = strawberry.field(
-        default=False,
-        description=dedent(
-            """\
-            Include classes with `owner=None`.
-            """
-        ),
-    )
+    include_none: strawberry.auto

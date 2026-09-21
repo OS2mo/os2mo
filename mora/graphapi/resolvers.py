@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import dataclasses
 from collections.abc import Sequence
 from datetime import date
 from datetime import datetime
@@ -81,12 +80,11 @@ from mora.graphapi.version import Version
 from mora.service.autocomplete.employees import search_employees_predicate
 from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 
+from . import filter_models
 from .filters import AddressFilter
 from .filters import AssociationFilter
-from .filters import BaseFilter
 from .filters import ClassFilter
 from .filters import EmployeeFilter
-from .filters import EmployeeFiltered
 from .filters import EngagementFilter
 from .filters import FacetFilter
 from .filters import ITSystemFilter
@@ -95,7 +93,6 @@ from .filters import KLEFilter
 from .filters import LeaveFilter
 from .filters import ManagerFilter
 from .filters import OrganisationUnitFilter
-from .filters import OrganisationUnitFiltered
 from .filters import OwnerFilter
 from .filters import RegistrationFilter
 from .filters import RelatedUnitFilter
@@ -110,7 +107,7 @@ from .validity import OpenValidityModel
 
 
 def uuid_shortcircuit(
-    filter: BaseFilter,
+    filter: filter_models.BaseFilter,
     subquery: Select,
 ) -> list[UUID] | Select:
     # Reimplements the historical short-circuit: when a nested relation filter
@@ -123,106 +120,116 @@ def uuid_shortcircuit(
     return subquery
 
 
-def extend_uuids(output_filter: BaseFilter, input: list[UUID] | None) -> None:
+def extend_uuids(
+    output_filter: filter_models.BaseFilter, input: list[UUID] | None
+) -> None:
     if input is None:
         return
     output_filter.uuids = output_filter.uuids or []
     output_filter.uuids.extend(input)
 
 
-def extend_user_keys(output_filter: BaseFilter, input: list[str] | None) -> None:
+def extend_user_keys(
+    output_filter: filter_models.BaseFilter, input: list[str] | None
+) -> None:
     if input is None:
         return
     output_filter.user_keys = output_filter.user_keys or []
     output_filter.user_keys.extend(input)
 
 
-def handle_deprecated_employee_filters(filter: EmployeeFiltered) -> None:
+def handle_deprecated_employee_filters(filter: filter_models.EmployeeFiltered) -> None:
     if filter.employees is None:
         return
-    filter.employee = filter.employee or EmployeeFilter()
+    filter.employee = filter.employee or filter_models.EmployeeFilter()
     extend_uuids(filter.employee, filter.employees)
     filter.employees = None
 
 
-def handle_deprecated_org_unit_filters(filter: OrganisationUnitFiltered) -> None:
+def handle_deprecated_org_unit_filters(
+    filter: filter_models.OrganisationUnitFiltered,
+) -> None:
     if filter.org_units is None:
         return
-    filter.org_unit = filter.org_unit or OrganisationUnitFilter()
+    filter.org_unit = filter.org_unit or filter_models.OrganisationUnitFilter()
     extend_uuids(filter.org_unit, filter.org_units)
     filter.org_units = None
 
 
-def handle_deprecated_engagement_filters(filter: AddressFilter) -> None:
+def handle_deprecated_engagement_filters(filter: filter_models.AddressFilter) -> None:
     if filter.engagements is None:
         return
-    filter.engagement = filter.engagement or EngagementFilter()
+    filter.engagement = filter.engagement or filter_models.EngagementFilter()
     extend_uuids(filter.engagement, filter.engagements)
     filter.engagements = None
 
 
-def handle_deprecated_itsystem_filters(filter: ITUserFilter) -> None:
+def handle_deprecated_itsystem_filters(filter: filter_models.ITUserFilter) -> None:
     if filter.itsystem_uuids is None:
         return
-    filter.itsystem = filter.itsystem or ITSystemFilter()
+    filter.itsystem = filter.itsystem or filter_models.ITSystemFilter()
     extend_uuids(filter.itsystem, filter.itsystem_uuids)
     filter.itsystem_uuids = None
 
 
-def handle_deprecated_facet_parent_filters(filter: FacetFilter) -> None:
+def handle_deprecated_facet_parent_filters(filter: filter_models.FacetFilter) -> None:
     if filter.parents is None and filter.parent_user_keys is None:
         return
-    filter.parent = filter.parent or FacetFilter()
+    filter.parent = filter.parent or filter_models.FacetFilter()
     extend_uuids(filter.parent, filter.parents)
     extend_user_keys(filter.parent, filter.parent_user_keys)
     filter.parents = None
     filter.parent_user_keys = None
 
 
-def handle_deprecated_class_facet_filters(filter: ClassFilter) -> None:
+def handle_deprecated_class_facet_filters(filter: filter_models.ClassFilter) -> None:
     if filter.facets is None and filter.facet_user_keys is None:
         return
-    filter.facet = filter.facet or FacetFilter()
+    filter.facet = filter.facet or filter_models.FacetFilter()
     extend_uuids(filter.facet, filter.facets)
     extend_user_keys(filter.facet, filter.facet_user_keys)
     filter.facets = None
     filter.facet_user_keys = None
 
 
-def handle_deprecated_class_parent_filters(filter: ClassFilter) -> None:
+def handle_deprecated_class_parent_filters(filter: filter_models.ClassFilter) -> None:
     if filter.parents is None and filter.parent_user_keys is None:
         return
-    filter.parent = filter.parent or ClassFilter()  # pragma: no cover
+    filter.parent = filter.parent or filter_models.ClassFilter()  # pragma: no cover
     extend_uuids(filter.parent, filter.parents)  # pragma: no cover
     extend_user_keys(filter.parent, filter.parent_user_keys)  # pragma: no cover
     filter.parents = None  # pragma: no cover
     filter.parent_user_keys = None  # pragma: no cover
 
 
-def handle_deprecated_address_type_filters(filter: AddressFilter) -> None:
+def handle_deprecated_address_type_filters(filter: filter_models.AddressFilter) -> None:
     if filter.address_types is None and filter.address_type_user_keys is None:
         return
-    filter.address_type = filter.address_type or ClassFilter()
+    filter.address_type = filter.address_type or filter_models.ClassFilter()
     extend_uuids(filter.address_type, filter.address_types)
     extend_user_keys(filter.address_type, filter.address_type_user_keys)
     filter.address_types = None
     filter.address_type_user_keys = None
 
 
-def handle_deprecated_association_type_filters(filter: AssociationFilter) -> None:
+def handle_deprecated_association_type_filters(
+    filter: filter_models.AssociationFilter,
+) -> None:
     if filter.association_types is None and filter.association_type_user_keys is None:
         return
-    filter.association_type = filter.association_type or ClassFilter()
+    filter.association_type = filter.association_type or filter_models.ClassFilter()
     extend_uuids(filter.association_type, filter.association_types)
     extend_user_keys(filter.association_type, filter.association_type_user_keys)
     filter.association_types = None
     filter.association_type_user_keys = None
 
 
-def handle_deprecated_hierarchy_filters(filter: OrganisationUnitFilter) -> None:
+def handle_deprecated_hierarchy_filters(
+    filter: filter_models.OrganisationUnitFilter,
+) -> None:
     if filter.hierarchies is None:
         return
-    filter.hierarchy = filter.hierarchy or ClassFilter()
+    filter.hierarchy = filter.hierarchy or filter_models.ClassFilter()
     extend_uuids(filter.hierarchy, filter.hierarchies)
     filter.hierarchies = None
 
@@ -236,7 +243,7 @@ def _get_registrering_clause(
         | OrganisationEnhedRegistrering
         | OrganisationFunktionRegistrering
     ],
-    filter: BaseFilter,
+    filter: filter_models.BaseFilter,
 ) -> ColumnElement:
     return and_(
         cls.lifecycle != "Slettet",
@@ -250,7 +257,7 @@ def _get_registrering_clause(
 
 def _get_virkning_clause(
     cls: type[HasValidity],
-    filter: BaseFilter,
+    filter: filter_models.BaseFilter,
 ) -> ColumnElement:
     start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
     return cls.virkning_period.overlaps(TimestamptzRange(start, end))
@@ -273,7 +280,7 @@ def _get_tilstand_clause(
         | OrganisationEnhedTilsGyldighed
         | OrganisationFunktionTilsGyldighed
     ],
-    filter: BaseFilter,
+    filter: filter_models.BaseFilter,
 ) -> ColumnElement:
     return exists(
         select(1)
@@ -288,7 +295,7 @@ def _get_tilstand_clause(
 
 def _get_active_period_clause(
     period_cls: type[HasAktivVirkning],
-    filter: BaseFilter,
+    filter: filter_models.BaseFilter,
 ) -> ColumnElement:
     start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
     # An unbounded window overlaps every non-empty multirange, so the overlap is
@@ -305,7 +312,7 @@ def _get_active_period_clause(
 
 
 def facet_predicate(
-    filter: FacetFilter,
+    filter: filter_models.FacetFilter,
 ) -> ColumnElement:
     predicates = [
         _get_registrering_clause(FacetRegistrering, filter),
@@ -371,7 +378,7 @@ async def facet_resolver(
         filter = FacetFilter()
 
     predicate = facet_predicate(
-        filter=filter,
+        filter=filter.to_pydantic(),
     )
     query = (
         select(distinct(FacetRegistrering.facet_id))
@@ -410,7 +417,7 @@ async def facet_resolver(
 def class_predicate(
     settings: Settings,
     version: Version,
-    filter: ClassFilter,
+    filter: filter_models.ClassFilter,
 ) -> ColumnElement:
     predicates = [
         _get_registrering_clause(KlasseRegistrering, filter),
@@ -568,7 +575,7 @@ async def class_resolver(
     predicate = class_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        filter=filter,
+        filter=filter.to_pydantic(),
     )
     query = (
         select(distinct(KlasseRegistrering.klasse_id))
@@ -607,7 +614,7 @@ async def class_resolver(
 def address_predicate(
     settings: Settings,
     version: Version,
-    filter: AddressFilter,
+    filter: filter_models.AddressFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -818,7 +825,7 @@ async def address_resolver(
     predicate = address_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        filter=filter,
+        filter=filter.to_pydantic(),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -861,7 +868,7 @@ async def address_resolver(
 def association_predicate(
     settings: Settings,
     version: Version,
-    filter: AssociationFilter,
+    filter: filter_models.AssociationFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -1026,7 +1033,7 @@ async def association_resolver(
     predicate = association_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        filter=filter,
+        filter=filter.to_pydantic(),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -1069,7 +1076,7 @@ async def association_resolver(
 def employee_predicate(
     settings: Settings,
     version: Version,
-    filter: EmployeeFilter,
+    filter: filter_models.EmployeeFilter,
 ) -> ColumnElement:
     predicates = [
         _get_registrering_clause(BrugerRegistrering, filter),
@@ -1143,7 +1150,7 @@ def employee_predicate(
     # IT users
     if filter.ituser is not UNSET:
         # `null` matches employees without any IT user in the queried validity
-        ituser_filter = filter.ituser or ITUserFilter(
+        ituser_filter = filter.ituser or filter_models.ITUserFilter(
             from_date=filter.from_date,
             to_date=filter.to_date,
             registration_time=filter.registration_time,
@@ -1180,7 +1187,7 @@ async def employee_resolver(
     predicate = employee_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        filter=filter,
+        filter=filter.to_pydantic(),
     )
     query = (
         select(distinct(BrugerRegistrering.bruger_id))
@@ -1219,7 +1226,7 @@ async def employee_resolver(
 def engagement_predicate(
     settings: Settings,
     version: Version,
-    filter: EngagementFilter,
+    filter: filter_models.EngagementFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -1374,7 +1381,7 @@ def engagement_predicate(
 
     # Primary class
     if filter.primary is not UNSET:
-        primary_filter = filter.primary or ClassFilter()
+        primary_filter = filter.primary or filter_models.ClassFilter()
         engagement_has_primary = exists().where(
             OrganisationFunktionRelation.rel_type
             == OrganisationFunktionRelationKode.primær,
@@ -1433,7 +1440,7 @@ async def engagement_resolver(
     predicate = engagement_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        filter=filter,
+        filter=filter.to_pydantic(),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -1476,7 +1483,7 @@ async def engagement_resolver(
 def manager_predicate(
     settings: Settings,
     version: Version,
-    filter: ManagerFilter,
+    filter: filter_models.ManagerFilter,
     inherit: bool = False,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
@@ -1759,7 +1766,7 @@ def manager_predicate(
 def _manager_inherit_org_unit_predicate(
     settings: Settings,
     version: Version,
-    filter: ManagerFilter,
+    filter: filter_models.ManagerFilter,
 ) -> ColumnElement:
     """Walk each starting unit up the org tree, returning managers from the
     nearest ancestor that has any matching the rest of the filter."""
@@ -1771,7 +1778,7 @@ def _manager_inherit_org_unit_predicate(
         # `filter.org_unit = organisationenhed_id`.
         return exists().where(
             manager_predicate(
-                settings, version, dataclasses.replace(filter, org_unit=None)
+                settings, version, filter.copy(update={"org_unit": None})
             ),
             # Manager is attached to organisationenhed_id:
             OrganisationFunktionRelation.organisationfunktion_registrering_id
@@ -1849,7 +1856,7 @@ async def manager_resolver(
     predicate = manager_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        filter=filter,
+        filter=filter.to_pydantic(),
         inherit=inherit,
     )
     query = (
@@ -1893,7 +1900,7 @@ async def manager_resolver(
 def owner_predicate(
     settings: Settings,
     version: Version,
-    filter: OwnerFilter,
+    filter: filter_models.OwnerFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -2026,7 +2033,7 @@ async def owner_resolver(
     predicate = owner_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        filter=filter,
+        filter=filter.to_pydantic(),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -2069,10 +2076,10 @@ async def owner_resolver(
 def organisation_unit_predicate(
     settings: Settings,
     version: Version,
-    filter: OrganisationUnitFilter,
+    filter: filter_models.OrganisationUnitFilter,
 ) -> ColumnElement:
     def _parents_subquery() -> Select | CompoundSelect:
-        org_unit_filter = filter.parent or OrganisationUnitFilter()
+        org_unit_filter = filter.parent or filter_models.OrganisationUnitFilter()
         # parents vs parent values
         #       | UNSET | None    | xs
         # UNSET | noop  | root    | xs
@@ -2226,7 +2233,9 @@ def organisation_unit_predicate(
                 "Cannot use both `descendant` and `subtree` filter"
             )  # pragma: no cover
         org_unit_filter = (
-            filter.descendant or filter.subtree or OrganisationUnitFilter()
+            filter.descendant
+            or filter.subtree
+            or filter_models.OrganisationUnitFilter()
         )
         base_leafs_predicate = organisation_unit_predicate(
             settings=settings,
@@ -2326,7 +2335,7 @@ def organisation_unit_predicate(
     # Ancestor
     if filter.ancestor is not UNSET:
         # Find all matching parents and then recursively find their children.
-        org_unit_filter = filter.ancestor or OrganisationUnitFilter()
+        org_unit_filter = filter.ancestor or filter_models.OrganisationUnitFilter()
         ancestor_predicate = organisation_unit_predicate(
             settings=settings,
             version=version,
@@ -2434,7 +2443,7 @@ async def organisation_unit_resolver(
     predicate = organisation_unit_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        filter=filter,
+        filter=filter.to_pydantic(),
     )
     query = (
         select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
@@ -2483,7 +2492,7 @@ async def organisation_unit_has_children(
     predicate = organisation_unit_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        filter=filter,
+        filter=filter.to_pydantic(),
     )
     query = (
         select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
@@ -2503,7 +2512,7 @@ async def organisation_unit_child_count(
     predicate = organisation_unit_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        filter=filter,
+        filter=filter.to_pydantic(),
     )
     query = (
         select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
@@ -2517,7 +2526,7 @@ async def organisation_unit_child_count(
 
 
 def it_system_predicate(
-    filter: ITSystemFilter,
+    filter: filter_models.ITSystemFilter,
 ) -> ColumnElement:
     predicates = [
         _get_registrering_clause(ITSystemRegistrering, filter),
@@ -2567,7 +2576,7 @@ async def it_system_resolver(
         filter = ITSystemFilter()
 
     predicate = it_system_predicate(
-        filter=filter,
+        filter=filter.to_pydantic(),
     )
     query = (
         select(distinct(ITSystemRegistrering.itsystem_id))
@@ -2606,7 +2615,7 @@ async def it_system_resolver(
 def it_user_predicate(
     settings: Settings,
     version: Version,
-    filter: ITUserFilter,
+    filter: filter_models.ITUserFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -2770,7 +2779,7 @@ def it_user_predicate(
         rolebinding_pred = rolebinding_predicate(
             settings,
             version,
-            filter.rolebinding or RoleBindingFilter(),
+            filter.rolebinding or filter_models.RoleBindingFilter(),
         )
         ituser_has_rolebinding = exists().where(
             OrganisationFunktionRelation.rel_type
@@ -2839,7 +2848,7 @@ def it_user_predicate(
     # Primary class
     # `primary: null` selects itusers without a primary class set.
     if filter.primary is not UNSET:
-        primary_filter = filter.primary or ClassFilter()
+        primary_filter = filter.primary or filter_models.ClassFilter()
         ituser_has_primary = exists().where(
             OrganisationFunktionRelation.rel_type
             == OrganisationFunktionRelationKode.primær,
@@ -2876,7 +2885,7 @@ async def it_user_resolver(
     predicate = it_user_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        filter=filter,
+        filter=filter.to_pydantic(),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -2919,7 +2928,7 @@ async def it_user_resolver(
 def kle_predicate(
     settings: Settings,
     version: Version,
-    filter: KLEFilter,
+    filter: filter_models.KLEFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -3019,7 +3028,7 @@ async def kle_resolver(
     predicate = kle_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        filter=filter,
+        filter=filter.to_pydantic(),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -3062,7 +3071,7 @@ async def kle_resolver(
 def leave_predicate(
     settings: Settings,
     version: Version,
-    filter: LeaveFilter,
+    filter: filter_models.LeaveFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -3185,7 +3194,7 @@ async def leave_resolver(
     predicate = leave_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        filter=filter,
+        filter=filter.to_pydantic(),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -3266,7 +3275,7 @@ async def generic_resolver(
 def related_unit_predicate(
     settings: Settings,
     version: Version,
-    filter: RelatedUnitFilter,
+    filter: filter_models.RelatedUnitFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -3354,7 +3363,7 @@ async def related_unit_resolver(
     predicate = related_unit_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        filter=filter,
+        filter=filter.to_pydantic(),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -3397,7 +3406,7 @@ async def related_unit_resolver(
 def rolebinding_predicate(
     settings: Settings,
     version: Version,
-    filter: RoleBindingFilter,
+    filter: filter_models.RoleBindingFilter,
 ) -> ColumnElement:
     def _funktionsnavn() -> ColumnElement:
         return OrganisationFunktionRegistrering.id.in_(
@@ -3543,7 +3552,7 @@ async def rolebinding_resolver(
     predicate = rolebinding_predicate(
         settings=info.context.settings,
         version=get_version(info.schema),
-        filter=filter,
+        filter=filter.to_pydantic(),
     )
     query = (
         select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
@@ -3646,7 +3655,9 @@ def get_sqlalchemy_date_interval(
     )
 
 
-def registration_predicate(table: Any, filter: RegistrationFilter) -> ColumnElement:
+def registration_predicate(
+    table: Any, filter: filter_models.RegistrationFilter
+) -> ColumnElement:
     # Seed with true() so an unfiltered (empty) predicate is a valid no-op WHERE.
     predicates: list[ColumnElement] = [true()]
 
@@ -3740,6 +3751,7 @@ async def registration_resolver(
 ) -> ObjectsAndCursor:
     if filter is None:
         filter = RegistrationFilter()
+    filter_model = filter.to_pydantic()
 
     model2table = {
         "address": OrganisationFunktionRegistrering,
@@ -3799,7 +3811,7 @@ async def registration_resolver(
             query = select(model.label("model"), *common_fields).where(
                 OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
                 == table.id,
-                registration_predicate(table, filter),
+                registration_predicate(table, filter_model),
             )
             # This is the only table backing multiple models, so it is the only
             # one whose rows need filtering by model; the others are pinned by
@@ -3821,7 +3833,7 @@ async def registration_resolver(
                 else_="unknown",
             ).label("model"),
             *common_fields,
-        ).where(registration_predicate(table, filter))
+        ).where(registration_predicate(table, filter_model))
 
     # Query all requested registation tables using a big union query
     union_query = union(*map(generate_query, tables)).subquery()
