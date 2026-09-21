@@ -59,6 +59,7 @@ from ._klasse import KlasseRegistrering
 from ._klasse import KlasseRelation
 from ._klasse import KlasseRelationKode
 from ._klasse import KlasseTilsPubliceret
+from ._collections import Collection
 from ._organisation import Organisation
 from ._organisation import OrganisationAttrEgenskaber
 from ._organisation import OrganisationRegistrering
@@ -78,6 +79,9 @@ from ._organisationsfunktion import OrganisationFunktionRegistrering
 from ._organisationsfunktion import OrganisationFunktionRelation
 from ._organisationsfunktion import OrganisationFunktionRelationKode
 from ._organisationsfunktion import OrganisationFunktionTilsGyldighed
+from ._policies import Policy
+from ._policies import PolicyReadRule
+from ._policies import PolicyReadRuleField
 from .files import FileToken
 import psycopg
 

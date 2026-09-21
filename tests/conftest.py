@@ -10,6 +10,7 @@ from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Collection
 from collections.abc import Generator
+from collections.abc import Iterable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from operator import itemgetter
@@ -32,6 +33,7 @@ from hypothesis import strategies as st
 from hypothesis.database import InMemoryExampleDatabase
 from more_itertools import always_iterable
 from more_itertools import one
+from sqlalchemy import delete
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -44,11 +46,9 @@ from mora.auth.keycloak.oidc import Token
 from mora.auth.keycloak.oidc import fetch_token
 from mora.auth.keycloak.oidc import token_getter
 from mora.config import get_settings
-from mora.graphapi import policies
 from mora.graphapi import schema
 from mora.graphapi.gmodels.mo import Validity as GValidity
 from mora.graphapi.permissions import ALL_PERMISSIONS
-from mora.graphapi.policies import Rule
 from mora.graphapi.schema import Policy
 from mora.graphapi.version import LATEST_VERSION
 from mora.mapping import ADMIN
@@ -195,7 +195,7 @@ def token_getter_of(*roles: str) -> Callable[[], Awaitable[Token]]:
 
 
 SetAuth = Callable[[str | Collection[str] | None, UUID | str | None, str], None]
-SetRules = Callable[[list[Rule]], None]
+SetRules = Callable[[str, db.Collection, Iterable[str]], Awaitable[None]]
 SetPolicies = Callable[[list[Policy]], None]
 
 
@@ -1642,18 +1642,40 @@ def create_address(
 
 
 @pytest.fixture
-def set_rules() -> YieldFixture[SetRules]:
-    """Install the rules `collection_policy` decides by, for one test.
+def set_rules(empty_db: db.AsyncSession) -> SetRules:
+    """Grant a role the fields of a collection, in place of the seeded policies.
 
-    Rules have no store of their own yet, so a test supplies them directly.
+    The migrated policies grant a reader every field of every collection, so a
+    test asking about a denial installs its own in their stead.
     """
-    original = list(policies.ROLE_POLICIES)
 
-    def inner(rules: list[Rule]) -> None:
-        policies.ROLE_POLICIES[:] = rules
+    async def inner(
+        role: str, collection: db.Collection, fields: Iterable[str]
+    ) -> None:
+        await empty_db.execute(delete(db.PolicyReadRuleField))
+        await empty_db.execute(delete(db.PolicyReadRule))
+        await empty_db.execute(delete(db.Policy))
+        empty_db.add(
+            db.Policy(
+                name=role,
+                description=f"Grants {role} the fields a test asks about",
+                active=True,
+                role=role,
+                read_rules=[
+                    db.PolicyReadRule(
+                        collection=collection,
+                        fields=[
+                            db.PolicyReadRuleField(field=field)
+                            for field in sorted(fields)
+                        ],
+                    )
+                ],
+            )
+        )
+        # A request opens its own session, so the rows must be committed to it
+        await empty_db.commit()
 
-    yield inner
-    policies.ROLE_POLICIES[:] = original
+    return inner
 
 
 @pytest.fixture
