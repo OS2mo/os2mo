@@ -21,6 +21,7 @@ from sqlalchemy import String
 from sqlalchemy import Uuid
 from sqlalchemy import any_
 from sqlalchemy import column
+from sqlalchemy import false
 from sqlalchemy import func
 from sqlalchemy import literal
 from sqlalchemy import select
@@ -120,13 +121,17 @@ def cel2predicate(
     condition: CEL,
     token: Token,
 ) -> ColumnElement[bool]:
-    """Evaluate the CEL condition into a filter, and the filter into a clause."""
+    """Evaluate the CEL condition into a bool or filter, if filter convert to clause."""
     # No condition -> applies to all entities
     if not condition:
         return true()
+    result = policy_cel.evaluate(condition, token)
+    # Boolean returned -> Make raw accept / reject condition
+    if isinstance(result, bool):
+        return true() if result else false()
     predicate = PREDICATE_OF_COLLECTION[collection]
     filter_type = get_type_hints(predicate)["filter"]
-    filter = filter_type.parse_obj(policy_cel.evaluate(condition, token))
+    filter = filter_type.parse_obj(result)
     return predicate(settings=settings, version=graphql_version, filter=filter)
 
 

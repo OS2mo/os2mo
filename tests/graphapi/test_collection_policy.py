@@ -281,6 +281,13 @@ async def test_a_condition_unknown_of_an_object_grants_nothing_on_it(
             '{"employee": {"uuids": [token.uuid]}, "address_type": {"scope": ["EMAIL"]}}',
             {"mine@example.org"},
         ),
+        # A condition the token settles reaches every object of the collection
+        (
+            '"reader" in token.roles',
+            {"mine@example.org", "theirs@example.org", "11111111"},
+        ),
+        # ... or none of them, which no filter can name
+        ('"owner" in token.roles', set()),
     ],
 )
 async def test_a_condition_becomes_the_clause_its_filter_names(
