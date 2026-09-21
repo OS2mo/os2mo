@@ -8,14 +8,17 @@ from collections.abc import Callable
 from inspect import Parameter
 from inspect import signature
 from typing import Any
+from uuid import UUID
 
 import pytest
+import strawberry
 from more_itertools import first
 from strawberry.types import Info
 
 from mora.graphapi.filters import BaseFilter
 from mora.graphapi.resolvers import CursorType
 from mora.graphapi.resolvers import LimitType
+from mora.graphapi.seed_resolver import get_bound_filter
 from mora.graphapi.seed_resolver import seed_resolver
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
@@ -33,6 +36,31 @@ async def dummy_resolver(
         "limit": limit,
         "cursor": cursor,
     }
+
+
+@strawberry.input
+class FactoryDefaultFilter:
+    """A filter taking its defaults from a factory, as the generated ones do."""
+
+    uuids: list[UUID] | None = strawberry.field(default_factory=lambda: None)
+    user_keys: list[str] | None = strawberry.field(default_factory=lambda: ["kept"])
+    query: str | None = strawberry.field(default_factory=lambda: None)
+
+
+def test_bound_filter_keeps_factory_default() -> None:
+    """Test that binding a filter keeps a default given by a factory.
+
+    Strawberry puts the default straight into the schema, so dropping one turns
+    an optional GraphQL argument into a required one.
+    """
+    bound_filter_class = get_bound_filter(
+        FactoryDefaultFilter, seeds=frozenset({"uuids"})
+    )
+    defaults = {
+        field.name: field.default_value
+        for field in bound_filter_class.__strawberry_definition__.fields
+    }
+    assert defaults == {"user_keys": ["kept"], "query": None}
 
 
 @pytest.mark.parametrize(
