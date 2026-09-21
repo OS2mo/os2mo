@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-"""Rule-based read access to specific fields of specific entities of a collection."""
+"""Rule-based access control to collections and mutators."""
 
 from collections.abc import Awaitable
 from collections.abc import Callable
@@ -15,13 +15,18 @@ from uuid import UUID
 
 from graphql import coerce_input_value
 from more_itertools import map_reduce
+from pydantic import BaseModel
+from pydantic import parse_obj_as
 from sqlalchemy import ARRAY
 from sqlalchemy import ColumnElement
 from sqlalchemy import Select
 from sqlalchemy import String
 from sqlalchemy import Uuid
+from sqlalchemy import and_
 from sqlalchemy import any_
 from sqlalchemy import column
+from sqlalchemy import exists
+from sqlalchemy import false
 from sqlalchemy import func
 from sqlalchemy import literal
 from sqlalchemy import select
@@ -65,6 +70,13 @@ class Rule(NamedTuple):
     collection: Collection
     condition: ColumnElement[bool]
     fields: frozenset[Field]
+
+
+class WriteCondition(BaseModel):
+    """Where to look for what a mutator requires, and what to look for."""
+
+    collection: Collection
+    filter: dict[str, Any]
 
 
 # Each collection's model, holding the registrations of its objects.
@@ -163,6 +175,41 @@ def cel2predicate(
         return true()
     filter = policy_cel.evaluate(condition, token, {})
     return filter2predicate(settings, collection, graphql_version, filter)
+
+
+def cel2check(
+    settings: Settings,
+    graphql_version: Version,
+    condition: CEL,
+    token: Token,
+    args: dict[str, Any],
+) -> ColumnElement[bool]:
+    """Evaluate the CEL condition into a check that everything it names exists."""
+    # No condition -> nothing has to exist
+    if not condition:
+        return true()
+    yielded = policy_cel.evaluate(condition, token, args)
+    if isinstance(yielded, bool):
+        return true() if yielded else false()
+    required = parse_obj_as(list[WriteCondition], yielded)
+    # Allowing or denying outright is what true and false are for
+    if not required:
+        raise ValueError(
+            f"condition {condition!r} requires nothing, yield true or false instead"
+        )
+    return and_(
+        *(
+            exists().where(
+                filter2predicate(
+                    settings,
+                    requirement.collection,
+                    graphql_version,
+                    requirement.filter,
+                )
+            )
+            for requirement in required
+        )
+    )
 
 
 def load_rules(

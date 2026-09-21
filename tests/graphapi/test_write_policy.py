@@ -1,0 +1,212 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+"""Testing the write policy."""
+
+from collections.abc import Callable
+from textwrap import dedent
+from uuid import UUID
+
+import pytest
+from graphql import GraphQLError
+from pydantic import ValidationError
+from sqlalchemy import select
+
+from mora.auth.keycloak.models import RealmAccess
+from mora.auth.keycloak.models import Token
+from mora.config import Settings
+from mora.db import AsyncSession
+from mora.db import Collection
+from mora.graphapi.policies import cel2check
+from mora.graphapi.version import LATEST_VERSION
+from tests.conftest import ALVIDA_UUID
+from tests.conftest import BRUCE_UUID
+
+NOT_FOUND_UUID = UUID("c6720bc8-6e37-4a59-8876-950b2117df22")
+
+
+@pytest.fixture
+def admin_token() -> Token:
+    return Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"admin"}))
+
+
+@pytest.fixture
+def owner_token() -> Token:
+    return Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"owner"}))
+
+
+@pytest.mark.integration_test
+async def test_a_check_asks_whether_what_it_names_exists(
+    empty_db: AsyncSession,
+    create_org_unit: Callable[..., UUID],
+    owner_token: Token,
+) -> None:
+    """A check holds for the unit the arguments name, and for no other."""
+    org_unit = create_org_unit("test")
+    condition = """
+    [{
+        "collection": "OrganisationUnit",
+        "filter": {"uuids": [args.input.org_unit]}
+    }]
+    """
+    checks = (
+        cel2check(
+            settings=Settings(),
+            graphql_version=LATEST_VERSION,
+            condition=condition,
+            token=owner_token,
+            args={"input": {"org_unit": uuid}},
+        )
+        for uuid in (org_unit, NOT_FOUND_UUID)
+    )
+
+    found = [await empty_db.scalar(select(check)) for check in checks]
+
+    assert found == [True, False]
+
+
+@pytest.mark.integration_test
+async def test_a_check_requires_everything_its_condition_names(
+    empty_db: AsyncSession,
+    create_org_unit: Callable[..., UUID],
+    owner_token: Token,
+) -> None:
+    """A condition naming two things holds only where both of them exist."""
+    org_unit, parent = (create_org_unit(user_key) for user_key in ("ours", "parent"))
+    condition = """
+    [
+        {"collection": "OrganisationUnit", "filter": {"uuids": [args.uuid]}},
+        {"collection": "OrganisationUnit", "filter": {"uuids": [args.parent]}}
+    ]
+    """
+    checks = (
+        cel2check(
+            settings=Settings(),
+            graphql_version=LATEST_VERSION,
+            condition=condition,
+            token=owner_token,
+            args={"uuid": org_unit, "parent": parent},
+        )
+        for parent in (parent, NOT_FOUND_UUID)
+    )
+
+    found = [await empty_db.scalar(select(check)) for check in checks]
+
+    assert found == [True, False]
+
+
+async def test_a_check_requiring_nothing_fails(owner_token: Token) -> None:
+    """A condition allowing or denying outright yields true or false, not []."""
+    with pytest.raises(ValueError) as raised:
+        cel2check(
+            settings=Settings(),
+            graphql_version=LATEST_VERSION,
+            condition="[]",
+            token=owner_token,
+            args={},
+        )
+
+    assert str(raised.value) == (
+        "condition '[]' requires nothing, yield true or false instead"
+    )
+
+
+@pytest.mark.integration_test
+async def test_a_check_without_a_condition_requires_nothing(
+    empty_db: AsyncSession,
+    admin_token: Token,
+) -> None:
+    """A rule with no condition grants its mutator outright."""
+    check = cel2check(
+        settings=Settings(),
+        graphql_version=LATEST_VERSION,
+        condition="",
+        token=admin_token,
+        args={},
+    )
+
+    assert await empty_db.scalar(select(check)) is True
+
+
+@pytest.mark.integration_test
+@pytest.mark.parametrize(
+    "condition,decided",
+    [
+        ("true", True),
+        ("false", False),
+        ("token.uuid != null", True),
+        ("token.uuid == null", False),
+        ("args.input.org_unit != null", True),
+        ("args.input.person != null", False),
+    ],
+)
+async def test_a_condition_deciding_by_itself_becomes_the_answer_it_gives(
+    condition: str, decided: bool, empty_db: AsyncSession, owner_token: Token
+) -> None:
+    """A condition the token and the arguments settle answers with a plain bool."""
+    check = cel2check(
+        settings=Settings(),
+        graphql_version=LATEST_VERSION,
+        condition=condition,
+        token=owner_token,
+        args={"input": {"org_unit": ALVIDA_UUID, "person": None}},
+    )
+
+    assert await empty_db.scalar(select(check)) is decided
+
+
+async def test_a_check_of_an_unknown_collection_fails(owner_token: Token) -> None:
+    """A condition naming a collection no rule can reach is an error."""
+    with pytest.raises(ValidationError) as raised:
+        cel2check(
+            settings=Settings(),
+            graphql_version=LATEST_VERSION,
+            condition='[{"collection": "Nonsense", "filter": {}}]',
+            token=owner_token,
+            args={},
+        )
+
+    permitted = ", ".join(repr(collection.value) for collection in Collection)
+    enum_values = ", ".join(repr(collection) for collection in Collection)
+    assert str(raised.value) == dedent(
+        f"""\
+        1 validation error for ParsingModel[list[mora.graphapi.policies.WriteCondition]]
+        __root__ -> 0 -> collection
+          value is not a valid enumeration member; permitted: {permitted} (type=type_error.enum; enum_values=[{enum_values}])"""
+    )
+
+
+async def test_a_check_yielding_one_condition_alone_fails(owner_token: Token) -> None:
+    """A condition yields a list, one entry per thing the mutator requires."""
+    with pytest.raises(ValidationError) as raised:
+        cel2check(
+            settings=Settings(),
+            graphql_version=LATEST_VERSION,
+            condition='{"collection": "OrganisationUnit", "filter": {}}',
+            token=owner_token,
+            args={},
+        )
+
+    assert str(raised.value) == dedent(
+        """\
+        1 validation error for ParsingModel[list[mora.graphapi.policies.WriteCondition]]
+        __root__
+          value is not a valid list (type=type_error.list)"""
+    )
+
+
+async def test_a_check_yielding_what_the_filter_rejects_fails(
+    owner_token: Token,
+) -> None:
+    """The filter a condition yields is coerced into its collection's filter."""
+    with pytest.raises(GraphQLError) as raised:
+        cel2check(
+            settings=Settings(),
+            graphql_version=LATEST_VERSION,
+            condition='[{"collection": "OrganisationUnit", "filter": {"uuids": ["not-a-uuid"]}}]',
+            token=owner_token,
+            args={},
+        )
+
+    assert str(raised.value) == (
+        """Invalid value 'not-a-uuid' at 'value.uuids[0]': Value cannot represent a UUID: "not-a-uuid". badly formed hexadecimal UUID string"""
+    )
