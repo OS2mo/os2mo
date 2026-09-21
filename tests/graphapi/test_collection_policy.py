@@ -11,11 +11,16 @@ from uuid import uuid4
 
 import pytest
 from more_itertools import one
+from pydantic import ValidationError
 from sqlalchemy import Boolean
 from sqlalchemy import literal
+from sqlalchemy import select
 from sqlalchemy import true
 from strawberry.dataloader import DataLoader
 
+from mora.auth.keycloak.models import RealmAccess
+from mora.auth.keycloak.models import Token
+from mora.config import Settings
 from mora.db import AsyncSession
 from mora.db import Collection
 from mora.db import OrganisationFunktionRegistrering
@@ -25,8 +30,11 @@ from mora.db import PolicyReadRuleField
 from mora.graphapi.policies import AccessKey
 from mora.graphapi.policies import Rule
 from mora.graphapi.policies import access_load_fn
+from mora.graphapi.policies import cel2predicate
 from mora.graphapi.policies import policy_load_fn
 from mora.graphapi.schema import collection_policy
+from mora.graphapi.version import LATEST_VERSION
+from tests.conftest import BRUCE_UUID
 from tests.conftest import token_getter_of
 
 
@@ -230,6 +238,95 @@ async def test_a_condition_unknown_of_an_object_grants_nothing_on_it(
     )
 
     assert allowed == [True, False]
+
+
+@pytest.mark.integration_test
+@pytest.mark.parametrize(
+    "condition,reached",
+    [
+        # A rule without a condition reaches every object of its collection
+        ("", {"mine@example.org", "theirs@example.org", "11111111"}),
+        (
+            '{"address_type": {"scope": ["EMAIL"]}}',
+            {"mine@example.org", "theirs@example.org"},
+        ),
+        ('{"employee": {"uuids": [token.uuid]}}', {"mine@example.org", "11111111"}),
+        (
+            '{"employee": {"uuids": [token.uuid]}, "address_type": {"scope": ["EMAIL"]}}',
+            {"mine@example.org"},
+        ),
+    ],
+)
+async def test_a_condition_becomes_the_clause_its_filter_names(
+    condition: str,
+    reached: set[str],
+    empty_db: AsyncSession,
+    create_person: Callable[[dict[str, Any] | None], UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+    create_address: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """A condition reaches the objects its filter names, evaluated on the token."""
+    token = await token_getter_of("reader")()
+    caller = create_person(
+        {"given_name": "Bruce", "surname": "Lee", "uuid": str(BRUCE_UUID)}
+    )
+    other = create_person(None)
+    facet = create_facet(
+        {"user_key": "employee_address_type", "validity": {"from": "2000-01-01"}}
+    )
+    email, phone = (
+        create_class(
+            {
+                "facet_uuid": str(facet),
+                "user_key": user_key,
+                "name": user_key.title(),
+                "scope": scope,
+                "validity": {"from": "2000-01-01"},
+            }
+        )
+        for user_key, scope in (("email", "EMAIL"), ("phone", "PHONE"))
+    )
+    addresses = {
+        value: create_address(
+            {
+                "address_type": str(address_type),
+                "person": str(person),
+                "value": value,
+                "validity": {"from": "2000-01-01"},
+            }
+        )
+        for person, address_type, value in (
+            (caller, email, "mine@example.org"),
+            (other, email, "theirs@example.org"),
+            (caller, phone, "11111111"),
+        )
+    }
+    clause = cel2predicate(
+        Settings(), Collection.Address, LATEST_VERSION, condition, token
+    )
+
+    rows = await empty_db.scalars(
+        select(OrganisationFunktionRegistrering.uuid).where(clause)
+    )
+
+    assert set(rows) == {addresses[value] for value in reached}
+
+
+async def test_a_condition_yielding_what_the_filter_rejects_fails() -> None:
+    """The map a condition yields is instantiated against the collection's filter."""
+    token = Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"reader"}))
+
+    with pytest.raises(ValidationError) as raised:
+        cel2predicate(
+            Settings(),
+            Collection.Address,
+            LATEST_VERSION,
+            '{"uuids": ["not-a-uuid"]}',
+            token,
+        )
+
+    assert "value is not a valid uuid" in str(raised.value)
 
 
 @pytest.mark.integration_test
