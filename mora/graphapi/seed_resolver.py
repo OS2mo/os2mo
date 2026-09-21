@@ -48,15 +48,38 @@ def get_bound_filter(
     removed = seeds | strip
     # Strawberry.input is incredibly badly typed; runtime check is better than nothing
     assert dataclasses.is_dataclass(filter_class)
-    bound_filter_class = dataclasses.make_dataclass(
-        cls_name=cls_name,
-        fields=[
-            (f.name, f.type, f)
-            for f in dataclasses.fields(filter_class)
-            if f.name not in removed
-        ],
+    kept = [f for f in dataclasses.fields(filter_class) if f.name not in removed]
+    defaults = {f.name: field_default(f) for f in kept}
+    # Built with `type` rather than `make_dataclass`, because `strawberry.input`
+    # runs the dataclass machinery itself and a field does not survive being
+    # processed twice: the first pass drops the class attribute the second one
+    # reads the default back from.
+    bound_filter_class = type(
+        cls_name,
+        (),
+        {
+            "__annotations__": {f.name: f.type for f in kept},
+            **{
+                name: default
+                for name, default in defaults.items()
+                if default is not dataclasses.MISSING
+            },
+        },
     )
     return strawberry.input(bound_filter_class)
+
+
+def field_default(field: dataclasses.Field) -> Any:
+    """The default of a filter field, ready to redeclare on another class.
+
+    A `default_factory` is passed on as a factory rather than called: its value
+    would otherwise be shared by every instance, which dataclasses rejects
+    outright when it is mutable. It has to be a Strawberry field, as a plain
+    dataclass field only ever reaches the schema through a value default.
+    """
+    if field.default_factory is not dataclasses.MISSING:
+        return strawberry.field(default_factory=field.default_factory)
+    return field.default
 
 
 def seed_resolver(
