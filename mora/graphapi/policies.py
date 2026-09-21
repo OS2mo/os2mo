@@ -10,8 +10,10 @@ from functools import partial
 from typing import Any
 from typing import NamedTuple
 from typing import TypeAlias
+from typing import get_type_hints
 from uuid import UUID
 
+from graphql import coerce_input_value
 from more_itertools import map_reduce
 from sqlalchemy import ARRAY
 from sqlalchemy import ColumnElement
@@ -26,8 +28,10 @@ from sqlalchemy import select
 from sqlalchemy import true
 from sqlalchemy import union_all
 from strawberry.dataloader import DataLoader
+from strawberry.types.arguments import convert_argument
 
 from mora.auth.keycloak.models import Token
+from mora.config import Settings
 from mora.db import AsyncSession
 from mora.db import BrugerRegistrering
 from mora.db import Collection
@@ -40,7 +44,13 @@ from mora.db import OrganisationRegistrering
 from mora.db import Policy
 from mora.db import PolicyReadRule
 from mora.db import PolicyReadRuleField
+from mora.graphapi import policy_cel
+from mora.graphapi import resolvers
+from mora.graphapi.custom_schema import CustomSchema
 from mora.graphapi.graphql_utils import AccessKey
+from mora.graphapi.policy_cel import CEL
+from mora.graphapi.schema import get_schema
+from mora.graphapi.version import Version
 
 # OIDC token role
 Role: TypeAlias = str
@@ -77,6 +87,73 @@ MODEL_OF_COLLECTION: dict[Collection, Any] = {
     Collection.RelatedUnit: OrganisationFunktionRegistrering,
     Collection.RoleBinding: OrganisationFunktionRegistrering,
 }
+
+
+# Each collection's corresponding predicate function.
+# Organisation has no filter, so no rule can name anything but all of it.
+PREDICATE_OF_COLLECTION: dict[Collection, Callable[..., ColumnElement]] = {
+    Collection.Address: resolvers.address_predicate,
+    Collection.Association: resolvers.association_predicate,
+    Collection.Class: resolvers.class_predicate,
+    Collection.Employee: resolvers.employee_predicate,
+    Collection.Engagement: resolvers.engagement_predicate,
+    Collection.Facet: resolvers.facet_predicate,
+    Collection.ITSystem: resolvers.it_system_predicate,
+    Collection.ITUser: resolvers.it_user_predicate,
+    Collection.KLE: resolvers.kle_predicate,
+    Collection.Leave: resolvers.leave_predicate,
+    Collection.Manager: resolvers.manager_predicate,
+    Collection.OrganisationUnit: resolvers.organisation_unit_predicate,
+    Collection.Owner: resolvers.owner_predicate,
+    Collection.RelatedUnit: resolvers.related_unit_predicate,
+    Collection.RoleBinding: resolvers.rolebinding_predicate,
+}
+
+
+def parse_filter(
+    schema: CustomSchema, collection: Collection, raw: dict[str, Any]
+) -> Any:
+    """Parse a filter dictionary into the strawberry filter of its collection.
+
+    Args:
+        schema: The GraphQL schema holding the filter types.
+        collection: Selects the filter type within the schema.
+        raw: The filter dictionary to be parsed.
+
+    Raises:
+        GraphQLError: When the filter is invalid, naming the value and where it
+            sits within the filter.
+
+    Returns:
+        The dictionary, parsed into the collection's filter type.
+    """
+    filter = get_type_hints(PREDICATE_OF_COLLECTION[collection])["filter"]
+    input_type = schema.schema_converter.from_input_object(filter)
+    coerced = coerce_input_value(raw, input_type)
+    return convert_argument(
+        coerced,
+        filter,
+        scalar_registry=schema.schema_converter.scalar_registry,
+        config=schema.config,
+    )
+
+
+def cel2predicate(
+    settings: Settings,
+    collection: Collection,
+    graphql_version: Version,
+    condition: CEL,
+    token: Token,
+) -> ColumnElement[bool]:
+    """Evaluate the CEL condition into a filter, and the filter into a clause."""
+    # No condition -> applies to all entities
+    if not condition:
+        return true()
+    predicate = PREDICATE_OF_COLLECTION[collection]
+    filter = parse_filter(
+        get_schema(graphql_version), collection, policy_cel.evaluate(condition, token)
+    )
+    return predicate(settings=settings, version=graphql_version, filter=filter)
 
 
 def load_rules(
