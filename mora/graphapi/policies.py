@@ -49,6 +49,7 @@ from mora.db import OrganisationRegistrering
 from mora.db import Policy
 from mora.db import PolicyReadRule
 from mora.db import PolicyReadRuleField
+from mora.db import PolicyWriteRule
 from mora.graphapi import policy_cel
 from mora.graphapi import resolvers
 from mora.graphapi.custom_schema import CustomSchema
@@ -77,6 +78,14 @@ class WriteCondition(BaseModel):
 
     collection: Collection
     filter: dict[str, Any]
+
+
+class WriteRule(NamedTuple):
+    """Grants the mutator, if the check of its arguments holds."""
+
+    role: Role
+    mutator: str
+    check: Callable[[dict[str, Any]], ColumnElement[bool]]
 
 
 # Each collection's model, holding the registrations of its objects.
@@ -371,6 +380,39 @@ async def access_load_fn(
         field not in missing.get((collection, uuid), frozenset())
         for collection, uuid, field in keys
     ]
+
+
+async def write_policy_load_fn(
+    session: AsyncSession,
+    settings: Settings,
+    get_token: Callable[[], Awaitable[Token]],
+    keys: list[int],
+) -> list[list[WriteRule]]:
+    """Load the write rules of the active policies granted to the caller's roles."""
+    token = await get_token()
+    roles = token.realm_access.roles
+    rows = await session.execute(
+        select(
+            Policy.role,
+            PolicyWriteRule.mutator,
+            PolicyWriteRule.graphql_version,
+            PolicyWriteRule.condition,
+        )
+        .join(Policy.write_rules)
+        .where(
+            Policy.role == any_(literal(roles, ARRAY(String))),
+            Policy.active,
+        )
+    )
+    rules = [
+        WriteRule(
+            role=role,
+            mutator=mutator,
+            check=partial(cel2check, settings, graphql_version, condition, token),
+        )
+        for role, mutator, graphql_version, condition in rows
+    ]
+    return [rules for _ in keys]
 
 
 def get_access_loaders(

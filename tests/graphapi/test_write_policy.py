@@ -21,9 +21,11 @@ from mora.db import Collection
 from mora.db import Policy
 from mora.db import PolicyWriteRule
 from mora.graphapi.policies import cel2check
+from mora.graphapi.policies import write_policy_load_fn
 from mora.graphapi.version import LATEST_VERSION
 from tests.conftest import ALVIDA_UUID
 from tests.conftest import BRUCE_UUID
+from tests.conftest import token_getter_of
 
 NOT_FOUND_UUID = UUID("c6720bc8-6e37-4a59-8876-950b2117df22")
 
@@ -263,3 +265,97 @@ async def test_a_rule_keeps_its_mutator_condition_and_version(
         )
         == LATEST_VERSION.value
     )
+
+
+@pytest.mark.integration_test
+async def test_the_write_rules_of_the_callers_policies_are_loaded(
+    empty_db: AsyncSession,
+) -> None:
+    """The caller gets the rules of the policies of the roles it carries."""
+    condition = """
+    [{
+        "collection": "OrganisationUnit",
+        "filter": {"uuids": [args.input.org_unit]}
+    }]
+    """
+    empty_db.add_all(
+        [
+            Policy(
+                name="Unit Owner",
+                description="Allows unit owners to write in their own unit",
+                active=True,
+                role="unit_owner",
+                write_rules=[
+                    PolicyWriteRule(
+                        mutator="address_create",
+                        condition=condition,
+                        graphql_version=LATEST_VERSION,
+                    ),
+                    PolicyWriteRule(
+                        mutator="ituser_create",
+                        condition=condition,
+                        graphql_version=LATEST_VERSION,
+                    ),
+                ],
+            ),
+            Policy(
+                name="Class Writer",
+                description="Allows class writers to create classes",
+                active=True,
+                role="class_writer",
+                write_rules=[
+                    PolicyWriteRule(
+                        mutator="class_create",
+                        condition="",
+                        graphql_version=LATEST_VERSION,
+                    )
+                ],
+            ),
+        ]
+    )
+    await empty_db.flush()
+
+    rules = one(
+        await write_policy_load_fn(
+            session=empty_db,
+            settings=Settings(),
+            get_token=token_getter_of("unit_owner"),
+            keys=[0],
+        )
+    )
+
+    assert {rule.mutator for rule in rules} == {"address_create", "ituser_create"}
+    assert {rule.role for rule in rules} == {"unit_owner"}
+
+
+@pytest.mark.integration_test
+async def test_a_policy_switched_off_grants_no_mutator(empty_db: AsyncSession) -> None:
+    """An inactive policy hands its write rules to nobody."""
+    empty_db.add(
+        Policy(
+            name="Unit Owner",
+            description="Allows unit owners to write in their own unit",
+            active=False,
+            role="unit_owner",
+            write_rules=[
+                PolicyWriteRule(
+                    mutator="address_create",
+                    condition="""
+                    [{
+                        "collection": "OrganisationUnit",
+                        "filter": {"uuids": [args.input.org_unit]}
+                    }]
+                    """,
+                    graphql_version=LATEST_VERSION,
+                )
+            ],
+        )
+    )
+    await empty_db.flush()
+
+    assert await write_policy_load_fn(
+        session=empty_db,
+        settings=Settings(),
+        get_token=token_getter_of("unit_owner"),
+        keys=[0],
+    ) == [[]]
