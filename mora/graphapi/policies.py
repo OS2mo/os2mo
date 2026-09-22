@@ -291,8 +291,8 @@ async def access_load_fn(
     keys: list[AccessKey],
 ) -> list[bool]:
     """Determine whether the requested field access is allowed."""
-    # If this function is performing poorly, consider checking out 52d2a3fe
-    # and c22dce95
+    # If this function is performing poorly, consider checking out 52d2a3fe,
+    # c22dce95 and 0aeca0fb
     rules = await policy_loader.load(0)
     by_collection = map_reduce(keys, keyfunc=lambda key: key.collection)
     denied = union_all(
