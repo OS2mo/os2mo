@@ -196,6 +196,7 @@ def token_getter_of(*roles: str) -> Callable[[], Awaitable[Token]]:
 
 SetAuth = Callable[[str | Collection[str] | None, UUID | str | None, str], None]
 SetRules = Callable[[str, db.Collection, Iterable[str]], Awaitable[None]]
+SetWriteRules = Callable[[str, str, str], Awaitable[None]]
 SetPolicies = Callable[[list[Policy]], None]
 
 
@@ -1670,6 +1671,32 @@ def set_rules(empty_db: db.AsyncSession) -> SetRules:
                             db.PolicyReadRuleField(field=field)
                             for field in sorted(fields)
                         ],
+                    )
+                ],
+            )
+        )
+        # A request opens its own session, so the rows must be committed to it
+        await empty_db.commit()
+
+    return inner
+
+
+@pytest.fixture
+def set_write_rules(empty_db: db.AsyncSession) -> SetWriteRules:
+    """Grant a role a mutator under a CEL condition."""
+
+    async def inner(role: str, mutator: str, condition: str) -> None:
+        empty_db.add(
+            db.Policy(
+                name=f"{role} {mutator}",
+                description=f"Grants {role} the mutator a test asks about",
+                active=True,
+                role=role,
+                write_rules=[
+                    db.PolicyWriteRule(
+                        mutator=mutator,
+                        condition=condition,
+                        graphql_version=LATEST_VERSION,
                     )
                 ],
             )

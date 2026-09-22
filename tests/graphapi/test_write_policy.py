@@ -4,6 +4,8 @@
 
 from collections.abc import Callable
 from textwrap import dedent
+from types import SimpleNamespace
+from typing import Any
 from uuid import UUID
 
 import pytest
@@ -22,9 +24,15 @@ from mora.db import Policy
 from mora.db import PolicyWriteRule
 from mora.graphapi.policies import cel2check
 from mora.graphapi.policies import write_policy_load_fn
+from mora.graphapi.schema import write_policy
 from mora.graphapi.version import LATEST_VERSION
 from tests.conftest import ALVIDA_UUID
 from tests.conftest import BRUCE_UUID
+from tests.conftest import GraphAPIPost
+from tests.conftest import SetAuth
+from tests.conftest import SetWriteRules
+from tests.conftest import assert_denied
+from tests.conftest import assert_granted
 from tests.conftest import token_getter_of
 
 NOT_FOUND_UUID = UUID("c6720bc8-6e37-4a59-8876-950b2117df22")
@@ -359,3 +367,164 @@ async def test_a_policy_switched_off_grants_no_mutator(empty_db: AsyncSession) -
         get_token=token_getter_of("unit_owner"),
         keys=[0],
     ) == [[]]
+
+
+async def test_a_field_which_is_no_mutator_is_rejected_without_asking() -> None:
+    """The policy answers at once, rather than handing back a coroutine to await."""
+    info = SimpleNamespace(parent_type=SimpleNamespace(name="AddressResponse"))
+
+    assert write_policy(None, info, {}) is False
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_mutator_is_granted_where_its_rule_finds_what_it_names(
+    set_auth: SetAuth,
+    set_write_rules: SetWriteRules,
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """The rule grants the mutator on the unit it names, and on no other."""
+    mutation = """
+    mutation CreateAddress($input: AddressCreateInput!) {
+        address_create(input: $input) { uuid }
+    }
+    """
+    ours, theirs = (create_org_unit(user_key) for user_key in ("ours", "theirs"))
+    facet = create_facet(
+        {"user_key": "org_unit_address_type", "validity": {"from": "2000-01-01"}}
+    )
+    address_type = create_class(
+        {
+            "facet_uuid": str(facet),
+            "user_key": "email",
+            "name": "Email",
+            "scope": "EMAIL",
+            "validity": {"from": "2000-01-01"},
+        }
+    )
+    input = {
+        "address_type": str(address_type),
+        "org_unit": str(ours),
+        "value": "unit@example.org",
+        "validity": {"from": "2000-01-01"},
+    }
+    await set_write_rules(
+        role="unit_owner",
+        mutator="address_create",
+        condition="""
+        [{
+            "collection": "OrganisationUnit",
+            "filter": {"uuids": [args.input.org_unit], "user_keys": ["ours"]}
+        }]
+        """,
+    )
+    set_auth({"reader", "unit_owner"}, BRUCE_UUID)
+
+    assert_granted(graphapi_post(mutation, {"input": input}))
+    assert_denied(
+        graphapi_post(mutation, {"input": {**input, "org_unit": str(theirs)}})
+    )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_mutator_no_rule_names_is_denied(
+    set_auth: SetAuth,
+    set_write_rules: SetWriteRules,
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """A rule grants the mutator it binds to, and nothing else."""
+    mutation = """
+    mutation CreateAddress($input: AddressCreateInput!) {
+        address_create(input: $input) { uuid }
+    }
+    """
+    org_unit = create_org_unit("ours")
+    facet = create_facet(
+        {"user_key": "org_unit_address_type", "validity": {"from": "2000-01-01"}}
+    )
+    address_type = create_class(
+        {
+            "facet_uuid": str(facet),
+            "user_key": "email",
+            "name": "Email",
+            "scope": "EMAIL",
+            "validity": {"from": "2000-01-01"},
+        }
+    )
+    input = {
+        "address_type": str(address_type),
+        "org_unit": str(org_unit),
+        "value": "unit@example.org",
+        "validity": {"from": "2000-01-01"},
+    }
+    await set_write_rules(
+        role="unit_owner",
+        mutator="ituser_create",
+        condition="""
+        [{
+            "collection": "OrganisationUnit",
+            "filter": {"uuids": [args.input.org_unit]}
+        }]
+        """,
+    )
+    set_auth({"reader", "unit_owner"}, BRUCE_UUID)
+
+    assert_denied(graphapi_post(mutation, {"input": input}))
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_condition_deciding_by_itself_decides_the_mutator(
+    set_auth: SetAuth,
+    set_write_rules: SetWriteRules,
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """A condition yielding a bool grants or denies the mutator."""
+    mutation = """
+    mutation CreateAddress($input: AddressCreateInput!) {
+        address_create(input: $input) { uuid }
+    }
+    """
+    org_unit = create_org_unit("ours")
+    facet = create_facet(
+        {"user_key": "org_unit_address_type", "validity": {"from": "2000-01-01"}}
+    )
+    address_type = create_class(
+        {
+            "facet_uuid": str(facet),
+            "user_key": "email",
+            "name": "Email",
+            "scope": "EMAIL",
+            "validity": {"from": "2000-01-01"},
+        }
+    )
+    input = {
+        "address_type": str(address_type),
+        "org_unit": str(org_unit),
+        "value": "unit@example.org",
+        "validity": {"from": "2000-01-01"},
+    }
+    await set_write_rules(
+        role="unit_owner",
+        mutator="address_create",
+        condition="args.input.org_unit != null",
+    )
+    set_auth({"reader", "unit_owner"}, BRUCE_UUID)
+
+    assert_granted(graphapi_post(mutation, {"input": input}))
+    assert_denied(
+        graphapi_post(
+            mutation,
+            {"input": {**input, "org_unit": None, "person": str(BRUCE_UUID)}},
+        )
+    )

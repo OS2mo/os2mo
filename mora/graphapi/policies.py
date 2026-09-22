@@ -29,6 +29,7 @@ from sqlalchemy import exists
 from sqlalchemy import false
 from sqlalchemy import func
 from sqlalchemy import literal
+from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy import true
 from sqlalchemy import union_all
@@ -54,6 +55,7 @@ from mora.graphapi import policy_cel
 from mora.graphapi import resolvers
 from mora.graphapi.custom_schema import CustomSchema
 from mora.graphapi.graphql_utils import AccessKey
+from mora.graphapi.graphql_utils import WriteKey
 from mora.graphapi.policy_cel import CEL
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import Version
@@ -219,6 +221,18 @@ def cel2check(
             for requirement in required
         )
     )
+
+
+def write_check(
+    mutator: str, args: dict[str, Any], rules: Iterable[WriteRule]
+) -> ColumnElement[bool]:
+    """The clause granting the mutator."""
+    checks = [rule.check(args) for rule in rules if rule.mutator == mutator]
+    # No rule names the mutator -> denied
+    if not checks:
+        return false()
+    # Any rule granting the mutator is enough
+    return or_(*checks)
 
 
 def load_rules(
@@ -415,18 +429,39 @@ async def write_policy_load_fn(
     return [rules for _ in keys]
 
 
+async def write_load_fn(
+    session: AsyncSession,
+    write_policy_loader: DataLoader[int, list[WriteRule]],
+    keys: list[WriteKey],
+) -> list[bool]:
+    """Determine whether the requested mutator access is allowed."""
+    # If this function is performing poorly, consider checking out 0b7c0e5e
+    rules = await write_policy_loader.load(0)
+    checks = [write_check(mutator, args, rules) for mutator, args in keys]
+    row = (await session.execute(select(*checks))).one()
+    return [bool(granted) for granted in row]
+
+
 def get_access_loaders(
     session: AsyncSession,
     settings: Settings,
     get_token: Callable[[], Awaitable[Token]],
 ) -> dict[str, DataLoader]:
-    """Return the dataloader deciding what the caller may read."""
+    """Return the dataloaders deciding what the caller may read and write."""
     policy_loader: DataLoader[int, list[Rule]] = DataLoader(
         load_fn=partial(policy_load_fn, session, settings, get_token)
+    )
+    write_policy_loader: DataLoader[int, list[WriteRule]] = DataLoader(
+        load_fn=partial(write_policy_load_fn, session, settings, get_token)
     )
 
     return {
         "access_loader": DataLoader(
             load_fn=partial(access_load_fn, session, policy_loader)
+        ),
+        "write_loader": DataLoader(
+            load_fn=partial(write_load_fn, session, write_policy_loader),
+            # The arguments are unhashable
+            cache=False,
         ),
     }

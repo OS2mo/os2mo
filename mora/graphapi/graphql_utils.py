@@ -3,6 +3,7 @@
 import re
 import string
 from datetime import datetime
+from typing import Any
 from typing import NamedTuple
 from uuid import UUID
 
@@ -40,6 +41,13 @@ class AccessKey(NamedTuple):
     collection: Collection
     uuid: UUID
     field: str
+
+
+class WriteKey(NamedTuple):
+    """A mutator access request."""
+
+    mutator: str
+    args: dict[str, Any]
 
 
 class LoadKey(NamedTuple):

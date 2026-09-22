@@ -26,6 +26,7 @@ from mora.graphapi.gmodels.mo.details import OwnerRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 from mora.graphapi.graphql_utils import AccessKey
 from mora.graphapi.graphql_utils import LoadKey
+from mora.graphapi.graphql_utils import WriteKey
 from mora.graphapi.models import AddressRead
 from mora.graphapi.models import ClassRead
 from mora.graphapi.models import FacetRead
@@ -51,6 +52,7 @@ class MOLoaders:
     org_unit_loader: DataLoader[LoadKey, list[OrganisationUnitRead]]
     owner_loader: DataLoader[LoadKey, list[OwnerRead]]
     access_loader: DataLoader[AccessKey, bool]
+    write_loader: DataLoader[WriteKey, bool]
     rel_unit_loader: DataLoader[LoadKey, list[RelatedUnitRead]]
     rolebinding_loader: DataLoader[LoadKey, list[RoleBindingRead]]
 
