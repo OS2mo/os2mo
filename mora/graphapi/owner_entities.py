@@ -17,11 +17,11 @@ from strawberry import UNSET
 from mora.auth.keycloak.models import Token
 from mora.config import Settings
 from mora.graphapi import resolvers
-from mora.graphapi.filters import EmployeeFilter
-from mora.graphapi.filters import ITSystemFilter
-from mora.graphapi.filters import ITUserFilter
-from mora.graphapi.filters import OrganisationUnitFilter
-from mora.graphapi.filters import OwnerFilter
+from mora.graphapi.filter_dataclasses import EmployeeFilterData
+from mora.graphapi.filter_dataclasses import ITSystemFilterData
+from mora.graphapi.filter_dataclasses import ITUserFilterData
+from mora.graphapi.filter_dataclasses import OrganisationUnitFilterData
+from mora.graphapi.filter_dataclasses import OwnerFilterData
 from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.resolvers import organisation_unit_predicate
 from mora.graphapi.version import Version
@@ -29,7 +29,7 @@ from mora.graphapi.version import Version
 OwnerRule = Callable[[Settings, Version, Token, dict[str, Any]], ColumnElement | None]
 
 
-def _actor_filter(settings: Settings, token: Token) -> EmployeeFilter:
+def _actor_filter(settings: Settings, token: Token) -> EmployeeFilterData:
     """The employee filter matching the calling actor.
 
     With `KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS` configured, the
@@ -40,13 +40,13 @@ def _actor_filter(settings: Settings, token: Token) -> EmployeeFilter:
     assert token.uuid is not None
     it_system = settings.keycloak_rbac_authoritative_it_system_for_owners
     if it_system is not None:
-        return EmployeeFilter(
-            ituser=ITUserFilter(
-                itsystem=ITSystemFilter(uuids=[it_system]),
+        return EmployeeFilterData(
+            ituser=ITUserFilterData(
+                itsystem=ITSystemFilterData(uuids=[it_system]),
                 external_ids=[str(token.uuid)],
             )
         )
-    return EmployeeFilter(uuids=[token.uuid])
+    return EmployeeFilterData(uuids=[token.uuid])
 
 
 def org_unit(
@@ -62,9 +62,9 @@ def org_unit(
     predicate = organisation_unit_predicate(
         settings=settings,
         version=version,
-        filter=OrganisationUnitFilter(
-            descendant=OrganisationUnitFilter(uuids=[uuid]),
-            owner=OwnerFilter(owner=_actor_filter(settings, token)),
+        filter=OrganisationUnitFilterData(
+            descendant=OrganisationUnitFilterData(uuids=[uuid]),
+            owner=OwnerFilterData(owner=_actor_filter(settings, token)),
         ),
     )
     return exists().where(predicate)
@@ -79,9 +79,9 @@ def person(
     predicate = employee_predicate(
         settings=settings,
         version=version,
-        filter=EmployeeFilter(
+        filter=EmployeeFilterData(
             uuids=[uuid],
-            owner=OwnerFilter(owner=_actor_filter(settings, token)),
+            owner=OwnerFilterData(owner=_actor_filter(settings, token)),
         ),
     )
     return exists().where(predicate)
@@ -103,9 +103,9 @@ def detail_org_unit(
             version=version,
             filter=filter(
                 uuids=[uuid],
-                org_unit=OrganisationUnitFilter(
-                    ancestor=OrganisationUnitFilter(
-                        owner=OwnerFilter(owner=_actor_filter(settings, token))
+                org_unit=OrganisationUnitFilterData(
+                    ancestor=OrganisationUnitFilterData(
+                        owner=OwnerFilterData(owner=_actor_filter(settings, token))
                     )
                 ),
             ),
@@ -129,8 +129,8 @@ def detail_person(
             version=version,
             filter=filter(
                 uuids=[uuid],
-                employee=EmployeeFilter(
-                    owner=OwnerFilter(owner=_actor_filter(settings, token))
+                employee=EmployeeFilterData(
+                    owner=OwnerFilterData(owner=_actor_filter(settings, token))
                 ),
             ),
         )
@@ -188,8 +188,8 @@ def check_parent(
         organisation_unit_predicate(
             settings=settings,
             version=version,
-            filter=OrganisationUnitFilter(
-                uuids=[parent], child=OrganisationUnitFilter(uuids=[uuid])
+            filter=OrganisationUnitFilterData(
+                uuids=[parent], child=OrganisationUnitFilterData(uuids=[uuid])
             ),
         )
     )
