@@ -7,15 +7,19 @@ import typing
 from collections.abc import Callable
 from inspect import Parameter
 from inspect import signature
+from textwrap import dedent
 from typing import Any
 
 import pytest
+import strawberry
 from more_itertools import first
+from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
 
 from mora.graphapi.filters import BaseFilter
 from mora.graphapi.resolvers import CursorType
 from mora.graphapi.resolvers import LimitType
+from mora.graphapi.seed_resolver import get_bound_filter
 from mora.graphapi.seed_resolver import seed_resolver
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
@@ -33,6 +37,74 @@ async def dummy_resolver(
         "limit": limit,
         "cursor": cursor,
     }
+
+
+@strawberry.input
+class Inherited:
+    inherited: str | None = strawberry.field(default=None)
+
+
+@strawberry.input
+class AlsoInherited:
+    also_inherited: str | None = strawberry.field(default=None)
+
+
+@strawberry.input
+class NestedFilter:
+    nested: str | None = strawberry.field(default=None, description="Nested filter.")
+
+
+@strawberry.input
+class DocumentedFilter(Inherited, AlsoInherited):
+    """A filter carrying everything the schema shows for a field."""
+
+    seeded: str | None = strawberry.field(default=None)
+    documented: str | None = strawberry.field(
+        default_factory=lambda: "kept",
+        description="Documented filter.",
+        deprecation_reason="Replaced by nested.",
+    )
+    nested: NestedFilter | None = strawberry.field(default=None)
+
+
+def input_type_sdl(filter_class: type) -> str:
+    """The schema Strawberry generates for a query taking the given filter."""
+
+    @strawberry.type
+    class Query:
+        @strawberry.field
+        def filtered(self, filter: filter_class) -> str:  # type: ignore[valid-type]
+            return "unused"  # pragma: no cover
+
+    schema = strawberry.Schema(
+        query=Query, config=StrawberryConfig(auto_camel_case=False)
+    )
+    return str(schema)
+
+
+def test_bound_filter_field_definitions() -> None:
+    """Test the input type that binding a filter produces."""
+    bound_filter_class = get_bound_filter(DocumentedFilter, seeds=frozenset({"seeded"}))
+    assert input_type_sdl(bound_filter_class) == dedent(
+        '''\
+        input NestedFilter {
+          """Nested filter."""
+          nested: String = null
+        }
+
+        type Query {
+          filtered(filter: SeededBoundDocumentedFilter!): String!
+        }
+
+        input SeededBoundDocumentedFilter {
+          inherited: String = null
+          also_inherited: String = null
+
+          """Documented filter."""
+          documented: String = "kept" @deprecated(reason: "Replaced by nested.")
+          nested: NestedFilter = null
+        }'''
+    )
 
 
 @pytest.mark.parametrize(

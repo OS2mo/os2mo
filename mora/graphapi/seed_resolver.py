@@ -14,7 +14,8 @@ from typing import Any
 from typing import ParamSpec
 from typing import TypeVar
 
-import strawberry
+from strawberry.tools import create_type
+from strawberry.types import get_object_definition
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -46,17 +47,15 @@ def get_bound_filter(
         original_filter=filter_class.__name__,
     )
     removed = seeds | strip
-    # Strawberry.input is incredibly badly typed; runtime check is better than nothing
-    assert dataclasses.is_dataclass(filter_class)
-    bound_filter_class = dataclasses.make_dataclass(
-        cls_name=cls_name,
+    return create_type(
+        name=cls_name,
         fields=[
-            (f.name, f.type, f)
-            for f in dataclasses.fields(filter_class)
+            f
+            for f in get_object_definition(filter_class, strict=True).fields
             if f.name not in removed
         ],
+        is_input=True,
     )
-    return strawberry.input(bound_filter_class)
 
 
 def seed_resolver(
