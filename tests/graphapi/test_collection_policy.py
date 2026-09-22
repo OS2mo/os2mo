@@ -520,10 +520,12 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
                 ],
             ),
             Policy(
-                name="owner",
+                name="unit_owner",
                 description="Reads the name of employees",
                 active=True,
-                selectors=[PolicySelector(kind=PolicySelectorKind.role, value="owner")],
+                selectors=[
+                    PolicySelector(kind=PolicySelectorKind.role, value="unit_owner")
+                ],
                 read_rules=[
                     PolicyReadRule(
                         collection=Collection.Employee,
