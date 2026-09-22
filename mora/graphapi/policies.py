@@ -138,6 +138,18 @@ def parse_filter(
     )
 
 
+def filter2predicate(
+    settings: Settings,
+    collection: Collection,
+    graphql_version: Version,
+    filter: dict[str, Any],
+) -> ColumnElement[bool]:
+    """Parse the filter of the collection into a clause."""
+    predicate = PREDICATE_OF_COLLECTION[collection]
+    parsed = parse_filter(get_schema(graphql_version), collection, filter)
+    return predicate(settings=settings, version=graphql_version, filter=parsed)
+
+
 def cel2predicate(
     settings: Settings,
     collection: Collection,
@@ -149,13 +161,8 @@ def cel2predicate(
     # No condition -> applies to all entities
     if not condition:
         return true()
-    predicate = PREDICATE_OF_COLLECTION[collection]
-    filter = parse_filter(
-        get_schema(graphql_version),
-        collection,
-        policy_cel.evaluate(condition, token, {}),
-    )
-    return predicate(settings=settings, version=graphql_version, filter=filter)
+    filter = policy_cel.evaluate(condition, token, {})
+    return filter2predicate(settings, collection, graphql_version, filter)
 
 
 def load_rules(
