@@ -6,8 +6,6 @@ from functools import partial
 from string import Template
 from typing import TypeAlias
 
-from mora.graphapi.policy_cel import CEL
-
 
 def _owner_filter(requirements: str) -> str:
     """Bind the owner filter matching the calling actor, by the token's uuid."""
@@ -32,11 +30,9 @@ def deny_requiring_nothing(rule: str) -> str:
     ).substitute(rule=rule)
 
 
-def owner_rule(requirements: str) -> CEL:
+def owner_rule(requirements: str) -> str:
     """The owner rule requiring what `requirements` names owned."""
-    return CEL(
-        deny_tokens_without_uuid(deny_requiring_nothing(_owner_filter(requirements)))
-    )
+    return deny_tokens_without_uuid(deny_requiring_nothing(_owner_filter(requirements)))
 
 
 def org_unit(uuid_expr: str) -> str:
@@ -148,7 +144,7 @@ rolebinding = partial(detail_org_unit, collection="RoleBinding")
 MutatorName: TypeAlias = str
 
 # A mutator not listed here is never granted by ownership
-OWNER_RULES: list[tuple[MutatorName, CEL]] = [
+OWNER_RULES: list[tuple[MutatorName, str]] = [
     # The unit or the person the address links to (exactly one is set)
     (
         "address_create",
