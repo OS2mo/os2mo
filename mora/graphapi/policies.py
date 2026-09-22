@@ -37,6 +37,7 @@ from sqlalchemy import union_all
 from strawberry.dataloader import DataLoader
 from strawberry.types.arguments import convert_argument
 
+from alembic_helpers.owner_rules import OWNER_RULES
 from mora.auth.keycloak.models import Token
 from mora.config import Settings
 from mora.db import AsyncSession
@@ -59,7 +60,6 @@ from mora.graphapi.graphql_utils import AccessKey
 from mora.graphapi.graphql_utils import Field
 from mora.graphapi.graphql_utils import Role
 from mora.graphapi.graphql_utils import WriteKey
-from mora.graphapi.owner_rules import OWNER_RULES
 from mora.graphapi.policy_cel import CEL
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import Version
