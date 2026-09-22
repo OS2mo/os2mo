@@ -14,12 +14,20 @@ from mora.auth.keycloak.models import Token
 # A Common Expression Language expression
 CEL: TypeAlias = str
 
+# The bindings extension provides `cel.bind`, naming a value once for reuse
+_CONFIG = cel.NewEnvConfigFromYaml("""
+name: policy
+extensions:
+  - name: bindings
+""")
+
 # A condition names the caller and the arguments of the field it guards
 _ENV = cel.NewEnv(
+    config=_CONFIG,
     variables={
         "token": cel.Type.Map(cel.Type.STRING, cel.Type.DYN),
         "args": cel.Type.Map(cel.Type.STRING, cel.Type.DYN),
-    }
+    },
 )
 
 

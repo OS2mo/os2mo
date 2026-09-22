@@ -73,6 +73,16 @@ async def test_a_condition_yields_what_the_arguments_name(
     assert evaluate(condition, token, args) == expected
 
 
+async def test_a_condition_names_a_value_once_with_bind() -> None:
+    """A condition binds a value to a name with `cel.bind`."""
+    token = Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"owner"}))
+
+    assert evaluate("cel.bind(me, token.uuid, [me, me])", token, {}) == [
+        str(BRUCE_UUID),
+        str(BRUCE_UUID),
+    ]
+
+
 async def test_a_condition_reaching_for_what_the_token_lacks_fails() -> None:
     """A condition naming something the context has not is an error, not a denial."""
     token = Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"reader"}))
