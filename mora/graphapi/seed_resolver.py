@@ -7,6 +7,7 @@ import typing
 from collections.abc import Awaitable
 from collections.abc import Callable
 from functools import cache
+from functools import wraps
 from inspect import Parameter
 from inspect import signature
 from types import NoneType
@@ -14,8 +15,14 @@ from typing import Any
 from typing import ParamSpec
 from typing import TypeVar
 
+from sqlalchemy import ColumnElement
 from strawberry.tools import create_type
 from strawberry.types import get_object_definition
+
+from mora.config import Settings
+
+from .filter_models import FilterModel
+from .version import Version
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -56,6 +63,25 @@ def get_bound_filter(
         ],
         is_input=True,
     )
+
+
+def unwrap_filter(
+    predicate_func: Callable[..., ColumnElement],
+) -> Callable[..., ColumnElement]:
+    """Convert a Strawberry filter to its model before the predicate sees it.
+
+    Nested filters are models already, so those are passed straight through.
+    """
+
+    @wraps(predicate_func)
+    def unwrapped(
+        settings: Settings, version: Version, filter: Any, *args: Any, **kwargs: Any
+    ) -> ColumnElement:
+        if not isinstance(filter, FilterModel):
+            filter = filter.to_pydantic()
+        return predicate_func(settings, version, filter, *args, **kwargs)
+
+    return unwrapped
 
 
 def seed_resolver(
