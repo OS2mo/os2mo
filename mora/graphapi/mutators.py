@@ -1788,7 +1788,8 @@ class Mutation:
             """\
             Declare a policy.
 
-            Declaring a policy upserts it to the desired state.
+            Declaring a policy brings it to the desired state: either a state to upsert
+            the policy to, or null for the policy not to exist.
 
             Managed policies cannot be modified.
             """
@@ -1799,10 +1800,12 @@ class Mutation:
         info: MOInfo,
         uuid: UUID,
         state: Annotated[
-            PolicyStateInput,
-            strawberry.argument(description="The desired state of the policy."),
-        ],
-    ) -> Policy:
+            PolicyStateInput | None,
+            strawberry.argument(
+                description="The desired state of the policy, or null for it not to exist."
+            ),
+        ] = None,
+    ) -> Policy | None:
         session: AsyncSession = info.context.session
         policy = await session.get(db.Policy, uuid)
         if policy is not None:
@@ -1812,6 +1815,8 @@ class Mutation:
             # Ensure re-adding the same UUID becomes a create, not
             # update-in-place keeping rules
             await session.flush()
+        if state is None:
+            return None
 
         session.add(
             db.Policy(

@@ -222,7 +222,7 @@ async def test_a_reader_may_not_read_the_policies(
     assert_denied(graphapi_post("query { policies { objects { name } } }"))
 
 
-TryDeclarePolicy = Callable[[str, dict[str, Any]], GQLResponse]
+TryDeclarePolicy = Callable[[str, dict[str, Any] | None], GQLResponse]
 DeclarePolicy = Callable[[str, dict[str, Any]], dict[str, Any]]
 
 
@@ -230,9 +230,9 @@ DeclarePolicy = Callable[[str, dict[str, Any]], dict[str, Any]]
 def try_declare_policy(graphapi_post: GraphAPIPost) -> TryDeclarePolicy:
     """Declare the state of a policy, and return the response unchecked."""
 
-    def inner(uuid: str, state: dict[str, Any]) -> GQLResponse:
+    def inner(uuid: str, state: dict[str, Any] | None) -> GQLResponse:
         query = """
-            mutation Declare($uuid: UUID!, $state: PolicyStateInput!) {
+            mutation Declare($uuid: UUID!, $state: PolicyStateInput) {
                 policy_declare(uuid: $uuid, state: $state) {
                     uuid
                     name
@@ -515,14 +515,17 @@ async def test_a_declared_policy_grants_its_rules(
 
 
 @pytest.mark.integration_test
+@pytest.mark.parametrize("state", [UNIT_AUDITOR, None])
 @pytest.mark.usefixtures("empty_db")
 async def test_a_managed_policy_cannot_be_modified(
-    try_declare_policy: TryDeclarePolicy, read_policies: ReadPolicies
+    try_declare_policy: TryDeclarePolicy,
+    read_policies: ReadPolicies,
+    state: dict[str, Any] | None,
 ) -> None:
-    """A policy MO manages is left as it was, rules and all."""
+    """A policy MO manages is neither replaced nor deleted, but left as it was."""
     before = read_policies({"filter": {"names": ["Reader"]}})
 
-    response = try_declare_policy(one(before)["uuid"], UNIT_AUDITOR)
+    response = try_declare_policy(one(before)["uuid"], state)
 
     assert response.errors is not None
     assert one(response.errors)["message"] == "A managed policy cannot be modified."
@@ -604,3 +607,68 @@ async def test_a_condition_which_does_not_compile_is_refused(
     assert error in one(response.errors)["message"]
     policies = read_policies({"filter": {"uuids": [uuid]}})
     assert policies == []
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_deleted_policy_is_gone(
+    try_declare_policy: TryDeclarePolicy,
+    declare_policy: DeclarePolicy,
+    read_policies: ReadPolicies,
+) -> None:
+    """Declaring no state deletes a policy along with its rules, and nothing else."""
+    before = read_policies()
+    uuid = str(uuid4())
+    declare_policy(uuid, UNIT_AUDITOR)
+
+    response = try_declare_policy(uuid, None)
+
+    assert response.errors is None
+    assert response.data == {"policy_declare": None}
+    after = read_policies()
+    assert after == before
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_deleted_policy_grants_nothing(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    try_declare_policy: TryDeclarePolicy,
+    declare_policy: DeclarePolicy,
+) -> None:
+    """The rules of a deleted policy are out of force as soon as it is deleted."""
+    namespace_declare = """
+        mutation { event_namespace_declare(input: {name: "audits"}) { name } }
+    """
+    uuid = str(uuid4())
+    declare_policy(
+        uuid,
+        {
+            "name": "Event Admin",
+            "role": "event_admin",
+            "write_rules": [
+                {"mutator": "event_namespace_declare", "graphql_version": "VERSION_30"}
+            ],
+        },
+    )
+    set_auth({"reader", "event_admin"}, BRUCE_UUID)
+    assert_granted(graphapi_post(namespace_declare))
+
+    set_auth("admin", BRUCE_UUID)
+    assert try_declare_policy(uuid, None).errors is None
+
+    set_auth({"reader", "event_admin"}, BRUCE_UUID)
+    assert_denied(graphapi_post(namespace_declare))
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_deleting_a_policy_which_does_not_exist_does_nothing(
+    try_declare_policy: TryDeclarePolicy,
+) -> None:
+    """Deleting a policy nobody declared succeeds, having nothing to delete."""
+    response = try_declare_policy(str(uuid4()), None)
+
+    assert response.errors is None
+    assert response.data == {"policy_declare": None}
