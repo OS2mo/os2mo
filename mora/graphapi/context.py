@@ -24,12 +24,12 @@ from mora.graphapi.gmodels.mo.details import LeaveRead
 from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.graphapi.gmodels.mo.details import OwnerRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
+from mora.graphapi.graphql_utils import AccessKey
 from mora.graphapi.graphql_utils import LoadKey
 from mora.graphapi.models import AddressRead
 from mora.graphapi.models import ClassRead
 from mora.graphapi.models import FacetRead
 from mora.graphapi.models import RoleBindingRead
-from mora.graphapi.policies import AccessKey
 
 
 @dataclass

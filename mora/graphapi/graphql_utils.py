@@ -9,6 +9,8 @@ from uuid import UUID
 from pydantic import ConstrainedStr
 from strawberry.types.unset import UnsetType
 
+from mora.db import Collection
+
 
 class PrintableStr(ConstrainedStr):
     """Custom restricted string type."""
@@ -30,6 +32,14 @@ class CprNo(ConstrainedStr):
     """
 
     regex = re.compile(r"^\d{10}$")
+
+
+class AccessKey(NamedTuple):
+    """A field access request."""
+
+    collection: Collection
+    uuid: UUID
+    field: str
 
 
 class LoadKey(NamedTuple):

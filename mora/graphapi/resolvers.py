@@ -305,6 +305,8 @@ def _get_active_period_clause(
 
 
 def facet_predicate(
+    settings: Settings,
+    version: Version,
     filter: FacetFilter,
 ) -> ColumnElement:
     predicates = [
@@ -348,7 +350,7 @@ def facet_predicate(
                         uuid_shortcircuit(
                             filter.parent,
                             select(FacetRegistrering.facet_id).where(
-                                facet_predicate(filter.parent)
+                                facet_predicate(settings, version, filter.parent)
                             ),
                         )
                     ),
@@ -371,6 +373,8 @@ async def facet_resolver(
         filter = FacetFilter()
 
     predicate = facet_predicate(
+        settings=info.context.settings,
+        version=get_version(info.schema),
         filter=filter,
     )
     query = (
@@ -475,7 +479,7 @@ def class_predicate(
                         uuid_shortcircuit(
                             filter.facet,
                             select(FacetRegistrering.facet_id).where(
-                                facet_predicate(filter.facet)
+                                facet_predicate(settings, version, filter.facet)
                             ),
                         )
                     ),
@@ -514,7 +518,7 @@ def class_predicate(
                         uuid_shortcircuit(
                             filter.it_system,
                             select(ITSystemRegistrering.itsystem_id).where(
-                                it_system_predicate(filter.it_system)
+                                it_system_predicate(settings, version, filter.it_system)
                             ),
                         )
                     ),
@@ -2517,6 +2521,8 @@ async def organisation_unit_child_count(
 
 
 def it_system_predicate(
+    settings: Settings,
+    version: Version,
     filter: ITSystemFilter,
 ) -> ColumnElement:
     predicates = [
@@ -2567,6 +2573,8 @@ async def it_system_resolver(
         filter = ITSystemFilter()
 
     predicate = it_system_predicate(
+        settings=info.context.settings,
+        version=get_version(info.schema),
         filter=filter,
     )
     query = (
@@ -2727,7 +2735,7 @@ def it_user_predicate(
                         uuid_shortcircuit(
                             filter.itsystem,
                             select(ITSystemRegistrering.itsystem_id).where(
-                                it_system_predicate(filter.itsystem)
+                                it_system_predicate(settings, version, filter.itsystem)
                             ),
                         )
                     ),

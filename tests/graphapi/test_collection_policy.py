@@ -10,23 +10,32 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
+from graphql import GraphQLError
 from more_itertools import one
 from sqlalchemy import Boolean
 from sqlalchemy import literal
+from sqlalchemy import select
+from sqlalchemy import text
 from sqlalchemy import true
 from strawberry.dataloader import DataLoader
 
+from mora.auth.keycloak.models import RealmAccess
+from mora.auth.keycloak.models import Token
+from mora.config import Settings
 from mora.db import AsyncSession
 from mora.db import Collection
 from mora.db import OrganisationFunktionRegistrering
 from mora.db import Policy
 from mora.db import PolicyReadRule
 from mora.db import PolicyReadRuleField
-from mora.graphapi.policies import AccessKey
+from mora.graphapi.graphql_utils import AccessKey
 from mora.graphapi.policies import Rule
 from mora.graphapi.policies import access_load_fn
+from mora.graphapi.policies import cel2predicate
 from mora.graphapi.policies import policy_load_fn
 from mora.graphapi.schema import collection_policy
+from mora.graphapi.version import LATEST_VERSION
+from tests.conftest import BRUCE_UUID
 from tests.conftest import token_getter_of
 
 
@@ -83,25 +92,37 @@ async def test_an_object_gets_the_fields_of_every_rule_matching_it(
         )
         for value in ("first@example.org", "second@example.org")
     )
-    rules = [
-        Rule(
-            role="reader",
-            collection=Collection.Address,
-            condition=true(),
-            fields=frozenset({"user_key"}),
-        ),
-        Rule(
-            role="reader",
-            collection=Collection.Address,
-            condition=OrganisationFunktionRegistrering.organisationfunktion_id
-            == matched,
-            fields=frozenset({"value"}),
-        ),
-    ]
+    empty_db.add(
+        Policy(
+            name="Address Auditor",
+            description="Allows address auditors to read one address in full",
+            active=True,
+            role="address_auditor",
+            read_rules=[
+                PolicyReadRule(
+                    collection=Collection.Address,
+                    graphql_version=LATEST_VERSION,
+                    condition="",
+                    fields=[PolicyReadRuleField(field="user_key")],
+                ),
+                PolicyReadRule(
+                    collection=Collection.Address,
+                    graphql_version=LATEST_VERSION,
+                    condition=f'{{"uuids": ["{matched}"]}}',
+                    fields=[PolicyReadRuleField(field="value")],
+                ),
+            ],
+        )
+    )
+    await empty_db.flush()
 
     allowed = await access_load_fn(
         empty_db,
-        DataLoader(load_fn=partial(fake_policy_loader, rules)),
+        DataLoader(
+            load_fn=partial(
+                policy_load_fn, empty_db, Settings(), token_getter_of("address_auditor")
+            )
+        ),
         [
             AccessKey(Collection.Address, matched, "value"),
             AccessKey(Collection.Address, matched, "user_key"),
@@ -145,18 +166,31 @@ async def test_a_batch_spans_collections_and_grants_only_where_a_rule_names_one(
             "validity": {"from": "2000-01-01"},
         }
     )
-    rules = [
-        Rule(
-            role="reader",
-            collection=Collection.Address,
-            condition=true(),
-            fields=frozenset({"value"}),
+    empty_db.add(
+        Policy(
+            name="Address Auditor",
+            description="Allows address auditors to read the value of every address",
+            active=True,
+            role="address_auditor",
+            read_rules=[
+                PolicyReadRule(
+                    collection=Collection.Address,
+                    graphql_version=LATEST_VERSION,
+                    condition="",
+                    fields=[PolicyReadRuleField(field="value")],
+                )
+            ],
         )
-    ]
+    )
+    await empty_db.flush()
 
     allowed = await access_load_fn(
         empty_db,
-        DataLoader(load_fn=partial(fake_policy_loader, rules)),
+        DataLoader(
+            load_fn=partial(
+                policy_load_fn, empty_db, Settings(), token_getter_of("address_auditor")
+            )
+        ),
         [
             AccessKey(Collection.Address, address, "value"),
             AccessKey(Collection.Employee, uuid4(), "cpr_number"),
@@ -233,6 +267,221 @@ async def test_a_condition_unknown_of_an_object_grants_nothing_on_it(
 
 
 @pytest.mark.integration_test
+@pytest.mark.parametrize(
+    "condition,reached",
+    [
+        # A rule without a condition reaches every object of its collection
+        ("", {"mine@example.org", "theirs@example.org", "11111111"}),
+        (
+            '{"address_type": {"scope": ["EMAIL"]}}',
+            {"mine@example.org", "theirs@example.org"},
+        ),
+        ('{"employee": {"uuids": [token.uuid]}}', {"mine@example.org", "11111111"}),
+        (
+            '{"employee": {"uuids": [token.uuid]}, "address_type": {"scope": ["EMAIL"]}}',
+            {"mine@example.org"},
+        ),
+        # A filter naming no filter of its own narrows by nothing
+        (
+            '{"employee": null}',
+            {"mine@example.org", "theirs@example.org", "11111111"},
+        ),
+    ],
+)
+async def test_a_condition_becomes_the_clause_its_filter_names(
+    condition: str,
+    reached: set[str],
+    empty_db: AsyncSession,
+    create_person: Callable[[dict[str, Any] | None], UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+    create_address: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """A condition reaches the objects its filter names, evaluated on the token."""
+    token = await token_getter_of("reader")()
+    caller = create_person(
+        {"given_name": "Bruce", "surname": "Lee", "uuid": str(BRUCE_UUID)}
+    )
+    other = create_person(None)
+    facet = create_facet(
+        {"user_key": "employee_address_type", "validity": {"from": "2000-01-01"}}
+    )
+    email, phone = (
+        create_class(
+            {
+                "facet_uuid": str(facet),
+                "user_key": user_key,
+                "name": user_key.title(),
+                "scope": scope,
+                "validity": {"from": "2000-01-01"},
+            }
+        )
+        for user_key, scope in (("email", "EMAIL"), ("phone", "PHONE"))
+    )
+    addresses = {
+        value: create_address(
+            {
+                "address_type": str(address_type),
+                "person": str(person),
+                "value": value,
+                "validity": {"from": "2000-01-01"},
+            }
+        )
+        for person, address_type, value in (
+            (caller, email, "mine@example.org"),
+            (other, email, "theirs@example.org"),
+            (caller, phone, "11111111"),
+        )
+    }
+    clause = cel2predicate(
+        Settings(), Collection.Address, LATEST_VERSION, condition, token
+    )
+
+    rows = await empty_db.scalars(
+        select(OrganisationFunktionRegistrering.uuid).where(clause)
+    )
+
+    assert set(rows) == {addresses[value] for value in reached}
+
+
+async def test_a_condition_yielding_what_the_filter_rejects_fails() -> None:
+    """The map a condition yields is coerced into the collection's filter."""
+    token = Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"reader"}))
+
+    with pytest.raises(GraphQLError) as raised:
+        cel2predicate(
+            Settings(),
+            Collection.Address,
+            LATEST_VERSION,
+            '{"uuids": ["not-a-uuid"]}',
+            token,
+        )
+
+    assert str(raised.value) == (
+        "Invalid value 'not-a-uuid' at 'value.uuids[0]': "
+        'Value cannot represent a UUID: "not-a-uuid". '
+        "badly formed hexadecimal UUID string"
+    )
+
+
+@pytest.mark.integration_test
+async def test_a_condition_narrows_a_rule_to_the_objects_it_names(
+    empty_db: AsyncSession,
+    create_person: Callable[[dict[str, Any] | None], UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+    create_address: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """A read rule grants fields access only on the objects its condition names."""
+    caller = create_person(
+        {"given_name": "Bruce", "surname": "Lee", "uuid": str(BRUCE_UUID)}
+    )
+    other = create_person(None)
+    facet = create_facet(
+        {"user_key": "employee_address_type", "validity": {"from": "2000-01-01"}}
+    )
+    address_type = create_class(
+        {
+            "facet_uuid": str(facet),
+            "user_key": "email",
+            "name": "Email",
+            "scope": "EMAIL",
+            "validity": {"from": "2000-01-01"},
+        }
+    )
+    mine, theirs = (
+        create_address(
+            {
+                "address_type": str(address_type),
+                "person": str(person),
+                "value": value,
+                "validity": {"from": "2000-01-01"},
+            }
+        )
+        for person, value in (
+            (caller, "first@example.org"),
+            (other, "second@example.org"),
+        )
+    )
+    empty_db.add(
+        Policy(
+            name="Self Auditor",
+            description="Allows self auditors to read the addresses of their own person",
+            active=True,
+            role="self_auditor",
+            read_rules=[
+                PolicyReadRule(
+                    collection=Collection.Address,
+                    graphql_version=LATEST_VERSION,
+                    condition='{"employee": {"uuids": [token.uuid]}}',
+                    fields=[PolicyReadRuleField(field="value")],
+                )
+            ],
+        )
+    )
+    await empty_db.flush()
+    policy_loader: DataLoader[int, list[Rule]] = DataLoader(
+        load_fn=partial(
+            policy_load_fn, empty_db, Settings(), token_getter_of("self_auditor")
+        )
+    )
+
+    allowed = await access_load_fn(
+        empty_db,
+        policy_loader,
+        [
+            AccessKey(Collection.Address, mine, "value"),
+            AccessKey(Collection.Address, theirs, "value"),
+        ],
+    )
+
+    assert allowed == [True, False]
+
+
+@pytest.mark.integration_test
+async def test_a_rule_keeps_its_condition_and_version(empty_db: AsyncSession) -> None:
+    """A rule reads back as it was written, the version as the enum it went in as."""
+    empty_db.add(
+        Policy(
+            name="Email Auditor",
+            description="Allows auditors to read all email addresses",
+            active=True,
+            role="email_auditor",
+            read_rules=[
+                PolicyReadRule(
+                    collection=Collection.Address,
+                    condition='{"address_type": {"scope": ["EMAIL"]}}',
+                    graphql_version=LATEST_VERSION,
+                    fields=[PolicyReadRuleField(field="value")],
+                )
+            ],
+        )
+    )
+    await empty_db.flush()
+    # Read it back rather than out of the identity map
+    empty_db.expunge_all()
+
+    rule = one(
+        (
+            await empty_db.scalars(
+                select(PolicyReadRule)
+                .join(Policy)
+                .where(Policy.role == "email_auditor")
+            )
+        ).all()
+    )
+    assert rule.condition == '{"address_type": {"scope": ["EMAIL"]}}'
+    assert rule.graphql_version is LATEST_VERSION
+    assert (
+        await empty_db.scalar(
+            text("SELECT graphql_version FROM policy_read_rule WHERE pk = :pk"),
+            {"pk": rule.pk},
+        )
+        == LATEST_VERSION.value
+    )
+
+
+@pytest.mark.integration_test
 async def test_the_rules_of_the_callers_policies_are_loaded(
     empty_db: AsyncSession,
 ) -> None:
@@ -250,6 +499,8 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
                 read_rules=[
                     PolicyReadRule(
                         collection=Collection.Address,
+                        condition="",
+                        graphql_version=LATEST_VERSION,
                         fields=[
                             PolicyReadRuleField(field="uuid"),
                             PolicyReadRuleField(field="value"),
@@ -265,6 +516,8 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
                 read_rules=[
                     PolicyReadRule(
                         collection=Collection.Employee,
+                        condition="",
+                        graphql_version=LATEST_VERSION,
                         fields=[PolicyReadRuleField(field="name")],
                     )
                 ],
@@ -273,7 +526,9 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
     )
     await empty_db.flush()
 
-    rules = one(await policy_load_fn(empty_db, token_getter_of("auditor"), [0]))
+    rules = one(
+        await policy_load_fn(empty_db, Settings(), token_getter_of("auditor"), [0])
+    )
     rule = one(rules)
 
     assert rule.role == "auditor"
@@ -295,6 +550,8 @@ async def test_a_policy_switched_off_grants_nothing(empty_db: AsyncSession) -> N
             read_rules=[
                 PolicyReadRule(
                     collection=Collection.Address,
+                    condition="",
+                    graphql_version=LATEST_VERSION,
                     fields=[PolicyReadRuleField(field="uuid")],
                 )
             ],
@@ -302,4 +559,6 @@ async def test_a_policy_switched_off_grants_nothing(empty_db: AsyncSession) -> N
     )
     await empty_db.flush()
 
-    assert await policy_load_fn(empty_db, token_getter_of("auditor"), [0]) == [[]]
+    assert await policy_load_fn(
+        empty_db, Settings(), token_getter_of("auditor"), [0]
+    ) == [[]]
