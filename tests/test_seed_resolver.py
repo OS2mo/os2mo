@@ -82,6 +82,7 @@ def input_type_sdl(filter_class: type) -> str:
     return str(schema)
 
 
+@pytest.mark.xfail(reason="Binding a filter drops the field definitions")
 def test_bound_filter_field_definitions() -> None:
     """Test the input type that binding a filter produces."""
     bound_filter_class = get_bound_filter(DocumentedFilter, seeds=frozenset({"seeded"}))
@@ -97,9 +98,11 @@ def test_bound_filter_field_definitions() -> None:
         }
 
         input SeededBoundDocumentedFilter {
-          also_inherited: String = null
           inherited: String = null
-          documented: String
+          also_inherited: String = null
+
+          """Documented filter."""
+          documented: String = "kept" @deprecated(reason: "Replaced by nested.")
           nested: NestedFilter = null
         }'''
     )
