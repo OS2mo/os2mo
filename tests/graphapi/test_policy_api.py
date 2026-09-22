@@ -6,6 +6,7 @@ from collections.abc import Callable
 from typing import Any
 from unittest.mock import ANY
 from uuid import UUID
+from uuid import uuid4
 
 import pytest
 from more_itertools import one
@@ -18,9 +19,11 @@ from mora.db import PolicyReadRuleField
 from mora.db import PolicyWriteRule
 from mora.graphapi.version import Version
 from tests.conftest import BRUCE_UUID
+from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 from tests.conftest import assert_denied
+from tests.conftest import assert_granted
 
 ReadPolicyPage = Callable[..., tuple[list[dict[str, Any]], str | None]]
 ReadPolicies = Callable[..., list[dict[str, Any]]]
@@ -217,3 +220,387 @@ async def test_a_reader_may_not_read_the_policies(
     set_auth("reader", BRUCE_UUID)
 
     assert_denied(graphapi_post("query { policies { objects { name } } }"))
+
+
+TryDeclarePolicy = Callable[[str, dict[str, Any]], GQLResponse]
+DeclarePolicy = Callable[[str, dict[str, Any]], dict[str, Any]]
+
+
+@pytest.fixture
+def try_declare_policy(graphapi_post: GraphAPIPost) -> TryDeclarePolicy:
+    """Declare the state of a policy, and return the response unchecked."""
+
+    def inner(uuid: str, state: dict[str, Any]) -> GQLResponse:
+        query = """
+            mutation Declare($uuid: UUID!, $state: PolicyStateInput!) {
+                policy_declare(uuid: $uuid, state: $state) {
+                    uuid
+                    name
+                    description
+                    active
+                    role
+                    managed
+                    read_rules { collection fields condition graphql_version }
+                    write_rules { mutator condition graphql_version }
+                }
+            }
+        """
+        return graphapi_post(query=query, variables={"uuid": uuid, "state": state})
+
+    return inner
+
+
+@pytest.fixture
+def declare_policy(try_declare_policy: TryDeclarePolicy) -> DeclarePolicy:
+    """Declare the state of a policy, and return the policy as it was declared."""
+
+    def inner(uuid: str, state: dict[str, Any]) -> dict[str, Any]:
+        response = try_declare_policy(uuid, state)
+        assert response.errors is None
+        assert response.data is not None
+        return response.data["policy_declare"]
+
+    return inner
+
+
+# The state of a policy as it is declared
+UNIT_AUDITOR = {
+    "name": "Unit Auditor",
+    "role": "unit_auditor",
+    "description": "Audits the unit of the auditor",
+    "active": True,
+    "read_rules": [
+        {
+            "collection": "OrganisationUnit",
+            "fields": ["user_key"],
+            "condition": '{"uuids": [token.uuid]}',
+            "graphql_version": "VERSION_30",
+        }
+    ],
+    "write_rules": [
+        {
+            "mutator": "org_unit_update",
+            "condition": "token.uuid != null",
+            "graphql_version": "VERSION_30",
+        }
+    ],
+}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_declared_policy_is_read_back(
+    declare_policy: DeclarePolicy, read_policies: ReadPolicies
+) -> None:
+    """Declaring a policy stores it as it was declared."""
+    uuid = str(uuid4())
+    policy = declare_policy(uuid, UNIT_AUDITOR)
+
+    assert policy == {
+        "uuid": uuid,
+        "name": "Unit Auditor",
+        "role": "unit_auditor",
+        "description": "Audits the unit of the auditor",
+        "active": True,
+        "managed": False,
+        "read_rules": [
+            {
+                "collection": "OrganisationUnit",
+                "fields": ["user_key"],
+                "condition": '{"uuids": [token.uuid]}',
+                "graphql_version": "VERSION_30",
+            }
+        ],
+        "write_rules": [
+            {
+                "mutator": "org_unit_update",
+                "condition": "token.uuid != null",
+                "graphql_version": "VERSION_30",
+            }
+        ],
+    }
+    policies = read_policies({"filter": {"uuids": [uuid]}})
+    assert policies == [policy]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_policy_declared_again_is_left_as_it_was(
+    declare_policy: DeclarePolicy, read_policies: ReadPolicies
+) -> None:
+    """Declaring the same policy twice changes nothing the second time."""
+    uuid = str(uuid4())
+    first = declare_policy(uuid, UNIT_AUDITOR)
+    again = declare_policy(uuid, UNIT_AUDITOR)
+
+    assert again == first
+    policies = read_policies({"filter": {"uuids": [uuid]}})
+    assert policies == [first]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("auditor")
+async def test_a_policy_declared_anew_is_made_to_match(
+    declare_policy: DeclarePolicy, read_policies: ReadPolicies
+) -> None:
+    """Declaring a policy anew replaces it, name, rules and all."""
+    policy = declare_policy(
+        AUDITOR_UUID,
+        {
+            "name": "Class Auditor",
+            "role": "class_auditor",
+            "description": "Audits every class",
+            "active": True,
+            "read_rules": [
+                {
+                    "collection": "Class",
+                    "fields": ["name"],
+                    "condition": "true",
+                    "graphql_version": "VERSION_30",
+                }
+            ],
+            "write_rules": [],
+        },
+    )
+
+    assert policy == {
+        "uuid": AUDITOR_UUID,
+        "name": "Class Auditor",
+        "role": "class_auditor",
+        "description": "Audits every class",
+        "active": True,
+        "managed": False,
+        "read_rules": [
+            {
+                "collection": "Class",
+                "fields": ["name"],
+                "condition": "true",
+                "graphql_version": "VERSION_30",
+            }
+        ],
+        "write_rules": [],
+    }
+    policies = read_policies({"filter": {"uuids": [AUDITOR_UUID]}})
+    assert policies == [policy]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("auditor")
+async def test_a_policy_cannot_take_the_name_of_another(
+    try_declare_policy: TryDeclarePolicy,
+    declare_policy: DeclarePolicy,
+    read_policies: ReadPolicies,
+) -> None:
+    """Names are unique, so a policy cannot be renamed to that of another."""
+    uuid = str(uuid4())
+    before = declare_policy(uuid, UNIT_AUDITOR)
+
+    response = try_declare_policy(uuid, {**UNIT_AUDITOR, "name": "Auditor"})
+
+    assert response.errors is not None
+    assert one(response.errors)["message"] == "There is another policy named 'Auditor'."
+    assert read_policies({"filter": {"uuids": [uuid]}}) == [before]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_rule_is_written_in_the_version_it_is_declared_in(
+    declare_policy: DeclarePolicy,
+) -> None:
+    """Each rule takes the GraphQL version declared for it, not that of the endpoint."""
+    policy = declare_policy(
+        str(uuid4()),
+        {
+            "name": "Unit Auditor",
+            "role": "unit_auditor",
+            "read_rules": [
+                {
+                    "collection": "OrganisationUnit",
+                    "fields": ["user_key"],
+                    "graphql_version": "VERSION_29",
+                }
+            ],
+            "write_rules": [
+                {"mutator": "org_unit_update", "graphql_version": "VERSION_28"}
+            ],
+        },
+    )
+
+    assert one(policy["read_rules"])["graphql_version"] == "VERSION_29"
+    assert one(policy["write_rules"])["graphql_version"] == "VERSION_28"
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_read_rule_is_unconditional_by_default(
+    declare_policy: DeclarePolicy, read_policies: ReadPolicies
+) -> None:
+    """A read rule declared without a condition grants its fields on every object."""
+    uuid = str(uuid4())
+    declare_policy(
+        uuid,
+        {
+            "name": "Address Auditor",
+            "role": "address_auditor",
+            "read_rules": [
+                {
+                    "collection": "Address",
+                    "fields": ["value"],
+                    "graphql_version": "VERSION_30",
+                }
+            ],
+        },
+    )
+
+    policy = one(read_policies({"filter": {"uuids": [uuid]}}))
+    assert policy["read_rules"] == [
+        {
+            "collection": "Address",
+            "fields": ["value"],
+            "condition": "true",
+            "graphql_version": "VERSION_30",
+        }
+    ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_read_rule_naming_a_field_twice_is_refused(
+    try_declare_policy: TryDeclarePolicy, read_policies: ReadPolicies
+) -> None:
+    """A read rule names each of its fields once, or nothing is declared."""
+    uuid = str(uuid4())
+    read_rule = {
+        "collection": "Address",
+        "fields": ["uuid", "value", "uuid"],
+        "graphql_version": "VERSION_30",
+    }
+
+    response = try_declare_policy(uuid, {**UNIT_AUDITOR, "read_rules": [read_rule]})
+
+    assert response.errors is not None
+    assert (
+        one(response.errors)["message"]
+        == "A read rule cannot name a field more than once."
+    )
+    assert read_policies({"filter": {"uuids": [uuid]}}) == []
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_declared_policy_grants_its_rules(
+    set_auth: SetAuth, graphapi_post: GraphAPIPost, declare_policy: DeclarePolicy
+) -> None:
+    """The rules of a declared policy are in force as soon as it is declared."""
+    namespace_declare = """
+        mutation { event_namespace_declare(input: {name: "audits"}) { name } }
+    """
+    set_auth({"reader", "event_admin"}, BRUCE_UUID)
+    assert_denied(graphapi_post(namespace_declare))
+
+    set_auth("admin", BRUCE_UUID)
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Event Admin",
+            "role": "event_admin",
+            "write_rules": [
+                {"mutator": "event_namespace_declare", "graphql_version": "VERSION_30"}
+            ],
+        },
+    )
+
+    set_auth({"reader", "event_admin"}, BRUCE_UUID)
+    assert_granted(graphapi_post(namespace_declare))
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_managed_policy_cannot_be_modified(
+    try_declare_policy: TryDeclarePolicy, read_policies: ReadPolicies
+) -> None:
+    """A policy MO manages is left as it was, rules and all."""
+    before = read_policies({"filter": {"names": ["Reader"]}})
+
+    response = try_declare_policy(one(before)["uuid"], UNIT_AUDITOR)
+
+    assert response.errors is not None
+    assert one(response.errors)["message"] == "A managed policy cannot be modified."
+    assert read_policies({"filter": {"names": ["Reader"]}}) == before
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_reader_may_not_declare_a_policy(
+    set_auth: SetAuth, try_declare_policy: TryDeclarePolicy
+) -> None:
+    """Declaring a policy takes an admin."""
+    set_auth("reader", BRUCE_UUID)
+
+    assert_denied(try_declare_policy(str(uuid4()), UNIT_AUDITOR))
+
+
+@pytest.mark.integration_test
+@pytest.mark.parametrize(
+    "rules,error",
+    [
+        (
+            {
+                "read_rules": [
+                    {
+                        "collection": "Address",
+                        "fields": ["uuid"],
+                        "condition": "{",
+                        "graphql_version": "VERSION_30",
+                    }
+                ]
+            },
+            "condition '{' does not compile: ",
+        ),
+        (
+            {
+                "write_rules": [
+                    {
+                        "mutator": "address_create",
+                        "condition": "tokn.roles",
+                        "graphql_version": "VERSION_30",
+                    }
+                ]
+            },
+            "condition 'tokn.roles' does not compile: ",
+        ),
+        (
+            {
+                "write_rules": [
+                    {
+                        "mutator": "address_create",
+                        "condition": "",
+                        "graphql_version": "VERSION_30",
+                    }
+                ]
+            },
+            "condition '' does not compile: ",
+        ),
+    ],
+)
+@pytest.mark.usefixtures("empty_db")
+async def test_a_condition_which_does_not_compile_is_refused(
+    try_declare_policy: TryDeclarePolicy,
+    read_policies: ReadPolicies,
+    rules: dict[str, Any],
+    error: str,
+) -> None:
+    """A condition which does not compile is refused, and nothing is declared."""
+    uuid = str(uuid4())
+    state = {
+        "name": "Unit Auditor",
+        "role": "unit_auditor",
+        **rules,
+    }
+
+    response = try_declare_policy(uuid, state)
+
+    assert response.errors is not None
+    assert error in one(response.errors)["message"]
+    policies = read_policies({"filter": {"uuids": [uuid]}})
+    assert policies == []
