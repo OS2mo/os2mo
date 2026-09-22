@@ -31,6 +31,7 @@ ReadPolicyPage = Callable[..., tuple[list[dict[str, Any]], str | None]]
 ReadPolicies = Callable[..., list[dict[str, Any]]]
 
 READER_UUID = "12bac000-9bac-5eed-0000-726561646572"
+OWNER_UUID = "de1e6a7e-9bac-5eed-0000-006f776e6572"
 AUDITOR_UUID = "f1a00b99-399a-4a34-9e35-5873535a531c"
 
 
@@ -219,10 +220,11 @@ async def test_a_policy_is_read_with_its_rules(read_policies: ReadPolicies) -> N
     "filter,names",
     [
         # No filter, or an empty one, reads every policy
-        (None, {"Reader", "Auditor"}),
-        ({}, {"Reader", "Auditor"}),
+        (None, {"Reader", "Owner", "Auditor"}),
+        ({}, {"Reader", "Owner", "Auditor"}),
         ({"uuids": []}, set()),
         ({"uuids": [READER_UUID]}, {"Reader"}),
+        ({"uuids": [OWNER_UUID]}, {"Owner"}),
         ({"uuids": [AUDITOR_UUID]}, {"Auditor"}),
         ({"uuids": [READER_UUID, AUDITOR_UUID]}, {"Reader", "Auditor"}),
         ({"names": []}, set()),
@@ -241,7 +243,7 @@ async def test_a_policy_is_read_with_its_rules(read_policies: ReadPolicies) -> N
             },
             {"Reader", "Auditor"},
         ),
-        ({"active": True}, {"Reader"}),
+        ({"active": True}, {"Reader", "Owner"}),
         ({"active": False}, {"Auditor"}),
         # Filters intersect
         (
@@ -273,10 +275,14 @@ async def test_policies_are_paged(
     """Paging walks every policy once, in the order of the unpaged read."""
     everything = read_policies()
 
-    first, cursor = read_policy_page({"limit": 1})
-    second, cursor = read_policy_page({"limit": 1, "cursor": cursor})
+    paged: list[dict[str, Any]] = []
+    cursor = None
+    # A page of one per policy, after which no cursor is left
+    for _ in everything:
+        page, cursor = read_policy_page({"limit": 1, "cursor": cursor})
+        paged.append(one(page))
 
-    assert first + second == everything
+    assert paged == everything
     assert cursor is None
 
 
@@ -636,21 +642,23 @@ async def test_a_policy_is_activated_for_an_actor_matching_any_of_its_selectors(
 
 
 @pytest.mark.integration_test
+@pytest.mark.parametrize("name", ["Reader", "Owner"])
 @pytest.mark.parametrize("state", [UNIT_AUDITOR, None])
 @pytest.mark.usefixtures("empty_db")
 async def test_a_managed_policy_cannot_be_modified(
     try_declare_policy: TryDeclarePolicy,
     read_policies: ReadPolicies,
+    name: str,
     state: dict[str, Any] | None,
 ) -> None:
     """A policy MO manages is neither replaced nor deleted, but left as it was."""
-    before = read_policies({"filter": {"names": ["Reader"]}})
+    before = read_policies({"filter": {"names": [name]}})
 
     response = try_declare_policy(one(before)["uuid"], state)
 
     assert response.errors is not None
     assert one(response.errors)["message"] == "A managed policy cannot be modified."
-    assert read_policies({"filter": {"names": ["Reader"]}}) == before
+    assert read_policies({"filter": {"names": [name]}}) == before
 
 
 @pytest.mark.integration_test
