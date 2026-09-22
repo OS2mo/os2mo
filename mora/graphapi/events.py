@@ -17,7 +17,7 @@ from mora import db
 from mora.auth.middleware import get_authenticated_user
 from mora.db import AsyncSession
 from mora.graphapi.context import MOInfo
-from mora.graphapi.filters import gen_filter_string
+from mora.graphapi.filter_docs import gen_filter_string
 
 from .paged import CursorType
 from .paged import LimitType

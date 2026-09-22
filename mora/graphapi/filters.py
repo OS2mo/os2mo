@@ -13,30 +13,8 @@ from strawberry import UNSET
 from mora.graphapi.models import FileStore
 from mora.util import CPR
 
-
-def gen_filter_string(title: str, key: str) -> str:
-    return dedent(
-        f"""\
-        {title} filter limiting which entries are returned.
-        """
-    ) + gen_filter_table(key)
-
-
-def gen_filter_table(key: str) -> str:
-    return dedent(
-        f"""\
-
-        | `{key}`      | Elements returned                            |
-        |--------------|----------------------------------------------|
-        | not provided | All                                          |
-        | `null`       | All                                          |
-        | `[]`         | None                                         |
-        | `"x"`        | `["x"]` or `[]` (`*`)                        |
-        | `["x", "y"]` | `["x", "y"]`, `["x"]`, `["y"]` or `[]` (`*`) |
-
-        `*`: Elements returned depends on which elements were found.
-        """
-    )
+from .filter_docs import gen_filter_string
+from .filter_docs import gen_filter_table
 
 
 @strawberry.input
