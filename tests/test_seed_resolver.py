@@ -16,7 +16,7 @@ from more_itertools import first
 from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
 
-from mora.graphapi.filters import BaseFilter
+from mora.graphapi.filter_models import BaseFilter
 from mora.graphapi.resolvers import CursorType
 from mora.graphapi.resolvers import LimitType
 from mora.graphapi.seed_resolver import get_bound_filter

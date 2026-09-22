@@ -17,7 +17,7 @@ from mora.graphapi.gmodels.mo.details import LeaveRead
 from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.util import CPR
 
-from ..filters import EmployeeFilter
+from ..filter_models import EmployeeFilter
 from ..lazy import LazyAddress
 from ..lazy import LazyAssociation
 from ..lazy import LazyEngagement

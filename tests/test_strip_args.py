@@ -9,7 +9,7 @@ from uuid import UUID
 import pytest
 from strawberry.types import Info
 
-from mora.graphapi.filters import BaseFilter
+from mora.graphapi.filter_models import BaseFilter
 from mora.graphapi.resolvers import CursorType
 from mora.graphapi.resolvers import LimitType
 from mora.graphapi.seed_resolver import strip_args

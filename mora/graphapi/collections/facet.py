@@ -7,7 +7,7 @@ from uuid import UUID
 
 import strawberry
 
-from ..filters import FacetFilter
+from ..filter_models import FacetFilter
 from ..lazy import LazyClass
 from ..lazy import LazyFacet
 from ..models import ClassRead

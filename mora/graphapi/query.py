@@ -60,8 +60,8 @@ from .events import event_resolver
 from .events import full_event_resolver
 from .events import listener_resolver
 from .events import namespace_resolver
-from .filters import FileFilter
-from .filters import HealthFilter
+from .filter_models import FileFilter
+from .filter_models import HealthFilter
 from .health import health_map
 from .model_registration import IRegistration
 from .models import AddressRead

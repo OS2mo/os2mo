@@ -18,10 +18,10 @@ from mora.graphapi.gmodels.mo.details import ITUserRead
 from mora.graphapi.gmodels.mo.details import LeaveRead
 from mora.service.facet import is_class_uuid_primary
 
-from ..filters import EmployeeFilter
-from ..filters import EngagementFilter
-from ..filters import ManagerFilter
-from ..filters import OrganisationUnitFilter
+from ..filter_models import EmployeeFilter
+from ..filter_models import EngagementFilter
+from ..filter_models import ManagerFilter
+from ..filter_models import OrganisationUnitFilter
 from ..lazy import LazyAddress
 from ..lazy import LazyClass
 from ..lazy import LazyEmployee
