@@ -37,7 +37,6 @@ from sqlalchemy import union_all
 from strawberry.dataloader import DataLoader
 from strawberry.types.arguments import convert_argument
 
-from alembic_helpers.owner_rules import OWNER_RULES
 from mora.auth.keycloak.models import Token
 from mora.config import Settings
 from mora.db import AsyncSession
@@ -478,18 +477,6 @@ async def write_policy_load_fn(
         )
         for role, mutator, graphql_version, condition in rows
     ]
-    # The owner policy is not in the database yet
-    if "owner" in roles:
-        rules += [
-            WriteRule(
-                role="owner",
-                mutator=mutator,
-                check=partial(
-                    cel2check, settings, Version.VERSION_30, CEL(condition), token
-                ),
-            )
-            for mutator, condition in OWNER_RULES
-        ]
     return [rules for _ in keys]
 
 

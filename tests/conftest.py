@@ -1666,8 +1666,9 @@ def create_address(
 def set_rules(empty_db: db.AsyncSession) -> SetRules:
     """Grant a role the fields of a collection, in place of the seeded policies.
 
-    The migrated policies grant a reader every field of every collection, so a
-    test asking about a denial installs its own in their stead.
+    The migrated policies grant a reader every field of every collection, and
+    an owner the mutators on what they own, so a test asking about a denial
+    installs its own in their stead.
     """
 
     async def inner(

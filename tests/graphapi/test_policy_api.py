@@ -167,8 +167,8 @@ async def test_a_policy_is_read_with_its_rules(read_policies: ReadPolicies) -> N
     "filter,names",
     [
         # No filter, or an empty one, reads every policy
-        (None, {"Reader", "Auditor"}),
-        ({}, {"Reader", "Auditor"}),
+        (None, {"Reader", "Owner", "Auditor"}),
+        ({}, {"Reader", "Owner", "Auditor"}),
         ({"uuids": []}, set()),
         ({"uuids": [READER_UUID]}, {"Reader"}),
         ({"uuids": [AUDITOR_UUID]}, {"Auditor"}),
@@ -181,7 +181,7 @@ async def test_a_policy_is_read_with_its_rules(read_policies: ReadPolicies) -> N
         ({"roles": ["reader"]}, {"Reader"}),
         ({"roles": ["auditor"]}, {"Auditor"}),
         ({"roles": ["reader", "auditor"]}, {"Reader", "Auditor"}),
-        ({"active": True}, {"Reader"}),
+        ({"active": True}, {"Reader", "Owner"}),
         ({"active": False}, {"Auditor"}),
         # Filters intersect
         ({"roles": ["reader", "auditor"], "active": True}, {"Reader"}),
@@ -206,8 +206,9 @@ async def test_policies_are_paged(
 
     first, cursor = read_policy_page({"limit": 1})
     second, cursor = read_policy_page({"limit": 1, "cursor": cursor})
+    third, cursor = read_policy_page({"limit": 1, "cursor": cursor})
 
-    assert first + second == everything
+    assert first + second + third == everything
     assert cursor is None
 
 
@@ -515,21 +516,23 @@ async def test_a_declared_policy_grants_its_rules(
 
 
 @pytest.mark.integration_test
+@pytest.mark.parametrize("name", ["Reader", "Owner"])
 @pytest.mark.parametrize("state", [UNIT_AUDITOR, None])
 @pytest.mark.usefixtures("empty_db")
 async def test_a_managed_policy_cannot_be_modified(
     try_declare_policy: TryDeclarePolicy,
     read_policies: ReadPolicies,
+    name: str,
     state: dict[str, Any] | None,
 ) -> None:
     """A policy MO manages is neither replaced nor deleted, but left as it was."""
-    before = read_policies({"filter": {"names": ["Reader"]}})
+    before = read_policies({"filter": {"names": [name]}})
 
     response = try_declare_policy(one(before)["uuid"], state)
 
     assert response.errors is not None
     assert one(response.errors)["message"] == "A managed policy cannot be modified."
-    assert read_policies({"filter": {"names": ["Reader"]}}) == before
+    assert read_policies({"filter": {"names": [name]}}) == before
 
 
 @pytest.mark.integration_test
