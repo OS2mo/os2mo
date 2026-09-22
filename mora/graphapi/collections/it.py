@@ -14,8 +14,8 @@ from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.gmodels.mo.details import ITSystemRead
 from mora.graphapi.gmodels.mo.details import ITUserRead
 
-from ..filter_models import ITSystemFilter
-from ..filter_models import ITUserFilter
+from ..filters import ITSystemFilter
+from ..filters import ITUserFilter
 from ..lazy import LazyAddress
 from ..lazy import LazyClass
 from ..lazy import LazyEmployee

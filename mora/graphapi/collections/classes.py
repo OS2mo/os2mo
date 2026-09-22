@@ -11,7 +11,7 @@ from strawberry.types import Info
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import ITSystemRead
 
-from ..filter_models import ClassFilter
+from ..filters import ClassFilter
 from ..lazy import LazyClass
 from ..lazy import LazyFacet
 from ..lazy import LazyITSystem

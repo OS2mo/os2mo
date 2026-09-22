@@ -22,9 +22,9 @@ from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 from mora.graphapi.version import Version as GraphQLVersion
 from mora.service import org
 
-from ..filter_models import ManagerFilter
-from ..filter_models import OrganisationUnitFilter
-from ..filter_models import OwnerFilter
+from ..filters import ManagerFilter
+from ..filters import OrganisationUnitFilter
+from ..filters import OwnerFilter
 from ..lazy import LazyAddress
 from ..lazy import LazyAssociation
 from ..lazy import LazyClass
