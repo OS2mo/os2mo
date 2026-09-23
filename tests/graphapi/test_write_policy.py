@@ -121,20 +121,49 @@ async def test_a_check_requires_everything_its_condition_names(
     )
 
 
-async def test_a_check_requiring_nothing_fails(owner_token: Token) -> None:
-    """A condition allowing or denying outright yields true or false, not []."""
-    with pytest.raises(ValueError) as raised:
-        cel2check(
-            settings=Settings(),
-            graphql_version=LATEST_VERSION,
-            condition="[]",
-            token=owner_token,
-            args={},
-        )
-
-    assert str(raised.value) == (
-        "condition '[]' requires nothing, yield true or false instead"
+@pytest.mark.integration_test
+@pytest.mark.parametrize(
+    "condition,error",
+    [
+        # Allowing or denying outright is what true and false are for
+        ("[]", "condition '[]' requires nothing, yield true or false instead"),
+    ],
+)
+@pytest.mark.usefixtures("empty_db")
+async def test_a_condition_yielding_no_check_fails_the_mutator(
+    condition: str,
+    error: str,
+    set_auth: SetAuth,
+    declare_policy: DeclarePolicy,
+    graphapi_post: GraphAPIPost,
+    address_input: dict[str, Any],
+) -> None:
+    """A condition yielding what cannot be checked fails the mutator, saying why."""
+    mutation = """
+    mutation CreateAddress($input: AddressCreateInput!) {
+        address_create(input: $input) { uuid }
+    }
+    """
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Unit Owner",
+            "role": "unit_owner",
+            "write_rules": [
+                {
+                    "mutator": "address_create",
+                    "condition": condition,
+                    "graphql_version": "VERSION_30",
+                }
+            ],
+        },
     )
+    set_auth({"reader", "unit_owner"}, BRUCE_UUID)
+
+    response = graphapi_post(mutation, {"input": address_input})
+
+    assert response.errors is not None
+    assert error in one(response.errors)["message"]
 
 
 @pytest.mark.integration_test
