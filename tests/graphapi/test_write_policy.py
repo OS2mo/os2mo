@@ -27,9 +27,9 @@ from mora.graphapi.policies import cel2check
 from mora.graphapi.policies import write_policy_load_fn
 from mora.graphapi.schema import write_policy
 from mora.graphapi.version import LATEST_VERSION
-from tests.conftest import ALVIDA_UUID
 from tests.conftest import BRUCE_UUID
 from tests.conftest import DeclarePolicy
+from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 from tests.conftest import SetWriteRules
@@ -151,29 +151,48 @@ async def test_a_check_requiring_nothing_fails(owner_token: Token) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.parametrize(
-    "condition,decided",
+    "condition,assert_decided",
     [
-        ("true", True),
-        ("false", False),
-        ("token.uuid != null", True),
-        ("token.uuid == null", False),
-        ("args.input.org_unit != null", True),
-        ("args.input.person != null", False),
+        ("true", assert_granted),
+        ("false", assert_denied),
+        ("token.uuid != null", assert_granted),
+        ("token.uuid == null", assert_denied),
+        ("args.input.org_unit != null", assert_granted),
+        ("args.input.person != null", assert_denied),
     ],
 )
+@pytest.mark.usefixtures("empty_db")
 async def test_a_condition_deciding_by_itself_becomes_the_answer_it_gives(
-    condition: str, decided: bool, empty_db: AsyncSession, owner_token: Token
+    condition: str,
+    assert_decided: Callable[[GQLResponse], None],
+    set_auth: SetAuth,
+    declare_policy: DeclarePolicy,
+    graphapi_post: GraphAPIPost,
+    address_input: dict[str, Any],
 ) -> None:
-    """A condition the token and the arguments settle answers with a plain bool."""
-    check = cel2check(
-        settings=Settings(),
-        graphql_version=LATEST_VERSION,
-        condition=condition,
-        token=owner_token,
-        args={"input": {"org_unit": ALVIDA_UUID, "person": None}},
+    """A condition the token and the arguments settle grants or denies outright."""
+    mutation = """
+    mutation CreateAddress($input: AddressCreateInput!) {
+        address_create(input: $input) { uuid }
+    }
+    """
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Unit Owner",
+            "role": "unit_owner",
+            "write_rules": [
+                {
+                    "mutator": "address_create",
+                    "condition": condition,
+                    "graphql_version": "VERSION_30",
+                }
+            ],
+        },
     )
+    set_auth({"reader", "unit_owner"}, BRUCE_UUID)
 
-    assert await empty_db.scalar(select(check)) is decided
+    assert_decided(graphapi_post(mutation, {"input": address_input}))
 
 
 async def test_a_check_of_an_unknown_collection_fails(owner_token: Token) -> None:
