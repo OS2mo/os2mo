@@ -43,6 +43,10 @@ from mora.graphapi.policies import policy_load_fn
 from mora.graphapi.schema import collection_policy
 from mora.graphapi.version import LATEST_VERSION
 from tests.conftest import BRUCE_UUID
+from tests.conftest import DENIED
+from tests.conftest import DeclarePolicy
+from tests.conftest import GraphAPIPost
+from tests.conftest import SetAuth
 from tests.conftest import token_getter_of
 
 
@@ -63,8 +67,11 @@ async def test_a_type_which_is_no_collection_is_rejected_without_asking() -> Non
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 async def test_an_object_gets_the_fields_of_every_rule_matching_it(
-    empty_db: AsyncSession,
+    set_auth: SetAuth,
+    declare_policy: DeclarePolicy,
+    graphapi_post: GraphAPIPost,
     create_org_unit: Callable[..., UUID],
     create_facet: Callable[[dict[str, Any]], UUID],
     create_class: Callable[[dict[str, Any]], UUID],
@@ -74,6 +81,20 @@ async def test_an_object_gets_the_fields_of_every_rule_matching_it(
 
     A field no rule names is denied of both addresses, and the field of the
     rule matching only one of them is denied of the other.
+    """
+    # Each field is read on a `current` of its own, as a denied field nulls the
+    # object holding it, hiding the denials of the fields beside it
+    query = """
+        query ReadAddresses {
+            addresses {
+                objects {
+                    uuid
+                    value: current { value }
+                    user_key: current { user_key }
+                    name: current { name }
+                }
+            }
+        }
     """
     org_unit = create_org_unit("test")
     facet = create_facet(
@@ -99,50 +120,44 @@ async def test_an_object_gets_the_fields_of_every_rule_matching_it(
         )
         for value in ("first@example.org", "second@example.org")
     )
-    empty_db.add(
-        Policy(
-            name="Address Auditor",
-            description="Allows address auditors to read one address in full",
-            active=True,
-            selectors=[
-                PolicySelector(kind=PolicySelectorKind.role, value="address_auditor")
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Address Auditor",
+            "selectors": [{"kind": "role", "value": "address_auditor"}],
+            "read_rules": [
+                {
+                    "collection": "Address",
+                    "fields": ["user_key"],
+                    "graphql_version": "VERSION_30",
+                },
+                {
+                    "collection": "Address",
+                    "fields": ["value"],
+                    "condition": f'{{"uuids": ["{matched}"]}}',
+                    "graphql_version": "VERSION_30",
+                },
             ],
-            read_rules=[
-                PolicyReadRule(
-                    collection=Collection.Address,
-                    graphql_version=LATEST_VERSION,
-                    condition="true",
-                    fields=[PolicyReadRuleField(field="user_key")],
-                ),
-                PolicyReadRule(
-                    collection=Collection.Address,
-                    graphql_version=LATEST_VERSION,
-                    condition=f'{{"uuids": ["{matched}"]}}',
-                    fields=[PolicyReadRuleField(field="value")],
-                ),
-            ],
-        )
+        },
     )
-    await empty_db.flush()
+    set_auth({"address_auditor"}, BRUCE_UUID)
 
-    allowed = await access_load_fn(
-        empty_db,
-        DataLoader(
-            load_fn=partial(
-                policy_load_fn, empty_db, Settings(), token_getter_of("address_auditor")
-            )
-        ),
-        [
-            AccessKey(Collection.Address, str(matched), "value"),
-            AccessKey(Collection.Address, str(matched), "user_key"),
-            AccessKey(Collection.Address, str(matched), "name"),
-            AccessKey(Collection.Address, str(unmatched), "value"),
-            AccessKey(Collection.Address, str(unmatched), "user_key"),
-            AccessKey(Collection.Address, str(unmatched), "name"),
-        ],
-    )
+    response = graphapi_post(query)
 
-    assert allowed == [True, True, False, False, True, False]
+    assert response.data is not None
+    assert response.errors is not None
+    objects = response.data["addresses"]["objects"]
+    assert {obj["uuid"] for obj in objects} == {str(matched), str(unmatched)}
+    assert {error["message"] for error in response.errors} == {DENIED}
+    denied = {
+        (objects[index]["uuid"], field)
+        for _, _, index, field, _ in (error["path"] for error in response.errors)
+    }
+    assert denied == {
+        (str(matched), "name"),
+        (str(unmatched), "value"),
+        (str(unmatched), "name"),
+    }
 
 
 @pytest.mark.integration_test
