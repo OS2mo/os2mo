@@ -9,18 +9,14 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
-from graphql import GraphQLError
 from more_itertools import one
 from sqlalchemy import select
 from sqlalchemy import text
 
-from mora.auth.keycloak.models import RealmAccess
-from mora.auth.keycloak.models import Token
 from mora.config import Settings
 from mora.db import AsyncSession
 from mora.db import Policy
 from mora.db import PolicyWriteRule
-from mora.graphapi.policies import cel2check
 from mora.graphapi.policies import write_policy_load_fn
 from mora.graphapi.schema import write_policy
 from mora.graphapi.version import LATEST_VERSION
@@ -34,11 +30,6 @@ from tests.conftest import assert_granted
 from tests.conftest import token_getter_of
 
 NOT_FOUND_UUID = UUID("c6720bc8-6e37-4a59-8876-950b2117df22")
-
-
-@pytest.fixture
-def owner_token() -> Token:
-    return Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"owner"}))
 
 
 @pytest.fixture
@@ -134,6 +125,13 @@ async def test_a_check_requires_everything_its_condition_names(
             '{"collection": "OrganisationUnit", "filter": {}}',
             "__root__\n  value is not a valid list",
         ),
+        # The filter is coerced into its collection's filter
+        (
+            '[{"collection": "OrganisationUnit", "filter": {"uuids": ["not-a-uuid"]}}]',
+            "Invalid value 'not-a-uuid' at 'value.uuids[0]': "
+            'Value cannot represent a UUID: "not-a-uuid". '
+            "badly formed hexadecimal UUID string",
+        ),
     ],
 )
 @pytest.mark.usefixtures("empty_db")
@@ -217,24 +215,6 @@ async def test_a_condition_deciding_by_itself_becomes_the_answer_it_gives(
     set_auth({"reader", "unit_owner"}, BRUCE_UUID)
 
     assert_decided(graphapi_post(mutation, {"input": address_input}))
-
-
-async def test_a_check_yielding_what_the_filter_rejects_fails(
-    owner_token: Token,
-) -> None:
-    """The filter a condition yields is coerced into its collection's filter."""
-    with pytest.raises(GraphQLError) as raised:
-        cel2check(
-            settings=Settings(),
-            graphql_version=LATEST_VERSION,
-            condition='[{"collection": "OrganisationUnit", "filter": {"uuids": ["not-a-uuid"]}}]',
-            token=owner_token,
-            args={},
-        )
-
-    assert str(raised.value) == (
-        """Invalid value 'not-a-uuid' at 'value.uuids[0]': Value cannot represent a UUID: "not-a-uuid". badly formed hexadecimal UUID string"""
-    )
 
 
 @pytest.mark.integration_test
