@@ -67,7 +67,6 @@ from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.owner_entities import OWNER_ENTITIES
 from mora.graphapi.query import Query
-from mora.graphapi.rbac_map import ADMIN_MAP
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.types import CPR_SCALAR
@@ -204,6 +203,15 @@ class IsAuthenticatedExtension(SchemaExtension):
 Policy = Callable[[Any, GraphQLResolveInfo, dict[str, Any]], AwaitableOrValue[bool]]
 
 
+def admin_policy(
+    root: Any,
+    info: GraphQLResolveInfo,
+    kwargs: dict[str, Any],
+) -> bool:
+    """Allow access to everything for admins."""
+    return "admin" in info.context.token.realm_access.roles
+
+
 def introspection_policy(
     root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
 ) -> bool:
@@ -232,18 +240,6 @@ def reader_policy(
     if "reader" not in token.realm_access.roles:
         return False
     return (info.parent_type.name, info.field_name) in RBAC_MAP
-
-
-def admin_policy(
-    root: Any,
-    info: GraphQLResolveInfo,
-    kwargs: dict[str, Any],
-) -> bool:
-    """Allow access if the field requires the `admin` role and the token has it."""
-    token = info.context.token
-    if "admin" not in token.realm_access.roles:
-        return False
-    return (info.parent_type.name, info.field_name) in ADMIN_MAP
 
 
 def owner_policy(
@@ -308,10 +304,11 @@ def collection_policy(
 
 
 POLICIES: list[Policy] = [
+    # Ordered cheapest first, as the first policy to allow access skips the rest
+    admin_policy,
     introspection_policy,
     no_role_required_policy,
     reader_policy,
-    admin_policy,
     collection_policy,
     owner_policy,
 ]
@@ -324,9 +321,10 @@ class PBACExtension(SchemaExtension):
     so a field costs a coroutine only when a policy has to look something up,
     and a future already done, such as a dataloader's cache hit, costs none.
 
-    Access is rejected by default: every field must be listed in
-    `PUBLIC_FIELDS`, have a requirement in `RBAC_MAP` or `ADMIN_MAP`, or
-    belong to a type guarded by read policies (`mora.graphapi.policies`).
+    Access is rejected by default: except for the `admin` role, which is
+    granted every field, a field must be listed in `PUBLIC_FIELDS`, have a
+    requirement in `RBAC_MAP`, or belong to a type guarded by read policies
+    (`mora.graphapi.policies`).
     """
 
     def resolve(  # type: ignore[override]

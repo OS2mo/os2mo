@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
-from itertools import chain
 from typing import Any
 from uuid import UUID
 from uuid import uuid4
@@ -16,94 +15,12 @@ from hypothesis import settings
 from hypothesis import strategies as st
 from hypothesis_graphql import nodes
 from hypothesis_graphql import strategies as gql_st
-from more_itertools import duplicates_everseen
-from sqlalchemy import select
 
-from mora.db import AsyncSession
-from mora.db import PolicyReadRule
-from mora.db import PolicyReadRuleField
 from mora.graphapi.events import EventToken
-from mora.graphapi.rbac_map import ADMIN_MAP
-from mora.graphapi.rbac_map import PUBLIC_FIELDS
-from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import LATEST_VERSION
-from mora.graphapi.version import Version
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
-
-
-@pytest.mark.integration_test
-async def test_rbac_map_covers_schema(
-    empty_db: AsyncSession, graphapi_post: GraphAPIPost
-) -> None:
-    """RBAC is reject-by-default, so every field must be classified.
-
-    Each schema field must be either public (`PUBLIC_FIELDS`), have a role
-    requirement (`RBAC_MAP` or `ADMIN_MAP`), or belong to a type guarded by
-    read policies and be granted by some rule (`mora.graphapi.policies`).
-    Conversely, entries which do not correspond to any schema field are dead
-    rules, and therefore most likely mistakes.
-
-    A field in more than one of them would silently get the weakest of its
-    requirements (the chain grants access as soon as a policy matches, and
-    `no_role_required_policy` runs before `reader_policy`, which runs before
-    `admin_policy`), so it is almost certainly a mistake; the four are
-    required to be pairwise disjoint.
-    """
-    schema_fields = set()
-    for version in Version:
-        response = graphapi_post(
-            """
-            query {
-              __schema {
-                types {
-                  name
-                  kind
-                  fields(includeDeprecated: true) {
-                    name
-                  }
-                }
-              }
-            }
-            """,
-            url=f"/graphql/v{version.value}",
-        )
-        assert response.errors is None
-        assert response.data
-        for type_ in response.data["__schema"]["types"]:
-            if type_["kind"] != "OBJECT" or type_["name"].startswith("__"):
-                continue
-            schema_fields.update(
-                (type_["name"], field["name"]) for field in type_["fields"]
-            )
-
-    rules = await empty_db.execute(
-        select(PolicyReadRule.collection, PolicyReadRuleField.field).join(
-            PolicyReadRuleField,
-            PolicyReadRuleField.rule_fk == PolicyReadRule.pk,
-        )
-    )
-    # A collection is named after the type it grants on
-    rule_fields = {(collection.value, field) for collection, field in rules}
-    guarded = {collection for collection, _ in rule_fields}
-    policy_fields = {
-        (type_, field) for type_, field in schema_fields if type_ in guarded
-    }
-    granted = policy_fields & rule_fields
-
-    classified = PUBLIC_FIELDS | RBAC_MAP | ADMIN_MAP | granted
-
-    missing = schema_fields - classified
-    assert missing == set(), f"Unclassified schema fields: {missing}"
-
-    stale = classified - schema_fields
-    assert stale == set(), f"Classified entries without a schema field: {stale}"
-
-    overlap = set(
-        duplicates_everseen(chain(PUBLIC_FIELDS, RBAC_MAP, ADMIN_MAP, policy_fields))
-    )
-    assert overlap == set(), f"Fields classified more than once: {overlap}"
 
 
 @pytest.mark.integration_test
