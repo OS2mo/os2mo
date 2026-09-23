@@ -10,7 +10,6 @@ from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Collection
 from collections.abc import Generator
-from collections.abc import Iterable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from operator import itemgetter
@@ -195,7 +194,6 @@ def token_getter_of(*roles: str) -> Callable[[], Awaitable[Token]]:
 
 
 SetAuth = Callable[[str | Collection[str] | None, UUID | str | None, str], None]
-SetRules = Callable[[str, db.Collection, Iterable[str]], Awaitable[None]]
 SetWriteRules = Callable[[str, str, str], Awaitable[None]]
 SetPolicies = Callable[[list[Policy]], None]
 
@@ -1732,40 +1730,14 @@ def declare_policy(try_declare_policy: TryDeclarePolicy) -> DeclarePolicy:
 
 
 @pytest.fixture
-def set_rules(empty_db: db.AsyncSession) -> SetRules:
-    """Grant a role the fields of a collection, in place of the seeded policies.
+async def no_seeded_policies(empty_db: db.AsyncSession) -> None:
+    """Remove the seeded policies, which grant a reader every field of every collection.
 
-    The migrated policies grant a reader every field of every collection, so a
-    test asking about a denial installs its own in their stead.
+    A test asking about a denial declares its own in their stead.
     """
-
-    async def inner(
-        role: str, collection: db.Collection, fields: Iterable[str]
-    ) -> None:
-        await empty_db.execute(delete(db.Policy))
-        empty_db.add(
-            db.Policy(
-                name=role,
-                description=f"Grants {role} the fields a test asks about",
-                active=True,
-                role=role,
-                read_rules=[
-                    db.PolicyReadRule(
-                        collection=collection,
-                        condition="true",
-                        graphql_version=LATEST_VERSION,
-                        fields=[
-                            db.PolicyReadRuleField(field=field)
-                            for field in sorted(fields)
-                        ],
-                    )
-                ],
-            )
-        )
-        # A request opens its own session, so the rows must be committed to it
-        await empty_db.commit()
-
-    return inner
+    await empty_db.execute(delete(db.Policy))
+    # A request opens its own session, so the deletion must be committed to it
+    await empty_db.commit()
 
 
 @pytest.fixture

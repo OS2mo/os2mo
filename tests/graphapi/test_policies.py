@@ -14,10 +14,9 @@ from uuid import uuid4
 
 import pytest
 
-from mora.db import Collection
+from tests.conftest import DeclarePolicy
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
-from tests.conftest import SetRules
 
 DENIED = "No policy approved the access"
 
@@ -27,23 +26,12 @@ def _failures(response: Any) -> set[tuple[str, tuple[str | int, ...]]]:
     return {(error["message"], tuple(error["path"])) for error in response.errors}
 
 
-TOP_LEVEL = """
-query {
-    addresses {
-        objects { uuid current { value } }
-    }
-}
-"""
-
-VALUES = ("first@example.org", "second@example.org")
-
-
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
+@pytest.mark.usefixtures("no_seeded_policies")
 async def test_a_field_no_rule_grants_is_denied_where_it_is_read(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
-    set_rules: SetRules,
+    declare_policy: DeclarePolicy,
     create_org_unit: Callable[..., UUID],
     create_facet: Callable[[dict[str, Any]], UUID],
     create_class: Callable[[dict[str, Any]], UUID],
@@ -53,6 +41,17 @@ async def test_a_field_no_rule_grants_is_denied_where_it_is_read(
 
     The uuid a rule grants comes back while the value none grants is denied,
     nulling the object holding it and reporting an error at the path it was read.
+    """
+    # The value is read on a `current` of its own, so denying it keeps the uuid
+    query = """
+        query ReadAddresses {
+            addresses {
+                objects {
+                    current { uuid }
+                    value: current { value }
+                }
+            }
+        }
     """
     org_unit = create_org_unit("test")
     facet = create_facet(
@@ -76,17 +75,29 @@ async def test_a_field_no_rule_grants_is_denied_where_it_is_read(
                 "validity": {"from": "2000-01-01"},
             }
         )
-        for value in VALUES
+        for value in ("first@example.org", "second@example.org")
     ]
-    await set_rules("reader", Collection.Address, {"uuid"})
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Reader",
+            "role": "reader",
+            "read_rules": [
+                {
+                    "collection": "Address",
+                    "fields": ["uuid"],
+                    "graphql_version": "VERSION_30",
+                }
+            ],
+        },
+    )
     set_auth({"reader"}, uuid4())
 
-    response = graphapi_post(TOP_LEVEL)
+    response = graphapi_post(query)
     assert response.data
     objects = response.data["addresses"]["objects"]
-    assert {x["uuid"] for x in objects} == {str(uuid) for uuid in addresses}
-    assert [x["current"] for x in objects] == [None, None]
+    assert {x["current"]["uuid"] for x in objects} == {str(uuid) for uuid in addresses}
+    assert [x["value"] for x in objects] == [None, None]
     assert _failures(response) == {
-        (DENIED, ("addresses", "objects", index, "current", "value"))
-        for index in (0, 1)
+        (DENIED, ("addresses", "objects", index, "value", "value")) for index in (0, 1)
     }
