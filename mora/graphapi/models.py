@@ -231,7 +231,9 @@ class AddressUpdate(AddressUpsert):
         data_dict = super().to_handler_dict()
         data_dict["value"] = self.value
         data_dict["address_type"] = gen_uuid(self.address_type)
-        return {k: v for k, v in data_dict.items() if v is not None}
+        if "ituser" not in self.__fields_set__:
+            data_dict.pop("it", None)
+        return {k: v for k, v in data_dict.items() if (v is not None) or k == "it"}
 
 
 class AddressTerminate(ValidityTerminate):
