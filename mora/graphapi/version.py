@@ -24,6 +24,7 @@ class Version(enum.Enum):
     VERSION_28 = 28
     VERSION_29 = 29
     VERSION_30 = 30
+    VERSION_31 = 31
 
     # Define __ge__, __gt__, __le__, and __lt__ to allow comparison of versions
     # despite not being an IntEnum.
