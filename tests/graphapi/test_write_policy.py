@@ -39,11 +39,6 @@ NOT_FOUND_UUID = UUID("c6720bc8-6e37-4a59-8876-950b2117df22")
 
 
 @pytest.fixture
-def admin_token() -> Token:
-    return Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"admin"}))
-
-
-@pytest.fixture
 def owner_token() -> Token:
     return Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"owner"}))
 
@@ -122,23 +117,6 @@ async def test_a_check_requiring_nothing_fails(owner_token: Token) -> None:
     assert str(raised.value) == (
         "condition '[]' requires nothing, yield true or false instead"
     )
-
-
-@pytest.mark.integration_test
-async def test_a_check_without_a_condition_requires_nothing(
-    empty_db: AsyncSession,
-    admin_token: Token,
-) -> None:
-    """A rule with no condition grants its mutator outright."""
-    check = cel2check(
-        settings=Settings(),
-        graphql_version=LATEST_VERSION,
-        condition="",
-        token=admin_token,
-        args={},
-    )
-
-    assert await empty_db.scalar(select(check)) is True
 
 
 @pytest.mark.integration_test
@@ -314,7 +292,7 @@ async def test_the_write_rules_of_the_callers_policies_are_loaded(
                 write_rules=[
                     PolicyWriteRule(
                         mutator="class_create",
-                        condition="",
+                        condition="true",
                         graphql_version=LATEST_VERSION,
                     )
                 ],

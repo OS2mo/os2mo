@@ -177,11 +177,10 @@ def cel2predicate(
     token: Token,
 ) -> ColumnElement[bool]:
     """Evaluate the CEL condition into a filter, and the filter into a clause."""
-    # No condition -> applies to all entities
-    if not condition:
-        return true()
-    filter = policy_cel.evaluate(condition, token, {})
-    return filter2predicate(settings, collection, graphql_version, filter)
+    yielded = policy_cel.evaluate(condition, token, {})
+    if isinstance(yielded, bool):
+        return true() if yielded else false()
+    return filter2predicate(settings, collection, graphql_version, yielded)
 
 
 def cel2check(
@@ -192,9 +191,6 @@ def cel2check(
     args: dict[str, Any],
 ) -> ColumnElement[bool]:
     """Evaluate the CEL condition into a check that everything it names exists."""
-    # No condition -> nothing has to exist
-    if not condition:
-        return true()
     yielded = policy_cel.evaluate(condition, token, args)
     if isinstance(yielded, bool):
         return true() if yielded else false()

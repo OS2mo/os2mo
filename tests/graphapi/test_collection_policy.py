@@ -102,7 +102,7 @@ async def test_an_object_gets_the_fields_of_every_rule_matching_it(
                 PolicyReadRule(
                     collection=Collection.Address,
                     graphql_version=LATEST_VERSION,
-                    condition="",
+                    condition="true",
                     fields=[PolicyReadRuleField(field="user_key")],
                 ),
                 PolicyReadRule(
@@ -176,7 +176,7 @@ async def test_a_batch_spans_collections_and_grants_only_where_a_rule_names_one(
                 PolicyReadRule(
                     collection=Collection.Address,
                     graphql_version=LATEST_VERSION,
-                    condition="",
+                    condition="true",
                     fields=[PolicyReadRuleField(field="value")],
                 )
             ],
@@ -270,8 +270,9 @@ async def test_a_condition_unknown_of_an_object_grants_nothing_on_it(
 @pytest.mark.parametrize(
     "condition,reached",
     [
-        # A rule without a condition reaches every object of its collection
-        ("", {"mine@example.org", "theirs@example.org", "11111111"}),
+        # A rule yielding true reaches every object of its collection, false none
+        ("true", {"mine@example.org", "theirs@example.org", "11111111"}),
+        ("false", set()),
         (
             '{"address_type": {"scope": ["EMAIL"]}}',
             {"mine@example.org", "theirs@example.org"},
@@ -499,7 +500,7 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
                 read_rules=[
                     PolicyReadRule(
                         collection=Collection.Address,
-                        condition="",
+                        condition="true",
                         graphql_version=LATEST_VERSION,
                         fields=[
                             PolicyReadRuleField(field="uuid"),
@@ -516,7 +517,7 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
                 read_rules=[
                     PolicyReadRule(
                         collection=Collection.Employee,
-                        condition="",
+                        condition="true",
                         graphql_version=LATEST_VERSION,
                         fields=[PolicyReadRuleField(field="name")],
                     )
@@ -534,7 +535,7 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
     assert rule.role == "auditor"
     assert rule.collection == Collection.Address
     assert rule.fields == frozenset({"uuid", "value"})
-    # A row carries no condition, so its rule reaches every object
+    # The row's condition is true, so its rule reaches every object
     assert rule.condition.compare(true())
 
 
@@ -550,7 +551,7 @@ async def test_a_policy_switched_off_grants_nothing(empty_db: AsyncSession) -> N
             read_rules=[
                 PolicyReadRule(
                     collection=Collection.Address,
-                    condition="",
+                    condition="true",
                     graphql_version=LATEST_VERSION,
                     fields=[PolicyReadRuleField(field="uuid")],
                 )

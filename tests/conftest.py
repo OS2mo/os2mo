@@ -1665,7 +1665,7 @@ def set_rules(empty_db: db.AsyncSession) -> SetRules:
                 read_rules=[
                     db.PolicyReadRule(
                         collection=collection,
-                        condition="",
+                        condition="true",
                         graphql_version=LATEST_VERSION,
                         fields=[
                             db.PolicyReadRuleField(field=field)
