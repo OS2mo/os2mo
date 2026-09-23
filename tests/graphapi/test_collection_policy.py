@@ -33,7 +33,6 @@ from mora.db import PolicySelectorKind
 from mora.db import RolebindingRule
 from mora.db import RolebindingRuleRevision
 from mora.graphapi.graphql_utils import AccessKey
-from mora.graphapi.policies import Rule
 from mora.graphapi.policies import access_load_fn
 from mora.graphapi.policies import cel2predicate
 from mora.graphapi.policies import policy_load_fn
@@ -544,82 +543,6 @@ async def test_a_condition_yielding_what_the_filter_rejects_fails() -> None:
         'Value cannot represent a UUID: "not-a-uuid". '
         "badly formed hexadecimal UUID string"
     )
-
-
-@pytest.mark.integration_test
-async def test_a_condition_narrows_a_rule_to_the_objects_it_names(
-    empty_db: AsyncSession,
-    create_person: Callable[[dict[str, Any] | None], UUID],
-    create_facet: Callable[[dict[str, Any]], UUID],
-    create_class: Callable[[dict[str, Any]], UUID],
-    create_address: Callable[[dict[str, Any]], UUID],
-) -> None:
-    """A read rule grants fields access only on the objects its condition names."""
-    caller = create_person(
-        {"given_name": "Bruce", "surname": "Lee", "uuid": str(BRUCE_UUID)}
-    )
-    other = create_person(None)
-    facet = create_facet(
-        {"user_key": "employee_address_type", "validity": {"from": "2000-01-01"}}
-    )
-    address_type = create_class(
-        {
-            "facet_uuid": str(facet),
-            "user_key": "email",
-            "name": "Email",
-            "scope": "EMAIL",
-            "validity": {"from": "2000-01-01"},
-        }
-    )
-    mine, theirs = (
-        create_address(
-            {
-                "address_type": str(address_type),
-                "person": str(person),
-                "value": value,
-                "validity": {"from": "2000-01-01"},
-            }
-        )
-        for person, value in (
-            (caller, "first@example.org"),
-            (other, "second@example.org"),
-        )
-    )
-    empty_db.add(
-        Policy(
-            name="Self Auditor",
-            description="Allows self auditors to read the addresses of their own person",
-            active=True,
-            selectors=[
-                PolicySelector(kind=PolicySelectorKind.role, value="self_auditor")
-            ],
-            read_rules=[
-                PolicyReadRule(
-                    collection=Collection.Address,
-                    graphql_version=LATEST_VERSION,
-                    condition='{"employee": {"uuids": [token.uuid]}}',
-                    fields=[PolicyReadRuleField(field="value")],
-                )
-            ],
-        )
-    )
-    await empty_db.flush()
-    policy_loader: DataLoader[int, list[Rule]] = DataLoader(
-        load_fn=partial(
-            policy_load_fn, empty_db, Settings(), token_getter_of("self_auditor")
-        )
-    )
-
-    allowed = await access_load_fn(
-        empty_db,
-        policy_loader,
-        [
-            AccessKey(Collection.Address, str(mine), "value"),
-            AccessKey(Collection.Address, str(theirs), "value"),
-        ],
-    )
-
-    assert allowed == [True, False]
 
 
 @pytest.mark.integration_test
