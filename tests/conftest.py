@@ -1642,6 +1642,95 @@ def create_address(
     return inner
 
 
+ReadPolicyPage = Callable[..., tuple[list[dict[str, Any]], str | None]]
+ReadPolicies = Callable[..., list[dict[str, Any]]]
+
+
+@pytest.fixture
+def read_policy_page(graphapi_post: GraphAPIPost) -> ReadPolicyPage:
+    """Read a page of policies, and the cursor of the next one."""
+
+    def inner(
+        variables: dict[str, Any] | None = None,
+    ) -> tuple[list[dict[str, Any]], str | None]:
+        query = """
+            query ReadPolicies($filter: PolicyFilter, $limit: int, $cursor: Cursor) {
+                policies(filter: $filter, limit: $limit, cursor: $cursor) {
+                    objects {
+                        uuid
+                        name
+                        description
+                        active
+                        role
+                        managed
+                        read_rules { collection fields condition graphql_version }
+                        write_rules { mutator condition graphql_version }
+                    }
+                    page_info { next_cursor }
+                }
+            }
+        """
+        response = graphapi_post(query=query, variables=variables)
+        assert response.errors is None
+        assert response.data is not None
+        policies = response.data["policies"]
+        return policies["objects"], policies["page_info"]["next_cursor"]
+
+    return inner
+
+
+@pytest.fixture
+def read_policies(read_policy_page: ReadPolicyPage) -> ReadPolicies:
+    """Read the policies, less the cursor."""
+
+    def inner(variables: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+        policies, _ = read_policy_page(variables)
+        return policies
+
+    return inner
+
+
+TryDeclarePolicy = Callable[[str, dict[str, Any] | None], GQLResponse]
+DeclarePolicy = Callable[[str, dict[str, Any]], dict[str, Any]]
+
+
+@pytest.fixture
+def try_declare_policy(graphapi_post: GraphAPIPost) -> TryDeclarePolicy:
+    """Declare the state of a policy, and return the response unchecked."""
+
+    def inner(uuid: str, state: dict[str, Any] | None) -> GQLResponse:
+        query = """
+            mutation Declare($uuid: UUID!, $state: PolicyStateInput) {
+                policy_declare(uuid: $uuid, state: $state) {
+                    uuid
+                    name
+                    description
+                    active
+                    role
+                    managed
+                    read_rules { collection fields condition graphql_version }
+                    write_rules { mutator condition graphql_version }
+                }
+            }
+        """
+        return graphapi_post(query=query, variables={"uuid": uuid, "state": state})
+
+    return inner
+
+
+@pytest.fixture
+def declare_policy(try_declare_policy: TryDeclarePolicy) -> DeclarePolicy:
+    """Declare the state of a policy, and return the policy as it was declared."""
+
+    def inner(uuid: str, state: dict[str, Any]) -> dict[str, Any]:
+        response = try_declare_policy(uuid, state)
+        assert response.errors is None
+        assert response.data is not None
+        return response.data["policy_declare"]
+
+    return inner
+
+
 @pytest.fixture
 def set_rules(empty_db: db.AsyncSession) -> SetRules:
     """Grant a role the fields of a collection, in place of the seeded policies.
