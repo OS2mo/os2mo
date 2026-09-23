@@ -11,15 +11,7 @@ from uuid import uuid4
 import pytest
 from more_itertools import one
 
-from mora.db import AsyncSession
 from mora.db import Collection
-from mora.db import Policy
-from mora.db import PolicyReadRule
-from mora.db import PolicyReadRuleField
-from mora.db import PolicySelector
-from mora.db import PolicySelectorKind
-from mora.db import PolicyWriteRule
-from mora.graphapi.version import Version
 from tests.conftest import BRUCE_UUID
 from tests.conftest import DeclarePolicy
 from tests.conftest import GraphAPIPost
@@ -36,33 +28,32 @@ AUDITOR_UUID = "f1a00b99-399a-4a34-9e35-5873535a531c"
 
 
 @pytest.fixture
-async def auditor(empty_db: AsyncSession) -> None:
+def auditor(declare_policy: DeclarePolicy) -> None:
     """A policy beside the seeded ones, switched off."""
-    policy = Policy(
-        pk=UUID(AUDITOR_UUID),
-        name="Auditor",
-        description="Reads the user key of the unit of the auditor",
-        active=False,
-        selectors=[PolicySelector(kind=PolicySelectorKind.role, value="auditor")],
-        read_rules=[
-            PolicyReadRule(
-                collection=Collection.OrganisationUnit,
-                condition='{"uuids": [token.uuid]}',
-                graphql_version=Version.VERSION_29,
-                fields=[PolicyReadRuleField(field="user_key")],
-            )
-        ],
-        write_rules=[
-            PolicyWriteRule(
-                mutator="org_unit_update",
-                condition="token.uuid != null",
-                graphql_version=Version.VERSION_30,
-            )
-        ],
+    declare_policy(
+        AUDITOR_UUID,
+        {
+            "name": "Auditor",
+            "description": "Reads the user key of the unit of the auditor",
+            "active": False,
+            "selectors": [{"kind": "role", "value": "auditor"}],
+            "read_rules": [
+                {
+                    "collection": "OrganisationUnit",
+                    "fields": ["user_key"],
+                    "condition": '{"uuids": [token.uuid]}',
+                    "graphql_version": "VERSION_29",
+                }
+            ],
+            "write_rules": [
+                {
+                    "mutator": "org_unit_update",
+                    "condition": "token.uuid != null",
+                    "graphql_version": "VERSION_30",
+                }
+            ],
+        },
     )
-    empty_db.add(policy)
-    # A request opens its own session, so the rows must be committed to it
-    await empty_db.commit()
 
 
 @pytest.mark.integration_test
@@ -189,7 +180,7 @@ def test_the_seeded_policy_grants_the_explicit_manager_of_an_engagement(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("auditor")
+@pytest.mark.usefixtures("empty_db", "auditor")
 async def test_a_policy_is_read_with_its_rules(read_policies: ReadPolicies) -> None:
     """A policy comes back as it is stored, rules and all."""
     policies = read_policies({"filter": {"names": ["Auditor"]}})
@@ -263,7 +254,7 @@ async def test_a_policy_is_read_with_its_rules(read_policies: ReadPolicies) -> N
         ),
     ],
 )
-@pytest.mark.usefixtures("auditor")
+@pytest.mark.usefixtures("empty_db", "auditor")
 async def test_policies_are_filtered(
     read_policies: ReadPolicies, filter: dict[str, Any] | None, names: set[str]
 ) -> None:
@@ -273,7 +264,7 @@ async def test_policies_are_filtered(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("auditor")
+@pytest.mark.usefixtures("empty_db", "auditor")
 async def test_policies_are_paged(
     read_policies: ReadPolicies, read_policy_page: ReadPolicyPage
 ) -> None:
@@ -378,7 +369,7 @@ async def test_a_policy_declared_again_is_left_as_it_was(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("auditor")
+@pytest.mark.usefixtures("empty_db", "auditor")
 async def test_a_policy_declared_anew_is_made_to_match(
     declare_policy: DeclarePolicy, read_policies: ReadPolicies
 ) -> None:
@@ -424,7 +415,7 @@ async def test_a_policy_declared_anew_is_made_to_match(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("auditor")
+@pytest.mark.usefixtures("empty_db", "auditor")
 async def test_a_policy_cannot_take_the_name_of_another(
     try_declare_policy: TryDeclarePolicy,
     declare_policy: DeclarePolicy,
