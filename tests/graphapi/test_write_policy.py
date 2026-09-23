@@ -431,11 +431,9 @@ async def test_a_mutator_is_granted_where_its_rule_finds_what_it_names(
 @pytest.mark.usefixtures("empty_db")
 async def test_a_mutator_no_rule_names_is_denied(
     set_auth: SetAuth,
-    set_write_rules: SetWriteRules,
+    declare_policy: DeclarePolicy,
     graphapi_post: GraphAPIPost,
-    create_org_unit: Callable[..., UUID],
-    create_facet: Callable[[dict[str, Any]], UUID],
-    create_class: Callable[[dict[str, Any]], UUID],
+    address_input: dict[str, Any],
 ) -> None:
     """A rule grants the mutator it binds to, and nothing else."""
     mutation = """
@@ -443,38 +441,28 @@ async def test_a_mutator_no_rule_names_is_denied(
         address_create(input: $input) { uuid }
     }
     """
-    org_unit = create_org_unit("ours")
-    facet = create_facet(
-        {"user_key": "org_unit_address_type", "validity": {"from": "2000-01-01"}}
-    )
-    address_type = create_class(
+    declare_policy(
+        str(uuid4()),
         {
-            "facet_uuid": str(facet),
-            "user_key": "email",
-            "name": "Email",
-            "scope": "EMAIL",
-            "validity": {"from": "2000-01-01"},
-        }
-    )
-    input = {
-        "address_type": str(address_type),
-        "org_unit": str(org_unit),
-        "value": "unit@example.org",
-        "validity": {"from": "2000-01-01"},
-    }
-    await set_write_rules(
-        role="unit_owner",
-        mutator="ituser_create",
-        condition="""
-        [{
-            "collection": "OrganisationUnit",
-            "filter": {"uuids": [args.input.org_unit]}
-        }]
-        """,
+            "name": "Unit Owner",
+            "role": "unit_owner",
+            "write_rules": [
+                {
+                    "mutator": "ituser_create",
+                    "condition": """
+                    [{
+                        "collection": "OrganisationUnit",
+                        "filter": {"uuids": [args.input.org_unit]}
+                    }]
+                    """,
+                    "graphql_version": "VERSION_30",
+                }
+            ],
+        },
     )
     set_auth({"reader", "unit_owner"}, BRUCE_UUID)
 
-    assert_denied(graphapi_post(mutation, {"input": input}))
+    assert_denied(graphapi_post(mutation, {"input": address_input}))
 
 
 @pytest.mark.integration_test
