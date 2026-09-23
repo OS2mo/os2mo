@@ -7,6 +7,7 @@ from textwrap import dedent
 from types import SimpleNamespace
 from typing import Any
 from uuid import UUID
+from uuid import uuid4
 
 import pytest
 from graphql import GraphQLError
@@ -28,6 +29,7 @@ from mora.graphapi.schema import write_policy
 from mora.graphapi.version import LATEST_VERSION
 from tests.conftest import ALVIDA_UUID
 from tests.conftest import BRUCE_UUID
+from tests.conftest import DeclarePolicy
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 from tests.conftest import SetWriteRules
@@ -41,6 +43,34 @@ NOT_FOUND_UUID = UUID("c6720bc8-6e37-4a59-8876-950b2117df22")
 @pytest.fixture
 def owner_token() -> Token:
     return Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"owner"}))
+
+
+@pytest.fixture
+def address_input(
+    create_org_unit: Callable[..., UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+) -> dict[str, Any]:
+    """The input creating an email address in the unit `ours`."""
+    org_unit = create_org_unit("ours")
+    facet = create_facet(
+        {"user_key": "org_unit_address_type", "validity": {"from": "2000-01-01"}}
+    )
+    address_type = create_class(
+        {
+            "facet_uuid": str(facet),
+            "user_key": "email",
+            "name": "Email",
+            "scope": "EMAIL",
+            "validity": {"from": "2000-01-01"},
+        }
+    )
+    return {
+        "address_type": str(address_type),
+        "org_unit": str(org_unit),
+        "value": "unit@example.org",
+        "validity": {"from": "2000-01-01"},
+    }
 
 
 @pytest.mark.integration_test
@@ -358,11 +388,10 @@ async def test_a_field_which_is_no_mutator_is_rejected_without_asking() -> None:
 @pytest.mark.usefixtures("empty_db")
 async def test_a_mutator_is_granted_where_its_rule_finds_what_it_names(
     set_auth: SetAuth,
-    set_write_rules: SetWriteRules,
+    declare_policy: DeclarePolicy,
     graphapi_post: GraphAPIPost,
     create_org_unit: Callable[..., UUID],
-    create_facet: Callable[[dict[str, Any]], UUID],
-    create_class: Callable[[dict[str, Any]], UUID],
+    address_input: dict[str, Any],
 ) -> None:
     """The rule grants the mutator on the unit it names, and on no other."""
     mutation = """
@@ -370,40 +399,31 @@ async def test_a_mutator_is_granted_where_its_rule_finds_what_it_names(
         address_create(input: $input) { uuid }
     }
     """
-    ours, theirs = (create_org_unit(user_key) for user_key in ("ours", "theirs"))
-    facet = create_facet(
-        {"user_key": "org_unit_address_type", "validity": {"from": "2000-01-01"}}
-    )
-    address_type = create_class(
+    theirs = create_org_unit("theirs")
+    declare_policy(
+        str(uuid4()),
         {
-            "facet_uuid": str(facet),
-            "user_key": "email",
-            "name": "Email",
-            "scope": "EMAIL",
-            "validity": {"from": "2000-01-01"},
-        }
-    )
-    input = {
-        "address_type": str(address_type),
-        "org_unit": str(ours),
-        "value": "unit@example.org",
-        "validity": {"from": "2000-01-01"},
-    }
-    await set_write_rules(
-        role="unit_owner",
-        mutator="address_create",
-        condition="""
-        [{
-            "collection": "OrganisationUnit",
-            "filter": {"uuids": [args.input.org_unit], "user_keys": ["ours"]}
-        }]
-        """,
+            "name": "Unit Owner",
+            "role": "unit_owner",
+            "write_rules": [
+                {
+                    "mutator": "address_create",
+                    "condition": """
+                    [{
+                        "collection": "OrganisationUnit",
+                        "filter": {"uuids": [args.input.org_unit], "user_keys": ["ours"]}
+                    }]
+                    """,
+                    "graphql_version": "VERSION_30",
+                }
+            ],
+        },
     )
     set_auth({"reader", "unit_owner"}, BRUCE_UUID)
 
-    assert_granted(graphapi_post(mutation, {"input": input}))
+    assert_granted(graphapi_post(mutation, {"input": address_input}))
     assert_denied(
-        graphapi_post(mutation, {"input": {**input, "org_unit": str(theirs)}})
+        graphapi_post(mutation, {"input": {**address_input, "org_unit": str(theirs)}})
     )
 
 
