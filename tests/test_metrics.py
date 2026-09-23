@@ -11,6 +11,7 @@ from sqlalchemy import text
 from tests.conftest import AnotherTransaction
 
 METRIC_NAME = "os2mo_registration_count"
+MAX_24H_METRIC_NAME = "os2mo_max_registrations_on_object_24h_org_func"
 
 # Every LoRa object that is not an organisation function, and its registration
 # count on a migrated, otherwise empty database.
@@ -209,3 +210,95 @@ async def test_registrations_org_func_unknown_funktionsnavn(
 
     metrics = fetch_metrics()
     assert f'{METRIC_NAME}{{type="rolle"}} 1.0' in metrics
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_max_registrations_on_object_24h_org_func_no_registrations(
+    fetch_metrics: Callable[[], str],
+) -> None:
+    """Nothing registered within the last day means no series at all.
+
+    The maximum is grouped by funktionsnavn, so a type without rows produces no
+    group and therefore no series.
+    """
+    # Act
+    metrics = fetch_metrics()
+
+    # Assert
+    assert f"{MAX_24H_METRIC_NAME}{{" not in metrics
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_max_registrations_on_object_24h_org_func(
+    fetch_metrics: Callable[[], str],
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[[dict[str, Any] | None], UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    update_engagement: Callable[[dict[str, Any]], UUID],
+    create_itsystem: Callable[[dict[str, Any]], UUID],
+    create_ituser: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """
+    Ensure the most edited object of each "funktionsnavn" in the latest 24h
+    is reported.
+    """
+    # Arrange
+    person = create_person()
+    org_unit = create_org_unit("unit")
+
+    busy = create_engagement(
+        {
+            "user_key": "busy",
+            "person": str(person),
+            "org_unit": str(org_unit),
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
+            "validity": {"from": "2024-01-01", "to": None},
+        }
+    )
+    for to_date in ("2024-06-30", "2024-09-30", "2024-12-31"):
+        update_engagement(
+            {"uuid": str(busy), "validity": {"from": "2024-01-01", "to": to_date}}
+        )
+
+    # A second, less edited engagement, which must not raise the maximum.
+    quiet = create_engagement(
+        {
+            "user_key": "quiet",
+            "person": str(person),
+            "org_unit": str(org_unit),
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
+            "validity": {"from": "2024-01-01", "to": None},
+        }
+    )
+    update_engagement(
+        {"uuid": str(quiet), "validity": {"from": "2024-01-01", "to": "2024-06-30"}}
+    )
+
+    itsystem = create_itsystem(
+        {
+            "user_key": "suila",
+            "name": "Suila-tapit",
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+    create_ituser(
+        {
+            "user_key": "ituser",
+            "itsystem": str(itsystem),
+            "person": str(person),
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+
+    # Act
+    metrics = fetch_metrics()
+
+    # Assert
+    # One create plus three updates on `busy`, not the two on `quiet` and not
+    # the six registrations that exist across both engagements.
+    assert f'{MAX_24H_METRIC_NAME}{{type="engagement"}} 4.0' in metrics
+    assert f'{MAX_24H_METRIC_NAME}{{type="ituser"}} 1.0' in metrics
