@@ -10,7 +10,6 @@ from uuid import uuid4
 
 import pytest
 from more_itertools import one
-from sqlalchemy import true
 
 from mora.config import Settings
 from mora.db import AsyncSession
@@ -363,60 +362,54 @@ async def test_a_condition_yielding_what_the_filter_rejects_fails(
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("no_seeded_policies")
 async def test_the_rules_of_the_callers_policies_are_loaded(
-    empty_db: AsyncSession,
+    set_auth: SetAuth,
+    declare_policy: DeclarePolicy,
+    may_read: MayRead,
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[[dict[str, Any] | None], UUID],
 ) -> None:
-    """Only the rules of the caller's own policies are loaded.
-
-    The roles here are ones the migrated policies do not already name.
-    """
-    empty_db.add_all(
-        [
-            Policy(
-                name="auditor",
-                description="Reads the uuid and the value of addresses",
-                active=True,
-                role="auditor",
-                read_rules=[
-                    PolicyReadRule(
-                        collection=Collection.Address,
-                        condition="true",
-                        graphql_version=LATEST_VERSION,
-                        fields=[
-                            PolicyReadRuleField(field="uuid"),
-                            PolicyReadRuleField(field="value"),
-                        ],
-                    )
-                ],
-            ),
-            Policy(
-                name="owner",
-                description="Reads the name of employees",
-                active=True,
-                role="owner",
-                read_rules=[
-                    PolicyReadRule(
-                        collection=Collection.Employee,
-                        condition="true",
-                        graphql_version=LATEST_VERSION,
-                        fields=[PolicyReadRuleField(field="name")],
-                    )
-                ],
-            ),
-        ]
+    """Only the rules of the caller's own policies are loaded."""
+    org_unit = create_org_unit("test")
+    person = create_person(None)
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Auditor",
+            "role": "auditor",
+            "read_rules": [
+                {
+                    "collection": "OrganisationUnit",
+                    "fields": ["uuid", "name"],
+                    "graphql_version": "VERSION_30",
+                }
+            ],
+        },
     )
-    await empty_db.flush()
-
-    rules = one(
-        await policy_load_fn(empty_db, Settings(), token_getter_of("auditor"), [0])
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Employee Auditor",
+            "role": "employee_auditor",
+            "read_rules": [
+                {
+                    "collection": "Employee",
+                    "fields": ["name"],
+                    "graphql_version": "VERSION_30",
+                }
+            ],
+        },
     )
-    rule = one(rules)
+    set_auth({"reader", "auditor"}, BRUCE_UUID)
 
-    assert rule.role == "auditor"
-    assert rule.collection == Collection.Address
-    assert rule.fields == frozenset({"uuid", "value"})
-    # The row's condition is true, so its rule reaches every object
-    assert rule.condition.compare(true())
+    allowed = [
+        may_read("org_units", org_unit, "uuid"),
+        may_read("org_units", org_unit, "name"),
+        may_read("employees", person, "name"),
+    ]
+
+    assert allowed == [True, True, False]
 
 
 @pytest.mark.integration_test
