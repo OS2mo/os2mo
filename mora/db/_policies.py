@@ -47,8 +47,13 @@ class Policy(Base):
     active: Mapped[bool] = mapped_column(Boolean)
     role: Mapped[str] = mapped_column(Text, index=True)
 
-    read_rules: Mapped[list["PolicyReadRule"]] = relationship(back_populates="policy")
-    write_rules: Mapped[list["PolicyWriteRule"]] = relationship(back_populates="policy")
+    # The database cascades deleting a policy to its rules
+    read_rules: Mapped[list["PolicyReadRule"]] = relationship(
+        back_populates="policy", cascade="all", passive_deletes=True
+    )
+    write_rules: Mapped[list["PolicyWriteRule"]] = relationship(
+        back_populates="policy", cascade="all", passive_deletes=True
+    )
 
 
 class PolicyReadRule(Base):
@@ -64,10 +69,12 @@ class PolicyReadRule(Base):
     )
     condition: Mapped[CEL] = mapped_column(Text)
     graphql_version: Mapped[Version] = mapped_column(GraphQLVersion)
-    policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.pk"))
+    policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.pk", ondelete="CASCADE"))
     policy: Mapped[Policy] = relationship(back_populates="read_rules")
 
-    fields: Mapped[list["PolicyReadRuleField"]] = relationship(back_populates="rule")
+    fields: Mapped[list["PolicyReadRuleField"]] = relationship(
+        back_populates="rule", cascade="all", passive_deletes=True
+    )
 
 
 class PolicyReadRuleField(Base):
@@ -76,7 +83,7 @@ class PolicyReadRuleField(Base):
     __tablename__ = "policy_read_rule_field"
 
     rule_fk: Mapped[UUID] = mapped_column(
-        ForeignKey("policy_read_rule.pk"), primary_key=True
+        ForeignKey("policy_read_rule.pk", ondelete="CASCADE"), primary_key=True
     )
     field: Mapped[str] = mapped_column(Text, primary_key=True)
     rule: Mapped[PolicyReadRule] = relationship(back_populates="fields")
@@ -93,5 +100,5 @@ class PolicyWriteRule(Base):
     mutator: Mapped[str] = mapped_column(Text)
     condition: Mapped[CEL] = mapped_column(Text)
     graphql_version: Mapped[Version] = mapped_column(GraphQLVersion)
-    policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.pk"))
+    policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.pk", ondelete="CASCADE"))
     policy: Mapped[Policy] = relationship(back_populates="write_rules")

@@ -1653,8 +1653,6 @@ def set_rules(empty_db: db.AsyncSession) -> SetRules:
     async def inner(
         role: str, collection: db.Collection, fields: Iterable[str]
     ) -> None:
-        await empty_db.execute(delete(db.PolicyReadRuleField))
-        await empty_db.execute(delete(db.PolicyReadRule))
         await empty_db.execute(delete(db.Policy))
         empty_db.add(
             db.Policy(
