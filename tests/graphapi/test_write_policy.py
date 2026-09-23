@@ -19,7 +19,6 @@ from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.config import Settings
 from mora.db import AsyncSession
-from mora.db import Collection
 from mora.db import Policy
 from mora.db import PolicySelector
 from mora.db import PolicySelectorKind
@@ -203,6 +202,11 @@ async def test_a_check_negates_the_whole_of_what_its_not_holds(
             '{"and": []}',
             "__root__ -> and\n  ensure this value has at least 1 items",
         ),
+        # A collection no rule can reach
+        (
+            '{"collection": "Nonsense", "filter": {}}',
+            "__root__ -> collection\n  value is not a valid enumeration member",
+        ),
     ],
 )
 @pytest.mark.usefixtures("empty_db")
@@ -311,26 +315,6 @@ async def test_a_condition_deciding_by_itself_becomes_the_answer_it_gives(
     set_auth({"reader", "unit_owner"}, BRUCE_UUID)
 
     assert_decided(graphapi_post(mutation, {"input": address_input}))
-
-
-async def test_a_check_of_an_unknown_collection_fails(owner_token: Token) -> None:
-    """A condition naming a collection no rule can reach is an error."""
-    with pytest.raises(ValidationError) as raised:
-        cel2check(
-            settings=Settings(),
-            graphql_version=LATEST_VERSION,
-            condition='{"collection": "Nonsense", "filter": {}}',
-            token=owner_token,
-            args={},
-        )
-
-    permitted = ", ".join(repr(collection.value) for collection in Collection)
-    assert {
-        "loc": ("__root__", "collection"),
-        "msg": f"value is not a valid enumeration member; permitted: {permitted}",
-        "type": "type_error.enum",
-        "ctx": {"enum_values": list(Collection)},
-    } in raised.value.errors()
 
 
 async def test_a_check_yielding_a_list_fails(owner_token: Token) -> None:
