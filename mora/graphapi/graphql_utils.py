@@ -5,6 +5,7 @@ import string
 from datetime import datetime
 from typing import Any
 from typing import NamedTuple
+from typing import TypeAlias
 from uuid import UUID
 
 from pydantic import ConstrainedStr
@@ -35,12 +36,18 @@ class CprNo(ConstrainedStr):
     regex = re.compile(r"^\d{10}$")
 
 
+# OIDC token role
+Role: TypeAlias = str
+# GraphQL field
+Field: TypeAlias = str
+
+
 class AccessKey(NamedTuple):
     """A field access request."""
 
     collection: Collection
     uuid: UUID
-    field: str
+    field: Field
 
 
 class WriteKey(NamedTuple):

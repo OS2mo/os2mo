@@ -9,7 +9,6 @@ from collections.abc import Sequence
 from functools import partial
 from typing import Any
 from typing import NamedTuple
-from typing import TypeAlias
 from typing import get_type_hints
 from uuid import UUID
 
@@ -55,15 +54,12 @@ from mora.graphapi import policy_cel
 from mora.graphapi import resolvers
 from mora.graphapi.custom_schema import CustomSchema
 from mora.graphapi.graphql_utils import AccessKey
+from mora.graphapi.graphql_utils import Field
+from mora.graphapi.graphql_utils import Role
 from mora.graphapi.graphql_utils import WriteKey
 from mora.graphapi.policy_cel import CEL
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import Version
-
-# OIDC token role
-Role: TypeAlias = str
-# GraphQL field
-Field: TypeAlias = str
 
 
 class Rule(NamedTuple):
