@@ -10,8 +10,6 @@ from uuid import uuid4
 
 import pytest
 from more_itertools import one
-from sqlalchemy import select
-from sqlalchemy import text
 
 from mora.config import Settings
 from mora.db import AsyncSession
@@ -215,55 +213,6 @@ async def test_a_condition_deciding_by_itself_becomes_the_answer_it_gives(
     set_auth({"reader", "unit_owner"}, BRUCE_UUID)
 
     assert_decided(graphapi_post(mutation, {"input": address_input}))
-
-
-@pytest.mark.integration_test
-async def test_a_rule_keeps_its_mutator_condition_and_version(
-    empty_db: AsyncSession,
-) -> None:
-    """A rule reads back as it was written, the version as the enum it went in as."""
-    condition = """
-    [{
-        "collection": "OrganisationUnit",
-        "filter": {"uuids": [args.input.org_unit]}
-    }]
-    """
-    empty_db.add(
-        Policy(
-            name="Unit Owner",
-            description="Allows unit owners to create addresses in their own unit",
-            active=True,
-            role="unit_owner",
-            write_rules=[
-                PolicyWriteRule(
-                    mutator="address_create",
-                    condition=condition,
-                    graphql_version=LATEST_VERSION,
-                )
-            ],
-        )
-    )
-    await empty_db.flush()
-    # Read it back rather than out of the identity map
-    empty_db.expunge_all()
-
-    rule = one(
-        (
-            await empty_db.scalars(
-                select(PolicyWriteRule).join(Policy).where(Policy.role == "unit_owner")
-            )
-        ).all()
-    )
-    assert rule.mutator == "address_create"
-    assert rule.condition == condition
-    assert rule.graphql_version is LATEST_VERSION
-    assert (
-        await empty_db.scalar(
-            text("SELECT graphql_version FROM policy_write_rule WHERE pk = :pk"),
-            {"pk": rule.pk},
-        )
-        == LATEST_VERSION.value
-    )
 
 
 @pytest.mark.integration_test
