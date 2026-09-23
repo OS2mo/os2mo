@@ -11,13 +11,7 @@ from uuid import uuid4
 import pytest
 from more_itertools import one
 
-from mora.config import Settings
-from mora.db import AsyncSession
-from mora.db import Policy
-from mora.db import PolicyWriteRule
-from mora.graphapi.policies import write_policy_load_fn
 from mora.graphapi.schema import write_policy
-from mora.graphapi.version import LATEST_VERSION
 from tests.conftest import BRUCE_UUID
 from tests.conftest import DeclarePolicy
 from tests.conftest import GQLResponse
@@ -25,7 +19,6 @@ from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 from tests.conftest import assert_denied
 from tests.conftest import assert_granted
-from tests.conftest import token_getter_of
 
 NOT_FOUND_UUID = UUID("c6720bc8-6e37-4a59-8876-950b2117df22")
 
@@ -291,36 +284,33 @@ async def test_the_write_rules_of_the_callers_policies_are_loaded(
 
 
 @pytest.mark.integration_test
-async def test_a_policy_switched_off_grants_no_mutator(empty_db: AsyncSession) -> None:
+@pytest.mark.usefixtures("empty_db")
+async def test_a_policy_switched_off_grants_no_mutator(
+    set_auth: SetAuth,
+    declare_policy: DeclarePolicy,
+    graphapi_post: GraphAPIPost,
+    address_input: dict[str, Any],
+) -> None:
     """An inactive policy hands its write rules to nobody."""
-    empty_db.add(
-        Policy(
-            name="Unit Owner",
-            description="Allows unit owners to write in their own unit",
-            active=False,
-            role="unit_owner",
-            write_rules=[
-                PolicyWriteRule(
-                    mutator="address_create",
-                    condition="""
-                    [{
-                        "collection": "OrganisationUnit",
-                        "filter": {"uuids": [args.input.org_unit]}
-                    }]
-                    """,
-                    graphql_version=LATEST_VERSION,
-                )
+    mutation = """
+    mutation CreateAddress($input: AddressCreateInput!) {
+        address_create(input: $input) { uuid }
+    }
+    """
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Unit Owner",
+            "role": "unit_owner",
+            "active": False,
+            "write_rules": [
+                {"mutator": "address_create", "graphql_version": "VERSION_30"}
             ],
-        )
+        },
     )
-    await empty_db.flush()
+    set_auth({"reader", "unit_owner"}, BRUCE_UUID)
 
-    assert await write_policy_load_fn(
-        session=empty_db,
-        settings=Settings(),
-        get_token=token_getter_of("unit_owner"),
-        keys=[0],
-    ) == [[]]
+    assert_denied(graphapi_post(mutation, {"input": address_input}))
 
 
 async def test_a_field_which_is_no_mutator_is_rejected_without_asking() -> None:
