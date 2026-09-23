@@ -73,33 +73,52 @@ def address_input(
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 async def test_a_check_requires_everything_its_condition_names(
-    empty_db: AsyncSession,
+    set_auth: SetAuth,
+    declare_policy: DeclarePolicy,
+    graphapi_post: GraphAPIPost,
     create_org_unit: Callable[..., UUID],
-    owner_token: Token,
 ) -> None:
     """A condition naming two things holds only where both of them exist."""
-    org_unit, parent = (create_org_unit(user_key) for user_key in ("ours", "parent"))
-    condition = """
-    [
-        {"collection": "OrganisationUnit", "filter": {"uuids": [args.uuid]}},
-        {"collection": "OrganisationUnit", "filter": {"uuids": [args.parent]}}
-    ]
+    mutation = """
+    mutation UpdateOrgUnit($input: OrganisationUnitUpdateInput!) {
+        org_unit_update(input: $input) { uuid }
+    }
     """
-    checks = (
-        cel2check(
-            settings=Settings(),
-            graphql_version=LATEST_VERSION,
-            condition=condition,
-            token=owner_token,
-            args={"uuid": org_unit, "parent": parent},
-        )
-        for parent in (parent, NOT_FOUND_UUID)
+    org_unit, parent = (create_org_unit(user_key) for user_key in ("ours", "parent"))
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Unit Owner",
+            "role": "unit_owner",
+            "write_rules": [
+                {
+                    "mutator": "org_unit_update",
+                    "condition": """
+                    [
+                        {
+                            "collection": "OrganisationUnit",
+                            "filter": {"uuids": [args.input.uuid]}
+                        },
+                        {
+                            "collection": "OrganisationUnit",
+                            "filter": {"uuids": [args.input.parent]}
+                        }
+                    ]
+                    """,
+                    "graphql_version": "VERSION_30",
+                }
+            ],
+        },
     )
+    set_auth({"reader", "unit_owner"}, BRUCE_UUID)
 
-    found = [await empty_db.scalar(select(check)) for check in checks]
-
-    assert found == [True, False]
+    input = {"uuid": str(org_unit), "validity": {"from": "2000-01-01"}}
+    assert_granted(graphapi_post(mutation, {"input": {**input, "parent": str(parent)}}))
+    assert_denied(
+        graphapi_post(mutation, {"input": {**input, "parent": str(NOT_FOUND_UUID)}})
+    )
 
 
 async def test_a_check_requiring_nothing_fails(owner_token: Token) -> None:
