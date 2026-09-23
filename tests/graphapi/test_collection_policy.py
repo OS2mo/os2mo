@@ -9,21 +9,17 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
-from graphql import GraphQLError
 from more_itertools import one
 from sqlalchemy import select
 from sqlalchemy import text
 from sqlalchemy import true
 
-from mora.auth.keycloak.models import RealmAccess
-from mora.auth.keycloak.models import Token
 from mora.config import Settings
 from mora.db import AsyncSession
 from mora.db import Collection
 from mora.db import Policy
 from mora.db import PolicyReadRule
 from mora.db import PolicyReadRuleField
-from mora.graphapi.policies import cel2predicate
 from mora.graphapi.policies import policy_load_fn
 from mora.graphapi.schema import collection_policy
 from mora.graphapi.version import LATEST_VERSION
@@ -331,20 +327,37 @@ async def test_a_condition_becomes_the_clause_its_filter_names(
     assert readable == reached
 
 
-async def test_a_condition_yielding_what_the_filter_rejects_fails() -> None:
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_condition_yielding_what_the_filter_rejects_fails(
+    set_auth: SetAuth,
+    declare_policy: DeclarePolicy,
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+) -> None:
     """The map a condition yields is coerced into the collection's filter."""
-    token = Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"reader"}))
+    create_org_unit("test")
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Auditor",
+            "role": "auditor",
+            "read_rules": [
+                {
+                    "collection": "OrganisationUnit",
+                    "fields": ["name"],
+                    "condition": '{"uuids": ["not-a-uuid"]}',
+                    "graphql_version": "VERSION_30",
+                }
+            ],
+        },
+    )
+    set_auth({"reader", "auditor"}, BRUCE_UUID)
 
-    with pytest.raises(GraphQLError) as raised:
-        cel2predicate(
-            Settings(),
-            Collection.Address,
-            LATEST_VERSION,
-            '{"uuids": ["not-a-uuid"]}',
-            token,
-        )
+    response = graphapi_post("query { org_units { objects { current { name } } } }")
 
-    assert str(raised.value) == (
+    assert response.errors is not None
+    assert one(response.errors)["message"] == (
         "Invalid value 'not-a-uuid' at 'value.uuids[0]': "
         'Value cannot represent a UUID: "not-a-uuid". '
         "badly formed hexadecimal UUID string"
