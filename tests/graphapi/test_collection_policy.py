@@ -11,22 +11,13 @@ from uuid import uuid4
 import pytest
 from more_itertools import one
 
-from mora.config import Settings
-from mora.db import AsyncSession
-from mora.db import Collection
-from mora.db import Policy
-from mora.db import PolicyReadRule
-from mora.db import PolicyReadRuleField
-from mora.graphapi.policies import policy_load_fn
 from mora.graphapi.schema import collection_policy
-from mora.graphapi.version import LATEST_VERSION
 from tests.conftest import BRUCE_UUID
 from tests.conftest import DENIED
 from tests.conftest import DeclarePolicy
 from tests.conftest import GraphAPIPost
 from tests.conftest import MayRead
 from tests.conftest import SetAuth
-from tests.conftest import token_getter_of
 
 
 async def test_a_type_which_is_no_collection_is_rejected_without_asking() -> None:
@@ -413,26 +404,30 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
 
 
 @pytest.mark.integration_test
-async def test_a_policy_switched_off_grants_nothing(empty_db: AsyncSession) -> None:
+@pytest.mark.usefixtures("no_seeded_policies")
+async def test_a_policy_switched_off_grants_nothing(
+    set_auth: SetAuth,
+    declare_policy: DeclarePolicy,
+    may_read: MayRead,
+    create_org_unit: Callable[..., UUID],
+) -> None:
     """The rules of an inactive policy are left where they are, unread."""
-    empty_db.add(
-        Policy(
-            name="auditor",
-            description="Reads the uuid of addresses, were it active",
-            role="auditor",
-            active=False,
-            read_rules=[
-                PolicyReadRule(
-                    collection=Collection.Address,
-                    condition="true",
-                    graphql_version=LATEST_VERSION,
-                    fields=[PolicyReadRuleField(field="uuid")],
-                )
+    org_unit = create_org_unit("test")
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Auditor",
+            "role": "auditor",
+            "active": False,
+            "read_rules": [
+                {
+                    "collection": "OrganisationUnit",
+                    "fields": ["uuid"],
+                    "graphql_version": "VERSION_30",
+                }
             ],
-        )
+        },
     )
-    await empty_db.flush()
+    set_auth({"reader", "auditor"}, BRUCE_UUID)
 
-    assert await policy_load_fn(
-        empty_db, Settings(), token_getter_of("auditor"), [0]
-    ) == [[]]
+    assert not may_read("org_units", org_unit, "uuid")

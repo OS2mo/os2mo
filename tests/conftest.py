@@ -182,17 +182,6 @@ def admin_token_getter() -> Callable[[], Awaitable[Token]]:
     return get_fake_admin_token
 
 
-def token_getter_of(*roles: str) -> Callable[[], Awaitable[Token]]:
-    """Get a callable returning a token carrying *roles* and nothing else."""
-
-    async def get_fake_token() -> Token:
-        auth = await fake_auth()
-        auth.realm_access.roles = set(roles)
-        return auth
-
-    return get_fake_token
-
-
 SetAuth = Callable[[str | Collection[str] | None, UUID | str | None, str], None]
 SetPolicies = Callable[[list[Policy]], None]
 
