@@ -62,6 +62,12 @@ async def org_func_registration_count(session: AsyncSession) -> None:
     funktionsnavn_column = type_coerce(
         OrganisationFunktionAttrEgenskaber.funktionsnavn, Text
     )
+
+    # SELECT
+    #     funktionsnavn,
+    #     COUNT(organisationfunktion_registrering_id)
+    # FROM organisationfunktion_attr_egenskaber
+    # GROUP BY funktionsnavn
     query = select(
         funktionsnavn_column,
         func.count(
@@ -191,6 +197,8 @@ async def max_registrations_on_object_24h(session: AsyncSession) -> None:
 async def object_registrations_count(session: AsyncSession) -> None:
     """Count registrations of every other LoRa object, one type at a time."""
     for lora_object in LORA_OBJECTS:
+        # SELECT COUNT(*)
+        # FROM <lora_object>_registrering
         query = select(func.count()).select_from(table(f"{lora_object}_registrering"))
         result = await session.execute(query)
         registrations = result.scalar_one()
