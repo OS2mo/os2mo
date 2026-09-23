@@ -216,64 +216,78 @@ async def test_a_condition_deciding_by_itself_becomes_the_answer_it_gives(
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 async def test_the_write_rules_of_the_callers_policies_are_loaded(
-    empty_db: AsyncSession,
+    set_auth: SetAuth,
+    declare_policy: DeclarePolicy,
+    graphapi_post: GraphAPIPost,
+    address_input: dict[str, Any],
 ) -> None:
     """The caller gets the rules of the policies of the roles it carries."""
-    condition = """
-    [{
-        "collection": "OrganisationUnit",
-        "filter": {"uuids": [args.input.org_unit]}
-    }]
+    address_create = """
+    mutation CreateAddress($input: AddressCreateInput!) {
+        address_create(input: $input) { uuid }
+    }
     """
-    empty_db.add_all(
-        [
-            Policy(
-                name="Unit Owner",
-                description="Allows unit owners to write in their own unit",
-                active=True,
-                role="unit_owner",
-                write_rules=[
-                    PolicyWriteRule(
-                        mutator="address_create",
-                        condition=condition,
-                        graphql_version=LATEST_VERSION,
-                    ),
-                    PolicyWriteRule(
-                        mutator="ituser_create",
-                        condition=condition,
-                        graphql_version=LATEST_VERSION,
-                    ),
-                ],
-            ),
-            Policy(
-                name="Class Writer",
-                description="Allows class writers to create classes",
-                active=True,
-                role="class_writer",
-                write_rules=[
-                    PolicyWriteRule(
-                        mutator="class_create",
-                        condition="true",
-                        graphql_version=LATEST_VERSION,
-                    )
-                ],
-            ),
-        ]
+    org_unit_update = """
+    mutation UpdateOrgUnit($input: OrganisationUnitUpdateInput!) {
+        org_unit_update(input: $input) { uuid }
+    }
+    """
+    class_create = """
+    mutation CreateClass($input: ClassCreateInput!) {
+        class_create(input: $input) { uuid }
+    }
+    """
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Unit Owner",
+            "role": "unit_owner",
+            "write_rules": [
+                {"mutator": "address_create", "graphql_version": "VERSION_30"},
+                {"mutator": "org_unit_update", "graphql_version": "VERSION_30"},
+            ],
+        },
     )
-    await empty_db.flush()
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Class Writer",
+            "role": "class_writer",
+            "write_rules": [
+                {"mutator": "class_create", "graphql_version": "VERSION_30"}
+            ],
+        },
+    )
+    set_auth({"reader", "unit_owner"}, BRUCE_UUID)
 
-    rules = one(
-        await write_policy_load_fn(
-            session=empty_db,
-            settings=Settings(),
-            get_token=token_getter_of("unit_owner"),
-            keys=[0],
+    assert_granted(graphapi_post(address_create, {"input": address_input}))
+    assert_granted(
+        graphapi_post(
+            org_unit_update,
+            {
+                "input": {
+                    "uuid": address_input["org_unit"],
+                    "name": "renamed",
+                    "validity": {"from": "2000-01-01"},
+                }
+            },
         )
     )
-
-    assert {rule.mutator for rule in rules} == {"address_create", "ituser_create"}
-    assert {rule.role for rule in rules} == {"unit_owner"}
+    assert_denied(
+        graphapi_post(
+            class_create,
+            {
+                "input": {
+                    "facet_uuid": str(uuid4()),
+                    "user_key": "writer",
+                    "name": "Writer",
+                    "validity": {"from": "2000-01-01"},
+                }
+            },
+        )
+    )
 
 
 @pytest.mark.integration_test
