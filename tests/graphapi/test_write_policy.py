@@ -3,7 +3,6 @@
 """Testing the write policy."""
 
 from collections.abc import Callable
-from textwrap import dedent
 from types import SimpleNamespace
 from typing import Any
 from uuid import UUID
@@ -12,7 +11,6 @@ from uuid import uuid4
 import pytest
 from graphql import GraphQLError
 from more_itertools import one
-from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy import text
 
@@ -131,6 +129,11 @@ async def test_a_check_requires_everything_its_condition_names(
             '[{"collection": "Nonsense", "filter": {}}]',
             "__root__ -> 0 -> collection\n  value is not a valid enumeration member",
         ),
+        # A condition yields a list, one entry per thing the mutator requires
+        (
+            '{"collection": "OrganisationUnit", "filter": {}}',
+            "__root__\n  value is not a valid list",
+        ),
     ],
 )
 @pytest.mark.usefixtures("empty_db")
@@ -214,25 +217,6 @@ async def test_a_condition_deciding_by_itself_becomes_the_answer_it_gives(
     set_auth({"reader", "unit_owner"}, BRUCE_UUID)
 
     assert_decided(graphapi_post(mutation, {"input": address_input}))
-
-
-async def test_a_check_yielding_one_condition_alone_fails(owner_token: Token) -> None:
-    """A condition yields a list, one entry per thing the mutator requires."""
-    with pytest.raises(ValidationError) as raised:
-        cel2check(
-            settings=Settings(),
-            graphql_version=LATEST_VERSION,
-            condition='{"collection": "OrganisationUnit", "filter": {}}',
-            token=owner_token,
-            args={},
-        )
-
-    assert str(raised.value) == dedent(
-        """\
-        1 validation error for ParsingModel[list[mora.graphapi.policies.WriteCondition]]
-        __root__
-          value is not a valid list (type=type_error.list)"""
-    )
 
 
 async def test_a_check_yielding_what_the_filter_rejects_fails(
