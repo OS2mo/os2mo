@@ -190,32 +190,56 @@ async def test_a_check_negates_the_whole_of_what_its_not_holds(
     assert found == [False, False, True]
 
 
+@pytest.mark.integration_test
 @pytest.mark.parametrize(
-    "condition,loc",
+    "condition,error",
     [
-        ('{"or": []}', ("__root__", "or")),
-        ('{"and": []}', ("__root__", "and")),
+        # Allowing or denying outright is what true and false are for
+        (
+            '{"or": []}',
+            "__root__ -> or\n  ensure this value has at least 1 items",
+        ),
+        (
+            '{"and": []}',
+            "__root__ -> and\n  ensure this value has at least 1 items",
+        ),
     ],
 )
-async def test_a_check_requiring_nothing_fails(
-    condition: str, loc: tuple[str, ...], owner_token: Token
+@pytest.mark.usefixtures("empty_db")
+async def test_a_condition_yielding_no_check_fails_the_mutator(
+    condition: str,
+    error: str,
+    set_auth: SetAuth,
+    declare_policy: DeclarePolicy,
+    graphapi_post: GraphAPIPost,
+    address_input: dict[str, Any],
 ) -> None:
-    """A condition deciding outright yields true or false, not an empty or/and."""
-    with pytest.raises(ValidationError) as raised:
-        cel2check(
-            settings=Settings(),
-            graphql_version=LATEST_VERSION,
-            condition=condition,
-            token=owner_token,
-            args={},
-        )
+    """A condition yielding what cannot be checked fails the mutator, saying why."""
+    mutation = """
+    mutation CreateAddress($input: AddressCreateInput!) {
+        address_create(input: $input) { uuid }
+    }
+    """
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Unit Owner",
+            "selectors": [{"kind": "role", "value": "unit_owner"}],
+            "write_rules": [
+                {
+                    "mutator": "address_create",
+                    "condition": condition,
+                    "graphql_version": "VERSION_30",
+                }
+            ],
+        },
+    )
+    set_auth({"reader", "unit_owner"}, BRUCE_UUID)
 
-    assert {
-        "loc": loc,
-        "msg": "ensure this value has at least 1 items",
-        "type": "value_error.list.min_items",
-        "ctx": {"limit_value": 1},
-    } in raised.value.errors()
+    response = graphapi_post(mutation, {"input": address_input})
+
+    assert response.errors is not None
+    assert error in one(response.errors)["message"]
 
 
 async def test_a_check_yielding_two_shapes_at_once_fails(owner_token: Token) -> None:
