@@ -17,6 +17,9 @@ from mora.graphapi.gmodels.mo import Validity as RAValidity
 
 from .events import EventToken
 from .events import ListenerFilter
+from .graphql_utils import Field
+from .graphql_utils import MutatorName
+from .graphql_utils import Role
 from .models import AddressCreate
 from .models import AddressTerminate
 from .models import AddressUpdate
@@ -63,6 +66,9 @@ from .models import RoleBindingCreate
 from .models import RoleBindingTerminate
 from .models import RoleBindingUpdate
 from .models import Validity
+from .policy_api import Collection
+from .policy_cel import CEL
+from .version import Version
 
 
 def gen_uuid_unset(uuid: UUID | UnsetType | None) -> dict[str, str] | UnsetType | None:
@@ -857,3 +863,73 @@ class EventRerunInput:
     subjects: list[str] | None = None
     priorities: list[int] | None = None
     silenced: bool | None = None
+
+
+# Policies
+# --------
+
+
+@strawberry.input(
+    description="Grants conditional access to the specified fields on a collection."
+)
+class PolicyReadRuleInput:
+    collection: Collection = strawberry.field(
+        description="The collection to grant field access on."
+    )
+    fields: list[Field] = strawberry.field(description="The fields to grant.")
+    condition: CEL = strawberry.field(
+        default=CEL("true"),
+        description=dedent(
+            """\
+            CEL expression evaluating to either a boolean, or a filter naming the
+            entities to grant the fields on.
+
+            `true`, the default, grants the fields of every entity. `false` grants nothing.
+            """
+        ),
+    )
+    graphql_version: Version = strawberry.field(
+        description="The GraphQL version the condition filter is written in."
+    )
+
+
+@strawberry.input(description="Grants conditional access to the specified mutator.")
+class PolicyWriteRuleInput:
+    mutator: MutatorName = strawberry.field(description="The mutator to grant.")
+    condition: CEL = strawberry.field(
+        default=CEL("true"),
+        description=dedent(
+            """\
+            CEL expression evaluating to either a boolean, or a list of
+            `{collection, filter}` maps naming what must exist for the mutator to be
+            granted.
+
+            `true`, the default, grants the mutator outright. `false` grants nothing.
+            """
+        ),
+    )
+    graphql_version: Version = strawberry.field(
+        description="The GraphQL version the condition filters are written in."
+    )
+
+
+@strawberry.input(description="The desired state of a policy.")
+class PolicyStateInput:
+    name: str = strawberry.field(description="Unique name of the policy.")
+    role: Role = strawberry.field(description="The role which activates the policy.")
+    description: str = strawberry.field(
+        default="", description="Description of the policy."
+    )
+    active: bool = strawberry.field(
+        default=True,
+        description=(
+            "Whether the policy is active. "
+            "Inactive policies are not considered for access control."
+        ),
+    )
+    read_rules: list[PolicyReadRuleInput] = strawberry.field(
+        default_factory=list, description="The collections the policy grants access to."
+    )
+    write_rules: list[PolicyWriteRuleInput] = strawberry.field(
+        default_factory=list, description="The mutators the policy grants access to."
+    )

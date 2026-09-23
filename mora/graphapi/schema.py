@@ -67,9 +67,11 @@ from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.owner_entities import OWNER_ENTITIES
+from mora.graphapi.policy_cel import CEL
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
+from mora.graphapi.types import CEL_SCALAR
 from mora.graphapi.types import CPR_SCALAR
 from mora.graphapi.types import CURSOR_SCALAR
 from mora.graphapi.types import INT_SCALAR
@@ -424,6 +426,7 @@ def get_schema(version: Version) -> CustomSchema:
             # Additionally, it preserves the naming of the underlying Python functions.
             auto_camel_case=False,
             scalar_map={
+                CEL: CEL_SCALAR,
                 CPR: CPR_SCALAR,
                 Cursor: CURSOR_SCALAR,
                 EventToken: EVENT_TOKEN_SCALAR,

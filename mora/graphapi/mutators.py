@@ -3,15 +3,18 @@
 import asyncio
 import logging
 from datetime import datetime
+from enum import StrEnum
 from textwrap import dedent
 from typing import Annotated
 from typing import Any
 from typing import cast
 from uuid import UUID
 
+import psycopg
 import sqlalchemy
 import strawberry
 from fastramqpi.ra_utils.asyncio_utils import gather_with_concurrency
+from more_itertools import one
 from sqlalchemy import delete
 from sqlalchemy import select
 from sqlalchemy import update
@@ -146,6 +149,7 @@ from .inputs import OrganisationUnitUpdateInput
 from .inputs import OwnerCreateInput
 from .inputs import OwnerTerminateInput
 from .inputs import OwnerUpdateInput
+from .inputs import PolicyStateInput
 from .inputs import RelatedUnitsUpdateInput
 from .inputs import RoleBindingCreateInput
 from .inputs import RoleBindingTerminateInput
@@ -185,6 +189,8 @@ from .owner import update_owner
 from .paged import CursorType
 from .paged import LimitType
 from .paged import Paged
+from .policy_api import Policy
+from .policy_api import load_policies
 from .related_units import update_related_units
 from .resolvers import address_resolver
 from .resolvers import association_resolver
@@ -1775,6 +1781,89 @@ class Mutation:
             for result in results
         ]
 
+    # Policies
+    # --------
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Declare a policy.
+
+            Declaring a policy brings it to the desired state: either a state to upsert
+            the policy to, or null for the policy not to exist.
+
+            Managed policies cannot be modified.
+            """
+        ),
+    )
+    async def policy_declare(
+        self,
+        info: MOInfo,
+        uuid: UUID,
+        state: Annotated[
+            PolicyStateInput | None,
+            strawberry.argument(
+                description="The desired state of the policy, or null for it not to exist."
+            ),
+        ] = None,
+    ) -> Policy | None:
+        session: AsyncSession = info.context.session
+        policy = await session.get(db.Policy, uuid)
+        if policy is not None:
+            if policy.managed:
+                raise ValueError("A managed policy cannot be modified.")
+            await session.delete(policy)
+            # Ensure re-adding the same UUID becomes a create, not
+            # update-in-place keeping rules
+            await session.flush()
+        if state is None:
+            return None
+
+        session.add(
+            db.Policy(
+                pk=uuid,
+                name=state.name,
+                description=state.description,
+                active=state.active,
+                role=state.role,
+                read_rules=[
+                    db.PolicyReadRule(
+                        collection=rule.collection,
+                        condition=rule.condition,
+                        graphql_version=rule.graphql_version,
+                        fields=[
+                            db.PolicyReadRuleField(field=field) for field in rule.fields
+                        ],
+                    )
+                    for rule in state.read_rules
+                ],
+                write_rules=[
+                    db.PolicyWriteRule(
+                        mutator=rule.mutator,
+                        condition=rule.condition,
+                        graphql_version=rule.graphql_version,
+                    )
+                    for rule in state.write_rules
+                ],
+            )
+        )
+        try:
+            await session.flush()
+        except sqlalchemy.exc.IntegrityError as error:
+            assert isinstance(error.orig, psycopg.Error)
+            constraint = error.orig.diag.constraint_name
+            if constraint == "policy_name_key":
+                raise ValueError(
+                    f"There is another policy named {state.name!r}."
+                ) from error
+            # Each field of a read rule is a row keyed by the rule and the field
+            if constraint == "policy_read_rule_field_pkey":
+                raise ValueError(
+                    "A read rule cannot name a field more than once."
+                ) from error
+            raise  # pragma: no cover
+        return one(await load_policies(session, [uuid]))
+
     # Files
     # -----
     @strawberry.mutation(
@@ -1842,6 +1931,22 @@ class Mutation:
         )
 
         return "OK"
+
+
+# Each mutator by name, following the mutators as they are added
+Mutator = strawberry.enum(
+    cast(
+        type[StrEnum],
+        StrEnum(
+            "Mutator",
+            {
+                field.name: field.name
+                for field in Mutation.__strawberry_definition__.fields
+            },
+        ),
+    ),
+    description="A mutator a write rule may grant.",
+)
 
 
 async def delete_bruger(uuid: UUID) -> UUID:

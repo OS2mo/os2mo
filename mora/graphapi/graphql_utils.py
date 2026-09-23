@@ -3,10 +3,15 @@
 import re
 import string
 from datetime import datetime
+from typing import TYPE_CHECKING
+from typing import Annotated
 from typing import Any
+from typing import ForwardRef
 from typing import NamedTuple
+from typing import TypeAlias
 from uuid import UUID
 
+import strawberry
 from pydantic import ConstrainedStr
 from strawberry.types.unset import UnsetType
 
@@ -35,12 +40,25 @@ class CprNo(ConstrainedStr):
     regex = re.compile(r"^\d{10}$")
 
 
+# OIDC token role
+Role: TypeAlias = str
+# GraphQL field
+Field: TypeAlias = str
+# GraphQL mutator, as the enum generated from the mutators, which mypy cannot follow
+if TYPE_CHECKING:
+    MutatorName: TypeAlias = str
+else:
+    MutatorName = Annotated[
+        ForwardRef("Mutator"), strawberry.lazy("mora.graphapi.mutators")
+    ]
+
+
 class AccessKey(NamedTuple):
     """A field access request."""
 
     collection: Collection
     uuid: UUID
-    field: str
+    field: Field
 
 
 class WriteKey(NamedTuple):

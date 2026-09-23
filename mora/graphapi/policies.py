@@ -9,7 +9,6 @@ from collections.abc import Sequence
 from functools import partial
 from typing import Any
 from typing import NamedTuple
-from typing import TypeAlias
 from typing import get_type_hints
 from uuid import UUID
 
@@ -55,15 +54,12 @@ from mora.graphapi import policy_cel
 from mora.graphapi import resolvers
 from mora.graphapi.custom_schema import CustomSchema
 from mora.graphapi.graphql_utils import AccessKey
+from mora.graphapi.graphql_utils import Field
+from mora.graphapi.graphql_utils import Role
 from mora.graphapi.graphql_utils import WriteKey
 from mora.graphapi.policy_cel import CEL
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import Version
-
-# OIDC token role
-Role: TypeAlias = str
-# GraphQL field
-Field: TypeAlias = str
 
 
 class Rule(NamedTuple):
@@ -181,11 +177,10 @@ def cel2predicate(
     token: Token,
 ) -> ColumnElement[bool]:
     """Evaluate the CEL condition into a filter, and the filter into a clause."""
-    # No condition -> applies to all entities
-    if not condition:
-        return true()
-    filter = policy_cel.evaluate(condition, token, {})
-    return filter2predicate(settings, collection, graphql_version, filter)
+    yielded = policy_cel.evaluate(condition, token, {})
+    if isinstance(yielded, bool):
+        return true() if yielded else false()
+    return filter2predicate(settings, collection, graphql_version, yielded)
 
 
 def cel2check(
@@ -196,9 +191,6 @@ def cel2check(
     args: dict[str, Any],
 ) -> ColumnElement[bool]:
     """Evaluate the CEL condition into a check that everything it names exists."""
-    # No condition -> nothing has to exist
-    if not condition:
-        return true()
     yielded = policy_cel.evaluate(condition, token, args)
     if isinstance(yielded, bool):
         return true() if yielded else false()
