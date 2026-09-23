@@ -4,10 +4,12 @@ from prometheus_client import Gauge
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_fastapi_instrumentator.metrics import Info
 from sqlalchemy import Text
+from sqlalchemy import column
 from sqlalchemy import distinct
 from sqlalchemy import func
 from sqlalchemy import select
 from sqlalchemy import table
+from sqlalchemy import text
 from sqlalchemy import type_coerce
 
 import mora.db
@@ -37,6 +39,19 @@ LORA_OBJECTS = tuple(
     for lora_object in REAL_DB_STRUCTURE
     if lora_object != "organisationfunktion"
 )
+
+# Organisation functions have their own metric, labelled by funktionsnavn. The
+# other objects have no such subdivision, so they get one metric each rather
+# than a label nobody would filter on.
+METRICS_MAX_REGISTRATIONS_ON_OBJECT_24H = {
+    lora_object: Gauge(
+        f"os2mo_max_registrations_on_object_24h_"
+        f"{_lora_to_mo.get(lora_object, lora_object)}",
+        f"Highest number of registrations on a single {lora_object} within the "
+        "last day",
+    )
+    for lora_object in LORA_OBJECTS
+}
 
 
 async def org_func_registration_count(session: AsyncSession) -> None:
@@ -134,6 +149,45 @@ async def max_registrations_on_object_24h_org_func(session: AsyncSession) -> Non
         )
 
 
+async def max_registrations_on_object_24h(session: AsyncSession) -> None:
+    """
+    Find the most edited object in the latest 24h of each type, one type at a time.
+
+    A high value means a single object is being rewritten over and over, which
+    is usually an integration looping rather than genuine editing.
+    """
+    for lora_object, metric in METRICS_MAX_REGISTRATIONS_ON_OBJECT_24H.items():
+        # Count the registrations of each object and keep the busiest one.
+        #
+        # SELECT COUNT(*) AS c
+        # FROM <lora_object>_registrering
+        # WHERE LOWER((registrering).timeperiod) > NOW() - INTERVAL '1 day'
+        # GROUP BY <lora_object>_id
+        # ORDER BY c DESC
+        # LIMIT 1
+        #
+        # Keep the indexed `lower((registrering).timeperiod)` alone on one side
+        # of the comparison. Written as `now() - lower(...) < interval` instead,
+        # the expression index is unusable and this becomes a full table scan.
+        count = func.count().label("c")
+        query = (
+            select(count)
+            .select_from(table(f"{lora_object}_registrering"))
+            .where(
+                func.lower(text("(registrering).timeperiod"))
+                > func.now() - func.make_interval(days=1)
+            )
+            .group_by(column(f"{lora_object}_id"))
+            .order_by(count.desc())
+            .limit(1)
+        )
+
+        result = await session.execute(query)
+        # Nothing registered within the last day leaves no row at all, but the
+        # dataseries should go to zero rather than carry the previous value.
+        metric.set(result.scalar_one_or_none() or 0)
+
+
 async def object_registrations_count(session: AsyncSession) -> None:
     """Count registrations of every other LoRa object, one type at a time."""
     for lora_object in LORA_OBJECTS:
@@ -167,6 +221,7 @@ async def registration_count(info: Info) -> None:
         await org_func_registration_count(session)
         await object_registrations_count(session)
         await max_registrations_on_object_24h_org_func(session)
+        await max_registrations_on_object_24h(session)
 
 
 def setup_registration_metrics(instrumentator: Instrumentator) -> None:
