@@ -22,7 +22,6 @@ from mora.auth.keycloak.models import Token
 from mora.config import Settings
 from mora.db import AsyncSession
 from mora.db import Collection
-from mora.db import OrganisationFunktionRegistrering
 from mora.db import Policy
 from mora.db import PolicyReadRule
 from mora.db import PolicyReadRuleField
@@ -264,17 +263,19 @@ async def test_a_condition_unknown_of_an_object_grants_nothing_on_it(
         ),
     ],
 )
+@pytest.mark.usefixtures("no_seeded_policies")
 async def test_a_condition_becomes_the_clause_its_filter_names(
     condition: str,
     reached: set[str],
-    empty_db: AsyncSession,
+    set_auth: SetAuth,
+    declare_policy: DeclarePolicy,
+    may_read: MayRead,
     create_person: Callable[[dict[str, Any] | None], UUID],
     create_facet: Callable[[dict[str, Any]], UUID],
     create_class: Callable[[dict[str, Any]], UUID],
     create_address: Callable[[dict[str, Any]], UUID],
 ) -> None:
     """A condition reaches the objects its filter names, evaluated on the token."""
-    token = await token_getter_of("reader")()
     caller = create_person(
         {"given_name": "Bruce", "surname": "Lee", "uuid": str(BRUCE_UUID)}
     )
@@ -309,15 +310,30 @@ async def test_a_condition_becomes_the_clause_its_filter_names(
             (caller, phone, "11111111"),
         )
     }
-    clause = cel2predicate(
-        Settings(), Collection.Address, LATEST_VERSION, condition, token
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Reader",
+            "role": "reader",
+            "read_rules": [
+                {
+                    "collection": "Address",
+                    "fields": ["value"],
+                    "condition": condition,
+                    "graphql_version": "VERSION_30",
+                }
+            ],
+        },
     )
+    set_auth("reader", BRUCE_UUID)
 
-    rows = await empty_db.scalars(
-        select(OrganisationFunktionRegistrering.uuid).where(clause)
-    )
+    readable = {
+        value
+        for value, uuid in addresses.items()
+        if may_read("addresses", uuid, "value")
+    }
 
-    assert set(rows) == {addresses[value] for value in reached}
+    assert readable == reached
 
 
 async def test_a_condition_yielding_what_the_filter_rejects_fails() -> None:
