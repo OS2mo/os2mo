@@ -10,6 +10,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import Text
 from sqlalchemy import TypeDecorator
+from sqlalchemy import false
 from sqlalchemy import text
 from sqlalchemy.engine import Dialect
 from sqlalchemy.orm import Mapped
@@ -46,6 +47,7 @@ class Policy(Base):
     description: Mapped[str] = mapped_column(Text)
     active: Mapped[bool] = mapped_column(Boolean)
     role: Mapped[str] = mapped_column(Text, index=True)
+    managed: Mapped[bool] = mapped_column(Boolean, server_default=false())
 
     # The database cascades deleting a policy to its rules
     read_rules: Mapped[list["PolicyReadRule"]] = relationship(
