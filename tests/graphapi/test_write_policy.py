@@ -20,7 +20,6 @@ from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.config import Settings
 from mora.db import AsyncSession
-from mora.db import Collection
 from mora.db import Policy
 from mora.db import PolicyWriteRule
 from mora.graphapi.policies import cel2check
@@ -127,6 +126,11 @@ async def test_a_check_requires_everything_its_condition_names(
     [
         # Allowing or denying outright is what true and false are for
         ("[]", "condition '[]' requires nothing, yield true or false instead"),
+        # A collection no rule can reach
+        (
+            '[{"collection": "Nonsense", "filter": {}}]',
+            "__root__ -> 0 -> collection\n  value is not a valid enumeration member",
+        ),
     ],
 )
 @pytest.mark.usefixtures("empty_db")
@@ -210,27 +214,6 @@ async def test_a_condition_deciding_by_itself_becomes_the_answer_it_gives(
     set_auth({"reader", "unit_owner"}, BRUCE_UUID)
 
     assert_decided(graphapi_post(mutation, {"input": address_input}))
-
-
-async def test_a_check_of_an_unknown_collection_fails(owner_token: Token) -> None:
-    """A condition naming a collection no rule can reach is an error."""
-    with pytest.raises(ValidationError) as raised:
-        cel2check(
-            settings=Settings(),
-            graphql_version=LATEST_VERSION,
-            condition='[{"collection": "Nonsense", "filter": {}}]',
-            token=owner_token,
-            args={},
-        )
-
-    permitted = ", ".join(repr(collection.value) for collection in Collection)
-    enum_values = ", ".join(repr(collection) for collection in Collection)
-    assert str(raised.value) == dedent(
-        f"""\
-        1 validation error for ParsingModel[list[mora.graphapi.policies.WriteCondition]]
-        __root__ -> 0 -> collection
-          value is not a valid enumeration member; permitted: {permitted} (type=type_error.enum; enum_values=[{enum_values}])"""
-    )
 
 
 async def test_a_check_yielding_one_condition_alone_fails(owner_token: Token) -> None:
