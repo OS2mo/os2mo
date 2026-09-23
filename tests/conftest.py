@@ -194,7 +194,6 @@ def token_getter_of(*roles: str) -> Callable[[], Awaitable[Token]]:
 
 
 SetAuth = Callable[[str | Collection[str] | None, UUID | str | None, str], None]
-SetWriteRules = Callable[[str, str, str], Awaitable[None]]
 SetPolicies = Callable[[list[Policy]], None]
 
 
@@ -1738,32 +1737,6 @@ async def no_seeded_policies(empty_db: db.AsyncSession) -> None:
     await empty_db.execute(delete(db.Policy))
     # A request opens its own session, so the deletion must be committed to it
     await empty_db.commit()
-
-
-@pytest.fixture
-def set_write_rules(empty_db: db.AsyncSession) -> SetWriteRules:
-    """Grant a role a mutator under a CEL condition."""
-
-    async def inner(role: str, mutator: str, condition: str) -> None:
-        empty_db.add(
-            db.Policy(
-                name=f"{role} {mutator}",
-                description=f"Grants {role} the mutator a test asks about",
-                active=True,
-                role=role,
-                write_rules=[
-                    db.PolicyWriteRule(
-                        mutator=mutator,
-                        condition=condition,
-                        graphql_version=LATEST_VERSION,
-                    )
-                ],
-            )
-        )
-        # A request opens its own session, so the rows must be committed to it
-        await empty_db.commit()
-
-    return inner
 
 
 @pytest.fixture

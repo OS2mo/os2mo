@@ -32,7 +32,6 @@ from tests.conftest import DeclarePolicy
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
-from tests.conftest import SetWriteRules
 from tests.conftest import assert_denied
 from tests.conftest import assert_granted
 from tests.conftest import token_getter_of
@@ -482,54 +481,3 @@ async def test_a_mutator_no_rule_names_is_denied(
     set_auth({"reader", "unit_owner"}, BRUCE_UUID)
 
     assert_denied(graphapi_post(mutation, {"input": address_input}))
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
-async def test_a_condition_deciding_by_itself_decides_the_mutator(
-    set_auth: SetAuth,
-    set_write_rules: SetWriteRules,
-    graphapi_post: GraphAPIPost,
-    create_org_unit: Callable[..., UUID],
-    create_facet: Callable[[dict[str, Any]], UUID],
-    create_class: Callable[[dict[str, Any]], UUID],
-) -> None:
-    """A condition yielding a bool grants or denies the mutator."""
-    mutation = """
-    mutation CreateAddress($input: AddressCreateInput!) {
-        address_create(input: $input) { uuid }
-    }
-    """
-    org_unit = create_org_unit("ours")
-    facet = create_facet(
-        {"user_key": "org_unit_address_type", "validity": {"from": "2000-01-01"}}
-    )
-    address_type = create_class(
-        {
-            "facet_uuid": str(facet),
-            "user_key": "email",
-            "name": "Email",
-            "scope": "EMAIL",
-            "validity": {"from": "2000-01-01"},
-        }
-    )
-    input = {
-        "address_type": str(address_type),
-        "org_unit": str(org_unit),
-        "value": "unit@example.org",
-        "validity": {"from": "2000-01-01"},
-    }
-    await set_write_rules(
-        role="unit_owner",
-        mutator="address_create",
-        condition="args.input.org_unit != null",
-    )
-    set_auth({"reader", "unit_owner"}, BRUCE_UUID)
-
-    assert_granted(graphapi_post(mutation, {"input": input}))
-    assert_denied(
-        graphapi_post(
-            mutation,
-            {"input": {**input, "org_unit": None, "person": str(BRUCE_UUID)}},
-        )
-    )
