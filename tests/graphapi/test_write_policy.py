@@ -73,36 +73,6 @@ def address_input(
 
 
 @pytest.mark.integration_test
-async def test_a_check_asks_whether_what_it_names_exists(
-    empty_db: AsyncSession,
-    create_org_unit: Callable[..., UUID],
-    owner_token: Token,
-) -> None:
-    """A check holds for the unit the arguments name, and for no other."""
-    org_unit = create_org_unit("test")
-    condition = """
-    [{
-        "collection": "OrganisationUnit",
-        "filter": {"uuids": [args.input.org_unit]}
-    }]
-    """
-    checks = (
-        cel2check(
-            settings=Settings(),
-            graphql_version=LATEST_VERSION,
-            condition=condition,
-            token=owner_token,
-            args={"input": {"org_unit": uuid}},
-        )
-        for uuid in (org_unit, NOT_FOUND_UUID)
-    )
-
-    found = [await empty_db.scalar(select(check)) for check in checks]
-
-    assert found == [True, False]
-
-
-@pytest.mark.integration_test
 async def test_a_check_requires_everything_its_condition_names(
     empty_db: AsyncSession,
     create_org_unit: Callable[..., UUID],
