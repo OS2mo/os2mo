@@ -12,8 +12,6 @@ from uuid import uuid4
 import pytest
 from graphql import GraphQLError
 from more_itertools import one
-from sqlalchemy import Boolean
-from sqlalchemy import literal
 from sqlalchemy import select
 from sqlalchemy import text
 from sqlalchemy import true
@@ -39,13 +37,9 @@ from tests.conftest import BRUCE_UUID
 from tests.conftest import DENIED
 from tests.conftest import DeclarePolicy
 from tests.conftest import GraphAPIPost
+from tests.conftest import MayRead
 from tests.conftest import SetAuth
 from tests.conftest import token_getter_of
-
-
-async def fake_policy_loader(rules: list[Rule], keys: list[int]) -> list[list[Rule]]:
-    """Stand in for `policy_load_fn`, for rules whose condition no row can hold."""
-    return [rules for _ in keys]
 
 
 async def test_a_type_which_is_no_collection_is_rejected_without_asking() -> None:
@@ -154,67 +148,95 @@ async def test_an_object_gets_the_fields_of_every_rule_matching_it(
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("no_seeded_policies")
 async def test_a_condition_unknown_of_an_object_grants_nothing_on_it(
-    empty_db: AsyncSession,
+    set_auth: SetAuth,
+    declare_policy: DeclarePolicy,
+    graphapi_post: GraphAPIPost,
+    may_read: MayRead,
+    create_person: Callable[[dict[str, Any] | None], UUID],
     create_org_unit: Callable[..., UUID],
-    create_facet: Callable[[dict[str, Any]], UUID],
-    create_class: Callable[[dict[str, Any]], UUID],
-    create_address: Callable[[dict[str, Any]], UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    create_itsystem: Callable[[dict[str, Any]], UUID],
+    create_ituser: Callable[[dict[str, Any]], UUID],
 ) -> None:
     """A rule grants its fields where its condition is true, not where it is unknown.
 
     SQL is three-valued: a condition touching a NULL is NULL of an object, and
     NULL is not a grant. Alone, such a rule denies; beside a rule that does match
     the object, the disjunction of the two is true and the fields are granted.
+
+    Clearing the engagements of an IT user relates it to an engagement of no uuid,
+    so whether an IT user names an engagement is NULL of every engagement.
     """
+    mutation = """
+    mutation ClearEngagements($input: ITUserUpdateInput!) {
+        ituser_update(input: $input) { uuid }
+    }
+    """
+    person = create_person(None)
     org_unit = create_org_unit("test")
-    facet = create_facet(
-        {"user_key": "org_unit_address_type", "validity": {"from": "2000-01-01"}}
-    )
-    address_type = create_class(
-        {
-            "facet_uuid": str(facet),
-            "user_key": "email",
-            "name": "Email",
-            "scope": "EMAIL",
-            "validity": {"from": "2000-01-01"},
-        }
-    )
     matched, unmatched = (
-        create_address(
+        create_engagement(
             {
-                "address_type": str(address_type),
+                "user_key": user_key,
+                "engagement_type": str(uuid4()),
+                "job_function": str(uuid4()),
                 "org_unit": str(org_unit),
-                "value": value,
+                "person": str(person),
                 "validity": {"from": "2000-01-01"},
             }
         )
-        for value in ("first@example.org", "second@example.org")
+        for user_key in ("matched", "unmatched")
     )
-    rules = [
-        Rule(
-            role="reader",
-            collection=Collection.Address,
-            condition=literal(None, Boolean),
-            fields=frozenset({"value"}),
-        ),
-        Rule(
-            role="reader",
-            collection=Collection.Address,
-            condition=OrganisationFunktionRegistrering.organisationfunktion_id
-            == matched,
-            fields=frozenset({"value"}),
-        ),
-    ]
+    itsystem = create_itsystem(
+        {"user_key": "AD", "name": "AD", "validity": {"from": "2000-01-01"}}
+    )
+    ituser = create_ituser(
+        {
+            "user_key": "cleared",
+            "itsystem": str(itsystem),
+            "person": str(person),
+            "validity": {"from": "2000-01-01"},
+        }
+    )
+    response = graphapi_post(
+        mutation,
+        {
+            "input": {
+                "uuid": str(ituser),
+                "engagements": [],
+                "validity": {"from": "2010-01-01"},
+            }
+        },
+    )
+    assert response.errors is None
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Engagement Auditor",
+            "role": "engagement_auditor",
+            "read_rules": [
+                {
+                    "collection": "Engagement",
+                    "fields": ["user_key"],
+                    "condition": '{"ituser": {}}',
+                    "graphql_version": "VERSION_30",
+                },
+                {
+                    "collection": "Engagement",
+                    "fields": ["user_key"],
+                    "condition": f'{{"uuids": ["{matched}"]}}',
+                    "graphql_version": "VERSION_30",
+                },
+            ],
+        },
+    )
+    set_auth({"reader", "engagement_auditor"}, BRUCE_UUID)
 
-    allowed = await access_load_fn(
-        empty_db,
-        DataLoader(load_fn=partial(fake_policy_loader, rules)),
-        [
-            AccessKey(Collection.Address, matched, "value"),
-            AccessKey(Collection.Address, unmatched, "value"),
-        ],
-    )
+    allowed = [
+        may_read("engagements", uuid, "user_key") for uuid in (matched, unmatched)
+    ]
 
     assert allowed == [True, False]
 

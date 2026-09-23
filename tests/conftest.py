@@ -1728,6 +1728,32 @@ def declare_policy(try_declare_policy: TryDeclarePolicy) -> DeclarePolicy:
     return inner
 
 
+MayRead = Callable[[str, UUID, str], bool]
+
+
+@pytest.fixture
+def may_read(graphapi_post: GraphAPIPost) -> MayRead:
+    """Whether the caller may read the field of the current state of an object."""
+
+    def inner(collection: str, uuid: UUID, field: str) -> bool:
+        query = f"""
+            query MayRead($uuid: UUID!) {{
+                {collection}(filter: {{uuids: [$uuid]}}) {{
+                    objects {{ current {{ {field} }} }}
+                }}
+            }}
+        """
+        response = graphapi_post(query, {"uuid": str(uuid)})
+        if response.errors is not None:
+            assert_denied(response)
+            return False
+        assert response.data is not None
+        one(response.data[collection]["objects"])
+        return True
+
+    return inner
+
+
 @pytest.fixture
 async def no_seeded_policies(empty_db: db.AsyncSession) -> None:
     """Remove the seeded policies, which grant a reader every field of every collection.
