@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-"""Rule-based read access to specific fields of specific entities of a collection."""
+"""Rule-based access control to collections and mutators."""
 
 from collections.abc import Awaitable
 from collections.abc import Callable
@@ -15,15 +15,21 @@ from uuid import UUID
 
 from graphql import coerce_input_value
 from more_itertools import map_reduce
+from pydantic import BaseModel
+from pydantic import parse_obj_as
 from sqlalchemy import ARRAY
 from sqlalchemy import ColumnElement
 from sqlalchemy import Select
 from sqlalchemy import String
 from sqlalchemy import Uuid
+from sqlalchemy import and_
 from sqlalchemy import any_
 from sqlalchemy import column
+from sqlalchemy import exists
+from sqlalchemy import false
 from sqlalchemy import func
 from sqlalchemy import literal
+from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy import true
 from sqlalchemy import union_all
@@ -44,10 +50,12 @@ from mora.db import OrganisationRegistrering
 from mora.db import Policy
 from mora.db import PolicyReadRule
 from mora.db import PolicyReadRuleField
+from mora.db import PolicyWriteRule
 from mora.graphapi import policy_cel
 from mora.graphapi import resolvers
 from mora.graphapi.custom_schema import CustomSchema
 from mora.graphapi.graphql_utils import AccessKey
+from mora.graphapi.graphql_utils import WriteKey
 from mora.graphapi.policy_cel import CEL
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import Version
@@ -65,6 +73,21 @@ class Rule(NamedTuple):
     collection: Collection
     condition: ColumnElement[bool]
     fields: frozenset[Field]
+
+
+class WriteCondition(BaseModel):
+    """Where to look for what a mutator requires, and what to look for."""
+
+    collection: Collection
+    filter: dict[str, Any]
+
+
+class WriteRule(NamedTuple):
+    """Grants the mutator, if the check of its arguments holds."""
+
+    role: Role
+    mutator: str
+    check: Callable[[dict[str, Any]], ColumnElement[bool]]
 
 
 # Each collection's model, holding the registrations of its objects.
@@ -138,6 +161,18 @@ def parse_filter(
     )
 
 
+def filter2predicate(
+    settings: Settings,
+    collection: Collection,
+    graphql_version: Version,
+    filter: dict[str, Any],
+) -> ColumnElement[bool]:
+    """Parse the filter of the collection into a clause."""
+    predicate = PREDICATE_OF_COLLECTION[collection]
+    parsed = parse_filter(get_schema(graphql_version), collection, filter)
+    return predicate(settings=settings, version=graphql_version, filter=parsed)
+
+
 def cel2predicate(
     settings: Settings,
     collection: Collection,
@@ -149,11 +184,55 @@ def cel2predicate(
     # No condition -> applies to all entities
     if not condition:
         return true()
-    predicate = PREDICATE_OF_COLLECTION[collection]
-    filter = parse_filter(
-        get_schema(graphql_version), collection, policy_cel.evaluate(condition, token)
+    filter = policy_cel.evaluate(condition, token, {})
+    return filter2predicate(settings, collection, graphql_version, filter)
+
+
+def cel2check(
+    settings: Settings,
+    graphql_version: Version,
+    condition: CEL,
+    token: Token,
+    args: dict[str, Any],
+) -> ColumnElement[bool]:
+    """Evaluate the CEL condition into a check that everything it names exists."""
+    # No condition -> nothing has to exist
+    if not condition:
+        return true()
+    yielded = policy_cel.evaluate(condition, token, args)
+    if isinstance(yielded, bool):
+        return true() if yielded else false()
+    required = parse_obj_as(list[WriteCondition], yielded)
+    # Allowing or denying outright is what true and false are for
+    if not required:
+        raise ValueError(
+            f"condition {condition!r} requires nothing, yield true or false instead"
+        )
+    return and_(
+        *(
+            exists().where(
+                filter2predicate(
+                    settings,
+                    requirement.collection,
+                    graphql_version,
+                    requirement.filter,
+                )
+            )
+            for requirement in required
+        )
     )
-    return predicate(settings=settings, version=graphql_version, filter=filter)
+
+
+def write_check(
+    mutator: str, args: dict[str, Any], rules: Iterable[WriteRule]
+) -> ColumnElement[bool]:
+    """The clause granting the mutator."""
+    checks = [rule.check(args) for rule in rules if rule.mutator == mutator]
+    # No rule names the mutator -> denied
+    if not checks:
+        return false()
+    # Any rule granting the mutator is enough
+    return or_(*checks)
 
 
 def load_rules(
@@ -292,7 +371,7 @@ async def access_load_fn(
 ) -> list[bool]:
     """Determine whether the requested field access is allowed."""
     # If this function is performing poorly, consider checking out 52d2a3fe,
-    # c22dce95 and 0aeca0fb
+    # c22dce95, 0aeca0fb and e3be669e
     rules = await policy_loader.load(0)
     by_collection = map_reduce(keys, keyfunc=lambda key: key.collection)
     denied = union_all(
@@ -317,18 +396,72 @@ async def access_load_fn(
     ]
 
 
+async def write_policy_load_fn(
+    session: AsyncSession,
+    settings: Settings,
+    get_token: Callable[[], Awaitable[Token]],
+    keys: list[int],
+) -> list[list[WriteRule]]:
+    """Load the write rules of the active policies granted to the caller's roles."""
+    token = await get_token()
+    roles = token.realm_access.roles
+    rows = await session.execute(
+        select(
+            Policy.role,
+            PolicyWriteRule.mutator,
+            PolicyWriteRule.graphql_version,
+            PolicyWriteRule.condition,
+        )
+        .join(Policy.write_rules)
+        .where(
+            Policy.role == any_(literal(roles, ARRAY(String))),
+            Policy.active,
+        )
+    )
+    rules = [
+        WriteRule(
+            role=role,
+            mutator=mutator,
+            check=partial(cel2check, settings, graphql_version, condition, token),
+        )
+        for role, mutator, graphql_version, condition in rows
+    ]
+    return [rules for _ in keys]
+
+
+async def write_load_fn(
+    session: AsyncSession,
+    write_policy_loader: DataLoader[int, list[WriteRule]],
+    keys: list[WriteKey],
+) -> list[bool]:
+    """Determine whether the requested mutator access is allowed."""
+    # If this function is performing poorly, consider checking out 0b7c0e5e
+    rules = await write_policy_loader.load(0)
+    checks = [write_check(mutator, args, rules) for mutator, args in keys]
+    row = (await session.execute(select(*checks))).one()
+    return [bool(granted) for granted in row]
+
+
 def get_access_loaders(
     session: AsyncSession,
     settings: Settings,
     get_token: Callable[[], Awaitable[Token]],
 ) -> dict[str, DataLoader]:
-    """Return the dataloader deciding what the caller may read."""
+    """Return the dataloaders deciding what the caller may read and write."""
     policy_loader: DataLoader[int, list[Rule]] = DataLoader(
         load_fn=partial(policy_load_fn, session, settings, get_token)
+    )
+    write_policy_loader: DataLoader[int, list[WriteRule]] = DataLoader(
+        load_fn=partial(write_policy_load_fn, session, settings, get_token)
     )
 
     return {
         "access_loader": DataLoader(
             load_fn=partial(access_load_fn, session, policy_loader)
+        ),
+        "write_loader": DataLoader(
+            load_fn=partial(write_load_fn, session, write_policy_loader),
+            # The arguments are unhashable
+            cache=False,
         ),
     }

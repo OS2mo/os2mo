@@ -48,6 +48,7 @@ from mora.graphapi.custom_schema import get_version
 from mora.graphapi.events import EVENT_TOKEN_SCALAR
 from mora.graphapi.events import EventToken
 from mora.graphapi.graphql_utils import AccessKey
+from mora.graphapi.graphql_utils import WriteKey
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.model_registration import AddressRegistration
 from mora.graphapi.model_registration import AssociationRegistration
@@ -303,6 +304,15 @@ def collection_policy(
     )
 
 
+def write_policy(
+    root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
+) -> AwaitableOrValue[bool]:
+    """Allow the mutator if a write rule of the caller's roles grants it."""
+    if info.parent_type.name != "Mutation":
+        return False
+    return info.context.dataloaders.write_loader.load(WriteKey(info.field_name, kwargs))
+
+
 POLICIES: list[Policy] = [
     # Ordered cheapest first, as the first policy to allow access skips the rest
     admin_policy,
@@ -311,6 +321,7 @@ POLICIES: list[Policy] = [
     reader_policy,
     collection_policy,
     owner_policy,
+    write_policy,
 ]
 
 
@@ -323,8 +334,8 @@ class PBACExtension(SchemaExtension):
 
     Access is rejected by default: except for the `admin` role, which is
     granted every field, a field must be listed in `PUBLIC_FIELDS`, have a
-    requirement in `RBAC_MAP`, or belong to a type guarded by read policies
-    (`mora.graphapi.policies`).
+    requirement in `RBAC_MAP`, belong to a type guarded by read rules, or be
+    a mutator granted by a write rule (both in `mora.graphapi.policies`).
     """
 
     def resolve(  # type: ignore[override]

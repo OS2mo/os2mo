@@ -48,6 +48,7 @@ class Policy(Base):
     role: Mapped[str] = mapped_column(Text, index=True)
 
     read_rules: Mapped[list["PolicyReadRule"]] = relationship(back_populates="policy")
+    write_rules: Mapped[list["PolicyWriteRule"]] = relationship(back_populates="policy")
 
 
 class PolicyReadRule(Base):
@@ -79,3 +80,18 @@ class PolicyReadRuleField(Base):
     )
     field: Mapped[str] = mapped_column(Text, primary_key=True)
     rule: Mapped[PolicyReadRule] = relationship(back_populates="fields")
+
+
+class PolicyWriteRule(Base):
+    """Grants a mutator to a policy, under a CEL condition."""
+
+    __tablename__ = "policy_write_rule"
+
+    pk: Mapped[UUID] = mapped_column(
+        primary_key=True, server_default=text("uuid_generate_v4()")
+    )
+    mutator: Mapped[str] = mapped_column(Text)
+    condition: Mapped[CEL] = mapped_column(Text)
+    graphql_version: Mapped[Version] = mapped_column(GraphQLVersion)
+    policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.pk"))
+    policy: Mapped[Policy] = relationship(back_populates="write_rules")
