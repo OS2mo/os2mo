@@ -18,6 +18,7 @@ from mora.graphapi.gmodels.mo import Validity as RAValidity
 from .events import EventToken
 from .events import ListenerFilter
 from .graphql_utils import Field
+from .graphql_utils import MutatorName
 from .graphql_utils import Role
 from .models import AddressCreate
 from .models import AddressTerminate
@@ -894,7 +895,7 @@ class PolicyReadRuleInput:
 
 @strawberry.input(description="Grants conditional access to the specified mutator.")
 class PolicyWriteRuleInput:
-    mutator: str = strawberry.field(description="The mutator to grant.")
+    mutator: MutatorName = strawberry.field(description="The mutator to grant.")
     condition: CEL = strawberry.field(
         default=CEL("true"),
         description=dedent(

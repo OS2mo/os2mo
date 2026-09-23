@@ -16,6 +16,7 @@ from mora.db import Collection
 from mora.graphapi.context import MOInfo
 from mora.graphapi.filters import gen_filter_string
 from mora.graphapi.graphql_utils import Field
+from mora.graphapi.graphql_utils import MutatorName
 from mora.graphapi.graphql_utils import Role
 from mora.graphapi.policy_cel import CEL
 from mora.graphapi.version import Version
@@ -61,7 +62,7 @@ class PolicyReadRule:
 
 @strawberry.type(description="Grants conditional access to the specified mutator.")
 class PolicyWriteRule:
-    mutator: str = strawberry.field(description="The mutator granted.")
+    mutator: MutatorName = strawberry.field(description="The mutator granted.")
     condition: CEL = strawberry.field(
         description=dedent(
             """\

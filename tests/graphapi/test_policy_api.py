@@ -672,3 +672,22 @@ async def test_deleting_a_policy_which_does_not_exist_does_nothing(
 
     assert response.errors is None
     assert response.data == {"policy_declare": None}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_write_rule_naming_no_mutator_is_refused(
+    try_declare_policy: TryDeclarePolicy, read_policies: ReadPolicies
+) -> None:
+    """A write rule grants one of the mutators there are, or nothing is declared."""
+    uuid = str(uuid4())
+    write_rule = {"mutator": "org_unit_nonsense", "graphql_version": "VERSION_30"}
+
+    response = try_declare_policy(uuid, {**UNIT_AUDITOR, "write_rules": [write_rule]})
+
+    assert response.errors is not None
+    assert (
+        "Value 'org_unit_nonsense' does not exist in 'Mutator' enum."
+        in (one(response.errors)["message"])
+    )
+    assert read_policies({"filter": {"uuids": [uuid]}}) == []

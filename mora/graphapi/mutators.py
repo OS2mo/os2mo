@@ -3,6 +3,7 @@
 import asyncio
 import logging
 from datetime import datetime
+from enum import StrEnum
 from textwrap import dedent
 from typing import Annotated
 from typing import Any
@@ -1930,6 +1931,22 @@ class Mutation:
         )
 
         return "OK"
+
+
+# Each mutator by name, following the mutators as they are added
+Mutator = strawberry.enum(
+    cast(
+        type[StrEnum],
+        StrEnum(
+            "Mutator",
+            {
+                field.name: field.name
+                for field in Mutation.__strawberry_definition__.fields
+            },
+        ),
+    ),
+    description="A mutator a write rule may grant.",
+)
 
 
 async def delete_bruger(uuid: UUID) -> UUID:
