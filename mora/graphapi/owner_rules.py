@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """The rules of the owner policy, translated into CEL."""
 
+from functools import partial
 from string import Template
 from typing import TypeAlias
 
@@ -76,6 +77,11 @@ def org_unit_or_person(org_unit_uuid_expr: str, person_uuid_expr: str) -> str:
     )
 
 
+# The rule for each collection's detail. A KLE and a role-binding link no
+# person, so owning the unit they link is the only way to own them
+kle = partial(detail_org_unit, collection="KLE")
+
+
 MutatorName: TypeAlias = str
 
 OWNER_RULES: list[tuple[MutatorName, CEL]] = [
@@ -125,6 +131,7 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
     ),
     # The annotated unit
     ("kle_create", owner_rule(org_unit("args.input.org_unit"))),
+    ("kle_terminate", owner_rule(kle("args.input.uuid"))),
     # The person on leave
     ("leave_create", owner_rule(person("args.input.person"))),
     # The unit of the manager
