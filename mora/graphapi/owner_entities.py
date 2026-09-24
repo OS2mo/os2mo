@@ -426,9 +426,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         ),
     ),
     # The unit of the role-binding, if one is named
-    "rolebinding_create": lambda settings, version, token, arguments: org_unit(
-        settings, version, token, arguments["input"].org_unit
-    ),
     "rolebinding_terminate": lambda settings, version, token, arguments: rolebinding(
         settings, version, token, arguments["input"].uuid
     ),

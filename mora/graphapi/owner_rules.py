@@ -78,4 +78,6 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
     # origin and destinations, but that's not compatible with the old
     # service-api owner calculation
     ("related_units_update", owner_rule(org_unit("args.input.origin"))),
+    # The unit of the role-binding, if one is named
+    ("rolebinding_create", owner_rule(org_unit("args.input.org_unit"))),
 ]
