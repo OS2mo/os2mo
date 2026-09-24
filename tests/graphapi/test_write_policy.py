@@ -3,7 +3,6 @@
 """Testing the write policy."""
 
 from collections.abc import Callable
-from textwrap import dedent
 from types import SimpleNamespace
 from typing import Any
 from uuid import UUID
@@ -52,10 +51,10 @@ async def test_a_check_asks_whether_what_it_names_exists(
     """A check holds for the unit the arguments name, and for no other."""
     org_unit = create_org_unit("test")
     condition = """
-    [{
+    {
         "collection": "OrganisationUnit",
         "filter": {"uuids": [args.input.org_unit]}
-    }]
+    }
     """
     checks = (
         cel2check(
@@ -82,10 +81,10 @@ async def test_a_check_requires_everything_its_condition_names(
     """A condition naming two things holds only where both of them exist."""
     org_unit, parent = (create_org_unit(user_key) for user_key in ("ours", "parent"))
     condition = """
-    [
+    {"and": [
         {"collection": "OrganisationUnit", "filter": {"uuids": [args.uuid]}},
         {"collection": "OrganisationUnit", "filter": {"uuids": [args.parent]}}
-    ]
+    ]}
     """
     checks = (
         cel2check(
@@ -103,20 +102,125 @@ async def test_a_check_requires_everything_its_condition_names(
     assert found == [True, False]
 
 
-async def test_a_check_requiring_nothing_fails(owner_token: Token) -> None:
-    """A condition allowing or denying outright yields true or false, not []."""
-    with pytest.raises(ValueError) as raised:
+@pytest.mark.integration_test
+async def test_a_check_requires_one_of_what_its_or_names(
+    empty_db: AsyncSession,
+    create_org_unit: Callable[..., UUID],
+    owner_token: Token,
+) -> None:
+    """An or naming two things holds where either of them exists."""
+    org_unit = create_org_unit("ours")
+    condition = """
+    {"or": [
+        {"collection": "OrganisationUnit", "filter": {"uuids": [args.first]}},
+        {"collection": "OrganisationUnit", "filter": {"uuids": [args.second]}}
+    ]}
+    """
+    checks = (
         cel2check(
             settings=Settings(),
             graphql_version=LATEST_VERSION,
-            condition="[]",
+            condition=condition,
+            token=owner_token,
+            args={"first": first, "second": second},
+        )
+        for first, second in (
+            (org_unit, NOT_FOUND_UUID),
+            (NOT_FOUND_UUID, org_unit),
+            (NOT_FOUND_UUID, NOT_FOUND_UUID),
+        )
+    )
+
+    found = [await empty_db.scalar(select(check)) for check in checks]
+
+    assert found == [True, True, False]
+
+
+@pytest.mark.integration_test
+async def test_a_check_negates_the_whole_of_what_its_not_holds(
+    empty_db: AsyncSession,
+    create_org_unit: Callable[..., UUID],
+    owner_token: Token,
+) -> None:
+    """A not around an or holds only where neither of the things it names exists."""
+    org_unit = create_org_unit("ours")
+    condition = """
+    {"not": {"or": [
+        {"collection": "OrganisationUnit", "filter": {"uuids": [args.first]}},
+        {"collection": "OrganisationUnit", "filter": {"uuids": [args.second]}}
+    ]}}
+    """
+    checks = (
+        cel2check(
+            settings=Settings(),
+            graphql_version=LATEST_VERSION,
+            condition=condition,
+            token=owner_token,
+            args={"first": first, "second": second},
+        )
+        for first, second in (
+            (org_unit, NOT_FOUND_UUID),
+            (NOT_FOUND_UUID, org_unit),
+            (NOT_FOUND_UUID, NOT_FOUND_UUID),
+        )
+    )
+
+    found = [await empty_db.scalar(select(check)) for check in checks]
+
+    assert found == [False, False, True]
+
+
+@pytest.mark.parametrize(
+    "condition,loc",
+    [
+        ('{"or": []}', ("__root__", "or")),
+        ('{"and": []}', ("__root__", "and")),
+    ],
+)
+async def test_a_check_requiring_nothing_fails(
+    condition: str, loc: tuple[str, ...], owner_token: Token
+) -> None:
+    """A condition deciding outright yields true or false, not an empty or/and."""
+    with pytest.raises(ValidationError) as raised:
+        cel2check(
+            settings=Settings(),
+            graphql_version=LATEST_VERSION,
+            condition=condition,
             token=owner_token,
             args={},
         )
 
-    assert str(raised.value) == (
-        "condition '[]' requires nothing, yield true or false instead"
-    )
+    assert {
+        "loc": loc,
+        "msg": "ensure this value has at least 1 items",
+        "type": "value_error.list.min_items",
+        "ctx": {"limit_value": 1},
+    } in raised.value.errors()
+
+
+async def test_a_check_yielding_two_shapes_at_once_fails(owner_token: Token) -> None:
+    """A map naming two shapes at once fails, rather than parsing as one of them."""
+    condition = """
+    {
+        "collection": "OrganisationUnit",
+        "filter": {},
+        "or": [{"collection": "Facet", "filter": {}}]
+    }
+    """
+    with pytest.raises(ValidationError) as raised:
+        cel2check(
+            settings=Settings(),
+            graphql_version=LATEST_VERSION,
+            condition=condition,
+            token=owner_token,
+            args={},
+        )
+
+    assert {
+        "loc": ("__root__", "or"),
+        "msg": "extra fields not permitted",
+        "type": "value_error.extra",
+    } in raised.value.errors()
 
 
 @pytest.mark.integration_test
@@ -152,38 +256,36 @@ async def test_a_check_of_an_unknown_collection_fails(owner_token: Token) -> Non
         cel2check(
             settings=Settings(),
             graphql_version=LATEST_VERSION,
-            condition='[{"collection": "Nonsense", "filter": {}}]',
+            condition='{"collection": "Nonsense", "filter": {}}',
             token=owner_token,
             args={},
         )
 
     permitted = ", ".join(repr(collection.value) for collection in Collection)
-    enum_values = ", ".join(repr(collection) for collection in Collection)
-    assert str(raised.value) == dedent(
-        f"""\
-        1 validation error for ParsingModel[list[mora.graphapi.policies.WriteCondition]]
-        __root__ -> 0 -> collection
-          value is not a valid enumeration member; permitted: {permitted} (type=type_error.enum; enum_values=[{enum_values}])"""
-    )
+    assert {
+        "loc": ("__root__", "collection"),
+        "msg": f"value is not a valid enumeration member; permitted: {permitted}",
+        "type": "type_error.enum",
+        "ctx": {"enum_values": list(Collection)},
+    } in raised.value.errors()
 
 
-async def test_a_check_yielding_one_condition_alone_fails(owner_token: Token) -> None:
-    """A condition yields a list, one entry per thing the mutator requires."""
+async def test_a_check_yielding_a_list_fails(owner_token: Token) -> None:
+    """A condition yields a single map, requiring several things through an and."""
     with pytest.raises(ValidationError) as raised:
         cel2check(
             settings=Settings(),
             graphql_version=LATEST_VERSION,
-            condition='{"collection": "OrganisationUnit", "filter": {}}',
+            condition='[{"collection": "OrganisationUnit", "filter": {}}]',
             token=owner_token,
             args={},
         )
 
-    assert str(raised.value) == dedent(
-        """\
-        1 validation error for ParsingModel[list[mora.graphapi.policies.WriteCondition]]
-        __root__
-          value is not a valid list (type=type_error.list)"""
-    )
+    assert {
+        "loc": ("__root__", "and"),
+        "msg": "field required",
+        "type": "value_error.missing",
+    } in raised.value.errors()
 
 
 async def test_a_check_yielding_what_the_filter_rejects_fails(
@@ -194,7 +296,7 @@ async def test_a_check_yielding_what_the_filter_rejects_fails(
         cel2check(
             settings=Settings(),
             graphql_version=LATEST_VERSION,
-            condition='[{"collection": "OrganisationUnit", "filter": {"uuids": ["not-a-uuid"]}}]',
+            condition='{"collection": "OrganisationUnit", "filter": {"uuids": ["not-a-uuid"]}}',
             token=owner_token,
             args={},
         )
@@ -210,10 +312,10 @@ async def test_a_rule_keeps_its_mutator_condition_and_version(
 ) -> None:
     """A rule reads back as it was written, the version as the enum it went in as."""
     condition = """
-    [{
+    {
         "collection": "OrganisationUnit",
         "filter": {"uuids": [args.input.org_unit]}
-    }]
+    }
     """
     empty_db.add(
         Policy(
@@ -259,10 +361,10 @@ async def test_the_write_rules_of_the_callers_policies_are_loaded(
 ) -> None:
     """The caller gets the rules of the policies of the roles it carries."""
     condition = """
-    [{
+    {
         "collection": "OrganisationUnit",
         "filter": {"uuids": [args.input.org_unit]}
-    }]
+    }
     """
     empty_db.add_all(
         [
@@ -327,10 +429,10 @@ async def test_a_policy_switched_off_grants_no_mutator(empty_db: AsyncSession) -
                 PolicyWriteRule(
                     mutator="address_create",
                     condition="""
-                    [{
+                    {
                         "collection": "OrganisationUnit",
                         "filter": {"uuids": [args.input.org_unit]}
-                    }]
+                    }
                     """,
                     graphql_version=LATEST_VERSION,
                 )
@@ -393,10 +495,10 @@ async def test_a_mutator_is_granted_where_its_rule_finds_what_it_names(
         role="unit_owner",
         mutator="address_create",
         condition="""
-        [{
+        {
             "collection": "OrganisationUnit",
             "filter": {"uuids": [args.input.org_unit], "user_keys": ["ours"]}
-        }]
+        }
         """,
     )
     set_auth({"reader", "unit_owner"}, BRUCE_UUID)
@@ -446,10 +548,10 @@ async def test_a_mutator_no_rule_names_is_denied(
         role="unit_owner",
         mutator="ituser_create",
         condition="""
-        [{
+        {
             "collection": "OrganisationUnit",
             "filter": {"uuids": [args.input.org_unit]}
-        }]
+        }
         """,
     )
     set_auth({"reader", "unit_owner"}, BRUCE_UUID)

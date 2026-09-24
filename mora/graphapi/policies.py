@@ -15,7 +15,8 @@ from uuid import UUID
 from graphql import coerce_input_value
 from more_itertools import map_reduce
 from pydantic import BaseModel
-from pydantic import parse_obj_as
+from pydantic import Extra
+from pydantic import Field as PydanticField
 from sqlalchemy import ARRAY
 from sqlalchemy import ColumnElement
 from sqlalchemy import Select
@@ -28,6 +29,7 @@ from sqlalchemy import exists
 from sqlalchemy import false
 from sqlalchemy import func
 from sqlalchemy import literal
+from sqlalchemy import not_
 from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy import true
@@ -71,11 +73,85 @@ class Rule(NamedTuple):
     fields: frozenset[Field]
 
 
-class WriteCondition(BaseModel):
+class StrictModel(BaseModel):
+    class Config:
+        extra = Extra.forbid
+
+
+class CELOutput(BaseModel):
+    """What a write rule's condition requires for its mutator to be granted."""
+
+    __root__: "WriteCondition | Or | And | Not"
+
+    def to_column_condition(
+        self, settings: Settings, graphql_version: Version
+    ) -> ColumnElement[bool]:
+        """The clause holding where the requirement holds."""
+        return self.__root__.to_column_condition(settings, graphql_version)
+
+
+class WriteCondition(StrictModel):
     """Where to look for what a mutator requires, and what to look for."""
 
     collection: Collection
     filter: dict[str, Any]
+
+    def to_column_condition(
+        self, settings: Settings, graphql_version: Version
+    ) -> ColumnElement[bool]:
+        """The clause holding where something in the collection matches the filter."""
+        return exists().where(
+            filter2predicate(settings, self.collection, graphql_version, self.filter)
+        )
+
+
+class Or(StrictModel):
+    """Requires one of the operands to hold."""
+
+    or_: list[CELOutput] = PydanticField(alias="or", min_items=1)
+
+    def to_column_condition(
+        self, settings: Settings, graphql_version: Version
+    ) -> ColumnElement[bool]:
+        """The clause holding where any operand holds."""
+        return or_(
+            *(
+                operand.to_column_condition(settings, graphql_version)
+                for operand in self.or_
+            )
+        )
+
+
+class And(StrictModel):
+    """Requires every operand to hold."""
+
+    and_: list[CELOutput] = PydanticField(alias="and", min_items=1)
+
+    def to_column_condition(
+        self, settings: Settings, graphql_version: Version
+    ) -> ColumnElement[bool]:
+        """The clause holding where every operand holds."""
+        return and_(
+            *(
+                operand.to_column_condition(settings, graphql_version)
+                for operand in self.and_
+            )
+        )
+
+
+class Not(StrictModel):
+    """Requires the operand not to hold."""
+
+    not_: CELOutput = PydanticField(alias="not")
+
+    def to_column_condition(
+        self, settings: Settings, graphql_version: Version
+    ) -> ColumnElement[bool]:
+        """The clause holding where the operand does not."""
+        return not_(self.not_.to_column_condition(settings, graphql_version))
+
+
+CELOutput.update_forward_refs()
 
 
 class WriteRule(NamedTuple):
@@ -190,29 +266,12 @@ def cel2check(
     token: Token,
     args: dict[str, Any],
 ) -> ColumnElement[bool]:
-    """Evaluate the CEL condition into a check that everything it names exists."""
+    """Evaluate the CEL condition into a check of what it requires."""
     yielded = policy_cel.evaluate(condition, token, args)
     if isinstance(yielded, bool):
         return true() if yielded else false()
-    required = parse_obj_as(list[WriteCondition], yielded)
-    # Allowing or denying outright is what true and false are for
-    if not required:
-        raise ValueError(
-            f"condition {condition!r} requires nothing, yield true or false instead"
-        )
-    return and_(
-        *(
-            exists().where(
-                filter2predicate(
-                    settings,
-                    requirement.collection,
-                    graphql_version,
-                    requirement.filter,
-                )
-            )
-            for requirement in required
-        )
-    )
+    required = CELOutput.parse_obj(yielded)
+    return required.to_column_condition(settings, graphql_version)
 
 
 def write_check(

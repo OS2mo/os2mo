@@ -66,9 +66,9 @@ class PolicyWriteRule:
     condition: CEL = strawberry.field(
         description=dedent(
             """\
-            CEL expression evaluating to either a boolean, or a list of
-            `{collection, filter}` maps naming what must exist for the mutator to be
-            granted.
+            CEL expression evaluating to either a boolean, or a
+            `{collection, filter}` map naming what must exist for the mutator to be
+            granted. Combine maps with `{or: [...]}`, `{and: [...]}` and `{not: ...}`.
 
             `true` grants the mutator outright. `false` grants nothing.
             """
