@@ -31,6 +31,13 @@ def deny_requiring_nothing(rule: str) -> str:
     ).substitute(rule=rule)
 
 
+def owner_rule(requirements: str) -> CEL:
+    """The owner rule requiring what `requirements` names owned."""
+    return CEL(
+        deny_tokens_without_uuid(deny_requiring_nothing(_owner_filter(requirements)))
+    )
+
+
 def person(uuid_expr: str) -> str:
     """Require ownership of the person named, if one is named."""
     return Template("""cel.bind(uuid, $uuid_expr, uuid == null ? null : dyn({
