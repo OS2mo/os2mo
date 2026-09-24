@@ -2,20 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 """The rules of the owner policy, translated into CEL."""
 
-from collections.abc import Callable
 from string import Template
 from typing import TypeAlias
-from typing import get_type_hints
-from uuid import UUID
 
-from sqlalchemy import ColumnElement
-from sqlalchemy import exists
-
-from mora.auth.keycloak.models import Token
-from mora.config import Settings
-from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.policy_cel import CEL
-from mora.graphapi.version import Version
 
 
 def _owner_filter(requirements: str) -> str:
@@ -69,28 +59,14 @@ def person(uuid_expr: str) -> str:
     }))""").substitute(uuid_expr=uuid_expr)
 
 
-def detail_org_unit(
-    settings: Settings,
-    version: Version,
-    token: Token,
-    uuid: UUID,
-    *,
-    predicate: Callable[..., ColumnElement],
-) -> ColumnElement:
+def detail_org_unit(uuid_expr: str, *, collection: str) -> str:
     """Require ownership of the org unit the detail links, through any ancestor."""
-    filter = get_type_hints(predicate)["filter"]
-    return exists().where(
-        predicate(
-            settings=settings,
-            version=version,
-            filter=filter(
-                uuids=[uuid],
-                org_unit=OrganisationUnitFilter(
-                    ancestor=OrganisationUnitFilter(owner=_owner_filter(token))
-                ),
-            ),
-        )
-    )
+    return Template("""dyn({
+        "collection": "$collection",
+        "filter": {"uuids": [$uuid_expr], "org_unit": {
+            "ancestor": {"owner": owner_filter}
+        }}
+    })""").substitute(collection=collection, uuid_expr=uuid_expr)
 
 
 def org_unit_or_person(org_unit_uuid_expr: str, person_uuid_expr: str) -> str:
