@@ -70,4 +70,5 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
     ("leave_create", owner_rule(person("args.input.person"))),
     # The parent, or the unit itself and its new parent if it is being moved
     ("org_unit_create", owner_rule(org_unit("args.input.parent"))),
+    ("org_unit_terminate", owner_rule(org_unit("args.input.uuid"))),
 ]

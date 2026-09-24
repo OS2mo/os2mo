@@ -405,9 +405,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         )
     ),
     # The parent, or the unit itself and its new parent if it is being moved
-    "org_unit_terminate": lambda settings, version, token, arguments: org_unit(
-        settings, version, token, arguments["input"].uuid
-    ),
     "org_unit_update": lambda settings, version, token, arguments: and_or_none(
         org_unit(settings, version, token, arguments["input"].uuid),
         check_parent(
