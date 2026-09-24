@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """The write rules of the owner policy."""
 
+from functools import partial
 from string import Template
 
 
@@ -43,11 +44,40 @@ def person(uuid: str) -> str:
     }) : null)""").substitute(uuid=uuid)
 
 
+def detail_org_unit(uuid: str, *, collection: str) -> str:
+    """Require ownership of the org unit the detail links, through any ancestor."""
+    return Template("""dyn({
+        "collection": "$collection",
+        "filter": {"uuids": [$uuid], "org_unit": {"ancestor": {"owner": seat}}}
+    })""").substitute(collection=collection, uuid=uuid)
+
+
+def detail_person(uuid: str, *, collection: str) -> str:
+    """Require ownership of the person the detail links."""
+    return Template("""dyn({
+        "collection": "$collection",
+        "filter": {"uuids": [$uuid], "employee": {"owner": seat}}
+    })""").substitute(collection=collection, uuid=uuid)
+
+
+def detail(uuid: str, *, collection: str) -> str:
+    """Require ownership of the org unit or the person the detail links."""
+    return Template('dyn({"or": [$org_unit, $person]})').substitute(
+        org_unit=detail_org_unit(uuid, collection=collection),
+        person=detail_person(uuid, collection=collection),
+    )
+
+
 def org_unit_or_person(org_unit_uuid: str, person_uuid: str) -> str:
     """Require ownership of the unit if one is named, else of the person."""
     return Template("cel.bind(unit, $unit, unit != null ? unit : $person)").substitute(
         unit=org_unit(org_unit_uuid), person=person(person_uuid)
     )
+
+
+# The rule for each collection's detail. A KLE and a role-binding link no
+# person, so owning the unit they link is the only way to own them
+address = partial(detail, collection="Address")
 
 
 # What each mutator requires owned, read off its arguments, moving here from
@@ -63,4 +93,5 @@ OWNER_RULES: list[tuple[str, str]] = [
             )
         ),
     ),
+    ("address_terminate", rule(address("args.input.uuid"))),
 ]
