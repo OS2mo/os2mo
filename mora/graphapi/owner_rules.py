@@ -128,6 +128,18 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
         ),
     ),
     ("address_terminate", owner_rule(address("args.input.uuid"))),
+    (
+        "address_update",
+        owner_rule(
+            and_or_none(
+                address("args.input.uuid"),
+                org_unit_or_person(
+                    "args.input.org_unit",
+                    "args.input.person != null ? args.input.person : args.input.employee",
+                ),
+            )
+        ),
+    ),
     # The unit of the association
     (
         "association_create",
