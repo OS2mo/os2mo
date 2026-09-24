@@ -264,4 +264,13 @@ OWNER_RULES: list[tuple[str, str]] = [
         rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
     ),
     ("manager_terminate", rule(manager("args.input.uuid"))),
+    (
+        "manager_update",
+        rule(
+            and_or_none(
+                manager("args.input.uuid"),
+                org_unit_or_person("args.input.org_unit", "args.input.person"),
+            )
+        ),
+    ),
 ]
