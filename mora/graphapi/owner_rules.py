@@ -119,6 +119,7 @@ kle = partial(detail_org_unit, collection="KLE")
 leave = partial(detail, collection="Leave")
 manager = partial(detail, collection="Manager")
 owner = partial(detail, collection="Owner")
+rolebinding = partial(detail_org_unit, collection="RoleBinding")
 
 
 # What each mutator requires owned, read off its arguments, moving here from
@@ -331,4 +332,5 @@ OWNER_RULES: list[tuple[str, str]] = [
     ("related_units_update", rule(org_unit("args.input.origin"))),
     # The unit of the role-binding, if one is named
     ("rolebinding_create", rule(org_unit("args.input.org_unit"))),
+    ("rolebinding_terminate", rule(rolebinding("args.input.uuid"))),
 ]
