@@ -33,7 +33,9 @@ from hypothesis import strategies as st
 from hypothesis.database import InMemoryExampleDatabase
 from more_itertools import always_iterable
 from more_itertools import one
+from sqlalchemy import func
 from sqlalchemy import text
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette_context import request_cycle_context
@@ -1779,6 +1781,31 @@ def set_write_rules(empty_db: db.AsyncSession) -> SetWriteRules:
         await empty_db.commit()
 
     return inner
+
+
+@pytest.fixture
+async def it_system_patched_owner_policy(
+    another_transaction: AnotherTransaction,
+) -> None:
+    """Swap the owner filter of the owner rules for the caller's IT user in AD."""
+    owner_filter = '{"owner": {"uuids": [token.uuid]}}'
+    it_owner_filter = (
+        """{"owner": {"ituser": {
+            "itsystem": {"uuids": ["%s"]},
+            "external_ids": [token.uuid]
+        }}}"""
+        % ACTIVE_DIRECTORY_UUID
+    )
+    async with another_transaction() as (_, session):
+        await session.execute(
+            update(db.PolicyWriteRule)
+            .where(db.PolicyWriteRule.policy.has(name="Owner"))
+            .values(
+                condition=func.replace(
+                    db.PolicyWriteRule.condition, owner_filter, it_owner_filter
+                )
+            )
+        )
 
 
 @pytest.fixture

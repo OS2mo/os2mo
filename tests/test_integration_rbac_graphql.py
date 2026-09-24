@@ -8,7 +8,6 @@ import pytest
 
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
-from tests.conftest import ACTIVE_DIRECTORY_UUID
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
@@ -693,31 +692,14 @@ def test_terminate_x_as_owner_of_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("fixture_db", "it_system_patched_owner_policy")
 @pytest.mark.parametrize(
     "token_uuid,success",
     [
         (ANDERS_AND_AD_USER_KEY, False),
-        pytest.param(
-            ANDERS_AND_AD_EXTERNAL_ID,
-            True,
-            marks=pytest.mark.xfail(
-                reason="KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS no longer exists",
-                strict=True,
-            ),
-        ),
-        pytest.param(
-            ANDERS_AND,
-            False,
-            marks=pytest.mark.xfail(
-                reason="KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS no longer exists",
-                strict=True,
-            ),
-        ),
+        (ANDERS_AND_AD_EXTERNAL_ID, True),
+        (ANDERS_AND, False),
     ],
-)
-@pytest.mark.envvar(
-    {"KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS": str(ACTIVE_DIRECTORY_UUID)}
 )
 def test_ownership_through_it_system(
     set_auth: SetAuth,
