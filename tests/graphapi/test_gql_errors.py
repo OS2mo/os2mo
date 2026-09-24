@@ -1,5 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
+from uuid import UUID
+from uuid import uuid4
+
 import pytest
 from starlette_context import context
 from starlette_context import request_cycle_context
@@ -70,3 +74,65 @@ async def test_handle_gql_errors() -> None:
         exceptions[1].message
         == "Cannot query field '_non_existent_field_2' on type 'ITSystem'."
     )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_handle_gql_error_single() -> None:
+    """A single GraphQL error is raised as-is rather than grouped."""
+
+    query = """
+        query TestSingleError {
+        itsystems {
+            objects {
+            current {
+                _non_existent_field
+            }
+            }
+        }
+        }
+    """
+
+    # Nobody is calling us, so run as admin
+    with request_cycle_context({**context, "get_token": admin_token_getter()}):
+        response = await execute_graphql(query)
+    with pytest.raises(GraphQLError) as exc_info:
+        handle_gql_error(response)
+
+    assert (
+        exc_info.value.message
+        == "Cannot query field '_non_existent_field' on type 'ITSystem'."
+    )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_handle_gql_error_with_original_error(
+    create_org_unit: Callable[..., UUID],
+) -> None:
+    """Errors raised by resolvers carry an original_error which is unwrapped."""
+
+    query = """
+        mutation TriggerResolverError($input: RelatedUnitsUpdateInput!) {
+        related_units_update(input: $input) { uuid }
+        }
+    """
+
+    origin = create_org_unit("origin")
+    variables = {
+        "input": {
+            "origin": str(origin),
+            "destination": [str(uuid4())],
+            "validity": {"from": "2017-01-01T00:00:00+01:00"},
+        }
+    }
+
+    # Nobody is calling us, so run as admin
+    with request_cycle_context({**context, "get_token": admin_token_getter()}):
+        response = await execute_graphql(query, variable_values=variables)
+    assert response.errors is not None
+    with pytest.raises(Exception) as exc_info:
+        handle_gql_error(response)
+
+    # The unwrapped original error is raised (not the GraphQL wrapper)
+    assert not isinstance(exc_info.value, GraphQLError)
