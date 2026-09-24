@@ -147,6 +147,7 @@ rolebinding = partial(detail_org_unit, collection="RoleBinding")
 
 MutatorName: TypeAlias = str
 
+# A mutator not listed here is never granted by ownership
 OWNER_RULES: list[tuple[MutatorName, CEL]] = [
     # The unit or the person the address links to (exactly one is set)
     (
