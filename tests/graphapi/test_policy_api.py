@@ -506,13 +506,17 @@ async def test_a_read_rule_naming_a_field_twice_is_refused(
 
 
 @pytest.mark.integration_test
+@pytest.mark.parametrize(
+    "selector", [{"kind": "role", "value": "unit_auditor"}, {"kind": "all"}]
+)
 @pytest.mark.usefixtures("empty_db")
 async def test_a_policy_naming_a_selector_twice_is_refused(
-    try_declare_policy: TryDeclarePolicy, read_policies: ReadPolicies
+    try_declare_policy: TryDeclarePolicy,
+    read_policies: ReadPolicies,
+    selector: dict[str, Any],
 ) -> None:
     """A policy names each of its selectors once, or nothing is declared."""
     uuid = str(uuid4())
-    selector = {"kind": "role", "value": "unit_auditor"}
 
     response = try_declare_policy(
         uuid, {**UNIT_AUDITOR, "selectors": [selector, selector]}
@@ -583,6 +587,50 @@ async def test_a_policy_is_activated_for_an_actor_matching_any_of_its_selectors(
     assert_granted(graphapi_post(namespace_declare))
     set_auth("reader", BRUCE_UUID)
     assert_denied(graphapi_post(namespace_declare))
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_policy_selecting_all_is_activated_for_every_actor(
+    set_auth: SetAuth, graphapi_post: GraphAPIPost, declare_policy: DeclarePolicy
+) -> None:
+    """A policy selecting all grants its rules to every actor."""
+    namespace_declare = """
+        mutation { event_namespace_declare(input: {name: "audits"}) { name } }
+    """
+    set_auth("reader", BRUCE_UUID)
+    assert_denied(graphapi_post(namespace_declare))
+
+    set_auth("admin", BRUCE_UUID)
+    policy = declare_policy(
+        str(uuid4()),
+        {
+            "name": "Event Admin",
+            "selectors": [{"kind": "all"}],
+            "write_rules": [
+                {"mutator": "event_namespace_declare", "graphql_version": "VERSION_30"}
+            ],
+        },
+    )
+    assert policy["selectors"] == [{"kind": "all", "value": None}]
+
+    set_auth("reader", BRUCE_UUID)
+    assert_granted(graphapi_post(namespace_declare))
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_policies_are_filtered_by_a_selector_taking_no_value(
+    declare_policy: DeclarePolicy, read_policies: ReadPolicies
+) -> None:
+    """A selector without a value picks the policies holding it, and no others."""
+    policy = declare_policy(
+        str(uuid4()), {**UNIT_AUDITOR, "selectors": [{"kind": "all"}]}
+    )
+
+    policies = read_policies({"filter": {"selectors": [{"kind": "all"}]}})
+    assert policies == [policy]
+    assert read_policies({"filter": {"selectors": [{"kind": "role"}]}}) == []
 
 
 @pytest.mark.integration_test

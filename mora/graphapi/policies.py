@@ -372,10 +372,13 @@ def collection_denials(
 def selects_caller(token: Token) -> ColumnElement[bool]:
     """The clause holding where a selector of the policy matches the caller."""
     return Policy.selectors.any(
-        and_(
-            PolicySelector.kind == PolicySelectorKind.role,
-            PolicySelector.value
-            == any_(literal(token.realm_access.roles, ARRAY(String))),
+        or_(
+            and_(
+                PolicySelector.kind == PolicySelectorKind.role,
+                PolicySelector.value
+                == any_(literal(token.realm_access.roles, ARRAY(String))),
+            ),
+            PolicySelector.kind == PolicySelectorKind.all,
         )
     )
 

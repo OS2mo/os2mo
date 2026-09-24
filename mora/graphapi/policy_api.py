@@ -45,6 +45,7 @@ strawberry.enum(
         What a selector matches actors by, and what its value names:
 
         * `role`: the actors carrying the role named by the value.
+        * `all`: every actor, taking no value.
         """
     ),
 )
@@ -55,7 +56,7 @@ class PolicySelector:
     kind: PolicySelectorKind = strawberry.field(
         description="What the selector matches actors by."
     )
-    value: str = strawberry.field(
+    value: str | None = strawberry.field(
         description="The value matched, whose meaning depends on the kind."
     )
 
@@ -102,7 +103,7 @@ class PolicyWriteRule:
     )
 
 
-@strawberry.type(description="Policies assign meaning to roles.")
+@strawberry.type(description="Policies grant access to the actors they select.")
 class Policy:
     uuid: UUID = strawberry.field(description="UUID of the policy.")
     name: str = strawberry.field(description="Unique name of the policy.")
@@ -134,8 +135,9 @@ class PolicySelectorInput:
     kind: PolicySelectorKind = strawberry.field(
         description="What the selector matches actors by."
     )
-    value: str = strawberry.field(
-        description="The value matched, whose meaning depends on the kind."
+    value: str | None = strawberry.field(
+        default=None,
+        description="The value matched, whose meaning depends on the kind.",
     )
 
 
@@ -218,7 +220,7 @@ async def policy_resolver(
         matches = [
             and_(
                 db.PolicySelector.kind == selector.kind,
-                db.PolicySelector.value == selector.value,
+                db.PolicySelector.value.is_not_distinct_from(selector.value),
             )
             for selector in filter.selectors
         ]

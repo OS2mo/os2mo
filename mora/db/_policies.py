@@ -42,10 +42,12 @@ class PolicySelectorKind(enum.Enum):
 
     # Matches the actors carrying the role named by the value
     role = "role"
+    # Matches every actor, and takes no value
+    all = "all"
 
 
 class Policy(Base):
-    """Policies assign meaning to roles."""
+    """Policies grant access to the actors they select."""
 
     __tablename__ = "policy"
 
@@ -80,12 +82,18 @@ class PolicySelector(Base):
     kind: Mapped[PolicySelectorKind] = mapped_column(
         Enum(PolicySelectorKind, name="policyselectorkind")
     )
-    value: Mapped[str] = mapped_column(Text)
+    value: Mapped[str | None] = mapped_column(Text)
     policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.pk", ondelete="CASCADE"))
     policy: Mapped[Policy] = relationship(back_populates="selectors")
 
     __table_args__ = (
-        UniqueConstraint("policy_fk", "kind", "value", name="uq_policy_selector"),
+        UniqueConstraint(
+            "policy_fk",
+            "kind",
+            "value",
+            name="uq_policy_selector",
+            postgresql_nulls_not_distinct=True,
+        ),
     )
 
 
