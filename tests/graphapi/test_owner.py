@@ -651,6 +651,10 @@ AUTHORITATIVE = "44444444-4444-4444-4444-444444444444"
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 @pytest.mark.envvar({"KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS": AUTHORITATIVE})
+@pytest.mark.xfail(
+    reason="KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS no longer exists",
+    strict=True,
+)
 async def test_owner_through_authoritative_it_system(
     set_auth: SetAuth,
     alice: UUID,

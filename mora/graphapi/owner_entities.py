@@ -18,8 +18,6 @@ from mora.auth.keycloak.models import Token
 from mora.config import Settings
 from mora.graphapi import resolvers
 from mora.graphapi.filters import EmployeeFilter
-from mora.graphapi.filters import ITSystemFilter
-from mora.graphapi.filters import ITUserFilter
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.filters import OwnerFilter
 from mora.graphapi.resolvers import employee_predicate
@@ -29,23 +27,10 @@ from mora.graphapi.version import Version
 OwnerRule = Callable[[Settings, Version, Token, dict[str, Any]], ColumnElement | None]
 
 
-def _actor_filter(settings: Settings, token: Token) -> EmployeeFilter:
-    """The employee filter matching the calling actor.
-
-    With `KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS` configured, the
-    actor is the employee holding the token's uuid as an external id in that
-    IT system; otherwise the employee with the token's uuid itself.
-    """
+def _actor_filter(token: Token) -> EmployeeFilter:
+    """The employee filter matching the calling actor, by the token's uuid."""
     # A token with no uuid never gets this far, see `owner_policy`
     assert token.uuid is not None
-    it_system = settings.keycloak_rbac_authoritative_it_system_for_owners
-    if it_system is not None:
-        return EmployeeFilter(
-            ituser=ITUserFilter(
-                itsystem=ITSystemFilter(uuids=[it_system]),
-                external_ids=[str(token.uuid)],
-            )
-        )
     return EmployeeFilter(uuids=[token.uuid])
 
 
@@ -64,7 +49,7 @@ def org_unit(
         version=version,
         filter=OrganisationUnitFilter(
             descendant=OrganisationUnitFilter(uuids=[uuid]),
-            owner=OwnerFilter(owner=_actor_filter(settings, token)),
+            owner=OwnerFilter(owner=_actor_filter(token)),
         ),
     )
     return exists().where(predicate)
@@ -81,7 +66,7 @@ def person(
         version=version,
         filter=EmployeeFilter(
             uuids=[uuid],
-            owner=OwnerFilter(owner=_actor_filter(settings, token)),
+            owner=OwnerFilter(owner=_actor_filter(token)),
         ),
     )
     return exists().where(predicate)
@@ -105,7 +90,7 @@ def detail_org_unit(
                 uuids=[uuid],
                 org_unit=OrganisationUnitFilter(
                     ancestor=OrganisationUnitFilter(
-                        owner=OwnerFilter(owner=_actor_filter(settings, token))
+                        owner=OwnerFilter(owner=_actor_filter(token))
                     )
                 ),
             ),
@@ -129,9 +114,7 @@ def detail_person(
             version=version,
             filter=filter(
                 uuids=[uuid],
-                employee=EmployeeFilter(
-                    owner=OwnerFilter(owner=_actor_filter(settings, token))
-                ),
+                employee=EmployeeFilter(owner=OwnerFilter(owner=_actor_filter(token))),
             ),
         )
     )
