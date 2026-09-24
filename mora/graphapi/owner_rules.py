@@ -69,6 +69,16 @@ def org_unit_or_person(org_unit_uuid_expr: str, person_uuid_expr: str) -> str:
 MutatorName: TypeAlias = str
 
 OWNER_RULES: list[tuple[MutatorName, CEL]] = [
+    # The unit or the person the address links to (exactly one is set)
+    (
+        "address_create",
+        owner_rule(
+            org_unit_or_person(
+                "args.input.org_unit",
+                "args.input.person != null ? args.input.person : args.input.employee",
+            )
+        ),
+    ),
     # The employee itself
     ("employee_create", owner_rule(person("args.input.uuid"))),
     ("employee_terminate", owner_rule(person("args.input.uuid"))),
