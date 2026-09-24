@@ -196,6 +196,17 @@ OWNER_RULES: list[tuple[str, str]] = [
             )
         ),
     ),
+    (
+        "engagements_create",
+        rule(
+            and_or_none_each(
+                org_unit_or_person(
+                    "input.org_unit",
+                    "input.person != null ? input.person : input.employee",
+                )
+            )
+        ),
+    ),
     # The unit of the IT-association, whose update cannot name a person
     (
         "itassociation_create",
