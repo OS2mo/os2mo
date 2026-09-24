@@ -108,6 +108,11 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
         "itassociation_create",
         owner_rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
     ),
+    # The unit or the person the IT-user belongs to (exactly one is set)
+    (
+        "ituser_create",
+        owner_rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
+    ),
     # The annotated unit
     ("kle_create", owner_rule(org_unit("args.input.org_unit"))),
     # The person on leave
