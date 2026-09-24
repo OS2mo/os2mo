@@ -100,6 +100,7 @@ association = partial(detail, collection="Association")
 engagement = partial(detail, collection="Engagement")
 ituser = partial(detail, collection="ITUser")
 kle = partial(detail_org_unit, collection="KLE")
+leave = partial(detail, collection="Leave")
 rolebinding = partial(detail_org_unit, collection="RoleBinding")
 
 
@@ -160,6 +161,7 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
     ("kle_terminate", owner_rule(kle("args.input.uuid"))),
     # The person on leave
     ("leave_create", owner_rule(person("args.input.person"))),
+    ("leave_terminate", owner_rule(leave("args.input.uuid"))),
     # The unit of the manager
     (
         "manager_create",
