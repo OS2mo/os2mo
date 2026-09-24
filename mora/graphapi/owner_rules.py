@@ -2,20 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 """The rules of the owner policy, translated into CEL."""
 
-from collections.abc import Callable
 from string import Template
-from typing import Any
 from typing import TypeAlias
 
-from sqlalchemy import ColumnElement
-from sqlalchemy import false
-
-from mora.auth.keycloak.models import Token
-from mora.config import Settings
 from mora.graphapi.policy_cel import CEL
-from mora.graphapi.version import Version
-
-OwnerRule = Callable[[Settings, Version, Token, dict[str, Any]], ColumnElement | None]
 
 
 def _owner_filter(requirements: str) -> str:
@@ -32,21 +22,13 @@ def deny_tokens_without_uuid(rule: str) -> str:
     return Template("token.uuid == null ? false : $rule").substitute(rule=rule)
 
 
-def deny_requiring_nothing(
-    rule: OwnerRule,
-) -> Callable[[Settings, Version, Token, dict[str, Any]], ColumnElement]:
+def deny_requiring_nothing(rule: str) -> str:
     """Deny where `rule` requires nothing."""
-
-    def check(
-        settings: Settings, version: Version, token: Token, arguments: dict[str, Any]
-    ) -> ColumnElement:
-        required = rule(settings, version, token, arguments)
+    return Template(
+        "cel.bind(required, dyn($rule), "
         # Nothing to own is not owned by anybody
-        if required is None:
-            return false()
-        return required
-
-    return check
+        "required == null ? false : required)"
+    ).substitute(rule=rule)
 
 
 def person(uuid_expr: str) -> str:
