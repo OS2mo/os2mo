@@ -103,6 +103,11 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
             )
         ),
     ),
+    # The unit of the IT-association, whose update cannot name a person
+    (
+        "itassociation_create",
+        owner_rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
+    ),
     # The annotated unit
     ("kle_create", owner_rule(org_unit("args.input.org_unit"))),
     # The person on leave
