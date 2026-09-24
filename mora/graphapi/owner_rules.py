@@ -75,6 +75,7 @@ def org_unit_or_person(org_unit_uuid: str, person_uuid: str) -> str:
 
 # The rule for each collection's detail. A KLE and a role-binding link no
 # person, so owning the unit they link is the only way to own them
+address = partial(detail, collection="Address")
 engagement = partial(detail, collection="Engagement")
 kle = partial(detail_org_unit, collection="KLE")
 rolebinding = partial(detail_org_unit, collection="RoleBinding")
@@ -93,6 +94,7 @@ OWNER_RULES: list[tuple[str, str]] = [
             )
         ),
     ),
+    ("address_terminate", rule(address("args.input.uuid"))),
     # The unit of the association
     (
         "association_create",
