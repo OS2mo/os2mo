@@ -193,15 +193,6 @@ engagement = partial(detail, predicate=resolvers.engagement_predicate)
 # What a mutator requires owned, read off its arguments.
 # A mutator not listed here or in `OWNER_RULES` is never granted by ownership
 OWNER_ENTITIES: dict[str, OwnerRule] = {
-    # The unit or the person the address links to (exactly one is set)
-    "addresses_create": lambda settings, version, token, arguments: and_or_none(
-        *(
-            org_unit_or_person(
-                settings, version, token, input.org_unit, input.person or input.employee
-            )
-            for input in arguments["input"]
-        )
-    ),
     # The unit of the engagement
     "engagements_update": lambda settings, version, token, arguments: and_or_none(
         *(
