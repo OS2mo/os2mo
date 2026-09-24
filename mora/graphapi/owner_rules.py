@@ -215,4 +215,10 @@ OWNER_RULES: list[tuple[str, str]] = [
         rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
     ),
     ("itassociation_terminate", rule(association("args.input.uuid"))),
+    (
+        "itassociation_update",
+        rule(
+            and_or_none(association("args.input.uuid"), org_unit("args.input.org_unit"))
+        ),
+    ),
 ]

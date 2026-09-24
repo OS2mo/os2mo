@@ -184,7 +184,6 @@ def check_parent(
 
 # The rule for each collection's detail. A KLE and a role-binding link no
 # person, so owning the unit they link is the only way to own them
-association = partial(detail, predicate=resolvers.association_predicate)
 ituser = partial(detail, predicate=resolvers.it_user_predicate)
 kle = partial(detail_org_unit, predicate=resolvers.kle_predicate)
 leave = partial(detail, predicate=resolvers.leave_predicate)
@@ -196,11 +195,6 @@ rolebinding = partial(detail_org_unit, predicate=resolvers.rolebinding_predicate
 # What a mutator requires owned, read off its arguments. A mutator listed
 # neither here nor in `OWNER_RULES` is never granted by ownership
 OWNER_ENTITIES: dict[str, OwnerRule] = {
-    # The unit of the IT-association, whose update cannot name a person
-    "itassociation_update": lambda settings, version, token, arguments: and_or_none(
-        association(settings, version, token, arguments["input"].uuid),
-        org_unit(settings, version, token, arguments["input"].org_unit),
-    ),
     # The unit or the person the IT-user belongs to (exactly one is set)
     "ituser_create": lambda settings, version, token, arguments: org_unit_or_person(
         settings, version, token, arguments["input"].org_unit, arguments["input"].person
