@@ -154,6 +154,18 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
         ),
     ),
     ("engagement_terminate", owner_rule(engagement("args.input.uuid"))),
+    (
+        "engagement_update",
+        owner_rule(
+            and_or_none(
+                engagement("args.input.uuid"),
+                org_unit_or_person(
+                    "args.input.org_unit",
+                    "args.input.person != null ? args.input.person : args.input.employee",
+                ),
+            )
+        ),
+    ),
     # The unit of the IT-association, whose update cannot name a person
     (
         "itassociation_create",
