@@ -53,4 +53,6 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
     ("employee_create", owner_rule(person("args.input.uuid"))),
     ("employee_terminate", owner_rule(person("args.input.uuid"))),
     ("employee_update", owner_rule(person("args.input.uuid"))),
+    # The person on leave
+    ("leave_create", owner_rule(person("args.input.person"))),
 ]
