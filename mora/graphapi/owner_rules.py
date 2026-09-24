@@ -48,6 +48,8 @@ OWNER_RULES: list[tuple[str, str]] = [
     ("employee_create", rule(person("args.input.uuid"))),
     ("employee_terminate", rule(person("args.input.uuid"))),
     ("employee_update", rule(person("args.input.uuid"))),
+    # The annotated unit
+    ("kle_create", rule(org_unit("args.input.org_unit"))),
     # The person on leave
     ("leave_create", rule(person("args.input.person"))),
     # The parent, or the unit itself and its new parent if it is being moved
