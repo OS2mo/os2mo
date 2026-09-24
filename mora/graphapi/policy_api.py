@@ -7,19 +7,20 @@ from textwrap import dedent
 from uuid import UUID
 
 import strawberry
-from more_itertools import one
 from sqlalchemy import and_
+from sqlalchemy import false
+from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from mora import db
 from mora.db import AsyncSession
 from mora.db import Collection
+from mora.db import PolicySelectorKind
 from mora.graphapi.context import MOInfo
 from mora.graphapi.filters import gen_filter_string
 from mora.graphapi.graphql_utils import Field
 from mora.graphapi.graphql_utils import MutatorName
-from mora.graphapi.graphql_utils import Role
 from mora.graphapi.policy_cel import CEL
 from mora.graphapi.version import Version
 
@@ -37,6 +38,26 @@ strawberry.enum(
     name="GraphQLVersion",
     description="A version of the GraphQL schema, which the condition filters of a rule are written in.",
 )
+strawberry.enum(
+    PolicySelectorKind,
+    description=dedent(
+        """\
+        What a selector matches actors by, and what its value names:
+
+        * `role`: the actors carrying the role named by the value.
+        """
+    ),
+)
+
+
+@strawberry.type(description="Selects the actors a policy is activated for.")
+class PolicySelector:
+    kind: PolicySelectorKind = strawberry.field(
+        description="What the selector matches actors by."
+    )
+    value: str = strawberry.field(
+        description="The value matched, whose meaning depends on the kind."
+    )
 
 
 @strawberry.type(
@@ -92,7 +113,9 @@ class Policy:
             "Inactive policies are not considered for access control."
         )
     )
-    role: Role = strawberry.field(description="The role which activates the policy.")
+    selectors: list[PolicySelector] = strawberry.field(
+        description="The policy is activated for every actor matching any of these."
+    )
     managed: bool = strawberry.field(
         description=(
             "Whether MO manages the policy. MO managed policies cannot be modified."
@@ -106,6 +129,16 @@ class Policy:
     )
 
 
+@strawberry.input(description="Selects the actors a policy is activated for.")
+class PolicySelectorInput:
+    kind: PolicySelectorKind = strawberry.field(
+        description="What the selector matches actors by."
+    )
+    value: str = strawberry.field(
+        description="The value matched, whose meaning depends on the kind."
+    )
+
+
 @strawberry.input(description="Policy filter.")
 class PolicyFilter:
     uuids: list[UUID] | None = strawberry.field(
@@ -114,8 +147,8 @@ class PolicyFilter:
     names: list[str] | None = strawberry.field(
         default=None, description=gen_filter_string("Name", "names")
     )
-    roles: list[Role] | None = strawberry.field(
-        default=None, description=gen_filter_string("Role", "roles")
+    selectors: list[PolicySelectorInput] | None = strawberry.field(
+        default=None, description=gen_filter_string("Selector", "selectors")
     )
     active: bool | None = strawberry.field(
         default=None, description="Filter based on whether the policy is active."
@@ -140,7 +173,10 @@ async def load_policies(session: AsyncSession, uuids: Sequence[UUID]) -> list[Po
             name=policy.name,
             description=policy.description,
             active=policy.active,
-            role=one(policy.selectors).value,
+            selectors=[
+                PolicySelector(kind=selector.kind, value=selector.value)
+                for selector in policy.selectors
+            ],
             managed=policy.managed,
             read_rules=[
                 PolicyReadRule(
@@ -178,15 +214,15 @@ async def policy_resolver(
         query = query.where(db.Policy.pk.in_(filter.uuids))
     if filter.names is not None:
         query = query.where(db.Policy.name.in_(filter.names))
-    if filter.roles is not None:
-        query = query.where(
-            db.Policy.selectors.any(
-                and_(
-                    db.PolicySelector.kind == db.PolicySelectorKind.role,
-                    db.PolicySelector.value.in_(filter.roles),
-                )
+    if filter.selectors is not None:
+        matches = [
+            and_(
+                db.PolicySelector.kind == selector.kind,
+                db.PolicySelector.value == selector.value,
             )
-        )
+            for selector in filter.selectors
+        ]
+        query = query.where(db.Policy.selectors.any(or_(false(), *matches)))
     if filter.active is not None:
         query = query.where(db.Policy.active == filter.active)
 

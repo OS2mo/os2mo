@@ -49,7 +49,7 @@ def read_policy_page(graphapi_post: GraphAPIPost) -> ReadPolicyPage:
                         name
                         description
                         active
-                        role
+                        selectors { kind value }
                         managed
                         read_rules { collection fields condition graphql_version }
                         write_rules { mutator condition graphql_version }
@@ -119,7 +119,7 @@ async def test_the_seeded_policy_is_read(read_policies: ReadPolicies) -> None:
         "name": "Reader",
         "description": "Read access to the fields of every collection",
         "active": True,
-        "role": "reader",
+        "selectors": [{"kind": "role", "value": "reader"}],
         "managed": True,
         "read_rules": ANY,
         "write_rules": [],
@@ -143,7 +143,7 @@ async def test_a_policy_is_read_with_its_rules(read_policies: ReadPolicies) -> N
             "name": "Auditor",
             "description": "Reads the user key of the unit of the auditor",
             "active": False,
-            "role": "auditor",
+            "selectors": [{"kind": "role", "value": "auditor"}],
             "managed": False,
             "read_rules": [
                 {
@@ -179,21 +179,38 @@ async def test_a_policy_is_read_with_its_rules(read_policies: ReadPolicies) -> N
         ({"names": ["Reader"]}, {"Reader"}),
         ({"names": ["Auditor"]}, {"Auditor"}),
         ({"names": ["Reader", "Auditor"]}, {"Reader", "Auditor"}),
-        ({"roles": []}, set()),
-        ({"roles": ["reader"]}, {"Reader"}),
-        ({"roles": ["auditor"]}, {"Auditor"}),
-        ({"roles": ["reader", "auditor"]}, {"Reader", "Auditor"}),
+        ({"selectors": []}, set()),
+        ({"selectors": [{"kind": "role", "value": "reader"}]}, {"Reader"}),
+        ({"selectors": [{"kind": "role", "value": "auditor"}]}, {"Auditor"}),
+        (
+            {
+                "selectors": [
+                    {"kind": "role", "value": "reader"},
+                    {"kind": "role", "value": "auditor"},
+                ]
+            },
+            {"Reader", "Auditor"},
+        ),
         ({"active": True}, {"Reader"}),
         ({"active": False}, {"Auditor"}),
         # Filters intersect
-        ({"roles": ["reader", "auditor"], "active": True}, {"Reader"}),
+        (
+            {
+                "selectors": [
+                    {"kind": "role", "value": "reader"},
+                    {"kind": "role", "value": "auditor"},
+                ],
+                "active": True,
+            },
+            {"Reader"},
+        ),
     ],
 )
 @pytest.mark.usefixtures("auditor")
 async def test_policies_are_filtered(
     read_policies: ReadPolicies, filter: dict[str, Any] | None, names: set[str]
 ) -> None:
-    """The filter picks the policies by uuid, name, role and whether they are active."""
+    """The filter picks policies by uuid, name, selector and whether they are active."""
     policies = read_policies({"filter": filter})
     assert {policy["name"] for policy in policies} == names
 
@@ -240,7 +257,7 @@ def try_declare_policy(graphapi_post: GraphAPIPost) -> TryDeclarePolicy:
                     name
                     description
                     active
-                    role
+                    selectors { kind value }
                     managed
                     read_rules { collection fields condition graphql_version }
                     write_rules { mutator condition graphql_version }
@@ -268,7 +285,7 @@ def declare_policy(try_declare_policy: TryDeclarePolicy) -> DeclarePolicy:
 # The state of a policy as it is declared
 UNIT_AUDITOR = {
     "name": "Unit Auditor",
-    "role": "unit_auditor",
+    "selectors": [{"kind": "role", "value": "unit_auditor"}],
     "description": "Audits the unit of the auditor",
     "active": True,
     "read_rules": [
@@ -301,7 +318,7 @@ async def test_a_declared_policy_is_read_back(
     assert policy == {
         "uuid": uuid,
         "name": "Unit Auditor",
-        "role": "unit_auditor",
+        "selectors": [{"kind": "role", "value": "unit_auditor"}],
         "description": "Audits the unit of the auditor",
         "active": True,
         "managed": False,
@@ -350,7 +367,7 @@ async def test_a_policy_declared_anew_is_made_to_match(
         AUDITOR_UUID,
         {
             "name": "Class Auditor",
-            "role": "class_auditor",
+            "selectors": [{"kind": "role", "value": "class_auditor"}],
             "description": "Audits every class",
             "active": True,
             "read_rules": [
@@ -368,7 +385,7 @@ async def test_a_policy_declared_anew_is_made_to_match(
     assert policy == {
         "uuid": AUDITOR_UUID,
         "name": "Class Auditor",
-        "role": "class_auditor",
+        "selectors": [{"kind": "role", "value": "class_auditor"}],
         "description": "Audits every class",
         "active": True,
         "managed": False,
@@ -414,7 +431,7 @@ async def test_a_rule_is_written_in_the_version_it_is_declared_in(
         str(uuid4()),
         {
             "name": "Unit Auditor",
-            "role": "unit_auditor",
+            "selectors": [{"kind": "role", "value": "unit_auditor"}],
             "read_rules": [
                 {
                     "collection": "OrganisationUnit",
@@ -443,7 +460,7 @@ async def test_a_read_rule_is_unconditional_by_default(
         uuid,
         {
             "name": "Address Auditor",
-            "role": "address_auditor",
+            "selectors": [{"kind": "role", "value": "address_auditor"}],
             "read_rules": [
                 {
                     "collection": "Address",
@@ -490,6 +507,27 @@ async def test_a_read_rule_naming_a_field_twice_is_refused(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
+async def test_a_policy_naming_a_selector_twice_is_refused(
+    try_declare_policy: TryDeclarePolicy, read_policies: ReadPolicies
+) -> None:
+    """A policy names each of its selectors once, or nothing is declared."""
+    uuid = str(uuid4())
+    selector = {"kind": "role", "value": "unit_auditor"}
+
+    response = try_declare_policy(
+        uuid, {**UNIT_AUDITOR, "selectors": [selector, selector]}
+    )
+
+    assert response.errors is not None
+    assert (
+        one(response.errors)["message"]
+        == "A policy cannot name a selector more than once."
+    )
+    assert read_policies({"filter": {"uuids": [uuid]}}) == []
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 async def test_a_declared_policy_grants_its_rules(
     set_auth: SetAuth, graphapi_post: GraphAPIPost, declare_policy: DeclarePolicy
 ) -> None:
@@ -505,7 +543,7 @@ async def test_a_declared_policy_grants_its_rules(
         str(uuid4()),
         {
             "name": "Event Admin",
-            "role": "event_admin",
+            "selectors": [{"kind": "role", "value": "event_admin"}],
             "write_rules": [
                 {"mutator": "event_namespace_declare", "graphql_version": "VERSION_30"}
             ],
@@ -514,6 +552,37 @@ async def test_a_declared_policy_grants_its_rules(
 
     set_auth({"reader", "event_admin"}, BRUCE_UUID)
     assert_granted(graphapi_post(namespace_declare))
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_policy_is_activated_for_an_actor_matching_any_of_its_selectors(
+    set_auth: SetAuth, graphapi_post: GraphAPIPost, declare_policy: DeclarePolicy
+) -> None:
+    """A policy selecting two roles grants its rules to a carrier of either."""
+    namespace_declare = """
+        mutation { event_namespace_declare(input: {name: "audits"}) { name } }
+    """
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Event Admin",
+            "selectors": [
+                {"kind": "role", "value": "event_admin"},
+                {"kind": "role", "value": "event_auditor"},
+            ],
+            "write_rules": [
+                {"mutator": "event_namespace_declare", "graphql_version": "VERSION_30"}
+            ],
+        },
+    )
+
+    set_auth({"reader", "event_admin"}, BRUCE_UUID)
+    assert_granted(graphapi_post(namespace_declare))
+    set_auth({"reader", "event_auditor"}, BRUCE_UUID)
+    assert_granted(graphapi_post(namespace_declare))
+    set_auth("reader", BRUCE_UUID)
+    assert_denied(graphapi_post(namespace_declare))
 
 
 @pytest.mark.integration_test
@@ -599,7 +668,7 @@ async def test_a_condition_which_does_not_compile_is_refused(
     uuid = str(uuid4())
     state = {
         "name": "Unit Auditor",
-        "role": "unit_auditor",
+        "selectors": [{"kind": "role", "value": "unit_auditor"}],
         **rules,
     }
 
@@ -648,7 +717,7 @@ async def test_a_deleted_policy_grants_nothing(
         uuid,
         {
             "name": "Event Admin",
-            "role": "event_admin",
+            "selectors": [{"kind": "role", "value": "event_admin"}],
             "write_rules": [
                 {"mutator": "event_namespace_declare", "graphql_version": "VERSION_30"}
             ],
