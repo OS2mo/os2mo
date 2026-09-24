@@ -107,6 +107,11 @@ OWNER_RULES: list[tuple[str, str]] = [
     # The parent, or the unit itself and its new parent if it is being moved
     ("org_unit_create", rule(org_unit("args.input.parent"))),
     ("org_unit_terminate", rule(org_unit("args.input.uuid"))),
+    # The unit or the person owned (exactly one is set)
+    (
+        "owner_create",
+        rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
+    ),
     # Related units have a single `origin` field and a list of
     # `destination`s. Originally we required ownership of both the
     # origin and destinations, but that's not compatible with the old

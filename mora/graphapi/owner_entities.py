@@ -343,9 +343,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         ),
     ),
     # The unit or the person owned (exactly one is set)
-    "owner_create": lambda settings, version, token, arguments: org_unit_or_person(
-        settings, version, token, arguments["input"].org_unit, arguments["input"].person
-    ),
     "owner_terminate": lambda settings, version, token, arguments: owner(
         settings, version, token, arguments["input"].uuid
     ),
