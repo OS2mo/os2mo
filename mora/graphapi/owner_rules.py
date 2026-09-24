@@ -257,4 +257,9 @@ OWNER_RULES: list[tuple[str, str]] = [
         "leave_update",
         rule(and_or_none(leave("args.input.uuid"), person("args.input.person"))),
     ),
+    # The unit of the manager
+    (
+        "manager_create",
+        rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
+    ),
 ]
