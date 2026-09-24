@@ -3,7 +3,6 @@
 """Owner resolution map."""
 
 from collections.abc import Callable
-from functools import partial
 from typing import Any
 from typing import get_type_hints
 from uuid import UUID
@@ -17,7 +16,6 @@ from strawberry import UNSET
 
 from mora.auth.keycloak.models import Token
 from mora.config import Settings
-from mora.graphapi import resolvers
 from mora.graphapi.filters import EmployeeFilter
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.filters import OwnerFilter
@@ -186,27 +184,6 @@ def org_unit_or_person(
     return person(settings, version, token, person_uuid)
 
 
-# The rule for each collection's detail
-engagement = partial(detail, predicate=resolvers.engagement_predicate)
-
-
 # What a mutator requires owned, read off its arguments.
 # A mutator not listed here or in `OWNER_RULES` is never granted by ownership
-OWNER_ENTITIES: dict[str, OwnerRule] = {
-    # The unit of the engagement
-    "engagements_update": lambda settings, version, token, arguments: and_or_none(
-        *(
-            and_or_none(
-                engagement(settings, version, token, input.uuid),
-                org_unit_or_person(
-                    settings,
-                    version,
-                    token,
-                    input.org_unit,
-                    input.person or input.employee,
-                ),
-            )
-            for input in arguments["input"]
-        )
-    ),
-}
+OWNER_ENTITIES: dict[str, OwnerRule] = {}
