@@ -156,12 +156,4 @@ def org_unit_or_person(
 
 # What a mutator requires owned, read off its arguments. A mutator listed
 # neither here nor in `OWNER_RULES` is never granted by ownership
-OWNER_ENTITIES: dict[str, OwnerRule] = {
-    # The unit of the role-binding, if one is named
-    "rolebindings_create": lambda settings, version, token, arguments: and_or_none(
-        *(
-            org_unit(settings, version, token, input.org_unit)
-            for input in arguments["input"]
-        )
-    ),
-}
+OWNER_ENTITIES: dict[str, OwnerRule] = {}
