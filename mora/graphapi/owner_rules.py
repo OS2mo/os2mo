@@ -51,6 +51,16 @@ def org_unit_or_person(org_unit_uuid: str, person_uuid: str) -> str:
 # What each mutator requires owned, read off its arguments, moving here from
 # `OWNER_ENTITIES` one mutator at a time
 OWNER_RULES: list[tuple[str, str]] = [
+    # The unit or the person the address links to (exactly one is set)
+    (
+        "address_create",
+        rule(
+            org_unit_or_person(
+                "args.input.org_unit",
+                "args.input.person != null ? args.input.person : args.input.employee",
+            )
+        ),
+    ),
     # The employee itself
     ("employee_create", rule(person("args.input.uuid"))),
     ("employee_terminate", rule(person("args.input.uuid"))),
