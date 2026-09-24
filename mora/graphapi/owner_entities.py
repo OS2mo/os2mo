@@ -272,12 +272,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         )
     ),
     # The unit of the IT-association, whose update cannot name a person
-    "itassociation_create": lambda settings,
-    version,
-    token,
-    arguments: org_unit_or_person(
-        settings, version, token, arguments["input"].org_unit, arguments["input"].person
-    ),
     "itassociation_terminate": lambda settings, version, token, arguments: association(
         settings, version, token, arguments["input"].uuid
     ),
