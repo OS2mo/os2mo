@@ -228,4 +228,13 @@ OWNER_RULES: list[tuple[str, str]] = [
         rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
     ),
     ("ituser_terminate", rule(ituser("args.input.uuid"))),
+    (
+        "ituser_update",
+        rule(
+            and_or_none(
+                ituser("args.input.uuid"),
+                org_unit_or_person("args.input.org_unit", "args.input.person"),
+            )
+        ),
+    ),
 ]

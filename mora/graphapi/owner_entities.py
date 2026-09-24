@@ -184,7 +184,6 @@ def check_parent(
 
 # The rule for each collection's detail. A KLE and a role-binding link no
 # person, so owning the unit they link is the only way to own them
-ituser = partial(detail, predicate=resolvers.it_user_predicate)
 kle = partial(detail_org_unit, predicate=resolvers.kle_predicate)
 leave = partial(detail, predicate=resolvers.leave_predicate)
 manager = partial(detail, predicate=resolvers.manager_predicate)
@@ -196,16 +195,6 @@ rolebinding = partial(detail_org_unit, predicate=resolvers.rolebinding_predicate
 # neither here nor in `OWNER_RULES` is never granted by ownership
 OWNER_ENTITIES: dict[str, OwnerRule] = {
     # The unit or the person the IT-user belongs to (exactly one is set)
-    "ituser_update": lambda settings, version, token, arguments: and_or_none(
-        ituser(settings, version, token, arguments["input"].uuid),
-        org_unit_or_person(
-            settings,
-            version,
-            token,
-            arguments["input"].org_unit,
-            arguments["input"].person,
-        ),
-    ),
     "itusers_create": lambda settings, version, token, arguments: and_or_none(
         *(
             org_unit_or_person(settings, version, token, input.org_unit, input.person)
