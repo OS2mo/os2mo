@@ -61,6 +61,16 @@ OWNER_RULES: list[tuple[str, str]] = [
             )
         ),
     ),
+    # The unit of the association
+    (
+        "association_create",
+        rule(
+            org_unit_or_person(
+                "args.input.org_unit",
+                "args.input.person != null ? args.input.person : args.input.employee",
+            )
+        ),
+    ),
     # The employee itself
     ("employee_create", rule(person("args.input.uuid"))),
     ("employee_terminate", rule(person("args.input.uuid"))),
