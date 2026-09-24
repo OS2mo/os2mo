@@ -195,9 +195,6 @@ rolebinding = partial(detail_org_unit, predicate=resolvers.rolebinding_predicate
 # neither here nor in `OWNER_RULES` is never granted by ownership
 OWNER_ENTITIES: dict[str, OwnerRule] = {
     # The annotated unit
-    "kle_terminate": lambda settings, version, token, arguments: kle(
-        settings, version, token, arguments["input"].uuid
-    ),
     "kle_update": lambda settings, version, token, arguments: and_or_none(
         kle(settings, version, token, arguments["input"].uuid),
         org_unit(settings, version, token, arguments["input"].org_unit),

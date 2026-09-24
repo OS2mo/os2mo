@@ -96,6 +96,7 @@ address = partial(detail, collection="Address")
 association = partial(detail, collection="Association")
 engagement = partial(detail, collection="Engagement")
 ituser = partial(detail, collection="ITUser")
+kle = partial(detail_org_unit, collection="KLE")
 
 
 # What each mutator requires owned, read off its arguments, moving here from
@@ -243,4 +244,5 @@ OWNER_RULES: list[tuple[str, str]] = [
     ),
     # The annotated unit
     ("kle_create", rule(org_unit("args.input.org_unit"))),
+    ("kle_terminate", rule(kle("args.input.uuid"))),
 ]
