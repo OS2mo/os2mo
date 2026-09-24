@@ -95,6 +95,7 @@ def org_unit_or_person(org_unit_uuid_expr: str, person_uuid_expr: str) -> str:
 
 # The rule for each collection's detail. A KLE and a role-binding link no
 # person, so owning the unit they link is the only way to own them
+engagement = partial(detail, collection="Engagement")
 kle = partial(detail_org_unit, collection="KLE")
 rolebinding = partial(detail_org_unit, collection="RoleBinding")
 
@@ -136,6 +137,7 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
             )
         ),
     ),
+    ("engagement_terminate", owner_rule(engagement("args.input.uuid"))),
     # The unit of the IT-association, whose update cannot name a person
     (
         "itassociation_create",
