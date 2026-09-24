@@ -214,7 +214,6 @@ def check_parent(
 
 # The rule for each collection's detail
 engagement = partial(detail, predicate=resolvers.engagement_predicate)
-owner = partial(detail, predicate=resolvers.owner_predicate)
 
 
 # What a mutator requires owned, read off its arguments.
@@ -272,17 +271,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         org_unit(settings, version, token, arguments["input"].uuid),
         check_parent(
             settings, version, token, arguments["input"].uuid, arguments["input"].parent
-        ),
-    ),
-    # The unit or the person owned (exactly one is set)
-    "owner_update": lambda settings, version, token, arguments: and_or_none(
-        owner(settings, version, token, arguments["input"].uuid),
-        org_unit_or_person(
-            settings,
-            version,
-            token,
-            arguments["input"].org_unit,
-            arguments["input"].person,
         ),
     ),
     # The unit of the role-binding, if one is named
