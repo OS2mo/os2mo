@@ -35,4 +35,6 @@ OWNER_RULES: list[tuple[str, str]] = [
     ("employee_create", rule(person("args.input.uuid"))),
     ("employee_terminate", rule(person("args.input.uuid"))),
     ("employee_update", rule(person("args.input.uuid"))),
+    # The person on leave
+    ("leave_create", rule(person("args.input.person"))),
 ]

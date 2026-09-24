@@ -344,9 +344,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         org_unit(settings, version, token, arguments["input"].org_unit),
     ),
     # The person on leave
-    "leave_create": lambda settings, version, token, arguments: person(
-        settings, version, token, arguments["input"].person
-    ),
     "leave_terminate": lambda settings, version, token, arguments: leave(
         settings, version, token, arguments["input"].uuid
     ),
