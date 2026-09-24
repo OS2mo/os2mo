@@ -187,7 +187,6 @@ address = partial(detail, predicate=resolvers.address_predicate)
 association = partial(detail, predicate=resolvers.association_predicate)
 engagement = partial(detail, predicate=resolvers.engagement_predicate)
 ituser = partial(detail, predicate=resolvers.it_user_predicate)
-leave = partial(detail, predicate=resolvers.leave_predicate)
 manager = partial(detail, predicate=resolvers.manager_predicate)
 owner = partial(detail, predicate=resolvers.owner_predicate)
 
@@ -275,11 +274,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             org_unit_or_person(settings, version, token, input.org_unit, input.person)
             for input in arguments["input"]
         )
-    ),
-    # The person on leave
-    "leave_update": lambda settings, version, token, arguments: and_or_none(
-        leave(settings, version, token, arguments["input"].uuid),
-        person(settings, version, token, arguments["input"].person),
     ),
     # The unit of the manager
     "manager_update": lambda settings, version, token, arguments: and_or_none(
