@@ -73,4 +73,9 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
     # The parent, or the unit itself and its new parent if it is being moved
     ("org_unit_create", owner_rule(org_unit("args.input.parent"))),
     ("org_unit_terminate", owner_rule(org_unit("args.input.uuid"))),
+    # Related units have a single `origin` field and a list of
+    # `destination`s. Originally we required ownership of both the
+    # origin and destinations, but that's not compatible with the old
+    # service-api owner calculation
+    ("related_units_update", owner_rule(org_unit("args.input.origin"))),
 ]
