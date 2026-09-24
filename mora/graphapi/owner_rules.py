@@ -50,6 +50,22 @@ def detail_org_unit(uuid: str, *, collection: str) -> str:
     })""").substitute(collection=collection, uuid=uuid)
 
 
+def detail_person(uuid: str, *, collection: str) -> str:
+    """Require ownership of the person the detail links."""
+    return Template("""dyn({
+        "collection": "$collection",
+        "filter": {"uuids": [$uuid], "employee": {"owner": seat}}
+    })""").substitute(collection=collection, uuid=uuid)
+
+
+def detail(uuid: str, *, collection: str) -> str:
+    """Require ownership of the org unit or the person the detail links."""
+    return Template('dyn({"or": [$org_unit, $person]})').substitute(
+        org_unit=detail_org_unit(uuid, collection=collection),
+        person=detail_person(uuid, collection=collection),
+    )
+
+
 def org_unit_or_person(org_unit_uuid: str, person_uuid: str) -> str:
     """Require ownership of the unit if one is named, else of the person."""
     return Template("cel.bind(unit, $unit, unit != null ? unit : $person)").substitute(
@@ -59,6 +75,7 @@ def org_unit_or_person(org_unit_uuid: str, person_uuid: str) -> str:
 
 # The rule for each collection's detail. A KLE and a role-binding link no
 # person, so owning the unit they link is the only way to own them
+engagement = partial(detail, collection="Engagement")
 kle = partial(detail_org_unit, collection="KLE")
 rolebinding = partial(detail_org_unit, collection="RoleBinding")
 
@@ -100,6 +117,7 @@ OWNER_RULES: list[tuple[str, str]] = [
             )
         ),
     ),
+    ("engagement_terminate", rule(engagement("args.input.uuid"))),
     # The unit of the IT-association, whose update cannot name a person
     (
         "itassociation_create",
