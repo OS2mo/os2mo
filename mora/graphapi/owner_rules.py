@@ -26,18 +26,10 @@ def _owner_filter(requirements: str) -> str:
     ).substitute(requirements=requirements)
 
 
-def deny_tokens_without_uuid(rule: OwnerRule) -> OwnerRule:
+def deny_tokens_without_uuid(rule: str) -> str:
     """Deny tokens carrying no uuid, before `rule` is evaluated."""
-
-    def check(
-        settings: Settings, version: Version, token: Token, arguments: dict[str, Any]
-    ) -> ColumnElement | None:
-        # A token carrying no uuid names no employee, so it owns nothing
-        if token.uuid is None:
-            return false()
-        return rule(settings, version, token, arguments)
-
-    return check
+    # A token carrying no uuid names no employee, so it owns nothing
+    return Template("token.uuid == null ? false : $rule").substitute(rule=rule)
 
 
 def deny_requiring_nothing(
