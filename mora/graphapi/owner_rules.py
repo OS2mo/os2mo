@@ -99,6 +99,11 @@ OWNER_RULES: list[tuple[str, str]] = [
     ("kle_create", rule(org_unit("args.input.org_unit"))),
     # The person on leave
     ("leave_create", rule(person("args.input.person"))),
+    # The unit of the manager
+    (
+        "manager_create",
+        rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
+    ),
     # The parent, or the unit itself and its new parent if it is being moved
     ("org_unit_create", rule(org_unit("args.input.parent"))),
     ("org_unit_terminate", rule(org_unit("args.input.uuid"))),
