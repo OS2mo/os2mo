@@ -16,6 +16,8 @@ from mora.db import Collection
 from mora.db import Policy
 from mora.db import PolicyReadRule
 from mora.db import PolicyReadRuleField
+from mora.db import PolicySelector
+from mora.db import PolicySelectorKind
 from mora.db import PolicyWriteRule
 from mora.graphapi.version import Version
 from tests.conftest import BRUCE_UUID
@@ -84,7 +86,7 @@ async def auditor(empty_db: AsyncSession) -> None:
         name="Auditor",
         description="Reads the user key of the unit of the auditor",
         active=False,
-        role="auditor",
+        selectors=[PolicySelector(kind=PolicySelectorKind.role, value="auditor")],
         read_rules=[
             PolicyReadRule(
                 collection=Collection.OrganisationUnit,

@@ -7,6 +7,8 @@ from textwrap import dedent
 from uuid import UUID
 
 import strawberry
+from more_itertools import one
+from sqlalchemy import and_
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
@@ -127,6 +129,7 @@ async def load_policies(session: AsyncSession, uuids: Sequence[UUID]) -> list[Po
         .where(db.Policy.pk.in_(uuids))
         .order_by(db.Policy.pk)
         .options(
+            selectinload(db.Policy.selectors),
             selectinload(db.Policy.read_rules).selectinload(db.PolicyReadRule.fields),
             selectinload(db.Policy.write_rules),
         )
@@ -137,7 +140,7 @@ async def load_policies(session: AsyncSession, uuids: Sequence[UUID]) -> list[Po
             name=policy.name,
             description=policy.description,
             active=policy.active,
-            role=policy.role,
+            role=one(policy.selectors).value,
             managed=policy.managed,
             read_rules=[
                 PolicyReadRule(
@@ -176,7 +179,14 @@ async def policy_resolver(
     if filter.names is not None:
         query = query.where(db.Policy.name.in_(filter.names))
     if filter.roles is not None:
-        query = query.where(db.Policy.role.in_(filter.roles))
+        query = query.where(
+            db.Policy.selectors.any(
+                and_(
+                    db.PolicySelector.kind == db.PolicySelectorKind.role,
+                    db.PolicySelector.value.in_(filter.roles),
+                )
+            )
+        )
     if filter.active is not None:
         query = query.where(db.Policy.active == filter.active)
 
