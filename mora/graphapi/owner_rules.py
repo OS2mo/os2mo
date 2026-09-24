@@ -5,19 +5,8 @@
 from functools import partial
 from string import Template
 from typing import TypeAlias
-from uuid import UUID
 
-from sqlalchemy import ColumnElement
-from sqlalchemy import exists
-from sqlalchemy import or_
-from strawberry import UNSET
-
-from mora.auth.keycloak.models import Token
-from mora.config import Settings
-from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.policy_cel import CEL
-from mora.graphapi.resolvers import organisation_unit_predicate
-from mora.graphapi.version import Version
 
 
 def _owner_filter(requirements: str) -> str:
@@ -112,30 +101,25 @@ def org_unit_or_person(org_unit_uuid_expr: str, person_uuid_expr: str) -> str:
     )
 
 
-def check_parent(
-    settings: Settings, version: Version, token: Token, uuid: UUID, parent: UUID | None
-) -> ColumnElement | None:
+def check_parent(uuid_expr: str, parent_expr: str) -> str:
     """Require ownership of the parent a unit is moved under, if it is moved.
 
     GraphQL edits always contain the full object, so the parent named is just
     as often the one the unit already has, which is no move at all.
     """
-    if parent is None or parent is UNSET:
-        return None
     # Whether the parent named is the one the unit already has
-    keeps_parent = exists().where(
-        organisation_unit_predicate(
-            settings=settings,
-            version=version,
-            filter=OrganisationUnitFilter(
-                uuids=[parent], child=OrganisationUnitFilter(uuids=[uuid])
-            ),
-        )
-    )
+    keeps_parent = Template("""{
+        "collection": "OrganisationUnit",
+        "filter": {"uuids": [$parent_expr], "child": {"uuids": [$uuid_expr]}}
+    }""").substitute(parent_expr=parent_expr, uuid_expr=uuid_expr)
     # ... or the actor owns the parent it is moved under
-    moved_under = org_unit(settings, version, token, parent)
-    assert moved_under is not None
-    return or_(keeps_parent, moved_under)
+    moved_under = org_unit(parent_expr)
+    return Template(
+        "(!has($parent_expr) ? null : $parent_expr == null ? null : "
+        'dyn({"or": [$keeps_parent, $moved_under]}))'
+    ).substitute(
+        parent_expr=parent_expr, keeps_parent=keeps_parent, moved_under=moved_under
+    )
 
 
 # The rule for each collection's detail. A KLE and a role-binding link no
