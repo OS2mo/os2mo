@@ -251,10 +251,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             arguments["input"].person or arguments["input"].employee,
         ),
     ),
-    # The employee itself
-    "employee_update": lambda settings, version, token, arguments: person(
-        settings, version, token, arguments["input"].uuid
-    ),
     # The unit of the engagement
     "engagement_create": lambda settings, version, token, arguments: org_unit_or_person(
         settings,
