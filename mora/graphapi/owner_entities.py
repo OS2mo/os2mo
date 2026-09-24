@@ -325,9 +325,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         person(settings, version, token, arguments["input"].person),
     ),
     # The unit of the manager
-    "manager_terminate": lambda settings, version, token, arguments: manager(
-        settings, version, token, arguments["input"].uuid
-    ),
     "manager_update": lambda settings, version, token, arguments: and_or_none(
         manager(settings, version, token, arguments["input"].uuid),
         org_unit_or_person(
