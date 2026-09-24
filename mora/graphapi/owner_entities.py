@@ -198,13 +198,6 @@ rolebinding = partial(detail_org_unit, predicate=resolvers.rolebinding_predicate
 # neither here nor in `OWNER_RULES` is never granted by ownership
 OWNER_ENTITIES: dict[str, OwnerRule] = {
     # The unit of the engagement
-    "engagement_create": lambda settings, version, token, arguments: org_unit_or_person(
-        settings,
-        version,
-        token,
-        arguments["input"].org_unit,
-        arguments["input"].person or arguments["input"].employee,
-    ),
     "engagement_terminate": lambda settings, version, token, arguments: engagement(
         settings, version, token, arguments["input"].uuid
     ),
