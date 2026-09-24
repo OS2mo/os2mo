@@ -160,6 +160,12 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
         owner_rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
     ),
     ("itassociation_terminate", owner_rule(association("args.input.uuid"))),
+    (
+        "itassociation_update",
+        owner_rule(
+            and_or_none(association("args.input.uuid"), org_unit("args.input.org_unit"))
+        ),
+    ),
     # The unit or the person the IT-user belongs to (exactly one is set)
     (
         "ituser_create",
