@@ -94,6 +94,7 @@ def org_unit_or_person(org_unit_uuid: str, person_uuid: str) -> str:
 # person, so owning the unit they link is the only way to own them
 address = partial(detail, collection="Address")
 association = partial(detail, collection="Association")
+engagement = partial(detail, collection="Engagement")
 
 
 # What each mutator requires owned, read off its arguments, moving here from
@@ -170,4 +171,5 @@ OWNER_RULES: list[tuple[str, str]] = [
             )
         ),
     ),
+    ("engagement_terminate", rule(engagement("args.input.uuid"))),
 ]
