@@ -245,4 +245,8 @@ OWNER_RULES: list[tuple[str, str]] = [
     # The annotated unit
     ("kle_create", rule(org_unit("args.input.org_unit"))),
     ("kle_terminate", rule(kle("args.input.uuid"))),
+    (
+        "kle_update",
+        rule(and_or_none(kle("args.input.uuid"), org_unit("args.input.org_unit"))),
+    ),
 ]
