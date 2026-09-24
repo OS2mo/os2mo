@@ -259,11 +259,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             for input in arguments["input"]
         )
     ),
-    # The unit of the IT-association, whose update cannot name a person
-    "itassociation_update": lambda settings, version, token, arguments: and_or_none(
-        association(settings, version, token, arguments["input"].uuid),
-        org_unit(settings, version, token, arguments["input"].org_unit),
-    ),
     # The unit or the person the IT-user belongs to (exactly one is set)
     "ituser_update": lambda settings, version, token, arguments: and_or_none(
         ituser(settings, version, token, arguments["input"].uuid),
