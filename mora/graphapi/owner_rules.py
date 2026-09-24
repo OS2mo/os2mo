@@ -108,6 +108,18 @@ OWNER_RULES: list[tuple[str, str]] = [
         ),
     ),
     ("address_terminate", rule(address("args.input.uuid"))),
+    (
+        "address_update",
+        rule(
+            and_or_none(
+                address("args.input.uuid"),
+                org_unit_or_person(
+                    "args.input.org_unit",
+                    "args.input.person != null ? args.input.person : args.input.employee",
+                ),
+            )
+        ),
+    ),
     # The unit of the association
     (
         "association_create",
