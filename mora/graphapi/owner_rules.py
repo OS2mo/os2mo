@@ -3,6 +3,7 @@
 """The rules of the owner policy, translated into CEL."""
 
 from collections.abc import Callable
+from string import Template
 from typing import Any
 from typing import TypeAlias
 from uuid import UUID
@@ -14,7 +15,6 @@ from sqlalchemy import false
 from mora.auth.keycloak.models import Token
 from mora.config import Settings
 from mora.graphapi.filters import EmployeeFilter
-from mora.graphapi.filters import OwnerFilter
 from mora.graphapi.policy_cel import CEL
 from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.version import Version
@@ -22,11 +22,12 @@ from mora.graphapi.version import Version
 OwnerRule = Callable[[Settings, Version, Token, dict[str, Any]], ColumnElement | None]
 
 
-def _owner_filter(token: Token) -> OwnerFilter:
-    """The owner filter matching the calling actor, by the token's uuid."""
+def _owner_filter(requirements: str) -> str:
+    """Bind the owner filter matching the calling actor, by the token's uuid."""
     # A token with no uuid never gets this far, see `deny_tokens_without_uuid`
-    assert token.uuid is not None
-    return OwnerFilter(owner=EmployeeFilter(uuids=[token.uuid]))
+    return Template(
+        'cel.bind(owner_filter, {"owner": {"uuids": [token.uuid]}}, $requirements)'
+    ).substitute(requirements=requirements)
 
 
 def deny_tokens_without_uuid(rule: OwnerRule) -> OwnerRule:
