@@ -74,6 +74,13 @@ def and_or_none(*checks: str) -> str:
     )
 
 
+def and_or_none_each(check: str) -> str:
+    """Require the check of each `input`, or nothing if there is nothing to check."""
+    return Template("""cel.bind(clauses, args.input.map(input, $check)
+        .filter(clause, clause != null),
+        clauses.size() == 0 ? null : dyn({"and": clauses}))""").substitute(check=check)
+
+
 def org_unit_or_person(org_unit_uuid: str, person_uuid: str) -> str:
     """Require ownership of the unit if one is named, else of the person."""
     return Template("cel.bind(unit, $unit, unit != null ? unit : $person)").substitute(
@@ -286,4 +293,5 @@ OWNER_RULES: list[tuple[str, str]] = [
             and_or_none(rolebinding("args.input.uuid"), org_unit("args.input.org_unit"))
         ),
     ),
+    ("rolebindings_create", rule(and_or_none_each(org_unit("input.org_unit")))),
 ]
