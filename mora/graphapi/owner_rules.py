@@ -324,4 +324,9 @@ OWNER_RULES: list[tuple[str, str]] = [
             )
         ),
     ),
+    # Related units have a single `origin` field and a list of
+    # `destination`s. Originally we required ownership of both the
+    # origin and destinations, but that's not compatible with the old
+    # service-api owner calculation
+    ("related_units_update", rule(org_unit("args.input.origin"))),
 ]
