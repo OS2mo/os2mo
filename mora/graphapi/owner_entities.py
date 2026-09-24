@@ -186,32 +186,6 @@ def org_unit_or_person(
     return person(settings, version, token, person_uuid)
 
 
-def check_parent(
-    settings: Settings, version: Version, token: Token, uuid: UUID, parent: UUID | None
-) -> ColumnElement | None:
-    """Require ownership of the parent a unit is moved under, if it is moved.
-
-    GraphQL edits always contain the full object, so the parent named is just
-    as often the one the unit already has, which is no move at all.
-    """
-    if parent is None or parent is UNSET:
-        return None
-    # Whether the parent named is the one the unit already has
-    keeps_parent = exists().where(
-        organisation_unit_predicate(
-            settings=settings,
-            version=version,
-            filter=OrganisationUnitFilter(
-                uuids=[parent], child=OrganisationUnitFilter(uuids=[uuid])
-            ),
-        )
-    )
-    # ... or the actor owns the parent it is moved under
-    moved_under = org_unit(settings, version, token, parent)
-    assert moved_under is not None
-    return or_(keeps_parent, moved_under)
-
-
 # The rule for each collection's detail
 engagement = partial(detail, predicate=resolvers.engagement_predicate)
 
@@ -265,13 +239,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             org_unit_or_person(settings, version, token, input.org_unit, input.person)
             for input in arguments["input"]
         )
-    ),
-    # The parent, or the unit itself and its new parent if it is being moved
-    "org_unit_update": lambda settings, version, token, arguments: and_or_none(
-        org_unit(settings, version, token, arguments["input"].uuid),
-        check_parent(
-            settings, version, token, arguments["input"].uuid, arguments["input"].parent
-        ),
     ),
     # The unit of the role-binding, if one is named
     "rolebindings_create": lambda settings, version, token, arguments: and_or_none(
