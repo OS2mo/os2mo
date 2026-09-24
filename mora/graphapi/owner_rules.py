@@ -208,6 +208,15 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
         owner_rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
     ),
     ("ituser_terminate", owner_rule(ituser("args.input.uuid"))),
+    (
+        "ituser_update",
+        owner_rule(
+            and_or_none(
+                ituser("args.input.uuid"),
+                org_unit_or_person("args.input.org_unit", "args.input.person"),
+            )
+        ),
+    ),
     # The annotated unit
     ("kle_create", owner_rule(org_unit("args.input.org_unit"))),
     ("kle_terminate", owner_rule(kle("args.input.uuid"))),
