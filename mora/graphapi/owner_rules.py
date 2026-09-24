@@ -4,18 +4,8 @@
 
 from string import Template
 from typing import TypeAlias
-from uuid import UUID
 
-from sqlalchemy import ColumnElement
-from sqlalchemy import exists
-from strawberry import UNSET
-
-from mora.auth.keycloak.models import Token
-from mora.config import Settings
-from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.policy_cel import CEL
-from mora.graphapi.resolvers import organisation_unit_predicate
-from mora.graphapi.version import Version
 
 
 def _owner_filter(requirements: str) -> str:
@@ -48,25 +38,17 @@ def owner_rule(requirements: str) -> CEL:
     )
 
 
-def org_unit(
-    settings: Settings, version: Version, token: Token, uuid: UUID | None
-) -> ColumnElement | None:
+def org_unit(uuid_expr: str) -> str:
     """Require ownership of the unit named, if one is named.
 
     Owning any ancestor also grants ownership: the `descendant` filter matches
     the unit together with all of its ancestors.
     """
-    if uuid is None or uuid is UNSET:
-        return None
-    predicate = organisation_unit_predicate(
-        settings=settings,
-        version=version,
-        filter=OrganisationUnitFilter(
-            descendant=OrganisationUnitFilter(uuids=[uuid]),
-            owner=_owner_filter(token),
-        ),
-    )
-    return exists().where(predicate)
+    # An unset uuid is absent from the arguments, so `uuid_expr` must be a field
+    return Template("""(!has($uuid_expr) ? null : $uuid_expr == null ? null : dyn({
+        "collection": "OrganisationUnit",
+        "filter": {"descendant": {"uuids": [$uuid_expr]}, "owner": owner_filter}
+    }))""").substitute(uuid_expr=uuid_expr)
 
 
 def person(uuid_expr: str) -> str:
