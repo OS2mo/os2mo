@@ -273,4 +273,8 @@ OWNER_RULES: list[tuple[str, str]] = [
             )
         ),
     ),
+    (
+        "managers_create",
+        rule(and_or_none_each(org_unit_or_person("input.org_unit", "input.person"))),
+    ),
 ]
