@@ -90,6 +90,25 @@ def org_unit_or_person(org_unit_uuid: str, person_uuid: str) -> str:
     )
 
 
+def check_parent(uuid: str, parent: str) -> str:
+    """Require ownership of the parent a unit is moved under, if it is moved.
+
+    GraphQL edits always contain the full object, so the parent named is just
+    as often the one the unit already has, which is no move at all.
+    """
+    # Whether the parent named is the one the unit already has
+    keeps_parent = Template("""{
+        "collection": "OrganisationUnit",
+        "filter": {"uuids": [$parent], "child": {"uuids": [$uuid]}}
+    }""").substitute(parent=parent, uuid=uuid)
+    # ... or the actor owns the parent it is moved under
+    moved_under = org_unit(parent)
+    return Template(
+        "(has($parent) && $parent != null ? "
+        'dyn({"or": [$keeps_parent, $moved_under]}) : null)'
+    ).substitute(parent=parent, keeps_parent=keeps_parent, moved_under=moved_under)
+
+
 # The rule for each collection's detail. A KLE and a role-binding link no
 # person, so owning the unit they link is the only way to own them
 address = partial(detail, collection="Address")
@@ -280,4 +299,13 @@ OWNER_RULES: list[tuple[str, str]] = [
     # The parent, or the unit itself and its new parent if it is being moved
     ("org_unit_create", rule(org_unit("args.input.parent"))),
     ("org_unit_terminate", rule(org_unit("args.input.uuid"))),
+    (
+        "org_unit_update",
+        rule(
+            and_or_none(
+                org_unit("args.input.uuid"),
+                check_parent("args.input.uuid", "args.input.parent"),
+            )
+        ),
+    ),
 ]
