@@ -363,9 +363,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         )
     ),
     # The annotated unit
-    "kle_create": lambda settings, version, token, arguments: org_unit(
-        settings, version, token, arguments["input"].org_unit
-    ),
     "kle_terminate": lambda settings, version, token, arguments: kle(
         settings, version, token, arguments["input"].uuid
     ),

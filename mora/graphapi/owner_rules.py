@@ -66,6 +66,8 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
     ("employee_create", owner_rule(person("args.input.uuid"))),
     ("employee_terminate", owner_rule(person("args.input.uuid"))),
     ("employee_update", owner_rule(person("args.input.uuid"))),
+    # The annotated unit
+    ("kle_create", owner_rule(org_unit("args.input.org_unit"))),
     # The person on leave
     ("leave_create", owner_rule(person("args.input.person"))),
     # The parent, or the unit itself and its new parent if it is being moved
