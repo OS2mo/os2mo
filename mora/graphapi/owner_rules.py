@@ -95,6 +95,7 @@ def org_unit_or_person(org_unit_uuid: str, person_uuid: str) -> str:
 address = partial(detail, collection="Address")
 association = partial(detail, collection="Association")
 engagement = partial(detail, collection="Engagement")
+ituser = partial(detail, collection="ITUser")
 
 
 # What each mutator requires owned, read off its arguments, moving here from
@@ -226,4 +227,5 @@ OWNER_RULES: list[tuple[str, str]] = [
         "ituser_create",
         rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
     ),
+    ("ituser_terminate", rule(ituser("args.input.uuid"))),
 ]
