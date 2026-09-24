@@ -197,15 +197,6 @@ rolebinding = partial(detail_org_unit, predicate=resolvers.rolebinding_predicate
 # What a mutator requires owned, read off its arguments. A mutator listed
 # neither here nor in `OWNER_RULES` is never granted by ownership
 OWNER_ENTITIES: dict[str, OwnerRule] = {
-    # The unit or the person the address links to (exactly one is set)
-    "addresses_create": lambda settings, version, token, arguments: and_or_none(
-        *(
-            org_unit_or_person(
-                settings, version, token, input.org_unit, input.person or input.employee
-            )
-            for input in arguments["input"]
-        )
-    ),
     # The unit of the association
     "association_create": lambda settings,
     version,
