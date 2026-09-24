@@ -209,11 +209,4 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             for input in arguments["input"]
         )
     ),
-    # The unit of the manager
-    "managers_create": lambda settings, version, token, arguments: and_or_none(
-        *(
-            org_unit_or_person(settings, version, token, input.org_unit, input.person)
-            for input in arguments["input"]
-        )
-    ),
 }
