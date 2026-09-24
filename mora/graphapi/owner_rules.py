@@ -6,6 +6,9 @@ from functools import partial
 from string import Template
 from typing import TypeAlias
 
+from sqlalchemy import ColumnElement
+from sqlalchemy import and_
+
 from mora.graphapi.policy_cel import CEL
 
 
@@ -84,6 +87,14 @@ def detail(uuid_expr: str, *, collection: str) -> str:
         org_unit=detail_org_unit(uuid_expr, collection=collection),
         person=detail_person(uuid_expr, collection=collection),
     )
+
+
+def and_or_none(*checks: ColumnElement | None) -> ColumnElement | None:
+    """Require all of the checks, or nothing if there is nothing to check."""
+    clauses = [check for check in checks if check is not None]
+    if not clauses:
+        return None
+    return and_(*clauses)
 
 
 def org_unit_or_person(org_unit_uuid_expr: str, person_uuid_expr: str) -> str:
