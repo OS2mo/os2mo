@@ -249,4 +249,6 @@ OWNER_RULES: list[tuple[str, str]] = [
         "kle_update",
         rule(and_or_none(kle("args.input.uuid"), org_unit("args.input.org_unit"))),
     ),
+    # The person on leave
+    ("leave_create", rule(person("args.input.person"))),
 ]
