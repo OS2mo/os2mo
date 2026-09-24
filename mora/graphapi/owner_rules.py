@@ -333,4 +333,10 @@ OWNER_RULES: list[tuple[str, str]] = [
     # The unit of the role-binding, if one is named
     ("rolebinding_create", rule(org_unit("args.input.org_unit"))),
     ("rolebinding_terminate", rule(rolebinding("args.input.uuid"))),
+    (
+        "rolebinding_update",
+        rule(
+            and_or_none(rolebinding("args.input.uuid"), org_unit("args.input.org_unit"))
+        ),
+    ),
 ]

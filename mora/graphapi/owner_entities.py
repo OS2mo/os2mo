@@ -3,7 +3,6 @@
 """Owner resolution map."""
 
 from collections.abc import Callable
-from functools import partial
 from typing import Any
 from typing import get_type_hints
 from uuid import UUID
@@ -16,7 +15,6 @@ from strawberry import UNSET
 
 from mora.auth.keycloak.models import Token
 from mora.config import Settings
-from mora.graphapi import resolvers
 from mora.graphapi.filters import EmployeeFilter
 from mora.graphapi.filters import OrganisationUnitFilter
 from mora.graphapi.filters import OwnerFilter
@@ -156,19 +154,10 @@ def org_unit_or_person(
     return person(settings, version, token, person_uuid)
 
 
-# The rule for each collection's detail. A KLE and a role-binding link no
-# person, so owning the unit they link is the only way to own them
-rolebinding = partial(detail_org_unit, predicate=resolvers.rolebinding_predicate)
-
-
 # What a mutator requires owned, read off its arguments. A mutator listed
 # neither here nor in `OWNER_RULES` is never granted by ownership
 OWNER_ENTITIES: dict[str, OwnerRule] = {
     # The unit of the role-binding, if one is named
-    "rolebinding_update": lambda settings, version, token, arguments: and_or_none(
-        rolebinding(settings, version, token, arguments["input"].uuid),
-        org_unit(settings, version, token, arguments["input"].org_unit),
-    ),
     "rolebindings_create": lambda settings, version, token, arguments: and_or_none(
         *(
             org_unit(settings, version, token, input.org_unit)
