@@ -192,9 +192,6 @@ rolebinding = partial(detail_org_unit, predicate=resolvers.rolebinding_predicate
 # neither here nor in `OWNER_RULES` is never granted by ownership
 OWNER_ENTITIES: dict[str, OwnerRule] = {
     # The parent, or the unit itself and its new parent if it is being moved
-    "org_unit_create": lambda settings, version, token, arguments: org_unit(
-        settings, version, token, arguments["input"].parent
-    ),
     "org_unit_terminate": lambda settings, version, token, arguments: org_unit(
         settings, version, token, arguments["input"].uuid
     ),

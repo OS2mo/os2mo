@@ -277,4 +277,6 @@ OWNER_RULES: list[tuple[str, str]] = [
         "managers_create",
         rule(and_or_none_each(org_unit_or_person("input.org_unit", "input.person"))),
     ),
+    # The parent, or the unit itself and its new parent if it is being moved
+    ("org_unit_create", rule(org_unit("args.input.parent"))),
 ]
