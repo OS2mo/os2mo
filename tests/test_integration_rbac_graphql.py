@@ -701,8 +701,22 @@ def test_terminate_x_as_owner_of_unit(
     "token_uuid,success",
     [
         (ANDERS_AND_AD_USER_KEY, False),
-        (ANDERS_AND_AD_EXTERNAL_ID, True),
-        (ANDERS_AND, False),
+        pytest.param(
+            ANDERS_AND_AD_EXTERNAL_ID,
+            True,
+            marks=pytest.mark.xfail(
+                reason="KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS no longer exists",
+                strict=True,
+            ),
+        ),
+        pytest.param(
+            ANDERS_AND,
+            False,
+            marks=pytest.mark.xfail(
+                reason="KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS no longer exists",
+                strict=True,
+            ),
+        ),
     ],
 )
 @pytest.mark.envvar(
