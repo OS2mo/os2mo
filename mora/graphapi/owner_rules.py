@@ -97,6 +97,7 @@ association = partial(detail, collection="Association")
 engagement = partial(detail, collection="Engagement")
 ituser = partial(detail, collection="ITUser")
 kle = partial(detail_org_unit, collection="KLE")
+leave = partial(detail, collection="Leave")
 
 
 # What each mutator requires owned, read off its arguments, moving here from
@@ -251,4 +252,5 @@ OWNER_RULES: list[tuple[str, str]] = [
     ),
     # The person on leave
     ("leave_create", rule(person("args.input.person"))),
+    ("leave_terminate", rule(leave("args.input.uuid"))),
 ]
