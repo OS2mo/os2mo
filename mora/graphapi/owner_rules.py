@@ -169,6 +169,12 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
     # The annotated unit
     ("kle_create", owner_rule(org_unit("args.input.org_unit"))),
     ("kle_terminate", owner_rule(kle("args.input.uuid"))),
+    (
+        "kle_update",
+        owner_rule(
+            and_or_none(kle("args.input.uuid"), org_unit("args.input.org_unit"))
+        ),
+    ),
     # The person on leave
     ("leave_create", owner_rule(person("args.input.person"))),
     ("leave_terminate", owner_rule(leave("args.input.uuid"))),
