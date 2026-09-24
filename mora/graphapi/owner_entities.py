@@ -252,9 +252,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         ),
     ),
     # The employee itself
-    "employee_terminate": lambda settings, version, token, arguments: person(
-        settings, version, token, arguments["input"].uuid
-    ),
     "employee_update": lambda settings, version, token, arguments: person(
         settings, version, token, arguments["input"].uuid
     ),

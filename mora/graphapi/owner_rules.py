@@ -33,4 +33,5 @@ def person(uuid: str) -> str:
 OWNER_RULES: list[tuple[str, str]] = [
     # The employee itself
     ("employee_create", rule(person("args.input.uuid"))),
+    ("employee_terminate", rule(person("args.input.uuid"))),
 ]
