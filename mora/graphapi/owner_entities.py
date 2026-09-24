@@ -240,11 +240,4 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             for input in arguments["input"]
         )
     ),
-    # The unit of the role-binding, if one is named
-    "rolebindings_create": lambda settings, version, token, arguments: and_or_none(
-        *(
-            org_unit(settings, version, token, input.org_unit)
-            for input in arguments["input"]
-        )
-    ),
 }

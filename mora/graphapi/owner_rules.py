@@ -320,4 +320,5 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
             and_or_none(rolebinding("args.input.uuid"), org_unit("args.input.org_unit"))
         ),
     ),
+    ("rolebindings_create", owner_rule(and_or_none_each(org_unit("input.org_unit")))),
 ]
