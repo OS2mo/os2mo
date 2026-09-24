@@ -98,6 +98,7 @@ engagement = partial(detail, collection="Engagement")
 ituser = partial(detail, collection="ITUser")
 kle = partial(detail_org_unit, collection="KLE")
 leave = partial(detail, collection="Leave")
+manager = partial(detail, collection="Manager")
 
 
 # What each mutator requires owned, read off its arguments, moving here from
@@ -262,4 +263,5 @@ OWNER_RULES: list[tuple[str, str]] = [
         "manager_create",
         rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
     ),
+    ("manager_terminate", rule(manager("args.input.uuid"))),
 ]
