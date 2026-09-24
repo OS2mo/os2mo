@@ -60,6 +60,7 @@ def org_unit_or_person(org_unit_uuid: str, person_uuid: str) -> str:
 # The rule for each collection's detail. A KLE and a role-binding link no
 # person, so owning the unit they link is the only way to own them
 kle = partial(detail_org_unit, collection="KLE")
+rolebinding = partial(detail_org_unit, collection="RoleBinding")
 
 
 # What each mutator requires owned, read off its arguments, moving here from
@@ -134,4 +135,5 @@ OWNER_RULES: list[tuple[str, str]] = [
     ("related_units_update", rule(org_unit("args.input.origin"))),
     # The unit of the role-binding, if one is named
     ("rolebinding_create", rule(org_unit("args.input.org_unit"))),
+    ("rolebinding_terminate", rule(rolebinding("args.input.uuid"))),
 ]
