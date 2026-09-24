@@ -253,4 +253,8 @@ OWNER_RULES: list[tuple[str, str]] = [
     # The person on leave
     ("leave_create", rule(person("args.input.person"))),
     ("leave_terminate", rule(leave("args.input.uuid"))),
+    (
+        "leave_update",
+        rule(and_or_none(leave("args.input.uuid"), person("args.input.person"))),
+    ),
 ]
