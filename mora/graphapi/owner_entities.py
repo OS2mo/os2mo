@@ -213,7 +213,6 @@ def check_parent(
 
 
 # The rule for each collection's detail
-association = partial(detail, predicate=resolvers.association_predicate)
 engagement = partial(detail, predicate=resolvers.engagement_predicate)
 ituser = partial(detail, predicate=resolvers.it_user_predicate)
 manager = partial(detail, predicate=resolvers.manager_predicate)
@@ -231,17 +230,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             )
             for input in arguments["input"]
         )
-    ),
-    # The unit of the association
-    "association_update": lambda settings, version, token, arguments: and_or_none(
-        association(settings, version, token, arguments["input"].uuid),
-        org_unit_or_person(
-            settings,
-            version,
-            token,
-            arguments["input"].org_unit,
-            arguments["input"].person or arguments["input"].employee,
-        ),
     ),
     # The unit of the engagement
     "engagements_create": lambda settings, version, token, arguments: and_or_none(

@@ -151,6 +151,18 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
         ),
     ),
     ("association_terminate", owner_rule(association("args.input.uuid"))),
+    (
+        "association_update",
+        owner_rule(
+            and_or_none(
+                association("args.input.uuid"),
+                org_unit_or_person(
+                    "args.input.org_unit",
+                    "args.input.person != null ? args.input.person : args.input.employee",
+                ),
+            )
+        ),
+    ),
     # The employee itself
     ("employee_create", owner_rule(person("args.input.uuid"))),
     ("employee_terminate", owner_rule(person("args.input.uuid"))),
