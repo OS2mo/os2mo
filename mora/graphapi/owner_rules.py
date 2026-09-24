@@ -195,4 +195,18 @@ OWNER_RULES: list[tuple[str, str]] = [
             )
         ),
     ),
+    (
+        "engagements_update",
+        rule(
+            and_or_none_each(
+                and_or_none(
+                    engagement("input.uuid"),
+                    org_unit_or_person(
+                        "input.org_unit",
+                        "input.person != null ? input.person : input.employee",
+                    ),
+                )
+            )
+        ),
+    ),
 ]
