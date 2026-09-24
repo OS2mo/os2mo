@@ -280,9 +280,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         org_unit(settings, version, token, arguments["input"].org_unit),
     ),
     # The unit or the person the IT-user belongs to (exactly one is set)
-    "ituser_create": lambda settings, version, token, arguments: org_unit_or_person(
-        settings, version, token, arguments["input"].org_unit, arguments["input"].person
-    ),
     "ituser_terminate": lambda settings, version, token, arguments: ituser(
         settings, version, token, arguments["input"].uuid
     ),

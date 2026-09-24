@@ -90,6 +90,11 @@ OWNER_RULES: list[tuple[str, str]] = [
         "itassociation_create",
         rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
     ),
+    # The unit or the person the IT-user belongs to (exactly one is set)
+    (
+        "ituser_create",
+        rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
+    ),
     # The annotated unit
     ("kle_create", rule(org_unit("args.input.org_unit"))),
     # The person on leave
