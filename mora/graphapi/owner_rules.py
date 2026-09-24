@@ -221,4 +221,9 @@ OWNER_RULES: list[tuple[str, str]] = [
             and_or_none(association("args.input.uuid"), org_unit("args.input.org_unit"))
         ),
     ),
+    # The unit or the person the IT-user belongs to (exactly one is set)
+    (
+        "ituser_create",
+        rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
+    ),
 ]
