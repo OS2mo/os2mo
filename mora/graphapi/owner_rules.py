@@ -184,6 +184,10 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
     # The person on leave
     ("leave_create", owner_rule(person("args.input.person"))),
     ("leave_terminate", owner_rule(leave("args.input.uuid"))),
+    (
+        "leave_update",
+        owner_rule(and_or_none(leave("args.input.uuid"), person("args.input.person"))),
+    ),
     # The unit of the manager
     (
         "manager_create",
