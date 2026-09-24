@@ -40,8 +40,6 @@ class CprNo(ConstrainedStr):
     regex = re.compile(r"^\d{10}$")
 
 
-# OIDC token role
-Role: TypeAlias = str
 # GraphQL field
 Field: TypeAlias = str
 # GraphQL mutator, as the enum generated from the mutators, which mypy cannot follow

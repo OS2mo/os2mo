@@ -19,7 +19,6 @@ from .events import EventToken
 from .events import ListenerFilter
 from .graphql_utils import Field
 from .graphql_utils import MutatorName
-from .graphql_utils import Role
 from .models import AddressCreate
 from .models import AddressTerminate
 from .models import AddressUpdate
@@ -67,6 +66,7 @@ from .models import RoleBindingTerminate
 from .models import RoleBindingUpdate
 from .models import Validity
 from .policy_api import Collection
+from .policy_api import PolicySelectorInput
 from .policy_cel import CEL
 from .version import Version
 
@@ -916,7 +916,9 @@ class PolicyWriteRuleInput:
 @strawberry.input(description="The desired state of a policy.")
 class PolicyStateInput:
     name: str = strawberry.field(description="Unique name of the policy.")
-    role: Role = strawberry.field(description="The role which activates the policy.")
+    selectors: list[PolicySelectorInput] = strawberry.field(
+        description="The policy is activated for every actor matching any of these."
+    )
     description: str = strawberry.field(
         default="", description="Description of the policy."
     )

@@ -1826,7 +1826,8 @@ class Mutation:
                 description=state.description,
                 active=state.active,
                 selectors=[
-                    db.PolicySelector(kind=db.PolicySelectorKind.role, value=state.role)
+                    db.PolicySelector(kind=selector.kind, value=selector.value)
+                    for selector in state.selectors
                 ],
                 read_rules=[
                     db.PolicyReadRule(
@@ -1862,6 +1863,11 @@ class Mutation:
             if constraint == "policy_read_rule_field_pkey":
                 raise ValueError(
                     "A read rule cannot name a field more than once."
+                ) from error
+            # Each selector of a policy is a row unique by the policy, kind and value
+            if constraint == "uq_policy_selector":
+                raise ValueError(
+                    "A policy cannot name a selector more than once."
                 ) from error
             raise  # pragma: no cover
         return one(await load_policies(session, [uuid]))
