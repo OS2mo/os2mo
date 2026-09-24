@@ -51,13 +51,14 @@ from mora.db import OrganisationRegistrering
 from mora.db import Policy
 from mora.db import PolicyReadRule
 from mora.db import PolicyReadRuleField
+from mora.db import PolicySelector
+from mora.db import PolicySelectorKind
 from mora.db import PolicyWriteRule
 from mora.graphapi import policy_cel
 from mora.graphapi import resolvers
 from mora.graphapi.custom_schema import CustomSchema
 from mora.graphapi.graphql_utils import AccessKey
 from mora.graphapi.graphql_utils import Field
-from mora.graphapi.graphql_utils import Role
 from mora.graphapi.graphql_utils import WriteKey
 from mora.graphapi.policy_cel import CEL
 from mora.graphapi.schema import get_schema
@@ -67,7 +68,6 @@ from mora.graphapi.version import Version
 class Rule(NamedTuple):
     """Grants read access to the fields on the collection under the condition."""
 
-    role: Role
     collection: Collection
     condition: ColumnElement[bool]
     fields: frozenset[Field]
@@ -157,7 +157,6 @@ CELOutput.update_forward_refs()
 class WriteRule(NamedTuple):
     """Grants the mutator, if the check of its arguments holds."""
 
-    role: Role
     mutator: str
     check: Callable[[dict[str, Any]], ColumnElement[bool]]
 
@@ -370,18 +369,27 @@ def collection_denials(
     )
 
 
+def selects_caller(token: Token) -> ColumnElement[bool]:
+    """The clause holding where a selector of the policy matches the caller."""
+    return Policy.selectors.any(
+        and_(
+            PolicySelector.kind == PolicySelectorKind.role,
+            PolicySelector.value
+            == any_(literal(token.realm_access.roles, ARRAY(String))),
+        )
+    )
+
+
 async def policy_load_fn(
     session: AsyncSession,
     settings: Settings,
     get_token: Callable[[], Awaitable[Token]],
     keys: list[int],
 ) -> list[list[Rule]]:
-    """Load the rules of the active policies granted to the caller's roles."""
+    """Load the rules of the active policies which select the caller."""
     token = await get_token()
-    roles = token.realm_access.roles
     rows = await session.execute(
         select(
-            Policy.role,
             PolicyReadRule.collection,
             PolicyReadRule.graphql_version,
             PolicyReadRule.condition,
@@ -389,12 +397,8 @@ async def policy_load_fn(
         )
         .join(Policy.read_rules)
         .join(PolicyReadRule.fields)
-        .where(
-            Policy.role == any_(literal(roles, ARRAY(String))),
-            Policy.active,
-        )
+        .where(selects_caller(token), Policy.active)
         .group_by(
-            Policy.role,
             PolicyReadRule.pk,
             PolicyReadRule.collection,
             PolicyReadRule.graphql_version,
@@ -403,14 +407,13 @@ async def policy_load_fn(
     )
     rules = [
         Rule(
-            role=role,
             collection=collection,
             condition=cel2predicate(
                 settings, collection, graphql_version, condition, token
             ),
             fields=frozenset(fields),
         )
-        for role, collection, graphql_version, condition, fields in rows
+        for collection, graphql_version, condition, fields in rows
     ]
     return [rules for _ in keys]
 
@@ -453,29 +456,23 @@ async def write_policy_load_fn(
     get_token: Callable[[], Awaitable[Token]],
     keys: list[int],
 ) -> list[list[WriteRule]]:
-    """Load the write rules of the active policies granted to the caller's roles."""
+    """Load the write rules of the active policies which select the caller."""
     token = await get_token()
-    roles = token.realm_access.roles
     rows = await session.execute(
         select(
-            Policy.role,
             PolicyWriteRule.mutator,
             PolicyWriteRule.graphql_version,
             PolicyWriteRule.condition,
         )
         .join(Policy.write_rules)
-        .where(
-            Policy.role == any_(literal(roles, ARRAY(String))),
-            Policy.active,
-        )
+        .where(selects_caller(token), Policy.active)
     )
     rules = [
         WriteRule(
-            role=role,
             mutator=mutator,
             check=partial(cel2check, settings, graphql_version, condition, token),
         )
-        for role, mutator, graphql_version, condition in rows
+        for mutator, graphql_version, condition in rows
     ]
     return [rules for _ in keys]
 

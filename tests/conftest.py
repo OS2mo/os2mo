@@ -1659,7 +1659,9 @@ def set_rules(empty_db: db.AsyncSession) -> SetRules:
                 name=role,
                 description=f"Grants {role} the fields a test asks about",
                 active=True,
-                role=role,
+                selectors=[
+                    db.PolicySelector(kind=db.PolicySelectorKind.role, value=role)
+                ],
                 read_rules=[
                     db.PolicyReadRule(
                         collection=collection,
@@ -1689,7 +1691,9 @@ def set_write_rules(empty_db: db.AsyncSession) -> SetWriteRules:
                 name=f"{role} {mutator}",
                 description=f"Grants {role} the mutator a test asks about",
                 active=True,
-                role=role,
+                selectors=[
+                    db.PolicySelector(kind=db.PolicySelectorKind.role, value=role)
+                ],
                 write_rules=[
                     db.PolicyWriteRule(
                         mutator=mutator,

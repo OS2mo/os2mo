@@ -295,7 +295,7 @@ def owner_policy(
 def collection_policy(
     root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
 ) -> AwaitableOrValue[bool]:
-    """Allow access if a rule of the caller's roles grants the field on the object."""
+    """Allow access if a policy selecting the caller grants the field on the object."""
     try:
         collection = Collection(info.parent_type.name)
     except ValueError:
@@ -309,7 +309,7 @@ def collection_policy(
 def write_policy(
     root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
 ) -> AwaitableOrValue[bool]:
-    """Allow the mutator if a write rule of the caller's roles grants it."""
+    """Allow the mutator if a write rule of a policy selecting the caller grants it."""
     if info.parent_type.name != "Mutation":
         return False
     return info.context.dataloaders.write_loader.load(WriteKey(info.field_name, kwargs))

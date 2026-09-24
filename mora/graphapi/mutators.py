@@ -1825,7 +1825,9 @@ class Mutation:
                 name=state.name,
                 description=state.description,
                 active=state.active,
-                role=state.role,
+                selectors=[
+                    db.PolicySelector(kind=db.PolicySelectorKind.role, value=state.role)
+                ],
                 read_rules=[
                     db.PolicyReadRule(
                         collection=rule.collection,

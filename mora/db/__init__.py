@@ -82,6 +82,8 @@ from ._organisationsfunktion import OrganisationFunktionTilsGyldighed
 from ._policies import Policy
 from ._policies import PolicyReadRule
 from ._policies import PolicyReadRuleField
+from ._policies import PolicySelector
+from ._policies import PolicySelectorKind
 from ._policies import PolicyWriteRule
 from .files import FileToken
 import psycopg

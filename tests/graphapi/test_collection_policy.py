@@ -28,6 +28,8 @@ from mora.db import OrganisationFunktionRegistrering
 from mora.db import Policy
 from mora.db import PolicyReadRule
 from mora.db import PolicyReadRuleField
+from mora.db import PolicySelector
+from mora.db import PolicySelectorKind
 from mora.graphapi.graphql_utils import AccessKey
 from mora.graphapi.policies import Rule
 from mora.graphapi.policies import access_load_fn
@@ -97,7 +99,9 @@ async def test_an_object_gets_the_fields_of_every_rule_matching_it(
             name="Address Auditor",
             description="Allows address auditors to read one address in full",
             active=True,
-            role="address_auditor",
+            selectors=[
+                PolicySelector(kind=PolicySelectorKind.role, value="address_auditor")
+            ],
             read_rules=[
                 PolicyReadRule(
                     collection=Collection.Address,
@@ -171,7 +175,9 @@ async def test_a_batch_spans_collections_and_grants_only_where_a_rule_names_one(
             name="Address Auditor",
             description="Allows address auditors to read the value of every address",
             active=True,
-            role="address_auditor",
+            selectors=[
+                PolicySelector(kind=PolicySelectorKind.role, value="address_auditor")
+            ],
             read_rules=[
                 PolicyReadRule(
                     collection=Collection.Address,
@@ -240,13 +246,11 @@ async def test_a_condition_unknown_of_an_object_grants_nothing_on_it(
     )
     rules = [
         Rule(
-            role="reader",
             collection=Collection.Address,
             condition=literal(None, Boolean),
             fields=frozenset({"value"}),
         ),
         Rule(
-            role="reader",
             collection=Collection.Address,
             condition=OrganisationFunktionRegistrering.organisationfunktion_id
             == matched,
@@ -409,7 +413,9 @@ async def test_a_condition_narrows_a_rule_to_the_objects_it_names(
             name="Self Auditor",
             description="Allows self auditors to read the addresses of their own person",
             active=True,
-            role="self_auditor",
+            selectors=[
+                PolicySelector(kind=PolicySelectorKind.role, value="self_auditor")
+            ],
             read_rules=[
                 PolicyReadRule(
                     collection=Collection.Address,
@@ -447,7 +453,9 @@ async def test_a_rule_keeps_its_condition_and_version(empty_db: AsyncSession) ->
             name="Email Auditor",
             description="Allows auditors to read all email addresses",
             active=True,
-            role="email_auditor",
+            selectors=[
+                PolicySelector(kind=PolicySelectorKind.role, value="email_auditor")
+            ],
             read_rules=[
                 PolicyReadRule(
                     collection=Collection.Address,
@@ -467,7 +475,7 @@ async def test_a_rule_keeps_its_condition_and_version(empty_db: AsyncSession) ->
             await empty_db.scalars(
                 select(PolicyReadRule)
                 .join(Policy)
-                .where(Policy.role == "email_auditor")
+                .where(Policy.name == "Email Auditor")
             )
         ).all()
     )
@@ -496,7 +504,9 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
                 name="auditor",
                 description="Reads the uuid and the value of addresses",
                 active=True,
-                role="auditor",
+                selectors=[
+                    PolicySelector(kind=PolicySelectorKind.role, value="auditor")
+                ],
                 read_rules=[
                     PolicyReadRule(
                         collection=Collection.Address,
@@ -513,7 +523,7 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
                 name="owner",
                 description="Reads the name of employees",
                 active=True,
-                role="owner",
+                selectors=[PolicySelector(kind=PolicySelectorKind.role, value="owner")],
                 read_rules=[
                     PolicyReadRule(
                         collection=Collection.Employee,
@@ -532,7 +542,6 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
     )
     rule = one(rules)
 
-    assert rule.role == "auditor"
     assert rule.collection == Collection.Address
     assert rule.fields == frozenset({"uuid", "value"})
     # The row's condition is true, so its rule reaches every object
@@ -546,7 +555,7 @@ async def test_a_policy_switched_off_grants_nothing(empty_db: AsyncSession) -> N
         Policy(
             name="auditor",
             description="Reads the uuid of addresses, were it active",
-            role="auditor",
+            selectors=[PolicySelector(kind=PolicySelectorKind.role, value="auditor")],
             active=False,
             read_rules=[
                 PolicyReadRule(
