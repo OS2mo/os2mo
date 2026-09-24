@@ -66,6 +66,14 @@ def detail(uuid: str, *, collection: str) -> str:
     )
 
 
+def and_or_none(*checks: str) -> str:
+    """Require all of the checks, or nothing if there is nothing to check."""
+    return Template("""cel.bind(clauses, [$checks].filter(clause, clause != null),
+        clauses.size() == 0 ? null : dyn({"and": clauses}))""").substitute(
+        checks=", ".join(checks)
+    )
+
+
 def org_unit_or_person(org_unit_uuid: str, person_uuid: str) -> str:
     """Require ownership of the unit if one is named, else of the person."""
     return Template("cel.bind(unit, $unit, unit != null ? unit : $person)").substitute(
@@ -141,6 +149,10 @@ OWNER_RULES: list[tuple[str, str]] = [
     # The annotated unit
     ("kle_create", rule(org_unit("args.input.org_unit"))),
     ("kle_terminate", rule(kle("args.input.uuid"))),
+    (
+        "kle_update",
+        rule(and_or_none(kle("args.input.uuid"), org_unit("args.input.org_unit"))),
+    ),
     # The person on leave
     ("leave_create", rule(person("args.input.person"))),
     ("leave_terminate", rule(leave("args.input.uuid"))),
