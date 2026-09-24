@@ -81,6 +81,7 @@ engagement = partial(detail, collection="Engagement")
 ituser = partial(detail, collection="ITUser")
 kle = partial(detail_org_unit, collection="KLE")
 leave = partial(detail, collection="Leave")
+manager = partial(detail, collection="Manager")
 rolebinding = partial(detail_org_unit, collection="RoleBinding")
 
 
@@ -147,6 +148,7 @@ OWNER_RULES: list[tuple[str, str]] = [
         "manager_create",
         rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
     ),
+    ("manager_terminate", rule(manager("args.input.uuid"))),
     # The parent, or the unit itself and its new parent if it is being moved
     ("org_unit_create", rule(org_unit("args.input.parent"))),
     ("org_unit_terminate", rule(org_unit("args.input.uuid"))),
