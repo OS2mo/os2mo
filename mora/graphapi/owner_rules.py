@@ -217,6 +217,15 @@ OWNER_RULES: list[tuple[str, str]] = [
         rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
     ),
     ("manager_terminate", rule(manager("args.input.uuid"))),
+    (
+        "manager_update",
+        rule(
+            and_or_none(
+                manager("args.input.uuid"),
+                org_unit_or_person("args.input.org_unit", "args.input.person"),
+            )
+        ),
+    ),
     # The parent, or the unit itself and its new parent if it is being moved
     ("org_unit_create", rule(org_unit("args.input.parent"))),
     ("org_unit_terminate", rule(org_unit("args.input.uuid"))),
