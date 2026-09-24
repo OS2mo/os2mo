@@ -34,7 +34,9 @@ from hypothesis.database import InMemoryExampleDatabase
 from more_itertools import always_iterable
 from more_itertools import one
 from sqlalchemy import delete
+from sqlalchemy import func
 from sqlalchemy import text
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette_context import request_cycle_context
@@ -139,6 +141,7 @@ def clear_settings_cache() -> YieldFixture[None]:
 
 BRUCE_UUID = UUID("99e7b256-7dfa-4ee8-95c6-e3abe82e236a")
 ALVIDA_UUID = UUID("0fb62199-cb9e-4083-ba45-2a63bfd142d7")
+ACTIVE_DIRECTORY_UUID = UUID("59c135c9-2b15-41cc-97c8-b5dff7180beb")
 
 # Serviceplatformen certificate fixtures: one valid, one empty.
 SP_CERTIFICATE_PATH = "tests/fixtures/sp_certificate.pem"
@@ -1724,6 +1727,27 @@ def set_write_rules(empty_db: db.AsyncSession) -> SetWriteRules:
         await empty_db.commit()
 
     return inner
+
+
+@pytest.fixture
+async def it_system_patched_owner_policy(
+    another_transaction: AnotherTransaction,
+) -> None:
+    """Swap the seat of the owner rules for the caller's IT user in Active Directory."""
+    seat = '{"owner": {"uuids": [token.uuid]}}'
+    it_seat = (
+        """{"owner": {"ituser": {
+            "itsystem": {"uuids": ["%s"]},
+            "external_ids": [token.uuid]
+        }}}"""
+        % ACTIVE_DIRECTORY_UUID
+    )
+    async with another_transaction() as (_, session):
+        await session.execute(
+            update(db.PolicyWriteRule)
+            .where(db.PolicyWriteRule.policy.has(name="Owner"))
+            .values(condition=func.replace(db.PolicyWriteRule.condition, seat, it_seat))
+        )
 
 
 @pytest.fixture
