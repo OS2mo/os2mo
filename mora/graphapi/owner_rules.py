@@ -6,17 +6,13 @@ from collections.abc import Callable
 from string import Template
 from typing import Any
 from typing import TypeAlias
-from uuid import UUID
 
 from sqlalchemy import ColumnElement
-from sqlalchemy import exists
 from sqlalchemy import false
 
 from mora.auth.keycloak.models import Token
 from mora.config import Settings
-from mora.graphapi.filters import EmployeeFilter
 from mora.graphapi.policy_cel import CEL
-from mora.graphapi.resolvers import employee_predicate
 from mora.graphapi.version import Version
 
 OwnerRule = Callable[[Settings, Version, Token, dict[str, Any]], ColumnElement | None]
@@ -61,21 +57,12 @@ def deny_requiring_nothing(
     return check
 
 
-def person(
-    settings: Settings, version: Version, token: Token, uuid: UUID | None
-) -> ColumnElement | None:
+def person(uuid_expr: str) -> str:
     """Require ownership of the person named, if one is named."""
-    if uuid is None:
-        return None
-    predicate = employee_predicate(
-        settings=settings,
-        version=version,
-        filter=EmployeeFilter(
-            uuids=[uuid],
-            owner=_owner_filter(token),
-        ),
-    )
-    return exists().where(predicate)
+    return Template("""cel.bind(uuid, $uuid_expr, uuid == null ? null : dyn({
+        "collection": "Employee",
+        "filter": {"uuids": [uuid], "owner": owner_filter}
+    }))""").substitute(uuid_expr=uuid_expr)
 
 
 MutatorName: TypeAlias = str
