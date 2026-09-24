@@ -2,11 +2,22 @@
 # SPDX-License-Identifier: MPL-2.0
 """The rules of the owner policy, translated into CEL."""
 
+from collections.abc import Callable
 from functools import partial
 from string import Template
 from typing import TypeAlias
+from typing import get_type_hints
+from uuid import UUID
 
+from sqlalchemy import ColumnElement
+from sqlalchemy import exists
+from sqlalchemy import or_
+
+from mora.auth.keycloak.models import Token
+from mora.config import Settings
+from mora.graphapi.filters import EmployeeFilter
 from mora.graphapi.policy_cel import CEL
+from mora.graphapi.version import Version
 
 
 def _owner_filter(requirements: str) -> str:
@@ -68,6 +79,43 @@ def detail_org_unit(uuid_expr: str, *, collection: str) -> str:
             "ancestor": {"owner": owner_filter}
         }}
     })""").substitute(collection=collection, uuid_expr=uuid_expr)
+
+
+def detail_person(
+    settings: Settings,
+    version: Version,
+    token: Token,
+    uuid: UUID,
+    *,
+    predicate: Callable[..., ColumnElement],
+) -> ColumnElement:
+    """Require ownership of the person the detail links."""
+    filter = get_type_hints(predicate)["filter"]
+    return exists().where(
+        predicate(
+            settings=settings,
+            version=version,
+            filter=filter(
+                uuids=[uuid],
+                employee=EmployeeFilter(owner=_owner_filter(token)),
+            ),
+        )
+    )
+
+
+def detail(
+    settings: Settings,
+    version: Version,
+    token: Token,
+    uuid: UUID,
+    *,
+    predicate: Callable[..., ColumnElement],
+) -> ColumnElement:
+    """Require ownership of the org unit or the person the detail links."""
+    return or_(
+        detail_org_unit(settings, version, token, uuid, predicate=predicate),
+        detail_person(settings, version, token, uuid, predicate=predicate),
+    )
 
 
 def org_unit_or_person(org_unit_uuid_expr: str, person_uuid_expr: str) -> str:
