@@ -102,6 +102,7 @@ ituser = partial(detail, collection="ITUser")
 kle = partial(detail_org_unit, collection="KLE")
 leave = partial(detail, collection="Leave")
 manager = partial(detail, collection="Manager")
+owner = partial(detail, collection="Owner")
 rolebinding = partial(detail_org_unit, collection="RoleBinding")
 
 
@@ -177,6 +178,7 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
         "owner_create",
         owner_rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
     ),
+    ("owner_terminate", owner_rule(owner("args.input.uuid"))),
     # Related units have a single `origin` field and a list of
     # `destination`s. Originally we required ownership of both the
     # origin and destinations, but that's not compatible with the old
