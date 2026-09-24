@@ -60,6 +60,7 @@ from mora.graphapi.custom_schema import CustomSchema
 from mora.graphapi.graphql_utils import AccessKey
 from mora.graphapi.graphql_utils import Field
 from mora.graphapi.graphql_utils import WriteKey
+from mora.graphapi.owner_rules import OWNER_RULES
 from mora.graphapi.policy_cel import CEL
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import Version
@@ -474,6 +475,17 @@ async def write_policy_load_fn(
         )
         for mutator, graphql_version, condition in rows
     ]
+    # The owner policy is not in the database yet
+    if "owner" in token.realm_access.roles:
+        rules += [
+            WriteRule(
+                mutator=mutator,
+                check=partial(
+                    cel2check, settings, Version.VERSION_30, condition, token
+                ),
+            )
+            for mutator, condition in OWNER_RULES
+        ]
     return [rules for _ in keys]
 
 
