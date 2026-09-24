@@ -346,9 +346,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         person(settings, version, token, arguments["input"].person),
     ),
     # The unit of the manager
-    "manager_create": lambda settings, version, token, arguments: org_unit_or_person(
-        settings, version, token, arguments["input"].org_unit, arguments["input"].person
-    ),
     "manager_terminate": lambda settings, version, token, arguments: manager(
         settings, version, token, arguments["input"].uuid
     ),
