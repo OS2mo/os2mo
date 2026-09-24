@@ -315,4 +315,13 @@ OWNER_RULES: list[tuple[str, str]] = [
         rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
     ),
     ("owner_terminate", rule(owner("args.input.uuid"))),
+    (
+        "owner_update",
+        rule(
+            and_or_none(
+                owner("args.input.uuid"),
+                org_unit_or_person("args.input.org_unit", "args.input.person"),
+            )
+        ),
+    ),
 ]

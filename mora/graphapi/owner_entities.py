@@ -158,24 +158,12 @@ def org_unit_or_person(
 
 # The rule for each collection's detail. A KLE and a role-binding link no
 # person, so owning the unit they link is the only way to own them
-owner = partial(detail, predicate=resolvers.owner_predicate)
 rolebinding = partial(detail_org_unit, predicate=resolvers.rolebinding_predicate)
 
 
 # What a mutator requires owned, read off its arguments. A mutator listed
 # neither here nor in `OWNER_RULES` is never granted by ownership
 OWNER_ENTITIES: dict[str, OwnerRule] = {
-    # The unit or the person owned (exactly one is set)
-    "owner_update": lambda settings, version, token, arguments: and_or_none(
-        owner(settings, version, token, arguments["input"].uuid),
-        org_unit_or_person(
-            settings,
-            version,
-            token,
-            arguments["input"].org_unit,
-            arguments["input"].person,
-        ),
-    ),
     # Related units have a single `origin` field and a list of
     # `destination`s. Originally we required ownership of both the
     # origin and destinations, but that's not compatible with the old
