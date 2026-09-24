@@ -4,8 +4,14 @@
 
 from string import Template
 from typing import TypeAlias
+from uuid import UUID
 
+from sqlalchemy import ColumnElement
+
+from mora.auth.keycloak.models import Token
+from mora.config import Settings
 from mora.graphapi.policy_cel import CEL
+from mora.graphapi.version import Version
 
 
 def _owner_filter(requirements: str) -> str:
@@ -57,6 +63,19 @@ def person(uuid_expr: str) -> str:
         "collection": "Employee",
         "filter": {"uuids": [uuid], "owner": owner_filter}
     }))""").substitute(uuid_expr=uuid_expr)
+
+
+def org_unit_or_person(
+    settings: Settings,
+    version: Version,
+    token: Token,
+    org_unit_uuid: UUID | None,
+    person_uuid: UUID | None,
+) -> ColumnElement | None:
+    """Require ownership of the unit if one is named, else of the person."""
+    if (unit := org_unit(settings, version, token, org_unit_uuid)) is not None:
+        return unit
+    return person(settings, version, token, person_uuid)
 
 
 MutatorName: TypeAlias = str
