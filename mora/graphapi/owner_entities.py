@@ -199,13 +199,6 @@ rolebinding = partial(detail_org_unit, predicate=resolvers.rolebinding_predicate
 # neither here nor in `OWNER_RULES` is never granted by ownership
 OWNER_ENTITIES: dict[str, OwnerRule] = {
     # The unit or the person the address links to (exactly one is set)
-    "address_create": lambda settings, version, token, arguments: org_unit_or_person(
-        settings,
-        version,
-        token,
-        arguments["input"].org_unit,
-        arguments["input"].person or arguments["input"].employee,
-    ),
     "address_terminate": lambda settings, version, token, arguments: address(
         settings, version, token, arguments["input"].uuid
     ),
