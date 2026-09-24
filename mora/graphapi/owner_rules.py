@@ -122,8 +122,8 @@ owner = partial(detail, collection="Owner")
 rolebinding = partial(detail_org_unit, collection="RoleBinding")
 
 
-# What each mutator requires owned, read off its arguments, moving here from
-# `OWNER_ENTITIES` one mutator at a time
+# What each mutator requires owned, read off its arguments. A mutator not
+# listed here is never granted by ownership
 OWNER_RULES: list[tuple[str, str]] = [
     # The unit or the person the address links to (exactly one is set)
     (

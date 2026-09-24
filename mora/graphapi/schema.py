@@ -10,17 +10,14 @@ from contextlib import suppress
 from functools import cache
 from functools import partial
 from inspect import isawaitable
-from typing import TYPE_CHECKING
 from typing import Any
 
 from fastapi.encoders import jsonable_encoder
 from graphql import ExecutionResult
 from graphql import GraphQLError
 from graphql import GraphQLResolveInfo
-from graphql import OperationType
 from graphql import is_introspection_type
 from pydantic import PositiveInt
-from sqlalchemy import select
 from starlette.datastructures import UploadFile
 from starlette_context import context as starlette_context
 from strawberry import Schema
@@ -28,7 +25,6 @@ from strawberry.exceptions import StrawberryGraphQLError
 from strawberry.extensions import SchemaExtension
 from strawberry.file_uploads import UploadDefinition
 from strawberry.schema.config import StrawberryConfig
-from strawberry.types.arguments import convert_arguments
 from strawberry.utils.await_maybe import AsyncIteratorOrIterator
 from strawberry.utils.await_maybe import AwaitableOrValue
 from strawberry.utils.await_maybe import await_maybe
@@ -44,7 +40,6 @@ from mora.graphapi.collections import DARAddress
 from mora.graphapi.collections import DefaultAddress
 from mora.graphapi.collections import MultifieldAddress
 from mora.graphapi.custom_schema import CustomSchema
-from mora.graphapi.custom_schema import get_version
 from mora.graphapi.events import EVENT_TOKEN_SCALAR
 from mora.graphapi.events import EventToken
 from mora.graphapi.graphql_utils import AccessKey
@@ -66,7 +61,6 @@ from mora.graphapi.model_registration import PersonRegistration
 from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
-from mora.graphapi.owner_entities import OWNER_ENTITIES
 from mora.graphapi.policy_cel import CEL
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
@@ -80,29 +74,7 @@ from mora.graphapi.version import Version
 from mora.log import canonical_gql_context
 from mora.util import CPR
 
-if TYPE_CHECKING:
-    from mora.graphapi.context import MOInfo
-
 logger = get_logger()
-
-
-def _create_info_from_raw(raw_info: GraphQLResolveInfo) -> "MOInfo":
-    """Create a strawberry Info from raw GraphQLResolveInfo.
-
-    Extensions only ever receive graphql-core's info, see
-    https://github.com/strawberry-graphql/strawberry/pull/1447
-    """
-    # Get the strawberry schema from the GraphQL schema
-    schema = raw_info.schema._strawberry_schema  # type: ignore
-
-    # Get the strawberry field definition (may not exist for introspection fields)
-    strawberry_field = None
-    if raw_info.field_name in raw_info.parent_type.fields:
-        field_def = raw_info.parent_type.fields[raw_info.field_name]
-        strawberry_field = field_def.extensions.get("strawberry-definition")
-
-    # Create Info using the schema's configured info class
-    return schema.config.info_class(_raw_info=raw_info, _field=strawberry_field)
 
 
 def add_exception_extension(
@@ -245,53 +217,6 @@ def reader_policy(
     return (info.parent_type.name, info.field_name) in RBAC_MAP
 
 
-def owner_policy(
-    root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
-) -> AwaitableOrValue[bool]:
-    """Allow access if the user is the owner of the accessed resources."""
-    token = info.context.token
-    token_roles = token.realm_access.roles
-
-    if "owner" not in token_roles:
-        return False
-
-    # A token carrying no uuid names no employee, so it owns nothing
-    if token.uuid is None:
-        return False
-
-    if info.operation.operation is not OperationType.MUTATION:
-        return False
-
-    if "input" not in kwargs:
-        return False
-
-    rule = OWNER_ENTITIES.get(info.field_name)
-    if rule is None:
-        return False
-
-    moinfo = _create_info_from_raw(info)
-    settings = moinfo.context.settings
-    version = get_version(moinfo.schema)
-    # Extensions see the arguments as graphql-core coerced them, input objects
-    # still being dicts; convert them into the inputs the mutator itself gets
-    arguments = convert_arguments(
-        kwargs,
-        moinfo._field.arguments,
-        scalar_registry=moinfo.schema.schema_converter.scalar_registry,
-        config=moinfo.schema.config,
-    )
-    check = rule(settings, version, token, arguments)
-    logger.debug("Check owner", check=check)
-    # Nothing to own is not owned by anybody
-    if check is None:
-        return False
-
-    async def owned() -> bool:
-        return bool(await moinfo.context.session.scalar(select(check)))
-
-    return owned()
-
-
 def collection_policy(
     root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
 ) -> AwaitableOrValue[bool]:
@@ -322,7 +247,6 @@ POLICIES: list[Policy] = [
     no_role_required_policy,
     reader_policy,
     collection_policy,
-    owner_policy,
     write_policy,
 ]
 
