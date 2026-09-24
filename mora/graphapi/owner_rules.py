@@ -127,6 +127,7 @@ OWNER_RULES: list[tuple[str, str]] = [
         "itassociation_create",
         rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
     ),
+    ("itassociation_terminate", rule(association("args.input.uuid"))),
     # The unit or the person the IT-user belongs to (exactly one is set)
     (
         "ituser_create",
