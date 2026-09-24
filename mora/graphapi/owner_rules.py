@@ -2,19 +2,11 @@
 # SPDX-License-Identifier: MPL-2.0
 """The rules of the owner policy, translated into CEL."""
 
-from collections.abc import Callable
 from functools import partial
 from string import Template
 from typing import TypeAlias
-from uuid import UUID
 
-from sqlalchemy import ColumnElement
-from sqlalchemy import or_
-
-from mora.auth.keycloak.models import Token
-from mora.config import Settings
 from mora.graphapi.policy_cel import CEL
-from mora.graphapi.version import Version
 
 
 def _owner_filter(requirements: str) -> str:
@@ -86,18 +78,11 @@ def detail_person(uuid_expr: str, *, collection: str) -> str:
     })""").substitute(collection=collection, uuid_expr=uuid_expr)
 
 
-def detail(
-    settings: Settings,
-    version: Version,
-    token: Token,
-    uuid: UUID,
-    *,
-    predicate: Callable[..., ColumnElement],
-) -> ColumnElement:
+def detail(uuid_expr: str, *, collection: str) -> str:
     """Require ownership of the org unit or the person the detail links."""
-    return or_(
-        detail_org_unit(settings, version, token, uuid, predicate=predicate),
-        detail_person(settings, version, token, uuid, predicate=predicate),
+    return Template('dyn({"or": [$org_unit, $person]})').substitute(
+        org_unit=detail_org_unit(uuid_expr, collection=collection),
+        person=detail_person(uuid_expr, collection=collection),
     )
 
 
