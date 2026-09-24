@@ -68,6 +68,14 @@ def detail(uuid: str, *, collection: str) -> str:
     )
 
 
+def and_or_none(*checks: str) -> str:
+    """Require all of the checks, or nothing if there is nothing to check."""
+    return Template("""cel.bind(clauses, [$checks].filter(clause, clause != null),
+        clauses.size() == 0 ? null : dyn({"and": clauses}))""").substitute(
+        checks=", ".join(checks)
+    )
+
+
 def org_unit_or_person(org_unit_uuid: str, person_uuid: str) -> str:
     """Require ownership of the unit if one is named, else of the person."""
     return Template("cel.bind(unit, $unit, unit != null ? unit : $person)").substitute(
@@ -94,4 +102,16 @@ OWNER_RULES: list[tuple[str, str]] = [
         ),
     ),
     ("address_terminate", rule(address("args.input.uuid"))),
+    (
+        "address_update",
+        rule(
+            and_or_none(
+                address("args.input.uuid"),
+                org_unit_or_person(
+                    "args.input.org_unit",
+                    "args.input.person != null ? args.input.person : args.input.employee",
+                ),
+            )
+        ),
+    ),
 ]

@@ -184,7 +184,6 @@ def check_parent(
 
 # The rule for each collection's detail. A KLE and a role-binding link no
 # person, so owning the unit they link is the only way to own them
-address = partial(detail, predicate=resolvers.address_predicate)
 association = partial(detail, predicate=resolvers.association_predicate)
 engagement = partial(detail, predicate=resolvers.engagement_predicate)
 ituser = partial(detail, predicate=resolvers.it_user_predicate)
@@ -199,16 +198,6 @@ rolebinding = partial(detail_org_unit, predicate=resolvers.rolebinding_predicate
 # neither here nor in `OWNER_RULES` is never granted by ownership
 OWNER_ENTITIES: dict[str, OwnerRule] = {
     # The unit or the person the address links to (exactly one is set)
-    "address_update": lambda settings, version, token, arguments: and_or_none(
-        address(settings, version, token, arguments["input"].uuid),
-        org_unit_or_person(
-            settings,
-            version,
-            token,
-            arguments["input"].org_unit,
-            arguments["input"].person or arguments["input"].employee,
-        ),
-    ),
     "addresses_create": lambda settings, version, token, arguments: and_or_none(
         *(
             org_unit_or_person(
