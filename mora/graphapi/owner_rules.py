@@ -55,4 +55,9 @@ OWNER_RULES: list[tuple[str, str]] = [
     # The parent, or the unit itself and its new parent if it is being moved
     ("org_unit_create", rule(org_unit("args.input.parent"))),
     ("org_unit_terminate", rule(org_unit("args.input.uuid"))),
+    # Related units have a single `origin` field and a list of
+    # `destination`s. Originally we required ownership of both the
+    # origin and destinations, but that's not compatible with the old
+    # service-api owner calculation
+    ("related_units_update", rule(org_unit("args.input.origin"))),
 ]

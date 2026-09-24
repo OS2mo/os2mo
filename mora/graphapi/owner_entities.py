@@ -395,13 +395,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             arguments["input"].person,
         ),
     ),
-    # Related units have a single `origin` field and a list of
-    # `destination`s. Originally we required ownership of both the
-    # origin and destinations, but that's not compatible with the old
-    # service-api owner calculation
-    "related_units_update": lambda settings, version, token, arguments: org_unit(
-        settings, version, token, arguments["input"].origin
-    ),
     # The unit of the role-binding, if one is named
     "rolebinding_create": lambda settings, version, token, arguments: org_unit(
         settings, version, token, arguments["input"].org_unit
