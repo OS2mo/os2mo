@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import datetime
 import json
+from collections.abc import Callable
 from uuid import UUID
 
 import pytest
@@ -10,6 +11,7 @@ from mora import exceptions
 from mora import mapping
 from mora import util as mora_util
 from mora.service.validation import validator
+from tests.conftest import GraphAPIPost
 
 
 @pytest.fixture(autouse=True)
@@ -20,12 +22,6 @@ def patch_context(monkeypatch):
     """
     monkeypatch.setattr(mora_util, "context", {"query_args": {}})
     yield
-
-
-ORG = "456362c4-0ee4-4e5e-a72c-751239745e62"
-SAMF_UNIT = "b688513d-11f7-4efc-b679-ab082a2055d0"
-HIST_UNIT = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
-PARENT = SAMF_UNIT
 
 
 @pytest.mark.integration_test
@@ -223,6 +219,38 @@ async def test_should_not_move_org_unit_to_itself() -> None:
 
     with pytest.raises(exceptions.HTTPException):
         await validator.is_candidate_parent_valid(UNIT_TO_MOVE, UNIT_TO_MOVE, move_date)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_should_return_false_when_candidate_parent_is_inactive(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+) -> None:
+    """Moving a unit under a parent terminated before the move date is
+    rejected."""
+
+    unit_to_move = create_org_unit("unit-to-move")
+    candidate_parent = create_org_unit("candidate-parent")
+
+    mutation = """
+        mutation TerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
+            org_unit_terminate(input: $input) { uuid }
+        }
+    """
+
+    response = graphapi_post(
+        mutation,
+        variables={"input": {"uuid": str(candidate_parent), "to": "2018-01-01"}},
+    )
+    assert response.errors is None
+
+    move_date = datetime.datetime(year=2019, month=1, day=1)
+
+    with pytest.raises(exceptions.HTTPException):
+        await validator.is_candidate_parent_valid(
+            str(unit_to_move), str(candidate_parent), move_date
+        )
 
 
 @pytest.mark.parametrize(

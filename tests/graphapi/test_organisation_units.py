@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from functools import partial
 from uuid import UUID
 from uuid import uuid4
@@ -8,6 +9,9 @@ import pytest
 from more_itertools import one
 from strawberry import UNSET
 from strawberry.types.unset import UnsetType
+
+from mora.graphapi.version import LATEST_VERSION
+from mora.graphapi.version import Version
 
 from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids
@@ -1280,3 +1284,114 @@ async def test_org_tree_filters(
         if x["current"] is not None
     }
     assert results == expected
+
+
+@pytest.mark.parametrize(
+    "version",
+    (
+        # version 28 has the legacy off-by-one end date behavior, testing on v28
+        # exercises `Validity.get_terminate_effect_to_date` in (mora/graphapi/models.py)
+        Version.VERSION_28,
+        LATEST_VERSION,
+    ),
+)
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_terminate_org_unit_with_children_and_roles(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_manager: Callable[[UUID, UUID | None], UUID],
+    version: Version,
+) -> None:
+    """Terminating a unit with both children and roles raises
+    V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES."""
+    parent = create_org_unit("parent")
+    create_org_unit("child", parent=parent)
+    create_manager(parent)
+
+    response = graphapi_post(
+        """
+        mutation TerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
+            org_unit_terminate(input: $input) { uuid }
+        }
+        """,
+        variables={
+            "input": {
+                "uuid": str(parent),
+                "to": "2018-01-01",
+            }
+        },
+        url=f"/graphql/v{version.value}",
+    )
+    assert response.errors is not None
+    assert "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES" in str(response.errors)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_terminate_org_unit_with_roles_only(graphapi_post: GraphAPIPost) -> None:
+    """Terminating a unit with active roles but no children raises
+    V_TERMINATE_UNIT_WITH_ROLES."""
+    # Construct a fresh unit with no children and a manager role attached
+    create_org_response = graphapi_post(
+        """
+        mutation CreateOrg($input: OrganisationCreate!) {
+            org_create(input: $input) { uuid }
+        }
+        """,
+        variables={"input": {"municipality_code": None}},
+    )
+    assert create_org_response.errors is None
+
+    create_unit_response = graphapi_post(
+        """
+        mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
+            org_unit_create(input: $input) { uuid }
+        }
+        """,
+        variables={
+            "input": {
+                "name": "lonely",
+                "user_key": "lonely",
+                "parent": None,
+                "validity": {"from": "1970-01-01T00:00:00Z"},
+                "org_unit_type": str(uuid4()),
+            }
+        },
+    )
+    assert create_unit_response.errors is None
+    unit_uuid = create_unit_response.data["org_unit_create"]["uuid"]
+
+    create_manager_response = graphapi_post(
+        """
+        mutation CreateManager($input: ManagerCreateInput!) {
+            manager_create(input: $input) { uuid }
+        }
+        """,
+        variables={
+            "input": {
+                "org_unit": unit_uuid,
+                "manager_level": "ca76a441-6226-404f-88a9-31e02e420e52",
+                "manager_type": "32547559-cfc1-4d97-94c6-70b192eff825",
+                "responsibility": ["4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"],
+                "validity": {"from": "1970-01-01"},
+            }
+        },
+    )
+    assert create_manager_response.errors is None
+
+    response = graphapi_post(
+        """
+        mutation TerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
+            org_unit_terminate(input: $input) { uuid }
+        }
+        """,
+        variables={
+            "input": {
+                "uuid": unit_uuid,
+                "to": "2018-01-01",
+            }
+        },
+    )
+    assert response.errors is not None
+    assert "V_TERMINATE_UNIT_WITH_ROLES" in str(response.errors)
