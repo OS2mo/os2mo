@@ -78,6 +78,7 @@ def org_unit_or_person(org_unit_uuid: str, person_uuid: str) -> str:
 address = partial(detail, collection="Address")
 association = partial(detail, collection="Association")
 engagement = partial(detail, collection="Engagement")
+ituser = partial(detail, collection="ITUser")
 kle = partial(detail_org_unit, collection="KLE")
 rolebinding = partial(detail_org_unit, collection="RoleBinding")
 
@@ -133,6 +134,7 @@ OWNER_RULES: list[tuple[str, str]] = [
         "ituser_create",
         rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
     ),
+    ("ituser_terminate", rule(ituser("args.input.uuid"))),
     # The annotated unit
     ("kle_create", rule(org_unit("args.input.org_unit"))),
     ("kle_terminate", rule(kle("args.input.uuid"))),
