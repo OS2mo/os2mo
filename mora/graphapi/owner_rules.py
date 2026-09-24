@@ -308,4 +308,9 @@ OWNER_RULES: list[tuple[str, str]] = [
             )
         ),
     ),
+    # The unit or the person owned (exactly one is set)
+    (
+        "owner_create",
+        rule(org_unit_or_person("args.input.org_unit", "args.input.person")),
+    ),
 ]
