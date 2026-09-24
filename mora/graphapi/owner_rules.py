@@ -201,4 +201,10 @@ OWNER_RULES: list[tuple[MutatorName, CEL]] = [
     # The unit of the role-binding, if one is named
     ("rolebinding_create", owner_rule(org_unit("args.input.org_unit"))),
     ("rolebinding_terminate", owner_rule(rolebinding("args.input.uuid"))),
+    (
+        "rolebinding_update",
+        owner_rule(
+            and_or_none(rolebinding("args.input.uuid"), org_unit("args.input.org_unit"))
+        ),
+    ),
 ]

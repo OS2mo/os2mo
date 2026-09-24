@@ -212,8 +212,7 @@ def check_parent(
     return or_(keeps_parent, moved_under)
 
 
-# The rule for each collection's detail. A KLE and a role-binding link no
-# person, so owning the unit they link is the only way to own them
+# The rule for each collection's detail
 address = partial(detail, predicate=resolvers.address_predicate)
 association = partial(detail, predicate=resolvers.association_predicate)
 engagement = partial(detail, predicate=resolvers.engagement_predicate)
@@ -221,7 +220,6 @@ ituser = partial(detail, predicate=resolvers.it_user_predicate)
 leave = partial(detail, predicate=resolvers.leave_predicate)
 manager = partial(detail, predicate=resolvers.manager_predicate)
 owner = partial(detail, predicate=resolvers.owner_predicate)
-rolebinding = partial(detail_org_unit, predicate=resolvers.rolebinding_predicate)
 
 
 # What a mutator requires owned, read off its arguments.
@@ -354,10 +352,6 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         ),
     ),
     # The unit of the role-binding, if one is named
-    "rolebinding_update": lambda settings, version, token, arguments: and_or_none(
-        rolebinding(settings, version, token, arguments["input"].uuid),
-        org_unit(settings, version, token, arguments["input"].org_unit),
-    ),
     "rolebindings_create": lambda settings, version, token, arguments: and_or_none(
         *(
             org_unit(settings, version, token, input.org_unit)
