@@ -16,6 +16,19 @@ def rule(requirements: str) -> str:
     ).substitute(requirements=requirements)
 
 
+def org_unit(uuid: str) -> str:
+    """Require ownership of the unit named, if one is named.
+
+    Owning any ancestor also grants ownership: the `descendant` filter matches
+    the unit together with all of its ancestors. An unset `uuid` is absent from
+    the arguments, so `uuid` must be a field.
+    """
+    return Template("""(has($uuid) && $uuid != null ? dyn({
+        "collection": "OrganisationUnit",
+        "filter": {"descendant": {"uuids": [$uuid]}, "owner": seat}
+    }) : null)""").substitute(uuid=uuid)
+
+
 def person(uuid: str) -> str:
     """Require ownership of the person named, if one is named.
 
@@ -37,4 +50,6 @@ OWNER_RULES: list[tuple[str, str]] = [
     ("employee_update", rule(person("args.input.uuid"))),
     # The person on leave
     ("leave_create", rule(person("args.input.person"))),
+    # The parent, or the unit itself and its new parent if it is being moved
+    ("org_unit_create", rule(org_unit("args.input.parent"))),
 ]
