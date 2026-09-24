@@ -134,6 +134,18 @@ OWNER_RULES: list[tuple[str, str]] = [
         ),
     ),
     ("engagement_terminate", rule(engagement("args.input.uuid"))),
+    (
+        "engagement_update",
+        rule(
+            and_or_none(
+                engagement("args.input.uuid"),
+                org_unit_or_person(
+                    "args.input.org_unit",
+                    "args.input.person != null ? args.input.person : args.input.employee",
+                ),
+            )
+        ),
+    ),
     # The unit of the IT-association, whose update cannot name a person
     (
         "itassociation_create",
