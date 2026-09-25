@@ -2321,3 +2321,550 @@ async def test_owner_bulk_rolebindings_require_every_unit_owned(
     # An empty batch yields no checks, so it is denied rather than
     # vacuously granted
     assert_denied(create())
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_owner_org_unit_create_cannot_name_an_existing_unit(
+    create_org_unit: Callable[..., UUID],
+    set_auth: SetAuth,
+    alice: UUID,
+    make_owner: Callable[..., None],
+    graphapi_post: GraphAPIPost,
+) -> None:
+    # A create naming the uuid of an existing unit overwrites it whole. Alice
+    # owns `owned`, but neither `foreign` nor `elsewhere` above it
+    owned = create_org_unit("owned")
+    elsewhere = create_org_unit("elsewhere")
+    foreign = create_org_unit("foreign", elsewhere)
+    gone = create_org_unit(
+        "gone", elsewhere, {"from": "2000-01-01", "to": "2001-01-01"}
+    )
+    make_owner(alice, org_unit=owned)
+    unit_type = uuid4()
+
+    def create(**fields: Any) -> GQLResponse:
+        return graphapi_post(
+            """
+            mutation CreateOU($input: OrganisationUnitCreateInput!) {
+                org_unit_create(input: $input) { uuid }
+            }
+            """,
+            variables=jsonable_encoder(
+                {
+                    "input": {
+                        "name": "Renamed",
+                        "user_key": "renamed",
+                        "parent": owned,
+                        "org_unit_type": unit_type,
+                        "validity": {"from": "2020-01-01"},
+                        **fields,
+                    }
+                }
+            ),
+        )
+
+    set_auth(role="owner", user_uuid=alice)
+    # A new unit under `owned`, with a fresh uuid or none at all -> granted
+    assert_granted(create(uuid=uuid4()))
+    assert_granted(create())
+    # Naming `foreign` would rename it and move it under `owned`, making it hers
+    assert_denied(create(uuid=foreign))
+    # A unit that has ended is no less overwritten
+    assert_denied(create(uuid=gone))
+
+    # Read as an admin, `foreign` keeps its name and its parent
+    set_auth(role="admin")
+    response = graphapi_post(
+        """
+        query ReadOU($uuid: UUID!) {
+            org_units(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
+                objects { objects { name parent_uuid } }
+            }
+        }
+        """,
+        variables=jsonable_encoder({"uuid": foreign}),
+    )
+    assert response.errors is None
+    assert response.data == {
+        "org_units": {
+            "objects": [
+                {"objects": [{"name": "foreign", "parent_uuid": str(elsewhere)}]}
+            ]
+        }
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_owner_detail_create_cannot_name_an_existing_detail(
+    set_auth: SetAuth,
+    alice: UUID,
+    bob: UUID,
+    itsystem: UUID,
+    role_facet: UUID,
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[[dict[str, Any] | None], UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+    create_address: Callable[[dict[str, Any]], UUID],
+    create_association: Callable[[dict[str, Any]], UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    create_itassociation: Callable[[dict[str, Any]], UUID],
+    create_ituser: Callable[[dict[str, Any]], UUID],
+    create_kle: Callable[[dict[str, Any]], UUID],
+    create_leave: Callable[[dict[str, Any]], UUID],
+    create_manager: Callable[..., UUID],
+    create_owner: Callable[[dict[str, Any]], UUID],
+    create_rolebinding: Callable[[dict[str, Any]], UUID],
+    make_owner: Callable[..., None],
+    graphapi_post: GraphAPIPost,
+) -> None:
+    # A create naming the uuid of an existing detail overwrites it whole.
+    # Alice owns `owned` and Bob, but neither `foreign` nor Carol
+    owned = create_org_unit("owned")
+    foreign = create_org_unit("foreign")
+    carol = create_person({"given_name": "Carol", "surname": "Carlsen"})
+    make_owner(alice, org_unit=owned)
+    make_owner(alice, person=bob)
+    # `address_create` reads the address type's `scope`, so it must be real
+    facet = create_facet(
+        {"user_key": "address_type", "validity": {"from": "2000-01-01"}}
+    )
+    email = create_class(
+        {
+            "facet_uuid": str(facet),
+            "user_key": "email",
+            "name": "Email",
+            "scope": "EMAIL",
+            "validity": {"from": "2000-01-01"},
+        }
+    )
+    role = create_class(
+        {
+            "user_key": "admin",
+            "name": "Administrator",
+            "facet_uuid": str(role_facet),
+            "it_system_uuid": str(itsystem),
+            "validity": {"from": "2010-01-01"},
+        }
+    )
+    validity = {"from": "2020-01-01"}
+
+    def ituser_for(person: UUID) -> UUID:
+        return create_ituser(
+            jsonable_encoder(
+                {
+                    "user_key": str(person),
+                    "itsystem": itsystem,
+                    "person": person,
+                    "validity": validity,
+                }
+            )
+        )
+
+    def engagement_for(person: UUID, org_unit: UUID) -> UUID:
+        return create_engagement(
+            jsonable_encoder(
+                {
+                    "person": person,
+                    "org_unit": org_unit,
+                    "engagement_type": uuid4(),
+                    "job_function": uuid4(),
+                    "validity": validity,
+                }
+            )
+        )
+
+    bobs_ituser = ituser_for(bob)
+    bobs_engagement = engagement_for(bob, owned)
+    # A detail of every kind, of Carol's or on `foreign`, none of them Alice's
+    carols_ituser = ituser_for(carol)
+    carols_engagement = engagement_for(carol, foreign)
+    carols_address = create_address(
+        jsonable_encoder(
+            {
+                "person": carol,
+                "address_type": email,
+                "value": "carol@example.org",
+                "validity": validity,
+            }
+        )
+    )
+    carols_association = create_association(
+        jsonable_encoder(
+            {
+                "org_unit": foreign,
+                "person": carol,
+                "association_type": uuid4(),
+                "validity": validity,
+            }
+        )
+    )
+    carols_itassociation = create_itassociation(
+        jsonable_encoder(
+            {
+                "org_unit": foreign,
+                "person": carol,
+                "it_user": carols_ituser,
+                "job_function": uuid4(),
+                "validity": validity,
+            }
+        )
+    )
+    foreign_kle = create_kle(
+        jsonable_encoder(
+            {
+                "org_unit": foreign,
+                "kle_number": uuid4(),
+                "kle_aspects": [uuid4()],
+                "validity": validity,
+            }
+        )
+    )
+    carols_leave = create_leave(
+        jsonable_encoder(
+            {
+                "person": carol,
+                "engagement": carols_engagement,
+                "leave_type": uuid4(),
+                "validity": validity,
+            }
+        )
+    )
+    carols_manager = create_manager(foreign, carol)
+    carols_seat = create_owner(
+        jsonable_encoder({"org_unit": foreign, "owner": carol, "validity": validity})
+    )
+    carols_rolebinding = create_rolebinding(
+        jsonable_encoder(
+            {
+                "ituser": carols_ituser,
+                "role": role,
+                "org_unit": foreign,
+                "validity": validity,
+            }
+        )
+    )
+
+    # The create of *input*, under the uuid the result is called with
+    def creator(
+        mutator: str, input_type: str, **input: Any
+    ) -> Callable[[UUID], GQLResponse]:
+        def create(uuid: UUID) -> GQLResponse:
+            return graphapi_post(
+                f"""
+                mutation Create($input: {input_type}!) {{
+                    {mutator}(input: $input) {{ uuid }}
+                }}
+                """,
+                variables=jsonable_encoder(
+                    {
+                        "input": {
+                            "uuid": uuid,
+                            "user_key": str(uuid4()),
+                            "validity": {"from": "2021-01-01"},
+                            **input,
+                        }
+                    }
+                ),
+            )
+
+        return create
+
+    # Every create below is on `owned` or for Bob, so it is granted with a
+    # fresh uuid, and denied naming an existing detail, here one of Carol's or
+    # on `foreign`
+    set_auth(role="owner", user_uuid=alice)
+
+    address = creator(
+        "address_create",
+        "AddressCreateInput",
+        org_unit=owned,
+        address_type=email,
+        value="new@example.org",
+    )
+    assert_granted(address(uuid4()))
+    assert_denied(address(carols_address))
+    # Naming Bob's engagement, which Alice owns, overwrites it all the same
+    assert_denied(address(bobs_engagement))
+
+    # Carol's association on `foreign` would become one of Bob's on `owned`
+    association = creator(
+        "association_create",
+        "AssociationCreateInput",
+        org_unit=owned,
+        person=bob,
+        association_type=uuid4(),
+    )
+    assert_granted(association(uuid4()))
+    assert_denied(association(carols_association))
+    # The uuid of a detail of any kind is taken
+    assert_denied(association(carols_engagement))
+
+    engagement = creator(
+        "engagement_create",
+        "EngagementCreateInput",
+        org_unit=owned,
+        person=bob,
+        engagement_type=uuid4(),
+        job_function=uuid4(),
+    )
+    assert_granted(engagement(uuid4()))
+    assert_denied(engagement(carols_engagement))
+
+    itassociation = creator(
+        "itassociation_create",
+        "ITAssociationCreateInput",
+        org_unit=owned,
+        person=bob,
+        it_user=bobs_ituser,
+        job_function=uuid4(),
+    )
+    assert_granted(itassociation(uuid4()))
+    assert_denied(itassociation(carols_itassociation))
+
+    ituser = creator(
+        "ituser_create",
+        "ITUserCreateInput",
+        itsystem=itsystem,
+        person=bob,
+    )
+    assert_granted(ituser(uuid4()))
+    assert_denied(ituser(carols_ituser))
+
+    kle = creator(
+        "kle_create",
+        "KLECreateInput",
+        org_unit=owned,
+        kle_number=uuid4(),
+        kle_aspects=[uuid4()],
+    )
+    assert_granted(kle(uuid4()))
+    assert_denied(kle(foreign_kle))
+
+    leave = creator(
+        "leave_create",
+        "LeaveCreateInput",
+        person=bob,
+        engagement=bobs_engagement,
+        leave_type=uuid4(),
+    )
+    assert_granted(leave(uuid4()))
+    assert_denied(leave(carols_leave))
+
+    manager = creator(
+        "manager_create",
+        "ManagerCreateInput",
+        org_unit=owned,
+        person=bob,
+        manager_level=uuid4(),
+        manager_type=uuid4(),
+        responsibility=[],
+    )
+    assert_granted(manager(uuid4()))
+    assert_denied(manager(carols_manager))
+
+    # Carol's seat on `foreign` would become a vacant one on `owned`
+    owner = creator("owner_create", "OwnerCreateInput", org_unit=owned)
+    assert_granted(owner(uuid4()))
+    assert_denied(owner(carols_seat))
+
+    rolebinding = creator(
+        "rolebinding_create",
+        "RoleBindingCreateInput",
+        ituser=bobs_ituser,
+        role=role,
+        org_unit=owned,
+    )
+    assert_granted(rolebinding(uuid4()))
+    assert_denied(rolebinding(carols_rolebinding))
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_owner_bulk_create_cannot_name_an_existing_detail(
+    set_auth: SetAuth,
+    alice: UUID,
+    bob: UUID,
+    itsystem: UUID,
+    role_facet: UUID,
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[[dict[str, Any] | None], UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+    create_address: Callable[[dict[str, Any]], UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    create_ituser: Callable[[dict[str, Any]], UUID],
+    create_manager: Callable[..., UUID],
+    create_rolebinding: Callable[[dict[str, Any]], UUID],
+    make_owner: Callable[..., None],
+    graphapi_post: GraphAPIPost,
+) -> None:
+    # Every item of a batch must name no existing detail, just as on its own.
+    # Alice owns `owned` and Bob, but neither `foreign` nor Carol
+    owned = create_org_unit("owned")
+    foreign = create_org_unit("foreign")
+    carol = create_person({"given_name": "Carol", "surname": "Carlsen"})
+    make_owner(alice, org_unit=owned)
+    make_owner(alice, person=bob)
+    # `addresses_create` reads the address type's `scope`, so it must be real
+    facet = create_facet(
+        {"user_key": "address_type", "validity": {"from": "2000-01-01"}}
+    )
+    email = create_class(
+        {
+            "facet_uuid": str(facet),
+            "user_key": "email",
+            "name": "Email",
+            "scope": "EMAIL",
+            "validity": {"from": "2000-01-01"},
+        }
+    )
+    role = create_class(
+        {
+            "user_key": "admin",
+            "name": "Administrator",
+            "facet_uuid": str(role_facet),
+            "it_system_uuid": str(itsystem),
+            "validity": {"from": "2010-01-01"},
+        }
+    )
+    validity = {"from": "2020-01-01"}
+
+    def ituser_for(person: UUID) -> UUID:
+        return create_ituser(
+            jsonable_encoder(
+                {
+                    "user_key": str(person),
+                    "itsystem": itsystem,
+                    "person": person,
+                    "validity": validity,
+                }
+            )
+        )
+
+    bobs_ituser = ituser_for(bob)
+    # A detail of every kind created in bulk, of Carol's or on `foreign`
+    carols_ituser = ituser_for(carol)
+    carols_address = create_address(
+        jsonable_encoder(
+            {
+                "person": carol,
+                "address_type": email,
+                "value": "carol@example.org",
+                "validity": validity,
+            }
+        )
+    )
+    carols_engagement = create_engagement(
+        jsonable_encoder(
+            {
+                "person": carol,
+                "org_unit": foreign,
+                "engagement_type": uuid4(),
+                "job_function": uuid4(),
+                "validity": validity,
+            }
+        )
+    )
+    carols_manager = create_manager(foreign, carol)
+    carols_rolebinding = create_rolebinding(
+        jsonable_encoder(
+            {
+                "ituser": carols_ituser,
+                "role": role,
+                "org_unit": foreign,
+                "validity": validity,
+            }
+        )
+    )
+
+    # The create of one *input* for each uuid the result is called with
+    def batch(
+        mutator: str, input_type: str, **input: Any
+    ) -> Callable[..., GQLResponse]:
+        def create(*uuids: UUID | None) -> GQLResponse:
+            return graphapi_post(
+                f"""
+                mutation Create($input: [{input_type}!]!) {{
+                    {mutator}(input: $input) {{ uuid }}
+                }}
+                """,
+                variables=jsonable_encoder(
+                    {
+                        "input": [
+                            # A user key of its own, as two IT users of Bob's
+                            # in one IT system may not share one
+                            {
+                                "uuid": uuid,
+                                "user_key": str(uuid4()),
+                                "validity": {"from": "2021-01-01"},
+                                **input,
+                            }
+                            for uuid in uuids
+                        ]
+                    }
+                ),
+            )
+
+        return create
+
+    # Every item below is on `owned` or for Bob, so a batch of fresh uuids, or
+    # none, is granted, and one naming an existing detail is denied whole,
+    # wherever that item comes
+    set_auth(role="owner", user_uuid=alice)
+
+    addresses = batch(
+        "addresses_create",
+        "AddressCreateInput",
+        org_unit=owned,
+        address_type=email,
+        value="new@example.org",
+    )
+    assert_granted(addresses(uuid4(), None))
+    assert_denied(addresses(uuid4(), carols_address))
+    assert_denied(addresses(carols_address, uuid4()))
+
+    engagements = batch(
+        "engagements_create",
+        "EngagementCreateInput",
+        org_unit=owned,
+        person=bob,
+        engagement_type=uuid4(),
+        job_function=uuid4(),
+    )
+    assert_granted(engagements(uuid4(), None))
+    assert_denied(engagements(uuid4(), carols_engagement))
+    assert_denied(engagements(carols_engagement, uuid4()))
+
+    itusers = batch(
+        "itusers_create", "ITUserCreateInput", itsystem=itsystem, person=bob
+    )
+    assert_granted(itusers(uuid4(), None))
+    assert_denied(itusers(uuid4(), carols_ituser))
+    assert_denied(itusers(carols_ituser, uuid4()))
+
+    managers = batch(
+        "managers_create",
+        "ManagerCreateInput",
+        org_unit=owned,
+        person=bob,
+        manager_level=uuid4(),
+        manager_type=uuid4(),
+        responsibility=[],
+    )
+    assert_granted(managers(uuid4(), None))
+    assert_denied(managers(uuid4(), carols_manager))
+    assert_denied(managers(carols_manager, uuid4()))
+
+    rolebindings = batch(
+        "rolebindings_create",
+        "RoleBindingCreateInput",
+        ituser=bobs_ituser,
+        role=role,
+        org_unit=owned,
+    )
+    assert_granted(rolebindings(uuid4(), None))
+    assert_denied(rolebindings(uuid4(), carols_rolebinding))
+    assert_denied(rolebindings(carols_rolebinding, uuid4()))

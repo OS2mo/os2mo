@@ -4,10 +4,12 @@
 
 from collections.abc import Callable
 from functools import partial
+from functools import wraps
 from typing import Any
 from typing import get_type_hints
 from uuid import UUID
 
+from more_itertools import always_iterable
 from sqlalchemy import ColumnElement
 from sqlalchemy import and_
 from sqlalchemy import exists
@@ -16,6 +18,8 @@ from strawberry import UNSET
 
 from mora.auth.keycloak.models import Token
 from mora.config import Settings
+from mora.db import OrganisationEnhed
+from mora.db import OrganisationFunktion
 from mora.graphapi import resolvers
 from mora.graphapi.filters import EmployeeFilter
 from mora.graphapi.filters import ITSystemFilter
@@ -172,6 +176,33 @@ def every_item(*checks: ColumnElement | None) -> ColumnElement | None:
     return and_(*clauses)
 
 
+def creating(
+    table: type[OrganisationEnhed] | type[OrganisationFunktion],
+    rule: OwnerRule,
+) -> OwnerRule:
+    """Require the rule of a create, and that it names no object in *table*.
+
+    A create naming the uuid of an existing object overwrites it whole, so
+    owning where the object goes is no licence to name one that exists.
+    """
+
+    @wraps(rule)
+    def checked(
+        settings: Settings, version: Version, token: Token, arguments: dict[str, Any]
+    ) -> ColumnElement | None:
+        check = rule(settings, version, token, arguments)
+        uuids = [
+            input.uuid
+            for input in always_iterable(arguments["input"])
+            if input.uuid is not None and input.uuid is not UNSET
+        ]
+        if check is None or not uuids:
+            return check
+        return and_(check, ~exists().where(table.id.in_(uuids)))
+
+    return checked
+
+
 def org_unit_or_person(
     settings: Settings,
     version: Version,
@@ -226,14 +257,18 @@ rolebinding = partial(detail_org_unit, predicate=resolvers.rolebinding_predicate
 
 # What a mutator requires owned, read off its arguments.
 # A mutator not listed here is never granted by ownership
+# A create also requires that the uuid it names is unused, see `creating`
 OWNER_ENTITIES: dict[str, OwnerRule] = {
     # The unit or the person the address links to (exactly one is set)
-    "address_create": lambda settings, version, token, arguments: org_unit_or_person(
-        settings,
-        version,
-        token,
-        arguments["input"].org_unit,
-        arguments["input"].person or arguments["input"].employee,
+    "address_create": creating(
+        OrganisationFunktion,
+        lambda settings, version, token, arguments: org_unit_or_person(
+            settings,
+            version,
+            token,
+            arguments["input"].org_unit,
+            arguments["input"].person or arguments["input"].employee,
+        ),
     ),
     "address_terminate": lambda settings, version, token, arguments: address(
         settings, version, token, arguments["input"].uuid
@@ -248,24 +283,31 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             arguments["input"].person or arguments["input"].employee,
         ),
     ),
-    "addresses_create": lambda settings, version, token, arguments: every_item(
-        *(
-            org_unit_or_person(
-                settings, version, token, input.org_unit, input.person or input.employee
+    "addresses_create": creating(
+        OrganisationFunktion,
+        lambda settings, version, token, arguments: every_item(
+            *(
+                org_unit_or_person(
+                    settings,
+                    version,
+                    token,
+                    input.org_unit,
+                    input.person or input.employee,
+                )
+                for input in arguments["input"]
             )
-            for input in arguments["input"]
-        )
+        ),
     ),
     # The unit of the association
-    "association_create": lambda settings,
-    version,
-    token,
-    arguments: org_unit_or_person(
-        settings,
-        version,
-        token,
-        arguments["input"].org_unit,
-        arguments["input"].person or arguments["input"].employee,
+    "association_create": creating(
+        OrganisationFunktion,
+        lambda settings, version, token, arguments: org_unit_or_person(
+            settings,
+            version,
+            token,
+            arguments["input"].org_unit,
+            arguments["input"].person or arguments["input"].employee,
+        ),
     ),
     "association_terminate": lambda settings, version, token, arguments: association(
         settings, version, token, arguments["input"].uuid
@@ -289,12 +331,15 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         settings, version, token, arguments["input"].uuid
     ),
     # The unit of the engagement
-    "engagement_create": lambda settings, version, token, arguments: org_unit_or_person(
-        settings,
-        version,
-        token,
-        arguments["input"].org_unit,
-        arguments["input"].person or arguments["input"].employee,
+    "engagement_create": creating(
+        OrganisationFunktion,
+        lambda settings, version, token, arguments: org_unit_or_person(
+            settings,
+            version,
+            token,
+            arguments["input"].org_unit,
+            arguments["input"].person or arguments["input"].employee,
+        ),
     ),
     "engagement_terminate": lambda settings, version, token, arguments: engagement(
         settings, version, token, arguments["input"].uuid
@@ -309,13 +354,20 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             arguments["input"].person or arguments["input"].employee,
         ),
     ),
-    "engagements_create": lambda settings, version, token, arguments: every_item(
-        *(
-            org_unit_or_person(
-                settings, version, token, input.org_unit, input.person or input.employee
+    "engagements_create": creating(
+        OrganisationFunktion,
+        lambda settings, version, token, arguments: every_item(
+            *(
+                org_unit_or_person(
+                    settings,
+                    version,
+                    token,
+                    input.org_unit,
+                    input.person or input.employee,
+                )
+                for input in arguments["input"]
             )
-            for input in arguments["input"]
-        )
+        ),
     ),
     "engagements_update": lambda settings, version, token, arguments: every_item(
         *(
@@ -333,11 +385,15 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         )
     ),
     # The unit of the IT-association, whose update cannot name a person
-    "itassociation_create": lambda settings,
-    version,
-    token,
-    arguments: org_unit_or_person(
-        settings, version, token, arguments["input"].org_unit, arguments["input"].person
+    "itassociation_create": creating(
+        OrganisationFunktion,
+        lambda settings, version, token, arguments: org_unit_or_person(
+            settings,
+            version,
+            token,
+            arguments["input"].org_unit,
+            arguments["input"].person,
+        ),
     ),
     "itassociation_terminate": lambda settings, version, token, arguments: association(
         settings, version, token, arguments["input"].uuid
@@ -347,8 +403,15 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         org_unit(settings, version, token, arguments["input"].org_unit),
     ),
     # The unit or the person the IT-user belongs to (exactly one is set)
-    "ituser_create": lambda settings, version, token, arguments: org_unit_or_person(
-        settings, version, token, arguments["input"].org_unit, arguments["input"].person
+    "ituser_create": creating(
+        OrganisationFunktion,
+        lambda settings, version, token, arguments: org_unit_or_person(
+            settings,
+            version,
+            token,
+            arguments["input"].org_unit,
+            arguments["input"].person,
+        ),
     ),
     "ituser_terminate": lambda settings, version, token, arguments: ituser(
         settings, version, token, arguments["input"].uuid
@@ -363,15 +426,23 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             arguments["input"].person,
         ),
     ),
-    "itusers_create": lambda settings, version, token, arguments: every_item(
-        *(
-            org_unit_or_person(settings, version, token, input.org_unit, input.person)
-            for input in arguments["input"]
-        )
+    "itusers_create": creating(
+        OrganisationFunktion,
+        lambda settings, version, token, arguments: every_item(
+            *(
+                org_unit_or_person(
+                    settings, version, token, input.org_unit, input.person
+                )
+                for input in arguments["input"]
+            )
+        ),
     ),
     # The annotated unit
-    "kle_create": lambda settings, version, token, arguments: org_unit(
-        settings, version, token, arguments["input"].org_unit
+    "kle_create": creating(
+        OrganisationFunktion,
+        lambda settings, version, token, arguments: org_unit(
+            settings, version, token, arguments["input"].org_unit
+        ),
     ),
     "kle_terminate": lambda settings, version, token, arguments: kle(
         settings, version, token, arguments["input"].uuid
@@ -381,8 +452,11 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         org_unit(settings, version, token, arguments["input"].org_unit),
     ),
     # The person on leave
-    "leave_create": lambda settings, version, token, arguments: person(
-        settings, version, token, arguments["input"].person
+    "leave_create": creating(
+        OrganisationFunktion,
+        lambda settings, version, token, arguments: person(
+            settings, version, token, arguments["input"].person
+        ),
     ),
     "leave_terminate": lambda settings, version, token, arguments: leave(
         settings, version, token, arguments["input"].uuid
@@ -392,8 +466,15 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         person(settings, version, token, arguments["input"].person),
     ),
     # The unit of the manager
-    "manager_create": lambda settings, version, token, arguments: org_unit_or_person(
-        settings, version, token, arguments["input"].org_unit, arguments["input"].person
+    "manager_create": creating(
+        OrganisationFunktion,
+        lambda settings, version, token, arguments: org_unit_or_person(
+            settings,
+            version,
+            token,
+            arguments["input"].org_unit,
+            arguments["input"].person,
+        ),
     ),
     "manager_terminate": lambda settings, version, token, arguments: manager(
         settings, version, token, arguments["input"].uuid
@@ -408,15 +489,23 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             arguments["input"].person,
         ),
     ),
-    "managers_create": lambda settings, version, token, arguments: every_item(
-        *(
-            org_unit_or_person(settings, version, token, input.org_unit, input.person)
-            for input in arguments["input"]
-        )
+    "managers_create": creating(
+        OrganisationFunktion,
+        lambda settings, version, token, arguments: every_item(
+            *(
+                org_unit_or_person(
+                    settings, version, token, input.org_unit, input.person
+                )
+                for input in arguments["input"]
+            )
+        ),
     ),
     # The parent, or the unit itself and its new parent if it is being moved
-    "org_unit_create": lambda settings, version, token, arguments: org_unit(
-        settings, version, token, arguments["input"].parent
+    "org_unit_create": creating(
+        OrganisationEnhed,
+        lambda settings, version, token, arguments: org_unit(
+            settings, version, token, arguments["input"].parent
+        ),
     ),
     "org_unit_terminate": lambda settings, version, token, arguments: org_unit(
         settings, version, token, arguments["input"].uuid
@@ -428,8 +517,15 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         ),
     ),
     # The unit or the person owned (exactly one is set)
-    "owner_create": lambda settings, version, token, arguments: org_unit_or_person(
-        settings, version, token, arguments["input"].org_unit, arguments["input"].person
+    "owner_create": creating(
+        OrganisationFunktion,
+        lambda settings, version, token, arguments: org_unit_or_person(
+            settings,
+            version,
+            token,
+            arguments["input"].org_unit,
+            arguments["input"].person,
+        ),
     ),
     "owner_terminate": lambda settings, version, token, arguments: owner(
         settings, version, token, arguments["input"].uuid
@@ -452,8 +548,11 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         settings, version, token, arguments["input"].origin
     ),
     # The unit of the role-binding, if one is named
-    "rolebinding_create": lambda settings, version, token, arguments: org_unit(
-        settings, version, token, arguments["input"].org_unit
+    "rolebinding_create": creating(
+        OrganisationFunktion,
+        lambda settings, version, token, arguments: org_unit(
+            settings, version, token, arguments["input"].org_unit
+        ),
     ),
     "rolebinding_terminate": lambda settings, version, token, arguments: rolebinding(
         settings, version, token, arguments["input"].uuid
@@ -462,10 +561,13 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         rolebinding(settings, version, token, arguments["input"].uuid),
         org_unit(settings, version, token, arguments["input"].org_unit),
     ),
-    "rolebindings_create": lambda settings, version, token, arguments: every_item(
-        *(
-            org_unit(settings, version, token, input.org_unit)
-            for input in arguments["input"]
-        )
+    "rolebindings_create": creating(
+        OrganisationFunktion,
+        lambda settings, version, token, arguments: every_item(
+            *(
+                org_unit(settings, version, token, input.org_unit)
+                for input in arguments["input"]
+            )
+        ),
     ),
 }
