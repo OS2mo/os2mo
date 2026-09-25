@@ -105,9 +105,6 @@ def create_engine(
                     # Cancel transactions that run for more than 5 minutes, so
                     # a bad query doesn't run forever.
                     "-c transaction_timeout=300s",
-                    # Required for performance. Perhaps it can be removed when
-                    # we have proper dataloaders and no more 1+n problems.
-                    "-c plan_cache_mode=force_custom_plan",
                     # Raise the planner's collapse limits and the genetic
                     # optimizer threshold so larger joins are planned
                     # exhaustively instead of falling back to GEQO.
@@ -189,8 +186,16 @@ class AsyncSessionWithLock(AsyncSession):
         return False
 
 
-def create_sessionmaker(user, password, host, name) -> async_sessionmaker:
-    engine = create_engine(user, password, host, name)
+def create_sessionmaker(
+    user, password, host, name, plan_cache_mode: str = "auto"
+) -> async_sessionmaker:
+    engine = create_engine(
+        user,
+        password,
+        host,
+        name,
+        args=(f"-c plan_cache_mode={plan_cache_mode}",),
+    )
     return async_sessionmaker(engine, class_=AsyncSessionWithLock)
 
 

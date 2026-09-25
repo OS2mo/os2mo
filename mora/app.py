@@ -199,6 +199,7 @@ def create_app():
         password=lora_settings.db_password,
         host=lora_settings.db_host,
         name=lora_settings.db_name,
+        plan_cache_mode=lora_settings.db_plan_cache_mode,
     )
 
     app = FastAPI(
