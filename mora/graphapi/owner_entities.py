@@ -160,6 +160,18 @@ def and_or_none(*checks: ColumnElement | None) -> ColumnElement | None:
     return and_(*clauses)
 
 
+def every_item(*checks: ColumnElement | None) -> ColumnElement | None:
+    """Require the check of every item in a batch.
+
+    An item with nothing to check is owned by nobody, so it denies the whole
+    batch, just as it is denied on its own. An empty batch owns nothing either.
+    """
+    clauses = [check for check in checks if check is not None]
+    if not clauses or len(clauses) < len(checks):
+        return None
+    return and_(*clauses)
+
+
 def org_unit_or_person(
     settings: Settings,
     version: Version,
@@ -236,7 +248,7 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             arguments["input"].person or arguments["input"].employee,
         ),
     ),
-    "addresses_create": lambda settings, version, token, arguments: and_or_none(
+    "addresses_create": lambda settings, version, token, arguments: every_item(
         *(
             org_unit_or_person(
                 settings, version, token, input.org_unit, input.person or input.employee
@@ -299,7 +311,7 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             arguments["input"].person or arguments["input"].employee,
         ),
     ),
-    "engagements_create": lambda settings, version, token, arguments: and_or_none(
+    "engagements_create": lambda settings, version, token, arguments: every_item(
         *(
             org_unit_or_person(
                 settings, version, token, input.org_unit, input.person or input.employee
@@ -307,7 +319,7 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             for input in arguments["input"]
         )
     ),
-    "engagements_update": lambda settings, version, token, arguments: and_or_none(
+    "engagements_update": lambda settings, version, token, arguments: every_item(
         *(
             and_or_none(
                 engagement(settings, version, token, input.uuid),
@@ -353,7 +365,7 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             arguments["input"].person,
         ),
     ),
-    "itusers_create": lambda settings, version, token, arguments: and_or_none(
+    "itusers_create": lambda settings, version, token, arguments: every_item(
         *(
             org_unit_or_person(settings, version, token, input.org_unit, input.person)
             for input in arguments["input"]
@@ -398,7 +410,7 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             arguments["input"].person,
         ),
     ),
-    "managers_create": lambda settings, version, token, arguments: and_or_none(
+    "managers_create": lambda settings, version, token, arguments: every_item(
         *(
             org_unit_or_person(settings, version, token, input.org_unit, input.person)
             for input in arguments["input"]
@@ -452,7 +464,7 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
         rolebinding(settings, version, token, arguments["input"].uuid),
         org_unit(settings, version, token, arguments["input"].org_unit),
     ),
-    "rolebindings_create": lambda settings, version, token, arguments: and_or_none(
+    "rolebindings_create": lambda settings, version, token, arguments: every_item(
         *(
             org_unit(settings, version, token, input.org_unit)
             for input in arguments["input"]

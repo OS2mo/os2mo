@@ -357,7 +357,7 @@ async def test_owner_bulk_requires_all_items_owned(
     make_owner(alice, person=bob)
     make_owner(alice, person=owned)
 
-    def create(*people: UUID) -> GQLResponse:
+    def create(*people: UUID | None) -> GQLResponse:
         return graphapi_post(
             """
             mutation CreateITUsers($input: [ITUserCreateInput!]!) {
@@ -390,6 +390,9 @@ async def test_owner_bulk_requires_all_items_owned(
     assert_granted(create(bob, owned))
     # One person is not owned -> the whole batch is denied
     assert_denied(create(bob, foreign))
+    # An IT-user naming neither a person nor a unit is owned by nobody, so it
+    # denies the batch it is in
+    assert_denied(create(bob, None))
     # An empty batch yields no check-specs, so it is denied rather than
     # vacuously granted
     assert_denied(create())
@@ -945,6 +948,9 @@ async def test_owner_bulk_addresses_require_every_unit_or_person_owned(
     assert_denied(create({"org_unit": child}, {"org_unit": foreign}))
     # One person is not owned -> the whole batch is denied
     assert_denied(create({"person": carol}, {"person": bob}))
+    # An address naming neither a unit nor a person is owned by nobody, so it
+    # denies the batch it is in
+    assert_denied(create({"org_unit": child}, {}))
     # An empty batch has nothing to own, so it is denied rather than
     # vacuously granted
     assert_denied(create())
@@ -2307,7 +2313,9 @@ async def test_owner_bulk_rolebindings_require_every_unit_owned(
     # One unit is not owned -> the whole batch is denied, wherever it comes
     assert_denied(create(owned, foreign))
     assert_denied(create(foreign, owned))
-    # A batch in which no item names a unit leaves nothing to own -> denied
+    # A global role-binding (null unit) is owned by nobody, in a batch as on
+    # its own, so it denies the batch it is in
+    assert_denied(create(owned, None))
     assert_denied(create(None))
     # An empty batch yields no checks, so it is denied rather than
     # vacuously granted
