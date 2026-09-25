@@ -1852,7 +1852,8 @@ async def test_owner_employee_create_naming_a_uuid(
     make_owner: Callable[..., None],
     graphapi_post: GraphAPIPost,
 ) -> None:
-    # A create naming a uuid is checked against the person already there
+    # Ownership never grants a create, as a create naming the uuid of an
+    # existing person overwrites them whole
     carol = create_person({"given_name": "Carol", "surname": "Carlsen"})
     make_owner(alice, person=bob)
     fresh = uuid4()
@@ -1869,19 +1870,19 @@ async def test_owner_employee_create_naming_a_uuid(
             ),
         )
 
-    # A stranger owns nobody, and a fresh uuid names nobody to own
+    # A stranger may create no person, whatever the uuid names
     set_auth(role="owner", user_uuid=uuid4())
     assert_denied(create(bob))
     assert_denied(create(carol))
     assert_denied(create(fresh))
 
     set_auth(role="owner", user_uuid=alice)
-    # Alice does not own Carol
+    # Nor may Alice, whether the uuid is new or names Carol, whom she does
+    # not own
     assert_denied(create(carol))
-    # Nobody owns a person who does not exist yet
     assert_denied(create(fresh))
-    # Alice owns Bob, so she may create over him
-    assert_granted(create(bob))
+    # Alice owns Bob, but that is no licence to overwrite him
+    assert_denied(create(bob))
 
 
 @pytest.mark.integration_test

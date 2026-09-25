@@ -280,10 +280,8 @@ OWNER_ENTITIES: dict[str, OwnerRule] = {
             arguments["input"].person or arguments["input"].employee,
         ),
     ),
-    # The employee itself
-    "employee_create": lambda settings, version, token, arguments: person(
-        settings, version, token, arguments["input"].uuid
-    ),
+    # The employee itself. Never its creation: a new employee has no owner yet,
+    # and a create naming an existing one overwrites that employee whole
     "employee_terminate": lambda settings, version, token, arguments: person(
         settings, version, token, arguments["input"].uuid
     ),
