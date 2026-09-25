@@ -118,7 +118,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         if owned_person_uuid:
             return {Trigger.EMPLOYEE_UUID: owned_person_uuid}
         if org_unit_uuid:
-            return {Trigger.ORG_UNIT_UUID: owned_person_uuid}
+            return {Trigger.ORG_UNIT_UUID: org_unit_uuid}
         OwnerRequestHandler.raise_unexpected_input(req)  # pragma: no cover
 
     @staticmethod
