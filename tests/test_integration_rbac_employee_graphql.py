@@ -1,18 +1,22 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
+from string import Template
+from typing import Any
+from uuid import UUID
+from uuid import uuid4
 
 import pytest
+from fastapi.encoders import jsonable_encoder
 
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
+from tests.conftest import assert_denied
+from tests.conftest import assert_granted
 
-# Users
-ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-FEDTMULE = "6ee24785-ee9a-4502-81c2-7697009c9053"
-LIS_JENSEN = "7626ad64-327d-481f-8b32-36c78eb12f8c"
-ERIK_SMIDT_HANSEN = "236e0a78-11a0-4ed9-8545-6286bb8611c7"
+Login = Callable[[str | None, str | None], None]
 
 
 parametrize_roles = (
@@ -22,95 +26,132 @@ parametrize_roles = (
         # 1) Normal user (no roles set)
         (None, None, False),
         # 2) User with the owner role, but not owner of the relevant entity
-        (OWNER, FEDTMULE, False),
+        (OWNER, "bob", False),
         # 3) User with the owner role and owner of the relative entity
-        (OWNER, ANDERS_AND, True),
+        (OWNER, "alice", True),
         # 4) User with the admin role
-        (ADMIN, FEDTMULE, True),
+        (ADMIN, "bob", True),
     ],
 )
 
 
 @pytest.fixture
-async def create_lis_owner(
-    set_auth: SetAuth,
-    graphapi_post: GraphAPIPost,
-) -> None:
-    # Let Anders And be the owner of Lis Jensen
-    set_auth(ADMIN, ANDERS_AND)
+def login(set_auth: SetAuth, alice: UUID, bob: UUID) -> Login:
+    """Set the token of `role` for the user named by `userid`."""
+    users = {"alice": alice, "bob": bob}
 
-    owner = {
-        "owner": ANDERS_AND,
-        "person": LIS_JENSEN,
-        "validity": {"from": "2021-08-03"},
-    }
-    r = graphapi_post(
-        """
-        mutation OwnerCreate($input: OwnerCreateInput!) {
-          owner_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=owner),
-    )
-    assert r.errors is None
+    def inner(role: str | None, userid: str | None) -> None:
+        set_auth(role, users[userid] if userid is not None else None)
+
+    return inner
 
 
 @pytest.fixture
-async def create_fedtmule_owner(
-    set_auth: SetAuth,
-    graphapi_post: GraphAPIPost,
-) -> None:
-    # Let Anders And be the owner of Fedtmule
-    set_auth(ADMIN, ANDERS_AND)
-
-    owner = {
-        "owner": ANDERS_AND,
-        "person": FEDTMULE,
-        "validity": {"from": "2021-08-03"},
-    }
-    r = graphapi_post(
-        """
-        mutation OwnerCreate($input: OwnerCreateInput!) {
-          owner_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=owner),
-    )
-    assert r.errors is None
+def carol(create_person: Callable[[dict[str, Any] | None], UUID]) -> UUID:
+    return create_person({"given_name": "Carol", "surname": "Carlsen"})
 
 
 @pytest.fixture
-async def create_erik_owner(
-    set_auth: SetAuth,
-    graphapi_post: GraphAPIPost,
-) -> None:
-    # Let Anders And be the owner of Erik Smidt Hansen
-    set_auth(ADMIN, ANDERS_AND)
+def unit(
+    create_org_unit: Callable[..., UUID],
+    alice: UUID,
+    make_owner: Callable[..., None],
+) -> UUID:
+    """An org unit Alice owns."""
+    unit = create_org_unit("unit")
+    make_owner(alice, org_unit=unit)
+    return unit
 
-    owner = {
-        "owner": ANDERS_AND,
-        "person": ERIK_SMIDT_HANSEN,
-        "validity": {"from": "2021-08-03"},
-    }
-    r = graphapi_post(
-        """
-        mutation OwnerCreate($input: OwnerCreateInput!) {
-          owner_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=owner),
+
+@pytest.fixture
+def alice_owns_carol(alice: UUID, carol: UUID, make_owner: Callable[..., None]) -> None:
+    make_owner(alice, person=carol)
+
+
+@pytest.fixture
+def alice_owns_bob(alice: UUID, bob: UUID, make_owner: Callable[..., None]) -> None:
+    make_owner(alice, person=bob)
+
+
+@pytest.fixture
+def bob_owns_alice(alice: UUID, bob: UUID, make_owner: Callable[..., None]) -> None:
+    make_owner(bob, person=alice)
+
+
+@pytest.fixture
+def address_type(
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+) -> Callable[[str], UUID]:
+    """Create an employee address type of the given scope.
+
+    Address mutators read the scope of the type to validate the value.
+    """
+    facet = create_facet(
+        {"user_key": "employee_address_type", "validity": {"from": "1970-01-01"}}
     )
-    assert r.errors is None
+
+    def inner(scope: str) -> UUID:
+        return create_class(
+            {
+                "facet_uuid": str(facet),
+                "user_key": scope,
+                "name": scope,
+                "scope": scope,
+                "validity": {"from": "1970-01-01"},
+            }
+        )
+
+    return inner
+
+
+@pytest.fixture
+def phone_type(address_type: Callable[[str], UUID]) -> UUID:
+    return address_type("PHONE")
+
+
+@pytest.fixture
+def email_type(address_type: Callable[[str], UUID]) -> UUID:
+    return address_type("EMAIL")
+
+
+@pytest.fixture
+def email_address(
+    email_type: UUID,
+    create_address: Callable[[dict[str, Any]], UUID],
+    bob: UUID,
+) -> UUID:
+    """An email address of Bob."""
+    return create_address(
+        {
+            "address_type": str(email_type),
+            "person": str(bob),
+            "value": "bob@example.com",
+            "validity": {"from": "2020-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def carols_engagement(
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    carol: UUID,
+    unit: UUID,
+) -> UUID:
+    """An engagement of Carol, in the unit Alice owns."""
+    return create_engagement(
+        {
+            "person": str(carol),
+            "org_unit": str(unit),
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
+            "validity": {"from": "2020-01-01"},
+        }
+    )
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "role, userid, success",
     # Test of write access for the following cases:
@@ -118,19 +159,19 @@ async def create_erik_owner(
         # 1) Normal user (no roles set)
         (None, None, False),
         # 2) User with owner role
-        (OWNER, ANDERS_AND, False),
+        (OWNER, "alice", False),
         # 3) User with the admin role
-        (ADMIN, ANDERS_AND, True),
+        (ADMIN, "alice", True),
     ],
 )
 def test_create_employee(
-    set_auth: SetAuth,
+    login: Login,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    login(role, userid)
     input = {
         "given_name": "Mickey",
         "surname": "Mouse",
@@ -148,28 +189,30 @@ def test_create_employee(
         variables=dict(input=input),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_carol")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_creating_detail_address(
-    set_auth: SetAuth,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    phone_type: UUID,
+    carol: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    login(role, userid)
 
     # Payload for creating detail (phone number) on employee
     input = {
-        "address_type": "cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d",
-        "visibility": "f63ad763-0e53-4972-a6a9-63b42a0f8cb7",
-        "employee": LIS_JENSEN,
+        "address_type": phone_type,
+        "visibility": uuid4(),
+        "employee": carol,
         "validity": {"from": "2021-08-04"},
         "value": "12345678",
     }
@@ -181,27 +224,30 @@ def test_creating_detail_address(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_carol")
 def test_success_when_creating_it_system_detail_as_owner_of_employee(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    alice: UUID,
+    carol: UUID,
+    itsystem: UUID,
 ) -> None:
-    # Use user "Anders And" (who owns the employee)
-    set_auth(OWNER, ANDERS_AND)
+    # Use Alice (who owns the employee)
+    set_auth(OWNER, alice)
 
     input = {
         "user_key": "AD",
-        "person": LIS_JENSEN,
-        "itsystem": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+        "person": carol,
+        "itsystem": itsystem,
         "validity": {"from": "2021-08-11"},
     }
     r = graphapi_post(
@@ -212,9 +258,9 @@ def test_success_when_creating_it_system_detail_as_owner_of_employee(
             }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
-    assert r.errors is None
+    assert_granted(r)
 
 
 # When creating employee details in the frontend some details actually
@@ -223,22 +269,24 @@ def test_success_when_creating_it_system_detail_as_owner_of_employee(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_carol")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_employment(
-    set_auth: SetAuth,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    carol: UUID,
+    unit: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    login(role, userid)
 
     input = {
-        "person": LIS_JENSEN,
-        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-        "engagement_type": "06f95678-166a-455a-a2ab-121a8d92ea23",
-        "job_function": "f42dd694-f1fd-42a6-8a97-38777b73adc4",
+        "person": carol,
+        "org_unit": unit,
+        "engagement_type": uuid4(),
+        "job_function": uuid4(),
         "validity": {"from": "2021-08-11"},
     }
     r = graphapi_post(
@@ -249,30 +297,32 @@ def test_create_employment(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_bob")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_association(
-    set_auth: SetAuth,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    carol: UUID,
+    unit: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    login(role, userid)
 
     input = {
-        "person": LIS_JENSEN,
-        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-        "association_type": "62ec821f-4179-4758-bfdf-134529d186e9",
+        "person": carol,
+        "org_unit": unit,
+        "association_type": uuid4(),
         "validity": {"from": "2021-08-11"},
     }
     r = graphapi_post(
@@ -283,32 +333,34 @@ def test_create_association(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_bob")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_manager(
-    set_auth: SetAuth,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    carol: UUID,
+    unit: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    login(role, userid)
 
     input = {
-        "person": LIS_JENSEN,
-        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-        "manager_type": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
-        "manager_level": "3c791935-2cfa-46b5-a12e-66f7f54e70fe",
-        "responsibility": "93ea44f9-127c-4465-a34c-77d149e3e928",
+        "person": carol,
+        "org_unit": unit,
+        "manager_type": uuid4(),
+        "manager_level": uuid4(),
+        "responsibility": uuid4(),
         "validity": {"from": "2021-08-11"},
     }
     r = graphapi_post(
@@ -319,30 +371,32 @@ def test_create_manager(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_erik_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_carol")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_leave(
-    set_auth: SetAuth,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    carol: UUID,
+    carols_engagement: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    login(role, userid)
 
     input = {
-        "person": ERIK_SMIDT_HANSEN,
-        "leave_type": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
-        "engagement": "301a906b-ef51-4d5c-9c77-386fb8410459",
+        "person": carol,
+        "leave_type": uuid4(),
+        "engagement": carols_engagement,
         "validity": {"from": "2021-08-20"},
     }
     r = graphapi_post(
@@ -353,33 +407,36 @@ def test_create_leave(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_bob")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_edit_address(
-    set_auth: SetAuth,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    email_type: UUID,
+    bob: UUID,
+    email_address: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    login(role, userid)
 
     input = {
-        "uuid": "64ea02e2-8469-4c54-a523-3d46729e86a7",
-        "address_type": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
-        "visibility": "f63ad763-0e53-4972-a6a9-63b42a0f8cb7",
-        "employee": FEDTMULE,
+        "uuid": email_address,
+        "address_type": email_type,
+        "visibility": uuid4(),
+        "employee": bob,
         "validity": {"from": "2021-08-13"},
-        "value": "goofy@andeby.dk",
+        "value": "bob.jensen@example.com",
     }
     r = graphapi_post(
         """
@@ -389,31 +446,45 @@ def test_edit_address(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_bob", "bob_owns_alice")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_edit_association(
-    set_auth: SetAuth,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    create_association: Callable[[dict[str, Any]], UUID],
+    alice: UUID,
+    unit: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    # Alice's own association, in the unit she owns. Bob owns the association
+    # through its person, Alice, but not the unit the update names, so that
+    # unit is what denies him
+    association = create_association(
+        {
+            "person": str(alice),
+            "org_unit": str(unit),
+            "association_type": str(uuid4()),
+            "validity": {"from": "2020-01-01"},
+        }
+    )
+    login(role, userid)
 
     input = {
-        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
-        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-        "association_type": "8eea787c-c2c7-46ca-bd84-2dd50f47801e",
-        "employee": ANDERS_AND,
+        "uuid": association,
+        "org_unit": unit,
+        "association_type": uuid4(),
+        "employee": alice,
         "validity": {"from": "2021-08-25"},
     }
     r = graphapi_post(
@@ -424,33 +495,36 @@ def test_edit_association(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_bob")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_edit_engagement(
-    set_auth: SetAuth,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    carol: UUID,
+    unit: UUID,
+    carols_engagement: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    login(role, userid)
 
     input = {
-        "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
-        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-        "job_function": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-        "engagement_type": "06f95678-166a-455a-a2ab-121a8d92ea23",
-        "primary": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
-        "employee": ERIK_SMIDT_HANSEN,
+        "uuid": carols_engagement,
+        "org_unit": unit,
+        "job_function": uuid4(),
+        "engagement_type": uuid4(),
+        "primary": uuid4(),
+        "employee": carol,
         "validity": {"from": "2021-08-17"},
     }
     r = graphapi_post(
@@ -461,33 +535,40 @@ def test_edit_engagement(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_bob", "bob_owns_alice")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_edit_manager(
-    set_auth: SetAuth,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    create_manager: Callable[..., UUID],
+    alice: UUID,
+    unit: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    # Alice is herself the manager of the unit she owns. Bob owns the manager
+    # through its person, Alice, but not the unit the update names, so that
+    # unit is what denies him
+    manager = create_manager(unit, alice, {"from": "2020-01-01"})
+    login(role, userid)
 
     input = {
-        "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
-        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-        "responsibility": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-        "manager_type": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
-        "manager_level": "991915c0-f4f4-4337-95fa-dbeb9da13247",
-        "person": ANDERS_AND,
+        "uuid": manager,
+        "org_unit": unit,
+        "responsibility": uuid4(),
+        "manager_type": uuid4(),
+        "manager_level": uuid4(),
+        "person": alice,
         "validity": {"from": "2021-08-25"},
     }
     r = graphapi_post(
@@ -498,53 +579,60 @@ def test_edit_manager(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_bob")
 @pytest.mark.parametrize(
     "mutation",
     [
-        'mutation Terminate {address_terminate(input: {uuid: "64ea02e2-8469-4c54-a523-3d46729e86a7", to: "2021-08-20"}) {uuid}}',
-        'mutation Terminate {engagement_terminate(input: {uuid: "301a906b-ef51-4d5c-9c77-386fb8410459", to: "2021-08-13"}) {uuid}}',
+        'mutation Terminate {address_terminate(input: {uuid: "$address", to: "2021-08-20"}) {uuid}}',
+        'mutation Terminate {engagement_terminate(input: {uuid: "$engagement", to: "2021-08-13"}) {uuid}}',
     ],
 )
 @pytest.mark.parametrize(*parametrize_roles)
 def test_terminate_details(
-    set_auth: SetAuth,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    email_address: UUID,
+    carols_engagement: UUID,
     mutation: str,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
-    r = graphapi_post(mutation)
+    login(role, userid)
+    r = graphapi_post(
+        Template(mutation).substitute(
+            address=email_address, engagement=carols_engagement
+        )
+    )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_carol")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_terminate_employee(
-    set_auth: SetAuth,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    carol: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    login(role, userid)
     input = {
-        "uuid": LIS_JENSEN,
+        "uuid": carol,
         "to": "2021-08-17",
     }
     r = graphapi_post(
@@ -555,9 +643,9 @@ def test_terminate_employee(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)

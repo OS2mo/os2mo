@@ -1,88 +1,190 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 from uuid import UUID
 from uuid import uuid4
 
 import pytest
+from fastapi.encoders import jsonable_encoder
 
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
+from tests.conftest import assert_denied
+from tests.conftest import assert_granted
 
-# Users
-ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-FEDTMULE = "6ee24785-ee9a-4502-81c2-7697009c9053"
-
-# Org units
-MY_UNIT = "9de978da-0967-43cf-921d-d56ddfcc6e0e"
-ROOT_UNIT = "2874e1dc-85e6-4269-823a-e1125484dfd3"
-HUM_UNIT = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-FILOSOFISK_INSTITUT = "85715fc7-925d-401b-822d-467eb4b163b6"
-SOCIAL_OG_SUNDHED = "68c5d78e-ae26-441f-a143-0103eca8b62a"
-
-# IT systems
-ACTIVE_DIRECTORY = UUID("59c135c9-2b15-41cc-97c8-b5dff7180beb")
-
-# IT users
-ANDERS_AND_AD_USER_KEY = "18d2271a-45c4-406c-a482-04ab12f80881"
-ANDERS_AND_AD_EXTERNAL_ID = "e5595d6a-590c-4cae-9164-9fcf8e1178a2"
+# IT systems; the envvar below names it, so the test must create that very one
+ACTIVE_DIRECTORY = "c6a1d6f4-1e0b-4a4e-9d59-7f3b2a8e5c10"
 
 
 @pytest.fixture
-def org_unit_create_input() -> dict[str, Any]:
+def users(alice: UUID, bob: UUID) -> dict[str | None, UUID | None]:
+    """The users the tokens name: Alice owns HUM, Bob owns nothing."""
+    return {None: None, "alice": alice, "bob": bob}
+
+
+@pytest.fixture
+def units(
+    create_org_unit: Callable[..., UUID],
+    make_owner: Callable[..., None],
+    alice: UUID,
+) -> dict[str, UUID]:
+    """A root with HUM and SOCIAL below it, and FILOSOFISK below HUM.
+
+    Alice owns HUM, and through it FILOSOFISK.
+    """
+    root = create_org_unit("root")
+    hum = create_org_unit("hum", root)
+    filosofisk = create_org_unit("filosofisk", hum)
+    social = create_org_unit("social", root)
+    make_owner(alice, org_unit=hum)
+    return {"root": root, "hum": hum, "filosofisk": filosofisk, "social": social}
+
+
+@pytest.fixture
+def address_type_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
+    return create_facet(
+        {"user_key": "org_unit_address_type", "validity": {"from": "1970-01-01"}}
+    )
+
+
+@pytest.fixture
+def phone_type(
+    create_class: Callable[[dict[str, Any]], UUID], address_type_facet: UUID
+) -> UUID:
+    return create_class(
+        {
+            "user_key": "phone",
+            "name": "Telefon",
+            "scope": "PHONE",
+            "facet_uuid": str(address_type_facet),
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def dar_type(
+    create_class: Callable[[dict[str, Any]], UUID], address_type_facet: UUID
+) -> UUID:
+    return create_class(
+        {
+            "user_key": "dar",
+            "name": "Adresse",
+            "scope": "DAR",
+            "facet_uuid": str(address_type_facet),
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def my_unit() -> UUID:
+    # The unit the tests create themselves
+    return uuid4()
+
+
+@pytest.fixture
+def org_unit_create_input(my_unit: UUID, units: dict[str, UUID]) -> dict[str, Any]:
     return {
-        "uuid": MY_UNIT,
+        "uuid": my_unit,
         "name": "Fake Corp",
-        "parent": ROOT_UNIT,
-        "org_unit_type": "ca76a441-6226-404f-88a9-31e02e420e52",
-        "org_unit_hierarchy": "12345678-abcd-abcd-1234-12345678abcd",
-        "org_unit_level": "0f015b67-f250-43bb-9160-043ec19fad48",
-        "time_planning": "ca76a441-6226-404f-88a9-31e02e420e52",
+        "parent": units["root"],
+        "org_unit_type": uuid4(),
+        "org_unit_hierarchy": uuid4(),
+        "org_unit_level": uuid4(),
+        "time_planning": uuid4(),
         "validity": {"from": "2016-02-04", "to": None},
     }
 
 
 @pytest.fixture
-def address_create_phone_input() -> dict[str, Any]:
+def address_create_phone_input(my_unit: UUID, phone_type: UUID) -> dict[str, Any]:
     return {
-        "address_type": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-        "org_unit": MY_UNIT,
+        "address_type": phone_type,
+        "org_unit": my_unit,
         "validity": {"from": "2016-02-04"},
         "value": "11223344",
     }
 
 
 @pytest.fixture
-def address_create_dar_input() -> dict[str, Any]:
+def address_create_dar_input(my_unit: UUID, dar_type: UUID) -> dict[str, Any]:
     return {
-        "address_type": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-        "org_unit": MY_UNIT,
+        "address_type": dar_type,
+        "org_unit": my_unit,
         "validity": {"from": "2016-02-04"},
+        # Aabogade 15, a real DAR address
         "value": "44c532e1-f617-4174-b144-d37ce9fda2bd",
     }
 
 
+@pytest.fixture
+def hum_address(
+    create_address: Callable[[dict[str, Any]], UUID],
+    units: dict[str, UUID],
+    phone_type: UUID,
+) -> UUID:
+    # A phone number on HUM
+    return create_address(
+        {
+            "address_type": str(phone_type),
+            "org_unit": str(units["hum"]),
+            "validity": {"from": "2016-01-01"},
+            "value": "87150000",
+        }
+    )
+
+
+@pytest.fixture
+def hum_association(
+    create_association: Callable[[dict[str, Any]], UUID],
+    units: dict[str, UUID],
+    alice: UUID,
+) -> UUID:
+    # Alice's own association with HUM
+    return create_association(
+        {
+            "org_unit": str(units["hum"]),
+            "person": str(alice),
+            "association_type": str(uuid4()),
+            "validity": {"from": "2017-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def hum_manager(
+    create_manager: Callable[..., UUID],
+    units: dict[str, UUID],
+    alice: UUID,
+) -> UUID:
+    # Alice as the manager of HUM
+    return create_manager(units["hum"], alice, validity={"from": "2017-01-01"})
+
+
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
-    "role, userid, success",
+    "role, user, success",
     [
         (None, None, False),
-        (OWNER, ANDERS_AND, False),
-        (ADMIN, ANDERS_AND, True),
+        (OWNER, "alice", False),
+        (ADMIN, "alice", True),
     ],
 )
 def test_create_org_unit(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    users: dict[str | None, UUID | None],
     org_unit_create_input: dict[str, Any],
     address_create_phone_input: dict[str, Any],
     address_create_dar_input: dict[str, Any],
     role: str,
-    userid: str,
+    user: str,
     success: bool,
 ) -> None:
     """
@@ -91,7 +193,7 @@ def test_create_org_unit(
     2) User with the owner role, but not owner of the relevant entity
     3) User with the admin role
     """
-    set_auth(role, userid)
+    set_auth(role, users[user])
 
     r1 = graphapi_post(
         """
@@ -101,7 +203,7 @@ def test_create_org_unit(
           }
         }
         """,
-        variables=dict(input=org_unit_create_input),
+        variables=jsonable_encoder(dict(input=org_unit_create_input)),
     )
     r2 = graphapi_post(
         """
@@ -111,7 +213,7 @@ def test_create_org_unit(
             }
           }
         """,
-        variables=dict(input=address_create_phone_input),
+        variables=jsonable_encoder(dict(input=address_create_phone_input)),
     )
     r3 = graphapi_post(
         """
@@ -121,26 +223,29 @@ def test_create_org_unit(
             }
           }
         """,
-        variables=dict(input=address_create_dar_input),
+        variables=jsonable_encoder(dict(input=address_create_dar_input)),
     )
-    if success:
-        assert all(r.errors is None for r in (r1, r2, r3))
-    else:
-        assert any(r.errors is not None for r in (r1, r2, r3))
+    for r in (r1, r2, r3):
+        if success:
+            assert_granted(r)
+        else:
+            assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 def test_success_when_creating_unit_as_owner_of_parent_unit(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    alice: UUID,
+    units: dict[str, UUID],
     org_unit_create_input: dict[str, Any],
 ) -> None:
-    set_auth(OWNER, ANDERS_AND)
+    set_auth(OWNER, alice)
 
     input = {
         **org_unit_create_input,
-        "parent": HUM_UNIT,
+        "parent": units["hum"],
     }
     r = graphapi_post(
         """
@@ -150,27 +255,28 @@ def test_success_when_creating_unit_as_owner_of_parent_unit(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
-    assert r.errors is None
+    assert_granted(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
-    "role, userid, success",
+    "role, user, success",
     [
         (None, None, False),
-        (OWNER, ANDERS_AND, False),
-        (ADMIN, ANDERS_AND, True),
+        (OWNER, "alice", False),
+        (ADMIN, "alice", True),
     ],
 )
 def test_create_top_level_unit(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    users: dict[str | None, UUID | None],
     org_unit_create_input: dict[str, Any],
     role: str,
-    userid: str,
+    user: str,
     success: bool,
 ) -> None:
     """
@@ -179,7 +285,7 @@ def test_create_top_level_unit(
     2) User with the owner role
     3) User with the admin role
     """
-    set_auth(role, userid)
+    set_auth(role, users[user])
 
     input = {
         **org_unit_create_input,
@@ -193,30 +299,32 @@ def test_create_top_level_unit(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
-    "role, userid, success",
+    "role, user, success",
     [
         (None, None, False),
-        (OWNER, FEDTMULE, False),
-        (OWNER, ANDERS_AND, True),
-        (ADMIN, FEDTMULE, True),
+        (OWNER, "bob", False),
+        (OWNER, "alice", True),
+        (ADMIN, "bob", True),
     ],
 )
 def test_rename_org_unit(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    users: dict[str | None, UUID | None],
+    units: dict[str, UUID],
     role: str,
-    userid: str,
+    user: str,
     success: bool,
 ) -> None:
     """
@@ -226,13 +334,13 @@ def test_rename_org_unit(
     3) User with the owner role and owner of the relative entity
     4) User with the admin role
     """
-    set_auth(role, userid)
+    set_auth(role, users[user])
 
-    # Payload for renaming Humanistisk Fakultet
+    # Payload for renaming HUM, repeating the parent it already has
     input = {
-        "uuid": HUM_UNIT,
+        "uuid": units["hum"],
         "name": "New name",
-        "parent": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        "parent": units["root"],
         "validity": {"from": "2021-07-28"},
     }
 
@@ -244,59 +352,40 @@ def test_rename_org_unit(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.fixture
 def org_unit_no_details_uuid(
-    set_auth: SetAuth,
-    graphapi_post: GraphAPIPost,
-    org_unit_create_input: dict[str, Any],
-    org_unit_uuid_1: str,
-) -> str:
-    set_auth(ADMIN, FEDTMULE)
-
-    input = {
-        **org_unit_create_input,
-        "uuid": str(uuid4()),
-        "parent": org_unit_uuid_1,
-    }
-    r = graphapi_post(
-        """
-        mutation OrgUnitCreate($input: OrganisationUnitCreateInput!) {
-          org_unit_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=input),
-    )
-    assert r.errors is None
-    return r.data["org_unit_create"]["uuid"]
+    create_org_unit: Callable[..., UUID],
+    org_unit_uuid_1: UUID,
+) -> UUID:
+    return create_org_unit("no-details", org_unit_uuid_1)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
-    "role, userid, success",
+    "role, user, success",
     [
         (None, None, False),
-        (OWNER, FEDTMULE, False),
-        (OWNER, ANDERS_AND, True),
-        (ADMIN, FEDTMULE, True),
+        (OWNER, "bob", False),
+        (OWNER, "alice", True),
+        (ADMIN, "bob", True),
     ],
 )
 def test_terminate_org_unit(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
-    org_unit_no_details_uuid: str,
+    users: dict[str | None, UUID | None],
+    org_unit_no_details_uuid: UUID,
     role: str,
-    userid: str,
+    user: str,
     success: bool,
 ) -> None:
     """
@@ -306,7 +395,7 @@ def test_terminate_org_unit(
     3) User with the owner role and owner of the relative entity
     4) User with the admin role
     """
-    set_auth(role, userid)
+    set_auth(role, users[user])
 
     # Payload for terminating the newly created org unit
     terminate = {
@@ -321,32 +410,34 @@ def test_terminate_org_unit(
           }
         }
         """,
-        variables=dict(input=terminate),
+        variables=jsonable_encoder(dict(input=terminate)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
-    "role, userid, success",
+    "role, user, success",
     [
         (None, None, False),
-        (OWNER, FEDTMULE, False),
-        (OWNER, ANDERS_AND, True),
-        (ADMIN, FEDTMULE, True),
+        (OWNER, "bob", False),
+        (OWNER, "alice", True),
+        (ADMIN, "bob", True),
     ],
 )
 def test_create_detail(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    users: dict[str | None, UUID | None],
+    units: dict[str, UUID],
     org_unit_create_input: dict[str, Any],
     address_create_phone_input: dict[str, Any],
     role: str,
-    userid: str,
+    user: str,
     success: bool,
 ) -> None:
     """
@@ -356,7 +447,7 @@ def test_create_detail(
     3) User with the owner role and owner of the relative entity
     4) User with the admin role
     """
-    set_auth(ADMIN, ANDERS_AND)
+    set_auth(ADMIN, users["alice"])
     r1 = graphapi_post(
         """
         mutation OrgUnitCreate($input: OrganisationUnitCreateInput!) {
@@ -365,14 +456,14 @@ def test_create_detail(
           }
         }
         """,
-        variables=dict(input=org_unit_create_input),
+        variables=jsonable_encoder(dict(input=org_unit_create_input)),
     )
-    assert r1.errors is None
+    assert_granted(r1)
 
-    set_auth(role, userid)
+    set_auth(role, users[user])
     input = {
         **address_create_phone_input,
-        "org_unit": HUM_UNIT,
+        "org_unit": units["hum"],
     }
     r2 = graphapi_post(
         """
@@ -382,30 +473,34 @@ def test_create_detail(
             }
           }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r2.errors is None
+        assert_granted(r2)
     else:
-        assert r2.errors is not None
+        assert_denied(r2)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
-    "role, userid, success",
+    "role, user, success",
     [
         (None, None, False),
-        (OWNER, FEDTMULE, False),
-        (OWNER, ANDERS_AND, True),
-        (ADMIN, FEDTMULE, True),
+        (OWNER, "bob", False),
+        (OWNER, "alice", True),
+        (ADMIN, "bob", True),
     ],
 )
 def test_edit_detail(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    users: dict[str | None, UUID | None],
+    units: dict[str, UUID],
+    phone_type: UUID,
+    hum_address: UUID,
     role: str,
-    userid: str,
+    user: str,
     success: bool,
 ) -> None:
     """
@@ -415,13 +510,13 @@ def test_edit_detail(
     3) User with the owner role and owner of the relative entity
     4) User with the admin role
     """
-    set_auth(role, userid)
+    set_auth(role, users[user])
 
     # Payload for editing detail (phone number) on org unit (hum)
     input = {
-        "uuid": "55848eca-4e9e-4f30-954b-78d55eec0473",
-        "address_type": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-        "org_unit": HUM_UNIT,
+        "uuid": hum_address,
+        "address_type": phone_type,
+        "org_unit": units["hum"],
         "validity": {"from": "2016-01-01"},
         "value": "00000000",
     }
@@ -433,36 +528,37 @@ def test_edit_detail(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
-    "role, userid, success",
+    "role, user, success",
     [
-        (OWNER, ANDERS_AND, True),
-        (OWNER, FEDTMULE, False),
+        (OWNER, "alice", True),
+        (OWNER, "bob", False),
     ],
 )
 def test_rename_subunit(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
-    org_unit_uuid_2: str,
+    users: dict[str | None, UUID | None],
+    org_unit_uuid_2: UUID,
     role: str,
-    userid: str,
+    user: str,
     success: bool,
 ) -> None:
     """
     Test that an org unit can be modified by a user who owns the parent
     unit but not the unit subject to modification itself.
     """
-    set_auth(role, userid)
+    set_auth(role, users[user])
 
     input = {
         "uuid": org_unit_uuid_2,
@@ -477,121 +573,71 @@ def test_rename_subunit(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.fixture
 def org_unit_uuid_1(
-    set_auth: SetAuth,
-    graphapi_post: GraphAPIPost,
-    org_unit_create_input: dict[str, Any],
-) -> str:
-    set_auth(ADMIN, FEDTMULE)
-
-    input = {
-        **org_unit_create_input,
-        "uuid": str(uuid4()),
-    }
-    r1 = graphapi_post(
-        """
-        mutation OrgUnitCreate($input: OrganisationUnitCreateInput!) {
-          org_unit_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=input),
-    )
-    assert r1.errors is None
-    org_uuid = r1.data["org_unit_create"]["uuid"]
-
-    owner = {
-        "owner": ANDERS_AND,
-        "org_unit": org_uuid,
-        "validity": {"from": "2021-08-03"},
-    }
-    r2 = graphapi_post(
-        """
-        mutation OwnerCreate($input: OwnerCreateInput!) {
-          owner_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=owner),
-    )
-    assert r2.errors is None
-
+    create_org_unit: Callable[..., UUID],
+    make_owner: Callable[..., None],
+    units: dict[str, UUID],
+    alice: UUID,
+) -> UUID:
+    # A unit below the root, owned by Alice
+    org_uuid = create_org_unit("unit-1", units["root"])
+    make_owner(alice, org_unit=org_uuid)
     return org_uuid
 
 
 @pytest.fixture
 def org_unit_uuid_2(
-    set_auth: SetAuth,
-    graphapi_post: GraphAPIPost,
-    org_unit_create_input: dict[str, Any],
-    org_unit_uuid_1: str,
-) -> str:
-    set_auth(ADMIN, FEDTMULE)
-
-    input = {
-        **org_unit_create_input,
-        "uuid": str(uuid4()),
-        "parent": org_unit_uuid_1,
-    }
-    r = graphapi_post(
-        """
-        mutation OrgUnitCreate($input: OrganisationUnitCreateInput!) {
-          org_unit_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=input),
-    )
-    assert r.errors is None
-    return r.data["org_unit_create"]["uuid"]
+    create_org_unit: Callable[..., UUID],
+    org_unit_uuid_1: UUID,
+) -> UUID:
+    return create_org_unit("unit-2", org_unit_uuid_1)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
-    "owner,org_uuid,one_is_parent,success",
+    "owner,unit,one_is_parent,success",
     [
         # test_owner_of_unit_moves_unit_to_owned_unit
-        (ANDERS_AND, HUM_UNIT, True, True),
+        ("alice", "hum", True, True),
         # test_owner_of_unit_moves_unit_to_subunit_of_owned_unit
-        (ANDERS_AND, HUM_UNIT, False, True),
+        ("alice", "hum", False, True),
         # test_non_owner_of_unit_moves_unit_to_non_owned_unit
-        (FEDTMULE, HUM_UNIT, True, False),
+        ("bob", "hum", True, False),
         # test_non_owner_of_unit_moves_unit_to_subunit_of_non_owned_unit
-        (FEDTMULE, HUM_UNIT, False, False),
+        ("bob", "hum", False, False),
         # test_owner_moves_owned_subunit_to_owned_subunit
-        (ANDERS_AND, FILOSOFISK_INSTITUT, False, True),
+        ("alice", "filosofisk", False, True),
     ],
 )
 def test_owner_of_unit(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
-    org_unit_uuid_1: str,
-    org_unit_uuid_2: str,
+    users: dict[str | None, UUID | None],
+    units: dict[str, UUID],
+    org_unit_uuid_1: UUID,
+    org_unit_uuid_2: UUID,
     owner: str,
-    org_uuid: str,
+    unit: str,
     one_is_parent: bool,
     success: bool,
 ) -> None:
-    # Use user "Anders And" (who owns the parent unit)
-    set_auth(OWNER, owner)
+    # Alice owns both parent units, Bob neither
+    set_auth(OWNER, users[owner])
 
     parent_uuid = org_unit_uuid_1 if one_is_parent else org_unit_uuid_2
 
     input = {
-        "uuid": org_uuid,
+        "uuid": units[unit],
         "parent": parent_uuid,
         "validity": {"from": "2021-07-30"},
     }
@@ -603,63 +649,45 @@ def test_owner_of_unit(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "origin,destinations,success",
     [
         # owner of origin and owner of all destinations
-        (HUM_UNIT, [FILOSOFISK_INSTITUT], True),
+        ("hum", ["filosofisk"], True),
         # owner of origin but not owner of all destinations
-        (HUM_UNIT, [FILOSOFISK_INSTITUT, ROOT_UNIT], True),
+        ("hum", ["filosofisk", "root"], True),
         # not owner of origin but owner of all destinations
-        (ROOT_UNIT, [FILOSOFISK_INSTITUT], False),
+        ("root", ["filosofisk"], False),
         # not owner of origin and not owner of all destinations
-        (ROOT_UNIT, [SOCIAL_OG_SUNDHED], False),
+        ("root", ["social"], False),
     ],
 )
 def test_related(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    alice: UUID,
+    units: dict[str, UUID],
     origin: str,
     destinations: list[str],
     success: bool,
 ) -> None:
-    # We need a second org unit ANDERS_AND owns since we cannot relate an org unit with
-    # itself; Make ANDERS_AND owner of FILOSOFISK_INSTITUT.
-    set_auth(ADMIN, FEDTMULE)
-    owner = {
-        "owner": ANDERS_AND,
-        "org_unit": FILOSOFISK_INSTITUT,
-        "validity": {"from": "2020-01-01"},
-    }
-    r1 = graphapi_post(
-        """
-        mutation OwnerCreate($input: OwnerCreateInput!) {
-          owner_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=owner),
-    )
-    assert r1.errors is None
-
-    set_auth(OWNER, ANDERS_AND)
+    set_auth(OWNER, alice)
     input = {
-        "origin": origin,
-        "destination": destinations,
+        "origin": units[origin],
+        "destination": [units[d] for d in destinations],
         "validity": {"from": "2020-01-01"},
     }
-    r2 = graphapi_post(
+    r = graphapi_post(
         """
         mutation RelateUnits($input: RelatedUnitsUpdateInput!) {
           related_units_update(input: $input) {
@@ -667,67 +695,103 @@ def test_related(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r2.errors is None
+        assert_granted(r)
     else:
-        assert r2.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-@pytest.mark.parametrize(
-    "mutation",
-    [
-        'mutation Terminate {address_terminate(input: {uuid: "55848eca-4e9e-4f30-954b-78d55eec0473", to: "2021-07-16"}) {uuid}}',
-        'mutation Terminate {association_terminate(input: {uuid: "c2153d5d-4a2b-492d-a18c-c498f7bb6221", to: "2021-07-16"}) {uuid}}',
-        'mutation Terminate {manager_terminate(input: {uuid: "05609702-977f-4869-9fb4-50ad74c6999a", to: "2021-07-16"}) {uuid}}',
-    ],
-)
+@pytest.mark.usefixtures("empty_db")
+@pytest.mark.parametrize("detail", ["address", "association", "manager"])
 def test_terminate_x_as_owner_of_unit(
+    request: pytest.FixtureRequest,
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
-    mutation: str,
+    alice: UUID,
+    detail: str,
 ) -> None:
-    set_auth(OWNER, ANDERS_AND)
-    r = graphapi_post(mutation)
-    assert r.errors is None
+    # Each detail sits on HUM, which Alice owns
+    uuid = request.getfixturevalue(f"hum_{detail}")
+    set_auth(OWNER, alice)
+    r = graphapi_post(
+        f"""
+        mutation Terminate($uuid: UUID!) {{
+          {detail}_terminate(input: {{ uuid: $uuid, to: "2021-07-16" }}) {{
+            uuid
+          }}
+        }}
+        """,
+        variables=jsonable_encoder({"uuid": uuid}),
+    )
+    assert_granted(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
-    "token_uuid,success",
+    "token,success",
     [
-        (ANDERS_AND_AD_USER_KEY, False),
-        (ANDERS_AND_AD_EXTERNAL_ID, True),
-        (ANDERS_AND, False),
+        ("user_key", False),
+        ("external_id", True),
+        ("person", False),
     ],
 )
 @pytest.mark.envvar(
-    {"KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS": str(ACTIVE_DIRECTORY)}
+    {"KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS": ACTIVE_DIRECTORY}
 )
 def test_ownership_through_it_system(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
-    token_uuid: str,
+    alice: UUID,
+    hum_address: UUID,
+    create_itsystem: Callable[[dict[str, Any]], UUID],
+    create_ituser: Callable[[dict[str, Any]], UUID],
+    token: str,
     success: bool,
 ) -> None:
-    set_auth(OWNER, token_uuid)
+    # Alice, who owns HUM, has a user in the authoritative IT system. Both its
+    # user_key and its external_id look like the uuid a token carries, but only
+    # the external_id identifies her
+    user_key = str(uuid4())
+    external_id = str(uuid4())
+    create_itsystem(
+        {
+            "uuid": ACTIVE_DIRECTORY,
+            "user_key": "Active Directory",
+            "name": "Active Directory",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+    create_ituser(
+        {
+            "user_key": user_key,
+            "external_id": external_id,
+            "itsystem": ACTIVE_DIRECTORY,
+            "person": str(alice),
+            "validity": {"from": "2017-01-01"},
+        }
+    )
+    tokens = {
+        "user_key": user_key,
+        "external_id": external_id,
+        "person": alice,
+    }
+    set_auth(OWNER, tokens[token])
 
     r = graphapi_post(
         """
-        mutation Terminate {
-          address_terminate(
-            input: { uuid: "55848eca-4e9e-4f30-954b-78d55eec0473", to: "2021-07-16" }
-          ) {
+        mutation Terminate($uuid: UUID!) {
+          address_terminate(input: { uuid: $uuid, to: "2021-07-16" }) {
             uuid
           }
         }
         """,
+        variables=jsonable_encoder({"uuid": hum_address}),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)

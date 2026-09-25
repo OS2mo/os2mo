@@ -5,14 +5,18 @@ from contextlib import nullcontext
 from typing import Any
 from typing import Protocol
 from uuid import UUID
+from uuid import uuid4
 
 import pytest
 from more_itertools import one
 
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
+from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
+from tests.conftest import assert_denied
+from tests.conftest import assert_granted
 
 CreatePerson = Callable[..., UUID]
 
@@ -22,13 +26,13 @@ class CreateOrgUnit(Protocol):
 
 
 @pytest.fixture
-def create_org_unit(graphapi_post: GraphAPIPost) -> CreateOrgUnit:
+def create_org_unit(graphapi_post: GraphAPIPost, root_org: UUID) -> CreateOrgUnit:
     def _create_org_unit(parent: UUID | None = None) -> UUID:
         input = {
             "parent": parent,
             # The rest doesn't matter
             "name": "Foo",
-            "org_unit_type": "ca76a441-6226-404f-88a9-31e02e420e52",
+            "org_unit_type": str(uuid4()),
             "validity": {
                 "from": "2010-01-01",
             },
@@ -125,24 +129,26 @@ def clear_owners(graphapi_post: GraphAPIPost) -> ClearOwners:
     return _clear_owners
 
 
-class CreateEngagement(Protocol):
-    def __call__(self, person: UUID, org_unit: UUID) -> UUID: ...
+class EngagementCreate(Protocol):
+    def __call__(self, person: UUID, org_unit: UUID) -> GQLResponse: ...
 
 
 @pytest.fixture
-async def create_engagement(graphapi_post: GraphAPIPost) -> CreateEngagement:
-    def _create_engagement(person: UUID, org_unit: UUID) -> UUID:
+def engagement_create(graphapi_post: GraphAPIPost) -> EngagementCreate:
+    """Attempt an engagement create, for a test to assert whether it was allowed."""
+
+    def _engagement_create(person: UUID, org_unit: UUID) -> GQLResponse:
         input = {
             "person": str(person),
             "org_unit": str(org_unit),
             # The rest doesn't matter
-            "engagement_type": "06f95678-166a-455a-a2ab-121a8d92ea23",
-            "job_function": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
             "validity": {
                 "from": "2010-01-01",
             },
         }
-        r = graphapi_post(
+        return graphapi_post(
             """
             mutation EngagementCreate($input: EngagementCreateInput!) {
                 engagement_create(input: $input) {
@@ -152,6 +158,18 @@ async def create_engagement(graphapi_post: GraphAPIPost) -> CreateEngagement:
             """,
             variables=dict(input=input),
         )
+
+    return _engagement_create
+
+
+class CreateEngagement(Protocol):
+    def __call__(self, person: UUID, org_unit: UUID) -> UUID: ...
+
+
+@pytest.fixture
+def create_engagement(engagement_create: EngagementCreate) -> CreateEngagement:
+    def _create_engagement(person: UUID, org_unit: UUID) -> UUID:
+        r = engagement_create(person=person, org_unit=org_unit)
         if r.errors is not None:
             raise PermissionError(r.errors)
         assert r.data is not None
@@ -160,25 +178,27 @@ async def create_engagement(graphapi_post: GraphAPIPost) -> CreateEngagement:
     return _create_engagement
 
 
-class UpdateEngagement(Protocol):
-    def __call__(self, uuid: UUID, person: UUID, org_unit: UUID) -> UUID: ...
+class EngagementUpdate(Protocol):
+    def __call__(self, uuid: UUID, person: UUID, org_unit: UUID) -> GQLResponse: ...
 
 
 @pytest.fixture
-async def update_engagement(graphapi_post: GraphAPIPost) -> UpdateEngagement:
-    def _update_engagement(uuid: UUID, person: UUID, org_unit: UUID) -> UUID:
+def engagement_update(graphapi_post: GraphAPIPost) -> EngagementUpdate:
+    """Attempt an engagement update, for a test to assert whether it was allowed."""
+
+    def _engagement_update(uuid: UUID, person: UUID, org_unit: UUID) -> GQLResponse:
         input = {
             "uuid": str(uuid),
             "person": str(person),
             "org_unit": str(org_unit),
             # The rest doesn't matter
-            "engagement_type": "06f95678-166a-455a-a2ab-121a8d92ea23",
-            "job_function": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
             "validity": {
                 "from": "2010-01-01",
             },
         }
-        r = graphapi_post(
+        return graphapi_post(
             """
             mutation EngagementUpdate($input: EngagementUpdateInput!) {
                 engagement_update(input: $input) {
@@ -188,12 +208,8 @@ async def update_engagement(graphapi_post: GraphAPIPost) -> UpdateEngagement:
             """,
             variables=dict(input=input),
         )
-        if r.errors is not None:
-            raise PermissionError(r.errors)
-        assert r.data is not None
-        return UUID(r.data["engagement_update"]["uuid"])
 
-    return _update_engagement
+    return _engagement_update
 
 
 @pytest.fixture
@@ -220,13 +236,13 @@ def update_rolebinding(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 async def test_create_engagement(
     set_auth: SetAuth,
     create_person: CreatePerson,
     create_org_unit: CreateOrgUnit,
     create_owner: CreateOwner,
-    create_engagement: CreateEngagement,
+    engagement_create: EngagementCreate,
 ) -> None:
     # Setup
     set_auth(ADMIN, None)
@@ -236,30 +252,28 @@ async def test_create_engagement(
 
     # No owner role or owner object
     set_auth(None, owner)
-    with pytest.raises(PermissionError, match="No policy approved the access"):
-        create_engagement(person=person, org_unit=org_unit)
+    assert_denied(engagement_create(person=person, org_unit=org_unit))
 
     # Owner role, but no owner object
     set_auth(OWNER, owner)
-    with pytest.raises(PermissionError, match="No policy approved the access"):
-        create_engagement(person=person, org_unit=org_unit)
+    assert_denied(engagement_create(person=person, org_unit=org_unit))
 
     # Owner role + owner of org unit
     set_auth(ADMIN, None)
     create_owner(owner=owner, org_unit=org_unit)
     set_auth(OWNER, owner)
-    create_engagement(person=person, org_unit=org_unit)
+    assert_granted(engagement_create(person=person, org_unit=org_unit))
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 async def test_update_engagement(
     set_auth: SetAuth,
     create_person: CreatePerson,
     create_org_unit: CreateOrgUnit,
     create_owner: CreateOwner,
     create_engagement: CreateEngagement,
-    update_engagement: UpdateEngagement,
+    engagement_update: EngagementUpdate,
     clear_owners: ClearOwners,
 ) -> None:
     # Setup
@@ -272,29 +286,33 @@ async def test_update_engagement(
 
     # No owner role or owner object
     set_auth(None, owner)
-    with pytest.raises(PermissionError, match="No policy approved the access"):
-        update_engagement(uuid=engagement, person=person, org_unit=new_org_unit)
+    assert_denied(
+        engagement_update(uuid=engagement, person=person, org_unit=new_org_unit)
+    )
 
     # Owner role, but no owner object
     set_auth(OWNER, owner)
-    with pytest.raises(PermissionError, match="No policy approved the access"):
-        update_engagement(uuid=engagement, person=person, org_unit=new_org_unit)
+    assert_denied(
+        engagement_update(uuid=engagement, person=person, org_unit=new_org_unit)
+    )
 
     # Owner role + owner of old org unit, but not new org unit
     set_auth(ADMIN, None)
     clear_owners()
     create_owner(owner=owner, org_unit=old_org_unit)
     set_auth(OWNER, owner)
-    with pytest.raises(PermissionError, match="No policy approved the access"):
-        update_engagement(uuid=engagement, person=person, org_unit=new_org_unit)
+    assert_denied(
+        engagement_update(uuid=engagement, person=person, org_unit=new_org_unit)
+    )
 
     # Owner role + owner of new org unit, but not old org unit
     set_auth(ADMIN, None)
     clear_owners()
     create_owner(owner=owner, org_unit=new_org_unit)
     set_auth(OWNER, owner)
-    with pytest.raises(PermissionError, match="No policy approved the access"):
-        update_engagement(uuid=engagement, person=person, org_unit=new_org_unit)
+    assert_denied(
+        engagement_update(uuid=engagement, person=person, org_unit=new_org_unit)
+    )
 
     # Owner role + owner of old *and* new org unit
     set_auth(ADMIN, None)
@@ -302,7 +320,9 @@ async def test_update_engagement(
     create_owner(owner=owner, org_unit=old_org_unit)
     create_owner(owner=owner, org_unit=new_org_unit)
     set_auth(OWNER, owner)
-    update_engagement(uuid=engagement, person=person, org_unit=new_org_unit)
+    assert_granted(
+        engagement_update(uuid=engagement, person=person, org_unit=new_org_unit)
+    )
 
 
 @pytest.mark.integration_test
@@ -383,7 +403,7 @@ async def test_update_rolebinding(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db", "root_org")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "actor, allowed",
     [
@@ -399,7 +419,7 @@ async def test_multiple_owners_of_org_unit(
     create_person: CreatePerson,
     create_org_unit: CreateOrgUnit,
     create_owner: CreateOwner,
-    create_engagement: CreateEngagement,
+    engagement_create: EngagementCreate,
 ) -> None:
     """Each owner of an org unit, and only they, may act on it."""
     # Persons must be created as admin: a bare owner cannot.
@@ -418,13 +438,15 @@ async def test_multiple_owners_of_org_unit(
         "non_owner": non_owner,
     }
     set_auth(OWNER, actors[actor])
-    expectation = nullcontext() if allowed else pytest.raises(PermissionError)
-    with expectation:
-        create_engagement(person=target, org_unit=org_unit)
+    r = engagement_create(person=target, org_unit=org_unit)
+    if allowed:
+        assert_granted(r)
+    else:
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 async def test_owner_with_input_list(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
@@ -489,7 +511,7 @@ async def test_owner_with_input_list(
         },
     )
 
-    assert r.errors is None
+    assert_granted(r)
     assert r.data is not None
     assert r.data["engagements_update"] == [
         {
@@ -532,9 +554,8 @@ async def test_owner_with_input_list(
             ],
         },
     )
-    error = one(r.errors)
-    assert error["message"] == "No policy approved the access"
-    assert error["path"] == ["engagements_update"]
+    assert_denied(r)
+    assert one(r.errors)["path"] == ["engagements_update"]
 
 
 @pytest.mark.integration_test
