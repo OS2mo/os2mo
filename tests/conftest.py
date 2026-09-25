@@ -1516,6 +1516,26 @@ def create_association(
 
 
 @pytest.fixture
+def create_itassociation(
+    graphapi_post: GraphAPIPost, root_org: UUID
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation CreateITAssociation($input: ITAssociationCreateInput!) {
+                itassociation_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["itassociation_create"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
 def create_leave(
     graphapi_post: GraphAPIPost, root_org: UUID
 ) -> Callable[[dict[str, Any]], UUID]:
