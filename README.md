@@ -76,7 +76,8 @@ cd os2mo/
 docker compose up -d --build
 ```
 The OS2mo frontend should now be available at <http://localhost:5000>, and the
-GraphiQL explorer at <http://localhost:5000/graphql>. The default admin
+GraphiQL explorer at <http://localhost:5000/graphql>, and the Apollo Sandbox at
+<http://localhost:5000/graphql/apollo-sandbox>. The default admin
 username/password is `alvida`/`alvida`.
 
 To stop the stack, run

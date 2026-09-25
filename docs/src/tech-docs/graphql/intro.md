@@ -122,3 +122,15 @@ window where query responses are shown, a subwindow to input query variables
 and custom headers, a schema and documentation explorer and a history of
 previously run queries. It is the suggested development environment for GraphQL
 queries in OS2mo, although a pletora of tools can be used, such as Postman.
+
+## Apollo Sandbox
+
+The Apollo Sandbox IDE is available as an alternative to GraphiQL at
+`https://{{mo_url_here}}/graphql/apollo-sandbox`, which redirects to the newest
+version, or at `https://{{mo_url_here}}/graphql/vXX/apollo-sandbox` for a
+specific version. Like GraphiQL, it redirects the user to login in Keycloak,
+and runs all queries with the user's credentials.
+
+Please note that, unlike GraphiQL, the Sandbox interface itself is hosted by
+Apollo and loaded from their servers. The queries are sent directly from the
+browser to OS2mo, and the Keycloak token is never shared with Apollo.

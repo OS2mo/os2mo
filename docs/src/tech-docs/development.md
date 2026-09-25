@@ -26,7 +26,8 @@ reading `docker-compose.yml`. The most important thing to begin with is that
 you can visit <http://localhost:5000> in your browser. Before getting access to
 OS2mo, you will be redirected to Keycloak where you can sign in as `alvida`
 with the password `alvida`. The GraphQL API explorer (GraphiQL) is available at
-<http://localhost:5000/graphql>.
+<http://localhost:5000/graphql>, and the Apollo Sandbox at
+<http://localhost:5000/graphql/apollo-sandbox>.
 
 The `-d` flag for `docker compose up` runs the services in the background. To
 see the output of a container, run `docker compose logs <name>`, where `<name>`

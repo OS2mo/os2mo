@@ -7,6 +7,8 @@ from textwrap import dedent
 from fastapi import APIRouter
 from fastapi import Depends
 from fastramqpi.ramqp import AMQPSystem
+from starlette.requests import Request
+from starlette.responses import HTMLResponse
 from starlette.responses import PlainTextResponse
 from starlette.responses import RedirectResponse
 from strawberry.printer import print_schema
@@ -76,6 +78,11 @@ def get_router(version: Version) -> APIRouter:
         )
         return header + print_schema(schema)
 
+    @router.get("/apollo-sandbox", response_class=HTMLResponse)
+    async def apollo_sandbox(request: Request) -> HTMLResponse:
+        """Serve the Apollo Sandbox IDE for this GraphQL version."""
+        return await router.render_apollo_sandbox(request)
+
     return router
 
 
@@ -84,6 +91,12 @@ def get_router(version: Version) -> APIRouter:
 async def redirect_to_latest_graphiql() -> RedirectResponse:
     """Redirect unversioned GraphiQL so developers can pin to the newest version."""
     return RedirectResponse(f"/graphql/v{LATEST_VERSION.value}")
+
+
+@router.get("/graphql/apollo-sandbox")
+async def redirect_to_latest_apollo_sandbox() -> RedirectResponse:
+    """Redirect unversioned Apollo Sandbox to the newest version, like GraphiQL."""
+    return RedirectResponse(f"/graphql/v{LATEST_VERSION.value}/apollo-sandbox")
 
 
 for version in Version:
