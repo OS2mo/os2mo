@@ -11,6 +11,8 @@ from sqlalchemy import text
 from tests.conftest import AnotherTransaction
 
 METRIC_NAME = "os2mo_registration_count"
+MAX_24H_METRIC_PREFIX = "os2mo_max_registrations_on_object_24h_"
+MAX_24H_ORG_FUNC_METRIC_NAME = f"{MAX_24H_METRIC_PREFIX}org_func"
 
 # Every LoRa object that is not an organisation function, and its registration
 # count on a migrated, otherwise empty database.
@@ -209,3 +211,196 @@ async def test_registrations_org_func_unknown_funktionsnavn(
 
     metrics = fetch_metrics()
     assert f'{METRIC_NAME}{{type="rolle"}} 1.0' in metrics
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_max_registrations_on_object_24h_org_func_no_registrations(
+    fetch_metrics: Callable[[], str],
+) -> None:
+    """Nothing registered within the last day means no series at all.
+
+    The maximum is grouped by funktionsnavn, so a type without rows produces no
+    group and therefore no series.
+    """
+    # Act
+    metrics = fetch_metrics()
+
+    # Assert
+    assert f"{MAX_24H_ORG_FUNC_METRIC_NAME}{{" not in metrics
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_max_registrations_on_object_24h_org_func(
+    fetch_metrics: Callable[[], str],
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[[dict[str, Any] | None], UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    update_engagement: Callable[[dict[str, Any]], UUID],
+    create_itsystem: Callable[[dict[str, Any]], UUID],
+    create_ituser: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """
+    Ensure the most edited object of each "funktionsnavn" in the latest 24h
+    is reported.
+    """
+    # Arrange
+    person = create_person()
+    org_unit = create_org_unit("unit")
+
+    busy = create_engagement(
+        {
+            "user_key": "busy",
+            "person": str(person),
+            "org_unit": str(org_unit),
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
+            "validity": {"from": "2024-01-01", "to": None},
+        }
+    )
+    for to_date in ("2024-06-30", "2024-09-30", "2024-12-31"):
+        update_engagement(
+            {"uuid": str(busy), "validity": {"from": "2024-01-01", "to": to_date}}
+        )
+
+    # A second, less edited engagement, which must not raise the maximum.
+    quiet = create_engagement(
+        {
+            "user_key": "quiet",
+            "person": str(person),
+            "org_unit": str(org_unit),
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
+            "validity": {"from": "2024-01-01", "to": None},
+        }
+    )
+    update_engagement(
+        {"uuid": str(quiet), "validity": {"from": "2024-01-01", "to": "2024-06-30"}}
+    )
+
+    itsystem = create_itsystem(
+        {
+            "user_key": "suila",
+            "name": "Suila-tapit",
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+    create_ituser(
+        {
+            "user_key": "ituser",
+            "itsystem": str(itsystem),
+            "person": str(person),
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+
+    # Act
+    metrics = fetch_metrics()
+
+    # Assert
+    # One create plus three updates on `busy`, not the two on `quiet` and not
+    # the six registrations that exist across both engagements.
+    assert f'{MAX_24H_ORG_FUNC_METRIC_NAME}{{type="engagement"}} 4.0' in metrics
+    assert f'{MAX_24H_ORG_FUNC_METRIC_NAME}{{type="ituser"}} 1.0' in metrics
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_max_registrations_on_object_24h_no_registrations(
+    fetch_metrics: Callable[[], str],
+) -> None:
+    """
+    Ensure every object type is reported, at zero, when nothing was registered
+    in the latest 24h.
+    """
+    # Act
+    metrics = fetch_metrics()
+
+    # Assert
+    assert f"{MAX_24H_METRIC_PREFIX}person 0.0" in metrics
+    assert f"{MAX_24H_METRIC_PREFIX}facet 0.0" in metrics
+    assert f"{MAX_24H_METRIC_PREFIX}itsystem 0.0" in metrics
+    assert f"{MAX_24H_METRIC_PREFIX}class 0.0" in metrics
+    assert f"{MAX_24H_METRIC_PREFIX}klassifikation 0.0" in metrics
+    assert f"{MAX_24H_METRIC_PREFIX}org_unit 0.0" in metrics
+    # The migrations create the root organisation, and they run as the test
+    # session starts, so that registration falls inside the one day window.
+    assert f"{MAX_24H_METRIC_PREFIX}organisation 1.0" in metrics
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_max_registrations_on_object_24h(
+    fetch_metrics: Callable[[], str],
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[[dict[str, Any] | None], UUID],
+    update_person: Callable[[dict[str, Any]], UUID],
+    create_itsystem: Callable[[dict[str, Any]], UUID],
+    update_itsystem: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """
+    Ensure the most edited object of each type in the latest 24h is reported.
+    """
+    # Arrange
+    # Every write creates a registration, so each person ends up with one more
+    # registration than it has updates. The busiest object is created last, so
+    # a query picking an arbitrary object rather than the maximum fails.
+    quiet_person = create_person()
+    for given_name in ("Quiet 1", "Quiet 2"):
+        update_person(
+            {
+                "uuid": str(quiet_person),
+                "given_name": given_name,
+                "validity": {"from": "2024-01-01"},
+            }
+        )
+
+    busy_person = create_person()
+    for given_name in ("Busy 1", "Busy 2", "Busy 3"):
+        update_person(
+            {
+                "uuid": str(busy_person),
+                "given_name": given_name,
+                "validity": {"from": "2024-01-01"},
+            }
+        )
+
+    create_itsystem(
+        {
+            "user_key": "quiet",
+            "name": "Quiet",
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+    busy_itsystem = create_itsystem(
+        {
+            "user_key": "busy",
+            "name": "Busy",
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+    update_itsystem(
+        {
+            "uuid": str(busy_itsystem),
+            "user_key": "busy",
+            "name": "Busy, edited",
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+
+    unit = create_org_unit("unit")
+    create_org_unit("subunit", unit)
+
+    # Act
+    metrics = fetch_metrics()
+
+    # Assert
+    # Four registrations on `busy_person`, not the three on `quiet_person` and
+    # not the seven that exist across both.
+    assert f"{MAX_24H_METRIC_PREFIX}person 4.0" in metrics
+    # Two registrations on `busy_itsystem`, not the one on the quiet one.
+    assert f"{MAX_24H_METRIC_PREFIX}itsystem 2.0" in metrics
+    # Each unit created once, so the busiest has a single registration. The
+    # three counts differ, so a metric reading the wrong table stands out.
+    assert f"{MAX_24H_METRIC_PREFIX}org_unit 1.0" in metrics
