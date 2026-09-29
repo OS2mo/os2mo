@@ -22,7 +22,6 @@ ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 FEDTMULE = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
 # Org units
-ROOT_UNIT = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 HUM_UNIT = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
 
@@ -72,16 +71,59 @@ def users(alice: UUID, bob: UUID) -> dict[str | None, UUID | None]:
 
 
 @pytest.fixture
-def create_org_unit_payload() -> dict[str, Any]:
+def classes(
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+) -> dict[str, UUID]:
+    """The classes the payloads below refer to."""
+    # name: (facet, scope)
+    wanted = {
+        "institut": ("org_unit_type", None),
+        "tjenestetid": ("time_planning", None),
+        "niveau": ("org_unit_level", None),
+        "linjeorg": ("org_unit_hierarchy", None),
+        "telefon": ("org_unit_address_type", "PHONE"),
+        "adresse": ("org_unit_address_type", "DAR"),
+        "email": ("org_unit_address_type", "EMAIL"),
+        "ekstern": ("visibility", None),
+    }
+    facets = {
+        facet: create_facet({"user_key": facet, "validity": {"from": "1970-01-01"}})
+        for facet in dict.fromkeys(facet for facet, _ in wanted.values())
+    }
+    return {
+        name: create_class(
+            {
+                "user_key": name,
+                "name": name,
+                "facet_uuid": str(facets[facet]),
+                "scope": scope,
+                "validity": {"from": "1970-01-01"},
+            }
+        )
+        for name, (facet, scope) in wanted.items()
+    }
+
+
+@pytest.fixture
+def root_unit(create_org_unit: Callable[..., UUID]) -> UUID:
+    """A parent nobody owns."""
+    return create_org_unit("root")
+
+
+@pytest.fixture
+def create_org_unit_payload(
+    root_org: UUID,
+    classes: dict[str, UUID],
+) -> dict[str, Any]:
     return {
         "name": "Fake Corp",
         "time_planning": {
-            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+            "uuid": str(classes["tjenestetid"]),
         },
-        "parent": {"uuid": ROOT_UNIT},
-        "org_unit_type": {"uuid": "ca76a441-6226-404f-88a9-31e02e420e52"},
-        "org_unit_level": {"uuid": "0f015b67-f250-43bb-9160-043ec19fad48"},
-        "org_unit_hierarchy": {"uuid": "12345678-abcd-abcd-1234-12345678abcd"},
+        "org_unit_type": {"uuid": str(classes["institut"])},
+        "org_unit_level": {"uuid": str(classes["niveau"])},
+        "org_unit_hierarchy": {"uuid": str(classes["linjeorg"])},
         "details": [
             {
                 "type": "address",
@@ -90,12 +132,12 @@ def create_org_unit_payload() -> dict[str, Any]:
                     "name": "Telefon",
                     "scope": "PHONE",
                     "user_key": "Telefon",
-                    "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
+                    "uuid": str(classes["telefon"]),
                 },
                 "org": {
                     "name": "Aarhus Universitet",
                     "user_key": "AU",
-                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "uuid": str(root_org),
                 },
                 "validity": {
                     "from": "2016-02-04",
@@ -110,12 +152,12 @@ def create_org_unit_payload() -> dict[str, Any]:
                     "name": "Adresse",
                     "scope": "DAR",
                     "user_key": "Adresse",
-                    "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
+                    "uuid": str(classes["adresse"]),
                 },
                 "org": {
                     "name": "Aarhus Universitet",
                     "user_key": "AU",
-                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "uuid": str(root_org),
                 },
                 "validity": {
                     "from": "2016-02-04",
@@ -132,18 +174,20 @@ def create_org_unit_payload() -> dict[str, Any]:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
         (None, None, HTTP_403_FORBIDDEN),
-        (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
-        (ADMIN, ANDERS_AND, HTTP_201_CREATED),
+        (OWNER, "alice", HTTP_403_FORBIDDEN),
+        (ADMIN, "alice", HTTP_201_CREATED),
     ],
 )
 def test_create_org_unit(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
+    users: dict[str | None, UUID | None],
+    root_unit: UUID,
     create_org_unit_payload: dict[str, Any],
     role: str,
     userid: str,
@@ -156,29 +200,31 @@ def test_create_org_unit(
     3) User with the admin role
 
     :param role: the role of the user
-    :param userid: the UUID of the user
+    :param userid: the user, see `users`
     :param status_code: the expected HTTP status code
     """
-    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, users[userid])
 
     payload = create_org_unit_payload
+    payload["parent"] = {"uuid": str(root_unit)}
     response = service_client.request("POST", "/service/ou/create", json=payload)
     assert response.status_code == status_code
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
         (None, None, HTTP_403_FORBIDDEN),
-        (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
-        (ADMIN, ANDERS_AND, HTTP_201_CREATED),
+        (OWNER, "alice", HTTP_403_FORBIDDEN),
+        (ADMIN, "alice", HTTP_201_CREATED),
     ],
 )
 def test_create_top_level_unit(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
+    users: dict[str | None, UUID | None],
     create_org_unit_payload: dict[str, Any],
     role: str,
     userid: str,
@@ -191,14 +237,12 @@ def test_create_top_level_unit(
     3) User with the admin role
 
     :param role: the role of the user
-    :param userid: the UUID of the user
+    :param userid: the user, see `users`
     :param status_code: the expected HTTP status code
     """
-    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, users[userid])
 
     payload = create_org_unit_payload
-    payload.pop("parent")
-
     response = service_client.request("POST", "/service/ou/create", json=payload)
     assert response.status_code == status_code
 
