@@ -5,6 +5,7 @@ from contextlib import nullcontext
 from typing import Any
 from typing import Protocol
 from uuid import UUID
+from uuid import uuid4
 
 import pytest
 from more_itertools import one
@@ -31,7 +32,7 @@ def create_org_unit(graphapi_post: GraphAPIPost) -> CreateOrgUnit:
             "parent": parent,
             # The rest doesn't matter
             "name": "Foo",
-            "org_unit_type": "ca76a441-6226-404f-88a9-31e02e420e52",
+            "org_unit_type": str(uuid4()),
             "validity": {
                 "from": "2010-01-01",
             },
@@ -141,8 +142,8 @@ def engagement_create(graphapi_post: GraphAPIPost) -> EngagementCreate:
             "person": str(person),
             "org_unit": str(org_unit),
             # The rest doesn't matter
-            "engagement_type": "06f95678-166a-455a-a2ab-121a8d92ea23",
-            "job_function": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
             "validity": {
                 "from": "2010-01-01",
             },
@@ -191,8 +192,8 @@ def engagement_update(graphapi_post: GraphAPIPost) -> EngagementUpdate:
             "person": str(person),
             "org_unit": str(org_unit),
             # The rest doesn't matter
-            "engagement_type": "06f95678-166a-455a-a2ab-121a8d92ea23",
-            "job_function": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
             "validity": {
                 "from": "2010-01-01",
             },
