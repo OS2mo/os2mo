@@ -16,15 +16,8 @@ from tests.conftest import SetAuth
 from tests.conftest import assert_denied
 from tests.conftest import assert_granted
 
-# Users
-ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-
-# IT systems
-ACTIVE_DIRECTORY = UUID("59c135c9-2b15-41cc-97c8-b5dff7180beb")
-
-# IT users
-ANDERS_AND_AD_USER_KEY = "18d2271a-45c4-406c-a482-04ab12f80881"
-ANDERS_AND_AD_EXTERNAL_ID = "e5595d6a-590c-4cae-9164-9fcf8e1178a2"
+# IT systems; the envvar below names it, so the test must create that very one
+ACTIVE_DIRECTORY = "c6a1d6f4-1e0b-4a4e-9d59-7f3b2a8e5c10"
 
 
 @pytest.fixture
@@ -737,38 +730,68 @@ def test_terminate_x_as_owner_of_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
-    "token_uuid,success",
+    "token,success",
     [
-        (ANDERS_AND_AD_USER_KEY, False),
-        (ANDERS_AND_AD_EXTERNAL_ID, True),
-        (ANDERS_AND, False),
+        ("user_key", False),
+        ("external_id", True),
+        ("person", False),
     ],
 )
 @pytest.mark.envvar(
-    {"KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS": str(ACTIVE_DIRECTORY)}
+    {"KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS": ACTIVE_DIRECTORY}
 )
 def test_ownership_through_it_system(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
-    token_uuid: str,
+    alice: UUID,
+    hum_address: UUID,
+    create_itsystem: Callable[[dict[str, Any]], UUID],
+    create_ituser: Callable[[dict[str, Any]], UUID],
+    token: str,
     success: bool,
 ) -> None:
-    set_auth(OWNER, token_uuid)
+    # Alice, who owns HUM, has a user in the authoritative IT system. Both its
+    # user_key and its external_id look like the uuid a token carries, but only
+    # the external_id identifies her
+    user_key = str(uuid4())
+    external_id = str(uuid4())
+    create_itsystem(
+        {
+            "uuid": ACTIVE_DIRECTORY,
+            "user_key": "Active Directory",
+            "name": "Active Directory",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+    create_ituser(
+        {
+            "user_key": user_key,
+            "external_id": external_id,
+            "itsystem": ACTIVE_DIRECTORY,
+            "person": str(alice),
+            "validity": {"from": "2017-01-01"},
+        }
+    )
+    tokens = {
+        "user_key": user_key,
+        "external_id": external_id,
+        "person": alice,
+    }
+    set_auth(OWNER, tokens[token])
 
     r = graphapi_post(
         """
-        mutation Terminate {
-          address_terminate(
-            input: { uuid: "55848eca-4e9e-4f30-954b-78d55eec0473", to: "2021-07-16" }
-          ) {
+        mutation Terminate($uuid: UUID!) {
+          address_terminate(input: { uuid: $uuid, to: "2021-07-16" }) {
             uuid
           }
         }
         """,
+        variables=jsonable_encoder({"uuid": hum_address}),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
