@@ -4,7 +4,6 @@ from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 from uuid import UUID
-from uuid import uuid4
 
 import pytest
 from fastapi.encoders import jsonable_encoder
@@ -323,49 +322,30 @@ def test_rename_org_unit(
 
 @pytest.fixture
 def org_unit_no_details_uuid(
-    set_auth: SetAuth,
-    graphapi_post: GraphAPIPost,
-    org_unit_create_input: dict[str, Any],
-    org_unit_uuid_1: str,
-) -> str:
-    set_auth(ADMIN, FEDTMULE)
-
-    input = {
-        **org_unit_create_input,
-        "uuid": str(uuid4()),
-        "parent": org_unit_uuid_1,
-    }
-    r = graphapi_post(
-        """
-        mutation OrgUnitCreate($input: OrganisationUnitCreateInput!) {
-          org_unit_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=input),
-    )
-    assert r.errors is None
-    return r.data["org_unit_create"]["uuid"]
+    create_org_unit: Callable[..., UUID],
+    org_unit_uuid_1: UUID,
+) -> UUID:
+    return create_org_unit("no-details", org_unit_uuid_1)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
-    "role, userid, success",
+    "role, user, success",
     [
         (None, None, False),
-        (OWNER, FEDTMULE, False),
-        (OWNER, ANDERS_AND, True),
-        (ADMIN, FEDTMULE, True),
+        (OWNER, "bob", False),
+        (OWNER, "alice", True),
+        (ADMIN, "bob", True),
     ],
 )
 def test_terminate_org_unit(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
-    org_unit_no_details_uuid: str,
+    users: dict[str | None, UUID | None],
+    org_unit_no_details_uuid: UUID,
     role: str,
-    userid: str,
+    user: str,
     success: bool,
 ) -> None:
     """
@@ -375,7 +355,7 @@ def test_terminate_org_unit(
     3) User with the owner role and owner of the relative entity
     4) User with the admin role
     """
-    set_auth(role, userid)
+    set_auth(role, users[user])
 
     # Payload for terminating the newly created org unit
     terminate = {
@@ -390,12 +370,12 @@ def test_terminate_org_unit(
           }
         }
         """,
-        variables=dict(input=terminate),
+        variables=jsonable_encoder(dict(input=terminate)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
@@ -515,27 +495,28 @@ def test_edit_detail(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
-    "role, userid, success",
+    "role, user, success",
     [
-        (OWNER, ANDERS_AND, True),
-        (OWNER, FEDTMULE, False),
+        (OWNER, "alice", True),
+        (OWNER, "bob", False),
     ],
 )
 def test_rename_subunit(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
-    org_unit_uuid_2: str,
+    users: dict[str | None, UUID | None],
+    org_unit_uuid_2: UUID,
     role: str,
-    userid: str,
+    user: str,
     success: bool,
 ) -> None:
     """
     Test that an org unit can be modified by a user who owns the parent
     unit but not the unit subject to modification itself.
     """
-    set_auth(role, userid)
+    set_auth(role, users[user])
 
     input = {
         "uuid": org_unit_uuid_2,
@@ -550,121 +531,71 @@ def test_rename_subunit(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.fixture
 def org_unit_uuid_1(
-    set_auth: SetAuth,
-    graphapi_post: GraphAPIPost,
-    org_unit_create_input: dict[str, Any],
-) -> str:
-    set_auth(ADMIN, FEDTMULE)
-
-    input = {
-        **org_unit_create_input,
-        "uuid": str(uuid4()),
-    }
-    r1 = graphapi_post(
-        """
-        mutation OrgUnitCreate($input: OrganisationUnitCreateInput!) {
-          org_unit_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=input),
-    )
-    assert r1.errors is None
-    org_uuid = r1.data["org_unit_create"]["uuid"]
-
-    owner = {
-        "owner": ANDERS_AND,
-        "org_unit": org_uuid,
-        "validity": {"from": "2021-08-03"},
-    }
-    r2 = graphapi_post(
-        """
-        mutation OwnerCreate($input: OwnerCreateInput!) {
-          owner_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=owner),
-    )
-    assert r2.errors is None
-
+    create_org_unit: Callable[..., UUID],
+    make_owner: Callable[..., None],
+    units: dict[str, UUID],
+    alice: UUID,
+) -> UUID:
+    # A unit below the root, owned by Alice
+    org_uuid = create_org_unit("unit-1", units["root"])
+    make_owner(alice, org_unit=org_uuid)
     return org_uuid
 
 
 @pytest.fixture
 def org_unit_uuid_2(
-    set_auth: SetAuth,
-    graphapi_post: GraphAPIPost,
-    org_unit_create_input: dict[str, Any],
-    org_unit_uuid_1: str,
-) -> str:
-    set_auth(ADMIN, FEDTMULE)
-
-    input = {
-        **org_unit_create_input,
-        "uuid": str(uuid4()),
-        "parent": org_unit_uuid_1,
-    }
-    r = graphapi_post(
-        """
-        mutation OrgUnitCreate($input: OrganisationUnitCreateInput!) {
-          org_unit_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=input),
-    )
-    assert r.errors is None
-    return r.data["org_unit_create"]["uuid"]
+    create_org_unit: Callable[..., UUID],
+    org_unit_uuid_1: UUID,
+) -> UUID:
+    return create_org_unit("unit-2", org_unit_uuid_1)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
-    "owner,org_uuid,one_is_parent,success",
+    "owner,unit,one_is_parent,success",
     [
         # test_owner_of_unit_moves_unit_to_owned_unit
-        (ANDERS_AND, HUM_UNIT, True, True),
+        ("alice", "hum", True, True),
         # test_owner_of_unit_moves_unit_to_subunit_of_owned_unit
-        (ANDERS_AND, HUM_UNIT, False, True),
+        ("alice", "hum", False, True),
         # test_non_owner_of_unit_moves_unit_to_non_owned_unit
-        (FEDTMULE, HUM_UNIT, True, False),
+        ("bob", "hum", True, False),
         # test_non_owner_of_unit_moves_unit_to_subunit_of_non_owned_unit
-        (FEDTMULE, HUM_UNIT, False, False),
+        ("bob", "hum", False, False),
         # test_owner_moves_owned_subunit_to_owned_subunit
-        (ANDERS_AND, FILOSOFISK_INSTITUT, False, True),
+        ("alice", "filosofisk", False, True),
     ],
 )
 def test_owner_of_unit(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
-    org_unit_uuid_1: str,
-    org_unit_uuid_2: str,
+    users: dict[str | None, UUID | None],
+    units: dict[str, UUID],
+    org_unit_uuid_1: UUID,
+    org_unit_uuid_2: UUID,
     owner: str,
-    org_uuid: str,
+    unit: str,
     one_is_parent: bool,
     success: bool,
 ) -> None:
-    # Use user "Anders And" (who owns the parent unit)
-    set_auth(OWNER, owner)
+    # Alice owns both parent units, Bob neither
+    set_auth(OWNER, users[owner])
 
     parent_uuid = org_unit_uuid_1 if one_is_parent else org_unit_uuid_2
 
     input = {
-        "uuid": org_uuid,
+        "uuid": units[unit],
         "parent": parent_uuid,
         "validity": {"from": "2021-07-30"},
     }
@@ -676,12 +607,12 @@ def test_owner_of_unit(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
