@@ -1,16 +1,20 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 from uuid import UUID
 from uuid import uuid4
 
 import pytest
+from fastapi.encoders import jsonable_encoder
 
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
+from tests.conftest import assert_denied
+from tests.conftest import assert_granted
 
 # Users
 ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -29,6 +33,30 @@ ACTIVE_DIRECTORY = UUID("59c135c9-2b15-41cc-97c8-b5dff7180beb")
 # IT users
 ANDERS_AND_AD_USER_KEY = "18d2271a-45c4-406c-a482-04ab12f80881"
 ANDERS_AND_AD_EXTERNAL_ID = "e5595d6a-590c-4cae-9164-9fcf8e1178a2"
+
+
+@pytest.fixture
+def users(alice: UUID, bob: UUID) -> dict[str | None, UUID | None]:
+    """The users the tokens name: Alice owns HUM, Bob owns nothing."""
+    return {None: None, "alice": alice, "bob": bob}
+
+
+@pytest.fixture
+def units(
+    create_org_unit: Callable[..., UUID],
+    make_owner: Callable[..., None],
+    alice: UUID,
+) -> dict[str, UUID]:
+    """A root with HUM and SOCIAL below it, and FILOSOFISK below HUM.
+
+    Alice owns HUM, and through it FILOSOFISK.
+    """
+    root = create_org_unit("root")
+    hum = create_org_unit("hum", root)
+    filosofisk = create_org_unit("filosofisk", hum)
+    social = create_org_unit("social", root)
+    make_owner(alice, org_unit=hum)
+    return {"root": root, "hum": hum, "filosofisk": filosofisk, "social": social}
 
 
 @pytest.fixture
@@ -202,21 +230,23 @@ def test_create_top_level_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
-    "role, userid, success",
+    "role, user, success",
     [
         (None, None, False),
-        (OWNER, FEDTMULE, False),
-        (OWNER, ANDERS_AND, True),
-        (ADMIN, FEDTMULE, True),
+        (OWNER, "bob", False),
+        (OWNER, "alice", True),
+        (ADMIN, "bob", True),
     ],
 )
 def test_rename_org_unit(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    users: dict[str | None, UUID | None],
+    units: dict[str, UUID],
     role: str,
-    userid: str,
+    user: str,
     success: bool,
 ) -> None:
     """
@@ -226,13 +256,13 @@ def test_rename_org_unit(
     3) User with the owner role and owner of the relative entity
     4) User with the admin role
     """
-    set_auth(role, userid)
+    set_auth(role, users[user])
 
-    # Payload for renaming Humanistisk Fakultet
+    # Payload for renaming HUM, repeating the parent it already has
     input = {
-        "uuid": HUM_UNIT,
+        "uuid": units["hum"],
         "name": "New name",
-        "parent": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        "parent": units["root"],
         "validity": {"from": "2021-07-28"},
     }
 
@@ -244,12 +274,12 @@ def test_rename_org_unit(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.fixture
