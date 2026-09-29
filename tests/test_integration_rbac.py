@@ -359,19 +359,20 @@ def test_terminate_org_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
         (None, None, HTTP_403_FORBIDDEN),
-        (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-        (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
-        (ADMIN, FEDTMULE, HTTP_201_CREATED),
+        (OWNER, "bob", HTTP_403_FORBIDDEN),
+        (OWNER, "alice", HTTP_403_FORBIDDEN),
+        (ADMIN, "bob", HTTP_201_CREATED),
     ],
 )
 def test_create_detail(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
+    users: dict[str | None, UUID | None],
     address_create_payload: dict[str, Any],
     role: str,
     userid: str,
@@ -385,10 +386,10 @@ def test_create_detail(
     4) User with the admin role
 
     :param role: the role of the user
-    :param userid: the UUID of the user
+    :param userid: the user, see `users`
     :param status_code: the expected HTTP status code
     """
-    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, users[userid])
 
     payload = [address_create_payload]
     response = service_client.request("POST", "/service/details/create", json=payload)
@@ -396,17 +397,19 @@ def test_create_detail(
 
 
 @pytest.fixture
-def address_create_payload() -> dict[str, Any]:
+def address_create_payload(
+    root_org: UUID, classes: dict[str, UUID], hum_unit: UUID
+) -> dict[str, Any]:
     # Payload for creating detail (email address) on org unit
     payload = {
         "type": "address",
         "org": {
             "name": "Aarhus Universitet",
             "user_key": "AU",
-            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+            "uuid": str(root_org),
         },
         "visibility": {
-            "uuid": "f63ad763-0e53-4972-a6a9-63b42a0f8cb7",
+            "uuid": str(classes["ekstern"]),
             "name": "Må vises externt",
             "user_key": "Ekstern",
             "example": None,
@@ -414,7 +417,7 @@ def address_create_payload() -> dict[str, Any]:
             "owner": None,
         },
         "address_type": {
-            "uuid": "73360db1-bad3-4167-ac73-8d827c0c8751",
+            "uuid": str(classes["email"]),
             "name": "Email",
             "user_key": "EmailUnit",
             "example": None,
@@ -423,7 +426,7 @@ def address_create_payload() -> dict[str, Any]:
         },
         "value": "bruce@kung.fu",
         "validity": {"from": "2020-06-22", "to": None},
-        "org_unit": {"uuid": HUM_UNIT},
+        "org_unit": {"uuid": str(hum_unit)},
     }
     return payload
 
