@@ -123,6 +123,28 @@ def phone_type(address_type: Callable[[str], UUID]) -> UUID:
 
 
 @pytest.fixture
+def email_type(address_type: Callable[[str], UUID]) -> UUID:
+    return address_type("EMAIL")
+
+
+@pytest.fixture
+def email_address(
+    email_type: UUID,
+    create_address: Callable[[dict[str, Any]], UUID],
+    bob: UUID,
+) -> UUID:
+    """An email address of Bob."""
+    return create_address(
+        {
+            "address_type": str(email_type),
+            "person": str(bob),
+            "value": "bob@example.com",
+            "validity": {"from": "2020-01-01"},
+        }
+    )
+
+
+@pytest.fixture
 def carols_engagement(
     create_engagement: Callable[[dict[str, Any]], UUID],
     carol: UUID,
@@ -458,24 +480,27 @@ def test_create_leave(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_bob")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_edit_address(
-    sample_login: Login,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    email_type: UUID,
+    bob: UUID,
+    email_address: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    sample_login(role, userid)
+    login(role, userid)
 
     input = {
-        "uuid": "64ea02e2-8469-4c54-a523-3d46729e86a7",
-        "address_type": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
-        "visibility": "f63ad763-0e53-4972-a6a9-63b42a0f8cb7",
-        "employee": FEDTMULE,
+        "uuid": email_address,
+        "address_type": email_type,
+        "visibility": uuid4(),
+        "employee": bob,
         "validity": {"from": "2021-08-13"},
-        "value": "goofy@andeby.dk",
+        "value": "bob.jensen@example.com",
     }
     r = graphapi_post(
         """
@@ -485,12 +510,12 @@ def test_edit_address(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
