@@ -20,6 +20,8 @@ from mora.config import Settings
 from mora.db import AsyncSession
 from mora.db import Collection
 from mora.db import Policy
+from mora.db import PolicySelector
+from mora.db import PolicySelectorKind
 from mora.db import PolicyWriteRule
 from mora.graphapi.policies import cel2check
 from mora.graphapi.policies import write_policy_load_fn
@@ -322,7 +324,9 @@ async def test_a_rule_keeps_its_mutator_condition_and_version(
             name="Unit Owner",
             description="Allows unit owners to create addresses in their own unit",
             active=True,
-            role="unit_owner",
+            selectors=[
+                PolicySelector(kind=PolicySelectorKind.role, value="unit_owner")
+            ],
             write_rules=[
                 PolicyWriteRule(
                     mutator="address_create",
@@ -339,7 +343,7 @@ async def test_a_rule_keeps_its_mutator_condition_and_version(
     rule = one(
         (
             await empty_db.scalars(
-                select(PolicyWriteRule).join(Policy).where(Policy.role == "unit_owner")
+                select(PolicyWriteRule).join(Policy).where(Policy.name == "Unit Owner")
             )
         ).all()
     )
@@ -372,7 +376,9 @@ async def test_the_write_rules_of_the_callers_policies_are_loaded(
                 name="Unit Owner",
                 description="Allows unit owners to write in their own unit",
                 active=True,
-                role="unit_owner",
+                selectors=[
+                    PolicySelector(kind=PolicySelectorKind.role, value="unit_owner")
+                ],
                 write_rules=[
                     PolicyWriteRule(
                         mutator="address_create",
@@ -390,7 +396,9 @@ async def test_the_write_rules_of_the_callers_policies_are_loaded(
                 name="Class Writer",
                 description="Allows class writers to create classes",
                 active=True,
-                role="class_writer",
+                selectors=[
+                    PolicySelector(kind=PolicySelectorKind.role, value="class_writer")
+                ],
                 write_rules=[
                     PolicyWriteRule(
                         mutator="class_create",
@@ -413,7 +421,6 @@ async def test_the_write_rules_of_the_callers_policies_are_loaded(
     )
 
     assert {rule.mutator for rule in rules} == {"address_create", "ituser_create"}
-    assert {rule.role for rule in rules} == {"unit_owner"}
 
 
 @pytest.mark.integration_test
@@ -424,7 +431,9 @@ async def test_a_policy_switched_off_grants_no_mutator(empty_db: AsyncSession) -
             name="Unit Owner",
             description="Allows unit owners to write in their own unit",
             active=False,
-            role="unit_owner",
+            selectors=[
+                PolicySelector(kind=PolicySelectorKind.role, value="unit_owner")
+            ],
             write_rules=[
                 PolicyWriteRule(
                     mutator="address_create",

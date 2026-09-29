@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """The tables holding access control as data."""
 
+import enum
 from uuid import UUID
 
 from sqlalchemy import Boolean
@@ -10,6 +11,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import Text
 from sqlalchemy import TypeDecorator
+from sqlalchemy import UniqueConstraint
 from sqlalchemy import false
 from sqlalchemy import text
 from sqlalchemy.engine import Dialect
@@ -35,6 +37,13 @@ class GraphQLVersion(TypeDecorator):
         return Version(value)
 
 
+class PolicySelectorKind(enum.Enum):
+    """Names what a selector matches actors by."""
+
+    # Matches the actors carrying the role named by the value
+    role = "role"
+
+
 class Policy(Base):
     """Policies assign meaning to roles."""
 
@@ -46,15 +55,37 @@ class Policy(Base):
     name: Mapped[str] = mapped_column(Text, unique=True)
     description: Mapped[str] = mapped_column(Text)
     active: Mapped[bool] = mapped_column(Boolean)
-    role: Mapped[str] = mapped_column(Text, index=True)
     managed: Mapped[bool] = mapped_column(Boolean, server_default=false())
 
-    # The database cascades deleting a policy to its rules
+    # The database cascades deleting a policy to its selectors and rules
+    selectors: Mapped[list["PolicySelector"]] = relationship(
+        back_populates="policy", cascade="all", passive_deletes=True
+    )
     read_rules: Mapped[list["PolicyReadRule"]] = relationship(
         back_populates="policy", cascade="all", passive_deletes=True
     )
     write_rules: Mapped[list["PolicyWriteRule"]] = relationship(
         back_populates="policy", cascade="all", passive_deletes=True
+    )
+
+
+class PolicySelector(Base):
+    """Selects the actors a policy is activated for."""
+
+    __tablename__ = "policy_selector"
+
+    pk: Mapped[UUID] = mapped_column(
+        primary_key=True, server_default=text("uuid_generate_v4()")
+    )
+    kind: Mapped[PolicySelectorKind] = mapped_column(
+        Enum(PolicySelectorKind, name="policyselectorkind")
+    )
+    value: Mapped[str] = mapped_column(Text)
+    policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.pk", ondelete="CASCADE"))
+    policy: Mapped[Policy] = relationship(back_populates="selectors")
+
+    __table_args__ = (
+        UniqueConstraint("policy_fk", "kind", "value", name="uq_policy_selector"),
     )
 
 
