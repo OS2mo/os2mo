@@ -26,7 +26,7 @@ class CreateOrgUnit(Protocol):
 
 
 @pytest.fixture
-def create_org_unit(graphapi_post: GraphAPIPost) -> CreateOrgUnit:
+def create_org_unit(graphapi_post: GraphAPIPost, root_org: UUID) -> CreateOrgUnit:
     def _create_org_unit(parent: UUID | None = None) -> UUID:
         input = {
             "parent": parent,
@@ -403,7 +403,7 @@ async def test_update_rolebinding(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db", "root_org")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "actor, allowed",
     [
