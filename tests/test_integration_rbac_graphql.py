@@ -60,6 +60,28 @@ def units(
 
 
 @pytest.fixture
+def address_type_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
+    return create_facet(
+        {"user_key": "org_unit_address_type", "validity": {"from": "1970-01-01"}}
+    )
+
+
+@pytest.fixture
+def phone_type(
+    create_class: Callable[[dict[str, Any]], UUID], address_type_facet: UUID
+) -> UUID:
+    return create_class(
+        {
+            "user_key": "phone",
+            "name": "Telefon",
+            "scope": "PHONE",
+            "facet_uuid": str(address_type_facet),
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
 def org_unit_create_input() -> dict[str, Any]:
     return {
         "uuid": MY_UNIT,
@@ -91,6 +113,23 @@ def address_create_dar_input() -> dict[str, Any]:
         "validity": {"from": "2016-02-04"},
         "value": "44c532e1-f617-4174-b144-d37ce9fda2bd",
     }
+
+
+@pytest.fixture
+def hum_address(
+    create_address: Callable[[dict[str, Any]], UUID],
+    units: dict[str, UUID],
+    phone_type: UUID,
+) -> UUID:
+    # A phone number on HUM
+    return create_address(
+        {
+            "address_type": str(phone_type),
+            "org_unit": str(units["hum"]),
+            "validity": {"from": "2016-01-01"},
+            "value": "87150000",
+        }
+    )
 
 
 @pytest.mark.integration_test
@@ -421,21 +460,25 @@ def test_create_detail(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
-    "role, userid, success",
+    "role, user, success",
     [
         (None, None, False),
-        (OWNER, FEDTMULE, False),
-        (OWNER, ANDERS_AND, True),
-        (ADMIN, FEDTMULE, True),
+        (OWNER, "bob", False),
+        (OWNER, "alice", True),
+        (ADMIN, "bob", True),
     ],
 )
 def test_edit_detail(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    users: dict[str | None, UUID | None],
+    units: dict[str, UUID],
+    phone_type: UUID,
+    hum_address: UUID,
     role: str,
-    userid: str,
+    user: str,
     success: bool,
 ) -> None:
     """
@@ -445,13 +488,13 @@ def test_edit_detail(
     3) User with the owner role and owner of the relative entity
     4) User with the admin role
     """
-    set_auth(role, userid)
+    set_auth(role, users[user])
 
     # Payload for editing detail (phone number) on org unit (hum)
     input = {
-        "uuid": "55848eca-4e9e-4f30-954b-78d55eec0473",
-        "address_type": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-        "org_unit": HUM_UNIT,
+        "uuid": hum_address,
+        "address_type": phone_type,
+        "org_unit": units["hum"],
         "validity": {"from": "2016-01-01"},
         "value": "00000000",
     }
@@ -463,12 +506,12 @@ def test_edit_detail(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
