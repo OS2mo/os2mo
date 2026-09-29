@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """Strawberry types describing the MO graph - Employee."""
 
+from collections.abc import Callable
 from datetime import date
 from textwrap import dedent
 from typing import cast
@@ -9,12 +10,14 @@ from uuid import UUID
 
 import strawberry
 
+from mora import util
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo.details import AssociationRead
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.gmodels.mo.details import ITUserRead
 from mora.graphapi.gmodels.mo.details import LeaveRead
 from mora.graphapi.gmodels.mo.details import ManagerRead
+from mora.graphapi.gmodels.mo.details import OwnerRead
 from mora.util import CPR
 
 from ..filters import EmployeeFilter
@@ -24,7 +27,9 @@ from ..lazy import LazyEngagement
 from ..lazy import LazyITUser
 from ..lazy import LazyLeave
 from ..lazy import LazyManager
+from ..lazy import LazyOwner
 from ..models import AddressRead
+from ..momodel import MOModel
 from ..paged import Paged
 from ..resolvers import address_resolver
 from ..resolvers import association_resolver
@@ -32,11 +37,15 @@ from ..resolvers import engagement_resolver
 from ..resolvers import it_user_resolver
 from ..resolvers import leave_resolver
 from ..resolvers import manager_resolver
+from ..resolvers import owner_resolver
 from ..response import Response
 from ..seed_resolver import seed_resolver
+from ..seed_resolver import strip_args
 from ..validity import OpenValidity
+from .utils import ResolverFunction
 from .utils import to_list
 from .utils import to_paged_response
+from .utils import to_response_list
 
 
 @strawberry.experimental.pydantic.type(
@@ -422,3 +431,105 @@ class Employee:
     nickname_surname: str | None = strawberry.auto
 
     validity: OpenValidity = strawberry.auto
+
+
+def active(
+    resolver: ResolverFunction,
+    model: type[MOModel],
+    relation: str = "employee",
+    remove_parameters: set[str] | None = None,
+) -> Callable:
+    """Resolve the objects *relation* ties to the employee, now or in the future.
+
+    The employee is filtered for all time, as a terminated employee still has
+    objects tied to them, whereas the objects themselves are filtered from now
+    to infinity: what was active only in the past is history, and history does
+    not stand in the way of a purge.
+
+    The `filter`, `limit` and `cursor` parameters are stripped, since a purge
+    concerns every object in the way, leaving nothing for the caller to narrow.
+
+    Args:
+        resolver: The top-level resolver of the related objects.
+        model: The read-model the related objects are loaded into.
+        relation: Name of the resolver's filter field naming the employee.
+        remove_parameters: Extra parameters to strip, besides the three above.
+
+    Returns:
+        A resolver returning the active related objects as responses.
+    """
+    return to_response_list(model)(
+        strip_args(
+            seed_resolver(
+                resolver,
+                {
+                    relation: lambda root: EmployeeFilter(
+                        uuids=[root.uuid],
+                        from_date=None,
+                        to_date=None,
+                    ),
+                    "from_date": lambda root: util.now(),
+                    "to_date": lambda root: None,
+                },
+            ),
+            {"filter", "limit", "cursor"} | (remove_parameters or set()),
+        )
+    )
+
+
+@strawberry.type(
+    description=dedent(
+        """
+        The outcome of purging an employee.
+
+        An employee can only be purged once nothing is tied to them anymore,
+        that is once every object below has been terminated. Each field holds
+        the objects that are active now or become active in the future, and
+        thus the objects standing in the way of the purge.
+        """
+    )
+)
+class EmployeePurge:
+    uuid: UUID = strawberry.field(description="UUID of the employee.")
+
+    addresses_response: list[Response[LazyAddress]] = strawberry.field(
+        resolver=active(address_resolver, AddressRead),
+        description="Active addresses of the employee.",
+    )
+
+    associations_response: list[Response[LazyAssociation]] = strawberry.field(
+        resolver=active(association_resolver, AssociationRead),
+        description="Active associations of the employee.",
+    )
+
+    engagements_response: list[Response[LazyEngagement]] = strawberry.field(
+        resolver=active(engagement_resolver, EngagementRead),
+        description="Active engagements of the employee.",
+    )
+
+    itusers_response: list[Response[LazyITUser]] = strawberry.field(
+        resolver=active(it_user_resolver, ITUserRead),
+        description="Active IT accounts of the employee.",
+    )
+
+    leaves_response: list[Response[LazyLeave]] = strawberry.field(
+        resolver=active(leave_resolver, LeaveRead),
+        description="Active leaves of absence of the employee.",
+    )
+
+    manager_roles_response: list[Response[LazyManager]] = strawberry.field(
+        # Inheritance walks the organisation tree for a manager elsewhere, who
+        # is never this employee, and thus never in the way of their purge.
+        resolver=active(manager_resolver, ManagerRead, remove_parameters={"inherit"}),
+        description="Active managerial roles of the employee.",
+    )
+
+    owners_response: list[Response[LazyOwner]] = strawberry.field(
+        resolver=active(owner_resolver, OwnerRead),
+        description="Active owner roles naming the employee as the owned party.",
+    )
+
+    ownerships_response: list[Response[LazyOwner]] = strawberry.field(
+        resolver=active(owner_resolver, OwnerRead, relation="owner"),
+        description="Active owner roles naming the employee as the owner.",
+    )

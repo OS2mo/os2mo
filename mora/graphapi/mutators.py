@@ -55,6 +55,7 @@ from .collections import Address
 from .collections import Association
 from .collections import Class
 from .collections import Employee
+from .collections import EmployeePurge
 from .collections import Engagement
 from .collections import Facet
 from .collections import ITSystem
@@ -520,6 +521,24 @@ class Mutation:
     )
     async def employee_delete(self, uuid: UUID) -> Response[Employee]:
         return uuid2response(await delete_bruger(uuid), EmployeeRead)
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Purges an employee and everything tied to them.
+
+            An employee can only be purged once nothing is tied to them
+            anymore. If anything still is, the purge is refused and the
+            objects in the way are returned.
+
+            **Warning**:
+            Not implemented; nothing is purged yet. Only the verdict and the
+            objects in the way of the purge are returned.
+            """
+        ),
+    )
+    async def employee_purge(self, uuid: UUID) -> EmployeePurge:
+        return EmployeePurge(uuid=uuid)
 
     @strawberry.mutation(
         description="Refresh employees.",

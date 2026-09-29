@@ -1169,8 +1169,12 @@ def employee_update(graphapi_post: GraphAPIPost) -> Callable[[UUID | str], GQLRe
 def create_manager(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
-) -> Callable[[UUID, UUID | None], UUID]:
-    def inner(org_unit: UUID, person: UUID | None = None) -> UUID:
+) -> Callable[..., UUID]:
+    def inner(
+        org_unit: UUID,
+        person: UUID | None = None,
+        validity: dict[str, Any] | None = None,
+    ) -> UUID:
         mutate_query = """
             mutation CreateManager($input: ManagerCreateInput!) {
                 manager_create(input: $input) {
@@ -1187,7 +1191,7 @@ def create_manager(
                     "responsibility": [],
                     "org_unit": str(org_unit),
                     "person": str(person) if person else None,
-                    "validity": {"from": "1970-01-01T00:00:00Z"},
+                    "validity": validity or {"from": "1970-01-01T00:00:00Z"},
                 }
             },
         )

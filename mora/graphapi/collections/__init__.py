@@ -8,6 +8,7 @@ from .address import ResolvedAddress
 from .association import Association
 from .classes import Class
 from .employee import Employee
+from .employee import EmployeePurge
 from .engagement import Engagement
 from .facet import Facet
 from .file import File
@@ -36,6 +37,7 @@ __all__ = [
     "Health",
     "Version",
     "Employee",
+    "EmployeePurge",
     "Engagement",
     "Facet",
     "ITSystem",
