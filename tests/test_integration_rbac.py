@@ -106,6 +106,18 @@ def classes(
 
 
 @pytest.fixture
+def hum_unit(
+    create_org_unit: Callable[..., UUID],
+    make_owner: Callable[..., None],
+    alice: UUID,
+) -> UUID:
+    """Humanistisk fakultet, owned by Alice."""
+    unit = create_org_unit("hum", validity={"from": "2016-01-01"})
+    make_owner(alice, org_unit=unit)
+    return unit
+
+
+@pytest.fixture
 def root_unit(create_org_unit: Callable[..., UUID]) -> UUID:
     """A parent nobody owns."""
     return create_org_unit("root")
@@ -248,19 +260,21 @@ def test_create_top_level_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
         (None, None, HTTP_403_FORBIDDEN),
-        (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-        (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
-        (ADMIN, FEDTMULE, HTTP_200_OK),
+        (OWNER, "bob", HTTP_403_FORBIDDEN),
+        (OWNER, "alice", HTTP_403_FORBIDDEN),
+        (ADMIN, "bob", HTTP_200_OK),
     ],
 )
 def test_rename_org_unit(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
+    users: dict[str | None, UUID | None],
+    hum_unit: UUID,
     role: str,
     userid: str,
     status_code: int,
@@ -273,17 +287,17 @@ def test_rename_org_unit(
     4) User with the admin role
 
     :param role: the role of the user
-    :param userid: the UUID of the user
+    :param userid: the user, see `users`
     :param status_code: the expected HTTP status code
     """
-    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, users[userid])
 
     # Payload for renaming Humanistisk Fakultet
     payload = {
         "type": "org_unit",
         "data": {
             "name": "New name",
-            "uuid": HUM_UNIT,
+            "uuid": str(hum_unit),
             "clamp": True,
             "validity": {"from": "2021-07-28"},
         },
