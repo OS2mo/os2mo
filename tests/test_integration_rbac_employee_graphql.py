@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 
 import pytest
 
@@ -14,6 +15,8 @@ FEDTMULE = "6ee24785-ee9a-4502-81c2-7697009c9053"
 LIS_JENSEN = "7626ad64-327d-481f-8b32-36c78eb12f8c"
 ERIK_SMIDT_HANSEN = "236e0a78-11a0-4ed9-8545-6286bb8611c7"
 
+Login = Callable[[str | None, str | None], None]
+
 
 parametrize_roles = (
     "role, userid, success",
@@ -22,13 +25,25 @@ parametrize_roles = (
         # 1) Normal user (no roles set)
         (None, None, False),
         # 2) User with the owner role, but not owner of the relevant entity
-        (OWNER, FEDTMULE, False),
+        (OWNER, "bob", False),
         # 3) User with the owner role and owner of the relative entity
-        (OWNER, ANDERS_AND, True),
+        (OWNER, "alice", True),
         # 4) User with the admin role
-        (ADMIN, FEDTMULE, True),
+        (ADMIN, "bob", True),
     ],
 )
+
+
+@pytest.fixture
+def sample_login(set_auth: SetAuth) -> Login:
+    """Set the token of `role` for the user named by `userid`, in the sample
+    data: Anders And plays Alice, the owner, and Fedtmule plays Bob."""
+    users = {"alice": ANDERS_AND, "bob": FEDTMULE}
+
+    def inner(role: str | None, userid: str | None) -> None:
+        set_auth(role, users[userid] if userid is not None else None)
+
+    return inner
 
 
 @pytest.fixture
@@ -157,13 +172,13 @@ def test_create_employee(
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_creating_detail_address(
-    set_auth: SetAuth,
+    sample_login: Login,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    sample_login(role, userid)
 
     # Payload for creating detail (phone number) on employee
     input = {
@@ -226,13 +241,13 @@ def test_success_when_creating_it_system_detail_as_owner_of_employee(
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_employment(
-    set_auth: SetAuth,
+    sample_login: Login,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    sample_login(role, userid)
 
     input = {
         "person": LIS_JENSEN,
@@ -261,13 +276,13 @@ def test_create_employment(
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_association(
-    set_auth: SetAuth,
+    sample_login: Login,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    sample_login(role, userid)
 
     input = {
         "person": LIS_JENSEN,
@@ -295,13 +310,13 @@ def test_create_association(
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_manager(
-    set_auth: SetAuth,
+    sample_login: Login,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    sample_login(role, userid)
 
     input = {
         "person": LIS_JENSEN,
@@ -331,13 +346,13 @@ def test_create_manager(
 @pytest.mark.usefixtures("fixture_db", "create_erik_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_leave(
-    set_auth: SetAuth,
+    sample_login: Login,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    sample_login(role, userid)
 
     input = {
         "person": ERIK_SMIDT_HANSEN,
@@ -365,13 +380,13 @@ def test_create_leave(
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_edit_address(
-    set_auth: SetAuth,
+    sample_login: Login,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    sample_login(role, userid)
 
     input = {
         "uuid": "64ea02e2-8469-4c54-a523-3d46729e86a7",
@@ -401,13 +416,13 @@ def test_edit_address(
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_edit_association(
-    set_auth: SetAuth,
+    sample_login: Login,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    sample_login(role, userid)
 
     input = {
         "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
@@ -436,13 +451,13 @@ def test_edit_association(
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_edit_engagement(
-    set_auth: SetAuth,
+    sample_login: Login,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    sample_login(role, userid)
 
     input = {
         "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
@@ -473,13 +488,13 @@ def test_edit_engagement(
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_edit_manager(
-    set_auth: SetAuth,
+    sample_login: Login,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    sample_login(role, userid)
 
     input = {
         "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
@@ -517,14 +532,14 @@ def test_edit_manager(
 )
 @pytest.mark.parametrize(*parametrize_roles)
 def test_terminate_details(
-    set_auth: SetAuth,
+    sample_login: Login,
     graphapi_post: GraphAPIPost,
     mutation: str,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    sample_login(role, userid)
     r = graphapi_post(mutation)
     if success:
         assert r.errors is None
@@ -536,13 +551,13 @@ def test_terminate_details(
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_terminate_employee(
-    set_auth: SetAuth,
+    sample_login: Login,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    sample_login(role, userid)
     input = {
         "uuid": LIS_JENSEN,
         "to": "2021-08-17",
