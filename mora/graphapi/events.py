@@ -96,6 +96,29 @@ class ListenerFilter:
         return clauses
 
 
+@strawberry.input(description="Event creation time filter.")
+class EventCreatedAtFilter:
+    start: datetime | None = strawberry.field(
+        default=None,
+        description="Only match events created at or after this time.",
+    )
+    end: datetime | None = strawberry.field(
+        default=None,
+        description="Only match events created before this time.",
+    )
+
+    def where_clauses(self: "EventCreatedAtFilter") -> list[ColumnElement[bool]]:
+        clauses: list[ColumnElement] = []
+
+        if self.start is not None:
+            clauses.append(db.Event.created_at >= self.start)
+
+        if self.end is not None:
+            clauses.append(db.Event.created_at < self.end)
+
+        return clauses
+
+
 @strawberry.input(description="Event filter.")
 class FullEventFilter:
     listeners: ListenerFilter | None = None
@@ -104,6 +127,10 @@ class FullEventFilter:
     silenced: bool | None = strawberry.field(
         default=None,
         description="Filter based on silence status.",
+    )
+    created_at: EventCreatedAtFilter | None = strawberry.field(
+        default=None,
+        description="Filter based on creation time.",
     )
 
 
@@ -137,6 +164,9 @@ async def full_event_resolver(
 
     if filter.silenced is not None:
         clauses.append(db.Event.silenced == filter.silenced)
+
+    if filter.created_at is not None:
+        clauses.extend(filter.created_at.where_clauses())
 
     # Pagination
     query = select(db.Event.pk).where(*clauses).order_by(db.Event.pk)
