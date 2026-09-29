@@ -18,13 +18,6 @@ from tests.conftest import assert_granted
 
 # Users
 ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-FEDTMULE = "6ee24785-ee9a-4502-81c2-7697009c9053"
-
-# Org units
-ROOT_UNIT = "2874e1dc-85e6-4269-823a-e1125484dfd3"
-HUM_UNIT = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-FILOSOFISK_INSTITUT = "85715fc7-925d-401b-822d-467eb4b163b6"
-SOCIAL_OG_SUNDHED = "68c5d78e-ae26-441f-a143-0103eca8b62a"
 
 # IT systems
 ACTIVE_DIRECTORY = UUID("59c135c9-2b15-41cc-97c8-b5dff7180beb")
@@ -645,54 +638,36 @@ def test_owner_of_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "origin,destinations,success",
     [
         # owner of origin and owner of all destinations
-        (HUM_UNIT, [FILOSOFISK_INSTITUT], True),
+        ("hum", ["filosofisk"], True),
         # owner of origin but not owner of all destinations
-        (HUM_UNIT, [FILOSOFISK_INSTITUT, ROOT_UNIT], True),
+        ("hum", ["filosofisk", "root"], True),
         # not owner of origin but owner of all destinations
-        (ROOT_UNIT, [FILOSOFISK_INSTITUT], False),
+        ("root", ["filosofisk"], False),
         # not owner of origin and not owner of all destinations
-        (ROOT_UNIT, [SOCIAL_OG_SUNDHED], False),
+        ("root", ["social"], False),
     ],
 )
 def test_related(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    alice: UUID,
+    units: dict[str, UUID],
     origin: str,
     destinations: list[str],
     success: bool,
 ) -> None:
-    # We need a second org unit ANDERS_AND owns since we cannot relate an org unit with
-    # itself; Make ANDERS_AND owner of FILOSOFISK_INSTITUT.
-    set_auth(ADMIN, FEDTMULE)
-    owner = {
-        "owner": ANDERS_AND,
-        "org_unit": FILOSOFISK_INSTITUT,
-        "validity": {"from": "2020-01-01"},
-    }
-    r1 = graphapi_post(
-        """
-        mutation OwnerCreate($input: OwnerCreateInput!) {
-          owner_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=owner),
-    )
-    assert r1.errors is None
-
-    set_auth(OWNER, ANDERS_AND)
+    set_auth(OWNER, alice)
     input = {
-        "origin": origin,
-        "destination": destinations,
+        "origin": units[origin],
+        "destination": [units[d] for d in destinations],
         "validity": {"from": "2020-01-01"},
     }
-    r2 = graphapi_post(
+    r = graphapi_post(
         """
         mutation RelateUnits($input: RelatedUnitsUpdateInput!) {
           related_units_update(input: $input) {
@@ -700,12 +675,12 @@ def test_related(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r2.errors is None
+        assert_granted(r)
     else:
-        assert r2.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
