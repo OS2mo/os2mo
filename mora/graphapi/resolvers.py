@@ -1769,7 +1769,7 @@ def manager_predicate(
                 uuid_shortcircuit(
                     primary_filter,
                     select(KlasseRegistrering.klasse_id).where(
-                        class_predicate(info, primary_filter)
+                        class_predicate(settings, version, primary_filter)
                     ),
                 )
             ),
