@@ -612,24 +612,31 @@ def test_edit_engagement(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_bob", "bob_owns_alice")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_edit_manager(
-    sample_login: Login,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    create_manager: Callable[..., UUID],
+    alice: UUID,
+    unit: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    sample_login(role, userid)
+    # Alice is herself the manager of the unit she owns. Bob owns the manager
+    # through its person, Alice, but not the unit the update names, so that
+    # unit is what denies him
+    manager = create_manager(unit, alice, {"from": "2020-01-01"})
+    login(role, userid)
 
     input = {
-        "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
-        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-        "responsibility": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-        "manager_type": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
-        "manager_level": "991915c0-f4f4-4337-95fa-dbeb9da13247",
-        "person": ANDERS_AND,
+        "uuid": manager,
+        "org_unit": unit,
+        "responsibility": uuid4(),
+        "manager_type": uuid4(),
+        "manager_level": uuid4(),
+        "person": alice,
         "validity": {"from": "2021-08-25"},
     }
     r = graphapi_post(
@@ -640,12 +647,12 @@ def test_edit_manager(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
