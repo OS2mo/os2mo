@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
+from uuid import UUID
 
 import pytest
 
@@ -8,6 +9,8 @@ from mora.mapping import ADMIN
 from mora.mapping import OWNER
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
+from tests.conftest import assert_denied
+from tests.conftest import assert_granted
 
 # Users
 ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -32,6 +35,17 @@ parametrize_roles = (
         (ADMIN, "bob", True),
     ],
 )
+
+
+@pytest.fixture
+def login(set_auth: SetAuth, alice: UUID, bob: UUID) -> Login:
+    """Set the token of `role` for the user named by `userid`."""
+    users = {"alice": alice, "bob": bob}
+
+    def inner(role: str | None, userid: str | None) -> None:
+        set_auth(role, users[userid] if userid is not None else None)
+
+    return inner
 
 
 @pytest.fixture
@@ -125,7 +139,7 @@ async def create_erik_owner(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "role, userid, success",
     # Test of write access for the following cases:
@@ -133,19 +147,19 @@ async def create_erik_owner(
         # 1) Normal user (no roles set)
         (None, None, False),
         # 2) User with owner role
-        (OWNER, ANDERS_AND, False),
+        (OWNER, "alice", False),
         # 3) User with the admin role
-        (ADMIN, ANDERS_AND, True),
+        (ADMIN, "alice", True),
     ],
 )
 def test_create_employee(
-    set_auth: SetAuth,
+    login: Login,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    set_auth(role, userid)
+    login(role, userid)
     input = {
         "given_name": "Mickey",
         "surname": "Mouse",
@@ -163,9 +177,9 @@ def test_create_employee(
         variables=dict(input=input),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
