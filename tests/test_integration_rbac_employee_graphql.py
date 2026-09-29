@@ -86,6 +86,11 @@ def alice_owns_carol(alice: UUID, carol: UUID, make_owner: Callable[..., None]) 
 
 
 @pytest.fixture
+def alice_owns_bob(alice: UUID, bob: UUID, make_owner: Callable[..., None]) -> None:
+    make_owner(alice, person=bob)
+
+
+@pytest.fixture
 def address_type(
     create_facet: Callable[[dict[str, Any]], UUID],
     create_class: Callable[[dict[str, Any]], UUID],
@@ -351,21 +356,23 @@ def test_create_employment(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_bob")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_association(
-    sample_login: Login,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    carol: UUID,
+    unit: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    sample_login(role, userid)
+    login(role, userid)
 
     input = {
-        "person": LIS_JENSEN,
-        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-        "association_type": "62ec821f-4179-4758-bfdf-134529d186e9",
+        "person": carol,
+        "org_unit": unit,
+        "association_type": uuid4(),
         "validity": {"from": "2021-08-11"},
     }
     r = graphapi_post(
@@ -376,12 +383,12 @@ def test_create_association(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
