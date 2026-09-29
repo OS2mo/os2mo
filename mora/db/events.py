@@ -7,6 +7,7 @@ import sqlalchemy
 from prometheus_client import Counter
 from prometheus_client import Gauge
 from prometheus_fastapi_instrumentator import Instrumentator
+from sqlalchemy import DateTime
 from sqlalchemy import ForeignKey
 from sqlalchemy import UniqueConstraint
 from sqlalchemy import func
@@ -107,7 +108,7 @@ class Event(Base):
     last_tried: Mapped[datetime]
     fetched_count: Mapped[int]
     silenced: Mapped[bool]
-    created_at: Mapped[datetime]
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
     listener_fk: Mapped[UUID] = mapped_column(ForeignKey("event_listener.pk"))
     listener: Mapped[Listener] = relationship(back_populates="events")

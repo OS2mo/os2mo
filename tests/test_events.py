@@ -3,8 +3,10 @@
 import concurrent.futures
 import random
 from collections.abc import Callable
+from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
+from datetime import timezone
 from typing import Any
 from unittest.mock import ANY
 from uuid import UUID
@@ -12,10 +14,12 @@ from uuid import uuid4
 
 import pytest
 from more_itertools import one
+from sqlalchemy import text
 
 from mora.db.events import DEFAULT_PRIORITY
 from mora.mapping import ADMIN
 from tests.conftest import BRUCE_UUID
+from tests.conftest import AnotherTransaction
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
@@ -197,10 +201,12 @@ def get_listeners(
     return response.data["event_listeners"]["objects"]
 
 
-def get_events(graphapi_post: GraphAPIPost) -> list[dict[str, Any]]:
+def get_events(
+    graphapi_post: GraphAPIPost, filter: dict | None = None
+) -> list[dict[str, Any]]:
     query = """
-      query GetEvents {
-        events {
+      query GetEvents($filter: FullEventFilter) {
+        events(filter: $filter) {
           objects {
             priority
             silenced
@@ -209,7 +215,7 @@ def get_events(graphapi_post: GraphAPIPost) -> list[dict[str, Any]]:
         }
       }
     """
-    response = graphapi_post(query)
+    response = graphapi_post(query, variables={"filter": filter})
     assert response.errors is None
     assert response.data
     return response.data["events"]["objects"]
@@ -273,6 +279,16 @@ def rerun_event(
     assert response.errors is None
     assert response.data
     return response.data["event_rerun"]
+
+
+async def set_created_at(
+    another_transaction: AnotherTransaction, subject: str, created_at: datetime
+) -> None:
+    async with another_transaction() as (_, session):
+        await session.execute(
+            text("update event set created_at = :created_at where subject = :subject"),
+            {"created_at": created_at, "subject": subject},
+        )
 
 
 @pytest.fixture
@@ -772,6 +788,76 @@ def test_created_at(namespace: str, graphapi_post: GraphAPIPost) -> None:
     assert event["subject"] == "alice"
     created_at = datetime.fromisoformat(event["created_at"])
     assert datetime.now(tz=created_at.tzinfo) - created_at < timedelta(minutes=1)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+@pytest.mark.parametrize(
+    "created_at,expected",
+    [
+        # No bounds
+        ({}, {"alice", "bob", "charlie"}),
+        # The start is inclusive and the end is exclusive
+        ({"start": "2024-02-01T00:00:00+00:00"}, {"bob", "charlie"}),
+        ({"end": "2024-02-01T00:00:00+00:00"}, {"alice"}),
+        (
+            {
+                "start": "2024-02-01T00:00:00+00:00",
+                "end": "2024-03-01T00:00:00+00:00",
+            },
+            {"bob"},
+        ),
+        # Without an offset, times are in Copenhagen time, where bob was
+        # created at 01:00
+        ({"end": "2024-02-01T00:30:00"}, {"alice"}),
+    ],
+)
+async def test_created_at_filter(
+    namespace: str,
+    graphapi_post: GraphAPIPost,
+    another_transaction: AnotherTransaction,
+    created_at: dict[str, str],
+    expected: set[str],
+) -> None:
+    declare_listener(graphapi_post, namespace, "uk", "rk")
+    for subject, timestamp in (
+        ("alice", datetime(2024, 1, 1, tzinfo=UTC)),
+        ("bob", datetime(2024, 2, 1, tzinfo=UTC)),
+        ("charlie", datetime(2024, 3, 1, tzinfo=UTC)),
+    ):
+        send_event(graphapi_post, namespace, "rk", subject)
+        await set_created_at(another_transaction, subject, timestamp)
+
+    events = get_events(graphapi_post, {"created_at": created_at})
+    assert {e["subject"] for e in events} == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_created_at_filter_dst(
+    namespace: str,
+    graphapi_post: GraphAPIPost,
+    another_transaction: AnotherTransaction,
+) -> None:
+    """Bounds are compared as instants, not as wall clock times.
+
+    Summer time ends on 2026-10-25, when the clocks are turned back from 03:00
+    CEST to 02:00 CET. The bob event is created half an hour after the end
+    bound, although at an earlier wall clock time.
+    """
+    cest = timezone(timedelta(hours=2))
+    cet = timezone(timedelta(hours=1))
+    declare_listener(graphapi_post, namespace, "uk", "rk")
+    for subject, timestamp in (
+        ("alice", datetime(2026, 10, 25, 2, 15, tzinfo=cest)),
+        ("bob", datetime(2026, 10, 25, 2, 0, tzinfo=cet)),
+    ):
+        send_event(graphapi_post, namespace, "rk", subject)
+        await set_created_at(another_transaction, subject, timestamp)
+
+    end = datetime(2026, 10, 25, 2, 30, tzinfo=cest)
+    events = get_events(graphapi_post, {"created_at": {"end": end.isoformat()}})
+    assert {e["subject"] for e in events} == {"alice"}
 
 
 @pytest.mark.integration_test
