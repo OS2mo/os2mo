@@ -17,13 +17,6 @@ from mora.auth.keycloak.oidc import fetch_token
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
 
-# Users
-ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-FEDTMULE = "6ee24785-ee9a-4502-81c2-7697009c9053"
-
-# Org units
-HUM_UNIT = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-
 
 def mock_auth(
     role: str | None = None, user_uuid: UUID | str | None = None
@@ -431,20 +424,43 @@ def address_create_payload(
     return payload
 
 
+@pytest.fixture
+def tlf_hum(
+    create_address: Callable[[dict[str, Any]], UUID],
+    classes: dict[str, UUID],
+    hum_unit: UUID,
+) -> UUID:
+    """The phone number of Humanistisk fakultet."""
+    return create_address(
+        {
+            "user_key": "8715 0000",
+            "address_type": str(classes["telefon"]),
+            "org_unit": str(hum_unit),
+            "value": "+4587150000",
+            "validity": {"from": "2016-01-01"},
+        }
+    )
+
+
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
         (None, None, HTTP_403_FORBIDDEN),
-        (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-        (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
-        (ADMIN, FEDTMULE, HTTP_200_OK),
+        (OWNER, "bob", HTTP_403_FORBIDDEN),
+        (OWNER, "alice", HTTP_403_FORBIDDEN),
+        (ADMIN, "bob", HTTP_200_OK),
     ],
 )
 def test_edit_detail(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
+    users: dict[str | None, UUID | None],
+    root_org: UUID,
+    classes: dict[str, UUID],
+    hum_unit: UUID,
+    tlf_hum: UUID,
     role: str,
     userid: str,
     status_code: int,
@@ -457,21 +473,21 @@ def test_edit_detail(
     4) User with the admin role
 
     :param role: the role of the user
-    :param userid: the UUID of the user
+    :param userid: the user, see `users`
     :param status_code: the expected HTTP status code
     """
-    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, users[userid])
 
     # Payload for editing detail (phone number) on org unit (hum)
     payload = {
         "type": "address",
-        "uuid": "55848eca-4e9e-4f30-954b-78d55eec0473",
+        "uuid": str(tlf_hum),
         "data": {
-            "uuid": "55848eca-4e9e-4f30-954b-78d55eec0473",
+            "uuid": str(tlf_hum),
             "user_key": "8715 0000",
             "validity": {"from": "2021-07-29", "to": None},
             "address_type": {
-                "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
+                "uuid": str(classes["telefon"]),
                 "name": "Telefon",
                 "user_key": "OrgEnhedTelefon",
                 "example": "20304060",
@@ -483,7 +499,7 @@ def test_edit_detail(
             "value": "+4587150001",
             "value2": None,
             "visibility": {
-                "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
+                "uuid": str(classes["telefon"]),
                 "name": "Telefon",
                 "user_key": "OrgEnhedTelefon",
                 "example": "20304060",
@@ -493,17 +509,17 @@ def test_edit_detail(
             "org_unit": {
                 "name": "Humanistisk fakultet",
                 "user_key": "hum",
-                "uuid": HUM_UNIT,
+                "uuid": str(hum_unit),
                 "validity": {"from": "2016-01-01", "to": None},
             },
             "type": "address",
             "org": {
                 "name": "Aarhus Universitet",
                 "user_key": "AU",
-                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "uuid": str(root_org),
             },
         },
-        "org_unit": {"uuid": HUM_UNIT},
+        "org_unit": {"uuid": str(hum_unit)},
     }
 
     response = service_client.request("POST", "/service/details/edit", json=payload)
