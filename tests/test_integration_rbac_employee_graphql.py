@@ -1,9 +1,12 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
+from typing import Any
 from uuid import UUID
+from uuid import uuid4
 
 import pytest
+from fastapi.encoders import jsonable_encoder
 
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
@@ -58,6 +61,48 @@ def sample_login(set_auth: SetAuth) -> Login:
         set_auth(role, users[userid] if userid is not None else None)
 
     return inner
+
+
+@pytest.fixture
+def carol(create_person: Callable[[dict[str, Any] | None], UUID]) -> UUID:
+    return create_person({"given_name": "Carol", "surname": "Carlsen"})
+
+
+@pytest.fixture
+def alice_owns_carol(alice: UUID, carol: UUID, make_owner: Callable[..., None]) -> None:
+    make_owner(alice, person=carol)
+
+
+@pytest.fixture
+def address_type(
+    create_facet: Callable[[dict[str, Any]], UUID],
+    create_class: Callable[[dict[str, Any]], UUID],
+) -> Callable[[str], UUID]:
+    """Create an employee address type of the given scope.
+
+    Address mutators read the scope of the type to validate the value.
+    """
+    facet = create_facet(
+        {"user_key": "employee_address_type", "validity": {"from": "1970-01-01"}}
+    )
+
+    def inner(scope: str) -> UUID:
+        return create_class(
+            {
+                "facet_uuid": str(facet),
+                "user_key": scope,
+                "name": scope,
+                "scope": scope,
+                "validity": {"from": "1970-01-01"},
+            }
+        )
+
+    return inner
+
+
+@pytest.fixture
+def phone_type(address_type: Callable[[str], UUID]) -> UUID:
+    return address_type("PHONE")
 
 
 @pytest.fixture
@@ -183,22 +228,24 @@ def test_create_employee(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_carol")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_creating_detail_address(
-    sample_login: Login,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    phone_type: UUID,
+    carol: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    sample_login(role, userid)
+    login(role, userid)
 
     # Payload for creating detail (phone number) on employee
     input = {
-        "address_type": "cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d",
-        "visibility": "f63ad763-0e53-4972-a6a9-63b42a0f8cb7",
-        "employee": LIS_JENSEN,
+        "address_type": phone_type,
+        "visibility": uuid4(),
+        "employee": carol,
         "validity": {"from": "2021-08-04"},
         "value": "12345678",
     }
@@ -210,12 +257,12 @@ def test_creating_detail_address(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
