@@ -146,6 +146,33 @@ def hum_address(
     )
 
 
+@pytest.fixture
+def hum_association(
+    create_association: Callable[[dict[str, Any]], UUID],
+    units: dict[str, UUID],
+    alice: UUID,
+) -> UUID:
+    # Alice's own association with HUM
+    return create_association(
+        {
+            "org_unit": str(units["hum"]),
+            "person": str(alice),
+            "association_type": str(uuid4()),
+            "validity": {"from": "2017-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def hum_manager(
+    create_manager: Callable[..., UUID],
+    units: dict[str, UUID],
+    alice: UUID,
+) -> UUID:
+    # Alice as the manager of HUM
+    return create_manager(units["hum"], alice, validity={"from": "2017-01-01"})
+
+
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
@@ -684,23 +711,29 @@ def test_related(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-@pytest.mark.parametrize(
-    "mutation",
-    [
-        'mutation Terminate {address_terminate(input: {uuid: "55848eca-4e9e-4f30-954b-78d55eec0473", to: "2021-07-16"}) {uuid}}',
-        'mutation Terminate {association_terminate(input: {uuid: "c2153d5d-4a2b-492d-a18c-c498f7bb6221", to: "2021-07-16"}) {uuid}}',
-        'mutation Terminate {manager_terminate(input: {uuid: "05609702-977f-4869-9fb4-50ad74c6999a", to: "2021-07-16"}) {uuid}}',
-    ],
-)
+@pytest.mark.usefixtures("empty_db")
+@pytest.mark.parametrize("detail", ["address", "association", "manager"])
 def test_terminate_x_as_owner_of_unit(
+    request: pytest.FixtureRequest,
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
-    mutation: str,
+    alice: UUID,
+    detail: str,
 ) -> None:
-    set_auth(OWNER, ANDERS_AND)
-    r = graphapi_post(mutation)
-    assert r.errors is None
+    # Each detail sits on HUM, which Alice owns
+    uuid = request.getfixturevalue(f"hum_{detail}")
+    set_auth(OWNER, alice)
+    r = graphapi_post(
+        f"""
+        mutation Terminate($uuid: UUID!) {{
+          {detail}_terminate(input: {{ uuid: $uuid, to: "2021-07-16" }}) {{
+            uuid
+          }}
+        }}
+        """,
+        variables=jsonable_encoder({"uuid": uuid}),
+    )
+    assert_granted(r)
 
 
 @pytest.mark.integration_test
