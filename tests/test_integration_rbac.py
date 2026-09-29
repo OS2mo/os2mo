@@ -3,6 +3,7 @@
 from collections.abc import Callable
 from datetime import datetime
 from typing import Any
+from uuid import UUID
 
 import pytest
 from fastapi import FastAPI
@@ -26,7 +27,7 @@ HUM_UNIT = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
 
 def mock_auth(
-    role: str | None = None, user_uuid: str | None = None
+    role: str | None = None, user_uuid: UUID | str | None = None
 ) -> Callable[[], Token]:
     """
     Create auth for a user with the given role (admin or owner) and the given
@@ -51,7 +52,7 @@ def mock_auth(
         "session_state": "d94f8dc3-d930-49b3-a9dd-9cdc1893b86a",
         "sub": "c420894f-36ba-4cd5-b4f8-1b24bd8c53db",
         "typ": "Bearer",
-        "uuid": user_uuid,
+        "uuid": str(user_uuid) if user_uuid is not None else None,
     }
 
     if role is not None:
@@ -61,6 +62,13 @@ def mock_auth(
         return Token.parse_obj(token)
 
     return fake_auth
+
+
+@pytest.fixture
+def users(alice: UUID, bob: UUID) -> dict[str | None, UUID | None]:
+    """The token user of a case: Alice owns what the fixtures below give her,
+    Bob owns nothing."""
+    return {None: None, "alice": alice, "bob": bob}
 
 
 @pytest.fixture
@@ -243,38 +251,29 @@ def test_rename_org_unit(
 
 @pytest.fixture
 def org_unit_no_details_uuid(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-    create_org_unit_payload: dict[str, Any],
-    org_unit_uuid_1: str,
-) -> str:
-    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(ADMIN, FEDTMULE)
-
-    create_org_unit_payload["details"] = []
-    create_org_unit_payload["parent"]["uuid"] = org_unit_uuid_1
-
-    payload = create_org_unit_payload
-
-    response = service_client.request("POST", "/service/ou/create", json=payload)
-    assert response.status_code == 201
-    return response.json()
+    create_org_unit: Callable[..., UUID],
+    org_unit_uuid_1: UUID,
+) -> UUID:
+    """A child of `org_unit_uuid_1`, so Alice owns it through its parent."""
+    return create_org_unit("child", org_unit_uuid_1)
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
         (None, None, HTTP_403_FORBIDDEN),
-        (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-        (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
-        (ADMIN, FEDTMULE, HTTP_200_OK),
+        (OWNER, "bob", HTTP_403_FORBIDDEN),
+        (OWNER, "alice", HTTP_403_FORBIDDEN),
+        (ADMIN, "bob", HTTP_200_OK),
     ],
 )
 def test_terminate_org_unit(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
-    org_unit_no_details_uuid: str,
+    users: dict[str | None, UUID | None],
+    org_unit_no_details_uuid: UUID,
     role: str,
     userid: str,
     status_code: int,
@@ -287,10 +286,10 @@ def test_terminate_org_unit(
     4) User with the admin role
 
     :param role: the role of the user
-    :param userid: the UUID of the user
+    :param userid: the user, see `users`
     :param status_code: the expected HTTP status code
     """
-    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, users[userid])
 
     # Payload for terminating the newly created org unit
     payload = {"validity": {"to": datetime.today().strftime("%Y-%m-%d")}}
@@ -452,49 +451,11 @@ def test_edit_detail(
 
 @pytest.fixture
 def org_unit_uuid_1(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-    create_org_unit_payload: dict[str, Any],
-) -> str:
-    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(ADMIN, FEDTMULE)
-
-    payload = create_org_unit_payload
-
-    response = service_client.request("POST", "/service/ou/create", json=payload)
-    assert response.status_code == 201
-    org_uuid = response.json()
-
-    create_owner_payload = {
-        "type": "owner",
-        "owner": {
-            "givenname": "Anders",
-            "surname": "And",
-            "name": "Anders And",
-            "nickname_givenname": "Donald",
-            "nickname_surname": "Duck",
-            "nickname": "Donald Duck",
-            "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-            "seniority": None,
-            "cpr_no": "0906340000",
-            "org": {
-                "name": "Aarhus Universitet",
-                "user_key": "AU",
-                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-            },
-            "user_key": "andersand",
-        },
-        "org": {
-            "name": "Aarhus Universitet",
-            "user_key": "AU",
-            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-        },
-        "validity": {"from": "2021-08-03", "to": None},
-        "org_unit": {"uuid": org_uuid},
-    }
-
-    response = service_client.request(
-        "POST", "/service/details/create", json=create_owner_payload
-    )
-    assert response.status_code == 201
-
-    return org_uuid
+    create_org_unit: Callable[..., UUID],
+    make_owner: Callable[..., None],
+    alice: UUID,
+) -> UUID:
+    """A unit owned by Alice."""
+    unit = create_org_unit("parent")
+    make_owner(alice, org_unit=unit)
+    return unit
