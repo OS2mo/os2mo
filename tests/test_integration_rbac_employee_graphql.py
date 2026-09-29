@@ -123,6 +123,24 @@ def phone_type(address_type: Callable[[str], UUID]) -> UUID:
 
 
 @pytest.fixture
+def carols_engagement(
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    carol: UUID,
+    unit: UUID,
+) -> UUID:
+    """An engagement of Carol, in the unit Alice owns."""
+    return create_engagement(
+        {
+            "person": str(carol),
+            "org_unit": str(unit),
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
+            "validity": {"from": "2020-01-01"},
+        }
+    )
+
+
+@pytest.fixture
 async def create_lis_owner(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
@@ -159,32 +177,6 @@ async def create_fedtmule_owner(
     owner = {
         "owner": ANDERS_AND,
         "person": FEDTMULE,
-        "validity": {"from": "2021-08-03"},
-    }
-    r = graphapi_post(
-        """
-        mutation OwnerCreate($input: OwnerCreateInput!) {
-          owner_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=owner),
-    )
-    assert r.errors is None
-
-
-@pytest.fixture
-async def create_erik_owner(
-    set_auth: SetAuth,
-    graphapi_post: GraphAPIPost,
-) -> None:
-    # Let Anders And be the owner of Erik Smidt Hansen
-    set_auth(ADMIN, ANDERS_AND)
-
-    owner = {
-        "owner": ANDERS_AND,
-        "person": ERIK_SMIDT_HANSEN,
         "validity": {"from": "2021-08-03"},
     }
     r = graphapi_post(
@@ -430,21 +422,23 @@ def test_create_manager(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_erik_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_carol")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_leave(
-    sample_login: Login,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    carol: UUID,
+    carols_engagement: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    sample_login(role, userid)
+    login(role, userid)
 
     input = {
-        "person": ERIK_SMIDT_HANSEN,
-        "leave_type": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
-        "engagement": "301a906b-ef51-4d5c-9c77-386fb8410459",
+        "person": carol,
+        "leave_type": uuid4(),
+        "engagement": carols_engagement,
         "validity": {"from": "2021-08-20"},
     }
     r = graphapi_post(
@@ -455,12 +449,12 @@ def test_create_leave(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
