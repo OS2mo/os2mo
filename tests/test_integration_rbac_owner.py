@@ -446,7 +446,7 @@ async def test_multiple_owners_of_org_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 async def test_owner_with_input_list(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
