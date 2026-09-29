@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
+from string import Template
 from typing import Any
 from uuid import UUID
 from uuid import uuid4
@@ -177,32 +178,6 @@ async def create_lis_owner(
     owner = {
         "owner": ANDERS_AND,
         "person": LIS_JENSEN,
-        "validity": {"from": "2021-08-03"},
-    }
-    r = graphapi_post(
-        """
-        mutation OwnerCreate($input: OwnerCreateInput!) {
-          owner_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=owner),
-    )
-    assert r.errors is None
-
-
-@pytest.fixture
-async def create_fedtmule_owner(
-    set_auth: SetAuth,
-    graphapi_post: GraphAPIPost,
-) -> None:
-    # Let Anders And be the owner of Fedtmule
-    set_auth(ADMIN, ANDERS_AND)
-
-    owner = {
-        "owner": ANDERS_AND,
-        "person": FEDTMULE,
         "validity": {"from": "2021-08-03"},
     }
     r = graphapi_post(
@@ -656,29 +631,35 @@ def test_edit_manager(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_bob")
 @pytest.mark.parametrize(
     "mutation",
     [
-        'mutation Terminate {address_terminate(input: {uuid: "64ea02e2-8469-4c54-a523-3d46729e86a7", to: "2021-08-20"}) {uuid}}',
-        'mutation Terminate {engagement_terminate(input: {uuid: "301a906b-ef51-4d5c-9c77-386fb8410459", to: "2021-08-13"}) {uuid}}',
+        'mutation Terminate {address_terminate(input: {uuid: "$address", to: "2021-08-20"}) {uuid}}',
+        'mutation Terminate {engagement_terminate(input: {uuid: "$engagement", to: "2021-08-13"}) {uuid}}',
     ],
 )
 @pytest.mark.parametrize(*parametrize_roles)
 def test_terminate_details(
-    sample_login: Login,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    email_address: UUID,
+    carols_engagement: UUID,
     mutation: str,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    sample_login(role, userid)
-    r = graphapi_post(mutation)
+    login(role, userid)
+    r = graphapi_post(
+        Template(mutation).substitute(
+            address=email_address, engagement=carols_engagement
+        )
+    )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
