@@ -19,7 +19,6 @@ from tests.conftest import assert_granted
 ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 FEDTMULE = "6ee24785-ee9a-4502-81c2-7697009c9053"
 LIS_JENSEN = "7626ad64-327d-481f-8b32-36c78eb12f8c"
-ERIK_SMIDT_HANSEN = "236e0a78-11a0-4ed9-8545-6286bb8611c7"
 
 Login = Callable[[str | None, str | None], None]
 
@@ -573,24 +572,27 @@ def test_edit_association(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_bob")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_edit_engagement(
-    sample_login: Login,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    carol: UUID,
+    unit: UUID,
+    carols_engagement: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    sample_login(role, userid)
+    login(role, userid)
 
     input = {
-        "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
-        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-        "job_function": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-        "engagement_type": "06f95678-166a-455a-a2ab-121a8d92ea23",
-        "primary": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
-        "employee": ERIK_SMIDT_HANSEN,
+        "uuid": carols_engagement,
+        "org_unit": unit,
+        "job_function": uuid4(),
+        "engagement_type": uuid4(),
+        "primary": uuid4(),
+        "employee": carol,
         "validity": {"from": "2021-08-17"},
     }
     r = graphapi_post(
@@ -601,12 +603,12 @@ def test_edit_engagement(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
