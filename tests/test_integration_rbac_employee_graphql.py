@@ -69,6 +69,18 @@ def carol(create_person: Callable[[dict[str, Any] | None], UUID]) -> UUID:
 
 
 @pytest.fixture
+def unit(
+    create_org_unit: Callable[..., UUID],
+    alice: UUID,
+    make_owner: Callable[..., None],
+) -> UUID:
+    """An org unit Alice owns."""
+    unit = create_org_unit("unit")
+    make_owner(alice, org_unit=unit)
+    return unit
+
+
+@pytest.fixture
 def alice_owns_carol(alice: UUID, carol: UUID, make_owner: Callable[..., None]) -> None:
     make_owner(alice, person=carol)
 
@@ -302,22 +314,24 @@ def test_success_when_creating_it_system_detail_as_owner_of_employee(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_carol")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_employment(
-    sample_login: Login,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    carol: UUID,
+    unit: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    sample_login(role, userid)
+    login(role, userid)
 
     input = {
-        "person": LIS_JENSEN,
-        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-        "engagement_type": "06f95678-166a-455a-a2ab-121a8d92ea23",
-        "job_function": "f42dd694-f1fd-42a6-8a97-38777b73adc4",
+        "person": carol,
+        "org_unit": unit,
+        "engagement_type": uuid4(),
+        "job_function": uuid4(),
         "validity": {"from": "2021-08-11"},
     }
     r = graphapi_post(
@@ -328,12 +342,12 @@ def test_create_employment(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
