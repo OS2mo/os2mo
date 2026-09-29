@@ -236,7 +236,7 @@ def update_rolebinding(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 async def test_create_engagement(
     set_auth: SetAuth,
     create_person: CreatePerson,
