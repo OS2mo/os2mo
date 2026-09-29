@@ -16,11 +16,6 @@ from tests.conftest import SetAuth
 from tests.conftest import assert_denied
 from tests.conftest import assert_granted
 
-# Users
-ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-FEDTMULE = "6ee24785-ee9a-4502-81c2-7697009c9053"
-LIS_JENSEN = "7626ad64-327d-481f-8b32-36c78eb12f8c"
-
 Login = Callable[[str | None, str | None], None]
 
 
@@ -44,18 +39,6 @@ parametrize_roles = (
 def login(set_auth: SetAuth, alice: UUID, bob: UUID) -> Login:
     """Set the token of `role` for the user named by `userid`."""
     users = {"alice": alice, "bob": bob}
-
-    def inner(role: str | None, userid: str | None) -> None:
-        set_auth(role, users[userid] if userid is not None else None)
-
-    return inner
-
-
-@pytest.fixture
-def sample_login(set_auth: SetAuth) -> Login:
-    """Set the token of `role` for the user named by `userid`, in the sample
-    data: Anders And plays Alice, the owner, and Fedtmule plays Bob."""
-    users = {"alice": ANDERS_AND, "bob": FEDTMULE}
 
     def inner(role: str | None, userid: str | None) -> None:
         set_auth(role, users[userid] if userid is not None else None)
@@ -165,32 +148,6 @@ def carols_engagement(
             "validity": {"from": "2020-01-01"},
         }
     )
-
-
-@pytest.fixture
-async def create_lis_owner(
-    set_auth: SetAuth,
-    graphapi_post: GraphAPIPost,
-) -> None:
-    # Let Anders And be the owner of Lis Jensen
-    set_auth(ADMIN, ANDERS_AND)
-
-    owner = {
-        "owner": ANDERS_AND,
-        "person": LIS_JENSEN,
-        "validity": {"from": "2021-08-03"},
-    }
-    r = graphapi_post(
-        """
-        mutation OwnerCreate($input: OwnerCreateInput!) {
-          owner_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=owner),
-    )
-    assert r.errors is None
 
 
 @pytest.mark.integration_test
@@ -663,18 +620,19 @@ def test_terminate_details(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_carol")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_terminate_employee(
-    sample_login: Login,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    carol: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    sample_login(role, userid)
+    login(role, userid)
     input = {
-        "uuid": LIS_JENSEN,
+        "uuid": carol,
         "to": "2021-08-17",
     }
     r = graphapi_post(
@@ -685,9 +643,9 @@ def test_terminate_employee(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
