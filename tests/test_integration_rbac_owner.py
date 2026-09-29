@@ -266,7 +266,7 @@ async def test_create_engagement(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 async def test_update_engagement(
     set_auth: SetAuth,
     create_person: CreatePerson,
