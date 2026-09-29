@@ -392,23 +392,25 @@ def test_create_association(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_bob")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_manager(
-    sample_login: Login,
+    login: Login,
     graphapi_post: GraphAPIPost,
+    carol: UUID,
+    unit: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
-    sample_login(role, userid)
+    login(role, userid)
 
     input = {
-        "person": LIS_JENSEN,
-        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-        "manager_type": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
-        "manager_level": "3c791935-2cfa-46b5-a12e-66f7f54e70fe",
-        "responsibility": "93ea44f9-127c-4465-a34c-77d149e3e928",
+        "person": carol,
+        "org_unit": unit,
+        "manager_type": uuid4(),
+        "manager_level": uuid4(),
+        "responsibility": uuid4(),
         "validity": {"from": "2021-08-11"},
     }
     r = graphapi_post(
@@ -419,12 +421,12 @@ def test_create_manager(
           }
         }
         """,
-        variables=dict(input=input),
+        variables=jsonable_encoder(dict(input=input)),
     )
     if success:
-        assert r.errors is None
+        assert_granted(r)
     else:
-        assert r.errors is not None
+        assert_denied(r)
 
 
 @pytest.mark.integration_test
