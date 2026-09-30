@@ -2,7 +2,7 @@
 
 Magenta kan levere drift af OS2mo på følgende tre måder:
 
-* SaaS (Magentas Azure)
+* SaaS (Magentas Hetzner)
 * Privat Cloud (jeres Azure)
 * On-prem på VM'er
 
