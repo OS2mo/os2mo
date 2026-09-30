@@ -75,6 +75,7 @@ Når man skal finde ud af, hvilke ændringer, der er foretaget, skal man blot fi
 | Manager engagement elevator | e1e7a104-baad-c0de-656c-657661746f72 |
 | Manager Sync                | 5d05711c-baad-c0de-7364-206d616e6167 |
 | Manager Terminator          | 3aca9ef1-baad-c0de-6d61-6e6167657274 |
+| Nexus                       | 11e80500-baad-c0de-0000-006e65787573 |
 | Omada                       | 0111ada0-baad-c0de-0000-006f6d616461 |
 | Orggatekeeper               | ca1e4ee9-baad-c0de-6761-74656b656570 |
 | Orgviewer (ADM)             | 04c71e7a-baad-c0de-6f72-677669657761 |
