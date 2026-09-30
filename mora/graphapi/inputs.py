@@ -540,7 +540,7 @@ class ManagerUpdateInput:
     org_unit: UUID | None = None
     manager_type: UUID | None = None
     manager_level: UUID | None = None
-    primary: UUID | None = None
+    primary: UUID | None = UNSET
 
     def to_pydantic(self) -> ManagerUpdate:
         kwargs = {
@@ -552,12 +552,15 @@ class ManagerUpdateInput:
             "org_unit": self.org_unit,
             "manager_type": self.manager_type,
             "manager_level": self.manager_level,
-            "primary": self.primary,
         }
 
-        # ONLY engagement is passed conditionally to support PATCH semantics
+        # ONLY engagement and primary are passed conditionally to support PATCH
+        # semantics, i.e. to tell an omitted field apart from an explicit null,
+        # the latter unsetting the relation.
         if self.engagement is not UNSET:
             kwargs["engagement"] = self.engagement
+        if self.primary is not UNSET:
+            kwargs["primary"] = self.primary
 
         return ManagerUpdate(**kwargs)
 
