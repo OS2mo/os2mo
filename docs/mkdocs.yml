@@ -49,7 +49,6 @@ nav:
       - moaas/index.md
       - moaas/cloud.md
       - moaas/on-prem.md
-      - moaas/implementeringsguide.md
   - Teknisk dokumentation:
       # - Understanding bitemporality: TODO
       - tech-docs/architecture.md
