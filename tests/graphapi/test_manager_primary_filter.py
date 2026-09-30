@@ -170,6 +170,127 @@ def test_manager_update_primary(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
+def test_manager_unset_primary(
+    graphapi_post: GraphAPIPost,
+    read_manager_primary: Callable[[UUID], list[dict[str, Any]]],
+    create_manager_raw: Callable[[dict[str, Any]], UUID],
+    create_org_unit: Callable[..., UUID],
+    primary_class: UUID,
+    person: UUID,
+) -> None:
+    """An explicit `primary: null` unsets the primary class."""
+    # Arrange
+    org_unit = create_org_unit("root")
+    manager_uuid = create_manager_raw(
+        {
+            "manager_level": str(uuid4()),
+            "manager_type": str(uuid4()),
+            "responsibility": [],
+            "org_unit": str(org_unit),
+            "person": str(person),
+            "primary": str(primary_class),
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+
+    # Act
+    update_response = graphapi_post(
+        """
+        mutation UpdateManager($input: ManagerUpdateInput!) {
+            manager_update(input: $input) {
+                uuid
+            }
+        }
+        """,
+        {
+            "input": {
+                "uuid": str(manager_uuid),
+                "primary": None,
+                "validity": {"from": "2025-01-01"},
+            }
+        },
+    )
+    assert update_response.errors is None
+
+    # Assert
+    # The 2024 period keeps the class, the 2025 period has none.
+    assert read_manager_primary(manager_uuid) == [
+        {
+            "primary_response": {"current": {"user_key": "primary"}},
+            "validity": {
+                "from": "2024-01-01T00:00:00+01:00",
+                "to": "2025-01-01T00:00:00+01:00",
+            },
+        },
+        {
+            "primary_response": None,
+            "validity": {"from": "2025-01-01T00:00:00+01:00", "to": None},
+        },
+    ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_manager_omitted_primary_is_kept(
+    graphapi_post: GraphAPIPost,
+    read_manager_primary: Callable[[UUID], list[dict[str, Any]]],
+    create_manager_raw: Callable[[dict[str, Any]], UUID],
+    create_org_unit: Callable[..., UUID],
+    primary_class: UUID,
+    person: UUID,
+) -> None:
+    """An update omitting `primary` leaves the primary class alone."""
+    # Arrange
+    org_unit = create_org_unit("root")
+    manager_uuid = create_manager_raw(
+        {
+            "manager_level": str(uuid4()),
+            "manager_type": str(uuid4()),
+            "responsibility": [],
+            "org_unit": str(org_unit),
+            "person": str(person),
+            "primary": str(primary_class),
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+
+    # Act
+    update_response = graphapi_post(
+        """
+        mutation UpdateManager($input: ManagerUpdateInput!) {
+            manager_update(input: $input) {
+                uuid
+            }
+        }
+        """,
+        {
+            "input": {
+                "uuid": str(manager_uuid),
+                "user_key": "updated",
+                "validity": {"from": "2025-01-01"},
+            }
+        },
+    )
+    assert update_response.errors is None
+
+    # Assert
+    assert read_manager_primary(manager_uuid) == [
+        {
+            "primary_response": {"current": {"user_key": "primary"}},
+            "validity": {
+                "from": "2024-01-01T00:00:00+01:00",
+                "to": "2025-01-01T00:00:00+01:00",
+            },
+        },
+        {
+            "primary_response": {"current": {"user_key": "primary"}},
+            "validity": {"from": "2025-01-01T00:00:00+01:00", "to": None},
+        },
+    ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     ("filter", "expected"),
     [
