@@ -11,27 +11,6 @@ from tests.conftest import GraphAPIPost
 
 
 @pytest.fixture
-def create_manager(
-    graphapi_post: GraphAPIPost,
-    root_org: UUID,
-) -> Callable[[dict[str, Any]], UUID]:
-    def inner(input: dict[str, Any]) -> UUID:
-        mutate_query = """
-            mutation CreateManager($input: ManagerCreateInput!) {
-                manager_create(input: $input) {
-                    uuid
-                }
-            }
-        """
-        response = graphapi_post(query=mutate_query, variables={"input": input})
-        assert response.errors is None
-        assert response.data
-        return UUID(response.data["manager_create"]["uuid"])
-
-    return inner
-
-
-@pytest.fixture
 def update_manager(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
@@ -158,7 +137,7 @@ def manager_structure(
 @pytest.mark.usefixtures("empty_db")
 def test_create_manager_with_engagement(
     create_engagement: Callable[[dict[str, Any]], UUID],
-    create_manager: Callable[[dict[str, Any]], UUID],
+    create_manager_raw: Callable[[dict[str, Any]], UUID],
     read_manager_engagement: Callable[[UUID], UUID | None],
     manager_structure: dict[str, Any],
 ) -> None:
@@ -180,7 +159,7 @@ def test_create_manager_with_engagement(
     )
 
     # Create a manager WITH engagement
-    manager_uuid = create_manager(
+    manager_uuid = create_manager_raw(
         {
             "person": str(person_uuid),
             "responsibility": [],
@@ -198,7 +177,7 @@ def test_create_manager_with_engagement(
 @pytest.mark.usefixtures("empty_db")
 def test_update_manager_add_engagement(
     create_engagement: Callable[[dict[str, Any]], UUID],
-    create_manager: Callable[[dict[str, Any]], UUID],
+    create_manager_raw: Callable[[dict[str, Any]], UUID],
     update_manager: Callable[[dict[str, Any]], UUID],
     read_manager_engagement: Callable[[UUID], UUID | None],
     manager_structure: dict[str, Any],
@@ -221,7 +200,7 @@ def test_update_manager_add_engagement(
     )
 
     # Create a manager WITHOUT engagement
-    manager_uuid = create_manager(
+    manager_uuid = create_manager_raw(
         {
             "person": str(person_uuid),
             "responsibility": [],
@@ -251,7 +230,7 @@ def test_update_manager_add_engagement(
 @pytest.mark.usefixtures("empty_db")
 def test_update_manager_explicit_none_clears_engagement(
     create_engagement: Callable[[dict[str, Any]], UUID],
-    create_manager: Callable[[dict[str, Any]], UUID],
+    create_manager_raw: Callable[[dict[str, Any]], UUID],
     update_manager: Callable[[dict[str, Any]], UUID],
     read_manager_engagement: Callable[[UUID], UUID | None],
     manager_structure: dict[str, Any],
@@ -274,7 +253,7 @@ def test_update_manager_explicit_none_clears_engagement(
     )
 
     # Create a manager WITH engagement
-    manager_uuid = create_manager(
+    manager_uuid = create_manager_raw(
         {
             "person": str(person_uuid),
             "responsibility": [],
@@ -305,7 +284,7 @@ def test_update_manager_explicit_none_clears_engagement(
 @pytest.mark.usefixtures("empty_db")
 def test_update_manager_partial_update_clears_engagement(
     create_engagement: Callable[[dict[str, Any]], UUID],
-    create_manager: Callable[[dict[str, Any]], UUID],
+    create_manager_raw: Callable[[dict[str, Any]], UUID],
     update_manager: Callable[[dict[str, Any]], UUID],
     read_manager_engagement: Callable[[UUID], UUID | None],
     manager_structure: dict[str, Any],
@@ -328,7 +307,7 @@ def test_update_manager_partial_update_clears_engagement(
     )
 
     # Create a manager WITH engagement
-    manager_uuid = create_manager(
+    manager_uuid = create_manager_raw(
         {
             "person": str(person_uuid),
             "responsibility": [],
