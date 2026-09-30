@@ -158,11 +158,15 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if data.get(mapping.PRIMARY):
+        if mapping.PRIMARY in data:
+            primary_uuid = util.get_mapping_uuid(data, mapping.PRIMARY)
             update_fields.append(
                 (
                     mapping.PRIMARY_FIELD,
-                    {"uuid": util.get_mapping_uuid(data, mapping.PRIMARY)},
+                    # An explicit null unsets the relation. LoRa spells an empty
+                    # relation as {"uuid": "", "urn": ""}, which the read path
+                    # filters away again in FieldTuple.get_uuids.
+                    {"uuid": primary_uuid} if primary_uuid else {"uuid": "", "urn": ""},
                 )
             )
 
