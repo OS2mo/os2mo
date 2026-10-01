@@ -62,7 +62,9 @@ async def terminate_org_unit_validation(
     # Get & verify basic date
     if ou_terminate.from_date and ou_terminate.to_date:
         date = ou_terminate.get_terminate_effect_from_date()
-        end = date + util.MINIMAL_INTERVAL
+        # The unit is only terminated in the given period, so children starting
+        # at any point within it must also be taken into account.
+        end = ou_terminate.get_terminate_effect_to_date()
     else:
         date = ou_terminate.get_terminate_effect_to_date()
         # The unit is terminated from `date` and onwards, so children starting
