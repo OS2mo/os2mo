@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from functools import partial
 from uuid import UUID
 from uuid import uuid4
@@ -1280,3 +1281,28 @@ async def test_org_tree_filters(
         if x["current"] is not None
     }
     assert results == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_terminate_org_unit_with_future_children(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+) -> None:
+    parent = create_org_unit("parent", None, {"from": "2020-01-01"})
+    create_org_unit("child", parent, {"from": "2020-01-21"})
+
+    response = graphapi_post(
+        """
+            mutation TerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
+                org_unit_terminate(input: $input) {
+                    uuid
+                }
+            }
+        """,
+        {"input": {"uuid": str(parent), "to": "2020-01-02"}},
+    )
+    error = one(response.errors or [])
+    assert error["extensions"]["error_context"]["error_key"] == (
+        "V_TERMINATE_UNIT_WITH_CHILDREN"
+    )
