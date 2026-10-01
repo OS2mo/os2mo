@@ -1306,3 +1306,28 @@ def test_terminate_org_unit_with_future_children(
     assert error["extensions"]["error_context"]["error_key"] == (
         "V_TERMINATE_UNIT_WITH_CHILDREN"
     )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_terminate_org_unit_period_with_children_starting_in_period(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+) -> None:
+    parent = create_org_unit("parent", None, {"from": "2020-01-01"})
+    create_org_unit("child", parent, {"from": "2020-03-01"})
+
+    response = graphapi_post(
+        """
+            mutation TerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
+                org_unit_terminate(input: $input) {
+                    uuid
+                }
+            }
+        """,
+        {"input": {"uuid": str(parent), "from": "2020-02-01", "to": "2020-04-01"}},
+    )
+    error = one(response.errors or [])
+    assert error["extensions"]["error_context"]["error_key"] == (
+        "V_TERMINATE_UNIT_WITH_CHILDREN"
+    )
