@@ -1185,14 +1185,9 @@ async def test_missing_address(another_transaction, service_client: TestClient) 
     functionid = "414044e0-fe5f-4f82-be20-1e107ad50e80"
 
     with util.darmock("dawa-addresses.json", allow_mox=True, real_http=False) as mock:
-        for t in (
-            "adresser",
-            "adgangsadresser",
-            "historik/adresser",
-            "historik/adgangsadresser",
-        ):
-            pattern = re.compile(r"^https://api.dataforsyningen.dk/" + t + ".*$")
-            mock.get(pattern, json=[])
+        for t in ("adresser", "husnumre"):
+            pattern = re.compile(r"^https://adressevaelger.dk/" + t + ".*$")
+            mock.get(pattern, json={t: []})
 
         async with another_transaction():
             await lora.Connector().organisationfunktion.update(
@@ -1258,7 +1253,7 @@ async def test_missing_error(another_transaction, service_client: TestClient) ->
 
     with util.darmock("dawa-addresses.json", allow_mox=True, real_http=False) as mock:
         mock.get(
-            re.compile(r"^https://api.dataforsyningen.dk/adresser.*$"),
+            re.compile(r"^https://adressevaelger.dk/adresser.*$"),
             json={
                 "type": "ResourceNotFoundError",
                 "title": "The resource was not found",
@@ -1360,8 +1355,7 @@ def test_reading(service_client: TestClient) -> None:
                 "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
             },
             "engagement_uuid": None,
-            "href": "https://www.openstreetmap.org/?mlon="
-            "10.19938084&mlat=56.17102843&zoom=16",
+            "href": "https://www.openstreetmap.org/?mlon=0.0&mlat=0.0&zoom=16",
             "name": "Nordre Ringgade 1, 8000 Aarhus C",
             "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
             "value2": None,
