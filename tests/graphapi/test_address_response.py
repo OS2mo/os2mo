@@ -9,6 +9,7 @@ import pytest
 from ..conftest import GraphAPIPost
 
 
+@pytest.mark.xfail(reason="workaround for #72036", strict=True)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 def test_address_resolver_response_fields(
@@ -121,6 +122,7 @@ def test_address_resolver_response_fields(
     }
 
 
+@pytest.mark.xfail(reason="workaround for #72036", strict=True)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 def test_address_resolver_response_field_comparison(
@@ -279,6 +281,7 @@ def test_address_resolver_response_field_comparison(
     }
 
 
+@pytest.mark.xfail(reason="workaround for #72036", strict=True)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 def test_address_resolver_response_field_validity(

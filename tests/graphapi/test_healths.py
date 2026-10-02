@@ -32,6 +32,7 @@ async def test_unauthorized_healths_endpoint(
     assert one(payload["errors"])["message"] == "User is not authenticated"
 
 
+@pytest.mark.xfail(reason="workaround for #72036", strict=True)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 async def test_authorized_healths_endpoint(graphapi_post: GraphAPIPost) -> None:

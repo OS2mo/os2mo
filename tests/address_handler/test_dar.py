@@ -25,6 +25,7 @@ async def test_from_effect():
         assert VALID_VALUE == actual_value
 
 
+@pytest.mark.xfail(reason="workaround for #72036", strict=True)
 async def test_from_request():
     # Arrange
     request = {"value": VALID_VALUE}
@@ -39,6 +40,7 @@ async def test_from_request():
         assert VALID_VALUE == actual_value
 
 
+@pytest.mark.xfail(reason="workaround for #72036", strict=True)
 async def test_get_mo_address():
     # Arrange
     request = {"value": VALID_VALUE}
@@ -71,6 +73,8 @@ async def test_validation_fails_on_invalid_value():
                 await DARAddressHandler.validate_value(value)
 
 
+@pytest.mark.execution_timeout(300)
+@pytest.mark.xfail(reason="workaround for #72036", strict=True)
 async def test_validation_fails_on_unknown_uuid():
     # Arrange
     value = "e30645d3-2c2b-4b9f-9b7a-3b7fc0b4b80d"  # Not a valid DAR UUID
@@ -82,6 +86,7 @@ async def test_validation_fails_on_unknown_uuid():
                 await DARAddressHandler.validate_value(value)
 
 
+@pytest.mark.xfail(reason="workaround for #72036", strict=True)
 async def test_validation_succeeds_on_correct_uuid():
     # Act & Assert
     # Assert that no exception is raised

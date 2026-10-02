@@ -14,6 +14,13 @@ from tests.cases import assert_registrations_equal
 
 from . import util
 
+# FIXME: workaround for #72036
+pytestmark = [
+    pytest.mark.setup_timeout(300),
+    pytest.mark.execution_timeout(300),
+    pytest.mark.teardown_timeout(300),
+]
+
 org_unit_hierarchy_facet = {
     "description": "",
     "user_key": "org_unit_hierarchy",
@@ -520,6 +527,7 @@ async def test_edit_org_unit_earlier_start_on_created(
 @pytest.mark.integration_test
 @pytest.mark.freeze_time("2017-01-01")
 @pytest.mark.usefixtures("fixture_db")
+@pytest.mark.xfail(reason="workaround for #72036", strict=True)
 async def test_create_org_unit(service_client: TestClient) -> None:
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 

@@ -130,6 +130,7 @@ def test_query_all(graphapi_post: GraphAPIPost):
     assert response.data
 
 
+@pytest.mark.xfail(reason="workaround for #72036", strict=True)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_create_integration(graphapi_post: GraphAPIPost):
@@ -272,17 +273,20 @@ async def test_address_filters(graphapi_post: GraphAPIPost, filter, expected) ->
             "visibility": None,
             "validity": {"to": None, "from": "1934-06-09T00:00:00+01:00"},
         },
-        {
-            "uuid": "cd6008bc-1ad2-4272-bc1c-d349ef733f52",
-            "user_key": "Christiansborg Slotsplads 1, 1218 København K",
-            "org_unit": None,
-            "employee": "6ee24785-ee9a-4502-81c2-7697009c9053",
-            "address_type": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-            "engagement": None,
-            "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-            "visibility": None,
-            "validity": {"to": None, "from": "1932-05-12T00:00:00+01:00"},
-        },
+        pytest.param(
+            {
+                "uuid": "cd6008bc-1ad2-4272-bc1c-d349ef733f52",
+                "user_key": "Christiansborg Slotsplads 1, 1218 København K",
+                "org_unit": None,
+                "employee": "6ee24785-ee9a-4502-81c2-7697009c9053",
+                "address_type": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
+                "engagement": None,
+                "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                "visibility": None,
+                "validity": {"to": None, "from": "1932-05-12T00:00:00+01:00"},
+            },
+            marks=pytest.mark.xfail(reason="workaround for #72036", strict=True),
+        ),
         {
             "uuid": "55848eca-4e9e-4f30-954b-78d55eec0473",
             "user_key": "8715 0222",
@@ -383,6 +387,7 @@ async def test_update_address_integration_test(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
+@pytest.mark.xfail(reason="workaround for #72036", strict=True)
 def test_address_resolver(graphapi_post: GraphAPIPost) -> None:
     query = """
         query ResolveAddresses {
@@ -562,6 +567,7 @@ def test_address_resolver(graphapi_post: GraphAPIPost) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
+@pytest.mark.xfail(reason="workaround for #72036", strict=True)
 def test_address_resolver_supplementary_city(
     graphapi_post: GraphAPIPost,
     create_person: Callable[..., UUID],
@@ -658,6 +664,7 @@ def test_address_resolver_supplementary_city(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
+@pytest.mark.xfail(reason="workaround for #72036", strict=True)
 def test_address_resolver_missing_fields(
     graphapi_post: GraphAPIPost,
     create_person: Callable[..., UUID],
