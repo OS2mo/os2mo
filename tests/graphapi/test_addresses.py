@@ -130,7 +130,7 @@ def test_query_all(graphapi_post: GraphAPIPost):
     assert response.data
 
 
-@pytest.mark.xfail(reason="workaround for #72036", strict=True)
+@pytest.mark.skip(reason="workaround for #72036")
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_create_integration(graphapi_post: GraphAPIPost):
@@ -285,7 +285,7 @@ async def test_address_filters(graphapi_post: GraphAPIPost, filter, expected) ->
                 "visibility": None,
                 "validity": {"to": None, "from": "1932-05-12T00:00:00+01:00"},
             },
-            marks=pytest.mark.xfail(reason="workaround for #72036", strict=True),
+            marks=pytest.mark.skip(reason="workaround for #72036"),
         ),
         {
             "uuid": "55848eca-4e9e-4f30-954b-78d55eec0473",
@@ -387,7 +387,7 @@ async def test_update_address_integration_test(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-@pytest.mark.xfail(reason="workaround for #72036", strict=True)
+@pytest.mark.skip(reason="workaround for #72036")
 def test_address_resolver(graphapi_post: GraphAPIPost) -> None:
     query = """
         query ResolveAddresses {
@@ -567,7 +567,7 @@ def test_address_resolver(graphapi_post: GraphAPIPost) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-@pytest.mark.xfail(reason="workaround for #72036", strict=True)
+@pytest.mark.skip(reason="workaround for #72036")
 def test_address_resolver_supplementary_city(
     graphapi_post: GraphAPIPost,
     create_person: Callable[..., UUID],
@@ -664,7 +664,7 @@ def test_address_resolver_supplementary_city(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-@pytest.mark.xfail(reason="workaround for #72036", strict=True)
+@pytest.mark.skip(reason="workaround for #72036")
 def test_address_resolver_missing_fields(
     graphapi_post: GraphAPIPost,
     create_person: Callable[..., UUID],

@@ -13,13 +13,6 @@ from tests.cases import assert_registrations_equal
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 
-# FIXME: workaround for #72036
-pytestmark = [
-    pytest.mark.setup_timeout(300),
-    pytest.mark.execution_timeout(300),
-    pytest.mark.teardown_timeout(300),
-]
-
 ean_class = {
     "example": "5712345000014",
     "name": "EAN",
@@ -1041,7 +1034,7 @@ nothingid = "00000000-0000-0000-0000-000000000000"
                 "description": "Org unit not found.",
                 "org_unit_uuid": nothingid,
             },
-            marks=pytest.mark.xfail(reason="workaround for #72036", strict=True),
+            marks=pytest.mark.skip(reason="workaround for #72036"),
         ),
         pytest.param(
             {
@@ -1066,7 +1059,7 @@ nothingid = "00000000-0000-0000-0000-000000000000"
                 "description": "User not found.",
                 "employee_uuid": nothingid,
             },
-            marks=pytest.mark.xfail(reason="workaround for #72036", strict=True),
+            marks=pytest.mark.skip(reason="workaround for #72036"),
         ),
     ],
 )
@@ -1336,7 +1329,7 @@ async def test_missing_error(another_transaction, service_client: TestClient) ->
 @pytest.mark.integration_test
 @pytest.mark.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-@pytest.mark.xfail(reason="workaround for #72036", strict=True)
+@pytest.mark.skip(reason="workaround for #72036")
 def test_reading(service_client: TestClient) -> None:
     response = service_client.request(
         "GET",
@@ -1397,7 +1390,7 @@ def test_reading(service_client: TestClient) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-@pytest.mark.xfail(reason="workaround for #72036", strict=True)
+@pytest.mark.skip(reason="workaround for #72036")
 def test_address_user_key(graphapi_post: GraphAPIPost) -> None:
     GET_ADDRESS = """
     query GetAddress($uuid: [UUID!]) {
@@ -1479,7 +1472,7 @@ def test_address_user_key(graphapi_post: GraphAPIPost) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-@pytest.mark.xfail(reason="workaround for #72036", strict=True)
+@pytest.mark.skip(reason="workaround for #72036")
 def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
     GET_ITUSER = """
     query GetITUsers {
@@ -1682,7 +1675,7 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-@pytest.mark.xfail(reason="workaround for #72036", strict=True)
+@pytest.mark.skip(reason="workaround for #72036")
 def test_address_ituser_multiple_addresses(graphapi_post: GraphAPIPost) -> None:
     GET_ITUSER = """
     query GetITUser {

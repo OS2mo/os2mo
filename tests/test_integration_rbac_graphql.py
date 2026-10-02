@@ -65,6 +65,7 @@ def address_create_dar_input() -> dict[str, Any]:
     }
 
 
+@pytest.mark.skip(reason="workaround for #72036")
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(

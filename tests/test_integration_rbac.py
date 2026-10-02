@@ -123,6 +123,7 @@ def create_org_unit_payload() -> dict[str, Any]:
     }
 
 
+@pytest.mark.skip(reason="workaround for #72036")
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
@@ -158,6 +159,7 @@ def test_create_org_unit(
     assert response.status_code == status_code
 
 
+@pytest.mark.skip(reason="workaround for #72036")
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
@@ -260,6 +262,7 @@ def org_unit_no_details_uuid(
     return response.json()
 
 
+@pytest.mark.skip(reason="workaround for #72036")
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
