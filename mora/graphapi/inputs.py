@@ -4,6 +4,7 @@ from datetime import datetime
 from textwrap import dedent
 from typing import Annotated
 from typing import Any
+from typing import cast
 from uuid import UUID
 from uuid import uuid4
 
@@ -73,7 +74,7 @@ from .version import Version
 
 def gen_uuid_unset(uuid: UUID | UnsetType | None) -> dict[str, str] | UnsetType | None:
     if uuid is UNSET:
-        return UNSET
+        return cast(UnsetType, UNSET)
     if uuid is None:
         return None
     return {"uuid": str(uuid)}

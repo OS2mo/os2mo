@@ -5,7 +5,6 @@
 from functools import partial
 from textwrap import dedent
 from typing import Any
-from urllib.parse import urlparse
 from uuid import UUID
 
 import strawberry
@@ -72,24 +71,15 @@ def extract_field(field: str) -> Any:
     async def extractor(self: Any, root: "DARAddress") -> Any:
         dar_response = await root.resolve_dar(root)
         # The AsyncDARClient underpinning the resolve_dar function and its dar_loader
-        # attempts to load the provided UUID using 4 different types of addresses in
+        # attempts to load the provided UUID using 2 different types of addresses in
         # DAR (by default) using a prioritized order defined by the `AddressType` enum
         # in dar_client.py within FastRAMQPI, the order is:
         # * "adresser"
-        # * "adgangsadresser"
-        # * "historik/adresser"
-        # * "historik/adgangsadresser"
+        # * "husnumre"
         # Thus which fields are available on our `dar_response` depends on which of
         # these address-types succesfully looked up our DAR UUID.
         #
-        # This is highly problematic as the historic endpoints are marked as
-        # experimental by DAR, and thus may change their fields and behavior whenever.
-        # It is also problematic as the historic endpoints return very little data
-        # compared to their non-historic counterparts.
-        # We should probably never have relied on finding historic addresses, but it is
-        # our interface now, so we cannot easily change the behavior.
-        #
-        # Additionally some fields only occur on adresser and not on adgangsadresser,
+        # Additionally some fields only occur on adresser and not on husnumre,
         # which is not something that this code was ever designed to handle.
         #
         # In general it seems the entire AsyncDARClient interface is maldesigned and we
@@ -134,9 +124,7 @@ class DARAddress(ResolvedAddress):
     # Links
     @strawberry.field
     async def href(self, root: "DARAddress") -> str:
-        dar_response = await root.resolve_dar(root)
-        href = dar_response["href"]
-        return urlparse(href)._replace(scheme="https").geturl()
+        return f"https://adressevaelger.dk/adresser/{root.value}"
 
     @strawberry.field
     async def streetmap_href(self, root: "DARAddress") -> str | None:

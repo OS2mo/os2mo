@@ -28,21 +28,28 @@ async def test_dataset_returns_true_if_data_found() -> None:
 
 
 async def test_dar_returns_false_if_unreachable(darmocked) -> None:
-    darmocked.get("https://api.dataforsyningen.dk/autocomplete", status=404)
+    darmocked.get(
+        "https://adressevaelger.dk/adresser/soeg?maksimum=1&tekst=test&token=adressevaelger123",
+        status=404,
+    )
     actual = await health.dar()
     assert actual is False
 
 
 async def test_dar_returns_false_if_request_error(darmocked) -> None:
     darmocked.get(
-        "https://api.dataforsyningen.dk/autocomplete", exception=ClientError()
+        "https://adressevaelger.dk/adresser/soeg?maksimum=1&tekst=test&token=adressevaelger123",
+        exception=ClientError(),
     )
     actual = await health.dar()
     assert actual is False
 
 
 async def test_dar_returns_true_if_reachable(darmocked) -> None:
-    darmocked.get("https://api.dataforsyningen.dk/autocomplete", status=200)
+    darmocked.get(
+        "https://adressevaelger.dk/adresser/soeg?maksimum=1&tekst=test&token=adressevaelger123",
+        status=200,
+    )
     actual = await health.dar()
     assert actual is True
 
@@ -60,7 +67,10 @@ def test_readiness(service_client: TestClient) -> None:
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_healths(darmocked, service_client: TestClient) -> None:
-    darmocked.get("https://api.dataforsyningen.dk/autocomplete", status=200)
+    darmocked.get(
+        "https://adressevaelger.dk/adresser/soeg?maksimum=1&tekst=test&token=adressevaelger123",
+        status=200,
+    )
     response = service_client.request("GET", "/health/")
     assert response.status_code == 200
     assert response.json() == {
@@ -76,7 +86,10 @@ async def test_healths(darmocked, service_client: TestClient) -> None:
 async def test_healthidentifier(
     darmocked, service_client: TestClient, identifier: str
 ) -> None:
-    darmocked.get("https://api.dataforsyningen.dk/autocomplete", status=200)
+    darmocked.get(
+        "https://adressevaelger.dk/adresser/soeg?maksimum=1&tekst=test&token=adressevaelger123",
+        status=200,
+    )
     response = service_client.request("GET", f"/health/{identifier}")
     assert response.status_code == 200
     assert response.json() is True

@@ -408,7 +408,7 @@ class darmock(aioresponses.aioresponses):
     def __init__(self, names=None, allow_mox=False, real_http=False, **kwargs):
         passthrough = []
         if real_http:
-            passthrough.append("https://api.dataforsyningen.dk")
+            passthrough.append("https://adressevaelger.dk")
 
         super().__init__(**kwargs, passthrough=passthrough)
 

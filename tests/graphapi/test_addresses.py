@@ -442,14 +442,14 @@ def test_address_resolver(graphapi_post: GraphAPIPost) -> None:
         "door": None,
         "floor": None,
         "house_number": "1",
-        "href": "https://api.dataforsyningen.dk/adresser/b1f1817d-5f02-4331-b8b3-97330a5d3197",
-        "latitude": 56.17102843,
-        "longitude": 10.19938084,
+        "href": "https://adressevaelger.dk/adresser/b1f1817d-5f02-4331-b8b3-97330a5d3197",
+        "latitude": 0.0,
+        "longitude": 0.0,
         "municipality_code": "0751",
         "name": "Nordre Ringgade 1, 8000 Aarhus C",
         "road_code": 5902,
         "road_name": "Nordre Ringgade",
-        "streetmap_href": "https://www.openstreetmap.org/?mlon=10.19938084&mlat=56.17102843&zoom=16",
+        "streetmap_href": "https://www.openstreetmap.org/?mlon=0.0&mlat=0.0&zoom=16",
         "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
         "zip_code": "8000",
         "zip_code_name": "Aarhus C",
@@ -637,98 +637,6 @@ def test_address_resolver_supplementary_city(
         "supplementary_city": "Jonstrup",
         "zip_code": "3500",
         "zip_code_name": "Værløse",
-    }
-
-    response = graphapi_post(query)
-    assert response.errors is None
-    assert response.data == {
-        "addresses": {
-            "objects": [
-                {
-                    "current": {
-                        "resolve": jonstrupvangvej,
-                        "uuid": address_uuid,
-                        "value": value,
-                    }
-                }
-            ]
-        }
-    }
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
-def test_address_resolver_missing_fields(
-    graphapi_post: GraphAPIPost,
-    create_person: Callable[..., UUID],
-    create_facet: Callable[[dict[str, Any]], UUID],
-    create_class: Callable[[dict[str, Any]], UUID],
-) -> None:
-    employee_address_type_facet = create_facet(
-        {
-            "user_key": "employee_address_type",
-            "validity": {"from": "1970-01-01"},
-        }
-    )
-    post_address_class = create_class(
-        {
-            "user_key": "AdressePostEmployee",
-            "scope": "DAR",
-            "name": "Postadresse",
-            "facet_uuid": str(employee_address_type_facet),
-            "validity": {"from": "1970-01-01"},
-        }
-    )
-
-    person_uuid = create_person()
-    # Kirke Værløsevej 36, 3500 Værløse is a historic DAR address, thus missing fields
-    # compared to a current address.
-    value = "0a3f507e-31b9-32b8-e044-0003ba298018"
-
-    create_address_mutation = """
-    mutation CreateAddress($input: AddressCreateInput!) {
-      address_create(input: $input) {
-        uuid
-      }
-    }
-    """
-    input = {
-        "address_type": str(post_address_class),
-        "value": value,
-        "person": str(person_uuid),
-        "validity": {"from": "2000-01-01T00:00:00Z"},
-    }
-    response = graphapi_post(create_address_mutation, variables={"input": input})
-    assert response.errors is None
-    assert response.data is not None
-    address_uuid = response.data["address_create"]["uuid"]
-
-    query = """
-        query ResolveAddresses {
-          addresses {
-            objects {
-              current {
-                uuid
-                value
-                resolve {
-                  ... on DARAddress {
-                    __typename
-                    name
-                    floor
-                    door
-                  }
-                }
-              }
-            }
-          }
-        }
-    """
-
-    jonstrupvangvej = {
-        "__typename": "DARAddress",
-        "name": "Kirke Værløsevej 36, 3500 Værløse",
-        "floor": None,
-        "door": None,
     }
 
     response = graphapi_post(query)

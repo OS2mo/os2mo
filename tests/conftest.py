@@ -91,7 +91,7 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
         "passthrough_backing_services",
         "fastramqpi_database_setup",
         "fastramqpi_database_isolation",
-        "os2mo_database_snapshot_and_restore",
+        "os2mo_database_isolation",
         "amqp_queue_isolation",
         "amqp_event_emitter",
         "graphql_events_quick_fetch",
