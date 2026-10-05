@@ -33,7 +33,6 @@ from hypothesis import strategies as st
 from hypothesis.database import InMemoryExampleDatabase
 from more_itertools import always_iterable
 from more_itertools import one
-from sqlalchemy import delete
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -1721,16 +1720,11 @@ def create_address(
 
 @pytest.fixture
 def set_rules(empty_db: db.AsyncSession) -> SetRules:
-    """Grant a role the fields of a collection, in place of the seeded policies.
-
-    The migrated policies grant a reader every field of every collection, so a
-    test asking about a denial installs its own in their stead.
-    """
+    """Grant a role the fields of a collection."""
 
     async def inner(
         role: str, collection: db.Collection, fields: Iterable[str]
     ) -> None:
-        await empty_db.execute(delete(db.Policy))
         empty_db.add(
             db.Policy(
                 name=role,
