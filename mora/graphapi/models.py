@@ -1147,6 +1147,7 @@ class ManagerCreate(UUIDBase):
     org_unit: UUID = Field(description="UUID of the managers organisation unit.")
     manager_level: UUID = Field(description="UUID of the managers level.")
     manager_type: UUID = Field(description="UUID of the managers type..")
+    primary: UUID | None = Field(description="Primary field of the manager object")
     validity: RAValidity = Field(description="Validity range for the manager.")
 
     def to_handler_dict(self) -> dict:
@@ -1161,6 +1162,7 @@ class ManagerCreate(UUIDBase):
             "org_unit": gen_uuid(self.org_unit),
             "manager_level": gen_uuid(self.manager_level),
             "manager_type": gen_uuid(self.manager_type),
+            "primary": gen_uuid(self.primary),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
@@ -1204,6 +1206,10 @@ class ManagerUpdate(UUIDBase):
         description="UUID of the managers level to be updated."
     )
 
+    primary: UUID | None = Field(
+        default=None, description="Primary field of the manager object to be updated."
+    )
+
     def to_handler_dict(self) -> dict:
         data_dict: dict = {
             "validity": {
@@ -1222,13 +1228,16 @@ class ManagerUpdate(UUIDBase):
         if "engagement" in self.__fields_set__:
             data_dict["engagement"] = gen_uuid(self.engagement)
 
+        if "primary" in self.__fields_set__:
+            data_dict["primary"] = gen_uuid(self.primary)
+
         if self.responsibility:
             data_dict["responsibility"] = list(map(gen_uuid, self.responsibility))
 
         return {
             k: v
             for k, v in data_dict.items()
-            if (v is not None) or k in ["person", "engagement"]
+            if (v is not None) or k in ["person", "engagement", "primary"]
         }
 
 

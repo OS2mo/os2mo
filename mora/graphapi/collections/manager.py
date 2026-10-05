@@ -260,6 +260,17 @@ class Manager:
         ),
     )
 
+    primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response(model=ClassRead, uuid=root.primary_uuid)
+        if root.primary_uuid
+        else None,
+        description=dedent(
+            """
+            Marks which managerial position is primary (if any).
+            """
+        ),
+    )
+
     @strawberry.field(
         description=dedent(
             """
