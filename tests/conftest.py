@@ -138,6 +138,7 @@ def clear_settings_cache() -> YieldFixture[None]:
 
 BRUCE_UUID = UUID("99e7b256-7dfa-4ee8-95c6-e3abe82e236a")
 ALVIDA_UUID = UUID("0fb62199-cb9e-4083-ba45-2a63bfd142d7")
+ACTIVE_DIRECTORY_UUID = UUID("59c135c9-2b15-41cc-97c8-b5dff7180beb")
 
 # Serviceplatformen certificate fixtures: one valid, one empty.
 SP_CERTIFICATE_PATH = "tests/fixtures/sp_certificate.pem"

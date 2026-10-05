@@ -2,13 +2,13 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
 from typing import Any
-from uuid import UUID
 from uuid import uuid4
 
 import pytest
 
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
+from tests.conftest import ACTIVE_DIRECTORY_UUID
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
@@ -22,9 +22,6 @@ ROOT_UNIT = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 HUM_UNIT = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 FILOSOFISK_INSTITUT = "85715fc7-925d-401b-822d-467eb4b163b6"
 SOCIAL_OG_SUNDHED = "68c5d78e-ae26-441f-a143-0103eca8b62a"
-
-# IT systems
-ACTIVE_DIRECTORY = UUID("59c135c9-2b15-41cc-97c8-b5dff7180beb")
 
 # IT users
 ANDERS_AND_AD_USER_KEY = "18d2271a-45c4-406c-a482-04ab12f80881"
@@ -720,7 +717,7 @@ def test_terminate_x_as_owner_of_unit(
     ],
 )
 @pytest.mark.envvar(
-    {"KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS": str(ACTIVE_DIRECTORY)}
+    {"KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS": str(ACTIVE_DIRECTORY_UUID)}
 )
 def test_ownership_through_it_system(
     set_auth: SetAuth,
