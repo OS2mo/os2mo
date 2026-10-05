@@ -553,6 +553,7 @@ def test_owner_user_key_filter(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
+@pytest.mark.xfail(reason="An owner triggers without the owned org unit")
 async def test_owner_triggers(
     graphapi_post: GraphAPIPost,
     create_org_unit: Callable[..., UUID],
@@ -601,7 +602,7 @@ async def test_owner_triggers(
     assert response.errors is None
 
     assert triggered == [
-        (RequestType.CREATE, None, None),
+        (RequestType.CREATE, str(unit), None),
         (RequestType.CREATE, None, str(bob)),
-        (RequestType.EDIT, None, None),
+        (RequestType.EDIT, str(unit), None),
     ]
