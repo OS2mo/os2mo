@@ -62,8 +62,14 @@ async def terminate_org_unit_validation(
     # Get & verify basic date
     if ou_terminate.from_date and ou_terminate.to_date:
         date = ou_terminate.get_terminate_effect_from_date()
+        # The unit is only terminated in the given period, so children starting
+        # at any point within it must also be taken into account.
+        end = ou_terminate.get_terminate_effect_to_date()
     else:
         date = ou_terminate.get_terminate_effect_to_date()
+        # The unit is terminated from `date` and onwards, so children starting
+        # at any point in the future must also be taken into account.
+        end = util.POSITIVE_INFINITY
 
     # Verify date against OrgUnit range
     await validator.is_date_range_in_org_unit_range(
@@ -75,14 +81,15 @@ async def terminate_org_unit_validation(
     # Find children and roles and verify constraints
 
     # Find & verify there is no children
-    c = lora.Connector(effective_date=util.to_iso_date(date))
+    children_connector = lora.Connector(virkningfra=date, virkningtil=end)
     children = set(
-        await c.organisationenhed.load_uuids(
+        await children_connector.organisationenhed.load_uuids(
             overordnet=uuid_str,
             gyldighed="Aktiv",
         )
     )
 
+    c = lora.Connector(effective_date=util.to_iso_date(date))
     roles = set(
         await c.organisationfunktion.load_uuids(
             tilknyttedeenheder=uuid_str,
@@ -105,7 +112,7 @@ async def terminate_org_unit_validation(
             child_count=len(children),
             roles=", ".join(sorted(role_counts)),
         )
-    elif children:  # pragma: no cover
+    elif children:
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN(
             child_count=len(children),
         )
