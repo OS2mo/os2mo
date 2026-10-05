@@ -27,11 +27,11 @@ from mora.graphapi.version import Version
 OwnerRule = Callable[[Settings, Version, Token, dict[str, Any]], ColumnElement | None]
 
 
-def _actor_filter(token: Token) -> EmployeeFilter:
-    """The employee filter matching the calling actor, by the token's uuid."""
+def _owner_filter(token: Token) -> OwnerFilter:
+    """The owner filter matching the calling actor, by the token's uuid."""
     # A token with no uuid never gets this far, see `owner_policy`
     assert token.uuid is not None
-    return EmployeeFilter(uuids=[token.uuid])
+    return OwnerFilter(owner=EmployeeFilter(uuids=[token.uuid]))
 
 
 def org_unit(
@@ -49,7 +49,7 @@ def org_unit(
         version=version,
         filter=OrganisationUnitFilter(
             descendant=OrganisationUnitFilter(uuids=[uuid]),
-            owner=OwnerFilter(owner=_actor_filter(token)),
+            owner=_owner_filter(token),
         ),
     )
     return exists().where(predicate)
@@ -66,7 +66,7 @@ def person(
         version=version,
         filter=EmployeeFilter(
             uuids=[uuid],
-            owner=OwnerFilter(owner=_actor_filter(token)),
+            owner=_owner_filter(token),
         ),
     )
     return exists().where(predicate)
@@ -89,9 +89,7 @@ def detail_org_unit(
             filter=filter(
                 uuids=[uuid],
                 org_unit=OrganisationUnitFilter(
-                    ancestor=OrganisationUnitFilter(
-                        owner=OwnerFilter(owner=_actor_filter(token))
-                    )
+                    ancestor=OrganisationUnitFilter(owner=_owner_filter(token))
                 ),
             ),
         )
@@ -114,7 +112,7 @@ def detail_person(
             version=version,
             filter=filter(
                 uuids=[uuid],
-                employee=EmployeeFilter(owner=OwnerFilter(owner=_actor_filter(token))),
+                employee=EmployeeFilter(owner=_owner_filter(token)),
             ),
         )
     )
