@@ -67,6 +67,8 @@ from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
 from mora.graphapi.owner_entities import OWNER_ENTITIES
+from mora.graphapi.owner_entities import deny_requiring_nothing
+from mora.graphapi.owner_entities import deny_tokens_without_uuid
 from mora.graphapi.policy_cel import CEL
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
@@ -255,10 +257,6 @@ def owner_policy(
     if "owner" not in token_roles:
         return False
 
-    # A token carrying no uuid names no employee, so it owns nothing
-    if token.uuid is None:
-        return False
-
     if info.operation.operation is not OperationType.MUTATION:
         return False
 
@@ -280,11 +278,10 @@ def owner_policy(
         scalar_registry=moinfo.schema.schema_converter.scalar_registry,
         config=moinfo.schema.config,
     )
-    check = rule(settings, version, token, arguments)
+    check = deny_requiring_nothing(deny_tokens_without_uuid(rule))(
+        settings, version, token, arguments
+    )
     logger.debug("Check owner", check=check)
-    # Nothing to own is not owned by anybody
-    if check is None:
-        return False
 
     async def owned() -> bool:
         return bool(await moinfo.context.session.scalar(select(check)))
