@@ -1,11 +1,17 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
+from typing import Any
 from uuid import UUID
 
 import pytest
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 
+from mora.mapping import OWNER
+from mora.mapping import EventType
+from mora.mapping import RequestType
+from mora.triggers import Trigger
 from tests.conftest import GraphAPIPost
 
 
@@ -543,3 +549,59 @@ def test_owner_user_key_filter(
     assert read({"user_keys": ["beta"]}) == {beta_uuid}
     assert read({"user_keys": ["alpha", "gamma"]}) == {alpha_uuid, gamma_uuid}
     assert read({"user_keys": ["nonexistent"]}) == set()
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_owner_triggers(
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_owner: Callable[[dict[str, Any]], UUID],
+    alice: UUID,
+    bob: UUID,
+) -> None:
+    """Test what an owner triggers on."""
+    triggered: list[tuple[str, str | None, str | None]] = []
+
+    @Trigger.on(OWNER, RequestType.CREATE, EventType.ON_AFTER)
+    @Trigger.on(OWNER, RequestType.EDIT, EventType.ON_AFTER)
+    async def record(trigger_dict: dict[str, Any]) -> None:
+        triggered.append(
+            (
+                trigger_dict[Trigger.REQUEST_TYPE],
+                trigger_dict.get(Trigger.ORG_UNIT_UUID),
+                trigger_dict.get(Trigger.EMPLOYEE_UUID),
+            )
+        )
+
+    unit = create_org_unit("unit")
+    on_unit = create_owner(
+        {"owner": str(alice), "org_unit": str(unit), "validity": {"from": "2020-01-01"}}
+    )
+    create_owner(
+        {"owner": str(alice), "person": str(bob), "validity": {"from": "2020-01-01"}}
+    )
+    response = graphapi_post(
+        """
+        mutation UpdateOwner($input: OwnerUpdateInput!) {
+            owner_update(input: $input) { uuid }
+        }
+        """,
+        variables=jsonable_encoder(
+            {
+                "input": {
+                    "uuid": on_unit,
+                    "owner": alice,
+                    "org_unit": unit,
+                    "validity": {"from": "2021-01-01"},
+                }
+            }
+        ),
+    )
+    assert response.errors is None
+
+    assert triggered == [
+        (RequestType.CREATE, None, None),
+        (RequestType.CREATE, None, str(bob)),
+        (RequestType.EDIT, None, None),
+    ]
