@@ -22,8 +22,8 @@ MY_UNIT = "9de978da-0967-43cf-921d-d56ddfcc6e0e"
 ACTIVE_DIRECTORY = UUID("59c135c9-2b15-41cc-97c8-b5dff7180beb")
 
 # IT users
-ANDERS_AND_AD_USER_KEY = "18d2271a-45c4-406c-a482-04ab12f80881"
-ANDERS_AND_AD_EXTERNAL_ID = "e5595d6a-590c-4cae-9164-9fcf8e1178a2"
+AD_USER_KEY = "18d2271a-45c4-406c-a482-04ab12f80881"
+AD_EXTERNAL_ID = "e5595d6a-590c-4cae-9164-9fcf8e1178a2"
 
 
 @pytest.fixture
@@ -785,13 +785,13 @@ def test_terminate_x_as_owner_of_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db", "phone_address", "alice_owns_org_unit_with_parent")
 @pytest.mark.parametrize(
-    "token_uuid,success",
+    "token,success",
     [
-        (ANDERS_AND_AD_USER_KEY, False),
-        (ANDERS_AND_AD_EXTERNAL_ID, True),
-        (ALICE, False),
+        ("user_key", False),
+        ("external_id", True),
+        ("person", False),
     ],
 )
 @pytest.mark.envvar(
@@ -800,10 +800,38 @@ def test_terminate_x_as_owner_of_unit(
 def test_ownership_through_it_system(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
-    token_uuid: str,
+    alice: UUID,
+    create_itsystem: Callable[[dict[str, Any]], UUID],
+    create_ituser: Callable[[dict[str, Any]], UUID],
+    token: str,
     success: bool,
 ) -> None:
-    set_auth(OWNER, token_uuid)
+    # Alice, who owns HUM, has a user in the authoritative IT system. Both its
+    # user_key and its external_id look like the uuid a token carries, but only
+    # the external_id identifies her
+    create_itsystem(
+        {
+            "uuid": str(ACTIVE_DIRECTORY),
+            "user_key": "Active Directory",
+            "name": "Active Directory",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+    create_ituser(
+        {
+            "user_key": AD_USER_KEY,
+            "external_id": AD_EXTERNAL_ID,
+            "itsystem": str(ACTIVE_DIRECTORY),
+            "person": str(alice),
+            "validity": {"from": "2017-01-01"},
+        }
+    )
+    token_uuids = {
+        "user_key": AD_USER_KEY,
+        "external_id": AD_EXTERNAL_ID,
+        "person": alice,
+    }
+    set_auth(OWNER, token_uuids[token])
 
     r = graphapi_post(
         """
