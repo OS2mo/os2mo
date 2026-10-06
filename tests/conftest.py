@@ -1585,6 +1585,22 @@ def employee_phone_scope(
 
 
 @pytest.fixture
+def employee_email_scope(
+    create_class: Callable[[dict[str, Any]], UUID], employee_address_type: UUID
+) -> UUID:
+    return create_class(
+        {
+            "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
+            "user_key": "EMAIL",
+            "name": "EMAIL",
+            "facet_uuid": str(employee_address_type),
+            "scope": "EMAIL",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
 def update_class(
     graphapi_post: GraphAPIPost,
     root_org: UUID,

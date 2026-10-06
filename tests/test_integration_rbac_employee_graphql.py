@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
+from typing import Any
 from uuid import UUID
 
 import pytest
@@ -48,6 +49,24 @@ def alice_owns_carol(alice: UUID, carol: UUID, make_owner: Callable[..., None]) 
 @pytest.fixture
 def alice_owns_bob(alice: UUID, bob: UUID, make_owner: Callable[..., None]) -> None:
     make_owner(alice, person=bob)
+
+
+@pytest.fixture
+def email_address(
+    employee_email_scope: UUID,
+    create_address: Callable[[dict[str, Any]], UUID],
+    bob: UUID,
+) -> UUID:
+    """An email address of Bob."""
+    return create_address(
+        {
+            "uuid": "64ea02e2-8469-4c54-a523-3d46729e86a7",
+            "address_type": str(employee_email_scope),
+            "person": str(bob),
+            "value": "bob@example.com",
+            "validity": {"from": "2020-01-01"},
+        }
+    )
 
 
 @pytest.fixture
@@ -367,11 +386,12 @@ def test_create_leave(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_bob", "email_address")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_edit_address(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    bob: UUID,
     role: str,
     userid: str,
     success: bool,
@@ -382,7 +402,7 @@ def test_edit_address(
         "uuid": "64ea02e2-8469-4c54-a523-3d46729e86a7",
         "address_type": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
         "visibility": "f63ad763-0e53-4972-a6a9-63b42a0f8cb7",
-        "employee": BOB,
+        "employee": str(bob),
         "validity": {"from": "2021-08-13"},
         "value": "goofy@andeby.dk",
     }
