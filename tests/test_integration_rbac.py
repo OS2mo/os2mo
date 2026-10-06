@@ -62,6 +62,13 @@ def mock_auth(
 
 
 @pytest.fixture
+def alice_owns_org_unit(
+    make_owner: Callable[..., None], alice: UUID, org_unit: UUID
+) -> None:
+    make_owner(alice, org_unit=org_unit)
+
+
+@pytest.fixture
 def create_org_unit_payload(
     root_org: UUID, phone_scope: UUID, dar_scope: UUID, org_unit: UUID
 ) -> dict[str, Any]:
@@ -196,7 +203,7 @@ def test_create_top_level_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db", "alice_owns_org_unit")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
@@ -209,6 +216,7 @@ def test_create_top_level_unit(
 def test_rename_org_unit(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
+    org_unit: UUID,
     role: str,
     userid: str,
     status_code: int,
@@ -226,12 +234,12 @@ def test_rename_org_unit(
     """
     fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
 
-    # Payload for renaming Humanistisk Fakultet
+    # Payload for renaming the org unit
     payload = {
         "type": "org_unit",
         "data": {
             "name": "New name",
-            "uuid": HUM_UNIT,
+            "uuid": str(org_unit),
             "clamp": True,
             "validity": {"from": "2021-07-28"},
         },
