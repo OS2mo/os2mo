@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from mora.cel import CEL
 from mora.graphapi import policy_cel
 from mora.graphapi.policy_cel import PolicyCEL
+from mora.rolebinding_rules import cel as rolebinding_rule_cel
 from mora.util import CPR
 
 # https://strawberry.rocks/docs/integrations/pydantic#classes-with-__get_validators__
@@ -131,4 +132,12 @@ POLICY_CEL_SCALAR = strawberry.scalar(
         See: https://cel.dev
         """
     ),
+)
+
+
+ROLEBINDING_RULE_CEL_SCALAR = strawberry.scalar(
+    name="RolebindingRuleCEL",
+    serialize=str,
+    parse_value=rolebinding_rule_cel.validate,
+    description="A CEL expression used in rolebinding rules.",
 )

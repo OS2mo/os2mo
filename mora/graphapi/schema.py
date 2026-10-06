@@ -69,9 +69,11 @@ from mora.graphapi.types import CPR_SCALAR
 from mora.graphapi.types import CURSOR_SCALAR
 from mora.graphapi.types import INT_SCALAR
 from mora.graphapi.types import POLICY_CEL_SCALAR
+from mora.graphapi.types import ROLEBINDING_RULE_CEL_SCALAR
 from mora.graphapi.types import Cursor
 from mora.graphapi.version import Version
 from mora.log import canonical_gql_context
+from mora.rolebinding_rules.cel import RolebindingRuleCEL
 from mora.util import CPR
 
 logger = get_logger()
@@ -355,6 +357,7 @@ def get_schema(version: Version) -> CustomSchema:
                 Cursor: CURSOR_SCALAR,
                 EventToken: EVENT_TOKEN_SCALAR,
                 PositiveInt: INT_SCALAR,
+                RolebindingRuleCEL: ROLEBINDING_RULE_CEL_SCALAR,
                 UploadFile: UploadDefinition,
             },
         ),
