@@ -71,6 +71,8 @@ from mora.graphapi.policy_cel import CEL
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
+from mora.graphapi.rolebinding_rules import ROLEBINDING_RULE_CEL_SCALAR
+from mora.graphapi.rolebinding_rules import RolebindingRuleCEL
 from mora.graphapi.types import CEL_SCALAR
 from mora.graphapi.types import CPR_SCALAR
 from mora.graphapi.types import CURSOR_SCALAR
@@ -431,6 +433,7 @@ def get_schema(version: Version) -> CustomSchema:
                 Cursor: CURSOR_SCALAR,
                 EventToken: EVENT_TOKEN_SCALAR,
                 PositiveInt: INT_SCALAR,
+                RolebindingRuleCEL: ROLEBINDING_RULE_CEL_SCALAR,
                 UploadFile: UploadDefinition,
             },
         ),
