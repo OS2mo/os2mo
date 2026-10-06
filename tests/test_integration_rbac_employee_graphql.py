@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
+from uuid import UUID
 
 import pytest
 
@@ -29,6 +31,11 @@ parametrize_roles = (
         (ADMIN, BOB, True),
     ],
 )
+
+
+@pytest.fixture
+def alice_owns_carol(alice: UUID, carol: UUID, make_owner: Callable[..., None]) -> None:
+    make_owner(alice, person=carol)
 
 
 @pytest.fixture
@@ -154,11 +161,12 @@ def test_create_employee(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_carol", "employee_phone_scope")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_creating_detail_address(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    carol: UUID,
     role: str,
     userid: str,
     success: bool,
@@ -169,7 +177,7 @@ def test_creating_detail_address(
     input = {
         "address_type": "cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d",
         "visibility": "f63ad763-0e53-4972-a6a9-63b42a0f8cb7",
-        "employee": LIS_JENSEN,
+        "employee": str(carol),
         "validity": {"from": "2021-08-04"},
         "value": "12345678",
     }

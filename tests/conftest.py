@@ -1024,6 +1024,17 @@ def bob(create_person: Callable[[dict[str, Any] | None], UUID]) -> UUID:
 
 
 @pytest.fixture
+def carol(create_person: Callable[[dict[str, Any] | None], UUID]) -> UUID:
+    return create_person(
+        {
+            "given_name": "Carol",
+            "surname": "Hansen",
+            "cpr_number": "2206993456",
+        }
+    )
+
+
+@pytest.fixture
 def person(alice: UUID) -> UUID:
     return alice
 
@@ -1486,6 +1497,13 @@ def org_unit_address_type(create_facet: Callable[[dict[str, Any]], UUID]) -> UUI
 
 
 @pytest.fixture
+def employee_address_type(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
+    return create_facet(
+        {"user_key": "employee_address_type", "validity": {"from": "1970-01-01"}}
+    )
+
+
+@pytest.fixture
 def phone_scope(
     create_class: Callable[[dict[str, Any]], UUID], org_unit_address_type: UUID
 ) -> UUID:
@@ -1528,6 +1546,22 @@ def email_scope(
             "name": "EMAIL",
             "facet_uuid": str(org_unit_address_type),
             "scope": "EMAIL",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def employee_phone_scope(
+    create_class: Callable[[dict[str, Any]], UUID], employee_address_type: UUID
+) -> UUID:
+    return create_class(
+        {
+            "uuid": "cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d",
+            "user_key": "PHONE",
+            "name": "PHONE",
+            "facet_uuid": str(employee_address_type),
+            "scope": "PHONE",
             "validity": {"from": "1970-01-01"},
         }
     )
