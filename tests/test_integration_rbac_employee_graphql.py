@@ -13,10 +13,6 @@ from tests.conftest import BOB
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
-# Users
-LIS_JENSEN = "7626ad64-327d-481f-8b32-36c78eb12f8c"
-
-
 parametrize_roles = (
     "role, userid, success",
     # Test of write access for the following cases:
@@ -71,32 +67,6 @@ def email_address(
             "validity": {"from": "2020-01-01"},
         }
     )
-
-
-@pytest.fixture
-async def create_lis_owner(
-    set_auth: SetAuth,
-    graphapi_post: GraphAPIPost,
-) -> None:
-    # Let Anders And be the owner of Lis Jensen
-    set_auth(ADMIN, ALICE)
-
-    owner = {
-        "owner": ALICE,
-        "person": LIS_JENSEN,
-        "validity": {"from": "2021-08-03"},
-    }
-    r = graphapi_post(
-        """
-        mutation OwnerCreate($input: OwnerCreateInput!) {
-          owner_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=owner),
-    )
-    assert r.errors is None
 
 
 @pytest.mark.integration_test
@@ -578,18 +548,19 @@ def test_terminate_details(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_carol")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_terminate_employee(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    carol: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
     set_auth(role, userid)
     input = {
-        "uuid": LIS_JENSEN,
+        "uuid": str(carol),
         "to": "2021-08-17",
     }
     r = graphapi_post(
