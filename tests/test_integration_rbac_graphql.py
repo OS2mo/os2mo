@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -27,6 +28,13 @@ ACTIVE_DIRECTORY = UUID("59c135c9-2b15-41cc-97c8-b5dff7180beb")
 # IT users
 ANDERS_AND_AD_USER_KEY = "18d2271a-45c4-406c-a482-04ab12f80881"
 ANDERS_AND_AD_EXTERNAL_ID = "e5595d6a-590c-4cae-9164-9fcf8e1178a2"
+
+
+@pytest.fixture
+def alice_owns_org_unit_with_parent(
+    make_owner: Callable[..., None], alice: UUID, org_unit_with_parent: UUID
+) -> None:
+    make_owner(alice, org_unit=org_unit_with_parent)
 
 
 @pytest.fixture
@@ -200,7 +208,7 @@ def test_create_top_level_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db", "alice_owns_org_unit_with_parent")
 @pytest.mark.parametrize(
     "role, userid, success",
     [
@@ -213,6 +221,8 @@ def test_create_top_level_unit(
 def test_rename_org_unit(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    org_unit: UUID,
+    org_unit_with_parent: UUID,
     role: str,
     userid: str,
     success: bool,
@@ -228,9 +238,9 @@ def test_rename_org_unit(
 
     # Payload for renaming Humanistisk Fakultet
     input = {
-        "uuid": HUM_UNIT,
+        "uuid": str(org_unit_with_parent),
         "name": "New name",
-        "parent": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        "parent": str(org_unit),
         "validity": {"from": "2021-07-28"},
     }
 
