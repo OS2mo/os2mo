@@ -319,11 +319,13 @@ def test_create_association(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_bob", "alice_owns_org_unit")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_manager(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    carol: UUID,
+    org_unit: UUID,
     role: str,
     userid: str,
     success: bool,
@@ -331,8 +333,8 @@ def test_create_manager(
     set_auth(role, userid)
 
     input = {
-        "person": LIS_JENSEN,
-        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+        "person": str(carol),
+        "org_unit": str(org_unit),
         "manager_type": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
         "manager_level": "3c791935-2cfa-46b5-a12e-66f7f54e70fe",
         "responsibility": "93ea44f9-127c-4465-a34c-77d149e3e928",
