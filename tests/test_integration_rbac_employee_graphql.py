@@ -198,18 +198,21 @@ def test_creating_detail_address(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_carol")
 def test_success_when_creating_it_system_detail_as_owner_of_employee(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    alice: UUID,
+    carol: UUID,
+    itsystem: UUID,
 ) -> None:
-    # Use user "Anders And" (who owns the employee)
-    set_auth(OWNER, ALICE)
+    # Use Alice (who owns the employee)
+    set_auth(OWNER, alice)
 
     input = {
         "user_key": "AD",
-        "person": LIS_JENSEN,
-        "itsystem": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+        "person": str(carol),
+        "itsystem": str(itsystem),
         "validity": {"from": "2021-08-11"},
     }
     r = graphapi_post(
