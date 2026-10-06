@@ -5,16 +5,22 @@
 from collections.abc import Sequence
 from datetime import datetime
 from textwrap import dedent
+from typing import Any
 from uuid import UUID
 
+import psycopg
 import strawberry
 from sqlalchemy import ColumnElement
 from sqlalchemy import func
+from sqlalchemy import insert
 from sqlalchemy import select
 from sqlalchemy import tuple_
+from sqlalchemy.exc import IntegrityError
 
 from mora import db
+from mora.auth.middleware import get_authenticated_user
 from mora.db import AsyncSession
+from mora.db.events import add_event
 from mora.graphapi.context import MOInfo
 from mora.graphapi.filters import gen_filter_string
 from mora.rolebinding_rules.cel import RolebindingRuleCEL
@@ -69,6 +75,16 @@ CEL_EXPRESSION_DESCRIPTION = dedent(
 )
 
 
+async def notify_rule_changed(session: AsyncSession, uuid: UUID) -> None:
+    """Send events in the event system."""
+    await add_event(
+        session,
+        namespace="mo",
+        routing_key="rolebinding_rule",
+        subject=str(uuid),
+    )
+
+
 def _is_current() -> ColumnElement[bool]:
     latest_versions = select(
         db.RolebindingRuleRevision.rule_fk,
@@ -78,6 +94,46 @@ def _is_current() -> ColumnElement[bool]:
         db.RolebindingRuleRevision.rule_fk, db.RolebindingRuleRevision.version
     ).in_(latest_versions)
     return is_latest & db.RolebindingRuleRevision.deleted.is_(False)
+
+
+async def current_revision(
+    session: AsyncSession, uuid: UUID
+) -> db.RolebindingRuleRevision | None:
+    """The current revision of a rule, or `None` if it is deleted or unknown."""
+    return await session.scalar(
+        select(db.RolebindingRuleRevision).where(
+            db.RolebindingRuleRevision.rule_fk == uuid, _is_current()
+        )
+    )
+
+
+async def add_revision(
+    session: AsyncSession,
+    rule: UUID,
+    previous: db.RolebindingRuleRevision | None,
+    **values: Any,
+) -> None:
+    """Writes a new revision of a rule, as the authenticated actor.
+
+    The new revision follows *previous*, which must be the current revision of
+    the rule, or `None` for a new rule.
+    """
+    try:
+        await session.execute(
+            insert(db.RolebindingRuleRevision).values(
+                rule_fk=rule,
+                version=previous.version + 1 if previous is not None else 1,
+                actor=get_authenticated_user(),
+                **values,
+            )
+        )
+    except IntegrityError as error:
+        assert isinstance(error.orig, psycopg.Error)
+        if error.orig.diag.constraint_name == "rolebinding_rule_revision_version_key":
+            raise ValueError(
+                f"Rolebinding rule '{rule}' was changed concurrently. Try again."
+            ) from error
+        raise  # pragma: no cover
 
 
 @strawberry.input(description="Rolebinding rule filter.")

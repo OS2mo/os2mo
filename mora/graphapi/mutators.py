@@ -152,8 +152,12 @@ from .inputs import OwnerUpdateInput
 from .inputs import PolicyStateInput
 from .inputs import RelatedUnitsUpdateInput
 from .inputs import RoleBindingCreateInput
+from .inputs import RolebindingRuleCreateInput
+from .inputs import RolebindingRuleDeleteInput
+from .inputs import RolebindingRuleUpdateInput
 from .inputs import RoleBindingTerminateInput
 from .inputs import RoleBindingUpdateInput
+from .inputs import strip_unset
 from .it_association import create_itassociation
 from .it_association import terminate_itassociation
 from .it_association import update_itassociation
@@ -211,6 +215,11 @@ from .response import Response
 from .role import create_rolebinding
 from .role import terminate_rolebinding
 from .role import update_rolebinding
+from .rolebinding_rules import RolebindingRule
+from .rolebinding_rules import add_revision
+from .rolebinding_rules import current_revision
+from .rolebinding_rules import load_rules
+from .rolebinding_rules import notify_rule_changed
 
 logger = logging.getLogger(__name__)
 
@@ -1428,6 +1437,106 @@ class Mutation:
             owner=owner,
             priority=priority,
         )
+
+    # Rolebinding rules
+    # -----------------
+    @strawberry.mutation(
+        description="Create a rolebinding rule",
+    )
+    async def rolebinding_rule_create(
+        self, info: MOInfo, input: RolebindingRuleCreateInput
+    ) -> RolebindingRule:
+        session: AsyncSession = info.context.session
+
+        uuid = one(
+            await session.scalars(
+                sqlalchemy.insert(db.RolebindingRule).returning(db.RolebindingRule.pk)
+            )
+        )
+        await add_revision(
+            session,
+            uuid,
+            None,
+            name=input.name,
+            role=input.role,
+            expression=input.expression,
+            active=input.active,
+        )
+        await notify_rule_changed(session, uuid)
+        return one(await load_rules(session, [uuid]))
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Update a rolebinding rule.
+
+            Rolebinding rules are not bitemporal.
+            """,
+        ),
+    )
+    async def rolebinding_rule_update(
+        self, info: MOInfo, input: RolebindingRuleUpdateInput
+    ) -> RolebindingRule:
+        session: AsyncSession = info.context.session
+
+        values = strip_unset(
+            {
+                "name": input.name,
+                "role": input.role,
+                "expression": input.expression,
+                "active": input.active,
+            }
+        )
+        # No field of a rule is nullable, so `null` can only be a mistake.
+        nulled = {key for key, value in values.items() if value is None}
+        if nulled:
+            raise ValueError(f"Fields cannot be null: {', '.join(sorted(nulled))}.")
+
+        current = await current_revision(session, input.uuid)
+        if current is None:
+            raise ValueError(f"No rolebinding rule with UUID '{input.uuid}'.")
+
+        # Only write if anything is actually different.
+        if any(getattr(current, key) != value for key, value in values.items()):
+            await add_revision(
+                session,
+                input.uuid,
+                current,
+                **{
+                    "name": current.name,
+                    "role": current.role,
+                    "expression": current.expression,
+                    "active": current.active,
+                    **values,
+                },
+            )
+            await notify_rule_changed(session, input.uuid)
+        return one(await load_rules(session, [input.uuid]))
+
+    @strawberry.mutation(
+        description="Delete a rolebinding rule.",
+    )
+    async def rolebinding_rule_delete(
+        self, info: MOInfo, input: RolebindingRuleDeleteInput
+    ) -> UUID:
+        session: AsyncSession = info.context.session
+
+        current = await current_revision(session, input.uuid)
+        if current is None:
+            raise ValueError(f"No rolebinding rule with UUID '{input.uuid}'.")
+
+        await add_revision(
+            session,
+            input.uuid,
+            current,
+            deleted=True,
+            name=current.name,
+            role=current.role,
+            expression=current.expression,
+            active=current.active,
+        )
+        await notify_rule_changed(session, input.uuid)
+        return input.uuid
 
     # Event system
     # ------------

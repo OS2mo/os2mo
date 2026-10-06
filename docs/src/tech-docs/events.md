@@ -84,6 +84,7 @@ MO's routing keys are:
 * `person`
 * `related_unit`
 * `rolebinding`
+* `rolebinding_rule`
 
 
 ## Getting started
