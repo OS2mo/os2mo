@@ -38,11 +38,11 @@ def alice_owns_org_unit_with_parent(
 
 
 @pytest.fixture
-def org_unit_create_input() -> dict[str, Any]:
+def org_unit_create_input(org_unit: UUID) -> dict[str, Any]:
     return {
         "uuid": MY_UNIT,
         "name": "Fake Corp",
-        "parent": ROOT_UNIT,
+        "parent": str(org_unit),
         "org_unit_type": "ca76a441-6226-404f-88a9-31e02e420e52",
         "org_unit_hierarchy": "12345678-abcd-abcd-1234-12345678abcd",
         "org_unit_level": "0f015b67-f250-43bb-9160-043ec19fad48",
@@ -89,7 +89,7 @@ def phone_address(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db", "phone_scope", "dar_scope")
 @pytest.mark.parametrize(
     "role, userid, success",
     [
@@ -153,17 +153,19 @@ def test_create_org_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db", "alice_owns_org_unit_with_parent")
 def test_success_when_creating_unit_as_owner_of_parent_unit(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    alice: UUID,
+    org_unit_with_parent: UUID,
     org_unit_create_input: dict[str, Any],
 ) -> None:
-    set_auth(OWNER, ALICE)
+    set_auth(OWNER, alice)
 
     input = {
         **org_unit_create_input,
-        "parent": HUM_UNIT,
+        "parent": str(org_unit_with_parent),
     }
     r = graphapi_post(
         """
@@ -179,7 +181,7 @@ def test_success_when_creating_unit_as_owner_of_parent_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "role, userid, success",
     [
@@ -356,7 +358,7 @@ def test_terminate_org_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db", "phone_scope", "alice_owns_org_unit_with_parent")
 @pytest.mark.parametrize(
     "role, userid, success",
     [
@@ -369,6 +371,7 @@ def test_terminate_org_unit(
 def test_create_detail(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    org_unit_with_parent: UUID,
     org_unit_create_input: dict[str, Any],
     address_create_phone_input: dict[str, Any],
     role: str,
@@ -398,7 +401,7 @@ def test_create_detail(
     set_auth(role, userid)
     input = {
         **address_create_phone_input,
-        "org_unit": HUM_UNIT,
+        "org_unit": str(org_unit_with_parent),
     }
     r2 = graphapi_post(
         """
@@ -518,7 +521,6 @@ def org_unit_uuid_1(
     graphapi_post: GraphAPIPost,
     alice: UUID,
     bob: UUID,
-    org_unit: UUID,
     org_unit_create_input: dict[str, Any],
 ) -> str:
     set_auth(ADMIN, bob)
@@ -526,7 +528,6 @@ def org_unit_uuid_1(
     input = {
         **org_unit_create_input,
         "uuid": str(uuid4()),
-        "parent": str(org_unit),
     }
     r1 = graphapi_post(
         """
