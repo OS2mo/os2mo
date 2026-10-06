@@ -91,7 +91,7 @@ def person(
     settings: Settings, version: Version, token: Token, uuid: UUID | None
 ) -> ColumnElement | None:
     """Require ownership of the person named, if one is named."""
-    if uuid is None or uuid is UNSET:
+    if uuid is None:
         return None
     predicate = employee_predicate(
         settings=settings,
