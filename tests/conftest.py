@@ -1498,6 +1498,21 @@ def create_class(
 
 
 @pytest.fixture
+def role(
+    role_facet: UUID, itsystem: UUID, create_class: Callable[[dict[str, Any]], UUID]
+) -> UUID:
+    return create_class(
+        {
+            "facet_uuid": str(role_facet),
+            "it_system_uuid": str(itsystem),
+            "user_key": "read",
+            "name": "Read",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
 def update_class(
     graphapi_post: GraphAPIPost,
     root_org: UUID,

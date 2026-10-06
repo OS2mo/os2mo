@@ -3,6 +3,8 @@
 from datetime import datetime
 from uuid import UUID
 
+import psycopg
+from more_itertools import one
 from sqlalchemy import BigInteger
 from sqlalchemy import ColumnElement
 from sqlalchemy import DateTime
@@ -11,7 +13,11 @@ from sqlalchemy import Identity
 from sqlalchemy import Text
 from sqlalchemy import UniqueConstraint
 from sqlalchemy import exists
+from sqlalchemy import insert
+from sqlalchemy import select
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import aliased
 from sqlalchemy.orm import mapped_column
@@ -19,6 +25,7 @@ from sqlalchemy.orm import mapped_column
 from mora.cel.rolebinding_rules import RolebindingRuleCEL
 
 from ._common import Base
+from .events import add_event
 
 
 class RolebindingRule(Base):
@@ -86,3 +93,113 @@ class RolebindingRuleRevision(Base):
             successor.version > cls.version,
         )
         return ~has_successor & cls.deleted.is_(False)
+
+
+async def current_rolebinding_rule_revision(
+    session: AsyncSession, uuid: UUID
+) -> RolebindingRuleRevision | None:
+    """The current revision of a rule, or `None` if it is deleted or unknown."""
+    return await session.scalar(
+        select(RolebindingRuleRevision).where(
+            RolebindingRuleRevision.rule_fk == uuid,
+            RolebindingRuleRevision.is_current(),
+        )
+    )
+
+
+async def create_rolebinding_rule(
+    session: AsyncSession,
+    *,
+    actor: UUID,
+    name: str,
+    role: UUID,
+    expression: RolebindingRuleCEL,
+    active: bool,
+) -> UUID:
+    """Create a rule with its first revision.
+
+    Use `add_rolebinding_rule_revision` to change a rolebinding rule.
+    """
+    uuid = one(
+        await session.scalars(insert(RolebindingRule).returning(RolebindingRule.pk))
+    )
+    await _insert_revision(
+        session,
+        rule=uuid,
+        version=1,
+        actor=actor,
+        deleted=False,
+        name=name,
+        role=role,
+        expression=expression,
+        active=active,
+    )
+    return uuid
+
+
+async def add_rolebinding_rule_revision(
+    session: AsyncSession,
+    previous: RolebindingRuleRevision,
+    *,
+    actor: UUID,
+    name: str | None = None,
+    role: UUID | None = None,
+    expression: RolebindingRuleCEL | None = None,
+    active: bool | None = None,
+    deleted: bool = False,
+) -> None:
+    """Write a new revision of a rule.
+
+    Fields left as `None` are copied from *previous*.
+    """
+    await _insert_revision(
+        session,
+        rule=previous.rule_fk,
+        version=previous.version + 1,
+        actor=actor,
+        deleted=deleted,
+        name=name if name is not None else previous.name,
+        role=role if role is not None else previous.role,
+        expression=expression if expression is not None else previous.expression,
+        active=active if active is not None else previous.active,
+    )
+
+
+async def _insert_revision(
+    session: AsyncSession,
+    *,
+    rule: UUID,
+    version: int,
+    actor: UUID,
+    deleted: bool,
+    name: str,
+    role: UUID,
+    expression: RolebindingRuleCEL,
+    active: bool,
+) -> None:
+    try:
+        await session.execute(
+            insert(RolebindingRuleRevision).values(
+                rule_fk=rule,
+                version=version,
+                actor=actor,
+                deleted=deleted,
+                name=name,
+                role=role,
+                expression=expression,
+                active=active,
+            )
+        )
+    except IntegrityError as error:
+        assert isinstance(error.orig, psycopg.Error)
+        if error.orig.diag.constraint_name == "rolebinding_rule_revision_version_key":
+            raise ValueError(
+                f"Rolebinding rule '{rule}' was changed concurrently. Try again."
+            ) from error
+        if error.orig.diag.constraint_name == "rolebinding_rule_revision_role_fkey":
+            raise ValueError(f"Role '{role}' does not exist.") from error
+        raise  # pragma: no cover
+
+    await add_event(
+        session, namespace="mo", routing_key="rolebinding_rule", subject=str(rule)
+    )
