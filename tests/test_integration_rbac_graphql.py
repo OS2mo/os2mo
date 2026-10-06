@@ -281,10 +281,11 @@ def test_rename_org_unit(
 def org_unit_no_details_uuid(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    bob: UUID,
     org_unit_create_input: dict[str, Any],
     org_unit_uuid_1: str,
 ) -> str:
-    set_auth(ADMIN, BOB)
+    set_auth(ADMIN, bob)
 
     input = {
         **org_unit_create_input,
@@ -306,7 +307,7 @@ def org_unit_no_details_uuid(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "role, userid, success",
     [
@@ -468,7 +469,7 @@ def test_edit_detail(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "role, userid, success",
     [
@@ -515,13 +516,17 @@ def test_rename_subunit(
 def org_unit_uuid_1(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    alice: UUID,
+    bob: UUID,
+    org_unit: UUID,
     org_unit_create_input: dict[str, Any],
 ) -> str:
-    set_auth(ADMIN, BOB)
+    set_auth(ADMIN, bob)
 
     input = {
         **org_unit_create_input,
         "uuid": str(uuid4()),
+        "parent": str(org_unit),
     }
     r1 = graphapi_post(
         """
@@ -537,7 +542,7 @@ def org_unit_uuid_1(
     org_uuid = r1.data["org_unit_create"]["uuid"]
 
     owner = {
-        "owner": ALICE,
+        "owner": str(alice),
         "org_unit": org_uuid,
         "validity": {"from": "2021-08-03"},
     }
@@ -560,10 +565,11 @@ def org_unit_uuid_1(
 def org_unit_uuid_2(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    bob: UUID,
     org_unit_create_input: dict[str, Any],
     org_unit_uuid_1: str,
 ) -> str:
-    set_auth(ADMIN, BOB)
+    set_auth(ADMIN, bob)
 
     input = {
         **org_unit_create_input,
@@ -585,39 +591,45 @@ def org_unit_uuid_2(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db", "alice_owns_org_unit_with_parent")
 @pytest.mark.parametrize(
-    "owner,org_uuid,one_is_parent,success",
+    "owner,unit,one_is_parent,success",
     [
         # test_owner_of_unit_moves_unit_to_owned_unit
-        (ALICE, HUM_UNIT, True, True),
+        (ALICE, "hum", True, True),
         # test_owner_of_unit_moves_unit_to_subunit_of_owned_unit
-        (ALICE, HUM_UNIT, False, True),
+        (ALICE, "hum", False, True),
         # test_non_owner_of_unit_moves_unit_to_non_owned_unit
-        (BOB, HUM_UNIT, True, False),
+        (BOB, "hum", True, False),
         # test_non_owner_of_unit_moves_unit_to_subunit_of_non_owned_unit
-        (BOB, HUM_UNIT, False, False),
+        (BOB, "hum", False, False),
         # test_owner_moves_owned_subunit_to_owned_subunit
-        (ALICE, FILOSOFISK_INSTITUT, False, True),
+        (ALICE, "filosofisk", False, True),
     ],
 )
 def test_owner_of_unit(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    org_unit_with_parent: UUID,
     org_unit_uuid_1: str,
     org_unit_uuid_2: str,
     owner: str,
-    org_uuid: str,
+    unit: str,
     one_is_parent: bool,
     success: bool,
 ) -> None:
-    # Use user "Anders And" (who owns the parent unit)
+    units = {
+        "hum": org_unit_with_parent,
+        "filosofisk": create_org_unit("filosofisk", org_unit_with_parent),
+    }
+    # Use user "Alice" (who owns the parent unit)
     set_auth(OWNER, owner)
 
     parent_uuid = org_unit_uuid_1 if one_is_parent else org_unit_uuid_2
 
     input = {
-        "uuid": org_uuid,
+        "uuid": str(units[unit]),
         "parent": parent_uuid,
         "validity": {"from": "2021-07-30"},
     }
