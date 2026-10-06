@@ -985,6 +985,10 @@ def create_person(
     return inner
 
 
+ALICE = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+BOB = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+
 @pytest.fixture
 def alice(create_person: Callable[[dict[str, Any] | None], UUID]) -> UUID:
     return create_person(

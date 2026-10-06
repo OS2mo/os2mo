@@ -9,12 +9,10 @@ import pytest
 
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
+from tests.conftest import ALICE
+from tests.conftest import BOB
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
-
-# Users
-ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-FEDTMULE = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
 # Org units
 MY_UNIT = "9de978da-0967-43cf-921d-d56ddfcc6e0e"
@@ -71,8 +69,8 @@ def address_create_dar_input() -> dict[str, Any]:
     "role, userid, success",
     [
         (None, None, False),
-        (OWNER, ANDERS_AND, False),
-        (ADMIN, ANDERS_AND, True),
+        (OWNER, ALICE, False),
+        (ADMIN, ALICE, True),
     ],
 )
 def test_create_org_unit(
@@ -136,7 +134,7 @@ def test_success_when_creating_unit_as_owner_of_parent_unit(
     graphapi_post: GraphAPIPost,
     org_unit_create_input: dict[str, Any],
 ) -> None:
-    set_auth(OWNER, ANDERS_AND)
+    set_auth(OWNER, ALICE)
 
     input = {
         **org_unit_create_input,
@@ -161,8 +159,8 @@ def test_success_when_creating_unit_as_owner_of_parent_unit(
     "role, userid, success",
     [
         (None, None, False),
-        (OWNER, ANDERS_AND, False),
-        (ADMIN, ANDERS_AND, True),
+        (OWNER, ALICE, False),
+        (ADMIN, ALICE, True),
     ],
 )
 def test_create_top_level_unit(
@@ -207,9 +205,9 @@ def test_create_top_level_unit(
     "role, userid, success",
     [
         (None, None, False),
-        (OWNER, FEDTMULE, False),
-        (OWNER, ANDERS_AND, True),
-        (ADMIN, FEDTMULE, True),
+        (OWNER, BOB, False),
+        (OWNER, ALICE, True),
+        (ADMIN, BOB, True),
     ],
 )
 def test_rename_org_unit(
@@ -259,7 +257,7 @@ def org_unit_no_details_uuid(
     org_unit_create_input: dict[str, Any],
     org_unit_uuid_1: str,
 ) -> str:
-    set_auth(ADMIN, FEDTMULE)
+    set_auth(ADMIN, BOB)
 
     input = {
         **org_unit_create_input,
@@ -286,9 +284,9 @@ def org_unit_no_details_uuid(
     "role, userid, success",
     [
         (None, None, False),
-        (OWNER, FEDTMULE, False),
-        (OWNER, ANDERS_AND, True),
-        (ADMIN, FEDTMULE, True),
+        (OWNER, BOB, False),
+        (OWNER, ALICE, True),
+        (ADMIN, BOB, True),
     ],
 )
 def test_terminate_org_unit(
@@ -335,9 +333,9 @@ def test_terminate_org_unit(
     "role, userid, success",
     [
         (None, None, False),
-        (OWNER, FEDTMULE, False),
-        (OWNER, ANDERS_AND, True),
-        (ADMIN, FEDTMULE, True),
+        (OWNER, BOB, False),
+        (OWNER, ALICE, True),
+        (ADMIN, BOB, True),
     ],
 )
 def test_create_detail(
@@ -356,7 +354,7 @@ def test_create_detail(
     3) User with the owner role and owner of the relative entity
     4) User with the admin role
     """
-    set_auth(ADMIN, ANDERS_AND)
+    set_auth(ADMIN, ALICE)
     r1 = graphapi_post(
         """
         mutation OrgUnitCreate($input: OrganisationUnitCreateInput!) {
@@ -396,9 +394,9 @@ def test_create_detail(
     "role, userid, success",
     [
         (None, None, False),
-        (OWNER, FEDTMULE, False),
-        (OWNER, ANDERS_AND, True),
-        (ADMIN, FEDTMULE, True),
+        (OWNER, BOB, False),
+        (OWNER, ALICE, True),
+        (ADMIN, BOB, True),
     ],
 )
 def test_edit_detail(
@@ -446,8 +444,8 @@ def test_edit_detail(
 @pytest.mark.parametrize(
     "role, userid, success",
     [
-        (OWNER, ANDERS_AND, True),
-        (OWNER, FEDTMULE, False),
+        (OWNER, ALICE, True),
+        (OWNER, BOB, False),
     ],
 )
 def test_rename_subunit(
@@ -491,7 +489,7 @@ def org_unit_uuid_1(
     graphapi_post: GraphAPIPost,
     org_unit_create_input: dict[str, Any],
 ) -> str:
-    set_auth(ADMIN, FEDTMULE)
+    set_auth(ADMIN, BOB)
 
     input = {
         **org_unit_create_input,
@@ -511,7 +509,7 @@ def org_unit_uuid_1(
     org_uuid = r1.data["org_unit_create"]["uuid"]
 
     owner = {
-        "owner": ANDERS_AND,
+        "owner": ALICE,
         "org_unit": org_uuid,
         "validity": {"from": "2021-08-03"},
     }
@@ -537,7 +535,7 @@ def org_unit_uuid_2(
     org_unit_create_input: dict[str, Any],
     org_unit_uuid_1: str,
 ) -> str:
-    set_auth(ADMIN, FEDTMULE)
+    set_auth(ADMIN, BOB)
 
     input = {
         **org_unit_create_input,
@@ -564,15 +562,15 @@ def org_unit_uuid_2(
     "owner,org_uuid,one_is_parent,success",
     [
         # test_owner_of_unit_moves_unit_to_owned_unit
-        (ANDERS_AND, HUM_UNIT, True, True),
+        (ALICE, HUM_UNIT, True, True),
         # test_owner_of_unit_moves_unit_to_subunit_of_owned_unit
-        (ANDERS_AND, HUM_UNIT, False, True),
+        (ALICE, HUM_UNIT, False, True),
         # test_non_owner_of_unit_moves_unit_to_non_owned_unit
-        (FEDTMULE, HUM_UNIT, True, False),
+        (BOB, HUM_UNIT, True, False),
         # test_non_owner_of_unit_moves_unit_to_subunit_of_non_owned_unit
-        (FEDTMULE, HUM_UNIT, False, False),
+        (BOB, HUM_UNIT, False, False),
         # test_owner_moves_owned_subunit_to_owned_subunit
-        (ANDERS_AND, FILOSOFISK_INSTITUT, False, True),
+        (ALICE, FILOSOFISK_INSTITUT, False, True),
     ],
 )
 def test_owner_of_unit(
@@ -633,11 +631,11 @@ def test_related(
     destinations: list[str],
     success: bool,
 ) -> None:
-    # We need a second org unit ANDERS_AND owns since we cannot relate an org unit with
-    # itself; Make ANDERS_AND owner of FILOSOFISK_INSTITUT.
-    set_auth(ADMIN, FEDTMULE)
+    # We need a second org unit ALICE owns since we cannot relate an org unit with
+    # itself; Make ALICE owner of FILOSOFISK_INSTITUT.
+    set_auth(ADMIN, BOB)
     owner = {
-        "owner": ANDERS_AND,
+        "owner": ALICE,
         "org_unit": FILOSOFISK_INSTITUT,
         "validity": {"from": "2020-01-01"},
     }
@@ -653,7 +651,7 @@ def test_related(
     )
     assert r1.errors is None
 
-    set_auth(OWNER, ANDERS_AND)
+    set_auth(OWNER, ALICE)
     input = {
         "origin": origin,
         "destination": destinations,
@@ -690,7 +688,7 @@ def test_terminate_x_as_owner_of_unit(
     graphapi_post: GraphAPIPost,
     mutation: str,
 ) -> None:
-    set_auth(OWNER, ANDERS_AND)
+    set_auth(OWNER, ALICE)
     r = graphapi_post(mutation)
     assert r.errors is None
 
@@ -702,7 +700,7 @@ def test_terminate_x_as_owner_of_unit(
     [
         (ANDERS_AND_AD_USER_KEY, False),
         (ANDERS_AND_AD_EXTERNAL_ID, True),
-        (ANDERS_AND, False),
+        (ALICE, False),
     ],
 )
 @pytest.mark.envvar(
