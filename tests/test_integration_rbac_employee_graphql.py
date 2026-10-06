@@ -5,12 +5,12 @@ import pytest
 
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
+from tests.conftest import ALICE
+from tests.conftest import BOB
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
 # Users
-ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-FEDTMULE = "6ee24785-ee9a-4502-81c2-7697009c9053"
 LIS_JENSEN = "7626ad64-327d-481f-8b32-36c78eb12f8c"
 ERIK_SMIDT_HANSEN = "236e0a78-11a0-4ed9-8545-6286bb8611c7"
 
@@ -22,11 +22,11 @@ parametrize_roles = (
         # 1) Normal user (no roles set)
         (None, None, False),
         # 2) User with the owner role, but not owner of the relevant entity
-        (OWNER, FEDTMULE, False),
+        (OWNER, BOB, False),
         # 3) User with the owner role and owner of the relative entity
-        (OWNER, ANDERS_AND, True),
+        (OWNER, ALICE, True),
         # 4) User with the admin role
-        (ADMIN, FEDTMULE, True),
+        (ADMIN, BOB, True),
     ],
 )
 
@@ -37,10 +37,10 @@ async def create_lis_owner(
     graphapi_post: GraphAPIPost,
 ) -> None:
     # Let Anders And be the owner of Lis Jensen
-    set_auth(ADMIN, ANDERS_AND)
+    set_auth(ADMIN, ALICE)
 
     owner = {
-        "owner": ANDERS_AND,
+        "owner": ALICE,
         "person": LIS_JENSEN,
         "validity": {"from": "2021-08-03"},
     }
@@ -63,11 +63,11 @@ async def create_fedtmule_owner(
     graphapi_post: GraphAPIPost,
 ) -> None:
     # Let Anders And be the owner of Fedtmule
-    set_auth(ADMIN, ANDERS_AND)
+    set_auth(ADMIN, ALICE)
 
     owner = {
-        "owner": ANDERS_AND,
-        "person": FEDTMULE,
+        "owner": ALICE,
+        "person": BOB,
         "validity": {"from": "2021-08-03"},
     }
     r = graphapi_post(
@@ -89,10 +89,10 @@ async def create_erik_owner(
     graphapi_post: GraphAPIPost,
 ) -> None:
     # Let Anders And be the owner of Erik Smidt Hansen
-    set_auth(ADMIN, ANDERS_AND)
+    set_auth(ADMIN, ALICE)
 
     owner = {
-        "owner": ANDERS_AND,
+        "owner": ALICE,
         "person": ERIK_SMIDT_HANSEN,
         "validity": {"from": "2021-08-03"},
     }
@@ -118,9 +118,9 @@ async def create_erik_owner(
         # 1) Normal user (no roles set)
         (None, None, False),
         # 2) User with owner role
-        (OWNER, ANDERS_AND, False),
+        (OWNER, ALICE, False),
         # 3) User with the admin role
-        (ADMIN, ANDERS_AND, True),
+        (ADMIN, ALICE, True),
     ],
 )
 def test_create_employee(
@@ -196,7 +196,7 @@ def test_success_when_creating_it_system_detail_as_owner_of_employee(
     graphapi_post: GraphAPIPost,
 ) -> None:
     # Use user "Anders And" (who owns the employee)
-    set_auth(OWNER, ANDERS_AND)
+    set_auth(OWNER, ALICE)
 
     input = {
         "user_key": "AD",
@@ -377,7 +377,7 @@ def test_edit_address(
         "uuid": "64ea02e2-8469-4c54-a523-3d46729e86a7",
         "address_type": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
         "visibility": "f63ad763-0e53-4972-a6a9-63b42a0f8cb7",
-        "employee": FEDTMULE,
+        "employee": BOB,
         "validity": {"from": "2021-08-13"},
         "value": "goofy@andeby.dk",
     }
@@ -413,7 +413,7 @@ def test_edit_association(
         "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
         "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
         "association_type": "8eea787c-c2c7-46ca-bd84-2dd50f47801e",
-        "employee": ANDERS_AND,
+        "employee": ALICE,
         "validity": {"from": "2021-08-25"},
     }
     r = graphapi_post(
@@ -487,7 +487,7 @@ def test_edit_manager(
         "responsibility": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
         "manager_type": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
         "manager_level": "991915c0-f4f4-4337-95fa-dbeb9da13247",
-        "person": ANDERS_AND,
+        "person": ALICE,
         "validity": {"from": "2021-08-25"},
     }
     r = graphapi_post(

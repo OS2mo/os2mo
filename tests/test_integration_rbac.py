@@ -14,10 +14,8 @@ from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import fetch_token
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
-
-# Users
-ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-FEDTMULE = "6ee24785-ee9a-4502-81c2-7697009c9053"
+from tests.conftest import ALICE
+from tests.conftest import BOB
 
 # Org units
 ROOT_UNIT = "2874e1dc-85e6-4269-823a-e1125484dfd3"
@@ -128,8 +126,8 @@ def create_org_unit_payload() -> dict[str, Any]:
     "role, userid, status_code",
     [
         (None, None, HTTP_403_FORBIDDEN),
-        (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
-        (ADMIN, ANDERS_AND, HTTP_201_CREATED),
+        (OWNER, ALICE, HTTP_403_FORBIDDEN),
+        (ADMIN, ALICE, HTTP_201_CREATED),
     ],
 )
 def test_create_org_unit(
@@ -163,8 +161,8 @@ def test_create_org_unit(
     "role, userid, status_code",
     [
         (None, None, HTTP_403_FORBIDDEN),
-        (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
-        (ADMIN, ANDERS_AND, HTTP_201_CREATED),
+        (OWNER, ALICE, HTTP_403_FORBIDDEN),
+        (ADMIN, ALICE, HTTP_201_CREATED),
     ],
 )
 def test_create_top_level_unit(
@@ -200,9 +198,9 @@ def test_create_top_level_unit(
     "role, userid, status_code",
     [
         (None, None, HTTP_403_FORBIDDEN),
-        (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-        (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
-        (ADMIN, FEDTMULE, HTTP_200_OK),
+        (OWNER, BOB, HTTP_403_FORBIDDEN),
+        (OWNER, ALICE, HTTP_403_FORBIDDEN),
+        (ADMIN, BOB, HTTP_200_OK),
     ],
 )
 def test_rename_org_unit(
@@ -247,7 +245,7 @@ def org_unit_no_details_uuid(
     create_org_unit_payload: dict[str, Any],
     org_unit_uuid_1: str,
 ) -> str:
-    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(ADMIN, FEDTMULE)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(ADMIN, BOB)
 
     create_org_unit_payload["details"] = []
     create_org_unit_payload["parent"]["uuid"] = org_unit_uuid_1
@@ -265,9 +263,9 @@ def org_unit_no_details_uuid(
     "role, userid, status_code",
     [
         (None, None, HTTP_403_FORBIDDEN),
-        (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-        (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
-        (ADMIN, FEDTMULE, HTTP_201_CREATED),
+        (OWNER, BOB, HTTP_403_FORBIDDEN),
+        (OWNER, ALICE, HTTP_403_FORBIDDEN),
+        (ADMIN, BOB, HTTP_201_CREATED),
     ],
 )
 def test_create_detail(
@@ -335,9 +333,9 @@ def address_create_payload() -> dict[str, Any]:
     "role, userid, status_code",
     [
         (None, None, HTTP_403_FORBIDDEN),
-        (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-        (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
-        (ADMIN, FEDTMULE, HTTP_200_OK),
+        (OWNER, BOB, HTTP_403_FORBIDDEN),
+        (OWNER, ALICE, HTTP_403_FORBIDDEN),
+        (ADMIN, BOB, HTTP_200_OK),
     ],
 )
 def test_edit_detail(
@@ -414,7 +412,7 @@ def org_unit_uuid_1(
     service_client: TestClient,
     create_org_unit_payload: dict[str, Any],
 ) -> str:
-    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(ADMIN, FEDTMULE)
+    fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(ADMIN, BOB)
 
     payload = create_org_unit_payload
 
