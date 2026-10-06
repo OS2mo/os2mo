@@ -34,6 +34,13 @@ parametrize_roles = (
 
 
 @pytest.fixture
+def alice_owns_org_unit(
+    alice: UUID, org_unit: UUID, make_owner: Callable[..., None]
+) -> None:
+    make_owner(alice, org_unit=org_unit)
+
+
+@pytest.fixture
 def alice_owns_carol(alice: UUID, carol: UUID, make_owner: Callable[..., None]) -> None:
     make_owner(alice, person=carol)
 
@@ -234,11 +241,13 @@ def test_success_when_creating_it_system_detail_as_owner_of_employee(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_carol", "alice_owns_org_unit")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_employment(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    carol: UUID,
+    org_unit: UUID,
     role: str,
     userid: str,
     success: bool,
@@ -246,8 +255,8 @@ def test_create_employment(
     set_auth(role, userid)
 
     input = {
-        "person": LIS_JENSEN,
-        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+        "person": str(carol),
+        "org_unit": str(org_unit),
         "engagement_type": "06f95678-166a-455a-a2ab-121a8d92ea23",
         "job_function": "f42dd694-f1fd-42a6-8a97-38777b73adc4",
         "validity": {"from": "2021-08-11"},
