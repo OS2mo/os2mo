@@ -84,6 +84,42 @@ def phone_address(
     )
 
 
+@pytest.fixture
+def association_alice(
+    create_association: Callable[[dict[str, Any]], UUID],
+    org_unit_with_parent: UUID,
+    alice: UUID,
+) -> UUID:
+    return create_association(
+        {
+            "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
+            "org_unit": str(org_unit_with_parent),
+            "person": str(alice),
+            "association_type": "62ec821f-4179-4758-bfdf-134529d186e9",
+            "validity": {"from": "2017-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def manager_alice(
+    create_manager_raw: Callable[[dict[str, Any]], UUID],
+    org_unit_with_parent: UUID,
+    alice: UUID,
+) -> UUID:
+    return create_manager_raw(
+        {
+            "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
+            "manager_type": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
+            "manager_level": "3c791935-2cfa-46b5-a12e-66f7f54e70fe",
+            "responsibility": [],
+            "org_unit": str(org_unit_with_parent),
+            "person": str(alice),
+            "validity": {"from": "2017-01-01"},
+        }
+    )
+
+
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db", "phone_scope", "dar_scope")
 @pytest.mark.parametrize(
@@ -722,7 +758,13 @@ def test_related(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures(
+    "empty_db",
+    "phone_address",
+    "association_alice",
+    "manager_alice",
+    "alice_owns_org_unit_with_parent",
+)
 @pytest.mark.parametrize(
     "mutation",
     [
@@ -734,9 +776,10 @@ def test_related(
 def test_terminate_x_as_owner_of_unit(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    alice: UUID,
     mutation: str,
 ) -> None:
-    set_auth(OWNER, ALICE)
+    set_auth(OWNER, alice)
     r = graphapi_post(mutation)
     assert r.errors is None
 
