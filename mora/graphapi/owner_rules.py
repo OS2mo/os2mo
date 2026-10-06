@@ -86,19 +86,22 @@ def detail(uuid_expr: str, *, collection: str) -> str:
     )
 
 
+def and_or_none_of(clauses_expr: str) -> str:
+    """Require all of the clauses, or nothing if there is nothing to check."""
+    return Template("""cel.bind(clauses, $clauses_expr.filter(clause, clause != null),
+        clauses.size() == 0 ? null : dyn({"and": clauses}))""").substitute(
+        clauses_expr=clauses_expr
+    )
+
+
 def and_or_none(*checks: str) -> str:
     """Require all of the checks, or nothing if there is nothing to check."""
-    return Template("""cel.bind(clauses, [$checks].filter(clause, clause != null),
-        clauses.size() == 0 ? null : dyn({"and": clauses}))""").substitute(
-        checks=", ".join(checks)
-    )
+    return and_or_none_of(f"[{', '.join(checks)}]")
 
 
 def and_or_none_each(check: str) -> str:
     """Require the check of each `input`, or nothing if there is nothing to check."""
-    return Template("""cel.bind(clauses, args.input.map(input, $check)
-        .filter(clause, clause != null),
-        clauses.size() == 0 ? null : dyn({"and": clauses}))""").substitute(check=check)
+    return and_or_none_of(f"args.input.map(input, {check})")
 
 
 def org_unit_or_person(org_unit_uuid_expr: str, person_uuid_expr: str) -> str:
