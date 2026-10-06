@@ -69,6 +69,8 @@ from .models import Validity
 from .policy_api import Collection
 from .policy_api import PolicySelectorInput
 from .policy_cel import CEL
+from .rolebinding_rules import CEL_EXPRESSION_DESCRIPTION
+from .rolebinding_rules import RolebindingRuleCEL
 from .version import Version
 
 
@@ -941,3 +943,64 @@ class PolicyStateInput:
     write_rules: list[PolicyWriteRuleInput] = strawberry.field(
         default_factory=list, description="The mutators the policy grants access to."
     )
+
+
+# Rolebinding rules
+# -----------------
+
+
+@strawberry.input(description="Create a rolebinding rule.")
+class RolebindingRuleCreateInput:
+    user_key: str = strawberry.field(
+        description="Human-readable identifier of the rule."
+    )
+    role: UUID = strawberry.field(
+        description=dedent(
+            """\
+            UUID of the role to grant.
+
+            Must be a class in the `role` facet that belongs to an IT-system.
+            The rule grants rolebindings in that IT-system.
+            """
+        )
+    )
+    expression: RolebindingRuleCEL = strawberry.field(
+        description=CEL_EXPRESSION_DESCRIPTION
+    )
+    active: bool = strawberry.field(
+        default=True, description="Whether the engine should act on this rule."
+    )
+
+
+@strawberry.input(
+    description=dedent(
+        """\
+        Update a rolebinding rule.
+
+        Rolebinding rules are not bitemporal, so updating a rule writes a new
+        revision instead of a validity period. The new revision becomes the
+        current one. Only the provided fields change.
+        """
+    )
+)
+class RolebindingRuleUpdateInput:
+    uuid: UUID = strawberry.field(description="UUID of the rule to update.")
+    user_key: str | None = strawberry.field(
+        default=UNSET, description="Human-readable identifier of the rule."
+    )
+    role: UUID | None = strawberry.field(
+        default=UNSET,
+        description="UUID of the role to grant. Must belong to an IT-system.",
+    )
+    expression: RolebindingRuleCEL | None = strawberry.field(
+        default=UNSET,
+        description=CEL_EXPRESSION_DESCRIPTION,
+    )
+    active: bool | None = strawberry.field(
+        default=UNSET, description="Whether the engine should act on this rule."
+    )
+
+
+@strawberry.input(description="Delete a rolebinding rule.")
+class RolebindingRuleDeleteInput:
+    uuid: UUID = strawberry.field(description="UUID of the rule to delete.")

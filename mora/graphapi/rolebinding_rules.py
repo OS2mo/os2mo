@@ -5,6 +5,7 @@
 from collections.abc import Sequence
 from datetime import datetime
 from textwrap import dedent
+from typing import Any
 from typing import NewType
 from uuid import UUID
 
@@ -13,11 +14,14 @@ from more_itertools import bucket
 from more_itertools import last
 from sqlalchemy import ColumnElement
 from sqlalchemy import func
+from sqlalchemy import insert
 from sqlalchemy import select
 from sqlalchemy.orm import aliased
 
 from mora import db
+from mora.auth.middleware import get_authenticated_user
 from mora.db import AsyncSession
+from mora.db.events import add_event
 from mora.graphapi.context import MOInfo
 from mora.graphapi.filters import gen_filter_string
 from mora.rolebinding_rules.cel import validate
@@ -71,12 +75,46 @@ CEL_EXPRESSION_DESCRIPTION = dedent(
 )
 
 
+async def notify_rule_changed(session: AsyncSession, uuid: UUID) -> None:
+    """Send events in the event system."""
+    await add_event(
+        session,
+        namespace="mo",
+        routing_key="rolebinding_rule",
+        subject=str(uuid),
+    )
+
+
 def _is_current() -> ColumnElement[bool]:
     """Restricts revisions to the current revision of rules that are not deleted."""
     revision = aliased(db.RolebindingRuleRevision)
     latest = select(func.max(revision.pk)).group_by(revision.rule_fk)
     return db.RolebindingRuleRevision.pk.in_(latest) & (
         db.RolebindingRuleRevision.deleted.is_(False)
+    )
+
+
+async def current_revision(
+    session: AsyncSession, uuid: UUID
+) -> db.RolebindingRuleRevision | None:
+    """The current revision of a rule, or `None` if it is deleted or unknown."""
+    revision = await session.scalar(
+        select(db.RolebindingRuleRevision)
+        .where(db.RolebindingRuleRevision.rule_fk == uuid)
+        .order_by(db.RolebindingRuleRevision.pk.desc())
+        .limit(1)
+    )
+    if revision is None or revision.deleted:
+        return None
+    return revision
+
+
+async def add_revision(session: AsyncSession, rule: UUID, **values: Any) -> None:
+    """Writes a new revision of a rule, as the authenticated actor."""
+    await session.execute(
+        insert(db.RolebindingRuleRevision).values(
+            rule_fk=rule, actor=get_authenticated_user(), **values
+        )
     )
 
 

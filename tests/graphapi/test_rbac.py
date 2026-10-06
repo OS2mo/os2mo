@@ -171,6 +171,7 @@ async def test_graphql_rbac(
             "EventToken": st.just(
                 EventToken.serialize(EventToken(uuid=uuid4(), generation=uuid4()))
             ).map(nodes.String),
+            "RolebindingRuleCEL": st.just("true").map(nodes.String),
         },
     )
 )
