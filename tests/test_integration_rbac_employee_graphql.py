@@ -102,32 +102,6 @@ async def create_fedtmule_owner(
     assert r.errors is None
 
 
-@pytest.fixture
-async def create_erik_owner(
-    set_auth: SetAuth,
-    graphapi_post: GraphAPIPost,
-) -> None:
-    # Let Anders And be the owner of Erik Smidt Hansen
-    set_auth(ADMIN, ALICE)
-
-    owner = {
-        "owner": ALICE,
-        "person": ERIK_SMIDT_HANSEN,
-        "validity": {"from": "2021-08-03"},
-    }
-    r = graphapi_post(
-        """
-        mutation OwnerCreate($input: OwnerCreateInput!) {
-          owner_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=owner),
-    )
-    assert r.errors is None
-
-
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
@@ -357,11 +331,13 @@ def test_create_manager(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_erik_owner")
+@pytest.mark.usefixtures("empty_db", "alice_owns_carol", "alice_owns_org_unit")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_leave(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    carol: UUID,
+    engagement_carol: UUID,
     role: str,
     userid: str,
     success: bool,
@@ -369,9 +345,9 @@ def test_create_leave(
     set_auth(role, userid)
 
     input = {
-        "person": ERIK_SMIDT_HANSEN,
+        "person": str(carol),
         "leave_type": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
-        "engagement": "301a906b-ef51-4d5c-9c77-386fb8410459",
+        "engagement": str(engagement_carol),
         "validity": {"from": "2021-08-20"},
     }
     r = graphapi_post(

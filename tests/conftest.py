@@ -1150,6 +1150,23 @@ def update_engagement(
 
 
 @pytest.fixture
+def engagement_carol(
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    carol: UUID,
+    org_unit: UUID,
+) -> UUID:
+    return create_engagement(
+        {
+            "person": str(carol),
+            "org_unit": str(org_unit),
+            "engagement_type": "06f95678-166a-455a-a2ab-121a8d92ea23",
+            "job_function": "f42dd694-f1fd-42a6-8a97-38777b73adc4",
+            "validity": {"from": "2020-01-01"},
+        }
+    )
+
+
+@pytest.fixture
 def create_owner(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
