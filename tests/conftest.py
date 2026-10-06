@@ -1469,6 +1469,61 @@ def create_class(
 
 
 @pytest.fixture
+def org_unit_address_type(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
+    return create_facet(
+        {"user_key": "org_unit_address_type", "validity": {"from": "1970-01-01"}}
+    )
+
+
+@pytest.fixture
+def phone_scope(
+    create_class: Callable[[dict[str, Any]], UUID], org_unit_address_type: UUID
+) -> UUID:
+    return create_class(
+        {
+            "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
+            "user_key": "PHONE",
+            "name": "PHONE",
+            "facet_uuid": str(org_unit_address_type),
+            "scope": "PHONE",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def dar_scope(
+    create_class: Callable[[dict[str, Any]], UUID], org_unit_address_type: UUID
+) -> UUID:
+    return create_class(
+        {
+            "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
+            "user_key": "DAR",
+            "name": "DAR",
+            "facet_uuid": str(org_unit_address_type),
+            "scope": "DAR",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def email_scope(
+    create_class: Callable[[dict[str, Any]], UUID], org_unit_address_type: UUID
+) -> UUID:
+    return create_class(
+        {
+            "uuid": "73360db1-bad3-4167-ac73-8d827c0c8751",
+            "user_key": "EMAIL",
+            "name": "EMAIL",
+            "facet_uuid": str(org_unit_address_type),
+            "scope": "EMAIL",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
 def update_class(
     graphapi_post: GraphAPIPost,
     root_org: UUID,

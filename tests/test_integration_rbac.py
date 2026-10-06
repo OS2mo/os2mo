@@ -63,7 +63,9 @@ def mock_auth(
 
 
 @pytest.fixture
-def create_org_unit_payload(root_org: UUID) -> dict[str, Any]:
+def create_org_unit_payload(
+    root_org: UUID, phone_scope: UUID, dar_scope: UUID
+) -> dict[str, Any]:
     return {
         "name": "Fake Corp",
         "time_planning": {
@@ -338,7 +340,7 @@ def test_create_detail(
 
 
 @pytest.fixture
-def address_create_payload(root_org: UUID) -> dict[str, Any]:
+def address_create_payload(root_org: UUID, email_scope: UUID) -> dict[str, Any]:
     # Payload for creating detail (email address) on org unit
     payload = {
         "type": "address",
