@@ -17,10 +17,6 @@ from tests.conftest import SetAuth
 
 # Org units
 MY_UNIT = "9de978da-0967-43cf-921d-d56ddfcc6e0e"
-ROOT_UNIT = "2874e1dc-85e6-4269-823a-e1125484dfd3"
-HUM_UNIT = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-FILOSOFISK_INSTITUT = "85715fc7-925d-401b-822d-467eb4b163b6"
-SOCIAL_OG_SUNDHED = "68c5d78e-ae26-441f-a143-0103eca8b62a"
 
 # IT systems
 ACTIVE_DIRECTORY = UUID("59c135c9-2b15-41cc-97c8-b5dff7180beb")
@@ -651,33 +647,44 @@ def test_owner_of_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db", "alice_owns_org_unit_with_parent")
 @pytest.mark.parametrize(
     "origin,destinations,success",
     [
         # owner of origin and owner of all destinations
-        (HUM_UNIT, [FILOSOFISK_INSTITUT], True),
+        ("hum", ["filosofisk"], True),
         # owner of origin but not owner of all destinations
-        (HUM_UNIT, [FILOSOFISK_INSTITUT, ROOT_UNIT], True),
+        ("hum", ["filosofisk", "root"], True),
         # not owner of origin but owner of all destinations
-        (ROOT_UNIT, [FILOSOFISK_INSTITUT], False),
+        ("root", ["filosofisk"], False),
         # not owner of origin and not owner of all destinations
-        (ROOT_UNIT, [SOCIAL_OG_SUNDHED], False),
+        ("root", ["social"], False),
     ],
 )
 def test_related(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    alice: UUID,
+    bob: UUID,
+    create_org_unit: Callable[..., UUID],
+    org_unit: UUID,
+    org_unit_with_parent: UUID,
     origin: str,
     destinations: list[str],
     success: bool,
 ) -> None:
-    # We need a second org unit ALICE owns since we cannot relate an org unit with
-    # itself; Make ALICE owner of FILOSOFISK_INSTITUT.
-    set_auth(ADMIN, BOB)
+    units = {
+        "root": org_unit,
+        "hum": org_unit_with_parent,
+        "filosofisk": create_org_unit("filosofisk", org_unit_with_parent),
+        "social": create_org_unit("social", org_unit),
+    }
+    # We need a second org unit Alice owns since we cannot relate an org unit with
+    # itself; Make Alice owner of FILOSOFISK.
+    set_auth(ADMIN, bob)
     owner = {
-        "owner": ALICE,
-        "org_unit": FILOSOFISK_INSTITUT,
+        "owner": str(alice),
+        "org_unit": str(units["filosofisk"]),
         "validity": {"from": "2020-01-01"},
     }
     r1 = graphapi_post(
@@ -692,10 +699,10 @@ def test_related(
     )
     assert r1.errors is None
 
-    set_auth(OWNER, ALICE)
+    set_auth(OWNER, alice)
     input = {
-        "origin": origin,
-        "destination": destinations,
+        "origin": str(units[origin]),
+        "destination": [str(units[destination]) for destination in destinations],
         "validity": {"from": "2020-01-01"},
     }
     r2 = graphapi_post(
