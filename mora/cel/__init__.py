@@ -6,7 +6,8 @@ See: https://cel.dev
 """
 
 from . import policies
+from . import rolebinding_rules
 from ._types import CEL
 from ._types import CelError
 
-__all__ = ["CEL", "CelError", "policies"]
+__all__ = ["CEL", "CelError", "policies", "rolebinding_rules"]
