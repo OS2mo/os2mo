@@ -99,32 +99,6 @@ async def create_lis_owner(
     assert r.errors is None
 
 
-@pytest.fixture
-async def create_fedtmule_owner(
-    set_auth: SetAuth,
-    graphapi_post: GraphAPIPost,
-) -> None:
-    # Let Anders And be the owner of Fedtmule
-    set_auth(ADMIN, ALICE)
-
-    owner = {
-        "owner": ALICE,
-        "person": BOB,
-        "validity": {"from": "2021-08-03"},
-    }
-    r = graphapi_post(
-        """
-        mutation OwnerCreate($input: OwnerCreateInput!) {
-          owner_create(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=owner),
-    )
-    assert r.errors is None
-
-
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
@@ -575,25 +549,28 @@ def test_edit_manager(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures(
+    "empty_db", "alice_owns_bob", "alice_owns_org_unit", "email_address"
+)
 @pytest.mark.parametrize(
     "mutation",
     [
         'mutation Terminate {address_terminate(input: {uuid: "64ea02e2-8469-4c54-a523-3d46729e86a7", to: "2021-08-20"}) {uuid}}',
-        'mutation Terminate {engagement_terminate(input: {uuid: "301a906b-ef51-4d5c-9c77-386fb8410459", to: "2021-08-13"}) {uuid}}',
+        'mutation Terminate($engagement: UUID!) {engagement_terminate(input: {uuid: $engagement, to: "2021-08-13"}) {uuid}}',
     ],
 )
 @pytest.mark.parametrize(*parametrize_roles)
 def test_terminate_details(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    engagement_carol: UUID,
     mutation: str,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
     set_auth(role, userid)
-    r = graphapi_post(mutation)
+    r = graphapi_post(mutation, {"engagement": str(engagement_carol)})
     if success:
         assert r.errors is None
     else:
