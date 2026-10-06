@@ -110,7 +110,7 @@ async def create_erik_owner(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "role, userid, success",
     # Test of write access for the following cases:
