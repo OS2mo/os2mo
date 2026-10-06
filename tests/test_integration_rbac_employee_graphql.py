@@ -52,6 +52,11 @@ def alice_owns_bob(alice: UUID, bob: UUID, make_owner: Callable[..., None]) -> N
 
 
 @pytest.fixture
+def bob_owns_alice(alice: UUID, bob: UUID, make_owner: Callable[..., None]) -> None:
+    make_owner(bob, person=alice)
+
+
+@pytest.fixture
 def email_address(
     employee_email_scope: UUID,
     create_address: Callable[[dict[str, Any]], UUID],
@@ -423,22 +428,39 @@ def test_edit_address(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures(
+    "empty_db", "alice_owns_bob", "bob_owns_alice", "alice_owns_org_unit"
+)
 @pytest.mark.parametrize(*parametrize_roles)
 def test_edit_association(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    create_association: Callable[[dict[str, Any]], UUID],
+    alice: UUID,
+    org_unit: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
+    # Alice's own association, in the unit she owns. Bob owns the association
+    # through its person, Alice, but not the unit the update names, so that
+    # unit is what denies him
+    create_association(
+        {
+            "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
+            "person": str(alice),
+            "org_unit": str(org_unit),
+            "association_type": "62ec821f-4179-4758-bfdf-134529d186e9",
+            "validity": {"from": "2020-01-01"},
+        }
+    )
     set_auth(role, userid)
 
     input = {
         "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
-        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+        "org_unit": str(org_unit),
         "association_type": "8eea787c-c2c7-46ca-bd84-2dd50f47801e",
-        "employee": ALICE,
+        "employee": str(alice),
         "validity": {"from": "2021-08-25"},
     }
     r = graphapi_post(
