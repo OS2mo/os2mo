@@ -3,6 +3,7 @@
 from collections.abc import Callable
 from datetime import datetime
 from typing import Any
+from uuid import UUID
 
 import pytest
 from fastapi import FastAPI
@@ -62,7 +63,7 @@ def mock_auth(
 
 
 @pytest.fixture
-def create_org_unit_payload() -> dict[str, Any]:
+def create_org_unit_payload(root_org: UUID) -> dict[str, Any]:
     return {
         "name": "Fake Corp",
         "time_planning": {
@@ -85,7 +86,7 @@ def create_org_unit_payload() -> dict[str, Any]:
                 "org": {
                     "name": "Aarhus Universitet",
                     "user_key": "AU",
-                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "uuid": str(root_org),
                 },
                 "validity": {
                     "from": "2016-02-04",
@@ -105,7 +106,7 @@ def create_org_unit_payload() -> dict[str, Any]:
                 "org": {
                     "name": "Aarhus Universitet",
                     "user_key": "AU",
-                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "uuid": str(root_org),
                 },
                 "validity": {
                     "from": "2016-02-04",
@@ -337,14 +338,14 @@ def test_create_detail(
 
 
 @pytest.fixture
-def address_create_payload() -> dict[str, Any]:
+def address_create_payload(root_org: UUID) -> dict[str, Any]:
     # Payload for creating detail (email address) on org unit
     payload = {
         "type": "address",
         "org": {
             "name": "Aarhus Universitet",
             "user_key": "AU",
-            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+            "uuid": str(root_org),
         },
         "visibility": {
             "uuid": "f63ad763-0e53-4972-a6a9-63b42a0f8cb7",
@@ -383,6 +384,7 @@ def address_create_payload() -> dict[str, Any]:
 def test_edit_detail(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
+    root_org: UUID,
     role: str,
     userid: str,
     status_code: int,
@@ -438,7 +440,7 @@ def test_edit_detail(
             "org": {
                 "name": "Aarhus Universitet",
                 "user_key": "AU",
-                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "uuid": str(root_org),
             },
         },
         "org_unit": {"uuid": HUM_UNIT},
@@ -453,6 +455,7 @@ def org_unit_uuid_1(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
     create_org_unit_payload: dict[str, Any],
+    root_org: UUID,
 ) -> str:
     fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(ADMIN, BOB)
 
@@ -477,14 +480,14 @@ def org_unit_uuid_1(
             "org": {
                 "name": "Aarhus Universitet",
                 "user_key": "AU",
-                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "uuid": str(root_org),
             },
             "user_key": "andersand",
         },
         "org": {
             "name": "Aarhus Universitet",
             "user_key": "AU",
-            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+            "uuid": str(root_org),
         },
         "validity": {"from": "2021-08-03", "to": None},
         "org_unit": {"uuid": org_uuid},
