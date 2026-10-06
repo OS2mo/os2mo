@@ -57,8 +57,11 @@ from mora.db import PolicyReadRuleField
 from mora.db import PolicySelector
 from mora.db import PolicySelectorKind
 from mora.db import PolicyWriteRule
+from mora.db import RolebindingRule
+from mora.db import RolebindingRuleRevision
 from mora.graphapi import events
 from mora.graphapi import resolvers
+from mora.graphapi import rolebinding_rules
 from mora.graphapi.custom_schema import CustomSchema
 from mora.graphapi.graphql_utils import AccessKey
 from mora.graphapi.graphql_utils import Field
@@ -185,6 +188,8 @@ KEY_OF_COLLECTION: dict[Collection, Any] = {
     Collection.Owner: OrganisationFunktionRegistrering.uuid,
     Collection.RelatedUnit: OrganisationFunktionRegistrering.uuid,
     Collection.RoleBinding: OrganisationFunktionRegistrering.uuid,
+    Collection.RolebindingRule: RolebindingRule.pk,
+    Collection.RolebindingRuleRevision: RolebindingRuleRevision.pk,
 }
 
 
@@ -208,6 +213,8 @@ PREDICATE_OF_COLLECTION: dict[Collection, Callable[..., ColumnElement]] = {
     Collection.Owner: resolvers.owner_predicate,
     Collection.RelatedUnit: resolvers.related_unit_predicate,
     Collection.RoleBinding: resolvers.rolebinding_predicate,
+    Collection.RolebindingRule: rolebinding_rules.rolebinding_rule_predicate,
+    Collection.RolebindingRuleRevision: rolebinding_rules.rolebinding_rule_revision_predicate,
 }
 
 

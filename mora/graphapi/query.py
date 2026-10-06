@@ -93,6 +93,8 @@ from .resolvers import registration_resolver
 from .resolvers import related_unit_resolver
 from .resolvers import rolebinding_resolver
 from .response import Response
+from .rolebinding_rules import RolebindingRule
+from .rolebinding_rules import rolebinding_rule_resolver
 from .types import Cursor
 
 T = TypeVar("T")
@@ -282,6 +284,18 @@ class Query:
     rolebindings: Paged[Response[RoleBinding]] = strawberry.field(
         resolver=to_paged_response(RoleBindingRead)(rolebinding_resolver),
         description="Get role-mappings.",
+    )
+
+    rolebinding_rules: Paged[RolebindingRule] = strawberry.field(
+        resolver=to_paged(rolebinding_rule_resolver),
+        description=dedent(
+            """\
+            Get rolebinding rules.
+
+            A rolebinding rule grants a role to every IT-user matching a CEL
+            expression.
+            """
+        ),
     )
 
     # Health

@@ -32,6 +32,7 @@ from structlog import get_logger
 
 from mora import config
 from mora.cel.policies import PolicyCEL
+from mora.cel.rolebinding_rules import RolebindingRuleCEL
 from mora.db import Collection
 from mora.db import get_session
 from mora.exceptions import HTTPException
@@ -69,6 +70,7 @@ from mora.graphapi.types import CPR_SCALAR
 from mora.graphapi.types import CURSOR_SCALAR
 from mora.graphapi.types import INT_SCALAR
 from mora.graphapi.types import POLICY_CEL_SCALAR
+from mora.graphapi.types import ROLEBINDING_RULE_CEL_SCALAR
 from mora.graphapi.types import Cursor
 from mora.graphapi.version import Version
 from mora.log import canonical_gql_context
@@ -220,6 +222,7 @@ def reader_policy(
 # The key of an object, only for collections whose key column is not called uuid
 OBJECT_TO_KEY_OVERRIDES: dict[Collection, Callable[[Any], str]] = {
     Collection.Namespace: lambda root: root.name,
+    Collection.RolebindingRuleRevision: lambda root: str(root.pk),
 }
 
 
@@ -362,6 +365,7 @@ def get_schema(version: Version) -> CustomSchema:
                 Cursor: CURSOR_SCALAR,
                 EventToken: EVENT_TOKEN_SCALAR,
                 PositiveInt: INT_SCALAR,
+                RolebindingRuleCEL: ROLEBINDING_RULE_CEL_SCALAR,
                 UploadFile: UploadDefinition,
             },
         ),
