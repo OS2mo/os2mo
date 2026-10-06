@@ -20,7 +20,6 @@ from tests.conftest import ALICE
 from tests.conftest import BOB
 
 # Org units
-ROOT_UNIT = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 HUM_UNIT = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
 
@@ -64,14 +63,14 @@ def mock_auth(
 
 @pytest.fixture
 def create_org_unit_payload(
-    root_org: UUID, phone_scope: UUID, dar_scope: UUID
+    root_org: UUID, phone_scope: UUID, dar_scope: UUID, org_unit: UUID
 ) -> dict[str, Any]:
     return {
         "name": "Fake Corp",
         "time_planning": {
             "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
         },
-        "parent": {"uuid": ROOT_UNIT},
+        "parent": {"uuid": str(org_unit)},
         "org_unit_type": {"uuid": "ca76a441-6226-404f-88a9-31e02e420e52"},
         "org_unit_level": {"uuid": "0f015b67-f250-43bb-9160-043ec19fad48"},
         "org_unit_hierarchy": {"uuid": "12345678-abcd-abcd-1234-12345678abcd"},

@@ -960,6 +960,11 @@ def create_org_unit(
 
 
 @pytest.fixture
+def org_unit(create_org_unit: Callable[..., UUID]) -> UUID:
+    return create_org_unit("Sundhed og Omsorg")
+
+
+@pytest.fixture
 def create_person(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
