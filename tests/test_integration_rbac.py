@@ -19,9 +19,6 @@ from mora.mapping import OWNER
 from tests.conftest import ALICE
 from tests.conftest import BOB
 
-# Org units
-HUM_UNIT = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-
 
 def mock_auth(
     role: str | None = None, user_uuid: str | None = None
@@ -381,8 +378,25 @@ def address_create_payload(
     return payload
 
 
+@pytest.fixture
+def org_unit_phone(
+    create_address: Callable[[dict[str, Any]], UUID],
+    phone_scope: UUID,
+    org_unit: UUID,
+) -> UUID:
+    return create_address(
+        {
+            "uuid": "55848eca-4e9e-4f30-954b-78d55eec0473",
+            "address_type": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
+            "org_unit": str(org_unit),
+            "value": "+4587150000",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db", "alice_owns_org_unit", "org_unit_phone")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
@@ -396,6 +410,7 @@ def test_edit_detail(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
     root_org: UUID,
+    org_unit: UUID,
     role: str,
     userid: str,
     status_code: int,
@@ -413,7 +428,7 @@ def test_edit_detail(
     """
     fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(role, userid)
 
-    # Payload for editing detail (phone number) on org unit (hum)
+    # Payload for editing detail (phone number) on org unit
     payload = {
         "type": "address",
         "uuid": "55848eca-4e9e-4f30-954b-78d55eec0473",
@@ -444,7 +459,7 @@ def test_edit_detail(
             "org_unit": {
                 "name": "Humanistisk fakultet",
                 "user_key": "hum",
-                "uuid": HUM_UNIT,
+                "uuid": str(org_unit),
                 "validity": {"from": "2016-01-01", "to": None},
             },
             "type": "address",
@@ -454,7 +469,7 @@ def test_edit_detail(
                 "uuid": str(root_org),
             },
         },
-        "org_unit": {"uuid": HUM_UNIT},
+        "org_unit": {"uuid": str(org_unit)},
     }
 
     response = service_client.request("POST", "/service/details/edit", json=payload)
