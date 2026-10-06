@@ -519,24 +519,43 @@ def test_edit_engagement(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.usefixtures(
+    "empty_db", "alice_owns_bob", "bob_owns_alice", "alice_owns_org_unit"
+)
 @pytest.mark.parametrize(*parametrize_roles)
 def test_edit_manager(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    create_manager_raw: Callable[[dict[str, Any]], UUID],
+    alice: UUID,
+    org_unit: UUID,
     role: str,
     userid: str,
     success: bool,
 ) -> None:
+    # Alice is herself the manager of the unit she owns. Bob owns the manager
+    # through its person, Alice, but not the unit the update names, so that
+    # unit is what denies him
+    create_manager_raw(
+        {
+            "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
+            "manager_type": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
+            "manager_level": "3c791935-2cfa-46b5-a12e-66f7f54e70fe",
+            "responsibility": [],
+            "org_unit": str(org_unit),
+            "person": str(alice),
+            "validity": {"from": "2020-01-01"},
+        }
+    )
     set_auth(role, userid)
 
     input = {
         "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
-        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+        "org_unit": str(org_unit),
         "responsibility": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
         "manager_type": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
         "manager_level": "991915c0-f4f4-4337-95fa-dbeb9da13247",
-        "person": ALICE,
+        "person": str(alice),
         "validity": {"from": "2021-08-25"},
     }
     r = graphapi_post(
