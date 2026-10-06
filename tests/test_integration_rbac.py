@@ -310,7 +310,7 @@ def test_terminate_org_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db", "alice_owns_org_unit")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
@@ -347,7 +347,9 @@ def test_create_detail(
 
 
 @pytest.fixture
-def address_create_payload(root_org: UUID, email_scope: UUID) -> dict[str, Any]:
+def address_create_payload(
+    root_org: UUID, email_scope: UUID, org_unit: UUID
+) -> dict[str, Any]:
     # Payload for creating detail (email address) on org unit
     payload = {
         "type": "address",
@@ -374,7 +376,7 @@ def address_create_payload(root_org: UUID, email_scope: UUID) -> dict[str, Any]:
         },
         "value": "bruce@kung.fu",
         "validity": {"from": "2020-06-22", "to": None},
-        "org_unit": {"uuid": HUM_UNIT},
+        "org_unit": {"uuid": str(org_unit)},
     }
     return payload
 
