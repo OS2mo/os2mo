@@ -993,6 +993,7 @@ BOB = "6ee24785-ee9a-4502-81c2-7697009c9053"
 def alice(create_person: Callable[[dict[str, Any] | None], UUID]) -> UUID:
     return create_person(
         {
+            "uuid": ALICE,
             "given_name": "Alice",
             "surname": "Nielsen",
             "cpr_number": "0706991234",
@@ -1004,6 +1005,7 @@ def alice(create_person: Callable[[dict[str, Any] | None], UUID]) -> UUID:
 def bob(create_person: Callable[[dict[str, Any] | None], UUID]) -> UUID:
     return create_person(
         {
+            "uuid": BOB,
             "given_name": "Bob",
             "surname": "Jensen",
             "cpr_number": "1503992345",
