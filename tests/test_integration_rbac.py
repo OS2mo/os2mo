@@ -124,7 +124,7 @@ def create_org_unit_payload(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
@@ -159,7 +159,7 @@ def test_create_org_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
@@ -261,7 +261,7 @@ def org_unit_no_details_uuid(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
@@ -457,6 +457,7 @@ def org_unit_uuid_1(
     service_client: TestClient,
     create_org_unit_payload: dict[str, Any],
     root_org: UUID,
+    alice: UUID,
 ) -> str:
     fastapi_test_app.dependency_overrides[fetch_token] = mock_auth(ADMIN, BOB)
 
@@ -475,7 +476,7 @@ def org_unit_uuid_1(
             "nickname_givenname": "Donald",
             "nickname_surname": "Duck",
             "nickname": "Donald Duck",
-            "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            "uuid": str(alice),
             "seniority": None,
             "cpr_no": "0906340000",
             "org": {
