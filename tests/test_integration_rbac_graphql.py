@@ -71,6 +71,23 @@ def address_create_dar_input() -> dict[str, Any]:
     }
 
 
+@pytest.fixture
+def phone_address(
+    create_address: Callable[[dict[str, Any]], UUID],
+    org_unit_with_parent: UUID,
+    phone_scope: UUID,
+) -> UUID:
+    return create_address(
+        {
+            "uuid": "55848eca-4e9e-4f30-954b-78d55eec0473",
+            "address_type": str(phone_scope),
+            "org_unit": str(org_unit_with_parent),
+            "validity": {"from": "2016-01-01"},
+            "value": "87150000",
+        }
+    )
+
+
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
@@ -399,7 +416,7 @@ def test_create_detail(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db", "phone_address", "alice_owns_org_unit_with_parent")
 @pytest.mark.parametrize(
     "role, userid, success",
     [
@@ -412,6 +429,7 @@ def test_create_detail(
 def test_edit_detail(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
+    org_unit_with_parent: UUID,
     role: str,
     userid: str,
     success: bool,
@@ -429,7 +447,7 @@ def test_edit_detail(
     input = {
         "uuid": "55848eca-4e9e-4f30-954b-78d55eec0473",
         "address_type": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-        "org_unit": HUM_UNIT,
+        "org_unit": str(org_unit_with_parent),
         "validity": {"from": "2016-01-01"},
         "value": "00000000",
     }
