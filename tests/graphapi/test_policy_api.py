@@ -133,6 +133,56 @@ async def test_the_seeded_policy_is_read(read_policies: ReadPolicies) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_the_seeded_policy_grants_the_primary_class_of_a_manager(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    create_manager_raw: Callable[[dict[str, Any]], UUID],
+    create_org_unit: Callable[..., UUID],
+    primary_class: UUID,
+    person: UUID,
+) -> None:
+    """A reader reads the primary class of a manager, as the migrations grant it."""
+    # Arrange
+    org_unit = create_org_unit("root")
+    create_manager_raw(
+        {
+            "manager_level": str(uuid4()),
+            "manager_type": str(uuid4()),
+            "responsibility": [],
+            "org_unit": str(org_unit),
+            "person": str(person),
+            "primary": str(primary_class),
+            "validity": {"from": "2024-01-01"},
+        }
+    )
+    set_auth("reader", BRUCE_UUID)
+
+    # Act
+    response = graphapi_post(
+        """
+        query ReadManagerPrimary {
+            managers {
+                objects {
+                    current {
+                        primary_response { current { user_key } }
+                    }
+                }
+            }
+        }
+        """
+    )
+
+    # Assert
+    assert_granted(response)
+    assert response.data
+    manager = one(response.data["managers"]["objects"])
+    assert manager["current"] == {
+        "primary_response": {"current": {"user_key": "primary"}}
+    }
+
+
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("auditor")
 async def test_a_policy_is_read_with_its_rules(read_policies: ReadPolicies) -> None:
     """A policy comes back as it is stored, rules and all."""
