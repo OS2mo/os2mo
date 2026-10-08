@@ -48,3 +48,6 @@ class EngagementRead(MOBase):
     primary_uuid: UUID | None = Field(
         description="UUID of the primary klasse of the engagement."
     )
+    explicit_manager_uuid: UUID | None = Field(
+        description="UUID of the explicit manager related to the engagement."
+    )

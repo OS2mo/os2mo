@@ -16,6 +16,7 @@ from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import EngagementRead
 from mora.graphapi.gmodels.mo.details import ITUserRead
 from mora.graphapi.gmodels.mo.details import LeaveRead
+from mora.graphapi.gmodels.mo.details import ManagerRead
 from mora.service.facet import is_class_uuid_primary
 
 from ..filters import EmployeeFilter
@@ -350,6 +351,15 @@ class Engagement:
         ),
         description="Connected IT-user.\n",
         deprecation_reason="Use 'itusers_response' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    explicit_manager: Response[LazyManager] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response(
+            model=ManagerRead, uuid=root.explicit_manager_uuid
+        )
+        if root.explicit_manager_uuid
+        else None,
+        description="The explicit manager of the engagement.",
     )
 
     @strawberry.field(
