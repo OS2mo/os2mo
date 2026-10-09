@@ -10,7 +10,6 @@ from functools import partial
 from typing import Any
 from typing import NamedTuple
 from typing import get_type_hints
-from uuid import UUID
 
 from graphql import coerce_input_value
 from more_itertools import map_reduce
@@ -21,9 +20,9 @@ from sqlalchemy import ARRAY
 from sqlalchemy import ColumnElement
 from sqlalchemy import Select
 from sqlalchemy import String
-from sqlalchemy import Uuid
 from sqlalchemy import and_
 from sqlalchemy import any_
+from sqlalchemy import cast
 from sqlalchemy import column
 from sqlalchemy import exists
 from sqlalchemy import false
@@ -161,25 +160,26 @@ class WriteRule(NamedTuple):
     check: Callable[[dict[str, Any]], ColumnElement[bool]]
 
 
-# Each collection's model, holding the registrations of its objects.
+# Each collection's key column, naming its objects within the registrations of
+# its model. Keys are compared as text, so the column may be of any type.
 # Every detail is an organisation function.
-MODEL_OF_COLLECTION: dict[Collection, Any] = {
-    Collection.Address: OrganisationFunktionRegistrering,
-    Collection.Association: OrganisationFunktionRegistrering,
-    Collection.Class: KlasseRegistrering,
-    Collection.Employee: BrugerRegistrering,
-    Collection.Engagement: OrganisationFunktionRegistrering,
-    Collection.Facet: FacetRegistrering,
-    Collection.ITSystem: ITSystemRegistrering,
-    Collection.ITUser: OrganisationFunktionRegistrering,
-    Collection.KLE: OrganisationFunktionRegistrering,
-    Collection.Leave: OrganisationFunktionRegistrering,
-    Collection.Manager: OrganisationFunktionRegistrering,
-    Collection.Organisation: OrganisationRegistrering,
-    Collection.OrganisationUnit: OrganisationEnhedRegistrering,
-    Collection.Owner: OrganisationFunktionRegistrering,
-    Collection.RelatedUnit: OrganisationFunktionRegistrering,
-    Collection.RoleBinding: OrganisationFunktionRegistrering,
+KEY_OF_COLLECTION: dict[Collection, Any] = {
+    Collection.Address: OrganisationFunktionRegistrering.uuid,
+    Collection.Association: OrganisationFunktionRegistrering.uuid,
+    Collection.Class: KlasseRegistrering.uuid,
+    Collection.Employee: BrugerRegistrering.uuid,
+    Collection.Engagement: OrganisationFunktionRegistrering.uuid,
+    Collection.Facet: FacetRegistrering.uuid,
+    Collection.ITSystem: ITSystemRegistrering.uuid,
+    Collection.ITUser: OrganisationFunktionRegistrering.uuid,
+    Collection.KLE: OrganisationFunktionRegistrering.uuid,
+    Collection.Leave: OrganisationFunktionRegistrering.uuid,
+    Collection.Manager: OrganisationFunktionRegistrering.uuid,
+    Collection.Organisation: OrganisationRegistrering.uuid,
+    Collection.OrganisationUnit: OrganisationEnhedRegistrering.uuid,
+    Collection.Owner: OrganisationFunktionRegistrering.uuid,
+    Collection.RelatedUnit: OrganisationFunktionRegistrering.uuid,
+    Collection.RoleBinding: OrganisationFunktionRegistrering.uuid,
 }
 
 
@@ -298,51 +298,54 @@ def load_rules(
 
 
 def requested_select(keys: Iterable[AccessKey]) -> Select[Any]:
-    """Select the requested accesses as rows of uuid and field."""
-    # Unnesting the uuids and the fields side by side turns the accesses
-    # [(uuid1, field1), (uuid1, field2), (uuid2, field1), ...]
+    """Select the requested accesses as rows of key and field."""
+    # Unnesting the keys and the fields side by side turns the accesses
+    # [(key1, field1), (key1, field2), (key2, field1), ...]
     # into the rows:
     #
-    #   uuid  | field
-    #   ------+-------
-    #   uuid1 | field1
-    #   uuid1 | field2
-    #   uuid2 | field1
-    #   ...   | ...
-    accesses = list({(key.uuid, key.field) for key in keys})
+    #   key  | field
+    #   -----+-------
+    #   key1 | field1
+    #   key1 | field2
+    #   key2 | field1
+    #   ...  | ...
+    accesses = list({(access.key, access.field) for access in keys})
     rows = (
         func.unnest(
-            literal([uuid for uuid, _ in accesses], ARRAY(Uuid)),
+            literal([key for key, _ in accesses], ARRAY(String)),
             literal([field for _, field in accesses], ARRAY(String)),
         )
         .table_valued(
-            column("uuid", Uuid),
+            column("key", String),
             column("field", String),
         )
         .render_derived()
     )
-    return select(rows.c.uuid, rows.c.field)
+    return select(rows.c.key, rows.c.field)
 
 
-def granted_select(rule: Rule, uuids: frozenset[UUID]) -> Select[Any]:
-    """Select the accesses rule grants among uuids."""
+def granted_select(rule: Rule, keys: frozenset[str]) -> Select[Any]:
+    """Select the accesses rule grants among keys."""
     # Unnesting the fields across the matching objects turns the grant of
-    # (field1, field2, ...) on uuid1, uuid2, ...
+    # (field1, field2, ...) on key1, key2, ...
     # into the rows:
     #
-    #   uuid  | field
-    #   ------+-------
-    #   uuid1 | field1
-    #   uuid1 | field2
-    #   uuid2 | field1
-    #   uuid2 | field2
-    #   ...   | ...
-    model = MODEL_OF_COLLECTION[rule.collection]
+    #   key  | field
+    #   -----+-------
+    #   key1 | field1
+    #   key1 | field2
+    #   key2 | field1
+    #   key2 | field2
+    #   ...  | ...
+    key_column = KEY_OF_COLLECTION[rule.collection]
+    # The keys are cast to the column's type, rather than the column to text,
+    # so the column's index can still be used
+    wanted = cast(literal(list(keys), ARRAY(String)), ARRAY(key_column.type))
     return select(
-        model.uuid.label("uuid"),
+        cast(key_column, String).label("key"),
         func.unnest(literal(list(rule.fields), ARRAY(String))).label("field"),
     ).where(
-        model.uuid == any_(literal(list(uuids), ARRAY(Uuid))),
+        key_column == any_(wanted),
         rule.condition,
     )
 
@@ -357,14 +360,14 @@ def collection_denials(
 
     rules = load_rules(collection, keys, rules)
     if rules:
-        asked = select(requested.c.uuid, requested.c.field)
-        uuids = frozenset(key.uuid for key in keys)
-        granted = union_all(*(granted_select(rule, uuids) for rule in rules)).cte()
-        denied = asked.except_(select(granted.c.uuid, granted.c.field)).cte()
+        asked = select(requested.c.key, requested.c.field)
+        wanted = frozenset(access.key for access in keys)
+        granted = union_all(*(granted_select(rule, wanted) for rule in rules)).cte()
+        denied = asked.except_(select(granted.c.key, granted.c.field)).cte()
 
     return select(
         literal(collection.value, String).label("collection"),
-        denied.c.uuid.label("uuid"),
+        denied.c.key.label("key"),
         denied.c.field.label("field"),
     )
 
@@ -436,17 +439,17 @@ async def access_load_fn(
     ).subquery()
     rows = await session.execute(
         select(
-            denied.c.collection, denied.c.uuid, func.array_agg(denied.c.field)
-        ).group_by(denied.c.collection, denied.c.uuid)
+            denied.c.collection, denied.c.key, func.array_agg(denied.c.field)
+        ).group_by(denied.c.collection, denied.c.key)
     )
     # The collection comes back as the plain string it was selected as
-    missing: dict[tuple[Collection, UUID], frozenset[Field]] = {
-        (Collection(collection), uuid): frozenset(fields)
-        for collection, uuid, fields in rows
+    missing: dict[tuple[Collection, str], frozenset[Field]] = {
+        (Collection(collection), key): frozenset(fields)
+        for collection, key, fields in rows
     }
     return [
-        field not in missing.get((collection, uuid), frozenset())
-        for collection, uuid, field in keys
+        field not in missing.get((collection, key), frozenset())
+        for collection, key, field in keys
     ]
 
 

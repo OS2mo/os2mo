@@ -302,7 +302,7 @@ def collection_policy(
         # Non-collection types are gated by the RBAC maps instead
         return False
     return info.context.dataloaders.access_loader.load(
-        AccessKey(collection, root.uuid, info.field_name)
+        AccessKey(collection, str(root.uuid), info.field_name)
     )
 
 
