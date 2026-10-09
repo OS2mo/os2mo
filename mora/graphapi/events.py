@@ -100,6 +100,13 @@ class ListenerFilter:
         return clauses
 
 
+def namespace_predicate(
+    settings: Settings, version: Version, filter: NamespaceFilter
+) -> ColumnElement[bool]:
+    """The clause holding where a namespace matches the filter."""
+    return and_(true(), *filter.where_clauses())
+
+
 def listener_predicate(
     settings: Settings, version: Version, filter: ListenerFilter
 ) -> ColumnElement[bool]:

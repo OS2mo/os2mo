@@ -292,6 +292,12 @@ def owner_policy(
     return owned()
 
 
+# The key of an object in each collection not keyed by the object's uuid
+KEY_OF_OBJECT: dict[Collection, Callable[[Any], str]] = {
+    Collection.Namespace: lambda root: root.name,
+}
+
+
 def collection_policy(
     root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
 ) -> AwaitableOrValue[bool]:
@@ -301,8 +307,9 @@ def collection_policy(
     except ValueError:
         # Non-collection types are gated by the RBAC maps instead
         return False
+    key_of = KEY_OF_OBJECT.get(collection, lambda root: str(root.uuid))
     return info.context.dataloaders.access_loader.load(
-        AccessKey(collection, str(root.uuid), info.field_name)
+        AccessKey(collection, key_of(root), info.field_name)
     )
 
 

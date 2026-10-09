@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-"""The fields of event listeners are guarded by read policies rather than by role."""
+"""The fields of event namespaces and listeners are guarded by read policies."""
 
 from typing import Any
 from uuid import UUID
@@ -88,4 +88,59 @@ async def test_a_listener_field_no_rule_grants_is_denied(
     assert response.data is None
     assert _failures(response) == {
         (DENIED, ("event_listeners", "objects", 0, "routing_key"))
+    }
+
+
+NAMESPACES = """
+query {
+  event_namespaces(filter: { names: ["ns"] }) {
+    objects { name public listeners { user_key } }
+  }
+}
+"""
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "listener")
+async def test_a_reader_reads_the_fields_of_a_namespace(
+    set_auth: SetAuth, graphapi_post: GraphAPIPost
+) -> None:
+    """The seeded Reader policy grants a reader what the role used to."""
+    set_auth({"reader"}, uuid4())
+
+    response = graphapi_post(NAMESPACES)
+
+    assert response.errors is None
+    assert response.data == {
+        "event_namespaces": {
+            "objects": [
+                {"name": "ns", "public": False, "listeners": [{"user_key": "listener"}]}
+            ]
+        }
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "listener")
+async def test_a_namespace_field_no_rule_grants_is_denied(
+    set_auth: SetAuth, graphapi_post: GraphAPIPost, set_rules: SetRules
+) -> None:
+    """A field of a namespace no rule grants is denied where it is read.
+
+    The namespaces are not nullable, so the denial nulls the whole response.
+    """
+    await set_rules("reader", Collection.Namespace, {"name"})
+    set_auth({"reader"}, uuid4())
+
+    response = graphapi_post(
+        """
+        query {
+          event_namespaces(filter: { names: ["ns"] }) { objects { name public } }
+        }
+        """
+    )
+
+    assert response.data is None
+    assert _failures(response) == {
+        (DENIED, ("event_namespaces", "objects", 0, "public"))
     }

@@ -264,6 +264,67 @@ async def test_a_listener_gets_the_fields_of_the_rules_matching_it(
 
 
 @pytest.mark.integration_test
+async def test_a_batch_spans_collections_keyed_by_uuid_and_by_name(
+    empty_db: AsyncSession,
+) -> None:
+    """A namespace is keyed by its name, beside listeners keyed by their uuid."""
+    empty_db.add_all(
+        [
+            Namespace(name="mine", owner=uuid4(), public=False),
+            Namespace(name="theirs", owner=uuid4(), public=False),
+        ]
+    )
+    listener = Listener(
+        user_key="listener", owner=uuid4(), routing_key="key", namespace_fk="mine"
+    )
+    empty_db.add(listener)
+    empty_db.add(
+        Policy(
+            name="Namespace Auditor",
+            description="Allows namespace auditors to read one namespace",
+            active=True,
+            selectors=[
+                PolicySelector(kind=PolicySelectorKind.role, value="namespace_auditor")
+            ],
+            read_rules=[
+                PolicyReadRule(
+                    collection=Collection.Namespace,
+                    graphql_version=LATEST_VERSION,
+                    condition='{"names": ["mine"]}',
+                    fields=[PolicyReadRuleField(field="owner")],
+                ),
+                PolicyReadRule(
+                    collection=Collection.Listener,
+                    graphql_version=LATEST_VERSION,
+                    condition="true",
+                    fields=[PolicyReadRuleField(field="uuid")],
+                ),
+            ],
+        )
+    )
+    await empty_db.flush()
+
+    allowed = await access_load_fn(
+        empty_db,
+        DataLoader(
+            load_fn=partial(
+                policy_load_fn,
+                empty_db,
+                Settings(),
+                token_getter_of("namespace_auditor"),
+            )
+        ),
+        [
+            AccessKey(Collection.Namespace, "mine", "owner"),
+            AccessKey(Collection.Namespace, "theirs", "owner"),
+            AccessKey(Collection.Listener, str(listener.pk), "uuid"),
+        ],
+    )
+
+    assert allowed == [True, False, True]
+
+
+@pytest.mark.integration_test
 async def test_a_condition_unknown_of_an_object_grants_nothing_on_it(
     empty_db: AsyncSession,
     create_org_unit: Callable[..., UUID],
