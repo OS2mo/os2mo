@@ -97,9 +97,7 @@ class PolicyReadRule(Base):
     pk: Mapped[UUID] = mapped_column(
         primary_key=True, server_default=text("uuid_generate_v4()")
     )
-    collection: Mapped[Collection] = mapped_column(
-        Enum(Collection, name="policycollection")
-    )
+    collection: Mapped[Collection] = mapped_column(Enum(Collection, native_enum=False))
     condition: Mapped[CEL] = mapped_column(Text)
     graphql_version: Mapped[Version] = mapped_column(GraphQLVersion)
     policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.pk", ondelete="CASCADE"))
