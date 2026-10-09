@@ -78,8 +78,8 @@ async def test_a_field_no_rule_grants_is_denied_where_it_is_read(
         )
         for value in VALUES
     ]
-    await set_rules("reader", Collection.Address, {"uuid"})
-    set_auth({"reader"}, uuid4())
+    await set_rules("auditor", Collection.Address, {"uuid"})
+    set_auth({"auditor"}, uuid4())
 
     response = graphapi_post(TOP_LEVEL)
     assert response.data

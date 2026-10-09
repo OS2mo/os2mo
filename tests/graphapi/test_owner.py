@@ -10,6 +10,7 @@ from uuid import uuid4
 import pytest
 from fastapi.encoders import jsonable_encoder
 
+from tests.conftest import ACTIVE_DIRECTORY_UUID
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
@@ -644,13 +645,8 @@ async def test_owner_cannot_delete_a_detail(
     assert_denied(delete())
 
 
-# The IT system the envvar below names, so the test must create that very one
-AUTHORITATIVE = "44444444-4444-4444-4444-444444444444"
-
-
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
-@pytest.mark.envvar({"KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS": AUTHORITATIVE})
+@pytest.mark.usefixtures("empty_db", "it_system_patched_owner_policy")
 async def test_owner_through_authoritative_it_system(
     set_auth: SetAuth,
     alice: UUID,
@@ -660,13 +656,15 @@ async def test_owner_through_authoritative_it_system(
     make_owner: Callable[..., None],
     employee_update: Callable[[UUID | str], GQLResponse],
 ) -> None:
-    # Configured, the rules reach the caller through an IT user holding the
+    # Patched, the rules reach the caller through an IT user holding the
     # token's uuid as an external id
     external_id = "33333333-3333-3333-3333-333333333333"
     make_owner(alice, person=bob)
+    # The IT system the owner rules are patched to name, so the test must create
+    # that very one
     create_itsystem(
         {
-            "uuid": AUTHORITATIVE,
+            "uuid": str(ACTIVE_DIRECTORY_UUID),
             "user_key": "authoritative",
             "name": "Authoritative",
             "validity": {"from": "2020-01-01"},
@@ -675,7 +673,7 @@ async def test_owner_through_authoritative_it_system(
     create_ituser(
         {
             "user_key": "alice",
-            "itsystem": AUTHORITATIVE,
+            "itsystem": str(ACTIVE_DIRECTORY_UUID),
             "person": str(alice),
             "external_id": external_id,
             "validity": {"from": "2020-01-01"},
