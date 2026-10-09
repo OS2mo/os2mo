@@ -20,6 +20,7 @@ class Collection(enum.Enum):
     Leave = "Leave"
     Listener = "Listener"
     Manager = "Manager"
+    Namespace = "Namespace"
     Organisation = "Organisation"
     OrganisationUnit = "OrganisationUnit"
     Owner = "Owner"

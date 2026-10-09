@@ -45,6 +45,7 @@ from mora.db import FacetRegistrering
 from mora.db import ITSystemRegistrering
 from mora.db import KlasseRegistrering
 from mora.db import Listener
+from mora.db import Namespace
 from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationFunktionRegistrering
 from mora.db import OrganisationRegistrering
@@ -178,6 +179,7 @@ KEY_OF_COLLECTION: dict[Collection, Any] = {
     Collection.Leave: OrganisationFunktionRegistrering.uuid,
     Collection.Listener: Listener.pk,
     Collection.Manager: OrganisationFunktionRegistrering.uuid,
+    Collection.Namespace: Namespace.name,
     Collection.Organisation: OrganisationRegistrering.uuid,
     Collection.OrganisationUnit: OrganisationEnhedRegistrering.uuid,
     Collection.Owner: OrganisationFunktionRegistrering.uuid,
@@ -201,6 +203,7 @@ PREDICATE_OF_COLLECTION: dict[Collection, Callable[..., ColumnElement]] = {
     Collection.Leave: resolvers.leave_predicate,
     Collection.Listener: events.listener_predicate,
     Collection.Manager: resolvers.manager_predicate,
+    Collection.Namespace: events.namespace_predicate,
     Collection.OrganisationUnit: resolvers.organisation_unit_predicate,
     Collection.Owner: resolvers.owner_predicate,
     Collection.RelatedUnit: resolvers.related_unit_predicate,
