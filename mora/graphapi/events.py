@@ -10,15 +10,19 @@ import strawberry
 from more_itertools import one
 from pydantic import BaseModel
 from sqlalchemy import ColumnElement
+from sqlalchemy import and_
 from sqlalchemy import func
 from sqlalchemy import select
+from sqlalchemy import true
 from sqlalchemy import update
 
 from mora import db
 from mora.auth.middleware import get_authenticated_user
+from mora.config import Settings
 from mora.db import AsyncSession
 from mora.graphapi.context import MOInfo
 from mora.graphapi.filters import gen_filter_string
+from mora.graphapi.version import Version
 
 from .paged import CursorType
 from .paged import LimitType
@@ -94,6 +98,13 @@ class ListenerFilter:
             clauses.extend(self.namespaces.where_clauses())
 
         return clauses
+
+
+def listener_predicate(
+    settings: Settings, version: Version, filter: ListenerFilter
+) -> ColumnElement[bool]:
+    """The clause holding where a listener matches the filter."""
+    return and_(true(), *filter.where_clauses())
 
 
 @strawberry.input(description="Event creation time filter.")

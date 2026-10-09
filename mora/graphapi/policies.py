@@ -44,6 +44,7 @@ from mora.db import Collection
 from mora.db import FacetRegistrering
 from mora.db import ITSystemRegistrering
 from mora.db import KlasseRegistrering
+from mora.db import Listener
 from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationFunktionRegistrering
 from mora.db import OrganisationRegistrering
@@ -53,6 +54,7 @@ from mora.db import PolicyReadRuleField
 from mora.db import PolicySelector
 from mora.db import PolicySelectorKind
 from mora.db import PolicyWriteRule
+from mora.graphapi import events
 from mora.graphapi import policy_cel
 from mora.graphapi import resolvers
 from mora.graphapi.custom_schema import CustomSchema
@@ -160,8 +162,8 @@ class WriteRule(NamedTuple):
     check: Callable[[dict[str, Any]], ColumnElement[bool]]
 
 
-# Each collection's key column, naming its objects within the registrations of
-# its model. Keys are compared as text, so the column may be of any type.
+# Each collection's key column, naming its objects within its table.
+# Keys are compared as text, so the column may be of any type.
 # Every detail is an organisation function.
 KEY_OF_COLLECTION: dict[Collection, Any] = {
     Collection.Address: OrganisationFunktionRegistrering.uuid,
@@ -174,6 +176,7 @@ KEY_OF_COLLECTION: dict[Collection, Any] = {
     Collection.ITUser: OrganisationFunktionRegistrering.uuid,
     Collection.KLE: OrganisationFunktionRegistrering.uuid,
     Collection.Leave: OrganisationFunktionRegistrering.uuid,
+    Collection.Listener: Listener.pk,
     Collection.Manager: OrganisationFunktionRegistrering.uuid,
     Collection.Organisation: OrganisationRegistrering.uuid,
     Collection.OrganisationUnit: OrganisationEnhedRegistrering.uuid,
@@ -196,6 +199,7 @@ PREDICATE_OF_COLLECTION: dict[Collection, Callable[..., ColumnElement]] = {
     Collection.ITUser: resolvers.it_user_predicate,
     Collection.KLE: resolvers.kle_predicate,
     Collection.Leave: resolvers.leave_predicate,
+    Collection.Listener: events.listener_predicate,
     Collection.Manager: resolvers.manager_predicate,
     Collection.OrganisationUnit: resolvers.organisation_unit_predicate,
     Collection.Owner: resolvers.owner_predicate,

@@ -24,6 +24,8 @@ from mora.auth.keycloak.models import Token
 from mora.config import Settings
 from mora.db import AsyncSession
 from mora.db import Collection
+from mora.db import Listener
+from mora.db import Namespace
 from mora.db import OrganisationFunktionRegistrering
 from mora.db import Policy
 from mora.db import PolicyReadRule
@@ -200,6 +202,61 @@ async def test_a_batch_spans_collections_and_grants_only_where_a_rule_names_one(
         [
             AccessKey(Collection.Address, str(address), "value"),
             AccessKey(Collection.Employee, str(uuid4()), "cpr_number"),
+        ],
+    )
+
+    assert allowed == [True, False]
+
+
+@pytest.mark.integration_test
+async def test_a_listener_gets_the_fields_of_the_rules_matching_it(
+    empty_db: AsyncSession,
+) -> None:
+    """A listener is matched by its filter, reaching into its namespace."""
+    empty_db.add_all(
+        [
+            Namespace(name="mine", owner=uuid4(), public=False),
+            Namespace(name="theirs", owner=uuid4(), public=False),
+        ]
+    )
+    mine, theirs = (
+        Listener(user_key="listener", owner=uuid4(), routing_key="key", namespace_fk=ns)
+        for ns in ("mine", "theirs")
+    )
+    empty_db.add_all([mine, theirs])
+    empty_db.add(
+        Policy(
+            name="Listener Auditor",
+            description="Allows listener auditors to read the listeners of a namespace",
+            active=True,
+            selectors=[
+                PolicySelector(kind=PolicySelectorKind.role, value="listener_auditor")
+            ],
+            read_rules=[
+                PolicyReadRule(
+                    collection=Collection.Listener,
+                    graphql_version=LATEST_VERSION,
+                    condition='{"namespaces": {"names": ["mine"]}}',
+                    fields=[PolicyReadRuleField(field="routing_key")],
+                )
+            ],
+        )
+    )
+    await empty_db.flush()
+
+    allowed = await access_load_fn(
+        empty_db,
+        DataLoader(
+            load_fn=partial(
+                policy_load_fn,
+                empty_db,
+                Settings(),
+                token_getter_of("listener_auditor"),
+            )
+        ),
+        [
+            AccessKey(Collection.Listener, str(mine.pk), "routing_key"),
+            AccessKey(Collection.Listener, str(theirs.pk), "routing_key"),
         ],
     )
 

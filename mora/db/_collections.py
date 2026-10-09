@@ -18,6 +18,7 @@ class Collection(enum.Enum):
     ITUser = "ITUser"
     KLE = "KLE"
     Leave = "Leave"
+    Listener = "Listener"
     Manager = "Manager"
     Organisation = "Organisation"
     OrganisationUnit = "OrganisationUnit"
