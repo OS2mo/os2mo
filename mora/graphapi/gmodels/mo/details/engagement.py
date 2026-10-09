@@ -48,3 +48,9 @@ class EngagementRead(MOBase):
     primary_uuid: UUID | None = Field(
         description="UUID of the primary klasse of the engagement."
     )
+    explicit_manager_uuid: UUID | None = Field(
+        description="UUID of the explicit manager related to the engagement. This field "
+        "can be used to point the engagement to a specific manager anywhere "
+        "in the organisation. Note that this field is independent of "
+        "the GraphQL 'managers' field."
+    )
