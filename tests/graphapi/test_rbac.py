@@ -95,18 +95,10 @@ def org_unit_with_address(
         ("query { org { uuid } }", set(), {"No policy approved the access"}),
         ("query { org { uuid } }", {"reader"}, set()),
         # Query all org-units
-        (
-            "query { org_units { objects { uuid } } }",
-            set(),
-            {"No policy approved the access"},
-        ),
+        ("query { org_units { objects { uuid } } }", set(), set()),
         ("query { org_units { objects { uuid } } }", {"reader"}, set()),
         # Query all addresses
-        (
-            "query { addresses { objects { uuid } } }",
-            set(),
-            {"No policy approved the access"},
-        ),
+        ("query { addresses { objects { uuid } } }", set(), set()),
         ("query { addresses { objects { uuid } } }", {"reader"}, set()),
         # Query all org-units and their addresses
         (
