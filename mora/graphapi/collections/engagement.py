@@ -359,7 +359,9 @@ class Engagement:
         )
         if root.explicit_manager_uuid
         else None,
-        description="The explicit manager of the engagement.",
+        description="This field can be used to point the engagement to a specific "
+        "manager anywhere in the organisation. Note that this field is "
+        "independent of the 'managers' field.",
     )
 
     @strawberry.field(
