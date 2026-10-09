@@ -1210,10 +1210,17 @@ def create_manager_raw(
 @pytest.fixture
 def create_manager(
     create_manager_raw: Callable[[dict[str, Any]], UUID],
-) -> Callable[[UUID, UUID | None], UUID]:
-    def inner(org_unit: UUID, person: UUID | None = None) -> UUID:
+) -> Callable[..., UUID]:
+    def inner(
+        org_unit: UUID,
+        person: UUID | None = None,
+        user_key: str | None = None,
+        uuid: UUID | None = None,
+    ) -> UUID:
         return create_manager_raw(
             {
+                "uuid": str(uuid) if uuid else None,
+                "user_key": user_key,
                 "manager_level": str(uuid4()),
                 "manager_type": str(uuid4()),
                 "responsibility": [],
@@ -1665,6 +1672,28 @@ def read_org_unit_uuids(
         assert response.errors is None
         assert response.data
         return {UUID(obj["uuid"]) for obj in response.data["org_units"]["objects"]}
+
+    return inner
+
+
+@pytest.fixture
+def read_engagement_uuids(
+    graphapi_post: GraphAPIPost,
+) -> Callable[[dict[str, Any]], set[UUID]]:
+    def inner(filter: dict[str, Any]) -> set[UUID]:
+        engagement_uuid_query = """
+            query ReadEngagements($filter: EngagementFilter) {
+                engagements(filter: $filter) {
+                    objects {
+                        uuid
+                    }
+                }
+            }
+        """
+        response = graphapi_post(engagement_uuid_query, {"filter": filter})
+        assert response.errors is None
+        assert response.data
+        return {UUID(obj["uuid"]) for obj in response.data["engagements"]["objects"]}
 
     return inner
 
