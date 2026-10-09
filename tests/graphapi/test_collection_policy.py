@@ -128,12 +128,12 @@ async def test_an_object_gets_the_fields_of_every_rule_matching_it(
             )
         ),
         [
-            AccessKey(Collection.Address, matched, "value"),
-            AccessKey(Collection.Address, matched, "user_key"),
-            AccessKey(Collection.Address, matched, "name"),
-            AccessKey(Collection.Address, unmatched, "value"),
-            AccessKey(Collection.Address, unmatched, "user_key"),
-            AccessKey(Collection.Address, unmatched, "name"),
+            AccessKey(Collection.Address, str(matched), "value"),
+            AccessKey(Collection.Address, str(matched), "user_key"),
+            AccessKey(Collection.Address, str(matched), "name"),
+            AccessKey(Collection.Address, str(unmatched), "value"),
+            AccessKey(Collection.Address, str(unmatched), "user_key"),
+            AccessKey(Collection.Address, str(unmatched), "name"),
         ],
     )
 
@@ -198,8 +198,8 @@ async def test_a_batch_spans_collections_and_grants_only_where_a_rule_names_one(
             )
         ),
         [
-            AccessKey(Collection.Address, address, "value"),
-            AccessKey(Collection.Employee, uuid4(), "cpr_number"),
+            AccessKey(Collection.Address, str(address), "value"),
+            AccessKey(Collection.Employee, str(uuid4()), "cpr_number"),
         ],
     )
 
@@ -262,8 +262,8 @@ async def test_a_condition_unknown_of_an_object_grants_nothing_on_it(
         empty_db,
         DataLoader(load_fn=partial(fake_policy_loader, rules)),
         [
-            AccessKey(Collection.Address, matched, "value"),
-            AccessKey(Collection.Address, unmatched, "value"),
+            AccessKey(Collection.Address, str(matched), "value"),
+            AccessKey(Collection.Address, str(unmatched), "value"),
         ],
     )
 
@@ -437,8 +437,8 @@ async def test_a_condition_narrows_a_rule_to_the_objects_it_names(
         empty_db,
         policy_loader,
         [
-            AccessKey(Collection.Address, mine, "value"),
-            AccessKey(Collection.Address, theirs, "value"),
+            AccessKey(Collection.Address, str(mine), "value"),
+            AccessKey(Collection.Address, str(theirs), "value"),
         ],
     )
 
