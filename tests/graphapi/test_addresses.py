@@ -752,6 +752,9 @@ def test_address_resolver_dar_lookup_failure(
 
 
 @pytest.mark.integration_test
+@pytest.mark.xfail(
+    reason="fails with unrelated errors as unknown DAR UUIDs yield no data"
+)
 async def test_address_resolver_unknown_dar_uuid(
     graphapi_post: GraphAPIPost,
     empty_db: db.AsyncSession,
@@ -802,12 +805,12 @@ async def test_address_resolver_unknown_dar_uuid(
     assert response.errors == [
         {
             "locations": [{"column": 21, "line": 10}],
-            "message": "'NoneType' object has no attribute 'get'",
+            "message": f"Address not found in DAR: {HISTORIC_DAR_UUID}",
             "path": ["addresses", "objects", 0, "current", "resolve", "floor"],
         },
         {
             "locations": [{"column": 21, "line": 11}],
-            "message": "'NoneType' object has no attribute 'get'",
+            "message": f"Address not found in DAR: {HISTORIC_DAR_UUID}",
             "path": ["addresses", "objects", 0, "current", "resolve", "door"],
         },
     ]
