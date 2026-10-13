@@ -9,6 +9,7 @@ from uuid import UUID
 from zoneinfo import ZoneInfo
 
 import pytest
+from aiohttp import ClientError
 from more_itertools import one
 
 from mora import mapping
@@ -662,11 +663,33 @@ CURRENT_DAR_UUID = "b1f1817d-5f02-4331-b8b3-97330a5d3197"
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
+@pytest.mark.xfail(
+    reason="DAR lookup failures are swallowed as unknown UUIDs or left uncaught"
+)
+@pytest.mark.parametrize(
+    "dar_failure,message",
+    [
+        (
+            {"status": 503},
+            "Address lookup in DAR failed: DAR replied 503 Service Unavailable",
+        ),
+        (
+            {"exception": ClientError()},
+            "Address lookup in DAR failed: DAR could not be reached (ClientError)",
+        ),
+        (
+            {"exception": TimeoutError()},
+            "Address lookup in DAR failed: DAR could not be reached (TimeoutError)",
+        ),
+    ],
+)
 def test_address_resolver_dar_lookup_failure(
     graphapi_post: GraphAPIPost,
     create_address: Callable[[dict[str, Any]], UUID],
     person: UUID,
     adresse_post_employee_class: UUID,
+    dar_failure: dict[str, Any],
+    message: str,
 ) -> None:
     create_address(
         {
@@ -700,17 +723,17 @@ def test_address_resolver_dar_lookup_failure(
     # Mock Adressevaelger to pretend that DAR is down
     with util.darmock() as mock:
         pattern = re.compile(r"^https://adressevaelger.dk/.*$")
-        mock.get(pattern, status=503, repeat=True)
+        mock.get(pattern, repeat=True, **dar_failure)
         response = graphapi_post(query)
     assert response.errors == [
         {
             "locations": [{"column": 21, "line": 12}],
-            "message": "'NoneType' object has no attribute 'get'",
+            "message": message,
             "path": ["addresses", "objects", 0, "current", "resolve", "floor"],
         },
         {
             "locations": [{"column": 21, "line": 13}],
-            "message": "'NoneType' object has no attribute 'get'",
+            "message": message,
             "path": ["addresses", "objects", 0, "current", "resolve", "door"],
         },
     ]
