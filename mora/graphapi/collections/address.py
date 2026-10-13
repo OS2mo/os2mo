@@ -67,10 +67,16 @@ class MultifieldAddress(ResolvedAddress):
         return multifield_text.name(root.value, root.value2)
 
 
+class DARAddressNotFoundError(Exception):
+    """The DAR UUID is unknown to DAR."""
+
+
 def extract_field(field: str) -> Any:
     @strawberry.field
     async def extractor(self: Any, root: "DARAddress") -> Any:
         dar_response = await root.resolve_dar(root)
+        if dar_response is None:
+            raise DARAddressNotFoundError(f"Address not found in DAR: {root.value}")
         # The AsyncDARClient underpinning the resolve_dar function and its dar_loader
         # attempts to load the provided UUID using 2 different types of addresses in
         # DAR (by default) using a prioritized order defined by the `AddressType` enum
@@ -95,7 +101,7 @@ def extract_field(field: str) -> Any:
 @strawberry.type
 class DARAddress(ResolvedAddress):
     # Lookup the UUID in DAR, cached via the dataloader
-    async def resolve_dar(self, root: "DARAddress") -> dict[str, Any]:
+    async def resolve_dar(self, root: "DARAddress") -> dict[str, Any] | None:
         dar_loader = context["dar_loader"]
         return await dar_loader.load(UUID(root.value))
 

@@ -752,9 +752,6 @@ def test_address_resolver_dar_lookup_failure(
 
 
 @pytest.mark.integration_test
-@pytest.mark.xfail(
-    reason="fails with unrelated errors as unknown DAR UUIDs yield no data"
-)
 async def test_address_resolver_unknown_dar_uuid(
     graphapi_post: GraphAPIPost,
     empty_db: db.AsyncSession,
