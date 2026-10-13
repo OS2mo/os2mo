@@ -31,7 +31,7 @@ from strawberry.utils.await_maybe import await_maybe
 from structlog import get_logger
 
 from mora import config
-from mora.cel import CEL
+from mora.cel.policies import PolicyCEL
 from mora.db import Collection
 from mora.db import get_session
 from mora.exceptions import HTTPException
@@ -65,10 +65,10 @@ from mora.graphapi.mutators import Mutation
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
-from mora.graphapi.types import CEL_SCALAR
 from mora.graphapi.types import CPR_SCALAR
 from mora.graphapi.types import CURSOR_SCALAR
 from mora.graphapi.types import INT_SCALAR
+from mora.graphapi.types import POLICY_CEL_SCALAR
 from mora.graphapi.types import Cursor
 from mora.graphapi.version import Version
 from mora.log import canonical_gql_context
@@ -357,7 +357,7 @@ def get_schema(version: Version) -> CustomSchema:
             # Additionally, it preserves the naming of the underlying Python functions.
             auto_camel_case=False,
             scalar_map={
-                CEL: CEL_SCALAR,
+                PolicyCEL: POLICY_CEL_SCALAR,
                 CPR: CPR_SCALAR,
                 Cursor: CURSOR_SCALAR,
                 EventToken: EVENT_TOKEN_SCALAR,

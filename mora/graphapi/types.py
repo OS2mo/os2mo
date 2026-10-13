@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from mora import cel
 from mora.cel import CEL
+from mora.cel.policies import PolicyCEL
 from mora.util import CPR
 
 # https://strawberry.rocks/docs/integrations/pydantic#classes-with-__get_validators__
@@ -106,9 +107,9 @@ INT_SCALAR = strawberry.scalar(
 )
 
 
-def _parse_cel(condition: str) -> CEL:
+def _parse_policy_cel(condition: str) -> PolicyCEL:
     """Parse the condition, raising a ValueError unless it compiles."""
-    parsed = CEL(condition)
+    parsed = PolicyCEL(CEL(condition))
     try:
         cel.policies._compile(parsed)
     except RuntimeError as error:
@@ -118,10 +119,11 @@ def _parse_cel(condition: str) -> CEL:
     return parsed
 
 
-CEL_SCALAR = strawberry.scalar(
+POLICY_CEL_SCALAR = strawberry.scalar(
+    # Named CEL for backwards compatibility
     name="CEL",
     serialize=str,
-    parse_value=_parse_cel,
+    parse_value=_parse_policy_cel,
     description=dedent(
         """\
         Expression in the Common Expression Language, refused unless it compiles.
