@@ -19,7 +19,7 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 
-from mora.cel import CEL
+from mora.graphapi.policy_cel import PolicyCEL
 from mora.graphapi.version import Version
 
 from ._collections import Collection
@@ -100,7 +100,7 @@ class PolicyReadRule(Base):
     collection: Mapped[Collection] = mapped_column(
         Enum(Collection, name="policycollection")
     )
-    condition: Mapped[CEL] = mapped_column(Text)
+    condition: Mapped[PolicyCEL] = mapped_column(Text)
     graphql_version: Mapped[Version] = mapped_column(GraphQLVersion)
     policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.pk", ondelete="CASCADE"))
     policy: Mapped[Policy] = relationship(back_populates="read_rules")
@@ -131,7 +131,7 @@ class PolicyWriteRule(Base):
         primary_key=True, server_default=text("uuid_generate_v4()")
     )
     mutator: Mapped[str] = mapped_column(Text)
-    condition: Mapped[CEL] = mapped_column(Text)
+    condition: Mapped[PolicyCEL] = mapped_column(Text)
     graphql_version: Mapped[Version] = mapped_column(GraphQLVersion)
     policy_fk: Mapped[UUID] = mapped_column(ForeignKey("policy.pk", ondelete="CASCADE"))
     policy: Mapped[Policy] = relationship(back_populates="write_rules")

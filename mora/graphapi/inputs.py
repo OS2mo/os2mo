@@ -16,6 +16,7 @@ from mora.cel import CEL
 from mora.db import events
 from mora.graphapi.gmodels.mo import OpenValidity as RAOpenValidity
 from mora.graphapi.gmodels.mo import Validity as RAValidity
+from mora.graphapi.policy_cel import PolicyCEL
 
 from .events import EventToken
 from .events import ListenerFilter
@@ -919,8 +920,8 @@ class PolicyReadRuleInput:
         description="The collection to grant field access on."
     )
     fields: list[Field] = strawberry.field(description="The fields to grant.")
-    condition: CEL = strawberry.field(
-        default=CEL("true"),
+    condition: PolicyCEL = strawberry.field(
+        default=PolicyCEL(CEL("true")),
         description=dedent(
             """\
             CEL expression evaluating to either a boolean, or a filter naming the
@@ -938,8 +939,8 @@ class PolicyReadRuleInput:
 @strawberry.input(description="Grants conditional access to the specified mutator.")
 class PolicyWriteRuleInput:
     mutator: MutatorName = strawberry.field(description="The mutator to grant.")
-    condition: CEL = strawberry.field(
-        default=CEL("true"),
+    condition: PolicyCEL = strawberry.field(
+        default=PolicyCEL(CEL("true")),
         description=dedent(
             """\
             CEL expression evaluating to either a boolean, or a
