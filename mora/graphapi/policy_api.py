@@ -14,6 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from mora import db
+from mora.cel import CEL
 from mora.db import AsyncSession
 from mora.db import Collection
 from mora.db import PolicySelectorKind
@@ -21,7 +22,6 @@ from mora.graphapi.context import MOInfo
 from mora.graphapi.filters import gen_filter_string
 from mora.graphapi.graphql_utils import Field
 from mora.graphapi.graphql_utils import MutatorName
-from mora.graphapi.policy_cel import CEL
 from mora.graphapi.version import Version
 
 from .paged import CursorType

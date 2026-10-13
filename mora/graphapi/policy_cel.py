@@ -4,15 +4,12 @@
 
 from functools import lru_cache
 from typing import Any
-from typing import NewType
 
 from cel_expr_python import cel
 from fastapi.encoders import jsonable_encoder
 
 from mora.auth.keycloak.models import Token
-
-# A Common Expression Language expression
-CEL = NewType("CEL", str)
+from mora.cel import CEL
 
 # The bindings extension provides `cel.bind`, naming a value once for reuse
 _CONFIG = cel.NewEnvConfigFromYaml("""

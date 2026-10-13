@@ -10,8 +10,8 @@ from uuid import UUID
 import strawberry
 from pydantic import BaseModel
 
+from mora.cel import CEL
 from mora.graphapi import policy_cel
-from mora.graphapi.policy_cel import CEL
 from mora.util import CPR
 
 # https://strawberry.rocks/docs/integrations/pydantic#classes-with-__get_validators__

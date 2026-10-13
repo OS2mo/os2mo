@@ -12,6 +12,7 @@ import strawberry
 from strawberry import UNSET
 from strawberry.types.unset import UnsetType
 
+from mora.cel import CEL
 from mora.db import events
 from mora.graphapi.gmodels.mo import OpenValidity as RAOpenValidity
 from mora.graphapi.gmodels.mo import Validity as RAValidity
@@ -68,7 +69,6 @@ from .models import RoleBindingUpdate
 from .models import Validity
 from .policy_api import Collection
 from .policy_api import PolicySelectorInput
-from .policy_cel import CEL
 from .version import Version
 
 

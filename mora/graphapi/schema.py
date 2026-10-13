@@ -31,6 +31,7 @@ from strawberry.utils.await_maybe import await_maybe
 from structlog import get_logger
 
 from mora import config
+from mora.cel import CEL
 from mora.db import Collection
 from mora.db import get_session
 from mora.exceptions import HTTPException
@@ -61,7 +62,6 @@ from mora.graphapi.model_registration import PersonRegistration
 from mora.graphapi.model_registration import RelatedUnitRegistration
 from mora.graphapi.model_registration import RoleBindingRegistration
 from mora.graphapi.mutators import Mutation
-from mora.graphapi.policy_cel import CEL
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
