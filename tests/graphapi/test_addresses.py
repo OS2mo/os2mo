@@ -11,7 +11,9 @@ from zoneinfo import ZoneInfo
 import pytest
 from aiohttp import ClientError
 from more_itertools import one
+from sqlalchemy import update
 
+from mora import db
 from mora import mapping
 from tests import util
 from tests.conftest import GQLResponse
@@ -659,6 +661,7 @@ def test_address_resolver_supplementary_city(
 
 
 CURRENT_DAR_UUID = "b1f1817d-5f02-4331-b8b3-97330a5d3197"
+HISTORIC_DAR_UUID = "0a3f507e-31b9-32b8-e044-0003ba298018"
 
 
 @pytest.mark.integration_test
@@ -745,4 +748,74 @@ def test_address_resolver_dar_lookup_failure(
             "floor": None,
             "door": None,
         },
+    }
+
+
+@pytest.mark.integration_test
+async def test_address_resolver_unknown_dar_uuid(
+    graphapi_post: GraphAPIPost,
+    empty_db: db.AsyncSession,
+    create_address: Callable[[dict[str, Any]], UUID],
+    person: UUID,
+    adresse_post_employee_class: UUID,
+) -> None:
+    create_address(
+        {
+            "address_type": str(adresse_post_employee_class),
+            "value": CURRENT_DAR_UUID,
+            "person": str(person),
+            "validity": {"from": "2000-01-01T00:00:00Z"},
+        }
+    )
+
+    # Hack around DAR validation, as if the historic UUID was inserted while current
+    await empty_db.execute(
+        update(db.OrganisationFunktionRelation)
+        .where(
+            db.OrganisationFunktionRelation.rel_maal_urn
+            == f"urn:dar:{CURRENT_DAR_UUID}"
+        )
+        .values(rel_maal_urn=f"urn:dar:{HISTORIC_DAR_UUID}")
+    )
+    # A request opens its own session, so the rows must be committed to it
+    await empty_db.commit()
+
+    query = """
+        query ResolveAddresses {
+          addresses {
+            objects {
+              current {
+                resolve {
+                  __typename
+                  value
+                  ... on DARAddress {
+                    floor
+                    door
+                  }
+                }
+              }
+            }
+          }
+        }
+    """
+    response = graphapi_post(query)
+    assert response.errors == [
+        {
+            "locations": [{"column": 21, "line": 10}],
+            "message": "'NoneType' object has no attribute 'get'",
+            "path": ["addresses", "objects", 0, "current", "resolve", "floor"],
+        },
+        {
+            "locations": [{"column": 21, "line": 11}],
+            "message": "'NoneType' object has no attribute 'get'",
+            "path": ["addresses", "objects", 0, "current", "resolve", "door"],
+        },
+    ]
+    assert response.data is not None
+    address = one(response.data["addresses"]["objects"])
+    assert address["current"]["resolve"] == {
+        "__typename": "DARAddress",
+        "value": HISTORIC_DAR_UUID,
+        "floor": None,
+        "door": None,
     }
