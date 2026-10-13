@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import datetime
+import re
 from collections.abc import Callable
 from typing import Any
 from uuid import UUID
@@ -653,4 +654,75 @@ def test_address_resolver_supplementary_city(
                 }
             ]
         }
+    }
+
+
+CURRENT_DAR_UUID = "b1f1817d-5f02-4331-b8b3-97330a5d3197"
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_address_resolver_dar_lookup_failure(
+    graphapi_post: GraphAPIPost,
+    create_address: Callable[[dict[str, Any]], UUID],
+    person: UUID,
+    adresse_post_employee_class: UUID,
+) -> None:
+    create_address(
+        {
+            "address_type": str(adresse_post_employee_class),
+            "value": CURRENT_DAR_UUID,
+            "person": str(person),
+            "validity": {"from": "2000-01-01T00:00:00Z"},
+        }
+    )
+
+    query = """
+        query ResolveAddresses {
+          addresses {
+            objects {
+              current {
+                name
+                href
+                resolve {
+                  __typename
+                  value
+                  ... on DARAddress {
+                    floor
+                    door
+                  }
+                }
+              }
+            }
+          }
+        }
+    """
+    # Mock Adressevaelger to pretend that DAR is down
+    with util.darmock() as mock:
+        pattern = re.compile(r"^https://adressevaelger.dk/.*$")
+        mock.get(pattern, status=503, repeat=True)
+        response = graphapi_post(query)
+    assert response.errors == [
+        {
+            "locations": [{"column": 21, "line": 12}],
+            "message": "'NoneType' object has no attribute 'get'",
+            "path": ["addresses", "objects", 0, "current", "resolve", "floor"],
+        },
+        {
+            "locations": [{"column": 21, "line": 13}],
+            "message": "'NoneType' object has no attribute 'get'",
+            "path": ["addresses", "objects", 0, "current", "resolve", "door"],
+        },
+    ]
+    assert response.data is not None
+    address = one(response.data["addresses"]["objects"])
+    assert address["current"] == {
+        "name": "Ukendt",
+        "href": None,
+        "resolve": {
+            "__typename": "DARAddress",
+            "value": CURRENT_DAR_UUID,
+            "floor": None,
+            "door": None,
+        },
     }
