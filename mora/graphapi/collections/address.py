@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """Strawberry types describing the MO graph - Address."""
 
+from contextlib import suppress
 from functools import partial
 from textwrap import dedent
 from typing import Any
@@ -466,7 +467,9 @@ class Address:
         # TODO: Use AddressHandler implementation?
         if obj.scope == "DAR":
             dar_loader = context["dar_loader"]
-            address_object = await dar_loader.load(UUID(root.value))
+            address_object = None
+            with suppress(dar.DARRequestError):
+                address_object = await dar_loader.load(UUID(root.value))
             return dar.name_from_dar_object(address_object)
 
         return obj.name
@@ -508,7 +511,9 @@ class Address:
         # TODO: Use AddressHandler implementation?
         if obj.scope == "DAR":
             dar_loader = context["dar_loader"]
-            address_object = await dar_loader.load(UUID(root.value))
+            address_object = None
+            with suppress(dar.DARRequestError):
+                address_object = await dar_loader.load(UUID(root.value))
             if address_object is None:
                 return None
             return dar.open_street_map_href_from_dar_object(address_object)

@@ -663,9 +663,6 @@ CURRENT_DAR_UUID = "b1f1817d-5f02-4331-b8b3-97330a5d3197"
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-@pytest.mark.xfail(
-    reason="DAR lookup failures are swallowed as unknown UUIDs or left uncaught"
-)
 @pytest.mark.parametrize(
     "dar_failure,message",
     [
