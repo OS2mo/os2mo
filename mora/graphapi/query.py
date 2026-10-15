@@ -159,11 +159,10 @@ async def file_resolver(
     offset = int(cursor.last) if cursor else 0
     files = sorted(found_files)[offset:][:limit]
 
-    _File = db.files._File
     result = await session.execute(
-        select(_File.name, _File.created_at, _File.updated_at)
-        .where(_File.store == filter.file_store.name, _File.name.in_(files))
-        .order_by(_File.name)
+        select(db.File.name, db.File.created_at, db.File.updated_at)
+        .where(db.File.store == filter.file_store.name, db.File.name.in_(files))
+        .order_by(db.File.name)
     )
     return ObjectsAndCursor(
         objects=[
