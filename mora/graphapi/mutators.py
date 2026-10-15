@@ -79,6 +79,7 @@ from .engagements import update_engagement
 from .events import FullEvent
 from .events import Listener
 from .events import Namespace
+from .events import listener_predicate
 from .facets import create_facet
 from .facets import delete_facet
 from .facets import terminate_facet
@@ -1695,7 +1696,9 @@ class Mutation:
             .where(
                 db.Event.subject.in_(input.subjects),
                 db.Event.listener_fk == db.Listener.pk,
-                *input.listeners.where_clauses(),
+                listener_predicate(
+                    info.context.settings, get_version(info.schema), input.listeners
+                ),
             )
             .values(silenced=True)
         )
@@ -1715,7 +1718,11 @@ class Mutation:
         ]
 
         if input.listeners is not None:
-            clauses.extend(input.listeners.where_clauses())
+            clauses.append(
+                listener_predicate(
+                    info.context.settings, get_version(info.schema), input.listeners
+                )
+            )
 
         if input.subjects is not None:
             clauses.append(db.Event.subject.in_(input.subjects))
@@ -1749,7 +1756,11 @@ class Mutation:
         ]
 
         if input.listeners is not None:  # pragma: no cover
-            clauses.extend(input.listeners.where_clauses())
+            clauses.append(
+                listener_predicate(
+                    info.context.settings, get_version(info.schema), input.listeners
+                )
+            )
 
         if input.subjects is not None:  # pragma: no cover
             clauses.append(db.Event.subject.in_(input.subjects))

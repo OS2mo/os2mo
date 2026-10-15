@@ -21,6 +21,7 @@ from mora.auth.middleware import get_authenticated_user
 from mora.config import Settings
 from mora.db import AsyncSession
 from mora.graphapi.context import MOInfo
+from mora.graphapi.custom_schema import get_version
 from mora.graphapi.filters import gen_filter_string
 from mora.graphapi.version import Version
 
@@ -172,7 +173,11 @@ async def full_event_resolver(
         clauses.append(db.Listener.owner == owner)
 
     if filter.listeners is not None:
-        clauses.extend(filter.listeners.where_clauses())
+        clauses.append(
+            listener_predicate(
+                info.context.settings, get_version(info.schema), filter.listeners
+            )
+        )
 
     if filter.subjects is not None:
         clauses.append(db.Event.subject.in_(filter.subjects))
@@ -219,9 +224,10 @@ async def listener_resolver(
         filter = ListenerFilter()
 
     # Pagination
-    query = (
-        select(db.Listener.pk).where(*filter.where_clauses()).order_by(db.Listener.pk)
+    predicate = listener_predicate(
+        info.context.settings, get_version(info.schema), filter
     )
+    query = select(db.Listener.pk).where(predicate).order_by(db.Listener.pk)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(session, query, db.Listener.pk, limit, cursor)
 
