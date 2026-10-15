@@ -85,6 +85,7 @@ from ._policies import PolicyReadRuleField
 from ._policies import PolicySelector
 from ._policies import PolicySelectorKind
 from ._policies import PolicyWriteRule
+from .files import File
 from .files import FileToken
 import psycopg
 
