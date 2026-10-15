@@ -79,27 +79,6 @@ class ListenerFilter:
         default=None, description="Only match listeners in this namespace"
     )
 
-    def where_clauses(self: "ListenerFilter") -> list[ColumnElement[bool]]:
-        clauses: list[ColumnElement] = []
-
-        if self.uuids is not None:
-            clauses.append(db.Listener.pk.in_(self.uuids))
-
-        if self.user_keys is not None:
-            clauses.append(db.Listener.user_key.in_(self.user_keys))
-
-        if self.owners is not None:
-            clauses.append(db.Listener.owner.in_(self.owners))
-
-        if self.routing_keys is not None:
-            clauses.append(db.Listener.routing_key.in_(self.routing_keys))
-
-        if self.namespaces is not None:
-            clauses.append(db.Listener.namespace_fk == db.Namespace.name)
-            clauses.extend(self.namespaces.where_clauses())
-
-        return clauses
-
 
 def namespace_predicate(
     settings: Settings, version: Version, filter: NamespaceFilter
@@ -112,7 +91,25 @@ def listener_predicate(
     settings: Settings, version: Version, filter: ListenerFilter
 ) -> ColumnElement[bool]:
     """The clause holding where a listener matches the filter."""
-    return and_(true(), *filter.where_clauses())
+    clauses: list[ColumnElement] = []
+
+    if filter.uuids is not None:
+        clauses.append(db.Listener.pk.in_(filter.uuids))
+
+    if filter.user_keys is not None:
+        clauses.append(db.Listener.user_key.in_(filter.user_keys))
+
+    if filter.owners is not None:
+        clauses.append(db.Listener.owner.in_(filter.owners))
+
+    if filter.routing_keys is not None:
+        clauses.append(db.Listener.routing_key.in_(filter.routing_keys))
+
+    if filter.namespaces is not None:
+        clauses.append(db.Listener.namespace_fk == db.Namespace.name)
+        clauses.extend(filter.namespaces.where_clauses())
+
+    return and_(true(), *clauses)
 
 
 @strawberry.input(description="Event creation time filter.")
