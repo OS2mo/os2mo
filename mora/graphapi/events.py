@@ -158,6 +158,7 @@ def full_event_predicate(
     clauses: list[ColumnElement] = []
 
     if filter.listeners is not None:
+        clauses.append(db.Event.listener_fk == db.Listener.pk)
         clauses.append(listener_predicate(settings, version, filter.listeners))
 
     if filter.subjects is not None:
