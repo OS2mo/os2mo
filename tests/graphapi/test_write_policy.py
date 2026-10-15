@@ -27,6 +27,7 @@ from mora.graphapi.policies import cel2check
 from mora.graphapi.policies import write_policy_load_fn
 from mora.graphapi.schema import write_policy
 from mora.graphapi.version import LATEST_VERSION
+from mora.mapping import ADMIN
 from tests.conftest import ALVIDA_UUID
 from tests.conftest import BRUCE_UUID
 from tests.conftest import GraphAPIPost
@@ -72,6 +73,40 @@ async def test_a_check_asks_whether_what_it_names_exists(
     found = [await empty_db.scalar(select(check)) for check in checks]
 
     assert found == [True, False]
+
+
+@pytest.mark.integration_test
+async def test_a_check_asks_whether_the_registrations_it_names_exist(
+    empty_db: AsyncSession,
+    set_auth: SetAuth,
+    create_person: Callable[..., UUID],
+    owner_token: Token,
+) -> None:
+    """A check finds the registrations of the person the caller registered, only."""
+    # Registered by the admin of the tests, who is the owner, then by another actor
+    mine = create_person()
+    set_auth(ADMIN, ALVIDA_UUID)
+    theirs = create_person()
+    condition = """
+    {
+        "collection": "Registration",
+        "filter": {"uuids": [args.input.uuid], "actors": [token.uuid]}
+    }
+    """
+    checks = (
+        cel2check(
+            settings=Settings(),
+            graphql_version=LATEST_VERSION,
+            condition=condition,
+            token=owner_token,
+            args={"input": {"uuid": uuid}},
+        )
+        for uuid in (mine, theirs, NOT_FOUND_UUID)
+    )
+
+    found = [await empty_db.scalar(select(check)) for check in checks]
+
+    assert found == [True, False, False]
 
 
 @pytest.mark.integration_test

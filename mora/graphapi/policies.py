@@ -191,6 +191,8 @@ KEY_OF_COLLECTION: dict[Collection, Any] = {
     Collection.Organisation: OrganisationRegistrering.uuid,
     Collection.OrganisationUnit: OrganisationEnhedRegistrering.uuid,
     Collection.Owner: OrganisationFunktionRegistrering.uuid,
+    # Computed of the model and id of a registration, so matched by `KEY_MATCH_OVERRIDES`
+    Collection.Registration: resolvers.REGISTRATION_KEY,
     Collection.RelatedUnit: OrganisationFunktionRegistrering.uuid,
     Collection.RoleBinding: OrganisationFunktionRegistrering.uuid,
 }
@@ -217,6 +219,7 @@ PREDICATE_OF_COLLECTION: dict[Collection, Callable[..., ColumnElement]] = {
     Collection.Namespace: events.namespace_predicate,
     Collection.OrganisationUnit: resolvers.organisation_unit_predicate,
     Collection.Owner: resolvers.owner_predicate,
+    Collection.Registration: resolvers.registrations_predicate,
     Collection.RelatedUnit: resolvers.related_unit_predicate,
     Collection.RoleBinding: resolvers.rolebinding_predicate,
 }
@@ -342,8 +345,17 @@ def requested_select(keys: Iterable[AccessKey]) -> Select[Any]:
     return select(rows.c.key, rows.c.field)
 
 
+# The clause matching the objects of a collection to keys, only for collections whose
+# key is computed, rather than a column an index holds
+KEY_MATCH_OVERRIDES: dict[Collection, Callable[..., ColumnElement[bool]]] = {
+    Collection.Registration: resolvers.registrations_keyed,
+}
+
+
 def matches_keys(collection: Collection, keys: frozenset[str]) -> ColumnElement[bool]:
     """The clause holding where an object of the collection has one of the keys."""
+    if collection in KEY_MATCH_OVERRIDES:
+        return KEY_MATCH_OVERRIDES[collection](keys)
     key_column = KEY_OF_COLLECTION[collection]
     # The input keys from Python are cast to the column's database type, this ensures
     # that databases indexes can still be used, and thus ensures performance.

@@ -65,6 +65,7 @@ from mora.graphapi.policy_cel import CEL
 from mora.graphapi.query import Query
 from mora.graphapi.rbac_map import PUBLIC_FIELDS
 from mora.graphapi.rbac_map import RBAC_MAP
+from mora.graphapi.registrationbase import RegistrationBase
 from mora.graphapi.types import CEL_SCALAR
 from mora.graphapi.types import CPR_SCALAR
 from mora.graphapi.types import CURSOR_SCALAR
@@ -222,6 +223,8 @@ OBJECT_TO_KEY_OVERRIDES: dict[Collection, Callable[[Any], str]] = {
     Collection.AccessLog: lambda root: str(root.id),
     Collection.File: lambda root: str(root.id),
     Collection.Namespace: lambda root: root.name,
+    # As `REGISTRATION_KEY`, as every registrering table numbers its own registrations
+    Collection.Registration: lambda root: f"{root.model}:{root.registration_id}",
 }
 
 
@@ -229,11 +232,16 @@ def collection_policy(
     root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
 ) -> AwaitableOrValue[bool]:
     """Allow access if a policy selecting the caller grants the field on the object."""
-    try:
-        collection = Collection(info.parent_type.name)
-    except ValueError:
-        # Non-collection types are gated by the RBAC maps instead
-        return False
+    # Every registration type, e.g. `PersonRegistration` and the legacy `Registration`,
+    # presents the registrations `row2registration` builds, which are one collection
+    if isinstance(root, RegistrationBase):
+        collection = Collection.Registration
+    else:
+        try:
+            collection = Collection(info.parent_type.name)
+        except ValueError:
+            # Non-collection types are gated by the RBAC maps instead
+            return False
     key_of = OBJECT_TO_KEY_OVERRIDES.get(collection, lambda root: str(root.uuid))
     return info.context.dataloaders.access_loader.load(
         AccessKey(collection, key_of(root), info.field_name)

@@ -28,8 +28,10 @@ from mora.config import Settings
 from mora.db import AccessLogOperation
 from mora.db import AccessLogRead
 from mora.db import AsyncSession
+from mora.db import BrugerRegistrering
 from mora.db import Collection
 from mora.db import Event
+from mora.db import FacetRegistrering
 from mora.db import File
 from mora.db import Listener
 from mora.db import Namespace
@@ -47,7 +49,10 @@ from mora.graphapi.policies import cel2predicate
 from mora.graphapi.policies import policy_load_fn
 from mora.graphapi.schema import collection_policy
 from mora.graphapi.version import LATEST_VERSION
+from mora.mapping import ADMIN
+from tests.conftest import ALVIDA_UUID
 from tests.conftest import BRUCE_UUID
+from tests.conftest import SetAuth
 from tests.conftest import token_getter_of
 
 
@@ -525,6 +530,78 @@ async def test_a_file_gets_the_fields_of_the_rules_matching_it(
     )
 
     assert allowed == [False, True]
+
+
+# The person whose registration the conditions below single out
+REGISTERED = UUID("2c6f1e0a-8d3b-4f5e-9a7c-6b1d0e2f3a48")
+
+
+@pytest.mark.integration_test
+@pytest.mark.parametrize(
+    "condition,allowed",
+    [
+        (json.dumps({"uuids": [str(REGISTERED)]}), [True, False]),
+        ('{"actors": [token.uuid]}', [True, False]),
+        ('{"models": ["employee"]}', [True, False]),
+        ('{"models": ["facet"]}', [False, True]),
+    ],
+)
+async def test_a_registration_gets_the_fields_of_the_rules_matching_it(
+    condition: str,
+    allowed: list[bool],
+    empty_db: AsyncSession,
+    set_auth: SetAuth,
+    create_person: Callable[[dict[str, Any] | None], UUID],
+    create_facet: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """A registration is told apart from that of another table, of the same id."""
+    # Registered by the admin of the tests, then by another actor
+    create_person({"uuid": str(REGISTERED), "given_name": "Bruce", "surname": "Lee"})
+    set_auth(ADMIN, ALVIDA_UUID)
+    create_facet({"user_key": "facet", "validity": {"from": "2000-01-01"}})
+    # Every registrering table numbers its registrations on its own
+    person_id = one(await empty_db.scalars(select(BrugerRegistrering.id)))
+    facet_id = one(await empty_db.scalars(select(FacetRegistrering.id)))
+    assert person_id == facet_id
+    empty_db.add(
+        Policy(
+            name="Registration Auditor",
+            description="Allows registration auditors to read some registrations",
+            active=True,
+            selectors=[
+                PolicySelector(
+                    kind=PolicySelectorKind.role, value="registration_auditor"
+                )
+            ],
+            read_rules=[
+                PolicyReadRule(
+                    collection=Collection.Registration,
+                    graphql_version=LATEST_VERSION,
+                    condition=condition,
+                    fields=[PolicyReadRuleField(field="note")],
+                )
+            ],
+        )
+    )
+    await empty_db.flush()
+
+    granted = await access_load_fn(
+        empty_db,
+        DataLoader(
+            load_fn=partial(
+                policy_load_fn,
+                empty_db,
+                Settings(),
+                token_getter_of("registration_auditor"),
+            )
+        ),
+        [
+            AccessKey(Collection.Registration, f"employee:{person_id}", "note"),
+            AccessKey(Collection.Registration, f"facet:{facet_id}", "note"),
+        ],
+    )
+
+    assert granted == allowed
 
 
 @pytest.mark.integration_test

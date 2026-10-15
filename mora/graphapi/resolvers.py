@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import dataclasses
+from collections.abc import Iterable
 from collections.abc import Sequence
 from datetime import date
 from datetime import datetime
@@ -13,19 +14,24 @@ from typing import cast as tcast
 from uuid import UUID
 
 import strawberry
+from more_itertools import map_reduce
 from more_itertools import one
 from more_itertools import unique_everseen
 from psycopg.types.range import TimestamptzRange
 from pydantic import ValidationError
+from sqlalchemy import ARRAY
+from sqlalchemy import BigInteger
 from sqlalchemy import ColumnElement
 from sqlalchemy import ColumnExpressionArgument
 from sqlalchemy import CompoundSelect
 from sqlalchemy import Select
 from sqlalchemy import and_
+from sqlalchemy import any_
 from sqlalchemy import case
 from sqlalchemy import cast
 from sqlalchemy import distinct
 from sqlalchemy import exists
+from sqlalchemy import false
 from sqlalchemy import func
 from sqlalchemy import literal
 from sqlalchemy import or_
@@ -3821,6 +3827,35 @@ def registrations_predicate(
         clauses.append(REGISTRATIONS.c.model.in_(filter.models))
 
     return and_(*clauses)
+
+
+# The key of a registration: its model and its id, as every registrering table
+# numbers its registrations on its own
+REGISTRATION_KEY = func.concat(REGISTRATIONS.c.model, ":", REGISTRATIONS.c.id)
+
+
+def registrations_keyed(keys: Iterable[str]) -> ColumnElement[bool]:
+    """The clause holding where a registration has one of the keys."""
+    # No index holds the key, so each table is searched for the ids of its own keys.
+    # Postgres pushes the clause into every arm of `REGISTRATIONS`, where the names
+    # of the tables fold, so each arm looks its ids up by its primary key, and the
+    # arms of the tables no key names are skipped
+    ids_of_table = map_reduce(
+        (key.partition(":") for key in keys),
+        keyfunc=lambda key: REGISTRATION_TABLE_OF_MODEL[key[0]].__tablename__,
+        valuefunc=lambda key: int(key[2]),
+    )
+    return or_(
+        false(),
+        *(
+            and_(
+                REGISTRATIONS.c.tablename == literal(tablename, literal_execute=True),
+                REGISTRATIONS.c.id == any_(literal(ids, ARRAY(BigInteger))),
+            )
+            # Sorted, so the statement depends only on which tables are named
+            for tablename, ids in sorted(ids_of_table.items())
+        ),
+    )
 
 
 def row2registration(
