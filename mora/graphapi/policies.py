@@ -38,6 +38,7 @@ from strawberry.types.arguments import convert_argument
 
 from mora.auth.keycloak.models import Token
 from mora.config import Settings
+from mora.db import AccessLogOperation
 from mora.db import AsyncSession
 from mora.db import BrugerRegistrering
 from mora.db import Collection
@@ -56,6 +57,7 @@ from mora.db import PolicyReadRuleField
 from mora.db import PolicySelector
 from mora.db import PolicySelectorKind
 from mora.db import PolicyWriteRule
+from mora.graphapi import access_log
 from mora.graphapi import events
 from mora.graphapi import policy_cel
 from mora.graphapi import resolvers
@@ -168,6 +170,7 @@ class WriteRule(NamedTuple):
 # Keys are compared as text, so any type of column may be used.
 # Every detail is an organisation function.
 KEY_OF_COLLECTION: dict[Collection, Any] = {
+    Collection.AccessLog: AccessLogOperation.id,
     Collection.Address: OrganisationFunktionRegistrering.uuid,
     Collection.Association: OrganisationFunktionRegistrering.uuid,
     Collection.Class: KlasseRegistrering.uuid,
@@ -193,6 +196,7 @@ KEY_OF_COLLECTION: dict[Collection, Any] = {
 # Each collection's corresponding predicate function.
 # Organisation has no filter, so no rule can name anything but all of it.
 PREDICATE_OF_COLLECTION: dict[Collection, Callable[..., ColumnElement]] = {
+    Collection.AccessLog: access_log.access_log_predicate,
     Collection.Address: resolvers.address_predicate,
     Collection.Association: resolvers.association_predicate,
     Collection.Class: resolvers.class_predicate,

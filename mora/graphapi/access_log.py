@@ -226,7 +226,7 @@ def access_log_predicate(
     """The clause holding where an access log entry matches the filter."""
     clauses: list[ColumnElement] = []
 
-    if filter.ids is not None:  # pragma: no cover
+    if filter.ids is not None:
         clauses.append(AccessLogOperation.id.in_(filter.ids))
 
     if filter.uuids is not None:
@@ -242,7 +242,7 @@ def access_log_predicate(
         models = [model.value for model in filter.models]
         clauses.append(AccessLogOperation.model.in_(models))
 
-    if filter.start is not None or filter.end is not None:  # pragma: no cover
+    if filter.start is not None or filter.end is not None:
         start, end = get_sqlalchemy_date_interval(filter.start, filter.end)
         clauses.append(AccessLogOperation.time.between(start, end))
 

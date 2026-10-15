@@ -2,7 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 """Testing the collection policy."""
 
+import json
 from collections.abc import Callable
+from datetime import UTC
+from datetime import datetime
 from functools import partial
 from types import SimpleNamespace
 from typing import Any
@@ -22,6 +25,8 @@ from strawberry.dataloader import DataLoader
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.config import Settings
+from mora.db import AccessLogOperation
+from mora.db import AccessLogRead
 from mora.db import AsyncSession
 from mora.db import Collection
 from mora.db import Event
@@ -386,6 +391,90 @@ async def test_an_event_gets_the_fields_of_the_rules_matching_it(
     )
 
     assert allowed == [True, False]
+
+
+# The access log entry the conditions below single out, and an object it read
+SINGLED_OUT = UUID("1f0c2a8e-6a51-4d8e-9b0f-3c7d2e4a5b61")
+READ_BY_IT = UUID("7b3e9d24-0c6f-4a1b-8e52-d9f4a6c3b210")
+
+
+@pytest.mark.integration_test
+@pytest.mark.parametrize(
+    "condition",
+    [
+        json.dumps({"ids": [str(SINGLED_OUT)]}),
+        json.dumps({"uuids": [str(READ_BY_IT)]}),
+        '{"actors": [token.uuid]}',
+        '{"models": ["PERSON"]}',
+        json.dumps(
+            {"start": "2000-01-01T00:00:00+00:00", "end": "2001-01-01T00:00:00+00:00"}
+        ),
+    ],
+)
+async def test_an_access_log_entry_gets_the_fields_of_the_rules_matching_it(
+    condition: str, empty_db: AsyncSession
+) -> None:
+    """An access log entry is matched by its filter, through any field of it."""
+    mine = AccessLogOperation(
+        id=SINGLED_OUT,
+        time=datetime(2000, 6, 1, tzinfo=UTC),
+        actor=BRUCE_UUID,
+        model="Bruger",
+        operation="resolve_employees",
+        arguments={},
+        uuids=[AccessLogRead(uuid=READ_BY_IT)],
+    )
+    # Entries on either side of the window of time
+    earlier, later = (
+        AccessLogOperation(
+            time=datetime(year, 6, 1, tzinfo=UTC),
+            actor=uuid4(),
+            model="OrganisationEnhed",
+            operation="resolve_org_units",
+            arguments={},
+            uuids=[AccessLogRead(uuid=uuid4())],
+        )
+        for year in (1990, 2010)
+    )
+    empty_db.add_all([mine, earlier, later])
+    empty_db.add(
+        Policy(
+            name="Access Log Auditor",
+            description="Allows access log auditors to read some access log entries",
+            active=True,
+            selectors=[
+                PolicySelector(kind=PolicySelectorKind.role, value="access_log_auditor")
+            ],
+            read_rules=[
+                PolicyReadRule(
+                    collection=Collection.AccessLog,
+                    graphql_version=LATEST_VERSION,
+                    condition=condition,
+                    fields=[PolicyReadRuleField(field="model")],
+                )
+            ],
+        )
+    )
+    await empty_db.flush()
+
+    allowed = await access_load_fn(
+        empty_db,
+        DataLoader(
+            load_fn=partial(
+                policy_load_fn,
+                empty_db,
+                Settings(),
+                token_getter_of("access_log_auditor"),
+            )
+        ),
+        [
+            AccessKey(Collection.AccessLog, str(mine.id), "model"),
+            AccessKey(Collection.AccessLog, str(earlier.id), "model"),
+            AccessKey(Collection.AccessLog, str(later.id), "model"),
+        ],
+    )
+
+    assert allowed == [True, False, False]
 
 
 @pytest.mark.integration_test

@@ -194,12 +194,6 @@ PUBLIC_FIELDS: frozenset[tuple[str, str]] = frozenset(
 # read rules. Instead add a migration granting the field to the Reader policy.
 RBAC_MAP: frozenset[tuple[str, str]] = frozenset(
     {
-        ("AccessLog", "actor"),
-        ("AccessLog", "actor_object"),
-        ("AccessLog", "id"),
-        ("AccessLog", "model"),
-        ("AccessLog", "time"),
-        ("AccessLog", "uuids"),
         ("AddressRegistration", "actor"),
         ("AddressRegistration", "actor_object"),
         ("AddressRegistration", "current"),

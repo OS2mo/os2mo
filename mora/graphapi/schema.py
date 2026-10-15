@@ -219,6 +219,7 @@ def reader_policy(
 
 # The key of an object, only for collections whose key column is not called uuid
 OBJECT_TO_KEY_OVERRIDES: dict[Collection, Callable[[Any], str]] = {
+    Collection.AccessLog: lambda root: str(root.id),
     Collection.Namespace: lambda root: root.name,
 }
 
