@@ -14,6 +14,7 @@ class Collection(enum.Enum):
     Employee = "Employee"
     Engagement = "Engagement"
     Facet = "Facet"
+    FullEvent = "FullEvent"
     ITSystem = "ITSystem"
     ITUser = "ITUser"
     KLE = "KLE"
