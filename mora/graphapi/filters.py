@@ -428,7 +428,21 @@ class FileFilter:
     )
     file_names: list[str] | None = strawberry.field(
         default=None,
-        description=gen_filter_string("Filename", "file_names"),
+        description=dedent(
+            """\
+            Filename filter limiting which entries are returned.
+
+            | `file_names` | Elements returned                            |
+            |--------------|----------------------------------------------|
+            | not provided | All                                          |
+            | `null`       | All                                          |
+            | `[]`         | All, unlike other filters                    |
+            | `"x"`        | `["x"]` or `[]` (`*`)                        |
+            | `["x", "y"]` | `["x", "y"]`, `["x"]`, `["y"]` or `[]` (`*`) |
+
+            `*`: Elements returned depends on which elements were found.
+            """
+        ),
     )
     file_name_contains: str | None = strawberry.field(
         default=None,
