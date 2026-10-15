@@ -6,12 +6,17 @@ from typing import cast
 from uuid import UUID
 
 import strawberry
+from sqlalchemy import ColumnElement
+from sqlalchemy import and_
+from sqlalchemy import select
 from strawberry.types import Info
 
 from mora import db
 from mora.access_log import access_log
+from mora.config import Settings
 from mora.db import AsyncSession
 from mora.graphapi.context import MOInfo
+from mora.graphapi.custom_schema import get_version
 from mora.graphapi.fields import Metadata
 from mora.graphapi.gmodels.mo.details.association import AssociationRead
 from mora.graphapi.gmodels.mo.details.engagement import EngagementRead
@@ -124,6 +129,22 @@ async def health_resolver(
     )
 
 
+def file_predicate(
+    settings: Settings, version: GraphQLVersion, filter: FileFilter
+) -> ColumnElement[bool]:
+    """The clause holding where a file matches the filter."""
+    clauses: list[ColumnElement] = [db.File.store == filter.file_store.name]
+
+    # Unlike other filters, an empty list of names matches every file
+    if filter.file_names:
+        clauses.append(db.File.name.in_(filter.file_names))
+
+    if filter.file_name_contains:
+        clauses.append(db.File.name.ilike(f"%{filter.file_name_contains}%"))
+
+    return and_(*clauses)
+
+
 async def file_resolver(
     info: MOInfo,
     filter: FileFilter,
@@ -149,7 +170,8 @@ async def file_resolver(
         [],
     )
 
-    found_files = await db.files.ls(session, filter)
+    predicate = file_predicate(info.context.settings, get_version(info.schema), filter)
+    found_files = set(await session.scalars(select(db.File.name).where(predicate)))
 
     offset = int(cursor.last) if cursor else 0
     files = sorted(found_files)[offset:][:limit]

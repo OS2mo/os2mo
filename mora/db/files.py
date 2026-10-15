@@ -54,16 +54,6 @@ class File(Base):
     __table_args__ = (UniqueConstraint("store", "name", name="uix_store_name"),)
 
 
-async def ls(session, filter) -> set[str]:
-    """List all files in matching the filter."""
-    query = select(File.name).where(File.store == filter.file_store.name)
-    if filter.file_names:
-        query = query.where(File.name.in_(filter.file_names))
-    if filter.file_name_contains:
-        query = query.where(File.name.ilike(f"%{filter.file_name_contains}%"))
-    return set(await session.scalars(query))
-
-
 async def write(
     session,
     actor: UUID,
