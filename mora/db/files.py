@@ -28,7 +28,7 @@ class FileToken(Base):
     secret: Mapped[str] = mapped_column(String(255), nullable=False)
 
 
-class _File(Base):
+class File(Base):
     """MO has support for a very simple file upload facility.
 
     From the outside, MO has two file stores: "exports" and "insights". Files
@@ -56,11 +56,11 @@ class _File(Base):
 
 async def ls(session, filter) -> set[str]:
     """List all files in matching the filter."""
-    query = select(_File.name).where(_File.store == filter.file_store.name)
+    query = select(File.name).where(File.store == filter.file_store.name)
     if filter.file_names:
-        query = query.where(_File.name.in_(filter.file_names))
+        query = query.where(File.name.in_(filter.file_names))
     if filter.file_name_contains:
-        query = query.where(_File.name.ilike(f"%{filter.file_name_contains}%"))
+        query = query.where(File.name.ilike(f"%{filter.file_name_contains}%"))
     return set(await session.scalars(query))
 
 
@@ -78,7 +78,7 @@ async def write(
 
     If the file already exists and *force* is False, raise E_ALREADY_EXISTS.
     """
-    query = insert(_File).values(
+    query = insert(File).values(
         actor=actor, store=file_store.name, name=file_name, content=data
     )
     if force:
@@ -97,5 +97,5 @@ async def write(
 async def read(session, file_store, file_name: str) -> bytes:
     """Read content of *file_name* from *file_store*."""
     return await session.scalar(
-        select(_File.content).where(_File.store == file_store, _File.name == file_name)
+        select(File.content).where(File.store == file_store, File.name == file_name)
     )
