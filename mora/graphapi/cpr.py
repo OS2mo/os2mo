@@ -35,17 +35,19 @@ def _handle_erstatningspersonnummer(cpr: str) -> dict | None:
         r"(?P<day>\d{2})(?P<month>\d{2})(?P<year>\d{2})[\-|\s]{0,1}(?P<code>\d{4})"
     )
     match: re.Match | None = re.match(pattern, cpr)
-    if match:
-        parsed: dict = {k: int(v) for k, v in match.groupdict().items()}
-        day: int = parsed["day"]
-        if 61 <= day <= 91:
-            logger.debug(event="detected 'erstatningspersonnummer'")
-            # Return the CPR number entered by the user, along with a blank name.
-            return {mapping.NAME: "", mapping.CPR_NO: cpr}
-        else:
-            logger.debug(event="detected normal CPR")
-    else:
-        logger.warning(event="could not parse CPR", value=cpr)
+
+    if not match:  # pragma: no cover
+        logger.warning(event="Could not parse CPR", value=cpr)
+        return None
+
+    parsed: dict = {k: int(v) for k, v in match.groupdict().items()}
+    day: int = parsed["day"]
+    if 61 <= day <= 91:
+        logger.debug(event="Detected 'erstatningspersonnummer'")
+        return {mapping.NAME: "", mapping.CPR_NO: cpr}
+
+    logger.debug(event="Detected normal CPR")
+    return None
 
 
 def _get_citizen(cpr: str, settings: config.Settings) -> dict[str, Any]:
