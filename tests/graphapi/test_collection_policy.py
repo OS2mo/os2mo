@@ -24,6 +24,7 @@ from mora.auth.keycloak.models import Token
 from mora.config import Settings
 from mora.db import AsyncSession
 from mora.db import Collection
+from mora.db import Event
 from mora.db import Listener
 from mora.db import Namespace
 from mora.db import OrganisationFunktionRegistrering
@@ -32,6 +33,7 @@ from mora.db import PolicyReadRule
 from mora.db import PolicyReadRuleField
 from mora.db import PolicySelector
 from mora.db import PolicySelectorKind
+from mora.db.events import add_event
 from mora.graphapi.graphql_utils import AccessKey
 from mora.graphapi.policies import Rule
 from mora.graphapi.policies import access_load_fn
@@ -322,6 +324,68 @@ async def test_a_batch_spans_collections_keyed_by_uuid_and_by_name(
     )
 
     assert allowed == [True, False, True]
+
+
+@pytest.mark.integration_test
+async def test_an_event_gets_the_fields_of_the_rules_matching_it(
+    empty_db: AsyncSession,
+) -> None:
+    """An event is matched by its filter, reaching into the namespace of its listener."""
+    empty_db.add_all(
+        [
+            Namespace(name="mine", owner=uuid4(), public=False),
+            Namespace(name="theirs", owner=uuid4(), public=False),
+        ]
+    )
+    listeners = [
+        Listener(user_key="listener", owner=uuid4(), routing_key="key", namespace_fk=ns)
+        for ns in ("mine", "theirs")
+    ]
+    empty_db.add_all(listeners)
+    await empty_db.flush()
+    for ns in ("mine", "theirs"):
+        await add_event(empty_db, namespace=ns, routing_key="key", subject="subject")
+    mine, theirs = [
+        await empty_db.scalar(select(Event.pk).where(Event.listener_fk == listener.pk))
+        for listener in listeners
+    ]
+    empty_db.add(
+        Policy(
+            name="Event Auditor",
+            description="Allows event auditors to read the events of a namespace",
+            active=True,
+            selectors=[
+                PolicySelector(kind=PolicySelectorKind.role, value="event_auditor")
+            ],
+            read_rules=[
+                PolicyReadRule(
+                    collection=Collection.FullEvent,
+                    graphql_version=LATEST_VERSION,
+                    condition='{"listeners": {"namespaces": {"names": ["mine"]}}}',
+                    fields=[PolicyReadRuleField(field="subject")],
+                )
+            ],
+        )
+    )
+    await empty_db.flush()
+
+    allowed = await access_load_fn(
+        empty_db,
+        DataLoader(
+            load_fn=partial(
+                policy_load_fn,
+                empty_db,
+                Settings(),
+                token_getter_of("event_auditor"),
+            )
+        ),
+        [
+            AccessKey(Collection.FullEvent, str(mine), "subject"),
+            AccessKey(Collection.FullEvent, str(theirs), "subject"),
+        ],
+    )
+
+    assert allowed == [True, False]
 
 
 @pytest.mark.integration_test

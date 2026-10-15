@@ -387,9 +387,7 @@ class FullEvent:
     @strawberry.field(
         description="The listener that will receive this event.",
     )
-    async def listener(
-        root: "FullEvent", info: strawberry.Info
-    ) -> Listener:  # pragma: no cover
+    async def listener(root: "FullEvent", info: strawberry.Info) -> Listener:
         filter = ListenerFilter(uuids=[root.listener_uuid])
         page = await listener_resolver(info, filter)
         return one(page.objects)
