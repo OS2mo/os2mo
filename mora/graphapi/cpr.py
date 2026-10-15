@@ -78,9 +78,7 @@ async def cpr_resolver(info: MOInfo, filter: CPRFilter) -> CPRPerson:
     if fictitious := _handle_erstatningspersonnummer(cpr):
         return fictitious
 
-    # Run the sync Serviceplatformen call (httpx.post + Jinja render) in a thread
-    # to avoid blocking the event loop while waiting for the SOAP response.
-    return await asyncio.to_thread(_get_citizen, cpr, settings)
+    return await _get_citizen(cpr, settings)
 
 
 def _handle_erstatningspersonnummer(cpr: str) -> CPRPerson | None:
@@ -119,7 +117,7 @@ def _handle_erstatningspersonnummer(cpr: str) -> CPRPerson | None:
     return None
 
 
-def _get_citizen(cpr: str, settings: config.Settings) -> CPRPerson:
+async def _get_citizen(cpr: str, settings: config.Settings) -> CPRPerson:
     assert settings.sp_settings is not None
 
     sp_uuids = {
@@ -133,7 +131,8 @@ def _get_citizen(cpr: str, settings: config.Settings) -> CPRPerson:
     sp_api_version = settings.sp_settings.sp_api_version
 
     try:
-        sp_data = serviceplatformen.get_citizen(
+        sp_data = await asyncio.to_thread(
+            serviceplatformen.get_citizen,
             sp_uuids,
             certificate,
             cpr,
