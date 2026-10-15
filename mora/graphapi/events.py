@@ -107,7 +107,7 @@ def listener_predicate(
 
     if filter.namespaces is not None:
         clauses.append(db.Listener.namespace_fk == db.Namespace.name)
-        clauses.extend(filter.namespaces.where_clauses())
+        clauses.append(namespace_predicate(settings, version, filter.namespaces))
 
     return and_(true(), *clauses)
 
@@ -255,7 +255,10 @@ async def namespace_resolver(
     if filter is None:  # pragma: no cover
         filter = NamespaceFilter()
 
-    query = select(db.Namespace).where(*filter.where_clauses())
+    predicate = namespace_predicate(
+        info.context.settings, get_version(info.schema), filter
+    )
+    query = select(db.Namespace).where(predicate)
 
     if limit is not None:  # pragma: no cover
         query = query.limit(limit)
