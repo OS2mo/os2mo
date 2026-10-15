@@ -217,6 +217,12 @@ def reader_policy(
     return (info.parent_type.name, info.field_name) in RBAC_MAP
 
 
+# The key of an object, only for collections whose key column is not called uuid
+OBJECT_TO_KEY_OVERRIDES: dict[Collection, Callable[[Any], str]] = {
+    Collection.Namespace: lambda root: root.name,
+}
+
+
 def collection_policy(
     root: Any, info: GraphQLResolveInfo, kwargs: dict[str, Any]
 ) -> AwaitableOrValue[bool]:
@@ -226,8 +232,9 @@ def collection_policy(
     except ValueError:
         # Non-collection types are gated by the RBAC maps instead
         return False
+    key_of = OBJECT_TO_KEY_OVERRIDES.get(collection, lambda root: str(root.uuid))
     return info.context.dataloaders.access_loader.load(
-        AccessKey(collection, root.uuid, info.field_name)
+        AccessKey(collection, key_of(root), info.field_name)
     )
 
 

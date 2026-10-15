@@ -55,7 +55,7 @@ class AccessKey(NamedTuple):
     """A field access request."""
 
     collection: Collection
-    uuid: UUID
+    key: str
     field: Field
 
 
