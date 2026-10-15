@@ -909,17 +909,36 @@ class RegistrationFilter:
             Filter registrations by their model type.
 
             Can be used to select all changes of a type.
+
+            Can be one of:
+            * `"address"`
+            * `"association"`
+            * `"class"`
+            * `"employee"`
+            * `"engagement"`
+            * `"facet"`
+            * `"itsystem"`
+            * `"ituser"`
+            * `"kle"`
+            * `"leave"`
+            * `"manager"`
+            * `"org_unit"`
+            * `"owner"`
+            * `"related"`
+            * `"role"`
+
+            Any other model matches no registrations.
             """
         )
         + gen_filter_table("models"),
     )
     start: datetime | None = strawberry.field(
         default=None,
-        description="Limit the elements returned by their starting validity.",
+        description="Only match registrations whose bitemporal interval ends after this time.",
     )
     end: datetime | None = strawberry.field(
         default=None,
-        description="Limit the elements returned by their ending validity.",
+        description="Only match registrations whose bitemporal interval starts at or before this time.",
     )
 
 
