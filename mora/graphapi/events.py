@@ -45,20 +45,6 @@ class NamespaceFilter:
     )
     public: bool | None = strawberry.field(default=None)
 
-    def where_clauses(self: "NamespaceFilter") -> list[ColumnElement[bool]]:
-        clauses: list[ColumnElement] = []
-
-        if self.names is not None:
-            clauses.append(db.Namespace.name.in_(self.names))
-
-        if self.owners is not None:
-            clauses.append(db.Namespace.owner.in_(self.owners))
-
-        if self.public is not None:
-            clauses.append(db.Namespace.public == self.public)
-
-        return clauses
-
 
 @strawberry.input(description="Listener filter.")
 class ListenerFilter:
@@ -84,7 +70,18 @@ def namespace_predicate(
     settings: Settings, version: Version, filter: NamespaceFilter
 ) -> ColumnElement[bool]:
     """The clause holding where a namespace matches the filter."""
-    return and_(true(), *filter.where_clauses())
+    clauses: list[ColumnElement] = []
+
+    if filter.names is not None:
+        clauses.append(db.Namespace.name.in_(filter.names))
+
+    if filter.owners is not None:
+        clauses.append(db.Namespace.owner.in_(filter.owners))
+
+    if filter.public is not None:
+        clauses.append(db.Namespace.public == filter.public)
+
+    return and_(true(), *clauses)
 
 
 def listener_predicate(
