@@ -132,6 +132,13 @@ class EventCreatedAtFilter:
         return clauses
 
 
+def event_created_at_predicate(
+    settings: Settings, version: Version, filter: EventCreatedAtFilter
+) -> ColumnElement[bool]:
+    """The clause holding where an event's creation time matches the filter."""
+    return and_(true(), *filter.where_clauses())
+
+
 @strawberry.input(description="Event filter.")
 class FullEventFilter:
     listeners: ListenerFilter | None = None
@@ -183,7 +190,11 @@ async def full_event_resolver(
         clauses.append(db.Event.silenced == filter.silenced)
 
     if filter.created_at is not None:
-        clauses.extend(filter.created_at.where_clauses())
+        clauses.append(
+            event_created_at_predicate(
+                info.context.settings, get_version(info.schema), filter.created_at
+            )
+        )
 
     # Pagination
     query = select(db.Event.pk).where(*clauses).order_by(db.Event.pk)
