@@ -342,6 +342,15 @@ def requested_select(keys: Iterable[AccessKey]) -> Select[Any]:
     return select(rows.c.key, rows.c.field)
 
 
+def matches_keys(collection: Collection, keys: frozenset[str]) -> ColumnElement[bool]:
+    """The clause holding where an object of the collection has one of the keys."""
+    key_column = KEY_OF_COLLECTION[collection]
+    # The input keys from Python are cast to the column's database type, this ensures
+    # that databases indexes can still be used, and thus ensures performance.
+    wanted = cast(literal(list(keys), ARRAY(String)), ARRAY(key_column.type))
+    return key_column == any_(wanted)
+
+
 def granted_select(rule: Rule, keys: frozenset[str]) -> Select[Any]:
     """Select the accesses rule grants among keys."""
     # Unnesting the fields across the matching objects turns the grant of
@@ -356,17 +365,13 @@ def granted_select(rule: Rule, keys: frozenset[str]) -> Select[Any]:
     #   key2 | field2
     #   ...  | ...
     key_column = KEY_OF_COLLECTION[rule.collection]
-    # Two casts occur here:
-    # 1. The input keys from Python are cast to the column's database type, this ensures
-    #    that databases indexes can still be used, and thus ensures performance.
-    # 2. The output keys from Postgres are cast to strings, this ensures that all
-    #    subqueries have the same typing allowing our UNION ALL to work.
-    wanted = cast(literal(list(keys), ARRAY(String)), ARRAY(key_column.type))
+    # The output keys from Postgres are cast to strings, this ensures that all
+    # subqueries have the same typing allowing our UNION ALL to work.
     return select(
         cast(key_column, String).label("key"),
         func.unnest(literal(list(rule.fields), ARRAY(String))).label("field"),
     ).where(
-        key_column == any_(wanted),
+        matches_keys(rule.collection, keys),
         rule.condition,
     )
 
