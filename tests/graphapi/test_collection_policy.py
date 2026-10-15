@@ -30,6 +30,7 @@ from mora.db import AccessLogRead
 from mora.db import AsyncSession
 from mora.db import Collection
 from mora.db import Event
+from mora.db import File
 from mora.db import Listener
 from mora.db import Namespace
 from mora.db import OrganisationFunktionRegistrering
@@ -475,6 +476,55 @@ async def test_an_access_log_entry_gets_the_fields_of_the_rules_matching_it(
     )
 
     assert allowed == [True, False, False]
+
+
+@pytest.mark.integration_test
+async def test_a_file_gets_the_fields_of_the_rules_matching_it(
+    empty_db: AsyncSession,
+) -> None:
+    """A file is matched by its filter, telling apart files of the same name."""
+    exports, insights = (
+        File(actor=uuid4(), store=store, name="report.csv", content=b"data")
+        for store in ("EXPORTS", "INSIGHTS")
+    )
+    empty_db.add_all([exports, insights])
+    empty_db.add(
+        Policy(
+            name="Insights Reader",
+            description="Allows insights readers to read the files of the insights",
+            active=True,
+            selectors=[
+                PolicySelector(kind=PolicySelectorKind.role, value="insights_reader")
+            ],
+            read_rules=[
+                PolicyReadRule(
+                    collection=Collection.File,
+                    graphql_version=LATEST_VERSION,
+                    condition='{"file_store": "INSIGHTS"}',
+                    fields=[PolicyReadRuleField(field="text_contents")],
+                )
+            ],
+        )
+    )
+    await empty_db.flush()
+
+    allowed = await access_load_fn(
+        empty_db,
+        DataLoader(
+            load_fn=partial(
+                policy_load_fn,
+                empty_db,
+                Settings(),
+                token_getter_of("insights_reader"),
+            )
+        ),
+        [
+            AccessKey(Collection.File, str(exports.id), "text_contents"),
+            AccessKey(Collection.File, str(insights.id), "text_contents"),
+        ],
+    )
+
+    assert allowed == [False, True]
 
 
 @pytest.mark.integration_test

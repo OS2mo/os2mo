@@ -171,14 +171,20 @@ async def file_resolver(
     )
 
     predicate = file_predicate(info.context.settings, get_version(info.schema), filter)
-    found_files = set(await session.scalars(select(db.File.name).where(predicate)))
+    # Names are unique within the one store a filter names
+    query = select(db.File.name, db.File.id).where(predicate)
+    found_files = dict((await session.execute(query)).tuples().all())
 
     offset = int(cursor.last) if cursor else 0
     files = sorted(found_files)[offset:][:limit]
 
     return ObjectsAndCursor(
         objects=[
-            File(file_store=filter.file_store, file_name=file_name)  # type: ignore[call-arg]
+            File(  # type: ignore[call-arg]
+                file_store=filter.file_store,
+                file_name=file_name,
+                id=found_files[file_name],
+            )
             for file_name in files
         ],
         next_cursor=(
