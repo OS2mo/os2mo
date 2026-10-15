@@ -190,6 +190,8 @@ PUBLIC_FIELDS: frozenset[tuple[str, str]] = frozenset(
 )
 
 # Every schema field requiring the `reader` role.
+# XXX: Do not add new fields here, as this map is being phased out in favour of
+# read rules. Instead add a migration granting the field to the Reader policy.
 RBAC_MAP: frozenset[tuple[str, str]] = frozenset(
     {
         ("AccessLog", "actor"),
