@@ -21,6 +21,7 @@ from mora.auth.middleware import get_authenticated_user
 from mora.config import Settings
 from mora.db import AsyncSession
 from mora.graphapi.context import MOInfo
+from mora.graphapi.custom_schema import get_version
 from mora.graphapi.filters import gen_filter_string
 from mora.graphapi.version import Version
 
@@ -44,20 +45,6 @@ class NamespaceFilter:
     )
     public: bool | None = strawberry.field(default=None)
 
-    def where_clauses(self: "NamespaceFilter") -> list[ColumnElement[bool]]:
-        clauses: list[ColumnElement] = []
-
-        if self.names is not None:
-            clauses.append(db.Namespace.name.in_(self.names))
-
-        if self.owners is not None:
-            clauses.append(db.Namespace.owner.in_(self.owners))
-
-        if self.public is not None:
-            clauses.append(db.Namespace.public == self.public)
-
-        return clauses
-
 
 @strawberry.input(description="Listener filter.")
 class ListenerFilter:
@@ -78,40 +65,48 @@ class ListenerFilter:
         default=None, description="Only match listeners in this namespace"
     )
 
-    def where_clauses(self: "ListenerFilter") -> list[ColumnElement[bool]]:
-        clauses: list[ColumnElement] = []
-
-        if self.uuids is not None:
-            clauses.append(db.Listener.pk.in_(self.uuids))
-
-        if self.user_keys is not None:
-            clauses.append(db.Listener.user_key.in_(self.user_keys))
-
-        if self.owners is not None:
-            clauses.append(db.Listener.owner.in_(self.owners))
-
-        if self.routing_keys is not None:
-            clauses.append(db.Listener.routing_key.in_(self.routing_keys))
-
-        if self.namespaces is not None:
-            clauses.append(db.Listener.namespace_fk == db.Namespace.name)
-            clauses.extend(self.namespaces.where_clauses())
-
-        return clauses
-
 
 def namespace_predicate(
     settings: Settings, version: Version, filter: NamespaceFilter
 ) -> ColumnElement[bool]:
     """The clause holding where a namespace matches the filter."""
-    return and_(true(), *filter.where_clauses())
+    clauses: list[ColumnElement] = []
+
+    if filter.names is not None:
+        clauses.append(db.Namespace.name.in_(filter.names))
+
+    if filter.owners is not None:
+        clauses.append(db.Namespace.owner.in_(filter.owners))
+
+    if filter.public is not None:
+        clauses.append(db.Namespace.public == filter.public)
+
+    return and_(true(), *clauses)
 
 
 def listener_predicate(
     settings: Settings, version: Version, filter: ListenerFilter
 ) -> ColumnElement[bool]:
     """The clause holding where a listener matches the filter."""
-    return and_(true(), *filter.where_clauses())
+    clauses: list[ColumnElement] = []
+
+    if filter.uuids is not None:
+        clauses.append(db.Listener.pk.in_(filter.uuids))
+
+    if filter.user_keys is not None:
+        clauses.append(db.Listener.user_key.in_(filter.user_keys))
+
+    if filter.owners is not None:
+        clauses.append(db.Listener.owner.in_(filter.owners))
+
+    if filter.routing_keys is not None:
+        clauses.append(db.Listener.routing_key.in_(filter.routing_keys))
+
+    if filter.namespaces is not None:
+        clauses.append(db.Listener.namespace_fk == db.Namespace.name)
+        clauses.append(namespace_predicate(settings, version, filter.namespaces))
+
+    return and_(true(), *clauses)
 
 
 @strawberry.input(description="Event creation time filter.")
@@ -125,16 +120,20 @@ class EventCreatedAtFilter:
         description="Only match events created before this time.",
     )
 
-    def where_clauses(self: "EventCreatedAtFilter") -> list[ColumnElement[bool]]:
-        clauses: list[ColumnElement] = []
 
-        if self.start is not None:
-            clauses.append(db.Event.created_at >= self.start)
+def event_created_at_predicate(
+    settings: Settings, version: Version, filter: EventCreatedAtFilter
+) -> ColumnElement[bool]:
+    """The clause holding where an event's creation time matches the filter."""
+    clauses: list[ColumnElement] = []
 
-        if self.end is not None:
-            clauses.append(db.Event.created_at < self.end)
+    if filter.start is not None:
+        clauses.append(db.Event.created_at >= filter.start)
 
-        return clauses
+    if filter.end is not None:
+        clauses.append(db.Event.created_at < filter.end)
+
+    return and_(true(), *clauses)
 
 
 @strawberry.input(description="Event filter.")
@@ -172,7 +171,11 @@ async def full_event_resolver(
         clauses.append(db.Listener.owner == owner)
 
     if filter.listeners is not None:
-        clauses.extend(filter.listeners.where_clauses())
+        clauses.append(
+            listener_predicate(
+                info.context.settings, get_version(info.schema), filter.listeners
+            )
+        )
 
     if filter.subjects is not None:
         clauses.append(db.Event.subject.in_(filter.subjects))
@@ -184,7 +187,11 @@ async def full_event_resolver(
         clauses.append(db.Event.silenced == filter.silenced)
 
     if filter.created_at is not None:
-        clauses.extend(filter.created_at.where_clauses())
+        clauses.append(
+            event_created_at_predicate(
+                info.context.settings, get_version(info.schema), filter.created_at
+            )
+        )
 
     # Pagination
     query = select(db.Event.pk).where(*clauses).order_by(db.Event.pk)
@@ -219,9 +226,10 @@ async def listener_resolver(
         filter = ListenerFilter()
 
     # Pagination
-    query = (
-        select(db.Listener.pk).where(*filter.where_clauses()).order_by(db.Listener.pk)
+    predicate = listener_predicate(
+        info.context.settings, get_version(info.schema), filter
     )
+    query = select(db.Listener.pk).where(predicate).order_by(db.Listener.pk)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(session, query, db.Listener.pk, limit, cursor)
 
@@ -252,7 +260,10 @@ async def namespace_resolver(
     if filter is None:  # pragma: no cover
         filter = NamespaceFilter()
 
-    query = select(db.Namespace).where(*filter.where_clauses())
+    predicate = namespace_predicate(
+        info.context.settings, get_version(info.schema), filter
+    )
+    query = select(db.Namespace).where(predicate)
 
     if limit is not None:  # pragma: no cover
         query = query.limit(limit)
