@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """Strawberry types describing the MO graph - Address."""
 
+from contextlib import suppress
 from functools import partial
 from textwrap import dedent
 from typing import Any
@@ -66,10 +67,16 @@ class MultifieldAddress(ResolvedAddress):
         return multifield_text.name(root.value, root.value2)
 
 
+class DARAddressNotFoundError(Exception):
+    """The DAR UUID is unknown to DAR."""
+
+
 def extract_field(field: str) -> Any:
     @strawberry.field
     async def extractor(self: Any, root: "DARAddress") -> Any:
         dar_response = await root.resolve_dar(root)
+        if dar_response is None:
+            raise DARAddressNotFoundError(f"Address not found in DAR: {root.value}")
         # The AsyncDARClient underpinning the resolve_dar function and its dar_loader
         # attempts to load the provided UUID using 2 different types of addresses in
         # DAR (by default) using a prioritized order defined by the `AddressType` enum
@@ -94,7 +101,7 @@ def extract_field(field: str) -> Any:
 @strawberry.type
 class DARAddress(ResolvedAddress):
     # Lookup the UUID in DAR, cached via the dataloader
-    async def resolve_dar(self, root: "DARAddress") -> dict[str, Any]:
+    async def resolve_dar(self, root: "DARAddress") -> dict[str, Any] | None:
         dar_loader = context["dar_loader"]
         return await dar_loader.load(UUID(root.value))
 
@@ -466,7 +473,9 @@ class Address:
         # TODO: Use AddressHandler implementation?
         if obj.scope == "DAR":
             dar_loader = context["dar_loader"]
-            address_object = await dar_loader.load(UUID(root.value))
+            address_object = None
+            with suppress(dar.DARRequestError):
+                address_object = await dar_loader.load(UUID(root.value))
             return dar.name_from_dar_object(address_object)
 
         return obj.name
@@ -508,7 +517,9 @@ class Address:
         # TODO: Use AddressHandler implementation?
         if obj.scope == "DAR":
             dar_loader = context["dar_loader"]
-            address_object = await dar_loader.load(UUID(root.value))
+            address_object = None
+            with suppress(dar.DARRequestError):
+                address_object = await dar_loader.load(UUID(root.value))
             if address_object is None:
                 return None
             return dar.open_street_map_href_from_dar_object(address_object)

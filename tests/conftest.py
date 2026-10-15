@@ -1356,6 +1356,32 @@ def primary_type_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
 
 
 @pytest.fixture
+def employee_address_type_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
+    return create_facet(
+        {
+            "user_key": "employee_address_type",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def adresse_post_employee_class(
+    employee_address_type_facet: UUID,
+    create_class: Callable[[dict[str, Any]], UUID],
+) -> UUID:
+    return create_class(
+        {
+            "user_key": "AdressePostEmployee",
+            "name": "Postadresse",
+            "facet_uuid": str(employee_address_type_facet),
+            "scope": "DAR",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
 def primary_class(
     primary_type_facet: UUID,
     create_class: Callable[[dict[str, Any]], UUID],

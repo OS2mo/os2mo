@@ -1,8 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import AsyncIterator
+from contextlib import suppress
 from uuid import UUID
 
+from aiohttp import ClientError
 from aiohttp import ClientResponseError
 from fastramqpi.os2mo_dar_client import AsyncDARClient
 from starlette_context import context
@@ -35,15 +37,30 @@ def name_from_dar_object(address_object) -> str:
     return "".join(DARAddressHandler._address_string_chunks(address_object))
 
 
-async def load_addresses(keys: list[UUID]) -> list[dict | None]:
+class DARRequestError(Exception):
+    """The request to DAR failed."""
+
+
+async def load_addresses(keys: list[UUID]) -> list[dict | None | DARRequestError]:
     adarclient = AsyncDARClient(timeout=120)
     async with adarclient:
         try:
             addresses, _ = await adarclient.fetch(set(keys))
+            return list(map(addresses.get, keys))
         except ClientResponseError as exc:
             logger.exception("address lookup failed", exc=exc)
-            return [None for _ in keys]
-    return list(map(addresses.get, keys))
+            error = DARRequestError(
+                f"Address lookup in DAR failed: DAR replied {exc.status} {exc.message}"
+            )
+            error.__cause__ = exc
+        except (ClientError, TimeoutError) as exc:
+            logger.exception("address lookup failed", exc=exc)
+            error = DARRequestError(
+                "Address lookup in DAR failed: "
+                f"DAR could not be reached ({type(exc).__name__})"
+            )
+            error.__cause__ = exc
+    return [error for _ in keys]
 
 
 _MIDDLEWARE_KEY = "dar_loader"
@@ -81,7 +98,9 @@ class DARAddressHandler(base.AddressHandler):
             return handler
 
         dar_loader = context["dar_loader"]
-        address_object = await dar_loader.load(UUID(handler.value))
+        address_object = None
+        with suppress(DARRequestError):
+            address_object = await dar_loader.load(UUID(handler.value))
         if address_object is None:
             logger.warning("address lookup failed", handler_value=handler.value)
             handler._href = None
@@ -155,5 +174,5 @@ class DARAddressHandler(base.AddressHandler):
             address_object = await dar_loader.load(UUID(value))
             if address_object is None:
                 raise LookupError(f"no such address {value!r}")
-        except (ValueError, LookupError):
+        except (ValueError, LookupError, DARRequestError):
             exceptions.ErrorCodes.V_INVALID_ADDRESS_DAR(value=value)
