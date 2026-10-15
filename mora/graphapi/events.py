@@ -210,6 +210,7 @@ async def full_event_resolver(
     return ObjectsAndCursor(
         objects=[
             FullEvent(
+                uuid=event.pk,
                 subject=event.subject,
                 priority=event.priority,
                 silenced=event.silenced,
@@ -379,6 +380,8 @@ class FullEvent:
     created_at: datetime = strawberry.field(
         description="The time the event was first created. Preserved across deduplication."
     )
+    # Keys the event for read rules, without exposing it in the schema
+    uuid: strawberry.Private[UUID]
     listener_uuid: strawberry.Private[UUID]
 
     @strawberry.field(
