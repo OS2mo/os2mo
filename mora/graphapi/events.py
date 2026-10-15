@@ -120,23 +120,20 @@ class EventCreatedAtFilter:
         description="Only match events created before this time.",
     )
 
-    def where_clauses(self: "EventCreatedAtFilter") -> list[ColumnElement[bool]]:
-        clauses: list[ColumnElement] = []
-
-        if self.start is not None:
-            clauses.append(db.Event.created_at >= self.start)
-
-        if self.end is not None:
-            clauses.append(db.Event.created_at < self.end)
-
-        return clauses
-
 
 def event_created_at_predicate(
     settings: Settings, version: Version, filter: EventCreatedAtFilter
 ) -> ColumnElement[bool]:
     """The clause holding where an event's creation time matches the filter."""
-    return and_(true(), *filter.where_clauses())
+    clauses: list[ColumnElement] = []
+
+    if filter.start is not None:
+        clauses.append(db.Event.created_at >= filter.start)
+
+    if filter.end is not None:
+        clauses.append(db.Event.created_at < filter.end)
+
+    return and_(true(), *clauses)
 
 
 @strawberry.input(description="Event filter.")
