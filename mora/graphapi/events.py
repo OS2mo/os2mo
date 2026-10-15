@@ -151,6 +151,30 @@ class FullEventFilter:
     )
 
 
+def full_event_predicate(
+    settings: Settings, version: Version, filter: FullEventFilter
+) -> ColumnElement[bool]:
+    """The clause holding where an event matches the filter."""
+    clauses: list[ColumnElement] = []
+
+    if filter.listeners is not None:
+        clauses.append(listener_predicate(settings, version, filter.listeners))
+
+    if filter.subjects is not None:
+        clauses.append(db.Event.subject.in_(filter.subjects))
+
+    if filter.priorities is not None:
+        clauses.append(db.Event.priority.in_(filter.priorities))
+
+    if filter.silenced is not None:
+        clauses.append(db.Event.silenced == filter.silenced)
+
+    if filter.created_at is not None:
+        clauses.append(event_created_at_predicate(settings, version, filter.created_at))
+
+    return and_(true(), *clauses)
+
+
 async def full_event_resolver(
     info: MOInfo,
     filter: FullEventFilter | None = None,
@@ -170,28 +194,9 @@ async def full_event_resolver(
         owner = get_authenticated_user()
         clauses.append(db.Listener.owner == owner)
 
-    if filter.listeners is not None:
-        clauses.append(
-            listener_predicate(
-                info.context.settings, get_version(info.schema), filter.listeners
-            )
-        )
-
-    if filter.subjects is not None:
-        clauses.append(db.Event.subject.in_(filter.subjects))
-
-    if filter.priorities is not None:
-        clauses.append(db.Event.priority.in_(filter.priorities))
-
-    if filter.silenced is not None:
-        clauses.append(db.Event.silenced == filter.silenced)
-
-    if filter.created_at is not None:
-        clauses.append(
-            event_created_at_predicate(
-                info.context.settings, get_version(info.schema), filter.created_at
-            )
-        )
+    clauses.append(
+        full_event_predicate(info.context.settings, get_version(info.schema), filter)
+    )
 
     # Pagination
     query = select(db.Event.pk).where(*clauses).order_by(db.Event.pk)
