@@ -27,5 +27,6 @@ class Collection(enum.Enum):
     Organisation = "Organisation"
     OrganisationUnit = "OrganisationUnit"
     Owner = "Owner"
+    Registration = "Registration"
     RelatedUnit = "RelatedUnit"
     RoleBinding = "RoleBinding"

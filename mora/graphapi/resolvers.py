@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import dataclasses
+from collections.abc import Iterable
 from collections.abc import Sequence
 from datetime import date
 from datetime import datetime
@@ -31,6 +32,7 @@ from sqlalchemy import literal
 from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy import true
+from sqlalchemy import tuple_
 from sqlalchemy import union
 from sqlalchemy import union_all
 from sqlalchemy.dialects.postgresql import TSTZMULTIRANGE
@@ -3829,6 +3831,22 @@ def registrations_predicate(
         clauses.append(REGISTRATIONS.c.model.in_(filter.models))
 
     return and_(*clauses)
+
+
+# The key of a registration: its model and its id, as every registrering table
+# numbers its registrations on its own
+REGISTRATION_KEY = func.concat(REGISTRATIONS.c.model, ":", REGISTRATIONS.c.id)
+
+
+def registrations_keyed(keys: Iterable[str]) -> ColumnElement[bool]:
+    """The clause holding where a registration has one of the keys."""
+    # Each key is the model and id of a registration, e.g. `employee:42`, looked up
+    # by the primary key of the table registering the model
+    pairs = [
+        (REGISTRATION_TABLE_OF_MODEL[model].__tablename__, int(registration_id))
+        for model, _, registration_id in (key.partition(":") for key in keys)
+    ]
+    return tuple_(REGISTRATIONS.c.tablename, REGISTRATIONS.c.id).in_(pairs)
 
 
 def row2registration(
