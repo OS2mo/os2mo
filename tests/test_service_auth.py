@@ -184,7 +184,6 @@ def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(
         "/service/e/cpr_lookup/?q=1234",
         "/service/e/00000000-0000-0000-0000-000000000000/details/",
         "/service/o/00000000-0000-0000-0000-000000000000/e/",
-        "/service/c/ancestor-tree",
         "/service/o/00000000-0000-0000-0000-000000000000/it/",
         "/service/o/",
         "/service/ou/00000000-0000-0000-0000-000000000000/children",
@@ -202,8 +201,6 @@ async def test_auth_service(raw_client: TestClient, url: str) -> None:
     "url",
     [
         "/service/details/create",
-        "/service/ou/00000000-0000-0000-0000-000000000000/map",
-        "/service/validate/org-unit/",
     ],
 )
 async def test_auth_service_with_payload(raw_client: TestClient, url: str) -> None:

@@ -37,7 +37,6 @@ from .. import lora
 from .. import mapping
 from .. import util
 from ..graphapi.middleware import is_graphql
-from ..handler.reading import get_handler_for_type
 from ..lora import LoraObjectType
 from ..triggers import Trigger
 from . import facet
@@ -329,11 +328,6 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.uuid = util.get_uuid(request)
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = self.uuid
 
-    async def prepare_refresh(self, request: dict):
-        unitid = request[mapping.UUID]
-        self.uuid = unitid
-        self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
-
     async def submit(self) -> str:
         c = lora.Connector()
 
@@ -343,19 +337,10 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                 for r in self.details_requests:
                     await r.submit()
 
-        elif self.request_type == mapping.RequestType.REFRESH:
-            pass
         else:
             self.result = await c.organisationenhed.update(self.payload, self.uuid)
 
-        submit = await super().submit()
-        if self.request_type == mapping.RequestType.REFRESH:
-            return {
-                "message": "\n".join(
-                    map(str, self.trigger_results_before + self.trigger_results_after)
-                )
-            }
-        return submit
+        return await super().submit()
 
 
 async def request_bulked_get_one_orgunit(
@@ -542,127 +527,20 @@ async def get_one_orgunit(
     return r
 
 
-@router.get("/ou/ancestor-tree")
-async def get_unit_ancestor_tree(
-    uuid: list[UUID] = Query(...),
-    only_primary_uuid: bool = Query(False),
-    org_unit_hierarchy: str = "",
-):
-    """Obtain the tree of ancestors for the given units.
-
-    The tree includes siblings of ancestors, with their child counts:
-
-    * Every ancestor of each unit.
-    * Every sibling of every ancestor, with a child count.
-
-    The intent of this routine is to enable easily showing the tree
-    *up to and including* the given units in the UI.
-
-    .. :quickref: Unit; Ancestor tree
-
-    :query unitid: the UUID of the organisational unit. *Required*.
-    :query at: the 'at date' to use, e.g. '2020-01-28'. *Optional*.
-               The tree returned will only include organisational units that
-               were valid at the specified 'at date'.
-    :query count: the name(s) of related objects to count for each unit.
-                  *Optional*. If `count=association`, each organisational unit
-                  in the tree is annotated with an additional
-                  `association_count` key which contains the number of
-                  associations in the unit. `count=engagement` is also allowed.
-                  It is allowed to pass more than one `count` query parameter.
-    :query org_unit_hierarchy: the UUID of an optional 'org unit hierarchy'.
-                               *Optional*. The tree returned is filtered to
-                               contain only organisational units which belong
-                               to the given hierarchy.
-
-    :see: :http:get:`/service/ou/(uuid:unitid)/`
-
-    **Example Response**:
-
-    .. sourcecode:: json
-
-     [{
-        "children": [
-          {
-            "child_count": 2,
-            "name": "Humanistisk fakultet",
-            "user_key": "hum",
-            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-            "validity": {
-              "from": "2016-01-01",
-              "to": null
-            }
-          },
-          {
-            "child_count": 0,
-            "name": "Samfundsvidenskabelige fakultet",
-            "user_key": "samf",
-            "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-            "validity": {
-              "from": "2017-01-01",
-              "to": null
-            }
-          }
-        ],
-        "name": "Overordnet Enhed",
-        "user_key": "root",
-        "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-        "validity": {
-          "from": "2016-01-01",
-          "to": null
-        }
-      }]
-
-    """
-
-    allowed = {"association", "engagement"}
-    given = set(util.get_query_args().getlist("count"))
-    invalid = given - allowed
-    if invalid:  # pragma: no cover
-        exceptions.ErrorCodes.E_INVALID_INPUT(
-            'invalid value(s) for "count" query parameter: %r' % invalid
-        )
-
-    c = common.get_connector()
-    count_related = {t: get_handler_for_type(t) for t in given}
-
-    unitids = list(map(str, uuid))
-    return await get_unit_tree(
-        c,
-        unitids,
-        with_siblings=True,
-        only_primary_uuid=only_primary_uuid,
-        org_unit_hierarchy=org_unit_hierarchy,
-        count_related=count_related,
-    )
-
-
 async def get_unit_tree(
     c: lora.Connector,
     unitids: list[str],
-    with_siblings: bool = False,
     only_primary_uuid: bool = False,
-    org_unit_hierarchy: str = None,
-    count_related: dict | None = None,
 ):
-    """Return a tree, bounded by the given unitid.
-
-    The tree includes siblings of ancestors, with their child counts.
-    """
+    """Return a tree, bounded by the given unitid."""
 
     async def get_unit(unitid):
-        details = (
-            UnitDetails.NCHILDREN
-            if with_siblings and unitid not in children
-            else UnitDetails.MINIMAL
-        )
         r = await get_one_orgunit(
             c,
             unitid,
             cache[unitid],
-            details=details,
+            details=UnitDetails.MINIMAL,
             only_primary_uuid=only_primary_uuid,
-            count_related=count_related,
         )
         if unitid in children:
             r["children"] = await get_units(children[unitid])
@@ -672,58 +550,15 @@ async def get_unit_tree(
         units = [await get_unit(uid) for uid in unitids]
         return sorted(units, key=lambda u: locale.strxfrm(u[mapping.NAME]))
 
-    def get_children_args(uuid, parent_uuid, cache):
-        def get_org(uuid, cache):
-            for orgid in mapping.BELONGS_TO_FIELD.get_uuids(cache[uuid]):
-                return orgid
-
-        args = {
-            "overordnet": parent_uuid,
-            "tilhoerer": get_org(uuid, cache),
-            "gyldighed": "Aktiv",
-        }
-
-        if org_unit_hierarchy:  # pragma: no cover
-            args.update({mapping.ORG_UNIT_HIERARCHY_KEY: org_unit_hierarchy})
-
-        return args
-
     root_uuids, children, cache = await prepare_ancestor_tree(
         c.organisationenhed,
         mapping.PARENT_FIELD,
         unitids,
-        get_children_args,
-        with_siblings=with_siblings,
     )
     # Strip off one level
     root_uuids = set(flatten([children[uuid] for uuid in root_uuids]))
 
     return await get_units(root for root in root_uuids)
-
-
-@router.get("/ou/{unitid}/refresh")
-async def trigger_external_integration(unitid: UUID, only_primary_uuid: bool = False):
-    """
-    Trigger external integration for a given org unit UUID
-    :param unitid: The UUID of the org unit to trigger for
-    """
-    unitid = str(unitid)
-
-    c = common.get_connector()
-
-    org_unit = await get_one_orgunit(
-        c, unitid, details=UnitDetails.FULL, only_primary_uuid=only_primary_uuid
-    )
-    if not org_unit:
-        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
-
-    request = {}
-    request[mapping.UUID] = unitid
-    handler = await OrgUnitRequestHandler.construct(
-        request, mapping.RequestType.REFRESH
-    )
-    result = await handler.submit()
-    return result
 
 
 def get_details_from_query_args(args):

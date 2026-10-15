@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
-from operator import itemgetter
 
 import pytest
 from fastapi.testclient import TestClient
 
 from . import util
+from .conftest import GraphAPIPost
 
 org_unit_type_facet = {
     "description": "",
@@ -614,7 +614,9 @@ def test_children(service_client: TestClient) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_facet_create_and_update(service_client: TestClient) -> None:
+def test_facet_create_and_update(
+    service_client: TestClient, graphapi_post: GraphAPIPost
+) -> None:
     # Tests new creation - 200 message
     response = service_client.request(
         "POST",
@@ -632,58 +634,68 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
     actual_post = response.json()
     assert actual_post == "18638313-d9e6-4e1d-aea6-67f5fce7a6b0"
 
-    job_functions = [
-        {
+    job_functions = {
+        "07cea156-1aaf-4c89-bf1b-8e721f704e22": {
             "example": None,
             "name": "Skolepsykolog",
             "owner": None,
             "scope": None,
-            "user_key": "Skolepsykolog",
             "uuid": "07cea156-1aaf-4c89-bf1b-8e721f704e22",
+            "user_key": "Skolepsykolog",
         },
-        {
+        "890d4ff0-b453-4900-b79b-dbb461eda3ee": {
             "example": None,
             "name": "Specialist",
             "owner": None,
             "scope": "TEXT",
-            "user_key": "specialist",
             "uuid": "890d4ff0-b453-4900-b79b-dbb461eda3ee",
+            "user_key": "specialist",
         },
-        {
+        "f42dd694-f1fd-42a6-8a97-38777b73adc4": {
             "example": None,
             "name": "Bogopsætter",
             "owner": None,
             "scope": None,
-            "user_key": "Bogopsætter",
             "uuid": "f42dd694-f1fd-42a6-8a97-38777b73adc4",
+            "user_key": "Bogopsætter",
         },
-    ]
+    }
 
-    # Tests the GET data matches
-    response = service_client.request("GET", "/service/f/engagement_job_function/")
-    assert response.status_code == 200
-    actual_get = response.json()
-    assert actual_get == {
-        "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
-        "user_key": "engagement_job_function",
-        "description": "",
-        "data": {
-            "total": 4,
-            "offset": 0,
-            "items": sorted(
-                job_functions
-                + [
-                    {
-                        "example": None,
-                        "name": "Jurist",
-                        "owner": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "scope": "TEXT",
-                        "user_key": "BVN",
-                        "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
+    def read_classes() -> dict[str, dict[str, str | None]]:
+        query = """
+            query ReadJobFunctionClasses {
+                classes(filter: {facet: {user_keys: "engagement_job_function"}}) {
+                    objects {
+                        current {
+                            uuid
+                            user_key
+                            name
+                            example
+                            owner
+                            scope
+                        }
                     }
-                ],
-                key=itemgetter("uuid"),
-            ),
+                }
+            }
+        """
+        response = graphapi_post(query)
+        assert response.errors is None
+        assert response.data
+        return {
+            klass["current"]["uuid"]: klass["current"]
+            for klass in response.data["classes"]["objects"]
+        }
+
+    # Tests the GraphQL data matches
+    assert read_classes() == {
+        **job_functions,
+        "18638313-d9e6-4e1d-aea6-67f5fce7a6b0": {
+            "example": None,
+            "name": "Jurist",
+            "owner": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            "scope": "TEXT",
+            "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
+            "user_key": "BVN",
         },
     }
 
@@ -705,31 +717,16 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
     actual_put = response.json()
     assert actual_put == "18638313-d9e6-4e1d-aea6-67f5fce7a6b0"
 
-    # Tests the GET data matches
-    response = service_client.request("GET", "/service/f/engagement_job_function/")
-    assert response.status_code == 200
-    actual_get = response.json()
-    assert actual_get == {
-        "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
-        "user_key": "engagement_job_function",
-        "description": "",
-        "data": {
-            "total": 4,
-            "offset": 0,
-            "items": sorted(
-                job_functions
-                + [
-                    {
-                        "example": None,
-                        "name": "Ergoterapeut",
-                        "owner": None,
-                        "scope": "TEXT",
-                        "user_key": "BVN",
-                        "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
-                    }
-                ],
-                key=itemgetter("uuid"),
-            ),
+    # Tests the GraphQL data matches
+    assert read_classes() == {
+        **job_functions,
+        "18638313-d9e6-4e1d-aea6-67f5fce7a6b0": {
+            "example": None,
+            "name": "Ergoterapeut",
+            "owner": None,
+            "scope": "TEXT",
+            "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
+            "user_key": "BVN",
         },
     }
 
@@ -1077,29 +1074,6 @@ def test_engagement_count(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_leave(service_client: TestClient) -> None:
-    expected = [
-        {
-            "engagement": {"uuid": "d000591f-8705-4324-897a-075e3623f37b"},
-            "leave_type": {"uuid": "bf65769c-5227-49b4-97c5-642cfbe41aa1"},
-            "person": {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"},
-            "user_key": "bvn",
-            "uuid": "b807628c-030c-4f5f-a438-de41c1f26ba5",
-            "validity": {"from": "2017-01-01", "to": None},
-        }
-    ]
-
-    response = service_client.request(
-        "GET",
-        "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/leave",
-        params={"only_primary_uuid": "1"},
-    )
-    assert response.status_code == 200
-    assert response.json() == expected
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "type,uuid,params,has_data",
     [
@@ -1196,7 +1170,6 @@ not_found_error = {
 @pytest.mark.parametrize(
     "url,status_code,expected",
     [
-        ("/service/o/00000000-0000-0000-0000-000000000000/f/", 200, []),
         (
             "/service/o/00000000-0000-0000-0000-000000000000/f/address_type/",
             404,
@@ -1211,153 +1184,6 @@ not_found_error = {
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/kaflaflibob/",
             404,
             not_found_error,
-        ),
-        (
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/",
-            200,
-            [
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/engagement_job_function/",
-                    "user_key": "engagement_job_function",
-                    "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
-                },
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/primary_type/",
-                    "user_key": "primary_type",
-                    "uuid": "1f6f34d8-d065-4bb7-9af0-738d25dc0fbf",
-                },
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/kle_number/",
-                    "user_key": "kle_number",
-                    "uuid": "27935dbb-c173-4116-a4b5-75022315749d",
-                },
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/org_unit_address_type/",
-                    "user_key": "org_unit_address_type",
-                    "uuid": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
-                },
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/engagement_type/",
-                    "user_key": "engagement_type",
-                    "uuid": "3e702dd1-4103-4116-bb2d-b150aebe807d",
-                },
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/org_unit_hierarchy/",
-                    "user_key": "org_unit_hierarchy",
-                    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
-                },
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/responsibility/",
-                    "user_key": "responsibility",
-                    "uuid": "452e1dd0-658b-477a-8dd8-efba105c06d6",
-                },
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/role/",
-                    "user_key": "role",
-                    "uuid": "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7",
-                },
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/org_unit_level/",
-                    "user_key": "org_unit_level",
-                    "uuid": "77c39616-dd98-4cf5-87fb-cdb9f3a0e455",
-                },
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/kle_aspect/",
-                    "user_key": "kle_aspect",
-                    "uuid": "8a29b2cf-ef98-46f4-9794-0e39354d6ddf",
-                },
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/leave_type/",
-                    "user_key": "leave_type",
-                    "uuid": "99a9d0ab-615e-4e99-8a43-bc9d3cea8438",
-                },
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/manager_type/",
-                    "user_key": "manager_type",
-                    "uuid": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
-                },
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/employee_address_type/",
-                    "user_key": "employee_address_type",
-                    "uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
-                },
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/time_planning/",
-                    "user_key": "time_planning",
-                    "uuid": "c4ad4c87-28a8-4d5c-afeb-b59de9c9f549",
-                },
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/visibility/",
-                    "user_key": "visibility",
-                    "uuid": "c9f103c7-3d53-47c0-93bf-ccb34d044a3f",
-                },
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/manager_level/",
-                    "user_key": "manager_level",
-                    "uuid": "d56f174d-c45d-4b55-bdc6-c57bf68238b9",
-                },
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/association_type/",
-                    "user_key": "association_type",
-                    "uuid": "ef71fe9c-7901-48e2-86d8-84116e210202",
-                },
-                {
-                    "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/org_unit_type/",
-                    "user_key": "org_unit_type",
-                    "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                },
-            ],
-        ),
-        (
-            "/service/c/32547559-cfc1-4d97-94c6-70b192eff825/",
-            200,
-            {
-                "example": None,
-                "name": "Afdeling",
-                "owner": None,
-                "scope": None,
-                "user_key": "afd",
-                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-            },
-        ),
-        (
-            "/service/c/32547559-cfc1-4d97-94c6-70b192eff825/?full_name=1&facet=1&top_level_facet=1",
-            200,
-            {
-                "example": None,
-                "facet": org_unit_type_facet,
-                "full_name": "Afdeling",
-                "name": "Afdeling",
-                "owner": None,
-                "scope": None,
-                "top_level_facet": org_unit_type_facet,
-                "user_key": "afd",
-                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-            },
         ),
         (
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/org_unit_type/",
@@ -1665,36 +1491,5 @@ def test_detail_list(
     service_client: TestClient, type: str, uuid: str, expected: dict[str, bool]
 ) -> None:
     response = service_client.request("GET", f"/service/{type}/{uuid}/details/")
-    assert response.status_code == 200
-    assert response.json() == expected
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-def test_facet_children(service_client: TestClient) -> None:
-    expected = [
-        {
-            "child_count": 0,
-            "name": "Skolepsykolog",
-            "user_key": "Skolepsykolog",
-            "uuid": "07cea156-1aaf-4c89-bf1b-8e721f704e22",
-        },
-        {
-            "child_count": 0,
-            "name": "Specialist",
-            "user_key": "specialist",
-            "uuid": "890d4ff0-b453-4900-b79b-dbb461eda3ee",
-        },
-        {
-            "child_count": 0,
-            "name": "Bogopsætter",
-            "user_key": "Bogopsætter",
-            "uuid": "f42dd694-f1fd-42a6-8a97-38777b73adc4",
-        },
-    ]
-
-    response = service_client.request(
-        "GET", "/service/f/1a6045a2-7a8e-4916-ab27-b2402e64f2be/children"
-    )
     assert response.status_code == 200
     assert response.json() == expected

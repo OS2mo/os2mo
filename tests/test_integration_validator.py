@@ -2,15 +2,16 @@
 # SPDX-License-Identifier: MPL-2.0
 import datetime
 import json
+from collections.abc import Callable
 from uuid import UUID
 
 import pytest
-from fastapi.testclient import TestClient
 
 from mora import exceptions
 from mora import mapping
 from mora import util as mora_util
 from mora.service.validation import validator
+from tests.conftest import GraphAPIPost
 
 
 @pytest.fixture(autouse=True)
@@ -21,153 +22,6 @@ def patch_context(monkeypatch):
     """
     monkeypatch.setattr(mora_util, "context", {"query_args": {}})
     yield
-
-
-ORG = "456362c4-0ee4-4e5e-a72c-751239745e62"
-SAMF_UNIT = "b688513d-11f7-4efc-b679-ab082a2055d0"
-HIST_UNIT = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
-PARENT = SAMF_UNIT
-
-
-def expire_org_unit(service_client: TestClient, org_unit: dict) -> None:
-    # Expire the parent from 2018-01-01
-    payload = {"validity": {"to": "2018-01-01"}}
-
-    response = service_client.request(
-        "POST", f"/service/ou/{org_unit}/terminate", json=payload
-    )
-    # amqp_topics={"org_unit.org_unit.delete": 1},
-    assert response.status_code == 200
-    assert response.json() == org_unit
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-async def test_should_return_true_when_interval_contained(
-    service_client: TestClient,
-) -> None:
-    """
-    [------ super ------)
-       [--- sub ---)
-    """
-    expire_org_unit(service_client, PARENT)
-
-    startdate = "01-02-2017"
-    enddate = "01-06-2017"
-
-    await validator.is_date_range_in_org_unit_range(
-        {"uuid": PARENT},
-        mora_util.parsedatetime(startdate),
-        mora_util.parsedatetime(enddate),
-    )
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-async def test_should_return_true_when_interval_contained2(
-    service_client: TestClient,
-) -> None:
-    """
-    [------ super ------)
-    [------ sub ---)
-    """
-    expire_org_unit(service_client, PARENT)
-
-    startdate = "01-01-2017"
-    enddate = "01-06-2017"
-
-    await validator.is_date_range_in_org_unit_range(
-        {"uuid": PARENT},
-        mora_util.parsedatetime(startdate),
-        mora_util.parsedatetime(enddate),
-    )
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-async def test_should_return_true_when_interval_contained3(
-    service_client: TestClient,
-) -> None:
-    """
-    [------ super ------)
-      [------ sub ------)
-    """
-    expire_org_unit(service_client, PARENT)
-
-    startdate = "01-02-2017"
-    enddate = "01-01-2018"
-
-    await validator.is_date_range_in_org_unit_range(
-        {"uuid": PARENT},
-        mora_util.parsedatetime(startdate),
-        mora_util.parsedatetime(enddate),
-    )
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-async def test_should_false_true_when_interval_not_contained1(
-    service_client: TestClient,
-) -> None:
-    """
-      [---- super ------)
-    [------ sub ---)
-    """
-    expire_org_unit(service_client, PARENT)
-
-    startdate = "01-01-2016"
-    enddate = "01-06-2017"
-
-    with pytest.raises(exceptions.HTTPException):
-        await validator.is_date_range_in_org_unit_range(
-            {"uuid": PARENT},
-            mora_util.parsedatetime(startdate),
-            mora_util.parsedatetime(enddate),
-        )
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-async def test_should_return_false_when_interval_not_contained2(
-    service_client: TestClient,
-) -> None:
-    """
-    [------ super ------)
-      [---- sub -----------)
-    """
-    expire_org_unit(service_client, PARENT)
-
-    startdate = "01-02-2017"
-    enddate = "01-06-2019"
-
-    with pytest.raises(exceptions.HTTPException):
-        await validator.is_date_range_in_org_unit_range(
-            {"uuid": PARENT},
-            mora_util.parsedatetime(startdate),
-            mora_util.parsedatetime(enddate),
-        )
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
-async def test_should_return_false_when_interval_not_contained3(
-    service_client: TestClient,
-) -> None:
-    """
-                               [------ super ------)
-    [---- sub -----------)
-    """
-    expire_org_unit(service_client, PARENT)
-
-    startdate = "01-02-2010"
-    enddate = "01-06-2015"
-
-    with pytest.raises(exceptions.HTTPException):
-        await validator.is_date_range_in_org_unit_range(
-            {"uuid": PARENT},
-            mora_util.parsedatetime(startdate),
-            mora_util.parsedatetime(enddate),
-        )
 
 
 @pytest.mark.integration_test
@@ -368,17 +222,35 @@ async def test_should_not_move_org_unit_to_itself() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.usefixtures("empty_db")
 async def test_should_return_false_when_candidate_parent_is_inactive(
-    service_client: TestClient,
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
 ) -> None:
-    move_date = "01-01-2019"
-    new_org_uuid = PARENT
+    """Moving a unit under a parent terminated before the move date is
+    rejected."""
 
-    expire_org_unit(service_client, PARENT)
+    unit_to_move = create_org_unit("unit-to-move")
+    candidate_parent = create_org_unit("candidate-parent")
+
+    mutation = """
+        mutation TerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
+            org_unit_terminate(input: $input) { uuid }
+        }
+    """
+
+    response = graphapi_post(
+        mutation,
+        variables={"input": {"uuid": str(candidate_parent), "to": "2018-01-01"}},
+    )
+    assert response.errors is None
+
+    move_date = datetime.datetime(year=2019, month=1, day=1)
 
     with pytest.raises(exceptions.HTTPException):
-        await validator.is_candidate_parent_valid(UNIT_TO_MOVE, new_org_uuid, move_date)
+        await validator.is_candidate_parent_valid(
+            str(unit_to_move), str(candidate_parent), move_date
+        )
 
 
 @pytest.mark.parametrize(

@@ -127,8 +127,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             await obj.prepare_edit(obj.request)
         elif obj.request_type == RequestType.TERMINATE:
             await obj.prepare_terminate(obj.request)
-        elif obj.request_type == RequestType.REFRESH:
-            await obj.prepare_refresh(obj.request)
         else:  # pragma: no cover
             raise NotImplementedError
 
@@ -165,17 +163,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :param request: A dict containing a request
         """
         raise NotImplementedError
-
-    def prepare_refresh(self, request: dict):  # pragma: no cover
-        """
-        Initialize a 'refresh' request. Performs validation and all
-        necessary processing
-
-        :param request: A dict containing a request
-
-        """
-        # Default it noop
-        pass
 
     async def submit(self) -> str:
         """Submit the request to LoRa.

@@ -112,7 +112,7 @@ class Validity(RAOpenValidity):
         if graphql_version is not None and graphql_version >= Version.VERSION_29:
             return self.to_date
 
-        return self.to_date + ONE_DAY
+        return self.to_date + ONE_DAY  # pragma: no cover
 
 
 class ValidityTerminate(Validity):
