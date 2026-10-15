@@ -1784,6 +1784,7 @@ class Mutation:
         )
         return [
             FullEvent(
+                uuid=result.pk,
                 subject=result.subject,
                 priority=result.priority,
                 silenced=result.silenced,
