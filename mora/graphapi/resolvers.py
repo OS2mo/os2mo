@@ -1859,21 +1859,29 @@ def _manager_inherit_org_unit_predicate(
     walk = (
         select(
             OrganisationEnhedRegistrering.organisationenhed_id.label("unit"),
+            has_manager(OrganisationEnhedRegistrering.organisationenhed_id).label(
+                "found"
+            ),
         )
         .where(organisation_unit_predicate(settings, version, filter.org_unit))
         .cte(recursive=True)
     )
     # Stop the walk at the nearest ancestor with a matching manager.
-    walk = walk.union(get_parent(walk.c.unit).where(~has_manager(walk.c.unit)))
+    walk = walk.union(
+        get_parent(walk.c.unit)
+        .add_columns(has_manager(OrganisationEnhedRelation.rel_maal_uuid))
+        .where(~walk.c.found)
+    )
 
-    # Intermediate units in the walk have no matching managers by construction,
-    # so including them in the IN-clause is harmless.
+    # Only the units where the walk stopped have matching managers.
     return exists().where(
         OrganisationFunktionRelation.organisationfunktion_registrering_id
         == OrganisationFunktionRegistrering.id,
         OrganisationFunktionRelation.rel_type
         == OrganisationFunktionRelationKode.tilknyttedeenheder,
-        OrganisationFunktionRelation.rel_maal_uuid.in_(select(walk.c.unit)),
+        OrganisationFunktionRelation.rel_maal_uuid.in_(
+            select(walk.c.unit).where(walk.c.found)
+        ),
         _get_active_period_clause(OrganisationFunktionRelation, filter),
     )
 
