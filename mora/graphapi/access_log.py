@@ -190,15 +190,15 @@ class AccessLogFilter:
             Can be used to select all reads for a data type.
 
             Can be one of:
-            * `"AccessLog"`
-            * `"Actor"`
-            * `"Bruger"`
-            * `"Facet"`
-            * `"ItSystem"`
-            * `"Klasse"`
-            * `"Organisation"`
-            * `"OrganisationEnhed"`
-            * `"OrganisationFunktion"`
+            * `ACCESS_LOG`
+            * `ACTOR`
+            * `PERSON`
+            * `FACET`
+            * `IT_SYSTEM`
+            * `CLASS`
+            * `ORGANISATION`
+            * `ORGANISATION_UNIT`
+            * `ORGANISATION_FUNCTION`
             """
         )
         + gen_filter_table("models"),
