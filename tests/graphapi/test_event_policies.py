@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """The fields of event namespaces and listeners are guarded by read policies."""
 
+from unittest.mock import ANY
 from uuid import UUID
 from uuid import uuid4
 
@@ -9,9 +10,12 @@ import pytest
 from more_itertools import one
 
 from mora.db import Collection
+from mora.db.events import DEFAULT_PRIORITY
+from tests.conftest import BRUCE_UUID
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 from tests.conftest import SetRules
+from tests.conftest import SetWriteRules
 
 
 @pytest.fixture
@@ -30,6 +34,19 @@ def listener(graphapi_post: GraphAPIPost) -> UUID:
     assert response.errors is None
     assert response.data
     return UUID(response.data["event_listener_declare"]["uuid"])
+
+
+@pytest.fixture
+def event(graphapi_post: GraphAPIPost, listener: UUID) -> None:
+    """An event for the listener, sent by the admin owning its namespace."""
+    response = graphapi_post(
+        """
+        mutation {
+          event_send(input: { namespace: "ns", routing_key: "key", subject: "subject" })
+        }
+        """
+    )
+    assert response.errors is None
 
 
 @pytest.mark.integration_test
@@ -134,3 +151,52 @@ async def test_a_namespace_field_no_rule_grants_is_denied(
     error = one(response.errors)
     assert error["message"] == "No policy approved the access"
     assert error["path"] == ["event_namespaces", "objects", 0, "public"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "event")
+async def test_a_reader_reads_the_fields_of_an_event(
+    set_auth: SetAuth, graphapi_post: GraphAPIPost, listener: UUID
+) -> None:
+    """Only the owner of a listener sees its events, so the reader owns it."""
+    set_auth({"reader"}, BRUCE_UUID)
+
+    response = graphapi_post(
+        """
+        query {
+          events {
+            objects { subject priority silenced created_at listener { uuid } }
+          }
+        }
+        """
+    )
+
+    assert response.errors is None
+    assert response.data == {
+        "events": {
+            "objects": [
+                {
+                    "subject": "subject",
+                    "priority": DEFAULT_PRIORITY,
+                    "silenced": False,
+                    "created_at": ANY,
+                    "listener": {"uuid": str(listener)},
+                }
+            ]
+        }
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "event")
+async def test_a_reader_reads_the_fields_of_a_rerun_event(
+    set_auth: SetAuth, graphapi_post: GraphAPIPost, set_write_rules: SetWriteRules
+) -> None:
+    """A reader reads the fields of the events a rerun hands back."""
+    await set_write_rules(role="rerunner", mutator="event_rerun", condition="true")
+    set_auth({"rerunner", "reader"}, uuid4())
+
+    response = graphapi_post("mutation { event_rerun(input: {}) { subject } }")
+
+    assert response.errors is None
+    assert response.data == {"event_rerun": [{"subject": "subject"}]}
