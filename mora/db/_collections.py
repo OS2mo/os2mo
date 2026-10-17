@@ -8,6 +8,7 @@ import enum
 class Collection(enum.Enum):
     """Names the collections a rule may grant on."""
 
+    AccessLog = "AccessLog"
     Address = "Address"
     Association = "Association"
     Class = "Class"
