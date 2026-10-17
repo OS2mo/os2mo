@@ -9,17 +9,23 @@ from uuid import UUID
 import strawberry
 from fastramqpi.ra_utils.apply import apply
 from more_itertools import bucket
+from sqlalchemy import ColumnElement
+from sqlalchemy import and_
 from sqlalchemy import select
+from sqlalchemy import true
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
 from mora.access_log import access_log
+from mora.config import Settings
 from mora.db import AccessLogOperation as AccessLogOperation
 from mora.db import AccessLogRead as AccessLogRead
 from mora.db import AsyncSession
 from mora.graphapi.context import MOInfo
+from mora.graphapi.custom_schema import get_version
 from mora.graphapi.filters import gen_filter_string
 from mora.graphapi.filters import gen_filter_table
+from mora.graphapi.version import Version
 
 from .actor import Actor
 from .actor import actor_uuid_to_actor
@@ -214,6 +220,35 @@ class AccessLogFilter:
     )
 
 
+def access_log_predicate(
+    settings: Settings, version: Version, filter: AccessLogFilter
+) -> ColumnElement[bool]:
+    """The clause holding where an access log entry matches the filter."""
+    clauses: list[ColumnElement] = []
+
+    if filter.ids is not None:
+        clauses.append(AccessLogOperation.id.in_(filter.ids))
+
+    if filter.uuids is not None:
+        subquery = select(AccessLogRead.operation_id).filter(
+            AccessLogRead.uuid.in_(filter.uuids)
+        )
+        clauses.append(AccessLogOperation.id.in_(subquery))
+
+    if filter.actors is not None:
+        clauses.append(AccessLogOperation.actor.in_(filter.actors))
+
+    if filter.models is not None:
+        models = [model.value for model in filter.models]
+        clauses.append(AccessLogOperation.model.in_(models))
+
+    if filter.start is not None or filter.end is not None:
+        start, end = get_sqlalchemy_date_interval(filter.start, filter.end)
+        clauses.append(AccessLogOperation.time.between(start, end))
+
+    return and_(true(), *clauses)
+
+
 async def access_log_resolver(
     info: MOInfo,
     filter: AccessLogFilter | None = None,
@@ -223,26 +258,12 @@ async def access_log_resolver(
     if filter is None:
         filter = AccessLogFilter()
 
-    query = select(AccessLogOperation.id)
-    if filter.ids is not None:
-        query = query.where(AccessLogOperation.id.in_(filter.ids))
-
-    if filter.uuids is not None:
-        subquery = select(AccessLogRead.operation_id).filter(
-            AccessLogRead.uuid.in_(filter.uuids)
-        )
-        query = query.where(AccessLogOperation.id.in_(subquery))
-
-    if filter.actors is not None:
-        query = query.where(AccessLogOperation.actor.in_(filter.actors))
-
-    if filter.models is not None:
-        models = [model.value for model in filter.models]
-        query = query.where(AccessLogOperation.model.in_(models))
-
-    if filter.start is not None or filter.end is not None:
-        start, end = get_sqlalchemy_date_interval(filter.start, filter.end)
-        query = query.where(AccessLogOperation.time.between(start, end))
+    predicate = access_log_predicate(
+        settings=info.context.settings,
+        version=get_version(info.schema),
+        filter=filter,
+    )
+    query = select(AccessLogOperation.id).where(predicate)
 
     # Pagination
     query = query.order_by(AccessLogOperation.id)
