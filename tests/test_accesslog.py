@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import json
 from collections.abc import Callable
+from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
 from typing import Any
@@ -19,6 +20,7 @@ from more_itertools import flatten
 from more_itertools import one
 from sqlalchemy import delete
 from sqlalchemy import select
+from sqlalchemy import update
 
 from mora.access_log import access_log
 from mora.auth.keycloak.models import Token
@@ -372,6 +374,63 @@ async def test_access_log_filter_ids(
         graphapi_post, {"ids": [ids[model] for model in named_models]}
     )
     assert filter_ids.keys() == named_models
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar({"ACCESS_LOG_ENABLE": "True"})
+@pytest.mark.parametrize(
+    "bounds,expected",
+    [
+        # No bounds, left out or null
+        ({}, {"PERSON", "FACET", "CLASS"}),
+        ({"start": None, "end": None}, {"PERSON", "FACET", "CLASS"}),
+        # The start is inclusive, with the end left out or null
+        ({"start": "2024-02-01T00:00:00+00:00"}, {"FACET", "CLASS"}),
+        ({"start": "2024-02-01T00:00:00+00:00", "end": None}, {"FACET", "CLASS"}),
+        # The end is inclusive, with the start left out or null
+        ({"end": "2024-02-01T00:00:00+00:00"}, {"PERSON", "FACET"}),
+        ({"start": None, "end": "2024-02-01T00:00:00+00:00"}, {"PERSON", "FACET"}),
+        # Both bounds are inclusive
+        (
+            {"start": "2024-02-01T00:00:00+00:00", "end": "2024-02-01T00:00:00+00:00"},
+            {"FACET"},
+        ),
+    ],
+)
+async def test_access_log_filter_time(
+    empty_db: AsyncSession,
+    graphapi_post: GraphAPIPost,
+    bounds: dict[str, str],
+    expected: set[str],
+) -> None:
+    """Only the entries logged between `start` and `end` are read."""
+    # Reading employees, facets and classes logs an entry of each
+    response = graphapi_post(
+        """
+        query {
+          employees { objects { uuid } }
+          facets { objects { uuid } }
+          classes { objects { uuid } }
+        }
+        """
+    )
+    assert response.errors is None
+    # Update the times to emulate reads spread across time
+    for model, time in (
+        ("Bruger", datetime(2024, 1, 1, tzinfo=UTC)),
+        ("Facet", datetime(2024, 2, 1, tzinfo=UTC)),
+        ("Klasse", datetime(2024, 3, 1, tzinfo=UTC)),
+    ):
+        await empty_db.execute(
+            update(AccessLogOperation)
+            .where(AccessLogOperation.model == model)
+            .values(time=time)
+        )
+    # A request opens its own session, so the rows must be committed to it
+    await empty_db.commit()
+
+    ids = get_access_log_ids(graphapi_post, bounds)
+    assert ids.keys() == expected
 
 
 @pytest.mark.integration_test
