@@ -240,7 +240,7 @@ async def access_log_resolver(
         models = [model.value for model in filter.models]
         query = query.where(AccessLogOperation.model.in_(models))
 
-    if filter.start is not None or filter.end is not None:  # pragma: no cover
+    if filter.start is not None or filter.end is not None:
         start, end = get_sqlalchemy_date_interval(filter.start, filter.end)
         query = query.where(AccessLogOperation.time.between(start, end))
 
