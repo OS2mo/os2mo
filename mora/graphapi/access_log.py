@@ -224,7 +224,7 @@ async def access_log_resolver(
         filter = AccessLogFilter()
 
     query = select(AccessLogOperation.id)
-    if filter.ids is not None:  # pragma: no cover
+    if filter.ids is not None:
         query = query.where(AccessLogOperation.id.in_(filter.ids))
 
     if filter.uuids is not None:

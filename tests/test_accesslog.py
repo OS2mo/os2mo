@@ -81,6 +81,28 @@ async def assert_one_access_log_entry(
     assert read_uuids == uuids
 
 
+def get_access_log_ids(
+    graphapi_post: GraphAPIPost, filter: dict | None = None
+) -> dict[str, str]:
+    """Map the model of each entry in the access log to its id."""
+    query = """
+      query ReadAccessLog($filter: AccessLogFilter) {
+        access_log(filter: $filter) {
+          objects {
+            id
+            model
+          }
+        }
+      }
+    """
+    response = graphapi_post(query, variables={"filter": filter})
+    assert response.errors is None
+    objects = response.data["access_log"]["objects"]
+    ids = {entry["model"]: entry["id"] for entry in objects}
+    assert len(ids) == len(objects)
+    return ids
+
+
 @pytest.mark.integration_test
 @pytest.mark.envvar({"ACCESS_LOG_ENABLE": "True"})
 async def test_access_log_database(empty_db: AsyncSession) -> None:
@@ -314,6 +336,42 @@ async def test_access_log_filters(
     assert response.data is not None
     objects = response.data["access_log"]["objects"]
     assert len(objects) == len(expected)
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar({"ACCESS_LOG_ENABLE": "True"})
+@pytest.mark.usefixtures("empty_db")
+@pytest.mark.parametrize(
+    "named_models",
+    [
+        set(),
+        {"PERSON"},
+        {"FACET"},
+        {"PERSON", "FACET"},
+    ],
+)
+async def test_access_log_filter_ids(
+    graphapi_post: GraphAPIPost, named_models: set[str]
+) -> None:
+    """Only the entries named by `ids` are read."""
+    # Reading employees and facets logs an entry of each
+    response = graphapi_post(
+        """
+        query {
+          employees { objects { uuid } }
+          facets { objects { uuid } }
+        }
+        """
+    )
+    assert response.errors is None
+
+    ids = get_access_log_ids(graphapi_post)
+    assert ids.keys() == {"FACET", "PERSON"}
+
+    filter_ids = get_access_log_ids(
+        graphapi_post, {"ids": [ids[model] for model in named_models]}
+    )
+    assert filter_ids.keys() == named_models
 
 
 @pytest.mark.integration_test
