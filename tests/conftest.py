@@ -207,7 +207,18 @@ def token_getter_of(*roles: str) -> Callable[[], Awaitable[Token]]:
 
 
 SetAuth = Callable[[str | Collection[str] | None, UUID | str | None, str], None]
-SetRules = Callable[[str, db.Collection, Iterable[str]], Awaitable[None]]
+
+
+class SetRules(Protocol):
+    def __call__(
+        self,
+        role: str,
+        collection: db.Collection,
+        fields: Iterable[str],
+        condition: str = "true",
+    ) -> Awaitable[None]: ...
+
+
 SetWriteRules = Callable[[str, str, str], Awaitable[None]]
 SetPolicies = Callable[[list[Policy]], None]
 
@@ -1774,10 +1785,13 @@ def create_address(
 
 @pytest.fixture
 def set_rules(empty_db: db.AsyncSession) -> SetRules:
-    """Grant a role the fields of a collection."""
+    """Grant a role the fields of a collection, where the condition holds."""
 
     async def inner(
-        role: str, collection: db.Collection, fields: Iterable[str]
+        role: str,
+        collection: db.Collection,
+        fields: Iterable[str],
+        condition: str = "true",
     ) -> None:
         empty_db.add(
             db.Policy(
@@ -1790,7 +1804,7 @@ def set_rules(empty_db: db.AsyncSession) -> SetRules:
                 read_rules=[
                     db.PolicyReadRule(
                         collection=collection,
-                        condition="true",
+                        condition=condition,
                         graphql_version=LATEST_VERSION,
                         fields=[
                             db.PolicyReadRuleField(field=field)
