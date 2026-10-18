@@ -38,6 +38,9 @@ class File:
         )
     )
 
+    # Keys the file for read rules, without exposing it in the schema
+    id: strawberry.Private[int]
+
     @strawberry.field(
         description=dedent(
             """

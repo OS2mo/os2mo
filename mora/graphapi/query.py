@@ -172,19 +172,23 @@ async def file_resolver(
     predicate = file_predicate(info.context.settings, get_version(info.schema), filter)
     offset = int(cursor.last) if cursor else 0
     query = (
-        select(db.File.name)
+        select(db.File.name, db.File.id)
         .where(predicate)
         # Ordered by code point, as Python orders strings, rather than by the locale
         .order_by(db.File.name.collate("C"))
         .offset(offset)
         .limit(limit)
     )
-    files = (await session.scalars(query)).all()
+    files = (await session.execute(query)).tuples().all()
 
     return ObjectsAndCursor(
         objects=[
-            File(file_store=filter.file_store, file_name=file_name)  # type: ignore[call-arg]
-            for file_name in files
+            File(  # type: ignore[call-arg]
+                file_store=filter.file_store,
+                file_name=file_name,
+                id=file_id,
+            )
+            for file_name, file_id in files
         ],
         next_cursor=(
             Cursor(last=UUID(int=offset + limit)) if limit and files else None
