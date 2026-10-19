@@ -96,8 +96,15 @@ async def test_list_files(
         # Nonexistent files are simply not returned
         (["whatever"], set()),
         (["report.csv", "whatever"], {"report.csv"}),
-        # An empty list is no filter at all, rather than a filter matching nothing
-        ([], {"report.csv", "summary.csv", "notes.txt"}),
+        # An empty list matches nothing
+        pytest.param(
+            [],
+            set(),
+            marks=pytest.mark.xfail(
+                reason="`file_names: []` is checked for truthiness, matching every file",
+                strict=True,
+            ),
+        ),
         (None, {"report.csv", "summary.csv", "notes.txt"}),
     ],
 )
