@@ -3739,6 +3739,26 @@ def registration_predicate(table: Any, filter: RegistrationFilter) -> ColumnElem
     return and_(*predicates)
 
 
+# The table registering each model of `RegistrationFilter.models`
+REGISTRATION_TABLE_OF_MODEL: dict[str, Any] = {
+    "address": OrganisationFunktionRegistrering,
+    "association": OrganisationFunktionRegistrering,
+    "class": KlasseRegistrering,
+    "employee": BrugerRegistrering,
+    "engagement": OrganisationFunktionRegistrering,
+    "facet": FacetRegistrering,
+    "itsystem": ITSystemRegistrering,
+    "ituser": OrganisationFunktionRegistrering,
+    "kle": OrganisationFunktionRegistrering,
+    "leave": OrganisationFunktionRegistrering,
+    "manager": OrganisationFunktionRegistrering,
+    "org_unit": OrganisationEnhedRegistrering,
+    "role": OrganisationFunktionRegistrering,
+    "owner": OrganisationFunktionRegistrering,
+    "related": OrganisationFunktionRegistrering,
+}
+
+
 def row2registration(
     model: str, id: int, uuid: UUID, actor: UUID, note: str, start_t: Any, end_t: Any
 ) -> RegistrationBase:
@@ -3816,29 +3836,11 @@ async def registration_resolver(
     if filter is None:
         filter = RegistrationFilter()
 
-    model2table = {
-        "address": OrganisationFunktionRegistrering,
-        "association": OrganisationFunktionRegistrering,
-        "class": KlasseRegistrering,
-        "employee": BrugerRegistrering,
-        "engagement": OrganisationFunktionRegistrering,
-        "facet": FacetRegistrering,
-        "itsystem": ITSystemRegistrering,
-        "ituser": OrganisationFunktionRegistrering,
-        "kle": OrganisationFunktionRegistrering,
-        "leave": OrganisationFunktionRegistrering,
-        "manager": OrganisationFunktionRegistrering,
-        "org_unit": OrganisationEnhedRegistrering,
-        "role": OrganisationFunktionRegistrering,
-        "owner": OrganisationFunktionRegistrering,
-        "related": OrganisationFunktionRegistrering,
-    }
-
-    tables = set(model2table.values())
+    tables = set(REGISTRATION_TABLE_OF_MODEL.values())
     # If given a model filter, only query relevant tables
     if filter.models is not None:
-        valid_keys = set(filter.models) & model2table.keys()
-        tables = {model2table[key] for key in valid_keys}
+        valid_keys = set(filter.models) & REGISTRATION_TABLE_OF_MODEL.keys()
+        tables = {REGISTRATION_TABLE_OF_MODEL[key] for key in valid_keys}
         # If only invalid model names were given, we can early return
         if not tables:  # pragma: no cover
             return ObjectsAndCursor(objects=[])
