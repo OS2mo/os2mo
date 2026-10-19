@@ -129,6 +129,56 @@ async def test_file_names_filter(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
+@pytest.mark.xfail(
+    reason="the last page hands out a cursor to a page of no files",
+    strict=True,
+)
+async def test_paginate_files(
+    upload_file: UploadFile,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Files are paged in a stable order, each of them exactly once."""
+    file_names = {"a", "b", "c"}
+    for file_name in file_names:
+        assert upload_file(file_name, b"data").errors is None
+
+    query = """
+        query Files($cursor: Cursor) {
+          files(filter: {file_store: EXPORTS}, limit: 2, cursor: $cursor) {
+            objects {
+              file_name
+            }
+            page_info {
+              next_cursor
+            }
+          }
+        }
+    """
+
+    result = graphapi_post(query)
+    assert result.errors is None
+    first_page = {f["file_name"] for f in result.data["files"]["objects"]}
+    assert len(first_page) == 2
+    assert first_page <= file_names
+    cursor = result.data["files"]["page_info"]["next_cursor"]
+    assert cursor is not None
+
+    result = graphapi_post(query, variables={"cursor": cursor})
+    assert result.errors is None
+    second_page = {f["file_name"] for f in result.data["files"]["objects"]}
+    assert len(second_page) == 1
+    assert second_page <= file_names
+    # No file is handed out on more than one page
+    assert second_page.isdisjoint(first_page)
+    # The last page hands out no cursor, as there is nothing left to read
+    assert result.data["files"]["page_info"]["next_cursor"] is None
+
+    # Every file is handed out
+    assert first_page | second_page == file_names
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 async def test_read_file_contents(
     upload_file: UploadFile,
     graphapi_post: GraphAPIPost,
