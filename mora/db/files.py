@@ -57,7 +57,7 @@ class _File(Base):
 async def ls(session, filter) -> set[str]:
     """List all files in matching the filter."""
     query = select(_File.name).where(_File.store == filter.file_store.name)
-    if filter.file_names:
+    if filter.file_names is not None:
         query = query.where(_File.name.in_(filter.file_names))
     if filter.file_name_contains:
         query = query.where(_File.name.ilike(f"%{filter.file_name_contains}%"))
