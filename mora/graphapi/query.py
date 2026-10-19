@@ -149,10 +149,8 @@ async def file_resolver(
         [],
     )
 
-    found_files = await db.files.ls(session, filter)
-
     offset = int(cursor.last) if cursor else 0
-    files = sorted(found_files)[offset:][:limit]
+    files = await db.files.ls(session, filter, offset, limit)
 
     return ObjectsAndCursor(
         objects=[

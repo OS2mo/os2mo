@@ -54,14 +54,16 @@ class _File(Base):
     __table_args__ = (UniqueConstraint("store", "name", name="uix_store_name"),)
 
 
-async def ls(session, filter) -> set[str]:
-    """List all files in matching the filter."""
+async def ls(session, filter, offset: int, limit: int | None) -> list[str]:
+    """List the page of files matching the filter, ordered by their names."""
     query = select(_File.name).where(_File.store == filter.file_store.name)
     if filter.file_names is not None:
         query = query.where(_File.name.in_(filter.file_names))
     if filter.file_name_contains:
         query = query.where(_File.name.ilike(f"%{filter.file_name_contains}%"))
-    return set(await session.scalars(query))
+    # Ordered by code point, as Python orders strings, rather than by the locale
+    query = query.order_by(_File.name.collate("C")).offset(offset).limit(limit)
+    return list(await session.scalars(query))
 
 
 async def write(
