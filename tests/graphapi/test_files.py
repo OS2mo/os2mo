@@ -97,14 +97,7 @@ async def test_list_files(
         (["whatever"], set()),
         (["report.csv", "whatever"], {"report.csv"}),
         # An empty list matches nothing
-        pytest.param(
-            [],
-            set(),
-            marks=pytest.mark.xfail(
-                reason="`file_names: []` is checked for truthiness, matching every file",
-                strict=True,
-            ),
-        ),
+        ([], set()),
         (None, {"report.csv", "summary.csv", "notes.txt"}),
     ],
 )
