@@ -32,6 +32,7 @@ from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy import true
 from sqlalchemy import union
+from sqlalchemy import union_all
 from sqlalchemy.dialects.postgresql import TSTZMULTIRANGE
 from sqlalchemy.dialects.postgresql import TSTZRANGE
 from sqlalchemy.types import Text
@@ -3762,7 +3763,11 @@ REGISTRATION_TABLE_OF_MODEL: dict[str, Any] = {
 
 def _registrations_of(table: Any) -> Select:
     """Select the registrations of the registrering table, and the model of each."""
+    # The table and model are rendered into the statement rather than bound, so
+    # Postgres folds comparisons of them in each arm of `REGISTRATIONS`, skipping
+    # the tables a clause rules out, whatever the plan cache mode
     columns = [
+        literal(table.__tablename__, literal_execute=True).label("tablename"),
         table.id.label("id"),
         table.uuid.label("uuid"),
         table.actor.label("actor"),
@@ -3797,7 +3802,13 @@ def _registrations_of(table: Any) -> Select:
     name = one(
         model for model, of in REGISTRATION_TABLE_OF_MODEL.items() if of is table
     )
-    return select(literal(name).label("model"), *columns)
+    return select(literal(name, literal_execute=True).label("model"), *columns)
+
+
+# The registrations of every registrering table
+REGISTRATIONS = union_all(
+    *map(_registrations_of, dict.fromkeys(REGISTRATION_TABLE_OF_MODEL.values()))
+).subquery("registration")
 
 
 def row2registration(
@@ -3877,31 +3888,30 @@ async def registration_resolver(
     if filter is None:
         filter = RegistrationFilter()
 
-    tables = set(REGISTRATION_TABLE_OF_MODEL.values())
-    # If given a model filter, only query relevant tables
+    # The columns of the union are named as those of a registrering table
+    clauses = [registration_predicate(REGISTRATIONS.c, filter)]
+
     if filter.models is not None:
-        valid_keys = set(filter.models) & REGISTRATION_TABLE_OF_MODEL.keys()
-        tables = {REGISTRATION_TABLE_OF_MODEL[key] for key in valid_keys}
-        # If only invalid model names were given, we can early return
-        if not tables:  # pragma: no cover
-            return ObjectsAndCursor(objects=[])
-
-    def generate_query(table: Any) -> Select:
-        query = _registrations_of(table).where(registration_predicate(table, filter))
-        if filter.models is not None:
-            query = query.where(query.selected_columns.model.in_(filter.models))
-        return query
-
-    # Query all requested registation tables using a big union query
-    union_query = union(*map(generate_query, tables)).subquery()
+        # Only the tables registering the models are searched
+        tables = {
+            REGISTRATION_TABLE_OF_MODEL[model].__tablename__
+            for model in filter.models
+            if model in REGISTRATION_TABLE_OF_MODEL
+        }
+        clauses.append(REGISTRATIONS.c.tablename.in_(sorted(tables)))
+        clauses.append(REGISTRATIONS.c.model.in_(filter.models))
 
     # Keyset pagination over the distinct entity UUIDs, like the entity
     # resolvers: `limit` bounds the number of entities -- not registrations --
     # per page, so a page may contain more than `limit` objects.
-    uuid_query = select(distinct(union_query.c.uuid)).order_by(union_query.c.uuid)
+    uuid_query = (
+        select(distinct(REGISTRATIONS.c.uuid))
+        .where(*clauses)
+        .order_by(REGISTRATIONS.c.uuid)
+    )
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
-        session, uuid_query, union_query.c.uuid, limit, cursor
+        session, uuid_query, REGISTRATIONS.c.uuid, limit, cursor
     )
 
     access_log(
@@ -3921,19 +3931,21 @@ async def registration_resolver(
         uuids,
     )
 
-    start = func.lower(union_query.c.registrering_period).label("start")
+    start = func.lower(REGISTRATIONS.c.registrering_period).label("start")
     query = (
         select(
-            union_query.c.model,
-            union_query.c.id,
-            union_query.c.uuid,
-            union_query.c.actor,
-            union_query.c.note,
+            REGISTRATIONS.c.model,
+            REGISTRATIONS.c.id,
+            REGISTRATIONS.c.uuid,
+            REGISTRATIONS.c.actor,
+            REGISTRATIONS.c.note,
             start,
-            func.upper(union_query.c.registrering_period).label("end"),
+            func.upper(REGISTRATIONS.c.registrering_period).label("end"),
         )
-        .where(union_query.c.uuid.in_(uuids))
-        .order_by(union_query.c.uuid, start)
+        .where(*clauses, REGISTRATIONS.c.uuid.in_(uuids))
+        # An organisation function occurs once per row of its attributes
+        .distinct()
+        .order_by(REGISTRATIONS.c.uuid, start)
     )
     result = await session.execute(query)
 
