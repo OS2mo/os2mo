@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from base64 import b64encode
+from unittest.mock import ANY
 
 import pytest
 from more_itertools import one
@@ -124,6 +125,57 @@ async def test_file_names_filter(
     result = graphapi_post(query, variables={"file_names": file_names})
     assert result.errors is None
     assert {f["file_name"] for f in result.data["files"]["objects"]} == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_paginate_files(
+    upload_file: UploadFile,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Files are paged by name, upper case first."""
+    for filename in ("c.csv", "a.csv", "B.csv"):
+        assert upload_file(filename, b"data").errors is None
+
+    query = """
+        query Files($cursor: Cursor) {
+          files(filter: {file_store: EXPORTS}, limit: 2, cursor: $cursor) {
+            objects {
+              file_name
+            }
+            page_info {
+              next_cursor
+            }
+          }
+        }
+    """
+
+    result = graphapi_post(query)
+    assert result.errors is None
+    assert result.data == {
+        "files": {
+            "objects": [{"file_name": "B.csv"}, {"file_name": "a.csv"}],
+            "page_info": {"next_cursor": ANY},
+        }
+    }
+    cursor = result.data["files"]["page_info"]["next_cursor"]
+    assert cursor is not None
+
+    result = graphapi_post(query, variables={"cursor": cursor})
+    assert result.errors is None
+    assert result.data == {
+        "files": {
+            "objects": [{"file_name": "c.csv"}],
+            "page_info": {"next_cursor": ANY},
+        }
+    }
+    # The last page still hands out a cursor, to a page of no files
+    cursor = result.data["files"]["page_info"]["next_cursor"]
+    assert cursor is not None
+
+    result = graphapi_post(query, variables={"cursor": cursor})
+    assert result.errors is None
+    assert result.data == {"files": {"objects": [], "page_info": {"next_cursor": None}}}
 
 
 @pytest.mark.integration_test
