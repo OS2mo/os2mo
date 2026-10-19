@@ -13,6 +13,7 @@ from typing import cast as tcast
 from uuid import UUID
 
 import strawberry
+from more_itertools import one
 from more_itertools import unique_everseen
 from psycopg.types.range import TimestamptzRange
 from pydantic import ValidationError
@@ -3759,6 +3760,46 @@ REGISTRATION_TABLE_OF_MODEL: dict[str, Any] = {
 }
 
 
+def _registrations_of(table: Any) -> Select:
+    """Select the registrations of the registrering table, and the model of each."""
+    columns = [
+        table.id.label("id"),
+        table.uuid.label("uuid"),
+        table.actor.label("actor"),
+        table.note.label("note"),
+        table.registrering_period.label("registrering_period"),
+    ]
+    if table is OrganisationFunktionRegistrering:
+        # The only table registering several models, told apart by the names of
+        # their functions, so a registration occurs once per row of its attributes
+        model = case(
+            # Mapping from LoRa funktionsnavn to GraphQL names
+            {
+                "Adresse": "address",
+                "Engagement": "engagement",
+                "IT-system": "ituser",
+                "Leder": "manager",
+                "Orlov": "leave",
+                "Rollebinding": "role",
+                "Tilknytning": "association",
+                "KLE": "kle",
+                "owner": "owner",
+                "Relateret Enhed": "related",
+            },
+            value=OrganisationFunktionAttrEgenskaber.funktionsnavn.cast(Text),
+            else_="unknown",
+        )
+        return select(model.label("model"), *columns).where(
+            OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            == table.id
+        )
+    # Every other table registers a single model
+    name = one(
+        model for model, of in REGISTRATION_TABLE_OF_MODEL.items() if of is table
+    )
+    return select(literal(name).label("model"), *columns)
+
+
 def row2registration(
     model: str, id: int, uuid: UUID, actor: UUID, note: str, start_t: Any, end_t: Any
 ) -> RegistrationBase:
@@ -3846,59 +3887,10 @@ async def registration_resolver(
             return ObjectsAndCursor(objects=[])
 
     def generate_query(table: Any) -> Select:
-        common_fields = [
-            table.id.label("id"),
-            table.uuid.label("uuid"),
-            table.actor.label("actor"),
-            table.note.label("note"),
-            func.lower(table.registrering_period).label("start"),
-            func.upper(table.registrering_period).label("end"),
-        ]
-
-        if table == OrganisationFunktionRegistrering:
-            model = case(
-                # Mapping from LoRa funktionsnavn to GraphQL names
-                {
-                    "Adresse": "address",
-                    "Engagement": "engagement",
-                    "IT-system": "ituser",
-                    "Leder": "manager",
-                    "Orlov": "leave",
-                    "Rollebinding": "role",
-                    "Tilknytning": "association",
-                    "KLE": "kle",
-                    "owner": "owner",
-                    "Relateret Enhed": "related",
-                },
-                value=OrganisationFunktionAttrEgenskaber.funktionsnavn.cast(Text),
-                else_="unknown",
-            )
-            query = select(model.label("model"), *common_fields).where(
-                OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-                == table.id,
-                registration_predicate(table, filter),
-            )
-            # This is the only table backing multiple models, so it is the only
-            # one whose rows need filtering by model; the others are pinned by
-            # the table selection above.
-            if filter.models is not None:
-                query = query.where(model.in_(filter.models))
-            return query
-        return select(
-            case(
-                # Mapping from table names to GraphQL names
-                {
-                    "BrugerRegistrering": "employee",
-                    "FacetRegistrering": "facet",
-                    "ITSystemRegistrering": "itsystem",
-                    "KlasseRegistrering": "class",
-                    "OrganisationEnhedRegistrering": "org_unit",
-                },
-                value=literal(table.__name__),
-                else_="unknown",
-            ).label("model"),
-            *common_fields,
-        ).where(registration_predicate(table, filter))
+        query = _registrations_of(table).where(registration_predicate(table, filter))
+        if filter.models is not None:
+            query = query.where(query.selected_columns.model.in_(filter.models))
+        return query
 
     # Query all requested registation tables using a big union query
     union_query = union(*map(generate_query, tables)).subquery()
@@ -3929,10 +3921,19 @@ async def registration_resolver(
         uuids,
     )
 
+    start = func.lower(union_query.c.registrering_period).label("start")
     query = (
-        select(union_query)
+        select(
+            union_query.c.model,
+            union_query.c.id,
+            union_query.c.uuid,
+            union_query.c.actor,
+            union_query.c.note,
+            start,
+            func.upper(union_query.c.registrering_period).label("end"),
+        )
         .where(union_query.c.uuid.in_(uuids))
-        .order_by(union_query.c.uuid, union_query.c.start)
+        .order_by(union_query.c.uuid, start)
     )
     result = await session.execute(query)
 
