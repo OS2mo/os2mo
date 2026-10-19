@@ -224,7 +224,7 @@ class ResponseRegistration(RegistrationBase, Generic[MOObject]):
             """
         ),
     )
-    async def validities(  # pragma: no cover
+    async def validities(
         self,
         root: "ResponseRegistration",
         info: MOInfo,
