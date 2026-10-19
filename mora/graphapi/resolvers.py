@@ -3811,6 +3811,26 @@ REGISTRATIONS = union_all(
 ).subquery("registration")
 
 
+def registrations_predicate(
+    settings: Settings, version: Version, filter: RegistrationFilter
+) -> ColumnElement[bool]:
+    """The clause holding where a registration matches the filter."""
+    # The columns of the union are named as those of a registrering table
+    clauses = [registration_predicate(REGISTRATIONS.c, filter)]
+
+    if filter.models is not None:
+        # Only the tables registering the models are searched
+        tables = {
+            REGISTRATION_TABLE_OF_MODEL[model].__tablename__
+            for model in filter.models
+            if model in REGISTRATION_TABLE_OF_MODEL
+        }
+        clauses.append(REGISTRATIONS.c.tablename.in_(sorted(tables)))
+        clauses.append(REGISTRATIONS.c.model.in_(filter.models))
+
+    return and_(*clauses)
+
+
 def row2registration(
     model: str, id: int, uuid: UUID, actor: UUID, note: str, start_t: Any, end_t: Any
 ) -> RegistrationBase:
@@ -3888,25 +3908,16 @@ async def registration_resolver(
     if filter is None:
         filter = RegistrationFilter()
 
-    # The columns of the union are named as those of a registrering table
-    clauses = [registration_predicate(REGISTRATIONS.c, filter)]
-
-    if filter.models is not None:
-        # Only the tables registering the models are searched
-        tables = {
-            REGISTRATION_TABLE_OF_MODEL[model].__tablename__
-            for model in filter.models
-            if model in REGISTRATION_TABLE_OF_MODEL
-        }
-        clauses.append(REGISTRATIONS.c.tablename.in_(sorted(tables)))
-        clauses.append(REGISTRATIONS.c.model.in_(filter.models))
+    predicate = registrations_predicate(
+        info.context.settings, get_version(info.schema), filter
+    )
 
     # Keyset pagination over the distinct entity UUIDs, like the entity
     # resolvers: `limit` bounds the number of entities -- not registrations --
     # per page, so a page may contain more than `limit` objects.
     uuid_query = (
         select(distinct(REGISTRATIONS.c.uuid))
-        .where(*clauses)
+        .where(predicate)
         .order_by(REGISTRATIONS.c.uuid)
     )
     session: AsyncSession = info.context.session
@@ -3942,7 +3953,7 @@ async def registration_resolver(
             start,
             func.upper(REGISTRATIONS.c.registrering_period).label("end"),
         )
-        .where(*clauses, REGISTRATIONS.c.uuid.in_(uuids))
+        .where(predicate, REGISTRATIONS.c.uuid.in_(uuids))
         # An organisation function occurs once per row of its attributes
         .distinct()
         .order_by(REGISTRATIONS.c.uuid, start)
