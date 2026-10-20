@@ -687,7 +687,7 @@ async def test_a_reader_may_not_declare_a_policy(
                     }
                 ]
             },
-            "condition '{' does not compile: ",
+            "Syntax error: mismatched input '<EOF>'",
         ),
         (
             {
@@ -699,7 +699,7 @@ async def test_a_reader_may_not_declare_a_policy(
                     }
                 ]
             },
-            "condition 'tokn.roles' does not compile: ",
+            "undeclared reference to 'tokn.roles'",
         ),
         (
             {
@@ -711,7 +711,7 @@ async def test_a_reader_may_not_declare_a_policy(
                     }
                 ]
             },
-            "condition '' does not compile: ",
+            "Syntax error: mismatched input '<EOF>'",
         ),
     ],
 )
