@@ -9,7 +9,7 @@ import pytest
 
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
-from mora.graphapi.policy_cel import evaluate
+from mora.cel.policies import evaluate
 from tests.conftest import ALVIDA_UUID
 from tests.conftest import BRUCE_UUID
 

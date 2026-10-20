@@ -19,7 +19,7 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 
-from mora.graphapi.policy_cel import CEL
+from mora.cel import CEL
 from mora.graphapi.version import Version
 
 from ._collections import Collection

@@ -10,8 +10,8 @@ from uuid import UUID
 import strawberry
 from pydantic import BaseModel
 
-from mora.graphapi import policy_cel
-from mora.graphapi.policy_cel import CEL
+from mora import cel
+from mora.cel import CEL
 from mora.util import CPR
 
 # https://strawberry.rocks/docs/integrations/pydantic#classes-with-__get_validators__
@@ -110,7 +110,7 @@ def _parse_cel(condition: str) -> CEL:
     """Parse the condition, raising a ValueError unless it compiles."""
     parsed = CEL(condition)
     try:
-        policy_cel._compile(parsed)
+        cel.policies._compile(parsed)
     except RuntimeError as error:
         raise ValueError(
             f"condition {condition!r} does not compile: {error}"
