@@ -7,6 +7,9 @@ from mora.cel._types import CelError
 
 def compile(env: cel.Env, expression: str) -> cel.Expression:
     """Compile the expression in the environment, raising a CelError on failure."""
+    if not expression.strip():
+        raise CelError("the expression is empty")
+
     try:
         compiled = env.compile(expression)
     except RuntimeError as error:

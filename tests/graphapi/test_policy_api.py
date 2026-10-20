@@ -711,7 +711,7 @@ async def test_a_reader_may_not_declare_a_policy(
                     }
                 ]
             },
-            "Syntax error: mismatched input '<EOF>'",
+            "the expression is empty",
         ),
     ],
 )
