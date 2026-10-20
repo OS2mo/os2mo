@@ -14,6 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from mora import db
+from mora.cel.policies import PolicyCEL
 from mora.db import AsyncSession
 from mora.db import Collection
 from mora.db import PolicySelectorKind
@@ -21,7 +22,6 @@ from mora.graphapi.context import MOInfo
 from mora.graphapi.filters import gen_filter_string
 from mora.graphapi.graphql_utils import Field
 from mora.graphapi.graphql_utils import MutatorName
-from mora.graphapi.policy_cel import CEL
 from mora.graphapi.version import Version
 
 from .paged import CursorType
@@ -68,7 +68,7 @@ class PolicyReadRule:
         description="The collection field access is granted on."
     )
     fields: list[Field] = strawberry.field(description="The fields that are granted.")
-    condition: CEL = strawberry.field(
+    condition: PolicyCEL = strawberry.field(
         description=dedent(
             """\
             CEL expression evaluating to either a boolean, or a filter naming the
@@ -86,7 +86,7 @@ class PolicyReadRule:
 @strawberry.type(description="Grants conditional access to the specified mutator.")
 class PolicyWriteRule:
     mutator: MutatorName = strawberry.field(description="The mutator granted.")
-    condition: CEL = strawberry.field(
+    condition: PolicyCEL = strawberry.field(
         description=dedent(
             """\
             CEL expression evaluating to either a boolean, or a

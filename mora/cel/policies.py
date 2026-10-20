@@ -10,9 +10,11 @@ from cel_expr_python import cel
 from fastapi.encoders import jsonable_encoder
 
 from mora.auth.keycloak.models import Token
+from mora.cel._types import CEL
+from mora.cel._types import CelError
 
-# A Common Expression Language expression
-CEL = NewType("CEL", str)
+# A condition of a policy rule
+PolicyCEL = NewType("PolicyCEL", CEL)
 
 # The bindings extension provides `cel.bind`, naming a value once for reuse
 _CONFIG = cel.NewEnvConfigFromYaml("""
@@ -32,11 +34,21 @@ _ENV = cel.NewEnv(
 
 
 @lru_cache(maxsize=2048)
-def _compile(condition: CEL) -> Any:
+def _compile(condition: PolicyCEL) -> Any:
     return _ENV.compile(condition)
 
 
-def evaluate(condition: CEL, token: Token, args: dict[str, Any]) -> Any:
+def validate(condition: str) -> PolicyCEL:
+    """Parse the condition, raising a CelError unless it compiles."""
+    parsed = PolicyCEL(CEL(condition))
+    try:
+        _compile(parsed)
+    except RuntimeError as error:
+        raise CelError(f"condition {condition!r} does not compile: {error}") from error
+    return parsed
+
+
+def evaluate(condition: PolicyCEL, token: Token, args: dict[str, Any]) -> Any:
     activation = _ENV.Activation(
         {
             "token": {
@@ -48,5 +60,5 @@ def evaluate(condition: CEL, token: Token, args: dict[str, Any]) -> Any:
     )
     result = _compile(condition).eval(activation)
     if result.type() == cel.Type.ERROR:
-        raise ValueError(f"condition {condition!r} failed: {result.value()}")
+        raise CelError(f"condition {condition!r} failed: {result.value()}")
     return result.plain_value()

@@ -12,6 +12,8 @@ import strawberry
 from strawberry import UNSET
 from strawberry.types.unset import UnsetType
 
+from mora.cel import CEL
+from mora.cel.policies import PolicyCEL
 from mora.db import events
 from mora.graphapi.gmodels.mo import OpenValidity as RAOpenValidity
 from mora.graphapi.gmodels.mo import Validity as RAValidity
@@ -68,7 +70,6 @@ from .models import RoleBindingUpdate
 from .models import Validity
 from .policy_api import Collection
 from .policy_api import PolicySelectorInput
-from .policy_cel import CEL
 from .version import Version
 
 
@@ -919,8 +920,8 @@ class PolicyReadRuleInput:
         description="The collection to grant field access on."
     )
     fields: list[Field] = strawberry.field(description="The fields to grant.")
-    condition: CEL = strawberry.field(
-        default=CEL("true"),
+    condition: PolicyCEL = strawberry.field(
+        default=PolicyCEL(CEL("true")),
         description=dedent(
             """\
             CEL expression evaluating to either a boolean, or a filter naming the
@@ -938,8 +939,8 @@ class PolicyReadRuleInput:
 @strawberry.input(description="Grants conditional access to the specified mutator.")
 class PolicyWriteRuleInput:
     mutator: MutatorName = strawberry.field(description="The mutator to grant.")
-    condition: CEL = strawberry.field(
-        default=CEL("true"),
+    condition: PolicyCEL = strawberry.field(
+        default=PolicyCEL(CEL("true")),
         description=dedent(
             """\
             CEL expression evaluating to either a boolean, or a

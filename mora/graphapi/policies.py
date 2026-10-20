@@ -36,7 +36,9 @@ from sqlalchemy import union_all
 from strawberry.dataloader import DataLoader
 from strawberry.types.arguments import convert_argument
 
+from mora import cel
 from mora.auth.keycloak.models import Token
+from mora.cel.policies import PolicyCEL
 from mora.config import Settings
 from mora.db import AsyncSession
 from mora.db import BrugerRegistrering
@@ -56,13 +58,11 @@ from mora.db import PolicySelector
 from mora.db import PolicySelectorKind
 from mora.db import PolicyWriteRule
 from mora.graphapi import events
-from mora.graphapi import policy_cel
 from mora.graphapi import resolvers
 from mora.graphapi.custom_schema import CustomSchema
 from mora.graphapi.graphql_utils import AccessKey
 from mora.graphapi.graphql_utils import Field
 from mora.graphapi.graphql_utils import WriteKey
-from mora.graphapi.policy_cel import CEL
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import Version
 
@@ -255,11 +255,11 @@ def cel2predicate(
     settings: Settings,
     collection: Collection,
     graphql_version: Version,
-    condition: CEL,
+    condition: PolicyCEL,
     token: Token,
 ) -> ColumnElement[bool]:
     """Evaluate the CEL condition into a filter, and the filter into a clause."""
-    yielded = policy_cel.evaluate(condition, token, {})
+    yielded = cel.policies.evaluate(condition, token, {})
     if isinstance(yielded, bool):
         return true() if yielded else false()
     return filter2predicate(settings, collection, graphql_version, yielded)
@@ -268,12 +268,12 @@ def cel2predicate(
 def cel2check(
     settings: Settings,
     graphql_version: Version,
-    condition: CEL,
+    condition: PolicyCEL,
     token: Token,
     args: dict[str, Any],
 ) -> ColumnElement[bool]:
     """Evaluate the CEL condition into a check of what it requires."""
-    yielded = policy_cel.evaluate(condition, token, args)
+    yielded = cel.policies.evaluate(condition, token, args)
     if isinstance(yielded, bool):
         return true() if yielded else false()
     required = CELOutput.parse_obj(yielded)
