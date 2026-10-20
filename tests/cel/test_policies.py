@@ -9,6 +9,7 @@ import pytest
 
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
+from mora.cel import CelError
 from mora.cel.policies import evaluate
 from tests.conftest import ALVIDA_UUID
 from tests.conftest import BRUCE_UUID
@@ -87,7 +88,7 @@ async def test_a_condition_reaching_for_what_the_token_lacks_fails() -> None:
     """A condition naming something the context has not is an error, not a denial."""
     token = Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"reader"}))
 
-    with pytest.raises(ValueError) as raised:
+    with pytest.raises(CelError) as raised:
         evaluate("token.nonsense.deeper", token, {})
 
     assert str(raised.value) == (

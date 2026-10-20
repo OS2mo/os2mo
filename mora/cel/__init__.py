@@ -7,5 +7,6 @@ See: https://cel.dev
 
 from . import policies
 from ._types import CEL
+from ._types import CelError
 
-__all__ = ["CEL", "policies"]
+__all__ = ["CEL", "CelError", "policies"]
