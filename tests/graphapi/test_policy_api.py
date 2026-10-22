@@ -184,6 +184,55 @@ def test_the_seeded_policy_grants_the_primary_class_of_a_manager(
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_the_seeded_policy_grants_the_explicit_manager_of_an_engagement(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[..., UUID],
+    create_manager: Callable[..., UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+) -> None:
+    """A reader reads the explicit manager of an engagement, as the migrations grant it."""
+    # Arrange
+    org_unit = create_org_unit("root")
+    person = create_person()
+    manager = create_manager(org_unit, person)
+    create_engagement(
+        {
+            "org_unit": str(org_unit),
+            "person": str(person),
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
+            "explicit_manager": str(manager),
+            "validity": {"from": "2020-01-01"},
+        }
+    )
+    set_auth("reader", BRUCE_UUID)
+
+    # Act
+    response = graphapi_post(
+        """
+        query ReadEngagementExplicitManager {
+            engagements {
+                objects {
+                    current {
+                        explicit_manager { uuid }
+                    }
+                }
+            }
+        }
+        """
+    )
+
+    # Assert
+    assert_granted(response)
+    assert response.data
+    engagement = one(response.data["engagements"]["objects"])
+    assert engagement["current"] == {"explicit_manager": {"uuid": str(manager)}}
+
+
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("auditor")
 async def test_a_policy_is_read_with_its_rules(read_policies: ReadPolicies) -> None:
     """A policy comes back as it is stored, rules and all."""
