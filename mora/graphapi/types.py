@@ -118,3 +118,11 @@ POLICY_CEL_SCALAR = strawberry.scalar(
         """
     ),
 )
+
+
+ROLEBINDING_RULE_CEL_SCALAR = strawberry.scalar(
+    name="RolebindingRuleCEL",
+    serialize=str,
+    parse_value=cel.rolebinding_rules.validate,
+    description="A CEL expression used in rolebinding rules.",
+)

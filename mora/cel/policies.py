@@ -10,6 +10,7 @@ from cel_expr_python import cel
 from fastapi.encoders import jsonable_encoder
 
 from mora.auth.keycloak.models import Token
+from mora.cel._compile import compile
 from mora.cel._types import CEL
 from mora.cel._types import CelError
 
@@ -34,17 +35,14 @@ _ENV = cel.NewEnv(
 
 
 @lru_cache(maxsize=2048)
-def _compile(condition: PolicyCEL) -> Any:
-    return _ENV.compile(condition)
+def _compile(condition: PolicyCEL) -> cel.Expression:
+    return compile(_ENV, condition)
 
 
 def validate(condition: str) -> PolicyCEL:
     """Parse the condition, raising a CelError unless it compiles."""
     parsed = PolicyCEL(CEL(condition))
-    try:
-        _compile(parsed)
-    except RuntimeError as error:
-        raise CelError(f"condition {condition!r} does not compile: {error}") from error
+    _compile(parsed)
     return parsed
 
 

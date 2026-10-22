@@ -22,6 +22,7 @@ from strawberry.dataloader import DataLoader
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.config import Settings
+from mora.db import Actor
 from mora.db import AsyncSession
 from mora.db import Collection
 from mora.db import Listener
@@ -32,6 +33,8 @@ from mora.db import PolicyReadRule
 from mora.db import PolicyReadRuleField
 from mora.db import PolicySelector
 from mora.db import PolicySelectorKind
+from mora.db import RolebindingRule
+from mora.db import RolebindingRuleRevision
 from mora.graphapi.graphql_utils import AccessKey
 from mora.graphapi.policies import Rule
 from mora.graphapi.policies import access_load_fn
@@ -322,6 +325,73 @@ async def test_a_batch_spans_collections_keyed_by_uuid_and_by_name(
     )
 
     assert allowed == [True, False, True]
+
+
+@pytest.mark.integration_test
+async def test_a_rolebinding_rule_is_matched_by_its_current_revision(
+    empty_db: AsyncSession, role: UUID
+) -> None:
+    """A rule whose name changed no longer matches its former name."""
+    actor = Actor(actor=uuid4(), name="bruce")
+    renamed, kept = RolebindingRule(), RolebindingRule()
+    empty_db.add_all([actor, renamed, kept])
+    await empty_db.flush()
+    revision = {
+        "actor": actor.actor,
+        "role": role,
+        "expression": "true",
+        "active": True,
+    }
+    empty_db.add_all(
+        [
+            RolebindingRuleRevision(
+                rule_fk=renamed.pk, version=1, name="nurses", **revision
+            ),
+            RolebindingRuleRevision(
+                rule_fk=renamed.pk, version=2, name="doctors", **revision
+            ),
+            RolebindingRuleRevision(
+                rule_fk=kept.pk, version=1, name="nurses", **revision
+            ),
+        ]
+    )
+    empty_db.add(
+        Policy(
+            name="Nurse Rule Auditor",
+            description="Allows nurse rule auditors to read the rules of nurses",
+            active=True,
+            selectors=[
+                PolicySelector(kind=PolicySelectorKind.role, value="nurse_auditor")
+            ],
+            read_rules=[
+                PolicyReadRule(
+                    collection=Collection.RolebindingRule,
+                    graphql_version=LATEST_VERSION,
+                    condition='{"names": ["nurses"]}',
+                    fields=[PolicyReadRuleField(field="current")],
+                )
+            ],
+        )
+    )
+    await empty_db.flush()
+
+    allowed = await access_load_fn(
+        empty_db,
+        DataLoader(
+            load_fn=partial(
+                policy_load_fn,
+                empty_db,
+                Settings(),
+                token_getter_of("nurse_auditor"),
+            )
+        ),
+        [
+            AccessKey(Collection.RolebindingRule, str(renamed.pk), "current"),
+            AccessKey(Collection.RolebindingRule, str(kept.pk), "current"),
+        ],
+    )
+
+    assert allowed == [False, True]
 
 
 @pytest.mark.integration_test

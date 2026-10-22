@@ -85,6 +85,11 @@ from ._policies import PolicyReadRuleField
 from ._policies import PolicySelector
 from ._policies import PolicySelectorKind
 from ._policies import PolicyWriteRule
+from ._rolebinding_rules import RolebindingRule
+from ._rolebinding_rules import RolebindingRuleRevision
+from ._rolebinding_rules import add_rolebinding_rule_revision
+from ._rolebinding_rules import create_rolebinding_rule
+from ._rolebinding_rules import current_rolebinding_rule_revision
 from .files import FileToken
 import psycopg
 

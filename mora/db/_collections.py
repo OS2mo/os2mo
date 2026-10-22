@@ -26,3 +26,5 @@ class Collection(enum.Enum):
     Owner = "Owner"
     RelatedUnit = "RelatedUnit"
     RoleBinding = "RoleBinding"
+    RolebindingRule = "RolebindingRule"
+    RolebindingRuleRevision = "RolebindingRuleRevision"

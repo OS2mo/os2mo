@@ -14,6 +14,7 @@ from strawberry.types.unset import UnsetType
 
 from mora.cel import CEL
 from mora.cel.policies import PolicyCEL
+from mora.cel.rolebinding_rules import RolebindingRuleCEL
 from mora.db import events
 from mora.graphapi.gmodels.mo import OpenValidity as RAOpenValidity
 from mora.graphapi.gmodels.mo import Validity as RAValidity
@@ -70,6 +71,7 @@ from .models import RoleBindingUpdate
 from .models import Validity
 from .policy_api import Collection
 from .policy_api import PolicySelectorInput
+from .rolebinding_rules import CEL_EXPRESSION_DESCRIPTION
 from .version import Version
 
 
@@ -978,3 +980,43 @@ class PolicyStateInput:
     write_rules: list[PolicyWriteRuleInput] = strawberry.field(
         default_factory=list, description="The mutators the policy grants access to."
     )
+
+
+# Rolebinding rules
+# -----------------
+
+
+@strawberry.input(description="Create a rolebinding rule.")
+class RolebindingRuleCreateInput:
+    name: str = strawberry.field(description="Human-readable name of the rule.")
+    role: UUID = strawberry.field(description="UUID of the role to grant.")
+    expression: RolebindingRuleCEL = strawberry.field(
+        description=CEL_EXPRESSION_DESCRIPTION
+    )
+    active: bool = strawberry.field(
+        default=True, description="Whether the engine should act on this rule."
+    )
+
+
+@strawberry.input(description="Update a rolebinding rule.")
+class RolebindingRuleUpdateInput:
+    uuid: UUID = strawberry.field(description="UUID of the rule to update.")
+    name: str | None = strawberry.field(
+        default=UNSET, description="Human-readable name of the rule."
+    )
+    role: UUID | None = strawberry.field(
+        default=UNSET,
+        description="UUID of the role to grant.",
+    )
+    expression: RolebindingRuleCEL | None = strawberry.field(
+        default=UNSET,
+        description=CEL_EXPRESSION_DESCRIPTION,
+    )
+    active: bool | None = strawberry.field(
+        default=UNSET, description="Whether the engine should act on this rule."
+    )
+
+
+@strawberry.input(description="Delete a rolebinding rule.")
+class RolebindingRuleDeleteInput:
+    uuid: UUID = strawberry.field(description="UUID of the rule to delete.")

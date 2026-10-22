@@ -153,8 +153,12 @@ from .inputs import OwnerUpdateInput
 from .inputs import PolicyStateInput
 from .inputs import RelatedUnitsUpdateInput
 from .inputs import RoleBindingCreateInput
+from .inputs import RolebindingRuleCreateInput
+from .inputs import RolebindingRuleDeleteInput
+from .inputs import RolebindingRuleUpdateInput
 from .inputs import RoleBindingTerminateInput
 from .inputs import RoleBindingUpdateInput
+from .inputs import strip_unset
 from .it_association import create_itassociation
 from .it_association import terminate_itassociation
 from .it_association import update_itassociation
@@ -212,6 +216,8 @@ from .response import Response
 from .role import create_rolebinding
 from .role import terminate_rolebinding
 from .role import update_rolebinding
+from .rolebinding_rules import RolebindingRule
+from .rolebinding_rules import load_rules
 
 logger = logging.getLogger(__name__)
 
@@ -1429,6 +1435,87 @@ class Mutation:
             owner=owner,
             priority=priority,
         )
+
+    # Rolebinding rules
+    # -----------------
+    @strawberry.mutation(
+        description="Create a rolebinding rule",
+    )
+    async def rolebinding_rule_create(
+        self, info: MOInfo, input: RolebindingRuleCreateInput
+    ) -> RolebindingRule:
+        session: AsyncSession = info.context.session
+
+        uuid = await db.create_rolebinding_rule(
+            session,
+            actor=get_authenticated_user(),
+            name=input.name,
+            role=input.role,
+            expression=input.expression,
+            active=input.active,
+        )
+        return one(await load_rules(session, [uuid]))
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Update a rolebinding rule.
+
+            Rolebinding rules are not bitemporal.
+            """,
+        ),
+    )
+    async def rolebinding_rule_update(
+        self, info: MOInfo, input: RolebindingRuleUpdateInput
+    ) -> RolebindingRule:
+        session: AsyncSession = info.context.session
+
+        values = strip_unset(
+            {
+                "name": input.name,
+                "role": input.role,
+                "expression": input.expression,
+                "active": input.active,
+            }
+        )
+
+        # If a nullable field is added in the future, change this. For now
+        # `null` is a caller mistake. Will be better when we introduce
+        # strawberry.Maybe to the codebase.
+        nulled = {key for key, value in values.items() if value is None}
+        if nulled:
+            raise ValueError(
+                f"Fields cannot be null: {', '.join(sorted(nulled))}."
+            )  # pragma: no cover
+
+        current = await db.current_rolebinding_rule_revision(session, input.uuid)
+        if current is None:
+            raise ValueError(f"No rolebinding rule with UUID '{input.uuid}'.")
+
+        # Only write if anything is actually different.
+        if any(getattr(current, key) != value for key, value in values.items()):
+            await db.add_rolebinding_rule_revision(
+                session, current, actor=get_authenticated_user(), **values
+            )
+        return one(await load_rules(session, [input.uuid]))
+
+    @strawberry.mutation(
+        description="Delete a rolebinding rule.",
+    )
+    async def rolebinding_rule_delete(
+        self, info: MOInfo, input: RolebindingRuleDeleteInput
+    ) -> UUID:
+        session: AsyncSession = info.context.session
+
+        current = await db.current_rolebinding_rule_revision(session, input.uuid)
+        # You can make this idempotent if needed 🤷
+        if current is None:
+            raise ValueError(f"No rolebinding rule with UUID '{input.uuid}'.")
+
+        await db.add_rolebinding_rule_revision(
+            session, current, actor=get_authenticated_user(), deleted=True
+        )
+        return input.uuid
 
     # Event system
     # ------------
