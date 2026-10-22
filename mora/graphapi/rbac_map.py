@@ -139,6 +139,7 @@ PUBLIC_FIELDS: frozenset[tuple[str, str]] = frozenset(
         ("Query", "addresses"),
         ("Query", "associations"),
         ("Query", "classes"),
+        ("Query", "cpr"),
         ("Query", "employees"),
         ("Query", "engagements"),
         ("Query", "event_listeners"),
@@ -261,6 +262,10 @@ RBAC_MAP: frozenset[tuple[str, str]] = frozenset(
         ("ClassResponseRegistration", "start"),
         ("ClassResponseRegistration", "uuid"),
         ("ClassResponseRegistration", "validities"),
+        # TODO(#72358): it would be nice to use PBAC instead, but currently it
+        #   doesn't work for things that don't exist in the database
+        ("CPRPerson", "cpr_number"),
+        ("CPRPerson", "name"),
         ("DefaultAddress", "value"),
         ("EmployeeResponseRegistration", "actor"),
         ("EmployeeResponseRegistration", "actor_object"),
