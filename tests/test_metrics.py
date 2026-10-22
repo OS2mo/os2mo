@@ -11,6 +11,7 @@ from sqlalchemy import text
 from tests.conftest import AnotherTransaction
 
 METRIC_NAME = "os2mo_registration_count"
+METRIC_NAME_24H_ORG_FUNC = "os2mo_registration_count_24h_org_func"
 MAX_24H_METRIC_PREFIX = "os2mo_max_registrations_on_object_24h_"
 MAX_24H_ORG_FUNC_METRIC_NAME = f"{MAX_24H_METRIC_PREFIX}org_func"
 
@@ -40,7 +41,7 @@ def test_registrations_org_func_no_registrations(
     """
     metrics = fetch_metrics()
     for type_ in ("engagement", "ituser", "address", "manager"):
-        assert f'{METRIC_NAME}{{type="{type_}"}}' not in metrics
+        assert f'{METRIC_NAME_24H_ORG_FUNC}{{type="{type_}"}}' not in metrics
 
 
 @pytest.mark.integration_test
@@ -109,7 +110,7 @@ def test_registrations_object(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-def test_registrations_org_func(
+def test_registrations_org_func_24h(
     fetch_metrics: Callable[[], str],
     create_org_unit: Callable[..., UUID],
     create_person: Callable[[dict[str, Any] | None], UUID],
@@ -117,7 +118,8 @@ def test_registrations_org_func(
     create_itsystem: Callable[[dict[str, Any]], UUID],
     create_ituser: Callable[[dict[str, Any]], UUID],
 ) -> None:
-    """Registrations are counted per org func type, under their english name.
+    """Registrations of the last day are counted per org func type, under their
+    english name.
 
     The count is recomputed on every scrape rather than accumulated, so
     scraping repeatedly does not inflate it.
@@ -152,8 +154,8 @@ def test_registrations_org_func(
     )
 
     metrics = fetch_metrics()
-    assert f'{METRIC_NAME}{{type="engagement"}} 1.0' in metrics
-    assert f'{METRIC_NAME}{{type="ituser"}} 1.0' in metrics
+    assert f'{METRIC_NAME_24H_ORG_FUNC}{{type="engagement"}} 1.0' in metrics
+    assert f'{METRIC_NAME_24H_ORG_FUNC}{{type="ituser"}} 1.0' in metrics
 
     # A second engagement, leaving the ituser count untouched.
     create_engagement(
@@ -168,13 +170,13 @@ def test_registrations_org_func(
     )
 
     metrics = fetch_metrics()
-    assert f'{METRIC_NAME}{{type="engagement"}} 2.0' in metrics
-    assert f'{METRIC_NAME}{{type="ituser"}} 1.0' in metrics
+    assert f'{METRIC_NAME_24H_ORG_FUNC}{{type="engagement"}} 2.0' in metrics
+    assert f'{METRIC_NAME_24H_ORG_FUNC}{{type="ituser"}} 1.0' in metrics
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-async def test_registrations_org_func_unknown_funktionsnavn(
+async def test_registrations_org_func_24h_unknown_funktionsnavn(
     fetch_metrics: Callable[[], str],
     create_org_unit: Callable[..., UUID],
     create_person: Callable[[dict[str, Any] | None], UUID],
@@ -210,7 +212,7 @@ async def test_registrations_org_func_unknown_funktionsnavn(
         )
 
     metrics = fetch_metrics()
-    assert f'{METRIC_NAME}{{type="rolle"}} 1.0' in metrics
+    assert f'{METRIC_NAME_24H_ORG_FUNC}{{type="rolle"}} 1.0' in metrics
 
 
 @pytest.mark.integration_test
