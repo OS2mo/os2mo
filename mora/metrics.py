@@ -25,6 +25,12 @@ METRIC_REGISTRATION_COUNT = Gauge(
     ["type"],
 )
 
+METRIC_REGISTRATION_COUNT_24H_ORG_FUNC = Gauge(
+    "os2mo_registration_count_24h_org_func",
+    "Number of organisation function registrations within the last day",
+    ["type"],
+)
+
 METRIC_MAX_REGISTRATIONS_ON_OBJECT_24H_ORG_FUNC = Gauge(
     "os2mo_max_registrations_on_object_24h_org_func",
     "Highest number of registrations on a single organisation function within "
@@ -54,8 +60,11 @@ METRICS_MAX_REGISTRATIONS_ON_OBJECT_24H = {
 }
 
 
-async def org_func_registration_count(session: AsyncSession) -> None:
-    """Count organisation function registrations per funktionsnavn."""
+async def org_func_registration_count_24h(session: AsyncSession) -> None:
+    """Count organisation function registrations per funktionsnavn.
+
+    Only registrations from the last day are counted.
+    """
     # `funktionsnavn` is mapped as an enum, but the column is really just text
     # and old databases hold values outside the enum, e.g. "Rolle". Read it as
     # text so such rows do not fail the whole scrape.
@@ -63,24 +72,45 @@ async def org_func_registration_count(session: AsyncSession) -> None:
         OrganisationFunktionAttrEgenskaber.funktionsnavn, Text
     )
 
+    # A registration can have several `attr_egenskaber` rows, one per virkning,
+    # so count the registrations rather than the join:
+    #
     # SELECT
     #     funktionsnavn,
-    #     COUNT(organisationfunktion_registrering_id)
-    # FROM organisationfunktion_attr_egenskaber
-    # GROUP BY funktionsnavn
-    query = select(
-        funktionsnavn_column,
-        func.count(
-            OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
-        ),
-    ).group_by(funktionsnavn_column)
+    #     COUNT(DISTINCT reg.id)
+    # FROM organisationfunktion_registrering AS reg
+    # JOIN organisationfunktion_attr_egenskaber AS attr
+    #     ON reg.id = attr.organisationfunktion_registrering_id
+    # WHERE LOWER((registrering).timeperiod) > NOW() - INTERVAL '1 day'
+    # GROUP BY
+    #     funktionsnavn;
+    #
+    # Keep the indexed `lower((registrering).timeperiod)` alone on one side of
+    # the comparison. Written as `now() - lower(...) < interval` instead, the
+    # expression index is unusable and this becomes a full table scan.
+    query = (
+        select(
+            funktionsnavn_column,
+            func.count(distinct(OrganisationFunktionRegistrering.id)),
+        )
+        .join(
+            OrganisationFunktionAttrEgenskaber,
+            OrganisationFunktionRegistrering.id
+            == OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id,
+        )
+        .where(
+            func.lower(OrganisationFunktionRegistrering.registrering_period)
+            > func.now() - func.make_interval(days=1)
+        )
+        .group_by(funktionsnavn_column)
+    )
 
     result = await session.execute(query)
     for funktionsnavn, registrations in result.all():
         # `funktionsnavn` is an unconstrained text column, so fall back to the
         # LoRa name rather than dropping registrations we cannot map.
         type_ = _lora_to_mo.get(funktionsnavn, funktionsnavn.lower())
-        METRIC_REGISTRATION_COUNT.labels(type=type_).set(registrations)
+        METRIC_REGISTRATION_COUNT_24H_ORG_FUNC.labels(type=type_).set(registrations)
 
 
 async def max_registrations_on_object_24h_org_func(session: AsyncSession) -> None:
@@ -207,7 +237,7 @@ async def object_registrations_count(session: AsyncSession) -> None:
 
 
 async def registration_count(info: Info) -> None:
-    """Set METRIC_REGISTRATION_COUNT from the database.
+    """Set the registration metrics from the database.
 
     Instrumentator callback, called on every request, so it only does work when
     the metrics endpoint is scraped.
@@ -217,16 +247,16 @@ async def registration_count(info: Info) -> None:
         return
 
     # Drop the children so types that disappear from the database stop being
-    # reported with their stale count. Both counting functions share the metric,
-    # so this has to happen once, before either of them runs.
+    # reported with their stale count.
     METRIC_REGISTRATION_COUNT.clear()
+    METRIC_REGISTRATION_COUNT_24H_ORG_FUNC.clear()
     METRIC_MAX_REGISTRATIONS_ON_OBJECT_24H_ORG_FUNC.clear()
 
     async with (
         mora.db._get_sessionmaker(info.request)() as session,
         session.begin(),
     ):
-        await org_func_registration_count(session)
+        await org_func_registration_count_24h(session)
         await object_registrations_count(session)
         await max_registrations_on_object_24h_org_func(session)
         await max_registrations_on_object_24h(session)
