@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from base64 import b64encode
+from datetime import datetime
 
 import pytest
 from more_itertools import one
@@ -286,3 +287,45 @@ async def test_upload_file_force(
     read = graphapi_post(query, variables={"file_name": filename})
     assert read.errors is None
     assert read.data["files"]["objects"] == [{"text_contents": "bar"}]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_file_timestamps(
+    upload_file: UploadFile,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Ensure that overwriting a file updates `updated_at`, but not `created_at`."""
+    filename = "filename.csv"
+    query = """
+        query File($file_name: String!) {
+          files(filter: {file_store: EXPORTS, file_names: [$file_name]}) {
+            objects {
+              created_at
+              updated_at
+            }
+          }
+        }
+    """
+
+    def read_timestamps() -> tuple[datetime, datetime]:
+        result = graphapi_post(query, variables={"file_name": filename})
+        assert result.errors is None
+        file = one(result.data["files"]["objects"])
+        return (
+            datetime.fromisoformat(file["created_at"]),
+            datetime.fromisoformat(file["updated_at"]),
+        )
+
+    assert upload_file(filename, b"I'm a file").errors is None
+    created_at, updated_at = read_timestamps()
+    assert updated_at == created_at
+
+    # Uploading without force fails, and leaves the file untouched
+    assert upload_file(filename, b"bar").errors is not None
+    assert read_timestamps() == (created_at, updated_at)
+
+    assert upload_file(filename, b"bar", force=True).errors is None
+    new_created_at, new_updated_at = read_timestamps()
+    assert new_created_at == created_at
+    assert new_updated_at > updated_at
