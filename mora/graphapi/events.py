@@ -159,7 +159,11 @@ def full_event_predicate(
 
     if filter.listeners is not None:
         clauses.append(db.Event.listener_fk == db.Listener.pk)
-        clauses.append(listener_predicate(settings, version, filter.listeners))
+        clauses.append(
+            listener_predicate(
+                settings=settings, version=version, filter=filter.listeners
+            )
+        )
 
     if filter.subjects is not None:
         clauses.append(db.Event.subject.in_(filter.subjects))
@@ -171,7 +175,11 @@ def full_event_predicate(
         clauses.append(db.Event.silenced == filter.silenced)
 
     if filter.created_at is not None:
-        clauses.append(event_created_at_predicate(settings, version, filter.created_at))
+        clauses.append(
+            event_created_at_predicate(
+                settings=settings, version=version, filter=filter.created_at
+            )
+        )
 
     return and_(true(), *clauses)
 
@@ -196,7 +204,11 @@ async def full_event_resolver(
         clauses.append(db.Listener.owner == owner)
 
     clauses.append(
-        full_event_predicate(info.context.settings, get_version(info.schema), filter)
+        full_event_predicate(
+            settings=info.context.settings,
+            version=get_version(info.schema),
+            filter=filter,
+        )
     )
 
     query = select(db.Event.pk).where(*clauses)
@@ -235,7 +247,9 @@ async def listener_resolver(
         filter = ListenerFilter()
 
     predicate = listener_predicate(
-        info.context.settings, get_version(info.schema), filter
+        settings=info.context.settings,
+        version=get_version(info.schema),
+        filter=filter,
     )
     query = select(db.Listener.pk).where(predicate)
 
@@ -272,7 +286,9 @@ async def namespace_resolver(
         filter = NamespaceFilter()
 
     predicate = namespace_predicate(
-        info.context.settings, get_version(info.schema), filter
+        settings=info.context.settings,
+        version=get_version(info.schema),
+        filter=filter,
     )
     query = select(db.Namespace).where(predicate)
 
