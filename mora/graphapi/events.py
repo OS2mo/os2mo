@@ -199,8 +199,10 @@ async def full_event_resolver(
         full_event_predicate(info.context.settings, get_version(info.schema), filter)
     )
 
+    query = select(db.Event.pk).where(*clauses)
+
     # Pagination
-    query = select(db.Event.pk).where(*clauses).order_by(db.Event.pk)
+    query = query.order_by(db.Event.pk)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(session, query, db.Event.pk, limit, cursor)
 
@@ -232,11 +234,13 @@ async def listener_resolver(
     if filter is None:  # pragma: no cover
         filter = ListenerFilter()
 
-    # Pagination
     predicate = listener_predicate(
         info.context.settings, get_version(info.schema), filter
     )
-    query = select(db.Listener.pk).where(predicate).order_by(db.Listener.pk)
+    query = select(db.Listener.pk).where(predicate)
+
+    # Pagination
+    query = query.order_by(db.Listener.pk)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(session, query, db.Listener.pk, limit, cursor)
 

@@ -378,12 +378,10 @@ async def facet_resolver(
         version=get_version(info.schema),
         filter=filter,
     )
-    query = (
-        select(distinct(FacetRegistrering.facet_id))
-        .where(predicate)
-        .order_by(FacetRegistrering.facet_id)
-    )
+    query = select(distinct(FacetRegistrering.facet_id)).where(predicate)
+
     # Pagination
+    query = query.order_by(FacetRegistrering.facet_id)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
         session, query, FacetRegistrering.facet_id, limit, cursor
@@ -575,12 +573,10 @@ async def class_resolver(
         version=get_version(info.schema),
         filter=filter,
     )
-    query = (
-        select(distinct(KlasseRegistrering.klasse_id))
-        .where(predicate)
-        .order_by(KlasseRegistrering.klasse_id)
-    )
+    query = select(distinct(KlasseRegistrering.klasse_id)).where(predicate)
+
     # Pagination
+    query = query.order_by(KlasseRegistrering.klasse_id)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
         session, query, KlasseRegistrering.klasse_id, limit, cursor
@@ -825,12 +821,12 @@ async def address_resolver(
         version=get_version(info.schema),
         filter=filter,
     )
-    query = (
-        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
-        .where(predicate)
-        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
-    )
+    query = select(
+        distinct(OrganisationFunktionRegistrering.organisationfunktion_id)
+    ).where(predicate)
+
     # Pagination
+    query = query.order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
         session,
@@ -1033,12 +1029,12 @@ async def association_resolver(
         version=get_version(info.schema),
         filter=filter,
     )
-    query = (
-        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
-        .where(predicate)
-        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
-    )
+    query = select(
+        distinct(OrganisationFunktionRegistrering.organisationfunktion_id)
+    ).where(predicate)
+
     # Pagination
+    query = query.order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
         session,
@@ -1187,12 +1183,10 @@ async def employee_resolver(
         version=get_version(info.schema),
         filter=filter,
     )
-    query = (
-        select(distinct(BrugerRegistrering.bruger_id))
-        .where(predicate)
-        .order_by(BrugerRegistrering.bruger_id)
-    )
+    query = select(distinct(BrugerRegistrering.bruger_id)).where(predicate)
+
     # Pagination
+    query = query.order_by(BrugerRegistrering.bruger_id)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
         session, query, BrugerRegistrering.bruger_id, limit, cursor
@@ -1471,12 +1465,12 @@ async def engagement_resolver(
         version=get_version(info.schema),
         filter=filter,
     )
-    query = (
-        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
-        .where(predicate)
-        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
-    )
+    query = select(
+        distinct(OrganisationFunktionRegistrering.organisationfunktion_id)
+    ).where(predicate)
+
     # Pagination
+    query = query.order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
         session,
@@ -1919,12 +1913,12 @@ async def manager_resolver(
         filter=filter,
         inherit=inherit,
     )
-    query = (
-        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
-        .where(predicate)
-        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
-    )
+    query = select(
+        distinct(OrganisationFunktionRegistrering.organisationfunktion_id)
+    ).where(predicate)
+
     # Pagination
+    query = query.order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
         session,
@@ -2095,12 +2089,12 @@ async def owner_resolver(
         version=get_version(info.schema),
         filter=filter,
     )
-    query = (
-        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
-        .where(predicate)
-        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
-    )
+    query = select(
+        distinct(OrganisationFunktionRegistrering.organisationfunktion_id)
+    ).where(predicate)
+
     # Pagination
+    query = query.order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
         session,
@@ -2503,12 +2497,12 @@ async def organisation_unit_resolver(
         version=get_version(info.schema),
         filter=filter,
     )
-    query = (
-        select(distinct(OrganisationEnhedRegistrering.organisationenhed_id))
-        .where(predicate)
-        .order_by(OrganisationEnhedRegistrering.organisationenhed_id)
+    query = select(distinct(OrganisationEnhedRegistrering.organisationenhed_id)).where(
+        predicate
     )
+
     # Pagination
+    query = query.order_by(OrganisationEnhedRegistrering.organisationenhed_id)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
         session,
@@ -2640,12 +2634,10 @@ async def it_system_resolver(
         version=get_version(info.schema),
         filter=filter,
     )
-    query = (
-        select(distinct(ITSystemRegistrering.itsystem_id))
-        .where(predicate)
-        .order_by(ITSystemRegistrering.itsystem_id)
-    )
+    query = select(distinct(ITSystemRegistrering.itsystem_id)).where(predicate)
+
     # Pagination
+    query = query.order_by(ITSystemRegistrering.itsystem_id)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
         session, query, ITSystemRegistrering.itsystem_id, limit, cursor
@@ -2949,12 +2941,12 @@ async def it_user_resolver(
         version=get_version(info.schema),
         filter=filter,
     )
-    query = (
-        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
-        .where(predicate)
-        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
-    )
+    query = select(
+        distinct(OrganisationFunktionRegistrering.organisationfunktion_id)
+    ).where(predicate)
+
     # Pagination
+    query = query.order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
         session,
@@ -3092,12 +3084,12 @@ async def kle_resolver(
         version=get_version(info.schema),
         filter=filter,
     )
-    query = (
-        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
-        .where(predicate)
-        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
-    )
+    query = select(
+        distinct(OrganisationFunktionRegistrering.organisationfunktion_id)
+    ).where(predicate)
+
     # Pagination
+    query = query.order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
         session,
@@ -3262,12 +3254,12 @@ async def leave_resolver(
         version=get_version(info.schema),
         filter=filter,
     )
-    query = (
-        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
-        .where(predicate)
-        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
-    )
+    query = select(
+        distinct(OrganisationFunktionRegistrering.organisationfunktion_id)
+    ).where(predicate)
+
     # Pagination
+    query = query.order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
         session,
@@ -3431,12 +3423,12 @@ async def related_unit_resolver(
         version=get_version(info.schema),
         filter=filter,
     )
-    query = (
-        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
-        .where(predicate)
-        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
-    )
+    query = select(
+        distinct(OrganisationFunktionRegistrering.organisationfunktion_id)
+    ).where(predicate)
+
     # Pagination
+    query = query.order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
         session,
@@ -3620,12 +3612,12 @@ async def rolebinding_resolver(
         version=get_version(info.schema),
         filter=filter,
     )
-    query = (
-        select(distinct(OrganisationFunktionRegistrering.organisationfunktion_id))
-        .where(predicate)
-        .order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
-    )
+    query = select(
+        distinct(OrganisationFunktionRegistrering.organisationfunktion_id)
+    ).where(predicate)
+
     # Pagination
+    query = query.order_by(OrganisationFunktionRegistrering.organisationfunktion_id)
     session: AsyncSession = info.context.session
     uuids, next_cursor = await paginate(
         session,
