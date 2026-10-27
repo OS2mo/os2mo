@@ -1784,7 +1784,9 @@ class Mutation:
                 db.Event.subject.in_(input.subjects),
                 db.Event.listener_fk == db.Listener.pk,
                 listener_predicate(
-                    info.context.settings, get_version(info.schema), input.listeners
+                    settings=info.context.settings,
+                    version=get_version(info.schema),
+                    filter=input.listeners,
                 ),
             )
             .values(silenced=True)
@@ -1807,7 +1809,9 @@ class Mutation:
         if input.listeners is not None:
             clauses.append(
                 listener_predicate(
-                    info.context.settings, get_version(info.schema), input.listeners
+                    settings=info.context.settings,
+                    version=get_version(info.schema),
+                    filter=input.listeners,
                 )
             )
 
@@ -1845,7 +1849,9 @@ class Mutation:
         if input.listeners is not None:  # pragma: no cover
             clauses.append(
                 listener_predicate(
-                    info.context.settings, get_version(info.schema), input.listeners
+                    settings=info.context.settings,
+                    version=get_version(info.schema),
+                    filter=input.listeners,
                 )
             )
 
