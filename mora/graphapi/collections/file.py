@@ -3,6 +3,7 @@
 """Strawberry types describing the MO graph - File."""
 
 from base64 import b64encode
+from datetime import datetime
 from textwrap import dedent
 
 import strawberry
@@ -34,6 +35,20 @@ class File:
         Examples:
         * `"report.odt"`
         * `"result.csv"`
+        """
+        )
+    )
+
+    created_at: datetime = strawberry.field(
+        description="When the file was first uploaded."
+    )
+
+    updated_at: datetime = strawberry.field(
+        description=dedent(
+            """
+        When the file was last written.
+
+        This is when the file was first uploaded, or last overwritten with `force`.
         """
         )
     )

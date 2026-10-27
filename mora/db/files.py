@@ -40,7 +40,12 @@ class _File(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=func.now()
+        DateTime(timezone=True), default=func.now(), nullable=False
+    )
+    # When the file was last written, which is when it was created or last
+    # overwritten
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), nullable=False
     )
 
     # actor serves as the write-audit log here, as files are not bi-temporal
@@ -84,7 +89,7 @@ async def write(
     if force:
         query = query.on_conflict_do_update(
             constraint="uix_store_name",
-            set_=dict(actor=actor, content=data),
+            set_=dict(actor=actor, content=data, updated_at=func.now()),
         )
         await session.execute(query)
     else:

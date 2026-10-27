@@ -6,6 +6,7 @@ from typing import cast
 from uuid import UUID
 
 import strawberry
+from sqlalchemy import select
 from strawberry.types import Info
 
 from mora import db
@@ -158,10 +159,21 @@ async def file_resolver(
     offset = int(cursor.last) if cursor else 0
     files = sorted(found_files)[offset:][:limit]
 
+    _File = db.files._File
+    result = await session.execute(
+        select(_File.name, _File.created_at, _File.updated_at)
+        .where(_File.store == filter.file_store.name, _File.name.in_(files))
+        .order_by(_File.name)
+    )
     return ObjectsAndCursor(
         objects=[
-            File(file_store=filter.file_store, file_name=file_name)  # type: ignore[call-arg]
-            for file_name in files
+            File(
+                file_store=filter.file_store,
+                file_name=file_name,
+                created_at=created_at,
+                updated_at=updated_at,
+            )
+            for file_name, created_at, updated_at in result.tuples()
         ],
         next_cursor=(
             Cursor(last=UUID(int=offset + limit)) if limit and files else None
