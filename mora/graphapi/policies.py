@@ -43,6 +43,7 @@ from mora.config import Settings
 from mora.db import AsyncSession
 from mora.db import BrugerRegistrering
 from mora.db import Collection
+from mora.db import Event
 from mora.db import FacetRegistrering
 from mora.db import ITSystemRegistrering
 from mora.db import KlasseRegistrering
@@ -176,6 +177,7 @@ KEY_OF_COLLECTION: dict[Collection, Any] = {
     Collection.Employee: BrugerRegistrering.uuid,
     Collection.Engagement: OrganisationFunktionRegistrering.uuid,
     Collection.Facet: FacetRegistrering.uuid,
+    Collection.FullEvent: Event.pk,
     Collection.ITSystem: ITSystemRegistrering.uuid,
     Collection.ITUser: OrganisationFunktionRegistrering.uuid,
     Collection.KLE: OrganisationFunktionRegistrering.uuid,
@@ -202,6 +204,7 @@ PREDICATE_OF_COLLECTION: dict[Collection, Callable[..., ColumnElement]] = {
     Collection.Employee: resolvers.employee_predicate,
     Collection.Engagement: resolvers.engagement_predicate,
     Collection.Facet: resolvers.facet_predicate,
+    Collection.FullEvent: events.full_event_predicate,
     Collection.ITSystem: resolvers.it_system_predicate,
     Collection.ITUser: resolvers.it_user_predicate,
     Collection.KLE: resolvers.kle_predicate,
